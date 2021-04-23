@@ -15,7 +15,6 @@ import { mergeEngineSettings } from './settings';
  */
 export function setupEngine(pluginSettings, additionalSettings, hotId) {
   const engineConfigItem = pluginSettings.engine;
-  let engine = null;
 
   if (isUndefined(engineConfigItem)) {
     error('Missing the required `engine` key in the Formulas settings. Please fill it with either an' +
@@ -26,7 +25,7 @@ export function setupEngine(pluginSettings, additionalSettings, hotId) {
 
   // `engine.hyperformula` or `engine` is the engine class
   if (typeof engineConfigItem.hyperformula === 'function' || typeof engineConfigItem === 'function') {
-    engine = registerEngine(
+    return registerEngine(
       engineConfigItem.hyperformula || engineConfigItem,
       pluginSettings,
       mergeEngineSettings(
@@ -40,14 +39,14 @@ export function setupEngine(pluginSettings, additionalSettings, hotId) {
     const engineRegistry = staticRegister(PLUGIN_KEY).getItem('engine');
     const sharedEngineUsage = engineRegistry ? engineRegistry.get(engineConfigItem) : null;
 
-    engine = engineConfigItem;
-
     if (sharedEngineUsage) {
       sharedEngineUsage.push(hotId);
     }
+
+    return engineConfigItem;
   }
 
-  return engine;
+  return null;
 }
 
 /**
