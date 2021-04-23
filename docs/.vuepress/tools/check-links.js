@@ -10,8 +10,6 @@ const ACCEPTABLE_STATUS_CODES = [undefined, 200, 429];
 
 const brokenLinks = []; // should populate with objects, eg. {statusCode: number, url: string}
 
-const serverDest = path.relative('.', '../dist');
-
 const spawnProcess = (command, options = {}) => {
   const cmdSplit = command.split(' ');
   const mainCmd = cmdSplit[0];
@@ -28,7 +26,7 @@ const spawnProcess = (command, options = {}) => {
 };
 
 // start server
-spawnProcess('http-server .vuepress/dist -s 8080');
+spawnProcess(`http-server ${path.resolve('.vuepress', 'dist')} -s 8080`);
 
 const siteChecker = new SiteChecker(
   {
