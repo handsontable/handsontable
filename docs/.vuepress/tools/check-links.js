@@ -36,8 +36,7 @@ const siteChecker = new SiteChecker(
     acceptedSchemes: ['http', 'https'],
     excludedKeywords: [
       'linkedin', // it always throws an error even if link really works
-      '*/docs/release-notes*', // there are a lot of Github links that will throw an 429 error (Github doesn't allow to unlimited requests)
-      '*/docs/next/release-notes*', // same as above
+      'github',
       '*/docs/*.*' // exclude links on version pages
     ]
   },
