@@ -36,7 +36,7 @@ const siteChecker = new SiteChecker(
     acceptedSchemes: ['http', 'https'],
     excludedKeywords: [
       'linkedin', // it always throws an error even if link really works
-      'github',
+      'github.com',
       '*/docs/*.*.*' // the old documentation
     ]
   },
