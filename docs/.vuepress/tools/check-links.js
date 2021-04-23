@@ -30,13 +30,6 @@ const spawnProcess = (command, options = {}) => {
   return execa(mainCmd, cmdSplit, options);
 };
 
-/**
- * Replace double slashes // with one slash /
- */
- const replaceSlashes = input => {
-  return input.replace(/\/\/+/g, `/`)
-}
-
 // start server
 spawnProcess(`http-server ${path.resolve('.vuepress', 'dist')} -s 8080`);
 
@@ -105,16 +98,15 @@ EXTERNAL BROKEN LINKS: ${externalLinksCount}
   }
 );
 
-const PAGE_TO_CHECK = 'docs/next/api';
+const ARGUMENT_URL_DEFAULT = 'http://127.0.0.1:8080/docs/next/api';
 
 let [urlArg] = process.argv.slice(2);
-urlArg = urlArg ? urlArg : 'http://127.0.0.1:8080/';
 
-const urlToCheck = replaceSlashes(`${urlArg}${PAGE_TO_CHECK}`)
+urlArg = urlArg || ARGUMENT_URL_DEFAULT;
 
 // run siteChecker
 // timeout is needed because siteChecker would open URL before server started
 setTimeout(() => {
   logger.log('CHECK FOR BROKEN LINKS STARTED');
-  siteChecker.enqueue(urlToCheck);
+  siteChecker.enqueue(urlArg);
 }, 3000);
