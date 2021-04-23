@@ -7,6 +7,7 @@ const buildRegisterCleaner = register => (to, from) => {
   }
   if (register === undefined) {
     logger.warn('The register doesn\'t exists');
+
     return;
   }
   register.destroyAll();
@@ -22,6 +23,7 @@ const buildActiveHeaderLinkHandler = () => {
       }
       // eslint-disable-next-line
       activeLink = document.querySelector(`.table-of-contents a[href="${to.hash}"]`);
+
       if (activeLink) {
         activeLink.classList.add('active');
       }
