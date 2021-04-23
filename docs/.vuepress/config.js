@@ -23,8 +23,6 @@ module.exports = {
   description: 'Handsontable',
   base: '/docs/',
   head: [
-    ['script', { src: '/scripts/handsontable-manager.js' }],
-
     ['link', { rel: 'icon', href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png' }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
     ...environmentHead

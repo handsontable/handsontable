@@ -1,6 +1,6 @@
 const JSFIDDLE_ENDPOINT = 'https://jsfiddle.net/api/post/library/pure/';
 
-const { getDependencies } = require('./dependencies');
+const { getDependencies } = require('../../handsontable-manager');
 
 const getCss = (version, preset) => {
   return getDependencies(version, preset).reduce((p, c) =>

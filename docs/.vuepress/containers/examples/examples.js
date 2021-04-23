@@ -17,6 +17,7 @@ module.exports = {
 
     if (token.nesting === 1 && m) { // open preview
       let [, , id, klass, preset, args] = m;
+
       id = id ? id.substring(1) : 'example1';
       klass = klass ? klass.substring(1) : '';
       preset = preset ? preset.substring(1) : 'hot';
