@@ -1,16 +1,31 @@
-// eslint-disable-line no-console
+/* eslint-disable no-restricted-globals, no-console */
 
-const { SiteChecker } = require('broken-link-checker');
+const { SiteChecker } = require('broken-link-checker'); // eslint-disable-line import/no-unresolved
 const chalk = require('chalk');
 const path = require('path');
-const { spawnProcess } = require('../helpers');
+const execa = require('execa');
 
 const SITE_TO_CHECK = 'docs/next/api';
 const ACCEPTABLE_STATUS_CODES = [undefined, 200, 429];
 
 const brokenLinks = []; // should populate with objects, eg. {statusCode: number, url: string}
 
-const serverDest = path.relative('.', '../dist')
+const serverDest = path.relative('.', '../dist');
+
+const spawnProcess = (command, options = {}) => {
+  const cmdSplit = command.split(' ');
+  const mainCmd = cmdSplit[0];
+
+  cmdSplit.shift();
+
+  if (!options.silent) {
+    options.stdin = options.stdin ?? 'inherit';
+    options.stdout = options.stdout ?? 'inherit';
+    options.stderr = options.stderr ?? 'inherit';
+  }
+
+  return execa(mainCmd, cmdSplit, options);
+};
 
 // start server
 spawnProcess('http-server .vuepress/dist -s 8080');
@@ -57,7 +72,7 @@ const siteChecker = new SiteChecker(
       console.log(chalk.green('CHECK FOR BROKEN LINKS FINISHED'));
       const internalLinksCount = brokenLinks.filter(link => link.internal).length;
       const externalLinksCount = brokenLinks.filter(link => !link.internal).length;
-      
+
       if (internalLinksCount) {
         console.log(chalk.red(`
 TOTAL BROKEN LINKS:
@@ -67,14 +82,14 @@ External: ${externalLinksCount}
 
         process.exit(1);
       }
-      
+
       if (!internalLinksCount && externalLinksCount) {
         console.log(chalk.yellow(`
 EXTERNAL BROKEN LINKS: ${externalLinksCount}
         `));
         process.exit(0);
       }
-      
+
       console.log(chalk.green('EVERY LINK IS WORKING!'));
       process.exit(0);
     }
