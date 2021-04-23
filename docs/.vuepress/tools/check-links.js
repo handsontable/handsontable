@@ -98,4 +98,4 @@ EXTERNAL BROKEN LINKS: ${externalLinksCount}
 setTimeout(() => {
   console.log(chalk.green('CHECK FOR BROKEN LINKS STARTED'));
   siteChecker.enqueue(`http://127.0.0.1:8080/${SITE_TO_CHECK}`);
-}, 500);
+}, 3000);
