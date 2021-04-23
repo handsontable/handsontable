@@ -3,7 +3,6 @@ const chalk = require('chalk');
 const path = require('path');
 const execa = require('execa');
 
-const SITE_TO_CHECK = 'docs/next/api';
 const ACCEPTABLE_STATUS_CODES = [undefined, 200, 429];
 
 const brokenLinks = []; // should populate with objects, eg. {statusCode: number, url: string}
@@ -30,6 +29,13 @@ const spawnProcess = (command, options = {}) => {
 
   return execa(mainCmd, cmdSplit, options);
 };
+
+/**
+ * Replace double slashes // with one slash /
+ */
+ const replaceSlashes = input => {
+  return input.replace(/\/\/+/g, `/`)
+}
 
 // start server
 spawnProcess(`http-server ${path.resolve('.vuepress', 'dist')} -s 8080`);
@@ -99,9 +105,16 @@ EXTERNAL BROKEN LINKS: ${externalLinksCount}
   }
 );
 
+const PAGE_TO_CHECK = 'docs/next/api';
+
+let [urlArg] = process.argv.slice(2);
+urlArg = urlArg ? urlArg : 'http://127.0.0.1:8080/';
+
+const urlToCheck = replaceSlashes(`${urlArg}${PAGE_TO_CHECK}`)
+
 // run siteChecker
 // timeout is needed because siteChecker would open URL before server started
 setTimeout(() => {
   logger.log('CHECK FOR BROKEN LINKS STARTED');
-  siteChecker.enqueue(`http://127.0.0.1:8080/${SITE_TO_CHECK}`);
+  siteChecker.enqueue(urlToCheck);
 }, 3000);
