@@ -11,6 +11,7 @@ module.exports = {
     const token = tokens[index];
 
     const [,, href] = token.info.trim().match(exampleRegex) || [];
+
     if (href) {
       // opening tag
       return `<a href="${href}" target="_blank" class="source-code-link"> Source code <OutboundLink /> </a>`;

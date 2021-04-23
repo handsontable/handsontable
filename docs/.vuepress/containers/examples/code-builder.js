@@ -26,4 +26,5 @@ const buildCode = (filename, contentJs, relativePath = '') => {
     throw error;
   }
 };
+
 module.exports = { buildCode };

@@ -1178,7 +1178,7 @@ export default () => {
      * @param {number} col Visual column index.
      * @returns {boolean}
      * @category Core
-     * 
+     *
      * @example
      * ```js
      * // define custom checks for empty column

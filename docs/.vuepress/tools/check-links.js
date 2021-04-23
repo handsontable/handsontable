@@ -13,7 +13,7 @@ const brokenLinks = []; // should populate with objects, eg. {statusCode: number
 const serverDest = path.relative('.', '../dist')
 
 // start server
-spawnProcess(`http-server .vuepress/dist -s 8080`);
+spawnProcess('http-server .vuepress/dist -s 8080');
 
 const siteChecker = new SiteChecker(
   {
@@ -54,7 +54,7 @@ const siteChecker = new SiteChecker(
     },
 
     end: () => {
-      console.log(chalk.green(`CHECK FOR BROKEN LINKS FINISHED`));
+      console.log(chalk.green('CHECK FOR BROKEN LINKS FINISHED'));
       const internalLinksCount = brokenLinks.filter(link => link.internal).length;
       const externalLinksCount = brokenLinks.filter(link => !link.internal).length;
       
@@ -84,6 +84,6 @@ EXTERNAL BROKEN LINKS: ${externalLinksCount}
 // run siteChecker
 // timeout is needed because siteChecker would open URL before server started
 setTimeout(() => {
-  console.log(chalk.green(`CHECK FOR BROKEN LINKS STARTED`));
+  console.log(chalk.green('CHECK FOR BROKEN LINKS STARTED'));
   siteChecker.enqueue(`http://127.0.0.1:8080/${SITE_TO_CHECK}`);
 }, 500);
