@@ -15,7 +15,7 @@ const gettingStartedItems = [
 
 const integrateWithReactItems = [
   'guides/integrate-with-react/react-installation',
-  'guides/integrate-with-react/react-simple-examples',
+  'guides/integrate-with-react/react-simple-example',
   'guides/integrate-with-react/react-hot-column',
   'guides/integrate-with-react/react-setting-up-a-locale',
   'guides/integrate-with-react/react-custom-context-menu-example',
