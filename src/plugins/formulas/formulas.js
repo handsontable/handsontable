@@ -578,13 +578,9 @@ export class Formulas extends BasePlugin {
    * @param {Array} changes Array of objects containing information about HF changes.
    */
   onHFvaluesUpdated(changes) {
-    let isAffectedByChange = false;
-
-    changes.some((change) => {
-      isAffectedByChange = change?.address?.sheet === this.sheetId;
-
-      return isAffectedByChange;
-    });
+	const isAffectedByChange = changes.some((change) => {
+	  return change?.address?.sheet === this.sheetId
+	})
 
     if (isAffectedByChange) {
       this.hot.render();
