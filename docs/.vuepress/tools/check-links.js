@@ -37,7 +37,7 @@ const siteChecker = new SiteChecker(
     excludedKeywords: [
       'linkedin', // it always throws an error even if link really works
       'github',
-      '*/docs/*.*' // exclude links on version pages
+      '*/docs/*.*.*' // the old documentation
     ]
   },
   {
