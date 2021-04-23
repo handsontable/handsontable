@@ -1,19 +1,11 @@
 const { SiteChecker } = require('broken-link-checker'); // eslint-disable-line import/no-unresolved
-const chalk = require('chalk');
 const path = require('path');
 const execa = require('execa');
+const { logger } = require('./utils');
 
 const ACCEPTABLE_STATUS_CODES = [undefined, 200, 429];
 
 const brokenLinks = []; // should populate with objects, eg. {statusCode: number, url: string}
-
-/* eslint-disable no-console, no-restricted-globals */
-const logger = {
-  log: message => console.log(chalk.green(message)),
-  warn: message => console.warn(chalk.yellow(message)),
-  error: message => console.error(chalk.red(message)),
-};
-/* eslint-enable no-console, no-restricted-globals */
 
 const spawnProcess = (command, options = {}) => {
   const cmdSplit = command.split(' ');
@@ -71,7 +63,7 @@ const siteChecker = new SiteChecker(
     },
 
     end: () => {
-      logger.log('CHECK FOR BROKEN LINKS FINISHED');
+      logger.success('CHECK FOR BROKEN LINKS FINISHED');
       const internalLinksCount = brokenLinks.filter(link => link.internal).length;
       const externalLinksCount = brokenLinks.filter(link => !link.internal).length;
 
@@ -92,7 +84,7 @@ EXTERNAL BROKEN LINKS: ${externalLinksCount}
         process.exit(0);
       }
 
-      logger.log('EVERY LINK IS WORKING!');
+      logger.success('EVERY LINK IS WORKING!');
       process.exit(0);
     }
   }
@@ -107,6 +99,6 @@ urlArg = urlArg || ARGUMENT_URL_DEFAULT;
 // run siteChecker
 // timeout is needed because siteChecker would open URL before server started
 setTimeout(() => {
-  logger.log('CHECK FOR BROKEN LINKS STARTED');
+  logger.success('CHECK FOR BROKEN LINKS STARTED');
   siteChecker.enqueue(urlArg);
 }, 3000);
