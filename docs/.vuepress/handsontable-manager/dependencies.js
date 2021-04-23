@@ -26,6 +26,13 @@ const getFixer = () => {
   return ['https://handsontable.com/docs/8.3.2/scripts/jsfiddle-fixer.js', ['require', 'exports']];
 
 };
+
+/** Some further version of Handsontable will needs different version of dependencies.
+ * The function `buildDependencyGetter` is the best place to care about that.
+ *
+ * @param {string} version The current selected documentation version.
+ * @returns {function({dependency:string}):[string,string[],string]} [jsUrl, dependentVars[]?, cssUrl?].
+ */
 const buildDependencyGetter = (version) => {
   const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version);
   const fixer = getFixer();
