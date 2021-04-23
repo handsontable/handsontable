@@ -115,7 +115,7 @@ allowRemoveRow: false,
 
 
 ### contextMenu
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1773
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1774
 
 
 _contextMenu.contextMenu : boolean | Array&lt;string&gt; | object_
@@ -193,7 +193,7 @@ Closes the menu.
 
 
 ### destroy
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L385
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L386
 
 
 _contextMenu.destroy()_
@@ -254,7 +254,7 @@ Or you can execute command registered in settings where `key` is your command na
 | Param | Type | Description |
 | --- | --- | --- |
 | commandName | `string` | The command name to be executed. |
-| ...params | `\*` | Additional paramteres passed to command executor module. |
+| ...params | `*` | Additional paramteres passed to command executor module. |
 
 
 

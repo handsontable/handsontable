@@ -41,7 +41,7 @@ copyPaste: {
 ## Options
 
 ### copyPaste
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1797
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1798
 
 
 _copyPaste.copyPaste : object | boolean_
@@ -134,7 +134,7 @@ Copies the selected cell into the clipboard.
 
 
 ### cut
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/copyPaste.js#L212
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/copyPaste.js#L213
 
 
 _copyPaste.cut()_
@@ -144,7 +144,7 @@ Cuts the selected cell into the clipboard.
 
 
 ### destroy
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/copyPaste.js#L668
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/copyPaste.js#L671
 
 
 _copyPaste.destroy()_
@@ -174,7 +174,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### getRangedCopyableData
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/copyPaste.js#L227
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/copyPaste.js#L229
 
 
 _copyPaste.getRangedCopyableData(ranges) ⇒ string_
@@ -190,7 +190,7 @@ Creates copyable text releated to range objects.
 **Returns**: `string` - Returns string which will be copied into clipboard.  
 
 ### getRangedData
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/copyPaste.js#L265
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/copyPaste.js#L267
 
 
 _copyPaste.getRangedData(ranges) ⇒ Array&lt;Array&gt;_
@@ -217,7 +217,7 @@ hook and if it returns `true` than the [enablePlugin](#CopyPaste+enablePlugin) m
 
 
 ### paste
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/copyPaste.js#L303
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/copyPaste.js#L305
 
 
 _copyPaste.paste(pastableText, [pastableHtml])_
@@ -233,7 +233,7 @@ Simulates the paste action.
 
 
 ### setCopyableText
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/copyPaste.js#L324
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/copyPaste.js#L326
 
 
 _copyPaste.setCopyableText()_

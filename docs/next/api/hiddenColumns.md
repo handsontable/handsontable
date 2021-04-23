@@ -59,7 +59,7 @@ hot.render();
 ## Options
 
 ### hiddenColumns
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2813
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2822
 
 
 _hiddenColumns.hiddenColumns : boolean | object_

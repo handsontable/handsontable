@@ -60,7 +60,7 @@ hot.render();
 ## Options
 
 ### hiddenRows
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2840
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2849
 
 
 _hiddenRows.hiddenRows : boolean | object_

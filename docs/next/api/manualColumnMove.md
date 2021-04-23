@@ -31,7 +31,7 @@ The plugin creates additional components to make moving possibly using user inte
 ## Options
 
 ### manualColumnMove
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1886
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1887
 
 
 _manualColumnMove.manualColumnMove : boolean | Array&lt;number&gt;_
@@ -53,7 +53,7 @@ manualColumnMove: [1, 4],
 ## Methods
 
 ### destroy
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L721
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L724
 
 
 _manualColumnMove.destroy()_

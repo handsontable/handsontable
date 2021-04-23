@@ -168,7 +168,7 @@ Verifies result of validation or closes editor if user's cancelled changes.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| result | `boolean` \| `undefined` | If `false` and the cell using allowInvalid option,                                   then an editor won't be closed until validation is passed. |
+| result | `boolean` <br/> `undefined` | If `false` and the cell using allowInvalid option,                                   then an editor won't be closed until validation is passed. |
 
 
 
@@ -303,7 +303,7 @@ Prepares editor's meta data.
 | --- | --- | --- |
 | row | `number` | The visual row index. |
 | col | `number` | The visual column index. |
-| prop | `number` \| `string` | The column property (passed when datasource is an array of objects). |
+| prop | `number` <br/> `string` | The column property (passed when datasource is an array of objects). |
 | td | `HTMLTableCellElement` | The rendered cell element. |
 | value | `\*` | The rendered value. |
 | cellProperties | `object` | The cell meta object ({@see Core#getCellMeta}). |

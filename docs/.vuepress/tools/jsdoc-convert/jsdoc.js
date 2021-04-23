@@ -10,8 +10,8 @@ const pathToSource = '../../../../src';
 const pathToDist = '../../../next/api';
 const urlPrefix = 'next/api/';
 const whitelist = [
-  'dataMap/metaManager/metaSchema.js',
-  'pluginHooks.js',
+  // 'dataMap/metaManager/metaSchema.js',
+  // 'pluginHooks.js',
   'core.js',
   'translations/indexMapper.js',
   'editors/baseEditor/baseEditor.js',
@@ -70,7 +70,7 @@ const clearEmptyOptionHeaders = text => text.replace(/## Options\n## Members/g, 
 const clearEmptyMembersHeaders = text => text.replace(/## Members\n## Methods/g, '## Methods');
 const clearEmptyFunctionsHeaders = text => text.replace(/(## Methods\n)+$/g, '\n');
 
-const fixTypes = text => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\*\*:)( ?[^\n]*)/g, (_, part, signame) => {
+const fixTypes = text => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\*\*:|\*\*Emits\*\*:)( ?[^\n]*)/g, (_, part, signame) => {
   let suffix = ''; let
     prefix = part;
   if (part === '::: signame ') {
@@ -79,23 +79,32 @@ const fixTypes = text => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\*\
   }
   const r = prefix + signame
     .replace(/([^\w`\[#])(`)?(IndexMapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./index-mapper/$4)')
-    .replace(/([^\w`\[#])(`)?(Hooks)(#\w*)?(`)?/g, '$1[$2$3$4$5](./hooks/$4)')
+    .replace(/([^\w`\[#])(`)?(Hooks)((#)(event:)?(\w*))?(`)?/g, '$1[$2$3$4$8](./hooks/$5$7)')
     .replace(/([^\w`\[#])(`)?(BaseEditor)(#\w*)?(`)?/g, '$1[$2$3$4$5](./base-editor/$4)')
     .replace(/([^\w`\[#])(`)?(CellCoords)(#\w*)?(`)?/g, '$1[$2$3$4$5](./coords/$4)')
     .replace(/([^\w`\[#])(`)?(FocusableWrapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./focusable-element/$4)')
     .replace(/\.</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/`\\\*`/, '`*`')
-        + suffix;
+    + suffix;
   return r;
 });
+
+const unescapeRedundant = text => text
+  .replace(/`[^`\n]*`/g, (m)=>  //get all inline codes
+    m.replace(/\&lt;/g, '<')
+      .replace(/\&gt;/g, '>')
+      .replace(/\.</g, '<')
+  )
+  .replace(/<\/ul>\./g,'</ul>') // remove redundant dot, which eslint enforce to add after list closing tag.
 
 const postProcessors = [
   fixLinks,
   clearEmptyOptionHeaders,
   clearEmptyMembersHeaders,
   clearEmptyFunctionsHeaders,
-  fixTypes
+  fixTypes,
+  unescapeRedundant
 ];
 
 const postProcess = initialText => postProcessors.reduce((text, postProcessor) => postProcessor(text), initialText);

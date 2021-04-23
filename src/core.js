@@ -2439,10 +2439,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function alter
    * @param {string} action Possible alter operations:
-   *  * `'insert_row'`
-   *  * `'insert_col'`
-   *  * `'remove_row'`
-   *  * `'remove_col'`.
+   *  <ul>
+   *    <li> `'insert_row'` </li>
+   *    <li> `'insert_col'` </li>
+   *    <li> `'remove_row'` </li>
+   *    <li> `'remove_col'` </li>
+   * </ul>.
    * @param {number|number[]} index Visual index of the row/column before which the new row/column will be
    *                                inserted/removed or an array of arrays in format `[[index, amount],...]`.
    * @param {number} [amount=1] Amount of rows/columns to be inserted or removed.
@@ -2851,7 +2853,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * @description
-   * Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](https://handsontable.com/docs/Options.html#type)).
+   * Returns a data type defined in the Handsontable settings under the `type` key ({@link options#type Options#type}).
    * If there are cells with different types in the selected range, it returns `'mixed'`.
    *
    * __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.

@@ -36,7 +36,7 @@ const hot = new Handsontable(container, {
 ## Options
 
 ### nestedHeaders
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2860
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2869
 
 
 _nestedHeaders.nestedHeaders : Array&lt;Array&gt;_

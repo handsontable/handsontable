@@ -45,7 +45,7 @@ const hot = new Handsontable(container, {
 ## Options
 
 ### dropdownMenu
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2716
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2725
 
 
 _dropdownMenu.dropdownMenu : boolean | object | Array&lt;string&gt;_
@@ -79,7 +79,7 @@ Default menu items order when `dropdownMenu` is enabled by setting the config it
 ## Methods
 
 ### close
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L257
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L258
 
 
 _dropdownMenu.close()_
@@ -89,7 +89,7 @@ Closes dropdown menu.
 
 
 ### destroy
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L423
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L425
 
 
 _dropdownMenu.destroy()_
@@ -99,7 +99,7 @@ Destroys the plugin instance.
 
 
 ### disablePlugin
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L212
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L213
 
 
 _dropdownMenu.disablePlugin()_
@@ -120,7 +120,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### executeCommand
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L290
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L291
 
 
 _dropdownMenu.executeCommand(commandName, ...params)_
@@ -151,7 +151,7 @@ Or you can execute command registered in settings where `key` is your command na
 | Param | Type | Description |
 | --- | --- | --- |
 | commandName | `string` | Command name to execute. |
-| ...params | `\*` | Additional parameters passed to the command executor. |
+| ...params | `*` | Additional parameters passed to the command executor. |
 
 
 
@@ -167,7 +167,7 @@ hook and if it returns `true` than the [enablePlugin](#DropdownMenu+enablePlugin
 
 
 ### open
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L242
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L243
 
 
 _dropdownMenu.open(position)_
@@ -183,7 +183,7 @@ Opens menu and re-position it based on the passed coordinates.
 
 
 ### updatePlugin
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L203
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L204
 
 
 _dropdownMenu.updatePlugin()_

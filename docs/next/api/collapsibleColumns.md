@@ -15,7 +15,7 @@ The [CollapsibleColumns](#CollapsibleColumns) plugin allows collapsing of column
 
 Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
 
-Setting the [collapsibleColumns](#Options+collapsibleColumns) property to `true` will display a "collapse/expand" button in every header
+Setting the [Options#collapsibleColumns](./Options/#collapsibleColumns) property to `true` will display a "collapse/expand" button in every header
 with a defined `colspan` property.
 
 To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property as an array
@@ -45,40 +45,6 @@ const hot = new Handsontable(container, {
     {row: -3, col: 5, collapsible: true}
   ],
 });
-```
-
-## Options
-
-### collapsibleColumns
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2655
-
-
-_collapsibleColumns.collapsibleColumns : boolean | Array&lt;object&gt;_
-
-The [CollapsibleColumns](./collapsible-columns/) plugin allows collapsing of columns, covered by a header with the `colspan` property
-defined.
-
-Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
-
-Setting the `collapsibleColumns` property to `true` will display a "collapse/expand" button in every
-header with a defined colspan` property.
-
-To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property
-as an array of objects, as in the example below.
-
-**Default**: <code>undefined</code>  
-**Category**: CollapsibleColumns  
-**Example**  
-```js
-// enable collapsing for all headers
-collapsibleColumns: true,
-
-// or
-// enable collapsing for selected headers
-collapsibleColumns: [
-  {row: -4, col: 1, collapsible: true},
-  {row: -3, col: 5, collapsible: true}
-],
 ```
 
 ## Members
@@ -115,7 +81,7 @@ Collapses section at the provided coords.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| coords | `object` | Contains coordinates information. (`coords.row`, `coords.col`). |
+| coords | `objectN` | Contains coordinates information. (`coords.row`, `coords.col`). |
 
 
 
@@ -170,7 +136,7 @@ Expands section at the provided coords.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| coords | `object` | Contains coordinates information. (`coords.row`, `coords.col`). |
+| coords | `objectN` | Contains coordinates information. (`coords.row`, `coords.col`). |
 
 
 
@@ -196,7 +162,7 @@ Collapses or expand all collapsible sections, depending on the action parameter.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| action | `string` | 'collapse' or 'expand'. |
+| action | `stringN` | 'collapse' or 'expand'. |
 
 
 
@@ -212,8 +178,8 @@ Collapses/Expands a section.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| coords | `Array` | Array of coords - section coordinates. |
-| [action] | `string` | `optional` Action definition ('collapse' or 'expand'). |
+| coords | `ArrayN` | Array of coords - section coordinates. |
+| [action] | `stringN` | `optional` Action definition ('collapse' or 'expand'). |
 
 
 
