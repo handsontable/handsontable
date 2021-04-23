@@ -1,5 +1,5 @@
 ---
-title: Software license
-permalink: /next/software-license
-canonicalUrl: /software-license
+title: Product license
+permalink: /next/product-license
+canonicalUrl: /product-license
 ---

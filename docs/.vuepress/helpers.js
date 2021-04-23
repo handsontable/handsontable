@@ -24,6 +24,7 @@ module.exports = {
       // eslint-disable-next-line
       const s = require(path.join(__dirname, `../${version}/sidebars.js`));
 
+      sidebars[`/${version}/examples/`] = s.examples;
       sidebars[`/${version}/api/`] = s.api;
       sidebars[`/${version}/`] = s.guide;
     });
