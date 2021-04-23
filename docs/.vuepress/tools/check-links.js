@@ -1,5 +1,3 @@
-/* eslint-disable no-restricted-globals, no-console */
-
 const { SiteChecker } = require('broken-link-checker'); // eslint-disable-line import/no-unresolved
 const chalk = require('chalk');
 const path = require('path');
@@ -9,6 +7,14 @@ const SITE_TO_CHECK = 'docs/next/api';
 const ACCEPTABLE_STATUS_CODES = [undefined, 200, 429];
 
 const brokenLinks = []; // should populate with objects, eg. {statusCode: number, url: string}
+
+/* eslint-disable no-console, no-restricted-globals */
+const logger = {
+  log: message => console.log(chalk.green(message)),
+  warn: message => console.warn(chalk.yellow(message)),
+  error: message => console.error(chalk.red(message)),
+};
+/* eslint-enable no-console, no-restricted-globals */
 
 const spawnProcess = (command, options = {}) => {
   const cmdSplit = command.split(' ');
@@ -42,7 +48,7 @@ const siteChecker = new SiteChecker(
   },
   {
     error: (error) => {
-      displayErrorMessage(error);
+      logger.error(error);
     },
 
     link: (result) => {
@@ -56,9 +62,9 @@ const siteChecker = new SiteChecker(
           });
 
           if (result.internal) {
-            console.log(chalk.red(`broken internal link ${result.http.response.statusCode} => ${result.url.original}`));
+            logger.error(`broken internal link ${result.http.response.statusCode} => ${result.url.original}`);
           } else {
-            console.log(chalk.yellow(`broken external link ${result.http.response.statusCode} => ${result.url.original}`));
+            logger.warn(`broken external link ${result.http.response.statusCode} => ${result.url.original}`);
           }
 
         }
@@ -66,28 +72,28 @@ const siteChecker = new SiteChecker(
     },
 
     end: () => {
-      console.log(chalk.green('CHECK FOR BROKEN LINKS FINISHED'));
+      logger.log('CHECK FOR BROKEN LINKS FINISHED');
       const internalLinksCount = brokenLinks.filter(link => link.internal).length;
       const externalLinksCount = brokenLinks.filter(link => !link.internal).length;
 
       if (internalLinksCount) {
-        console.log(chalk.red(`
+        logger.error(`
 TOTAL BROKEN LINKS:
 Internal: ${internalLinksCount}
 External: ${externalLinksCount}
-        `));
+        `);
 
         process.exit(1);
       }
 
       if (!internalLinksCount && externalLinksCount) {
-        console.log(chalk.yellow(`
+        logger.warn(`
 EXTERNAL BROKEN LINKS: ${externalLinksCount}
-        `));
+        `);
         process.exit(0);
       }
 
-      console.log(chalk.green('EVERY LINK IS WORKING!'));
+      logger.log('EVERY LINK IS WORKING!');
       process.exit(0);
     }
   }
@@ -96,6 +102,6 @@ EXTERNAL BROKEN LINKS: ${externalLinksCount}
 // run siteChecker
 // timeout is needed because siteChecker would open URL before server started
 setTimeout(() => {
-  console.log(chalk.green('CHECK FOR BROKEN LINKS STARTED'));
+  logger.log('CHECK FOR BROKEN LINKS STARTED');
   siteChecker.enqueue(`http://127.0.0.1:8080/${SITE_TO_CHECK}`);
 }, 3000);
