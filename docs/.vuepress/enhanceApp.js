@@ -1,5 +1,5 @@
 // import RouterLink from './theme/components/RouterLink.vue';
-const { logger } = require('./tools/utils');
+const { logger } = require('./utils');
 
 const buildRegisterCleaner = register => (to, from) => {
   if (to.path === from.path) {

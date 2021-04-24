@@ -4,7 +4,7 @@ const jsdoc2md = require('jsdoc-to-markdown'); // eslint-disable-line import/no-
 const dmd = require('dmd'); // eslint-disable-line import/no-unresolved
 const path = require('path');
 const fs = require('fs');
-const { logger } = require('../utils');
+const { logger } = require('../../utils');
 
 /// parameters
 const pathToSource = '../../../../src';

@@ -1,7 +1,7 @@
 const { SiteChecker } = require('broken-link-checker'); // eslint-disable-line import/no-unresolved
 const path = require('path');
 const execa = require('execa');
-const { logger } = require('./utils');
+const { logger } = require('../utils');
 
 const ACCEPTABLE_STATUS_CODES = [undefined, 200, 429];
 
@@ -32,7 +32,7 @@ const siteChecker = new SiteChecker(
     filterLevel: 0,
     acceptedSchemes: ['http', 'https'],
     excludedKeywords: [
-      'linkedin', // it always throws an error even if link really works
+      'linkedin.com', // it always throws an error even if link really works
       'github.com',
       '*/docs/*.*.*' // the old documentation
     ]
