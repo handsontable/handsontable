@@ -250,7 +250,7 @@ export default {
   margin-right 2rem
   input
     cursor text
-    width 14rem
+    width 12rem
     height: 2rem
     display inline-block
     border 1px solid #cfdbe4

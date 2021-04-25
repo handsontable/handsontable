@@ -72,7 +72,7 @@ export default {
   margin-right 2rem
   display inline-block
   position relative
-  top -0.2rem
+  top -1px
   text-transform capitalize
   
   .dropdown-title {

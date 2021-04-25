@@ -68,7 +68,7 @@ const columnsItems = [
 
 const rowsItems = [
   'guides/rows/row-header',
-  'guides/rows/row-master-detail',
+  'guides/rows/row-parent-child',
   'guides/rows/row-hiding',
   'guides/rows/row-moving',
   'guides/rows/row-freezing',
@@ -84,11 +84,10 @@ const cellFeaturesItems = [
   'guides/cell-features/selection',
   'guides/cell-features/merge-cells',
   'guides/cell-features/conditional-formatting',
-  'guides/cell-features/data-validation',
   'guides/cell-features/text-alignment',
   'guides/cell-features/disabled-cells',
   'guides/cell-features/comments',
-  'guides/cell-features/autofill-data',
+  'guides/cell-features/autofill-values',
   'guides/cell-features/formatting-cells',
 ];
 

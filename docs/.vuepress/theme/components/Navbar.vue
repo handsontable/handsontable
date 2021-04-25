@@ -100,7 +100,7 @@ $navbar-horizontal-padding = 1.5rem
     position relative;
     top .6rem;
   .logo
-    height $navbarHeight - 2rem
+    height $navbarHeight - 2.2rem
   .links
     box-sizing border-box
     background-color white

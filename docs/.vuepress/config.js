@@ -74,7 +74,7 @@ module.exports = {
     }
   },
   themeConfig: {
-    logo: '/logo.svg',
+    logo: '/img/handsontable-logo.svg',
     nextLinks: true,
     prevLinks: true,
     repo: 'handsontable/handsontable',

@@ -6,7 +6,6 @@ canonicalUrl: /api/plugins
 
 # Available plugins
 
-
 |Plugin Name  | Description |
 |--|--|
 |[AutoColumnSize](https://dev.handsontable.com/docs/next/api/auto-column-size/) |Automatically adjusts the column's width to the size of the content.|
