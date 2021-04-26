@@ -1,5 +1,5 @@
 ---
-title: Installation
+title: Vue installation
 permalink: /next/vue-installation
 canonicalUrl: /vue-installation
 ---

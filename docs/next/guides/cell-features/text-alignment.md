@@ -8,7 +8,7 @@ canonicalUrl: /text-alignment
 
 To initialize Handsontable with predefined horizontal and vertical alignment, provide className cells details in form of a grid, `columns` or `cell` setting (see code sample below).
 
-Available classNames:
+Available class names:
 
 * Horizontal: `htLeft`, `htCenter`, `htRight`, `htJustify`,
 * Vertical: `htTop`, `htMiddle`, `htBottom`.

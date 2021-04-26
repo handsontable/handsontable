@@ -4,6 +4,7 @@ const jsdoc2md = require('jsdoc-to-markdown'); // eslint-disable-line import/no-
 const dmd = require('dmd'); // eslint-disable-line import/no-unresolved
 const path = require('path');
 const fs = require('fs');
+const { logger } = require('../../utils');
 
 /// parameters
 const pathToSource = '../../../../src';
@@ -251,21 +252,18 @@ const traverse = function* () {
 const errors = [];
 
 for (const file of traverse()) { // eslint-disable-line no-restricted-syntax
-  console.log('Generating: ', source(file)); // eslint-disable-line
+  logger.log('Generating: ', source(file));
   try {
     render(file);
   } catch (e) {
-    // eslint-disable-next-line
-    console.error('ERROR: ', e);
+    logger.error('ERROR: ', e);
     errors.push({ file, e });
   }
 }
 if (errors.length) {
-  // eslint-disable-next-line
-  console.warn(`Finished with ${errors.length} errors`, errors.map(x => x.file));
+  logger.warn(`Finished with ${errors.length} errors`, errors.map(x => x.file));
   process.exit(1);
 }
 
-// eslint-disable-next-line
-console.log('OK!');
+logger.log('OK!');
 process.exit(0);

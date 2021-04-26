@@ -250,7 +250,7 @@ export default {
   margin-right 2rem
   input
     cursor text
-    width 14rem
+    width 12rem
     height: 2rem
     display inline-block
     border 1px solid #cfdbe4
@@ -278,9 +278,11 @@ export default {
     &.align-right
       right 0
     li:not(.suggestion) {
-      padding 0.4rem 0.6rem;
-      font-weight: 500;
-      font-size: 15px;
+      padding 0.4rem 0.6rem
+      margin-bottom 0.4rem
+      font-weight 600
+      font-size 13px
+      border-bottom 1px solid #e9eef2
     }
   .suggestion
     line-height 1.4

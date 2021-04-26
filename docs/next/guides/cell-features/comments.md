@@ -70,6 +70,7 @@ hot1 = new Handsontable(container, {
   colHeaders: true,
   contextMenu: true,
   comments: true,
+  licenseKey: 'non-commercial-and-evaluation',
   cell: [
     {row: 1, col: 1, comment: {value: 'Some comment'}},
     {row: 2, col: 2, comment: {value: 'More comments'}}

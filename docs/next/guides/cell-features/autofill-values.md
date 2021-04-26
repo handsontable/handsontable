@@ -5,9 +5,12 @@ canonicalUrl: /autofill-data
 tags:
   - fill handle
   - smart fill
+  - populate data
+  - drag down
+  - square
 ---
 
-# Autofill data
+# AutoFill values
 
 [[toc]]
 

@@ -1,5 +1,5 @@
 ---
-title: Basic example
+title: Basic example in Vue
 permalink: /next/vue-simple-example
 canonicalUrl: /vue-simple-example
 ---
