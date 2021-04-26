@@ -181,7 +181,7 @@ UndoRedo.prototype.done = function(wrappedAction, source) {
   if (isBlockedByDefault) {
     return;
   }
-  
+
   const doneActionsCopy = this.doneActions.slice();
   const continueAction = this.instance.runHooks('beforeUndoStackChange', this.doneActions, source);
 
