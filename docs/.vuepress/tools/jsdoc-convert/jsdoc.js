@@ -4,6 +4,7 @@ const jsdoc2md = require('jsdoc-to-markdown'); // eslint-disable-line import/no-
 const dmd = require('dmd'); // eslint-disable-line import/no-unresolved
 const path = require('path');
 const fs = require('fs');
+const { logger } = require('../../utils');
 
 /// parameters
 const pathToSource = '../../../../src';
@@ -73,6 +74,7 @@ const clearEmptyFunctionsHeaders = text => text.replace(/(## Methods\n)+$/g, '\n
 const fixTypes = text => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\*\*:)( ?[^\n]*)/g, (_, part, signame) => {
   let suffix = ''; let
     prefix = part;
+
   if (part === '::: signame ') {
     prefix = '_';
     suffix = '_';
@@ -87,6 +89,7 @@ const fixTypes = text => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\*\
     .replace(/>/g, '&gt;')
     .replace(/`\\\*`/, '`*`')
         + suffix;
+
   return r;
 });
 
@@ -103,7 +106,9 @@ const postProcess = initialText => postProcessors.reduce((text, postProcessor) =
 /// post processing before markdown will be generated and after jsdoc was parsed
 const sort = data => data.sort((m, p) => {
   if (m.kind === 'constructor' || m.kind === 'class') return -1;
+
   if (p.kind === 'constructor' || p.kind === 'class') return 1;
+
   return m.name.localeCompare(p.name);
 });
 
@@ -112,8 +117,10 @@ const linkToSource = data => data.map((x) => {
     const filepath = path.relative(path.join(__dirname, '../../../../'), x.meta.path);
     const filename = x.meta.filename;
     const line = x.meta.lineno;
+
     x.sourceLink = `https://github.com/handsontable/handsontable/blob/develop/${filepath}/${filename}#L${line}`;
   }
+
   return x;
 });
 
@@ -122,10 +129,12 @@ const memorizeOptions = data => (!isOptions(data) ? data : data.map((x) => {
   if (x.category) {
     x.category.split(',').forEach((category) => {
       const cat = category.trim();
+
       optionsPerPlugin[cat] = optionsPerPlugin[cat] || [];
       optionsPerPlugin[cat].push(x);
     });
   }
+
   return x;
 }));
 const applyPluginOptions = (data) => {
@@ -143,8 +152,10 @@ const applyPluginOptions = (data) => {
     }) ?? [];
 
     const index = data.findIndex(x => x.kind === 'constructor');
+
     data.splice(index + 1, 0, ...options);
   }
+
   return data;
 };
 
@@ -206,6 +217,7 @@ editLink: false
 const write = (file, output) => {
   const match = file.match(/(.*\/)/);
   const dir = match && match[1];
+
   if (dir && !fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -221,6 +233,7 @@ const traversePlugins = function* () {
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
+
     if (['base', '__tests__'].includes(item)) {
       continue; // eslint-disable-line no-continue
     }
@@ -237,22 +250,20 @@ const traverse = function* () {
 
 /// program:
 const errors = [];
+
 for (const file of traverse()) { // eslint-disable-line no-restricted-syntax
-  console.log('Generating: ', source(file)); // eslint-disable-line
+  logger.log('Generating: ', source(file));
   try {
     render(file);
   } catch (e) {
-    // eslint-disable-next-line
-    console.error('ERROR: ', e);
+    logger.error('ERROR: ', e);
     errors.push({ file, e });
   }
 }
 if (errors.length) {
-  // eslint-disable-next-line
-  console.warn(`Finished with ${errors.length} errors`, errors.map(x => x.file));
+  logger.warn(`Finished with ${errors.length} errors`, errors.map(x => x.file));
   process.exit(1);
 }
 
-// eslint-disable-next-line
-console.log('OK!');
+logger.log('OK!');
 process.exit(0);

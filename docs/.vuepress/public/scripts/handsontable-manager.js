@@ -48,6 +48,7 @@ const { buildDependencyGetter, dependencyPresetMap } = (() => {
   const buildGetter = (version) => {
     const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version);
     const { origin } = window.location;
+
     return (dependency) => {
       /* eslint-disable max-len */
       const dependencies = {
@@ -166,6 +167,7 @@ const useHandsontable = ((instanceRegister) => {
 
       for (let i = 0; i < dependencies.length; i++) {
         const dep = dependencies[i];
+
         // The order of loading is really important. For that purpose await was used.
         await loadDependency(dep); // eslint-disable-line no-await-in-loop
       }

@@ -1,12 +1,13 @@
 // import RouterLink from './theme/components/RouterLink.vue';
+const { logger } = require('./utils');
 
 const buildRegisterCleaner = register => (to, from) => {
   if (to.path === from.path) {
     return;
   }
   if (register === undefined) {
-    // eslint-disable-next-line
-    console.warn('The register doesn\'t exists');
+    logger.warn('The register doesn\'t exists');
+
     return;
   }
   register.destroyAll();
@@ -22,6 +23,7 @@ const buildActiveHeaderLinkHandler = () => {
       }
       // eslint-disable-next-line
       activeLink = document.querySelector(`.table-of-contents a[href="${to.hash}"]`);
+
       if (activeLink) {
         activeLink.classList.add('active');
       }
