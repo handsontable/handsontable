@@ -1,5 +1,5 @@
 ---
-title: Installation
+title: React installation
 permalink: /next/react-installation
 canonicalUrl: /react-installation
 ---

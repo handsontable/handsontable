@@ -1,4 +1,3 @@
-
 const gettingStartedItems = [
   'guides/getting-started/introduction',
   'guides/getting-started/hello-world',
@@ -13,7 +12,7 @@ const gettingStartedItems = [
 
 const integrateWithReactItems = [
   'guides/integrate-with-react/react-installation',
-  'guides/integrate-with-react/react-simple-examples',
+  'guides/integrate-with-react/react-simple-example',
   'guides/integrate-with-react/react-hot-column',
   'guides/integrate-with-react/react-setting-up-a-locale',
   'guides/integrate-with-react/react-custom-context-menu-example',
@@ -66,7 +65,7 @@ const columnsItems = [
 
 const rowsItems = [
   'guides/rows/row-header',
-  'guides/rows/row-master-detail',
+  'guides/rows/row-parent-child',
   'guides/rows/row-hiding',
   'guides/rows/row-moving',
   'guides/rows/row-freezing',
@@ -82,11 +81,10 @@ const cellFeaturesItems = [
   'guides/cell-features/selection',
   'guides/cell-features/merge-cells',
   'guides/cell-features/conditional-formatting',
-  'guides/cell-features/data-validation',
   'guides/cell-features/text-alignment',
   'guides/cell-features/disabled-cells',
   'guides/cell-features/comments',
-  'guides/cell-features/autofill-data',
+  'guides/cell-features/autofill-values',
   'guides/cell-features/formatting-cells',
 ];
 
@@ -184,5 +182,5 @@ module.exports = {
     { title: 'Security', children: securityItems },
     { title: 'Technical Specification', children: technicalSpecificationItems },
     { title: 'Upgrade and Migration', children: upgradeAndMigrationItems }
-  ]
+  ],
 };

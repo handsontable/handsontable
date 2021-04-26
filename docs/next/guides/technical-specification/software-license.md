@@ -37,6 +37,6 @@ The enterprise license is available on demand.
 
 You can find the details about adding the license key on [this page](../license-key).
 
-## Open-source license (legacy)
+## Open-source license
 
-Handsontable was initially created as an open-source software, and released under the MIT license. The last version available under such permissive terms was [6.2.2](https://github.com/handsontable/handsontable/tree/6.2.2) released on December 19, 2018.
+For many years Handsontable was available as an open-source software, and released under the MIT license. The last version available under permissive terms was [6.2.2](https://github.com/handsontable/handsontable/tree/6.2.2) released on December 19, 2018.

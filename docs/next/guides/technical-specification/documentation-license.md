@@ -4,7 +4,9 @@ permalink: /next/documentation-license
 canonicalUrl: /documentation-license
 ---
 
-## The license
+# Documentation license
+
+[[toc]]
 
 This documentation is made available to you under such terms and conditions described in the [Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0) document.
 

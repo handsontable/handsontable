@@ -26,7 +26,7 @@ module.exports = {
 
       sidebars[`/${version}/examples/`] = s.examples;
       sidebars[`/${version}/api/`] = s.api;
-      sidebars[`/${version}/`] = s.guide;
+      sidebars[`/${version}/`] = s.guides;
     });
 
     return sidebars;

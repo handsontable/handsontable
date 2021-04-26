@@ -31,6 +31,7 @@ hot = new Handsontable(container, {
     ['Opel', 'Astra', '02/02/2020', 7000],
     ['BMW', '320i Coupe', '07/24/2021', 30500]
   ],
+  licenseKey: 'non-commercial-and-evaluation',
   colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
   columns: [
     {

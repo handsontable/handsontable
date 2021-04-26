@@ -1,13 +1,16 @@
 ---
-title: AutoFill data
-permalink: /next/autofill-data
-canonicalUrl: /autofill-data
+title: AutoFill values
+permalink: /next/autofill-values
+canonicalUrl: /autofill-values
 tags:
   - fill handle
   - smart fill
+  - populate data
+  - drag down
+  - square
 ---
 
-# AutoFill data
+# AutoFill values
 
 [[toc]]
 

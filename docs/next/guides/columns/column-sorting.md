@@ -11,7 +11,7 @@ canonicalUrl: /column-sorting
 ## This guide has been moved permanently
 
 ::: tip
-Visit the [Row sorting]() page to learn about sorting data in Handsontable.
+Visit the [Row sorting](../row-sorting) page to learn about sorting data in Handsontable.
 :::
 
 ## Why and when it's been moved
