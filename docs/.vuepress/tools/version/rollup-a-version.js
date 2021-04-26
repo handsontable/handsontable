@@ -5,8 +5,9 @@ const semver = require('semver');
 const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
+const replaceInFiles = require('replace-in-files');
 
-const {logger} = require('../utils');
+const { logger } = require('../utils');
 
 const workingDir = path.resolve(__dirname, '../../../');
 
@@ -23,7 +24,6 @@ if (!version) {
 } else if (fs.existsSync(path.join(workingDir, version))) {
   throw new Error('<version> should be unique.');
 }
-const replaceInFiles = require('replace-in-files');
 
 (async() => {
   /// * copy `/next/` to `/${version}/`
