@@ -30,8 +30,16 @@ describe('Core.resumeExecution', () => {
     hot.resumeExecution();
 
     expect(hot.executionSuspendedCounter).toBe(0);
-    expect(columnIndexCacheUpdated).toHaveBeenCalledOnceWith(true, false, false);
-    expect(rowIndexCacheUpdated).toHaveBeenCalledOnceWith(true, false, false);
+    expect(columnIndexCacheUpdated).toHaveBeenCalledOnceWith({
+      indexesSequenceChanged: true,
+      trimmedIndexesChanged: false,
+      hiddenIndexesChanged: false,
+    });
+    expect(rowIndexCacheUpdated).toHaveBeenCalledOnceWith({
+      indexesSequenceChanged: true,
+      trimmedIndexesChanged: false,
+      hiddenIndexesChanged: false,
+    });
   });
 
   it('should update the cache only on the last resume call (a call that resets the counter of nested suspend calls)', () => {
@@ -66,7 +74,15 @@ describe('Core.resumeExecution', () => {
     hot.resumeExecution();
 
     expect(hot.executionSuspendedCounter).toBe(0);
-    expect(columnIndexCacheUpdated).toHaveBeenCalledOnceWith(true, false, false);
-    expect(rowIndexCacheUpdated).toHaveBeenCalledOnceWith(true, false, false);
+    expect(columnIndexCacheUpdated).toHaveBeenCalledOnceWith({
+      indexesSequenceChanged: true,
+      trimmedIndexesChanged: false,
+      hiddenIndexesChanged: false,
+    });
+    expect(rowIndexCacheUpdated).toHaveBeenCalledOnceWith({
+      indexesSequenceChanged: true,
+      trimmedIndexesChanged: false,
+      hiddenIndexesChanged: false,
+    });
   });
 });

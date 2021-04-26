@@ -1,3 +1,4 @@
+import { CELL_TYPE } from '../constants';
 import VisualSelection from '../visualSelection';
 
 /**
@@ -15,6 +16,7 @@ function createHighlight({ cellCornerVisible, ...restOptions }) {
       cornerVisible: cellCornerVisible,
     },
     ...restOptions,
+    selectionType: CELL_TYPE,
   });
 
   return s;

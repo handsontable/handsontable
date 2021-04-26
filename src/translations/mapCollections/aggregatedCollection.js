@@ -1,12 +1,12 @@
-import MapCollection from './mapCollection';
-import { arrayMap } from '../helpers/array';
-import { isDefined } from '../helpers/mixed';
+import { MapCollection } from './mapCollection';
+import { arrayMap } from '../../helpers/array';
+import { isDefined } from '../../helpers/mixed';
 
 /**
  * Collection of maps. This collection aggregate maps with the same type of values. Values from the registered maps
  * can be used to calculate a single result for particular index.
  */
-class AggregatedCollection extends MapCollection {
+export class AggregatedCollection extends MapCollection {
   constructor(aggregationFunction, fallbackValue) {
     super();
     /**
@@ -102,5 +102,3 @@ class AggregatedCollection extends MapCollection {
     this.mergedValuesCache = this.getMergedValues(false);
   }
 }
-
-export default AggregatedCollection;

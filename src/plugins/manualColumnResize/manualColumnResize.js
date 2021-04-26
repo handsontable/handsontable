@@ -613,8 +613,6 @@ export class ManualColumnResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
-
     super.destroy();
   }
 }
