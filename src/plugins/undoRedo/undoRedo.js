@@ -29,12 +29,6 @@ function UndoRedo(instance) {
   this.ignoreNewActions = false;
   this.enabled = false;
 
-  instance.addHook('beforeUndoStackChange', (action, source) => {
-    if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
-      return false;
-    }
-  });
-
   instance.addHook('afterChange', function(changes, source) {
     const changesLen = changes && changes.length;
 
@@ -182,6 +176,12 @@ UndoRedo.prototype.done = function(wrappedAction, source) {
     return;
   }
 
+  const isBlockedByDefault = source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
+
+  if (isBlockedByDefault) {
+    return;
+  }
+  
   const doneActionsCopy = this.doneActions.slice();
   const continueAction = this.instance.runHooks('beforeUndoStackChange', this.doneActions, source);
 
