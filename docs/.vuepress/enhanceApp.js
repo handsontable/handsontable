@@ -1,12 +1,12 @@
 // import RouterLink from './theme/components/RouterLink.vue';
-const { logger } = require('./utils');
 
 const buildRegisterCleaner = register => (to, from) => {
   if (to.path === from.path) {
     return;
   }
   if (register === undefined) {
-    logger.warn('The register doesn\'t exists');
+    // eslint-disable-next-line
+    console.warn('The register doesn\'t exists');
 
     return;
   }
