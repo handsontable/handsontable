@@ -68,6 +68,7 @@ const presetMap = {
 
 const getDependencies = (version, preset) => {
   const getter = buildDependencyGetter(version);
+
   return presetMap[preset].map(x => getter(x));
 };
 

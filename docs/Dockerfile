@@ -24,4 +24,4 @@ FROM nginx:alpine
 
 # set up static content
 WORKDIR /usr/share/nginx
-COPY --from=build ./app/.vuepress/dist ./html
+COPY --from=build ./app/.vuepress/dist/docs ./html
