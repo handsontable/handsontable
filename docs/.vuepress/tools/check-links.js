@@ -5,8 +5,6 @@ const { logger } = require('./utils');
 
 const ACCEPTABLE_STATUS_CODES = [undefined, 200, 429];
 
-const brokenLinks = []; // should populate with objects, eg. {statusCode: number, url: string}
-
 const spawnProcess = (command, options = {}) => {
   const cmdSplit = command.split(' ');
   const mainCmd = cmdSplit[0];
@@ -24,16 +22,24 @@ const spawnProcess = (command, options = {}) => {
 
 // start server
 spawnProcess(`http-server ${path.resolve('.vuepress', 'dist')} -s 8080`);
-
+const stats = {
+  brokenInternal:0,
+  brokenExternal:0,
+  external:0,
+  internal:0,
+  _set: new Set()
+}
 const siteChecker = new SiteChecker(
   {
     excludeInternalLinks: false,
     excludeExternalLinks: false,
-    filterLevel: 0,
+    excludeLinksToSamePage: true,
+    filterLevel: 2,
     acceptedSchemes: ['http', 'https'],
     excludedKeywords: [
       'linkedin.com', // it always throws an error even if link really works
       'github.com',
+      'https://jsfiddle.net/api/post/library/pure/', // from "edit in jsfiddle" button
       '*/docs/*.*.*' // the old documentation
     ]
   },
@@ -43,48 +49,45 @@ const siteChecker = new SiteChecker(
     },
 
     link: (result) => {
+      const isUnique = !stats._set.has(result.url.resolved);
+      stats._set.add(result.url.resolved);
+      
       if (result.broken) {
         if (result.http.response && !ACCEPTABLE_STATUS_CODES.includes(result.http.response.statusCode)) {
-
-          brokenLinks.push({
-            statusCode: result.http.response.statusCode,
-            url: result.url.original,
-            internal: result.internal
-          });
-
           if (result.internal) {
-            logger.error(`broken internal link ${result.http.response.statusCode} => ${result.url.original}`);
+            logger.error(`on: ${result.base.resolved}  \t  broken internal link ${result.http.response.statusCode} => ${result.url.resolved} \t ${result.url.original} ;`);
+            stats.brokenInternal+=isUnique;
           } else {
-            logger.warn(`broken external link ${result.http.response.statusCode} => ${result.url.original}`);
+            logger.warn(`on: ${result.base.resolved}  \t  broken external link ${result.http.response.statusCode} => ${result.url.resolved};`);
+            stats.brokenExternal+=isUnique;
           }
-
         }
+      } else if (result.internal) {
+        stats.internal+=isUnique;
+      } else {
+        logger.log(`on: ${result.base.resolved}  \t  external link ${result.http.response.statusCode} => ${result.url.resolved};`);
+        stats.external+=isUnique;
       }
     },
 
     end: () => {
-      logger.success('CHECK FOR BROKEN LINKS FINISHED');
-      const internalLinksCount = brokenLinks.filter(link => link.internal).length;
-      const externalLinksCount = brokenLinks.filter(link => !link.internal).length;
+      logger.info('\nCHECK FOR BROKEN LINKS FINISHED');
+      logger.info(`Checked internals : ${stats.internal + stats.brokenInternal}`);
+      logger.info(`Checked externals : ${stats.external + stats.brokenExternal}`);
 
-      if (internalLinksCount) {
-        logger.error(`
-TOTAL BROKEN LINKS:
-Internal: ${internalLinksCount}
-External: ${externalLinksCount}
-        `);
+      if (stats.brokenInternal || stats.brokenExternal) {
+        logger.error(`Broken internals: ${stats.brokenInternal}`);
+        logger.error(`Broken external: ${stats.brokenExternal}`);
 
-        process.exit(1);
+        if(stats.brokenInternal){
+          logger.error('\nINTERNAL BROKEN LINKS DETECTED!')
+          process.exit(1);
+        }else{
+          logger.warn('\nEXTERNAL BROKEN LINKS DETECTED!')
+          process.exit(0);
+        }
       }
-
-      if (!internalLinksCount && externalLinksCount) {
-        logger.warn(`
-EXTERNAL BROKEN LINKS: ${externalLinksCount}
-        `);
-        process.exit(0);
-      }
-
-      logger.success('EVERY LINK IS WORKING!');
+      logger.success('\nNO BROKEN LINKS DETECTED!');
       process.exit(0);
     }
   }
