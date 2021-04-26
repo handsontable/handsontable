@@ -1,7 +1,7 @@
 const { SiteChecker } = require('broken-link-checker'); // eslint-disable-line import/no-unresolved
 const path = require('path');
 const execa = require('execa');
-const { logger } = require('../utils');
+const { logger } = require('./utils');
 
 const ACCEPTABLE_STATUS_CODES = [undefined, 200, 429];
 
