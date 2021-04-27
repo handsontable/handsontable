@@ -4,6 +4,8 @@ permalink: /next/column-virtualization
 canonicalUrl: /column-virtualization
 tags:
   - scrolling
+  - offset
+  - render
 ---
 
 # Column virtualization
@@ -12,22 +14,20 @@ tags:
 
 ## Overview
 
-- O wirtualizacji i performance. Kiedy wirtualizacja dziala. Wspomniec o ustawieniach okna, a takze wplywu wielkosci grida na performance. Koniecznie odwolywac sie do front-end side operations dla odroznienia back-end side w przyszlosci.
-- Jakie sa domyslne ustawienia
-- Jak wylaczyc wylaczyc wirtualizacje i jakie moga byc tego konsekwencje (offset, renderallrows)
+To process the large number of columns in a browser Handsontable utilizes the virtulization process that allows to display only the visible part of the grid with a small offset for a better scrolling experience. This feature is turned on by default and can be turned off only for rows, not columns.
+
+ However, you can experiment with the `viewportColumnRenderingOffset` config option, which determine the number of columns being displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, then the virtualization will be practically turned off. Be careful with it though as it will affect the overall performance of the grid.
 
 To make the grid scrollable, set constant width and height to the container holding Handsontable and set the `overflow` property to `hidden` in the container's stylesheet. Then, if the table contains enough rows or columns, you can scroll through it.
 
-Note, that Handsontable renders only the visible part of the table plus a fixed amount of rows and columns. You can experiment with the `viewportColumnRenderingOffset` and `viewportRowRenderingOffset` config options, which define this behavior, to improve the performance of your app.
+The scrolling performance depends mainly on four factors:
 
-The overall scrolling performance depends mainly on these four factors:
+* the amount of cells (number of rows multiplied by the number of columns),
+* the amount and complexity of custom renderers in cells,
+* the number of options enabled in the configuration,
+* the performance of your setup (physical machine and a browser).
 
-* the amount of cells,
-* the amount of custom renderers,
-* the number of features (options) in use,
-* the end-user's machine and browser performance.
-
-This demo below shows a table of 1 million cells (1000 x 1000):
+The demo below presents a data grid displaying one million cells (1000 rows x 1000 columns).
 
 ::: example #example1
 ```js

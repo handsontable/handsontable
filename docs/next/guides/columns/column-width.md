@@ -34,6 +34,7 @@ var hot1 = new Handsontable(container1, {
   data: Handsontable.helper.createSpreadsheetData(5, 50),
   width: '100%',
   colHeaders: true,
+  rowHeaders: true,
   colWidths: 100,
   manualColumnResize: true,
   licenseKey: 'non-commercial-and-evaluation'
@@ -52,6 +53,7 @@ var hot2 = new Handsontable(container2, {
   data: Handsontable.helper.createSpreadsheetData(5, 4),
   width: '100%',
   colHeaders: true,
+  rowHeaders: true,
   colWidths: [50, 100, 200, 400],
   manualColumnResize: true,
   licenseKey: 'non-commercial-and-evaluation'
@@ -70,6 +72,7 @@ var hot3 = new Handsontable(container3, {
   data: Handsontable.helper.createSpreadsheetData(5, 5),
   width: '100%',
   colHeaders: true,
+  rowHeaders: true,
   colWidths: function(index) {
                return (index + 1) * 40;
              },
@@ -89,8 +92,9 @@ You can adjust the size of one or columns at the same time, even if the selected
 ```js
 var container4 = document.getElementById('example4');
 var hot4 = new Handsontable(container4, {
-  data: Handsontable.helper.createSpreadsheetData(5, 7),
+  data: Handsontable.helper.createSpreadsheetData(5, 6),
   colHeaders: true,
+  rowHeaders: true,
   colWidths: [200, 100, 100], // initial width of the first 3 columns
   manualColumnResize: true,
   licenseKey: 'non-commercial-and-evaluation'
@@ -115,8 +119,8 @@ In this case you fit all columns to the container's width equally by setting the
 var container5 = document.getElementById('example5');
 var hot5 = new Handsontable(container5, {
   data: Handsontable.helper.createSpreadsheetData(5, 3),
-  rowHeaders: true,
   colHeaders: true,
+  rowHeaders: true,
   stretchH: 'all', // 'none' is default
   contextMenu: true,
   licenseKey: 'non-commercial-and-evaluation'
@@ -136,6 +140,7 @@ var hot6 = new Handsontable(container6, {
   width: '100%',
   colWidths: 80,
   colHeaders: true,
+  rowHeaders: true,
   stretchH: 'last',
   contextMenu: true,
   licenseKey: 'non-commercial-and-evaluation'
