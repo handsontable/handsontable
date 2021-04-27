@@ -42,29 +42,6 @@ const hot = new Handsontable(container, {
 });
 ```
 
-## Options
-
-### dropdownMenu
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2725
-
-
-_dropdownMenu.dropdownMenu : boolean | object | Array&lt;string&gt;_
-
-This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
-the [Options#contextMenu](./options/#contextmenu), but is triggered by clicking the button in the header.
-
-**Default**: <code>undefined</code>  
-**Category**: DropdownMenu  
-**Example**  
-```js
-// enable dropdown menu
-dropdownMenu: true,
-
-// or
-// enable and configure dropdown menu options
-dropdownMenu: ['remove_col', '---------', 'make_read_only', 'alignment']
-```
-
 ## Members
 
 ### DEFAULT_ITEMS
@@ -116,7 +93,7 @@ _dropdownMenu.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
-**Emits**: <code>Hooks#event:afterDropdownMenuDefaultOptions</code>, <code>Hooks#event:beforeDropdownMenuSetItems</code>  
+**Emits**: [`Hooks#event:afterDropdownMenuDefaultOptions`](./hooks/#afterDropdownMenuDefaultOptions), [`Hooks#event:beforeDropdownMenuSetItems`](./hooks/#beforeDropdownMenuSetItems)  
 
 
 ### executeCommand
@@ -151,7 +128,7 @@ Or you can execute command registered in settings where `key` is your command na
 | Param | Type | Description |
 | --- | --- | --- |
 | commandName | `string` | Command name to execute. |
-| ...params | `*` | Additional parameters passed to the command executor. |
+| ...params | `\*` | Additional parameters passed to the command executor. |
 
 
 
@@ -174,11 +151,11 @@ _dropdownMenu.open(position)_
 
 Opens menu and re-position it based on the passed coordinates.
 
-**Emits**: <code>Hooks#event:beforeDropdownMenuShow</code>, <code>Hooks#event:afterDropdownMenuShow</code>  
+**Emits**: [`Hooks#event:beforeDropdownMenuShow`](./hooks/#beforeDropdownMenuShow), [`Hooks#event:afterDropdownMenuShow`](./hooks/#afterDropdownMenuShow)  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| position | `object` \| `Event` | An object with `pageX` and `pageY` properties which contains values relative to                                the top left of the fully rendered content area in the browser or with `clientX`                                and `clientY`  properties which contains values relative to the upper left edge                                of the content area (the viewport) of the browser window. This object is structurally                                compatible with native mouse event so it can be used either. |
+| position | `object` <br/> `Event` | An object with `pageX` and `pageY` properties which contains values relative to                                the top left of the fully rendered content area in the browser or with `clientX`                                and `clientY`  properties which contains values relative to the upper left edge                                of the content area (the viewport) of the browser window. This object is structurally                                compatible with native mouse event so it can be used either. |
 
 
 

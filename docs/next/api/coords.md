@@ -11,20 +11,24 @@ editLink: false
 ## Members
 
 ### col
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L19
 
+:::
 
-_cellCoords.col : number_
+`cellCoords.col : number`
 
 Column index.
 
 
 
 ### row
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L13
 
+:::
 
-_cellCoords.row : number_
+`cellCoords.row : number`
 
 Row index.
 
@@ -32,20 +36,24 @@ Row index.
 ## Methods
 
 ### clone
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L118
 
+:::
 
-_cellCoords.clone() ⇒ [CellCoords](./coords/)_
+`cellCoords.clone() ⇒ [CellCoords](./coords/)`
 
 Clones the coordinates.
 
 
 
 ### isEqual
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L52
 
+:::
 
-_cellCoords.isEqual(cellCoords) ⇒ boolean_
+`cellCoords.isEqual(cellCoords) ⇒ boolean`
 
 Checks if this cell coordinates are the same as cell coordinates given as an argument.
 
@@ -57,10 +65,12 @@ Checks if this cell coordinates are the same as cell coordinates given as an arg
 
 
 ### isNorthEastOf
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L96
 
+:::
 
-_cellCoords.isNorthEastOf(testedCoords) ⇒ boolean_
+`cellCoords.isNorthEastOf(testedCoords) ⇒ boolean`
 
 Checks if tested coordinates are positioned in north-east from this cell coordinates.
 
@@ -72,10 +82,12 @@ Checks if tested coordinates are positioned in north-east from this cell coordin
 
 
 ### isNorthWestOf
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L76
 
+:::
 
-_cellCoords.isNorthWestOf(testedCoords) ⇒ boolean_
+`cellCoords.isNorthWestOf(testedCoords) ⇒ boolean`
 
 Checks if tested coordinates are positioned in north-east from this cell coordinates.
 
@@ -87,10 +99,12 @@ Checks if tested coordinates are positioned in north-east from this cell coordin
 
 
 ### isSouthEastOf
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L66
 
+:::
 
-_cellCoords.isSouthEastOf(testedCoords) ⇒ boolean_
+`cellCoords.isSouthEastOf(testedCoords) ⇒ boolean`
 
 Checks if tested coordinates are positioned in south-east from this cell coordinates.
 
@@ -102,10 +116,12 @@ Checks if tested coordinates are positioned in south-east from this cell coordin
 
 
 ### isSouthWestOf
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L86
 
+:::
 
-_cellCoords.isSouthWestOf(testedCoords) ⇒ boolean_
+`cellCoords.isSouthWestOf(testedCoords) ⇒ boolean`
 
 Checks if tested coordinates are positioned in south-west from this cell coordinates.
 
@@ -117,10 +133,12 @@ Checks if tested coordinates are positioned in south-west from this cell coordin
 
 
 ### isValid
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L33
 
+:::
 
-_cellCoords.isValid(wot) ⇒ boolean_
+`cellCoords.isValid(wot) ⇒ boolean`
 
 Checks if given set of coordinates is valid in context of a given Walkontable instance.
 
@@ -132,10 +150,12 @@ Checks if given set of coordinates is valid in context of a given Walkontable in
 
 
 ### normalize
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L106
 
+:::
 
-_cellCoords.normalize() ⇒ [CellCoords](./coords/)_
+`cellCoords.normalize() ⇒ [CellCoords](./coords/)`
 
 Normalizes the coordinates to the nearest valid position. The coordinates that point
 to the headers (negative values) are normalized to 0.
@@ -143,10 +163,12 @@ to the headers (negative values) are normalized to 0.
 
 
 ### toObject
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L127
 
+:::
 
-_cellCoords.toObject() ⇒ object_
+`cellCoords.toObject() ⇒ object`
 
 Converts CellCoords to literal object with `row` and `col` properties.
 

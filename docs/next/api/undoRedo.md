@@ -117,7 +117,7 @@ _undoRedo.redo()_
 
 Redo the previous action performed to the table (used to reverse an undo).
 
-**Emits**: <code>Hooks#event:beforeRedo</code>, <code>Hooks#event:afterRedo</code>  
+**Emits**: [`Hooks#event:beforeRedo`](./hooks/#beforeRedo), [`Hooks#event:afterRedo`](./hooks/#afterRedo)  
 
 
 ### undo
@@ -128,6 +128,6 @@ _undoRedo.undo()_
 
 Undo the last action performed to the table.
 
-**Emits**: <code>Hooks#event:beforeUndo</code>, <code>Hooks#event:afterUndo</code>  
+**Emits**: [`Hooks#event:beforeUndo`](./hooks/#beforeUndo), [`Hooks#event:afterUndo`](./hooks/#afterUndo)  
 
 

@@ -14,24 +14,6 @@ editLink: false
 Plugin used to scroll Handsontable by selecting a cell and dragging outside of the visible viewport.
 
 
-## Options
-
-### dragToScroll
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L3049
-
-
-_dragToScroll.dragToScroll : boolean_
-
-Disables or enables the [drag to scroll](#DragToScroll) functionality.
-
-**Default**: <code>true</code>  
-**Category**: DragToScroll  
-**Example**  
-```js
-// don't scroll the viewport when selection gets to the viewport edge
-dragToScroll: false,
-```
-
 ## Members
 
 ### boundaries

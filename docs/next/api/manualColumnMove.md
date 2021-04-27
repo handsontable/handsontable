@@ -28,28 +28,6 @@ The plugin creates additional components to make moving possibly using user inte
 - guideline - line which shows where columns has been moved.
 
 
-## Options
-
-### manualColumnMove
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1887
-
-
-_manualColumnMove.manualColumnMove : boolean | Array&lt;number&gt;_
-
-Turns on [Manual column move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial column order (as an array of column indexes).
-
-**Default**: <code>undefined</code>  
-**Category**: ManualColumnMove  
-**Example**  
-```js
-// as a boolean to enable column move
-manualColumnMove: true,
-
-// as a array with initial order
-// (move column index at 0 to 1 and move column index at 1 to 4)
-manualColumnMove: [1, 4],
-```
-
 ## Methods
 
 ### destroy
@@ -80,7 +58,7 @@ _manualColumnMove.dragColumn(column, dropIndex) ⇒ boolean_
 
 Drag a single column to drop index position.
 
-**Emits**: <code>Hooks#event:beforeColumnMove</code>, <code>Hooks#event:afterColumnMove</code>  
+**Emits**: [`Hooks#event:beforeColumnMove`](./hooks/#beforeColumnMove), [`Hooks#event:afterColumnMove`](./hooks/#afterColumnMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -97,7 +75,7 @@ _manualColumnMove.dragColumns(columns, dropIndex) ⇒ boolean_
 
 Drag multiple columns to drop index position.
 
-**Emits**: <code>Hooks#event:beforeColumnMove</code>, <code>Hooks#event:afterColumnMove</code>  
+**Emits**: [`Hooks#event:beforeColumnMove`](./hooks/#beforeColumnMove), [`Hooks#event:afterColumnMove`](./hooks/#afterColumnMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -151,7 +129,7 @@ _manualColumnMove.moveColumn(column, finalIndex) ⇒ boolean_
 
 Moves a single column.
 
-**Emits**: <code>Hooks#event:beforeColumnMove</code>, <code>Hooks#event:afterColumnMove</code>  
+**Emits**: [`Hooks#event:beforeColumnMove`](./hooks/#beforeColumnMove), [`Hooks#event:afterColumnMove`](./hooks/#afterColumnMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -168,7 +146,7 @@ _manualColumnMove.moveColumns(columns, finalIndex) ⇒ boolean_
 
 Moves a multiple columns.
 
-**Emits**: <code>Hooks#event:beforeColumnMove</code>, <code>Hooks#event:afterColumnMove</code>  
+**Emits**: [`Hooks#event:beforeColumnMove`](./hooks/#beforeColumnMove), [`Hooks#event:afterColumnMove`](./hooks/#afterColumnMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |

@@ -23,10 +23,12 @@ square in the corner.
 ## Members
 
 ### autoInsertRow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L89
 
+:::
 
-_autofill.autoInsertRow : boolean_
+`autofill.autoInsertRow : boolean`
 
 Specifies if can insert new rows if needed.
 
@@ -34,50 +36,60 @@ Specifies if can insert new rows if needed.
 ## Methods
 
 ### destroy
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L636
 
+:::
 
-_autofill.destroy()_
+`autofill.destroy()`
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L131
 
+:::
 
-_autofill.disablePlugin()_
+`autofill.disablePlugin()`
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L104
 
+:::
 
-_autofill.enablePlugin()_
+`autofill.enablePlugin()`
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### isEnabled
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L97
 
+:::
 
-_autofill.isEnabled() ⇒ boolean_
+`autofill.isEnabled() ⇒ boolean`
 
 Checks if the plugin is enabled in the Handsontable settings.
 
 
 
 ### updatePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L122
 
+:::
 
-_autofill.updatePlugin()_
+`autofill.updatePlugin()`
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

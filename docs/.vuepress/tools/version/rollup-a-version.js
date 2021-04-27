@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
 
-const {logger} = require('../utils');
+const { logger } = require('../utils');
 
 const workingDir = path.resolve(__dirname, '../../../');
 

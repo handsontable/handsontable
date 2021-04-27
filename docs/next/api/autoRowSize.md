@@ -58,20 +58,24 @@ if (plugin.isEnabled()) {
 ## Members
 
 ### inProgress
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L137
 
+:::
 
-_autoRowSize.inProgress : boolean_
+`autoRowSize.inProgress : boolean`
 
 `true` if the size calculation is in progress.
 
 
 
 ### measuredRows
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L143
 
+:::
 
-_autoRowSize.measuredRows : number_
+`autoRowSize.measuredRows : number`
 
 Number of already measured rows (we already know their sizes).
 
@@ -79,10 +83,12 @@ Number of already measured rows (we already know their sizes).
 ## Methods
 
 ### calculateAllRowsHeight
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L253
 
+:::
 
-_autoRowSize.calculateAllRowsHeight(colRange)_
+`autoRowSize.calculateAllRowsHeight(colRange)`
 
 Calculate all rows heights. The calculated row will be cached in the [AutoRowSize#heights](./auto-row-size/#heights) property.
 To retrieve height for specified row use [AutoRowSize#getRowHeight](./auto-row-size/#getrowheight) method.
@@ -95,10 +101,12 @@ To retrieve height for specified row use [AutoRowSize#getRowHeight](./auto-row-s
 
 
 ### calculateRowsHeight
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L210
 
+:::
 
-_autoRowSize.calculateRowsHeight(rowRange, colRange, [force])_
+`autoRowSize.calculateRowsHeight(rowRange, colRange, [force])`
 
 Calculate a given rows height.
 
@@ -112,20 +120,24 @@ Calculate a given rows height.
 
 
 ### clearCache
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L430
 
+:::
 
-_autoRowSize.clearCache()_
+`autoRowSize.clearCache()`
 
 Clears cached heights.
 
 
 
 ### clearCacheByRange
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L440
 
+:::
 
-_autoRowSize.clearCacheByRange(range)_
+`autoRowSize.clearCacheByRange(range)`
 
 Clears cache by range.
 
@@ -137,50 +149,60 @@ Clears cache by range.
 
 
 ### destroy
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L564
 
+:::
 
-_autoRowSize.destroy()_
+`autoRowSize.destroy()`
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L193
 
+:::
 
-_autoRowSize.disablePlugin()_
+`autoRowSize.disablePlugin()`
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L173
 
+:::
 
-_autoRowSize.enablePlugin()_
+`autoRowSize.enablePlugin()`
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### getColumnHeaderHeight
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L387
 
+:::
 
-_autoRowSize.getColumnHeaderHeight() ⇒ number | undefined_
+`autoRowSize.getColumnHeaderHeight() ⇒ number | undefined`
 
 Get the calculated column header height.
 
 
 
 ### getFirstVisibleRow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L396
 
+:::
 
-_autoRowSize.getFirstVisibleRow() ⇒ number_
+`autoRowSize.getFirstVisibleRow() ⇒ number`
 
 Get the first visible row.
 
@@ -188,10 +210,12 @@ Get the first visible row.
 **Returns**: `number` - Returns row index, -1 if table is not rendered or if there are no rows to base the the calculations on.  
 
 ### getLastVisibleRow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L414
 
+:::
 
-_autoRowSize.getLastVisibleRow() ⇒ number_
+`autoRowSize.getLastVisibleRow() ⇒ number`
 
 Gets the last visible row.
 
@@ -199,10 +223,12 @@ Gets the last visible row.
 **Returns**: `number` - Returns row index or -1 if table is not rendered.  
 
 ### getRowHeight
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L371
 
+:::
 
-_autoRowSize.getRowHeight(row, [defaultHeight]) ⇒ number_
+`autoRowSize.getRowHeight(row, [defaultHeight]) ⇒ number`
 
 Gets the calculated row height.
 
@@ -215,10 +241,12 @@ Gets the calculated row height.
 
 
 ### getSyncCalculationLimit
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L344
 
+:::
 
-_autoRowSize.getSyncCalculationLimit() ⇒ number_
+`autoRowSize.getSyncCalculationLimit() ⇒ number`
 
 Gets value which tells how many rows should be calculated synchronously (rest of the rows will be calculated
 asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize option (see [Options#autoRowSize](./options/#autorowsize)).
@@ -226,10 +254,12 @@ asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize
 
 
 ### isEnabled
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L164
 
+:::
 
-_autoRowSize.isEnabled() ⇒ boolean_
+`autoRowSize.isEnabled() ⇒ boolean`
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeinit)
 hook and if it returns `true` than the [AutoRowSize#enablePlugin](./auto-row-size/#enableplugin) method is called.
@@ -237,20 +267,24 @@ hook and if it returns `true` than the [AutoRowSize#enablePlugin](./auto-row-siz
 
 
 ### isNeedRecalculate
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L455
 
+:::
 
-_autoRowSize.isNeedRecalculate() ⇒ boolean_
+`autoRowSize.isNeedRecalculate() ⇒ boolean`
 
 Checks if all heights were calculated. If not then return `true` (need recalculate).
 
 
 
 ### recalculateAllRowsHeight
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoRowSize/autoRowSize.js#L331
 
+:::
 
-_autoRowSize.recalculateAllRowsHeight()_
+`autoRowSize.recalculateAllRowsHeight()`
 
 Recalculates all rows height (overwrite cache values).
 

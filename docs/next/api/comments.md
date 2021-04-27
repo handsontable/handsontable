@@ -55,54 +55,15 @@ commentsPlugin.show();
 commentsPlugin.removeComment();
 ```
 
-## Options
-
-### comments
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L502
-
-
-_comments.comments : boolean | Array&lt;object&gt;_
-
-If `true`, enables the [Comments](./comments/) plugin, which enables an option to apply cell comments through the context menu
-(configurable with context menu keys `commentsAddEdit`, `commentsRemove`).
-
-To initialize Handsontable with predefined comments, provide cell coordinates and comment text values in a form of
-an array.
-
-See [Comments](https://docs.handsontable.com/demo-comments_.html) demo for examples.
-
-**Default**: <code>false</code>  
-**Category**: Comments  
-**Example**  
-```js
-// enable comments plugin
-comments: true,
-
-// or an object with extra predefined plugin config:
-
-comments: {
-  displayDelay: 1000
-}
-
-// or
-// enable comments plugin and add predefined comments
-const hot = new Handsontable(document.getElementById('example'), {
-  data: getData(),
-  comments: true,
-  cell: [
-    { row: 1, col: 1, comment: { value: 'Foo' } },
-    { row: 2, col: 2, comment: { value: 'Bar' } }
-  ]
-});
-```
-
 ## Members
 
 ### range
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L118
 
+:::
 
-_comments.range : object_
+`comments.range : object`
 
 Current cell range, an object with `from` property, with `row` and `col` properties (e.q. `{from: {row: 1, col: 6}}`).
 
@@ -110,50 +71,60 @@ Current cell range, an object with `from` property, with `row` and `col` propert
 ## Methods
 
 ### clearRange
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L234
 
+:::
 
-_comments.clearRange()_
+`comments.clearRange()`
 
 Clears the currently selected cell.
 
 
 
 ### destroy
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L854
 
+:::
 
-_comments.destroy()_
+`comments.destroy()`
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L200
 
+:::
 
-_comments.disablePlugin()_
+`comments.disablePlugin()`
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L154
 
+:::
 
-_comments.enablePlugin()_
+`comments.enablePlugin()`
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### getComment
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L339
 
+:::
 
-_comments.getComment() ⇒ string | undefined_
+`comments.getComment() ⇒ string | undefined`
 
 Gets comment from a cell according to previously set range (see [setRange](#Comments+setRange)).
 
@@ -161,10 +132,12 @@ Gets comment from a cell according to previously set range (see [setRange](#Comm
 **Returns**: `string` | `undefined` - Returns a content of the comment.  
 
 ### getCommentAtCell
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L353
 
+:::
 
-_comments.getCommentAtCell(row, column) ⇒ string | undefined_
+`comments.getCommentAtCell(row, column) ⇒ string | undefined`
 
 Gets comment from a cell at the provided coordinates.
 
@@ -178,10 +151,12 @@ Gets comment from a cell at the provided coordinates.
 **Returns**: `string` | `undefined` - Returns a content of the comment.  
 
 ### getCommentMeta
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L537
 
+:::
 
-_comments.getCommentMeta(row, column, property) ⇒ Mixed_
+`comments.getCommentMeta(row, column, property) ⇒ Mixed`
 
 Gets the comment related meta information.
 
@@ -195,20 +170,24 @@ Gets the comment related meta information.
 
 
 ### hide
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L404
 
+:::
 
-_comments.hide()_
+`comments.hide()`
 
 Hides the comment editor.
 
 
 
 ### isEnabled
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L147
 
+:::
 
-_comments.isEnabled() ⇒ boolean_
+`comments.isEnabled() ⇒ boolean`
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#Comments+enablePlugin) method is called.
@@ -216,10 +195,12 @@ hook and if it returns `true` than the [enablePlugin](#Comments+enablePlugin) me
 
 
 ### refreshEditor
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L415
 
+:::
 
-_comments.refreshEditor([force])_
+`comments.refreshEditor([force])`
 
 Refreshes comment editor position and styling.
 
@@ -231,10 +212,12 @@ Refreshes comment editor position and styling.
 
 
 ### removeComment
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L306
 
+:::
 
-_comments.removeComment([forceRender])_
+`comments.removeComment([forceRender])`
 
 Removes a comment from a cell according to previously set range (see [setRange](#Comments+setRange)).
 
@@ -246,10 +229,12 @@ Removes a comment from a cell according to previously set range (see [setRange](
 
 
 ### removeCommentAtCell
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L327
 
+:::
 
-_comments.removeCommentAtCell(row, column, [forceRender])_
+`comments.removeCommentAtCell(row, column, [forceRender])`
 
 Removes a comment from a specified cell.
 
@@ -263,10 +248,12 @@ Removes a comment from a specified cell.
 
 
 ### setComment
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L267
 
+:::
 
-_comments.setComment(value)_
+`comments.setComment(value)`
 
 Sets a comment for a cell according to the previously set range (see [setRange](#Comments+setRange)).
 
@@ -278,10 +265,12 @@ Sets a comment for a cell according to the previously set range (see [setRange](
 
 
 ### setCommentAtCell
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L294
 
+:::
 
-_comments.setCommentAtCell(row, column, value)_
+`comments.setCommentAtCell(row, column, value)`
 
 Sets a comment for a specified cell.
 
@@ -295,10 +284,12 @@ Sets a comment for a specified cell.
 
 
 ### setRange
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L227
 
+:::
 
-_comments.setRange(range)_
+`comments.setRange(range)`
 
 Sets the current cell range to be able to use general methods like [setComment](#Comments+setComment), [removeComment](#Comments+removeComment), [show](#Comments+show).
 
@@ -310,10 +301,12 @@ Sets the current cell range to be able to use general methods like [setComment](
 
 
 ### show
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L362
 
+:::
 
-_comments.show() ⇒ boolean_
+`comments.show() ⇒ boolean`
 
 Shows the comment editor accordingly to the previously set range (see [setRange](#Comments+setRange)).
 
@@ -321,10 +314,12 @@ Shows the comment editor accordingly to the previously set range (see [setRange]
 **Returns**: `boolean` - Returns `true` if comment editor was shown.  
 
 ### showAtCell
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L393
 
+:::
 
-_comments.showAtCell(row, column) ⇒ boolean_
+`comments.showAtCell(row, column) ⇒ boolean`
 
 Shows comment editor according to cell coordinates.
 
@@ -338,10 +333,12 @@ Shows comment editor according to cell coordinates.
 **Returns**: `boolean` - Returns `true` if comment editor was shown.  
 
 ### updateCommentMeta
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L515
 
+:::
 
-_comments.updateCommentMeta(row, column, metaObject)_
+`comments.updateCommentMeta(row, column, metaObject)`
 
 Sets or update the comment-related cell meta.
 
@@ -355,10 +352,12 @@ Sets or update the comment-related cell meta.
 
 
 ### updatePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/comments/comments.js#L189
 
+:::
 
-_comments.updatePlugin()_
+`comments.updatePlugin()`
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

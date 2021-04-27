@@ -1248,6 +1248,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     /**
      * @param {boolean} valid Indicates if the validation was successful.
      * @param {boolean} [canBeValidated=true] Flag which controls the validation process.
+     * @private
      */
     function done(valid, canBeValidated = true) {
       // Fixes GH#3903

@@ -57,35 +57,6 @@ hiddenRowsPlugin.hideRows([1, 2, 9]);
 hot.render();
 ```
 
-## Options
-
-### hiddenRows
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2849
-
-
-_hiddenRows.hiddenRows : boolean | object_
-
-The [HiddenRows](./hidden-rows/) plugin allows hiding of certain rows. You can pass additional configuration with an
-object notation. Options that are then available are:
- * `rows` - an array of rows that should be hidden on plugin initialization
- * `indicators` - enables small ui markers to indicate where are hidden columns.
-
-**Default**: <code>undefined</code>  
-**Category**: HiddenRows  
-**Example**  
-```js
-// enable row hiding
-hiddenRows: true,
-
-// or
-hiddenRows: {
-  // set rows that are hidden by default
-  rows: [5, 10, 15],
-  // show where are hidden rows
-  indicators: true
-}
-```
-
 ## Methods
 
 ### destroy
@@ -154,7 +125,7 @@ Hides the rows provided in the array.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| rows | `Array.&lt;number&gt;` | Array of visual row indexes. |
+| rows | `Array<number>` | Array of visual row indexes. |
 
 
 
@@ -225,7 +196,7 @@ Shows the rows provided in the array.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| rows | `Array.&lt;number&gt;` | Array of visual row indexes. |
+| rows | `Array<number>` | Array of visual row indexes. |
 
 
 

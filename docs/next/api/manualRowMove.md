@@ -28,28 +28,6 @@ The plugin creates additional components to make moving possibly using user inte
 - guideline - line which shows where rows has been moved.
 
 
-## Options
-
-### manualRowMove
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1929
-
-
-_manualRowMove.manualRowMove : boolean | Array&lt;number&gt;_
-
-Turns on [Manual row move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial row order (as an array of row indexes).
-
-**Default**: <code>undefined</code>  
-**Category**: ManualRowMove  
-**Example**  
-```js
-// as a boolean
-manualRowMove: true,
-
-// as a array with initial order
-// (move row index at 0 to 1 and move row index at 1 to 4)
-manualRowMove: [1, 4],
-```
-
 ## Methods
 
 ### destroy
@@ -80,7 +58,7 @@ _manualRowMove.dragRow(row, dropIndex) ⇒ boolean_
 
 Drag a single row to drop index position.
 
-**Emits**: <code>Hooks#event:beforeRowMove</code>, <code>Hooks#event:afterRowMove</code>  
+**Emits**: [`Hooks#event:beforeRowMove`](./hooks/#beforeRowMove), [`Hooks#event:afterRowMove`](./hooks/#afterRowMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -97,7 +75,7 @@ _manualRowMove.dragRows(rows, dropIndex) ⇒ boolean_
 
 Drag multiple rows to drop index position.
 
-**Emits**: <code>Hooks#event:beforeRowMove</code>, <code>Hooks#event:afterRowMove</code>  
+**Emits**: [`Hooks#event:beforeRowMove`](./hooks/#beforeRowMove), [`Hooks#event:afterRowMove`](./hooks/#afterRowMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -151,7 +129,7 @@ _manualRowMove.moveRow(row, finalIndex) ⇒ boolean_
 
 Moves a single row.
 
-**Emits**: <code>Hooks#event:beforeRowMove</code>, <code>Hooks#event:afterRowMove</code>  
+**Emits**: [`Hooks#event:beforeRowMove`](./hooks/#beforeRowMove), [`Hooks#event:afterRowMove`](./hooks/#afterRowMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -168,7 +146,7 @@ _manualRowMove.moveRows(rows, finalIndex) ⇒ boolean_
 
 Moves a multiple rows.
 
-**Emits**: <code>Hooks#event:beforeRowMove</code>, <code>Hooks#event:afterRowMove</code>  
+**Emits**: [`Hooks#event:beforeRowMove`](./hooks/#beforeRowMove), [`Hooks#event:afterRowMove`](./hooks/#afterRowMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |

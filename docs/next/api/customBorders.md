@@ -58,70 +58,6 @@ customBorders: [
 ],
 ```
 
-## Options
-
-### customBorders
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L565
-
-
-_customBorders.customBorders : boolean | Array&lt;object&gt;_
-
-If `true`, enables the [CustomBorders](./custom-borders/) plugin, which enables an option to apply custom borders through the context
-menu (configurable with context menu key `borders`). To initialize Handsontable with predefined custom borders,
-provide cell coordinates and border styles in a form of an array.
-
-See [Custom Borders](https://docs.handsontable.com/demo-custom-borders.html) demo for examples.
-
-**Default**: <code>false</code>  
-**Category**: CustomBorders  
-**Example**  
-```js
-// enable custom borders
-customBorders: true,
-
-// or
-// enable custom borders and start with predefined left border
-customBorders: [
-  {
-    range: {
-      from: {
-        row: 1,
-        col: 1
-      },
-      to: {
-        row: 3,
-        col: 4
-      }
-    },
-    left: {
-      width: 2,
-      color: 'red'
-    },
-    right: {},
-    top: {},
-    bottom: {}
-  }
-],
-
-// or
-customBorders: [
-  {
-    row: 2,
-    col: 2,
-    left: {
-      width: 2,
-      color: 'red'
-    },
-    right: {
-      width: 1,
-      color: 'green'
-    },
-    top: '',
-    bottom: ''
-  }
-],
-```
-
 ## Methods
 
 ### clearBorders
@@ -146,7 +82,7 @@ customBordersPlugin.clearBorders();
 
 | Param | Type | Description |
 | --- | --- | --- |
-| selectionRanges | `Array.&lt;Array&gt;` \| `Array.&lt;CellRange&gt;` | Array of selection ranges. |
+| selectionRanges | `Array<Array>` <br/> `Array<CellRange>` | Array of selection ranges. |
 
 
 
@@ -202,10 +138,10 @@ customBordersPlugin.getBorders();
 
 | Param | Type | Description |
 | --- | --- | --- |
-| selectionRanges | `Array.&lt;Array&gt;` \| `Array.&lt;CellRange&gt;` | Array of selection ranges. |
+| selectionRanges | `Array<Array>` <br/> `Array<CellRange>` | Array of selection ranges. |
 
 
-**Returns**: `Array.&lt;object&gt;` - Returns array of border objects.  
+**Returns**: `Array<object>` - Returns array of border objects.  
 
 ### isEnabled
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/customBorders/customBorders.js#L99
@@ -242,7 +178,7 @@ customBordersPlugin.setBorders(hot.getSelectedRange(), {left: {hide: false, widt
 
 | Param | Type | Description |
 | --- | --- | --- |
-| selectionRanges | `Array.&lt;Array&gt;` \| `Array.&lt;CellRange&gt;` | Array of selection ranges. |
+| selectionRanges | `Array<Array>` <br/> `Array<CellRange>` | Array of selection ranges. |
 | borderObject | `object` | Object with `top`, `right`, `bottom` and `left` properties. |
 
 

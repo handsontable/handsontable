@@ -72,16 +72,17 @@ const clearEmptyOptionHeaders = text => text.replace(/## Options\n## Members/g, 
 const clearEmptyMembersHeaders = text => text.replace(/## Members\n## Methods/g, '## Methods');
 const clearEmptyFunctionsHeaders = text => text.replace(/(## Methods\n)+$/g, '\n');
 
-const fixTypes = text => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\*\*:|\*\*Emits\*\*:)( ?[^\n]*)/g, (_, part, signame) => {
+const fixTypes = text => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\*\*:|\*\*Emits\*\*:)( ?[^\n-]*)/g, (_, part, signame) => {
   let suffix = ''; let
     prefix = part;
 
   if (part === '::: signame ') {
-    prefix = '_';
-    suffix = '_';
+    prefix = '`';
+    suffix = '`';
   }
   const r = prefix + signame
     .replace(/([^\w`\[#])(`)?(IndexMapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./index-mapper/$4)')
+    .replace(/([^\w`\[#])(`)?(Handsontable)(#\w*)?(`)?/g, '$1[$2$3$4$5](./core/$4)')
     .replace(/([^\w`\[#])(`)?(Hooks)((#)(event:)?(\w*))?(`)?/g, '$1[$2$3$4$8](./hooks/$5$7)')
     .replace(/([^\w`\[#])(`)?(BaseEditor)(#\w*)?(`)?/g, '$1[$2$3$4$5](./base-editor/$4)')
     .replace(/([^\w`\[#])(`)?(CellCoords)(#\w*)?(`)?/g, '$1[$2$3$4$5](./coords/$4)')
@@ -90,18 +91,17 @@ const fixTypes = text => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\*\
     .replace(/>/g, '&gt;')
     .replace(/`\\\*`/, '`*`')
     + suffix;
-        + suffix;
 
   return r;
 });
 
 const unescapeRedundant = text => text
-  .replace(/`[^`\n]*`/g, (m)=>  //get all inline codes
+  .replace(/`[^`\n]*`/g, m => // get all inline codes
     m.replace(/\&lt;/g, '<')
       .replace(/\&gt;/g, '>')
       .replace(/\.</g, '<')
   )
-  .replace(/<\/ul>\./g,'</ul>') // remove redundant dot, which eslint enforce to add after list closing tag.
+  .replace(/<\/ul>\./g, '</ul>'); // remove redundant dot, which eslint enforce to add after list closing tag.
 
 const postProcessors = [
   fixLinks,
