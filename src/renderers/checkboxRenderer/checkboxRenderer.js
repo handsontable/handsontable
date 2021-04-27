@@ -348,6 +348,7 @@ function onMouseUp(event, instance) {
   if (!isCheckboxInput(target)) {
     return;
   }
+
   if (!target.hasAttribute(ATTR_ROW) || !target.hasAttribute(ATTR_COLUMN)) {
     return;
   }
@@ -368,6 +369,7 @@ function onClick(event, instance) {
   if (!isCheckboxInput(target)) {
     return;
   }
+
   if (!target.hasAttribute(ATTR_ROW) || !target.hasAttribute(ATTR_COLUMN)) {
     return;
   }
@@ -393,6 +395,7 @@ function onChange(event, instance) {
   if (!isCheckboxInput(target)) {
     return;
   }
+
   if (!target.hasAttribute(ATTR_ROW) || !target.hasAttribute(ATTR_COLUMN)) {
     return;
   }
