@@ -1058,6 +1058,32 @@ describe('Formulas general', () => {
         .simulate('mouseup');
     };
 
+    it('should not autofill if there\'s a matrix in the way', () => {
+      const hot = handsontable({
+        data: [
+          [1, 2],
+          [3, 4],
+          ['', '=A1'],
+          ['', ''],
+          ['', ''],
+        ],
+        formulas: true
+      });
+
+      hot.setDataAtCell(3, 0, '{=TRANSPOSE(A1:B2)}');
+
+      selectCell(2, 1)
+      autofill(4, 1)
+
+      expect(hot.getData()).toEqual([
+        [1, 2],
+        [3, 4],
+        ['', 1],
+        [1, 3],
+        [2, 4],
+      ])
+    })
+
     // Most of these tests will produce invalid values (out of bound addresses,
     // #CYCLE! errors), but we only care about the formula offsets.
     //

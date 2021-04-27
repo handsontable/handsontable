@@ -6,6 +6,26 @@
 export const registerAutofillHooks = (pluginInstance) => {
   const lastAutofillSource = { value: undefined };
 
+  // Block autofill operation if at least one of the underlying's cell
+  // contents cannot be set, e.g. if there's a matrix underneath.
+  pluginInstance.addHook('beforeAutofill', (start, end) => {
+    const width = Math.abs(start.col - end.col) + 1
+    const height = Math.abs(start.row - end.row) + 1
+
+    const row = Math.min(start.row, end.row)
+    const col = Math.min(start.col, end.col)
+
+    if (
+      !pluginInstance.hyperformula.isItPossibleToSetCellContents({
+        sheet: pluginInstance.hyperformula.getSheetId(pluginInstance.sheetName),
+        row,
+        col
+      }, width, height)
+    ) {
+      return false
+    }
+  })
+
   // Abuse the `modifyAutofillRange` hook to get the autofill start coordinates.
   pluginInstance.addHook('modifyAutofillRange', (_, entireArea) => {
     const [startRow, startCol, endRow, endCol] = entireArea;
