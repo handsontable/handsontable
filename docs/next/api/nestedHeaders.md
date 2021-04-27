@@ -36,10 +36,12 @@ const hot = new Handsontable(container, {
 ## Members
 
 ### detectedOverlappedHeaders
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L73
 
+:::
 
-_nestedHeaders.detectedOverlappedHeaders : boolean_
+`nestedHeaders.detectedOverlappedHeaders : boolean`
 
 The flag which determines that the nested header settings contains overlapping headers
 configuration.
@@ -48,50 +50,60 @@ configuration.
 ## Methods
 
 ### destroy
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L547
 
+:::
 
-_nestedHeaders.destroy()_
+`nestedHeaders.destroy()`
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L140
 
+:::
 
-_nestedHeaders.disablePlugin()_
+`nestedHeaders.disablePlugin()`
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L87
 
+:::
 
-_nestedHeaders.enablePlugin()_
+`nestedHeaders.enablePlugin()`
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### isEnabled
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L80
 
+:::
 
-_nestedHeaders.isEnabled() ⇒ boolean_
+`nestedHeaders.isEnabled() ⇒ boolean`
 
 Check if plugin is enabled.
 
 
 
 ### updatePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L115
 
+:::
 
-_nestedHeaders.updatePlugin()_
+`nestedHeaders.updatePlugin()`
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

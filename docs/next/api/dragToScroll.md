@@ -17,10 +17,12 @@ Plugin used to scroll Handsontable by selecting a cell and dragging outside of t
 ## Members
 
 ### boundaries
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L40
 
+:::
 
-_dragToScroll.boundaries : DOMRect_
+`dragToScroll.boundaries : DOMRect`
 
 Size of an element and its position relative to the viewport,
 e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y:8}.
@@ -29,10 +31,12 @@ e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y
 ## Methods
 
 ### check
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L127
 
+:::
 
-_dragToScroll.check(x, y)_
+`dragToScroll.check(x, y)`
 
 Checks if the mouse position (X, Y) is outside of the viewport and fires a callback with calculated X an Y diffs
 between passed boundaries.
@@ -46,40 +50,48 @@ between passed boundaries.
 
 
 ### destroy
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L263
 
+:::
 
-_dragToScroll.destroy()_
+`dragToScroll.destroy()`
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L96
 
+:::
 
-_dragToScroll.disablePlugin()_
+`dragToScroll.disablePlugin()`
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L70
 
+:::
 
-_dragToScroll.enablePlugin()_
+`dragToScroll.enablePlugin()`
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### isEnabled
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L63
 
+:::
 
-_dragToScroll.isEnabled() ⇒ boolean_
+`dragToScroll.isEnabled() ⇒ boolean`
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#DragToScroll+enablePlugin) method is called.
@@ -87,10 +99,12 @@ hook and if it returns `true` than the [enablePlugin](#DragToScroll+enablePlugin
 
 
 ### setBoundaries
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L107
 
+:::
 
-_dragToScroll.setBoundaries(boundaries)_
+`dragToScroll.setBoundaries(boundaries)`
 
 Sets the value of the visible element.
 
@@ -102,10 +116,12 @@ Sets the value of the visible element.
 
 
 ### setCallback
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L116
 
+:::
 
-_dragToScroll.setCallback(callback)_
+`dragToScroll.setCallback(callback)`
 
 Changes callback function.
 
@@ -117,10 +133,12 @@ Changes callback function.
 
 
 ### updatePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L86
 
+:::
 
-_dragToScroll.updatePlugin()_
+`dragToScroll.updatePlugin()`
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

@@ -59,50 +59,60 @@ hot.render();
 ## Methods
 
 ### destroy
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenColumns/hiddenColumns.js#L471
 
+:::
 
-_hiddenColumns.destroy()_
+`hiddenColumns.destroy()`
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenColumns/hiddenColumns.js#L151
 
+:::
 
-_hiddenColumns.disablePlugin()_
+`hiddenColumns.disablePlugin()`
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenColumns/hiddenColumns.js#L110
 
+:::
 
-_hiddenColumns.enablePlugin()_
+`hiddenColumns.enablePlugin()`
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### getHiddenColumns
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenColumns/hiddenColumns.js#L263
 
+:::
 
-_hiddenColumns.getHiddenColumns() ⇒ Array&lt;number&gt;_
+`hiddenColumns.getHiddenColumns() ⇒ Array<number>`
 
 Returns an array of visual indexes of hidden columns.
 
 
 
 ### hideColumn
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenColumns/hiddenColumns.js#L254
 
+:::
 
-_hiddenColumns.hideColumn(...column)_
+`hiddenColumns.hideColumn(...column)`
 
 Hides a single column.
 
@@ -114,10 +124,12 @@ Hides a single column.
 
 
 ### hideColumns
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenColumns/hiddenColumns.js#L221
 
+:::
 
-_hiddenColumns.hideColumns(columns)_
+`hiddenColumns.hideColumns(columns)`
 
 Hides the columns provided in the array.
 
@@ -129,10 +141,12 @@ Hides the columns provided in the array.
 
 
 ### isEnabled
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenColumns/hiddenColumns.js#L103
 
+:::
 
-_hiddenColumns.isEnabled() ⇒ boolean_
+`hiddenColumns.isEnabled() ⇒ boolean`
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#HiddenColumns+enablePlugin) method is called.
@@ -140,10 +154,12 @@ hook and if it returns `true` than the [enablePlugin](#HiddenColumns+enablePlugi
 
 
 ### isHidden
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenColumns/hiddenColumns.js#L275
 
+:::
 
-_hiddenColumns.isHidden(column) ⇒ boolean_
+`hiddenColumns.isHidden(column) ⇒ boolean`
 
 Checks if the provided column is hidden.
 
@@ -155,10 +171,12 @@ Checks if the provided column is hidden.
 
 
 ### isValidConfig
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenColumns/hiddenColumns.js#L285
 
+:::
 
-_hiddenColumns.isValidConfig(hiddenColumns) ⇒ boolean_
+`hiddenColumns.isValidConfig(hiddenColumns) ⇒ boolean`
 
 Get if trim config is valid. Check whether all of the provided column indexes are within the bounds of the table.
 
@@ -170,10 +188,12 @@ Get if trim config is valid. Check whether all of the provided column indexes ar
 
 
 ### showColumn
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenColumns/hiddenColumns.js#L212
 
+:::
 
-_hiddenColumns.showColumn(...column)_
+`hiddenColumns.showColumn(...column)`
 
 Shows a single column.
 
@@ -185,10 +205,12 @@ Shows a single column.
 
 
 ### showColumns
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenColumns/hiddenColumns.js#L164
 
+:::
 
-_hiddenColumns.showColumns(columns)_
+`hiddenColumns.showColumns(columns)`
 
 Shows the provided columns.
 
@@ -200,10 +222,12 @@ Shows the provided columns.
 
 
 ### updatePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenColumns/hiddenColumns.js#L141
 
+:::
 
-_hiddenColumns.updatePlugin()_
+`hiddenColumns.updatePlugin()`
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

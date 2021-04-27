@@ -31,30 +31,36 @@ The plugin creates additional components to make moving possibly using user inte
 ## Methods
 
 ### destroy
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L724
 
+:::
 
-_manualColumnMove.destroy()_
+`manualColumnMove.destroy()`
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L147
 
+:::
 
-_manualColumnMove.disablePlugin()_
+`manualColumnMove.disablePlugin()`
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### dragColumn
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L214
 
+:::
 
-_manualColumnMove.dragColumn(column, dropIndex) ⇒ boolean_
+`manualColumnMove.dragColumn(column, dropIndex) ⇒ boolean`
 
 Drag a single column to drop index position.
 
@@ -68,10 +74,12 @@ Drag a single column to drop index position.
 
 
 ### dragColumns
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L228
 
+:::
 
-_manualColumnMove.dragColumns(columns, dropIndex) ⇒ boolean_
+`manualColumnMove.dragColumns(columns, dropIndex) ⇒ boolean`
 
 Drag multiple columns to drop index position.
 
@@ -85,20 +93,24 @@ Drag multiple columns to drop index position.
 
 
 ### enablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L111
 
+:::
 
-_manualColumnMove.enablePlugin()_
+`manualColumnMove.enablePlugin()`
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### isEnabled
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L104
 
+:::
 
-_manualColumnMove.isEnabled() ⇒ boolean_
+`manualColumnMove.isEnabled() ⇒ boolean`
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeInit)
 hook and if it returns `true` than the [ManualColumnMove#enablePlugin](./manual-column-move/#enableplugin) method is called.
@@ -106,10 +118,12 @@ hook and if it returns `true` than the [ManualColumnMove#enablePlugin](./manual-
 
 
 ### isMovePossible
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L245
 
+:::
 
-_manualColumnMove.isMovePossible(movedColumns, finalIndex) ⇒ boolean_
+`manualColumnMove.isMovePossible(movedColumns, finalIndex) ⇒ boolean`
 
 Indicates if it's possible to move columns to the desired position. Some of the actions aren't possible, i.e. You can’t move more than one element to the last position.
 
@@ -122,10 +136,12 @@ Indicates if it's possible to move columns to the desired position. Some of the 
 
 
 ### moveColumn
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L167
 
+:::
 
-_manualColumnMove.moveColumn(column, finalIndex) ⇒ boolean_
+`manualColumnMove.moveColumn(column, finalIndex) ⇒ boolean`
 
 Moves a single column.
 
@@ -139,10 +155,12 @@ Moves a single column.
 
 
 ### moveColumns
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L181
 
+:::
 
-_manualColumnMove.moveColumns(columns, finalIndex) ⇒ boolean_
+`manualColumnMove.moveColumns(columns, finalIndex) ⇒ boolean`
 
 Moves a multiple columns.
 
@@ -156,10 +174,12 @@ Moves a multiple columns.
 
 
 ### updatePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L135
 
+:::
 
-_manualColumnMove.updatePlugin()_
+`manualColumnMove.updatePlugin()`
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./core/#updatesettings) is invoked.
 
