@@ -1182,7 +1182,6 @@ declare namespace Handsontable {
     type UndoRedoAction = UndoRedoAction.Change | UndoRedoAction.InsertRow | UndoRedoAction.RemoveRow | UndoRedoAction.InsertCol | UndoRedoAction.RemoveCol | UndoRedoAction.Filter;
 
     interface Formulas extends Base {
-      staticRegister: object;
       engine: HyperFormula | object | Function;
       sheetName: string;
       sheetId: number;
