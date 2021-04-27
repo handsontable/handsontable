@@ -397,8 +397,8 @@ describe('Formulas general', () => {
 
   // Discussion on why `null` instead of `#REF!` at
   // https://github.com/handsontable/handsontable/issues/7668
-  describe('out of range cells should return null', () => {
-    it('columns', () => {
+  describe('Out of range cells', () => {
+    it('should return null for columns', () => {
       const hot = handsontable({
         data: getDataForFormulas(0, 'name', ['=K1']),
         columns: getColumnsForFormulas(),
@@ -410,7 +410,7 @@ describe('Formulas general', () => {
       expect(hot.getDataAtCell(0, 1)).toBe(null);
     });
 
-    it('rows', () => {
+    it('should return null for rows', () => {
       const hot = handsontable({
         data: getDataForFormulas(0, 'name', ['=A1000']),
         columns: getColumnsForFormulas(),
@@ -1046,7 +1046,7 @@ describe('Formulas general', () => {
     });
   });
 
-  describe('autofill', () => {
+  describe('Autofill', () => {
     const fillHandleSelector = '.wtBorder.current.corner';
 
     const autofill = (endRow, endCol) => {
@@ -1062,7 +1062,7 @@ describe('Formulas general', () => {
     // #CYCLE! errors), but we only care about the formula offsets.
     //
     // https://docs.google.com/spreadsheets/d/1ERI3YEe7GYWUKdKGPU4C97yUh1fOM6HILZY03AB8wwk/edit?usp=sharing
-    it('single cell, down', () => {
+    it('should correctly autofill - single cell, down', () => {
       const hot = handsontable({
         data: [
           ['=A1'],
@@ -1082,7 +1082,7 @@ describe('Formulas general', () => {
       ]);
     });
 
-    it('single cell, right', () => {
+    it('should correctly autofill - single cell, right', () => {
       const hot = handsontable({
         data: [
           ['=A1', 'x', 'x']
@@ -1098,7 +1098,7 @@ describe('Formulas general', () => {
       ]);
     });
 
-    it('range, down, partial', () => {
+    it('should correctly autofill - range, down, partial', () => {
       const hot = handsontable({
         data: [
           ['=E6', '=E10'],
@@ -1122,7 +1122,7 @@ describe('Formulas general', () => {
       ]);
     });
 
-    it('range, down, overflow', () => {
+    it('should correctly autofill - range, down, overflow', () => {
       const hot = handsontable({
         data: [
           ['=E6', '=E10'],
@@ -1154,7 +1154,7 @@ describe('Formulas general', () => {
       ]);
     });
 
-    it('range, right, partial', () => {
+    it('should correctly autofill - range, right, partial', () => {
       const hot = handsontable({
         data: [
           ['=E6', '=E10', 'x'],
@@ -1174,7 +1174,7 @@ describe('Formulas general', () => {
       ]);
     });
 
-    it('range, right, overflow', () => {
+    it('should correctly autofill - range, right, overflow', () => {
       const hot = handsontable({
         data: [
           ['=E6', '=E10', 'x', 'x', 'x'],
@@ -1194,7 +1194,7 @@ describe('Formulas general', () => {
       ]);
     });
 
-    it('range, left, partial', () => {
+    it('should correctly autofill - range, left, partial', () => {
       const hot = handsontable({
         data: [
           ['x', '=E6', '=E10'],
@@ -1214,7 +1214,7 @@ describe('Formulas general', () => {
       ]);
     });
 
-    it('range, left, overflow', () => {
+    it('should correctly autofill - range, left, overflow', () => {
       const hot = handsontable({
         data: [
           ['x', 'x', 'x', '=E6', '=E10'],
@@ -1234,7 +1234,7 @@ describe('Formulas general', () => {
       ]);
     });
 
-    it('range, left, odd', () => {
+    it('should correctly autofill - range, left, odd', () => {
       const hot = handsontable({
         data: [['x', 'x', 'x', 'x', 'x', 'x', '=Z3', '=Z5', '=Z8']],
         formulas: true,
@@ -1248,7 +1248,7 @@ describe('Formulas general', () => {
       ]);
     });
 
-    it('range, up, partial', () => {
+    it('should correctly autofill - range, up, partial', () => {
       const hot = handsontable({
         data: [
           ['x', 'x'],
@@ -1270,7 +1270,7 @@ describe('Formulas general', () => {
       ]);
     });
 
-    it('range, up, overflow', () => {
+    it('should correctly autofill - range, up, overflow', () => {
       const hot = handsontable({
         data: [
           ['x', 'x'],
@@ -1300,7 +1300,7 @@ describe('Formulas general', () => {
       ]);
     });
 
-    it('range, up, even', () => {
+    it('should correctly autofill - range, up, even', () => {
       const hot = handsontable({
         data: [['x'], ['x'], ['x'], ['x'], ['x'], ['x'], ['=A9'], ['=A12']],
         formulas: true,
