@@ -11,6 +11,7 @@ Select a language from the selector above the table and open the Context Menu to
 
 Note, that the `language` property is bound to the component separately by using `language={this.language}"`, but it could be included in the `settings` prop just as well.
 
+::: example #example1 :react
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
