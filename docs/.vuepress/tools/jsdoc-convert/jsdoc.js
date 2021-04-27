@@ -12,8 +12,8 @@ const pathToSource = '../../../../src';
 const pathToDist = '../../../next/api';
 const urlPrefix = 'next/api/';
 const whitelist = [
-  // 'dataMap/metaManager/metaSchema.js',
-  // 'pluginHooks.js',
+  'dataMap/metaManager/metaSchema.js',
+  'pluginHooks.js',
   'core.js',
   'translations/indexMapper.js',
   'editors/baseEditor/baseEditor.js',

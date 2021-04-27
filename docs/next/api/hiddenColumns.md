@@ -56,6 +56,37 @@ hiddenColumnsPlugin.hideColumns([1, 2, 9]);
 hot.render();
 ```
 
+## Options
+
+### hiddenColumns
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2822
+
+:::
+
+`hiddenColumns.hiddenColumns : boolean | object`
+
+The [HiddenColumns](./hidden-columns/) plugin allows hiding of certain columns. You can pass additional configuration with an
+object notation. Options that are then available are:
+ * `columns` - an array of rows that should be hidden on plugin initialization
+ * `indicators` - enables small ui markers to indicate where are hidden columns.
+
+**Default**: <code>undefined</code>  
+**Category**: HiddenColumns  
+**Example**  
+```js
+// enable column hiding
+hiddenColumns: true,
+
+// or
+hiddenColumns: {
+  // set columns that are hidden by default
+  columns: [5, 10, 15],
+  // show where are hidden columns
+  indicators: true
+}
+```
+
 ## Methods
 
 ### destroy

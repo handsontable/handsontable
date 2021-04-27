@@ -15,7 +15,7 @@ The [CollapsibleColumns](#CollapsibleColumns) plugin allows collapsing of column
 
 Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
 
-Setting the [Options#collapsibleColumns](./Options/#collapsibleColumns) property to `true` will display a "collapse/expand" button in every header
+Setting the [collapsibleColumns](#Options+collapsibleColumns) property to `true` will display a "collapse/expand" button in every header
 with a defined `colspan` property.
 
 To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property as an array
@@ -45,6 +45,42 @@ const hot = new Handsontable(container, {
     {row: -3, col: 5, collapsible: true}
   ],
 });
+```
+
+## Options
+
+### collapsibleColumns
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2664
+
+:::
+
+`collapsibleColumns.collapsibleColumns : boolean | Array<object>`
+
+The [CollapsibleColumns](./collapsible-columns/) plugin allows collapsing of columns, covered by a header with the `colspan` property
+defined.
+
+Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
+
+Setting the `collapsibleColumns` property to `true` will display a "collapse/expand" button in every
+header with a defined colspan` property.
+
+To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property
+as an array of objects, as in the example below.
+
+**Default**: <code>undefined</code>  
+**Category**: CollapsibleColumns  
+**Example**  
+```js
+// enable collapsing for all headers
+collapsibleColumns: true,
+
+// or
+// enable collapsing for selected headers
+collapsibleColumns: [
+  {row: -4, col: 1, collapsible: true},
+  {row: -3, col: 5, collapsible: true}
+],
 ```
 
 ## Members

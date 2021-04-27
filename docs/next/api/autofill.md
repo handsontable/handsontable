@@ -20,6 +20,51 @@ square in the corner.
 "Copy-down" copies the value of the selection to all empty cells below when you double click the small square.
 
 
+## Options
+
+### fillHandle
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L795
+
+:::
+
+`autofill.fillHandle : boolean | string | object`
+
+Enables the fill handle (drag-down and copy-down) functionality, which shows a small rectangle in bottom
+right corner of the selected area, that let's you expand values to the adjacent cells.
+
+Setting to `true` enables the fillHandle plugin. Possible values: `true` (to enable in all directions),
+`'vertical'` or `'horizontal'` (to enable in one direction), `false` (to disable completely), an object with
+options: `autoInsertRow`, `direction`.
+
+If `autoInsertRow` option is `true`, fill-handler will create new rows till it reaches the last row.
+It is enabled by default.
+
+**Default**: <code>true</code>  
+**Category**: Autofill  
+**Example**  
+```js
+// enable plugin in all directions and with autoInsertRow as true
+fillHandle: true,
+
+// or
+// enable plugin in vertical direction and with autoInsertRow as true
+fillHandle: 'vertical',
+
+// or
+fillHandle: {
+  // enable plugin in both directions and with autoInsertRow as false
+  autoInsertRow: false,
+},
+
+// or
+fillHandle: {
+  // enable plugin in vertical direction and with autoInsertRow as false
+  autoInsertRow: false,
+  direction: 'vertical'
+},
+```
+
 ## Members
 
 ### autoInsertRow

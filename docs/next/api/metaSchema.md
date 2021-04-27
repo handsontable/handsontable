@@ -79,10 +79,12 @@ __Important notice:__ In order for the data separation to work properly, make su
 ## Members
 
 ### activeHeaderClassName
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1069
 
+:::
 
-_options.activeHeaderClassName : string_
+`options.activeHeaderClassName : string`
 
 Class name for all active headers in selections. The header will be marked with this class name
 only when a whole column or row will be selected.
@@ -98,10 +100,12 @@ activeHeaderClassName: 'ht__active_highlight',
 
 
 ### allowEmpty
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1266
 
+:::
 
-_options.allowEmpty : boolean_
+`options.allowEmpty : boolean`
 
 If set to `true`, Handsontable will accept values that are empty (`null`, `undefined` or `''`). If set
 to `false`, Handsontable will *not* accept the empty values and mark cell as invalid.
@@ -126,10 +130,12 @@ columns: [
 
 
 ### allowHtml
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2559
 
+:::
 
-_options.allowHtml : boolean_
+`options.allowHtml : boolean`
 
 If set to `true`, data defined in `source` of the autocomplete or dropdown cell will be treated as HTML.
 
@@ -151,10 +157,12 @@ columns: [{
 
 
 ### allowInsertColumn
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L699
 
+:::
 
-_options.allowInsertColumn : boolean_
+`options.allowInsertColumn : boolean`
 
 If set to `false`, there won't be an option to insert new columns in the Context Menu.
 
@@ -168,10 +176,12 @@ allowInsertColumn: false,
 
 
 ### allowInsertRow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L683
 
+:::
 
-_options.allowInsertRow : boolean_
+`options.allowInsertRow : boolean`
 
 If set to `false`, there won't be an option to insert new rows in the Context Menu.
 
@@ -185,10 +195,12 @@ allowInsertRow: false,
 
 
 ### allowInvalid
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1239
 
+:::
 
-_options.allowInvalid : boolean_
+`options.allowInvalid : boolean`
 
 If set to `true`, Handsontable will accept values that were marked as invalid by the cell `validator`. It will
 result with *invalid* cells being treated as *valid* (will save the *invalid* value into the Handsontable data source).
@@ -205,10 +217,12 @@ allowInvalid: false,
 
 
 ### allowRemoveColumn
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L731
 
+:::
 
-_options.allowRemoveColumn : boolean_
+`options.allowRemoveColumn : boolean`
 
 If set to `false`, there won't be an option to remove columns in the Context Menu.
 
@@ -222,10 +236,12 @@ allowRemoveColumn: false,
 
 
 ### allowRemoveRow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L715
 
+:::
 
-_options.allowRemoveRow : boolean_
+`options.allowRemoveRow : boolean`
 
 If set to `false`, there won't be an option to remove rows in the Context Menu.
 
@@ -239,10 +255,12 @@ allowRemoveRow: false,
 
 
 ### autoColumnSize
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2417
 
+:::
 
-_options.autoColumnSize : object | boolean_
+`options.autoColumnSize : object | boolean`
 
 Enables or disables the [AutoColumnSize](./auto-column-size/) plugin. Default value `undefined`
 is an equivalent of `true`, sets `syncLimit` to 50.
@@ -281,10 +299,12 @@ autoColumnSize: { allowSampleDuplicates: true },
 
 
 ### autoRowSize
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2445
 
+:::
 
-_options.autoRowSize : object | boolean_
+`options.autoRowSize : object | boolean`
 
 Enables or disables [AutoRowSize](./auto-row-size/) plugin. Default value is `undefined`, which has the same effect as `false`
 (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
@@ -310,10 +330,12 @@ autoRowSize: {syncLimit: '40%'},
 
 
 ### autoWrapCol
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L961
 
+:::
 
-_options.autoWrapCol : boolean_
+`options.autoWrapCol : boolean`
 
 If `true`, pressing <kbd>ENTER</kbd> or down arrow in the last row will move to the first row in the next column.
 
@@ -327,10 +349,12 @@ autoWrapCol: false,
 
 
 ### autoWrapRow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L945
 
+:::
 
-_options.autoWrapRow : boolean_
+`options.autoWrapRow : boolean`
 
 If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.
 
@@ -344,10 +368,12 @@ autoWrapRow: false,
 
 
 ### bindRowsWithHeaders
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2631
 
+:::
 
-_options.bindRowsWithHeaders : boolean | string_
+`options.bindRowsWithHeaders : boolean | string`
 
 Enables the functionality of the [BindRowsWithHeaders](./bind-rows-with-headers/) plugin which allows binding the table rows with their headers.
 If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,
@@ -363,10 +389,12 @@ bindRowsWithHeaders: true
 
 
 ### cell
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L462
 
+:::
 
-_options.cell : Array&lt;Array&gt;_
+`options.cell : Array<Array>`
 
 Any constructor or column option may be overwritten for a particular cell (row/column combination), using `cell`
 array passed to the Handsontable constructor.
@@ -386,10 +414,12 @@ cell: [
 
 
 ### cells
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L440
 
+:::
 
-_options.cells : function_
+`options.cells : function`
 
 Defines the cell properties for given `row`, `col`, `prop` coordinates. Any constructor or column option may be
 overwritten for a particular cell (row/column combination) using the `cells` property in the Handsontable constructor.
@@ -420,10 +450,12 @@ cells: function(row, column, prop) {
 
 
 ### checkedTemplate
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2252
 
+:::
 
-_options.checkedTemplate : boolean | string | number_
+`options.checkedTemplate : boolean | string | number`
 
 Data template for `'checkbox'` type when checkbox is checked.
 
@@ -439,10 +471,12 @@ checkedTemplate: 'good'
 
 
 ### className
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1091
 
+:::
 
-_options.className : string | Array&lt;string&gt;_
+`options.className : string | Array<string>`
 
 Class name for the current element.
 The interpretation depends on the level on which this option is provided in the [cascading configuration](https://handsontable.com/docs/Options.html).
@@ -462,10 +496,12 @@ className: ['first-class-name', 'second-class-name'],
 
 
 ### colHeaders
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L291
 
+:::
 
-_options.colHeaders : boolean | Array&lt;string&gt; | function_
+`options.colHeaders : boolean | Array<string> | function`
 
 Setting `true` or `false` will enable or disable the default column headers (A, B, C).
 You can also define an array `['One', 'Two', 'Three', ...]` or a function to define the headers.
@@ -489,10 +525,12 @@ colHeaders: function(index) {
 
 
 ### collapsibleColumns
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2664
 
+:::
 
-_options.collapsibleColumns : boolean | Array&lt;object&gt;_
+`options.collapsibleColumns : boolean | Array<object>`
 
 The [CollapsibleColumns](./collapsible-columns/) plugin allows collapsing of columns, covered by a header with the `colspan` property
 defined.
@@ -522,10 +560,12 @@ collapsibleColumns: [
 
 
 ### columnHeaderHeight
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2938
 
+:::
 
-_options.columnHeaderHeight : number | Array&lt;number&gt;_
+`options.columnHeaderHeight : number | Array<number>`
 
 Allows setting a custom height of the column headers. You can provide a number or an array of heights, if many
 column header levels are defined.
@@ -548,10 +588,12 @@ columnHeaderHeight: [35, undefined, 55],
 
 
 ### columns
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L406
 
+:::
 
-_options.columns : Array&lt;object&gt; | function_
+`options.columns : Array<object> | function`
 
 Defines the cell properties and data binding for certain columns.
 
@@ -591,10 +633,12 @@ columns: function(index) {
 
 
 ### columnSorting
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1867
 
+:::
 
-_options.columnSorting : boolean | object_
+`options.columnSorting : boolean | object`
 
 Turns on [Column sorting](https://docs.handsontable.com/demo-sorting-data.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
 * `initialConfig` - Object with predefined keys:
@@ -642,10 +686,12 @@ columnSorting: {
 
 
 ### columnSummary
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2704
 
+:::
 
-_options.columnSummary : Array&lt;object&gt; | function_
+`options.columnSummary : Array<object> | function`
 
 Allows making pre-defined calculations on the cell values and display the results within Handsontable.
 
@@ -682,10 +728,12 @@ columnSummary: [
 
 
 ### colWidths
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L326
 
+:::
 
-_options.colWidths : number | Array&lt;number&gt; | string | Array&lt;string&gt; | Array&lt;undefined&gt; | function_
+`options.colWidths : number | Array<number> | string | Array<string> | Array<undefined> | function`
 
 Defines column widths in pixels. Accepts number, string (that will be converted to a number), array of numbers
 (if you want to define column width separately for each column) or a function (if you want to set column width
@@ -718,10 +766,12 @@ colWidths: function(index) {
 
 
 ### commentedCellClassName
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1405
 
+:::
 
-_options.commentedCellClassName : string_
+`options.commentedCellClassName : string`
 
 CSS class name added to the commented cells.
 
@@ -735,10 +785,12 @@ commentedCellClassName: 'has-comment',
 
 
 ### comments
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L502
 
+:::
 
-_options.comments : boolean | Array&lt;object&gt;_
+`options.comments : boolean | Array<object>`
 
 If `true`, enables the [Comments](./comments/) plugin, which enables an option to apply cell comments through the context menu
 (configurable with context menu keys `commentsAddEdit`, `commentsRemove`).
@@ -775,10 +827,12 @@ const hot = new Handsontable(document.getElementById('example'), {
 
 
 ### contextMenu
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1774
 
+:::
 
-_options.contextMenu : boolean | Array&lt;string&gt; | object_
+`options.contextMenu : boolean | Array<string> | object`
 
 Defines if the right-click context menu should be enabled. Context menu allows to create new row or column at any
 place in the grid among [other features](https://docs.handsontable.com/demo-context-menu.html).
@@ -831,10 +885,12 @@ contextMenu: {
 
 
 ### copyable
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1597
 
+:::
 
-_options.copyable : boolean_
+`options.copyable : boolean`
 
 Makes a cell copyable (pressing <kbd>CTRL</kbd> + <kbd>C</kbd> on your keyboard moves its value to system clipboard).
 
@@ -856,10 +912,12 @@ cells: [
 
 
 ### copyPaste
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1798
 
+:::
 
-_options.copyPaste : object | boolean_
+`options.copyPaste : object | boolean`
 
 Disables or enables the copy/paste functionality.
 
@@ -881,10 +939,12 @@ copyPaste: {
 
 
 ### correctFormat
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2488
 
+:::
 
-_options.correctFormat : boolean_
+`options.correctFormat : boolean`
 
 If `true` then dates will be automatically formatted to match the desired format.
 
@@ -904,10 +964,12 @@ columns: [{
 
 
 ### currentColClassName
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1035
 
+:::
 
-_options.currentColClassName : string_
+`options.currentColClassName : string`
 
 Class name for all visible columns in the current selection.
 
@@ -921,10 +983,12 @@ currentColClassName: 'currentColumn',
 
 
 ### currentHeaderClassName
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1051
 
+:::
 
-_options.currentHeaderClassName : string_
+`options.currentHeaderClassName : string`
 
 Class name for all visible headers in current selection.
 
@@ -938,10 +1002,12 @@ currentHeaderClassName: 'ht__highlight',
 
 
 ### currentRowClassName
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1019
 
+:::
 
-_options.currentRowClassName : string_
+`options.currentRowClassName : string`
 
 Class name for all visible rows in the current selection.
 
@@ -955,10 +1021,12 @@ currentRowClassName: 'currentRow',
 
 
 ### customBorders
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L565
 
+:::
 
-_options.customBorders : boolean | Array&lt;object&gt;_
+`options.customBorders : boolean | Array<object>`
 
 If `true`, enables the [CustomBorders](./custom-borders/) plugin, which enables an option to apply custom borders through the context
 menu (configurable with context menu key `borders`). To initialize Handsontable with predefined custom borders,
@@ -1018,10 +1086,12 @@ customBorders: [
 
 
 ### data
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L125
 
+:::
 
-_options.data : Array&lt;Array&gt; | Array&lt;object&gt;_
+`options.data : Array<Array> | Array<object>`
 
 Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
 Can be declared as an array of arrays or an array of objects.
@@ -1051,10 +1121,12 @@ data: [
 
 
 ### dataSchema
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L153
 
+:::
 
-_options.dataSchema : object_
+`options.dataSchema : object`
 
 Defines the structure of a new row when data source is an array of objects.
 
@@ -1079,10 +1151,12 @@ minSpareRows: 1
 
 
 ### dateFormat
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2466
 
+:::
 
-_options.dateFormat : string_
+`options.dateFormat : string`
 
 Date validation format.
 
@@ -1101,10 +1175,12 @@ columns: [{
 
 
 ### defaultDate
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2511
 
+:::
 
-_options.defaultDate : string_
+`options.defaultDate : string`
 
 Definition of default value which will fill the empty cells.
 
@@ -1125,10 +1201,12 @@ columns: [
 
 
 ### disableVisualSelection
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2143
 
+:::
 
-_options.disableVisualSelection : boolean | string | Array&lt;string&gt;_
+`options.disableVisualSelection : boolean | string | Array<string>`
 
 Disables visual cells selection.
 
@@ -1155,10 +1233,12 @@ disableVisualSelection: ['current', 'area'],
 
 
 ### dragToScroll
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L3049
 
+:::
 
-_options.dragToScroll : boolean_
+`options.dragToScroll : boolean`
 
 Disables or enables the [drag to scroll](./DragToScroll/) functionality.
 
@@ -1172,10 +1252,12 @@ dragToScroll: false,
 
 
 ### dropdownMenu
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2725
 
+:::
 
-_options.dropdownMenu : boolean | object | Array&lt;string&gt;_
+`options.dropdownMenu : boolean | object | Array<string>`
 
 This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
 the [Options#contextMenu](./options/#contextmenu), but is triggered by clicking the button in the header.
@@ -1194,10 +1276,12 @@ dropdownMenu: ['remove_col', '---------', 'make_read_only', 'alignment']
 
 
 ### editor
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1637
 
+:::
 
-_options.editor : string | function | boolean_
+`options.editor : string | function | boolean`
 
 Defines the editor for the table/column/cell.
 
@@ -1235,10 +1319,12 @@ columns: [
 
 
 ### enterBeginsEditing
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L883
 
+:::
 
-_options.enterBeginsEditing : boolean_
+`options.enterBeginsEditing : boolean`
 
 If `true`, <kbd>ENTER</kbd> begins editing mode (like in Google Docs). If `false`, <kbd>ENTER</kbd> moves to next
 row (like Excel) and adds a new row if necessary. <kbd>TAB</kbd> adds new column if necessary.
@@ -1252,10 +1338,12 @@ enterBeginsEditing: false,
 
 
 ### enterMoves
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L906
 
+:::
 
-_options.enterMoves : object | function_
+`options.enterMoves : object | function`
 
 Defines the cursor movement after <kbd>ENTER</kbd> was pressed (<kbd>SHIFT</kbd> + <kbd>ENTER</kbd> uses a negative vector). Can
 be an object or a function that returns an object. The event argument passed to the function is a DOM Event object
@@ -1276,10 +1364,12 @@ enterMoves: function(event) {
 
 
 ### fillHandle
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L795
 
+:::
 
-_options.fillHandle : boolean | string | object_
+`options.fillHandle : boolean | string | object`
 
 Enables the fill handle (drag-down and copy-down) functionality, which shows a small rectangle in bottom
 right corner of the selected area, that let's you expand values to the adjacent cells.
@@ -1318,10 +1408,12 @@ fillHandle: {
 
 
 ### filter
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L3009
 
+:::
 
-_options.filter : boolean_
+`options.filter : boolean`
 
 If defined as `true`, when the user types into the input area the Autocomplete's suggestion list is updated to only
 include those choices starting with what has been typed; if defined as `false` all suggestions remain shown, with
@@ -1345,10 +1437,12 @@ columns: [
 
 
 ### filteringCaseSensitive
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L3033
 
+:::
 
-_options.filteringCaseSensitive : boolean_
+`options.filteringCaseSensitive : boolean`
 
 If defined as `true`, filtering in the Autocomplete Editor will be case-sensitive.
 
@@ -1370,10 +1464,12 @@ columns: [
 
 
 ### filters
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2741
 
+:::
 
-_options.filters : boolean_
+`options.filters : boolean`
 
 The [Filters](./filters/) plugin allows filtering the table data either by the built-in component or with the API.
 
@@ -1387,10 +1483,12 @@ filters: true,
 
 
 ### fixedColumnsLeft
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L845
 
+:::
 
-_options.fixedColumnsLeft : number_
+`options.fixedColumnsLeft : number`
 
 Allows to specify the number of fixed (or *frozen*) columns on the left of the table.
 
@@ -1404,10 +1502,12 @@ fixedColumnsLeft: 3,
 
 
 ### fixedRowsBottom
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L829
 
+:::
 
-_options.fixedRowsBottom : number_
+`options.fixedRowsBottom : number`
 
 Allows to specify the number of fixed (or *frozen*) rows at the bottom of the table.
 
@@ -1421,10 +1521,12 @@ fixedRowsBottom: 3,
 
 
 ### fixedRowsTop
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L813
 
+:::
 
-_options.fixedRowsTop : number_
+`options.fixedRowsTop : number`
 
 Allows to specify the number of fixed (or *frozen*) rows at the top of the table.
 
@@ -1438,10 +1540,12 @@ fixedRowsTop: 3,
 
 
 ### formulas
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2765
 
+:::
 
-_options.formulas : boolean | object_
+`options.formulas : boolean | object`
 
 The [Formulas](./formulas/) plugin allows Handsontable to process formula expressions defined in the provided data.
 
@@ -1463,10 +1567,12 @@ formulas: {
 
 
 ### fragmentSelection
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1427
 
+:::
 
-_options.fragmentSelection : boolean | string_
+`options.fragmentSelection : boolean | string`
 
 If set to `true`, it enables the browser's native selection of a fragment of the text within a single cell, between
 adjacent cells or in a whole table. If set to `'cell'`, it enables the possibility of selecting a fragment of the
@@ -1486,10 +1592,12 @@ fragmentSelection: 'cell',
 
 
 ### headerTooltips
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2795
 
+:::
 
-_options.headerTooltips : boolean | object_
+`options.headerTooltips : boolean | object`
 
 ***Deprecated***
 
@@ -1517,10 +1625,12 @@ headerTooltips: {
 
 
 ### height
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L201
 
+:::
 
-_options.height : number | string | function_
+`options.height : number | string | function`
 
 Height of the grid. Can be a number or a function that returns a number.
 
@@ -1542,10 +1652,12 @@ height: function() {
 
 
 ### hiddenColumns
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2822
 
+:::
 
-_options.hiddenColumns : boolean | object_
+`options.hiddenColumns : boolean | object`
 
 The [HiddenColumns](./hidden-columns/) plugin allows hiding of certain columns. You can pass additional configuration with an
 object notation. Options that are then available are:
@@ -1570,10 +1682,12 @@ hiddenColumns: {
 
 
 ### hiddenRows
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2849
 
+:::
 
-_options.hiddenRows : boolean | object_
+`options.hiddenRows : boolean | object`
 
 The [HiddenRows](./hidden-rows/) plugin allows hiding of certain rows. You can pass additional configuration with an
 object notation. Options that are then available are:
@@ -1598,10 +1712,12 @@ hiddenRows: {
 
 
 ### invalidCellClassName
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1282
 
+:::
 
-_options.invalidCellClassName : string_
+`options.invalidCellClassName : string`
 
 CSS class name for cells that did not pass validation.
 
@@ -1615,10 +1731,12 @@ invalidCellClassName: 'highlight--error',
 
 
 ### label
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2302
 
+:::
 
-_options.label : object_
+`options.label : object`
 
 Object which describes if renderer should create checkbox element with label element as a parent.
 
@@ -1647,10 +1765,12 @@ columns: [{
 
 
 ### language
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2353
 
+:::
 
-_options.language : string_
+`options.language : string`
 
 Language for Handsontable translation. Possible language codes are [listed here](https://docs.handsontable.com/tutorial-internationalization.html#available-languages).
 
@@ -1664,10 +1784,12 @@ language: 'pl-PL',
 
 
 ### licenseKey
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L92
 
+:::
 
-_options.licenseKey : string_
+`options.licenseKey : string`
 
 License key for commercial version of Handsontable.
 
@@ -1682,10 +1804,12 @@ licenseKey: 'non-commercial-and-evaluation',
 
 
 ### manualColumnFreeze
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2159
 
+:::
 
-_options.manualColumnFreeze : boolean_
+`options.manualColumnFreeze : boolean`
 
 Disables or enables [ManualColumnFreeze](./manual-column-freeze/) plugin.
 
@@ -1699,10 +1823,12 @@ manualColumnFreeze: true,
 
 
 ### manualColumnMove
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1887
 
+:::
 
-_options.manualColumnMove : boolean | Array&lt;number&gt;_
+`options.manualColumnMove : boolean | Array<number>`
 
 Turns on [Manual column move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial column order (as an array of column indexes).
 
@@ -1720,10 +1846,12 @@ manualColumnMove: [1, 4],
 
 
 ### manualColumnResize
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1908
 
+:::
 
-_options.manualColumnResize : boolean | Array&lt;number&gt;_
+`options.manualColumnResize : boolean | Array<number>`
 
 Turns on [Manual column resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial column resized widths (an an array of widths).
 
@@ -1741,10 +1869,12 @@ manualColumnResize: [40, 50],
 
 
 ### manualRowMove
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1929
 
+:::
 
-_options.manualRowMove : boolean | Array&lt;number&gt;_
+`options.manualRowMove : boolean | Array<number>`
 
 Turns on [Manual row move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial row order (as an array of row indexes).
 
@@ -1762,10 +1892,12 @@ manualRowMove: [1, 4],
 
 
 ### manualRowResize
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1950
 
+:::
 
-_options.manualRowResize : boolean | Array&lt;number&gt;_
+`options.manualRowResize : boolean | Array<number>`
 
 Turns on [Manual row resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial row resized heights (as an array of heights).
 
@@ -1783,10 +1915,12 @@ manualRowResize: [40, 50],
 
 
 ### maxCols
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L633
 
+:::
 
-_options.maxCols : number_
+`options.maxCols : number`
 
 Maximum number of cols. If set to a value lower than the initial col count, the data will be trimmed to the provided
 value as the number of cols.
@@ -1801,10 +1935,12 @@ maxCols: 300,
 
 
 ### maxRows
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L616
 
+:::
 
-_options.maxRows : number_
+`options.maxRows : number`
 
 Maximum number of rows. If set to a value lower than the initial row count, the data will be trimmed to the provided
 value as the number of rows.
@@ -1819,10 +1955,12 @@ maxRows: 300,
 
 
 ### mergeCells
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1976
 
+:::
 
-_options.mergeCells : boolean | Array&lt;object&gt;_
+`options.mergeCells : boolean | Array<object>`
 
 If set to `true`, it enables a possibility to merge cells. If set to an array of objects, it merges the cells provided
 in the objects (see the example below). More information on [the demo page](https://docs.handsontable.com/demo-merge-cells.html).
@@ -1845,10 +1983,12 @@ mergeCells: [
 
 
 ### minCols
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L599
 
+:::
 
-_options.minCols : number_
+`options.minCols : number`
 
 Minimum number of columns. At least that number of columns will be created during initialization.
 Works only with an array data source. When data source in an object, you can only have as many columns
@@ -1864,10 +2004,12 @@ minCols: 10,
 
 
 ### minRows
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L581
 
+:::
 
-_options.minRows : number_
+`options.minRows : number`
 
 Minimum number of rows. At least that number of rows will be created during initialization.
 
@@ -1881,10 +2023,12 @@ minRows: 10,
 
 
 ### minSpareCols
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L667
 
+:::
 
-_options.minSpareCols : number_
+`options.minSpareCols : number`
 
 When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns.
 (unless the number of rows exceeds the one set in the `maxCols` property).
@@ -1899,10 +2043,12 @@ minSpareCols: 3,
 
 
 ### minSpareRows
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L650
 
+:::
 
-_options.minSpareRows : number_
+`options.minSpareRows : number`
 
 When set to 1 (or more), Handsontable will add a new row at the end of grid if there are no more empty rows.
 (unless the number of rows exceeds the one set in the `maxRows` property).
@@ -1917,10 +2063,12 @@ minSpareRows: 3,
 
 
 ### multiColumnSorting
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2030
 
+:::
 
-_options.multiColumnSorting : boolean | object_
+`options.multiColumnSorting : boolean | object`
 
 Turns on [Multi-column sorting](https://docs.handsontable.com/demo-multicolumn-sorting.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
 * `initialConfig` - Array containing objects, every with predefined keys:
@@ -1971,10 +2119,12 @@ multiColumnSorting: {
 
 
 ### nestedHeaders
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2869
 
+:::
 
-_options.nestedHeaders : Array&lt;Array&gt;_
+`options.nestedHeaders : Array<Array>`
 
 Allows creating a nested header structure, using the HTML's colspan attribute.
 
@@ -1991,10 +2141,12 @@ nestedHeaders: [
 
 
 ### nestedRows
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L3066
 
+:::
 
-_options.nestedRows : boolean_
+`options.nestedRows : boolean`
 
 Disable or enable the nested rows functionality - displaying nested structures in a two-dimensional data table.
 
@@ -2009,10 +2161,12 @@ nestedRows: true,
 
 
 ### noWordWrapClassName
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1718
 
+:::
 
-_options.noWordWrapClassName : string_
+`options.noWordWrapClassName : string`
 
 CSS class name added to cells with cell meta `wordWrap: false`.
 
@@ -2026,10 +2180,12 @@ noWordWrapClassName: 'is-noWrapCell',
 
 
 ### numericFormat
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2337
 
+:::
 
-_options.numericFormat : object_
+`options.numericFormat : object`
 
 Display format for numeric typed renderers.
 
@@ -2062,10 +2218,12 @@ columns: [
 
 
 ### observeChanges
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2958
 
+:::
 
-_options.observeChanges : boolean_
+`options.observeChanges : boolean`
 
 ***Deprecated***
 
@@ -2083,10 +2241,12 @@ observeChanges: true,
 
 
 ### observeDOMVisibility
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1220
 
+:::
 
-_options.observeDOMVisibility : boolean_
+`options.observeDOMVisibility : boolean`
 
 When set to `true`, the table is re-rendered when it is detected that it was made visible in DOM.
 
@@ -2100,10 +2260,12 @@ observeDOMVisibility: false,
 
 
 ### outsideClickDeselects
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L867
 
+:::
 
-_options.outsideClickDeselects : boolean | function_
+`options.outsideClickDeselects : boolean | function`
 
 If `true`, mouse click outside the grid will deselect the current selection. Can be a function that takes the
 click event target and returns a boolean.
@@ -2123,10 +2285,12 @@ outsideClickDeselects: function(event) {
 
 
 ### persistentState
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1003
 
+:::
 
-_options.persistentState : boolean_
+`options.persistentState : boolean`
 
 Turns on saving the state of column sorting, column positions and column sizes in local storage.
 
@@ -2165,10 +2329,12 @@ persistentState: true,
 
 
 ### placeholder
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1299
 
+:::
 
-_options.placeholder : string_
+`options.placeholder : string`
 
 When set to an non-empty string, displayed as the cell content for empty cells. If a value of a different type is provided,
 it will be stringified and applied as a string.
@@ -2183,10 +2349,12 @@ placeholder: 'Empty Cell',
 
 
 ### placeholderCellClassName
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1315
 
+:::
 
-_options.placeholderCellClassName : string_
+`options.placeholderCellClassName : string`
 
 CSS class name for cells that have a placeholder in use.
 
@@ -2200,10 +2368,12 @@ placeholderCellClassName: 'has-placeholder',
 
 
 ### preventOverflow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2596
 
+:::
 
-_options.preventOverflow : string | boolean_
+`options.preventOverflow : string | boolean`
 
 Prevents table to overlap outside the parent element. If `'horizontal'` option is chosen then table will show
 a horizontal scrollbar if parent's width is narrower then table's width.
@@ -2222,10 +2392,12 @@ preventOverflow: 'horizontal',
 
 
 ### readOnly
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1444
 
+:::
 
-_options.readOnly : boolean_
+`options.readOnly : boolean`
 
 Makes cell, column or comment [read only](https://docs.handsontable.com/demo-read-only.html).
 
@@ -2239,10 +2411,12 @@ readOnly: true,
 
 
 ### readOnlyCellClassName
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1331
 
+:::
 
-_options.readOnlyCellClassName : string_
+`options.readOnlyCellClassName : string`
 
 CSS class name for read-only cells.
 
@@ -2256,10 +2430,12 @@ readOnlyCellClassName: 'is-readOnly',
 
 
 ### renderAllRows
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2575
 
+:::
 
-_options.renderAllRows : boolean_
+`options.renderAllRows : boolean`
 
 If typed `true` then virtual rendering mechanism for handsontable will be disabled.
 
@@ -2273,10 +2449,12 @@ renderAllRows: true,
 
 
 ### renderer
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1387
 
+:::
 
-_options.renderer : string | function_
+`options.renderer : string | function`
 
 If a string is provided, it may be one of the following predefined values:
 * `autocomplete`,
@@ -2328,10 +2506,12 @@ columns: [
 
 
 ### rowHeaders
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L265
 
+:::
 
-_options.rowHeaders : boolean | Array&lt;string&gt; | function_
+`options.rowHeaders : boolean | Array<string> | function`
 
 Setting `true` or `false` will enable or disable the default row headers (1, 2, 3).
 You can also define an array `['One', 'Two', 'Three', ...]` or a function to define the headers.
@@ -2355,10 +2535,12 @@ rowHeaders: function(index) {
 
 
 ### rowHeaderWidth
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2912
 
+:::
 
-_options.rowHeaderWidth : number | Array&lt;number&gt;_
+`options.rowHeaderWidth : number | Array<number>`
 
 Allows setting a custom width of the row headers. You can provide a number or an array of widths, if many row
 header levels are defined.
@@ -2377,10 +2559,12 @@ rowHeaderWidth: [25, 30, 55],
 
 
 ### rowHeights
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L363
 
+:::
 
-_options.rowHeights : number | Array&lt;number&gt; | string | Array&lt;string&gt; | Array&lt;undefined&gt; | function_
+`options.rowHeights : number | Array<number> | string | Array<string> | Array<undefined> | function`
 
 Defines row heights in pixels. Accepts numbers, strings (that will be converted into a number), array of numbers
 (if you want to define row height separately for each row) or a function (if you want to set row height dynamically
@@ -2415,10 +2599,12 @@ rowHeights: function(index) {
 
 
 ### search
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1519
 
+:::
 
-_options.search : boolean_
+`options.search : boolean`
 
 Setting to `true` enables the [Search](./search/) plugin (see [demo](https://docs.handsontable.com/demo-search-for-values.html)).
 
@@ -2444,10 +2630,12 @@ search: {
 
 
 ### selectionMode
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L754
 
+:::
 
-_options.selectionMode : string_
+`options.selectionMode : string`
 
 Defines how the table selection reacts. The selection support three different behaviors defined as:
  * `'single'` Only a single cell can be selected.
@@ -2467,10 +2655,12 @@ selectionMode: 'single',
 
 
 ### selectOptions
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2376
 
+:::
 
-_options.selectOptions : Array&lt;string&gt;_
+`options.selectOptions : Array<string>`
 
 Data source for [select-typed](https://docs.handsontable.com/demo-select.html) cells.
 
@@ -2491,10 +2681,12 @@ columns: [
 
 
 ### skipColumnOnPaste
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1465
 
+:::
 
-_options.skipColumnOnPaste : boolean_
+`options.skipColumnOnPaste : boolean`
 
 When added to a `column` property, it skips the column on paste and pastes the data on the next column to the right.
 
@@ -2512,10 +2704,12 @@ columns: [
 
 
 ### skipRowOnPaste
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1490
 
+:::
 
-_options.skipRowOnPaste : boolean_
+`options.skipRowOnPaste : boolean`
 
 When added to a cell property, it skips the row on paste and pastes the data on the following row.
 
@@ -2537,10 +2731,12 @@ cells: function(row, column) {
 
 
 ### sortByRelevance
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2983
 
+:::
 
-_options.sortByRelevance : boolean_
+`options.sortByRelevance : boolean`
 
 If defined as `true`, the Autocomplete's suggestion list would be sorted by relevance (the closer to the left the
 match is, the higher the suggestion).
@@ -2563,10 +2759,12 @@ columns: [
 
 
 ### source
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2208
 
+:::
 
-_options.source : Array | function_
+`options.source : Array | function`
 
 Defines data source for Autocomplete or Dropdown cell types.
 
@@ -2593,10 +2791,12 @@ columns: [{
 
 
 ### startCols
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L239
 
+:::
 
-_options.startCols : number_
+`options.startCols : number`
 
 Initial number of columns.
 
@@ -2612,10 +2812,12 @@ startCols: 15,
 
 
 ### startRows
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L220
 
+:::
 
-_options.startRows : number_
+`options.startRows : number`
 
 Initial number of rows.
 
@@ -2631,10 +2833,12 @@ startRows: 15,
 
 
 ### stretchH
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1131
 
+:::
 
-_options.stretchH : string_
+`options.stretchH : string`
 
 Defines how the columns react, when the declared table width is different than the calculated sum of all column widths.
 [See more](https://docs.handsontable.com/demo-stretching.html) mode. Possible values:
@@ -2652,10 +2856,12 @@ stretchH: 'all',
 
 
 ### strict
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2535
 
+:::
 
-_options.strict : boolean_
+`options.strict : boolean`
 
 If set to `true`, the value entered into the cell must match (case-sensitive) the autocomplete source.
 Otherwise, cell won't pass the validation. When filtering the autocomplete source list, the editor will
@@ -2677,10 +2883,12 @@ columns: [{
 
 
 ### tableClassName
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1110
 
+:::
 
-_options.tableClassName : string | Array&lt;string&gt;_
+`options.tableClassName : string | Array<string>`
 
 Class name for all tables inside container element.
 
@@ -2697,10 +2905,12 @@ tableClassName: ['first-class-name', 'second-class-name'],
 
 
 ### tabMoves
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L929
 
+:::
 
-_options.tabMoves : object | function_
+`options.tabMoves : object | function`
 
 Defines the cursor movement after <kbd>TAB</kbd> is pressed (<kbd>SHIFT</kbd> + <kbd>TAB</kbd> uses a negative vector). Can
 be an object or a function that returns an object. The event argument passed to the function is a DOM Event object
@@ -2721,10 +2931,12 @@ tabMoves: function(event) {
 
 
 ### title
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2234
 
+:::
 
-_options.title : string_
+`options.title : string`
 
 Defines the column header name.
 
@@ -2747,10 +2959,12 @@ columns: [
 
 
 ### trimDropdown
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1681
 
+:::
 
-_options.trimDropdown : boolean_
+`options.trimDropdown : boolean`
 
 Makes autocomplete or dropdown width the same as the edited cell width. If `false` then editor will be scaled
 according to its content.
@@ -2770,10 +2984,12 @@ columns: [
 
 
 ### trimRows
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2890
 
+:::
 
-_options.trimRows : boolean | Array&lt;number&gt;_
+`options.trimRows : boolean | Array<number>`
 
 Plugin allowing hiding of certain rows.
 
@@ -2791,10 +3007,12 @@ trimRows: [5, 10, 15],
 
 
 ### trimWhitespace
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2179
 
+:::
 
-_options.trimWhitespace : boolean_
+`options.trimWhitespace : boolean`
 
 Defines whether Handsontable should trim the whitespace at the beginning and the end of the cell contents.
 
@@ -2812,10 +3030,12 @@ columns: [
 
 
 ### type
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1572
 
+:::
 
-_options.type : string_
+`options.type : string`
 
 Shortcut to define the combination of the cell renderer, editor and validator for the column, cell or whole table.
 
@@ -2865,10 +3085,12 @@ columns: [
 
 
 ### uncheckedTemplate
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2270
 
+:::
 
-_options.uncheckedTemplate : boolean | string | number_
+`options.uncheckedTemplate : boolean | string | number`
 
 Data template for `'checkbox'` type when checkbox is unchecked.
 
@@ -2884,10 +3106,12 @@ uncheckedTemplate: 'bad'
 
 
 ### undo
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1816
 
+:::
 
-_options.undo : boolean_
+`options.undo : boolean`
 
 If `true`, undo/redo functionality is enabled.
 Note: `undefined` by default but it acts as enabled.
@@ -2903,10 +3127,12 @@ undo: true,
 
 
 ### validator
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2113
 
+:::
 
-_options.validator : function | RegExp | string_
+`options.validator : function | RegExp | string`
 
 A function, regular expression or a string, which will be used in the process of cell validation. If a function is
 used, be sure to execute the callback argument with either `true` (`callback(true)`) if the validation passed
@@ -2949,10 +3175,12 @@ columns: [
 
 
 ### viewportColumnRenderingOffset
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2067
 
+:::
 
-_options.viewportColumnRenderingOffset : number | string_
+`options.viewportColumnRenderingOffset : number | string`
 
 Number of columns to be rendered outside of the visible part of the table. By default, it's set to `'auto'`, which
 makes Handsontable try calculating the best offset performance-wise.
@@ -2968,10 +3196,12 @@ viewportColumnRenderingOffset: 70,
 
 
 ### viewportRowRenderingOffset
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2048
 
+:::
 
-_options.viewportRowRenderingOffset : number | string_
+`options.viewportRowRenderingOffset : number | string`
 
 Number of rows to be rendered outside of the visible part of the table. By default, it's set to `'auto'`, which
 makes Handsontable to attempt to calculate the best offset performance-wise.
@@ -2987,10 +3217,12 @@ viewportRowRenderingOffset: 70,
 
 
 ### visibleRows
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1659
 
+:::
 
-_options.visibleRows : number_
+`options.visibleRows : number`
 
 Control number of choices for the autocomplete (or dropdown) typed cells. After exceeding it, a scrollbar for the
 dropdown list of choices will appear.
@@ -3010,10 +3242,12 @@ columns: [
 
 
 ### width
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L177
 
+:::
 
-_options.width : number | string | function_
+`options.width : number | string | function`
 
 Width of the grid. Can be a value or a function that returns a value.
 
@@ -3035,10 +3269,12 @@ width: function() {
 
 
 ### wordWrap
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1702
 
+:::
 
-_options.wordWrap : boolean_
+`options.wordWrap : boolean`
 
 When set to `true`, the text of the cell content is wrapped if it does not fit in the fixed column width.
 
@@ -3058,10 +3294,12 @@ columns: [
 ## Methods
 
 ### isEmptyCol
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1190
 
+:::
 
-_options.isEmptyCol(col) ⇒ boolean_
+`options.isEmptyCol(col) ⇒ boolean`
 
 Overwrites the default `isEmptyCol` method, which checks if column at the provided index is empty.
 
@@ -3076,15 +3314,17 @@ isEmptyCol: function(column) {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| col | `number` d | Visual column index. |
+| col | `number` | Visual column index. |
 
 
 
 ### isEmptyRow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1150
 
+:::
 
-_options.isEmptyRow(row) ⇒ boolean_
+`options.isEmptyRow(row) ⇒ boolean`
 
 Overwrites the default `isEmptyRow` method, which checks if row at the provided index is empty.
 
@@ -3099,6 +3339,6 @@ isEmptyRow: function(row) {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | `number` d | Visual row index. |
+| row | `number` | Visual row index. |
 
 
