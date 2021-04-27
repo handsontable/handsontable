@@ -8,91 +8,63 @@ canonicalUrl: /row-trimming
 
 [[toc]]
 
-Below example shows how cell renderers can be used to present the template values for empty rows. When a cell in the empty row is edited, the **beforeChange** callback fills the row with the template values.
+## Overview
+
+The _Trim Rows_ plugin allows trimming specific rows from the table. Rows being trimmed **aren't included** in a `DataMap` (gets by the [getData](api/core.md#getData) method) and they **aren't rendered**.
+
+## Setup
+
+To enable the plugin, you need to set the `trimRows` property to an array of row indexes.
+See the [examples](#example) section for a live demo.
+
+## Example
+
+Note that the second, third and sixth rows are missing.
 
 ::: example #example1
 ```js
-var
-  tpl = ['one', 'two', 'three'],
-  data = [
-    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
-    ['2017', 10, 11, 12, 13],
-    ['2018', 20, 11, 14, 13],
-    ['2019', 30, 15, 12, 13]
-  ],
-  container = document.getElementById('example1'),
-  hot1;
-
-function isEmptyRow(instance, row) {
-  var rowData = instance.countRows();
-
-  for (var i = 0, ilen = rowData.length; i < ilen; i++) {
-    if (rowData[i] !== null) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function defaultValueRenderer(instance, td, row, col, prop, value, cellProperties) {
-  var args = arguments;
-
-  if (args[5] === null && isEmptyRow(instance, row)) {
-    args[5] = tpl[col];
-    td.style.color = '#999';
-  }
-  else {
-    td.style.color = '';
-  }
-  Handsontable.renderers.TextRenderer.apply(this, args);
-}
-
-hot1 = new Handsontable(container, {
-  startRows: 8,
-  startCols: 5,
-  minSpareRows: 1,
-  contextMenu: true,
-  licenseKey: 'non-commercial-and-evaluation',
-  cells: function (row, col, prop) {
-    var cellProperties = {};
-
-    cellProperties.renderer = defaultValueRenderer;
-
-    return cellProperties;
-  },
-  beforeChange: function (changes) {
-    var instance = hot1,
-      ilen = changes.length,
-      clen = instance.countCols(),
-      rowColumnSeen = {},
-      rowsToFill = {},
-      i,
-      c;
-
-    for (i = 0; i < ilen; i++) {
-      // if oldVal is empty
-      if (changes[i][2] === null && changes[i][3] !== null) {
-        if (isEmptyRow(instance, changes[i][0])) {
-          // add this row/col combination to cache so it will not be overwritten by template
-          rowColumnSeen[changes[i][0] + '/' + changes[i][1]] = true;
-          rowsToFill[changes[i][0]] = true;
-        }
-      }
-    }
-    for (var r in rowsToFill) {
-      if (rowsToFill.hasOwnProperty(r)) {
-        for (c = 0; c < clen; c++) {
-          // if it is not provided by user in this change set, take value from template
-          if (!rowColumnSeen[r + '/' + c]) {
-            changes.push([r, c, null, tpl[c]]);
-          }
-        }
-      }
-    }
-  }
+var example1 = document.getElementById('example1');
+var hot1 = new Handsontable(example1, {
+    data: Handsontable.helper.createSpreadsheetData(10, 4),
+    colHeaders: true,
+    rowHeaders: true,
+    trimRows: [1, 2, 5],
+    licenseKey: 'non-commercial-and-evaluation'
 });
-
-hot1.loadData(data);
 ```
 :::
+
+## API examples
+
+You can access the plugin instance by calling
+
+```js
+var plugin = hot.getPlugin('trimRows');
+```
+
+To trim a single row, call the `trimRow` method of the plugin object:
+
+```js
+plugin.trimRow(4);
+```
+To trim multiple rows, you can either pass them as arguments to the `trimRow` method, or pass an array of indexes to the `trimRows` method:
+
+```js
+plugin.trimRow(0, 4, 6);
+// or
+plugin.trimRows([0, 4, 6]);
+```
+
+To restore the trimmed row(s), use the following methods:
+
+```js
+plugin.untrimRow(4);
+```
+```js
+plugin.untrimRow(0, 4, 6);
+```
+```js
+plugin.untrimRows([0, 4, 6]);
+```
+
+To see the changes you made, call `hot.render();` to re-render the table.

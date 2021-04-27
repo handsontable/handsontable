@@ -1,5 +1,5 @@
 ---
-title: Basic example
+title: Basic example in Angular
 permalink: /next/angular-simple-example
 canonicalUrl: /angular-simple-example
 ---

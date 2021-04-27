@@ -1,20 +1,21 @@
 ---
-title: Row master-detail
-permalink: /next/row-master-detail
-canonicalUrl: /row-master-detail
+title: Row parent-child
+permalink: /next/row-parent-child
+canonicalUrl: /row-parent-child
 tags:
   - nested rows
   - parent child
   - tree grid
   - grouping rows
+  - master detail
 ---
 
-# Row master-detail
+# Row parent-child
 
 [[toc]]
 
 ::: warning
-Sorting and filtering in Nested rows is currently not supported.
+Sorting and filtering don't work with the parent-child structure.
 :::
 
 ## Overview

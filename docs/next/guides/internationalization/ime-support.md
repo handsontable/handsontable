@@ -7,28 +7,25 @@ tags:
   - korean
   - japanese
   - chinese
+  - latin
 ---
 
 # IME support
 
 [[toc]]
 
-## Overview
+## What is IME
 
-Links:
+An **Input Method Editor** (IME) is a component that is part of the Operating System (OS) that enables users to generate characters that are not natively available on their keyboard by using input sequences from keystrokes or mouse movements. An example scenario would be to add Chinese characters using a Latin Keyboard; IME support would enable you to generate the characters you need.
 
-- https://www.grapecity.com/wijmo/demos/Grid/Editing/IME 
-- https://www.infragistics.com/help/winforms/win-you-can-now-set-the-ime-mode-on-a-wingrid-column
-- https://www.infragistics.com/help/winforms/wingrid-enabling-ime-mode-on-a-single-column
-- http://people.ubuntu.com/~gunnarhj/keyboard-layouts.html
-- https://docs.tizen.org/application/web/guides/text-input/input-method/
+## IME support in Handsontable
 
-All the places in which a user can enter the data, for example input or textarea, support IME all the time. There is no need, nor ability, to enable or disable it. The additional editor will appear below the text editor if the right settings are set up in the Operating System.
+IME support is built-in to the OS, and therefore, there's no need or ability to enable/disable it. It is **always on** and is activated when a user switches to one of the three supported languages. Upon activation, the IME will appear below the text editor (subject to the correct configuration in the OS). When using IME with Handsontable, it **always** applies to the **entire grid**.
 
-### How to test if it works
+## Testing IME support
 
-You need to change your language preferences for your keyboard in your Operating System. Set up the input source as Korean, Japanese or Chinese and then start to edit any of the cell editors within Handsontable. 
+To test the IME support, you will need to change your language preferences for your keyboard in your OS. Next, set up the input source as **Korean, Japanese, or Chinese** and then start to edit any of the cell editors within Handsontable.
 
-### Watch it in action
+## Watch IME in action
 
-<video controls src="../static-files/ime-support-in-handsontable.mp4" width="100%"></video>
+<video controls loop src="/img/pages/ime-support/ime-support-in-handsontable.mp4" width="100%"></video>

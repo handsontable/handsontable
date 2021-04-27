@@ -23,8 +23,6 @@ module.exports = {
   description: 'Handsontable',
   base: '/docs/',
   head: [
-    ['script', { src: '/scripts/handsontable-manager.js' }],
-
     ['link', { rel: 'icon', href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png' }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
     ...environmentHead
@@ -74,7 +72,7 @@ module.exports = {
     }
   },
   themeConfig: {
-    logo: '/logo.svg',
+    logo: '/img/handsontable-logo.svg',
     nextLinks: true,
     prevLinks: true,
     repo: 'handsontable/handsontable',
@@ -91,9 +89,9 @@ module.exports = {
       { text: 'Blog', link: 'https://handsontable.com/blog' },
       { text: 'Support',
         items: [
-          { text: 'Forum', link: 'https://forum.handsontable.com' },
-          { text: 'Report an issue', link: 'https://github.com/handsontable/handsontable/issues/new' },
           { text: 'Contact support', link: 'https://handsontable.com/contact?category=technical_support' },
+          { text: 'Report an issue', link: 'https://github.com/handsontable/handsontable/issues/new' },
+          { text: 'Forum', link: 'https://forum.handsontable.com' },
         ]
       },
     ],
@@ -102,7 +100,7 @@ module.exports = {
     sidebarDepth: 0,
     sidebar: helpers.getSidebars(),
     search: true,
-    searchPlaceholder: 'Search...',
+    searchPlaceholder: 'Search guides and API...',
     searchMaxSuggestions: 10
   }
 };

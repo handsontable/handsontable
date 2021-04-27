@@ -1,17 +1,30 @@
-/* eslint-disable max-len */
-// TODO this file is quite similar to part of handsontable-manager.js,
-//  However be careful because some dependencies have different URLs!
-//  That URLs might be stored as JSON - to research further.
-const mapVersion = (version = 'latest') => (version.match(/^\d+\.\d+\.\d+$/) ? version : 'latest');
+// eslint-disable-next-line no-restricted-globals
+const isBrowser = (typeof window !== 'undefined');
 
 const getHotUrls = (version) => {
-  const mappedVersion = mapVersion(version);
+  if (version === 'next' && isBrowser) {
+    return {
+      handsontableJs: '/docs/handsontable.js',
+      handsontableCss: '/docs/handsontable.css',
+      languagesJs: 'https://cdn.jsdelivr.net/npm/handsontable/dist/languages/all.js'
+    };
+  }
+  const mappedVersion = version.match(/^\d+\.\d+\.\d+$/) ? version : 'latest';
 
   return {
     handsontableJs: `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/handsontable.full.min.js`,
     handsontableCss: `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/handsontable.full.min.css`,
     languagesJs: `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/languages/all.js`
   };
+};
+const getFixer = () => {
+  if (isBrowser) {
+    // eslint-disable-next-line no-restricted-globals
+    return [`${window.location.origin}/docs/scripts/fixer.js`, ['require', 'exports']];
+  }
+
+  return ['https://handsontable.com/docs/8.3.2/scripts/jsfiddle-fixer.js', ['require', 'exports']];
+
 };
 
 /** Some further version of Handsontable will needs different version of dependencies.
@@ -22,14 +35,16 @@ const getHotUrls = (version) => {
  */
 const buildDependencyGetter = (version) => {
   const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version);
+  const fixer = getFixer();
 
   return (dependency) => {
+    /* eslint-disable max-len */
     const dependencies = {
+      fixer,
       hot: [handsontableJs, ['Handsontable', 'Handsontable.react'], handsontableCss],
       react: ['https://unpkg.com/react@17/umd/react.development.js', ['React']],
       'react-dom': ['https://unpkg.com/react-dom@17/umd/react-dom.development.js', ['ReactDOM']],
       'hot-react': ['https://cdn.jsdelivr.net/npm/@handsontable/react/dist/react-handsontable.js', ['Handsontable.react']],
-      fixer: ['https://handsontable.com/docs/8.3.2/scripts/jsfiddle-fixer.js', ['require', 'exports']],
       numbro: ['https://handsontable.com/docs/8.3.2/components/numbro/dist/languages.min.js', ['numbro.allLanguages', 'numbro']],
       redux: ['https://cdn.jsdelivr.net/npm/redux@4/dist/redux.min.js', []],
       rxjs: ['https://cdn.jsdelivr.net/npm/rxjs@6/bundles/rxjs.umd.js', [/* todo */]],
@@ -47,12 +62,15 @@ const buildDependencyGetter = (version) => {
       vuex: ['https://unpkg.com/vuex@3/dist/vuex.js', [/* todo */]],
       languages: [languagesJs, [/* todo */]],
     };
+    /* eslint-enable max-len */
 
+    // [jsUrl, dependentVars[]?, cssUrl?]
     return dependencies[dependency];
   };
 };
 
 const presetMap = {
+  /* eslint-disable max-len */
   hot: ['hot'],
   react: ['hot', 'react', 'react-dom', 'hot-react', 'fixer'],
   'react-numbro': ['hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer'],
@@ -64,11 +82,13 @@ const presetMap = {
   'vue-numbro': ['hot', 'numbro', 'vue', 'hot-vue', 'fixer'],
   'vue-languages': ['hot', 'languages', 'vue', 'hot-vue', 'fixer'],
   'vue-vuex': ['hot', 'vue', 'vuex', 'hot-vue', 'fixer'],
+  /* eslint-enable max-len */
 };
 
 const getDependencies = (version, preset) => {
   const getter = buildDependencyGetter(version);
+
   return presetMap[preset].map(x => getter(x));
 };
 
-module.exports = { getDependencies };
+module.exports = { getDependencies, buildDependencyGetter, presetMap };

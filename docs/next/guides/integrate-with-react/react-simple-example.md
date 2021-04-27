@@ -1,5 +1,5 @@
 ---
-title: Basic examples
+title: Basic example in React
 permalink: /next/react-simple-examples
 canonicalUrl: /react-simple-examples
 ---

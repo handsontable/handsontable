@@ -10,6 +10,7 @@ const wrap = (code, lang) => {
   if (lang === 'text') {
     code = escapeHtml(code);
   }
+
   return `<pre v-pre class="language-${lang}"><code>${code}</code></pre>`;
 };
 
@@ -52,7 +53,9 @@ module.exports = (str, lang) => {
   }
   if (prism.languages[lang]) {
     const code = prism.highlight(str, prism.languages[lang], lang);
+
     return wrap(code, rawLang);
   }
+
   return wrap(str, 'text');
 };
