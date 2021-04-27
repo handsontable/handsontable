@@ -1049,6 +1049,36 @@ const REGISTERED_HOOKS = [
   'modifyGetCellCoords',
 
   /**
+   * Allows modify the visual row index that is used to retrieve the row header element (TH) before it's
+   * highlighted (proper CSS class names are added). Modifying the visual row index allows building a custom
+   * implementation of the nested headers feature or other features that require highlighting other DOM
+   * elements than that the rendering engine, by default, would have highlighted.
+   *
+   * @event Hooks#beforeHighlightingRowHeader
+   * @since 8.4.0
+   * @param {number} row Visual row index.
+   * @param {number} headerLevel Column header level (0 = most distant to the table).
+   * @param {object} highlightMeta An object that contains additional information about processed selection.
+   * @returns {number|undefined}
+   */
+  'beforeHighlightingRowHeader',
+
+  /**
+   * Allows modify the visual column index that is used to retrieve the column header element (TH) before it's
+   * highlighted (proper CSS class names are added). Modifying the visual column index allows building a custom
+   * implementation of the nested headers feature or other features that require highlighting other DOM
+   * elements than that the rendering engine, by default, would have highlighted.
+   *
+   * @event Hooks#beforeHighlightingColumnHeader
+   * @since 8.4.0
+   * @param {number} column Visual column index.
+   * @param {number} headerLevel Row header level (0 = most distant to the table).
+   * @param {object} highlightMeta An object that contains additional information about processed selection.
+   * @returns {number|undefined}
+   */
+  'beforeHighlightingColumnHeader',
+
+  /**
    * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
    * {@link Options#persistentState} option is enabled.
    *

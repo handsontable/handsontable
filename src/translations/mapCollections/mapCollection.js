@@ -1,6 +1,6 @@
-import { isUndefined, isDefined } from '../helpers/mixed';
-import { mixin } from '../helpers/object';
-import localHooks from '../mixins/localHooks';
+import { isUndefined, isDefined } from '../../helpers/mixed';
+import { mixin } from '../../helpers/object';
+import localHooks from '../../mixins/localHooks';
 
 // Counter for checking if there is a memory leak.
 let registeredMaps = 0;
@@ -8,7 +8,7 @@ let registeredMaps = 0;
 /**
  * Collection of index maps having unique names. It allow us to perform bulk operations such as init, remove, insert on all index maps that have been registered in the collection.
  */
-class MapCollection {
+export class MapCollection {
   constructor() {
     /**
      * Collection of index maps.
@@ -43,13 +43,21 @@ class MapCollection {
     const indexMap = this.collection.get(name);
 
     if (isDefined(indexMap)) {
-      indexMap.clearLocalHooks();
+      indexMap.destroy();
       this.collection.delete(name);
 
       this.runLocalHooks('change', indexMap);
 
       registeredMaps -= 1;
     }
+  }
+
+  /**
+   * Unregisters and destroys all collected index map instances.
+   */
+  unregisterAll() {
+    this.collection.forEach((indexMap, name) => this.unregister(name));
+    this.collection.clear();
   }
 
   /**
@@ -113,8 +121,6 @@ class MapCollection {
 }
 
 mixin(MapCollection, localHooks);
-
-export default MapCollection;
 
 /**
  * @returns {number}

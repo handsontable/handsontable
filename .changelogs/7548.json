@@ -1,0 +1,7 @@
+{
+  "title": "Nested rows will be displayed properly and no error will be thrown while removing last table element",
+  "type": "fixed",
+  "issue": 7548,
+  "breaking": false,
+  "framework": "vue"
+}

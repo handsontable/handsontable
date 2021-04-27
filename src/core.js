@@ -215,7 +215,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.selection = selection;
 
-  const onIndexMapperCacheUpdate = (flag1, flag2, hiddenIndexesChanged) => {
+  const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }) => {
     if (hiddenIndexesChanged) {
       this.selection.refresh();
     }
@@ -3990,6 +3990,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     // The plugin's `destroy` method is called as a consequence and it should handle
     // unregistration of plugin's maps. Some unregistered maps reset the cache.
     instance.batchExecution(() => {
+      instance.rowIndexMapper.unregisterAll();
+      instance.columnIndexMapper.unregisterAll();
+
       pluginsRegistry
         .getItems()
         .forEach(([, plugin]) => {
@@ -4023,6 +4026,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     instance.rowIndexMapper = null;
     instance.columnIndexMapper = null;
+
     datamap = null;
     grid = null;
     selection = null;

@@ -1,0 +1,7 @@
+{
+  "title": "Fixed the double-tap issue on iOS",
+  "type": "fixed",
+  "issue": 6961,
+  "breaking": false,
+  "framework": "none"
+}

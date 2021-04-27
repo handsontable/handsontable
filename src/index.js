@@ -1,6 +1,6 @@
 import Handsontable from './base';
 import EventManager, { getListenersCounter } from './eventManager';
-import { getRegisteredMapsCounter } from './translations/mapCollection';
+import { getRegisteredMapsCounter } from './translations';
 import Hooks from './pluginHooks';
 import { metaSchemaFactory } from './dataMap/index';
 

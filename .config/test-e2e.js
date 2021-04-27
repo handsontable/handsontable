@@ -14,7 +14,10 @@ module.exports.create = function create(envArgs) {
   config.forEach(function(c) {
     c.devtool = 'cheap-module-source-map';
     c.target = 'web';
+
     c.mode = 'development' // TODO remove this
+
+    c.cache = true;
     c.output = {
       libraryTarget: 'var',
       filename: '[name].entry.js',

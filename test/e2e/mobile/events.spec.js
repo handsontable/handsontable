@@ -58,6 +58,56 @@ describe('Events', () => {
     expect(onCellDblClick).toHaveBeenCalled();
   });
 
+  it('should "preventDefault" the "touchend" event (double-tap issue #7824)', () => {
+    const hot = handsontable({
+      width: 400,
+      height: 400,
+    });
+
+    const cell = hot.getCell(1, 1);
+
+    {
+      triggerTouchEvent('touchstart', cell);
+
+      const event = triggerTouchEvent('touchend', cell);
+
+      expect(event.defaultPrevented).toBeTrue();
+    }
+    {
+      triggerTouchEvent('touchstart', cell);
+
+      const event = triggerTouchEvent('touchend', cell);
+
+      expect(event.defaultPrevented).toBeTrue();
+    }
+  });
+
+  it('should not "preventDefault" the second "touchend" event when interactive element is clicked', () => {
+    const hot = handsontable({
+      data: [['<a href="#justForTest">click me!</a>'], []],
+      width: 400,
+      height: 400,
+      renderer: 'html',
+    });
+
+    const linkElement = hot.getCell(0, 0).firstChild;
+
+    {
+      triggerTouchEvent('touchstart', linkElement);
+
+      const event = triggerTouchEvent('touchend', linkElement);
+
+      expect(event.defaultPrevented).toBeTrue();
+    }
+    {
+      triggerTouchEvent('touchstart', linkElement);
+
+      const event = triggerTouchEvent('touchend', linkElement);
+
+      expect(event.defaultPrevented).toBeFalse();
+    }
+  });
+
   it('should block default action related to link touch and translate from the touch to click on a cell', async() => {
     const hot = handsontable({
       data: [['<a href="#justForTest">click me!</a>'], []],
@@ -65,11 +115,7 @@ describe('Events', () => {
       colHeaders: true,
       width: 600,
       height: 400,
-      columns: [
-        {
-          renderer: 'html'
-        }
-      ]
+      renderer: 'html',
     });
 
     const linkElement = hot.getCell(0, 0).firstChild;
@@ -82,7 +128,7 @@ describe('Events', () => {
     expect(location.hash).toBe('');
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
 
-    await sleep(100); // To prevents double-click detection (emulation)
+    await sleep(600); // To prevents double-click detection (emulation)
 
     // Second touch
     simulateTouch(linkElement);
@@ -97,7 +143,7 @@ describe('Events', () => {
     // First touch
     simulateTouch(anotherCell);
 
-    await sleep(100); // To prevents double-click detection (emulation)
+    await sleep(550); // To prevents double-click detection (emulation)
 
     expect(location.hash).toBe('');
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);

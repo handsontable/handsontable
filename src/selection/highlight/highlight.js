@@ -1,12 +1,13 @@
 import { createHighlight } from './types';
+import {
+  ACTIVE_HEADER_TYPE,
+  AREA_TYPE,
+  CELL_TYPE,
+  CUSTOM_SELECTION_TYPE,
+  FILL_TYPE,
+  HEADER_TYPE,
+} from './constants';
 import { arrayEach } from './../../helpers/array';
-
-export const ACTIVE_HEADER_TYPE = 'active-header';
-export const AREA_TYPE = 'area';
-export const CELL_TYPE = 'cell';
-export const FILL_TYPE = 'fill';
-export const HEADER_TYPE = 'header';
-export const CUSTOM_SELECTION = 'custom-selection';
 
 /**
  * Highlight class responsible for managing Walkontable Selection classes.
@@ -245,7 +246,7 @@ class Highlight {
    * @param {object} selectionInstance The selection instance.
    */
   addCustomSelection(selectionInstance) {
-    this.customSelections.push(createHighlight(CUSTOM_SELECTION, { ...this.options, ...selectionInstance }));
+    this.customSelections.push(createHighlight(CUSTOM_SELECTION_TYPE, { ...this.options, ...selectionInstance }));
   }
 
   /**
