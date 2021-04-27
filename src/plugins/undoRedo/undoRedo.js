@@ -157,6 +157,11 @@ function UndoRedo(instance) {
 
     plugin.done(() => new UndoRedo.UnmergeCellsAction(instance, cellRange));
   });
+
+  // TODO: Why this callback is needed? One test doesn't pass after calling method right after plugin creation (outside the callback).
+  instance.addHook('afterInit', () => {
+    plugin.init();
+  });
 }
 
 /**
@@ -845,14 +850,15 @@ UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
 };
 
 /**
+ * Enabling and disabling plugin and attaching its to an instance.
  *
+ * @private
  */
-function init() {
-  const instance = this;
-  const settings = instance.getSettings().undo;
+UndoRedo.prototype.init = function() {
+  const settings = this.instance.getSettings().undo;
   const pluginEnabled = typeof settings === 'undefined' || settings;
 
-  if (!instance.undoRedo) {
+  if (!this.instance.undoRedo) {
     /**
      * Instance of Handsontable.UndoRedo Plugin {@link Handsontable.UndoRedo}.
      *
@@ -860,16 +866,16 @@ function init() {
      * @memberof! Handsontable.Core#
      * @type {UndoRedo}
      */
-    instance.undoRedo = new UndoRedo(instance);
+    this.instance.undoRedo = this;
   }
 
   if (pluginEnabled) {
-    instance.undoRedo.enable();
+    this.instance.undoRedo.enable();
 
   } else {
-    instance.undoRedo.disable();
+    this.instance.undoRedo.disable();
   }
-}
+};
 
 /**
  * @param {Event} event The keyboard event object.
@@ -997,8 +1003,9 @@ function removeExposedUndoRedoMethods(instance) {
 
 const hook = Hooks.getSingleton();
 
-hook.add('afterInit', init);
-hook.add('afterUpdateSettings', init);
+hook.add('afterUpdateSettings', function() {
+  this.getPlugin('undoRedo').init();
+});
 
 hook.register('beforeUndo');
 hook.register('afterUndo');
