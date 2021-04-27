@@ -1,4 +1,6 @@
 import { HyperFormula } from 'hyperformula';
+
+import { warn } from '../../helpers/console';
 import { BasePlugin } from '../base';
 import { registerAutofillHooks } from './autofill';
 
@@ -115,6 +117,14 @@ export class Formulas extends BasePlugin {
 
       valueHolder.value = value;
     } else {
+      if (
+        !this.hyperformula.isItPossibleToSetCellContents(address)
+      ) {
+        warn(`Not possible to set cell data at ${JSON.stringify(address)}`)
+
+        return
+      }
+
       this.hyperformula.setCellContents(address, valueHolder.value);
     }
   }
@@ -143,6 +153,14 @@ export class Formulas extends BasePlugin {
     if (ioMode === 'get') {
       valueHolder.value = this.hyperformula.getCellSerialized(address);
     } else if (ioMode === 'set') {
+      if (
+        !this.hyperformula.isItPossibleToSetCellContents(address)
+      ) {
+        warn(`Not possible to set source cell data at ${JSON.stringify(address)}`)
+
+        return
+      }
+
       this.hyperformula.setCellContents(address, valueHolder.value);
     }
   }
