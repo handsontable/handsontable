@@ -4,6 +4,48 @@ permalink: /next/using-callbacks
 canonicalUrl: /using-callbacks
 ---
 
+<style>
+#hooksList {
+  height: 300px;
+  overflow-y: scroll;
+}
+#hooksList li {
+  width: 50%;
+  float: left;
+  margin: 0;
+  list-style: none;
+}
+#example1 {
+  box-sizing: border-box;
+  height: 100%;
+  display: inline-block;
+  width: 50%;
+  margin: 0;
+}
+#example1-events {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 49%;
+  height: 165px;
+  padding: 0.5rem;
+  overflow: auto;
+  font-size: 11px;
+  border: 1px solid #CCC;
+}
+.clear-log {
+  margin-top: 0.5rem;
+  text-align: right;
+}
+.clear-log button {
+  padding: .3rem .5rem .31rem;
+  color: #fff;
+  font-size: 13px;
+  border: none;
+  background: #9e9e9e;
+  cursor: pointer;
+}
+</style>
+
 # Using callbacks
 
 [[toc]]
@@ -12,64 +54,74 @@ canonicalUrl: /using-callbacks
 
 Learn how to use some of the callbacks available in Handsontable. Note that some callbacks are checked on this page by default.
 
-**Choose events to be logged:**
+::: example #example1 --html 1 --js 2
+```html
+<div id="example1"></div>
+<div id="example1-events"></div>
+<div class="clear-log">
+  <button>Clear log</button>
+</div>
 
-* **select all**
+<h4>Choose events to be logged:</h4>
 
-::: example #example1
+<ul id="hooksList">
+  <li>
+    <label>
+      <input type="checkbox" id="check_select_all">
+      <strong>select all</strong>
+    </label>
+    </li>
+</ul>
+```
 ```js
-var data = [
+const data = [
   ['', 'Tesla', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'],
   ['2017', 0, 2941, 4303, 354, 5814],
   ['2018', 3, 2905, 2867, 412, 5284],
   ['2019', 4, 2517, 4822, 552, 6127],
   ['2020', 2, 2422, 5399, 776, 4151]
-],
-example1 = document.getElementById('example1'),
-config,
-$hooksList,
-hooks,
-hot;
-config = {
+]
+const example1 = document.getElementById('example1');
+const hooksList = document.getElementById('hooksList');
+const hooks = Handsontable.hooks.getRegistered();
+const hotConfig = {
   data: data,
   minRows: 5,
   minCols: 6,
   minSpareRows: 1,
   autoWrapRow: true,
   colHeaders: true,
-  contextMenu: true
-};
-$hooksList = document.getElementById('hooksList');
-hooks = Handsontable.hooks.getRegistered();
+  contextMenu: true,
+  licenseKey: 'non-commercial-and-evaluation'
+}
+
 hooks.forEach(function(hook) {
-  var checked = '';
+  let checked = '';
 
   if (hook === 'afterChange' || hook === 'afterSelection' || hook === 'afterCreateRow' || hook === 'afterRemoveRow' || hook === 'afterCreateCol' || hook === 'afterRemoveCol') {
     checked = 'checked';
   }
 
-  $hooksList.innerHTML = '<li><label><input type="checkbox" ' + checked + ' id="check\_' + hook + '"> ' + hook + '</label></li>';
-  config[hook] = function() {
-    log_events(hook, arguments);
+  hooksList.innerHTML += '<li><label><input type="checkbox" ' + checked + ' id="check\_' + hook + '"> ' + hook + '</label></li>';
+  hotConfig[hook] = function() {
+    logEvents(hook, arguments);
   }
 });
-var start = (new Date()).getTime();
-var i = 0;
-var timer;
-var example1_events = document.getElementById("example1\_events");
 
-function log_events(event, data) {
+const start = (new Date()).getTime();
+const example1Events = document.getElementById("example1-events");
+let i = 0;
+let timer;
+
+function logEvents(event, data) {
   if (document.getElementById('check\_' + event).checked) {
-    var now = (new Date()).getTime(),
-    diff = now - start,
-    vals,
-    str,
-    div,
-    text;
+    const now = (new Date()).getTime();
+    const diff = now - start;
+    let str = '';
 
-    vals = [ i, "@" + numbro(diff / 1000).format('0.000'), "[" + event + "]"];
+    const vals = [ i, "@" + numbro(diff / 1000).format('0.000'), "[" + event + "]"];
 
-    for (var d = 0; d < data.length; d++) {
+    for (let d = 0; d < data.length; d++) {
       try {
         str = JSON.stringify(data[d]);
       } catch (e) {
@@ -80,7 +132,7 @@ function log_events(event, data) {
         continue;
       }
       if (str.length > 20) {
-        str = Object.prototype.toString.call(data[d]);
+        str = data[d].toString();
       }
       if (d < data.length - 1) {
         str += ',';
@@ -93,34 +145,44 @@ function log_events(event, data) {
       console.log(i, "@" + numbro(diff / 1000).format('0.000'), "[" + event + "]", data);
     }
 
-    div = document.createElement("DIV");
-    text = document.createTextNode(vals.join(" "));
+    const div = document.createElement("div");
+    const text = document.createTextNode(vals.join(" "));
+
     div.appendChild(text);
-    example1_events.appendChild(div);
+    example1Events.appendChild(div);
     clearTimeout(timer);
-    timer = setTimeout(function() {
-      example1_events.scrollTop = example1_events.scrollHeight;
+    const timer = setTimeout(function() {
+      example1Events.scrollTop = example1Events.scrollHeight;
     }, 10);
 
     i++;
   }
 }
 
-example1 = document.getElementById('example1');
-hot = new Handsontable(example1,config);
+const clearLogButton = document.querySelector('.clear-log button');
+clearLogButton.addEventListener('click', () => {
+  example1Events.innerHTML = '';
+});
 
-$('#check_select_all').click(function () {
-  var state = this.checked;
-  $('#hooksList input[type=checkbox]').each(function () {
-    this.checked = state;
+const selectAll = document.querySelector('#check_select_all');
+const hookCheckboxes = document.querySelectorAll('#hooksList input[type=checkbox]');
+
+selectAll.addEventListener('click', (event) => {
+  const state = event.target.checked;
+
+  hookCheckboxes.forEach((checkbox) => {
+    checkbox.checked = state;
   });
 });
 
-$('#hooksList input[type=checkbox]').click(function () {
-  if (!this.checked) {
-    document.getElementById('check_select_all').checked = false;
+hooksList.addEventListener('click', event => {
+  if (!event.target.checked) {
+    selectAll.checked = false;
   }
 });
+
+const hot = new Handsontable(example1, hotConfig);
+
 ```
 :::
 
