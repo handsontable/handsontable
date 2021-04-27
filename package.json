@@ -180,34 +180,81 @@
     ]
   },
   "typings": "./handsontable.d.ts",
+  "handsontable": {
+    "copy": [
+      "dist/handsontable.css",
+      "dist/handsontable.full.css",
+      "dist/handsontable.full.js",
+      "dist/handsontable.full.min.css",
+      "dist/handsontable.full.min.js",
+      "dist/handsontable.js",
+      "dist/handsontable.min.css",
+      "dist/handsontable.min.js",
+      "dist/languages",
+      "dist/README.md",
+      "languages",
+      "base.d.ts",
+      "CHANGELOG.md",
+      "handsontable-general-terms.pdf",
+      "handsontable-non-commercial-license.pdf",
+      "handsontable.d.ts",
+      "LICENSE.txt",
+      "README.md"
+    ],
+    "exports": [
+      "./cellTypes/**/+(index|registry)*",
+      "./languages/*",
+      "./editors/**/+(index|registry)*",
+      "./plugins/**/+(index|registry)*",
+      "./renderers/**/+(index|registry)*",
+      "./validators/**/+(index|registry)*",
+      "./i18n/+(index|registry)*",
+      "./i18n/languages/*",
+      "./dist/handsontable.css",
+      "./dist/handsontable.full.css",
+      "./dist/handsontable.full.min.css",
+      "./dist/handsontable.min.css",
+      {
+        ".": {
+          "import": "./index.mjs",
+          "require": "./index.js"
+        }
+      },
+      {
+        "./base": {
+          "import": "./base.mjs",
+          "require": "./base.js"
+        }
+      },
+      {
+        "./languages/all": {
+          "import": "./languages/index.mjs",
+          "require": "./languages/all.js"
+        }
+      }
+    ],
+    "fields": [
+      "name",
+      "description",
+      "homepage",
+      "repository",
+      "bugs",
+      "author",
+      "version",
+      "main",
+      "module",
+      "jsnext:main",
+      "jsdelivr",
+      "unpkg",
+      "keywords",
+      "dependencies",
+      "license",
+      "typings",
+      "sideEffects"
+    ]
+  },
   "sideEffects": [
     "**/*.css",
     "./languages/*"
-  ],
-  "exports": {
-    ".": {
-      "import": "./index.mjs",
-      "require": "./index.js"
-    },
-    "./base": {
-      "import": "./base.mjs",
-      "require": "./base.js"
-    },
-    "./cellTypes/*": {},
-    "./editors/*": {},
-    "./i18n/*": {},
-    "./i18n/languages/*": {},
-    "./languages/*": {},
-    "./languages/all": {
-      "import": "./languages/index.mjs",
-      "require": "./languages/all.js"
-    },
-    "./plugins/*": {},
-    "./renderers/*": {},
-    "./validators/*": {},
-    "./dist/handsontable.css": "./dist/handsontable.css",
-    "./dist/handsontable.full.css": "./dist/handsontable.full.css",
-    "./dist/handsontable.full.min.css": "./dist/handsontable.full.min.css",
-    "./dist/handsontable.min.css": "./dist/handsontable.min.css"
-  }
+  ]
 }

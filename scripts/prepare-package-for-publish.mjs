@@ -1,27 +1,16 @@
 import fse from 'fs-extra';
 import path from 'path';
+import glob from 'glob';
 
-const TARGET_PATH = './tmp';
-const FILES_TO_COPY = [
-  'dist/handsontable.css',
-  'dist/handsontable.full.css',
-  'dist/handsontable.full.js',
-  'dist/handsontable.full.min.css',
-  'dist/handsontable.full.min.js',
-  'dist/handsontable.js',
-  'dist/handsontable.min.css',
-  'dist/handsontable.min.js',
-  'dist/languages',
-  'dist/README.md',
-  'languages',
-  'base.d.ts',
-  'CHANGELOG.md',
-  'handsontable-general-terms.pdf',
-  'handsontable-non-commercial-license.pdf',
-  'handsontable.d.ts',
-  'LICENSE.txt',
-  'README.md',
-];
+const TARGET_PATH = './tmp/';
+const PACKAGE_PATH = path.resolve('package.json');
+const DEV_PACKAGE = fse.readJsonSync(PACKAGE_PATH, { encoding: 'utf-8' });
+const { handsontable } = DEV_PACKAGE;
+const {
+  copy: FILES_TO_COPY,
+  exports: EXPORTS_RULES,
+  fields: PACKAGE_FIELDS_TO_COPY,
+} = handsontable;
 
 /**
  * Copy necessary files we don't need to process.
@@ -29,58 +18,48 @@ const FILES_TO_COPY = [
 FILES_TO_COPY.forEach((file) => {
   fse.copySync(
     path.resolve(`./${file}`),
-    path.resolve(`${TARGET_PATH}/${file}`),
+    path.resolve(`${TARGET_PATH}${file}`),
     { overwrite: true });
 });
 
 /**
  * Prepare exports basing on wildcards in paths.
  */
-const PACKAGE_PATH = path.resolve('package.json');
-const DEV_PACKAGE = fse.readJsonSync(PACKAGE_PATH, { encoding: 'utf-8' });
-const { exports: exportRules } = DEV_PACKAGE;
-const fullExports = {};
-
-Object.keys(exportRules).forEach((ruleName) => {
-  const ruleObj = exportRules[ruleName];
-
-  if (ruleName.includes('*')) {
-    const commonRuleName = ruleName.replace('/*', '');
-    const structure = fse.readdirSync(`${TARGET_PATH}/${commonRuleName}`);
-    const files = structure.filter(pathToCheck => pathToCheck.includes('.js'));
-    const directories = structure.filter(pathToCheck => !(pathToCheck.includes('.js') || pathToCheck.includes('.mjs')));
-
-    files.forEach((file) => {
-      const fileName = file.replace('.js', '');
-      const filePath = `${commonRuleName}/${fileName}`;
-      const fileRule = filePath.replace('/index', '');
-
-      fullExports[fileRule] = {
-        import: `${filePath}.mjs`,
-        require: `${filePath}.js`,
-      };
-    });
-
-    directories.forEach((directory) => {
-      const directoryRule = `${commonRuleName}/${directory}`;
-
-      fullExports[directoryRule] = {
-        import: `${directoryRule}/index.mjs`,
-        require: `${directoryRule}/index.js`,
-      };
-    });
-  } else {
-    fullExports[ruleName] = ruleObj;
+const groupedExports = EXPORTS_RULES.flatMap((rule) => {
+  if (typeof rule !== 'string') {
+    return rule;
   }
+
+  if (!rule.includes('*')) {
+    return { [rule]: rule };
+  }
+
+  const rules = {};
+  const foundFiles = glob.sync(`${rule}`, { cwd: TARGET_PATH });
+
+  foundFiles.forEach((file) => {
+    const cleanPath = file.replace(/\.(m|)js$/, '').replace('/index', '');
+
+    if (!rules[cleanPath]) {
+      rules[cleanPath] = {};
+    }
+
+    const key = file.includes('.mjs') ? 'import' : 'require';
+
+    rules[cleanPath][key] = file;
+  });
+
+  return rules;
 });
+const targetExports = Object.assign({}, ...groupedExports);
 
 /**
  * Test exports to verify if paths exist in the target directory.
  */
 const EXPORTS_ERRORS = [];
 
-Object.keys(fullExports).forEach((ruleName) => {
-  const rule = fullExports[ruleName];
+Object.keys(targetExports).forEach((ruleName) => {
+  const rule = targetExports[ruleName];
 
   if (typeof rule === 'string') {
     const pathToFile = `${TARGET_PATH}/${rule}`;
@@ -119,26 +98,6 @@ if (EXPORTS_ERRORS.length > 0) {
 /**
  * Save a cleaned-up package.json.
  */
-const PACKAGE_FIELDS_TO_COPY = [
-  'name',
-  'description',
-  'homepage',
-  'repository',
-  'bugs',
-  'author',
-  'version',
-  'main',
-  'module',
-  'jsnext:main',
-  'jsdelivr',
-  'unpkg',
-  'keywords',
-  'dependencies',
-  'license',
-  'resolutions',
-  'typings',
-  'sideEffects',
-];
 const newPackageJson = {};
 
 PACKAGE_FIELDS_TO_COPY.forEach((field) => {
@@ -148,7 +107,7 @@ PACKAGE_FIELDS_TO_COPY.forEach((field) => {
 fse.writeJSONSync(`${TARGET_PATH}/package.json`, {
   ...newPackageJson,
   exports: {
-    ...fullExports,
+    ...targetExports,
   },
 }, {
   spaces: 2,
