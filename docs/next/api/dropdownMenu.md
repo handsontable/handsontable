@@ -46,7 +46,7 @@ const hot = new Handsontable(container, {
 
 ### dropdownMenu
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2725
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2728
 
 :::
 
@@ -56,7 +56,7 @@ This plugin allows adding a configurable dropdown menu to the table's column hea
 the [Options#contextMenu](./options/#contextmenu), but is triggered by clicking the button in the header.
 
 **Default**: <code>undefined</code>  
-**Category**: DropdownMenu  
+**Category**: [DropdownMenu](../dropdown-menu)  
 **Example**  
 ```js
 // enable dropdown menu

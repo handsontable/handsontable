@@ -59,7 +59,7 @@ commentsPlugin.removeComment();
 
 ### comments
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L502
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L503
 
 :::
 
@@ -74,7 +74,7 @@ an array.
 See [Comments](https://docs.handsontable.com/demo-comments_.html) demo for examples.
 
 **Default**: <code>false</code>  
-**Category**: Comments  
+**Category**: [Comments](../comments)  
 **Example**  
 ```js
 // enable comments plugin

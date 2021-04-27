@@ -32,7 +32,7 @@ The plugin creates additional components to make moving possibly using user inte
 
 ### manualRowMove
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1929
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1931
 
 :::
 
@@ -41,7 +41,7 @@ The plugin creates additional components to make moving possibly using user inte
 Turns on [Manual row move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial row order (as an array of row indexes).
 
 **Default**: <code>undefined</code>  
-**Category**: ManualRowMove  
+**Category**: [ManualRowMove](../manual-row-move)  
 **Example**  
 ```js
 // as a boolean

@@ -51,7 +51,7 @@ const hot = new Handsontable(container, {
 
 ### collapsibleColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2664
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2667
 
 :::
 
@@ -69,7 +69,7 @@ To limit this functionality to a smaller group of headers, define the `collapsib
 as an array of objects, as in the example below.
 
 **Default**: <code>undefined</code>  
-**Category**: CollapsibleColumns  
+**Category**: [CollapsibleColumns](../collapsible-columns)  
 **Example**  
 ```js
 // enable collapsing for all headers

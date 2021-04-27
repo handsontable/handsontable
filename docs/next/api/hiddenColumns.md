@@ -60,7 +60,7 @@ hot.render();
 
 ### hiddenColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2822
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2825
 
 :::
 
@@ -72,7 +72,7 @@ object notation. Options that are then available are:
  * `indicators` - enables small ui markers to indicate where are hidden columns.
 
 **Default**: <code>undefined</code>  
-**Category**: HiddenColumns  
+**Category**: [HiddenColumns](../hidden-columns)  
 **Example**  
 ```js
 // enable column hiding

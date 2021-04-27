@@ -10,7 +10,7 @@ const { logger } = require('../utils');
 /// parameters
 const pathToSource = '../../../../src';
 const pathToDist = '../../../next/api';
-const urlPrefix = 'next/api/';
+const urlPrefix = '/next/api/';
 const whitelist = [
   'dataMap/metaManager/metaSchema.js',
   'pluginHooks.js',
@@ -72,9 +72,11 @@ const clearEmptyOptionHeaders = text => text.replace(/## Options\n## Members/g, 
 const clearEmptyMembersHeaders = text => text.replace(/## Members\n## Methods/g, '## Methods');
 const clearEmptyFunctionsHeaders = text => text.replace(/(## Methods\n)+$/g, '\n');
 
-const fixTypes = text => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\*\*:|\*\*Emits\*\*:)( ?[^\n-]*)/g, (_, part, signame) => {
-  let suffix = ''; let
-    prefix = part;
+const fixTypes = text => text.replace(
+  /(::: signame |\*\*Returns\*\*:|\*\*See\*\*:|\*\*Emits\*\*:)( ?[^\n-]*)/g, 
+  (_, part, signame) => {
+    let suffix = '';
+    let prefix = part;
 
   if (part === '::: signame ') {
     prefix = '`';
@@ -92,8 +94,14 @@ const fixTypes = text => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\*\
     .replace(/`\\\*`/, '`*`')
     + suffix;
 
-  return r;
-});
+    return r;
+  }
+);
+
+const fixCategories = text => text.replace(
+  /(\*\*Category\*\*: ?)([^\n- ]*)/g, 
+  (_, part, signame) => `${part}[${signame}](${genSeoPermalink(signame).replace('-','../')})`
+);
 
 const unescapeRedundant = text => text
   .replace(/`[^`\n]*`/g, m => // get all inline codes
@@ -110,6 +118,7 @@ const postProcessors = [
   clearEmptyMembersHeaders,
   clearEmptyFunctionsHeaders,
   fixTypes,
+  fixCategories,
   unescapeRedundant
 ];
 
@@ -139,14 +148,12 @@ const linkToSource = data => data.map((x) => {
 const optionsPerPlugin = {};
 const memorizeOptions = data => (!isOptions(data) ? data : data.map((x) => {
   if (x.category) {
-    x.category.split(',').forEach((category) => {
-      const cat = category.trim();
+    const cat = x.category.trim();
 
-      optionsPerPlugin[cat] = optionsPerPlugin[cat] || [];
-      optionsPerPlugin[cat].push(x);
-    });
+    optionsPerPlugin[cat] = optionsPerPlugin[cat] || [];
+    optionsPerPlugin[cat].push(x);
   }
-
+  
   return x;
 }));
 const applyPluginOptions = (data) => {
@@ -201,11 +208,11 @@ const genSeoTitle = file => file
   .replace(/(^[a-z])/, m => m.toUpperCase()); // To upper first letter
 const seoTitle = file => seo[file] && seo[file].title || genSeoTitle(file);
 
-const genSeoPermalink = file => `/${urlPrefix}${file
+const genSeoPermalink = file => file
   .replace(/(^.*\/)?(.*)\.[a-zA-Z]*$/, '$2') // Get filename without full path and extension
   .replace(/([A-Z]+)/g, '-$1') // Separate words
-  .toLowerCase()}`;
-const seoPermalink = file => seo[file] && seo[file].permalink || genSeoPermalink(file);
+  .toLowerCase();
+const seoPermalink = file => seo[file] && seo[file].permalink || urlPrefix+genSeoPermalink(file);
 
 const seoCanonicalUrl = file => seoPermalink(file).replace('/next', '');
 

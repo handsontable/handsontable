@@ -55,6 +55,38 @@ if (plugin.isEnabled()) {
 }
 ```
 
+## Options
+
+### autoRowSize
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2448
+
+:::
+
+`autoRowSize.autoRowSize : object | boolean`
+
+Enables or disables [AutoRowSize](./auto-row-size/) plugin. Default value is `undefined`, which has the same effect as `false`
+(disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
+
+__Note:__ the default `syncLimit` value is set to 500 when the plugin is manually enabled by declaring it as: `autoRowSize: true`.
+
+Row height calculations are divided into sync and async stages. Each of these stages has their own advantages and
+disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
+operations don't block the browser UI.
+
+To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value.
+
+**Default**: <code>undefined</code>  
+**Category**: [AutoRowSize](../auto-row-size)  
+**Example**  
+```js
+// as a number (300 columns in sync, rest async)
+autoRowSize: {syncLimit: 300},
+
+// as a string (percent)
+autoRowSize: {syncLimit: '40%'},
+```
+
 ## Members
 
 ### inProgress

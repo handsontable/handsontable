@@ -62,7 +62,7 @@ customBorders: [
 
 ### customBorders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L565
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L566
 
 :::
 
@@ -75,7 +75,7 @@ provide cell coordinates and border styles in a form of an array.
 See [Custom Borders](https://docs.handsontable.com/demo-custom-borders.html) demo for examples.
 
 **Default**: <code>false</code>  
-**Category**: CustomBorders  
+**Category**: [CustomBorders](../custom-borders)  
 **Example**  
 ```js
 // enable custom borders

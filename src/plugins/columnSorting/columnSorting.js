@@ -306,7 +306,8 @@ export class ColumnSorting extends BasePlugin {
    *   this.loadData(newData); // Load new data set and re-render the table.
    *
    *   return false; // The blockade for the default sort action.
-   * }```
+   * }
+   * ```
    *
    * @param {undefined|object|Array} sortConfig Single column sort configuration or full sort configuration (for all sorted columns).
    * The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains

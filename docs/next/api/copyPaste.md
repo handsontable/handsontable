@@ -42,7 +42,7 @@ copyPaste: {
 
 ### copyPaste
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1798
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1799
 
 :::
 
@@ -51,7 +51,7 @@ copyPaste: {
 Disables or enables the copy/paste functionality.
 
 **Default**: <code>true</code>  
-**Category**: CopyPaste  
+**Category**: [CopyPaste](../copy-paste)  
 **Example**  
 ```js
 // disable copy and paste

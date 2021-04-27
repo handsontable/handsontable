@@ -61,7 +61,7 @@ hot.render();
 
 ### hiddenRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2849
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2852
 
 :::
 
@@ -73,7 +73,7 @@ object notation. Options that are then available are:
  * `indicators` - enables small ui markers to indicate where are hidden columns.
 
 **Default**: <code>undefined</code>  
-**Category**: HiddenRows  
+**Category**: [HiddenRows](../hidden-rows)  
 **Example**  
 ```js
 // enable row hiding

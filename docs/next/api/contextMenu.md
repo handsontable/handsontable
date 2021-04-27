@@ -46,85 +46,9 @@ contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo']
 
 ## Options
 
-### allowInsertColumn
-  
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L699
-
-:::
-
-`contextMenu.allowInsertColumn : boolean`
-
-If set to `false`, there won't be an option to insert new columns in the Context Menu.
-
-**Default**: <code>true</code>  
-**Category**: ContextMenu  
-**Example**  
-```js
-// hide "Insert column left" and "Insert column right" options from the Context Menu
-allowInsertColumn: false,
-```
-
-
-### allowInsertRow
-  
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L683
-
-:::
-
-`contextMenu.allowInsertRow : boolean`
-
-If set to `false`, there won't be an option to insert new rows in the Context Menu.
-
-**Default**: <code>true</code>  
-**Category**: ContextMenu  
-**Example**  
-```js
-// hide "Insert row above" and "Insert row below" options from the Context Menu
-allowInsertRow: false,
-```
-
-
-### allowRemoveColumn
-  
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L731
-
-:::
-
-`contextMenu.allowRemoveColumn : boolean`
-
-If set to `false`, there won't be an option to remove columns in the Context Menu.
-
-**Default**: <code>true</code>  
-**Category**: ContextMenu  
-**Example**  
-```js
-// hide "Remove column" option from the Context Menu
-allowRemoveColumn: false,
-```
-
-
-### allowRemoveRow
-  
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L715
-
-:::
-
-`contextMenu.allowRemoveRow : boolean`
-
-If set to `false`, there won't be an option to remove rows in the Context Menu.
-
-**Default**: <code>true</code>  
-**Category**: ContextMenu  
-**Example**  
-```js
-// hide "Remove row" option from the Context Menu
-allowRemoveRow: false,
-```
-
-
 ### contextMenu
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1774
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1775
 
 :::
 
@@ -145,7 +69,7 @@ If the value is an object, you can also customize the options with:
 See [the context menu demo](https://docs.handsontable.com/demo-context-menu.html) for examples.
 
 **Default**: <code>undefined</code>  
-**Category**: ContextMenu  
+**Category**: [ContextMenu](../context-menu)  
 **Example**  
 ```js
 // as a boolean

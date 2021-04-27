@@ -133,9 +133,10 @@ export default () => {
      * @memberof Options#
      * @type {object}
      * @default undefined
+     * @category Core
      *
      * @example
-     * ```
+     * ```js
      * // with data schema we can start with an empty table
      * data: null,
      * dataSchema: {id: null, name: {first: null, last: null}, address: null},
@@ -161,7 +162,7 @@ export default () => {
      * @category Core
      *
      * @example
-     * ```
+     * ```js
      * // as a number
      * width: 500,
      *
@@ -672,7 +673,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
-     * @category ContextMenu
+     * @category Core
      *
      * @example
      * ```js
@@ -688,7 +689,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
-     * @category ContextMenu
+     * @category Core
      *
      * @example
      * ```js
@@ -704,7 +705,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
-     * @category ContextMenu
+     * @category Core
      *
      * @example
      * ```js
@@ -720,7 +721,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
-     * @category ContextMenu
+     * @category Core
      *
      * @example
      * ```js
@@ -767,7 +768,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string|object}
      * @default true
-     * @category Autofill
+     * @category Core
      *
      * @example
      * ```js
@@ -1862,7 +1863,8 @@ export default () => {
      *       // Some value comparisons which will return -1, 0 or 1...
      *     }
      *   }
-     * }```
+     * }
+     * ```
      */
     columnSorting: void 0,
 
@@ -2025,7 +2027,8 @@ export default () => {
      *       // Some value comparisons which will return -1, 0 or 1...
      *     }
      *   }
-     * }```
+     * }
+     * ```
      */
     multiColumnSorting: void 0,
     /**
@@ -2394,7 +2397,7 @@ export default () => {
      * @memberof Options#
      * @type {object|boolean}
      * @default undefined
-     * @category autoColumnSize
+     * @category AutoColumnSize
      *
      * @example
      * ```js
@@ -2431,7 +2434,7 @@ export default () => {
      * @memberof Options#
      * @type {object|boolean}
      * @default undefined
-     * @category Core
+     * @category AutoRowSize
      *
      * @example
      * ```js
@@ -2683,7 +2686,7 @@ export default () => {
      * @category Core
      *
      * @example
-     * ```
+     * ```js
      * columnSummary: [
      *   {
      *     destinationRow: 4,

@@ -67,6 +67,51 @@ if (plugin.isEnabled()) {
 }
 ```
 
+## Options
+
+### autoColumnSize
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2420
+
+:::
+
+`autoColumnSize.autoColumnSize : object | boolean`
+
+Enables or disables the [AutoColumnSize](./auto-column-size/) plugin. Default value `undefined`
+is an equivalent of `true`, sets `syncLimit` to 50.
+Disabling this plugin can increase performance, as no size-related calculations would be done.
+To disable plugin it's necessary to set `false`.
+
+Column width calculations are divided into sync and async part. Each of those parts has their own advantages and
+disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
+operations don't block the browser UI.
+
+To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value.
+
+You can also use the `useHeaders` option to take the column headers width into calculation.
+
+Note: Using [Core#colWidths](./Core/#colWidths) option will forcely disable [AutoColumnSize](#AutoColumnSize).
+
+**Default**: <code>undefined</code>  
+**Category**: [AutoColumnSize](../auto-column-size)  
+**Example**  
+```js
+// as a number (300 columns in sync, rest async)
+autoColumnSize: { syncLimit: 300 },
+
+// as a string (percent)
+autoColumnSize: { syncLimit: '40%' },
+
+// use headers width while calculating the column width
+autoColumnSize: { useHeaders: true },
+
+// defines how many samples for the same length will be caught to calculations
+autoColumnSize: { samplingRatio: 10 },
+
+// defines if duplicated samples are allowed in calculations
+autoColumnSize: { allowSampleDuplicates: true },
+```
+
 ## Members
 
 ### inProgress
