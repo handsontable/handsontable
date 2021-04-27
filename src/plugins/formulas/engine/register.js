@@ -27,8 +27,7 @@ export function setupEngine(hotSettings, hotId) {
   if (typeof engineConfigItem.hyperformula === 'function' || typeof engineConfigItem === 'function') {
     return registerEngine(
       engineConfigItem.hyperformula ?? engineConfigItem,
-      pluginSettings,
-      mergeEngineSettings(hotSettings),
+      hotSettings,
       hotId);
 
     // `engine` is the engine instance
@@ -50,16 +49,17 @@ export function setupEngine(hotSettings, hotId) {
  * Registers the engine in the global register and attaches the needed event listeners.
  *
  * @param {Function} engineClass The engine class.
- * @param {object} pluginSettings The Formulas plugin settings.
- * @param {object} engineSettings The engine settings (will be passed the the engine).
+ * @param {object} hotSettings The Handsontable settings.
  * @param {string} hotId Handsontable guid.
  * @returns {object} Returns the engine instance.
  */
-export function registerEngine(engineClass, pluginSettings, engineSettings, hotId) {
+export function registerEngine(engineClass, hotSettings, hotId) {
   if (!staticRegister(PLUGIN_KEY).hasItem('engine')) {
     staticRegister(PLUGIN_KEY).register('engine', new Map());
   }
 
+  const pluginSettings = hotSettings[PLUGIN_KEY];
+  const engineSettings = mergeEngineSettings(hotSettings);
   const engineRegistry = staticRegister(PLUGIN_KEY).getItem('engine');
 
   registerCustomFunctions(engineClass, pluginSettings.functions);

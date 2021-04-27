@@ -91,7 +91,7 @@ class MultipleSelectUI extends BaseUI {
     this.items = items;
 
     if (this.itemsBox) {
-      this.itemsBox.loadData(this.items, 'Filters.setItems');
+      this.itemsBox.loadData(this.items);
     }
   }
 
@@ -193,7 +193,7 @@ class MultipleSelectUI extends BaseUI {
       return;
     }
 
-    this.itemsBox.loadData(valueToItems(this.items, this.options.value), 'Filters.update');
+    this.itemsBox.loadData(valueToItems(this.items, this.options.value));
     super.update();
   }
 
@@ -231,7 +231,7 @@ class MultipleSelectUI extends BaseUI {
     } else {
       filteredItems = arrayFilter(this.items, item => (`${item.value}`).toLowerCase().indexOf(value) >= 0);
     }
-    this.itemsBox.loadData(filteredItems, 'Filters.onInput');
+    this.itemsBox.loadData(filteredItems);
   }
 
   /**

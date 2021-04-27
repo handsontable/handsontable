@@ -153,7 +153,8 @@ export function translateRowsToColumns(input) {
  *
  *
  * @param {string} methodName Name of the method/property to search (i.e. 'renderer', 'validator', 'copyable').
- * @param {boolean} [allowUndefined] If `false`, the search is continued if methodName has not been found in cell "type".
+ * @param {boolean} [allowUndefined] If `false`, the search is continued if methodName has not been found in cell
+ *   "type".
  * @returns {Function}
  */
 export function cellMethodLookupFactory(methodName, allowUndefined) {
@@ -189,8 +190,8 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
 }
 
 /**
- * Transform a data row (either an array or an object) or an array of data rows to array of changes in a form of `[row, prop/col, value]`.
- * Convenient to use with `setDataAtRowProp` and `setSourceDataAtCell` methods.
+ * Transform a data row (either an array or an object) or an array of data rows to array of changes in a form of `[row,
+ * prop/col, value]`. Convenient to use with `setDataAtRowProp` and `setSourceDataAtCell` methods.
  *
  * @param {Array|object} dataRow Object of row data, array of row data or an array of either.
  * @param {number} rowOffset Row offset to be passed to the resulting change list. Defaults to `0`.
@@ -229,7 +230,8 @@ export function dataRowToChangesArray(dataRow, rowOffset = 0) {
 }
 
 /**
- * Count the number of keys (or, basically, columns when the data is an array or arrays) in the first row of the provided dataset.
+ * Count the number of keys (or, basically, columns when the data is an array or arrays) in the first row of the
+ * provided dataset.
  *
  * @param {Array} data The dataset.
  * @returns {number} Number of keys in the first row of the dataset.
@@ -255,12 +257,8 @@ export function countFirstRowKeys(data) {
  * @param {Array} data Dataset to be checked.
  * @returns {boolean} `true` if data is an array of arrays, `false` otherwise.
  */
-export function isAoA(data) {
-  return !!(
-    Array.isArray(data) &&
-    data.length &&
-    !data.some(el => !Array.isArray(el))
-  );
+export function isArrayOfArrays(data) {
+  return !!(Array.isArray(data) && data.length && data.every(el => Array.isArray(el)));
 }
 
 /**
@@ -269,14 +267,8 @@ export function isAoA(data) {
  * @param {Array} data Dataset to be checked.
  * @returns {boolean} `true` if data is an array of objects, `false` otherwise.
  */
-export function isAoO(data) {
-  return !!(
-    Array.isArray(data) &&
+export function isArrayOfObjects(data) {
+  return !!(Array.isArray(data) &&
     data.length &&
-    !data.some(
-      el =>
-        typeof el !== 'object' ||
-        Array.isArray(el) ||
-        el === null)
-  );
+    data.every(el => typeof el === 'object' && !Array.isArray(el) && el !== null));
 }

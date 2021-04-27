@@ -689,4 +689,26 @@ describe('Core_updateSettings', () => {
     expect(rowCacheUpdatedCallback.calls.count()).toEqual(1);
     expect(columnCacheUpdatedCallback.calls.count()).toEqual(1);
   });
+
+  it('should pass the `source` argument as "updateSettings" to the `beforeLoadData` and `afterLoadData` hooks', () => {
+    let correctSourceCount = 0;
+
+    handsontable({
+      data: [[]],
+      beforeLoadData: (data, firstRun, source) => {
+        if (source === 'updateSettings') {
+          correctSourceCount += 1;
+        }
+      },
+      afterLoadData: (data, firstRun, source) => {
+        if (source === 'updateSettings') {
+          correctSourceCount += 1;
+        }
+      }
+    });
+
+    updateSettings({});
+
+    expect(correctSourceCount).toEqual(2);
+  });
 });

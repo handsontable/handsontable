@@ -50,14 +50,14 @@ describe('Formulas general', () => {
   });
 
   describe('Single Handsontable setup', () => {
-    it('should throw an error, when no `hyperformula` key was passed to the `formulas` settings', () => {
+    it('should throw a warning, when no `hyperformula` key was passed to the `formulas` settings', () => {
       /* eslint-disable no-console */
-      const errorSpy = jasmine.createSpyObj('error', ['test']);
-      const prevError = console.error;
+      const warnSpy = jasmine.createSpyObj('warning', ['test']);
+      const prevWarn = console.warn;
 
-      console.error = (...args) => {
-        errorSpy.test(...args);
-        prevError(...args);
+      console.warn = (...args) => {
+        warnSpy.test(...args);
+        prevWarn(...args);
       };
 
       const hot = handsontable({
@@ -66,11 +66,11 @@ describe('Formulas general', () => {
         licenseKey: 'non-commercial-and-evaluation'
       });
 
-      expect(errorSpy.test).toHaveBeenCalledWith('Missing the required `engine` key in the Formulas settings. ' +
+      expect(warnSpy.test).toHaveBeenCalledWith('Missing the required `engine` key in the Formulas settings. ' +
         'Please fill it with either an engine class or an engine instance.');
       expect(hot.getPlugin('formulas').enabled).toBe(false);
 
-      console.error = prevError;
+      console.warn = prevWarn;
       /* eslint-enable no-console */
     });
 

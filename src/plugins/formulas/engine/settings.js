@@ -53,7 +53,7 @@ export function getEngineSettingsOverrides(hotSettings) {
 export function mergeEngineSettings(hotSettings) {
   const pluginSettings = hotSettings[PLUGIN_KEY];
   const configSettings = pluginSettings.engine.hyperformula ? pluginSettings.engine : {};
-  const additionalSettings = getEngineSettingsOverrides(hotSettings);
+  const overrides = getEngineSettingsOverrides(hotSettings);
 
   const cleanConfigSettings = Object.keys(configSettings)
     .reduce((obj, key) => {
@@ -67,6 +67,6 @@ export function mergeEngineSettings(hotSettings) {
   return {
     ...DEFAULT_SETTINGS,
     ...(cleanConfigSettings || {}),
-    ...(additionalSettings || {})
+    ...(overrides || {})
   };
 }
