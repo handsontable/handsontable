@@ -1029,7 +1029,7 @@ Fired after cell meta is removed.
 | row | `number` | Visual row index. |
 | column | `number` | Visual column index. |
 | key | `string` | The removed meta key. |
-| value | `\*` | Value which was under removed key of cell meta. |
+| value | `*` | Value which was under removed key of cell meta. |
 
 
 
@@ -1107,7 +1107,7 @@ Fired after finishing rendering the cell (after the renderer finishes).
 | row | `number` | Visual row index. |
 | column | `number` | Visual column index. |
 | prop | `string` <br/> `number` | Column property name or a column index, if datasource is an array of arrays. |
-| value | `\*` | Value of the rendered cell. |
+| value | `*` | Value of the rendered cell. |
 | cellProperties | `object` | Object containing the cell's properties. |
 
 
@@ -1302,7 +1302,7 @@ Fired after cell meta is changed.
 | row | `number` | Visual row index. |
 | column | `number` | Visual column index. |
 | key | `string` | The updated meta key. |
-| value | `\*` | The updated meta value. |
+| value | `*` | The updated meta value. |
 
 
 
@@ -1528,7 +1528,7 @@ __Returning false from the callback will mark the cell as invalid__.
 | Param | Type | Description |
 | --- | --- | --- |
 | isValid | `boolean` | `true` if valid, `false` if not. |
-| value | `\*` | The value in question. |
+| value | `*` | The value in question. |
 | row | `number` | Visual row index. |
 | prop | `string` <br/> `number` | Property name / visual column index. |
 | [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
@@ -1596,7 +1596,7 @@ Fired by [NestedRows](./nested-rows/) plugin before adding a children to the Nes
 
 :::
 
-`beforeAutofill(start, end, data) ⇒ \* | boolean`
+`beforeAutofill(start, end, data) ⇒ * | boolean`
 
 Fired by [Autofill](./autofill/) plugin before populating the data in the autofill feature. This hook is fired when
 [Options#fillHandle](./options/#fillhandle) option is enabled.
@@ -1863,7 +1863,7 @@ option is enabled.
 
 :::
 
-`beforeCopy(data, coords) ⇒ \*`
+`beforeCopy(data, coords) ⇒ *`
 
 Fired before values are copied into clipboard.
 
@@ -1905,7 +1905,7 @@ new Handsontable(document.getElementById('example'), {
 
 :::
 
-`beforeCreateCol(index, amount, [source]) ⇒ \*`
+`beforeCreateCol(index, amount, [source]) ⇒ *`
 
 Fired before created a new column.
 
@@ -1934,7 +1934,7 @@ new Handsontable(element, {
 
 :::
 
-`beforeCreateRow(index, amount, [source]) ⇒ \* | boolean`
+`beforeCreateRow(index, amount, [source]) ⇒ * | boolean`
 
 Fired before created a new row.
 
@@ -1954,7 +1954,7 @@ Fired before created a new row.
 
 :::
 
-`beforeCut(data, coords) ⇒ \*`
+`beforeCut(data, coords) ⇒ *`
 
 Fired by [CopyPaste](./copy-paste/) plugin before copying the values into clipboard and before clearing values of
 the selected cells. This hook is fired when [Options#copyPaste](./options/#copypaste) option is enabled.
@@ -2349,7 +2349,7 @@ Fired after the user clicked a cell.
 
 :::
 
-`beforePaste(data, coords) ⇒ \*`
+`beforePaste(data, coords) ⇒ *`
 
 Fired by [CopyPaste](./copy-paste/) plugin before values are pasted into table. This hook is fired when
 [Options#copyPaste](./options/#copypaste) option is enabled.
@@ -2387,7 +2387,7 @@ new Handsontable(example, {
 
 :::
 
-`beforeRedo(action) ⇒ \* | boolean`
+`beforeRedo(action) ⇒ * | boolean`
 
 Fired by [UndoRedo](./undo-redo/) plugin before the redo action. Contains information about the action that is being redone.
 This hook is fired when [Options#undo](./options/#undo) option is enabled.
@@ -2440,7 +2440,7 @@ Fired inside the Walkontable's `refreshSelections` method. Can be used to remove
 
 :::
 
-`beforeRemoveCellMeta(row, column, key, value) ⇒ \* | boolean`
+`beforeRemoveCellMeta(row, column, key, value) ⇒ * | boolean`
 
 Fired before cell meta is removed.
 
@@ -2450,7 +2450,7 @@ Fired before cell meta is removed.
 | row | `number` | Visual row index. |
 | column | `number` | Visual column index. |
 | key | `string` | The removed meta key. |
-| value | `\*` | Value which is under removed key of cell meta. |
+| value | `*` | Value which is under removed key of cell meta. |
 
 
 **Returns**: `*` | `boolean` - If false is returned the action is canceled.  
@@ -2461,7 +2461,7 @@ Fired before cell meta is removed.
 
 :::
 
-`beforeRemoveCol(index, amount, physicalColumns, [source]) ⇒ \* | boolean`
+`beforeRemoveCol(index, amount, physicalColumns, [source]) ⇒ * | boolean`
 
 Fired before one or more columns are about to be removed.
 
@@ -2482,7 +2482,7 @@ Fired before one or more columns are about to be removed.
 
 :::
 
-`beforeRemoveRow(index, amount, physicalRows, [source]) ⇒ \* | boolean`
+`beforeRemoveRow(index, amount, physicalRows, [source]) ⇒ * | boolean`
 
 Fired when one or more rows are about to be removed.
 
@@ -2532,7 +2532,7 @@ Fired before starting rendering the cell.
 | row | `number` | Visual row index. |
 | column | `number` | Visual column index. |
 | prop | `string` <br/> `number` | Column property name or a column index, if datasource is an array of arrays. |
-| value | `\*` | Value of the rendered cell. |
+| value | `*` | Value of the rendered cell. |
 | cellProperties | `object` | Object containing the cell's properties. |
 
 
@@ -2543,7 +2543,7 @@ Fired before starting rendering the cell.
 
 :::
 
-`beforeRowMove(movedRows, finalIndex, dropIndex, movePossible) ⇒ \* | boolean`
+`beforeRowMove(movedRows, finalIndex, dropIndex, movePossible) ⇒ * | boolean`
 
 Fired by [ManualRowMove](./manual-row-move/) plugin before changing the order of the visual indexes. This hook is fired when
 [Options#manualRowMove](./options/#manualrowmove) option is enabled.
@@ -2586,7 +2586,7 @@ fired when [Options#manualRowResize](./options/#manualrowresize) option is enabl
 
 :::
 
-`beforeSetCellMeta(row, column, key, value) ⇒ \* | boolean`
+`beforeSetCellMeta(row, column, key, value) ⇒ * | boolean`
 
 Fired before cell meta is changed.
 
@@ -2597,7 +2597,7 @@ Fired before cell meta is changed.
 | row | `number` | Visual row index. |
 | column | `number` | Visual column index. |
 | key | `string` | The updated meta key. |
-| value | `\*` | The updated meta value. |
+| value | `*` | The updated meta value. |
 
 
 **Returns**: `*` | `boolean` - If false is returned the action is canceled.  
@@ -2710,7 +2710,7 @@ Fired by [TrimRows](./trim-rows/) plugin before trimming rows. This hook is fire
 
 :::
 
-`beforeUndo(action) ⇒ \* | boolean`
+`beforeUndo(action) ⇒ * | boolean`
 
 Fired by [UndoRedo](./undo-redo/) plugin before the undo action. Contains information about the action that is being undone.
 This hook is fired when [Options#undo](./options/#undo) option is enabled.
@@ -2820,7 +2820,7 @@ __Note:__ this will not affect values of changes. This will change value *ONLY* 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| value | `\*` | Value of the cell. |
+| value | `*` | Value of the cell. |
 | row | `number` | Visual row index. |
 | prop | `string` <br/> `number` | Property name / column index. |
 | [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
@@ -2841,7 +2841,7 @@ value which is passed to the renderer without modifying the renderer itself.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| value | `\*` | Cell value to render. |
+| value | `*` | Cell value to render. |
 | cellProperties | `object` | An object containing the cell properties. |
 
 
@@ -2886,7 +2886,7 @@ Fired by [AutoColumnSize](./AutoColumnSize/) plugin within [SampleGenerator](./S
 | --- | --- | --- |
 | seed | `string` <br/> `undefined` | Seed ID, unique name to categorize samples. |
 | cellProperties | `object` | Object containing the cell properties. |
-| cellValue | `\*` | Value of the cell. |
+| cellValue | `*` | Value of the cell. |
 
 
 
@@ -3209,7 +3209,7 @@ Otherwise, the callback will be used everytime the hook fires on any Handsontabl
 You can provide an array of callback functions as the `callback` argument, this way they will all be fired
 once the hook is triggered.
 
-**See**: Core#addHook  
+**See**: [Core#addHook](./core/#addHook)  
 **Example**  
 ```js
 // single callback, added locally
@@ -3432,7 +3432,7 @@ true
 
 Adds a listener to a specified hook. After the hook runs this listener will be automatically removed from the bucket.
 
-**See**: Core#addHookOnce  
+**See**: [Core#addHookOnce](./core/#addHookOnce)  
 **Example**  
 ```js
 Handsontable.hooks.once('beforeInit', myCallback, hotInstance);
@@ -3479,7 +3479,7 @@ Handsontable.hooks.register('myHook');
 
 Removes a listener from a hook with a given name. If the `context` argument is provided, it removes a listener from a local hook assigned to the given Handsontable instance.
 
-**See**: Core#removeHook  
+**See**: [Core#removeHook](./core/#removeHook)  
 **Example**  
 ```js
 Handsontable.hooks.remove('beforeInit', myCallback);
@@ -3500,12 +3500,12 @@ Handsontable.hooks.remove('beforeInit', myCallback);
 
 :::
 
-`hooks.run(context, key, [p1], [p2], [p3], [p4], [p5], [p6]) ⇒ \*`
+`hooks.run(context, key, [p1], [p2], [p3], [p4], [p5], [p6]) ⇒ *`
 
 Runs all local and global callbacks assigned to the hook identified by the `key` parameter.
 It returns either a return value from the last called callback or the first parameter (`p1`) passed to the `run` function.
 
-**See**: Core#runHooks  
+**See**: [Core#runHooks](./core/#runHooks)  
 **Example**  
 ```js
 Handsontable.hooks.run(hot, 'beforeInit');
@@ -3515,12 +3515,12 @@ Handsontable.hooks.run(hot, 'beforeInit');
 | --- | --- | --- |
 | context | `object` | Handsontable instance. |
 | key | `string` | Hook/Event name. |
-| [p1] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
-| [p2] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
-| [p3] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
-| [p4] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
-| [p5] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
-| [p6] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p1] | `*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p2] | `*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p3] | `*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p4] | `*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p5] | `*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p6] | `*` | `optional` Parameter to be passed as an argument to the callback function. |
 
 
 **Returns**: `*` - Either a return value from the last called callback or `p1`.  

@@ -165,7 +165,7 @@ Or you can execute command registered in settings where `key` is your command na
 | Param | Type | Description |
 | --- | --- | --- |
 | commandName | `string` | Command name to execute. |
-| ...params | `\*` | Additional parameters passed to the command executor. |
+| ...params | `*` | Additional parameters passed to the command executor. |
 
 
 

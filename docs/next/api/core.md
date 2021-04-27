@@ -157,7 +157,7 @@ hot.alter('remove_row', [[1, 3], [5, 2]]);
 
 :::
 
-`core.batch(wrappedOperations) ⇒ \*`
+`core.batch(wrappedOperations) ⇒ *`
 
 It batches the rendering process and index recalculations. The method aggregates
 multi-line API calls into a callback and postpones the table rendering process
@@ -201,7 +201,7 @@ hot.batch(() => {
 
 :::
 
-`core.batchExecution(wrappedOperations, [forceFlushChanges]) ⇒ \*`
+`core.batchExecution(wrappedOperations, [forceFlushChanges]) ⇒ *`
 
 The method aggregates multi-line API calls into a callback and postpones the
 table execution process. After the execution of the operations, the internal table
@@ -235,7 +235,7 @@ hot.batchExecution(() => {
 
 :::
 
-`core.batchRender(wrappedOperations) ⇒ \*`
+`core.batchRender(wrappedOperations) ⇒ *`
 
 The method aggregates multi-line API calls into a callback and postpones the
 table rendering process. After the execution of the operations, the table is
@@ -802,7 +802,7 @@ hot.getData(2, 1, 3, 3);
 
 :::
 
-`core.getDataAtCell(row, column) ⇒ \*`
+`core.getDataAtCell(row, column) ⇒ *`
 
 Returns the cell value at `row`, `column`.
 
@@ -882,7 +882,7 @@ __Note__: If rows were reordered, sorted or trimmed, the currently visible order
 
 :::
 
-`core.getDataAtRowProp(row, prop) ⇒ \*`
+`core.getDataAtRowProp(row, prop) ⇒ *`
 
 Returns value at visual `row` and `prop` indexes.
 
@@ -1139,7 +1139,7 @@ sorted or trimmed only physical indexes are correct.
 
 :::
 
-`core.getSourceDataAtCell(row, column) ⇒ \*`
+`core.getSourceDataAtCell(row, column) ⇒ *`
 
 Returns a single value from the data source.
 
@@ -1206,7 +1206,7 @@ Get language phrase for specified dictionary key.
 | Param | Type | Description |
 | --- | --- | --- |
 | dictionaryKey | `string` | Constant which is dictionary key. |
-| extraArguments | `\*` | Arguments which will be handled by formatters. |
+| extraArguments | `*` | Arguments which will be handled by formatters. |
 
 
 
@@ -1216,7 +1216,7 @@ Get language phrase for specified dictionary key.
 
 :::
 
-`core.getValue() ⇒ \*`
+`core.getValue() ⇒ *`
 
 Get value from the selected cell.
 
@@ -1585,7 +1585,7 @@ hot.resumeRender(); // It re-renders the table internally
 
 :::
 
-`core.runHooks(key, [p1], [p2], [p3], [p4], [p5], [p6]) ⇒ \*`
+`core.runHooks(key, [p1], [p2], [p3], [p4], [p5], [p6]) ⇒ *`
 
 Run the callbacks for the hook provided in the `key` argument using the parameters given in the other arguments.
 
@@ -1601,12 +1601,12 @@ hot.runHooks('customAction', 10, 'foo');
 | Param | Type | Description |
 | --- | --- | --- |
 | key | `string` | Hook name. |
-| [p1] | `\*` | `optional` Argument passed to the callback. |
-| [p2] | `\*` | `optional` Argument passed to the callback. |
-| [p3] | `\*` | `optional` Argument passed to the callback. |
-| [p4] | `\*` | `optional` Argument passed to the callback. |
-| [p5] | `\*` | `optional` Argument passed to the callback. |
-| [p6] | `\*` | `optional` Argument passed to the callback. |
+| [p1] | `*` | `optional` Argument passed to the callback. |
+| [p2] | `*` | `optional` Argument passed to the callback. |
+| [p3] | `*` | `optional` Argument passed to the callback. |
+| [p4] | `*` | `optional` Argument passed to the callback. |
+| [p5] | `*` | `optional` Argument passed to the callback. |
+| [p6] | `*` | `optional` Argument passed to the callback. |
 
 
 
@@ -1885,7 +1885,7 @@ Set the provided value in the source data set at the provided coordinates.
 | --- | --- | --- |
 | row | `number` <br/> `Array` | Physical row index or array of changes in format `[[row, prop, value], ...]`. |
 | column | `number` <br/> `string` | Physical column index / prop name. |
-| value | `\*` | The value to be set at the provided coordinates. |
+| value | `*` | The value to be set at the provided coordinates. |
 | [source] | `string` | `optional` Source of the change as a string. |
 
 

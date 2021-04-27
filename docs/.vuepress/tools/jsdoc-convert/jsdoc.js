@@ -82,7 +82,7 @@ const fixTypes = text => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\*\
   }
   const r = prefix + signame
     .replace(/([^\w`\[#])(`)?(IndexMapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./index-mapper/$4)')
-    .replace(/([^\w`\[#])(`)?(Handsontable)(#\w*)?(`)?/g, '$1[$2$3$4$5](./core/$4)')
+    .replace(/([^\w`\[#])(`)?(Handsontable|Core)(#\w*)?(`)?/g, '$1[$2$3$4$5](./core/$4)')
     .replace(/([^\w`\[#])(`)?(Hooks)((#)(event:)?(\w*))?(`)?/g, '$1[$2$3$4$8](./hooks/$5$7)')
     .replace(/([^\w`\[#])(`)?(BaseEditor)(#\w*)?(`)?/g, '$1[$2$3$4$5](./base-editor/$4)')
     .replace(/([^\w`\[#])(`)?(CellCoords)(#\w*)?(`)?/g, '$1[$2$3$4$5](./coords/$4)')
@@ -99,6 +99,7 @@ const unescapeRedundant = text => text
   .replace(/`[^`\n]*`/g, m => // get all inline codes
     m.replace(/\&lt;/g, '<')
       .replace(/\&gt;/g, '>')
+      .replace(/\\\*/g, '*')
       .replace(/\.</g, '<')
   )
   .replace(/<\/ul>\./g, '</ul>'); // remove redundant dot, which eslint enforce to add after list closing tag.

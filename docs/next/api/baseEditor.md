@@ -88,7 +88,7 @@ A reference to the source instance of the Handsontable.
 
 :::
 
-`baseEditor.originalValue : \*`
+`baseEditor.originalValue : *`
 
 Original cell's value.
 
@@ -156,7 +156,7 @@ Begins editing on a highlighted cell and hides fillHandle corner if was present.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| newInitialValue | `\*` | The initial editor value. |
+| newInitialValue | `*` | The initial editor value. |
 | event | `Event` | The keyboard event object. |
 
 
@@ -359,7 +359,7 @@ Prepares editor's meta data.
 | col | `number` | The visual column index. |
 | prop | `number` <br/> `string` | The column property (passed when datasource is an array of objects). |
 | td | `HTMLTableCellElement` | The rendered cell element. |
-| value | `\*` | The rendered value. |
+| value | `*` | The rendered value. |
 | cellProperties | `object` | The cell meta object ({@see Core#getCellMeta}). |
 
 
@@ -377,7 +377,7 @@ Saves value from editor into data storage.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| value | `\*` | The editor value. |
+| value | `*` | The editor value. |
 | ctrlDown | `boolean` | If `true`, applies value to each cell in the last selected range. |
 
 
