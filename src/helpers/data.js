@@ -252,7 +252,7 @@ export function countFirstRowKeys(data) {
 }
 
 /**
- * Check whether the provided dataset is an array of arrays.
+ * Check whether the provided dataset is a *non-empty* array of arrays.
  *
  * @param {Array} data Dataset to be checked.
  * @returns {boolean} `true` if data is an array of arrays, `false` otherwise.
@@ -262,7 +262,7 @@ export function isArrayOfArrays(data) {
 }
 
 /**
- * Check whether the provided dataset is an array of objects.
+ * Check whether the provided dataset is a *non-empty* array of objects.
  *
  * @param {Array} data Dataset to be checked.
  * @returns {boolean} `true` if data is an array of objects, `false` otherwise.
