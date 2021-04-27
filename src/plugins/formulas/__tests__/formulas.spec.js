@@ -383,7 +383,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtCell(0, 1)).toBe('foo bar');
   });
 
-  it('should mark cell as #REF! (circular dependency)', () => {
+  it('should mark cell with circular dependency as #CYCLE!', () => {
     const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=B1']),
       columns: getColumnsForFormulas(),
