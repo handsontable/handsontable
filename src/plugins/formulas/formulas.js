@@ -120,9 +120,9 @@ export class Formulas extends BasePlugin {
       if (
         !this.hyperformula.isItPossibleToSetCellContents(address)
       ) {
-        warn(`Not possible to set cell data at ${JSON.stringify(address)}`)
+        warn(`Not possible to set cell data at ${JSON.stringify(address)}`);
 
-        return
+        return;
       }
 
       this.hyperformula.setCellContents(address, valueHolder.value);
@@ -156,9 +156,9 @@ export class Formulas extends BasePlugin {
       if (
         !this.hyperformula.isItPossibleToSetCellContents(address)
       ) {
-        warn(`Not possible to set source cell data at ${JSON.stringify(address)}`)
+        warn(`Not possible to set source cell data at ${JSON.stringify(address)}`);
 
-        return
+        return;
       }
 
       this.hyperformula.setCellContents(address, valueHolder.value);

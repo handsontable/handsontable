@@ -9,11 +9,11 @@ export const registerAutofillHooks = (pluginInstance) => {
   // Block autofill operation if at least one of the underlying's cell
   // contents cannot be set, e.g. if there's a matrix underneath.
   pluginInstance.addHook('beforeAutofill', (start, end) => {
-    const width = Math.abs(start.col - end.col) + 1
-    const height = Math.abs(start.row - end.row) + 1
+    const width = Math.abs(start.col - end.col) + 1;
+    const height = Math.abs(start.row - end.row) + 1;
 
-    const row = Math.min(start.row, end.row)
-    const col = Math.min(start.col, end.col)
+    const row = Math.min(start.row, end.row);
+    const col = Math.min(start.col, end.col);
 
     if (
       !pluginInstance.hyperformula.isItPossibleToSetCellContents({
@@ -22,9 +22,9 @@ export const registerAutofillHooks = (pluginInstance) => {
         col
       }, width, height)
     ) {
-      return false
+      return false;
     }
-  })
+  });
 
   // Abuse the `modifyAutofillRange` hook to get the autofill start coordinates.
   pluginInstance.addHook('modifyAutofillRange', (_, entireArea) => {
