@@ -94,7 +94,7 @@ declare namespace _Handsontable {
     isRenderSuspended(): boolean;
     isUndoAvailable(): boolean;
     listen(): void;
-    loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[]): void;
+    loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[], source?: string): void;
     populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
     propToCol(prop: string | number): number;
     redo(): void;
@@ -1183,7 +1183,7 @@ declare namespace Handsontable {
 
     interface Formulas extends Base {
       staticRegister: object;
-      hyperformula: HyperFormula;
+      engine: HyperFormula | object | Function;
       sheetName: string;
       sheetId: number;
 

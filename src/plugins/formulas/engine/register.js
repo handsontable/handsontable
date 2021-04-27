@@ -1,6 +1,6 @@
 import staticRegister from '../../../utils/staticRegister';
 import { isUndefined } from '../../../helpers/mixed';
-import { error } from '../../../helpers/console';
+import { warn } from '../../../helpers/console';
 import { PLUGIN_KEY } from '../formulas';
 import { mergeEngineSettings } from './settings';
 
@@ -8,16 +8,16 @@ import { mergeEngineSettings } from './settings';
  * Setups the engine instance. It either creates a new (possibly shared) engine instance, or attaches
  * the plugin to an already-existing instance.
  *
- * @param {object} pluginSettings Object containing the plugin settings.
- * @param {object} additionalSettings Object containing additional settings, overwriting the others.
+ * @param {object} hotSettings Object containing the Handsontable settings.
  * @param {string} hotId Handsontable guid.
  * @returns {null|object} Returns the engine instance if everything worked right and `null` otherwise.
  */
-export function setupEngine(pluginSettings, additionalSettings, hotId) {
+export function setupEngine(hotSettings, hotId) {
+  const pluginSettings = hotSettings[PLUGIN_KEY];
   const engineConfigItem = pluginSettings.engine;
 
   if (isUndefined(engineConfigItem)) {
-    error('Missing the required `engine` key in the Formulas settings. Please fill it with either an' +
+    warn('Missing the required `engine` key in the Formulas settings. Please fill it with either an' +
       ' engine class or an engine instance.');
 
     return null;
@@ -26,18 +26,15 @@ export function setupEngine(pluginSettings, additionalSettings, hotId) {
   // `engine.hyperformula` or `engine` is the engine class
   if (typeof engineConfigItem.hyperformula === 'function' || typeof engineConfigItem === 'function') {
     return registerEngine(
-      engineConfigItem.hyperformula || engineConfigItem,
+      engineConfigItem.hyperformula ?? engineConfigItem,
       pluginSettings,
-      mergeEngineSettings(
-        engineConfigItem.hyperformula ? engineConfigItem : {},
-        additionalSettings
-      ),
+      mergeEngineSettings(hotSettings),
       hotId);
 
     // `engine` is the engine instance
   } else if (typeof engineConfigItem === 'object' && isUndefined(engineConfigItem.hyperformula)) {
     const engineRegistry = staticRegister(PLUGIN_KEY).getItem('engine');
-    const sharedEngineUsage = engineRegistry ? engineRegistry.get(engineConfigItem) : null;
+    const sharedEngineUsage = engineRegistry?.get(engineConfigItem);
 
     if (sharedEngineUsage) {
       sharedEngineUsage.push(hotId);
@@ -99,7 +96,7 @@ export function registerEngine(engineClass, pluginSettings, engineSettings, hotI
 export function unregisterEngine(engine, hotId) {
   if (engine) {
     const engineRegistry = staticRegister(PLUGIN_KEY).getItem('engine');
-    const sharedEngineUsage = engineRegistry ? engineRegistry.get(engine) : null;
+    const sharedEngineUsage = engineRegistry?.get(engine);
 
     if (sharedEngineUsage && sharedEngineUsage.includes(hotId)) {
       sharedEngineUsage.splice(sharedEngineUsage.indexOf(hotId), 1);
@@ -127,7 +124,12 @@ export function registerCustomFunctions(engineClass, customFunctions) {
         translations
       } = func;
 
-      engineClass.registerFunction(name, plugin, translations);
+      try {
+        engineClass.registerFunction(name, plugin, translations);
+
+      } catch (e) {
+        warn(e.message);
+      }
     });
   }
 }
@@ -144,8 +146,11 @@ export function registerLanguage(engineClass, languageSetting) {
       langCode,
     } = languageSetting;
 
-    if (!engineClass.getRegisteredLanguagesCodes().includes(langCode)) {
+    try {
       engineClass.registerLanguage(langCode, languageSetting);
+
+    } catch (e) {
+      warn(e.message);
     }
   }
 }
@@ -168,7 +173,12 @@ export function registerNamedExpressions(engineInstance, namedExpressions) {
         options
       } = namedExp;
 
-      engineInstance.addNamedExpression(name, expression, scope, options);
+      try {
+        engineInstance.addNamedExpression(name, expression, scope, options);
+
+      } catch (e) {
+        warn(e.message);
+      }
     });
 
     engineInstance.resumeEvaluation();

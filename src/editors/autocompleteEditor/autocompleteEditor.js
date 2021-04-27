@@ -234,7 +234,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     }
 
     this.strippedChoices = choices;
-    this.htEditor.loadData(pivot([choices]));
+    this.htEditor.loadData(pivot([choices]), 'Autocomplete.updateChoicesList');
 
     this.updateDropdownHeight();
     this.flipDropdownIfNeeded();

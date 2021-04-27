@@ -453,7 +453,8 @@ describe('Formulas general', () => {
         height: 300
       });
 
-      expect(hot.getDataAtCell(0, 1)).toBe(null);
+      // evaluateNullToZero is enabled by default
+      expect(hot.getDataAtCell(0, 1)).toBe(0);
     });
 
     it('rows', () => {
@@ -467,7 +468,8 @@ describe('Formulas general', () => {
         height: 300
       });
 
-      expect(hot.getDataAtCell(0, 1)).toBe(null);
+      // evaluateNullToZero is enabled by default
+      expect(hot.getDataAtCell(0, 1)).toBe(0);
     });
   });
 
@@ -1451,25 +1453,29 @@ describe('Formulas general', () => {
           engine: {
             hyperformula: HyperFormula
           }
-        }
+        },
+        // TODO: Temporarily overwrite the default value due to https://github.com/handsontable/handsontable/issues/7840
+        maxRows: 10000
       });
 
-      hot.alter('insert_row', 0, 100000);
+      hot.alter('insert_row', 0, 20000);
 
-      expect(hot.getData()).toEqual([]);
+      expect(hot.countRows()).toEqual(0);
     });
 
     it('should block creating too many columns', () => {
       const hot = handsontable({
-        data: [],
+        data: [[]],
         formulas: {
           engine: HyperFormula
-        }
+        },
+        // TODO: Temporarily overwrite the default value due to https://github.com/handsontable/handsontable/issues/7840
+        maxCols: 10000
       });
 
-      hot.alter('insert_row', 0, 100000);
+      hot.alter('insert_col', 0, 20000);
 
-      expect(hot.getData()).toEqual([]);
+      expect(hot.countCols()).toEqual(0);
     });
 
     it('should block removing rows if there\'s a matrix underneath', () => {

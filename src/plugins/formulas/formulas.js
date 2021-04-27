@@ -9,10 +9,8 @@ import {
   setupEngine,
   unregisterEngine
 } from './engine/register';
-import {
-  getEngineSettingsOverrides,
-  mergeEngineSettings
-} from './engine/settings';
+import { mergeEngineSettings } from './engine/settings';
+import { isAoA } from '../../helpers/data';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
@@ -53,6 +51,13 @@ export class Formulas extends BasePlugin {
    * @type {boolean}
    */
   #hotWasInitializedWithEmptyData = false;
+
+  /**
+   * String used as a `source` argument in the hooks.
+   *
+   * @type {string}
+   */
+  #pluginSourceString = 'Formulas.switchSheet';
 
   /**
    * Static register used to set up one global HyperFormula instance.
@@ -102,6 +107,12 @@ export class Formulas extends BasePlugin {
    */
   enablePlugin() {
     if (this.enabled) {
+      return;
+    }
+
+    this.engine = setupEngine(this.hot.getSettings(), this.hot.guid);
+
+    if (!this.engine) {
       return;
     }
 
@@ -254,18 +265,6 @@ export class Formulas extends BasePlugin {
       });
     }
 
-    this.engine = setupEngine(
-      this.#settings,
-      getEngineSettingsOverrides(this.hot.getSettings()),
-      this.hot.guid
-    );
-
-    if (!this.engine) {
-      this.disablePlugin();
-
-      return;
-    }
-
     // HyperFormula events:
     this.engine.on('valuesUpdated', (...args) => this.onHFvaluesUpdated(...args));
 
@@ -288,11 +287,7 @@ export class Formulas extends BasePlugin {
     this.#settings = hotSettings[PLUGIN_KEY];
 
     if (this.#settings.engine) {
-      this.engine.updateConfig(
-        mergeEngineSettings(
-          this.#settings.engine,
-          getEngineSettingsOverrides(hotSettings)
-        ));
+      this.engine.updateConfig(mergeEngineSettings(this.#settings));
     }
 
     if (isDefined(this.#settings.sheetName) && this.#settings.sheetName !== this.sheetName) {
@@ -320,19 +315,23 @@ export class Formulas extends BasePlugin {
    * @returns {boolean} `false` if the data format is unusable, `true` otherwise.
    */
   addSheet(sheetName, sheetData) {
-    if (
-      !sheetData ||
-      !Array.isArray(sheetData) ||
-      (sheetData.length && !Array.isArray(sheetData[0]))
-    ) {
+    if (!isAoA(sheetData)) {
       error('The provided data should be an array of arrays.');
+
+      return false;
+    }
+
+    if (this.engine.doesSheetExist(sheetName)) {
+      error('Sheet with the provided name already exists.');
 
       return false;
     }
 
     const actualSheetName = this.engine.addSheet(sheetName ?? void 0);
 
-    this.engine.setSheetContent(actualSheetName, sheetData);
+    if (this.engine.isItPossibleToReplaceSheetContent(actualSheetName, sheetData)) {
+      this.engine.setSheetContent(actualSheetName, sheetData);
+    }
 
     return true;
   }
@@ -346,18 +345,19 @@ export class Formulas extends BasePlugin {
   switchSheet(sheetName) {
     this.sheetName = sheetName;
 
-    this.#internalOperationPending = true;
-    this.hot.loadData(this.engine.getSheetSerialized(this.sheetId));
-    this.#internalOperationPending = false;
+    this.hot.loadData(this.engine.getSheetSerialized(this.sheetId), this.#pluginSourceString);
   }
 
   /**
    * `beforeLoadData` hook callback.
    *
+   * @param {Array} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
+   * @param {string} source Source of the call.
    * @private
    */
-  onBeforeLoadData() {
-    if (this.#internalOperationPending) {
+  onBeforeLoadData(sourceData, initialLoad, source) {
+    if (source === this.#pluginSourceString) {
       return;
     }
 
@@ -369,10 +369,13 @@ export class Formulas extends BasePlugin {
   /**
    * `afterLoadData` hook callback.
    *
+   * @param {Array} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
+   * @param {string} source Source of the call.
    * @private
    */
-  onAfterLoadData() {
-    if (!this.enabled || this.#internalOperationPending) {
+  onAfterLoadData(sourceData, initialLoad, source) {
+    if (source === this.#pluginSourceString) {
       return;
     }
 
@@ -388,16 +391,20 @@ export class Formulas extends BasePlugin {
       this.sheetName = sheetName;
     }
 
-    this.#internalOperationPending = true;
-
     if (!this.#hotWasInitializedWithEmptyData) {
-      this.engine.setSheetContent(this.sheetName, this.hot.getSourceDataArray());
+      const sourceDataArray = this.hot.getSourceDataArray();
+
+      if (this.engine.isItPossibleToReplaceSheetContent(this.sheetName, sourceDataArray)) {
+        this.#internalOperationPending = true;
+
+        this.engine.setSheetContent(this.sheetName, this.hot.getSourceDataArray());
+
+        this.#internalOperationPending = false;
+      }
 
     } else {
       this.switchSheet(this.sheetName);
     }
-
-    this.#internalOperationPending = false;
   }
 
   /**
@@ -578,9 +585,9 @@ export class Formulas extends BasePlugin {
    * @param {Array} changes Array of objects containing information about HF changes.
    */
   onHFvaluesUpdated(changes) {
-	const isAffectedByChange = changes.some((change) => {
-	  return change?.address?.sheet === this.sheetId
-	})
+    const isAffectedByChange = changes.some((change) => {
+      return change?.address?.sheet === this.sheetId;
+    });
 
     if (isAffectedByChange) {
       this.hot.render();

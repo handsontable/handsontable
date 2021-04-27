@@ -248,3 +248,35 @@ export function countFirstRowKeys(data) {
 
   return result;
 }
+
+/**
+ * Check whether the provided dataset is an array of arrays.
+ *
+ * @param {Array} data Dataset to be checked.
+ * @returns {boolean} `true` if data is an array of arrays, `false` otherwise.
+ */
+export function isAoA(data) {
+  return !!(
+    Array.isArray(data) &&
+    data.length &&
+    !data.some(el => !Array.isArray(el))
+  );
+}
+
+/**
+ * Check whether the provided dataset is an array of objects.
+ *
+ * @param {Array} data Dataset to be checked.
+ * @returns {boolean} `true` if data is an array of objects, `false` otherwise.
+ */
+export function isAoO(data) {
+  return !!(
+    Array.isArray(data) &&
+    data.length &&
+    !data.some(
+      el =>
+        typeof el !== 'object' ||
+        Array.isArray(el) ||
+        el === null)
+  );
+}

@@ -66,8 +66,8 @@ describe('Formulas general', () => {
         licenseKey: 'non-commercial-and-evaluation'
       });
 
-      expect(errorSpy.test).toHaveBeenCalledWith(
-        'Missing the required `engine` key in the Formulas settings. Please fill it with either an engine class or an engine instance.');
+      expect(errorSpy.test).toHaveBeenCalledWith('Missing the required `engine` key in the Formulas settings. ' +
+        'Please fill it with either an engine class or an engine instance.');
       expect(hot.getPlugin('formulas').enabled).toBe(false);
 
       console.error = prevError;
@@ -352,6 +352,7 @@ describe('Formulas general', () => {
         it('should overwrite the HF sheet data with the provided `data`, if there\'s an existing sheet with that name' +
           ' in the connected HF instance', () => {
           const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
           hfInstance1.addSheet('Test Sheet');
           hfInstance1.setSheetContent('Test Sheet', [[1, 2, 3], [4, 5, 6]]);
 
@@ -442,6 +443,7 @@ describe('Formulas general', () => {
         it('should switch to an existing HF sheet, if it\'s already created with the same `sheetName` and the sheet' +
           ' name is provided in the settings', () => {
           const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
           hfInstance1.addSheet('Test Sheet');
           hfInstance1.setSheetContent('Test Sheet', [[1, 2, 3], [4, 5, 6]]);
 
@@ -500,7 +502,7 @@ describe('Formulas general', () => {
       const hfConfig = plugin.engine.getConfig();
 
       expect(hfConfig.binarySearchThreshold).toEqual(20);
-      expect(hfConfig.matrixDetection).toEqual(true);
+      expect(hfConfig.matrixDetection).toEqual(false);
       expect(hfConfig.matrixDetectionThreshold).toEqual(100);
       expect(hfConfig.useColumnIndex).toEqual(false);
       expect(hfConfig.useStats).toEqual(false);
@@ -513,6 +515,7 @@ describe('Formulas general', () => {
 
     it('should NOT update the HyperFormula config with the default set of settings', () => {
       const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
       hfInstance1.updateConfig({
         binarySearchThreshold: 25,
         matrixDetection: false,
@@ -637,6 +640,43 @@ describe('Formulas general', () => {
       expect(getDataAtCell(0, 0)).toEqual(1234);
     });
 
+    it('should throw a warning when trying to register two named expressions under the same name (and register only' +
+      ' the first one)', () => {
+      /* eslint-disable no-console */
+      const warnSpy = jasmine.createSpyObj('warning', ['test']);
+      const prevWarn = console.warn;
+
+      console.warn = (...args) => {
+        warnSpy.test(...args);
+        prevWarn(...args);
+      };
+
+      handsontable({
+        data: [['=MyLocal']],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+          namedExpressions: [
+            {
+              name: 'MyLocal',
+              expression: '1234'
+            },
+            {
+              name: 'MyLocal',
+              expression: '12345'
+            }
+          ]
+        },
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      expect(getDataAtCell(0, 0)).toEqual(1234);
+      expect(warnSpy.test).toHaveBeenCalledTimes(1);
+
+      console.warn = prevWarn;
+      /* eslint-enable no-console */
+    });
+
     it('should register custom function plugins before creating the HF instance', () => {
       class CustomFP extends FunctionPlugin {
         customFP() {
@@ -671,6 +711,72 @@ describe('Formulas general', () => {
       });
 
       expect(getDataAtCell(0, 0)).toEqual('customFP output');
+
+      // cleanup
+      HyperFormula.unregisterFunction('CUSTOMFP');
+    });
+
+    // TODO: uncomment after it's throwing a duplicated name error on HF's side.
+    xit('should throw a warning when trying to register two custom functions under the same name (and register only' +
+      ' the first one)', () => {
+      /* eslint-disable no-console */
+      const warnSpy = jasmine.createSpyObj('warning', ['test']);
+      const prevWarn = console.warn;
+
+      console.warn = (...args) => {
+        warnSpy.test(...args);
+        prevWarn(...args);
+      };
+
+      class CustomFP extends FunctionPlugin {
+        customFP() {
+          return 'customFP output';
+        }
+      }
+
+      CustomFP.implementedFunctions = {
+        CUSTOMFP: {
+          method: 'customFP',
+        }
+      };
+
+      handsontable({
+        data: [['=CUSTOMFP()']],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+          functions: [
+            {
+              name: 'CUSTOMFP',
+              plugin: CustomFP,
+              translations: {
+                enGB: {
+                  CUSTOMFP: 'CUSTOMFP'
+                }
+              }
+            },
+            {
+              name: 'CUSTOMFP',
+              plugin: CustomFP,
+              translations: {
+                enGB: {
+                  CUSTOMFP: 'CUSTOMFP2'
+                }
+              }
+            }
+          ]
+        },
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      expect(getDataAtCell(0, 0)).toEqual('customFP output');
+      expect(warnSpy.test).toHaveBeenCalledTimes(1);
+
+      console.warn = prevWarn;
+      /* eslint-enable no-console */
+
+      // cleanup
+      HyperFormula.unregisterFunction('CUSTOMFP');
     });
 
     it('should register a language applying it to the HF instance', () => {
@@ -685,6 +791,42 @@ describe('Formulas general', () => {
       });
 
       expect(getDataAtCell(1, 0)).toEqual('test');
+
+      // cleanup
+      HyperFormula.unregisterLanguage(plPL.langCode);
+    });
+
+    it('should throw a warning when trying to register two languages under the same name (and register only' +
+      ' the first one)', () => {
+      /* eslint-disable no-console */
+      const warnSpy = jasmine.createSpyObj('warning', ['test']);
+      const prevWarn = console.warn;
+
+      console.warn = (...args) => {
+        warnSpy.test(...args);
+        prevWarn(...args);
+      };
+
+      HyperFormula.registerLanguage(plPL.langCode, plPL);
+
+      handsontable({
+        data: [['TEST'], ['=LITERY.MAŁE(A1)']],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+          language: plPL
+        },
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      expect(getDataAtCell(1, 0)).toEqual('test');
+      expect(warnSpy.test).toHaveBeenCalledTimes(1);
+
+      console.warn = prevWarn;
+      /* eslint-enable no-console */
+
+      // cleanup
+      HyperFormula.unregisterLanguage(plPL.langCode);
     });
   });
 });

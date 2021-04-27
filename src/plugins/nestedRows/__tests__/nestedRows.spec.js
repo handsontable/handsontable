@@ -72,7 +72,7 @@ describe('NestedRows', () => {
           ],
           nestedRows: true,
           formulas: {
-            hyperformula: HyperFormula
+            engine: HyperFormula
           },
         });
 
