@@ -1,4 +1,6 @@
-// import RouterLink from './theme/components/RouterLink.vue';
+const { applyToWindow, instanceRegister } = require('./handsontable-manager');
+
+applyToWindow();
 
 const buildRegisterCleaner = register => (to, from) => {
   if (to.path === from.path) {
@@ -33,8 +35,8 @@ const buildActiveHeaderLinkHandler = () => {
 
 export default ({ router, isServer }) => {
   if (!isServer) {
-    // eslint-disable-next-line
-    router.afterEach(buildRegisterCleaner(handsontableInstancesRegister));
+
+    router.afterEach(buildRegisterCleaner(instanceRegister));
     router.afterEach(buildActiveHeaderLinkHandler());
   }
 };

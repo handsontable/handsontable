@@ -5,6 +5,9 @@ const semver = require('semver');
 const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
+const replaceInFiles = require('replace-in-files');
+
+const { logger } = require('../utils');
 
 const workingDir = path.resolve(__dirname, '../../../');
 
@@ -14,14 +17,13 @@ const version = process.argv[2];
 if (!version) {
   throw new Error('<version> is required.');
 } else if (version === '--help') {
-  process.stdout.write('Usages: `version <version>`, where version must be a valid semver.\n');
+  logger.info('Usages: `version <version>`, where version must be a valid semver.\n');
   process.exit(0);
 } else if (!semver.valid(semver.coerce(version))) {
   throw new Error('<version> must be a valid semver.');
 } else if (fs.existsSync(path.join(workingDir, version))) {
   throw new Error('<version> should be unique.');
 }
-const replaceInFiles = require('replace-in-files');
 
 (async() => {
   /// * copy `/next/` to `/${version}/`
@@ -33,8 +35,8 @@ const replaceInFiles = require('replace-in-files');
     from: /permalink: \/next\//g,
     to: `permalink: /${version}/`,
   });
-  process.stdout.write(`Permalinks for current latest (${version}) updated.\n`);
+  logger.success(`Permalinks for current latest (${version}) updated.\n`);
 
   /// * print kind information, that version was been created.
-  process.stdout.write(`Version: ${version} successfully created.\n`);
+  logger.success(`Version: ${version} successfully created.\n`);
 })();
