@@ -26,7 +26,6 @@ var hot1 = new Handsontable(example1, {
   rowHeaders: true,
   colHeaders: true,
   colWidths: 100,
-  manualColumnMove: true,
   manualRowMove: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
