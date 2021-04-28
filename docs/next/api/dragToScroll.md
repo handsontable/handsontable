@@ -22,12 +22,11 @@ Plugin used to scroll Handsontable by selecting a cell and dragging outside of t
 
 :::
 
-`dragToScroll.dragToScroll : boolean`
+_dragToScroll.dragToScroll : boolean_
 
 Disables or enables the [drag to scroll](#DragToScroll) functionality.
 
 **Default**: <code>true</code>  
-**Category**: [DragToScroll](../drag-to-scroll)  
 **Example**  
 ```js
 // don't scroll the viewport when selection gets to the viewport edge
@@ -42,7 +41,7 @@ dragToScroll: false,
 
 :::
 
-`dragToScroll.boundaries : DOMRect`
+_dragToScroll.boundaries : DOMRect_
 
 Size of an element and its position relative to the viewport,
 e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y:8}.
@@ -56,7 +55,7 @@ e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y
 
 :::
 
-`dragToScroll.check(x, y)`
+_dragToScroll.check(x, y)_
 
 Checks if the mouse position (X, Y) is outside of the viewport and fires a callback with calculated X an Y diffs
 between passed boundaries.
@@ -75,7 +74,7 @@ between passed boundaries.
 
 :::
 
-`dragToScroll.destroy()`
+_dragToScroll.destroy()_
 
 Destroys the plugin instance.
 
@@ -87,7 +86,7 @@ Destroys the plugin instance.
 
 :::
 
-`dragToScroll.disablePlugin()`
+_dragToScroll.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
@@ -99,7 +98,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 :::
 
-`dragToScroll.enablePlugin()`
+_dragToScroll.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
@@ -111,7 +110,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 :::
 
-`dragToScroll.isEnabled() ⇒ boolean`
+_dragToScroll.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#DragToScroll+enablePlugin) method is called.
@@ -124,7 +123,7 @@ hook and if it returns `true` than the [enablePlugin](#DragToScroll+enablePlugin
 
 :::
 
-`dragToScroll.setBoundaries(boundaries)`
+_dragToScroll.setBoundaries(boundaries)_
 
 Sets the value of the visible element.
 
@@ -141,7 +140,7 @@ Sets the value of the visible element.
 
 :::
 
-`dragToScroll.setCallback(callback)`
+_dragToScroll.setCallback(callback)_
 
 Changes callback function.
 
@@ -158,7 +157,7 @@ Changes callback function.
 
 :::
 
-`dragToScroll.updatePlugin()`
+_dragToScroll.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

@@ -39,7 +39,7 @@ $('#example1').handsontable('setDataAtCell', 0, 0, 'new value');
 
 :::
 
-`core.columnIndexMapper : [IndexMapper](./index-mapper/)`
+_core.columnIndexMapper : [IndexMapper](./index-mapper/)_
 
 Instance of index mapper which is responsible for managing the column indexes.
 
@@ -51,7 +51,7 @@ Instance of index mapper which is responsible for managing the column indexes.
 
 :::
 
-`core.isDestroyed : boolean`
+_core.isDestroyed : boolean_
 
 A boolean to tell if the Handsontable has been fully destroyed. This is set to `true`
 after `afterDestroy` hook is called.
@@ -64,7 +64,7 @@ after `afterDestroy` hook is called.
 
 :::
 
-`core.rowIndexMapper : [IndexMapper](./index-mapper/)`
+_core.rowIndexMapper : [IndexMapper](./index-mapper/)_
 
 Instance of index mapper which is responsible for managing the row indexes.
 
@@ -77,7 +77,7 @@ Instance of index mapper which is responsible for managing the row indexes.
 
 :::
 
-`core.addHook(key, callback)`
+_core.addHook(key, callback)_
 
 Adds listener to the specified hook name (only for this Handsontable instance).
 
@@ -100,7 +100,7 @@ hot.addHook('beforeInit', myCallback);
 
 :::
 
-`core.addHookOnce(key, callback)`
+_core.addHookOnce(key, callback)_
 
 Adds listener to specified hook name (only for this Handsontable instance). After the listener is triggered,
 it will be automatically removed.
@@ -124,7 +124,7 @@ hot.addHookOnce('beforeInit', myCallback);
 
 :::
 
-`core.alter(action, index, [amount], [source], [keepEmptyRows])`
+_core.alter(action, index, [amount], [source], [keepEmptyRows])_
 
 Allows altering the table structure by either inserting/removing rows or columns.
 This method works with an array data structure only.
@@ -157,7 +157,7 @@ hot.alter('remove_row', [[1, 3], [5, 2]]);
 
 :::
 
-`core.batch(wrappedOperations) ⇒ *`
+_core.batch(wrappedOperations) ⇒ \*_
 
 It batches the rendering process and index recalculations. The method aggregates
 multi-line API calls into a callback and postpones the table rendering process
@@ -201,7 +201,7 @@ hot.batch(() => {
 
 :::
 
-`core.batchExecution(wrappedOperations, [forceFlushChanges]) ⇒ *`
+_core.batchExecution(wrappedOperations, [forceFlushChanges]) ⇒ \*_
 
 The method aggregates multi-line API calls into a callback and postpones the
 table execution process. After the execution of the operations, the internal table
@@ -235,7 +235,7 @@ hot.batchExecution(() => {
 
 :::
 
-`core.batchRender(wrappedOperations) ⇒ *`
+_core.batchRender(wrappedOperations) ⇒ \*_
 
 The method aggregates multi-line API calls into a callback and postpones the
 table rendering process. After the execution of the operations, the table is
@@ -271,7 +271,7 @@ hot.batchRender(() => {
 
 :::
 
-`core.clear()`
+_core.clear()_
 
 Clears the data from the table (the table settings remain intact).
 
@@ -283,7 +283,7 @@ Clears the data from the table (the table settings remain intact).
 
 :::
 
-`core.colToProp(column) ⇒ string | number`
+_core.colToProp(column) ⇒ string | number_
 
 Returns the property name that corresponds with the given column index.
 If the data source is an array of arrays, it returns the columns index.
@@ -302,7 +302,7 @@ If the data source is an array of arrays, it returns the columns index.
 
 :::
 
-`core.countCols() ⇒ number`
+_core.countCols() ⇒ number_
 
 Returns the total number of visible columns in the table.
 
@@ -315,7 +315,7 @@ Returns the total number of visible columns in the table.
 
 :::
 
-`core.countEmptyCols([ending]) ⇒ number`
+_core.countEmptyCols([ending]) ⇒ number_
 
 Returns the number of empty columns. If the optional ending parameter is `true`, returns the number of empty
 columns at right hand edge of the table.
@@ -334,7 +334,7 @@ columns at right hand edge of the table.
 
 :::
 
-`core.countEmptyRows([ending]) ⇒ number`
+_core.countEmptyRows([ending]) ⇒ number_
 
 Returns the number of empty rows. If the optional ending parameter is `true`, returns the
 number of empty rows at the bottom of the table.
@@ -353,7 +353,7 @@ number of empty rows at the bottom of the table.
 
 :::
 
-`core.countRenderedCols() ⇒ number`
+_core.countRenderedCols() ⇒ number_
 
 Returns the number of rendered columns (including columns partially or fully rendered outside viewport).
 
@@ -366,7 +366,7 @@ Returns the number of rendered columns (including columns partially or fully ren
 
 :::
 
-`core.countRenderedRows() ⇒ number`
+_core.countRenderedRows() ⇒ number_
 
 Returns the number of rendered rows (including rows partially or fully rendered outside viewport).
 
@@ -379,7 +379,7 @@ Returns the number of rendered rows (including rows partially or fully rendered 
 
 :::
 
-`core.countRows() ⇒ number`
+_core.countRows() ⇒ number_
 
 Returns the total number of visual rows in the table.
 
@@ -392,7 +392,7 @@ Returns the total number of visual rows in the table.
 
 :::
 
-`core.countSourceCols() ⇒ number`
+_core.countSourceCols() ⇒ number_
 
 Returns the total number of columns in the data source.
 
@@ -405,7 +405,7 @@ Returns the total number of columns in the data source.
 
 :::
 
-`core.countSourceRows() ⇒ number`
+_core.countSourceRows() ⇒ number_
 
 Returns the total number of rows in the data source.
 
@@ -418,7 +418,7 @@ Returns the total number of rows in the data source.
 
 :::
 
-`core.countVisibleCols() ⇒ number`
+_core.countVisibleCols() ⇒ number_
 
 Returns the number of visible columns. Returns -1 if table is not visible.
 
@@ -431,7 +431,7 @@ Returns the number of visible columns. Returns -1 if table is not visible.
 
 :::
 
-`core.countVisibleRows() ⇒ number`
+_core.countVisibleRows() ⇒ number_
 
 Returns the number of visible rows (rendered rows that fully fit inside viewport).
 
@@ -444,7 +444,7 @@ Returns the number of visible rows (rendered rows that fully fit inside viewport
 
 :::
 
-`core.deselectCell()`
+_core.deselectCell()_
 
 Deselects the current cell selection on the table.
 
@@ -456,7 +456,7 @@ Deselects the current cell selection on the table.
 
 :::
 
-`core.destroy()`
+_core.destroy()_
 
 Removes the table from the DOM and destroys the instance of the Handsontable.
 
@@ -469,7 +469,7 @@ Removes the table from the DOM and destroys the instance of the Handsontable.
 
 :::
 
-`core.destroyEditor([revertOriginal], [prepareEditorIfNeeded])`
+_core.destroyEditor([revertOriginal], [prepareEditorIfNeeded])_
 
 Destroys the current editor, render the table and prepares the editor of the newly selected cell.
 
@@ -487,7 +487,7 @@ Destroys the current editor, render the table and prepares the editor of the new
 
 :::
 
-`core.emptySelectedCells([source])`
+_core.emptySelectedCells([source])_
 
 Erases content from cells that have been selected in the table.
 
@@ -505,7 +505,7 @@ Erases content from cells that have been selected in the table.
 
 :::
 
-`core.getActiveEditor() ⇒ [BaseEditor](./base-editor/)`
+_core.getActiveEditor() ⇒ [BaseEditor](./base-editor/)_
 
 Returns the active editor class instance.
 
@@ -518,7 +518,7 @@ Returns the active editor class instance.
 
 :::
 
-`core.getCell(row, column, [topmost]) ⇒ HTMLTableCellElement | null`
+_core.getCell(row, column, [topmost]) ⇒ HTMLTableCellElement | null_
 
 Returns a TD element for the given `row` and `column` arguments, if it is rendered on screen.
 Returns `null` if the TD is not rendered on screen (probably because that part of the table is not visible).
@@ -539,7 +539,7 @@ Returns `null` if the TD is not rendered on screen (probably because that part o
 
 :::
 
-`core.getCellEditor(row, column) ⇒ function`
+_core.getCellEditor(row, column) ⇒ function_
 
 Returns the cell editor class by the provided `row` and `column` arguments.
 
@@ -565,7 +565,7 @@ hot.getCellEditor(hot.getCellMeta(1, 1));
 
 :::
 
-`core.getCellMeta(row, column) ⇒ object`
+_core.getCellMeta(row, column) ⇒ object_
 
 Returns the cell properties object for the given `row` and `column` coordinates.
 
@@ -585,7 +585,7 @@ Returns the cell properties object for the given `row` and `column` coordinates.
 
 :::
 
-`core.getCellMetaAtRow(row) ⇒ Array`
+_core.getCellMetaAtRow(row) ⇒ Array_
 
 Returns an array of cell meta objects for specified physical row index.
 
@@ -602,7 +602,7 @@ Returns an array of cell meta objects for specified physical row index.
 
 :::
 
-`core.getCellRenderer(row, column) ⇒ function`
+_core.getCellRenderer(row, column) ⇒ function_
 
 Returns the cell renderer function by given `row` and `column` arguments.
 
@@ -628,7 +628,7 @@ hot.getCellRenderer(hot.getCellMeta(1, 1));
 
 :::
 
-`core.getCellsMeta() ⇒ Array`
+_core.getCellsMeta() ⇒ Array_
 
 Get all the cells meta settings at least once generated in the table (in order of cell initialization).
 
@@ -641,7 +641,7 @@ Get all the cells meta settings at least once generated in the table (in order o
 
 :::
 
-`core.getCellValidator(row, column) ⇒ function | RegExp | undefined`
+_core.getCellValidator(row, column) ⇒ function | RegExp | undefined_
 
 Returns the cell validator by `row` and `column`.
 
@@ -667,7 +667,7 @@ hot.getCellValidator(hot.getCellMeta(1, 1));
 
 :::
 
-`core.getColHeader([column]) ⇒ Array | string | number`
+_core.getColHeader([column]) ⇒ Array | string | number_
 
 Returns an array of column headers (in string format, if they are enabled). If param `column` is given, it
 returns the header at the given column.
@@ -687,7 +687,7 @@ returns the header at the given column.
 
 :::
 
-`core.getColWidth(column) ⇒ number`
+_core.getColWidth(column) ⇒ number_
 
 Returns the width of the requested column.
 
@@ -706,7 +706,7 @@ Returns the width of the requested column.
 
 :::
 
-`core.getCoords(element) ⇒ [CellCoords](./coords/) | null`
+_core.getCoords(element) ⇒ [CellCoords](./coords/) | null_
 
 Returns the coordinates of the cell, provided as a HTML table cell element.
 
@@ -729,7 +729,7 @@ hot.getCoords(hot.getCell(1, 1));
 
 :::
 
-`core.getCopyableData(row, column) ⇒ string`
+_core.getCopyableData(row, column) ⇒ string_
 
 Returns the data's copyable value at specified `row` and `column` index.
 
@@ -747,7 +747,7 @@ Returns the data's copyable value at specified `row` and `column` index.
 
 :::
 
-`core.getCopyableText(startRow, startCol, endRow, endCol) ⇒ string`
+_core.getCopyableText(startRow, startCol, endRow, endCol) ⇒ string_
 
 Returns a string value of the selected range. Each column is separated by tab, each row is separated by a new
 line character.
@@ -768,7 +768,7 @@ line character.
 
 :::
 
-`core.getData([row], [column], [row2], [column2]) ⇒ Array<Array>`
+_core.getData([row], [column], [row2], [column2]) ⇒ Array&lt;Array&gt;_
 
 Returns the current data object (the same one that was passed by `data` configuration option or `loadData` method,
 unless some modifications have been applied (i.e. Sequence of rows/columns was changed, some row/column was skipped).
@@ -802,7 +802,7 @@ hot.getData(2, 1, 3, 3);
 
 :::
 
-`core.getDataAtCell(row, column) ⇒ *`
+_core.getDataAtCell(row, column) ⇒ \*_
 
 Returns the cell value at `row`, `column`.
 
@@ -823,7 +823,7 @@ __Note__: If data is reordered, sorted or trimmed, the currently visible order w
 
 :::
 
-`core.getDataAtCol(column) ⇒ Array`
+_core.getDataAtCol(column) ⇒ Array_
 
 Returns array of column values from the data source.
 
@@ -843,7 +843,7 @@ __Note__: If columns were reordered or sorted, the currently visible order will 
 
 :::
 
-`core.getDataAtProp(prop) ⇒ Array`
+_core.getDataAtProp(prop) ⇒ Array_
 
 Given the object property name (e.g. `'first.name'` or `'0'`), returns an array of column's values from the table data.
 You can also provide a column index as the first argument.
@@ -862,7 +862,7 @@ You can also provide a column index as the first argument.
 
 :::
 
-`core.getDataAtRow(row) ⇒ Array`
+_core.getDataAtRow(row) ⇒ Array_
 
 Returns a single row of the data.
 
@@ -882,7 +882,7 @@ __Note__: If rows were reordered, sorted or trimmed, the currently visible order
 
 :::
 
-`core.getDataAtRowProp(row, prop) ⇒ *`
+_core.getDataAtRowProp(row, prop) ⇒ \*_
 
 Returns value at visual `row` and `prop` indexes.
 
@@ -903,7 +903,7 @@ __Note__: If data is reordered, sorted or trimmed, the currently visible order w
 
 :::
 
-`core.getDataType(rowFrom, columnFrom, rowTo, columnTo) ⇒ string`
+_core.getDataType(rowFrom, columnFrom, rowTo, columnTo) ⇒ string_
 
 Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](./options/#type)).
 If there are cells with different types in the selected range, it returns `'mixed'`.
@@ -927,7 +927,7 @@ __Note__: If data is reordered, sorted or trimmed, the currently visible order w
 
 :::
 
-`core.getInstance() ⇒ [Handsontable](./core/)`
+_core.getInstance() ⇒ [Handsontable](./core/)_
 
 Returns the Handsontable instance.
 
@@ -940,7 +940,7 @@ Returns the Handsontable instance.
 
 :::
 
-`core.getPlugin(pluginName) ⇒ BasePlugin | undefined`
+_core.getPlugin(pluginName) ⇒ BasePlugin | undefined_
 
 Returns plugin instance by provided its name.
 
@@ -958,7 +958,7 @@ Returns plugin instance by provided its name.
 
 :::
 
-`core.getRowHeader([row]) ⇒ Array | string | number`
+_core.getRowHeader([row]) ⇒ Array | string | number_
 
 Returns an array of row headers' values (if they are enabled). If param `row` was given, it returns the header of the given row as a string.
 
@@ -977,7 +977,7 @@ Returns an array of row headers' values (if they are enabled). If param `row` wa
 
 :::
 
-`core.getRowHeight(row) ⇒ number`
+_core.getRowHeight(row) ⇒ number_
 
 Returns the row height.
 
@@ -996,7 +996,7 @@ Returns the row height.
 
 :::
 
-`core.getSchema() ⇒ object`
+_core.getSchema() ⇒ object_
 
 Returns schema provided by constructor settings. If it doesn't exist then it returns the schema based on the data
 structure in the first row.
@@ -1010,7 +1010,7 @@ structure in the first row.
 
 :::
 
-`core.getSelected() ⇒ Array<Array> | undefined`
+_core.getSelected() ⇒ Array&lt;Array&gt; | undefined_
 
 Returns indexes of the currently selected cells as an array of arrays `[[startRow, startCol, endRow, endCol],...]`.
 
@@ -1029,7 +1029,7 @@ you need to use `getSelectedLast` method.
 
 :::
 
-`core.getSelectedLast() ⇒ Array | undefined`
+_core.getSelectedLast() ⇒ Array | undefined_
 
 Returns the last coordinates applied to the table as a an array `[startRow, startCol, endRow, endCol]`.
 
@@ -1043,7 +1043,7 @@ Returns the last coordinates applied to the table as a an array `[startRow, star
 
 :::
 
-`core.getSelectedRange() ⇒ Array<CellRange> | undefined`
+_core.getSelectedRange() ⇒ Array&lt;CellRange&gt; | undefined_
 
 Returns the current selection as an array of CellRange objects.
 
@@ -1060,7 +1060,7 @@ you need to use `getSelectedRangeLast` method.
 
 :::
 
-`core.getSelectedRangeLast() ⇒ CellRange | undefined`
+_core.getSelectedRangeLast() ⇒ CellRange | undefined_
 
 Returns the last coordinates applied to the table as a CellRange object.
 
@@ -1074,7 +1074,7 @@ Returns the last coordinates applied to the table as a CellRange object.
 
 :::
 
-`core.getSettings() ⇒ object`
+_core.getSettings() ⇒ object_
 
 Returns the object settings.
 
@@ -1087,7 +1087,7 @@ Returns the object settings.
 
 :::
 
-`core.getSourceData([row], [column], [row2], [column2]) ⇒ Array<Array> | Array<object>`
+_core.getSourceData([row], [column], [row2], [column2]) ⇒ Array&lt;Array&gt; | Array&lt;object&gt;_
 
 Returns a clone of the source data object.
 Optionally you can provide a cell range by using the `row`, `column`, `row2`, `column2` arguments, to get only a
@@ -1113,7 +1113,7 @@ sorted or trimmed only physical indexes are correct.
 
 :::
 
-`core.getSourceDataArray([row], [column], [row2], [column2]) ⇒ Array`
+_core.getSourceDataArray([row], [column], [row2], [column2]) ⇒ Array_
 
 Returns the source data object as an arrays of arrays format even when source data was provided in another format.
 Optionally you can provide a cell range by using the `row`, `column`, `row2`, `column2` arguments, to get only a
@@ -1139,7 +1139,7 @@ sorted or trimmed only physical indexes are correct.
 
 :::
 
-`core.getSourceDataAtCell(row, column) ⇒ *`
+_core.getSourceDataAtCell(row, column) ⇒ \*_
 
 Returns a single value from the data source.
 
@@ -1158,7 +1158,7 @@ Returns a single value from the data source.
 
 :::
 
-`core.getSourceDataAtCol(column) ⇒ Array`
+_core.getSourceDataAtCol(column) ⇒ Array_
 
 Returns an array of column values from the data source.
 
@@ -1176,7 +1176,7 @@ Returns an array of column values from the data source.
 
 :::
 
-`core.getSourceDataAtRow(row) ⇒ Array | object`
+_core.getSourceDataAtRow(row) ⇒ Array | object_
 
 Returns a single row of the data (array or object, depending on what data format you use).
 
@@ -1197,7 +1197,7 @@ sorted or trimmed only physical indexes are correct.
 
 :::
 
-`core.getTranslatedPhrase(dictionaryKey, extraArguments) ⇒ string`
+_core.getTranslatedPhrase(dictionaryKey, extraArguments) ⇒ string_
 
 Get language phrase for specified dictionary key.
 
@@ -1216,7 +1216,7 @@ Get language phrase for specified dictionary key.
 
 :::
 
-`core.getValue() ⇒ *`
+_core.getValue() ⇒ \*_
 
 Get value from the selected cell.
 
@@ -1229,7 +1229,7 @@ Get value from the selected cell.
 
 :::
 
-`core.hasColHeaders() ⇒ boolean`
+_core.hasColHeaders() ⇒ boolean_
 
 Returns information about if this table is configured to display column headers.
 
@@ -1242,7 +1242,7 @@ Returns information about if this table is configured to display column headers.
 
 :::
 
-`core.hasHook(key) ⇒ boolean`
+_core.hasHook(key) ⇒ boolean_
 
 Check if for a specified hook name there are added listeners (only for this Handsontable instance). All available
 hooks you will find [Hooks](./hooks/).
@@ -1265,7 +1265,7 @@ const hasBeforeInitListeners = hot.hasHook('beforeInit');
 
 :::
 
-`core.hasRowHeaders() ⇒ boolean`
+_core.hasRowHeaders() ⇒ boolean_
 
 Returns information about if this table is configured to display row headers.
 
@@ -1278,7 +1278,7 @@ Returns information about if this table is configured to display row headers.
 
 :::
 
-`core.isColumnModificationAllowed() ⇒ boolean`
+_core.isColumnModificationAllowed() ⇒ boolean_
 
 Checks if the data format and config allows user to modify the column structure.
 
@@ -1290,7 +1290,7 @@ Checks if the data format and config allows user to modify the column structure.
 
 :::
 
-`core.isEmptyCol(column) ⇒ boolean`
+_core.isEmptyCol(column) ⇒ boolean_
 
 Check if all cells in the the column declared by the `column` argument are empty.
 
@@ -1308,7 +1308,7 @@ Check if all cells in the the column declared by the `column` argument are empty
 
 :::
 
-`core.isEmptyRow(row) ⇒ boolean`
+_core.isEmptyRow(row) ⇒ boolean_
 
 Check if all cells in the row declared by the `row` argument are empty.
 
@@ -1326,7 +1326,7 @@ Check if all cells in the row declared by the `row` argument are empty.
 
 :::
 
-`core.isExecutionSuspended() ⇒ boolean`
+_core.isExecutionSuspended() ⇒ boolean_
 
 Checks if the table indexes recalculation process was suspended. See explanation
 in [Core#suspendExecution](./core/#suspendexecution).
@@ -1340,7 +1340,7 @@ in [Core#suspendExecution](./core/#suspendexecution).
 
 :::
 
-`core.isListening() ⇒ boolean`
+_core.isListening() ⇒ boolean_
 
 Returns `true` if the current Handsontable instance is listening to keyboard input on document body.
 
@@ -1353,7 +1353,7 @@ Returns `true` if the current Handsontable instance is listening to keyboard inp
 
 :::
 
-`core.isRenderSuspended() ⇒ boolean`
+_core.isRenderSuspended() ⇒ boolean_
 
 Checks if the table rendering process was suspended. See explanation in [Core#suspendRender](./core/#suspendrender).
 
@@ -1366,7 +1366,7 @@ Checks if the table rendering process was suspended. See explanation in [Core#su
 
 :::
 
-`core.listen()`
+_core.listen()_
 
 Listen to the keyboard input on document body. This allows Handsontable to capture keyboard events and respond
 in the right way.
@@ -1380,7 +1380,7 @@ in the right way.
 
 :::
 
-`core.loadData(data)`
+_core.loadData(data)_
 
 Loads new data to Handsontable. Loading new data resets the cell meta.
 Since 8.0.0 loading new data also resets states corresponding to rows and columns
@@ -1400,7 +1400,7 @@ Since 8.0.0 loading new data also resets states corresponding to rows and column
 
 :::
 
-`core.populateFromArray(row, column, input, [endRow], [endCol], [source], [method], direction, deltas) ⇒ object | undefined`
+_core.populateFromArray(row, column, input, [endRow], [endCol], [source], [method], direction, deltas) ⇒ object | undefined_
 
 Populate cells at position with 2D input array (e.g. `[[1, 2], [3, 4]]`). Use `endRow`, `endCol` when you
 want to cut input when a certain row is reached.
@@ -1429,7 +1429,7 @@ Optional `method` argument has the same effect as pasteMode option (see [Options
 
 :::
 
-`core.propToCol(prop) ⇒ number`
+_core.propToCol(prop) ⇒ number_
 
 Returns column index that corresponds with the given property.
 
@@ -1447,7 +1447,7 @@ Returns column index that corresponds with the given property.
 
 :::
 
-`core.refreshDimensions()`
+_core.refreshDimensions()_
 
 Updates dimensions of the table. The method compares previous dimensions with the current ones and updates accordingly.
 
@@ -1460,7 +1460,7 @@ Updates dimensions of the table. The method compares previous dimensions with th
 
 :::
 
-`core.removeCellMeta(row, column, key)`
+_core.removeCellMeta(row, column, key)_
 
 Remove a property defined by the `key` argument from the cell meta object for the provided `row` and `column` coordinates.
 
@@ -1480,7 +1480,7 @@ Remove a property defined by the `key` argument from the cell meta object for th
 
 :::
 
-`core.removeHook(key, callback)`
+_core.removeHook(key, callback)_
 
 Removes the hook listener previously registered with [Core#addHook](./core/#addhook).
 
@@ -1503,7 +1503,7 @@ hot.removeHook('beforeInit', myCallback);
 
 :::
 
-`core.render()`
+_core.render()_
 
 Rerender the table. Calling this method starts the process of recalculating, redrawing and applying the changes
 to the DOM. While rendering the table all cell renderers are recalled.
@@ -1519,7 +1519,7 @@ optimal moments in its lifecycle.
 
 :::
 
-`core.resumeExecution([forceFlushChanges])`
+_core.resumeExecution([forceFlushChanges])_
 
 Resumes the execution process. In combination with the [Core#suspendExecution](./core/#suspendexecution)
 method it allows aggregating the table logic changes after which the cache is
@@ -1552,7 +1552,7 @@ hot.resumeExecution(); // It updates the cache internally
 
 :::
 
-`core.resumeRender()`
+_core.resumeRender()_
 
 Resumes the rendering process. In combination with the [Core#suspendRender](./core/#suspendrender)
 method it allows aggregating the table render cycles triggered by API calls or UI
@@ -1585,7 +1585,7 @@ hot.resumeRender(); // It re-renders the table internally
 
 :::
 
-`core.runHooks(key, [p1], [p2], [p3], [p4], [p5], [p6]) ⇒ *`
+_core.runHooks(key, [p1], [p2], [p3], [p4], [p5], [p6]) ⇒ \*_
 
 Run the callbacks for the hook provided in the `key` argument using the parameters given in the other arguments.
 
@@ -1616,7 +1616,7 @@ hot.runHooks('customAction', 10, 'foo');
 
 :::
 
-`core.scrollViewportTo([row], [column], [snapToBottom], [snapToRight], [considerHiddenIndexes]) ⇒ boolean`
+_core.scrollViewportTo([row], [column], [snapToBottom], [snapToRight], [considerHiddenIndexes]) ⇒ boolean_
 
 Scroll viewport to coordinates specified by the `row` and `column` arguments.
 
@@ -1638,7 +1638,7 @@ Scroll viewport to coordinates specified by the `row` and `column` arguments.
 
 :::
 
-`core.selectAll([includeHeaders])`
+_core.selectAll([includeHeaders])_
 
 Select the whole table. The previous selection will be overwritten.
 
@@ -1656,7 +1656,7 @@ Select the whole table. The previous selection will be overwritten.
 
 :::
 
-`core.selectCell(row, column, [endRow], [endColumn], [scrollToCell], [changeListener]) ⇒ boolean`
+_core.selectCell(row, column, [endRow], [endColumn], [scrollToCell], [changeListener]) ⇒ boolean_
 
 Select cell specified by `row` and `column` values or a range of cells finishing at `endRow`, `endCol`. If the table
 was configured to support data column properties that properties can be used to making a selection.
@@ -1696,7 +1696,7 @@ hot.selectCell(2, 'address', 3, 'phone_number', false);
 
 :::
 
-`core.selectCells(coords, [scrollToCell], [changeListener]) ⇒ boolean`
+_core.selectCells(coords, [scrollToCell], [changeListener]) ⇒ boolean_
 
 Make multiple, non-contiguous selection specified by `row` and `column` values or a range of cells
 finishing at `endRow`, `endColumn`. The method supports two input formats which are the same as that
@@ -1736,7 +1736,7 @@ hot.selectCells(selected);
 
 :::
 
-`core.selectColumns(startColumn, [endColumn]) ⇒ boolean`
+_core.selectColumns(startColumn, [endColumn]) ⇒ boolean_
 
 Select column specified by `startColumn` visual index, column property or a range of columns finishing at `endColumn`.
 
@@ -1767,7 +1767,7 @@ hot.selectColumns('id', 'last_name');
 
 :::
 
-`core.selectRows(startRow, [endRow]) ⇒ boolean`
+_core.selectRows(startRow, [endRow]) ⇒ boolean_
 
 Select row specified by `startRow` visual index or a range of rows finishing at `endRow`.
 
@@ -1794,7 +1794,7 @@ hot.selectRows(1, 4);
 
 :::
 
-`core.setCellMeta(row, column, key, value)`
+_core.setCellMeta(row, column, key, value)_
 
 Sets a property defined by the `key` property to the meta object of a cell corresponding to params `row` and `column`.
 
@@ -1815,7 +1815,7 @@ Sets a property defined by the `key` property to the meta object of a cell corre
 
 :::
 
-`core.setCellMetaObject(row, column, prop)`
+_core.setCellMetaObject(row, column, prop)_
 
 Set cell meta data object defined by `prop` to the corresponding params `row` and `column`.
 
@@ -1834,7 +1834,7 @@ Set cell meta data object defined by `prop` to the corresponding params `row` an
 
 :::
 
-`core.setDataAtCell(row, [column], [value], [source])`
+_core.setDataAtCell(row, [column], [value], [source])_
 
 Set new value to a cell. To change many cells at once (recommended way), pass an array of `changes` in format
 `[[row, col, value],...]` as the first argument.
@@ -1855,7 +1855,7 @@ Set new value to a cell. To change many cells at once (recommended way), pass an
 
 :::
 
-`core.setDataAtRowProp(row, prop, value, [source])`
+_core.setDataAtRowProp(row, prop, value, [source])_
 
 Set new value to a cell. To change many cells at once (recommended way), pass an array of `changes` in format
 `[[row, prop, value],...]` as the first argument.
@@ -1876,7 +1876,7 @@ Set new value to a cell. To change many cells at once (recommended way), pass an
 
 :::
 
-`core.setSourceDataAtCell(row, column, value, [source])`
+_core.setSourceDataAtCell(row, column, value, [source])_
 
 Set the provided value in the source data set at the provided coordinates.
 
@@ -1896,7 +1896,7 @@ Set the provided value in the source data set at the provided coordinates.
 
 :::
 
-`core.spliceCellsMeta(visualIndex, [deleteAmount], [...cellMetaRows])`
+_core.spliceCellsMeta(visualIndex, [deleteAmount], [...cellMetaRows])_
 
 Removes or adds one or more rows of the cell meta objects to the cell meta collections.
 
@@ -1916,7 +1916,7 @@ Removes or adds one or more rows of the cell meta objects to the cell meta colle
 
 :::
 
-`core.spliceCol(column, index, amount, [...elements]) ⇒ Array`
+_core.spliceCol(column, index, amount, [...elements]) ⇒ Array_
 
 Adds/removes data from the column. This method works the same as Array.splice for arrays.
 
@@ -1937,7 +1937,7 @@ Adds/removes data from the column. This method works the same as Array.splice fo
 
 :::
 
-`core.spliceRow(row, index, amount, [...elements]) ⇒ Array`
+_core.spliceRow(row, index, amount, [...elements]) ⇒ Array_
 
 Adds/removes data from the row. This method works the same as Array.splice for arrays.
 
@@ -1958,7 +1958,7 @@ Adds/removes data from the row. This method works the same as Array.splice for a
 
 :::
 
-`core.suspendExecution()`
+_core.suspendExecution()_
 
 Suspends the execution process. It's helpful to wrap the table logic changes
 such as index changes into one call after which the cache is updated. As a result,
@@ -1986,7 +1986,7 @@ hot.resumeExecution(); // It updates the cache internally
 
 :::
 
-`core.suspendRender()`
+_core.suspendRender()_
 
 Suspends the rendering process. It's helpful to wrap the table render
 cycles triggered by API calls or UI actions (or both) and call the "render"
@@ -2023,7 +2023,7 @@ hot.resumeRender(); // It re-renders the table internally
 
 :::
 
-`core.toHTML() ⇒ string`
+_core.toHTML() ⇒ string_
 
 Converts instance into outerHTML of HTMLTableElement.
 
@@ -2036,7 +2036,7 @@ Converts instance into outerHTML of HTMLTableElement.
 
 :::
 
-`core.toPhysicalColumn(column) ⇒ number`
+_core.toPhysicalColumn(column) ⇒ number_
 
 Translate visual column index into physical.
 
@@ -2057,7 +2057,7 @@ reordered, moved or trimmed.
 
 :::
 
-`core.toPhysicalRow(row) ⇒ number`
+_core.toPhysicalRow(row) ⇒ number_
 
 Translate visual row index into physical.
 
@@ -2078,7 +2078,7 @@ reordered, moved or trimmed.
 
 :::
 
-`core.toTableElement() ⇒ HTMLTableElement`
+_core.toTableElement() ⇒ HTMLTableElement_
 
 Converts instance into HTMLTableElement.
 
@@ -2091,7 +2091,7 @@ Converts instance into HTMLTableElement.
 
 :::
 
-`core.toVisualColumn(column) ⇒ number`
+_core.toVisualColumn(column) ⇒ number_
 
 Translate physical column index into visual.
 
@@ -2112,7 +2112,7 @@ based on a physical index.
 
 :::
 
-`core.toVisualRow(row) ⇒ number`
+_core.toVisualRow(row) ⇒ number_
 
 Translate physical row index into visual.
 
@@ -2133,7 +2133,7 @@ based on a physical index.
 
 :::
 
-`core.unlisten()`
+_core.unlisten()_
 
 Stop listening to keyboard input on the document body. Calling this method makes the Handsontable inactive for
 any keyboard events.
@@ -2146,7 +2146,7 @@ any keyboard events.
 
 :::
 
-`core.updateSettings(settings, [init])`
+_core.updateSettings(settings, [init])_
 
 Use it if you need to change configuration after initialization. The `settings` argument is an object containing the new
 settings, declared the same way as in the initial settings object.
@@ -2180,7 +2180,7 @@ hot.updateSettings({
 
 :::
 
-`core.validateCells([callback])`
+_core.validateCells([callback])_
 
 Validates all cells using their validator functions and calls callback when finished.
 
@@ -2208,7 +2208,7 @@ hot.validateCells((valid) => {
 
 :::
 
-`core.validateColumns([columns], [callback])`
+_core.validateColumns([columns], [callback])_
 
 Validates columns using their validator functions and calls callback when finished.
 
@@ -2237,7 +2237,7 @@ hot.validateColumns([3, 4, 5], (valid) => {
 
 :::
 
-`core.validateRows([rows], [callback])`
+_core.validateRows([rows], [callback])_
 
 Validates rows using their validator functions and calls callback when finished.
 

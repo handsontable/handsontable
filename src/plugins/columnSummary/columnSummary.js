@@ -8,6 +8,7 @@ export const PLUGIN_PRIORITY = 220;
 
 /**
  * @plugin ColumnSummary
+ * @class ColumnSummary
  *
  * @description
  * Allows making pre-defined calculations on the cell values and display the results within Handsontable.

@@ -46,12 +46,11 @@ copyPaste: {
 
 :::
 
-`copyPaste.copyPaste : object | boolean`
+_copyPaste.copyPaste : object | boolean_
 
 Disables or enables the copy/paste functionality.
 
 **Default**: <code>true</code>  
-**Category**: [CopyPaste](../copy-paste)  
 **Example**  
 ```js
 // disable copy and paste
@@ -74,7 +73,7 @@ copyPaste: {
 
 :::
 
-`copyPaste.columnsLimit : number`
+_copyPaste.columnsLimit : number_
 
 Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
 
@@ -87,7 +86,7 @@ Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> 
 
 :::
 
-`copyPaste.focusableElement : [FocusableWrapper](./focusable-element/)`
+_copyPaste.focusableElement : [FocusableWrapper](./focusable-element/)_
 
 Provides focusable element to support IME and copy/paste/cut actions.
 
@@ -99,14 +98,14 @@ Provides focusable element to support IME and copy/paste/cut actions.
 
 :::
 
-`copyPaste.pasteMode : string`
+_copyPaste.pasteMode : string_
 
 Defines paste (<kbd>CTRL</kbd> + <kbd>V</kbd>) behavior.
 * Default value `"overwrite"` will paste clipboard value over current selection.
 * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
 * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
 
-**Default**: <code>&quot;&#x27;overwrite&#x27;&quot;</code>  
+**Default**: <code>"overwrite"</code>  
 
 
 ### rowsLimit
@@ -115,7 +114,7 @@ Defines paste (<kbd>CTRL</kbd> + <kbd>V</kbd>) behavior.
 
 :::
 
-`copyPaste.rowsLimit : number`
+_copyPaste.rowsLimit : number_
 
 Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
 
@@ -128,7 +127,7 @@ Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <
 
 :::
 
-`copyPaste.uiContainer : HTMLElement`
+_copyPaste.uiContainer : HTMLElement_
 
 UI container for the secondary focusable element.
 
@@ -141,7 +140,7 @@ UI container for the secondary focusable element.
 
 :::
 
-`copyPaste.copy()`
+_copyPaste.copy()_
 
 Copies the selected cell into the clipboard.
 
@@ -153,7 +152,7 @@ Copies the selected cell into the clipboard.
 
 :::
 
-`copyPaste.cut()`
+_copyPaste.cut()_
 
 Cuts the selected cell into the clipboard.
 
@@ -165,7 +164,7 @@ Cuts the selected cell into the clipboard.
 
 :::
 
-`copyPaste.destroy()`
+_copyPaste.destroy()_
 
 Destroys the plugin instance.
 
@@ -177,7 +176,7 @@ Destroys the plugin instance.
 
 :::
 
-`copyPaste.disablePlugin()`
+_copyPaste.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
@@ -189,7 +188,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 :::
 
-`copyPaste.enablePlugin()`
+_copyPaste.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
@@ -201,7 +200,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 :::
 
-`copyPaste.getRangedCopyableData(ranges) ⇒ string`
+_copyPaste.getRangedCopyableData(ranges) ⇒ string_
 
 Creates copyable text releated to range objects.
 
@@ -219,7 +218,7 @@ Creates copyable text releated to range objects.
 
 :::
 
-`copyPaste.getRangedData(ranges) ⇒ Array<Array>`
+_copyPaste.getRangedData(ranges) ⇒ Array&lt;Array&gt;_
 
 Creates copyable text releated to range objects.
 
@@ -237,7 +236,7 @@ Creates copyable text releated to range objects.
 
 :::
 
-`copyPaste.isEnabled() ⇒ boolean`
+_copyPaste.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#CopyPaste+enablePlugin) method is called.
@@ -250,7 +249,7 @@ hook and if it returns `true` than the [enablePlugin](#CopyPaste+enablePlugin) m
 
 :::
 
-`copyPaste.paste(pastableText, [pastableHtml])`
+_copyPaste.paste(pastableText, [pastableHtml])_
 
 Simulates the paste action.
 
@@ -258,7 +257,7 @@ Simulates the paste action.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | pastableText | `string` |  | Value as raw string to paste. |
-| [pastableHtml] | `string` | <code>&quot;&#x27;&#x27;&quot;</code> | `optional` Value as HTML to paste. |
+| [pastableHtml] | `string` | <code>""</code> | `optional` Value as HTML to paste. |
 
 
 
@@ -268,7 +267,7 @@ Simulates the paste action.
 
 :::
 
-`copyPaste.setCopyableText()`
+_copyPaste.setCopyableText()_
 
 Prepares copyable text from the cells selection in the invisible textarea.
 
@@ -280,7 +279,7 @@ Prepares copyable text from the cells selection in the invisible textarea.
 
 :::
 
-`copyPaste.updatePlugin()`
+_copyPaste.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

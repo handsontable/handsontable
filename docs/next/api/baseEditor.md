@@ -16,7 +16,7 @@ editLink: false
 
 :::
 
-`baseEditor.[BaseEditor](./base-editor/)`
+_baseEditor.[BaseEditor](./base-editor/)_
 
 
 
@@ -26,7 +26,7 @@ editLink: false
 
 :::
 
-`baseEditor.\_closeCallback : function`
+_baseEditor.\_closeCallback : function_
 
 Callback to call after closing editor.
 
@@ -38,7 +38,7 @@ Callback to call after closing editor.
 
 :::
 
-`baseEditor.cellProperties : object`
+_baseEditor.cellProperties : object_
 
 Object containing the cell's properties.
 
@@ -50,7 +50,7 @@ Object containing the cell's properties.
 
 :::
 
-`baseEditor.col : number`
+_baseEditor.col : number_
 
 Visual column index.
 
@@ -62,7 +62,7 @@ Visual column index.
 
 :::
 
-`baseEditor.hot : [Handsontable](./core/)`
+_baseEditor.hot : [Handsontable](./core/)_
 
 A reference to the source instance of the Handsontable.
 
@@ -74,7 +74,7 @@ A reference to the source instance of the Handsontable.
 
 :::
 
-`baseEditor.instance : [Handsontable](./core/)`
+_baseEditor.instance : [Handsontable](./core/)_
 
 ***Deprecated***
 
@@ -88,7 +88,7 @@ A reference to the source instance of the Handsontable.
 
 :::
 
-`baseEditor.originalValue : *`
+_baseEditor.originalValue : \*_
 
 Original cell's value.
 
@@ -100,7 +100,7 @@ Original cell's value.
 
 :::
 
-`baseEditor.prop : number | string`
+_baseEditor.prop : number | string_
 
 Column property name or a column index, if datasource is an array of arrays.
 
@@ -112,7 +112,7 @@ Column property name or a column index, if datasource is an array of arrays.
 
 :::
 
-`baseEditor.row : number`
+_baseEditor.row : number_
 
 Visual row index.
 
@@ -124,7 +124,7 @@ Visual row index.
 
 :::
 
-`baseEditor.state : string`
+_baseEditor.state : string_
 
 Editor's state.
 
@@ -136,7 +136,7 @@ Editor's state.
 
 :::
 
-`baseEditor.TD : HTMLTableCellElement`
+_baseEditor.TD : HTMLTableCellElement_
 
 Currently rendered cell's TD element.
 
@@ -149,7 +149,7 @@ Currently rendered cell's TD element.
 
 :::
 
-`baseEditor.beginEditing(newInitialValue, event)`
+_baseEditor.beginEditing(newInitialValue, event)_
 
 Begins editing on a highlighted cell and hides fillHandle corner if was present.
 
@@ -167,7 +167,7 @@ Begins editing on a highlighted cell and hides fillHandle corner if was present.
 
 :::
 
-`baseEditor.cancelChanges()`
+_baseEditor.cancelChanges()_
 
 Finishes editing without singout saving value.
 
@@ -179,7 +179,7 @@ Finishes editing without singout saving value.
 
 :::
 
-`baseEditor.close()`
+_baseEditor.close()_
 
 Required method to close editor.
 
@@ -191,7 +191,7 @@ Required method to close editor.
 
 :::
 
-`baseEditor.discardEditor(result)`
+_baseEditor.discardEditor(result)_
 
 Verifies result of validation or closes editor if user's cancelled changes.
 
@@ -208,7 +208,7 @@ Verifies result of validation or closes editor if user's cancelled changes.
 
 :::
 
-`baseEditor.enableFullEditMode()`
+_baseEditor.enableFullEditMode()_
 
 Switch editor into full edit mode. In this state navigation keys don't close editor. This mode is activated
 automatically after hit ENTER or F2 key on the cell or while editing cell press F2 key.
@@ -221,7 +221,7 @@ automatically after hit ENTER or F2 key on the cell or while editing cell press 
 
 :::
 
-`baseEditor.extend() ⇒ function`
+_baseEditor.extend() ⇒ function_
 
 Fallback method to provide extendable editors in ES5.
 
@@ -233,7 +233,7 @@ Fallback method to provide extendable editors in ES5.
 
 :::
 
-`baseEditor.finishEditing(restoreOriginalValue, ctrlDown, callback)`
+_baseEditor.finishEditing(restoreOriginalValue, ctrlDown, callback)_
 
 Finishes editing and start saving or restoring process for editing cell or last selected range.
 
@@ -252,7 +252,7 @@ Finishes editing and start saving or restoring process for editing cell or last 
 
 :::
 
-`baseEditor.getEditedCell() ⇒ HTMLTableCellElement | null`
+_baseEditor.getEditedCell() ⇒ HTMLTableCellElement | null_
 
 Gets HTMLTableCellElement of the edited cell if exist.
 
@@ -264,7 +264,7 @@ Gets HTMLTableCellElement of the edited cell if exist.
 
 :::
 
-`baseEditor.getEditedCellsLayerClass() ⇒ string`
+_baseEditor.getEditedCellsLayerClass() ⇒ string_
 
 Gets className of the edited cell if exist.
 
@@ -276,7 +276,7 @@ Gets className of the edited cell if exist.
 
 :::
 
-`baseEditor.getValue()`
+_baseEditor.getValue()_
 
 Required method to get current value from editable element.
 
@@ -288,7 +288,7 @@ Required method to get current value from editable element.
 
 :::
 
-`baseEditor.init()`
+_baseEditor.init()_
 
 Initializes an editor's intance.
 
@@ -300,7 +300,7 @@ Initializes an editor's intance.
 
 :::
 
-`baseEditor.isInFullEditMode() ⇒ boolean`
+_baseEditor.isInFullEditMode() ⇒ boolean_
 
 Checks if editor is in full edit mode.
 
@@ -312,7 +312,7 @@ Checks if editor is in full edit mode.
 
 :::
 
-`baseEditor.isOpened() ⇒ boolean`
+_baseEditor.isOpened() ⇒ boolean_
 
 Returns information whether the editor is open.
 
@@ -324,7 +324,7 @@ Returns information whether the editor is open.
 
 :::
 
-`baseEditor.isWaiting() ⇒ boolean`
+_baseEditor.isWaiting() ⇒ boolean_
 
 Returns information whether the editor is waiting, eg.: for async validation.
 
@@ -336,7 +336,7 @@ Returns information whether the editor is waiting, eg.: for async validation.
 
 :::
 
-`baseEditor.open()`
+_baseEditor.open()_
 
 Required method to open editor.
 
@@ -348,7 +348,7 @@ Required method to open editor.
 
 :::
 
-`baseEditor.prepare(row, col, prop, td, value, cellProperties)`
+_baseEditor.prepare(row, col, prop, td, value, cellProperties)_
 
 Prepares editor's meta data.
 
@@ -370,7 +370,7 @@ Prepares editor's meta data.
 
 :::
 
-`baseEditor.saveValue(value, ctrlDown)`
+_baseEditor.saveValue(value, ctrlDown)_
 
 Saves value from editor into data storage.
 
@@ -388,7 +388,7 @@ Saves value from editor into data storage.
 
 :::
 
-`baseEditor.setValue()`
+_baseEditor.setValue()_
 
 Required method to set new value into editable element.
 

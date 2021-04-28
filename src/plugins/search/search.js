@@ -24,6 +24,7 @@ const DEFAULT_QUERY_METHOD = function(query, value) {
 
 /**
  * @plugin Search
+ * @class Search
  *
  * @description
  * The search plugin provides an easy interface to search data across Handsontable.

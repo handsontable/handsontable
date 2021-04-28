@@ -24,7 +24,7 @@ or array of any available strings:
 See [the dropdown menu demo](https://handsontable.com/docs/demo-dropdown-menu.html) for examples.
 
 **Example**  
-```
+```js
 const container = document.getElementById('example');
 const hot = new Handsontable(container, {
   data: data,
@@ -50,13 +50,12 @@ const hot = new Handsontable(container, {
 
 :::
 
-`dropdownMenu.dropdownMenu : boolean | object | Array<string>`
+_dropdownMenu.dropdownMenu : boolean | object | Array&lt;string&gt;_
 
 This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
 the [Options#contextMenu](./options/#contextmenu), but is triggered by clicking the button in the header.
 
 **Default**: <code>undefined</code>  
-**Category**: [DropdownMenu](../dropdown-menu)  
 **Example**  
 ```js
 // enable dropdown menu
@@ -75,7 +74,7 @@ dropdownMenu: ['remove_col', '---------', 'make_read_only', 'alignment']
 
 :::
 
-`DropdownMenu.DEFAULT\_ITEMS ⇒ Array`
+_DropdownMenu.DEFAULT\_ITEMS ⇒ Array_
 
 Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`.
 
@@ -88,7 +87,7 @@ Default menu items order when `dropdownMenu` is enabled by setting the config it
 
 :::
 
-`dropdownMenu.close()`
+_dropdownMenu.close()_
 
 Closes dropdown menu.
 
@@ -100,7 +99,7 @@ Closes dropdown menu.
 
 :::
 
-`dropdownMenu.destroy()`
+_dropdownMenu.destroy()_
 
 Destroys the plugin instance.
 
@@ -112,7 +111,7 @@ Destroys the plugin instance.
 
 :::
 
-`dropdownMenu.disablePlugin()`
+_dropdownMenu.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
@@ -124,7 +123,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 :::
 
-`dropdownMenu.enablePlugin()`
+_dropdownMenu.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
@@ -137,7 +136,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 :::
 
-`dropdownMenu.executeCommand(commandName, ...params)`
+_dropdownMenu.executeCommand(commandName, ...params)_
 
 Executes context menu command.
 
@@ -175,7 +174,7 @@ Or you can execute command registered in settings where `key` is your command na
 
 :::
 
-`dropdownMenu.isEnabled() ⇒ boolean`
+_dropdownMenu.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#DropdownMenu+enablePlugin) method is called.
@@ -188,7 +187,7 @@ hook and if it returns `true` than the [enablePlugin](#DropdownMenu+enablePlugin
 
 :::
 
-`dropdownMenu.open(position)`
+_dropdownMenu.open(position)_
 
 Opens menu and re-position it based on the passed coordinates.
 
@@ -206,7 +205,7 @@ Opens menu and re-position it based on the passed coordinates.
 
 :::
 
-`dropdownMenu.updatePlugin()`
+_dropdownMenu.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

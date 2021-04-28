@@ -84,12 +84,12 @@ __Important notice:__ In order for the data separation to work properly, make su
 
 :::
 
-`options.activeHeaderClassName : string`
+_options.activeHeaderClassName : string_
 
 Class name for all active headers in selections. The header will be marked with this class name
 only when a whole column or row will be selected.
 
-**Default**: <code>&quot;&#x27;ht__active_highlight&#x27;&quot;</code>  
+**Default**: <code>"ht__active_highlight"</code>  
 **Category**: [Core](../core)  
 **Since**: 0.38.2  
 **Example**  
@@ -105,7 +105,7 @@ activeHeaderClassName: 'ht__active_highlight',
 
 :::
 
-`options.allowEmpty : boolean`
+_options.allowEmpty : boolean_
 
 If set to `true`, Handsontable will accept values that are empty (`null`, `undefined` or `''`). If set
 to `false`, Handsontable will *not* accept the empty values and mark cell as invalid.
@@ -135,7 +135,7 @@ columns: [
 
 :::
 
-`options.allowHtml : boolean`
+_options.allowHtml : boolean_
 
 If set to `true`, data defined in `source` of the autocomplete or dropdown cell will be treated as HTML.
 
@@ -162,7 +162,7 @@ columns: [{
 
 :::
 
-`options.allowInsertColumn : boolean`
+_options.allowInsertColumn : boolean_
 
 If set to `false`, there won't be an option to insert new columns in the Context Menu.
 
@@ -181,7 +181,7 @@ allowInsertColumn: false,
 
 :::
 
-`options.allowInsertRow : boolean`
+_options.allowInsertRow : boolean_
 
 If set to `false`, there won't be an option to insert new rows in the Context Menu.
 
@@ -200,7 +200,7 @@ allowInsertRow: false,
 
 :::
 
-`options.allowInvalid : boolean`
+_options.allowInvalid : boolean_
 
 If set to `true`, Handsontable will accept values that were marked as invalid by the cell `validator`. It will
 result with *invalid* cells being treated as *valid* (will save the *invalid* value into the Handsontable data source).
@@ -222,7 +222,7 @@ allowInvalid: false,
 
 :::
 
-`options.allowRemoveColumn : boolean`
+_options.allowRemoveColumn : boolean_
 
 If set to `false`, there won't be an option to remove columns in the Context Menu.
 
@@ -241,7 +241,7 @@ allowRemoveColumn: false,
 
 :::
 
-`options.allowRemoveRow : boolean`
+_options.allowRemoveRow : boolean_
 
 If set to `false`, there won't be an option to remove rows in the Context Menu.
 
@@ -260,7 +260,7 @@ allowRemoveRow: false,
 
 :::
 
-`options.autoColumnSize : object | boolean`
+_options.autoColumnSize : object | boolean_
 
 Enables or disables the [AutoColumnSize](./auto-column-size/) plugin. Default value `undefined`
 is an equivalent of `true`, sets `syncLimit` to 50.
@@ -304,7 +304,7 @@ autoColumnSize: { allowSampleDuplicates: true },
 
 :::
 
-`options.autoRowSize : object | boolean`
+_options.autoRowSize : object | boolean_
 
 Enables or disables [AutoRowSize](./auto-row-size/) plugin. Default value is `undefined`, which has the same effect as `false`
 (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
@@ -335,7 +335,7 @@ autoRowSize: {syncLimit: '40%'},
 
 :::
 
-`options.autoWrapCol : boolean`
+_options.autoWrapCol : boolean_
 
 If `true`, pressing <kbd>ENTER</kbd> or down arrow in the last row will move to the first row in the next column.
 
@@ -354,7 +354,7 @@ autoWrapCol: false,
 
 :::
 
-`options.autoWrapRow : boolean`
+_options.autoWrapRow : boolean_
 
 If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.
 
@@ -373,7 +373,7 @@ autoWrapRow: false,
 
 :::
 
-`options.bindRowsWithHeaders : boolean | string`
+_options.bindRowsWithHeaders : boolean | string_
 
 Enables the functionality of the [BindRowsWithHeaders](./bind-rows-with-headers/) plugin which allows binding the table rows with their headers.
 If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,
@@ -394,7 +394,7 @@ bindRowsWithHeaders: true
 
 :::
 
-`options.cell : Array<Array>`
+_options.cell : Array&lt;Array&gt;_
 
 Any constructor or column option may be overwritten for a particular cell (row/column combination), using `cell`
 array passed to the Handsontable constructor.
@@ -419,7 +419,7 @@ cell: [
 
 :::
 
-`options.cells : function`
+_options.cells : function_
 
 Defines the cell properties for given `row`, `col`, `prop` coordinates. Any constructor or column option may be
 overwritten for a particular cell (row/column combination) using the `cells` property in the Handsontable constructor.
@@ -455,7 +455,7 @@ cells: function(row, column, prop) {
 
 :::
 
-`options.checkedTemplate : boolean | string | number`
+_options.checkedTemplate : boolean | string | number_
 
 Data template for `'checkbox'` type when checkbox is checked.
 
@@ -476,7 +476,7 @@ checkedTemplate: 'good'
 
 :::
 
-`options.className : string | Array<string>`
+_options.className : string | Array&lt;string&gt;_
 
 Class name for the current element.
 The interpretation depends on the level on which this option is provided in the [cascading configuration](https://handsontable.com/docs/Options.html).
@@ -501,7 +501,7 @@ className: ['first-class-name', 'second-class-name'],
 
 :::
 
-`options.colHeaders : boolean | Array<string> | function`
+_options.colHeaders : boolean | Array&lt;string&gt; | function_
 
 Setting `true` or `false` will enable or disable the default column headers (A, B, C).
 You can also define an array `['One', 'Two', 'Three', ...]` or a function to define the headers.
@@ -530,7 +530,7 @@ colHeaders: function(index) {
 
 :::
 
-`options.collapsibleColumns : boolean | Array<object>`
+_options.collapsibleColumns : boolean | Array&lt;object&gt;_
 
 The [CollapsibleColumns](./collapsible-columns/) plugin allows collapsing of columns, covered by a header with the `colspan` property
 defined.
@@ -565,7 +565,7 @@ collapsibleColumns: [
 
 :::
 
-`options.columnHeaderHeight : number | Array<number>`
+_options.columnHeaderHeight : number | Array&lt;number&gt;_
 
 Allows setting a custom height of the column headers. You can provide a number or an array of heights, if many
 column header levels are defined.
@@ -593,7 +593,7 @@ columnHeaderHeight: [35, undefined, 55],
 
 :::
 
-`options.columns : Array<object> | function`
+_options.columns : Array&lt;object&gt; | function_
 
 Defines the cell properties and data binding for certain columns.
 
@@ -638,7 +638,7 @@ columns: function(index) {
 
 :::
 
-`options.columnSorting : boolean | object`
+_options.columnSorting : boolean | object_
 
 Turns on [Column sorting](https://docs.handsontable.com/demo-sorting-data.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
 * `initialConfig` - Object with predefined keys:
@@ -692,7 +692,7 @@ columnSorting: {
 
 :::
 
-`options.columnSummary : Array<object> | function`
+_options.columnSummary : Array&lt;object&gt; | function_
 
 Allows making pre-defined calculations on the cell values and display the results within Handsontable.
 
@@ -734,7 +734,7 @@ columnSummary: [
 
 :::
 
-`options.colWidths : number | Array<number> | string | Array<string> | Array<undefined> | function`
+_options.colWidths : number | Array&lt;number&gt; | string | Array&lt;string&gt; | Array&lt;undefined&gt; | function_
 
 Defines column widths in pixels. Accepts number, string (that will be converted to a number), array of numbers
 (if you want to define column width separately for each column) or a function (if you want to set column width
@@ -772,11 +772,11 @@ colWidths: function(index) {
 
 :::
 
-`options.commentedCellClassName : string`
+_options.commentedCellClassName : string_
 
 CSS class name added to the commented cells.
 
-**Default**: <code>&quot;&#x27;htCommentCell&#x27;&quot;</code>  
+**Default**: <code>"htCommentCell"</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -791,7 +791,7 @@ commentedCellClassName: 'has-comment',
 
 :::
 
-`options.comments : boolean | Array<object>`
+_options.comments : boolean | Array&lt;object&gt;_
 
 If `true`, enables the [Comments](./comments/) plugin, which enables an option to apply cell comments through the context menu
 (configurable with context menu keys `commentsAddEdit`, `commentsRemove`).
@@ -833,7 +833,7 @@ const hot = new Handsontable(document.getElementById('example'), {
 
 :::
 
-`options.contextMenu : boolean | Array<string> | object`
+_options.contextMenu : boolean | Array&lt;string&gt; | object_
 
 Defines if the right-click context menu should be enabled. Context menu allows to create new row or column at any
 place in the grid among [other features](https://docs.handsontable.com/demo-context-menu.html).
@@ -891,7 +891,7 @@ contextMenu: {
 
 :::
 
-`options.copyable : boolean`
+_options.copyable : boolean_
 
 Makes a cell copyable (pressing <kbd>CTRL</kbd> + <kbd>C</kbd> on your keyboard moves its value to system clipboard).
 
@@ -918,7 +918,7 @@ cells: [
 
 :::
 
-`options.copyPaste : object | boolean`
+_options.copyPaste : object | boolean_
 
 Disables or enables the copy/paste functionality.
 
@@ -945,7 +945,7 @@ copyPaste: {
 
 :::
 
-`options.correctFormat : boolean`
+_options.correctFormat : boolean_
 
 If `true` then dates will be automatically formatted to match the desired format.
 
@@ -970,7 +970,7 @@ columns: [{
 
 :::
 
-`options.currentColClassName : string`
+_options.currentColClassName : string_
 
 Class name for all visible columns in the current selection.
 
@@ -989,11 +989,11 @@ currentColClassName: 'currentColumn',
 
 :::
 
-`options.currentHeaderClassName : string`
+_options.currentHeaderClassName : string_
 
 Class name for all visible headers in current selection.
 
-**Default**: <code>&quot;&#x27;ht__highlight&#x27;&quot;</code>  
+**Default**: <code>"ht__highlight"</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -1008,7 +1008,7 @@ currentHeaderClassName: 'ht__highlight',
 
 :::
 
-`options.currentRowClassName : string`
+_options.currentRowClassName : string_
 
 Class name for all visible rows in the current selection.
 
@@ -1027,7 +1027,7 @@ currentRowClassName: 'currentRow',
 
 :::
 
-`options.customBorders : boolean | Array<object>`
+_options.customBorders : boolean | Array&lt;object&gt;_
 
 If `true`, enables the [CustomBorders](./custom-borders/) plugin, which enables an option to apply custom borders through the context
 menu (configurable with context menu key `borders`). To initialize Handsontable with predefined custom borders,
@@ -1092,7 +1092,7 @@ customBorders: [
 
 :::
 
-`options.data : Array<Array> | Array<object>`
+_options.data : Array&lt;Array&gt; | Array&lt;object&gt;_
 
 Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
 Can be declared as an array of arrays or an array of objects.
@@ -1127,7 +1127,7 @@ data: [
 
 :::
 
-`options.dataSchema : object`
+_options.dataSchema : object_
 
 Defines the structure of a new row when data source is an array of objects.
 
@@ -1158,13 +1158,13 @@ minSpareRows: 1
 
 :::
 
-`options.dateFormat : string`
+_options.dateFormat : string_
 
 Date validation format.
 
 __Note__, this option only works for [date-typed](https://docs.handsontable.com/demo-date.html) cells.
 
-**Default**: <code>&quot;&#x27;DD/MM/YYYY&#x27;&quot;</code>  
+**Default**: <code>"DD/MM/YYYY"</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -1182,7 +1182,7 @@ columns: [{
 
 :::
 
-`options.defaultDate : string`
+_options.defaultDate : string_
 
 Definition of default value which will fill the empty cells.
 
@@ -1208,7 +1208,7 @@ columns: [
 
 :::
 
-`options.disableVisualSelection : boolean | string | Array<string>`
+_options.disableVisualSelection : boolean | string | Array&lt;string&gt;_
 
 Disables visual cells selection.
 
@@ -1240,7 +1240,7 @@ disableVisualSelection: ['current', 'area'],
 
 :::
 
-`options.dragToScroll : boolean`
+_options.dragToScroll : boolean_
 
 Disables or enables the [drag to scroll](./DragToScroll/) functionality.
 
@@ -1259,7 +1259,7 @@ dragToScroll: false,
 
 :::
 
-`options.dropdownMenu : boolean | object | Array<string>`
+_options.dropdownMenu : boolean | object | Array&lt;string&gt;_
 
 This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
 the [Options#contextMenu](./options/#contextmenu), but is triggered by clicking the button in the header.
@@ -1283,7 +1283,7 @@ dropdownMenu: ['remove_col', '---------', 'make_read_only', 'alignment']
 
 :::
 
-`options.editor : string | function | boolean`
+_options.editor : string | function | boolean_
 
 Defines the editor for the table/column/cell.
 
@@ -1326,7 +1326,7 @@ columns: [
 
 :::
 
-`options.enterBeginsEditing : boolean`
+_options.enterBeginsEditing : boolean_
 
 If `true`, <kbd>ENTER</kbd> begins editing mode (like in Google Docs). If `false`, <kbd>ENTER</kbd> moves to next
 row (like Excel) and adds a new row if necessary. <kbd>TAB</kbd> adds new column if necessary.
@@ -1345,7 +1345,7 @@ enterBeginsEditing: false,
 
 :::
 
-`options.enterMoves : object | function`
+_options.enterMoves : object | function_
 
 Defines the cursor movement after <kbd>ENTER</kbd> was pressed (<kbd>SHIFT</kbd> + <kbd>ENTER</kbd> uses a negative vector). Can
 be an object or a function that returns an object. The event argument passed to the function is a DOM Event object
@@ -1371,7 +1371,7 @@ enterMoves: function(event) {
 
 :::
 
-`options.fillHandle : boolean | string | object`
+_options.fillHandle : boolean | string | object_
 
 Enables the fill handle (drag-down and copy-down) functionality, which shows a small rectangle in bottom
 right corner of the selected area, that let's you expand values to the adjacent cells.
@@ -1415,7 +1415,7 @@ fillHandle: {
 
 :::
 
-`options.filter : boolean`
+_options.filter : boolean_
 
 If defined as `true`, when the user types into the input area the Autocomplete's suggestion list is updated to only
 include those choices starting with what has been typed; if defined as `false` all suggestions remain shown, with
@@ -1444,7 +1444,7 @@ columns: [
 
 :::
 
-`options.filteringCaseSensitive : boolean`
+_options.filteringCaseSensitive : boolean_
 
 If defined as `true`, filtering in the Autocomplete Editor will be case-sensitive.
 
@@ -1471,7 +1471,7 @@ columns: [
 
 :::
 
-`options.filters : boolean`
+_options.filters : boolean_
 
 The [Filters](./filters/) plugin allows filtering the table data either by the built-in component or with the API.
 
@@ -1490,7 +1490,7 @@ filters: true,
 
 :::
 
-`options.fixedColumnsLeft : number`
+_options.fixedColumnsLeft : number_
 
 Allows to specify the number of fixed (or *frozen*) columns on the left of the table.
 
@@ -1509,7 +1509,7 @@ fixedColumnsLeft: 3,
 
 :::
 
-`options.fixedRowsBottom : number`
+_options.fixedRowsBottom : number_
 
 Allows to specify the number of fixed (or *frozen*) rows at the bottom of the table.
 
@@ -1528,7 +1528,7 @@ fixedRowsBottom: 3,
 
 :::
 
-`options.fixedRowsTop : number`
+_options.fixedRowsTop : number_
 
 Allows to specify the number of fixed (or *frozen*) rows at the top of the table.
 
@@ -1547,7 +1547,7 @@ fixedRowsTop: 3,
 
 :::
 
-`options.formulas : boolean | object`
+_options.formulas : boolean | object_
 
 The [Formulas](./formulas/) plugin allows Handsontable to process formula expressions defined in the provided data.
 
@@ -1574,7 +1574,7 @@ formulas: {
 
 :::
 
-`options.fragmentSelection : boolean | string`
+_options.fragmentSelection : boolean | string_
 
 If set to `true`, it enables the browser's native selection of a fragment of the text within a single cell, between
 adjacent cells or in a whole table. If set to `'cell'`, it enables the possibility of selecting a fragment of the
@@ -1599,7 +1599,7 @@ fragmentSelection: 'cell',
 
 :::
 
-`options.headerTooltips : boolean | object`
+_options.headerTooltips : boolean | object_
 
 ***Deprecated***
 
@@ -1632,7 +1632,7 @@ headerTooltips: {
 
 :::
 
-`options.height : number | string | function`
+_options.height : number | string | function_
 
 Height of the grid. Can be a number or a function that returns a number.
 
@@ -1659,7 +1659,7 @@ height: function() {
 
 :::
 
-`options.hiddenColumns : boolean | object`
+_options.hiddenColumns : boolean | object_
 
 The [HiddenColumns](./hidden-columns/) plugin allows hiding of certain columns. You can pass additional configuration with an
 object notation. Options that are then available are:
@@ -1689,7 +1689,7 @@ hiddenColumns: {
 
 :::
 
-`options.hiddenRows : boolean | object`
+_options.hiddenRows : boolean | object_
 
 The [HiddenRows](./hidden-rows/) plugin allows hiding of certain rows. You can pass additional configuration with an
 object notation. Options that are then available are:
@@ -1719,11 +1719,11 @@ hiddenRows: {
 
 :::
 
-`options.invalidCellClassName : string`
+_options.invalidCellClassName : string_
 
 CSS class name for cells that did not pass validation.
 
-**Default**: <code>&quot;&#x27;htInvalid&#x27;&quot;</code>  
+**Default**: <code>"htInvalid"</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -1738,7 +1738,7 @@ invalidCellClassName: 'highlight--error',
 
 :::
 
-`options.label : object`
+_options.label : object_
 
 Object which describes if renderer should create checkbox element with label element as a parent.
 
@@ -1772,11 +1772,11 @@ columns: [{
 
 :::
 
-`options.language : string`
+_options.language : string_
 
 Language for Handsontable translation. Possible language codes are [listed here](https://docs.handsontable.com/tutorial-internationalization.html#available-languages).
 
-**Default**: <code>&quot;&#x27;en-US&#x27;&quot;</code>  
+**Default**: <code>"en-US"</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -1791,7 +1791,7 @@ language: 'pl-PL',
 
 :::
 
-`options.licenseKey : string`
+_options.licenseKey : string_
 
 License key for commercial version of Handsontable.
 
@@ -1811,7 +1811,7 @@ licenseKey: 'non-commercial-and-evaluation',
 
 :::
 
-`options.manualColumnFreeze : boolean`
+_options.manualColumnFreeze : boolean_
 
 Disables or enables [ManualColumnFreeze](./manual-column-freeze/) plugin.
 
@@ -1830,7 +1830,7 @@ manualColumnFreeze: true,
 
 :::
 
-`options.manualColumnMove : boolean | Array<number>`
+_options.manualColumnMove : boolean | Array&lt;number&gt;_
 
 Turns on [Manual column move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial column order (as an array of column indexes).
 
@@ -1853,7 +1853,7 @@ manualColumnMove: [1, 4],
 
 :::
 
-`options.manualColumnResize : boolean | Array<number>`
+_options.manualColumnResize : boolean | Array&lt;number&gt;_
 
 Turns on [Manual column resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial column resized widths (an an array of widths).
 
@@ -1876,7 +1876,7 @@ manualColumnResize: [40, 50],
 
 :::
 
-`options.manualRowMove : boolean | Array<number>`
+_options.manualRowMove : boolean | Array&lt;number&gt;_
 
 Turns on [Manual row move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial row order (as an array of row indexes).
 
@@ -1899,7 +1899,7 @@ manualRowMove: [1, 4],
 
 :::
 
-`options.manualRowResize : boolean | Array<number>`
+_options.manualRowResize : boolean | Array&lt;number&gt;_
 
 Turns on [Manual row resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial row resized heights (as an array of heights).
 
@@ -1922,7 +1922,7 @@ manualRowResize: [40, 50],
 
 :::
 
-`options.maxCols : number`
+_options.maxCols : number_
 
 Maximum number of cols. If set to a value lower than the initial col count, the data will be trimmed to the provided
 value as the number of cols.
@@ -1942,7 +1942,7 @@ maxCols: 300,
 
 :::
 
-`options.maxRows : number`
+_options.maxRows : number_
 
 Maximum number of rows. If set to a value lower than the initial row count, the data will be trimmed to the provided
 value as the number of rows.
@@ -1962,7 +1962,7 @@ maxRows: 300,
 
 :::
 
-`options.mergeCells : boolean | Array<object>`
+_options.mergeCells : boolean | Array&lt;object&gt;_
 
 If set to `true`, it enables a possibility to merge cells. If set to an array of objects, it merges the cells provided
 in the objects (see the example below). More information on [the demo page](https://docs.handsontable.com/demo-merge-cells.html).
@@ -1990,7 +1990,7 @@ mergeCells: [
 
 :::
 
-`options.minCols : number`
+_options.minCols : number_
 
 Minimum number of columns. At least that number of columns will be created during initialization.
 Works only with an array data source. When data source in an object, you can only have as many columns
@@ -2011,7 +2011,7 @@ minCols: 10,
 
 :::
 
-`options.minRows : number`
+_options.minRows : number_
 
 Minimum number of rows. At least that number of rows will be created during initialization.
 
@@ -2030,7 +2030,7 @@ minRows: 10,
 
 :::
 
-`options.minSpareCols : number`
+_options.minSpareCols : number_
 
 When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns.
 (unless the number of rows exceeds the one set in the `maxCols` property).
@@ -2050,7 +2050,7 @@ minSpareCols: 3,
 
 :::
 
-`options.minSpareRows : number`
+_options.minSpareRows : number_
 
 When set to 1 (or more), Handsontable will add a new row at the end of grid if there are no more empty rows.
 (unless the number of rows exceeds the one set in the `maxRows` property).
@@ -2070,7 +2070,7 @@ minSpareRows: 3,
 
 :::
 
-`options.multiColumnSorting : boolean | object`
+_options.multiColumnSorting : boolean | object_
 
 Turns on [Multi-column sorting](https://docs.handsontable.com/demo-multicolumn-sorting.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
 * `initialConfig` - Array containing objects, every with predefined keys:
@@ -2127,14 +2127,14 @@ multiColumnSorting: {
 
 :::
 
-`options.nestedHeaders : Array<Array>`
+_options.nestedHeaders : Array&lt;Array&gt;_
 
 Allows creating a nested header structure, using the HTML's colspan attribute.
 
 **Default**: <code>undefined</code>  
 **Category**: [NestedHeaders](../nested-headers)  
 **Example**  
-```
+```js
 nestedHeaders: [
   ['A', {label: 'B', colspan: 8}, 'C'],
   ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
@@ -2149,7 +2149,7 @@ nestedHeaders: [
 
 :::
 
-`options.nestedRows : boolean`
+_options.nestedRows : boolean_
 
 Disable or enable the nested rows functionality - displaying nested structures in a two-dimensional data table.
 
@@ -2169,11 +2169,11 @@ nestedRows: true,
 
 :::
 
-`options.noWordWrapClassName : string`
+_options.noWordWrapClassName : string_
 
 CSS class name added to cells with cell meta `wordWrap: false`.
 
-**Default**: <code>&quot;&#x27;htNoWrap&#x27;&quot;</code>  
+**Default**: <code>"htNoWrap"</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -2188,7 +2188,7 @@ noWordWrapClassName: 'is-noWrapCell',
 
 :::
 
-`options.numericFormat : object`
+_options.numericFormat : object_
 
 Display format for numeric typed renderers.
 
@@ -2226,7 +2226,7 @@ columns: [
 
 :::
 
-`options.observeChanges : boolean`
+_options.observeChanges : boolean_
 
 ***Deprecated***
 
@@ -2249,7 +2249,7 @@ observeChanges: true,
 
 :::
 
-`options.observeDOMVisibility : boolean`
+_options.observeDOMVisibility : boolean_
 
 When set to `true`, the table is re-rendered when it is detected that it was made visible in DOM.
 
@@ -2268,7 +2268,7 @@ observeDOMVisibility: false,
 
 :::
 
-`options.outsideClickDeselects : boolean | function`
+_options.outsideClickDeselects : boolean | function_
 
 If `true`, mouse click outside the grid will deselect the current selection. Can be a function that takes the
 click event target and returns a boolean.
@@ -2293,7 +2293,7 @@ outsideClickDeselects: function(event) {
 
 :::
 
-`options.persistentState : boolean`
+_options.persistentState : boolean_
 
 Turns on saving the state of column sorting, column positions and column sizes in local storage.
 
@@ -2337,7 +2337,7 @@ persistentState: true,
 
 :::
 
-`options.placeholder : string`
+_options.placeholder : string_
 
 When set to an non-empty string, displayed as the cell content for empty cells. If a value of a different type is provided,
 it will be stringified and applied as a string.
@@ -2357,11 +2357,11 @@ placeholder: 'Empty Cell',
 
 :::
 
-`options.placeholderCellClassName : string`
+_options.placeholderCellClassName : string_
 
 CSS class name for cells that have a placeholder in use.
 
-**Default**: <code>&quot;&#x27;htPlaceholder&#x27;&quot;</code>  
+**Default**: <code>"htPlaceholder"</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -2376,7 +2376,7 @@ placeholderCellClassName: 'has-placeholder',
 
 :::
 
-`options.preventOverflow : string | boolean`
+_options.preventOverflow : string | boolean_
 
 Prevents table to overlap outside the parent element. If `'horizontal'` option is chosen then table will show
 a horizontal scrollbar if parent's width is narrower then table's width.
@@ -2400,7 +2400,7 @@ preventOverflow: 'horizontal',
 
 :::
 
-`options.readOnly : boolean`
+_options.readOnly : boolean_
 
 Makes cell, column or comment [read only](https://docs.handsontable.com/demo-read-only.html).
 
@@ -2419,11 +2419,11 @@ readOnly: true,
 
 :::
 
-`options.readOnlyCellClassName : string`
+_options.readOnlyCellClassName : string_
 
 CSS class name for read-only cells.
 
-**Default**: <code>&quot;&#x27;htDimmed&#x27;&quot;</code>  
+**Default**: <code>"htDimmed"</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -2438,7 +2438,7 @@ readOnlyCellClassName: 'is-readOnly',
 
 :::
 
-`options.renderAllRows : boolean`
+_options.renderAllRows : boolean_
 
 If typed `true` then virtual rendering mechanism for handsontable will be disabled.
 
@@ -2457,7 +2457,7 @@ renderAllRows: true,
 
 :::
 
-`options.renderer : string | function`
+_options.renderer : string | function_
 
 If a string is provided, it may be one of the following predefined values:
 * `autocomplete`,
@@ -2514,7 +2514,7 @@ columns: [
 
 :::
 
-`options.rowHeaders : boolean | Array<string> | function`
+_options.rowHeaders : boolean | Array&lt;string&gt; | function_
 
 Setting `true` or `false` will enable or disable the default row headers (1, 2, 3).
 You can also define an array `['One', 'Two', 'Three', ...]` or a function to define the headers.
@@ -2543,7 +2543,7 @@ rowHeaders: function(index) {
 
 :::
 
-`options.rowHeaderWidth : number | Array<number>`
+_options.rowHeaderWidth : number | Array&lt;number&gt;_
 
 Allows setting a custom width of the row headers. You can provide a number or an array of widths, if many row
 header levels are defined.
@@ -2567,7 +2567,7 @@ rowHeaderWidth: [25, 30, 55],
 
 :::
 
-`options.rowHeights : number | Array<number> | string | Array<string> | Array<undefined> | function`
+_options.rowHeights : number | Array&lt;number&gt; | string | Array&lt;string&gt; | Array&lt;undefined&gt; | function_
 
 Defines row heights in pixels. Accepts numbers, strings (that will be converted into a number), array of numbers
 (if you want to define row height separately for each row) or a function (if you want to set row height dynamically
@@ -2607,7 +2607,7 @@ rowHeights: function(index) {
 
 :::
 
-`options.search : boolean`
+_options.search : boolean_
 
 Setting to `true` enables the [Search](./search/) plugin (see [demo](https://docs.handsontable.com/demo-search-for-values.html)).
 
@@ -2638,7 +2638,7 @@ search: {
 
 :::
 
-`options.selectionMode : string`
+_options.selectionMode : string_
 
 Defines how the table selection reacts. The selection support three different behaviors defined as:
  * `'single'` Only a single cell can be selected.
@@ -2648,7 +2648,7 @@ Defines how the table selection reacts. The selection support three different be
 To see how to interact with selection by getting selected data or change styles of the selected cells go to
 [https://docs.handsontable.com/demo-selecting-ranges.html](https://docs.handsontable.com/demo-selecting-ranges.html).
 
-**Default**: <code>&quot;&#x27;multiple&#x27;&quot;</code>  
+**Default**: <code>"multiple"</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -2663,7 +2663,7 @@ selectionMode: 'single',
 
 :::
 
-`options.selectOptions : Array<string>`
+_options.selectOptions : Array&lt;string&gt;_
 
 Data source for [select-typed](https://docs.handsontable.com/demo-select.html) cells.
 
@@ -2689,7 +2689,7 @@ columns: [
 
 :::
 
-`options.skipColumnOnPaste : boolean`
+_options.skipColumnOnPaste : boolean_
 
 When added to a `column` property, it skips the column on paste and pastes the data on the next column to the right.
 
@@ -2712,7 +2712,7 @@ columns: [
 
 :::
 
-`options.skipRowOnPaste : boolean`
+_options.skipRowOnPaste : boolean_
 
 When added to a cell property, it skips the row on paste and pastes the data on the following row.
 
@@ -2739,7 +2739,7 @@ cells: function(row, column) {
 
 :::
 
-`options.sortByRelevance : boolean`
+_options.sortByRelevance : boolean_
 
 If defined as `true`, the Autocomplete's suggestion list would be sorted by relevance (the closer to the left the
 match is, the higher the suggestion).
@@ -2767,7 +2767,7 @@ columns: [
 
 :::
 
-`options.source : Array | function`
+_options.source : Array | function_
 
 Defines data source for Autocomplete or Dropdown cell types.
 
@@ -2799,7 +2799,7 @@ columns: [{
 
 :::
 
-`options.startCols : number`
+_options.startCols : number_
 
 Initial number of columns.
 
@@ -2820,7 +2820,7 @@ startCols: 15,
 
 :::
 
-`options.startRows : number`
+_options.startRows : number_
 
 Initial number of rows.
 
@@ -2841,7 +2841,7 @@ startRows: 15,
 
 :::
 
-`options.stretchH : string`
+_options.stretchH : string_
 
 Defines how the columns react, when the declared table width is different than the calculated sum of all column widths.
 [See more](https://docs.handsontable.com/demo-stretching.html) mode. Possible values:
@@ -2849,7 +2849,7 @@ Defines how the columns react, when the declared table width is different than t
  * `'last'` Stretch only the last column
  * `'all'` Stretch all the columns evenly.
 
-**Default**: <code>&quot;&#x27;none&#x27;&quot;</code>  
+**Default**: <code>"none"</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -2864,7 +2864,7 @@ stretchH: 'all',
 
 :::
 
-`options.strict : boolean`
+_options.strict : boolean_
 
 If set to `true`, the value entered into the cell must match (case-sensitive) the autocomplete source.
 Otherwise, cell won't pass the validation. When filtering the autocomplete source list, the editor will
@@ -2891,7 +2891,7 @@ columns: [{
 
 :::
 
-`options.tableClassName : string | Array<string>`
+_options.tableClassName : string | Array&lt;string&gt;_
 
 Class name for all tables inside container element.
 
@@ -2913,7 +2913,7 @@ tableClassName: ['first-class-name', 'second-class-name'],
 
 :::
 
-`options.tabMoves : object | function`
+_options.tabMoves : object | function_
 
 Defines the cursor movement after <kbd>TAB</kbd> is pressed (<kbd>SHIFT</kbd> + <kbd>TAB</kbd> uses a negative vector). Can
 be an object or a function that returns an object. The event argument passed to the function is a DOM Event object
@@ -2939,7 +2939,7 @@ tabMoves: function(event) {
 
 :::
 
-`options.title : string`
+_options.title : string_
 
 Defines the column header name.
 
@@ -2967,7 +2967,7 @@ columns: [
 
 :::
 
-`options.trimDropdown : boolean`
+_options.trimDropdown : boolean_
 
 Makes autocomplete or dropdown width the same as the edited cell width. If `false` then editor will be scaled
 according to its content.
@@ -2992,7 +2992,7 @@ columns: [
 
 :::
 
-`options.trimRows : boolean | Array<number>`
+_options.trimRows : boolean | Array&lt;number&gt;_
 
 Plugin allowing hiding of certain rows.
 
@@ -3015,7 +3015,7 @@ trimRows: [5, 10, 15],
 
 :::
 
-`options.trimWhitespace : boolean`
+_options.trimWhitespace : boolean_
 
 Defines whether Handsontable should trim the whitespace at the beginning and the end of the cell contents.
 
@@ -3038,7 +3038,7 @@ columns: [
 
 :::
 
-`options.type : string`
+_options.type : string_
 
 Shortcut to define the combination of the cell renderer, editor and validator for the column, cell or whole table.
 
@@ -3056,7 +3056,7 @@ Possible values:
 Or you can register the custom cell type under specified name and use
 its name as an alias in your configuration.
 
-**Default**: <code>&quot;&#x27;text&#x27;&quot;</code>  
+**Default**: <code>"text"</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -3093,7 +3093,7 @@ columns: [
 
 :::
 
-`options.uncheckedTemplate : boolean | string | number`
+_options.uncheckedTemplate : boolean | string | number_
 
 Data template for `'checkbox'` type when checkbox is unchecked.
 
@@ -3114,7 +3114,7 @@ uncheckedTemplate: 'bad'
 
 :::
 
-`options.undo : boolean`
+_options.undo : boolean_
 
 If `true`, undo/redo functionality is enabled.
 Note: `undefined` by default but it acts as enabled.
@@ -3135,7 +3135,7 @@ undo: true,
 
 :::
 
-`options.validator : function | RegExp | string`
+_options.validator : function | RegExp | string_
 
 A function, regular expression or a string, which will be used in the process of cell validation. If a function is
 used, be sure to execute the callback argument with either `true` (`callback(true)`) if the validation passed
@@ -3183,7 +3183,7 @@ columns: [
 
 :::
 
-`options.viewportColumnRenderingOffset : number | string`
+_options.viewportColumnRenderingOffset : number | string_
 
 Number of columns to be rendered outside of the visible part of the table. By default, it's set to `'auto'`, which
 makes Handsontable try calculating the best offset performance-wise.
@@ -3204,7 +3204,7 @@ viewportColumnRenderingOffset: 70,
 
 :::
 
-`options.viewportRowRenderingOffset : number | string`
+_options.viewportRowRenderingOffset : number | string_
 
 Number of rows to be rendered outside of the visible part of the table. By default, it's set to `'auto'`, which
 makes Handsontable to attempt to calculate the best offset performance-wise.
@@ -3225,7 +3225,7 @@ viewportRowRenderingOffset: 70,
 
 :::
 
-`options.visibleRows : number`
+_options.visibleRows : number_
 
 Control number of choices for the autocomplete (or dropdown) typed cells. After exceeding it, a scrollbar for the
 dropdown list of choices will appear.
@@ -3250,7 +3250,7 @@ columns: [
 
 :::
 
-`options.width : number | string | function`
+_options.width : number | string | function_
 
 Width of the grid. Can be a value or a function that returns a value.
 
@@ -3277,7 +3277,7 @@ width: function() {
 
 :::
 
-`options.wordWrap : boolean`
+_options.wordWrap : boolean_
 
 When set to `true`, the text of the cell content is wrapped if it does not fit in the fixed column width.
 
@@ -3302,7 +3302,7 @@ columns: [
 
 :::
 
-`options.isEmptyCol(col) ⇒ boolean`
+_options.isEmptyCol(col) ⇒ boolean_
 
 Overwrites the default `isEmptyCol` method, which checks if column at the provided index is empty.
 
@@ -3327,7 +3327,7 @@ isEmptyCol: function(column) {
 
 :::
 
-`options.isEmptyRow(row) ⇒ boolean`
+_options.isEmptyRow(row) ⇒ boolean_
 
 Overwrites the default `isEmptyRow` method, which checks if row at the provided index is empty.
 

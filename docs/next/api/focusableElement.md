@@ -16,7 +16,7 @@ editLink: false
 
 :::
 
-`focusableWrapper.container : HTMLElement`
+_focusableWrapper.container : HTMLElement_
 
 Parent for an focusable element.
 
@@ -28,7 +28,7 @@ Parent for an focusable element.
 
 :::
 
-`focusableWrapper.eventManager : EventManager`
+_focusableWrapper.eventManager : EventManager_
 
 Instance of EventManager.
 
@@ -40,7 +40,7 @@ Instance of EventManager.
 
 :::
 
-`focusableWrapper.listenersCount : WeakSet`
+_focusableWrapper.listenersCount : WeakSet_
 
 An object for tracking information about event listeners attached to the focusable element.
 
@@ -52,7 +52,7 @@ An object for tracking information about event listeners attached to the focusab
 
 :::
 
-`focusableWrapper.mainElement : HTMLElement`
+_focusableWrapper.mainElement : HTMLElement_
 
 The main/operational focusable element.
 
@@ -65,7 +65,7 @@ The main/operational focusable element.
 
 :::
 
-`focusableWrapper.focus()`
+_focusableWrapper.focus()_
 
 Set focus to the focusable element.
 
@@ -77,7 +77,7 @@ Set focus to the focusable element.
 
 :::
 
-`focusableWrapper.getFocusableElement() ⇒ HTMLElement`
+_focusableWrapper.getFocusableElement() ⇒ HTMLElement_
 
 Get currently set focusable element.
 
@@ -89,7 +89,7 @@ Get currently set focusable element.
 
 :::
 
-`focusableWrapper.setFocusableElement(element)`
+_focusableWrapper.setFocusableElement(element)_
 
 Switch to the main focusable element.
 
@@ -106,7 +106,7 @@ Switch to the main focusable element.
 
 :::
 
-`focusableWrapper.useSecondaryElement()`
+_focusableWrapper.useSecondaryElement()_
 
 Switch to the secondary focusable element. Used when no any main focusable element is provided.
 

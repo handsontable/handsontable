@@ -30,8 +30,8 @@ const BUTTON_CLASS_NAME = 'changeType';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
- * @class DropdownMenu
  * @plugin DropdownMenu
+ * @class DropdownMenu
  *
  * @description
  * This plugin creates the Handsontable Dropdown Menu. It allows to create a new row or column at any place in the grid
@@ -47,7 +47,7 @@ const BUTTON_CLASS_NAME = 'changeType';
  * See [the dropdown menu demo](https://handsontable.com/docs/demo-dropdown-menu.html) for examples.
  *
  * @example
- * ```
+ * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
  *   data: data,

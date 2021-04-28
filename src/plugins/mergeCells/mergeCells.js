@@ -25,6 +25,7 @@ const privatePool = new WeakMap();
 
 /**
  * @plugin MergeCells
+ * @class MergeCells
  *
  * @description
  * Plugin, which allows merging cells in the table (using the initial configuration, API or context menu).

@@ -22,6 +22,7 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
 
 /**
  * @plugin ManualColumnMove
+ * @class ManualColumnMove
  *
  * @description
  * This plugin allows to change columns order. To make columns order persistent the {@link options#persistentstate Options#persistentState}

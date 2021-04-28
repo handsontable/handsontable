@@ -63,7 +63,7 @@ if (plugin.isEnabled()) {
 
 :::
 
-`autoRowSize.autoRowSize : object | boolean`
+_autoRowSize.autoRowSize : object | boolean_
 
 Enables or disables [AutoRowSize](./auto-row-size/) plugin. Default value is `undefined`, which has the same effect as `false`
 (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
@@ -77,7 +77,6 @@ operations don't block the browser UI.
 To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value.
 
 **Default**: <code>undefined</code>  
-**Category**: [AutoRowSize](../auto-row-size)  
 **Example**  
 ```js
 // as a number (300 columns in sync, rest async)
@@ -95,7 +94,7 @@ autoRowSize: {syncLimit: '40%'},
 
 :::
 
-`autoRowSize.inProgress : boolean`
+_autoRowSize.inProgress : boolean_
 
 `true` if the size calculation is in progress.
 
@@ -107,7 +106,7 @@ autoRowSize: {syncLimit: '40%'},
 
 :::
 
-`autoRowSize.measuredRows : number`
+_autoRowSize.measuredRows : number_
 
 Number of already measured rows (we already know their sizes).
 
@@ -120,7 +119,7 @@ Number of already measured rows (we already know their sizes).
 
 :::
 
-`autoRowSize.calculateAllRowsHeight(colRange)`
+_autoRowSize.calculateAllRowsHeight(colRange)_
 
 Calculate all rows heights. The calculated row will be cached in the [AutoRowSize#heights](./auto-row-size/#heights) property.
 To retrieve height for specified row use [AutoRowSize#getRowHeight](./auto-row-size/#getrowheight) method.
@@ -138,7 +137,7 @@ To retrieve height for specified row use [AutoRowSize#getRowHeight](./auto-row-s
 
 :::
 
-`autoRowSize.calculateRowsHeight(rowRange, colRange, [force])`
+_autoRowSize.calculateRowsHeight(rowRange, colRange, [force])_
 
 Calculate a given rows height.
 
@@ -157,7 +156,7 @@ Calculate a given rows height.
 
 :::
 
-`autoRowSize.clearCache()`
+_autoRowSize.clearCache()_
 
 Clears cached heights.
 
@@ -169,7 +168,7 @@ Clears cached heights.
 
 :::
 
-`autoRowSize.clearCacheByRange(range)`
+_autoRowSize.clearCacheByRange(range)_
 
 Clears cache by range.
 
@@ -186,7 +185,7 @@ Clears cache by range.
 
 :::
 
-`autoRowSize.destroy()`
+_autoRowSize.destroy()_
 
 Destroys the plugin instance.
 
@@ -198,7 +197,7 @@ Destroys the plugin instance.
 
 :::
 
-`autoRowSize.disablePlugin()`
+_autoRowSize.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
@@ -210,7 +209,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 :::
 
-`autoRowSize.enablePlugin()`
+_autoRowSize.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
@@ -222,7 +221,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 :::
 
-`autoRowSize.getColumnHeaderHeight() ⇒ number | undefined`
+_autoRowSize.getColumnHeaderHeight() ⇒ number | undefined_
 
 Get the calculated column header height.
 
@@ -234,7 +233,7 @@ Get the calculated column header height.
 
 :::
 
-`autoRowSize.getFirstVisibleRow() ⇒ number`
+_autoRowSize.getFirstVisibleRow() ⇒ number_
 
 Get the first visible row.
 
@@ -247,7 +246,7 @@ Get the first visible row.
 
 :::
 
-`autoRowSize.getLastVisibleRow() ⇒ number`
+_autoRowSize.getLastVisibleRow() ⇒ number_
 
 Gets the last visible row.
 
@@ -260,7 +259,7 @@ Gets the last visible row.
 
 :::
 
-`autoRowSize.getRowHeight(row, [defaultHeight]) ⇒ number`
+_autoRowSize.getRowHeight(row, [defaultHeight]) ⇒ number_
 
 Gets the calculated row height.
 
@@ -278,7 +277,7 @@ Gets the calculated row height.
 
 :::
 
-`autoRowSize.getSyncCalculationLimit() ⇒ number`
+_autoRowSize.getSyncCalculationLimit() ⇒ number_
 
 Gets value which tells how many rows should be calculated synchronously (rest of the rows will be calculated
 asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize option (see [Options#autoRowSize](./options/#autorowsize)).
@@ -291,7 +290,7 @@ asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize
 
 :::
 
-`autoRowSize.isEnabled() ⇒ boolean`
+_autoRowSize.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeinit)
 hook and if it returns `true` than the [AutoRowSize#enablePlugin](./auto-row-size/#enableplugin) method is called.
@@ -304,7 +303,7 @@ hook and if it returns `true` than the [AutoRowSize#enablePlugin](./auto-row-siz
 
 :::
 
-`autoRowSize.isNeedRecalculate() ⇒ boolean`
+_autoRowSize.isNeedRecalculate() ⇒ boolean_
 
 Checks if all heights were calculated. If not then return `true` (need recalculate).
 
@@ -316,7 +315,7 @@ Checks if all heights were calculated. If not then return `true` (need recalcula
 
 :::
 
-`autoRowSize.recalculateAllRowsHeight()`
+_autoRowSize.recalculateAllRowsHeight()_
 
 Recalculates all rows height (overwrite cache values).
 

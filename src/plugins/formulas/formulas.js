@@ -20,6 +20,7 @@ export const PLUGIN_PRIORITY = 260;
  * The formulas plugin.
  *
  * @plugin Formulas
+ * @class Formulas
  */
 export class Formulas extends BasePlugin {
   static get PLUGIN_KEY() {

@@ -66,7 +66,7 @@ customBorders: [
 
 :::
 
-`customBorders.customBorders : boolean | Array<object>`
+_customBorders.customBorders : boolean | Array&lt;object&gt;_
 
 If `true`, enables the [CustomBorders](./custom-borders/) plugin, which enables an option to apply custom borders through the context
 menu (configurable with context menu key `borders`). To initialize Handsontable with predefined custom borders,
@@ -75,7 +75,6 @@ provide cell coordinates and border styles in a form of an array.
 See [Custom Borders](https://docs.handsontable.com/demo-custom-borders.html) demo for examples.
 
 **Default**: <code>false</code>  
-**Category**: [CustomBorders](../custom-borders)  
 **Example**  
 ```js
 // enable custom borders
@@ -132,7 +131,7 @@ customBorders: [
 
 :::
 
-`customBorders.clearBorders(selectionRanges)`
+_customBorders.clearBorders(selectionRanges)_
 
 Clear custom borders.
 
@@ -160,7 +159,7 @@ customBordersPlugin.clearBorders();
 
 :::
 
-`customBorders.destroy()`
+_customBorders.destroy()_
 
 Destroys the plugin instance.
 
@@ -172,7 +171,7 @@ Destroys the plugin instance.
 
 :::
 
-`customBorders.disablePlugin()`
+_customBorders.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
@@ -184,7 +183,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 :::
 
-`customBorders.enablePlugin()`
+_customBorders.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
@@ -196,7 +195,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 :::
 
-`customBorders.getBorders(selectionRanges) ⇒ Array<object>`
+_customBorders.getBorders(selectionRanges) ⇒ Array&lt;object&gt;_
 
 Get custom borders.
 
@@ -225,7 +224,7 @@ customBordersPlugin.getBorders();
 
 :::
 
-`customBorders.isEnabled() ⇒ boolean`
+_customBorders.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#CustomBorders+enablePlugin) method is called.
@@ -238,7 +237,7 @@ hook and if it returns `true` than the [enablePlugin](#CustomBorders+enablePlugi
 
 :::
 
-`customBorders.setBorders(selectionRanges, borderObject)`
+_customBorders.setBorders(selectionRanges, borderObject)_
 
 Set custom borders.
 
@@ -269,7 +268,7 @@ customBordersPlugin.setBorders(hot.getSelectedRange(), {left: {hide: false, widt
 
 :::
 
-`customBorders.updatePlugin()`
+_customBorders.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

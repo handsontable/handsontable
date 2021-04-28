@@ -70,7 +70,9 @@ const fixLinks = text => text
 
 const clearEmptyOptionHeaders = text => text.replace(/## Options\n## Members/g, '## Members');
 const clearEmptyMembersHeaders = text => text.replace(/## Members\n## Methods/g, '## Methods');
-const clearEmptyFunctionsHeaders = text => text.replace(/(## Methods\n)+$/g, '\n');
+const clearEmptyFunctionsHeaders = text => text
+  .replace(/(## Methods\n)+$/g, '\n')
+  .replace(/(## Methods\n## Methods\n\n## Description)/g, '## Description');
 
 const fixTypes = text => text.replace(
   /(::: signame |\*\*Returns\*\*:|\*\*See\*\*:|\*\*Emits\*\*:)( ?[^\n-]*)/g, 
@@ -79,8 +81,8 @@ const fixTypes = text => text.replace(
     let prefix = part;
 
   if (part === '::: signame ') {
-    prefix = '`';
-    suffix = '`';
+    prefix = '_';
+    suffix = '_';
   }
   const r = prefix + signame
     .replace(/([^\w`\[#])(`)?(IndexMapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./index-mapper/$4)')
@@ -107,10 +109,13 @@ const unescapeRedundant = text => text
   .replace(/`[^`\n]*`/g, m => // get all inline codes
     m.replace(/\&lt;/g, '<')
       .replace(/\&gt;/g, '>')
-      .replace(/\\\*/g, '*')
       .replace(/\.</g, '<')
+      .replace(/\\\*/g, '*')
+      .replace(/\\_/g, '_')
   )
-  .replace(/<\/ul>\./g, '</ul>'); // remove redundant dot, which eslint enforce to add after list closing tag.
+  .replace(/<\/ul>\./g, '</ul>') // remove redundant dot, which eslint enforce to add after list closing tag.
+  .replace(/&quot;&#x27;/g,'"')
+  .replace(/&#x27;&quot;/g,'"');
 
 const postProcessors = [
   fixLinks,
@@ -166,6 +171,7 @@ const applyPluginOptions = (data) => {
       return {
         ...option,
         isOption: true,
+        category: undefined,
         memberof: plugin // workaround to force print as a member.
       };
     }) ?? [];

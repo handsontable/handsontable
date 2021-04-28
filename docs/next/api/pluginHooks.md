@@ -16,7 +16,7 @@ editLink: false
 
 :::
 
-`afterAddChild(parent, element, index)`
+_afterAddChild(parent, element, index)_
 
 Fired by [NestedRows](./nested-rows/) plugin after adding a children to the NestedRows structure. This hook is fired when
 [Options#nestedRows](./options/#nestedrows) option is enabled.
@@ -36,7 +36,7 @@ Fired by [NestedRows](./nested-rows/) plugin after adding a children to the Nest
 
 :::
 
-`afterAutofill(start, end, data)`
+_afterAutofill(start, end, data)_
 
 Fired by [Autofill](./autofill/) plugin after populating the data in the autofill feature. This hook is fired when
 [Options#fillHandle](./options/#fillhandle) option is enabled.
@@ -57,7 +57,7 @@ Fired by [Autofill](./autofill/) plugin after populating the data in the autofil
 
 :::
 
-`afterBeginEditing(row, column)`
+_afterBeginEditing(row, column)_
 
 Fired after the editor is opened and rendered.
 
@@ -75,7 +75,7 @@ Fired after the editor is opened and rendered.
 
 :::
 
-`afterCellMetaReset`
+_afterCellMetaReset_
 
 Fired after resetting a cell's meta. This happens when the [Core#updateSettings](./core/#updatesettings) method is called.
 
@@ -87,7 +87,7 @@ Fired after resetting a cell's meta. This happens when the [Core#updateSettings]
 
 :::
 
-`afterChange(changes, [source])`
+_afterChange(changes, [source])_
 
 Fired after one or more cells has been changed. The changes are triggered in any situation when the
 value is entered using an editor or changed using API (e.q setDataAtCell).
@@ -118,7 +118,7 @@ new Handsontable(element, {
 
 :::
 
-`afterChangesObserved`
+_afterChangesObserved_
 
 Fired by [ObserveChanges](./observe-changes/) plugin after detecting changes in the data source. This hook is fired when
 [Options#observeChanges](./options/#observechanges) option is enabled.
@@ -131,7 +131,7 @@ Fired by [ObserveChanges](./observe-changes/) plugin after detecting changes in 
 
 :::
 
-`afterColumnCollapse(currentCollapsedColumns, destinationCollapsedColumns, collapsePossible, successfullyCollapsed)`
+_afterColumnCollapse(currentCollapsedColumns, destinationCollapsedColumns, collapsePossible, successfullyCollapsed)_
 
 Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns collapse. This hook is fired when [Options#collapsibleColumns](./options/#collapsiblecolumns) option is enabled.
 
@@ -152,7 +152,7 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns coll
 
 :::
 
-`afterColumnExpand(currentCollapsedColumns, destinationCollapsedColumns, expandPossible, successfullyExpanded)`
+_afterColumnExpand(currentCollapsedColumns, destinationCollapsedColumns, expandPossible, successfullyExpanded)_
 
 Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns expand. This hook is fired when [Options#collapsibleColumns](./options/#collapsiblecolumns) option is enabled.
 
@@ -173,7 +173,7 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns expa
 
 :::
 
-`afterColumnMove(movedColumns, finalIndex, dropIndex, movePossible, orderChanged)`
+_afterColumnMove(movedColumns, finalIndex, dropIndex, movePossible, orderChanged)_
 
 Fired by [ManualColumnMove](./manual-column-move/) plugin after changing order of the visual indexes. This hook is fired when
 [Options#manualColumnMove](./options/#manualcolumnmove) option is enabled.
@@ -195,7 +195,7 @@ Fired by [ManualColumnMove](./manual-column-move/) plugin after changing order o
 
 :::
 
-`afterColumnResize(newSize, column, isDoubleClick)`
+_afterColumnResize(newSize, column, isDoubleClick)_
 
 Fired by [ManualColumnResize](./manual-column-resize/) plugin after rendering the table with modified column sizes. This hook is
 fired when [Options#manualColumnResize](./options/#manualcolumnresize) option is enabled.
@@ -215,7 +215,7 @@ fired when [Options#manualColumnResize](./options/#manualcolumnresize) option is
 
 :::
 
-`afterColumnSort(currentSortConfig, destinationSortConfigs)`
+_afterColumnSort(currentSortConfig, destinationSortConfigs)_
 
 Fired by [ColumnSorting](./column-sorting/) and [MultiColumnSorting](./multi-column-sorting/) plugins after sorting the column. This hook is fired when [Options#columnSorting](./options/#columnsorting)
 or [Options#multiColumnSorting](./options/#multicolumnsorting) option is enabled.
@@ -234,7 +234,7 @@ or [Options#multiColumnSorting](./options/#multicolumnsorting) option is enabled
 
 :::
 
-`afterContextMenuDefaultOptions(predefinedItems)`
+_afterContextMenuDefaultOptions(predefinedItems)_
 
 Fired each time user opens [ContextMenu](./context-menu/) and after setting up the Context Menu's default options. These options are a collection
 which user can select by setting an array of keys or an array of objects in [Options#contextMenu](./options/#contextmenu) option.
@@ -252,7 +252,7 @@ which user can select by setting an array of keys or an array of objects in [Opt
 
 :::
 
-`afterContextMenuHide(context)`
+_afterContextMenuHide(context)_
 
 Fired by [ContextMenu](./context-menu/) plugin after hiding the Context Menu. This hook is fired when [Options#contextMenu](./options/#contextmenu)
 option is enabled.
@@ -270,7 +270,7 @@ option is enabled.
 
 :::
 
-`afterContextMenuShow(context)`
+_afterContextMenuShow(context)_
 
 Fired by [ContextMenu](./context-menu/) plugin after opening the Context Menu. This hook is fired when [Options#contextMenu](./options/#contextmenu)
 option is enabled.
@@ -288,7 +288,7 @@ option is enabled.
 
 :::
 
-`afterCopy(data, coords)`
+_afterCopy(data, coords)_
 
 Fired by [CopyPaste](./copy-paste/) plugin after data are pasted into table. This hook is fired when [Options#copyPaste](./options/#copypaste)
 option is enabled.
@@ -307,7 +307,7 @@ option is enabled.
 
 :::
 
-`afterCopyLimit(selectedRows, selectedColumns, copyRowsLimit, copyColumnsLimit)`
+_afterCopyLimit(selectedRows, selectedColumns, copyRowsLimit, copyColumnsLimit)_
 
 Fired by [CopyPaste](./copy-paste/) plugin after reaching the copy limit while copying data. This hook is fired when
 [Options#copyPaste](./options/#copypaste) option is enabled.
@@ -328,7 +328,7 @@ Fired by [CopyPaste](./copy-paste/) plugin after reaching the copy limit while c
 
 :::
 
-`afterCreateCol(index, amount, [source])`
+_afterCreateCol(index, amount, [source])_
 
 Fired after created a new column.
 
@@ -347,7 +347,7 @@ Fired after created a new column.
 
 :::
 
-`afterCreateRow(index, amount, [source])`
+_afterCreateRow(index, amount, [source])_
 
 Fired after created a new row.
 
@@ -366,7 +366,7 @@ Fired after created a new row.
 
 :::
 
-`afterCut(data, coords)`
+_afterCut(data, coords)_
 
 Fired by [CopyPaste](./copy-paste/) plugin after data was cut out from the table. This hook is fired when
 [Options#copyPaste](./options/#copypaste) option is enabled.
@@ -385,7 +385,7 @@ Fired by [CopyPaste](./copy-paste/) plugin after data was cut out from the table
 
 :::
 
-`afterDeselect`
+_afterDeselect_
 
 Fired after the current cell is deselected.
 
@@ -397,7 +397,7 @@ Fired after the current cell is deselected.
 
 :::
 
-`afterDestroy`
+_afterDestroy_
 
 Fired after destroying the Handsontable instance.
 
@@ -409,7 +409,7 @@ Fired after destroying the Handsontable instance.
 
 :::
 
-`afterDetachChild(parent, element)`
+_afterDetachChild(parent, element)_
 
 Fired by [NestedRows](./nested-rows/) plugin after detaching a child from its parent. This hook is fired when
 [Options#nestedRows](./options/#nestedrows) option is enabled.
@@ -428,7 +428,7 @@ Fired by [NestedRows](./nested-rows/) plugin after detaching a child from its pa
 
 :::
 
-`afterDocumentKeyDown(event)`
+_afterDocumentKeyDown(event)_
 
 General hook which captures `keydown` events attached to the document body. These events are delegated to the
 hooks system and consumed by Core and internal modules (e.g plugins, editors).
@@ -446,7 +446,7 @@ hooks system and consumed by Core and internal modules (e.g plugins, editors).
 
 :::
 
-`afterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel) ⇒ string | undefined`
+_afterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel) ⇒ string | undefined_
 
 Fired inside the Walkontable's selection `draw` method. Can be used to add additional class names to cells, depending on the current selection.
 
@@ -468,7 +468,7 @@ Fired inside the Walkontable's selection `draw` method. Can be used to add addit
 
 :::
 
-`afterDropdownMenuDefaultOptions(predefinedItems)`
+_afterDropdownMenuDefaultOptions(predefinedItems)_
 
 Fired by [DropdownMenu](./dropdown-menu/) plugin after setting up the Dropdown Menu's default options. These options are a
 collection which user can select by setting an array of keys or an array of objects in [Options#dropdownMenu](./options/#dropdownmenu)
@@ -487,7 +487,7 @@ option.
 
 :::
 
-`afterDropdownMenuHide(instance)`
+_afterDropdownMenuHide(instance)_
 
 Fired by [DropdownMenu](./dropdown-menu/) plugin after hiding the Dropdown Menu. This hook is fired when [Options#dropdownMenu](./options/#dropdownmenu)
 option is enabled.
@@ -505,7 +505,7 @@ option is enabled.
 
 :::
 
-`afterDropdownMenuShow(dropdownMenu)`
+_afterDropdownMenuShow(dropdownMenu)_
 
 Fired by [DropdownMenu](./dropdown-menu/) plugin after opening the Dropdown Menu. This hook is fired when [Options#dropdownMenu](./options/#dropdownmenu)
 option is enabled.
@@ -523,7 +523,7 @@ option is enabled.
 
 :::
 
-`afterFilter(conditionsStack)`
+_afterFilter(conditionsStack)_
 
 Fired by [Filters](./filters/) plugin after applying [filtering](https://handsontable.com/docs/demo-filtering.html). This hook is fired when
 [Options#filters](./options/#filters) option is enabled.
@@ -541,7 +541,7 @@ Fired by [Filters](./filters/) plugin after applying [filtering](https://handson
 
 :::
 
-`afterGetCellMeta(row, column, cellProperties)`
+_afterGetCellMeta(row, column, cellProperties)_
 
 Fired after getting the cell settings.
 
@@ -560,7 +560,7 @@ Fired after getting the cell settings.
 
 :::
 
-`afterGetColHeader(column, TH)`
+_afterGetColHeader(column, TH)_
 
 Fired after retrieving information about a column header and appending it to the table header.
 
@@ -578,7 +578,7 @@ Fired after retrieving information about a column header and appending it to the
 
 :::
 
-`afterGetColumnHeaderRenderers(renderers)`
+_afterGetColumnHeaderRenderers(renderers)_
 
 Fired after getting the column header renderers.
 
@@ -595,7 +595,7 @@ Fired after getting the column header renderers.
 
 :::
 
-`afterGetRowHeader(row, TH)`
+_afterGetRowHeader(row, TH)_
 
 Fired after retrieving information about a row header and appending it to the table header.
 
@@ -613,7 +613,7 @@ Fired after retrieving information about a row header and appending it to the ta
 
 :::
 
-`afterGetRowHeaderRenderers(renderers)`
+_afterGetRowHeaderRenderers(renderers)_
 
 Fired after getting the row header renderers.
 
@@ -630,7 +630,7 @@ Fired after getting the row header renderers.
 
 :::
 
-`afterHideColumns(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)`
+_afterHideColumns(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)_
 
 Fired by [HiddenColumns](./hidden-columns/) plugin after marking the columns as hidden. Fired only if the [Options#hiddenColumns](./options/#hiddencolumns) option is enabled.
 
@@ -650,7 +650,7 @@ Fired by [HiddenColumns](./hidden-columns/) plugin after marking the columns as 
 
 :::
 
-`afterHideRows(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)`
+_afterHideRows(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)_
 
 Fired by [HiddenRows](./hidden-rows/) plugin after marking the rows as hidden. Fired only if the [Options#hiddenRows](./options/#hiddenrows) option is enabled.
 
@@ -670,7 +670,7 @@ Fired by [HiddenRows](./hidden-rows/) plugin after marking the rows as hidden. F
 
 :::
 
-`afterInit`
+_afterInit_
 
 Fired after the Handsontable instance is initiated.
 
@@ -682,7 +682,7 @@ Fired after the Handsontable instance is initiated.
 
 :::
 
-`afterLanguageChange(languageCode)`
+_afterLanguageChange(languageCode)_
 
 Fired after successful change of language (when proper language code was set).
 
@@ -700,7 +700,7 @@ Fired after successful change of language (when proper language code was set).
 
 :::
 
-`afterListen`
+_afterListen_
 
 Fired after the table was switched into listening mode. This allows Handsontable to capture keyboard events and
 respond in the right way.
@@ -713,7 +713,7 @@ respond in the right way.
 
 :::
 
-`afterLoadData(sourceData, initialLoad)`
+_afterLoadData(sourceData, initialLoad)_
 
 Fired after new data is loaded (by `loadData` or `updateSettings` method) into the data source array.
 
@@ -731,7 +731,7 @@ Fired after new data is loaded (by `loadData` or `updateSettings` method) into t
 
 :::
 
-`afterMergeCells(cellRange, mergeParent, [auto])`
+_afterMergeCells(cellRange, mergeParent, [auto])_
 
 Fired by [MergeCells](./merge-cells/) plugin after cell merging. This hook is fired when [Options#mergeCells](./options/#mergecells)
 option is enabled.
@@ -751,7 +751,7 @@ option is enabled.
 
 :::
 
-`afterModifyTransformEnd(coords, rowTransformDir, colTransformDir)`
+_afterModifyTransformEnd(coords, rowTransformDir, colTransformDir)_
 
 Fired after the end of the selection is being modified (e.g. Moving the selection with the arrow keys).
 
@@ -770,7 +770,7 @@ Fired after the end of the selection is being modified (e.g. Moving the selectio
 
 :::
 
-`afterModifyTransformStart(coords, rowTransformDir, colTransformDir)`
+_afterModifyTransformStart(coords, rowTransformDir, colTransformDir)_
 
 Fired after the start of the selection is being modified (e.g. Moving the selection with the arrow keys).
 
@@ -789,7 +789,7 @@ Fired after the start of the selection is being modified (e.g. Moving the select
 
 :::
 
-`afterMomentumScroll`
+_afterMomentumScroll_
 
 Fired after a scroll event, which is identified as a momentum scroll (e.g. On an iPad).
 
@@ -801,7 +801,7 @@ Fired after a scroll event, which is identified as a momentum scroll (e.g. On an
 
 :::
 
-`afterOnCellContextMenu(event, coords, TD)`
+_afterOnCellContextMenu(event, coords, TD)_
 
 Fired after clicking right mouse button on a cell or row/column header.
 
@@ -824,7 +824,7 @@ with coordinates `{row: 0, col: -1}`.
 
 :::
 
-`afterOnCellCornerDblClick(event)`
+_afterOnCellCornerDblClick(event)_
 
 Fired after a `dblclick` event is triggered on the cell corner (the drag handle).
 
@@ -841,7 +841,7 @@ Fired after a `dblclick` event is triggered on the cell corner (the drag handle)
 
 :::
 
-`afterOnCellCornerMouseDown(event)`
+_afterOnCellCornerMouseDown(event)_
 
 Fired after a `mousedown` event is triggered on the cell corner (the drag handle).
 
@@ -858,7 +858,7 @@ Fired after a `mousedown` event is triggered on the cell corner (the drag handle
 
 :::
 
-`afterOnCellMouseDown(event, coords, TD)`
+_afterOnCellMouseDown(event, coords, TD)_
 
 Fired after clicking on a cell or row/column header. In case the row/column header was clicked, the coordinate
 indexes are negative.
@@ -881,7 +881,7 @@ with coordinates `{row: 0, col: -1}`.
 
 :::
 
-`afterOnCellMouseOut(event, coords, TD)`
+_afterOnCellMouseOut(event, coords, TD)_
 
 Fired after leaving a cell or row/column header with the mouse cursor.
 
@@ -900,7 +900,7 @@ Fired after leaving a cell or row/column header with the mouse cursor.
 
 :::
 
-`afterOnCellMouseOver(event, coords, TD)`
+_afterOnCellMouseOver(event, coords, TD)_
 
 Fired after hovering a cell or row/column header with the mouse cursor. In case the row/column header was
 hovered, the index is negative.
@@ -923,7 +923,7 @@ with coords `{row: 0, col: -1}`.
 
 :::
 
-`afterOnCellMouseUp(event, coords, TD)`
+_afterOnCellMouseUp(event, coords, TD)_
 
 Fired after clicking on a cell or row/column header. In case the row/column header was clicked, the coordinate
 indexes are negative.
@@ -946,7 +946,7 @@ with coordinates `{row: 0, col: -1}`.
 
 :::
 
-`afterPaste(data, coords)`
+_afterPaste(data, coords)_
 
 Fired by [CopyPaste](./copy-paste/) plugin after values are pasted into table. This hook is fired when
 [Options#copyPaste](./options/#copypaste) option is enabled.
@@ -965,7 +965,7 @@ Fired by [CopyPaste](./copy-paste/) plugin after values are pasted into table. T
 
 :::
 
-`afterPluginsInitialized`
+_afterPluginsInitialized_
 
 Fired after initializing all the plugins.
 This hook should be added before Handsontable is initialized.
@@ -982,7 +982,7 @@ Handsontable.hooks.add('afterPluginsInitialized', myCallback);
 
 :::
 
-`afterRedo(action)`
+_afterRedo(action)_
 
 Fired by [UndoRedo](./undo-redo/) plugin after the redo action. Contains information about the action that is being redone.
 This hook is fired when [Options#undo](./options/#undo) option is enabled.
@@ -1000,7 +1000,7 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 :::
 
-`afterRefreshDimensions(previousDimensions, currentDimensions, stateChanged)`
+_afterRefreshDimensions(previousDimensions, currentDimensions, stateChanged)_
 
 Fired after the window was resized.
 
@@ -1019,7 +1019,7 @@ Fired after the window was resized.
 
 :::
 
-`afterRemoveCellMeta(row, column, key, value)`
+_afterRemoveCellMeta(row, column, key, value)_
 
 Fired after cell meta is removed.
 
@@ -1039,7 +1039,7 @@ Fired after cell meta is removed.
 
 :::
 
-`afterRemoveCol(index, amount, physicalColumns, [source])`
+_afterRemoveCol(index, amount, physicalColumns, [source])_
 
 Fired after one or more columns are removed.
 
@@ -1059,7 +1059,7 @@ Fired after one or more columns are removed.
 
 :::
 
-`afterRemoveRow(index, amount, physicalRows, [source])`
+_afterRemoveRow(index, amount, physicalRows, [source])_
 
 Fired after one or more rows are removed.
 
@@ -1079,7 +1079,7 @@ Fired after one or more rows are removed.
 
 :::
 
-`afterRender(isForced)`
+_afterRender(isForced)_
 
 Fired after the Handsontable table is rendered.
 
@@ -1096,7 +1096,7 @@ Fired after the Handsontable table is rendered.
 
 :::
 
-`afterRenderer(TD, row, column, prop, value, cellProperties)`
+_afterRenderer(TD, row, column, prop, value, cellProperties)_
 
 Fired after finishing rendering the cell (after the renderer finishes).
 
@@ -1118,7 +1118,7 @@ Fired after finishing rendering the cell (after the renderer finishes).
 
 :::
 
-`afterRowMove(movedRows, finalIndex, dropIndex, movePossible, orderChanged)`
+_afterRowMove(movedRows, finalIndex, dropIndex, movePossible, orderChanged)_
 
 Fired by [ManualRowMove](./manual-row-move/) plugin after changing the order of the visual indexes. This hook is fired when
 [Options#manualRowMove](./options/#manualrowmove) option is enabled.
@@ -1140,7 +1140,7 @@ Fired by [ManualRowMove](./manual-row-move/) plugin after changing the order of 
 
 :::
 
-`afterRowResize(newSize, row, isDoubleClick)`
+_afterRowResize(newSize, row, isDoubleClick)_
 
 Fired by [ManualRowResize](./manual-row-resize/) plugin after rendering the table with modified row sizes. This hook is
 fired when [Options#manualRowResize](./options/#manualrowresize) option is enabled.
@@ -1160,7 +1160,7 @@ fired when [Options#manualRowResize](./options/#manualrowresize) option is enabl
 
 :::
 
-`afterScrollHorizontally`
+_afterScrollHorizontally_
 
 Fired after the horizontal scroll event.
 
@@ -1172,7 +1172,7 @@ Fired after the horizontal scroll event.
 
 :::
 
-`afterScrollVertically`
+_afterScrollVertically_
 
 Fired after the vertical scroll event.
 
@@ -1184,7 +1184,7 @@ Fired after the vertical scroll event.
 
 :::
 
-`afterSelection(row, column, row2, column2, preventScrolling, selectionLayerLevel)`
+_afterSelection(row, column, row2, column2, preventScrolling, selectionLayerLevel)_
 
 Fired after one or more cells are selected (e.g. During mouse move).
 
@@ -1215,7 +1215,7 @@ new Handsontable(element, {
 
 :::
 
-`afterSelectionByProp(row, prop, row2, prop2, preventScrolling, selectionLayerLevel)`
+_afterSelectionByProp(row, prop, row2, prop2, preventScrolling, selectionLayerLevel)_
 
 Fired after one or more cells are selected.
 
@@ -1248,7 +1248,7 @@ new Handsontable(element, {
 
 :::
 
-`afterSelectionEnd(row, column, row2, column2, selectionLayerLevel)`
+_afterSelectionEnd(row, column, row2, column2, selectionLayerLevel)_
 
 Fired after one or more cells are selected (e.g. On mouse up).
 
@@ -1269,7 +1269,7 @@ Fired after one or more cells are selected (e.g. On mouse up).
 
 :::
 
-`afterSelectionEndByProp(row, prop, row2, prop2, selectionLayerLevel)`
+_afterSelectionEndByProp(row, prop, row2, prop2, selectionLayerLevel)_
 
 Fired after one or more cells are selected (e.g. On mouse up).
 
@@ -1292,7 +1292,7 @@ The `prop` and `prop2` arguments represent the source object property name inste
 
 :::
 
-`afterSetCellMeta(row, column, key, value)`
+_afterSetCellMeta(row, column, key, value)_
 
 Fired after cell meta is changed.
 
@@ -1312,7 +1312,7 @@ Fired after cell meta is changed.
 
 :::
 
-`afterSetDataAtCell(changes, [source])`
+_afterSetDataAtCell(changes, [source])_
 
 Fired after cell data was changed.
 
@@ -1330,7 +1330,7 @@ Fired after cell data was changed.
 
 :::
 
-`afterSetDataAtRowProp(changes, [source])`
+_afterSetDataAtRowProp(changes, [source])_
 
 Fired after cell data was changed.
 Called only when `setDataAtRowProp` was executed.
@@ -1349,7 +1349,7 @@ Called only when `setDataAtRowProp` was executed.
 
 :::
 
-`afterSetSourceDataAtCell(changes, [source])`
+_afterSetSourceDataAtCell(changes, [source])_
 
 Fired after cell source data was changed.
 
@@ -1368,7 +1368,7 @@ Fired after cell source data was changed.
 
 :::
 
-`afterTrimRow(currentTrimConfig, destinationTrimConfig, actionPossible, stateChanged) ⇒ undefined | boolean`
+_afterTrimRow(currentTrimConfig, destinationTrimConfig, actionPossible, stateChanged) ⇒ undefined | boolean_
 
 Fired by [TrimRows](./trim-rows/) plugin after trimming rows. This hook is fired when [Options#trimRows](./options/#trimrows) option is enabled.
 
@@ -1389,7 +1389,7 @@ Fired by [TrimRows](./trim-rows/) plugin after trimming rows. This hook is fired
 
 :::
 
-`afterUndo(action)`
+_afterUndo(action)_
 
 Fired by [UndoRedo](./undo-redo/) plugin after the undo action. Contains information about the action that is being undone.
 This hook is fired when [Options#undo](./options/#undo) option is enabled.
@@ -1407,7 +1407,7 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 :::
 
-`afterUnhideColumns(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)`
+_afterUnhideColumns(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)_
 
 Fired by [HiddenColumns](./hidden-columns/) plugin after marking the columns as not hidden. Fired only if the [Options#hiddenColumns](./options/#hiddencolumns) option is enabled.
 
@@ -1427,7 +1427,7 @@ Fired by [HiddenColumns](./hidden-columns/) plugin after marking the columns as 
 
 :::
 
-`afterUnhideRows(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)`
+_afterUnhideRows(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)_
 
 Fired by [HiddenRows](./hidden-rows/) plugin after marking the rows as not hidden. Fired only if the [Options#hiddenRows](./options/#hiddenrows) option is enabled.
 
@@ -1447,7 +1447,7 @@ Fired by [HiddenRows](./hidden-rows/) plugin after marking the rows as not hidde
 
 :::
 
-`afterUnlisten`
+_afterUnlisten_
 
 Fired after the table was switched off from the listening mode. This makes the Handsontable inert for any
 keyboard events.
@@ -1460,7 +1460,7 @@ keyboard events.
 
 :::
 
-`afterUnmergeCells(cellRange, [auto])`
+_afterUnmergeCells(cellRange, [auto])_
 
 Fired by [MergeCells](./merge-cells/) plugin after unmerging the cells. This hook is fired when [Options#mergeCells](./options/#mergecells)
 option is enabled.
@@ -1479,7 +1479,7 @@ option is enabled.
 
 :::
 
-`afterUntrimRow(currentTrimConfig, destinationTrimConfig, actionPossible, stateChanged) ⇒ undefined | boolean`
+_afterUntrimRow(currentTrimConfig, destinationTrimConfig, actionPossible, stateChanged) ⇒ undefined | boolean_
 
 Fired by [TrimRows](./trim-rows/) plugin after untrimming rows. This hook is fired when [Options#trimRows](./options/#trimrows) option is enabled.
 
@@ -1500,7 +1500,7 @@ Fired by [TrimRows](./trim-rows/) plugin after untrimming rows. This hook is fir
 
 :::
 
-`afterUpdateSettings(newSettings)`
+_afterUpdateSettings(newSettings)_
 
 Fired after calling the `updateSettings` method.
 
@@ -1517,7 +1517,7 @@ Fired after calling the `updateSettings` method.
 
 :::
 
-`afterValidate(isValid, value, row, prop, [source]) ⇒ void | boolean`
+_afterValidate(isValid, value, row, prop, [source]) ⇒ void | boolean_
 
 A plugin hook executed after validator function, only if validator function is defined.
 Validation result is the first parameter. This can be used to determinate if validation passed successfully or not.
@@ -1542,7 +1542,7 @@ __Returning false from the callback will mark the cell as invalid__.
 
 :::
 
-`afterViewportColumnCalculatorOverride(calc)`
+_afterViewportColumnCalculatorOverride(calc)_
 
 Fired inside the `viewportColumnCalculatorOverride` method. Allows modifying the row calculator parameters.
 
@@ -1559,7 +1559,7 @@ Fired inside the `viewportColumnCalculatorOverride` method. Allows modifying the
 
 :::
 
-`afterViewportRowCalculatorOverride(calc)`
+_afterViewportRowCalculatorOverride(calc)_
 
 Fired inside the `viewportRowCalculatorOverride` method. Allows modifying the row calculator parameters.
 
@@ -1576,7 +1576,7 @@ Fired inside the `viewportRowCalculatorOverride` method. Allows modifying the ro
 
 :::
 
-`beforeAddChild(parent, element, index)`
+_beforeAddChild(parent, element, index)_
 
 Fired by [NestedRows](./nested-rows/) plugin before adding a children to the NestedRows structure. This hook is fired when
 [Options#nestedRows](./options/#nestedrows) option is enabled.
@@ -1596,7 +1596,7 @@ Fired by [NestedRows](./nested-rows/) plugin before adding a children to the Nes
 
 :::
 
-`beforeAutofill(start, end, data) ⇒ * | boolean`
+_beforeAutofill(start, end, data) ⇒ \* | boolean_
 
 Fired by [Autofill](./autofill/) plugin before populating the data in the autofill feature. This hook is fired when
 [Options#fillHandle](./options/#fillhandle) option is enabled.
@@ -1617,7 +1617,7 @@ Fired by [Autofill](./autofill/) plugin before populating the data in the autofi
 
 :::
 
-`beforeAutofillInsidePopulate(index, direction, input, deltas)`
+_beforeAutofillInsidePopulate(index, direction, input, deltas)_
 
 Fired from the `populateFromArray` method during the `autofill` process. Fired for each "autofilled" cell individually.
 
@@ -1637,7 +1637,7 @@ Fired from the `populateFromArray` method during the `autofill` process. Fired f
 
 :::
 
-`beforeCellAlignment(stateBefore, range, type, alignmentClass)`
+_beforeCellAlignment(stateBefore, range, type, alignmentClass)_
 
 Fired before aligning the cell contents.
 
@@ -1657,7 +1657,7 @@ Fired before aligning the cell contents.
 
 :::
 
-`beforeChange(changes, [source]) ⇒ void | boolean`
+_beforeChange(changes, [source]) ⇒ void | boolean_
 
 Fired before one or more cells is changed. Its main purpose is to alter changes silently after input and before
 table rendering.
@@ -1701,7 +1701,7 @@ new Handsontable(element, {
 
 :::
 
-`beforeChangeRender(changes, [source])`
+_beforeChangeRender(changes, [source])_
 
 Fired right before rendering the changes.
 
@@ -1719,7 +1719,7 @@ Fired right before rendering the changes.
 
 :::
 
-`beforeColumnCollapse(currentCollapsedColumns, destinationCollapsedColumns, collapsePossible) ⇒ undefined | boolean`
+_beforeColumnCollapse(currentCollapsedColumns, destinationCollapsedColumns, collapsePossible) ⇒ undefined | boolean_
 
 Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns collapse. This hook is fired when [Options#collapsibleColumns](./options/#collapsiblecolumns) option is enabled.
 
@@ -1740,7 +1740,7 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns coll
 
 :::
 
-`beforeColumnExpand(currentCollapsedColumns, destinationCollapsedColumns, expandPossible) ⇒ undefined | boolean`
+_beforeColumnExpand(currentCollapsedColumns, destinationCollapsedColumns, expandPossible) ⇒ undefined | boolean_
 
 Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns expand. This hook is fired when [Options#collapsibleColumns](./options/#collapsiblecolumns) option is enabled.
 
@@ -1761,7 +1761,7 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns expa
 
 :::
 
-`beforeColumnMove(movedColumns, finalIndex, dropIndex, movePossible) ⇒ void | boolean`
+_beforeColumnMove(movedColumns, finalIndex, dropIndex, movePossible) ⇒ void | boolean_
 
 Fired by [ManualColumnMove](./manual-column-move/) plugin before change order of the visual indexes. This hook is fired when
 [Options#manualColumnMove](./options/#manualcolumnmove) option is enabled.
@@ -1783,7 +1783,7 @@ Fired by [ManualColumnMove](./manual-column-move/) plugin before change order of
 
 :::
 
-`beforeColumnResize(newSize, column, isDoubleClick) ⇒ number`
+_beforeColumnResize(newSize, column, isDoubleClick) ⇒ number_
 
 Fired by [ManualColumnResize](./manual-column-resize/) plugin before rendering the table with modified column sizes. This hook is
 fired when [Options#manualColumnResize](./options/#manualcolumnresize) option is enabled.
@@ -1804,7 +1804,7 @@ fired when [Options#manualColumnResize](./options/#manualcolumnresize) option is
 
 :::
 
-`beforeColumnSort(currentSortConfig, destinationSortConfigs) ⇒ boolean | void`
+_beforeColumnSort(currentSortConfig, destinationSortConfigs) ⇒ boolean | void_
 
 Fired by [ColumnSorting](./column-sorting/) and [MultiColumnSorting](./multi-column-sorting/) plugins before sorting the column. If you return `false` value inside callback for hook, then sorting
 will be not applied by the Handsontable (useful for server-side sorting).
@@ -1826,7 +1826,7 @@ This hook is fired when [Options#columnSorting](./options/#columnsorting) or [Op
 
 :::
 
-`beforeContextMenuSetItems(menuItems)`
+_beforeContextMenuSetItems(menuItems)_
 
 Fired each time user opens [ContextMenu](./context-menu/) plugin before setting up the Context Menu's items but after filtering these options by
 user (`contextMenu` option). This hook can by helpful to determine if user use specified menu item or to set up
@@ -1845,7 +1845,7 @@ one of the menu item to by always visible.
 
 :::
 
-`beforeContextMenuShow(context)`
+_beforeContextMenuShow(context)_
 
 Fired by [ContextMenu](./context-menu/) plugin before opening the Context Menu. This hook is fired when [Options#contextMenu](./options/#context-menu)
 option is enabled.
@@ -1863,7 +1863,7 @@ option is enabled.
 
 :::
 
-`beforeCopy(data, coords) ⇒ *`
+_beforeCopy(data, coords) ⇒ \*_
 
 Fired before values are copied into clipboard.
 
@@ -1905,7 +1905,7 @@ new Handsontable(document.getElementById('example'), {
 
 :::
 
-`beforeCreateCol(index, amount, [source]) ⇒ *`
+_beforeCreateCol(index, amount, [source]) ⇒ \*_
 
 Fired before created a new column.
 
@@ -1934,7 +1934,7 @@ new Handsontable(element, {
 
 :::
 
-`beforeCreateRow(index, amount, [source]) ⇒ * | boolean`
+_beforeCreateRow(index, amount, [source]) ⇒ \* | boolean_
 
 Fired before created a new row.
 
@@ -1954,7 +1954,7 @@ Fired before created a new row.
 
 :::
 
-`beforeCut(data, coords) ⇒ *`
+_beforeCut(data, coords) ⇒ \*_
 
 Fired by [CopyPaste](./copy-paste/) plugin before copying the values into clipboard and before clearing values of
 the selected cells. This hook is fired when [Options#copyPaste](./options/#copypaste) option is enabled.
@@ -1992,7 +1992,7 @@ new Handsontable(element, {
 
 :::
 
-`beforeDetachChild(parent, element)`
+_beforeDetachChild(parent, element)_
 
 Fired by [NestedRows](./nested-rows/) plugin before detaching a child from its parent. This hook is fired when
 [Options#nestedRows](./options/#nestedrows) option is enabled.
@@ -2011,7 +2011,7 @@ Fired by [NestedRows](./nested-rows/) plugin before detaching a child from its p
 
 :::
 
-`beforeDrawBorders(corners, borderClassName)`
+_beforeDrawBorders(corners, borderClassName)_
 
 Fired before drawing the borders.
 
@@ -2029,7 +2029,7 @@ Fired before drawing the borders.
 
 :::
 
-`beforeDropdownMenuSetItems(menuItems)`
+_beforeDropdownMenuSetItems(menuItems)_
 
 Fired by [DropdownMenu](./dropdown-menu/) plugin before setting up the Dropdown Menu's items but after filtering these options
 by user (`dropdownMenu` option). This hook can by helpful to determine if user use specified menu item or to set
@@ -2048,7 +2048,7 @@ up one of the menu item to by always visible.
 
 :::
 
-`beforeDropdownMenuShow(dropdownMenu)`
+_beforeDropdownMenuShow(dropdownMenu)_
 
 Fired by [DropdownMenu](./dropdown-menu/) plugin before opening the dropdown menu. This hook is fired when [Options#dropdownMenu](./options/#dropdownmenu)
 option is enabled.
@@ -2066,7 +2066,7 @@ option is enabled.
 
 :::
 
-`beforeFilter(conditionsStack) ⇒ boolean`
+_beforeFilter(conditionsStack) ⇒ boolean_
 
 Fired by [Filters](./filters/) plugin before applying [filtering](https://handsontable.com/docs/demo-filtering.html). This hook is fired when
 [Options#filters](./options/#filters) option is enabled.
@@ -2085,7 +2085,7 @@ Fired by [Filters](./filters/) plugin before applying [filtering](https://handso
 
 :::
 
-`beforeGetCellMeta(row, column, cellProperties)`
+_beforeGetCellMeta(row, column, cellProperties)_
 
 Fired before getting cell settings.
 
@@ -2104,7 +2104,7 @@ Fired before getting cell settings.
 
 :::
 
-`beforeHideColumns(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean`
+_beforeHideColumns(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean_
 
 Fired by [HiddenColumns](./hidden-columns/) plugin before marking the columns as hidden. Fired only if the [Options#hiddenColumns](./options/#hiddencolumns) option is enabled.
 Returning `false` in the callback will prevent the hiding action from completing.
@@ -2125,7 +2125,7 @@ Returning `false` in the callback will prevent the hiding action from completing
 
 :::
 
-`beforeHideRows(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean`
+_beforeHideRows(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean_
 
 Fired by [HiddenRows](./hidden-rows/) plugin before marking the rows as hidden. Fired only if the [Options#hiddenRows](./options/#hiddenrows) option is enabled.
 Returning `false` in the callback will prevent the hiding action from completing.
@@ -2146,7 +2146,7 @@ Returning `false` in the callback will prevent the hiding action from completing
 
 :::
 
-`beforeInit`
+_beforeInit_
 
 Fired before the Handsontable instance is initiated.
 
@@ -2158,7 +2158,7 @@ Fired before the Handsontable instance is initiated.
 
 :::
 
-`beforeInitWalkontable(walkontableConfig)`
+_beforeInitWalkontable(walkontableConfig)_
 
 Fired before the Walkontable instance is initiated.
 
@@ -2175,7 +2175,7 @@ Fired before the Walkontable instance is initiated.
 
 :::
 
-`beforeKeyDown(event)`
+_beforeKeyDown(event)_
 
 Fired before keydown event is handled. It can be used to overwrite default key bindings.
 
@@ -2195,7 +2195,7 @@ handler.
 
 :::
 
-`beforeLanguageChange(languageCode)`
+_beforeLanguageChange(languageCode)_
 
 Fired before successful change of language (when proper language code was set).
 
@@ -2213,7 +2213,7 @@ Fired before successful change of language (when proper language code was set).
 
 :::
 
-`beforeLoadData(sourceData, initialLoad)`
+_beforeLoadData(sourceData, initialLoad)_
 
 Fired before new data is loaded (by `loadData` or `updateSettings` method) into the data source array.
 
@@ -2232,7 +2232,7 @@ Fired before new data is loaded (by `loadData` or `updateSettings` method) into 
 
 :::
 
-`beforeMergeCells(cellRange, [auto])`
+_beforeMergeCells(cellRange, [auto])_
 
 Fired by [MergeCells](./merge-cells/) plugin before cell merging. This hook is fired when [Options#mergeCells](./options/#mergecells)
 option is enabled.
@@ -2251,7 +2251,7 @@ option is enabled.
 
 :::
 
-`beforeOnCellContextMenu(event, coords, TD)`
+_beforeOnCellContextMenu(event, coords, TD)_
 
 Fired after the user clicked a cell, but before all the calculations related with it.
 
@@ -2271,7 +2271,7 @@ Fired after the user clicked a cell, but before all the calculations related wit
 
 :::
 
-`beforeOnCellMouseDown(event, coords, TD, controller)`
+_beforeOnCellMouseDown(event, coords, TD, controller)_
 
 Fired after the user clicked a cell, but before all the calculations related with it.
 
@@ -2291,7 +2291,7 @@ Fired after the user clicked a cell, but before all the calculations related wit
 
 :::
 
-`beforeOnCellMouseOut(event, coords, TD)`
+_beforeOnCellMouseOut(event, coords, TD)_
 
 Fired after the user moved cursor out from a cell, but before all the calculations related with it.
 
@@ -2310,7 +2310,7 @@ Fired after the user moved cursor out from a cell, but before all the calculatio
 
 :::
 
-`beforeOnCellMouseOver(event, coords, TD, controller)`
+_beforeOnCellMouseOver(event, coords, TD, controller)_
 
 Fired after the user moved cursor over a cell, but before all the calculations related with it.
 
@@ -2330,7 +2330,7 @@ Fired after the user moved cursor over a cell, but before all the calculations r
 
 :::
 
-`beforeOnCellMouseUp(event, coords, TD)`
+_beforeOnCellMouseUp(event, coords, TD)_
 
 Fired after the user clicked a cell.
 
@@ -2349,7 +2349,7 @@ Fired after the user clicked a cell.
 
 :::
 
-`beforePaste(data, coords) ⇒ *`
+_beforePaste(data, coords) ⇒ \*_
 
 Fired by [CopyPaste](./copy-paste/) plugin before values are pasted into table. This hook is fired when
 [Options#copyPaste](./options/#copypaste) option is enabled.
@@ -2387,7 +2387,7 @@ new Handsontable(example, {
 
 :::
 
-`beforeRedo(action) ⇒ * | boolean`
+_beforeRedo(action) ⇒ \* | boolean_
 
 Fired by [UndoRedo](./undo-redo/) plugin before the redo action. Contains information about the action that is being redone.
 This hook is fired when [Options#undo](./options/#undo) option is enabled.
@@ -2406,7 +2406,7 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 :::
 
-`beforeRefreshDimensions(previousDimensions, currentDimensions, actionPossible) ⇒ undefined | boolean`
+_beforeRefreshDimensions(previousDimensions, currentDimensions, actionPossible) ⇒ undefined | boolean_
 
 Cancellable hook, called after resizing a window, but before redrawing a table.
 
@@ -2426,7 +2426,7 @@ Cancellable hook, called after resizing a window, but before redrawing a table.
 
 :::
 
-`beforeRemoveCellClassNames ⇒ Array<string> | undefined`
+_beforeRemoveCellClassNames ⇒ Array&lt;string&gt; | undefined_
 
 Fired inside the Walkontable's `refreshSelections` method. Can be used to remove additional class names from all cells in the table.
 
@@ -2440,7 +2440,7 @@ Fired inside the Walkontable's `refreshSelections` method. Can be used to remove
 
 :::
 
-`beforeRemoveCellMeta(row, column, key, value) ⇒ * | boolean`
+_beforeRemoveCellMeta(row, column, key, value) ⇒ \* | boolean_
 
 Fired before cell meta is removed.
 
@@ -2461,7 +2461,7 @@ Fired before cell meta is removed.
 
 :::
 
-`beforeRemoveCol(index, amount, physicalColumns, [source]) ⇒ * | boolean`
+_beforeRemoveCol(index, amount, physicalColumns, [source]) ⇒ \* | boolean_
 
 Fired before one or more columns are about to be removed.
 
@@ -2482,7 +2482,7 @@ Fired before one or more columns are about to be removed.
 
 :::
 
-`beforeRemoveRow(index, amount, physicalRows, [source]) ⇒ * | boolean`
+_beforeRemoveRow(index, amount, physicalRows, [source]) ⇒ \* | boolean_
 
 Fired when one or more rows are about to be removed.
 
@@ -2503,7 +2503,7 @@ Fired when one or more rows are about to be removed.
 
 :::
 
-`beforeRender(isForced, skipRender)`
+_beforeRender(isForced, skipRender)_
 
 Fired before the Handsontable table is rendered.
 
@@ -2521,7 +2521,7 @@ Fired before the Handsontable table is rendered.
 
 :::
 
-`beforeRenderer(TD, row, column, prop, value, cellProperties)`
+_beforeRenderer(TD, row, column, prop, value, cellProperties)_
 
 Fired before starting rendering the cell.
 
@@ -2543,7 +2543,7 @@ Fired before starting rendering the cell.
 
 :::
 
-`beforeRowMove(movedRows, finalIndex, dropIndex, movePossible) ⇒ * | boolean`
+_beforeRowMove(movedRows, finalIndex, dropIndex, movePossible) ⇒ \* | boolean_
 
 Fired by [ManualRowMove](./manual-row-move/) plugin before changing the order of the visual indexes. This hook is fired when
 [Options#manualRowMove](./options/#manualrowmove) option is enabled.
@@ -2565,7 +2565,7 @@ Fired by [ManualRowMove](./manual-row-move/) plugin before changing the order of
 
 :::
 
-`beforeRowResize(newSize, row, isDoubleClick) ⇒ number`
+_beforeRowResize(newSize, row, isDoubleClick) ⇒ number_
 
 Fired by [ManualRowResize](./manual-row-resize/) plugin before rendering the table with modified row sizes. This hook is
 fired when [Options#manualRowResize](./options/#manualrowresize) option is enabled.
@@ -2586,7 +2586,7 @@ fired when [Options#manualRowResize](./options/#manualrowresize) option is enabl
 
 :::
 
-`beforeSetCellMeta(row, column, key, value) ⇒ * | boolean`
+_beforeSetCellMeta(row, column, key, value) ⇒ \* | boolean_
 
 Fired before cell meta is changed.
 
@@ -2608,7 +2608,7 @@ Fired before cell meta is changed.
 
 :::
 
-`beforeSetRangeEnd(coords)`
+_beforeSetRangeEnd(coords)_
 
 Fired before setting range is ended.
 
@@ -2625,7 +2625,7 @@ Fired before setting range is ended.
 
 :::
 
-`beforeSetRangeStart(coords)`
+_beforeSetRangeStart(coords)_
 
 Fired before setting range is started.
 
@@ -2642,7 +2642,7 @@ Fired before setting range is started.
 
 :::
 
-`beforeSetRangeStartOnly(coords)`
+_beforeSetRangeStartOnly(coords)_
 
 Fired before setting range is started but not finished yet.
 
@@ -2659,7 +2659,7 @@ Fired before setting range is started but not finished yet.
 
 :::
 
-`beforeStretchingColumnWidth(stretchedWidth, column) ⇒ number`
+_beforeStretchingColumnWidth(stretchedWidth, column) ⇒ number_
 
 Fired before applying stretched column width to column.
 
@@ -2678,7 +2678,7 @@ Fired before applying stretched column width to column.
 
 :::
 
-`beforeTouchScroll`
+_beforeTouchScroll_
 
 Fired before the logic of handling a touch scroll, when user started scrolling on a touch-enabled device.
 
@@ -2690,7 +2690,7 @@ Fired before the logic of handling a touch scroll, when user started scrolling o
 
 :::
 
-`beforeTrimRow(currentTrimConfig, destinationTrimConfig, actionPossible) ⇒ undefined | boolean`
+_beforeTrimRow(currentTrimConfig, destinationTrimConfig, actionPossible) ⇒ undefined | boolean_
 
 Fired by [TrimRows](./trim-rows/) plugin before trimming rows. This hook is fired when [Options#trimRows](./options/#trimrows) option is enabled.
 
@@ -2710,7 +2710,7 @@ Fired by [TrimRows](./trim-rows/) plugin before trimming rows. This hook is fire
 
 :::
 
-`beforeUndo(action) ⇒ * | boolean`
+_beforeUndo(action) ⇒ \* | boolean_
 
 Fired by [UndoRedo](./undo-redo/) plugin before the undo action. Contains information about the action that is being undone.
 This hook is fired when [Options#undo](./options/#undo) option is enabled.
@@ -2729,7 +2729,7 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 :::
 
-`beforeUnhideColumns(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean`
+_beforeUnhideColumns(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean_
 
 Fired by [HiddenColumns](./hidden-columns/) plugin before marking the columns as not hidden. Fired only if the [Options#hiddenColumns](./options/#hiddencolumns) option is enabled.
 Returning `false` in the callback will prevent the column revealing action from completing.
@@ -2750,7 +2750,7 @@ Returning `false` in the callback will prevent the column revealing action from 
 
 :::
 
-`beforeUnhideRows(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean`
+_beforeUnhideRows(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean_
 
 Fired by [HiddenRows](./hidden-rows/) plugin before marking the rows as not hidden. Fired only if the [Options#hiddenRows](./options/#hiddenrows) option is enabled.
 Returning `false` in the callback will prevent the row revealing action from completing.
@@ -2771,7 +2771,7 @@ Returning `false` in the callback will prevent the row revealing action from com
 
 :::
 
-`beforeUnmergeCells(cellRange, [auto])`
+_beforeUnmergeCells(cellRange, [auto])_
 
 Fired by [MergeCells](./merge-cells/) plugin before unmerging the cells. This hook is fired when [Options#mergeCells](./options/#mergecells)
 option is enabled.
@@ -2790,7 +2790,7 @@ option is enabled.
 
 :::
 
-`beforeUntrimRow(currentTrimConfig, destinationTrimConfig, actionPossible) ⇒ undefined | boolean`
+_beforeUntrimRow(currentTrimConfig, destinationTrimConfig, actionPossible) ⇒ undefined | boolean_
 
 Fired by [TrimRows](./trim-rows/) plugin before untrimming rows. This hook is fired when [Options#trimRows](./options/#trimrows) option is enabled.
 
@@ -2810,7 +2810,7 @@ Fired by [TrimRows](./trim-rows/) plugin before untrimming rows. This hook is fi
 
 :::
 
-`beforeValidate(value, row, prop, [source])`
+_beforeValidate(value, row, prop, [source])_
 
 Fired before cell validation, only if validator function is defined. This can be used to manipulate the value
 of changed cell before it is applied to the validator function.
@@ -2833,7 +2833,7 @@ __Note:__ this will not affect values of changes. This will change value *ONLY* 
 
 :::
 
-`beforeValueRender(value, cellProperties)`
+_beforeValueRender(value, cellProperties)_
 
 Fired before cell value is rendered into the DOM (through renderer function). This can be used to manipulate the
 value which is passed to the renderer without modifying the renderer itself.
@@ -2852,7 +2852,7 @@ value which is passed to the renderer without modifying the renderer itself.
 
 :::
 
-`construct`
+_construct_
 
 Fired after Handsontable instance is constructed (using `new` operator).
 
@@ -2864,7 +2864,7 @@ Fired after Handsontable instance is constructed (using `new` operator).
 
 :::
 
-`init`
+_init_
 
 Fired after Handsontable instance is initiated but before table is rendered.
 
@@ -2876,7 +2876,7 @@ Fired after Handsontable instance is initiated but before table is rendered.
 
 :::
 
-`modifyAutoColumnSizeSeed(seed, cellProperties, cellValue)`
+_modifyAutoColumnSizeSeed(seed, cellProperties, cellValue)_
 
 Fired by [AutoColumnSize](./AutoColumnSize/) plugin within [SampleGenerator](./SampleGenerator/) utility.
 
@@ -2896,7 +2896,7 @@ Fired by [AutoColumnSize](./AutoColumnSize/) plugin within [SampleGenerator](./S
 
 :::
 
-`modifyAutofillRange(startArea, entireArea)`
+_modifyAutofillRange(startArea, entireArea)_
 
 Fired by [Autofill](./autofill/) plugin after setting range of autofill. This hook is fired when [Options#fillHandle](./options/#fillhandle)
 option is enabled.
@@ -2915,7 +2915,7 @@ option is enabled.
 
 :::
 
-`modifyColHeader(column)`
+_modifyColHeader(column)_
 
 Fired when a column header index is about to be modified by a callback function.
 
@@ -2932,7 +2932,7 @@ Fired when a column header index is about to be modified by a callback function.
 
 :::
 
-`modifyColumnHeaderHeight`
+_modifyColumnHeaderHeight_
 
 Fired while retrieving the column header height.
 
@@ -2944,7 +2944,7 @@ Fired while retrieving the column header height.
 
 :::
 
-`modifyColWidth(width, column)`
+_modifyColWidth(width, column)_
 
 Fired when a column width is about to be modified by a callback function.
 
@@ -2962,7 +2962,7 @@ Fired when a column width is about to be modified by a callback function.
 
 :::
 
-`modifyCopyableRange(copyableRanges)`
+_modifyCopyableRange(copyableRanges)_
 
 Fired to allow modifying the copyable range with a callback function.
 
@@ -2979,7 +2979,7 @@ Fired to allow modifying the copyable range with a callback function.
 
 :::
 
-`modifyData(row, column, valueHolder, ioMode)`
+_modifyData(row, column, valueHolder, ioMode)_
 
 Fired when a data was retrieved or modified.
 
@@ -2999,7 +2999,7 @@ Fired when a data was retrieved or modified.
 
 :::
 
-`modifyGetCellCoords(row, column, topmost)`
+_modifyGetCellCoords(row, column, topmost)_
 
 Used to modify the cell coordinates when using the `getCell` method, opening editor, getting value from the editor
 and saving values from the closed editor.
@@ -3020,7 +3020,7 @@ and saving values from the closed editor.
 
 :::
 
-`modifyRowData(row)`
+_modifyRowData(row)_
 
 Fired when a data was retrieved or modified.
 
@@ -3037,7 +3037,7 @@ Fired when a data was retrieved or modified.
 
 :::
 
-`modifyRowHeader(row)`
+_modifyRowHeader(row)_
 
 Fired when a row header index is about to be modified by a callback function.
 
@@ -3054,7 +3054,7 @@ Fired when a row header index is about to be modified by a callback function.
 
 :::
 
-`modifyRowHeaderWidth(rowHeaderWidth)`
+_modifyRowHeaderWidth(rowHeaderWidth)_
 
 Fired while retrieving the row header width.
 
@@ -3071,7 +3071,7 @@ Fired while retrieving the row header width.
 
 :::
 
-`modifyRowHeight(height, row)`
+_modifyRowHeight(height, row)_
 
 Fired when a row height is about to be modified by a callback function.
 
@@ -3089,7 +3089,7 @@ Fired when a row height is about to be modified by a callback function.
 
 :::
 
-`modifySourceData(row, column, valueHolder, ioMode)`
+_modifySourceData(row, column, valueHolder, ioMode)_
 
 Fired when a data was retrieved or modified from the source data set.
 
@@ -3110,7 +3110,7 @@ Fired when a data was retrieved or modified from the source data set.
 
 :::
 
-`modifyTransformEnd(delta)`
+_modifyTransformEnd(delta)_
 
 Fired when the end of the selection is being modified (e.g. Moving the selection with the arrow keys).
 
@@ -3127,7 +3127,7 @@ Fired when the end of the selection is being modified (e.g. Moving the selection
 
 :::
 
-`modifyTransformStart(delta)`
+_modifyTransformStart(delta)_
 
 Fired when the start of the selection is being modified (e.g. Moving the selection with the arrow keys).
 
@@ -3144,7 +3144,7 @@ Fired when the start of the selection is being modified (e.g. Moving the selecti
 
 :::
 
-`persistentStateLoad(key, valuePlaceholder)`
+_persistentStateLoad(key, valuePlaceholder)_
 
 Fired by [PersistentState](./persistent-state/) plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
 [Options#persistentState](./options/#persistentstate) option is enabled.
@@ -3163,7 +3163,7 @@ Fired by [PersistentState](./persistent-state/) plugin, after loading value, sav
 
 :::
 
-`persistentStateReset([key])`
+_persistentStateReset([key])_
 
 Fired by [PersistentState](./persistent-state/) plugin after resetting data from local storage. If no key is given, all values associated with table will be cleared.
 This hook is fired when [Options#persistentState](./options/#persistentstate) option is enabled.
@@ -3181,7 +3181,7 @@ This hook is fired when [Options#persistentState](./options/#persistentstate) op
 
 :::
 
-`persistentStateSave(key, value)`
+_persistentStateSave(key, value)_
 
 Fired by [PersistentState](./persistent-state/) plugin, after saving value under given key in browser local storage. This hook is fired when
 [Options#persistentState](./options/#persistentstate) option is enabled.
@@ -3201,7 +3201,7 @@ Fired by [PersistentState](./persistent-state/) plugin, after saving value under
 
 :::
 
-`hooks.add(key, callback, [context]) ⇒ [Hooks](./hooks/)`
+_hooks.add(key, callback, [context]) ⇒ [Hooks](./hooks/)_
 
 Adds a listener (globally or locally) to a specified hook name.
 If the `context` parameter is provided, the hook will be added only to the instance it references.
@@ -3240,7 +3240,7 @@ Handsontable.hooks.add('beforeInit', [myCallback, anotherCallback]);
 
 :::
 
-`hooks.createEmptyBucket() ⇒ object`
+_hooks.createEmptyBucket() ⇒ object_
 
 Returns a new object with empty handlers related to every registered hook name.
 
@@ -3265,7 +3265,7 @@ beforeInit: [],
 
 :::
 
-`hooks.deregister(key)`
+_hooks.deregister(key)_
 
 Deregisters a hook name (removes it from the list of known hook names).
 
@@ -3286,7 +3286,7 @@ Handsontable.hooks.deregister('myHook');
 
 :::
 
-`hooks.destroy([context])`
+_hooks.destroy([context])_
 
 Destroy all listeners connected to the context. If no context is provided, the global listeners will be destroyed.
 
@@ -3311,7 +3311,7 @@ Handsontable.hooks.destroy(hotInstance);
 
 :::
 
-`hooks.getBucket([context]) ⇒ object`
+_hooks.getBucket([context]) ⇒ object_
 
 Get hook bucket based on the context of the object or if argument is `undefined`, get the global hook bucket.
 
@@ -3329,7 +3329,7 @@ Get hook bucket based on the context of the object or if argument is `undefined`
 
 :::
 
-`hooks.getRegistered() ⇒ Array`
+_hooks.getRegistered() ⇒ Array_
 
 Returns an array of registered hooks.
 
@@ -3357,7 +3357,7 @@ Handsontable.hooks.getRegistered();
 
 :::
 
-`hooks.has(key, [context]) ⇒ boolean`
+_hooks.has(key, [context]) ⇒ boolean_
 
 Checks whether there are any registered listeners for the provided hook name.
 If the `context` parameter is provided, it only checks for listeners assigned to the given Handsontable instance.
@@ -3377,7 +3377,7 @@ If the `context` parameter is provided, it only checks for listeners assigned to
 
 :::
 
-`hooks.isDeprecated(hookName) ⇒ boolean`
+_hooks.isDeprecated(hookName) ⇒ boolean_
 
 Returns a boolean value depending on if a hook by such name has been removed or deprecated.
 
@@ -3403,7 +3403,7 @@ removed from API, `false` otherwise.
 
 :::
 
-`hooks.isRegistered(hookName) ⇒ boolean`
+_hooks.isRegistered(hookName) ⇒ boolean_
 
 Returns a boolean depending on if a hook by such name has been registered.
 
@@ -3428,7 +3428,7 @@ true
 
 :::
 
-`hooks.once(key, callback, [context])`
+_hooks.once(key, callback, [context])_
 
 Adds a listener to a specified hook. After the hook runs this listener will be automatically removed from the bucket.
 
@@ -3452,7 +3452,7 @@ Handsontable.hooks.once('beforeInit', myCallback, hotInstance);
 
 :::
 
-`hooks.register(key)`
+_hooks.register(key)_
 
 Registers a hook name (adds it to the list of the known hook names). Used by plugins.
 It is not necessary to call register, but if you use it, your plugin hook will be used returned by
@@ -3475,7 +3475,7 @@ Handsontable.hooks.register('myHook');
 
 :::
 
-`hooks.remove(key, callback, [context]) ⇒ boolean`
+_hooks.remove(key, callback, [context]) ⇒ boolean_
 
 Removes a listener from a hook with a given name. If the `context` argument is provided, it removes a listener from a local hook assigned to the given Handsontable instance.
 
@@ -3500,7 +3500,7 @@ Handsontable.hooks.remove('beforeInit', myCallback);
 
 :::
 
-`hooks.run(context, key, [p1], [p2], [p3], [p4], [p5], [p6]) ⇒ *`
+_hooks.run(context, key, [p1], [p2], [p3], [p4], [p5], [p6]) ⇒ \*_
 
 Runs all local and global callbacks assigned to the hook identified by the `key` parameter.
 It returns either a return value from the last called callback or the first parameter (`p1`) passed to the `run` function.

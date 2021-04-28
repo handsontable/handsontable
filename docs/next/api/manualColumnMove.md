@@ -36,12 +36,11 @@ The plugin creates additional components to make moving possibly using user inte
 
 :::
 
-`manualColumnMove.manualColumnMove : boolean | Array<number>`
+_manualColumnMove.manualColumnMove : boolean | Array&lt;number&gt;_
 
 Turns on [Manual column move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial column order (as an array of column indexes).
 
 **Default**: <code>undefined</code>  
-**Category**: [ManualColumnMove](../manual-column-move)  
 **Example**  
 ```js
 // as a boolean to enable column move
@@ -56,11 +55,11 @@ manualColumnMove: [1, 4],
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L724
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L725
 
 :::
 
-`manualColumnMove.destroy()`
+_manualColumnMove.destroy()_
 
 Destroys the plugin instance.
 
@@ -68,11 +67,11 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L147
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L148
 
 :::
 
-`manualColumnMove.disablePlugin()`
+_manualColumnMove.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
@@ -80,11 +79,11 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### dragColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L214
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L215
 
 :::
 
-`manualColumnMove.dragColumn(column, dropIndex) ⇒ boolean`
+_manualColumnMove.dragColumn(column, dropIndex) ⇒ boolean_
 
 Drag a single column to drop index position.
 
@@ -99,11 +98,11 @@ Drag a single column to drop index position.
 
 ### dragColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L228
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L229
 
 :::
 
-`manualColumnMove.dragColumns(columns, dropIndex) ⇒ boolean`
+_manualColumnMove.dragColumns(columns, dropIndex) ⇒ boolean_
 
 Drag multiple columns to drop index position.
 
@@ -118,11 +117,11 @@ Drag multiple columns to drop index position.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L111
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L112
 
 :::
 
-`manualColumnMove.enablePlugin()`
+_manualColumnMove.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
@@ -130,11 +129,11 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L104
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L105
 
 :::
 
-`manualColumnMove.isEnabled() ⇒ boolean`
+_manualColumnMove.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeInit)
 hook and if it returns `true` than the [ManualColumnMove#enablePlugin](./manual-column-move/#enableplugin) method is called.
@@ -143,11 +142,11 @@ hook and if it returns `true` than the [ManualColumnMove#enablePlugin](./manual-
 
 ### isMovePossible
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L245
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L246
 
 :::
 
-`manualColumnMove.isMovePossible(movedColumns, finalIndex) ⇒ boolean`
+_manualColumnMove.isMovePossible(movedColumns, finalIndex) ⇒ boolean_
 
 Indicates if it's possible to move columns to the desired position. Some of the actions aren't possible, i.e. You can’t move more than one element to the last position.
 
@@ -161,11 +160,11 @@ Indicates if it's possible to move columns to the desired position. Some of the 
 
 ### moveColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L167
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L168
 
 :::
 
-`manualColumnMove.moveColumn(column, finalIndex) ⇒ boolean`
+_manualColumnMove.moveColumn(column, finalIndex) ⇒ boolean_
 
 Moves a single column.
 
@@ -180,11 +179,11 @@ Moves a single column.
 
 ### moveColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L181
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L182
 
 :::
 
-`manualColumnMove.moveColumns(columns, finalIndex) ⇒ boolean`
+_manualColumnMove.moveColumns(columns, finalIndex) ⇒ boolean_
 
 Moves a multiple columns.
 
@@ -199,11 +198,11 @@ Moves a multiple columns.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L135
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L136
 
 :::
 
-`manualColumnMove.updatePlugin()`
+_manualColumnMove.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./core/#updatesettings) is invoked.
 

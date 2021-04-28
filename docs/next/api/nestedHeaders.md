@@ -41,14 +41,13 @@ const hot = new Handsontable(container, {
 
 :::
 
-`nestedHeaders.nestedHeaders : Array<Array>`
+_nestedHeaders.nestedHeaders : Array&lt;Array&gt;_
 
 Allows creating a nested header structure, using the HTML's colspan attribute.
 
 **Default**: <code>undefined</code>  
-**Category**: [NestedHeaders](../nested-headers)  
 **Example**  
-```
+```js
 nestedHeaders: [
   ['A', {label: 'B', colspan: 8}, 'C'],
   ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
@@ -60,11 +59,11 @@ nestedHeaders: [
 
 ### detectedOverlappedHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L73
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L75
 
 :::
 
-`nestedHeaders.detectedOverlappedHeaders : boolean`
+_nestedHeaders.detectedOverlappedHeaders : boolean_
 
 The flag which determines that the nested header settings contains overlapping headers
 configuration.
@@ -74,11 +73,11 @@ configuration.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L547
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L549
 
 :::
 
-`nestedHeaders.destroy()`
+_nestedHeaders.destroy()_
 
 Destroys the plugin instance.
 
@@ -86,11 +85,11 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L140
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L142
 
 :::
 
-`nestedHeaders.disablePlugin()`
+_nestedHeaders.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
@@ -98,11 +97,11 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L87
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L89
 
 :::
 
-`nestedHeaders.enablePlugin()`
+_nestedHeaders.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
@@ -110,11 +109,11 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L80
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L82
 
 :::
 
-`nestedHeaders.isEnabled() ⇒ boolean`
+_nestedHeaders.isEnabled() ⇒ boolean_
 
 Check if plugin is enabled.
 
@@ -122,11 +121,11 @@ Check if plugin is enabled.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L115
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L117
 
 :::
 
-`nestedHeaders.updatePlugin()`
+_nestedHeaders.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

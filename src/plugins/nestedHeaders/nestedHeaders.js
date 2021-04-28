@@ -18,6 +18,8 @@ export const PLUGIN_PRIORITY = 280;
 
 /**
  * @plugin NestedHeaders
+ * @class NestedHeaders
+ *
  * @description
  * The plugin allows to create a nested header structure, using the HTML's colspan attribute.
  *

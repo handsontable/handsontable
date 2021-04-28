@@ -18,8 +18,8 @@ export const PLUGIN_KEY = 'customBorders';
 export const PLUGIN_PRIORITY = 90;
 
 /**
- * @class CustomBorders
  * @plugin CustomBorders
+ * @class CustomBorders
  *
  * @description
  * This plugin enables an option to apply custom borders through the context menu (configurable with context menu key

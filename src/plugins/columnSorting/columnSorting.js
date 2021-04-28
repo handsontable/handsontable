@@ -35,6 +35,7 @@ Hooks.getSingleton().register('afterColumnSort');
 // DIFF - MultiColumnSorting & ColumnSorting: changed configuration documentation.
 /**
  * @plugin ColumnSorting
+ * @class ColumnSorting
  *
  * @description
  * This plugin sorts the view by columns (but does not sort the data source!). To enable the plugin, set the

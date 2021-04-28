@@ -16,7 +16,7 @@ editLink: false
 
 :::
 
-`cellCoords.col : number`
+_cellCoords.col : number_
 
 Column index.
 
@@ -28,7 +28,7 @@ Column index.
 
 :::
 
-`cellCoords.row : number`
+_cellCoords.row : number_
 
 Row index.
 
@@ -41,7 +41,7 @@ Row index.
 
 :::
 
-`cellCoords.clone() ⇒ [CellCoords](./coords/)`
+_cellCoords.clone() ⇒ [CellCoords](./coords/)_
 
 Clones the coordinates.
 
@@ -53,7 +53,7 @@ Clones the coordinates.
 
 :::
 
-`cellCoords.isEqual(cellCoords) ⇒ boolean`
+_cellCoords.isEqual(cellCoords) ⇒ boolean_
 
 Checks if this cell coordinates are the same as cell coordinates given as an argument.
 
@@ -70,7 +70,7 @@ Checks if this cell coordinates are the same as cell coordinates given as an arg
 
 :::
 
-`cellCoords.isNorthEastOf(testedCoords) ⇒ boolean`
+_cellCoords.isNorthEastOf(testedCoords) ⇒ boolean_
 
 Checks if tested coordinates are positioned in north-east from this cell coordinates.
 
@@ -87,7 +87,7 @@ Checks if tested coordinates are positioned in north-east from this cell coordin
 
 :::
 
-`cellCoords.isNorthWestOf(testedCoords) ⇒ boolean`
+_cellCoords.isNorthWestOf(testedCoords) ⇒ boolean_
 
 Checks if tested coordinates are positioned in north-east from this cell coordinates.
 
@@ -104,7 +104,7 @@ Checks if tested coordinates are positioned in north-east from this cell coordin
 
 :::
 
-`cellCoords.isSouthEastOf(testedCoords) ⇒ boolean`
+_cellCoords.isSouthEastOf(testedCoords) ⇒ boolean_
 
 Checks if tested coordinates are positioned in south-east from this cell coordinates.
 
@@ -121,7 +121,7 @@ Checks if tested coordinates are positioned in south-east from this cell coordin
 
 :::
 
-`cellCoords.isSouthWestOf(testedCoords) ⇒ boolean`
+_cellCoords.isSouthWestOf(testedCoords) ⇒ boolean_
 
 Checks if tested coordinates are positioned in south-west from this cell coordinates.
 
@@ -138,7 +138,7 @@ Checks if tested coordinates are positioned in south-west from this cell coordin
 
 :::
 
-`cellCoords.isValid(wot) ⇒ boolean`
+_cellCoords.isValid(wot) ⇒ boolean_
 
 Checks if given set of coordinates is valid in context of a given Walkontable instance.
 
@@ -155,7 +155,7 @@ Checks if given set of coordinates is valid in context of a given Walkontable in
 
 :::
 
-`cellCoords.normalize() ⇒ [CellCoords](./coords/)`
+_cellCoords.normalize() ⇒ [CellCoords](./coords/)_
 
 Normalizes the coordinates to the nearest valid position. The coordinates that point
 to the headers (negative values) are normalized to 0.
@@ -168,7 +168,7 @@ to the headers (negative values) are normalized to 0.
 
 :::
 
-`cellCoords.toObject() ⇒ object`
+_cellCoords.toObject() ⇒ object_
 
 Converts CellCoords to literal object with `row` and `col` properties.
 

@@ -52,7 +52,7 @@ contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo']
 
 :::
 
-`contextMenu.contextMenu : boolean | Array<string> | object`
+_contextMenu.contextMenu : boolean | Array&lt;string&gt; | object_
 
 Defines if the right-click context menu should be enabled. Context menu allows to create new row or column at any
 place in the grid among [other features](https://docs.handsontable.com/demo-context-menu.html).
@@ -69,7 +69,6 @@ If the value is an object, you can also customize the options with:
 See [the context menu demo](https://docs.handsontable.com/demo-context-menu.html) for examples.
 
 **Default**: <code>undefined</code>  
-**Category**: [ContextMenu](../context-menu)  
 **Example**  
 ```js
 // as a boolean
@@ -111,7 +110,7 @@ contextMenu: {
 
 :::
 
-`ContextMenu.DEFAULT\_ITEMS ⇒ Array<string>`
+_ContextMenu.DEFAULT\_ITEMS ⇒ Array&lt;string&gt;_
 
 Context menu default items order when `contextMenu` options is set as `true`.
 
@@ -124,7 +123,7 @@ Context menu default items order when `contextMenu` options is set as `true`.
 
 :::
 
-`contextMenu.close()`
+_contextMenu.close()_
 
 Closes the menu.
 
@@ -136,7 +135,7 @@ Closes the menu.
 
 :::
 
-`contextMenu.destroy()`
+_contextMenu.destroy()_
 
 Destroys the plugin instance.
 
@@ -148,7 +147,7 @@ Destroys the plugin instance.
 
 :::
 
-`contextMenu.disablePlugin()`
+_contextMenu.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
@@ -160,7 +159,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 :::
 
-`contextMenu.enablePlugin()`
+_contextMenu.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
@@ -172,7 +171,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 :::
 
-`contextMenu.executeCommand(commandName, ...params)`
+_contextMenu.executeCommand(commandName, ...params)_
 
 Execute context menu command.
 
@@ -210,7 +209,7 @@ Or you can execute command registered in settings where `key` is your command na
 
 :::
 
-`contextMenu.isEnabled() ⇒ boolean`
+_contextMenu.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#ContextMenu+enablePlugin) method is called.
@@ -223,7 +222,7 @@ hook and if it returns `true` than the [enablePlugin](#ContextMenu+enablePlugin)
 
 :::
 
-`contextMenu.open(event)`
+_contextMenu.open(event)_
 
 Opens menu and re-position it based on the passed coordinates.
 
@@ -240,7 +239,7 @@ Opens menu and re-position it based on the passed coordinates.
 
 :::
 
-`contextMenu.updatePlugin()`
+_contextMenu.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

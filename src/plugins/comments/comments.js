@@ -28,8 +28,8 @@ const META_READONLY = 'readOnly';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
- * @class Comments
  * @plugin Comments
+ * @class Comments
  *
  * @description
  * This plugin allows setting and managing cell comments by either an option in the context menu or with the use of

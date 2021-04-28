@@ -22,6 +22,7 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
 
 /**
  * @plugin ManualRowMove
+ * @class ManualRowMove
  *
  * @description
  * This plugin allows to change rows order. To make rows order persistent the {@link Options#persistentState}
