@@ -222,7 +222,7 @@ UndoRedo.prototype.undo = function() {
 
     const action = this.doneActions.pop();
 
-    this.instance.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions, action);
+    this.instance.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions);
 
     const actionClone = deepClone(action);
 
@@ -290,7 +290,7 @@ UndoRedo.prototype.redo = function() {
       that.ignoreNewActions = false;
       that.doneActions.push(action);
 
-      this.instance.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions, action);
+      this.instance.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions);
     });
 
     instance.runHooks('afterRedo', actionClone);
