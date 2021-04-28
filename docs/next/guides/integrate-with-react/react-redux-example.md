@@ -8,6 +8,7 @@ canonicalUrl: /react-redux-example
 
 An implementation of the `@handsontable/react` component with a `readOnly` toggle switch and the Redux state manager implemented.
 
+::: example #example1 :react-redux
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -16,7 +17,7 @@ import {HotTable} from '@handsontable/react';
 import Handsontable from 'handsontable';
 
 const initialReduxStoreState = {
-  data: Handsontable.helper.createSpreadsheetData(100, 50),
+  data: Handsontable.helper.createSpreadsheetData(5, 3),
   colHeaders: true,
   rowHeaders: true,
   readOnly: false,
@@ -119,7 +120,7 @@ class MyComponent extends React.Component {
     return (
       <div className="redux-example-container">
         <div id="example-container">
-          <div id="example-preview" className="hot">
+          <div id="example-preview">
             <div id="toggle-boxes">
               <br/>
               <input onClick={this.toggleReadOnly} id="readOnlyCheck" type="checkbox"/><label
