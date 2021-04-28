@@ -1,6 +1,6 @@
 import { PLUGIN_KEY } from '../formulas';
 
-export const DEFAULT_SETTINGS = {
+const DEFAULT_SETTINGS = {
   licenseKey: 'internal-use-in-handsontable',
 
   binarySearchThreshold: 20,

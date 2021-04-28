@@ -5,7 +5,7 @@ This zip package includes a development build of Handsontable with the new formu
 ## npm install
 
 1. Put the `handsontable*.tgz` file at the root of your project
-2. `npm install handsontable*.tgz`
+2. `npm install handsontable*.tgz hyperformula@0.6.0`
 
 
 ## `<script>` tag
@@ -17,13 +17,109 @@ The formulas plugin will be included in `handsontable.full(.min).js`.
 
 # Usage
 
-To use the plugin, just set the `formulas` property to `true` in your Handsontable config.
+It is possible to use the plugin in single sheet mode or with multiple Handsontable instances with cross-sheet references.
 
-For example:
+In all cases it is required to either pass in the `HyperFormula` object or a HyperFormula instance:
 
-```javascript
-new Handsontable(element, {
-  data: [['hello', ' world', '=A1 & " " & A2']],
-  formulas: true
-})
+```
+import { HyperFormula } from 'hyperformula';
+```
+
+## Passing the HyperFormula class/instance to Handsontable (applicable to all examples below)
+
+```js
+formulas: {
+    engine: HyperFormula, // or `engine: hyperformulaInstance`
+    // [plugin configuration]
+}
+```
+
+or
+
+```js
+formulas: {
+    engine: {
+        hyperformula: HyperFormula, // or `engine: hyperformulaInstance`
+        // [HyperFormula configuration]
+    },
+    // [plugin configuration]
+}
+```
+
+## Single Handsontable instance
+
+```js
+formulas: {
+    engine: HyperFormula,
+    // [plugin configuration]
+}
+```
+
+## Single Handsontable instance with an external HyperFormula instance
+
+```js
+const externalHF = HyperFormula.buildEmpty({});
+```
+
+```js
+formulas: {
+    engine: externalHF,
+    // [plugin configuration]
+}
+```
+
+## Multiple independent Handsontable instances
+
+```js
+// Instance 1:
+formulas: {
+    engine: HyperFormula,
+    // [plugin configuration]
+}
+
+// Instance 2:
+formulas: {
+    engine: HyperFormula,
+    // [plugin configuration]
+}
+```
+
+## Multiple Handsontable instances with shared HyperFormula instance
+
+```js
+// Instance 1:
+formulas: {
+    engine: HyperFormula,
+    sheetName: 'Sheet 1'
+    // [plugin configuration]
+}
+
+// Instance 2:
+formulas: {
+    engine: hot1.getPlugin('formulas').engine,
+    sheetName: 'Sheet 2'
+    // [plugin configuration]
+}
+```
+
+## Multiple Handsontable instances with shared external HyperFormula instance
+
+```js
+const externalHF = HyperFormula.buildEmpty({});
+```
+
+```js
+// Instance 1:
+formulas: {
+    engine: externalHF,
+    sheetName: 'Sheet 1'
+    // [plugin configuration]
+}
+
+// Instance 2:
+formulas: {
+    engine: externalHF,
+    sheetName: 'Sheet 2'
+    // [plugin configuration]
+}
 ```

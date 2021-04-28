@@ -565,34 +565,6 @@ describe('Formulas general', () => {
       expect(hfConfig.useColumnIndex).toEqual(true);
       expect(hfConfig.useStats).toEqual(true);
     });
-
-    it('should update the external HyperFormula instance config with the Handsontable/HF licenseKey, if none was' +
-      ' provided', () => {
-      const hfInstance1 = HyperFormula.buildEmpty();
-
-      handsontable({
-        formulas: {
-          engine: hfInstance1
-        },
-        licenseKey: 'non-commercial-and-evaluation'
-      });
-
-      expect(hfInstance1.getConfig().licenseKey).toEqual('internal-use-in-handsontable');
-    });
-
-    it('should NOT update the external HyperFormula instance config with the Handsontable/HF licenseKey, if it was' +
-      ' provided beforehand', () => {
-      const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'dummy-license-key' });
-
-      handsontable({
-        formulas: {
-          engine: hfInstance1
-        },
-        licenseKey: 'non-commercial-and-evaluation'
-      });
-
-      expect(hfInstance1.getConfig().licenseKey).toEqual('dummy-license-key');
-    });
   });
 
   describe('Cross-referencing', () => {

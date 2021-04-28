@@ -13,17 +13,9 @@ import {
 import { mergeEngineSettings } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
-import Hooks from '../../pluginHooks';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
-
-Hooks.getSingleton().register('afterNamedExpressionAdded');
-Hooks.getSingleton().register('afterNamedExpressionRemoved');
-Hooks.getSingleton().register('afterSheetAdded');
-Hooks.getSingleton().register('afterSheetRemoved');
-Hooks.getSingleton().register('afterSheetRenamed');
-Hooks.getSingleton().register('afterFormulasValuesUpdate');
 
 /**
  * The formulas plugin.
@@ -139,12 +131,7 @@ export class Formulas extends BasePlugin {
     registerAutofillHooks(this);
 
     // HyperFormula events:
-    this.engine.on('valuesUpdated', (...args) => this.onEngineValuesUpdated(...args));
-    this.engine.on('namedExpressionAdded', (...args) => this.onEngineNamedExpressionsAdded(...args));
-    this.engine.on('namedExpressionRemoved', (...args) => this.onEngineNamedExpressionsRemoved(...args));
-    this.engine.on('sheetAdded', (...args) => this.onEngineSheetAdded(...args));
-    this.engine.on('sheetRenamed', (...args) => this.onEngineSheetRenamed(...args));
-    this.engine.on('sheetRemoved', (...args) => this.onEngineSheetRemoved(...args));
+    this.engine.on('valuesUpdated', (...args) => this.onHFvaluesUpdated(...args));
 
     super.enablePlugin();
   }
@@ -477,13 +464,11 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Called when a value is updated in the engine.
+   * HyperFormula's `valuesUpdated` event callback.
    *
-   * @private
-   * @fires Hooks#afterFormulasValuesUpdate
-   * @param {Array} changes The values and location of applied changes.
+   * @param {Array} changes Array of objects containing information about HF changes.
    */
-  onEngineValuesUpdated(changes) {
+  onHFvaluesUpdated(changes) {
     const isAffectedByChange = changes.some((change) => {
       return change?.address?.sheet === this.sheetId;
     });
@@ -491,66 +476,5 @@ export class Formulas extends BasePlugin {
     if (isAffectedByChange) {
       this.hot.render();
     }
-
-    this.hot.runHooks('afterFormulasValuesUpdate', changes);
-  }
-
-  /**
-   * Called when a named expression is added to the engine instance.
-   *
-   * @private
-   * @fires Hooks#afterNamedExpressionAdded
-   * @param {string} namedExpressionName The name of the added expression.
-   * @param {Array} changes The values and location of applied changes.
-   */
-  onEngineNamedExpressionsAdded(namedExpressionName, changes) {
-    this.hot.runHooks('afterNamedExpressionAdded', namedExpressionName, changes);
-  }
-
-  /**
-   * Called when a named expression is removed from the engine instance.
-   *
-   * @private
-   * @fires Hooks#afterNamedExpressionRemoved
-   * @param {string} namedExpressionName The name of the removed expression.
-   * @param {Array} changes The values and location of applied changes.
-   */
-  onEngineNamedExpressionsRemoved(namedExpressionName, changes) {
-    this.hot.runHooks('afterNamedExpressionRemoved', namedExpressionName, changes);
-  }
-
-  /**
-   * Called when a new sheet is added to the engine instance.
-   *
-   * @private
-   * @fires Hooks#afterSheetAdded
-   * @param {string} addedSheetDisplayName The name of the added sheet.
-   */
-  onEngineSheetAdded(addedSheetDisplayName) {
-    this.hot.runHooks('afterSheetAdded', addedSheetDisplayName);
-  }
-
-  /**
-   * Called when a sheet in the engine instance is renamed.
-   *
-   * @private
-   * @fires Hooks#afterSheetRenamed
-   * @param {string} oldDisplayName The old name of the sheet.
-   * @param {string} newDisplayName The new name of the sheet.
-   */
-  onEngineSheetRenamed(oldDisplayName, newDisplayName) {
-    this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
-  }
-
-  /**
-   * Called when a sheet is removed from the engine instance.
-   *
-   * @private
-   * @fires Hooks#afterSheetRemoved
-   * @param {string} removedSheetDisplayName The removed sheet name.
-   * @param {Array} changes The values and location of applied changes.
-   */
-  onEngineSheetRemoved(removedSheetDisplayName, changes) {
-    this.hot.runHooks('afterSheetRemoved', removedSheetDisplayName, changes);
   }
 }

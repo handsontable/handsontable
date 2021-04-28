@@ -2,7 +2,7 @@ import staticRegister from '../../../utils/staticRegister';
 import { isUndefined } from '../../../helpers/mixed';
 import { warn } from '../../../helpers/console';
 import { PLUGIN_KEY } from '../formulas';
-import { DEFAULT_SETTINGS, mergeEngineSettings } from './settings';
+import { mergeEngineSettings } from './settings';
 
 /**
  * Setups the engine instance. It either creates a new (possibly shared) engine instance, or attaches
@@ -37,12 +37,6 @@ export function setupEngine(hotSettings, hotId) {
 
     if (sharedEngineUsage) {
       sharedEngineUsage.push(hotId);
-    }
-
-    if (!engineConfigItem.getConfig().licenseKey) {
-      engineConfigItem.updateConfig({
-        licenseKey: DEFAULT_SETTINGS.licenseKey
-      });
     }
 
     return engineConfigItem;
