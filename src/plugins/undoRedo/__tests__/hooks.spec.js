@@ -46,30 +46,15 @@ describe('UndoRedo', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
       });
-      let hookBeforeArg1;
-      let hookBeforeArg2;
-      let hookAfterArg1;
-      let hookAfterArg2;
 
       hot.addHook('beforeUndoStackChange', beforeUndoStackChangeSpy);
       hot.addHook('afterUndoStackChange', afterUndoStackChangeSpy);
-      hot.addHook('beforeUndoStackChange', (doneActions, source) => {
-        hookBeforeArg1 = doneActions.slice();
-        hookBeforeArg2 = source;
-      });
-      hot.addHook('afterUndoStackChange', (doneActionsBefore, doneActionsAfter) => {
-        hookAfterArg1 = doneActionsBefore.slice();
-        hookAfterArg2 = doneActionsAfter.slice();
-      });
 
       alter('remove_row', 1);
 
-      expect(hookBeforeArg1).toEqual([]);
-      expect(hookBeforeArg2).toEqual(void 0);
-      expect(hookAfterArg1).toEqual([]);
-      expect(hookAfterArg2).toEqual(getPlugin('undoRedo').doneActions);
-      expect(beforeUndoStackChangeSpy.calls.count()).toEqual(1);
-      expect(afterUndoStackChangeSpy.calls.count()).toEqual(1);
+      expect(beforeUndoStackChangeSpy).toHaveBeenCalledOnceWith([], void 0, void 0, void 0, void 0, void 0);
+      expect(afterUndoStackChangeSpy).toHaveBeenCalledOnceWith(
+        [], getPlugin('undoRedo').doneActions, void 0, void 0, void 0, void 0);
     });
 
     it('should not add action to undo stack while `beforeUndoStackChange` return `false` value', () => {
@@ -97,13 +82,6 @@ describe('UndoRedo', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
       });
-      let hookUndoBeforeArg1;
-      let hookUndoBeforeArg2;
-      let hookUndoAfterArg1;
-      let hookUndoAfterArg2;
-      let hookRedoBeforeArg1;
-      let hookRedoAfterArg1;
-      let hookRedoAfterArg2;
 
       alter('remove_row', 1);
 
@@ -111,39 +89,16 @@ describe('UndoRedo', () => {
       hot.addHook('afterUndoStackChange', afterUndoStackChangeSpy);
       hot.addHook('beforeRedoStackChange', beforeRedoStackChangeSpy);
       hot.addHook('afterRedoStackChange', afterRedoStackChangeSpy);
-      hot.addHook('beforeUndoStackChange', (doneActions, source) => {
-        hookUndoBeforeArg1 = doneActions.slice();
-        hookUndoBeforeArg2 = source;
-      });
-      hot.addHook('afterUndoStackChange', (doneActionsBefore, doneActionsAfter) => {
-        hookUndoAfterArg1 = doneActionsBefore.slice();
-        hookUndoAfterArg2 = doneActionsAfter.slice();
-      });
-      hot.addHook('beforeRedoStackChange', (undoneActions) => {
-        hookRedoBeforeArg1 = undoneActions.slice();
-      });
-      hot.addHook('afterRedoStackChange', (undoneActionsBefore, undoneActionsAfter) => {
-        hookRedoAfterArg1 = undoneActionsBefore.slice();
-        hookRedoAfterArg2 = undoneActionsAfter.slice();
-      });
 
       const doneActionsCopy = getPlugin('undoRedo').doneActions.slice();
 
       hot.undo();
 
-      expect(hookUndoBeforeArg1).toEqual(doneActionsCopy);
-      expect(hookUndoBeforeArg2).toEqual(void 0);
-      expect(hookUndoAfterArg1).toEqual(doneActionsCopy);
-      expect(hookUndoAfterArg2).toEqual([]);
-
-      expect(hookRedoBeforeArg1).toEqual([]);
-      expect(hookRedoAfterArg1).toEqual([]);
-      expect(hookRedoAfterArg2).toEqual(doneActionsCopy);
-
-      expect(beforeUndoStackChangeSpy.calls.count()).toEqual(1);
-      expect(afterUndoStackChangeSpy.calls.count()).toEqual(1);
-      expect(beforeRedoStackChangeSpy.calls.count()).toEqual(1);
-      expect(afterRedoStackChangeSpy.calls.count()).toEqual(1);
+      expect(beforeUndoStackChangeSpy).toHaveBeenCalledOnceWith(
+        doneActionsCopy, void 0, void 0, void 0, void 0, void 0);
+      expect(afterUndoStackChangeSpy).toHaveBeenCalledOnceWith(doneActionsCopy, [], void 0, void 0, void 0, void 0);
+      expect(beforeRedoStackChangeSpy).toHaveBeenCalledOnceWith([], void 0, void 0, void 0, void 0, void 0);
+      expect(afterRedoStackChangeSpy).toHaveBeenCalledOnceWith([], doneActionsCopy, void 0, void 0, void 0, void 0);
     });
 
     it('should fire a `beforeUndoStackChange`, `afterUndoStackChange`, `beforeRedoStackChange` and ' +
@@ -155,13 +110,6 @@ describe('UndoRedo', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 2),
       });
-      let hookUndoBeforeArg1;
-      let hookUndoBeforeArg2;
-      let hookUndoAfterArg1;
-      let hookUndoAfterArg2;
-      let hookRedoBeforeArg1;
-      let hookRedoAfterArg1;
-      let hookRedoAfterArg2;
 
       alter('remove_row', 1);
 
@@ -171,39 +119,16 @@ describe('UndoRedo', () => {
       hot.addHook('afterUndoStackChange', afterUndoStackChangeSpy);
       hot.addHook('beforeRedoStackChange', beforeRedoStackChangeSpy);
       hot.addHook('afterRedoStackChange', afterRedoStackChangeSpy);
-      hot.addHook('beforeUndoStackChange', (doneActions, source) => {
-        hookUndoBeforeArg1 = doneActions.slice();
-        hookUndoBeforeArg2 = source;
-      });
-      hot.addHook('afterUndoStackChange', (doneActionsBefore, doneActionsAfter) => {
-        hookUndoAfterArg1 = doneActionsBefore.slice();
-        hookUndoAfterArg2 = doneActionsAfter.slice();
-      });
-      hot.addHook('beforeRedoStackChange', (undoneActions) => {
-        hookRedoBeforeArg1 = undoneActions.slice();
-      });
-      hot.addHook('afterRedoStackChange', (undoneActionsBefore, undoneActionsAfter) => {
-        hookRedoAfterArg1 = undoneActionsBefore.slice();
-        hookRedoAfterArg2 = undoneActionsAfter.slice();
-      });
 
       const undoneActionsCopy = getPlugin('undoRedo').undoneActions.slice();
 
       hot.redo();
 
-      expect(hookUndoBeforeArg1).toEqual([]);
-      expect(hookUndoBeforeArg2).toEqual(void 0);
-      expect(hookUndoAfterArg1).toEqual([]);
-      expect(hookUndoAfterArg2).toEqual(undoneActionsCopy);
-
-      expect(hookRedoBeforeArg1).toEqual(undoneActionsCopy);
-      expect(hookRedoAfterArg1).toEqual(undoneActionsCopy);
-      expect(hookRedoAfterArg2).toEqual([]);
-
-      expect(beforeUndoStackChangeSpy.calls.count()).toEqual(1);
-      expect(afterUndoStackChangeSpy.calls.count()).toEqual(1);
-      expect(beforeRedoStackChangeSpy.calls.count()).toEqual(1);
-      expect(afterRedoStackChangeSpy.calls.count()).toEqual(1);
+      expect(beforeUndoStackChangeSpy).toHaveBeenCalledOnceWith([], void 0, void 0, void 0, void 0, void 0);
+      expect(afterUndoStackChangeSpy).toHaveBeenCalledOnceWith([], undoneActionsCopy, void 0, void 0, void 0, void 0);
+      expect(beforeRedoStackChangeSpy).toHaveBeenCalledOnceWith(
+        undoneActionsCopy, void 0, void 0, void 0, void 0, void 0);
+      expect(afterRedoStackChangeSpy).toHaveBeenCalledOnceWith(undoneActionsCopy, [], void 0, void 0, void 0, void 0);
     });
 
     it('should fire a `beforeRedo` hook before the redo process begins', async() => {
