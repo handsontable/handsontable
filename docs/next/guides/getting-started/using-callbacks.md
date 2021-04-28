@@ -6,7 +6,7 @@ canonicalUrl: /using-callbacks
 
 <style>
 #hooksList {
-  height: 300px;
+  height: 500px;
   overflow-y: scroll;
 }
 #hooksList li {
@@ -54,7 +54,7 @@ canonicalUrl: /using-callbacks
 
 Learn how to use some of the callbacks available in Handsontable. Note that some callbacks are checked on this page by default.
 
-::: example #example1 --html 1 --js 2
+::: example #example1 --html 1 --js 2 --hidden
 ```html
 <div id="example1"></div>
 <div id="example1-events"></div>
