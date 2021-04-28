@@ -1173,7 +1173,9 @@ describe('Formulas general', () => {
           ['', ''],
           ['', ''],
         ],
-        formulas: true
+        formulas: {
+          engine: HyperFormula
+        }
       });
 
       hot.setDataAtCell(3, 0, '{=TRANSPOSE(A1:B2)}');
