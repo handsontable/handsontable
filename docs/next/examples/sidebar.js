@@ -1,16 +1,13 @@
-// const basicItems = [
-//   'basic/introduction',
-//   'basic/b001-basic-one',
-//   'basic/b002-basic-two',
-// ];
-//
-// const advanceItems = [
-//   'advance/a001-advance-one',
-// ];
+const basicItems = [
+  'introduction'
+];
 
 module.exports = {
   sidebar: [
-    // { title: 'Basic examples', children: basicItems },
-    // { title: 'Advance examples', children: advanceItems },
+    {
+      title: 'Examples',
+      children: basicItems,
+      collapsable: false
+    }
   ]
 };
