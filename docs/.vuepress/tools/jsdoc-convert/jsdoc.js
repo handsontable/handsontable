@@ -63,6 +63,37 @@ const flat = file => file.split('/').pop();
 
 const dist = file => path.join(__dirname, pathToDist, flat(file.replace(/(.*)\.js/, '$1.md')));
 
+/// seo
+const genSeoTitle = file => file
+  .replace(/(^.*\/)?(.*?)\.[.a-zA-Z]*$/, '$2') // Get first filename segment (to the first dot) without full path
+  // .replace(/([A-Z]+)/g, " $1") // Add spaces before each word
+  .replace(/(^[a-z])/, m => m.toUpperCase()); // To upper first letter
+const seoTitle = file => seo[file] && seo[file].title || genSeoTitle(file);
+
+const genSeoPermalink = file => file
+  .replace(/(^.*\/)?(.*)\.[a-zA-Z]*$/, '$2') // Get filename without full path and extension
+  .replace(/([A-Z]+)/g, '-$1') // Separate words
+  .toLowerCase();
+const seoPermalink = file => seo[file] && seo[file].permalink || urlPrefix + genSeoPermalink(file);
+
+const seoCanonicalUrl = file => seoPermalink(file).replace('/next', '');
+
+const header = (file) => {
+  const title = seoTitle(file);
+
+  return `---
+title: ${title}
+permalink: ${seoPermalink(file)}
+canonicalUrl: ${seoCanonicalUrl(file)}
+editLink: false
+---
+
+# ${title}
+
+[[toc]]
+`;
+};
+
 /// post processing after markdown was generated
 const fixLinks = text => text
   .replace(/\[([^\[]*?)]\(([^:]*?)(#[^#]*?)?\)/g, '[$1](./$2/$3)') // @see https://regexr.com/5nqqr
@@ -206,37 +237,6 @@ const toMd = data => dmd(data, {
 });
 
 const parse = file => postProcess(toMd(preProcess(fromJsdoc(file))));
-
-/// seo
-const genSeoTitle = file => file
-  .replace(/(^.*\/)?(.*?)\.[.a-zA-Z]*$/, '$2') // Get first filename segment (to the first dot) without full path
-// .replace(/([A-Z]+)/g, " $1") // Add spaces before each word
-  .replace(/(^[a-z])/, m => m.toUpperCase()); // To upper first letter
-const seoTitle = file => seo[file] && seo[file].title || genSeoTitle(file);
-
-const genSeoPermalink = file => file
-  .replace(/(^.*\/)?(.*)\.[a-zA-Z]*$/, '$2') // Get filename without full path and extension
-  .replace(/([A-Z]+)/g, '-$1') // Separate words
-  .toLowerCase();
-const seoPermalink = file => seo[file] && seo[file].permalink || urlPrefix + genSeoPermalink(file);
-
-const seoCanonicalUrl = file => seoPermalink(file).replace('/next', '');
-
-const header = (file) => {
-  const title = seoTitle(file);
-
-  return `---
-title: ${title}
-permalink: ${seoPermalink(file)}
-canonicalUrl: ${seoCanonicalUrl(file)}
-editLink: false
----
-
-# ${title}
-
-[[toc]]
-`;
-};
 
 /// main logic
 const write = (file, output) => {
