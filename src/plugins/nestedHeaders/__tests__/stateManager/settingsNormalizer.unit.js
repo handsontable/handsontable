@@ -1,14 +1,24 @@
 /* eslint max-len: ["error", { "code": 140 }] */
+import {
+  createColspanSettings,
+  createPlaceholder,
+} from 'handsontable/plugins/nestedHeaders/__tests__/helpers';
 import { normalizeSettings } from 'handsontable/plugins/nestedHeaders/stateManager/settingsNormalizer';
+
+function createColspanSourceSettings(overwriteProps) {
+  return {
+    ...createColspanSettings(overwriteProps),
+    crossHiddenColumns: [],
+    isRoot: false,
+  };
+}
 
 describe('normalizeSettings', () => {
   it('should normalize user-defined settings into known uniform structure data (simple settings)', () => {
     expect(normalizeSettings([])).toEqual([]);
     expect(normalizeSettings([[]])).toEqual([[]]);
     expect(normalizeSettings([['A1']])).toEqual([[
-      {
-        label: 'A1', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-      },
+      createColspanSourceSettings({ l: 'A1' })
     ]]);
     expect(normalizeSettings([
       ['A1'],
@@ -16,37 +26,19 @@ describe('normalizeSettings', () => {
       [],
     ])).toEqual([
       [
-        {
-          label: 'A1', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'A1' }),
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
       ],
       [
-        {
-          label: 'true', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'B2', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '4', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'true' }),
+        createColspanSourceSettings({ l: 'B2' }),
+        createColspanSourceSettings({ l: '4' }),
       ],
       [
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
       ],
     ]);
   });
@@ -61,132 +53,52 @@ describe('normalizeSettings', () => {
 
     expect(normalizeSettings(settings)).toEqual([
       [
-        {
-          label: 'A', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'B', colspan: 8, origColspan: 8, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: 'C', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'A' }),
+        createColspanSourceSettings({ l: 'B', colspan: 8, origColspan: 8 }),
+        createPlaceholder(),
+        createPlaceholder(),
+        createPlaceholder(),
+        createPlaceholder(),
+        createPlaceholder(),
+        createPlaceholder(),
+        createPlaceholder(),
+        createColspanSourceSettings({ l: 'C' }),
       ],
       [
-        {
-          label: 'D', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'E', colspan: 4, origColspan: 4, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: 'F', colspan: 4, origColspan: 4, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'D' }),
+        createColspanSourceSettings({ l: 'E', colspan: 4, origColspan: 4 }),
+        createPlaceholder(),
+        createPlaceholder(),
+        createPlaceholder(),
+        createColspanSourceSettings({ l: 'F', colspan: 4, origColspan: 4 }),
+        createPlaceholder(),
+        createPlaceholder(),
+        createPlaceholder(),
+        createColspanSourceSettings({ l: '' }),
       ],
       [
-        {
-          label: 'H', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'I', colspan: 2, origColspan: 2, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: 'J', colspan: 2, origColspan: 2, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: 'K', colspan: 2, origColspan: 2, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: 'L', colspan: 2, origColspan: 2, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: 'M', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'H' }),
+        createColspanSourceSettings({ l: 'I', colspan: 2, origColspan: 2 }),
+        createPlaceholder(),
+        createColspanSourceSettings({ l: 'J', colspan: 2, origColspan: 2 }),
+        createPlaceholder(),
+        createColspanSourceSettings({ l: 'K', colspan: 2, origColspan: 2 }),
+        createPlaceholder(),
+        createColspanSourceSettings({ l: 'L', colspan: 2, origColspan: 2 }),
+        createPlaceholder(),
+        createColspanSourceSettings({ l: 'M' }),
       ],
       [
-        {
-          label: 'N', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'O', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'P', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'Q', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'R', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'S', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'T', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'U', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'V', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'N' }),
+        createColspanSourceSettings({ l: 'O' }),
+        createColspanSourceSettings({ l: 'P' }),
+        createColspanSourceSettings({ l: 'Q' }),
+        createColspanSourceSettings({ l: 'R' }),
+        createColspanSourceSettings({ l: 'S' }),
+        createColspanSourceSettings({ l: 'T' }),
+        createColspanSourceSettings({ l: 'U' }),
+        createColspanSourceSettings({ l: 'V' }),
+        createColspanSourceSettings({ l: '' }),
       ],
     ]);
   });
@@ -201,199 +113,95 @@ describe('normalizeSettings', () => {
 
     expect(normalizeSettings(settings, 6)).toEqual([
       [
-        {
-          label: 'A', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'B', colspan: 5, origColspan: 5, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
+        createColspanSourceSettings({ l: 'A' }),
+        createColspanSourceSettings({ l: 'B', colspan: 5, origColspan: 5 }),
+        createPlaceholder(),
+        createPlaceholder(),
+        createPlaceholder(),
+        createPlaceholder(),
       ],
       [
-        {
-          label: 'D', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'E', colspan: 4, origColspan: 4, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: 'F', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'D' }),
+        createColspanSourceSettings({ l: 'E', colspan: 4, origColspan: 4 }),
+        createPlaceholder(),
+        createPlaceholder(),
+        createPlaceholder(),
+        createColspanSourceSettings({ l: 'F' }),
       ],
       [
-        {
-          label: 'H', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'I', colspan: 2, origColspan: 2, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: 'J', colspan: 2, origColspan: 2, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: 'K', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'H' }),
+        createColspanSourceSettings({ l: 'I', colspan: 2, origColspan: 2 }),
+        createPlaceholder(),
+        createColspanSourceSettings({ l: 'J', colspan: 2, origColspan: 2 }),
+        createPlaceholder(),
+        createColspanSourceSettings({ l: 'K' }),
       ],
       [
-        {
-          label: 'N', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'O', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'P', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'Q', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'R', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'S', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'N' }),
+        createColspanSourceSettings({ l: 'O' }),
+        createColspanSourceSettings({ l: 'P' }),
+        createColspanSourceSettings({ l: 'Q' }),
+        createColspanSourceSettings({ l: 'R' }),
+        createColspanSourceSettings({ l: 'S' }),
       ],
     ]);
     expect(normalizeSettings(settings, 4)).toEqual([
       [
-        {
-          label: 'A', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'B', colspan: 3, origColspan: 3, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
+        createColspanSourceSettings({ l: 'A' }),
+        createColspanSourceSettings({ l: 'B', colspan: 3, origColspan: 3 }),
+        createPlaceholder(),
+        createPlaceholder(),
       ],
       [
-        {
-          label: 'D', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'E', colspan: 3, origColspan: 3, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
+        createColspanSourceSettings({ l: 'D' }),
+        createColspanSourceSettings({ l: 'E', colspan: 3, origColspan: 3 }),
+        createPlaceholder(),
+        createPlaceholder(),
       ],
       [
-        {
-          label: 'H', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'I', colspan: 2, origColspan: 2, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: 'J', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'H' }),
+        createColspanSourceSettings({ l: 'I', colspan: 2, origColspan: 2 }),
+        createPlaceholder(),
+        createColspanSourceSettings({ l: 'J' }),
       ],
       [
-        {
-          label: 'N', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'O', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'P', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'Q', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'N' }),
+        createColspanSourceSettings({ l: 'O' }),
+        createColspanSourceSettings({ l: 'P' }),
+        createColspanSourceSettings({ l: 'Q' }),
       ],
     ]);
     expect(normalizeSettings(settings, 1)).toEqual([
       [
-        {
-          label: 'A', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'A' }),
       ],
       [
-        {
-          label: 'D', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'D' }),
       ],
       [
-        {
-          label: 'H', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'H' }),
       ],
       [
-        {
-          label: 'N', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'N' }),
       ],
     ]);
     expect(normalizeSettings(settings, 0)).toEqual([]);
     expect(normalizeSettings(settings, 2)).toEqual([
       [
-        {
-          label: 'A', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'B', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'A' }),
+        createColspanSourceSettings({ l: 'B' }),
       ],
       [
-        {
-          label: 'D', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'E', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'D' }),
+        createColspanSourceSettings({ l: 'E' }),
       ],
       [
-        {
-          label: 'H', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'I', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'H' }),
+        createColspanSourceSettings({ l: 'I' }),
       ],
       [
-        {
-          label: 'N', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'O', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'N' }),
+        createColspanSourceSettings({ l: 'O' }),
       ],
     ]);
   });
@@ -407,73 +215,31 @@ describe('normalizeSettings', () => {
 
     expect(normalizeSettings(settings)).toEqual([
       [
-        {
-          label: 'A1', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'A2', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'A1' }),
+        createColspanSourceSettings({ l: 'A2' }),
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
       ],
       [
-        {
-          label: 'B1', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'B2', colspan: 4, origColspan: 4, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'B1' }),
+        createColspanSourceSettings({ l: 'B2', colspan: 4, origColspan: 4 }),
+        createPlaceholder(),
+        createPlaceholder(),
+        createPlaceholder(),
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
       ],
       [
-        {
-          label: 'C1', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: 'C2', colspan: 3, origColspan: 3, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: 'C3', colspan: 2, origColspan: 2, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
-        {
-          label: '', colspan: 1, origColspan: 1, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
-        },
-        {
-          label: 'C4', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
-        },
+        createColspanSourceSettings({ l: 'C1' }),
+        createColspanSourceSettings({ l: 'C2', colspan: 3, origColspan: 3 }),
+        createPlaceholder(),
+        createPlaceholder(),
+        createColspanSourceSettings({ l: 'C3', colspan: 2, origColspan: 2 }),
+        createPlaceholder(),
+        createColspanSourceSettings({ l: 'C4' }),
       ],
     ]);
   });

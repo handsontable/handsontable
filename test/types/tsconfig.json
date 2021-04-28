@@ -16,6 +16,6 @@
   },
   "include": [
     "**/*.types.ts",
-    "../../src/plugins/**/test/*.types.ts"
+    "../../src/**/__tests__/*.types.ts"
   ]
 }

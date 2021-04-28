@@ -1,3 +1,4 @@
+import { HEADER_TYPE } from '../constants';
 import VisualSelection from '../visualSelection';
 
 /**
@@ -18,6 +19,8 @@ function createHighlight({
     highlightRowClassName: rowClassName,
     highlightColumnClassName: columnClassName,
     ...restOptions,
+    highlightOnlyClosestHeader: true,
+    selectionType: HEADER_TYPE,
   });
 
   return s;

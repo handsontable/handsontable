@@ -9,7 +9,6 @@ import {
 } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
-import { HidingMap } from '../../translations';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
@@ -134,9 +133,7 @@ export class CollapsibleColumns extends BasePlugin {
       warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
     }
 
-    this.#collapsedColumnsMap = new HidingMap();
-    this.hot.columnIndexMapper.registerMap(this.pluginName, this.#collapsedColumnsMap);
-
+    this.#collapsedColumnsMap = this.hot.columnIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding');
     this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders');
     this.headerStateManager = this.nestedHeadersPlugin.getStateManager();
 
@@ -308,7 +305,7 @@ export class CollapsibleColumns extends BasePlugin {
     let isActionPossible = filteredCoords.length > 0;
 
     arrayEach(filteredCoords, ({ row, col: column }) => {
-      const { collapsible, isCollapsed } = this.headerStateManager.getHeaderSettings(row, column);
+      const { collapsible, isCollapsed } = this.headerStateManager.getHeaderSettings(row, column) ?? {};
 
       if (!collapsible || isCollapsed && action === 'collapse' || !isCollapsed && action === 'expand') {
         isActionPossible = false;
@@ -431,7 +428,7 @@ export class CollapsibleColumns extends BasePlugin {
     const TR = TH.parentNode;
     const THEAD = TR.parentNode;
     const row = ((-1) * THEAD.childNodes.length) + Array.prototype.indexOf.call(THEAD.childNodes, TR);
-    const { collapsible, origColspan } = this.headerStateManager.getHeaderSettings(row, column);
+    const { collapsible, origColspan } = this.headerStateManager.getHeaderSettings(row, column) ?? {};
 
     if (collapsible && origColspan > 1 && column >= this.hot.getSettings().fixedColumnsLeft) {
       const button = this.generateIndicator(row, column);
@@ -491,7 +488,6 @@ export class CollapsibleColumns extends BasePlugin {
    */
   destroy() {
     this.#collapsedColumnsMap = null;
-    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
 
     super.destroy();
   }

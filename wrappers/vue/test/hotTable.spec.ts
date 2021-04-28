@@ -206,6 +206,13 @@ describe('Updating the Handsontable settings', () => {
 
     expect(testWrapper.vm.$children[0].hotInstance.getData()).toEqual([[22, 32, 42]]);
     expect(newHotSettings).toBe(null);
+
+    testWrapper.vm.removeRow();
+
+    await Vue.nextTick();
+
+    expect(testWrapper.vm.$children[0].hotInstance.getData()).toEqual([]);
+    expect(newHotSettings).toBe(null);
   });
 
   it('should call Handsontable\'s `updateSettings` method, when the table data was changed by reference while the' +
@@ -604,4 +611,43 @@ it('should be possible to pass props to the editor and renderer components', () 
   expect(hotTableComponent.editorCache.get('EditorComponent').$props.testProp).toEqual('test-prop-value');
 
   testWrapper.destroy();
+});
+
+describe('cooperation with NestedRows plugin', () => {
+  it('should display dataset properly #7548', async() => {
+    const testWrapper = mount(HotTable, {
+      propsData: {
+        data: [{
+          col1: 'parent1',
+          __children: [
+            {
+              col1: 'p1.c1',
+            }, {
+              col1: 'p1.c2',
+            }
+          ]
+        }, {
+          col1: 'parent2',
+          __children: [
+            {
+              col1: 'p2.c1',
+            }, {
+              col1: 'p2.c2',
+            }, {
+              col1: 'p2.c3',
+            }
+          ]
+        }],
+        rowHeaders: true,
+        colHeaders: true,
+        nestedRows: true,
+      }
+    });
+
+    expect(testWrapper.vm.hotInstance.countRows()).toEqual(7);
+
+    await Vue.nextTick();
+
+    expect(testWrapper.vm.hotInstance.countRows()).toEqual(7);
+  });
 });

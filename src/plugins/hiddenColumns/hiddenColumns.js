@@ -469,7 +469,6 @@ export class HiddenColumns extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
     this.#settings = null;
     this.#hiddenColumnsMap = null;
 

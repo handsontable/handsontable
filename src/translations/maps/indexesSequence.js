@@ -1,4 +1,4 @@
-import IndexMap from './indexMap';
+import { IndexMap } from './indexMap';
 import { getListWithRemovedItems, getListWithInsertedItems } from './utils/indexesSequence';
 import { getDecreasedIndexes, getIncreasedIndexes } from './utils';
 
@@ -7,7 +7,7 @@ import { getDecreasedIndexes, getIncreasedIndexes } from './utils';
  *
  * It also updates the physical indexes (remaining in the map) on remove/add row or column action.
  */
-class IndexesSequence extends IndexMap {
+export class IndexesSequence extends IndexMap {
   constructor() {
     // Not handling custom init function or init value.
     super(index => index);
@@ -42,5 +42,3 @@ class IndexesSequence extends IndexMap {
     super.remove(removedIndexes);
   }
 }
-
-export default IndexesSequence;

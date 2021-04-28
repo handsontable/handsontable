@@ -1,0 +1,7 @@
+{
+  "title": "Added support for hiding columns for the _NestedHeaders_ plugin",
+  "type": "added",
+  "issue": 6879,
+  "breaking": false,
+  "framework": "none"
+}

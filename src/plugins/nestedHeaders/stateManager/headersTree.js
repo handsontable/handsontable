@@ -186,7 +186,17 @@ export default class HeadersTree {
     arrayEach(columnsSettings, (columnSettings) => {
       const nodeData = {
         ...columnSettings,
+        /**
+         * The header level (tree node depth level).
+         *
+         * @type {number}
+         */
         headerLevel: headerLevel - 1,
+        /**
+         * A visual column index.
+         *
+         * @type {number}
+         */
         columnIndex,
       };
       let node;

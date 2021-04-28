@@ -6,7 +6,7 @@ import localHooks from '../../mixins/localHooks';
 /**
  * Map for storing mappings from an index to a value.
  */
-class IndexMap {
+export class IndexMap {
   constructor(initValueOrFn = null) {
     /**
      * List of values for particular indexes.
@@ -157,8 +157,16 @@ class IndexMap {
   remove() {
     this.runLocalHooks('change');
   }
+
+  /**
+   * Destroys the Map instance.
+   */
+  destroy() {
+    this.clearLocalHooks();
+
+    this.indexedValues = null;
+    this.initValueOrFn = null;
+  }
 }
 
 mixin(IndexMap, localHooks);
-
-export default IndexMap;
