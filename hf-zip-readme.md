@@ -55,6 +55,19 @@ formulas: {
 }
 ```
 
+## Single Handsontable instance with an external HyperFormula instance
+
+```js
+const externalHF = HyperFormula.buildEmpty({});
+```
+
+```js
+formulas: {
+    engine: externalHF,
+    // [plugin configuration]
+}
+```
+
 ## Multiple independent Handsontable instances
 
 ```js
@@ -86,6 +99,30 @@ formulas: {
 
 formulas: {
     engine: hot1.getPlugin('formulas').engine,
+    sheetName: 'Sheet 2'
+    // [plugin configuration]
+}
+```
+
+## Multiple Handsontable instances with shared external HyperFormula instance
+
+```js
+const externalHF = HyperFormula.buildEmpty({});
+```
+
+```js
+// Instance 1:
+
+formulas: {
+    engine: externalHF,
+    sheetName: 'Sheet 1'
+    // [plugin configuration]
+}
+
+// Instance 2:
+
+formulas: {
+    engine: externalHF,
     sheetName: 'Sheet 2'
     // [plugin configuration]
 }
