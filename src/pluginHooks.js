@@ -1463,8 +1463,59 @@ const REGISTERED_HOOKS = [
    * ```
    */
   'afterFilter',
-
   /* eslint-enable jsdoc/require-description-complete-sentence */
+
+  /**
+   * Called when a value is updated in the engine.
+   *
+   * @event Hooks#afterFormulasValuesUpdate
+   * @param {Array} changes The values and location of applied changes.
+   */
+  'afterFormulasValuesUpdate',
+
+  /**
+   * Called when a named expression is added to the Formulas' engine instance.
+   *
+   * @event Hooks#afterNamedExpressionAdded
+   * @param {string} namedExpressionName The name of the added expression.
+   * @param {Array} changes The values and location of applied changes.
+   */
+  'afterNamedExpressionAdded',
+
+  /**
+   * Called when a named expression is removed from the Formulas' engine instance.
+   *
+   * @event Hooks#afterNamedExpressionRemoved
+   * @param {string} namedExpressionName The name of the removed expression.
+   * @param {Array} changes The values and location of applied changes.
+   */
+  'afterNamedExpressionRemoved',
+
+  /**
+   * Called when a new sheet is added to the Formulas' engine instance.
+   *
+   * @event Hooks#afterSheetAdded
+   * @param {string} addedSheetDisplayName The name of the added sheet.
+   */
+  'afterSheetAdded',
+
+  /**
+   * Called when a sheet in the Formulas' engine instance is renamed.
+   *
+   * @event Hooks#afterSheetRenamed
+   * @param {string} oldDisplayName The old name of the sheet.
+   * @param {string} newDisplayName The new name of the sheet.
+   */
+  'afterSheetRenamed',
+
+  /**
+   * Called when a sheet is removed from the Formulas' engine instance.
+   *
+   * @event Hooks#afterSheetRemoved
+   * @param {string} removedSheetDisplayName The removed sheet name.
+   * @param {Array} changes The values and location of applied changes.
+   */
+  'afterSheetRemoved',
 
   /**
    * Fired while retrieving the column header height.

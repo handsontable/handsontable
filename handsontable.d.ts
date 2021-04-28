@@ -1772,6 +1772,7 @@ declare namespace Handsontable {
       afterDropdownMenuHide?: (instance: plugins.DropdownMenu) => void;
       afterDropdownMenuShow?: (instance: plugins.DropdownMenu) => void;
       afterFilter?: (conditionsStack: plugins.FiltersPlugin.ColumnConditions[]) => void;
+      afterFormulasValuesUpdate?: (changes: object[]) => void;
       afterGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
       afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement) => void;
       afterGetColumnHeaderRenderers?: (renderers: ((col: number, TH: HTMLTableHeaderCellElement) => void)[]) => void;
@@ -1787,6 +1788,8 @@ declare namespace Handsontable {
       afterModifyTransformEnd?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
       afterModifyTransformStart?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
       afterMomentumScroll?: () => void;
+      afterNamedExpressionAdded?: (namedExpressionName: string, changes: object[]) => void;
+      afterNamedExpressionRemoved?: (namedExpressionName: string, changes: object[]) => void;
       afterOnCellContextMenu?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
       afterOnCellCornerDblClick?: (event: MouseEvent) => void;
       afterOnCellCornerMouseDown?: (event: MouseEvent) => void;
@@ -1815,6 +1818,9 @@ declare namespace Handsontable {
       afterSetDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
       afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
       afterSetSourceDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
+      afterSheetAdded?: (addedSheetDisplayName: string) => void;
+      afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
+      afterSheetRemoved?: (removedSheetDisplayName: string, changes: object[]) => void;
       afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUndo?: (action: plugins.UndoRedoAction) => void;
       afterUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
