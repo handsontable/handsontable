@@ -559,6 +559,7 @@ describe('HandsontableEditor', () => {
         }
       ]
     });
+
     selectCell(2, 0);
 
     keyDownUp('enter');
@@ -640,6 +641,7 @@ describe('HandsontableEditor', () => {
           }
         ]
       });
+
       selectCell(2, 0);
 
       keyDownUp('enter');
@@ -665,6 +667,7 @@ describe('HandsontableEditor', () => {
           }
         ]
       });
+
       selectCell(2, 0);
 
       keyDownUp('enter');
@@ -687,6 +690,7 @@ describe('HandsontableEditor', () => {
           }
         ]
       });
+
       selectCell(2, 0);
 
       keyDownUp('enter');

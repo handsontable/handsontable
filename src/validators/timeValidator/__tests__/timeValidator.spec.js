@@ -303,6 +303,7 @@ describe('timeValidator', () => {
         const addLeadingZero = function(number) {
           return number < 10 ? `0${number}` : number;
         };
+
         expect(getDataAtCell(1, 0))
           .toEqual(`${addLeadingZero(currentDateTime.getHours())}:${addLeadingZero(currentDateTime.getMinutes())}:${
             addLeadingZero(currentDateTime.getSeconds())}`);

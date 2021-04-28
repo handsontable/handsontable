@@ -203,6 +203,7 @@ export class Overlay {
     if (onFixedRowBottom) {
       const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
       const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
+
       verticalOffset = (absoluteOverlayPosition.top * (-1)) + absoluteRootElementPosition.top;
 
     } else if (!onFixedRowTop) {

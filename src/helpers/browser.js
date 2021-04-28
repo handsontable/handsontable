@@ -4,6 +4,7 @@ const tester = (testerFunc) => {
   const result = {
     value: false,
   };
+
   result.test = (ua, vendor) => {
     result.value = testerFunc(ua, vendor);
   };

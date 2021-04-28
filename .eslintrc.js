@@ -84,6 +84,14 @@ module.exports = {
     "padded-blocks": "off",
     "quotes": [ "error", "single" ],
     "space-before-function-paren": ["error", "never"],
+    "padding-line-between-statements": [
+      "error",
+      { blankLine: "always", prev: "*", next: "return" },
+      { blankLine: "always", prev: "*", next: ["if", "for", "switch", "while"] },
+      { blankLine: "any", prev: "block-like", next: ["if", "for", "switch", "while"] },
+      { blankLine: "always", prev: ["const", "let", "var"], next: "*" },
+      { blankLine: "any", prev: ["const", "let", "var"], next: ["const", "let", "var"] }
+    ],
     "jsdoc/check-access": "error",
     "jsdoc/check-alignment": "error",
     "jsdoc/check-examples": "off",
@@ -141,6 +149,22 @@ module.exports = {
       "**/validators",
       "**/validators/?(index)",
     ],
+    // TODO: To be reviewed:
+    'operator-linebreak': 'off',
+    'object-curly-newline': 'off',
+    'prefer-destructuring': 'off',
+    'implicit-arrow-linebreak': 'off',
+    'function-paren-newline': 'off',
+    'max-classes-per-file': 'off',
+    'import/no-useless-path-segments': 'off',
+    'lines-between-class-members': 'off',
+    'semi-style': 'off',
+    'no-else-return': 'off',
+    'import/no-cycle': 'off',
+    'no-lone-blocks': 'off',
+    'getter-return': 'off',
+    'switch-colon-spacing': 'off',
+    'operator-assignment': 'off',
   },
   "overrides": [
     {
@@ -168,6 +192,21 @@ module.exports = {
         "jsdoc/require-returns": "off",
         "handsontable/restricted-module-imports": "off",
       }
-    }
+    },
+    {
+      "files": ["scripts/**"],
+      "rules": {
+        "no-restricted-globals": "off",
+        "import/extensions": "off",
+        "no-console": "off",
+        "no-await-in-loop": "off",
+        "no-restricted-syntax": [
+          'error',
+          'ForInStatement',
+          'LabeledStatement',
+          'WithStatement',
+        ]
+      }
+    },
   ],
 }

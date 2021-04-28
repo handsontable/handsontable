@@ -341,6 +341,7 @@ describe('Comments', () => {
 
       const plugin = hot.getPlugin('comments');
       const editor = plugin.editor.getInputElement();
+
       plugin.showAtCell(1, 1);
       expect(editor.parentNode.style.display).toEqual('block');
 
@@ -701,6 +702,7 @@ describe('Comments', () => {
       $(editCommentButton).simulate('mouseup');
 
       const textarea = spec().$container[0].parentNode.querySelector('.htCommentTextArea');
+
       textarea.focus();
       textarea.value = 'Edited comment';
 
@@ -744,6 +746,7 @@ describe('Comments', () => {
       $(editCommentButton).simulate('mouseup');
 
       const textarea = spec().$container[0].parentNode.querySelector('.htCommentTextArea');
+
       textarea.focus();
       textarea.value = 'Edited comment';
 
@@ -862,6 +865,79 @@ describe('Comments', () => {
       expect(plugin.getCommentAtCell(5, 5)).toEqual('Bar');
       selectCell(5, 5);
       expect(plugin.getComment()).toEqual('Bar');
+    });
+  });
+
+  describe('Destroying the plugin with two instances of Handsontable', () => {
+    it('should create two containers for comments for two HOT instances', () => {
+      const container1 = $('<div id="hot1"></div>').appendTo(spec().$container).handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Hello world!' } },
+          { row: 1, col: 2, comment: { value: 'Yes!' } }
+        ],
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      const container2 = $('<div id="hot2"></div>').appendTo(spec().$container).handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        cell: [{ row: 1, col: 1, comment: { value: 'Hello world!' } }],
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      let commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
+
+      expect(commentContainersLength).toEqual(2);
+
+      // cleanup first HOT instance
+      container1.handsontable('destroy');
+      commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
+      expect(commentContainersLength).toEqual(1);
+
+      // cleanup second HOT instance
+      container2.handsontable('destroy');
+      commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
+      expect(commentContainersLength).toEqual(0);
+    });
+
+    it('should delete one container when one HOT instance is destroyed', () => {
+      const container1 = $('<div id="hot1"></div>').appendTo(spec().$container).handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Hello world!' } },
+          { row: 1, col: 2, comment: { value: 'Yes!' } }
+        ],
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      const container2 = $('<div id="hot2"></div>').appendTo(spec().$container).handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        cell: [{ row: 1, col: 1, comment: { value: 'Hello world!' } }],
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      container2.handsontable('destroy');
+
+      let commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
+
+      expect(commentContainersLength).toEqual(1);
+
+      // cleanup HOT instance
+      container1.handsontable('destroy');
+      commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
+      expect(commentContainersLength).toEqual(0);
     });
   });
 });

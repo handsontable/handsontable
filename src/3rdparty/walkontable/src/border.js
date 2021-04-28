@@ -113,6 +113,7 @@ class Border {
     const _this = this;
     const documentBody = this.wot.rootDocument.body;
     const bounds = parentElement.getBoundingClientRect();
+
     // Hide border to prevents selection jumping when fragmentSelection is enabled.
     parentElement.style.display = 'none';
 
@@ -155,10 +156,12 @@ class Border {
    */
   createBorders(settings) {
     const { rootDocument } = this.wot;
+
     this.main = rootDocument.createElement('div');
 
     const borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
     let style = this.main.style;
+
     style.position = 'absolute';
     style.top = 0;
     style.left = 0;
@@ -483,6 +486,7 @@ class Border {
     this.rightStyle.display = 'block';
 
     let cornerVisibleSetting = this.settings.border.cornerVisible;
+
     cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ?
       cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
 

@@ -23,6 +23,7 @@ export function cleanPatches(patches) {
 
     return true;
   });
+
   /**
    * Extend patches with changed cells coords.
    */

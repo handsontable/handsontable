@@ -1,0 +1,11 @@
+{
+  "$schema": "../../node_modules/ng-packagr/ng-package.schema.json",
+  "dest": "../../dist/hot-table",
+  "deleteDestPath": false,
+  "lib": {
+    "entryFile": "src/public_api.ts",
+    "umdModuleIds": {
+      "handsontable": "Handsontable"
+    }
+  }
+}

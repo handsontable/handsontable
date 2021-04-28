@@ -211,6 +211,7 @@ describe('ColumnSorting', () => {
     hot.render();
 
     const sortedColumn = spec().$container.find('th span.columnSorting')[1];
+
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
   });
 
@@ -230,6 +231,7 @@ describe('ColumnSorting', () => {
     updateSettings({ columnSorting: false });
 
     const sortedColumn = spec().$container.find('th span')[0];
+
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
   });
 
@@ -1053,6 +1055,371 @@ describe('ColumnSorting', () => {
     });
   });
 
+  describe('data type: checkbox', () => {
+    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are not set', () => {
+      handsontable({
+        data: [
+          { car: 'Mercedes A 160', year: 2017, available: true },
+          { car: 'Citroen C4 Coupe', year: 2018, available: false },
+          { car: 'Audi A4 Avant', year: 2019, available: true },
+          { car: 'Opel Astra', year: 2020, available: false },
+          { car: 'BMW 320i Coupe', year: 2021, available: false }
+        ],
+        columns: [
+          {
+            data: 'car'
+          },
+          {
+            data: 'year',
+            type: 'numeric'
+          },
+          {
+            data: 'available',
+            type: 'checkbox'
+          }
+        ],
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      expect(getData()).toEqual([
+        ['Citroen C4 Coupe', 2018, false],
+        ['Opel Astra', 2020, false],
+        ['BMW 320i Coupe', 2021, false],
+        ['Mercedes A 160', 2017, true],
+        ['Audi A4 Avant', 2019, true]
+      ]);
+
+      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
+
+      expect(getData()).toEqual([
+        ['Mercedes A 160', 2017, true],
+        ['Audi A4 Avant', 2019, true],
+        ['Citroen C4 Coupe', 2018, false],
+        ['Opel Astra', 2020, false],
+        ['BMW 320i Coupe', 2021, false]
+      ]);
+    });
+
+    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set (string templates)', () => {
+      handsontable({
+        data: [
+          { car: 'Mercedes A 160', year: 2017, comesInBlack: 'yes' },
+          { car: 'Citroen C4 Coupe', year: 2018, comesInBlack: 'yes' },
+          { car: 'Audi A4 Avant', year: 2019, comesInBlack: 'no' },
+          { car: 'Opel Astra', year: 2020, comesInBlack: 'yes' },
+          { car: 'BMW 320i Coupe', year: 2021, comesInBlack: 'no' }
+        ],
+        columns: [
+          {
+            data: 'car'
+          },
+          {
+            data: 'year',
+            type: 'numeric'
+          },
+          {
+            data: 'comesInBlack',
+            type: 'checkbox',
+            checkedTemplate: 'yes',
+            uncheckedTemplate: 'no',
+          }
+        ],
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      expect(getData()).toEqual([
+        ['Audi A4 Avant', 2019, 'no'],
+        ['BMW 320i Coupe', 2021, 'no'],
+        ['Mercedes A 160', 2017, 'yes'],
+        ['Citroen C4 Coupe', 2018, 'yes'],
+        ['Opel Astra', 2020, 'yes']
+      ]);
+
+      getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
+
+      expect(getData()).toEqual([
+        ['Mercedes A 160', 2017, 'yes'],
+        ['Citroen C4 Coupe', 2018, 'yes'],
+        ['Opel Astra', 2020, 'yes'],
+        ['Audi A4 Avant', 2019, 'no'],
+        ['BMW 320i Coupe', 2021, 'no'],
+      ]);
+    });
+
+    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set (non-string templates) #1', () => {
+      handsontable({
+        data: [
+          { car: 'Mercedes A 160', damaged: true },
+          { car: 'Citroen C4 Coupe', damaged: false },
+          { car: 'Audi A4 Avant', damaged: false },
+          { car: 'Opel Astra', damaged: true },
+          { car: 'BMW 320i Coupe', damaged: false }
+        ],
+        columns: [
+          {
+            data: 'car'
+          },
+          {
+            data: 'damaged',
+            type: 'checkbox',
+            checkedTemplate: false,
+            uncheckedTemplate: true,
+          }
+        ],
+        columnSorting: true,
+        colHeaders: ['Name', 'works?']
+      });
+
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+      // Sorting by visual state of checkbox.
+      expect(getData()).toEqual([
+        ['Mercedes A 160', true],
+        ['Opel Astra', true],
+        ['Citroen C4 Coupe', false],
+        ['Audi A4 Avant', false],
+        ['BMW 320i Coupe', false],
+      ]);
+
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+      // Sorting by visual state of checkbox.
+      expect(getData()).toEqual([
+        ['Citroen C4 Coupe', false],
+        ['Audi A4 Avant', false],
+        ['BMW 320i Coupe', false],
+        ['Mercedes A 160', true],
+        ['Opel Astra', true],
+      ]);
+    });
+
+    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set (non-string templates) #2', () => {
+      handsontable({
+        data: [
+          { car: 'Mercedes A 160', damaged: 1 },
+          { car: 'Citroen C4 Coupe', damaged: 0 },
+          { car: 'Audi A4 Avant', damaged: 0 },
+          { car: 'Opel Astra', damaged: 1 },
+          { car: 'BMW 320i Coupe', damaged: 0 }
+        ],
+        columns: [
+          {
+            data: 'car'
+          },
+          {
+            data: 'damaged',
+            type: 'checkbox',
+            checkedTemplate: 0,
+            uncheckedTemplate: 1,
+          }
+        ],
+        columnSorting: true,
+        colHeaders: ['Name', 'works?']
+      });
+
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+      // Sorting by visual state of checkbox.
+      expect(getData()).toEqual([
+        ['Mercedes A 160', 1],
+        ['Opel Astra', 1],
+        ['Citroen C4 Coupe', 0],
+        ['Audi A4 Avant', 0],
+        ['BMW 320i Coupe', 0],
+      ]);
+
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+      // Sorting by visual state of checkbox.
+      expect(getData()).toEqual([
+        ['Citroen C4 Coupe', 0],
+        ['Audi A4 Avant', 0],
+        ['BMW 320i Coupe', 0],
+        ['Mercedes A 160', 1],
+        ['Opel Astra', 1],
+      ]);
+    });
+
+    it('should sort #bad_value# elements in a proper way', () => {
+      handsontable({
+        data: [
+          ['b', 0],
+          ['a', 1],
+          [1, 2],
+          ['A', 3], // to lower case while sorting by default
+          ['a', 4],
+          ['aaaa', 5],
+          [0, 6],
+          ['a', 7],
+          [-2, 8],
+        ],
+        columns: [
+          { type: 'checkbox' },
+          {}
+        ],
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(getData()).toEqual([
+        [-2, 8],
+        [0, 6],
+        [1, 2],
+        ['a', 1],
+        ['A', 3],
+        ['a', 4],
+        ['a', 7],
+        ['aaaa', 5],
+        ['b', 0],
+      ]);
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      expect(getData()).toEqual([
+        ['b', 0],
+        ['aaaa', 5],
+        ['a', 1],
+        ['A', 3],
+        ['a', 4],
+        ['a', 7],
+        [1, 2],
+        [0, 6],
+        [-2, 8],
+      ]);
+    });
+
+    it('should sort elements in a proper way when `sortEmptyCells` is set to `false` (by default)', () => {
+      handsontable({
+        data: [
+          [null, 0], // empty cell
+          ['', 1], // empty cell
+          [false, 2],
+          [undefined, 3], // empty cell
+          [null, 4], // empty cell
+          [true, 5],
+          ['a', 6],
+          ['', 7], // empty cell
+          [null, 8], // empty cell
+          [1, 9],
+          [undefined, 10], // empty cell
+          ['', 11], // empty cell
+          [null, 12], // empty cell
+        ],
+        columnSorting: true,
+        columns: [
+          { type: 'checkbox' },
+          {}
+        ]
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(getData()).toEqual([
+        [1, 9],
+        ['a', 6],
+        [false, 2],
+        [true, 5],
+        // Not sorting in place.
+        [null, 0], // empty cell
+        ['', 1], // empty cell
+        [undefined, 3], // empty cell
+        [null, 4], // empty cell
+        ['', 7], // empty cell
+        [null, 8], // empty cell
+        [undefined, 10], // empty cell
+        ['', 11], // empty cell
+        [null, 12], // empty cell
+      ]);
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      expect(getData()).toEqual([
+        [true, 5],
+        [false, 2],
+        ['a', 6],
+        [1, 9],
+        // Not sorting in place.
+        [null, 0], // empty cell
+        ['', 1], // empty cell
+        [undefined, 3], // empty cell
+        [null, 4], // empty cell
+        ['', 7], // empty cell
+        [null, 8], // empty cell
+        [undefined, 10], // empty cell
+        ['', 11], // empty cell
+        [null, 12], // empty cell
+      ]);
+    });
+
+    it('should sort elements in a proper way when `sortEmptyCells` is set to `true`', () => {
+      handsontable({
+        data: [
+          [null, 0], // empty cell
+          ['', 1], // empty cell
+          [false, 2],
+          [undefined, 3], // empty cell
+          [null, 4], // empty cell
+          [true, 5],
+          ['a', 6],
+          ['', 7], // empty cell
+          [null, 8], // empty cell
+          [1, 9],
+          [undefined, 10], // empty cell
+          ['', 11], // empty cell
+          [null, 12], // empty cell
+        ],
+        columnSorting: {
+          sortEmptyCells: true
+        },
+        columns: [
+          { type: 'checkbox' },
+          {}
+        ]
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(getData()).toEqual([
+        [1, 9],
+        ['a', 6],
+        [null, 0], // empty cell
+        ['', 1], // empty cell
+        [false, 2],
+        [undefined, 3], // empty cell
+        [null, 4], // empty cell
+        ['', 7], // empty cell
+        [null, 8], // empty cell
+        [undefined, 10], // empty cell
+        ['', 11], // empty cell
+        [null, 12], // empty cell
+        [true, 5],
+      ]);
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      expect(getData()).toEqual([
+        [true, 5],
+        [null, 0], // empty cell
+        ['', 1], // empty cell
+        [false, 2],
+        [undefined, 3], // empty cell
+        [null, 4], // empty cell
+        ['', 7], // empty cell
+        [null, 8], // empty cell
+        [undefined, 10], // empty cell
+        ['', 11], // empty cell
+        [null, 12], // empty cell
+        ['a', 6],
+        [1, 9],
+      ]);
+    });
+  });
+
   it('should properly sort numeric data', () => {
     handsontable({
       data: [
@@ -1781,6 +2148,7 @@ describe('ColumnSorting', () => {
     spec().sortByClickOnColumnHeader(2);
 
     let sortedColumn = spec().$container.find('th span.columnSorting')[2];
+
     // not sorted
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
@@ -1828,6 +2196,7 @@ describe('ColumnSorting', () => {
 
     // ascending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
+
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
@@ -1882,6 +2251,7 @@ describe('ColumnSorting', () => {
 
     // descending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
+
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort();
@@ -2699,6 +3069,7 @@ describe('ColumnSorting', () => {
       const freezeColumn = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
         return $(this).text() === 'Freeze column';
       });
+
       simulateClick(freezeColumn);
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);

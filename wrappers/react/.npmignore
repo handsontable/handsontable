@@ -1,0 +1,11 @@
+*
+
+!commonjs/*
+!dist/*
+!es/*
+!package.json
+!*.d.ts
+!README.md
+!LICENSE.txt
+!handsontable-general-terms.pdf
+!handsontable-non-commercial-license.pdf

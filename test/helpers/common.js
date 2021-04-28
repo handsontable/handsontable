@@ -561,6 +561,7 @@ export function setCaretPosition(pos) {
 
   } else if (el.createTextRange) {
     const range = el.createTextRange();
+
     range.collapse(true);
     range.moveEnd('character', pos);
     range.moveStart('character', pos);
@@ -751,6 +752,7 @@ export function resizeColumn(renderableColumnIndex, width) {
 
   const delta = width - $th.width() - 2;
   const newPosition = resizerPosition.left + delta;
+
   $resizer.simulate('mousemove', {
     clientX: newPosition
   });
@@ -871,36 +873,76 @@ export function swapDisplayedColumns(container, from, to) {
 }
 
 /**
+ * Creates touch event and dispatch it for handled element.
+ *
+ * @param {number} x The page x coordinates.
+ * @param {number} y The page y coordinates.
+ * @param {HTMLElement} element An element for which event will be triggered.
+ * @param {string} eventType Type of touch event, ie. 'touchstart', 'touchmove', 'touchend'.
+ * @returns {boolean} The return value is `false` if event is cancelable and at least one of the event handlers which
+ * received event called `preventDefault()`. Otherwise it returns `true`.
+ */
+function sendTouchEvent(x, y, element, eventType) {
+  const touchObj = new Touch({
+    identifier: Date.now(),
+    target: element,
+    clientX: x,
+    clientY: y,
+    radiusX: 2.5,
+    radiusY: 2.5,
+  });
+
+  const touchEvent = new TouchEvent(eventType, {
+    cancelable: true,
+    bubbles: true,
+    touches: eventType === 'touchend' ? [] : [touchObj],
+    targetTouches: eventType === 'touchend' ? [] : [touchObj],
+    changedTouches: [touchObj],
+    shiftKey: false,
+  });
+
+  return element.dispatchEvent(touchEvent);
+}
+
+/**
  * @param {string} type A name/type of the event.
  * @param {HTMLElement} target The target element from the event was triggered.
  * @param {number} pageX The page x coordinates.
  * @param {number} pageY The page y coordinates.
+ * @returns {boolean} The return value is `false` if event is cancelable and at least one of the event handlers which
+ * received event called `preventDefault()`. Otherwise it returns `true`.
  */
 export function triggerTouchEvent(type, target, pageX, pageY) {
-  const e = document.createEvent('TouchEvent');
-
   const targetCoords = target.getBoundingClientRect();
-  const targetPageX = pageX || parseInt(targetCoords.left + 3, 10);
-  const targetPageY = pageY || parseInt(targetCoords.top + 3, 10);
-  let touches;
-  let targetTouches;
-  let changedTouches;
+  const targetPageX = pageX || parseInt(targetCoords.left, 10) + 3;
+  const targetPageY = pageY || parseInt(targetCoords.top, 10) + 3;
 
-  const touch = document.createTouch(window, target, 0, targetPageX, targetPageY, targetPageX, targetPageY);
+  return sendTouchEvent(targetPageX, targetPageY, target, type);
+}
 
-  if (type === 'touchend') {
-    touches = document.createTouchList();
-    targetTouches = document.createTouchList();
-    changedTouches = document.createTouchList(touch);
-  } else {
-    touches = document.createTouchList(touch);
-    targetTouches = document.createTouchList(touch);
-    changedTouches = document.createTouchList(touch);
+/**
+ * Emulates touch on handled HTML element.
+ *
+ * Note: Please keep in mind that this method doesn't reflects fully "native" behaviour.
+ * Note: MDN docs (https://developer.mozilla.org/en-US/docs/Web/API/Touch_events/Supporting_both_TouchEvent_and_MouseEvent)
+ * says: "Browsers typically dispatch emulated mouse and click events when there is only a single active touch point.".
+ * This method is working similar.
+ *
+ * @param {HTMLElement} target The target element from the event was triggered.
+ */
+export function simulateTouch(target) {
+  const touchStartRun = triggerTouchEvent('touchstart', target);
+
+  if (touchStartRun === true) {
+    const touchEndRun = triggerTouchEvent('touchend', target);
+
+    // If the `preventDefault` is called for below event emulation doesn't reflects "native" behaviour.
+    if (touchEndRun === true) {
+      $(target).simulate('mousedown');
+      $(target).simulate('mouseup');
+      $(target).simulate('click');
+    }
   }
-
-  e.initTouchEvent(type, true, true, window, null, 0, 0, 0, 0, false, false, false, false,
-    touches, targetTouches, changedTouches, 1, 0);
-  target.dispatchEvent(e);
 }
 
 /**

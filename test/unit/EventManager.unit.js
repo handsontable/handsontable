@@ -136,6 +136,7 @@ describe('EventManager', () => {
     const test = jasmine.createSpy('test');
 
     const clickRemoveEvent = em.addEventListener(window, 'click', test);
+
     em.fireEvent(window, 'click');
 
     expect(test.calls.count()).toEqual(1);

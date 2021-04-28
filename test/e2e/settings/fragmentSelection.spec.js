@@ -1,6 +1,6 @@
 describe('settings', () => {
 
-  xdescribe('fragmentSelection', () => {
+  describe('fragmentSelection', () => {
     const id = 'testContainer';
 
     beforeEach(function() {
@@ -20,110 +20,133 @@ describe('settings', () => {
      * @returns {string|boolean}
      */
     function getSelected() {
-      const { activeElement } = document;
-      const selection = window.getSelection();
+      // Please keep in mind that this method isn't deterministic. It have different result for different browsers.
+      const selection = window.getSelection().toString();
 
-      if (selection.type === 'Range') {
-        return selection.toString();
-      } else if (activeElement.value && activeElement.value.selectionStart) {
-        return activeElement.value.substring(activeElement.selectionStart, activeElement.selectionEnd);
-      }
-
-      return false;
+      // Tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
+      return selection.replace(/\s/g, ''); // Standardized returned values for different browsers.
     }
 
     /**
      * Selects a <fromEl> node at as many siblings as given in the <cells> value
-     * Note: IE8 fallback assumes that a node contains exactly one word.
      *
      * @param {HTMLElement} fromEl An element from the selection starts.
      * @param {number} siblings The number of siblings to process.
      */
     function selectElementText(fromEl, siblings) {
-      const doc = window.document;
       let element = fromEl;
       let numOfSiblings = siblings;
-      let sel;
-      let range;
 
-      if (window.getSelection && doc.createRange) { // standards
-        sel = window.getSelection();
-        range = doc.createRange();
-        range.setStartBefore(element, 0);
+      const sel = window.getSelection();
+      const range = window.document.createRange();
 
-        while (numOfSiblings > 1) {
-          element = element.nextSibling;
-          numOfSiblings -= 1;
-        }
+      range.setStartBefore(element);
 
-        range.setEndAfter(element, 0);
-        sel.removeAllRanges();
-        sel.addRange(range);
+      while (numOfSiblings > 1) {
+        element = element.nextSibling;
+        numOfSiblings -= 1;
       }
+
+      range.setEndAfter(element);
+      sel.removeAllRanges();
+      sel.addRange(range);
     }
 
     describe('constructor', () => {
       it('should disallow fragmentSelection when set to false', () => {
-        handsontable({
+        const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: false
         });
 
         selectElementText(spec().$container.find('tr:eq(0) td:eq(1)')[0], 3);
 
-        mouseDown(spec().$container.find('tr:eq(0) td:eq(3)'));
-        mouseUp(spec().$container.find('tr:eq(0) td:eq(3)'));
+        selectElementText(spec().$container.find('td')[1], 3);
+        $(spec().$container.find('tr:eq(0) td:eq(1)')).simulate('mousedown');
+        $(spec().$container.find('tr:eq(0) td:eq(3)')).simulate('mouseover');
+        $(spec().$container.find('tr:eq(0) td:eq(3)')).simulate('mouseup');
+        $(spec().$container.find('tr:eq(0) td:eq(3)')).simulate('click');
 
         const sel = getSelected();
 
-        expect(sel).toEqual(' '); // copyPaste has selected space in textarea
+        expect(sel).toEqual(''); // copyPaste has selected space in textarea
+
+        const copyEvent = getClipboardEvent();
+        const plugin = hot.getPlugin('CopyPaste');
+
+        plugin.onCopy(copyEvent);
+
+        expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1\tC1\tD1');
       });
 
       it('should allow fragmentSelection when set to true', () => {
-        // We have to try another way to simulate text selection.
-        handsontable({
+        const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: true
         });
 
-        mouseDown(spec().$container.find('tr:eq(0) td:eq(1)'));
-        mouseUp(spec().$container.find('tr:eq(0) td:eq(3)'));
         selectElementText(spec().$container.find('td')[1], 3);
+        $(spec().$container.find('tr:eq(0) td:eq(1)')).simulate('mousedown');
+        $(spec().$container.find('tr:eq(0) td:eq(3)')).simulate('mouseover');
+        $(spec().$container.find('tr:eq(0) td:eq(3)')).simulate('mouseup');
+        $(spec().$container.find('tr:eq(0) td:eq(3)')).simulate('click');
 
-        let sel = getSelected();
-        sel = sel.replace(/\s/g, ''); // tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
+        expect(getSelected()).toEqual('B1C1D1');
 
-        expect(sel).toEqual('B1C1D1');
+        const copyEvent = getClipboardEvent();
+        const plugin = hot.getPlugin('CopyPaste');
+
+        plugin.onCopy(copyEvent);
+
+        expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1\tC1\tD1');
       });
 
       it('should allow fragmentSelection from one cell when set to `cell`', () => {
-        handsontable({
+        const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: 'cell'
         });
 
         const $TD = spec().$container.find('tr:eq(0) td:eq(1)');
 
-        mouseDown($TD);
-        mouseUp($TD);
         selectElementText($TD[0], 1);
+        mouseDown($TD);
+        mouseOver($TD);
+        mouseMove($TD);
+        mouseUp($TD);
+        mouseClick($TD);
 
-        expect(getSelected().replace(/\s/g, '')).toEqual('B1');
+        expect(getSelected()).toEqual('B1');
+
+        const copyEvent = getClipboardEvent();
+        const plugin = hot.getPlugin('CopyPaste');
+
+        plugin.onCopy(copyEvent);
+
+        expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1');
       });
 
       it('should disallow fragmentSelection from one cell when set to `cell` and when user selects adjacent cell', () => {
-        handsontable({
+        const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: 'cell'
         });
-        selectElementText(spec().$container.find('td')[1], 1);
 
+        selectElementText(spec().$container.find('td')[1], 1);
         mouseDown(spec().$container.find('tr:eq(0) td:eq(1)'));
         mouseOver(spec().$container.find('tr:eq(0) td:eq(2)'));
         mouseMove(spec().$container.find('tr:eq(0) td:eq(2)'));
         mouseUp(spec().$container.find('tr:eq(0) td:eq(2)'));
+        mouseClick(spec().$container.find('tr:eq(0) td:eq(2)'));
 
-        expect(getSelected()).toEqual(' '); // copyPaste has selected space in textarea
+        expect(getSelected()).toEqual(''); // copyPaste has selected space in textarea
+
+        const copyEvent = getClipboardEvent();
+        const plugin = hot.getPlugin('CopyPaste');
+
+        plugin.onCopy(copyEvent);
+
+        expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1\tC1');
       });
 
       it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to false', () => {
@@ -132,13 +155,15 @@ describe('settings', () => {
           fragmentSelection: false
         });
         const $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
+
         spec().$container.append($div);
         selectElementText($div[0], 1);
 
-        mouseDown($div);
+        $($div).simulate('mousedown');
 
         const sel = getSelected();
-        expect(sel).toEqual(false);
+
+        expect(sel).toEqual('');
       });
 
       it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to true', () => {
@@ -147,48 +172,68 @@ describe('settings', () => {
           fragmentSelection: true
         });
         const $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
+
         spec().$container.append($div);
         selectElementText($div[0], 1);
 
-        mouseDown($div);
+        $($div).simulate('mousedown');
 
         const sel = getSelected();
-        expect(sel).toEqual(false);
+
+        expect(sel).toEqual('');
       });
     });
 
     describe('dynamic', () => {
       it('should disallow fragmentSelection when set to false', () => {
-        handsontable({
+        const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: true
         });
-        // updateSettings({ fragmentSelection: false });
-        selectElementText(spec().$container.find('tr:eq(0) td:eq(1)')[0], 3);
 
-        mouseDown(spec().$container.find('tr:eq(0) td:eq(3)'));
-        mouseUp(spec().$container.find('tr:eq(0) td:eq(3)'));
+        updateSettings({ fragmentSelection: false });
+
+        selectElementText(spec().$container.find('td')[1], 3);
+        $(spec().$container.find('tr:eq(0) td:eq(1)')).simulate('mousedown');
+        $(spec().$container.find('tr:eq(0) td:eq(3)')).simulate('mouseover');
+        $(spec().$container.find('tr:eq(0) td:eq(3)')).simulate('mouseup');
+        $(spec().$container.find('tr:eq(0) td:eq(3)')).simulate('click');
 
         const sel = getSelected();
-        expect(sel).toEqual(' '); // copyPaste has selected space in textarea
+
+        expect(sel).toEqual(''); // copyPaste has selected space in textarea
+
+        const copyEvent = getClipboardEvent();
+        const plugin = hot.getPlugin('CopyPaste');
+
+        plugin.onCopy(copyEvent);
+
+        expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1\tC1\tD1');
       });
 
-      xit('should allow fragmentSelection when set to true', () => {
-        // We have to try another way to simulate text selection.
-        handsontable({
+      it('should allow fragmentSelection when set to true', () => {
+        const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: false
         });
+
         updateSettings({ fragmentSelection: true });
+
         selectElementText(spec().$container.find('td')[1], 3);
+        $(spec().$container.find('tr:eq(0) td:eq(1)')).simulate('mousedown');
+        $(spec().$container.find('tr:eq(0) td:eq(3)')).simulate('mouseover');
+        $(spec().$container.find('tr:eq(0) td:eq(3)')).simulate('mouseup');
+        $(spec().$container.find('tr:eq(0) td:eq(3)')).simulate('click');
 
-        mouseDown(spec().$container.find('tr:eq(0) td:eq(3)'));
-        mouseUp(spec().$container.find('tr:eq(0) td:eq(3)'));
+        expect(getSelected()).toEqual('B1C1D1');
 
-        let sel = getSelected();
-        sel = sel.replace(/\s/g, ''); // tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
-        expect(sel).toEqual('B1C1D1');
+        const copyEvent = getClipboardEvent();
+        const plugin = hot.getPlugin('CopyPaste');
+
+        plugin.onCopy(copyEvent);
+
+        expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1\tC1\tD1');
       });
     });
-  }).pend('Temporarily disabled, due to #6083, needs to be rewritten to work properly.');
+  });
 });

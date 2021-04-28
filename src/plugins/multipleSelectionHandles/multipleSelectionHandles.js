@@ -112,6 +112,7 @@ export class MultipleSelectionHandles extends BasePlugin {
         };
 
         event.preventDefault();
+
         return false;
 
       } else if (hasClass(event.target, 'bottomRightSelectionHandle-HitArea')) {
@@ -126,6 +127,7 @@ export class MultipleSelectionHandles extends BasePlugin {
         };
 
         event.preventDefault();
+
         return false;
       }
     });
@@ -137,6 +139,7 @@ export class MultipleSelectionHandles extends BasePlugin {
         _this.touchStartRange = void 0;
 
         event.preventDefault();
+
         return false;
 
       } else if (hasClass(event.target, 'bottomRightSelectionHandle-HitArea')) {
@@ -145,6 +148,7 @@ export class MultipleSelectionHandles extends BasePlugin {
         _this.touchStartRange = void 0;
 
         event.preventDefault();
+
         return false;
       }
     });

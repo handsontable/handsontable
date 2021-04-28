@@ -160,10 +160,12 @@ export function checkSelectionBorders(hot, direction) {
         if (direction) {
           if (!hasOwnProperty(metaBorders[direction], 'hide') || metaBorders[direction].hide === false) {
             atLeastOneHasBorder = true;
+
             return false; // breaks forAll
           }
         } else {
           atLeastOneHasBorder = true;
+
           return false; // breaks forAll
         }
       }

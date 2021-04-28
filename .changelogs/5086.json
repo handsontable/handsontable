@@ -1,7 +1,0 @@
-{
-  "title": "Fixed wrong paddings for multi-level headers",
-  "type": "fixed",
-  "issue": 5086,
-  "breaking": false,
-  "framework": "none"
-}

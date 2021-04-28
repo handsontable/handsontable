@@ -873,6 +873,7 @@ describe('HiddenColumns', () => {
               .find('tbody')
               .find('th')
               .eq(0);
+
             simulateClick(header, 'RMB');
             contextMenu(header);
 
@@ -916,6 +917,7 @@ describe('HiddenColumns', () => {
               .find('tbody')
               .find('th')
               .eq(0);
+
             simulateClick(header, 'RMB');
             contextMenu(header);
 
@@ -961,6 +963,7 @@ describe('HiddenColumns', () => {
               .find('tbody')
               .find('th')
               .eq(0);
+
             simulateClick(header, 'RMB');
             contextMenu(header);
 
@@ -1004,6 +1007,7 @@ describe('HiddenColumns', () => {
               .find('tbody')
               .find('th')
               .eq(0);
+
             simulateClick(header, 'RMB');
             contextMenu(header);
 

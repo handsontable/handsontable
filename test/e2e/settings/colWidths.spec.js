@@ -52,6 +52,7 @@ describe('settings', () => {
             if (index === 0) {
               return 123;
             }
+
             return 50;
           }
         });
@@ -65,6 +66,7 @@ describe('settings', () => {
             if (index === 0) {
               return '123';
             }
+
             return '50';
           }
         });
@@ -117,6 +119,7 @@ describe('settings', () => {
             if (index === 0) {
               return 123;
             }
+
             return 50;
           }
         });
@@ -131,6 +134,7 @@ describe('settings', () => {
             if (index === 0) {
               return '123';
             }
+
             return '50';
           }
         });
@@ -196,6 +200,7 @@ describe('settings', () => {
                 if (index === 0) {
                   return 123;
                 }
+
                 return 50;
               }
             }
@@ -213,6 +218,7 @@ describe('settings', () => {
                 if (index === 0) {
                   return '123';
                 }
+
                 return '50';
               }
             }

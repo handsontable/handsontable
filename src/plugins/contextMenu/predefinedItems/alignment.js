@@ -164,6 +164,7 @@ export default function alignmentItem() {
             if (hasClass) {
               label = markLabelAsSelected(label);
             }
+
             return label;
           },
           callback() {

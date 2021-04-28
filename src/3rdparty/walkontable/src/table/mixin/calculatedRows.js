@@ -22,6 +22,7 @@ const calculatedRows = {
     if (startRow === null) {
       return -1;
     }
+
     return startRow;
   },
 
@@ -36,6 +37,7 @@ const calculatedRows = {
     if (startRow === null) {
       return -1;
     }
+
     return startRow;
   },
 
@@ -50,6 +52,7 @@ const calculatedRows = {
     if (endRow === null) {
       return -1;
     }
+
     return endRow;
   },
 
@@ -64,6 +67,7 @@ const calculatedRows = {
     if (endRow === null) {
       return -1;
     }
+
     return endRow;
   },
 

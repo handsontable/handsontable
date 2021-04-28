@@ -20,6 +20,7 @@ describe('IndexMapper', () => {
 
   it('should fill mappers with proper values by calling `initToLength` method', () => {
     const indexMapper = new IndexMapper();
+
     indexMapper.initToLength(10);
 
     expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -1760,6 +1761,7 @@ describe('IndexMapper', () => {
   describe('moving indexes', () => {
     it('should move single, given index', () => {
       const indexMapper = new IndexMapper();
+
       indexMapper.initToLength(10);
 
       indexMapper.moveIndexes([8], 0); // [8, 0, 1, 2, 3, 4, 5, 6, 7, 9]
@@ -1771,6 +1773,7 @@ describe('IndexMapper', () => {
 
     it('should not change order of indexes after specific move', () => {
       const indexMapper = new IndexMapper();
+
       indexMapper.initToLength(10);
 
       indexMapper.moveIndexes([0], 0);
@@ -1800,6 +1803,7 @@ describe('IndexMapper', () => {
 
     it('should change order of indexes in place', () => {
       const indexMapper = new IndexMapper();
+
       indexMapper.initToLength(10);
 
       indexMapper.moveIndexes([9, 8, 7, 6, 5, 4, 3, 0, 1, 2], 0);
@@ -1809,6 +1813,7 @@ describe('IndexMapper', () => {
     describe('should move given indexes properly from the top to the bottom', () => {
       it('ascending order of moved indexes', () => {
         const indexMapper = new IndexMapper();
+
         indexMapper.initToLength(10);
 
         indexMapper.moveIndexes([0, 1, 2, 3], 5);
@@ -1817,6 +1822,7 @@ describe('IndexMapper', () => {
 
       it('descending order of moved indexes', () => {
         const indexMapper = new IndexMapper();
+
         indexMapper.initToLength(10);
 
         indexMapper.moveIndexes([3, 2, 1, 0], 5);
@@ -1825,6 +1831,7 @@ describe('IndexMapper', () => {
 
       it('mixed order of moved indexes', () => {
         const indexMapper = new IndexMapper();
+
         indexMapper.initToLength(10);
 
         indexMapper.moveIndexes([1, 3, 2, 0], 5);
@@ -1835,6 +1842,7 @@ describe('IndexMapper', () => {
     describe('should move given indexes properly from the bottom to the top', () => {
       it('ascending order of moved indexes', () => {
         const indexMapper = new IndexMapper();
+
         indexMapper.initToLength(10);
 
         indexMapper.moveIndexes([4, 5, 6, 7], 2);
@@ -1843,6 +1851,7 @@ describe('IndexMapper', () => {
 
       it('descending order of moved indexes', () => {
         const indexMapper = new IndexMapper();
+
         indexMapper.initToLength(10);
 
         indexMapper.moveIndexes([7, 6, 5, 4], 2);
@@ -1851,6 +1860,7 @@ describe('IndexMapper', () => {
 
       it('mixed order of moved indexes', () => {
         const indexMapper = new IndexMapper();
+
         indexMapper.initToLength(10);
 
         indexMapper.moveIndexes([7, 5, 4, 6], 2);
@@ -1861,6 +1871,7 @@ describe('IndexMapper', () => {
     describe('should move given indexes properly when sequence of moves is mixed', () => {
       it('ascending order of moved indexes', () => {
         const indexMapper = new IndexMapper();
+
         indexMapper.initToLength(10);
 
         indexMapper.moveIndexes([1, 2, 6, 7], 4);
@@ -1869,6 +1880,7 @@ describe('IndexMapper', () => {
 
       it('descending order of moved indexes', () => {
         const indexMapper = new IndexMapper();
+
         indexMapper.initToLength(10);
 
         indexMapper.moveIndexes([7, 6, 2, 1], 4);
@@ -1877,6 +1889,7 @@ describe('IndexMapper', () => {
 
       it('mixed order of moved indexes', () => {
         const indexMapper = new IndexMapper();
+
         indexMapper.initToLength(10);
 
         indexMapper.moveIndexes([7, 2, 1, 6], 4);
