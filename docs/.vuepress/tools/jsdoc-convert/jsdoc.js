@@ -75,25 +75,25 @@ const clearEmptyFunctionsHeaders = text => text
   .replace(/(## Methods\n## Methods\n\n## Description)/g, '## Description');
 
 const fixTypes = text => text.replace(
-  /(::: signame |\*\*Returns\*\*:|\*\*See\*\*:|\*\*Emits\*\*:)( ?[^\n-]*)/g, 
+  /(::: signame |\*\*Returns\*\*:|\*\*See\*\*:|\*\*Emits\*\*:)( ?[^\n-]*)/g,
   (_, part, signame) => {
     let suffix = '';
     let prefix = part;
 
-  if (part === '::: signame ') {
-    prefix = '_';
-    suffix = '_';
-  }
-  const r = prefix + signame
-    .replace(/([^\w`\[#])(`)?(IndexMapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./index-mapper/$4)')
-    .replace(/([^\w`\[#])(`)?(Handsontable|Core)(#\w*)?(`)?/g, '$1[$2$3$4$5](./core/$4)')
-    .replace(/([^\w`\[#])(`)?(Hooks)((#)(event:)?(\w*))?(`)?/g, '$1[$2$3$4$8](./hooks/$5$7)')
-    .replace(/([^\w`\[#])(`)?(BaseEditor)(#\w*)?(`)?/g, '$1[$2$3$4$5](./base-editor/$4)')
-    .replace(/([^\w`\[#])(`)?(CellCoords)(#\w*)?(`)?/g, '$1[$2$3$4$5](./coords/$4)')
-    .replace(/([^\w`\[#])(`)?(FocusableWrapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./focusable-element/$4)')
-    .replace(/\.</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/`\\\*`/, '`*`')
+    if (part === '::: signame ') {
+      prefix = '_';
+      suffix = '_';
+    }
+    const r = prefix + signame
+      .replace(/([^\w`\[#])(`)?(IndexMapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./index-mapper/$4)')
+      .replace(/([^\w`\[#])(`)?(Handsontable|Core)(#\w*)?(`)?/g, '$1[$2$3$4$5](./core/$4)')
+      .replace(/([^\w`\[#])(`)?(Hooks)((#)(event:)?(\w*))?(`)?/g, '$1[$2$3$4$8](./hooks/$5$7)')
+      .replace(/([^\w`\[#])(`)?(BaseEditor)(#\w*)?(`)?/g, '$1[$2$3$4$5](./base-editor/$4)')
+      .replace(/([^\w`\[#])(`)?(CellCoords)(#\w*)?(`)?/g, '$1[$2$3$4$5](./coords/$4)')
+      .replace(/([^\w`\[#])(`)?(FocusableWrapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./focusable-element/$4)')
+      .replace(/\.</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/`\\\*`/, '`*`')
     + suffix;
 
     return r;
@@ -101,8 +101,8 @@ const fixTypes = text => text.replace(
 );
 
 const fixCategories = text => text.replace(
-  /(\*\*Category\*\*: ?)([^\n- ]*)/g, 
-  (_, part, signame) => `${part}[${signame}](${genSeoPermalink(signame).replace('-','../')})`
+  /(\*\*Category\*\*: ?)([^\n- ]*)/g,
+  (_, part, signame) => `${part}[${signame}](${genSeoPermalink(signame).replace('-', '../')})`
 );
 
 const unescapeRedundant = text => text
@@ -114,8 +114,8 @@ const unescapeRedundant = text => text
       .replace(/\\_/g, '_')
   )
   .replace(/<\/ul>\./g, '</ul>') // remove redundant dot, which eslint enforce to add after list closing tag.
-  .replace(/&quot;&#x27;/g,'"')
-  .replace(/&#x27;&quot;/g,'"');
+  .replace(/&quot;&#x27;/g, '"')
+  .replace(/&#x27;&quot;/g, '"');
 
 const postProcessors = [
   fixLinks,
@@ -158,7 +158,7 @@ const memorizeOptions = data => (!isOptions(data) ? data : data.map((x) => {
     optionsPerPlugin[cat] = optionsPerPlugin[cat] || [];
     optionsPerPlugin[cat].push(x);
   }
-  
+
   return x;
 }));
 const applyPluginOptions = (data) => {
@@ -218,7 +218,7 @@ const genSeoPermalink = file => file
   .replace(/(^.*\/)?(.*)\.[a-zA-Z]*$/, '$2') // Get filename without full path and extension
   .replace(/([A-Z]+)/g, '-$1') // Separate words
   .toLowerCase();
-const seoPermalink = file => seo[file] && seo[file].permalink || urlPrefix+genSeoPermalink(file);
+const seoPermalink = file => seo[file] && seo[file].permalink || urlPrefix + genSeoPermalink(file);
 
 const seoCanonicalUrl = file => seoPermalink(file).replace('/next', '');
 
