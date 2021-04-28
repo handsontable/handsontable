@@ -88,7 +88,6 @@ formulas: {
 
 ```js
 // Instance 1:
-
 formulas: {
     engine: HyperFormula,
     sheetName: 'Sheet 1'
@@ -96,7 +95,6 @@ formulas: {
 }
 
 // Instance 2:
-
 formulas: {
     engine: hot1.getPlugin('formulas').engine,
     sheetName: 'Sheet 2'
@@ -112,7 +110,6 @@ const externalHF = HyperFormula.buildEmpty({});
 
 ```js
 // Instance 1:
-
 formulas: {
     engine: externalHF,
     sheetName: 'Sheet 1'
@@ -120,7 +117,6 @@ formulas: {
 }
 
 // Instance 2:
-
 formulas: {
     engine: externalHF,
     sheetName: 'Sheet 2'
