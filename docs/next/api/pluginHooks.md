@@ -11,8 +11,10 @@ editLink: false
 ## Members
 
 ### afterAddChild
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1745
 
+:::
 
 _afterAddChild(parent, element, index)_
 
@@ -23,14 +25,16 @@ Fired by [NestedRows](./nested-rows/) plugin after adding a children to the Nest
 | Param | Type | Description |
 | --- | --- | --- |
 | parent | `object` | The parent object. |
-| element | `object` \| `undefined` | The element added as a child. If `undefined`, a blank child was added. |
-| index | `number` \| `undefined` | The index within the parent where the new child was added. If `undefined`, the element was added as the last child. |
+| element | `object` <br/> `undefined` | The element added as a child. If `undefined`, a blank child was added. |
+| index | `number` <br/> `undefined` | The index within the parent where the new child was added. If `undefined`, the element was added as the last child. |
 
 
 
 ### afterAutofill
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L656
 
+:::
 
 _afterAutofill(start, end, data)_
 
@@ -43,13 +47,15 @@ Fired by [Autofill](./autofill/) plugin after populating the data in the autofil
 | --- | --- | --- |
 | start | `CellCoords` | Object containing information about first filled cell: `{row: 2, col: 0}`. |
 | end | `CellCoords` | Object containing information about last filled cell: `{row: 4, col: 1}`. |
-| data | `Array.&lt;Array&gt;` | 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`. |
+| data | `Array<Array>` | 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`. |
 
 
 
 ### afterBeginEditing
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1776
 
+:::
 
 _afterBeginEditing(row, column)_
 
@@ -64,8 +70,10 @@ Fired after the editor is opened and rendered.
 
 
 ### afterCellMetaReset
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L56
 
+:::
 
 _afterCellMetaReset_
 
@@ -74,8 +82,10 @@ Fired after resetting a cell's meta. This happens when the [Core#updateSettings]
 
 
 ### afterChange
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L63
 
+:::
 
 _afterChange(changes, [source])_
 
@@ -103,8 +113,10 @@ new Handsontable(element, {
 
 
 ### afterChangesObserved
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L85
 
+:::
 
 _afterChangesObserved_
 
@@ -114,8 +126,10 @@ Fired by [ObserveChanges](./observe-changes/) plugin after detecting changes in 
 
 
 ### afterColumnCollapse
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1875
 
+:::
 
 _afterColumnCollapse(currentCollapsedColumns, destinationCollapsedColumns, collapsePossible, successfullyCollapsed)_
 
@@ -133,8 +147,10 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns coll
 
 
 ### afterColumnExpand
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1899
 
+:::
 
 _afterColumnExpand(currentCollapsedColumns, destinationCollapsedColumns, expandPossible, successfullyExpanded)_
 
@@ -152,8 +168,10 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns expa
 
 
 ### afterColumnMove
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1262
 
+:::
 
 _afterColumnMove(movedColumns, finalIndex, dropIndex, movePossible, orderChanged)_
 
@@ -165,15 +183,17 @@ Fired by [ManualColumnMove](./manual-column-move/) plugin after changing order o
 | --- | --- | --- |
 | movedColumns | `Array` | Array of visual column indexes to be moved. |
 | finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
-| dropIndex | `number` \| `undefined` | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called. |
+| dropIndex | `number` <br/> `undefined` | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called. |
 | movePossible | `boolean` | Indicates if it was possible to move columns to the desired position. |
 | orderChanged | `boolean` | Indicates if order of columns was changed by move. |
 
 
 
 ### afterColumnResize
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1313
 
+:::
 
 _afterColumnResize(newSize, column, isDoubleClick)_
 
@@ -190,8 +210,10 @@ fired when [Options#manualColumnResize](./options/#manualcolumnresize) option is
 
 
 ### afterColumnSort
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1093
 
+:::
 
 _afterColumnSort(currentSortConfig, destinationSortConfigs)_
 
@@ -207,8 +229,10 @@ or [Options#multiColumnSorting](./options/#multicolumnsorting) option is enabled
 
 
 ### afterContextMenuDefaultOptions
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L93
 
+:::
 
 _afterContextMenuDefaultOptions(predefinedItems)_
 
@@ -223,8 +247,10 @@ which user can select by setting an array of keys or an array of objects in [Opt
 
 
 ### afterContextMenuHide
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L132
 
+:::
 
 _afterContextMenuHide(context)_
 
@@ -239,8 +265,10 @@ option is enabled.
 
 
 ### afterContextMenuShow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L150
 
+:::
 
 _afterContextMenuShow(context)_
 
@@ -255,8 +283,10 @@ option is enabled.
 
 
 ### afterCopy
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1197
 
+:::
 
 _afterCopy(data, coords)_
 
@@ -266,14 +296,16 @@ option is enabled.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | `Array.&lt;Array&gt;` | An array of arrays which contains the copied data. |
-| coords | `Array.&lt;object&gt;` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                         which was copied. |
+| data | `Array<Array>` | An array of arrays which contains the copied data. |
+| coords | `Array<object>` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                         which was copied. |
 
 
 
 ### afterCopyLimit
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L159
 
+:::
 
 _afterCopyLimit(selectedRows, selectedColumns, copyRowsLimit, copyColumnsLimit)_
 
@@ -291,8 +323,10 @@ Fired by [CopyPaste](./copy-paste/) plugin after reaching the copy limit while c
 
 
 ### afterCreateCol
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L192
 
+:::
 
 _afterCreateCol(index, amount, [source])_
 
@@ -308,8 +342,10 @@ Fired after created a new column.
 
 
 ### afterCreateRow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L215
 
+:::
 
 _afterCreateRow(index, amount, [source])_
 
@@ -325,8 +361,10 @@ Fired after created a new row.
 
 
 ### afterCut
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1151
 
+:::
 
 _afterCut(data, coords)_
 
@@ -336,14 +374,16 @@ Fired by [CopyPaste](./copy-paste/) plugin after data was cut out from the table
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | `Array.&lt;Array&gt;` | An array of arrays which contains the cutted out data. |
-| coords | `Array.&lt;object&gt;` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       which was cut out. |
+| data | `Array<Array>` | An array of arrays which contains the cutted out data. |
+| coords | `Array<object>` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       which was cut out. |
 
 
 
 ### afterDeselect
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L226
 
+:::
 
 _afterDeselect_
 
@@ -352,8 +392,10 @@ Fired after the current cell is deselected.
 
 
 ### afterDestroy
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L233
 
+:::
 
 _afterDestroy_
 
@@ -362,8 +404,10 @@ Fired after destroying the Handsontable instance.
 
 
 ### afterDetachChild
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1766
 
+:::
 
 _afterDetachChild(parent, element)_
 
@@ -379,8 +423,10 @@ Fired by [NestedRows](./nested-rows/) plugin after detaching a child from its pa
 
 
 ### afterDocumentKeyDown
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L240
 
+:::
 
 _afterDocumentKeyDown(event)_
 
@@ -395,8 +441,10 @@ hooks system and consumed by Core and internal modules (e.g plugins, editors).
 
 
 ### afterDrawSelection
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L249
 
+:::
 
 _afterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel) ⇒ string | undefined_
 
@@ -408,15 +456,17 @@ Fired inside the Walkontable's selection `draw` method. Can be used to add addit
 | --- | --- | --- |
 | currentRow | `number` | Row index of the currently processed cell. |
 | currentColumn | `number` | Column index of the currently cell. |
-| cornersOfSelection | `Array.&lt;number&gt;` | Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`. |
-| layerLevel | `number` \| `undefined` | Number indicating which layer of selection is currently processed. |
+| cornersOfSelection | `Array<number>` | Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`. |
+| layerLevel | `number` <br/> `undefined` | Number indicating which layer of selection is currently processed. |
 
 
 **Returns**: `string` | `undefined` - Can return a `String`, which will act as an additional `className` to be added to the currently processed cell.  
 
 ### afterDropdownMenuDefaultOptions
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L112
 
+:::
 
 _afterDropdownMenuDefaultOptions(predefinedItems)_
 
@@ -427,13 +477,15 @@ option.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| predefinedItems | `Array.&lt;object&gt;` | An array of objects containing information about the pre-defined Context Menu items. |
+| predefinedItems | `Array<object>` | An array of objects containing information about the pre-defined Context Menu items. |
 
 
 
 ### afterDropdownMenuHide
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1725
 
+:::
 
 _afterDropdownMenuHide(instance)_
 
@@ -448,8 +500,10 @@ option is enabled.
 
 
 ### afterDropdownMenuShow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1716
 
+:::
 
 _afterDropdownMenuShow(dropdownMenu)_
 
@@ -464,8 +518,10 @@ option is enabled.
 
 
 ### afterFilter
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1406
 
+:::
 
 _afterFilter(conditionsStack)_
 
@@ -475,13 +531,15 @@ Fired by [Filters](./filters/) plugin after applying [filtering](https://handson
 
 | Param | Type | Description |
 | --- | --- | --- |
-| conditionsStack | `Array.&lt;object&gt;` | An array of objects with added conditions. ```js // Example format of the conditionsStack argument: [   {     column: 2,     conditions: [       {name: 'begins_with', args: [['S']]}     ],     operation: 'conjunction'   },   {     column: 4,     conditions: [       {name: 'not_empty', args: []}     ],     operation: 'conjunction'   }, ] ``` |
+| conditionsStack | `Array<object>` | An array of objects with added conditions. ```js // Example format of the conditionsStack argument: [   {     column: 2,     conditions: [       {name: 'begins_with', args: [['S']]}     ],     operation: 'conjunction'   },   {     column: 4,     conditions: [       {name: 'not_empty', args: []}     ],     operation: 'conjunction'   }, ] ``` |
 
 
 
 ### afterGetCellMeta
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L271
 
+:::
 
 _afterGetCellMeta(row, column, cellProperties)_
 
@@ -497,8 +555,10 @@ Fired after getting the cell settings.
 
 
 ### afterGetColHeader
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L281
 
+:::
 
 _afterGetColHeader(column, TH)_
 
@@ -513,8 +573,10 @@ Fired after retrieving information about a column header and appending it to the
 
 
 ### afterGetColumnHeaderRenderers
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1347
 
+:::
 
 _afterGetColumnHeaderRenderers(renderers)_
 
@@ -523,13 +585,15 @@ Fired after getting the column header renderers.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| renderers | `Array.&lt;function()&gt;` | An array of the column header renderers. |
+| renderers | `Array<function()>` | An array of the column header renderers. |
 
 
 
 ### afterGetRowHeader
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L290
 
+:::
 
 _afterGetRowHeader(row, TH)_
 
@@ -544,8 +608,10 @@ Fired after retrieving information about a row header and appending it to the ta
 
 
 ### afterGetRowHeaderRenderers
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1355
 
+:::
 
 _afterGetRowHeaderRenderers(renderers)_
 
@@ -554,13 +620,15 @@ Fired after getting the row header renderers.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| renderers | `Array.&lt;function()&gt;` | An array of the row header renderers. |
+| renderers | `Array<function()>` | An array of the row header renderers. |
 
 
 
 ### afterHideColumns
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1627
 
+:::
 
 _afterHideColumns(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)_
 
@@ -577,8 +645,10 @@ Fired by [HiddenColumns](./hidden-columns/) plugin after marking the columns as 
 
 
 ### afterHideRows
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1581
 
+:::
 
 _afterHideRows(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)_
 
@@ -595,8 +665,10 @@ Fired by [HiddenRows](./hidden-rows/) plugin after marking the rows as hidden. F
 
 
 ### afterInit
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L299
 
+:::
 
 _afterInit_
 
@@ -605,8 +677,10 @@ Fired after the Handsontable instance is initiated.
 
 
 ### afterLanguageChange
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L635
 
+:::
 
 _afterLanguageChange(languageCode)_
 
@@ -621,8 +695,10 @@ Fired after successful change of language (when proper language code was set).
 
 
 ### afterListen
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1826
 
+:::
 
 _afterListen_
 
@@ -632,8 +708,10 @@ respond in the right way.
 
 
 ### afterLoadData
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L306
 
+:::
 
 _afterLoadData(sourceData, initialLoad)_
 
@@ -648,8 +726,10 @@ Fired after new data is loaded (by `loadData` or `updateSettings` method) into t
 
 
 ### afterMergeCells
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1795
 
+:::
 
 _afterMergeCells(cellRange, mergeParent, [auto])_
 
@@ -666,8 +746,10 @@ option is enabled.
 
 
 ### afterModifyTransformEnd
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1530
 
+:::
 
 _afterModifyTransformEnd(coords, rowTransformDir, colTransformDir)_
 
@@ -683,8 +765,10 @@ Fired after the end of the selection is being modified (e.g. Moving the selectio
 
 
 ### afterModifyTransformStart
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1520
 
+:::
 
 _afterModifyTransformStart(coords, rowTransformDir, colTransformDir)_
 
@@ -700,8 +784,10 @@ Fired after the start of the selection is being modified (e.g. Moving the select
 
 
 ### afterMomentumScroll
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L315
 
+:::
 
 _afterMomentumScroll_
 
@@ -710,8 +796,10 @@ Fired after a scroll event, which is identified as a momentum scroll (e.g. On an
 
 
 ### afterOnCellContextMenu
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L366
 
+:::
 
 _afterOnCellContextMenu(event, coords, TD)_
 
@@ -731,8 +819,10 @@ with coordinates `{row: 0, col: -1}`.
 
 
 ### afterOnCellCornerDblClick
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L330
 
+:::
 
 _afterOnCellCornerDblClick(event)_
 
@@ -746,8 +836,10 @@ Fired after a `dblclick` event is triggered on the cell corner (the drag handle)
 
 
 ### afterOnCellCornerMouseDown
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L322
 
+:::
 
 _afterOnCellCornerMouseDown(event)_
 
@@ -761,8 +853,10 @@ Fired after a `mousedown` event is triggered on the cell corner (the drag handle
 
 
 ### afterOnCellMouseDown
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L338
 
+:::
 
 _afterOnCellMouseDown(event, coords, TD)_
 
@@ -782,8 +876,10 @@ with coordinates `{row: 0, col: -1}`.
 
 
 ### afterOnCellMouseOut
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L394
 
+:::
 
 _afterOnCellMouseOut(event, coords, TD)_
 
@@ -799,8 +895,10 @@ Fired after leaving a cell or row/column header with the mouse cursor.
 
 
 ### afterOnCellMouseOver
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L380
 
+:::
 
 _afterOnCellMouseOver(event, coords, TD)_
 
@@ -820,8 +918,10 @@ with coords `{row: 0, col: -1}`.
 
 
 ### afterOnCellMouseUp
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L352
 
+:::
 
 _afterOnCellMouseUp(event, coords, TD)_
 
@@ -841,8 +941,10 @@ with coordinates `{row: 0, col: -1}`.
 
 
 ### afterPaste
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1238
 
+:::
 
 _afterPaste(data, coords)_
 
@@ -852,14 +954,16 @@ Fired by [CopyPaste](./copy-paste/) plugin after values are pasted into table. T
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | `Array.&lt;Array&gt;` | An array of arrays which contains the pasted data. |
-| coords | `Array.&lt;object&gt;` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       that correspond to the previously selected area. |
+| data | `Array<Array>` | An array of arrays which contains the pasted data. |
+| coords | `Array<object>` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       that correspond to the previously selected area. |
 
 
 
 ### afterPluginsInitialized
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1556
 
+:::
 
 _afterPluginsInitialized_
 
@@ -873,8 +977,10 @@ Handsontable.hooks.add('afterPluginsInitialized', myCallback);
 
 
 ### afterRedo
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1475
 
+:::
 
 _afterRedo(action)_
 
@@ -889,8 +995,10 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 
 ### afterRefreshDimensions
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1842
 
+:::
 
 _afterRefreshDimensions(previousDimensions, currentDimensions, stateChanged)_
 
@@ -906,8 +1014,10 @@ Fired after the window was resized.
 
 
 ### afterRemoveCellMeta
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L558
 
+:::
 
 _afterRemoveCellMeta(row, column, key, value)_
 
@@ -919,13 +1029,15 @@ Fired after cell meta is removed.
 | row | `number` | Visual row index. |
 | column | `number` | Visual column index. |
 | key | `string` | The removed meta key. |
-| value | `\*` | Value which was under removed key of cell meta. |
+| value | `*` | Value which was under removed key of cell meta. |
 
 
 
 ### afterRemoveCol
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L404
 
+:::
 
 _afterRemoveCol(index, amount, physicalColumns, [source])_
 
@@ -936,14 +1048,16 @@ Fired after one or more columns are removed.
 | --- | --- | --- |
 | index | `number` | Visual index of starter column. |
 | amount | `number` | An amount of removed columns. |
-| physicalColumns | `Array.&lt;number&gt;` | An array of physical columns removed from the data source. |
+| physicalColumns | `Array<number>` | An array of physical columns removed from the data source. |
 | [source] | `string` | `optional` String that identifies source of hook call ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 
 ### afterRemoveRow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L415
 
+:::
 
 _afterRemoveRow(index, amount, physicalRows, [source])_
 
@@ -954,14 +1068,16 @@ Fired after one or more rows are removed.
 | --- | --- | --- |
 | index | `number` | Visual index of starter row. |
 | amount | `number` | An amount of removed rows. |
-| physicalRows | `Array.&lt;number&gt;` | An array of physical rows removed from the data source. |
+| physicalRows | `Array<number>` | An array of physical rows removed from the data source. |
 | [source] | `string` | `optional` String that identifies source of hook call ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 
 ### afterRender
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L426
 
+:::
 
 _afterRender(isForced)_
 
@@ -975,8 +1091,10 @@ Fired after the Handsontable table is rendered.
 
 
 ### afterRenderer
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L448
 
+:::
 
 _afterRenderer(TD, row, column, prop, value, cellProperties)_
 
@@ -988,15 +1106,17 @@ Fired after finishing rendering the cell (after the renderer finishes).
 | TD | `HTMLTableCellElement` | Currently rendered cell's TD element. |
 | row | `number` | Visual row index. |
 | column | `number` | Visual column index. |
-| prop | `string` \| `number` | Column property name or a column index, if datasource is an array of arrays. |
-| value | `\*` | Value of the rendered cell. |
+| prop | `string` <br/> `number` | Column property name or a column index, if datasource is an array of arrays. |
+| value | `*` | Value of the rendered cell. |
 | cellProperties | `object` | Object containing the cell's properties. |
 
 
 
 ### afterRowMove
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1288
 
+:::
 
 _afterRowMove(movedRows, finalIndex, dropIndex, movePossible, orderChanged)_
 
@@ -1008,15 +1128,17 @@ Fired by [ManualRowMove](./manual-row-move/) plugin after changing the order of 
 | --- | --- | --- |
 | movedRows | `Array` | Array of visual row indexes to be moved. |
 | finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
-| dropIndex | `number` \| `undefined` | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called. |
+| dropIndex | `number` <br/> `undefined` | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called. |
 | movePossible | `boolean` | Indicates if it was possible to move rows to the desired position. |
 | orderChanged | `boolean` | Indicates if order of rows was changed by move. |
 
 
 
 ### afterRowResize
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1336
 
+:::
 
 _afterRowResize(newSize, row, isDoubleClick)_
 
@@ -1033,8 +1155,10 @@ fired when [Options#manualRowResize](./options/#manualrowresize) option is enabl
 
 
 ### afterScrollHorizontally
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L461
 
+:::
 
 _afterScrollHorizontally_
 
@@ -1043,8 +1167,10 @@ Fired after the horizontal scroll event.
 
 
 ### afterScrollVertically
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L468
 
+:::
 
 _afterScrollVertically_
 
@@ -1053,8 +1179,10 @@ Fired after the vertical scroll event.
 
 
 ### afterSelection
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L475
 
+:::
 
 _afterSelection(row, column, row2, column2, preventScrolling, selectionLayerLevel)_
 
@@ -1082,8 +1210,10 @@ new Handsontable(element, {
 
 
 ### afterSelectionByProp
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L497
 
+:::
 
 _afterSelectionByProp(row, prop, row2, prop2, preventScrolling, selectionLayerLevel)_
 
@@ -1113,8 +1243,10 @@ new Handsontable(element, {
 
 
 ### afterSelectionEnd
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L521
 
+:::
 
 _afterSelectionEnd(row, column, row2, column2, selectionLayerLevel)_
 
@@ -1132,8 +1264,10 @@ Fired after one or more cells are selected (e.g. On mouse up).
 
 
 ### afterSelectionEndByProp
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L533
 
+:::
 
 _afterSelectionEndByProp(row, prop, row2, prop2, selectionLayerLevel)_
 
@@ -1153,8 +1287,10 @@ The `prop` and `prop2` arguments represent the source object property name inste
 
 
 ### afterSetCellMeta
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L547
 
+:::
 
 _afterSetCellMeta(row, column, key, value)_
 
@@ -1166,13 +1302,15 @@ Fired after cell meta is changed.
 | row | `number` | Visual row index. |
 | column | `number` | Visual column index. |
 | key | `string` | The updated meta key. |
-| value | `\*` | The updated meta value. |
+| value | `*` | The updated meta value. |
 
 
 
 ### afterSetDataAtCell
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L569
 
+:::
 
 _afterSetDataAtCell(changes, [source])_
 
@@ -1187,8 +1325,10 @@ Fired after cell data was changed.
 
 
 ### afterSetDataAtRowProp
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L579
 
+:::
 
 _afterSetDataAtRowProp(changes, [source])_
 
@@ -1204,8 +1344,10 @@ Called only when `setDataAtRowProp` was executed.
 
 
 ### afterSetSourceDataAtCell
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L590
 
+:::
 
 _afterSetSourceDataAtCell(changes, [source])_
 
@@ -1221,8 +1363,10 @@ Fired after cell source data was changed.
 
 
 ### afterTrimRow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1672
 
+:::
 
 _afterTrimRow(currentTrimConfig, destinationTrimConfig, actionPossible, stateChanged) ⇒ undefined | boolean_
 
@@ -1240,8 +1384,10 @@ Fired by [TrimRows](./trim-rows/) plugin after trimming rows. This hook is fired
 **Returns**: `undefined` | `boolean` - If the callback returns `false`, the trimming action will not be completed.  
 
 ### afterUndo
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1454
 
+:::
 
 _afterUndo(action)_
 
@@ -1256,8 +1402,10 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 
 ### afterUnhideColumns
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1650
 
+:::
 
 _afterUnhideColumns(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)_
 
@@ -1274,8 +1422,10 @@ Fired by [HiddenColumns](./hidden-columns/) plugin after marking the columns as 
 
 
 ### afterUnhideRows
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1604
 
+:::
 
 _afterUnhideRows(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)_
 
@@ -1292,8 +1442,10 @@ Fired by [HiddenRows](./hidden-rows/) plugin after marking the rows as not hidde
 
 
 ### afterUnlisten
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1834
 
+:::
 
 _afterUnlisten_
 
@@ -1303,8 +1455,10 @@ keyboard events.
 
 
 ### afterUnmergeCells
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1816
 
+:::
 
 _afterUnmergeCells(cellRange, [auto])_
 
@@ -1320,8 +1474,10 @@ option is enabled.
 
 
 ### afterUntrimRow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1695
 
+:::
 
 _afterUntrimRow(currentTrimConfig, destinationTrimConfig, actionPossible, stateChanged) ⇒ undefined | boolean_
 
@@ -1339,8 +1495,10 @@ Fired by [TrimRows](./trim-rows/) plugin after untrimming rows. This hook is fir
 **Returns**: `undefined` | `boolean` - If the callback returns `false`, the untrimming action will not be completed.  
 
 ### afterUpdateSettings
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L600
 
+:::
 
 _afterUpdateSettings(newSettings)_
 
@@ -1354,8 +1512,10 @@ Fired after calling the `updateSettings` method.
 
 
 ### afterValidate
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L608
 
+:::
 
 _afterValidate(isValid, value, row, prop, [source]) ⇒ void | boolean_
 
@@ -1368,17 +1528,19 @@ __Returning false from the callback will mark the cell as invalid__.
 | Param | Type | Description |
 | --- | --- | --- |
 | isValid | `boolean` | `true` if valid, `false` if not. |
-| value | `\*` | The value in question. |
+| value | `*` | The value in question. |
 | row | `number` | Visual row index. |
-| prop | `string` \| `number` | Property name / visual column index. |
+| prop | `string` <br/> `number` | Property name / visual column index. |
 | [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 **Returns**: `void` | `boolean` - If `false` the cell will be marked as invalid, `true` otherwise.  
 
 ### afterViewportColumnCalculatorOverride
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1548
 
+:::
 
 _afterViewportColumnCalculatorOverride(calc)_
 
@@ -1392,8 +1554,10 @@ Fired inside the `viewportColumnCalculatorOverride` method. Allows modifying the
 
 
 ### afterViewportRowCalculatorOverride
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1540
 
+:::
 
 _afterViewportRowCalculatorOverride(calc)_
 
@@ -1407,8 +1571,10 @@ Fired inside the `viewportRowCalculatorOverride` method. Allows modifying the ro
 
 
 ### beforeAddChild
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1734
 
+:::
 
 _beforeAddChild(parent, element, index)_
 
@@ -1419,14 +1585,16 @@ Fired by [NestedRows](./nested-rows/) plugin before adding a children to the Nes
 | Param | Type | Description |
 | --- | --- | --- |
 | parent | `object` | The parent object. |
-| element | `object` \| `undefined` | The element added as a child. If `undefined`, a blank child was added. |
-| index | `number` \| `undefined` | The index within the parent where the new child was added. If `undefined`, the element was added as the last child. |
+| element | `object` <br/> `undefined` | The element added as a child. If `undefined`, a blank child was added. |
+| index | `number` <br/> `undefined` | The index within the parent where the new child was added. If `undefined`, the element was added as the last child. |
 
 
 
 ### beforeAutofill
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L644
 
+:::
 
 _beforeAutofill(start, end, data) ⇒ \* | boolean_
 
@@ -1438,14 +1606,16 @@ Fired by [Autofill](./autofill/) plugin before populating the data in the autofi
 | --- | --- | --- |
 | start | `CellCoords` | Object containing information about first filled cell: `{row: 2, col: 0}`. |
 | end | `CellCoords` | Object containing information about last filled cell: `{row: 4, col: 1}`. |
-| data | `Array.&lt;Array&gt;` | 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`. |
+| data | `Array<Array>` | 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`. |
 
 
 **Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeAutofillInsidePopulate
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1493
 
+:::
 
 _beforeAutofillInsidePopulate(index, direction, input, deltas)_
 
@@ -1456,14 +1626,16 @@ Fired from the `populateFromArray` method during the `autofill` process. Fired f
 | --- | --- | --- |
 | index | `object` | Object containing `row` and `col` properties, defining the number of rows/columns from the initial cell of the autofill. |
 | direction | `string` | Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`. |
-| input | `Array.&lt;Array&gt;` | Contains an array of rows with data being used in the autofill. |
+| input | `Array<Array>` | Contains an array of rows with data being used in the autofill. |
 | deltas | `Array` | The deltas array passed to the `populateFromArray` method. |
 
 
 
 ### beforeCellAlignment
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L668
 
+:::
 
 _beforeCellAlignment(stateBefore, range, type, alignmentClass)_
 
@@ -1473,15 +1645,17 @@ Fired before aligning the cell contents.
 | Param | Type | Description |
 | --- | --- | --- |
 | stateBefore | `object` | An object with class names defining the cell alignment. |
-| range | `Array.&lt;CellRange&gt;` | An array of CellRange coordinates where the alignment will be applied. |
+| range | `Array<CellRange>` | An array of CellRange coordinates where the alignment will be applied. |
 | type | `string` | Type of the alignment - either `horizontal` or `vertical`. |
 | alignmentClass | `string` | String defining the alignment class added to the cell. Possible values: * `htLeft` * `htCenter` * `htRight` * `htJustify` * `htTop` * `htMiddle` * `htBottom`. |
 
 
 
 ### beforeChange
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L687
 
+:::
 
 _beforeChange(changes, [source]) ⇒ void | boolean_
 
@@ -1515,15 +1689,17 @@ new Handsontable(element, {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| changes | `Array.&lt;Array&gt;` | 2D array containing information about each of the edited cells. |
+| changes | `Array<Array>` | 2D array containing information about each of the edited cells. |
 | [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 **Returns**: `void` | `boolean` - If `false` all changes were cancelled, `true` otherwise.  
 
 ### beforeChangeRender
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L723
 
+:::
 
 _beforeChangeRender(changes, [source])_
 
@@ -1532,14 +1708,16 @@ Fired right before rendering the changes.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| changes | `Array.&lt;Array&gt;` | Array in form of `[row, prop, oldValue, newValue]`. |
+| changes | `Array<Array>` | Array in form of `[row, prop, oldValue, newValue]`. |
 | [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 
 ### beforeColumnCollapse
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1863
 
+:::
 
 _beforeColumnCollapse(currentCollapsedColumns, destinationCollapsedColumns, collapsePossible) ⇒ undefined | boolean_
 
@@ -1557,8 +1735,10 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns coll
 **Returns**: `undefined` | `boolean` - If the callback returns `false`, the collapsing action will not be completed.  
 
 ### beforeColumnExpand
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1887
 
+:::
 
 _beforeColumnExpand(currentCollapsedColumns, destinationCollapsedColumns, expandPossible) ⇒ undefined | boolean_
 
@@ -1576,8 +1756,10 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns expa
 **Returns**: `undefined` | `boolean` - If the callback returns `false`, the expanding action will not be completed.  
 
 ### beforeColumnMove
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1249
 
+:::
 
 _beforeColumnMove(movedColumns, finalIndex, dropIndex, movePossible) ⇒ void | boolean_
 
@@ -1589,15 +1771,17 @@ Fired by [ManualColumnMove](./manual-column-move/) plugin before change order of
 | --- | --- | --- |
 | movedColumns | `Array` | Array of visual column indexes to be moved. |
 | finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
-| dropIndex | `number` \| `undefined` | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called. |
+| dropIndex | `number` <br/> `undefined` | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called. |
 | movePossible | `boolean` | Indicates if it's possible to move rows to the desired position. |
 
 
 **Returns**: `void` | `boolean` - If `false` the column will not be moved, `true` otherwise.  
 
 ### beforeColumnResize
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1301
 
+:::
 
 _beforeColumnResize(newSize, column, isDoubleClick) ⇒ number_
 
@@ -1615,8 +1799,10 @@ fired when [Options#manualColumnResize](./options/#manualcolumnresize) option is
 **Returns**: `number` - Returns a new column size or `undefined`, if column size should be calculated automatically.  
 
 ### beforeColumnSort
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1080
 
+:::
 
 _beforeColumnSort(currentSortConfig, destinationSortConfigs) ⇒ boolean | void_
 
@@ -1635,8 +1821,10 @@ This hook is fired when [Options#columnSorting](./options/#columnsorting) or [Op
 **Returns**: `boolean` | `void` - If `false` the column will not be sorted, `true` otherwise.  
 
 ### beforeContextMenuSetItems
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L102
 
+:::
 
 _beforeContextMenuSetItems(menuItems)_
 
@@ -1647,13 +1835,15 @@ one of the menu item to by always visible.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| menuItems | `Array.&lt;object&gt;` | An array of objects containing information about to generated Context Menu items. |
+| menuItems | `Array<object>` | An array of objects containing information about to generated Context Menu items. |
 
 
 
 ### beforeContextMenuShow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L141
 
+:::
 
 _beforeContextMenuShow(context)_
 
@@ -1668,8 +1858,10 @@ option is enabled.
 
 
 ### beforeCopy
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1162
 
+:::
 
 _beforeCopy(data, coords) ⇒ \*_
 
@@ -1701,15 +1893,17 @@ new Handsontable(document.getElementById('example'), {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | `Array.&lt;Array&gt;` | An array of arrays which contains data to copied. |
-| coords | `Array.&lt;object&gt;` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                         which will copied. |
+| data | `Array<Array>` | An array of arrays which contains data to copied. |
+| coords | `Array<object>` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                         which will copied. |
 
 
 **Returns**: `*` - If returns `false` then copying is canceled.  
 
 ### beforeCreateCol
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L171
 
+:::
 
 _beforeCreateCol(index, amount, [source]) ⇒ \*_
 
@@ -1735,8 +1929,10 @@ new Handsontable(element, {
 **Returns**: `*` - If `false` then creating columns is cancelled.  
 
 ### beforeCreateRow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L203
 
+:::
 
 _beforeCreateRow(index, amount, [source]) ⇒ \* | boolean_
 
@@ -1753,8 +1949,10 @@ Fired before created a new row.
 **Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeCut
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1121
 
+:::
 
 _beforeCut(data, coords) ⇒ \*_
 
@@ -1782,15 +1980,17 @@ new Handsontable(element, {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | `Array.&lt;Array&gt;` | An array of arrays which contains data to cut. |
-| coords | `Array.&lt;object&gt;` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       which will be cut out. |
+| data | `Array<Array>` | An array of arrays which contains data to cut. |
+| coords | `Array<object>` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       which will be cut out. |
 
 
 **Returns**: `*` - If returns `false` then operation of the cutting out is canceled.  
 
 ### beforeDetachChild
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1756
 
+:::
 
 _beforeDetachChild(parent, element)_
 
@@ -1806,8 +2006,10 @@ Fired by [NestedRows](./nested-rows/) plugin before detaching a child from its p
 
 
 ### beforeDrawBorders
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L733
 
+:::
 
 _beforeDrawBorders(corners, borderClassName)_
 
@@ -1822,8 +2024,10 @@ Fired before drawing the borders.
 
 
 ### beforeDropdownMenuSetItems
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L122
 
+:::
 
 _beforeDropdownMenuSetItems(menuItems)_
 
@@ -1834,13 +2038,15 @@ up one of the menu item to by always visible.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| menuItems | `Array.&lt;object&gt;` | An array of objects containing information about to generated Dropdown Menu items. |
+| menuItems | `Array<object>` | An array of objects containing information about to generated Dropdown Menu items. |
 
 
 
 ### beforeDropdownMenuShow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1707
 
+:::
 
 _beforeDropdownMenuShow(dropdownMenu)_
 
@@ -1855,8 +2061,10 @@ option is enabled.
 
 
 ### beforeFilter
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1374
 
+:::
 
 _beforeFilter(conditionsStack) ⇒ boolean_
 
@@ -1866,14 +2074,16 @@ Fired by [Filters](./filters/) plugin before applying [filtering](https://handso
 
 | Param | Type | Description |
 | --- | --- | --- |
-| conditionsStack | `Array.&lt;object&gt;` | An array of objects with added formulas. ```js // Example format of the conditionsStack argument: [   {     column: 2,     conditions: [       {name: 'begins_with', args: [['S']]}     ],     operation: 'conjunction'   },   {     column: 4,     conditions: [       {name: 'not_empty', args: []}     ],     operation: 'conjunction'   }, ] ``` |
+| conditionsStack | `Array<object>` | An array of objects with added formulas. ```js // Example format of the conditionsStack argument: [   {     column: 2,     conditions: [       {name: 'begins_with', args: [['S']]}     ],     operation: 'conjunction'   },   {     column: 4,     conditions: [       {name: 'not_empty', args: []}     ],     operation: 'conjunction'   }, ] ``` |
 
 
 **Returns**: `boolean` - If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).  
 
 ### beforeGetCellMeta
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L742
 
+:::
 
 _beforeGetCellMeta(row, column, cellProperties)_
 
@@ -1889,8 +2099,10 @@ Fired before getting cell settings.
 
 
 ### beforeHideColumns
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1615
 
+:::
 
 _beforeHideColumns(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean_
 
@@ -1908,8 +2120,10 @@ Returning `false` in the callback will prevent the hiding action from completing
 **Returns**: `undefined` | `boolean` - If the callback returns `false`, the hiding action will not be completed.  
 
 ### beforeHideRows
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1569
 
+:::
 
 _beforeHideRows(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean_
 
@@ -1927,8 +2141,10 @@ Returning `false` in the callback will prevent the hiding action from completing
 **Returns**: `undefined` | `boolean` - If the callback returns `false`, the hiding action will not be completed.  
 
 ### beforeInit
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L764
 
+:::
 
 _beforeInit_
 
@@ -1937,8 +2153,10 @@ Fired before the Handsontable instance is initiated.
 
 
 ### beforeInitWalkontable
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L771
 
+:::
 
 _beforeInitWalkontable(walkontableConfig)_
 
@@ -1952,8 +2170,10 @@ Fired before the Walkontable instance is initiated.
 
 
 ### beforeKeyDown
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L789
 
+:::
 
 _beforeKeyDown(event)_
 
@@ -1970,8 +2190,10 @@ handler.
 
 
 ### beforeLanguageChange
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L626
 
+:::
 
 _beforeLanguageChange(languageCode)_
 
@@ -1986,8 +2208,10 @@ Fired before successful change of language (when proper language code was set).
 
 
 ### beforeLoadData
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L779
 
+:::
 
 _beforeLoadData(sourceData, initialLoad)_
 
@@ -2003,8 +2227,10 @@ Fired before new data is loaded (by `loadData` or `updateSettings` method) into 
 
 
 ### beforeMergeCells
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1785
 
+:::
 
 _beforeMergeCells(cellRange, [auto])_
 
@@ -2020,8 +2246,10 @@ option is enabled.
 
 
 ### beforeOnCellContextMenu
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L822
 
+:::
 
 _beforeOnCellContextMenu(event, coords, TD)_
 
@@ -2038,8 +2266,10 @@ Fired after the user clicked a cell, but before all the calculations related wit
 
 
 ### beforeOnCellMouseDown
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L800
 
+:::
 
 _beforeOnCellMouseDown(event, coords, TD, controller)_
 
@@ -2056,8 +2286,10 @@ Fired after the user clicked a cell, but before all the calculations related wit
 
 
 ### beforeOnCellMouseOut
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L845
 
+:::
 
 _beforeOnCellMouseOut(event, coords, TD)_
 
@@ -2073,8 +2305,10 @@ Fired after the user moved cursor out from a cell, but before all the calculatio
 
 
 ### beforeOnCellMouseOver
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L833
 
+:::
 
 _beforeOnCellMouseOver(event, coords, TD, controller)_
 
@@ -2091,8 +2325,10 @@ Fired after the user moved cursor over a cell, but before all the calculations r
 
 
 ### beforeOnCellMouseUp
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L812
 
+:::
 
 _beforeOnCellMouseUp(event, coords, TD)_
 
@@ -2108,8 +2344,10 @@ Fired after the user clicked a cell.
 
 
 ### beforePaste
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1208
 
+:::
 
 _beforePaste(data, coords) ⇒ \*_
 
@@ -2137,15 +2375,17 @@ new Handsontable(example, {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | `Array.&lt;Array&gt;` | An array of arrays which contains data to paste. |
-| coords | `Array.&lt;object&gt;` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       that correspond to the previously selected area. |
+| data | `Array<Array>` | An array of arrays which contains data to paste. |
+| coords | `Array<object>` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       that correspond to the previously selected area. |
 
 
 **Returns**: `*` - If returns `false` then pasting is canceled.  
 
 ### beforeRedo
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1464
 
+:::
 
 _beforeRedo(action) ⇒ \* | boolean_
 
@@ -2161,8 +2401,10 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 **Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeRefreshDimensions
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1852
 
+:::
 
 _beforeRefreshDimensions(previousDimensions, currentDimensions, actionPossible) ⇒ undefined | boolean_
 
@@ -2179,8 +2421,10 @@ Cancellable hook, called after resizing a window, but before redrawing a table.
 **Returns**: `undefined` | `boolean` - If the callback returns `false`, the refresh action will not be completed.  
 
 ### beforeRemoveCellClassNames
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L262
 
+:::
 
 _beforeRemoveCellClassNames ⇒ Array&lt;string&gt; | undefined_
 
@@ -2188,11 +2432,13 @@ Fired inside the Walkontable's `refreshSelections` method. Can be used to remove
 
 **Since**: 0.38.1  
 
-**Returns**: `Array.&lt;string&gt;` | `undefined` - Can return an `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.  
+**Returns**: `Array<string>` | `undefined` - Can return an `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.  
 
 ### beforeRemoveCellMeta
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L752
 
+:::
 
 _beforeRemoveCellMeta(row, column, key, value) ⇒ \* | boolean_
 
@@ -2204,14 +2450,16 @@ Fired before cell meta is removed.
 | row | `number` | Visual row index. |
 | column | `number` | Visual column index. |
 | key | `string` | The removed meta key. |
-| value | `\*` | Value which is under removed key of cell meta. |
+| value | `*` | Value which is under removed key of cell meta. |
 
 
 **Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeRemoveCol
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L855
 
+:::
 
 _beforeRemoveCol(index, amount, physicalColumns, [source]) ⇒ \* | boolean_
 
@@ -2222,15 +2470,17 @@ Fired before one or more columns are about to be removed.
 | --- | --- | --- |
 | index | `number` | Visual index of starter column. |
 | amount | `number` | Amount of columns to be removed. |
-| physicalColumns | `Array.&lt;number&gt;` | An array of physical columns removed from the data source. |
+| physicalColumns | `Array<number>` | An array of physical columns removed from the data source. |
 | [source] | `string` | `optional` String that identifies source of hook call ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 **Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeRemoveRow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L867
 
+:::
 
 _beforeRemoveRow(index, amount, physicalRows, [source]) ⇒ \* | boolean_
 
@@ -2241,15 +2491,17 @@ Fired when one or more rows are about to be removed.
 | --- | --- | --- |
 | index | `number` | Visual index of starter row. |
 | amount | `number` | Amount of rows to be removed. |
-| physicalRows | `Array.&lt;number&gt;` | An array of physical rows removed from the data source. |
+| physicalRows | `Array<number>` | An array of physical rows removed from the data source. |
 | [source] | `string` | `optional` String that identifies source of hook call ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 **Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeRender
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L879
 
+:::
 
 _beforeRender(isForced, skipRender)_
 
@@ -2264,8 +2516,10 @@ Fired before the Handsontable table is rendered.
 
 
 ### beforeRenderer
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L435
 
+:::
 
 _beforeRenderer(TD, row, column, prop, value, cellProperties)_
 
@@ -2277,15 +2531,17 @@ Fired before starting rendering the cell.
 | TD | `HTMLTableCellElement` | Currently rendered cell's TD element. |
 | row | `number` | Visual row index. |
 | column | `number` | Visual column index. |
-| prop | `string` \| `number` | Column property name or a column index, if datasource is an array of arrays. |
-| value | `\*` | Value of the rendered cell. |
+| prop | `string` <br/> `number` | Column property name or a column index, if datasource is an array of arrays. |
+| value | `*` | Value of the rendered cell. |
 | cellProperties | `object` | Object containing the cell's properties. |
 
 
 
 ### beforeRowMove
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1275
 
+:::
 
 _beforeRowMove(movedRows, finalIndex, dropIndex, movePossible) ⇒ \* | boolean_
 
@@ -2297,15 +2553,17 @@ Fired by [ManualRowMove](./manual-row-move/) plugin before changing the order of
 | --- | --- | --- |
 | movedRows | `Array` | Array of visual row indexes to be moved. |
 | finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
-| dropIndex | `number` \| `undefined` | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called. |
+| dropIndex | `number` <br/> `undefined` | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called. |
 | movePossible | `boolean` | Indicates if it's possible to move rows to the desired position. |
 
 
 **Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeRowResize
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1324
 
+:::
 
 _beforeRowResize(newSize, row, isDoubleClick) ⇒ number_
 
@@ -2323,8 +2581,10 @@ fired when [Options#manualRowResize](./options/#manualrowresize) option is enabl
 **Returns**: `number` - Returns the new row size or `undefined` if row size should be calculated automatically.  
 
 ### beforeSetCellMeta
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L889
 
+:::
 
 _beforeSetCellMeta(row, column, key, value) ⇒ \* | boolean_
 
@@ -2337,14 +2597,16 @@ Fired before cell meta is changed.
 | row | `number` | Visual row index. |
 | column | `number` | Visual column index. |
 | key | `string` | The updated meta key. |
-| value | `\*` | The updated meta value. |
+| value | `*` | The updated meta value. |
 
 
 **Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeSetRangeEnd
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L918
 
+:::
 
 _beforeSetRangeEnd(coords)_
 
@@ -2358,8 +2620,10 @@ Fired before setting range is ended.
 
 
 ### beforeSetRangeStart
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L910
 
+:::
 
 _beforeSetRangeStart(coords)_
 
@@ -2373,8 +2637,10 @@ Fired before setting range is started.
 
 
 ### beforeSetRangeStartOnly
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L902
 
+:::
 
 _beforeSetRangeStartOnly(coords)_
 
@@ -2388,8 +2654,10 @@ Fired before setting range is started but not finished yet.
 
 
 ### beforeStretchingColumnWidth
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1363
 
+:::
 
 _beforeStretchingColumnWidth(stretchedWidth, column) ⇒ number_
 
@@ -2405,8 +2673,10 @@ Fired before applying stretched column width to column.
 **Returns**: `number` - Returns new width which will be applied to the column element.  
 
 ### beforeTouchScroll
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L926
 
+:::
 
 _beforeTouchScroll_
 
@@ -2415,8 +2685,10 @@ Fired before the logic of handling a touch scroll, when user started scrolling o
 
 
 ### beforeTrimRow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1661
 
+:::
 
 _beforeTrimRow(currentTrimConfig, destinationTrimConfig, actionPossible) ⇒ undefined | boolean_
 
@@ -2433,8 +2705,10 @@ Fired by [TrimRows](./trim-rows/) plugin before trimming rows. This hook is fire
 **Returns**: `undefined` | `boolean` - If the callback returns `false`, the trimming action will not be completed.  
 
 ### beforeUndo
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1443
 
+:::
 
 _beforeUndo(action) ⇒ \* | boolean_
 
@@ -2450,8 +2724,10 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 **Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeUnhideColumns
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1638
 
+:::
 
 _beforeUnhideColumns(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean_
 
@@ -2469,8 +2745,10 @@ Returning `false` in the callback will prevent the column revealing action from 
 **Returns**: `undefined` | `boolean` - If the callback returns `false`, the hiding action will not be completed.  
 
 ### beforeUnhideRows
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1592
 
+:::
 
 _beforeUnhideRows(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean_
 
@@ -2488,8 +2766,10 @@ Returning `false` in the callback will prevent the row revealing action from com
 **Returns**: `undefined` | `boolean` - If the callback returns `false`, the revealing action will not be completed.  
 
 ### beforeUnmergeCells
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1806
 
+:::
 
 _beforeUnmergeCells(cellRange, [auto])_
 
@@ -2505,8 +2785,10 @@ option is enabled.
 
 
 ### beforeUntrimRow
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1684
 
+:::
 
 _beforeUntrimRow(currentTrimConfig, destinationTrimConfig, actionPossible) ⇒ undefined | boolean_
 
@@ -2523,8 +2805,10 @@ Fired by [TrimRows](./trim-rows/) plugin before untrimming rows. This hook is fi
 **Returns**: `undefined` | `boolean` - If the callback returns `false`, the untrimming action will not be completed.  
 
 ### beforeValidate
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L933
 
+:::
 
 _beforeValidate(value, row, prop, [source])_
 
@@ -2536,16 +2820,18 @@ __Note:__ this will not affect values of changes. This will change value *ONLY* 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| value | `\*` | Value of the cell. |
+| value | `*` | Value of the cell. |
 | row | `number` | Visual row index. |
-| prop | `string` \| `number` | Property name / column index. |
+| prop | `string` <br/> `number` | Property name / column index. |
 | [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 
 ### beforeValueRender
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L948
 
+:::
 
 _beforeValueRender(value, cellProperties)_
 
@@ -2555,14 +2841,16 @@ value which is passed to the renderer without modifying the renderer itself.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| value | `\*` | Cell value to render. |
+| value | `*` | Cell value to render. |
 | cellProperties | `object` | An object containing the cell properties. |
 
 
 
 ### construct
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L958
 
+:::
 
 _construct_
 
@@ -2571,8 +2859,10 @@ Fired after Handsontable instance is constructed (using `new` operator).
 
 
 ### init
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L965
 
+:::
 
 _init_
 
@@ -2580,9 +2870,31 @@ Fired after Handsontable instance is initiated but before table is rendered.
 
 
 
+### modifyAutoColumnSizeSeed
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1911
+
+:::
+
+_modifyAutoColumnSizeSeed(seed, cellProperties, cellValue)_
+
+Fired by [AutoColumnSize](./AutoColumnSize/) plugin within [SampleGenerator](./SampleGenerator/) utility.
+
+**Since**: 8.4.0  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| seed | `string` <br/> `undefined` | Seed ID, unique name to categorize samples. |
+| cellProperties | `object` | Object containing the cell properties. |
+| cellValue | `*` | Value of the cell. |
+
+
+
 ### modifyAutofillRange
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1103
 
+:::
 
 _modifyAutofillRange(startArea, entireArea)_
 
@@ -2598,8 +2910,10 @@ option is enabled.
 
 
 ### modifyColHeader
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L972
 
+:::
 
 _modifyColHeader(column)_
 
@@ -2613,8 +2927,10 @@ Fired when a column header index is about to be modified by a callback function.
 
 
 ### modifyColumnHeaderHeight
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1436
 
+:::
 
 _modifyColumnHeaderHeight_
 
@@ -2623,8 +2939,10 @@ Fired while retrieving the column header height.
 
 
 ### modifyColWidth
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L980
 
+:::
 
 _modifyColWidth(width, column)_
 
@@ -2639,8 +2957,10 @@ Fired when a column width is about to be modified by a callback function.
 
 
 ### modifyCopyableRange
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1113
 
+:::
 
 _modifyCopyableRange(copyableRanges)_
 
@@ -2649,13 +2969,15 @@ Fired to allow modifying the copyable range with a callback function.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| copyableRanges | `Array.&lt;Array&gt;` | Array of objects defining copyable cells. |
+| copyableRanges | `Array<Array>` | Array of objects defining copyable cells. |
 
 
 
 ### modifyData
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1006
 
+:::
 
 _modifyData(row, column, valueHolder, ioMode)_
 
@@ -2672,8 +2994,10 @@ Fired when a data was retrieved or modified.
 
 
 ### modifyGetCellCoords
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1037
 
+:::
 
 _modifyGetCellCoords(row, column, topmost)_
 
@@ -2691,8 +3015,10 @@ and saving values from the closed editor.
 
 
 ### modifyRowData
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1029
 
+:::
 
 _modifyRowData(row)_
 
@@ -2706,8 +3032,10 @@ Fired when a data was retrieved or modified.
 
 
 ### modifyRowHeader
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L989
 
+:::
 
 _modifyRowHeader(row)_
 
@@ -2721,8 +3049,10 @@ Fired when a row header index is about to be modified by a callback function.
 
 
 ### modifyRowHeaderWidth
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1485
 
+:::
 
 _modifyRowHeaderWidth(rowHeaderWidth)_
 
@@ -2736,8 +3066,10 @@ Fired while retrieving the row header width.
 
 
 ### modifyRowHeight
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L997
 
+:::
 
 _modifyRowHeight(height, row)_
 
@@ -2752,8 +3084,10 @@ Fired when a row height is about to be modified by a callback function.
 
 
 ### modifySourceData
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1017
 
+:::
 
 _modifySourceData(row, column, valueHolder, ioMode)_
 
@@ -2771,8 +3105,10 @@ Fired when a data was retrieved or modified from the source data set.
 
 
 ### modifyTransformEnd
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1512
 
+:::
 
 _modifyTransformEnd(delta)_
 
@@ -2786,8 +3122,10 @@ Fired when the end of the selection is being modified (e.g. Moving the selection
 
 
 ### modifyTransformStart
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1504
 
+:::
 
 _modifyTransformStart(delta)_
 
@@ -2801,8 +3139,10 @@ Fired when the start of the selection is being modified (e.g. Moving the selecti
 
 
 ### persistentStateLoad
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1051
 
+:::
 
 _persistentStateLoad(key, valuePlaceholder)_
 
@@ -2818,8 +3158,10 @@ Fired by [PersistentState](./persistent-state/) plugin, after loading value, sav
 
 
 ### persistentStateReset
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1061
 
+:::
 
 _persistentStateReset([key])_
 
@@ -2834,8 +3176,10 @@ This hook is fired when [Options#persistentState](./options/#persistentstate) op
 
 
 ### persistentStateSave
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1070
 
+:::
 
 _persistentStateSave(key, value)_
 
@@ -2852,8 +3196,10 @@ Fired by [PersistentState](./persistent-state/) plugin, after saving value under
 ## Methods
 
 ### add
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2048
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2059
 
+:::
 
 _hooks.add(key, callback, [context]) ⇒ [Hooks](./hooks/)_
 
@@ -2863,7 +3209,7 @@ Otherwise, the callback will be used everytime the hook fires on any Handsontabl
 You can provide an array of callback functions as the `callback` argument, this way they will all be fired
 once the hook is triggered.
 
-**See**: Core#addHook  
+**See**: [Core#addHook](./core/#addHook)  
 **Example**  
 ```js
 // single callback, added locally
@@ -2882,15 +3228,17 @@ Handsontable.hooks.add('beforeInit', [myCallback, anotherCallback]);
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | key | `string` |  | Hook name. |
-| callback | `function` \| `Array` |  | Callback function or an array of functions. |
+| callback | `function` <br/> `Array` |  | Callback function or an array of functions. |
 | [context] | `object` | <code>null</code> | `optional` The context for the hook callback to be added - a Handsontable instance or leave empty. |
 
 
-**Returns**: [`Hooks`](#Hooks) - Instance of [Hooks](./hooks/).  
+**Returns**: [`Hooks`](#Hooks) - Instance of Hooks.  
 
 ### createEmptyBucket
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L1993
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2004
 
+:::
 
 _hooks.createEmptyBucket() ⇒ object_
 
@@ -2912,8 +3260,10 @@ beforeInit: [],
 **Returns**: `object` - The empty bucket object.  
 
 ### deregister
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2285
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2296
 
+:::
 
 _hooks.deregister(key)_
 
@@ -2931,8 +3281,10 @@ Handsontable.hooks.deregister('myHook');
 
 
 ### destroy
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2252
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2263
 
+:::
 
 _hooks.destroy([context])_
 
@@ -2954,8 +3306,10 @@ Handsontable.hooks.destroy(hotInstance);
 
 
 ### getBucket
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2008
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2019
 
+:::
 
 _hooks.getBucket([context]) ⇒ object_
 
@@ -2970,8 +3324,10 @@ Get hook bucket based on the context of the object or if argument is `undefined`
 **Returns**: `object` - Returns a global or Handsontable instance bucket.  
 
 ### getRegistered
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2347
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2358
 
+:::
 
 _hooks.getRegistered() ⇒ Array_
 
@@ -2996,8 +3352,10 @@ Handsontable.hooks.getRegistered();
 **Returns**: `Array` - An array of registered hooks.  
 
 ### has
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2152
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2163
 
+:::
 
 _hooks.has(key, [context]) ⇒ boolean_
 
@@ -3014,8 +3372,10 @@ If the `context` parameter is provided, it only checks for listeners assigned to
 **Returns**: `boolean` - `true` for success, `false` otherwise.  
 
 ### isDeprecated
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2305
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2316
 
+:::
 
 _hooks.isDeprecated(hookName) ⇒ boolean_
 
@@ -3038,8 +3398,10 @@ true
 removed from API, `false` otherwise.  
 
 ### isRegistered
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2322
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2333
 
+:::
 
 _hooks.isRegistered(hookName) ⇒ boolean_
 
@@ -3061,14 +3423,16 @@ true
 **Returns**: `boolean` - `true` for success, `false` otherwise.  
 
 ### once
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2106
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2117
 
+:::
 
 _hooks.once(key, callback, [context])_
 
 Adds a listener to a specified hook. After the hook runs this listener will be automatically removed from the bucket.
 
-**See**: Core#addHookOnce  
+**See**: [Core#addHookOnce](./core/#addHookOnce)  
 **Example**  
 ```js
 Handsontable.hooks.once('beforeInit', myCallback, hotInstance);
@@ -3077,14 +3441,16 @@ Handsontable.hooks.once('beforeInit', myCallback, hotInstance);
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | key | `string` |  | Hook/Event name. |
-| callback | `function` \| `Array` |  | Callback function. |
+| callback | `function` <br/> `Array` |  | Callback function. |
 | [context] | `object` | <code>null</code> | `optional` A Handsontable instance. |
 
 
 
 ### register
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2269
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2280
 
+:::
 
 _hooks.register(key)_
 
@@ -3104,14 +3470,16 @@ Handsontable.hooks.register('myHook');
 
 
 ### remove
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2130
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2141
 
+:::
 
 _hooks.remove(key, callback, [context]) ⇒ boolean_
 
 Removes a listener from a hook with a given name. If the `context` argument is provided, it removes a listener from a local hook assigned to the given Handsontable instance.
 
-**See**: Core#removeHook  
+**See**: [Core#removeHook](./core/#removeHook)  
 **Example**  
 ```js
 Handsontable.hooks.remove('beforeInit', myCallback);
@@ -3127,15 +3495,17 @@ Handsontable.hooks.remove('beforeInit', myCallback);
 **Returns**: `boolean` - Returns `true` if hook was removed, `false` otherwise.  
 
 ### run
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2178
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/pluginHooks.js#L2189
 
+:::
 
 _hooks.run(context, key, [p1], [p2], [p3], [p4], [p5], [p6]) ⇒ \*_
 
 Runs all local and global callbacks assigned to the hook identified by the `key` parameter.
 It returns either a return value from the last called callback or the first parameter (`p1`) passed to the `run` function.
 
-**See**: Core#runHooks  
+**See**: [Core#runHooks](./core/#runHooks)  
 **Example**  
 ```js
 Handsontable.hooks.run(hot, 'beforeInit');
@@ -3145,12 +3515,12 @@ Handsontable.hooks.run(hot, 'beforeInit');
 | --- | --- | --- |
 | context | `object` | Handsontable instance. |
 | key | `string` | Hook/Event name. |
-| [p1] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
-| [p2] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
-| [p3] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
-| [p4] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
-| [p5] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
-| [p6] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p1] | `*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p2] | `*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p3] | `*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p4] | `*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p5] | `*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p6] | `*` | `optional` Parameter to be passed as an argument to the callback function. |
 
 
 **Returns**: `*` - Either a return value from the last called callback or `p1`.  

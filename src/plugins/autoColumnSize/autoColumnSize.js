@@ -35,6 +35,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * operations don't block the browser UI.
  *
  * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value to a config object:
+ *
  * ```js
  * // as a number (300 columns in sync, rest async)
  * autoColumnSize: {syncLimit: 300},.
@@ -49,13 +50,16 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *
  * Sampling accepts additional options:
  * - *samplingRatio* - Defines how many samples for the same length will be used to calculate. Default is `3`.
- *   ```js
+ *
+ * ```js
  *   autoColumnSize: {
  *     samplingRatio: 10,
  *   }
- *   ```
+ * ```
+ *
  * - *allowSampleDuplicates* - Defines if duplicated values might be used in sampling. Default is `false`.
- *   ```js
+ *
+ * ```js
  *   autoColumnSize: {
  *     allowSampleDuplicates: true,
  *   }
@@ -64,6 +68,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * To configure this plugin see {@link options#autocolumnsize Options#autoColumnSize}.
  *
  * @example
+ *
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
  *   data: getData(),

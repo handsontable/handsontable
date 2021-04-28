@@ -16,5 +16,7 @@ module.exports = {
       // opening tag
       return `<a href="${href}" target="_blank" class="source-code-link"> Source code <OutboundLink /> </a>`;
     }
+
+    return '';
   }
 };

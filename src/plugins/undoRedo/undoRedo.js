@@ -168,6 +168,8 @@ function UndoRedo(instance) {
 }
 
 /**
+ * @memberof UndoRedo
+ *
  * @param {object} action The action desciptor.
  */
 UndoRedo.prototype.done = function(action) {

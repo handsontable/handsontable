@@ -46,77 +46,11 @@ contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo']
 
 ## Options
 
-### allowInsertColumn
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L699
-
-
-_contextMenu.allowInsertColumn : boolean_
-
-If set to `false`, there won't be an option to insert new columns in the Context Menu.
-
-**Default**: <code>true</code>  
-**Category**: ContextMenu  
-**Example**  
-```js
-// hide "Insert column left" and "Insert column right" options from the Context Menu
-allowInsertColumn: false,
-```
-
-
-### allowInsertRow
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L683
-
-
-_contextMenu.allowInsertRow : boolean_
-
-If set to `false`, there won't be an option to insert new rows in the Context Menu.
-
-**Default**: <code>true</code>  
-**Category**: ContextMenu  
-**Example**  
-```js
-// hide "Insert row above" and "Insert row below" options from the Context Menu
-allowInsertRow: false,
-```
-
-
-### allowRemoveColumn
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L731
-
-
-_contextMenu.allowRemoveColumn : boolean_
-
-If set to `false`, there won't be an option to remove columns in the Context Menu.
-
-**Default**: <code>true</code>  
-**Category**: ContextMenu  
-**Example**  
-```js
-// hide "Remove column" option from the Context Menu
-allowRemoveColumn: false,
-```
-
-
-### allowRemoveRow
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L715
-
-
-_contextMenu.allowRemoveRow : boolean_
-
-If set to `false`, there won't be an option to remove rows in the Context Menu.
-
-**Default**: <code>true</code>  
-**Category**: ContextMenu  
-**Example**  
-```js
-// hide "Remove row" option from the Context Menu
-allowRemoveRow: false,
-```
-
-
 ### contextMenu
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1773
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1775
 
+:::
 
 _contextMenu.contextMenu : boolean | Array&lt;string&gt; | object_
 
@@ -135,7 +69,6 @@ If the value is an object, you can also customize the options with:
 See [the context menu demo](https://docs.handsontable.com/demo-context-menu.html) for examples.
 
 **Default**: <code>undefined</code>  
-**Category**: ContextMenu  
 **Example**  
 ```js
 // as a boolean
@@ -172,8 +105,10 @@ contextMenu: {
 ## Members
 
 ### DEFAULT_ITEMS
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L94
 
+:::
 
 _ContextMenu.DEFAULT\_ITEMS ⇒ Array&lt;string&gt;_
 
@@ -183,8 +118,10 @@ Context menu default items order when `contextMenu` options is set as `true`.
 ## Methods
 
 ### close
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L246
 
+:::
 
 _contextMenu.close()_
 
@@ -193,8 +130,10 @@ Closes the menu.
 
 
 ### destroy
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L385
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L386
 
+:::
 
 _contextMenu.destroy()_
 
@@ -203,8 +142,10 @@ Destroys the plugin instance.
 
 
 ### disablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L195
 
+:::
 
 _contextMenu.disablePlugin()_
 
@@ -213,8 +154,10 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 ### enablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L155
 
+:::
 
 _contextMenu.enablePlugin()_
 
@@ -223,8 +166,10 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### executeCommand
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L281
 
+:::
 
 _contextMenu.executeCommand(commandName, ...params)_
 
@@ -254,13 +199,15 @@ Or you can execute command registered in settings where `key` is your command na
 | Param | Type | Description |
 | --- | --- | --- |
 | commandName | `string` | The command name to be executed. |
-| ...params | `\*` | Additional paramteres passed to command executor module. |
+| ...params | `*` | Additional paramteres passed to command executor module. |
 
 
 
 ### isEnabled
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L148
 
+:::
 
 _contextMenu.isEnabled() ⇒ boolean_
 
@@ -270,8 +217,10 @@ hook and if it returns `true` than the [enablePlugin](#ContextMenu+enablePlugin)
 
 
 ### open
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L210
 
+:::
 
 _contextMenu.open(event)_
 
@@ -285,8 +234,10 @@ Opens menu and re-position it based on the passed coordinates.
 
 
 ### updatePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L185
 
+:::
 
 _contextMenu.updatePlugin()_
 

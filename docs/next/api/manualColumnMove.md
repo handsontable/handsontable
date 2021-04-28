@@ -31,15 +31,16 @@ The plugin creates additional components to make moving possibly using user inte
 ## Options
 
 ### manualColumnMove
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1886
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1889
 
+:::
 
 _manualColumnMove.manualColumnMove : boolean | Array&lt;number&gt;_
 
 Turns on [Manual column move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial column order (as an array of column indexes).
 
 **Default**: <code>undefined</code>  
-**Category**: ManualColumnMove  
 **Example**  
 ```js
 // as a boolean to enable column move
@@ -53,8 +54,10 @@ manualColumnMove: [1, 4],
 ## Methods
 
 ### destroy
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L721
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L725
 
+:::
 
 _manualColumnMove.destroy()_
 
@@ -63,8 +66,10 @@ Destroys the plugin instance.
 
 
 ### disablePlugin
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L147
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L148
 
+:::
 
 _manualColumnMove.disablePlugin()_
 
@@ -73,14 +78,16 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 ### dragColumn
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L214
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L215
 
+:::
 
 _manualColumnMove.dragColumn(column, dropIndex) ⇒ boolean_
 
 Drag a single column to drop index position.
 
-**Emits**: <code>Hooks#event:beforeColumnMove</code>, <code>Hooks#event:afterColumnMove</code>  
+**Emits**: [`Hooks#event:beforeColumnMove`](./hooks/#beforeColumnMove), [`Hooks#event:afterColumnMove`](./hooks/#afterColumnMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -90,14 +97,16 @@ Drag a single column to drop index position.
 
 
 ### dragColumns
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L228
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L229
 
+:::
 
 _manualColumnMove.dragColumns(columns, dropIndex) ⇒ boolean_
 
 Drag multiple columns to drop index position.
 
-**Emits**: <code>Hooks#event:beforeColumnMove</code>, <code>Hooks#event:afterColumnMove</code>  
+**Emits**: [`Hooks#event:beforeColumnMove`](./hooks/#beforeColumnMove), [`Hooks#event:afterColumnMove`](./hooks/#afterColumnMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -107,8 +116,10 @@ Drag multiple columns to drop index position.
 
 
 ### enablePlugin
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L111
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L112
 
+:::
 
 _manualColumnMove.enablePlugin()_
 
@@ -117,8 +128,10 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### isEnabled
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L104
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L105
 
+:::
 
 _manualColumnMove.isEnabled() ⇒ boolean_
 
@@ -128,8 +141,10 @@ hook and if it returns `true` than the [ManualColumnMove#enablePlugin](./manual-
 
 
 ### isMovePossible
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L245
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L246
 
+:::
 
 _manualColumnMove.isMovePossible(movedColumns, finalIndex) ⇒ boolean_
 
@@ -144,14 +159,16 @@ Indicates if it's possible to move columns to the desired position. Some of the 
 
 
 ### moveColumn
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L167
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L168
 
+:::
 
 _manualColumnMove.moveColumn(column, finalIndex) ⇒ boolean_
 
 Moves a single column.
 
-**Emits**: <code>Hooks#event:beforeColumnMove</code>, <code>Hooks#event:afterColumnMove</code>  
+**Emits**: [`Hooks#event:beforeColumnMove`](./hooks/#beforeColumnMove), [`Hooks#event:afterColumnMove`](./hooks/#afterColumnMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -161,14 +178,16 @@ Moves a single column.
 
 
 ### moveColumns
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L181
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L182
 
+:::
 
 _manualColumnMove.moveColumns(columns, finalIndex) ⇒ boolean_
 
 Moves a multiple columns.
 
-**Emits**: <code>Hooks#event:beforeColumnMove</code>, <code>Hooks#event:afterColumnMove</code>  
+**Emits**: [`Hooks#event:beforeColumnMove`](./hooks/#beforeColumnMove), [`Hooks#event:afterColumnMove`](./hooks/#afterColumnMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -178,8 +197,10 @@ Moves a multiple columns.
 
 
 ### updatePlugin
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L135
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/manualColumnMove/manualColumnMove.js#L136
 
+:::
 
 _manualColumnMove.updatePlugin()_
 

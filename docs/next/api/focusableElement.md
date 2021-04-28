@@ -11,8 +11,10 @@ editLink: false
 ## Members
 
 ### container
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/focusableElement.js#L38
 
+:::
 
 _focusableWrapper.container : HTMLElement_
 
@@ -21,8 +23,10 @@ Parent for an focusable element.
 
 
 ### eventManager
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/focusableElement.js#L26
 
+:::
 
 _focusableWrapper.eventManager : EventManager_
 
@@ -31,8 +35,10 @@ Instance of EventManager.
 
 
 ### listenersCount
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/focusableElement.js#L32
 
+:::
 
 _focusableWrapper.listenersCount : WeakSet_
 
@@ -41,8 +47,10 @@ An object for tracking information about event listeners attached to the focusab
 
 
 ### mainElement
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/focusableElement.js#L20
 
+:::
 
 _focusableWrapper.mainElement : HTMLElement_
 
@@ -52,8 +60,10 @@ The main/operational focusable element.
 ## Methods
 
 ### focus
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/focusableElement.js#L81
 
+:::
 
 _focusableWrapper.focus()_
 
@@ -62,8 +72,10 @@ Set focus to the focusable element.
 
 
 ### getFocusableElement
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/focusableElement.js#L74
 
+:::
 
 _focusableWrapper.getFocusableElement() ⇒ HTMLElement_
 
@@ -72,8 +84,10 @@ Get currently set focusable element.
 
 
 ### setFocusableElement
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/focusableElement.js#L60
 
+:::
 
 _focusableWrapper.setFocusableElement(element)_
 
@@ -87,8 +101,10 @@ Switch to the main focusable element.
 
 
 ### useSecondaryElement
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/copyPaste/focusableElement.js#L44
 
+:::
 
 _focusableWrapper.useSecondaryElement()_
 
