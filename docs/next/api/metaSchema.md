@@ -11,7 +11,11 @@ editLink: false
 
 ## Description
 
-Constructor options are applied using an object literal passed as a second argument to the Handsontable constructor.
+Handsontable provides many options to choose from. They come either from the [Core](../api/core/) features or [plugins](../api/plugins/).
+
+You can pass options in an object iteral notation (a comma-separated list of name-value pairs wrapped in curly braces) as a second argument of the Handsontable constructor.
+
+In the further documentation, and in Guides, we prefer calling this object a `Settings` object or `configuration` object.
 
 ```js
 const container = document.getElementById('example');
@@ -22,13 +26,19 @@ const hot = new Handsontable(container, {
 });
 ```
 
----
-## Cascading configuration.
+## Applying options to different elements of the grid
 
-Handsontable is using *Cascading Configuration*, which is a fast way to provide configuration options
-for the entire table, including its columns and particular cells.
+Options can set for many different parts of the data grid:
 
-Consider the following example:
+- The entire grid
+- A column or range of columns
+- A row or range of rows
+- A cell or range of cells
+
+Options use the cascading configuration to make that possible.
+
+Take a look at the following example:
+
 ```js
 const container = document.getElementById('example');
 const hot = new Handsontable(container, {
@@ -50,31 +60,28 @@ const hot = new Handsontable(container, {
 });
 ```
 
-The above notation will result in all TDs being *read only*, except for first column TDs which will be *editable*, except for the TD in top left corner which will still be *read only*.
+In the above example we first set the `read-only` option for the entire grid. Then we make two exceptions of this rule:
 
-### The Cascading Configuration model
+- We exclude the first column by passing `readOnly: false`, which in result makes it editable.
+- We exclude the cell in the top left corner, just like we did it with the first column.
 
-##### 1. Constructor
+## The cascade configuration model
 
-Configuration options that are provided using first-level `handsontable(container, {option: "value"})` and `updateSettings` method.
+### Constructor
 
-##### 2. Columns
+Cofiguration options that are provided using the first-level `handsontable(container, {option: "value"})` and `updateSettings` method.
 
-Configuration options that are provided using second-level object `handsontable(container, {columns: {option: "value"}]})`
+### Columns
 
-##### 3. Cells
+Configuration options that are provided using the second-level object `handsontable(container, {columns: {option: "value"}]})`
 
-Configuration options that are provided using third-level function `handsontable(container, {cells: function: (row, col, prop){ }})`
+### Cells
 
----
-## Architecture performance
+Configuration options that are provided using the third-level function `handsontable(container, {cells: function: (row, col, prop){ }})`
 
-The Cascading Configuration model is based on prototypical inheritance. It is much faster and memory efficient
-compared to the previous model that used jQuery extend. See: [http://jsperf.com/extending-settings](http://jsperf.com/extending-settings).
-
----
-__Important notice:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
-
+::: tip
+In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
+:::
 
 ## Members
 

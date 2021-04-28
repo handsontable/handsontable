@@ -3,7 +3,16 @@ title: Row height
 permalink: /next/row-height
 canonicalUrl: /row-height
 tags:
-  - resizing
+  - resizing rows
+  - wrap content
+  - overflow
+  - crop content
+  - row size
+  - height
+  - max-height
+  - min-height
+  - row dimmensions
+  - manual resize
 ---
 
 # Row height
@@ -12,34 +21,84 @@ tags:
 
 ## Overview
 
-- opis ustawien i zachowania domyslnego
-- wysokosc wiersza a wyrównanie/zawijanie sie tekstu
-- Ustawienie szerokosci wiersza o konkretnym ID
-- wysokosc wszystkich wierszy w wartosciach bezwzglednych
-- wysokosc wszystkich wierszy o konkretnej kolejnosci (1, 3, 5-10)
-- wysokosc wszystkich wierszy jako funkcja
-- sterowanie wysokoscia z zewnatrz
-- opis edge cases np jak ustawienia dotyczaca nie istniejacych jeszcze kolumn, albo gdy sie przenosi kolumne (czy przenosi sie wraz ze swoja szerokoscia)
+By default, the row height adjusts to the height of the content. The minimum height is `23px`. The row height can be passed as a `constant`, an `array` or a `function`.
 
-## User-triggered resize
+The content inside a cell will be wrapped if it doesn't fit its size.
 
-To enable these features, use settings `manualRowResize: true`.
+## Setting the row height as a constant
 
-The draggable resize handle appears in the bottom part of the row header. Double click on the resize handle automatically adjusts size of the row or column. For the selected rows or columns works simultaneously resizing.
+In this example we set the same height of `40px` for all rows across the entire grid.
 
 ::: example #example1
 ```js
-var container = document.getElementById('example1');
-var hot1 = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(100, 50),
-  rowHeaders: true,
+var container1 = document.getElementById('example1');
+var hot1 = new Handsontable(container1, {
+  data: Handsontable.helper.createSpreadsheetData(4, 5),
   colHeaders: true,
-  width: '100%',
-  height: 320,
-  rowHeights: [20, 40, 60, 80, 120],
+  rowHeaders: true,
+  rowHeights: 40,
   manualRowResize: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 :::
 
+## Setting the row height in an array
+
+Here we set the height only for the first rows. Each additional row would be automatically adjusted to the content.
+
+::: example #example2
+```js
+var container2 = document.getElementById('example2');
+var hot2 = new Handsontable(container2, {
+  data: Handsontable.helper.createSpreadsheetData(4, 5),
+  width: '100%',
+  colHeaders: true,
+  rowHeaders: true,
+  rowHeights: [40, 40, 40, 40],
+  manualRowResize: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
+
+## Setting the row height using a function
+
+Here we set the size of all rows as a function. In this particular example we take a row `index` (1, 2 ...) and multiply it by `20px` in each consecutive row. 
+
+::: example #example3
+```js
+var container3 = document.getElementById('example3');
+var hot3 = new Handsontable(container3, {
+  data: Handsontable.helper.createSpreadsheetData(3, 5),
+  width: '100%',
+  colHeaders: true,
+  rowHeaders: true,
+  rowHeights: function(index) {
+               return (index + 1) * 20;
+             },
+  manualRowResize: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
+
+## Adjust the row height manually
+
+Set the option `manualRowResize` to `true` to allow users to manually resize the row height by dragging the handle between the adjacent row headers. Don't forget to enable row headers by setting `rowHeaders` to `true`.
+
+You can adjust the size of one or rows at the same time, even if the selected rows are not placed next to each other.
+
+::: example #example4
+```js
+var container4 = document.getElementById('example4');
+var hot4 = new Handsontable(container4, {
+  data: Handsontable.helper.createSpreadsheetData(5, 5),
+  colHeaders: true,
+  rowHeaders: true,
+  rowHeights: 40,
+  manualRowResize: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::

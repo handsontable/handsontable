@@ -3,9 +3,9 @@ title: Column virtualization
 permalink: /next/column-virtualization
 canonicalUrl: /column-virtualization
 tags:
-  - scrolling
+  - dom
+  - render all columns
   - offset
-  - render
 ---
 
 # Column virtualization
@@ -37,7 +37,6 @@ var hot1 = new Handsontable(example, {
   colWidths: 100,
   width: '100%',
   height: 320,
-  rowHeights: 23,
   rowHeaders: true,
   colHeaders: true,
   licenseKey: 'non-commercial-and-evaluation'

@@ -19,9 +19,9 @@ tags:
 
 ## Overview
 
-By default, the column width adjusts to the width of the content. The minimum width is 50px, indluding 1px borders on the sides. The column size can be passed as a `constant`, an `array` or a `function`.
+By default, the column width adjusts to the width of the content. The minimum width is `50px`, indluding `1px` for borders on the sides. The column size can be passed as a `constant`, an `array` or a `function`.
 
-The content inside a cell will wrap the content if it doesn't fit its width.
+The content inside a cell will be wrapped if it doesn't fit its size.
 
 ## Setting the column width as a constant
 
@@ -63,7 +63,7 @@ var hot2 = new Handsontable(container2, {
 
 ## Setting the column width using a function
 
-Here we set the size of all columns as a function. In this particular example we take a column `index` (0, 1, 2 ...) and multiply it by 40px in each consecutive column. 
+Here we set the size of all columns as a function. In this particular example we take a column `index` (1, 2 ...) and multiply it by `40px` in each consecutive column. 
 
 ::: example #example3
 ```js
@@ -86,7 +86,7 @@ var hot3 = new Handsontable(container3, {
 
 Set the option `manualColumnResize` to `true` to allow users to manually resize the column width by dragging the handle between the adjacent column headers. If you double-click on that handle then the width will be instantly adjusted to the size of the longest value in the column. Don't forget to enable column headers by setting `colHeaders` to `true`.
 
-You can adjust the size of one or columns at the same time, even if the selected columns are placed next to each other.
+You can adjust the size of one or columns at the same time, even if the selected columns are not placed next to each other.
 
 ::: example #example4
 ```js
