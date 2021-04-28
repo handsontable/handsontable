@@ -309,6 +309,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterLoadData
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
+   * @param {string} source Source of the call.
    */
   'afterLoadData',
 
@@ -783,6 +784,8 @@ const REGISTERED_HOOKS = [
    * @since 8.0.0
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
+   * @param {string} source Source of the call.
+   * @returns {Array} The returned array will be used as new dataset.
    */
   'beforeLoadData',
 

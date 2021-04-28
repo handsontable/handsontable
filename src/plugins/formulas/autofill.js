@@ -16,8 +16,8 @@ export const registerAutofillHooks = (pluginInstance) => {
     const col = Math.min(start.col, end.col);
 
     if (
-      !pluginInstance.hyperformula.isItPossibleToSetCellContents({
-        sheet: pluginInstance.hyperformula.getSheetId(pluginInstance.sheetName),
+      !pluginInstance.engine.isItPossibleToSetCellContents({
+        sheet: pluginInstance.engine.getSheetId(pluginInstance.sheetName),
         row,
         col
       }, width, height)
@@ -61,19 +61,19 @@ export const registerAutofillHooks = (pluginInstance) => {
       // The cell we're pasting into
       targetCellCoordinates
     ) => {
-      pluginInstance.hyperformula.copy({
-        sheet: pluginInstance.hyperformula.getSheetId(pluginInstance.sheetName),
+      pluginInstance.engine.copy({
+        sheet: pluginInstance.engine.getSheetId(pluginInstance.sheetName),
         row: sourceCellCoordinates.row,
         col: sourceCellCoordinates.col
       }, 1, 1);
 
-      const [{ address }] = pluginInstance.hyperformula.paste({
-        sheet: pluginInstance.hyperformula.getSheetId(pluginInstance.sheetName),
+      const [{ address }] = pluginInstance.engine.paste({
+        sheet: pluginInstance.engine.getSheetId(pluginInstance.sheetName),
         row: targetCellCoordinates.row,
         col: targetCellCoordinates.col
       });
 
-      const value = pluginInstance.hyperformula.getCellSerialized(address);
+      const value = pluginInstance.engine.getCellSerialized(address);
 
       return { value };
     };

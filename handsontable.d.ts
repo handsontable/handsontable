@@ -1,5 +1,6 @@
 import { PikadayOptions } from 'pikaday';
 import numbro from 'numbro';
+import { HyperFormula } from 'hyperformula';
 
 /**
  * @internal
@@ -94,7 +95,7 @@ declare namespace _Handsontable {
     isRenderSuspended(): boolean;
     isUndoAvailable(): boolean;
     listen(): void;
-    loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[]): void;
+    loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[], source?: string): void;
     populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
     propToCol(prop: string | number): number;
     redo(): void;
@@ -1173,18 +1174,12 @@ declare namespace Handsontable {
     type UndoRedoAction = UndoRedoAction.Change | UndoRedoAction.InsertRow | UndoRedoAction.RemoveRow | UndoRedoAction.InsertCol | UndoRedoAction.RemoveCol | UndoRedoAction.Filter;
 
     interface Formulas extends Base {
-      dataProvider: DataProvider;
-      eventManager: EventManager;
-      sheet: Sheet;
-      undoRedoSnapshot: UndoRedoSnapshot;
+      engine: HyperFormula | object | Function;
+      sheetName: string;
+      sheetId: number;
 
-      getCellValue(row: number, column: number): any;
-      getVariable(name: string): any;
-      hasComputedCellValue(row: number, column: number): boolean;
-      recalculate(): void;
-      recalculateFull(): void;
-      recalculateOptimized(): void;
-      setVariable(name: string, value: any): void;
+      addSheet(sheetName: string, sheetData: CellValue[][]): boolean;
+      switchSheet(sheetName: string): void;
     }
 
     interface HeaderTooltips extends Base {
