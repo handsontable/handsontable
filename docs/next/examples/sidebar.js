@@ -4,8 +4,9 @@ const basicItems = [
 
 module.exports = {
   sidebar: [
-    { 
-      title: 'Examples', children: basicItems,
+    {
+      title: 'Examples',
+      children: basicItems,
       collapsable: false
     }
   ]
