@@ -71,30 +71,23 @@ Object.keys(targetExports).forEach((ruleName) => {
     if (!fileExists) {
       EXPORTS_ERRORS.push(`${ruleName}: ${pathToFile}`);
     }
+
   } else {
-    if (rule.import) {
-      const pathToImport = `${TARGET_PATH}/${rule.import}`;
-      const importFileExists = fse.existsSync(pathToImport);
+    Object.keys(rule).forEach((key) => {
+      const pathToFile = `${TARGET_PATH}/${rule[key]}`;
+      const isFileExist = fse.existsSync(pathToFile);
 
-      if (!importFileExists) {
-        EXPORTS_ERRORS.push(`${ruleName}: ${pathToImport}`);
+      if (!isFileExist) {
+        EXPORTS_ERRORS.push(`"${ruleName}": { "${key}": "${pathToFile.replace(`${TARGET_PATH}/`, '')}" }`);
       }
-    }
-    if (rule.require) {
-      const pathToRequire = `${TARGET_PATH}/${rule.require}`;
-      const requireFileExists = fse.existsSync(pathToRequire);
-
-      if (!requireFileExists) {
-        EXPORTS_ERRORS.push(`${ruleName}: ${pathToRequire}`);
-      }
-    }
+    });
   }
 });
 
 if (EXPORTS_ERRORS.length > 0) {
   const FILES_LIST = `${EXPORTS_ERRORS.map(msg => `- ${msg}`).join('\n')}`;
 
-  displayErrorMessage(`The following exports point to the non-existing files:\n ${FILES_LIST}`);
+  displayErrorMessage(`The following exports point to the non-existing files:\n${FILES_LIST}`);
   process.exit(1);
 }
 
