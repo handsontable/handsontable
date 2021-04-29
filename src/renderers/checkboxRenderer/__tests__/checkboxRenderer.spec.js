@@ -757,7 +757,7 @@ describe('CheckboxRenderer', () => {
       .toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('shouldn\'t change checkbo notate after hitting other keys then DELETE or BACKSPACE (from #bad-value# state)', () => {
+  it('should not change checkbox state after hitting other keys then DELETE or BACKSPACE (from #bad-value# state)', () => {
     handsontable({
       data: [['foo'], ['bar']],
       columns: [
@@ -1059,6 +1059,58 @@ describe('CheckboxRenderer', () => {
     plugin.onCut(cutEvent);
 
     expect(td.textContent).toBe('');
+  });
+
+  it('should allow to change state of checkboxes in column headers', () => {
+    const spy = jasmine.createSpyObj('error', ['test']);
+    const prevError = window.onerror;
+
+    window.onerror = function() {
+      spy.test();
+    };
+
+    handsontable({
+      data: [[true]],
+      type: 'checkbox',
+      colHeaders: ['<input type="checkbox"/> A'],
+    });
+
+    const headerCheckbox = getTopClone().find('input[type="checkbox"]')[0];
+
+    expect(headerCheckbox.checked).toBe(false);
+
+    headerCheckbox.click();
+
+    expect(headerCheckbox.checked).toBe(true);
+    expect(spy.test.calls.count()).toBe(0);
+
+    window.onerror = prevError;
+  });
+
+  it('should allow to change state of checkboxes in row headers', () => {
+    const spy = jasmine.createSpyObj('error', ['test']);
+    const prevError = window.onerror;
+
+    window.onerror = function() {
+      spy.test();
+    };
+
+    handsontable({
+      data: [[true]],
+      type: 'checkbox',
+      rowHeaders: ['<input type="checkbox"/> 1'],
+    });
+
+    const headerCheckbox = getLeftClone().find('input[type="checkbox"]')[0];
+
+    expect(headerCheckbox.checked).toBe(false);
+
+    headerCheckbox.click();
+
+    expect(headerCheckbox.checked).toBe(true);
+    expect(spy.test.calls.count()).toBe(0);
+
+    window.onerror = prevError;
   });
 
   describe('CheckboxRenderer with ContextMenu', () => {
