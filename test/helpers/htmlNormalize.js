@@ -1,4 +1,4 @@
-const htmlParseStringify = require('html-parse-stringify');
+import htmlParseStringify from 'html-parse-stringify';
 
 const NEW_LINE = '\n';
 const INDENTATION_CHAR = ' ';
