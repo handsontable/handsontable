@@ -1455,6 +1455,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link UndoRedo} plugin before changing undo stack.
    *
    * @event Hooks#beforeUndoStackChange
+   * @since 8.4.0
    * @param {Array} doneActions Stack of actions which may be undone.
    * @param {string} [source] String that identifies source of action ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
    * @returns {*|boolean} If false is returned the action of changing undo stack is canceled.
@@ -1475,6 +1476,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link UndoRedo} plugin after changing undo stack.
    *
    * @event Hooks#afterUndoStackChange
+   * @since 8.4.0
    * @param {Array} doneActionsBefore Stack of actions which could be undone before performing new action.
    * @param {Array} doneActionsAfter Stack of actions which can be undone after performing new action.
    */
@@ -1495,6 +1497,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link UndoRedo} plugin before changing redo stack.
    *
    * @event Hooks#beforeRedoStackChange
+   * @since 8.4.0
    * @param {Array} undoneActions Stack of actions which may be redone.
    */
   'beforeRedoStackChange',
@@ -1513,6 +1516,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link UndoRedo} plugin after changing redo stack.
    *
    * @event Hooks#afterRedoStackChange
+   * @since 8.4.0
    * @param {Array} undoneActionsBefore Stack of actions which could be redone before performing new action.
    * @param {Array} undoneActionsAfter Stack of actions which can be redone after performing new action.
    */
