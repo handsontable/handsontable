@@ -28,6 +28,7 @@ var container = document.getElementById('example1'),
 
 hot = Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(20, 20),
+  height: 320,
   rowHeaders: true,
   fixedColumnsLeft: 2,
   fixedRowsTop: 2,

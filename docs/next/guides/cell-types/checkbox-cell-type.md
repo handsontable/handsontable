@@ -127,7 +127,8 @@ hot3 = new Handsontable(example3, {
         value: 'In black? '
       },
     },
-  ]
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 :::

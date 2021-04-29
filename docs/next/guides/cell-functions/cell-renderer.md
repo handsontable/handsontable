@@ -170,4 +170,53 @@ function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
 
 You can also put HTML into row and column headers. If you need to attach events to DOM elements like the checkbox below, just remember to identify the element by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id attribute must be unique.
 
-var isChecked, container2 = document.getElementById('example2'), hot2; hot2 = new Handsontable(container2, { columns: \[ {}, {renderer: customRenderer} \], colHeaders: function (col) { var txt; switch (col) { case 0: return '<b>Bold</b> and <em>Beautiful</em>'; case 1: txt = "Some <input type='checkbox' class='checker' "; txt += isChecked ? 'checked="checked"' : ''; txt += "> checkbox"; return txt; } } }); function customRenderer(instance, td) { Handsontable.renderers.TextRenderer.apply(this, arguments); if (isChecked) { td.style.backgroundColor = 'yellow'; } else { td.style.backgroundColor = 'white'; } } Handsontable.dom.addEvent(container2, 'mousedown', function (event) { if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') { event.stopPropagation(); } }); Handsontable.dom.addEvent(container2, 'mouseup', function (event) { if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') { isChecked = !event.target.checked; hot2.render(); } });
+::: example #example2
+```js
+var isChecked,
+  container2 = document.getElementById('example2'), 
+  hot2; 
+  
+hot2 = new Handsontable(container2, {
+  columns: [
+    {},
+    { renderer: customRenderer }
+  ],
+  colHeaders: function (col) {
+    var txt; 
+    
+    switch (col) {
+      case 0:
+        return '<b>Bold</b> and <em>Beautiful</em>';
+      case 1:
+        txt = "Some <input type='checkbox' class='checker' "; 
+        txt += isChecked ? 'checked="checked"' : ''; 
+        txt += "> checkbox";
+
+        return txt;
+    } 
+  },
+  licenseKey: 'non-commercial-and-evaluation'
+});
+  
+function customRenderer(instance, td) {
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
+  
+  if (isChecked) {
+    td.style.backgroundColor = 'yellow'; 
+  } else {
+    td.style.backgroundColor = 'white';
+  } 
+}
+
+Handsontable.dom.addEvent(container2, 'mousedown', function (event) {
+  if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
+    event.stopPropagation();
+  }
+});
+
+Handsontable.dom.addEvent(container2, 'mouseup', function (event) {
+  if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
+    isChecked = !event.target.checked; hot2.render();
+  }
+});
+```
