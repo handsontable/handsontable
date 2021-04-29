@@ -203,7 +203,7 @@
     ],
     "exports": [
       "./cellTypes/**/+(index|registry)*",
-      "./languages/*",
+      "./languages/!(all.js)",
       "./editors/**/+(index|registry)*",
       "./plugins/**/+(index|registry)*",
       "./renderers/**/+(index|registry)*",

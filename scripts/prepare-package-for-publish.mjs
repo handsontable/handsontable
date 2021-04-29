@@ -86,13 +86,13 @@ Object.keys(targetExports).forEach((ruleName) => {
       }
     }
   }
-
 });
 
 if (EXPORTS_ERRORS.length > 0) {
   const FILES_LIST = `${EXPORTS_ERRORS.map(msg => `- ${msg}`).join('\n')}`;
 
-  throw new Error(`The following exports point to the non-existing files:\n ${FILES_LIST}`);
+  displayErrorMessage(`The following exports point to the non-existing files:\n ${FILES_LIST}`);
+  process.exit(1);
 }
 
 /**
