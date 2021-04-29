@@ -18,7 +18,9 @@ Array of arrays is the most popular choice for the more spreadsheet-like cases i
 
 ::: example #example1
 ```js
-var data = [
+const container1 = document.getElementById('example1');
+
+const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
   ['2017', 10, 11, 12, 13, 15, 16],
   ['2018', 10, 11, 12, 13, 15, 16],
@@ -27,8 +29,7 @@ var data = [
   ['2021', 10, 11, 12, 13, 15, 16]
 ];
 
-var container1 = document.getElementById('example1');
-var hot1 = new Handsontable(container1, {
+const hot1 = new Handsontable(container1, {
   data: data,
   startRows: 5,
   startCols: 5,
@@ -47,7 +48,9 @@ Let's say, you want the same data source, but without the **Tesla** column:
 
 ::: example #example2
 ```js
-var allData = [
+const container = document.getElementById('example2');
+
+const allData = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
   ['2017', 10, 11, 12, 13, 15, 16],
   ['2018', 10, 11, 12, 13, 15, 16],
@@ -56,9 +59,7 @@ var allData = [
   ['2021', 10, 11, 12, 13, 15, 16]
 ];
 
-var container = document.getElementById('example2');
-
-var hot2 = new Handsontable(container, {
+const hot2 = new Handsontable(container, {
   data: allData,
   colHeaders: true,
   minSpareRows: 1,
@@ -84,7 +85,9 @@ You can use an **array of objects** as a data source.
 
 ::: example #example3
 ```js
-var objectData = [
+const container3 = document.getElementById('example3');
+
+const objectData = [
   { id: 1, name: 'Ted Right', address: '' },
   { id: 2, name: 'Frank Honest', address: '' },
   { id: 3, name: 'Joan Well', address: '' },
@@ -92,9 +95,7 @@ var objectData = [
   { id: 5, name: 'Michael Fair', address: '' },
 ];
 
-var container3 = document.getElementById('example3');
-
-var hot3 = new Handsontable(container3, {
+const hot3 = new Handsontable(container3, {
   data: objectData,
   colHeaders: true,
   height: 'auto',
@@ -111,21 +112,21 @@ You can define **columns** as a function. That can be a good choice when you wan
 
 ::: example #example4 .custom-class
 ```js
-var nestedObjects = [
+const container4 = document.getElementById('example4');
+
+const nestedObjects = [
   { id: 1, name: {first: "Ted", last: "Right"}, address: "" },
   { id: 2, address: "" },// HOT will create missing properties on demand
   { id: 3, name: {first: "Joan", last: "Well"}, address: "" }
 ];
 
-var container4 = document.getElementById('example4');
-
-var hot4 = new Handsontable(container4, {
+const hot4 = new Handsontable(container4, {
   data: nestedObjects,
   colHeaders: true,
   height: 'auto',
   width: 'auto',
   columns: function(column) {
-    var columnMeta = {};
+    let columnMeta = {};
 
     if (column === 0) {
       columnMeta.data = 'id';
@@ -153,15 +154,15 @@ Some people have nested objects. They can also be used at the data source with a
 
 ::: example #example5
 ```js
-var nestedObjects = [
+const container5 = document.getElementById('example5');
+
+const nestedObjects = [
   { id: 1, name: {first: "Ted", last: "Right"}, address: "" },
   { id: 2, address: "" }, // HOT will create missing properties on demand
   { id: 3, name: {first: "Joan", last: "Well"}, address: "" }
 ];
 
-var container5 = document.getElementById('example5');
-
-var hot5 = new Handsontable(container5, {
+const hot5 = new Handsontable(container5, {
   data: nestedObjects,
   colHeaders: true,
   height: 'auto',
@@ -186,9 +187,9 @@ In case you want to start with an empty data source, you will need to provide th
 
 ::: example #example6
 ```js
-var container = document.getElementById('example6');
+const container = document.getElementById('example6');
 
-var hot6 = new Handsontable(container, {
+const hot6 = new Handsontable(container, {
   data: [],
   dataSchema: { id: null, name: { first: null, last: null }, address: null },
   startRows: 5,
@@ -216,9 +217,9 @@ The below example shows a small example of using such objects:
 
 ::: example #example7
 ```js
-var container7 = document.getElementById('example7');
+const container7 = document.getElementById('example7');
 
-var hot7 = new Handsontable(container7, {
+const hot7 = new Handsontable(container7, {
   data: [
     model({ id: 1, name: 'Ted Right', address: '' }),
     model({ id: 2, name: 'Frank Honest', address: '' }),
@@ -240,10 +241,14 @@ var hot7 = new Handsontable(container7, {
 });
 
 function model(opts) {
-  var _pub = {},
-  _priv = { "id": undefined, "name": undefined, "address": undefined };
+  let _pub = { 
+    "id": undefined,
+    "name": undefined,
+    "address": undefined
+  };
+  let _priv = {};
 
-  for (var i in opts) {
+  for (const i in opts) {
     if (opts.hasOwnProperty(i)) {
       _priv[i] = opts[i];
     }
@@ -252,6 +257,7 @@ function model(opts) {
   _pub.attr = function (attr, val) {
     if (typeof val === 'undefined') {
       window.console && console.log("GET the", attr, "value of", _pub);
+
       return _priv[attr];
     }
 
@@ -282,19 +288,19 @@ If you have to avoid that, copy the data before you pass it to the grid. To chan
 
 ::: example #example9
 ```js
-var data9 = [
+const container9 = document.getElementById('example9');
+
+const data9 = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
   ['2017', 10, 11, 12, 13, 15, 16],
   ['2018', 10, 11, 12, 13, 15, 16],
   ['2019', 10, 11, 12, 13, 15, 16],
   ['2020', 10, 11, 12, 13, 15, 16],
   ['2021', 10, 11, 12, 13, 15, 16]
-],
-container9 = document.getElementById('example9'),
-settings9 = { data: data9, licenseKey: 'non-commercial-and-evaluation' },
-hot9;
+];
+const settings9 = { data: data9, licenseKey: 'non-commercial-and-evaluation' };
 
-hot9 = new Handsontable(container9, settings9);
+const hot9 = new Handsontable(container9, settings9);
 
 hot9.setDataAtCell(0, 1, 'Ford');
 ```
@@ -306,18 +312,18 @@ To work with a copy of data for Handsontable, it is suggested to clone the data 
 
 ::: example #example10
 ```js
-var data10 = [
+const container10 = document.getElementById('example10');
+
+const data10 = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
   ['2017', 10, 11, 12, 13, 15, 16],
   ['2018', 10, 11, 12, 13, 15, 16],
   ['2019', 10, 11, 12, 13, 15, 16],
   ['2020', 10, 11, 12, 13, 15, 16],
   ['2021', 10, 11, 12, 13, 15, 16]
-],
-container10 = document.getElementById('example10'),
-hot10;
+];
 
-hot10 = new Handsontable(container10, {
+const hot10 = new Handsontable(container10, {
   data: JSON.parse(JSON.stringify(data10)),
   licenseKey: 'non-commercial-and-evaluation'
 });
