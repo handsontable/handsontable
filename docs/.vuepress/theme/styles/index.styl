@@ -320,11 +320,10 @@ kbd {
 .icons-wrapper {
   margin-top: 30px;
   text-align: center;
-  display: flex;
-  justify-content: space-evenly;
   
   & > div {
-    width: 20%;
+    display: inline-block;
+    width: 19%;
     margin: 0 0 2.4rem 0;
     line-height: 1;
   }
@@ -342,5 +341,18 @@ kbd {
     overflow: hidden;
     font-size: 12px;
     text-align: center;
+  }
+}
+
+@media (max-width: $MQMobileNarrow) {
+  .icons-wrapper {
+    > div {
+      width: 49%;
+    }
+
+    svg {
+      width: 55px;
+      height: 55px;
+    }
   }
 }
