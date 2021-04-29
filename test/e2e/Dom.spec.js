@@ -125,6 +125,7 @@ describe('Handsontable.Dom', () => {
 
       const TD = $table.find('td')[0];
       const TR = TD.parentNode;
+
       expect(Handsontable.dom.isVisible(TD)).toBe(true);
       TR.parentNode.removeChild(TR);
       expect(Handsontable.dom.isVisible(TD)).toBe(false);
@@ -242,6 +243,7 @@ describe('Handsontable.Dom', () => {
 
   it('should set the immediatePropagation properties properly for given event', () => {
     const event = document.createEvent('MouseEvents');
+
     event.initMouseEvent('mousedown', true, true, window, null, null, null, null, null,
       null, null, null, null, null, null);
 

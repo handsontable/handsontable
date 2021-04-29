@@ -33,6 +33,7 @@ describe('Walkontable.Selection', () => {
         wt.draw();
       }
     });
+
     wt.draw();
 
     const $td1 = spec().$table.find('tbody td:eq(0)');
@@ -72,7 +73,9 @@ describe('Walkontable.Selection', () => {
     wt.draw();
 
     const tds = spec().$wrapper.find('td:contains(B2), td:contains(B3), td:contains(C2), td:contains(C3)');
+
     expect(tds.length).toBeGreaterThan(4);
+
     for (let i = 0, ilen = tds.length; i < ilen; i++) {
       expect(tds[i].className).toContain('area');
     }
@@ -85,10 +88,12 @@ describe('Walkontable.Selection', () => {
       totalColumns: getTotalColumns,
       selections: createSelectionController(),
     });
+
     wt.draw();
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
 
     const $td1 = spec().$table.find('tbody td:eq(0)');
+
     expect($td1.hasClass('current')).toEqual(false);
 
     wt.draw();
@@ -107,15 +112,18 @@ describe('Walkontable.Selection', () => {
         wt.draw();
       }
     });
+
     wt.draw();
 
     await sleep(1500);
     const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(0)');
     const $td2 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
     const $top = $(wt.selections.getCell().getBorder(wt).top); // cheat... get border for ht_master
+
     $td1.simulate('mousedown');
 
     const pos1 = $top.position();
+
     expect(pos1.top).toBeGreaterThan(0);
     expect(pos1.left).toBe(0);
 
@@ -133,6 +141,7 @@ describe('Walkontable.Selection', () => {
       totalColumns: getTotalColumns,
       selections: createSelectionController(),
     });
+
     wt.draw();
 
     wt.selections.getCell().add(new Walkontable.CellCoords(20, 0));
@@ -143,6 +152,7 @@ describe('Walkontable.Selection', () => {
 
   it('should not scroll the viewport after selection is cleared', () => {
     const scrollbarWidth = getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
+
     spec().$wrapper.width(100 + scrollbarWidth).height(200 + scrollbarWidth);
 
     const wt = walkontable({
@@ -178,6 +188,7 @@ describe('Walkontable.Selection', () => {
       totalColumns: getTotalColumns,
       selections: createSelectionController(),
     });
+
     wt.draw();
 
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
@@ -194,6 +205,7 @@ describe('Walkontable.Selection', () => {
       highlightRowClassName: 'highlightRow',
       highlightColumnClassName: 'highlightColumn'
     });
+
     customSelection.add(new Walkontable.CellCoords(0, 0));
     customSelection.add(new Walkontable.CellCoords(0, 1));
 
@@ -205,6 +217,7 @@ describe('Walkontable.Selection', () => {
         custom: [customSelection],
       }),
     });
+
     wt.draw();
 
     expect(spec().$table.find('.highlightRow').length).toEqual(2);
@@ -236,6 +249,7 @@ describe('Walkontable.Selection', () => {
         custom: [customSelection1, customSelection2],
       }),
     });
+
     wt.draw();
 
     expect(spec().$table.find('.highlightRow').length).toEqual(3);
@@ -254,6 +268,7 @@ describe('Walkontable.Selection', () => {
         }),
       }),
     });
+
     wt.draw();
 
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
@@ -288,6 +303,7 @@ describe('Walkontable.Selection', () => {
         }),
       }),
     });
+
     wt.draw();
 
     wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
@@ -331,6 +347,131 @@ describe('Walkontable.Selection', () => {
     expect(getTableLeftClone().find('.highlightRow').length).toEqual(0);
   });
 
+  it('should add/remove header classes only to the row/column headers closest to the cells when the ' +
+     '"highlightOnlyClosestHeader" option is used', function() {
+    spec().$wrapper.width(300).height(300);
+
+    this.data = createSpreadsheetData(20, 10);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      selections: createSelectionController({
+        activeHeader: new Walkontable.Selection({
+          highlightHeaderClassName: 'active_highlight',
+          highlightOnlyClosestHeader: true,
+        }),
+        header: new Walkontable.Selection({
+          highlightHeaderClassName: 'highlight',
+          highlightOnlyClosestHeader: true,
+        }),
+      }),
+      columnHeaders: [
+        (col, TH) => {
+          TH.innerHTML = `L1: ${col + 1}`;
+        },
+        (col, TH) => {
+          TH.innerHTML = `L2: ${col + 1}`;
+        },
+        (col, TH) => {
+          TH.innerHTML = `L3: ${col + 1}`;
+        },
+      ],
+      rowHeaders: [
+        (row, TH) => {
+          TH.innerHTML = `L1: ${row + 1}`;
+        },
+        (row, TH) => {
+          TH.innerHTML = `L2: ${row + 1}`;
+        },
+        (row, TH) => {
+          TH.innerHTML = `L3: ${row + 1}`;
+        },
+      ],
+    });
+
+    wt.selections.getHeader().add(new Walkontable.CellCoords(0, 0));
+    wt.selections.getHeader().add(new Walkontable.CellCoords(1, 1));
+    wt.selections.getActiveHeader().add(new Walkontable.CellCoords(1, 1));
+    wt.selections.getActiveHeader().add(new Walkontable.CellCoords(2, 2));
+
+    wt.draw();
+
+    // Row headers
+    expect(spec().$table.find('tbody tr:nth(0)').get(0).outerHTML).toMatchHTML(`
+      <tr>
+        <th class="">L1: 1</th>
+        <th class="">L2: 1</th>
+        <th class="highlight">L3: 1</th>
+        <td class="">A1</td>
+        <td class="">B1</td>
+        <td class="">C1</td>
+      </tr>
+      `);
+    expect(spec().$table.find('tbody tr:nth(1)').get(0).outerHTML).toMatchHTML(`
+      <tr>
+        <th class="">L1: 2</th>
+        <th class="">L2: 2</th>
+        <th class="highlight active_highlight">L3: 2</th>
+        <td class="">A2</td>
+        <td class="">B2</td>
+        <td class="">C2</td>
+      </tr>
+      `);
+    expect(spec().$table.find('tbody tr:nth(2)').get(0).outerHTML).toMatchHTML(`
+      <tr>
+        <th class="">L1: 3</th>
+        <th class="">L2: 3</th>
+        <th class="active_highlight">L3: 3</th>
+        <td class="">A3</td>
+        <td class="">B3</td>
+        <td class="">C3</td>
+      </tr>
+      `);
+    expect(spec().$table.find('tbody tr:nth(3)').get(0).outerHTML).toMatchHTML(`
+      <tr>
+        <th class="">L1: 4</th>
+        <th class="">L2: 4</th>
+        <th class="">L3: 4</th>
+        <td class="">A4</td>
+        <td class="">B4</td>
+        <td class="">C4</td>
+      </tr>
+      `);
+    // Column headers
+    expect(spec().$table.find('thead tr:nth(0)').get(0).outerHTML).toMatchHTML(`
+      <tr>
+        <th class="">L1: -2</th>
+        <th class="">L1: -1</th>
+        <th class="">L1: 0</th>
+        <th class="">L1: 1</th>
+        <th class="">L1: 2</th>
+        <th class="">L1: 3</th>
+      </tr>
+      `);
+    expect(spec().$table.find('thead tr:nth(1)').get(0).outerHTML).toMatchHTML(`
+      <tr>
+        <th class="">L2: -2</th>
+        <th class="">L2: -1</th>
+        <th class="">L2: 0</th>
+        <th class="">L2: 1</th>
+        <th class="">L2: 2</th>
+        <th class="">L2: 3</th>
+      </tr>
+      `);
+    expect(spec().$table.find('thead tr:nth(2)').get(0).outerHTML).toMatchHTML(`
+      <tr>
+        <th class="">L3: -2</th>
+        <th class="">L3: -1</th>
+        <th class="">L3: 0</th>
+        <th class="highlight">L3: 1</th>
+        <th class="highlight active_highlight">L3: 2</th>
+        <th class="active_highlight">L3: 3</th>
+      </tr>
+      `);
+  });
+
   describe('replace', () => {
     it('should replace range from property and return true', () => {
       const wt = walkontable({
@@ -339,6 +480,7 @@ describe('Walkontable.Selection', () => {
         totalColumns: getTotalColumns,
         selections: createSelectionController(),
       });
+
       wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
       wt.selections.getCell().add(new Walkontable.CellCoords(3, 3));
 

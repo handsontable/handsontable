@@ -7,6 +7,7 @@ import {
 } from '../../helpers/dom/event';
 import { partial } from '../../helpers/function';
 import { equalsIgnoreCase } from '../../helpers/string';
+import { isEmpty } from '../../helpers/mixed';
 import { isKey } from '../../helpers/unicode';
 
 import './checkboxRenderer.css';
@@ -15,6 +16,8 @@ import Hooks from '../../pluginHooks';
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
 const BAD_VALUE_CLASS = 'htBadValue';
+const ATTR_ROW = 'data-row';
+const ATTR_COLUMN = 'data-col';
 
 export const RENDERER_TYPE = 'checkbox';
 
@@ -35,6 +38,7 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleSeed, cellMe
 
     } else if (labelProperty) {
       const labelData = this.getDataAtRowProp(row, labelProperty);
+
       labelText = labelData !== null ? labelData : cellValue;
     }
 
@@ -57,6 +61,7 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleSeed, cellMe
  */
 export function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   const { rootDocument } = instance;
+
   baseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
   registerEvents(instance);
 
@@ -79,7 +84,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
   } else if (value === cellProperties.uncheckedTemplate || equalsIgnoreCase(value, cellProperties.uncheckedTemplate)) {
     input.checked = false;
 
-  } else if (value === null) { // default value
+  } else if (isEmpty(value)) { // default value
     addClass(input, 'noValue');
 
   } else {
@@ -88,8 +93,8 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
     badValue = true;
   }
 
-  input.setAttribute('data-row', row);
-  input.setAttribute('data-col', col);
+  input.setAttribute(ATTR_ROW, row);
+  input.setAttribute(ATTR_COLUMN, col);
 
   if (!badValue && labelOptions) {
     let labelText = '';
@@ -100,6 +105,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
     } else if (labelOptions.property) {
       const labelValue = instance.getDataAtRowProp(row, labelOptions.property);
+
       labelText = labelValue !== null ? labelValue : '';
     }
 
@@ -283,6 +289,7 @@ function registerEvents(instance) {
 
   if (!eventManager) {
     const { rootElement } = instance;
+
     eventManager = new EventManager(instance);
 
     eventManager.addEventListener(rootElement, 'click', event => onClick(event, instance));
@@ -336,9 +343,16 @@ function createLabel(rootDocument, text) {
  * @param {Core} instance The Handsontable instance.
  */
 function onMouseUp(event, instance) {
-  if (!isCheckboxInput(event.target)) {
+  const { target } = event;
+
+  if (!isCheckboxInput(target)) {
     return;
   }
+
+  if (!target.hasAttribute(ATTR_ROW) || !target.hasAttribute(ATTR_COLUMN)) {
+    return;
+  }
+
   setTimeout(instance.listen, 10);
 }
 
@@ -346,17 +360,22 @@ function onMouseUp(event, instance) {
  * `click` callback.
  *
  * @private
- * @param {Event} event `click` event.
+ * @param {MouseEvent} event `click` event.
  * @param {Core} instance The Handsontable instance.
- * @returns {boolean|undefined}
  */
 function onClick(event, instance) {
-  if (!isCheckboxInput(event.target)) {
-    return false;
+  const { target } = event;
+
+  if (!isCheckboxInput(target)) {
+    return;
   }
 
-  const row = parseInt(event.target.getAttribute('data-row'), 10);
-  const col = parseInt(event.target.getAttribute('data-col'), 10);
+  if (!target.hasAttribute(ATTR_ROW) || !target.hasAttribute(ATTR_COLUMN)) {
+    return;
+  }
+
+  const row = parseInt(target.getAttribute(ATTR_ROW), 10);
+  const col = parseInt(target.getAttribute(ATTR_COLUMN), 10);
   const cellProperties = instance.getCellMeta(row, col);
 
   if (cellProperties.readOnly) {
@@ -369,15 +388,20 @@ function onClick(event, instance) {
  *
  * @param {Event} event `change` event.
  * @param {Core} instance The Handsontable instance.
- * @returns {boolean}
  */
 function onChange(event, instance) {
-  if (!isCheckboxInput(event.target)) {
-    return false;
+  const { target } = event;
+
+  if (!isCheckboxInput(target)) {
+    return;
   }
 
-  const row = parseInt(event.target.getAttribute('data-row'), 10);
-  const col = parseInt(event.target.getAttribute('data-col'), 10);
+  if (!target.hasAttribute(ATTR_ROW) || !target.hasAttribute(ATTR_COLUMN)) {
+    return;
+  }
+
+  const row = parseInt(target.getAttribute(ATTR_ROW), 10);
+  const col = parseInt(target.getAttribute(ATTR_COLUMN), 10);
   const cellProperties = instance.getCellMeta(row, col);
 
   if (!cellProperties.readOnly) {

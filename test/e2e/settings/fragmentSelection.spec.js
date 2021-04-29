@@ -39,6 +39,7 @@ describe('settings', () => {
 
       const sel = window.getSelection();
       const range = window.document.createRange();
+
       range.setStartBefore(element);
 
       while (numOfSiblings > 1) {
@@ -154,12 +155,14 @@ describe('settings', () => {
           fragmentSelection: false
         });
         const $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
+
         spec().$container.append($div);
         selectElementText($div[0], 1);
 
         $($div).simulate('mousedown');
 
         const sel = getSelected();
+
         expect(sel).toEqual('');
       });
 
@@ -169,12 +172,14 @@ describe('settings', () => {
           fragmentSelection: true
         });
         const $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
+
         spec().$container.append($div);
         selectElementText($div[0], 1);
 
         $($div).simulate('mousedown');
 
         const sel = getSelected();
+
         expect(sel).toEqual('');
       });
     });
@@ -195,6 +200,7 @@ describe('settings', () => {
         $(spec().$container.find('tr:eq(0) td:eq(3)')).simulate('click');
 
         const sel = getSelected();
+
         expect(sel).toEqual(''); // copyPaste has selected space in textarea
 
         const copyEvent = getClipboardEvent();

@@ -106,6 +106,8 @@ class Settings {
       onBeforeStretchingColumnWidth: width => width,
       onModifyRowHeaderWidth: null,
       onModifyGetCellCoords: null,
+      onBeforeHighlightingRowHeader: sourceRow => sourceRow,
+      onBeforeHighlightingColumnHeader: sourceCol => sourceCol,
 
       onWindowResize: null,
 
@@ -151,6 +153,7 @@ class Settings {
     } else { // if value is defined then settings is the key
       this.settings[settings] = value;
     }
+
     return this.wot;
   }
 

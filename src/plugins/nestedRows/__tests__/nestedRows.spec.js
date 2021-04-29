@@ -251,6 +251,7 @@ describe('NestedRows', () => {
       });
 
       const firstParent = getPlugin('nestedRows').dataManager.getRowParent(12);
+
       expect(getPlugin('nestedRows').dataManager.countChildren(firstParent)).toBe(2);
 
       getPlugin('manualRowMove').dragRow(12, 4);
@@ -287,6 +288,7 @@ describe('NestedRows', () => {
       });
 
       const firstParent = getPlugin('nestedRows').dataManager.getRowParent(12);
+
       expect(getPlugin('nestedRows').dataManager.countChildren(firstParent)).toBe(2);
 
       getPlugin('manualRowMove').dragRow(12, 10);

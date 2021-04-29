@@ -45,6 +45,30 @@ const contextMenuDemo: Handsontable.contextMenu.Settings = {
   }
 }
 
+const legacyNumericFormat: Handsontable.NumericFormatOptions = {
+  pattern: '0.00',
+  culture: 'en-US',
+};
+const numericFormatOptions: Handsontable.NumericFormatOptions = {
+  pattern: {
+    prefix: 2,
+    postfix: 3,
+    characteristic: 5,
+    forceAverage: oneOf('trillion', 'billion', 'million', 'thousand'),
+    average: true,
+    mantissa: 5,
+    optionalMantissa: true,
+    trimMantissa: true,
+    thousandSeparated: true,
+    negative: oneOf('sign', 'parenthesis'),
+    forceSign: true,
+    totalLength: 10,
+    spaceSeparated: true,
+    output: oneOf('currency', 'percent', 'byte', 'time', 'ordinal', 'number'),
+  },
+  culture: 'en-US'
+};
+
 // Use `Required<GridSettings>` to ensure every defined setting is covered here.
 const allSettings: Required<Handsontable.GridSettings> = {
   activeHeaderClassName: 'foo',
@@ -256,10 +280,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ],
   nestedRows: true,
   noWordWrapClassName: 'foo',
-  numericFormat: {
-    pattern: '0,00',
-    culture: 'en-US'
-  },
+  numericFormat: oneOf(legacyNumericFormat, numericFormatOptions),
   observeChanges: true,
   observeDOMVisibility: true,
   outsideClickDeselects: oneOf(true, function(target: HTMLElement) {
@@ -374,6 +395,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterPaste: (data, coords) => {},
   afterPluginsInitialized: () => {},
   afterRedo: (action) => {},
+  afterRedoStackChange: (undoneActionsBefore, undoneActionsAfter) => {},
   afterRefreshDimensions: (previousDimensions, currentDimensions, stateChanged) => {},
   afterRemoveCellMeta: (row, column, key, value) => {},
   afterRemoveCol: (index, amount, physicalColumns = [1, 2, 3], source) => {},
@@ -394,6 +416,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSetSourceDataAtCell: (changes, source) => {},
   afterTrimRow: (rows) => {},
   afterUndo: (action) => {},
+  afterUndoStackChange: (doneActionsBefore, doneActionsAfter) => {},
   afterUnlisten: () => {},
   afterUnhideColumns: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
   afterUnhideRows: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
@@ -428,6 +451,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeGetCellMeta: (row, col, cellProperties) => {},
   beforeHideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeHideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
+  beforeHighlightingColumnHeader: (column, headerLevel, highlightMeta) => { return column; },
+  beforeHighlightingRowHeader: (row, headerLevel, highlightMeta) => { return row; },
   beforeInit: () => {},
   beforeInitWalkontable: (walkontableConfig) => {},
   beforeKeyDown: (event) => {},
@@ -443,6 +468,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRemoveCellClassNames: () => {},
   beforeRemoveCellMeta: (row, column, key, value) => {},
   beforeRedo: (action) => {},
+  beforeRedoStackChange: (undoneActions) => {},
   beforeRefreshDimensions: (previousDimensions, currentDimensions, actionPossible) => {},
   beforeRemoveCol: (index, amount, physicalColumns = [1, 2, 3], source) => {},
   beforeRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
@@ -458,6 +484,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeTouchScroll: () => {},
   beforeTrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible) => {},
   beforeUndo: (action) => {},
+  beforeUndoStackChange: (doneActions, source) => {},
   beforeUnhideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeUnhideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeUnmergeCells: (cellRange, auto) => {},

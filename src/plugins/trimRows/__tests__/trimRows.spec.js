@@ -110,6 +110,7 @@ describe('TrimRows', () => {
       width: 500,
       height: 300
     });
+
     hot.getPlugin('trimRows').disablePlugin();
     hot.render();
 
@@ -129,6 +130,7 @@ describe('TrimRows', () => {
       width: 500,
       height: 300
     });
+
     hot.getPlugin('hiddenRows').disablePlugin();
     hot.getPlugin('hiddenRows').enablePlugin();
     hot.render();
@@ -376,6 +378,7 @@ describe('TrimRows', () => {
         });
 
         const plugin = getPlugin('trimRows');
+
         plugin.trimRows([0, 5, 10, 15]);
 
         expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
@@ -395,6 +398,7 @@ describe('TrimRows', () => {
         });
 
         const plugin = getPlugin('trimRows');
+
         plugin.trimRows([0, 5, 1.1]);
 
         expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
@@ -457,6 +461,7 @@ describe('TrimRows', () => {
         });
 
         const plugin = getPlugin('trimRows');
+
         plugin.trimRows([0, 5]);
 
         expect(afterTrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], true, false, void 0, void 0);
@@ -472,6 +477,7 @@ describe('TrimRows', () => {
         });
 
         const plugin = getPlugin('trimRows');
+
         plugin.trimRows([0, 5, 6]);
 
         expect(afterTrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5, 6], true, true, void 0, void 0);
@@ -488,6 +494,7 @@ describe('TrimRows', () => {
         });
 
         const plugin = getPlugin('trimRows');
+
         plugin.trimRows([0, 5, 10, 15]);
 
         expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
@@ -507,6 +514,7 @@ describe('TrimRows', () => {
         });
 
         const plugin = getPlugin('trimRows');
+
         plugin.trimRows([0, 5, 1.1]);
 
         expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
@@ -567,6 +575,7 @@ describe('TrimRows', () => {
         });
 
         const plugin = getPlugin('trimRows');
+
         plugin.untrimRows([0, 5, 10, 15]);
 
         expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], false, void 0, void 0, void 0);
@@ -585,6 +594,7 @@ describe('TrimRows', () => {
         });
 
         const plugin = getPlugin('trimRows');
+
         plugin.untrimRows([0, 5, 10, 15]);
 
         expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], false, void 0, void 0, void 0);
@@ -647,6 +657,7 @@ describe('TrimRows', () => {
         });
 
         const plugin = getPlugin('trimRows');
+
         plugin.untrimRows([0, 5]);
 
         expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([], [], true, false, void 0, void 0);
@@ -662,6 +673,7 @@ describe('TrimRows', () => {
         });
 
         const plugin = getPlugin('trimRows');
+
         plugin.untrimRows([0, 5, 6]);
 
         expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [], true, true, void 0, void 0);
@@ -678,6 +690,7 @@ describe('TrimRows', () => {
         });
 
         const plugin = getPlugin('trimRows');
+
         plugin.untrimRows([0, 5, 1.1]);
 
         expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], false, false, void 0, void 0);
@@ -722,8 +735,10 @@ describe('TrimRows', () => {
      */
     function getClipboardEventMock() {
       const event = {};
+
       event.clipboardData = new DataTransferObject();
       event.preventDefault = () => {};
+
       return event;
     }
 
@@ -1076,6 +1091,7 @@ describe('TrimRows', () => {
         width: 500,
         height: 300
       });
+
       hot.updateSettings({
         trimRows: [1, 2, 3, 4, 5]
       });

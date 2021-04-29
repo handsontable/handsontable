@@ -136,7 +136,7 @@ class SelectUI extends BaseUI {
       this.menu.open();
       this.menu.setPosition({
         left: rect.left - 5,
-        top: rect.top,
+        top: rect.top - 1,
         width: rect.width,
         height: rect.height
       });

@@ -1,3 +1,4 @@
+import { CUSTOM_SELECTION_TYPE } from '../constants';
 import VisualSelection from '../visualSelection';
 
 /**
@@ -10,6 +11,7 @@ function createHighlight({ border, visualCellRange, ...restOptions }) {
   const s = new VisualSelection({
     ...border,
     ...restOptions,
+    selectionType: CUSTOM_SELECTION_TYPE,
   }, visualCellRange);
 
   return s;

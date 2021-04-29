@@ -115,6 +115,7 @@ export class ManualRowResize extends BasePlugin {
    */
   disablePlugin() {
     const priv = privatePool.get(this);
+
     priv.config = this.rowHeightsMap.getValues();
 
     this.hot.rowIndexMapper.unregisterMap(this.pluginName);
@@ -265,6 +266,7 @@ export class ManualRowResize extends BasePlugin {
     const handleWidth = parseInt(outerWidth(this.handle), 10);
     const handleRightPosition = parseInt(this.handle.style.left, 10) + handleWidth;
     const maximumVisibleElementWidth = parseInt(this.hot.view.maximumVisibleElementWidth(0), 10);
+
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
 
@@ -318,6 +320,7 @@ export class ManualRowResize extends BasePlugin {
       if (element.tagName === 'TH') {
         return element;
       }
+
       return this.getClosestTHParent(element.parentNode);
 
     }
@@ -482,6 +485,7 @@ export class ManualRowResize extends BasePlugin {
 
       this.hot.runHooks('afterRowResize', this.getActualRowHeight(row), row, false);
     };
+
     if (this.pressed) {
       this.hideHandleAndGuide();
       this.pressed = false;
@@ -512,6 +516,7 @@ export class ManualRowResize extends BasePlugin {
    */
   bindEvents() {
     const { rootElement, rootWindow } = this.hot;
+
     this.eventManager.addEventListener(rootElement, 'mouseover', e => this.onMouseOver(e));
     this.eventManager.addEventListener(rootElement, 'mousedown', e => this.onMouseDown(e));
     this.eventManager.addEventListener(rootWindow, 'mousemove', e => this.onMouseMove(e));
@@ -577,8 +582,6 @@ export class ManualRowResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.rowIndexMapper.unregisterMap(this.pluginName);
-
     super.destroy();
   }
 }

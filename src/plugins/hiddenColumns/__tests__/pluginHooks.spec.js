@@ -69,6 +69,7 @@ describe('HiddenColumns', () => {
         });
 
         const plugin = getPlugin('hiddenColumns');
+
         plugin.hideColumns([0, 5, 10, 15]);
 
         expect(beforeHideColumnsHookCallback).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
@@ -88,6 +89,7 @@ describe('HiddenColumns', () => {
         });
 
         const plugin = getPlugin('hiddenColumns');
+
         plugin.hideColumns([0, 5, 1.1]);
 
         expect(beforeHideColumnsHookCallback).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
@@ -152,6 +154,7 @@ describe('HiddenColumns', () => {
         });
 
         const plugin = getPlugin('hiddenColumns');
+
         plugin.hideColumns([0, 5]);
 
         expect(afterHideColumnsHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], true, false, void 0, void 0);
@@ -169,6 +172,7 @@ describe('HiddenColumns', () => {
         });
 
         const plugin = getPlugin('hiddenColumns');
+
         plugin.hideColumns([0, 5, 6]);
 
         expect(afterHideColumnsHookCallback).toHaveBeenCalledWith([0, 5], [0, 5, 6], true, true, void 0, void 0);
@@ -185,6 +189,7 @@ describe('HiddenColumns', () => {
         });
 
         const plugin = getPlugin('hiddenColumns');
+
         plugin.hideColumns([0, 5, 10, 15]);
 
         expect(afterHideColumnsHookCallback).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
@@ -204,6 +209,7 @@ describe('HiddenColumns', () => {
         });
 
         const plugin = getPlugin('hiddenColumns');
+
         plugin.hideColumns([0, 5, 1.1]);
 
         expect(afterHideColumnsHookCallback).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
@@ -272,6 +278,7 @@ describe('HiddenColumns', () => {
         });
 
         const plugin = getPlugin('hiddenColumns');
+
         plugin.showColumns([0, 5, 10, 15]);
 
         expect(beforeUnhideColumnsHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], false, void 0, void 0, void 0);
@@ -292,6 +299,7 @@ describe('HiddenColumns', () => {
         });
 
         const plugin = getPlugin('hiddenColumns');
+
         plugin.showColumns([0, 5, 10, 15]);
 
         expect(beforeUnhideColumnsHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], false, void 0, void 0, void 0);
@@ -358,6 +366,7 @@ describe('HiddenColumns', () => {
         });
 
         const plugin = getPlugin('hiddenColumns');
+
         plugin.showColumns([0, 5]);
 
         expect(afterUnhideColumnsHookCallback).toHaveBeenCalledWith([], [], true, false, void 0, void 0);
@@ -375,6 +384,7 @@ describe('HiddenColumns', () => {
         });
 
         const plugin = getPlugin('hiddenColumns');
+
         plugin.showColumns([0, 5, 6]);
 
         expect(afterUnhideColumnsHookCallback).toHaveBeenCalledWith([0, 5], [], true, true, void 0, void 0);
@@ -393,6 +403,7 @@ describe('HiddenColumns', () => {
         });
 
         const plugin = getPlugin('hiddenColumns');
+
         plugin.showColumns([0, 5, 1.1]);
 
         expect(afterUnhideColumnsHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], false, false, void 0, void 0);

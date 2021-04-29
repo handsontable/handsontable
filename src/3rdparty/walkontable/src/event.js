@@ -307,15 +307,20 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onTouchEnd(event) {
-    const excludeTags = ['A', 'BUTTON', 'INPUT'];
+    const interactiveElements = ['A', 'BUTTON', 'INPUT'];
     const target = event.target;
     const parentCellCoords = this.parentCell(target)?.coords;
     const isHeader = isDefined(parentCellCoords) && (parentCellCoords.row < 0 || parentCellCoords.col < 0);
 
-    // When the standard event was performed on the link element (a cell which contains HTML `a` element) then here
-    // we check if it should be canceled. Click is blocked in a situation when the element is rendered outside
-    // selected cells. This prevents accidentally page reloads while selecting adjacent cells.
-    if (isHeader === false && this.selectedCellWasTouched(target) === false && excludeTags.includes(target.tagName)) {
+    // When the cells contain interactive HTML tags do not "preventDefault" the event. Thanks to
+    // that, users can interact with the UI element (e.q. click on the link opens a new page).
+    // For non-interactive elements, the event is always prevented to tell the browser that we
+    // don't want to rely on the native 300ms delay. Hence the touch events can be triggered as
+    // fast as the user can (https://webkit.org/blog/5610/more-responsive-tapping-on-ios/).
+    // Related issue #7659.
+    if (event.cancelable &&
+        !isHeader &&
+        !(interactiveElements.includes(target.tagName) && this.selectedCellWasTouched(target))) {
       event.preventDefault();
     }
 

@@ -119,6 +119,7 @@ describe('DropdownMenu', () => {
 
     it('should be possible to define a custom container for DropdownMenu\'s UI elements', () => {
       const uiContainer = $('<div/>').addClass('uiContainer');
+
       spec().$container.append(uiContainer);
 
       handsontable({
@@ -315,6 +316,7 @@ describe('DropdownMenu', () => {
       });
 
       const afterCreateColCallback = jasmine.createSpy('afterCreateColCallback');
+
       hot.addHook('afterCreateCol', afterCreateColCallback);
 
       expect(countCols()).toEqual(4);
@@ -340,6 +342,7 @@ describe('DropdownMenu', () => {
       });
 
       const afterCreateColCallback = jasmine.createSpy('afterCreateColCallback');
+
       hot.addHook('afterCreateCol', afterCreateColCallback);
 
       expect(countCols()).toEqual(4);
@@ -461,6 +464,7 @@ describe('DropdownMenu', () => {
 
     it('should have custom items list (defined as a function)', () => {
       let enabled = false;
+
       handsontable({
         dropdownMenu: {
           items: {
@@ -739,6 +743,7 @@ describe('DropdownMenu', () => {
     hot.getPlugin('dropdownMenu').executeCommand('alignment:bottom');
 
     let cellMeta = hot.getCellMeta(0, 0);
+
     expect(cellMeta.className.includes('htCenter')).toBeTruthy();
     expect(cellMeta.className.includes('htMiddle')).toBeTruthy();
 
@@ -829,6 +834,7 @@ describe('DropdownMenu', () => {
     hot.getPlugin('dropdownMenu').executeCommand('alignment:bottom');
 
     let cellMeta = hot.getCellMeta(0, 0);
+
     expect(cellMeta.className.includes('htCenter')).toBeTruthy();
     expect(cellMeta.className.includes('htMiddle')).toBeTruthy();
 

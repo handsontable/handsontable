@@ -104,6 +104,7 @@ export function createEmptySpreadsheetData(rows, columns) {
 
   for (let i = 0; i < rows; i++) {
     row = [];
+
     for (let j = 0; j < columns; j++) {
       row.push('');
     }

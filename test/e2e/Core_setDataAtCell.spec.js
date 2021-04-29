@@ -38,6 +38,7 @@ describe('Core_setDataAtCell', () => {
     // https://github.com/handsontable/handsontable/issues/147
     handsontable();
     const td = setDataAtCell(0, 0, htmlText);
+
     selectCell(0, 0);
 
     $(td).simulate('dblclick');

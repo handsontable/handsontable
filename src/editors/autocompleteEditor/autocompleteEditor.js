@@ -168,6 +168,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   queryChoices(query) {
     const source = this.cellProperties.source;
+
     this.query = query;
 
     if (typeof source === 'function') {
@@ -507,6 +508,7 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
     for (i = 0; i < choicesCount; i++) {
       result.push(i);
     }
+
     return result;
   }
 

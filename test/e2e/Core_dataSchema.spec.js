@@ -114,6 +114,7 @@ describe('Core_dataSchema', () => {
       },
       minSpareRows: 1
     });
+
     expect(JSON.stringify(hot.getSchema())).toEqual(JSON.stringify(schema));
   });
 

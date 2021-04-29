@@ -22,6 +22,7 @@ const stickyRowsTop = {
     if (totalRows === 0) {
       return -1;
     }
+
     return 0;
   },
 

@@ -16,7 +16,13 @@ beforeEach(() => {
     const generateHorizontalLine = () => {
       const row = [];
 
-      rootTrees.forEach(({ data: { colspan } }) => {
+      rootTrees.forEach((node) => {
+        const { colspan, isHidden } = node.data;
+
+        if (isHidden === true) {
+          return;
+        }
+
         for (let i = 0; i < colspan; i++) {
           row.push('+----');
         }

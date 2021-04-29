@@ -320,6 +320,7 @@ export class TopOverlay extends Overlay {
       return this.wot.wtTable.holderOffset.top;
 
     }
+
     return 0;
 
   }

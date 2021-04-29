@@ -1,0 +1,7 @@
+{
+  "title": "Added ability to not stack some actions by the `UndoRedo` plugin and introduced new hooks",
+  "type": "added",
+  "issue": 6948,
+  "breaking": false,
+  "framework": "none"
+}

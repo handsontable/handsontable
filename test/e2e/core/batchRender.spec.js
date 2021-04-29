@@ -16,6 +16,7 @@ describe('Core.batchRender', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
+
     spyOn(hot, 'suspendRender').and.callThrough();
     spyOn(hot, 'resumeRender').and.callThrough();
     spyOn(hot.view.wt, 'draw');
@@ -43,6 +44,7 @@ describe('Core.batchRender', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
+
     spyOn(hot, 'suspendRender').and.callThrough();
     spyOn(hot, 'resumeRender').and.callThrough();
     spyOn(hot.view.wt, 'draw');

@@ -1,3 +1,4 @@
+import { FILL_TYPE } from '../constants';
 import VisualSelection from '../visualSelection';
 
 /**
@@ -14,6 +15,7 @@ function createHighlight({ ...restOptions }) {
       color: '#ff0000',
     },
     ...restOptions,
+    selectionType: FILL_TYPE,
   });
 
   return s;

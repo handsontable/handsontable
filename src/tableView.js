@@ -255,6 +255,7 @@ class TableView {
 
       if (!this.isTextSelectionAllowed(event.target)) {
         const { rootWindow } = this.instance;
+
         clearTextSelection(rootWindow);
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
@@ -336,6 +337,7 @@ class TableView {
             if (event.isTargetWebComponent) {
               break;
             }
+
             // click on something that was a row but now is detached (possibly because your click triggered a rerender)
             return;
           }
@@ -746,9 +748,10 @@ class TableView {
         this.activeWt = wt;
         this.instance.runHooks('beforeOnCellMouseUp', event, visualCoords, TD);
 
-        // TODO: Second argument is for workaround. Callback corresponding the method `updateSettings` disable plugin
-        // and enable it again. Disabling plugin closes the menu. Thus, calling the `updateSettings` in a body of
-        // any callback executed right after some context-menu action breaks the table (#7231).
+        // TODO: The second condition check is a workaround. Callback corresponding the method `updateSettings`
+        // disable plugin and enable it again. Disabling plugin closes the menu. Thus, calling the
+        // `updateSettings` in a body of any callback executed right after some context-menu action
+        // breaks the table (#7231).
         if (isImmediatePropagationStopped(event) || this.instance.isDestroyed) {
           return;
         }
@@ -769,6 +772,24 @@ class TableView {
       onScrollVertically: () => this.instance.runHooks('afterScrollVertically'),
       onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
+      onBeforeHighlightingRowHeader: (renderableRow, headerLevel, highlightMeta) => {
+        const rowMapper = this.instance.rowIndexMapper;
+        const visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
+
+        const newVisualRow = this.instance
+          .runHooks('beforeHighlightingRowHeader', visualRow, headerLevel, highlightMeta);
+
+        return rowMapper.getRenderableFromVisualIndex(rowMapper.getFirstNotHiddenIndex(newVisualRow, 1));
+      },
+      onBeforeHighlightingColumnHeader: (renderableColumn, headerLevel, highlightMeta) => {
+        const columnMapper = this.instance.columnIndexMapper;
+        const visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
+
+        const newVisualColumn = this.instance
+          .runHooks('beforeHighlightingColumnHeader', visualColumn, headerLevel, highlightMeta);
+
+        return columnMapper.getRenderableFromVisualIndex(columnMapper.getFirstNotHiddenIndex(newVisualColumn, 1));
+      },
       onAfterDrawSelection: (currentRow, currentColumn, layerLevel) => {
         let cornersOfSelection;
         const [visualRowIndex, visualColumnIndex] =
@@ -890,6 +911,7 @@ class TableView {
       rowHeaderWidth: () => this.settings.rowHeaderWidth,
       columnHeaderHeight: () => {
         const columnHeaderHeight = this.instance.runHooks('modifyColumnHeaderHeight');
+
         return this.settings.columnHeaderHeight || columnHeaderHeight;
       }
     };
