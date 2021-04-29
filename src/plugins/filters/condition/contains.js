@@ -7,6 +7,7 @@ export const CONDITION_NAME = 'contains';
 /**
  * @param {object} dataRow The object which holds and describes the single cell value.
  * @param {Array} inputValues An array of values to compare with.
+ * @param {*} inputValues."0" A value to check if it occurs in the row's data.
  * @returns {boolean}
  */
 export function condition(dataRow, [value]) {
