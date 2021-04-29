@@ -1,6 +1,7 @@
 {
   "name": "handsontable-examples",
   "private": true,
+  "version": "8.4.0",
   "scripts": {
     "clean": "node ./scripts/clean-subpackages.mjs",
     "test": "node ./scripts/code-examples.mjs test next",

@@ -1,7 +1,0 @@
-{
-  "title": "Fixed state changes resolving for non-built-in checkboxes",
-  "type": "fixed",
-  "issue": 5934,
-  "breaking": false,
-  "framework": "none"
-}
