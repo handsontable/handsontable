@@ -250,6 +250,7 @@
       "unpkg",
       "keywords",
       "dependencies",
+      "devDependencies",
       "license",
       "typings",
       "sideEffects"
