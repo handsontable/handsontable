@@ -210,10 +210,7 @@
       "./validators/**/+(index|registry)*",
       "./i18n/+(index|registry)*",
       "./i18n/languages/*",
-      "./dist/handsontable.css",
-      "./dist/handsontable.full.css",
-      "./dist/handsontable.full.min.css",
-      "./dist/handsontable.min.css",
+      "./dist/**/*.+(js|css)",
       {
         ".": {
           "import": "./index.mjs",

@@ -1,6 +1,7 @@
 import fse from 'fs-extra';
 import path from 'path';
 import glob from 'glob';
+import { displayErrorMessage } from './utils/console.mjs';
 
 const TARGET_PATH = './tmp/';
 const PACKAGE_PATH = path.resolve('package.json');
@@ -25,28 +26,30 @@ FILES_TO_COPY.forEach((file) => {
 /**
  * Prepare exports basing on wildcards in paths.
  */
+const regexpJSFiles = /\.(m|)js$/;
 const groupedExports = EXPORTS_RULES.flatMap((rule) => {
   if (typeof rule !== 'string') {
     return rule;
   }
 
-  if (!rule.includes('*')) {
-    return { [rule]: rule };
-  }
-
   const rules = {};
   const foundFiles = glob.sync(`${rule}`, { cwd: TARGET_PATH });
 
-  foundFiles.forEach((file) => {
-    const cleanPath = file.replace(/\.(m|)js$/, '').replace('/index', '');
+  foundFiles.forEach((filePath) => {
+    if (!filePath.startsWith('./dist/') && regexpJSFiles.test(filePath)) {
+      const cleanPath = filePath.replace(regexpJSFiles, '').replace('/index', '');
 
-    if (!rules[cleanPath]) {
-      rules[cleanPath] = {};
+      if (!rules[cleanPath]) {
+        rules[cleanPath] = {};
+      }
+
+      const key = filePath.endsWith('.mjs') ? 'import' : 'require';
+
+      rules[cleanPath][key] = filePath;
+
+    } else {
+      rules[filePath] = filePath;
     }
-
-    const key = file.includes('.mjs') ? 'import' : 'require';
-
-    rules[cleanPath][key] = file;
   });
 
   return rules;
