@@ -1,15 +1,15 @@
-## Templates Guidline
+## Templates guideline
 
 This folder contains templates for new code examples. Each new code example should be created using the template from this folder. We have templates for examples made in React, Angular, Vue, and of course Vanilla JavaScript.
 
-#### Prerequisite
-To work with code examples (and Handsontable development in general) use at least Node version `15.9.0`. If you have Node Version Manager installed, you can just type in the terminal `nvm use`.
+#### Prerequisites
+The lowest version of Node.js required for working with this project is `15.9.0`. If you use `nvm` (Node Version Manager) and already installed the minimum supported version, just type the following command in the terminal: `nvm use`.
 
 ### Creating a new example
 
 In this guideline, we will walk you through the process of creating new code examples. 
 
-> If you need some inspiration, what can be done with code examples, go ahead see existing examples in `examples/next/docs/` to get inspired!
+> If you want to get inspired before moving forward, see the already existing code examples in the folder `examples/next/docs/`.
 
 First off, create a new branch in order to keep the development process clean.
 
@@ -17,7 +17,7 @@ Inside the `examples/templates` directory where all templates for future code ex
 
 To create a new code example in Vanilla JavaScript to be used in the Handsontable official documentation, we need to make use of the template from the `examples/templates/js` directory.
 
-#### 1. Use the existing template
+#### 1. Copy the existing template
 
 Copy the `examples/templates/js` directory and paste it into `examples/next/docs/js`.
 
@@ -62,14 +62,25 @@ Another important file is a `package.json` file. Some properties of this file sh
 }
 ```
 
-In `package.json` are also scripts ***you should never modify or remove***, because those scripts are used by our CI/CD pipeline : `npm run start`, `npm run build` and `npm run test`.
+In the `package.json` you can find scripts that **should not be modified or removed**, such as `npm run start`, `npm run build` or `npm run test`. We use them internally to run the jobs in the CI/CD pipeline
 
-The only thing you have to modify is `"name"`, `"description"` and `"@handsontable/{{ WRAPPER NAME }}"` (if you are creating a code example made in a framework like React, Angular, or Vue). And, of course, you can install dependencies.
+##### Creating a code sample for framework
+
+You need to update the `package.json` file if you build a code sample that is intended to work with JavaScript frameworks such as React, Angular, or Vue. 
+
+Properties to modify include `"name"`, `"description"` and `"@handsontable/{{ WRAPPER NAME }}"`. Also, don't forget to define dependencies if you use them in your code.
 
 #### 3. Develop
 
-After the dependencies are installed, run npm run start that builds the project and watches for any saved code changes. The command opens the project on port 8080 so you can open the example in your browser at `localhost:8080`.
+When the dependencies are already installed, run the `npm run start` command. It builds the projects and enables the watcher that reacts to any change in the code. The project can be previewed at `localhost:8080`.
 
-#### 4. Publishing
+#### 4. Create a pull request
 
-After you're done, `git add examples/next`, `git commit` and `git push` your new code examples to the Handsontable repo. Open a new PR and wait for the review!
+Now you have written your code, it is ready to be pushed. 
+
+Follow the steps below to make it possible:
+- `git add examples`
+- `git commit`
+- `git push`
+
+After completing these steps you can open a PR on GitHub, and assign a reviewer.
