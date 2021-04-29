@@ -52,8 +52,9 @@ describe('UndoRedo', () => {
 
       alter('remove_row', 1);
 
-      expect(beforeUndoStackChangeSpy).toHaveBeenCalled();
-      expect(afterUndoStackChangeSpy).toHaveBeenCalled();
+      expect(beforeUndoStackChangeSpy).toHaveBeenCalledOnceWith([], void 0, void 0, void 0, void 0, void 0);
+      expect(afterUndoStackChangeSpy).toHaveBeenCalledOnceWith(
+        [], getPlugin('undoRedo').doneActions, void 0, void 0, void 0, void 0);
     });
 
     it('should not add action to undo stack while `beforeUndoStackChange` return `false` value', () => {
@@ -88,12 +89,16 @@ describe('UndoRedo', () => {
       hot.addHook('afterUndoStackChange', afterUndoStackChangeSpy);
       hot.addHook('beforeRedoStackChange', beforeRedoStackChangeSpy);
       hot.addHook('afterRedoStackChange', afterRedoStackChangeSpy);
+
+      const doneActionsCopy = getPlugin('undoRedo').doneActions.slice();
+
       hot.undo();
 
-      expect(beforeUndoStackChangeSpy).toHaveBeenCalled();
-      expect(afterUndoStackChangeSpy).toHaveBeenCalled();
-      expect(beforeRedoStackChangeSpy).toHaveBeenCalled();
-      expect(afterRedoStackChangeSpy).toHaveBeenCalled();
+      expect(beforeUndoStackChangeSpy).toHaveBeenCalledOnceWith(
+        doneActionsCopy, void 0, void 0, void 0, void 0, void 0);
+      expect(afterUndoStackChangeSpy).toHaveBeenCalledOnceWith(doneActionsCopy, [], void 0, void 0, void 0, void 0);
+      expect(beforeRedoStackChangeSpy).toHaveBeenCalledOnceWith([], void 0, void 0, void 0, void 0, void 0);
+      expect(afterRedoStackChangeSpy).toHaveBeenCalledOnceWith([], doneActionsCopy, void 0, void 0, void 0, void 0);
     });
 
     it('should fire a `beforeUndoStackChange`, `afterUndoStackChange`, `beforeRedoStackChange` and ' +
@@ -114,12 +119,16 @@ describe('UndoRedo', () => {
       hot.addHook('afterUndoStackChange', afterUndoStackChangeSpy);
       hot.addHook('beforeRedoStackChange', beforeRedoStackChangeSpy);
       hot.addHook('afterRedoStackChange', afterRedoStackChangeSpy);
+
+      const undoneActionsCopy = getPlugin('undoRedo').undoneActions.slice();
+
       hot.redo();
 
-      expect(beforeUndoStackChangeSpy).toHaveBeenCalled();
-      expect(afterUndoStackChangeSpy).toHaveBeenCalled();
-      expect(beforeRedoStackChangeSpy).toHaveBeenCalled();
-      expect(afterRedoStackChangeSpy).toHaveBeenCalled();
+      expect(beforeUndoStackChangeSpy).toHaveBeenCalledOnceWith([], void 0, void 0, void 0, void 0, void 0);
+      expect(afterUndoStackChangeSpy).toHaveBeenCalledOnceWith([], undoneActionsCopy, void 0, void 0, void 0, void 0);
+      expect(beforeRedoStackChangeSpy).toHaveBeenCalledOnceWith(
+        undoneActionsCopy, void 0, void 0, void 0, void 0, void 0);
+      expect(afterRedoStackChangeSpy).toHaveBeenCalledOnceWith(undoneActionsCopy, [], void 0, void 0, void 0, void 0);
     });
 
     it('should fire a `beforeRedo` hook before the redo process begins', async() => {

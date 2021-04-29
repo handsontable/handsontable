@@ -157,6 +157,11 @@ function UndoRedo(instance) {
 
     plugin.done(() => new UndoRedo.UnmergeCellsAction(instance, cellRange));
   });
+
+  // TODO: Why this callback is needed? One test doesn't pass after calling method right after plugin creation (outside the callback).
+  instance.addHook('afterInit', () => {
+    plugin.init();
+  });
 }
 
 /**
@@ -183,7 +188,7 @@ UndoRedo.prototype.done = function(wrappedAction, source) {
   }
 
   const doneActionsCopy = this.doneActions.slice();
-  const continueAction = this.instance.runHooks('beforeUndoStackChange', this.doneActions, source);
+  const continueAction = this.instance.runHooks('beforeUndoStackChange', doneActionsCopy, source);
 
   if (continueAction === false) {
     return;
@@ -194,12 +199,12 @@ UndoRedo.prototype.done = function(wrappedAction, source) {
 
   this.doneActions.push(newAction);
 
-  this.instance.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions);
-  this.instance.runHooks('beforeRedoStackChange', this.undoneActions);
+  this.instance.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
+  this.instance.runHooks('beforeRedoStackChange', undoneActionsCopy);
 
   this.undoneActions.length = 0;
 
-  this.instance.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions);
+  this.instance.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
 };
 
 /**
@@ -218,11 +223,11 @@ UndoRedo.prototype.undo = function() {
   if (this.isUndoAvailable()) {
     const doneActionsCopy = this.doneActions.slice();
 
-    this.instance.runHooks('beforeUndoStackChange', this.doneActions);
+    this.instance.runHooks('beforeUndoStackChange', doneActionsCopy);
 
     const action = this.doneActions.pop();
 
-    this.instance.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions);
+    this.instance.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
 
     const actionClone = deepClone(action);
 
@@ -233,17 +238,18 @@ UndoRedo.prototype.undo = function() {
     }
 
     this.ignoreNewActions = true;
+
     const that = this;
     const undoneActionsCopy = this.undoneActions.slice();
 
-    this.instance.runHooks('beforeRedoStackChange', this.undoneActions);
+    this.instance.runHooks('beforeRedoStackChange', undoneActionsCopy);
 
     action.undo(this.instance, () => {
       that.ignoreNewActions = false;
       that.undoneActions.push(action);
     });
 
-    this.instance.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions);
+    this.instance.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
     this.instance.runHooks('afterUndo', actionClone);
   }
 };
@@ -264,36 +270,34 @@ UndoRedo.prototype.redo = function() {
   if (this.isRedoAvailable()) {
     const undoneActionsCopy = this.undoneActions.slice();
 
-    this.instance.runHooks('beforeRedoStackChange', this.undoneActions);
+    this.instance.runHooks('beforeRedoStackChange', undoneActionsCopy);
 
     const action = this.undoneActions.pop();
 
-    this.instance.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions);
+    this.instance.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
 
     const actionClone = deepClone(action);
-    const instance = this.instance;
 
-    const continueAction = instance.runHooks('beforeRedo', actionClone);
+    const continueAction = this.instance.runHooks('beforeRedo', actionClone);
 
     if (continueAction === false) {
       return;
     }
 
     this.ignoreNewActions = true;
+
     const that = this;
+    const doneActionsCopy = this.doneActions.slice();
+
+    this.instance.runHooks('beforeUndoStackChange', doneActionsCopy);
 
     action.redo(this.instance, () => {
-      const doneActionsCopy = this.doneActions.slice();
-
-      this.instance.runHooks('beforeUndoStackChange', this.doneActions);
-
       that.ignoreNewActions = false;
       that.doneActions.push(action);
-
-      this.instance.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions);
     });
 
-    instance.runHooks('afterRedo', actionClone);
+    this.instance.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
+    this.instance.runHooks('afterRedo', actionClone);
   }
 };
 
@@ -845,14 +849,15 @@ UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
 };
 
 /**
+ * Enabling and disabling plugin and attaching its to an instance.
  *
+ * @private
  */
-function init() {
-  const instance = this;
-  const settings = instance.getSettings().undo;
+UndoRedo.prototype.init = function() {
+  const settings = this.instance.getSettings().undo;
   const pluginEnabled = typeof settings === 'undefined' || settings;
 
-  if (!instance.undoRedo) {
+  if (!this.instance.undoRedo) {
     /**
      * Instance of Handsontable.UndoRedo Plugin {@link Handsontable.UndoRedo}.
      *
@@ -860,16 +865,16 @@ function init() {
      * @memberof! Handsontable.Core#
      * @type {UndoRedo}
      */
-    instance.undoRedo = new UndoRedo(instance);
+    this.instance.undoRedo = this;
   }
 
   if (pluginEnabled) {
-    instance.undoRedo.enable();
+    this.instance.undoRedo.enable();
 
   } else {
-    instance.undoRedo.disable();
+    this.instance.undoRedo.disable();
   }
-}
+};
 
 /**
  * @param {Event} event The keyboard event object.
@@ -997,8 +1002,9 @@ function removeExposedUndoRedoMethods(instance) {
 
 const hook = Hooks.getSingleton();
 
-hook.add('afterInit', init);
-hook.add('afterUpdateSettings', init);
+hook.add('afterUpdateSettings', function() {
+  this.getPlugin('undoRedo').init();
+});
 
 hook.register('beforeUndo');
 hook.register('afterUndo');
