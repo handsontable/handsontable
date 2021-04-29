@@ -27,18 +27,15 @@ Use the **afterChange** callback to track changes made in the data grid. In the 
 
 ::: example #example1
 ```js
-var $$ = function(id) {
-  return document.getElementById(id);
-},
-container = $$('example1'),
-exampleConsole = $$('example1console'),
-autosave = $$('autosave'),
-load = $$('load'),
-save = $$('save'),
-autosaveNotification,
-hot;
+const container = document.querySelector('#example1');
+const exampleConsole = document.querySelector('#example1console');
+const autosave = document.querySelector('#autosave');
+const load = document.querySelector('#load');
+const save = document.querySelector('#save');
 
-hot = new Handsontable(container, {
+let autosaveNotification;
+
+const hot = new Handsontable(container, {
   startRows: 8,
   startCols: 6,
   rowHeaders: true,
@@ -55,28 +52,28 @@ hot = new Handsontable(container, {
 
     clearTimeout(autosaveNotification);
 
-    ajax('/docs/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), function (data) {
+    ajax('/docs/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
       exampleConsole.innerText = 'Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')';
-      autosaveNotification = setTimeout(function() {
+      autosaveNotification = setTimeout(() => {
         exampleConsole.innerText ='Changes will be autosaved';
       }, 1000);
     });
   }
 });
 
-Handsontable.dom.addEvent(load, 'click', function() {
-  ajax('/docs/scripts/json/load.json', 'GET', '', function(res) {
-    var data = JSON.parse(res.response);
+Handsontable.dom.addEvent(load, 'click', () => {
+  ajax('/docs/scripts/json/load.json', 'GET', '', res => {
+    const data = JSON.parse(res.response);
 
     hot.loadData(data.data);
 
     exampleConsole.innerText = 'Data loaded';
   });
 });
-Handsontable.dom.addEvent(save, 'click', function() {
+Handsontable.dom.addEvent(save, 'click', () => {
   // save all cell's data
-  ajax('/docs/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), function (res) {
-    var response = JSON.parse(res.response);
+  ajax('/docs/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
+    const response = JSON.parse(res.response);
 
     if (response.result === 'ok') {
       exampleConsole.innerText = 'Data saved';
@@ -86,7 +83,7 @@ Handsontable.dom.addEvent(save, 'click', function() {
   });
 });
 
-Handsontable.dom.addEvent(autosave, 'click', function() {
+Handsontable.dom.addEvent(autosave, 'click', () => {
   if (autosave.checked) {
     exampleConsole.innerText = 'Changes will be autosaved';
   } else {
@@ -95,7 +92,7 @@ Handsontable.dom.addEvent(autosave, 'click', function() {
 });
 
 function ajax(url, method, params, callback) {
-  var obj;
+  let obj;
 
   try {
     obj = new XMLHttpRequest();
@@ -111,7 +108,7 @@ function ajax(url, method, params, callback) {
       }
     }
   }
-  obj.onreadystatechange = function () {
+  obj.onreadystatechange = () => {
     if (obj.readyState == 4) {
       callback(obj);
     }
