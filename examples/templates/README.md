@@ -1,39 +1,39 @@
 ## Templates Guidline
 
-This folder contains templates for new code examples. Every new code example should be made using these templates. 
+This folder contains templates for new code examples. Each new code example should be created using the template from this folder. We have templates for examples made in React, Angular, Vue, and of course Vanilla JavaScript.
 
 #### Prerequisite
 To work with code examples (and Handsontable development in general) use at least Node version `15.9.0`. If you have Node Version Manager installed, you can just type in the terminal `nvm use`.
 
 ### Creating a new example
 
-In this guideline, I will walk you through the process of creating new code examples. 
+In this guideline, we will walk you through the process of creating new code examples. 
 
 > If you need some inspiration, what can be done with code examples, go ahead see existing examples in `examples/next/docs/` to get inspired!
 
-Firstly, create a new git branch because you will need to commit new examples to the Handsontable repo.
+First off, create a new branch in order to keep the development process clean.
 
-Currently, we are inside the `examples/templates` directory where all templates for future code examples live. You can see that we have templates for examples made in React, Angular, Vue, and of course vanilla Javascript.
+Inside the `examples/templates` directory where all templates for future code examples live. You can see that we have templates for examples made in React, Angular, Vue, and of course vanilla JavaScript.
 
-To create a code example in vanilla Javascript for our documentation we need to use the template from the `examples/templates/js` directory. Let's make one!
+To create a new code example in Vanilla JavaScript to be used in the Handsontable official documentation, we need to make use of the template from the `examples/templates/js` directory.
 
-#### 1. Copy ready-made template
+#### 1. Use the existing template
 
-Copy the whole `examples/templates/js` directory and paste it into `examples/next/docs/js` directory.
+Copy the `examples/templates/js` directory and paste it into `examples/next/docs/js`.
 
-Now rename the copied `js` directory into some meaningful title, like `this-is-some-js-example`. You should have this structure in your codebase:
+In the next step rename the give that 'js' directory to a name that best describes the purpose of the code example, for instance, "sorting-data-custom-order". Make sure you keep the right file structure, like so:
 
 ```
 examples/
 ├─ next/
 │  ├─ docs/
 │  │  ├─ js/
-│  │  │  ├─ this-is-some-js-example/
+│  │  │  ├─ sorting-data-custom-order/
 ```
 
-It's great! Now take a closer look at files inside templates.
+It's done! Now take a closer look at files inside templates.
 
-#### 2. Templates files
+#### 2. Template files
 
 Every template has files that can be modified to match your needs. But there are some files that you **shouldn't modify** *unless* you know what you are doing (things can break). These files are either framework-specific: `angular.json`, `tsconfig*.json`, `config-overrides.js`, `vue.config.js`, `babel.config.js` or common for every template: `spec/support/jasmine.config.js`.
 

@@ -55,7 +55,7 @@ For more details see the [Folder structure](#folder-structure) section.
 
 To preview the arbitary code example on CodeSandbox you must get the link to the project folder in the Gihub repo. You will find all code examples in our repo https://github.com/handsontable/handsontable/tree/develop/examples.
 
-For example: if the URL to the project is: https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/js/basic-example  you can preview that project on CodeSandbox adding the "box" word right after the "github" and before the ".com". The URL to the sandboxed project would be https://githubbox.com/handsontable/handsontable/tree/develop/examples/next/docs/js/basic-example .
+For example: if the URL to the project is: https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/js/basic-example  you can preview that project on CodeSandbox by adding the "box" word right after the "github" and before the ".com". The URL to the sandboxed project would be https://githubbox.com/handsontable/handsontable/tree/develop/examples/next/docs/js/basic-example .
 
 ### Creating new examples
 
