@@ -128,6 +128,11 @@ export class MergeCells extends BasePlugin {
     this.addHook('beforeDrawBorders', (...args) => this.onBeforeDrawAreaBorders(...args));
     this.addHook('afterDrawSelection', (...args) => this.onAfterDrawSelection(...args));
     this.addHook('beforeRemoveCellClassNames', (...args) => this.onBeforeRemoveCellClassNames(...args));
+    this.addHook('beforeUndoStackChange', (action, source) => {
+      if (source === 'MergeCells') {
+        return false;
+      }
+    });
 
     super.enablePlugin();
   }
