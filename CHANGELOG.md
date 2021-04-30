@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
-## [8.4.0] - 2021-05-11
+## [8.4.0] - 2021-05-06
 
 ### Added
 - Introduced `separated` attribute for label options (`label` DOM element may wrap `input` or be placed next to it) [#3172](https://github.com/handsontable/handsontable/issues/3172)
