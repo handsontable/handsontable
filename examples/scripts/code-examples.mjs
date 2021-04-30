@@ -64,7 +64,6 @@ const updatePackageJsonWithVersion = (projectDir, version) => {
   packageJson.dependencies.handsontable = version;
 
   if (wrapper) {
-
     packageJson.dependencies[wrapper] = version;
   }
 
