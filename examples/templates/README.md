@@ -37,7 +37,7 @@ It's done! Now take a closer look at files inside templates.
 
 Every template has files that can be modified to match your needs. But there are some files that you **shouldn't modify** *unless* you know what you are doing (things can break). These files are either framework-specific: `angular.json`, `tsconfig*.json`, `config-overrides.js`, `vue.config.js`, `babel.config.js` or common for every template: `spec/support/jasmine.config.js`.
 
-What you **should modify** though is the `README.md` file. You should add code example-specific content between curly braces. Note: "Live preview" section should have a link to the CodeSandbox, but it won't work until this example is pushed to the repo. You can learn more about CodeSandbox links [here](../#live-on-production).
+What you **should modify** though is the `README.md` file. You should add code example-specific content between curly braces. Note: "Live preview" section should have a link to CodeSandbox, but it won't work until this example is pushed to the repo. You can learn more about CodeSandbox links [here](../#live-on-production).
 
 Another important file is a `package.json` file. Some properties of this file should be the same for every new code example and **shouldn't be modified** (except `"@handsontable/{{ WRAPPER NAME }}"`):
 
@@ -68,7 +68,7 @@ In the `package.json` you can find scripts that **should not be modified or remo
 
 You need to update the `package.json` file if you build a code sample that is intended to work with JavaScript frameworks such as React, Angular, or Vue. 
 
-Properties to modify include `"name"`, `"description"` and `"@handsontable/{{ WRAPPER NAME }}"`. Also, don't forget to define dependencies if you use them in your code.
+The properties to modify include `"name"`, `"description"` and `"@handsontable/{{ WRAPPER NAME }}"`. Also, don't forget to define dependencies if you use them in your code.
 
 #### 3. Develop
 
