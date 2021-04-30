@@ -3,17 +3,19 @@ var FOOTER = '/*** EXPORTS FROM exports-to-window-loader ***/\n';
 var alreadyExported = {};
 
 module.exports = function(content, sourceMap) {
-	if (this.cacheable) {
+  if (this.cacheable) {
     this.cacheable();
   }
-	var query = loaderUtils.getOptions(this) || {};
-	var exports = [];
-	var keys = Object.keys(query);
+
+  var query = loaderUtils.getOptions(this) || {};
+  var exports = [];
+  var keys = Object.keys(query.globals);
 
   keys.forEach(function(key) {
     if (!alreadyExported[key]) {
       alreadyExported[key] = true;
-      exports.push("window['" + key + "'] = require('" + query[key] + "');");
+
+      exports.push('window[\'' + key + '\'] = require(\'' + query.globals[key] + '\')' + (query.defaultExport ? '.default' : '') + ';');
     }
   });
 
@@ -22,4 +24,4 @@ module.exports = function(content, sourceMap) {
   }
 
   return content;
-}
+};
