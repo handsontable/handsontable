@@ -26,7 +26,7 @@
     "stylelint": "stylelint \"src/**/*.css\" \"test/**/*.css\"",
     "stylelint:fix": "stylelint --fix \"src/**/*.css\" \"test/**/*.css\"",
     "eslint": "eslint src/ test/ .github/scripts/ .config/plugin bin/changelog scripts/",
-    "eslint:fix": "eslint --fix src/ test/",
+    "eslint:fix": "eslint --fix src/ test/ .github/scripts/ .config/plugin bin/changelog scripts/",
     "test": "npm run lint && npm run test:unit && npm run test:types && npm run test:walkontable && npm run test:e2e && npm run test:production",
     "test.random": "npm run lint && npm run test:unit && npm run test:types && npm run test:walkontable.random && npm run test:e2e.random && npm run test:production.random",
     "test:walkontable": "npm run build:walkontable && npm run test:walkontable.dump && npm run test:walkontable.puppeteer",
