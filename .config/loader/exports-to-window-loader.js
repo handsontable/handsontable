@@ -1,26 +1,26 @@
-var loaderUtils = require('loader-utils');
-var FOOTER = '/*** EXPORTS FROM exports-to-window-loader ***/\n';
-var alreadyExported = {};
+const loaderUtils = require('loader-utils');
+const FOOTER = '/*** EXPORTS FROM exports-to-window-loader ***/\n';
+const alreadyExported = {};
 
 module.exports = function(content, sourceMap) {
   if (this.cacheable) {
     this.cacheable();
   }
 
-  var query = loaderUtils.getOptions(this) || {};
-  var exports = [];
-  var keys = Object.keys(query.globals);
+  const query = loaderUtils.getOptions(this) || {};
+  const exports = [];
+  const keys = Object.keys(query.globals);
 
   keys.forEach(function(key) {
     if (!alreadyExported[key]) {
       alreadyExported[key] = true;
 
-      exports.push('window[\'' + key + '\'] = require(\'' + query.globals[key] + '\')' + (query.defaultExport ? '.default' : '') + ';');
+      exports.push(`window['${key}'] = require('${query.globals[key]}')${(query.defaultExport ? '.default' : '')};`);
     }
   });
 
   if (exports.length) {
-    content = content + '\n\n' + FOOTER + exports.join('\n');
+    content += `\n\n${FOOTER}${exports.join('\n')}`;
   }
 
   return content;
