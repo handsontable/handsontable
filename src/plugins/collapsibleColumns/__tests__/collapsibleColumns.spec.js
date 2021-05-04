@@ -1515,7 +1515,7 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should maintain the collapse functionality, when the table has been scrolled', () => {
+    it('should maintain the collapse functionality, when the table has been scrolled', async() => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
@@ -1524,22 +1524,25 @@ describe('CollapsibleColumns', () => {
         height: 300
       });
 
+      // Scrolling to viewport does not work precisely without delay.
+      await sleep(50);
+
       hot.scrollViewportTo(void 0, 37);
       hot.render();
 
-      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "2_21"
+      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "AL3"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
-      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "1_13"
+      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "AL2"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
-      $(getCell(-3, 41).querySelector('.collapsibleIndicator')) // header "1_14"
+      $(getCell(-3, 41).querySelector('.collapsibleIndicator')) // header "AP2"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
-      $(getCell(-4, 46).querySelector('.collapsibleIndicator')) // header "0_11"
+      $(getCell(-4, 46).querySelector('.collapsibleIndicator')) // header "AU1"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
@@ -1547,7 +1550,6 @@ describe('CollapsibleColumns', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="">AB1</th>
             <th class="collapsibleIndicator expanded" colspan="8">AC1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -1562,9 +1564,15 @@ describe('CollapsibleColumns', () => {
             <th class="hiddenHeader"></th>
             <th class="">AT1</th>
             <th class="collapsibleIndicator collapsed" colspan="4">AU1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC1</th>
+            <th class="collapsibleIndicator expanded" colspan="8">BD1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
           </tr>
           <tr>
-            <th class="">AB2</th>
             <th class="collapsibleIndicator expanded" colspan="4">AC2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -1579,9 +1587,15 @@ describe('CollapsibleColumns', () => {
             <th class="hiddenHeader"></th>
             <th class="">AT2</th>
             <th class="collapsibleIndicator expanded" colspan="4">AU2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC2</th>
+            <th class="collapsibleIndicator expanded" colspan="4">BD2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
           </tr>
           <tr>
-            <th class="">AB3</th>
             <th class="collapsibleIndicator expanded" colspan="2">AC3</th>
             <th class="hiddenHeader"></th>
             <th class="collapsibleIndicator expanded" colspan="2">AE3</th>
@@ -1596,9 +1610,15 @@ describe('CollapsibleColumns', () => {
             <th class="hiddenHeader"></th>
             <th class="">AT3</th>
             <th class="collapsibleIndicator expanded" colspan="2">AU3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AW3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">BD3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">BF3</th>
           </tr>
           <tr>
-            <th class="">AB4</th>
             <th class="">AC4</th>
             <th class="">AD4</th>
             <th class="">AE4</th>
@@ -1613,11 +1633,17 @@ describe('CollapsibleColumns', () => {
             <th class="">AQ4</th>
             <th class="">AT4</th>
             <th class="">AU4</th>
+            <th class="">AV4</th>
+            <th class="">AW4</th>
+            <th class="">AX4</th>
+            <th class="">BC4</th>
+            <th class="">BD4</th>
+            <th class="">BE4</th>
+            <th class="">BF4</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="">AB1</td>
             <td class="">AC1</td>
             <td class="">AD1</td>
             <td class="">AE1</td>
@@ -1632,6 +1658,13 @@ describe('CollapsibleColumns', () => {
             <td class="">AQ1</td>
             <td class="">AT1</td>
             <td class="">AU1</td>
+            <td class="">AV1</td>
+            <td class="">AW1</td>
+            <td class="">AX1</td>
+            <td class="">BC1</td>
+            <td class="">BD1</td>
+            <td class="">BE1</td>
+            <td class="">BF1</td>
           </tr>
         </tbody>
         `);
@@ -2328,7 +2361,7 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should maintain the expand functionality, when the table has been scrolled', () => {
+    it('should maintain the expand functionality, when the table has been scrolled', async() => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
@@ -2337,33 +2370,36 @@ describe('CollapsibleColumns', () => {
         height: 300
       });
 
+      // Scrolling to viewport does not work precisely without delay.
+      await sleep(50);
+
       hot.scrollViewportTo(void 0, 37);
       hot.render();
 
       // collapsing
-      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "2_21"
+      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "AL3"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
-      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "1_13"
+      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "AL2"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
-      $(getCell(-3, 41).querySelector('.collapsibleIndicator')) // header "1_14"
+      $(getCell(-3, 41).querySelector('.collapsibleIndicator')) // header "AP2"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
-      $(getCell(-4, 46).querySelector('.collapsibleIndicator')) // header "0_11"
+      $(getCell(-4, 46).querySelector('.collapsibleIndicator')) // header "AU1"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
 
       // expanding
-      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "1_13"
+      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "AL2"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
-      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "2_21"
+      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "AL3"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
@@ -2371,7 +2407,6 @@ describe('CollapsibleColumns', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="">AB1</th>
             <th class="collapsibleIndicator expanded" colspan="8">AC1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -2386,9 +2421,15 @@ describe('CollapsibleColumns', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT1</th>
+            <th class="collapsibleIndicator collapsed" colspan="4">AU1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC1</th>
           </tr>
           <tr>
-            <th class="">AB2</th>
             <th class="collapsibleIndicator expanded" colspan="4">AC2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -2403,9 +2444,15 @@ describe('CollapsibleColumns', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="collapsibleIndicator collapsed" colspan="2">AP2</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT2</th>
+            <th class="collapsibleIndicator expanded" colspan="4">AU2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC2</th>
           </tr>
           <tr>
-            <th class="">AB3</th>
             <th class="collapsibleIndicator expanded" colspan="2">AC3</th>
             <th class="hiddenHeader"></th>
             <th class="collapsibleIndicator expanded" colspan="2">AE3</th>
@@ -2420,9 +2467,15 @@ describe('CollapsibleColumns', () => {
             <th class="collapsibleIndicator expanded" colspan="2">AN3</th>
             <th class="hiddenHeader"></th>
             <th class="collapsibleIndicator expanded" colspan="2">AP3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">AU3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AW3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC3</th>
           </tr>
           <tr>
-            <th class="">AB4</th>
             <th class="">AC4</th>
             <th class="">AD4</th>
             <th class="">AE4</th>
@@ -2437,11 +2490,17 @@ describe('CollapsibleColumns', () => {
             <th class="">AN4</th>
             <th class="">AO4</th>
             <th class="">AP4</th>
+            <th class="">AQ4</th>
+            <th class="">AT4</th>
+            <th class="">AU4</th>
+            <th class="">AV4</th>
+            <th class="">AW4</th>
+            <th class="">AX4</th>
+            <th class="">BC4</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="">AB1</td>
             <td class="">AC1</td>
             <td class="">AD1</td>
             <td class="">AE1</td>
@@ -2456,6 +2515,13 @@ describe('CollapsibleColumns', () => {
             <td class="">AN1</td>
             <td class="">AO1</td>
             <td class="">AP1</td>
+            <td class="">AQ1</td>
+            <td class="">AT1</td>
+            <td class="">AU1</td>
+            <td class="">AV1</td>
+            <td class="">AW1</td>
+            <td class="">AX1</td>
+            <td class="">BC1</td>
           </tr>
         </tbody>
         `);
