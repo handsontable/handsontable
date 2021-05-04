@@ -18,8 +18,9 @@ To make a column read-only, declare it in the `columns` setting. You can also de
 
 ::: example #example1
 ```js
-var container1 = document.getElementById('example1');
-var hot1 = new Handsontable(container1, {
+const container = document.querySelector('#example1');
+
+const hot1 = new Handsontable(container, {
   data: [
     {car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black'},
     {car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue'},
@@ -53,8 +54,9 @@ This example makes cells that contain the word "Nissan" read only. It forces all
 
 ::: example #example2
 ```js
-var container2 = document.getElementById('example2');
-var hot2 = new Handsontable(container2, {
+const container = document.querySelector('#example2');
+
+const hot2 = new Handsontable(container, {
   data: [
     {car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black'},
     {car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue'},
@@ -66,8 +68,8 @@ var hot2 = new Handsontable(container2, {
 });
 
 hot2.updateSettings({
-  cells: function (row, col) {
-    var cellProperties = {};
+  cells(row, col) {
+    const cellProperties = {};
 
     if (hot2.getData()[row][col] === 'Nissan') {
       cellProperties.readOnly = true;
@@ -91,10 +93,9 @@ To make a column non-editable, declare it in the `columns` setting. You can also
 
 ::: example #example3
 ```js
-var container3 = document.getElementById('example3'),
-  hot3;
+const container = document.querySelector('#example3');
 
-hot3 = new Handsontable(container3, {
+const hot3 = new Handsontable(container, {
   data: [
     {car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black'},
     {car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue'},
@@ -131,10 +132,9 @@ The following example shows the table with non-editable cells containing the wor
 
 ::: example #example4
 ```js
-var container4 = document.getElementById('example4'),
-    hot4;
+const container = document.querySelector('#example4');
 
-hot4 = new Handsontable(container4, {
+const hot4 = new Handsontable(container, {
   data: [
     {car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black'},
     {car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue'},
@@ -144,12 +144,14 @@ hot4 = new Handsontable(container4, {
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   licenseKey: 'non-commercial-and-evaluation'
 });
-hot4.updateSettings({
-  cells: function (row, col, prop) {
-    var cellProperties = {};
 
-    if (hot2.getDataAtRowProp(row, prop) === 'Nissan') {
+hot4.updateSettings({
+  cells(row, col, prop) {
+    const cellProperties = {};
+
+    if (hot4.getDataAtRowProp(row, prop) === 'Nissan') {
       cellProperties.editor = false;
+
     } else {
       cellProperties.editor = 'text';
     }
