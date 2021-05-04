@@ -21,7 +21,9 @@ canonicalUrl: /setting-options
 Any constructor or column option may be overwritten for a particular cell (row/column combination), using `cell` array passed to the `Handsontable` constructor.
 
 ```js
-var hot = new Handsontable(document.getElementById('example'), {
+const container = document.querySelector('#example');
+
+const hot = new Handsontable(container, {
   cell: [
     {row: 0, col: 0, readOnly: true}
   ]
@@ -31,12 +33,16 @@ var hot = new Handsontable(document.getElementById('example'), {
 Alternatively, use cells function property to the `Handsontable` constructor.
 
 ```js
-var hot = new Handsontable(document.getElementById('example'), {
-  cells: function (row, col, prop) {
-    var cellProperties = {}
+const container = document.querySelector('#example');
+
+const hot = new Handsontable(container, {
+  cells(row, col, prop) {
+    const cellProperties = {};
+
     if (row === 0 && col === 0) {
       cellProperties.readOnly = true;
     }
+
     return cellProperties;
   }
 })
@@ -49,18 +55,22 @@ Handsontable utilizes cascading configuration, which is a fast way to provide co
 Consider the following example:
 
 ```js
-var hot = new Handsontable(document.getElementById('example'), {
+const container = document.querySelector('#example');
+
+const hot = new Handsontable(container, {
   readOnly: true,
   columns: [
     {readOnly: false},
     {},
     {}
   ],
-  cells: function (row, col, prop) {
-    var cellProperties = {}
+  cells(row, col, prop) {
+    const cellProperties = {};
+
     if (row === 0 && col === 0) {
       cellProperties.readOnly = true;
     }
+
     return cellProperties;
   }
 });
@@ -77,7 +87,9 @@ The cascading configuration model is based on prototypal inheritance.
 Configuration options that are provided using first-level and `updateSettings` method.
 
 ```js
-new Handsontable(document.getElementById('example'), {
+const container = document.querySelector('#example');
+
+new Handsontable(container, {
   option: 'value'
 });
 ```
@@ -88,7 +100,9 @@ new Handsontable(document.getElementById('example'), {
 Configuration options that are provided using second-level object.
 
 ```js
-new Handsontable(document.getElementById('example'), {
+const container = document.querySelector('#example');
+
+new Handsontable(container, {
   columns: {
     option: 'value'
   }
@@ -100,8 +114,10 @@ new Handsontable(document.getElementById('example'), {
 Configuration options that are provided using second-level function.
 
 ```js
-new Handsontable(document.getElementById('example'), {
-  cells: function(row, col, prop) {
+const container = document.querySelector('#example');
+
+new Handsontable(container, {
+  cells(row, col, prop) {
   }
 });
 ```
