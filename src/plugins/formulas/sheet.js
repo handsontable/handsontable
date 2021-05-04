@@ -223,6 +223,8 @@ class Sheet {
    *
    * @private
    * @param {object} cellCoords Cell coordinates.
+   * @param {number} cellCoords.row Cell's row.
+   * @param {number} cellCoords.column Cell's column.
    * @param {Function} done Function to call with valid cell value.
    */
   _onCallCellValue({ row, column }, done) {
@@ -263,7 +265,11 @@ class Sheet {
    *
    * @private
    * @param {object} startCell Cell coordinates (top-left corner coordinate).
+   * @param {number} startCell.row Top-left cell's row.
+   * @param {number} startCell.column Top-left cell's column.
    * @param {object} endCell Cell coordinates (bottom-right corner coordinate).
+   * @param {number} endCell.row Bottom-right cell's row.
+   * @param {number} endCell.column Bottom-right cell's column.
    * @param {Function} done Function to call with valid cells values.
    */
   _onCallRangeValue({ row: startRow, column: startColumn }, { row: endRow, column: endColumn }, done) {

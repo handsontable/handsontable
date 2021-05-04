@@ -64,9 +64,9 @@ class ExpressionModifier {
    * Set function which can modify default behavior of how cells and cell ranges will be translated.
    * The passed function will be called with 4 arguments:
    *  - cell, A cell object with structure
-   *            like this: {start: {row, column}, end: {row, column}, origLabel, type: 'cell|range', refError, toLabel: () => {}}
-   *  - axis, Type of currently processing axis ('row' or 'column')
-   *  - delta, Number as distance to translate. Can be positive or negative.
+   *            like this: {start: {row, column}, end: {row, column}, origLabel, type: 'cell|range', refError, toLabel: () => {}},
+   *  - axis, Type of currently processing axis ('row' or 'column'),
+   *  - delta, Number as distance to translate. Can be positive or negative,
    *  - startFromIndex, Base index which translation will be applied from.
    *
    * The function must return an array with 3 items, where:
@@ -75,7 +75,6 @@ class ExpressionModifier {
    *    DeltaEnd,   Number as a delta to translate second part of coordinates (if cell range is modified).
    *    RefError,   Defines an error which refers to the situation when translated cell overcrossed the data boundary.
    *  ].
-   *
    *
    * @param {Function} customModifier Function with custom logic.
    */
@@ -87,6 +86,8 @@ class ExpressionModifier {
    * Translate formula expression cells.
    *
    * @param {object} delta Distance to move in proper direction.
+   * @param {number} delta.row Distance to move by rows number.
+   * @param {number} delta.column Distance to move by columns number.
    * @param {object} [startFrom] Coordinates which translation will be applied from.
    * @returns {ExpressionModifier}
    */

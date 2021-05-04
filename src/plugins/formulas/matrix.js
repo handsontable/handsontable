@@ -159,7 +159,11 @@ class Matrix {
    * Remove cell references from the collection.
    *
    * @param {object} start Start visual coordinate.
+   * @param {number} start.row Start visual row.
+   * @param {number} start.column Start visual column.
    * @param {object} end End visual coordinate.
+   * @param {number} end.row End visual row.
+   * @param {number} end.column End visual column.
    * @returns {Array} Returns removed cell references.
    */
   removeCellRefsAtRange({ row: startRow, column: startColumn }, { row: endRow, column: endColumn }) {
