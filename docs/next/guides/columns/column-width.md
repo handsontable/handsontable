@@ -29,10 +29,12 @@ In this example we set the same width of `100px` for all columns across the enti
 
 ::: example #example1
 ```js
-var container1 = document.getElementById('example1');
-var hot1 = new Handsontable(container1, {
+const container = document.querySelector('#example1');
+
+const hot1 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 50),
   width: '100%',
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   colWidths: 100,
@@ -48,10 +50,12 @@ Here we set the width only for the first four columns. Each additional column wo
 
 ::: example #example2
 ```js
-var container2 = document.getElementById('example2');
-var hot2 = new Handsontable(container2, {
+const container = document.querySelector('#example2');
+
+const hot2 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 4),
   width: '100%',
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   colWidths: [50, 100, 200, 400],
@@ -67,15 +71,17 @@ Here we set the size of all columns as a function. In this particular example we
 
 ::: example #example3
 ```js
-var container3 = document.getElementById('example3');
-var hot3 = new Handsontable(container3, {
+const container = document.querySelector('#example3');
+
+const hot3 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 5),
   width: '100%',
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
-  colWidths: function(index) {
-               return (index + 1) * 40;
-             },
+  colWidths(index) {
+    return (index + 1) * 40;
+  },
   manualColumnResize: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
@@ -90,9 +96,12 @@ You can adjust the size of one or columns at the same time, even if the selected
 
 ::: example #example4
 ```js
-var container4 = document.getElementById('example4');
-var hot4 = new Handsontable(container4, {
+const container = document.querySelector('#example4');
+
+const hot4 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 6),
+  width: '100%',
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   colWidths: [200, 100, 100], // initial width of the first 3 columns
@@ -116,9 +125,12 @@ In this case you fit all columns to the container's width equally by setting the
 
 ::: example #example5
 ```js
-var container5 = document.getElementById('example5');
-var hot5 = new Handsontable(container5, {
+const container = document.querySelector('#example5');
+
+const hot5 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 3),
+  width: '100%',
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   stretchH: 'all', // 'none' is default
@@ -134,10 +146,12 @@ In this example, first three columns will be set to be `80px` wide, and the last
 
 ::: example #example6
 ```js
-var container6 = document.getElementById('example6');
-var hot6 = new Handsontable(container6, {
+const container = document.querySelector('#example6');
+
+const hot6 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 4),
   width: '100%',
+  height: 'auto',
   colWidths: 80,
   colHeaders: true,
   rowHeaders: true,
