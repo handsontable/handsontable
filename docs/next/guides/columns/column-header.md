@@ -20,8 +20,9 @@ Set the [`colHeaders`](api/options/#colheaders) option to `true` to enable the d
 
 ::: example #example1
 ```js
-var example = document.getElementById('example1');
-var hot1 = new Handsontable(example, {
+const container = document.querySelector('#example1');
+
+const hot1 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 11),
   colHeaders: true,
   rowHeaders: true,
@@ -34,8 +35,9 @@ var hot1 = new Handsontable(example, {
 
 ::: example #example2
 ```js
-var example = document.getElementById('example2');
-var hot2 = new Handsontable(example, {
+const container = document.querySelector('#example2');
+
+const hot2 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 9),
   colHeaders: ['ID', 'Full name', 'Position','Country', 'City', 'Address', 'Zip code', 'Mobile', 'E-mail'],
   rowHeaders: true,
@@ -48,10 +50,11 @@ var hot2 = new Handsontable(example, {
 
 ::: example #example3
 ```js
-var example = document.getElementById('example3');
-var hot3 = new Handsontable(example, {
+const container = document.querySelector('#example3');
+
+const hot3 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 11),
-  colHeaders: function(index) {
+  colHeaders(index) {
     return 'Col ' + (index + 1);
   },
   rowHeaders: true,
