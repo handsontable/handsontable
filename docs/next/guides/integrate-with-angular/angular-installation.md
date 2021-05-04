@@ -6,8 +6,6 @@ canonicalUrl: /angular-installation
 
 # Installation
 
-**Handsontable for Angular** is the official wrapper for Handsontable.
-
 ### Install with npm
 
 This component needs the Handsontable library to work. Use [npm](https://www.npmjs.com/package/@handsontable/angular) to install the packages.

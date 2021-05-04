@@ -10,26 +10,28 @@ canonicalUrl: /batch-operations
 
 <style>
 .handsontable .green-bg {
-  background-color: #2ECC40;
+  color: #fff;
+  background-color: #37BC6C;
 }
 
 .handsontable .red-bg {
-  background-color: #FF4136;
+  color: #fff;
+  background-color: #FF5A12;
 }
 
-#logOuput {
-  padding: 15px 0 10px 0;
-  max-height:400px;
+#logOutput {
+  max-height: 150px;
   overflow-y: auto;
+  line-height: 2;
 }
 
-#logOuput div:first-child {
+#logOutput div:first-child {
   font-weight: bold;
 }
 
 </style>
 
-## How suspending improves performance
+## Overview
 
 Within Handsontable any CRUD operation ends with a `render`. In most cases, this is considered an expected behavior - eventually, the table has to reflect the requested changes at some point.
 
@@ -157,10 +159,10 @@ hot.resumeExecution(); // It updates the cache internally
 The following examples show how much the `batch` method can decrease the render time. Both of the examples share the same dataset and operations. The first one shows how much time lapsed when the `batch` method was used. You can run the second example to check how much it takes to render without the `batch` method.
 
 <p>
-  <button id="buttonWithout" className="button button--primary">Render without batch</button>&nbsp;
-  <button id="buttonWith" className="button button--primary">Render with batch</button>
+  <button id="buttonWithout" className="button button--primary">Run without batch method</button>&nbsp;
+  <button id="buttonWith" className="button button--primary">Run with batch method</button>
 </p>
-<p id="logOuput"></p>
+<p id="logOutput"></p>
 
 ::: example #example1
 ```js
@@ -231,7 +233,7 @@ Handsontable.dom.addEvent(buttonWith, 'click', function() {
 });
 
 function logOutput(msg) {
-  var logDiv = document.querySelector('#logOuput');
+  var logDiv = document.querySelector('#logOutput');
   var div = document.createElement('div');
   var now = new Date();
 

@@ -37,7 +37,8 @@ config = {
   minSpareRows: 1,
   autoWrapRow: true,
   colHeaders: true,
-  contextMenu: true
+  contextMenu: true,
+  licenseKey: 'non-commercial-and-evaluation'
 };
 $hooksList = document.getElementById('hooksList');
 hooks = Handsontable.hooks.getRegistered();
@@ -192,6 +193,7 @@ hot2 = new Handsontable(container, {
   colHeaders: true,
   rowHeaders: true,
   minSpareRows: 1,
+  licenseKey: 'non-commercial-and-evaluation',
   beforeChange: function (changes, source) {
     lastChange = changes;
   }

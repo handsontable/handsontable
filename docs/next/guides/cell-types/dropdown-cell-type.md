@@ -6,9 +6,13 @@ canonicalUrl: /dropdown-cell-type
 
 # Dropdown cell type
 
+## Overview
+
 This example shows the usage of the Dropdown feature. Dropdown is based on [Autocomplete](autocomplete.md) cell type. All options used by `autocomplete` cell type apply to `dropdown` as well.
 
 Internally, cell `{type: 'dropdown'}` is equivalent to cell `{type: 'autocomplete', strict: true, filter: false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
+
+## Basic example
 
 ::: example #example1
 ```js
