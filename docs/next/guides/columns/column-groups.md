@@ -38,8 +38,9 @@ nestedHeaders: [
 
 ::: example #example1
 ```js
-var example1 = document.getElementById('example1');
-var hot1 = new Handsontable(example1, {
+const container = document.querySelector('#example1');
+
+const hot1 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5,10),
   colHeaders: true,
   rowHeaders: true,
@@ -80,8 +81,9 @@ To enable the Collapsible Columns plugin, you can either set the `collapsibleCol
 
 ::: example #example2
 ```js
-var example2 = document.getElementById('example2');
-var hot2 = new Handsontable(example2, {
+const container = document.querySelector('#example2');
+
+const hot2 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5,10),
   colHeaders: true,
   rowHeaders: true,
