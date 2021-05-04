@@ -31,8 +31,9 @@ You can show/hide certain columns straight from the [Context menu](context-menu.
 
 ::: example #example1
 ```js
-var example1 = document.getElementById('example1');
-var hot1 = new Handsontable(example1, {
+const container = document.querySelector('#example1');
+
+const hot1 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5,12),
   colHeaders: true,
   rowHeaders: true,
@@ -51,7 +52,7 @@ var hot1 = new Handsontable(example1, {
 You can access the plugin instance by calling
 
 ```js
-var plugin = hot.getPlugin('hiddenColumns');
+const plugin = hot.getPlugin('hiddenColumns');
 ```
 
 To hide a single column, call the `hideColumn` method of the plugin object:
