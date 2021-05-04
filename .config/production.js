@@ -99,6 +99,24 @@ module.exports.create = function create(envArgs) {
               flatten: true,
               force: true,
             },
+            {
+              from: 'node_modules/hyperformula/dist/hyperformula.full.min.js',
+              to: 'hyperformula',
+              flatten: true,
+              force: true,
+            },
+            {
+              from: 'node_modules/hyperformula/dist/languages/*.js',
+              to: 'hyperformula/languages',
+              flatten: true,
+              force: true,
+            },
+            {
+              from: 'node_modules/hyperformula/LICENSE.txt',
+              to: 'hyperformula',
+              flatten: true,
+              force: true,
+            },
           ]
         })
       );
