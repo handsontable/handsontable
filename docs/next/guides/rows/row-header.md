@@ -32,34 +32,25 @@ To enable the plugin, set the `bindRowsWithHeaders` property to `true`. Move the
 
 ::: example #example1
 ```js
-var generateDataObj = function(rows, columns) {
-  var data = [];
-  var number = 0;
+// Generate an array of arrays with a dummy data
+const generateData = (rows = 3, columns = 7, additionalRows = true) => {
+  let counter = 0;
 
-  if (!rows) {
-    rows = 3;
-  }
-  if (!columns) {
-    columns = 7;
-  }
+  const array2d = [...new Array(rows)]
+    .map(_ => [...new Array(columns)]
+    .map(_ => counter++));
 
-  for (var i = 0; i < rows; i++) {
-    data[i] = [];
-    for (var j = 0; j < columns; j++) {
-      data[i][j] = number++;
-    }
+  if (additionalRows) {
+    array2d.push([]);
+    array2d.push([]);
   }
 
-  for (i = 0; i < 2; i++) {
-    data.push([]);
-  }
-
-  return data;
+  return array2d;
 };
 
-var example1 = document.getElementById('example1');
-var hot1 = new Handsontable(example1, {
-  data: generateDataObj(),
+const container = document.querySelector('#example1');
+const hot1 = new Handsontable(container, {
+  data: generateData(),
   colHeaders: true,
   rowHeaders: true,
   contextMenu: true,

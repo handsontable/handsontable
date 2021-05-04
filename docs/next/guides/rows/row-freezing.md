@@ -15,8 +15,9 @@ Specify two fixed rows with `fixedRowsTop: 2`. You'll need horizontal scrollbars
 
 ::: example #example1
 ```js
-var example = document.getElementById('example1');
-var hot1 = new Handsontable(example, {
+const container = document.querySelector('#example1');
+
+const hot1 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(100, 50),
   colWidths: 100,
   width: '100%',

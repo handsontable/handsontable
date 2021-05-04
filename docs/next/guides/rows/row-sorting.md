@@ -27,8 +27,9 @@ The simplest way to enable the plugin is to just set the `columnSorting` key to 
 
 ::: example #example1
 ```js
-var example1 = document.getElementById('example1');
-var hot1 = new Handsontable(example1, {
+const container = document.querySelector('#example1');
+
+const hot1 = new Handsontable(container, {
   data: [
     ['Tesla', 'Model 3', 'BlueStar', 'USA', '★★★★'],
     ['Tesla', 'Model S', 'WhiteStar', 'USA', '★★★★★'],
@@ -66,8 +67,9 @@ Please take a look at the example plugin configuration below.
 
 ::: example #example2
 ```js
-var example2 = document.getElementById('example2');
-var hot2 = new Handsontable(example2, {
+const container = document.querySelector('#example2');
+
+const hot2 = new Handsontable(container, {
   data: [
     ['Tesla', 'Model 3', 'BlueStar', 'USA', '★★★★'],
     ['Tesla', 'Model S', 'WhiteStar', 'USA', '★★★★★'],
@@ -106,8 +108,9 @@ As a result, you can see that different types of data are sorted properly. `Hand
 
 ::: example #example3
 ```js
-var example3 = document.getElementById('example3');
-var hot3 = new Handsontable(example3, {
+const container = document.querySelector('#example3');
+
+const hot3 = new Handsontable(container, {
   data: [
     { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
     { brand: 'Tesla', model: 'Model S', maxSpeed: 139, range: 275, seats: 7, price: 71788, productionDate: '04/02/2012' },
@@ -180,8 +183,9 @@ The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `heade
 
 ::: example #example4
 ```js
-var example4 = document.getElementById('example4');
-var hot4 = new Handsontable(example4, {
+const container = document.querySelector('#example4');
+
+const hot4 = new Handsontable(container, {
   data: [
     { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
     { brand: 'Tesla', model: 'Model S', maxSpeed: 139, range: 275, seats: 7, price: 71788, productionDate: '04/02/2012' },
@@ -203,10 +207,8 @@ var hot4 = new Handsontable(example4, {
     columnSorting: {
       indicator: false,
       headerAction: false,
-      compareFunctionFactory: function compareFunctionFactory() {
-        return function comparator() {
-          return 0; // Don't sort the first visual column.
-        };
+      compareFunctionFactory(sortOrder, columnMeta) {
+        return (value, nextValue) => 0; // Don't sort the first visual column.
       }
     }
   }, {
@@ -251,7 +253,7 @@ The plugin exposes the `setSortConfig` method, which was designed for the purpos
 Please take a look at the custom sort implementation in the snippet below.
 
 ```js
-beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
+beforeColumnSort(currentSortConfig, destinationSortConfigs) {
   const columnSortPlugin = this.getPlugin('columnSorting');
 
   columnSortPlugin.setSortConfig(destinationSortConfigs);
