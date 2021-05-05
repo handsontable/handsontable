@@ -18,6 +18,7 @@ registerRootComparator(PLUGIN_KEY, rootComparator);
 
 /**
  * @plugin MultiColumnSorting
+ * @class MultiColumnSorting
  *
  * @description
  * This plugin sorts the view by columns (but does not sort the data source!). To enable the plugin, set the
@@ -64,7 +65,8 @@ registerRootComparator(PLUGIN_KEY, rootComparator);
  *       }
  *     }
  *   }
- * }]```
+ * }]
+ * ```
  */
 export class MultiColumnSorting extends ColumnSorting {
   static get PLUGIN_KEY() {
@@ -188,7 +190,8 @@ export class MultiColumnSorting extends ColumnSorting {
    *   this.loadData(newData); // Load new data set and re-render the table.
    *
    *   return false; // The blockade for the default sort action.
-   * }```
+   * }
+   * ```
    *
    * @param {undefined|object|Array} sortConfig Single column sort configuration or full sort configuration (for all sorted columns).
    * The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains

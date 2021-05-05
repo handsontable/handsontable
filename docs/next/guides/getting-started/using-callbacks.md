@@ -254,6 +254,7 @@ hot2 = new Handsontable(container, {
   colHeaders: true,
   rowHeaders: true,
   minSpareRows: 1,
+  licenseKey: 'non-commercial-and-evaluation',
   beforeChange: function (changes, source) {
     lastChange = changes;
   }

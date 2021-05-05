@@ -8,8 +8,17 @@
 /* Table of contents */
 @import 'table-of-contents'
 
-/* Temporary stylesheet for random elements */
+/* Temporary stylesheet for various elements */
 @import 'quirks'
+
+/* Handsontable styles */
+@import 'handsontable'
+
+/* Forms */
+@import 'form'
+
+/* Examples */
+@import 'examples'
 
 
 body {
@@ -40,22 +49,6 @@ body div {
   margin-top: -2.8rem;
 }
   
-/* Handsontable styles */
-
-.hot {
-  margin-top: 6px;
-  position: relative;
-  z-index: 9;
-  font-size: 13px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-    "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
-  font-weight: 400;
-  overflow-y: scroll;
-  max-height: 320px;
-  min-height: 100px;
-  width: 100%;
-}
-
 /* Layout */
 
 .navbar {
@@ -260,7 +253,7 @@ div.js-fiddle-link {
   
 /* A navigation element containing clickable fields (columns) */
 .row-items-container {
-  margin: 20px 0 30px;
+  margin: 30px 0 30px;
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
@@ -295,6 +288,7 @@ div.js-fiddle-link {
     }
     
     h3 {
+      margin-top: 10px;
       padding-top: 0!important;
       font-size: 16px;
     }
@@ -302,7 +296,8 @@ div.js-fiddle-link {
 }
 
 .theme-default-content code {
-  background-color: #fafbff;
+  color: $textColor;
+  background-color: #eef0f7;
 }
 
 /* Keyboard keys names formatting */
@@ -310,6 +305,7 @@ div.js-fiddle-link {
 kbd {
   padding: 0 0.25em;
   font-size: 13px;
+  white-space: nowrap;
   border: 1px solid #bbc6d3;
   border-bottom-width: 2px;
   background: #fafbff;

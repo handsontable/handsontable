@@ -14,9 +14,9 @@ tags:
 
 Use the **afterChange** callback to track changes made in the data grid. In the example below, Ajax is used to load and save the data. Note that this is just a mockup and nothing is actually saved. You need to implement the server-side part by yourself.
 
-<div className="controls">
-  <button id="load" className="button button--primary">Load</button>&nbsp;
-  <button id="save" className="button button--primary">Save</button>
+<div class="controls">
+  <button id="load" class="button button--primary button--blue">Load data</button>&nbsp;
+  <button id="save" class="button button--primary button--blue">Save data</button>
   <label>
     <input type="checkbox" name="autosave" id="autosave"/>
     Autosave

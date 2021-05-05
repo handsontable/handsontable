@@ -29,6 +29,7 @@ const actionDictionary = new Map([
 
 /**
  * @plugin CollapsibleColumns
+ * @class CollapsibleColumns
  *
  * @description
  * The {@link CollapsibleColumns} plugin allows collapsing of columns, covered by a header with the `colspan` property defined.

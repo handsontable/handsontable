@@ -14,24 +14,21 @@ tags:
 
 ## Overview
 
-- Wlaczanie / wylaczanie ficzera
-- O tym jak wygladaja domyslne headery (1, 2, 3)
-- Headery jako ID wiersza (bind rows with headers) - domyslnie jest "spreadsheet-like"
-- O tym jak sie zachowuja headery jak sa filtrowane albo sortowane
-- O tym jak zrobic wlasne headery, np. checkbox albo move handle
-- Update headers
-- Stylizacja (formatowanie CSS-em) headerów
-- Odnosnik z komentarzem do row master-detail (nested rows)
+Row headers are gray-colored columns which are used to label each row. By default, these headers are filled with numbers displayed in an ascending order.
+
+You can turn the headers on by setting the option `rowHeaders` to `true`.
 
 ## Bind rows with headers
 
-The **Bind rows with headers** plugin allows to bind the table rows with their headers.
-If the plugin is enabled, the table row headers will "stick" to the rows. For example, if you move a row, the header content will move with it. Basically, if at the initialization row `0` has a header titled `"A"`, it will be attached to it, no matter what you do with the table.
+There is a plugin **Bind rows with headers** which allows to bind the row numbers with their headers. This is used mostly to differentiate two business cases in which Handsontable is most often used.
 
-### Example
+1. In a typical spreadsheet-like application, when you moved the row, the numbers in the row headers remain intact. Only the content is moved.
 
-To enable the plugin, set the `bindRowsWithHeaders` property to `true`, when initializing Handsontable.
-Try moving the rows in the example below, to see what this plugin actually does.
+2. In a data grid each rows has its unique ID and therefore the column header should follow its row whenever it changes its position in the grid.
+
+### Basic example
+
+To enable the plugin, set the `bindRowsWithHeaders` property to `true`. Move the rows in the example below to see what this plugin actually does.
 
 ::: example #example1
 ```js
@@ -72,3 +69,7 @@ var hot1 = new Handsontable(example1, {
 });
 ```
 :::
+
+## Tree grid
+
+A tree grid allows you to represent the nested data structures within the data grid. To learn more about this feature head to the [Row parent-child](../row-parent-child) page.

@@ -17,15 +17,16 @@ Plugin used to scroll Handsontable by selecting a cell and dragging outside of t
 ## Options
 
 ### dragToScroll
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L3040
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L3052
 
+:::
 
 _dragToScroll.dragToScroll : boolean_
 
 Disables or enables the [drag to scroll](#DragToScroll) functionality.
 
 **Default**: <code>true</code>  
-**Category**: DragToScroll  
 **Example**  
 ```js
 // don't scroll the viewport when selection gets to the viewport edge
@@ -35,8 +36,10 @@ dragToScroll: false,
 ## Members
 
 ### boundaries
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L40
 
+:::
 
 _dragToScroll.boundaries : DOMRect_
 
@@ -47,8 +50,10 @@ e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y
 ## Methods
 
 ### check
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L127
 
+:::
 
 _dragToScroll.check(x, y)_
 
@@ -64,8 +69,10 @@ between passed boundaries.
 
 
 ### destroy
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L263
 
+:::
 
 _dragToScroll.destroy()_
 
@@ -74,8 +81,10 @@ Destroys the plugin instance.
 
 
 ### disablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L96
 
+:::
 
 _dragToScroll.disablePlugin()_
 
@@ -84,8 +93,10 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 ### enablePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L70
 
+:::
 
 _dragToScroll.enablePlugin()_
 
@@ -94,8 +105,10 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### isEnabled
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L63
 
+:::
 
 _dragToScroll.isEnabled() ⇒ boolean_
 
@@ -105,8 +118,10 @@ hook and if it returns `true` than the [enablePlugin](#DragToScroll+enablePlugin
 
 
 ### setBoundaries
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L107
 
+:::
 
 _dragToScroll.setBoundaries(boundaries)_
 
@@ -120,8 +135,10 @@ Sets the value of the visible element.
 
 
 ### setCallback
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L116
 
+:::
 
 _dragToScroll.setCallback(callback)_
 
@@ -135,8 +152,10 @@ Changes callback function.
 
 
 ### updatePlugin
+  
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dragToScroll/dragToScroll.js#L86
 
+:::
 
 _dragToScroll.updatePlugin()_
 

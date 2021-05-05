@@ -8,8 +8,6 @@ canonicalUrl: /react-installation
 
 [[toc]]
 
-**Handsontable for React** is the official wrapper for Handsontable.
-
 ## Install with npm
 
 This component needs the Handsontable library to work. Use [npm](https://www.npmjs.com/package/@handsontable/react) to install the packages.

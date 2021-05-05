@@ -13,7 +13,7 @@ canonicalUrl: /row-sorting
 The column sorting plugin works as a proxy between the datasource and the Handsontable rendering module. It can map indices of displayed rows (called “visual indices”) to the indices of corresponding rows in the datasource (called “physical indices”) and vice versa. This way you can alter the order of rows which are being presented to a user, without changing the datasource’s internal structure. The sort operation is performed using a [stable sort alghoritm](https://en.wikipedia.org/wiki/Sorting_algorithm#Stability) regardless of the browser you use and the size of the data set which you sort.
 
 ::: tip
-**Please keep in mind that you shouldn't enable both the `columnSorting` and `multiColumnSorting` plugins simultaneously.**
+Please keep in mind that you shouldn't enable both the `columnSorting` and `multiColumnSorting` plugins simultaneously.
 :::
 
 ## Basic plugin configuration

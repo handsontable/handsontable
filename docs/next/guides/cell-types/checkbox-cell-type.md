@@ -8,6 +8,8 @@ canonicalUrl: /checkbox-cell-type
 
 [[toc]]
 
+## Overview
+
 Data in such cells will be rendered as checkbox and can be easily changed by checking/unchecking the checkbox.
 
 Checking and unchecking can be performed using mouse or by pressing <kbd>SPACE</kbd>. You can change the state of multiple cells at once. Simply select cells you want to change and press <kbd>SPACE</kbd>.
@@ -104,6 +106,7 @@ hot3 = new Handsontable(example3, {
     {car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no'}
   ],
   colHeaders: ['Car model', 'Accepted', 'Comes in black'],
+  licenseKey: 'non-commercial-and-evaluation',
   columns: [
     {
       data: 'car'
@@ -121,7 +124,6 @@ hot3 = new Handsontable(example3, {
       type: 'checkbox',
       checkedTemplate: 'yes',
       uncheckedTemplate: 'no',
-      licenseKey: 'non-commercial-and-evaluation',
       label: {
         position: 'before',
         value: 'In black? '

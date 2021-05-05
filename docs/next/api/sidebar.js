@@ -12,6 +12,9 @@ const nonPublicPages = [
   'indexMapper',
   'baseEditor',
   'coords',
+  'plugins',
+  'multipleSelectionHandles',
+  'touchScroll',
   'focusableElement',
 ];
 

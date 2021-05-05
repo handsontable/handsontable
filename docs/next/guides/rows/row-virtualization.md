@@ -3,8 +3,9 @@ title: Row virtualization
 permalink: /next/row-virtualization
 canonicalUrl: /row-virtualization
 tags:
-  - scrolling
-  - multi-column sorting
+  - dom
+  - render all rows
+  - offset
 ---
 
 # Row virtualization
@@ -13,22 +14,22 @@ tags:
 
 ## Overview
 
-- O wirtualizacji i performance. Kiedy wirtualizacja dziala. Wspomniec o ustawieniach okna, a takze wplywu wielkosci grida na performance. Koniecznie odwolywac sie do front-end side operations dla odroznienia back-end side w przyszlosci.
-- Jakie sa domyslne ustawienia
-- Jak wylaczyc wylaczyc wirtualizacje i jakie moga byc tego konsekwencje (offset, renderallrows)
+Virtualization allows Handsontable to process hundreds of thousands of records without hanging the browser. This technique draw only the visible part of the grid so you get the minimum items physically rendered in the `DOM`. The elements outside the viewport are rendered as you scroll across the grid. Depending on your configuration there might be a little offset of columns or rows renderered outside the viewport to make the scrolling performance smoother.
 
-To make the grid scrollable, set constant width and height to the container holding Handsontable and set the `overflow` property to `hidden` in the container's stylesheet. Then, if the table contains enough rows or columns, you can scroll through it.
+This feature is enabled by default and can be turned off by setting the `renderAllRows` to `true`. Remember that the data grid without virtualization enabled will work only with relatively small data sets.
 
-Note, that Handsontable renders only the visible part of the table plus a fixed amount of rows and columns. You can experiment with the `viewportColumnRenderingOffset` and `viewportRowRenderingOffset` config options, which define this behavior, to improve the performance of your app.
+ You can also experiment with the `viewportRowsRenderingOffset` config option, which determine the number of rows being displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, then the virtualization will be practically turned off. Be careful with it though as it will affect the overall performance of the grid.
 
-The overall scrolling performance depends mainly on these four factors:
+To make the grid scrollable, set constant width and height to the container that holds Handsontable, and set the `overflow` property to `hidden` in the container's stylesheet. Then, if the table contains enough rows or columns, you will be able scroll through it.
 
-* the amount of cells,
-* the amount of custom renderers,
-* the number of features (options) in use,
-* the end-user's machine and browser performance.
+The scrolling performance depends mainly on four factors:
 
-This demo below shows a table of 1 million cells (1000 x 1000):
+* the amount of cells (number of rows multiplied by the number of columns),
+* the amount and complexity of custom renderers in cells,
+* the number of options enabled in the configuration,
+* the performance of your setup (physical machine and a browser).
+
+The demo below presents a data grid displaying 1 million cells (1000 rows x 1000 columns).
 
 ::: example #example1
 ```js
@@ -38,7 +39,6 @@ var hot1 = new Handsontable(example, {
   colWidths: 100,
   width: '100%',
   height: 320,
-  rowHeights: 23,
   rowHeaders: true,
   colHeaders: true,
   licenseKey: 'non-commercial-and-evaluation'

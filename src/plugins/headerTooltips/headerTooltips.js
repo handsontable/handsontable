@@ -11,6 +11,7 @@ let isDeprecationMessageShowed = false;
 
 /**
  * @plugin HeaderTooltips
+ * @class HeaderTooltips
  *
  * @deprecated This plugin is deprecated and will be removed in the next major release.
  * @description

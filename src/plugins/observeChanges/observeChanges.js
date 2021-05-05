@@ -10,6 +10,7 @@ export const PLUGIN_PRIORITY = 180;
 
 /**
  * @plugin ObserveChanges
+ * @class ObserveChanges
  *
  * @deprecated This plugin is deprecated and will be removed in the next major release.
  * @description

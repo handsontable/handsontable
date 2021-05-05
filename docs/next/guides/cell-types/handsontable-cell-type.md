@@ -6,7 +6,9 @@ canonicalUrl: /handsontable-cell-type
 
 # Handsontable cell type
 
-This page shows using Handsontable as a cell editor in Handsontable (sometimes referred as **HOT-in-HOT**). Please **note** that although the functionality of **HOT-in-HOT** is similar to this of the Handsontable, it may not support all of its features.
+## Overview
+
+This page shows using Handsontable as a cell editor in Handsontable.
 
 **HOT-in-HOT opens by any of the following:**
 
@@ -26,9 +28,7 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 * <kbd>ARROW RIGTH</kbd> - move the text cursor in the text field to the left. If the text cursor was at the start position, behave as the <kbd>ENTER</kbd> key but move the selection in the main HOT to the left,
 * <kbd>ARROW LEFT</kbd> - move the text cursor in the text field to the right. If the text cursor was at the end position, behave as the TAB key.
 
-Mouse click outside of the editor or on one of the cells in HOT-in-HOT applies change.
-
-**\*apply change** means: The value of the cell highlighted or clicked in HOT-in-HOT is applied as new cell value in the main HOT. If no cell in HOT-in-HOT is selected, the value of the text field is used instead.
+## Basic example
 
 ::: example #example1
 ```js

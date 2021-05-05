@@ -5,6 +5,12 @@ canonicalUrl: /column-width
 tags:
   - resizing columns
   - stretching columns
+  - column size
+  - width
+  - max-width
+  - min-width
+  - column dimmensions
+  - manual resize
 ---
 
 # Column width
@@ -13,49 +19,128 @@ tags:
 
 ## Overview
 
-- opis ustawien i zachowania domyslnego; oraz w odniesieniu do konterenera i jego ustawien
-- szerokosc kolummy a zawijanie sie tekstu - opis zaleznosci
-- Nadanie szerokosci kolumnie o konkretnym ID
-- szerokosc wszystkich kolum w wartosciach bezwzglednych
-- szerokosc kolumn o konkretnej kolejnosci (1, 3, 5-10)
-- szerokosc wszystkich kolumn jako funkcja
-- sterowanie szerokoscia kolumny z zewnatrz
-- opis edge cases np jak ustawienia dotyczaca nie istniejacych jeszcze kolumn, albo gdy sie przenosi kolumne (czy przenosi sie wraz ze swoja szerokoscia)
+By default, the column width adjusts to the width of the content. The minimum width is `50px`, indluding `1px` for borders on the sides. The column size can be passed as a `constant`, an `array` or a `function`.
 
-## User-triggered resize
+The content inside a cell will be wrapped if it doesn't fit its size.
 
-To enable these features, use settings `manualColumnResize: true`. The draggable resize handle will be displayed on the right on the column header. Double-click on the resize handle automatically adjusts size of the row or column. For the selected rows or columns works simultaneously resizing.
+## Setting the column width as a constant
 
-::: example #example1
-```js
-var container = document.getElementById('example1');
-var hot1 = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(200, 10),
-  rowHeaders: true,
-  colHeaders: true,
-  width: '100%',
-  height: 320,
-  colWidths: [45, 100, 160, 60, 80, 80, 80],
-  manualColumnResize: true,
-  manualRowResize: true,
-  licenseKey: 'non-commercial-and-evaluation'
-});
-```
-:::
-
-## StretchH `last` column
-
-The following example creates a table with vertical scrollbar by specifying only the container height and `overflow: hidden` in CSS. The last column is stretched using `stretchH: 'last'` option.
+In this example we set the same width of `100px` for all columns across the entire grid.
 
 ::: example #example1
 ```js
 var container1 = document.getElementById('example1');
 var hot1 = new Handsontable(container1, {
-  data: Handsontable.helper.createSpreadsheetData(40, 6),
-  height: 320,
-  colWidths: 47,
-  rowHeaders: true,
+  data: Handsontable.helper.createSpreadsheetData(5, 50),
+  width: '100%',
   colHeaders: true,
+  rowHeaders: true,
+  colWidths: 100,
+  manualColumnResize: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
+
+## Setting the column width in an array
+
+Here we set the width only for the first four columns. Each additional column would be automatically adjusted to the content.  
+
+::: example #example2
+```js
+var container2 = document.getElementById('example2');
+var hot2 = new Handsontable(container2, {
+  data: Handsontable.helper.createSpreadsheetData(5, 4),
+  width: '100%',
+  colHeaders: true,
+  rowHeaders: true,
+  colWidths: [50, 100, 200, 400],
+  manualColumnResize: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
+
+## Setting the column width using a function
+
+Here we set the size of all columns as a function. In this particular example we take a column `index` (1, 2 ...) and multiply it by `40px` in each consecutive column. 
+
+::: example #example3
+```js
+var container3 = document.getElementById('example3');
+var hot3 = new Handsontable(container3, {
+  data: Handsontable.helper.createSpreadsheetData(5, 5),
+  width: '100%',
+  colHeaders: true,
+  rowHeaders: true,
+  colWidths: function(index) {
+               return (index + 1) * 40;
+             },
+  manualColumnResize: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
+
+## Adjust the column width manually
+
+Set the option `manualColumnResize` to `true` to allow users to manually resize the column width by dragging the handle between the adjacent column headers. If you double-click on that handle then the width will be instantly adjusted to the size of the longest value in the column. Don't forget to enable column headers by setting `colHeaders` to `true`.
+
+You can adjust the size of one or columns at the same time, even if the selected columns are not placed next to each other.
+
+::: example #example4
+```js
+var container4 = document.getElementById('example4');
+var hot4 = new Handsontable(container4, {
+  data: Handsontable.helper.createSpreadsheetData(5, 6),
+  colHeaders: true,
+  rowHeaders: true,
+  colWidths: [200, 100, 100], // initial width of the first 3 columns
+  manualColumnResize: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
+
+## Column stretching
+
+You can adjust columns width to make them fit the table's width automatically. The width of a particular column will be calculated based on the size and number of other columns in the grid. This option makes sense only when you have at least one column in your data set, and less columns than is needed to enable the horizontal scrollbar.
+
+::: tip
+Use the **context menu** to insert or remove columns. This will help you understand how the grid reacts to changes.
+:::
+
+### Fit all columns equally
+
+In this case you fit all columns to the container's width equally by setting the option like so: `stretchH: 'all'`.
+
+::: example #example5
+```js
+var container5 = document.getElementById('example5');
+var hot5 = new Handsontable(container5, {
+  data: Handsontable.helper.createSpreadsheetData(5, 3),
+  colHeaders: true,
+  rowHeaders: true,
+  stretchH: 'all', // 'none' is default
+  contextMenu: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
+
+### Stretch only the last column
+
+In this example, first three columns will be set to be `80px` wide, and the last column will automatically fill the remaining space. This is possible thanks to the option `stretchH` set to `last`.
+
+::: example #example6
+```js
+var container6 = document.getElementById('example6');
+var hot6 = new Handsontable(container6, {
+  data: Handsontable.helper.createSpreadsheetData(5, 4),
+  width: '100%',
+  colWidths: 80,
+  colHeaders: true,
+  rowHeaders: true,
   stretchH: 'last',
   contextMenu: true,
   licenseKey: 'non-commercial-and-evaluation'
@@ -63,42 +148,14 @@ var hot1 = new Handsontable(container1, {
 ```
 :::
 
-## StretchH `all` columns
+## A note about the performance
 
-If the table content is not as wide as the container width, the table will be stretched to the container width. The default horizontal stretch model is to stretch the last column only (by using `stretchH: 'last'` option).
+As mentioned above, the default width of the column is based on the widest value in any cell within the column. You may be wondered how it's possible for data sets containing hundreds of thousands of records.
 
-Other possible stretch modes are `all` (stretches all columns equally, used in the below example) and `none` (not stretching).
+This feature is made possible thanks to the `AutoColumnSize` plugin, which is enabled by default. Internally it divides the data set into smaller sets and then render only some of them to measure their size. Then, the size is applied to the entire column based on the width of the widest found value.
 
-::: example #example2
-```js
-var container2 = document.getElementById('example2');
-var hot2 = new Handsontable(container2, {
-  data: Handsontable.helper.createSpreadsheetData(40, 6),
-  height: 320,
-  colWidths: [47, 47, 47, 47, 47, 47, 47], // can also be a number or a function
-  rowHeaders: true,
-  colHeaders: true,
-  stretchH: 'all',
-  contextMenu: true,
-  licenseKey: 'non-commercial-and-evaluation'
-});
-```
-:::
+To increase the performance you can turn off this feature by defining the fixed size for the specifed column or all columns.  
 
-## StretchH `none` (default)
+## Size of the container
 
-::: example #example3
-```js
-var container3 = document.getElementById('example3');
-var hot3 = new Handsontable(container3, {
-  data: Handsontable.helper.createSpreadsheetData(40, 6),
-  height: 320,
-  colWidths: [47, 47, 47, 47, 47, 47, 47], // can be declared as a number or a function
-  rowHeaders: true,
-  colHeaders: true,
-  stretchH: 'none', // 'none' is the default value of this option
-  contextMenu: true,
-  licenseKey: 'non-commercial-and-evaluation'
-});
-```
-:::
+Setting the dimmensions of the container that holds Handsontable is well described on the [Grid Size](../grid-size) page. 

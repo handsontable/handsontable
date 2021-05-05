@@ -49,8 +49,10 @@ exportPlugin.exportAsString('csv', {
 ## Members
 
 ### ExportOptions
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L66
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L67
 
+:::
 
 _ExportFile.ExportOptions : object_
 
@@ -63,14 +65,16 @@ _ExportFile.ExportOptions : object_
 | [exportHiddenColumns] | <code>boolean</code> | <code>false</code> | Include hidden columns in the exported file. |
 | [columnHeaders] | <code>boolean</code> | <code>false</code> | Include column headers in the exported file. |
 | [rowHeaders] | <code>boolean</code> | <code>false</code> | Include row headers in the exported file. |
-| [columnDelimiter] | <code>string</code> | <code>&quot;&#x27;,&#x27;&quot;</code> | Column delimiter. |
+| [columnDelimiter] | <code>string</code> | <code>","</code> | Column delimiter. |
 | [range] | <code>string</code> | <code>&quot;[]&quot;</code> | Cell range that will be exported to file. |
 
 ## Methods
 
 ### downloadFile
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L106
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L107
 
+:::
 
 _exportFile.downloadFile(format, options)_
 
@@ -85,8 +89,10 @@ Exports table data as a downloadable file.
 
 
 ### exportAsBlob
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L96
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L97
 
+:::
 
 _exportFile.exportAsBlob(format, options) ⇒ Blob_
 
@@ -101,8 +107,10 @@ Exports table data as a blob object.
 
 
 ### exportAsString
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L85
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L86
 
+:::
 
 _exportFile.exportAsString(format, options) ⇒ string_
 
@@ -117,8 +125,10 @@ Exports table data as a string.
 
 
 ### isEnabled
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L62
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L63
 
+:::
 
 _exportFile.isEnabled() ⇒ boolean_
 
