@@ -76,8 +76,8 @@ The final touch is to using the registered aliases, so that users can easily ref
 To sum up, a well prepared cell type object should look like this:
 
 ```js
-(function(Handsontable){
-  var MyEditor = Handsontable.editors.TextEditor.prototype.extend();
+(Handsontable => {
+  const MyEditor = Handsontable.editors.TextEditor.prototype.extend();
 
   function customRenderer(hotInstance, td, row, column, prop, value, cellProperties) {
     // ...renderer logic
@@ -106,8 +106,9 @@ To sum up, a well prepared cell type object should look like this:
 From now on, you can use your cell definition like so:
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
-  data: someData,
+const container = document.querySelector('#container')
+
+const hot = new Handsontable(container, {
   columns: [
     {
       type: 'my.custom'
@@ -135,28 +136,27 @@ The same example also shows the declaration of custom cell renderers, namely `ye
 
 ::: example #example1
 ```js
-var data = [
+const container = document.querySelector('#example1');
+
+const data = [
   { id: 1, name: 'Ted', isActive: true, color: 'orange', date: '2015-01-01' },
   { id: 2, name: 'John', isActive: false, color: 'black', date: null },
   { id: 3, name: 'Al', isActive: true, color: 'red', date: null },
   { id: 4, name: 'Ben', isActive: false, color: 'blue', date: null },
-],
-container = document.getElementById('example1'),
-hot1,
-yellowRenderer,
-greenRenderer;
+];
 
-yellowRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+const yellowRenderer = function(instance, td, row, col, prop, value, cellProperties) {
   Handsontable.renderers.TextRenderer.apply(this, arguments);
   td.style.backgroundColor = 'yellow';
 };
-greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+
+const greenRenderer = function(instance, td, row, col, prop, value, cellProperties) {
   Handsontable.renderers.TextRenderer.apply(this, arguments);
 
   td.style.backgroundColor = 'green';
 };
 
-hot1 = new Handsontable(container, {
+const hot1 = new Handsontable(container, {
   data: data,
   startRows: 5,
   colHeaders: true,
@@ -174,7 +174,7 @@ hot1 = new Handsontable(container, {
   cell: [
     { row: 1, col: 0, renderer: greenRenderer }
   ],
-  cells: function (row, col, prop) {
+  cells(row, col, prop) {
     if (row === 0 && col === 0) {
       this.renderer = greenRenderer;
     }

@@ -20,10 +20,9 @@ All data entered to the data-typed cells are validated agains the default date f
 
 ::: example #example1
 ```js
-var container = document.getElementById('example1'),
-    hot;
+const container = document.querySelector('#example1');
 
-hot = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     ['Mercedes', 'A 160', '01/14/2017', 6999.95],
     ['Citroen', 'C4 Coupe', '12/01/2018', 8330],
@@ -54,7 +53,7 @@ hot = new Handsontable(container, {
         showWeekNumber: true,
         numberOfMonths: 3,
         licenseKey: 'non-commercial-and-evaluation',
-        disableDayFn: function(date) {
+        disableDayFn(date) {
           // Disable Sunday and Saturday
           return date.getDay() === 0 || date.getDay() === 6;
         }

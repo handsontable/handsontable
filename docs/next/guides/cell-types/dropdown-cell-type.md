@@ -12,31 +12,29 @@ Internally, cell `{type: 'dropdown'}` is equivalent to cell `{type: 'autocomplet
 
 ::: example #example1
 ```js
-var
-    container = document.getElementById('example1'),
-    hot;
+const container = document.querySelector('#example1');
 
-  hot = new Handsontable(container, {
-    data: [
-      ['Tesla', 2017, 'black', 'black'],
-      ['Nissan', 2018, 'blue', 'blue'],
-      ['Chrysler', 2019, 'yellow', 'black'],
-      ['Volvo', 2020, 'white', 'gray']
-    ],
-    colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
-    columns: [
-      {},
-      {type: 'numeric'},
-      {
-        type: 'dropdown',
-        source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
-      },
-      {
-        type: 'dropdown',
-        source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
-      }
-    ],
-    licenseKey: 'non-commercial-and-evaluation'
-  });
+const hot = new Handsontable(container, {
+  data: [
+    ['Tesla', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'white', 'gray']
+  ],
+  colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+  columns: [
+    {},
+    {type: 'numeric'},
+    {
+      type: 'dropdown',
+      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
+    },
+    {
+      type: 'dropdown',
+      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
+    }
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
+});
 ```
 :::

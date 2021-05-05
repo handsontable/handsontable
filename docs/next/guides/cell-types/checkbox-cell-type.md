@@ -18,10 +18,9 @@ This is default usage scenario when columns data have `true` or `false` value an
 
 ::: example #example1
 ```js
-var example1 = document.getElementById('example1'),
-    hot1;
+const container = document.querySelector('#example1');
 
-hot1 = new Handsontable(example1, {
+const hot1 = new Handsontable(container, {
   data: [
     {car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes'},
     {car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes'},
@@ -54,10 +53,9 @@ If you want use other values than `true` and `false`, you have to provide this i
 
 ::: example #example2
 ```js
-var example1 = document.getElementById('example2'),
-    hot2;
+const container = document.querySelector('#example2');
 
-hot2 = new Handsontable(example2, {
+const hot2 = new Handsontable(container, {
   data: [
     {car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes'},
     {car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes'},
@@ -92,10 +90,9 @@ If you want to add label to the checkbox you can use `label` option. With this o
 
 ::: example #example3
 ```js
-var example1 = document.getElementById('example3'),
-    hot3;
+const container = document.querySelector('#example3');
 
-hot3 = new Handsontable(example3, {
+const hot3 = new Handsontable(container, {
   data: [
     {car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes'},
     {car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes'},

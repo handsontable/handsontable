@@ -20,10 +20,9 @@ By default, the values entered to the time-typed column are **not** validated, s
 
 ::: example #example1
 ```js
-var container = document.getElementById('example1'),
-    hot;
+const container = document.querySelector('#example1');
 
-hot = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     ['Mercedes', 'A 160', 1332284400000, 6999.95],
     ['Citroen', 'C4 Coupe', '10 30', 8330],

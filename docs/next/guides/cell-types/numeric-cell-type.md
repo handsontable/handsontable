@@ -18,10 +18,9 @@ Note that all the positive and negative integers whose magnitude is no greater t
 
 ::: example #example1
 ```js
-var container = document.getElementById('example1'),
-    hot;
+const container = document.querySelector('#example1');
 
-hot = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     {car: 'Mercedes A 160', year: 2017, price_usd: 7000, price_eur: 7000},
     {car: 'Citroen C4 Coupe', year: 2018, price_usd: 8330, price_eur: 8330},

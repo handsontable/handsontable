@@ -16,11 +16,9 @@ In this mode, the mouse and keyboard bindings are identical as in [Handsontable 
 
 ::: example #example1
 ```js
-var
-  example1 = document.getElementById('example1'),
-  hot1;
+const container = document.querySelector('#example1');
 
-hot1 = new Handsontable(example1, {
+const hot = new Handsontable(container, {
   data: [
     ['BMW', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
