@@ -20,3 +20,7 @@ commonjs/
 es/
 coverage/
 tmp/
+
+
+# TS Migration
+src/3rdparty/walkontable/src/filter/*.js

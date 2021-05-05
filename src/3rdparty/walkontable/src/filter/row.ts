@@ -2,12 +2,16 @@
  * @class RowFilter
  */
 class RowFilter {
+  offset: number;
+  total: number;
+  countTH: number;
+
   /**
    * @param {number} offset The scroll vertical offset.
    * @param {number} total The total height of the table.
    * @param {number} countTH The number of rendered column headers.
    */
-  constructor(offset, total, countTH) {
+  constructor(offset: number, total: number, countTH: number) {
     this.offset = offset;
     this.total = total;
     this.countTH = countTH;
@@ -17,7 +21,7 @@ class RowFilter {
    * @param {number} index The visual row index.
    * @returns {number}
    */
-  offsetted(index) {
+  offsetted(index: number): number {
     return index + this.offset;
   }
 
@@ -25,7 +29,7 @@ class RowFilter {
    * @param {number} index The visual row index.
    * @returns {number}
    */
-  unOffsetted(index) {
+  unOffsetted(index: number): number {
     return index - this.offset;
   }
 
@@ -33,7 +37,7 @@ class RowFilter {
    * @param {number} index The visual row index.
    * @returns {number}
    */
-  renderedToSource(index) {
+  renderedToSource(index: number): number {
     return this.offsetted(index);
   }
 
@@ -41,7 +45,7 @@ class RowFilter {
    * @param {number} index The visual row index.
    * @returns {number}
    */
-  sourceToRendered(index) {
+  sourceToRendered(index: number): number {
     return this.unOffsetted(index);
   }
 
@@ -49,7 +53,7 @@ class RowFilter {
    * @param {number} index The visual row index.
    * @returns {number}
    */
-  offsettedTH(index) {
+  offsettedTH(index: number): number {
     return index - this.countTH;
   }
 
@@ -57,7 +61,7 @@ class RowFilter {
    * @param {number} index The visual row index.
    * @returns {number}
    */
-  unOffsettedTH(index) {
+  unOffsettedTH(index: number): number {
     return index + this.countTH;
   }
 
@@ -65,7 +69,7 @@ class RowFilter {
    * @param {number} index The visual row index.
    * @returns {number}
    */
-  visibleColHeadedRowToSourceRow(index) {
+  visibleColHeadedRowToSourceRow(index: number): number {
     return this.renderedToSource(this.offsettedTH(index));
   }
 
@@ -73,7 +77,7 @@ class RowFilter {
    * @param {number} index The visual row index.
    * @returns {number}
    */
-  sourceRowToVisibleColHeadedRow(index) {
+  sourceRowToVisibleColHeadedRow(index: number): number {
     return this.unOffsettedTH(this.sourceToRendered(index));
   }
 }

@@ -1,21 +1,18 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "lib": [
-      "es6",
-      "dom"
-    ],
-    "module": "commonjs",
     "noEmit": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "baseUrl": "",
+    "baseUrl": "./../..",
     "paths": {
-      "handsontable": [ "../../" ],
-      "handsontable/base": [ "../../" ]
+      "handsontable": [ "./" ],
+      "handsontable/base": [ "./" ]
     }
   },
   "include": [
     "**/*.types.ts",
-    "../../src/**/__tests__/*.types.ts"
+    "src/**/__tests__/*.types.ts"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }
