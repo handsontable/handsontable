@@ -57,7 +57,7 @@ The final touch is to using the registered aliases, so that users can easily ref
 To sum up, a well prepared validator function should look like this:
 
 ```js
-(function(Handsontable){
+(Handsontable => {
   function customValidator(query, callback) {
     // ...your custom logic of the validator
 
@@ -73,8 +73,9 @@ To sum up, a well prepared validator function should look like this:
 From now on, you can use `customValidator` like so:
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
-  data: someData,
+const container = document.querySelector('#container')
+
+const hot = new Handsontable(container, {
   columns: [
     {
       validator: 'my.custom'
@@ -95,7 +96,6 @@ By default all invalid cells are marked by `htInvalid` CSS class. If you want to
 // For whole table
 invalidCellClassName: 'myInvalidClass',
 
-
 // For specified columns
 columns: [
   {data: 'firstName', invalidCellClassName: 'myInvalidClass'},
@@ -108,7 +108,23 @@ columns: [
 
 ::: example #example1
 ```js
-var people = [
+const container = document.querySelector('#example1');
+const console = document.querySelector('#example1console');
+
+const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
+
+const emailValidator = (value, callback) => {
+  setTimeout(() => {
+    if (/.+@.+/.test(value)) {
+      callback(true);
+
+    } else {
+      callback(false);
+    }
+  }, 1000);
+};
+
+const people = [
   {id: 1, name: {first: 'Joe', last: 'Fabiano'}, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com'},
   {id: 2, name: {first: 'Fred', last: 'Wecler'}, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com'},
   {id: 3, name: {first: 'Steve', last: 'Wilson'}, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com'},
@@ -120,29 +136,12 @@ var people = [
   {id: 9, name: {first: 'Sasha', last: 'Silver'}, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com'},
   {id: 10, name: {first: 'Don', last: 'Pérignon'}, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com'},
   {id: 11, name: {first: 'Aaron', last: 'Kinley'}, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com'}
-],
-example1 = document.getElementById('example1'),
-example1console = document.getElementById('example1console'),
-settings1,
-ipValidatorRegexp,
-emailValidator;
+];
 
-ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
-emailValidator = function (value, callback) {
-  setTimeout(function(){
-    if (/.+@.+/.test(value)) {
-      callback(true);
-    }
-    else {
-      callback(false);
-    }
-  }, 1000);
-};
-
-settings1 = {
+const settings = {
   data: people,
-  beforeChange: function (changes, source) {
-    for (var i = changes.length - 1; i >= 0; i--) {
+  beforeChange(changes, source) {
+    for (let i = changes.length - 1; i >= 0; i--) {
       // gently don't accept the word "foo" (remove the change at index i)
       if (changes[i][3] === 'foo') {
         changes.splice(i, 1);
@@ -159,9 +158,9 @@ settings1 = {
       }
     }
   },
-  afterChange: function (changes, source) {
+  afterChange(changes, source) {
     if (source !== 'loadData') {
-      example1console.innerText = JSON.stringify(changes);
+      console.innerText = JSON.stringify(changes);
     }
   },
   rowHeaders: true,
@@ -177,7 +176,7 @@ settings1 = {
   ]
 };
 
-var hot = new Handsontable(example1, settings1);
+const hot = new Handsontable(container, settings);
 ```
 :::
 

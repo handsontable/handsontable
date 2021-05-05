@@ -62,7 +62,7 @@ The final touch is to using the registered aliases, so that users can easily ref
 To sum up, a well prepared renderer function should look like this:
 
 ```js
-(function(Handsontable){
+(Handsontable => {
   function customRenderer(hotInstance, td, row, column, prop, value, cellProperties) {
     // Optionally include `BaseRenderer` which is responsible for adding/removing CSS classes to/from the table cells.
     Handsontable.renderers.BaseRenderer.apply(this, arguments);
