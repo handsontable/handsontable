@@ -17,7 +17,7 @@ The _Comments_ plugin makes it possible to easily add, edit and remove comments 
 To use the plugin, you'll need to set the `comments` property to `true`. It'll enable the plugin and add all the needed context menu items. For example:
 
 ```js
-let hot = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(10, 10),
   comments: true
 });
@@ -54,10 +54,9 @@ You can add, remove and modify most of the comment-related information using the
 
 ::: example #example1
 ```js
-var container = document.getElementById('example1'),
-  hot1;
+const container = document.querySelector('#example1');
 
-hot1 = new Handsontable(container, {
+const hot1 = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -87,25 +86,24 @@ You can compare it with the comment inside a cell with "Honda" wording.
 
 ::: example #example
 ```js
-var container = document.getElementById('example'),
-  hot;
+const container = document.querySelector('#example');
 
-  hot = new Handsontable(container, {
-    data: [
-      ['', 'Tesla', 'Toyota', 'Honda', 'Ford'],
-      ['2018', 10, 11, 12, 13, 15, 16],
-      ['2019', 10, 11, 12, 13, 15, 16],
-      ['2020', 10, 11, 12, 13, 15, 16],
-    ],
-    rowHeaders: true,
-    colHeaders: true,
-    contextMenu: true,
-    comments: true,
-    licenseKey: 'non-commercial-and-evaluation',
-    cell: [
-      {row: 0, col: 1, comment: {value: 'A read-only comment.', readOnly: true}},
-      {row: 0, col: 3, comment: {value: 'You can edit this comment'}}
-    ]
-  });
+const hot = new Handsontable(container, {
+  data: [
+    ['', 'Tesla', 'Toyota', 'Honda', 'Ford'],
+    ['2018', 10, 11, 12, 13, 15, 16],
+    ['2019', 10, 11, 12, 13, 15, 16],
+    ['2020', 10, 11, 12, 13, 15, 16],
+  ],
+  rowHeaders: true,
+  colHeaders: true,
+  contextMenu: true,
+  comments: true,
+  licenseKey: 'non-commercial-and-evaluation',
+  cell: [
+    {row: 0, col: 1, comment: {value: 'A read-only comment.', readOnly: true}},
+    {row: 0, col: 3, comment: {value: 'You can edit this comment'}}
+  ]
+});
 ```
 :::

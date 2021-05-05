@@ -20,18 +20,18 @@ Notice the little square (fill handle) in the corner of the selected cell. You c
 
 ::: example #example1
 ```js
-var data = [
+const container = document.querySelector('#example1');
+
+const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
   ['2017', 10, 11, 12, 13],
   ['2018', 20, 11, 14, 13],
   ['2019', 30, 15, 12, 13],
   ['2020', '', '', '', ''],
   ['2021', '', '', '', '']
-],
-container = document.getElementById('example1'),
-hot1;
+];
 
-hot1 = new Handsontable(container, {
+const hot1 = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   licenseKey: 'non-commercial-and-evaluation',
@@ -48,18 +48,18 @@ In this configuration fill handle is restricted to move only vertically. Additio
 
 ::: example #example2
 ```js
-var data = [
+const container = document.querySelector('#example2');
+
+const data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
   ['2017', 10, 11, 12, 13],
   ['2018', 20, 11, 14, 13],
   ['2019', 30, 15, 12, 13],
   ['2020', '', '', '', ''],
   ['2021', '', '', '', '']
-],
-container = document.getElementById('example2'),
-hot2;
+];
 
-hot2 = new Handsontable(container, {
+const hot2 = new Handsontable(container, {
   data: data,
   rowHeaders: true,
   colHeaders: true,

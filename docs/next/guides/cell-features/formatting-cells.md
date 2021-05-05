@@ -23,10 +23,9 @@ To initialize Handsontable with predefined custom borders, provide cells coordin
 
 ::: example #example1
 ```js
-var container = document.getElementById('example1'),
-  hot;
+const container = document.getElementById('example1');
 
-hot = Handsontable(container, {
+const hot = Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(20, 20),
   rowHeaders: true,
   fixedColumnsLeft: 2,
