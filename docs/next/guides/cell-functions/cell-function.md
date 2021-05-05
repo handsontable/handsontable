@@ -82,7 +82,9 @@ Cell type is represented by a string i.e. `"text"`, `"numeric"`, `"date"`. Each 
 so instead of writing
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
+const container = document.querySelector('#container')
+
+const hot = new Handsontable(container, {
   columns: [
     {
       renderer: Handsontable.renderers.NumericRenderer,
@@ -96,7 +98,9 @@ var hot = new Handsontable(document.getElementById('container'), {
 you can simply write
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
+const container = document.querySelector('#container')
+
+const hot = new Handsontable(container, {
   columns: [
     {
       type: 'numeric'
@@ -128,7 +132,9 @@ Handsontable comes with 9 types:
 It is possible to define the `type` option together with options such as `renderer`, `editor` or `validator`. Lets look at this example:
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
+const container = document.querySelector('#container')
+
+const hot = new Handsontable(container, {
   columns: [
   {
     type: 'numeric',
@@ -141,7 +147,9 @@ var hot = new Handsontable(document.getElementById('container'), {
 We defined the `type` for all cells in a column to be `numeric`. Besides that, we also defined a validator function directly. In Handsontable, cell functions defined directly always take precedence over functions associated with cell type, so the above configuration is equivalent to:
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
+const container = document.querySelector('#container')
+
+const hot = new Handsontable(container, {
   columns: [
     {
       renderer: Handsontable.renderers.NumericRenderer,
@@ -155,7 +163,9 @@ var hot = new Handsontable(document.getElementById('container'), {
 There is one more way you can define the configuration using types:
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
+const container = document.querySelector('#container')
+
+const hot = new Handsontable(container, {
   validator: customValidator, // validator function defined elsewhere
   columns: [
     {
@@ -177,7 +187,9 @@ validator: undefined
 Because `type: 'password'` is a more specific configuration for the cells in the first column, than the `validator: customValidator`, cell functions associated with the `password` type takes precedence over the functions defined on the higher level of configuration. Therefore, the equivalent configuration is:
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
+const container = document.querySelector('#container')
+
+const hot = new Handsontable(container, {
   columns: [
     {
       renderer: Handsontable.renderers.PasswordRenderer,
@@ -199,7 +211,9 @@ Cell functions getters
 If, for some reason, you have to get the `renderer`, `editor` or `validator` function of specific cell you can use standard `getCellMeta(row, col)` method to get all properties of particular cell and then refer to cell functions like so:
 
 ```js
-var cellProperties = $('#container').handsontable('getCellMeta', 0, 0);
+const container = document.querySelector('#container');
+
+const cellProperties = container.handsontable('getCellMeta', 0, 0);
 // get cell properties for cell [0, 0]
 cellProperties.renderer; // get cell renderer
 cellProperties.editor; // get cell editor
@@ -209,7 +223,9 @@ cellProperties.validator; // get cell validator
 However, you have to remember that `getCellMeta()` return cell properties "as they are", which means that if you use cell type to set cell functions, instead of defining functions directly those cell functions will be `undefined`:
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
+const container = document.querySelector('#container')
+
+const hot = new Handsontable(container, {
   columns: [
     {
       type: 'numeric'
@@ -217,7 +233,7 @@ var hot = new Handsontable(document.getElementById('container'), {
   ]
 });
 
-var cellProperties = hot.getCellMeta(0, 0); // get cell properties for cell [0, 0]
+const cellProperties = hot.getCellMeta(0, 0); // get cell properties for cell [0, 0]
 cellProperties.renderer; // undefined
 cellProperties.editor; // undefined
 cellProperties.validator; // undefined
