@@ -23,7 +23,7 @@ tags:
 
 By default, the row height adjusts to the height of the content. The minimum height is `23px`. The row height can be passed as a `constant`, an `array` or a `function`.
 
-The content inside a cell will be wrapped if it doesn't fit its size.
+The content inside a cell gets wrapped if it doesn't fit the cell's size.
 
 ## Setting the row height as a constant
 

@@ -8,6 +8,8 @@ canonicalUrl: /performance
 
 [[toc]]
 
+## Overview
+
 Handsontable performs multiple calculations to display the grid properly. The most demanding actions are performed on load, change and scroll events. Every single operation decreases the performance, but most of them are unavoidable.
 
 We use Performance Lab to measure the execution times in various configurations. Some tests have shown that there are methods which may potentially boost the performance of your application. Those work only in certain cases, but we hope they can be successfully applied to your app as well.

@@ -1,7 +1,7 @@
 ---
-title: AutoFill data
-permalink: /next/autofill-data
-canonicalUrl: /autofill-data
+title: AutoFill values
+permalink: /next/autofill-values
+canonicalUrl: /autofill-values
 tags:
   - fill handle
   - smart fill
@@ -14,9 +14,13 @@ tags:
 
 [[toc]]
 
+## Overview
+
+Autofill is a feature that enables you to copy the contents of a cell to another cell or range of cells within the grid.
+
 ## Autofill in all directions
 
-Notice the little square (fill handle) in the corner of the selected cell. You can drag it (drag-down) to repeat the values from the cell. Double click the fill handle in cell B4 (value "30") to fill the selection down to the last value in neighbouring column, just like it would in Excel or Google Sheets.
+Using the tiny square known as the 'fill handle' in the corner of the selected cell, you can drag it (drag-down) to repeat the values from the cell. Double click the fill handle in `cell B4` where the value is `30` to fill the selection down to the last value in neighbouring column, just like it would in Excel or Google Sheets.
 
 ::: example #example1
 ```js
@@ -42,9 +46,9 @@ hot1.loadData(data);
 ```
 :::
 
-## Autofill in vertical direction only with creating new rows
+## Autofill in a vertical direction only and creating new rows
 
-In this configuration fill handle is restricted to move only vertically. Additionally, to adding new rows when it comes to the edge of the table bottom we need change **autoInsertRow** to **true**.
+In this configuration, the fill handle is restricted to move only vertically. New rows are automatically added to the bottom of the table by changing `autoInsertRow` to `true`.
 
 ::: example #example2
 ```js

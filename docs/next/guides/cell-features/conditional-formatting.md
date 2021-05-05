@@ -6,18 +6,27 @@ canonicalUrl: /conditional-formatting
 
 # Conditional formatting
 
+[[toc]]
+
+## Overview
+
+Conditional formatting can be used to set the font, color, typeface, etc., for cell content and can also be used to format the style of a cell, all based on a predefined set of criteria.
+
+## Example of conditional formatting
+
 <style>
 .make-me-red {
-  color: #f00;
+  color: #FF5A12;
 }
 </style>
 
 This demo shows how to use the cell type renderer feature to make some conditional formatting:
 
-1. first row is read-only, and formatted ingreen bold text,
-2. all cells in the Nissan column are written in italic,
-3. empty cells have silver background,
-4. negative numbers are marked red.
+1. The first row is read-only and formatted as bold green text.
+2. All cells in the Nissan column are formatted as italic text.
+3. Empty cells are formatted with a silver background.
+4. Negative numbers are formatted as red text.
+
 
 ::: example #example1
 ```js
