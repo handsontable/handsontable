@@ -35,6 +35,7 @@ var container = document.getElementById('example1'),
 hot1 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(100, 18),
   colWidths: 100,
+  height: 320,
   rowHeaders: true,
   colHeaders: true,
   contextMenu: true,

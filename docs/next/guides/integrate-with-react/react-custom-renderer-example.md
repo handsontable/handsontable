@@ -8,6 +8,7 @@ canonicalUrl: /react-custom-renderer-example
 
 An implementation of the `@handsontable/react` with a custom renderer added. It takes an image url as the input and renders the image in the edited cell.
 
+::: example #example1 :react
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -67,3 +68,4 @@ class App extends React.Component {
 
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
+:::

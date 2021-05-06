@@ -172,6 +172,7 @@ var example4 = document.getElementById('example4');
 
 var hot4 = new Handsontable(example4, {
   data: data,
+  height: 320,
   colHeaders: true,
   rowHeaders: true,
   contextMenu: true,

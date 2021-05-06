@@ -8,12 +8,11 @@ canonicalUrl: /react-setting-up-a-locale
 
 An example of Handsontable with locales setup in React.
 
+::: example #example1 :react-numbro --html 1 --js 2
 ```html
 <!-- a root div where the component is rendered -->
 <div id="example1" class="hot"></div>
 ```
-
-::: example #example1 :react-numbro
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';

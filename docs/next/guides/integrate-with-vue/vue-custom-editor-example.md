@@ -16,7 +16,7 @@ An implementation of the `@handsontable/vue` component with a custom editor adde
 
 ::: example #example1 :vue --html 1 --js 2
 ```html
-<div id="example1" class="hot">
+<div id="example1">
   <hot-table :settings="hotSettings"></hot-table>
 </div>
 ```

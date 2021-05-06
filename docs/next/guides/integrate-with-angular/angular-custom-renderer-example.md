@@ -21,7 +21,7 @@ import * as Handsontable from 'handsontable';
 @Component({
   selector: 'app-root',
   template: `
-  <div class="hot">
+  <div>
     <hot-table [settings]="hotSettings"></hot-table>
   </div>
   `,

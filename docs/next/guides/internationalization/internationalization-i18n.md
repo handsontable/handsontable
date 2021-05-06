@@ -180,18 +180,18 @@ You can see a full template of a sample language at the bottom of this paragraph
 
 6.  Import already created file inside the `src/i18n/languages/index.js` file and export it like it's shown in the snippet below (keys in a alphabetical order).
 
-    ```js
+    ```js {4,11}
     import deCH from './de-CH';
     import deDE from './de-DE';
     import enUS from './en-US';
-    +   import esVE from './es-VE';
+    import esVE from './es-VE';
     import plPL from './pl-PL';
 
     export {
       deCH,
       deDE,
       enUS,
-      +   esVE,
+      esVE,
       plPL
     };
     ```
