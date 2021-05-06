@@ -10,11 +10,13 @@ tags:
 
 [[toc]]
 
-The _Comments_ plugin makes it possible to easily add, edit and remove comments in Handsontable.
+## Overview
+
+This feature makes it possible to add, edit and remove comments in Handsontable easily.
 
 ## Enabling the plugin
 
-To use the plugin, you'll need to set the `comments` property to `true`. It'll enable the plugin and add all the needed context menu items. For example:
+Set the `comments` property to `true` to enable the feature and add all the needed context menu items. For example:
 
 ```js
 let hot = new Handsontable(container, {
@@ -29,14 +31,11 @@ After you've enabled the plugin, the [Context Menu](context-menu.md) gains a few
 
 * Add/Edit comment
 * Delete comment
-* Read only comment
-
-I think all of them are pretty self-explanatory.
+* Read-only comment
 
 ## Setting up pre-set comments
 
-You can also pre-define comments for your table. As comments are stored in the table's/column's/cell's meta data object, you can declare it as any other property of that type.
-For example:
+You can also pre-define comments for your table. Comments are stored in the table's/column's/cell's metadata object and can be declared as any value of that type. For example:
 
 ```js
 cell: [
@@ -44,13 +43,9 @@ cell: [
 ]
 ```
 
-In this example we're adding a "Hello world!" comment to a cell at (1,1).
+In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 
-## API
-
-You can add, remove and modify most of the comment-related information using the API. For More info, head to [our Comments documentation](comments.md).
-
-## Example implementation
+## Basic example
 
 ::: example #example1
 ```js
@@ -81,9 +76,7 @@ hot1 = new Handsontable(container, {
 
 ## Make a comment read-only
 
-This example makes the comment attached to a cell that contain the word "Tesla" read-only.
-
-You can compare it with the comment inside a cell with "Honda" wording.
+By default, all comments are editable. To change this, set the `readOnly` parameter to `true` when adding a comment. This example makes the "Tesla" comment attached to a cell read-only, whereas the "Honda" comment attached to another cell is editable.
 
 ::: example #example
 ```js

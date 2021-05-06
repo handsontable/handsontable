@@ -17,7 +17,7 @@ An implementation of the `@handsontable/vue` component with a `readOnly` toggle 
 ::: example #example1 :vue-vuex --html 1 --js 2
 ```html
 <div id="example1">
-  <div id="example-preview" class="hot">
+  <div id="example-preview">
     <div id="toggle-boxes">
       <input v-on:click="toggleReadOnly" checked id="readOnlyCheck" type="checkbox"/>
       <label for="readOnlyCheck"> Toggle <code>readOnly</code> for the entire table</label>

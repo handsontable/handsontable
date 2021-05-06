@@ -115,10 +115,12 @@ const formulasItems = [
 
 const accessoriesAndMenusItems = [
   'guides/accessories-and-menus/context-menu',
+  'guides/accessories-and-menus/undo-redo',
   'guides/accessories-and-menus/keyboard-navigation',
   'guides/accessories-and-menus/searching-values',
   'guides/accessories-and-menus/icon-pack',
   'guides/accessories-and-menus/export-to-csv',
+  // TODO 'guides/accessories-and-menus/export-to-excel',
 ];
 
 const internationalizationItems = [
@@ -168,7 +170,7 @@ module.exports = {
     { title: 'Getting Started', children: gettingStartedItems },
     { title: 'Integrate with React', children: integrateWithReactItems },
     { title: 'Integrate with Angular', children: integrateWithAngularItems },
-    { title: 'Integrate with Vue', children: integrateWithVueItems },
+    { title: 'Integrate with Vue 2', children: integrateWithVueItems },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
     { title: 'Cell Features', children: cellFeaturesItems },

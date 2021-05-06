@@ -9,27 +9,19 @@ editLink: false
 
 [[toc]]
 
-## Description
+## Overview
 
-After Handsontable is constructed, you can modify the grid behavior using the available public methods.
+The `Handsontable` class to which we refer as to `Core`, allows you to modify the grid's behavior by using one of the available public methods.
 
-## How to call methods.
-
-These are 2 equal ways to call a Handsontable method:
+## How to call a method
 
 ```js
-// all following examples assume that you constructed Handsontable like this
-const hot = new Handsontable(document.getElementById('example1'), options);
+// First, let's contruct Handsontable
+const hot = new Handsontable(document.getElementById('example'), options);
 
-// now, to use setDataAtCell method, you can either:
+// Then, let's use the setDataAtCell method
 hot.setDataAtCell(0, 0, 'new value');
 ```
-
-Alternatively, you can call the method using jQuery wrapper (__obsolete__, requires initialization using our jQuery guide
-```js
-$('#example1').handsontable('setDataAtCell', 0, 0, 'new value');
-```
-
 
 ## Members
 

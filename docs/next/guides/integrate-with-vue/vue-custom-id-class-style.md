@@ -11,7 +11,7 @@ Each of them will be applied to the root Handsontable element, allowing further 
 
 ::: example #example1 :vue --html 1 --js 2
 ```html
-<div id="example1" class="hot">
+<div id="example1">
   <hot-table :id="id" :class="className" :style="style" :settings="hotSettings"></hot-table>
 </div>
 ```

@@ -8,6 +8,8 @@ canonicalUrl: /cell-function
 
 [[toc]]
 
+## Overview
+
 With every cell in the Handsontable there are 3 associated functions:
 
 * [renderer](#renderer)
