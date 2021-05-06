@@ -27,7 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a problem with the Comments editor being destroyed after destroying another Handsontable instance. [#7091](https://github.com/handsontable/handsontable/issues/7091)
 - Fixed incorrect `numericFormat`'s type definition. [#7420](https://github.com/handsontable/handsontable/issues/7420)
 - Fixed the `trimWhitespace` tests on Firefox. [#7593](https://github.com/handsontable/handsontable/issues/7593)
-- Fixed the cellTypes modules' paths in the exports entry in the package.json file. [#7597](https://github.com/handsontable/handsontable/issues/7597)
 - Fixed the [NPM Audit] Github Action job to report found vulnerabilities. [#7621](https://github.com/handsontable/handsontable/issues/7621)
 - Fixed some minor iOS problems. [#7659](https://github.com/handsontable/handsontable/issues/7659)
 - Fixed the TypeScript definition for the suspended rendering feature. [#7666](https://github.com/handsontable/handsontable/issues/7666)
