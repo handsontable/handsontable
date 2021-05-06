@@ -34,7 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the contents of the production `package.json`. [#7723](https://github.com/handsontable/handsontable/issues/7723)
 - Fixed an issue, where the callbacks for the UndoRedo plugin were called twice. [#7825](https://github.com/handsontable/handsontable/issues/7825)
 - *Vue:* Fixed a problem with displaying and removing rows in the Nested Rows plugin. [#7548](https://github.com/handsontable/handsontable/issues/7548)
-- *Vue:* Fixed vulnerabilities with the Remote Code Execution in the dev dependencies. [#7620](https://github.com/handsontable/handsontable/issues/7620)
 - *React:* Fixed an incompatibility in the property type definitions for the HotColumn component. [#7612](https://github.com/handsontable/handsontable/issues/7612)
 
 ### Changed
