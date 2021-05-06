@@ -14,23 +14,21 @@ This kind of cell behaves like a text cell with a difference that it masks its v
 
 ::: example #example1
 ```js
-var
-  example1 = document.getElementById('example1'),
-  hot1;
+const example1 = document.getElementById('example1');
 
-hot1 = new Handsontable(example1, {
+const hot1 = new Handsontable(example1, {
   data: [
-    {id: 1, name: {first: 'Chris', last: 'Right'}, password: 'plainTextPassword'},
-    {id: 2, name: {first: 'John', last: 'Honest'}, password: 'txt'},
-    {id: 3, name: {first: 'Greg', last: 'Well'}, password: 'longer'}
+    { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
+    { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
+    { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
   ],
   colHeaders: ['ID', 'First name', 'Last name', 'Password'],
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
-    {data: 'id'},
-    {data: 'name.first'},
-    {data: 'name.last'},
-    {data: 'password', type: 'password'}
+    { data: 'id' },
+    { data: 'name.first' },
+    { data: 'name.last' },
+    { data: 'password', type: 'password' }
   ]
 });
 ```
@@ -42,22 +40,21 @@ By default every hash has length equal to the length of value that it correspond
 
 ::: example #example2
 ```js
-var example2 = document.getElementById('example2'),
-  hot2;
+const example2 = document.getElementById('example2');
 
-hot2 = new Handsontable(example2, {
+const hot2 = new Handsontable(example2, {
   data: [
-    {id: 1, name: {first: 'Chris', last: 'Right'}, password: 'plainTextPassword'},
-    {id: 2, name: {first: 'John', last: 'Honest'}, password: 'txt'},
-    {id: 3, name: {first: 'Greg', last: 'Well'}, password: 'longer'}
+    { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
+    { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
+    { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
   ],
   colHeaders: ['ID', 'First name', 'Last name', 'Password'],
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
-    {data: 'id'},
-    {data: 'name.first'},
-    {data: 'name.last'},
-    {data: 'password', type: 'password', hashLength: 10}
+    { data: 'id' },
+    { data: 'name.first' },
+    { data: 'name.last' },
+    { data: 'password', type: 'password', hashLength: 10 }
   ]
 });
 ```
@@ -69,22 +66,21 @@ By default every hash consists of asterisks `*`. Use option `hashSymbol` to set 
 
 ::: example #example3
 ```js
-var example3 = document.getElementById('example3'),
-  hot3;
+const example3 = document.getElementById('example3');
 
-hot3 = new Handsontable(example3, {
+const hot3 = new Handsontable(example3, {
   data: [
-    {id: 1, name: {first: 'Chris', last: 'Right'}, password: 'plainTextPassword'},
-    {id: 2, name: {first: 'John', last: 'Honest'}, password: 'txt'},
-    {id: 3, name: {first: 'Greg', last: 'Well'}, password: 'longer'}
+    { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
+    { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
+    { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
   ],
   colHeaders: ['ID', 'First name', 'Last name', 'Password'],
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
-    {data: 'id'},
-    {data: 'name.first'},
-    {data: 'name.last'},
-    {data: 'password', type: 'password', hashSymbol: '&#9632;'}
+    { data: 'id' },
+    { data: 'name.first' },
+    { data: 'name.last' },
+    { data: 'password', type: 'password', hashSymbol: '&#9632;' }
   ]
 });
 ```

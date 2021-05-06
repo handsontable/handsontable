@@ -3,9 +3,10 @@ title: Cell validator
 permalink: /next/cell-validator
 canonicalUrl: /cell-validator
 ---
-[[toc]]
 
-## Registering a validator
+# Cell validator
+
+[[toc]]
 
 When you create a validator, a good idea is to assign it as an alias that will refer to this particular validator function. Handsontable defines 5 aliases by default:
 
@@ -16,6 +17,8 @@ When you create a validator, a good idea is to assign it as an alias that will r
 * `time` for `Handsontable.validators.TimeValidator`
 
 It gives users a convenient way for defining which validator should be used when table validation was triggered. User doesn't need to know which validator function is responsible for checking the cell value, he does not even need to know that there is any function at all. What is more, you can change the validator function associated with an alias without a need to change code that defines a table.
+
+## Registering custom cell validator
 
 To register your own alias use `Handsontable.validators.registerValidator()` function. It takes two arguments:
 
@@ -32,23 +35,23 @@ Choose aliases wisely. If you register your validator under name that is already
 
 ```js
 Handsontable.validators.registerValidator('date', creditCardValidator);
-
-// Now 'date' alias points to `creditCardValidator` function, not Handsontable.validators.DateValidator
 ```
+Now 'date' alias points to `creditCardValidator` function, not `Handsontable.validators.DateValidator`.
+
 
 So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your validator, because you never know aliases has been registered by the user who uses your validator.
 
 ```js
 Handsontable.validators.registerValidator('credit-card', creditCardValidator);
-
-// Someone might already registered such alias
 ```
+
+Someone might already registered such alias.
 
 ```js
 Handsontable.validators.registerValidator('my.credit-card', creditCardValidator);
-
-// That's better.
 ```
+
+That's better.
 
 ## Using an alias
 
@@ -75,60 +78,45 @@ From now on, you can use `customValidator` like so:
 ```js
 var hot = new Handsontable(document.getElementById('container'), {
   data: someData,
-  columns: [
-    {
-      validator: 'my.custom'
-    }
-  ]
+  columns: [{
+    validator: 'my.custom'
+  }]
 });
 ```
 
 ## Full featured example
 
-Use the **validator** (see [options page](api/dataMap/metaManager/metaSchema.md#validator)) method to easily validate synchronous or asynchronous changes to a cell. If you need more control, **beforeValidate** and **afterValidate** plugin hooks are available (see [hooks page](api/pluginHooks.md#beforevalidate)). In the below example, `email_validator_fn` is an async validator that resolves after 1000 ms.
+Use the **validator**  method to easily validate synchronous or asynchronous changes to a cell. If you need more control, **beforeValidate** and **afterValidate** plugin hooks are available. In the below example, `email_validator_fn` is an async validator that resolves after 1000 ms.
 
-Use the **allowInvalid** option (see [options page](api/dataMap/metaManager/metaSchema.md#allowinvalid)) to define if the grid should accept input that does not validate. If you need to modify the input (e.g. censor bad words, uppercase first letter), use the plugin hook **beforeChange** (see [hooks page](api/pluginHooks.md#beforechange)).
+Use the **allowInvalid** option to define if the grid should accept input that does not validate. If you need to modify the input (e.g. censor bad words, uppercase first letter), use the plugin hook **beforeChange**.
 
-By default all invalid cells are marked by `htInvalid` CSS class. If you want to change class to another you can basically add the [`invalidCellClassName`](api/dataMap/metaManager/metaSchema.md#invalidcellclassname) option to Handsontable settings. For example:
+By default, all invalid cells are marked by `htInvalid` CSS class. If you want to change class to another you can basically add the `invalidCellClassName` option to Handsontable settings. For example:
 
+For whole table
 ```js
-// For whole table
-invalidCellClassName: 'myInvalidClass',
+invalidCellClassName: 'myInvalidClass'
+```
 
-
-// For specified columns
+For specific columns
+```js
 columns: [
-  {data: 'firstName', invalidCellClassName: 'myInvalidClass'},
-  {data: 'lastName', invalidCellClassName: 'myInvalidSecondClass'},
-  {data: 'address'},
+  { data: 'firstName', invalidCellClassName: 'myInvalidClass' },
+  { data: 'lastName', invalidCellClassName: 'myInvalidSecondClass' },
+  { data: 'address' }
 ]
 ```
 
-<pre id="example1console"></pre>
+Callback console log:
+<pre class="language-js">
+  <code id="example1console">Here you will see the log</code>
+</pre>
 
 ::: example #example1
 ```js
-var people = [
-  {id: 1, name: {first: 'Joe', last: 'Fabiano'}, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com'},
-  {id: 2, name: {first: 'Fred', last: 'Wecler'}, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com'},
-  {id: 3, name: {first: 'Steve', last: 'Wilson'}, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com'},
-  {id: 4, name: {first: 'Maria', last: 'Fernandez'}, ip: '0.0.0.1', email: 'M.Fernandez@ex.com'},
-  {id: 5, name: {first: 'Pierre', last: 'Barbault'}, ip: '0.0.0.1', email: 'Pierre.Barbault@ex.com'},
-  {id: 6, name: {first: 'Nancy', last: 'Moore'}, ip: '0.0.0.1', email: 'Nancy.Moore@ex.com'},
-  {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, ip: '0.0.0.1', email: 'B.MacDonald@ex.com'},
-  {id: 8, name: {first: 'Wilma', last: 'Williams'}, ip: '0.0.0.1', email: 'Wilma.Williams@ex.com'},
-  {id: 9, name: {first: 'Sasha', last: 'Silver'}, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com'},
-  {id: 10, name: {first: 'Don', last: 'Pérignon'}, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com'},
-  {id: 11, name: {first: 'Aaron', last: 'Kinley'}, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com'}
-],
-example1 = document.getElementById('example1'),
-example1console = document.getElementById('example1console'),
-settings1,
-ipValidatorRegexp,
-emailValidator;
-
-ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
-emailValidator = function (value, callback) {
+const example1 = document.getElementById('example1');
+const example1console = document.getElementById('example1console');
+const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
+const emailValidator = function (value, callback) {
   setTimeout(function(){
     if (/.+@.+/.test(value)) {
       callback(true);
@@ -139,10 +127,22 @@ emailValidator = function (value, callback) {
   }, 1000);
 };
 
-settings1 = {
-  data: people,
+const hot = new Handsontable(example1, {
+  data: [
+    { id: 1, name: { first: 'Joe', last: 'Fabiano' }, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com' },
+    { id: 2, name: { first: 'Fred', last: 'Wecler' }, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com' },
+    { id: 3, name: { first: 'Steve', last: 'Wilson' }, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com' },
+    { id: 4, name: { first: 'Maria', last: 'Fernandez' }, ip: '0.0.0.1', email: 'M.Fernandez@ex.com' },
+    { id: 5, name: { first: 'Pierre', last: 'Barbault' }, ip: '0.0.0.1', email: 'Pierre.Barbault@ex.com' },
+    { id: 6, name: { first: 'Nancy', last: 'Moore' }, ip: '0.0.0.1', email: 'Nancy.Moore@ex.com' },
+    { id: 7, name: { first: 'Barbara', last: 'MacDonald' }, ip: '0.0.0.1', email: 'B.MacDonald@ex.com' },
+    { id: 8, name: { first: 'Wilma', last: 'Williams' }, ip: '0.0.0.1', email: 'Wilma.Williams@ex.com' },
+    { id: 9, name: { first: 'Sasha', last: 'Silver' }, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com' },
+    { id: 10, name: { first: 'Don', last: 'Pérignon' }, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com' },
+    { id: 11, name: { first: 'Aaron', last: 'Kinley' }, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com' }
+  ],
   beforeChange: function (changes, source) {
-    for (var i = changes.length - 1; i >= 0; i--) {
+    for (let i = changes.length - 1; i >= 0; i--) {
       // gently don't accept the word "foo" (remove the change at index i)
       if (changes[i][3] === 'foo') {
         changes.splice(i, 1);
@@ -164,24 +164,18 @@ settings1 = {
       example1console.innerText = JSON.stringify(changes);
     }
   },
-  rowHeaders: true,
-  contextMenu: true,
   colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
-    {data: 'id', type: 'numeric'},
-    {data: 'name.first'},
-    {data: 'name.last'},
-    {data: 'ip', validator: ipValidatorRegexp, allowInvalid: true},
-    {data: 'email', validator: emailValidator, allowInvalid: false}
+    { data: 'id', type: 'numeric' },
+    { data: 'name.first' },
+    { data: 'name.last' },
+    { data: 'ip', validator: ipValidatorRegexp, allowInvalid: true },
+    { data: 'email', validator: emailValidator, allowInvalid: false }
   ]
-};
-
-var hot = new Handsontable(example1, settings1);
+});
 ```
 :::
-
-Callback console: `[[row, col, oldValue, newValue], ...]`
 
 Edit the above grid to see callback
 

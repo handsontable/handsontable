@@ -32,39 +32,26 @@ Mouse click outside of the editor or on one of the cells in HOT-in-HOT applies c
 
 ::: example #example1
 ```js
-var carData = [
+const container = document.getElementById('example1');
+const colorData = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
+const manufacturerData = [
+  { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
+  { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
+  { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },
+  { name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation' },
+  { name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation' },
+  { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' }
+];
+
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
     ['Tesla', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
     ['Chrysler', 2019, 'yellow', 'black'],
     ['Volvo', 2020, 'white', 'gray']
   ],
-  container = document.getElementById('example1'),
-  manufacturerData,
-  colors,
-  color,
-  colorData = [],
-  hot;
-
-manufacturerData = [
-  {name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG'},
-  {name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC'},
-  {name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd'},
-  {name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation'},
-  {name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation'},
-  {name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group'}
-];
-colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
-
-while (color = colors.shift()) {
-  colorData.push([
-    [color]
-  ]);
-}
-
-hot = new Handsontable(container, {
-  data: carData,
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
-  licenseKey: 'non-commercial-and-evaluation',
   columns: [
     {
       type: 'handsontable',
@@ -81,7 +68,7 @@ hot = new Handsontable(container, {
         },
       }
     },
-    {type: 'numeric'},
+    { type: 'numeric' },
     {
       type: 'handsontable',
       handsontable: {
