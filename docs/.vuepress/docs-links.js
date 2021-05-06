@@ -8,16 +8,17 @@ module.exports = function(src) {
 
   return src.replace(/\((@\/([^)]*\.md))\)/g, (m, full, file) => {
     let permalink = full;
-    
+
     try {
       const fm = parseFrontmatter(fs.readFileSync(path.resolve(basePath, version, file)));
 
       if (fm.data.permalink) {
-        permalink = fm.data.permalink
+        permalink = fm.data.permalink;
         permalink = permalink.replace(new RegExp(`^/${latest}/`), '/');
         permalink = permalink.endsWith('/') ? permalink : `${permalink}/`;
       }
-    }catch(e){
+    } catch (e) {
+      // eslint-disable-next-line
       console.warn(`Error occurs when trying to find "${full}" permalink. Is this file exists?`);
     }
 
