@@ -31,7 +31,7 @@ const App = () => {
   )
 }
 
-ReactDOM.render(<App />, document.querySelector('#example1'));
+ReactDOM.render(<App />, document.getElementById('example1'));
 ```
 
 ```html
@@ -65,7 +65,7 @@ const App = () => {
   )
 }
 
-ReactDOM.render(<App />, document.querySelector('#example2'));
+ReactDOM.render(<App />, document.getElementById('example2'));
 ```
 
 ```html
