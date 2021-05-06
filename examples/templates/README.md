@@ -13,7 +13,7 @@ In this guideline, we will walk you through the process of creating new code exa
 
 First off, create a new branch in order to keep the development process clean.
 
-Inside the `examples/templates` directory where all templates for future code examples live. You can see that we have templates for examples made in React, Angular, Vue, and of course vanilla JavaScript.
+Inside the `examples/templates` directory where all templates for future code examples live. You can see that we have templates for examples made in React, Angular, Vue, and of course Vanilla JavaScript.
 
 To create a new code example in Vanilla JavaScript to be used in the Handsontable official documentation, we need to make use of the template from the `examples/templates/js` directory.
 
