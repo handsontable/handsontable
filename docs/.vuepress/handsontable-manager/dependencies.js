@@ -72,6 +72,7 @@ const buildDependencyGetter = (version) => {
 const presetMap = {
   /* eslint-disable max-len */
   hot: ['hot'],
+  'hot-lang': ['hot', 'languages'],
   react: ['hot', 'react', 'react-dom', 'hot-react', 'fixer'],
   'react-numbro': ['hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer'],
   'react-redux': ['hot', 'react', 'react-dom', 'redux', 'hot-react', 'fixer'],

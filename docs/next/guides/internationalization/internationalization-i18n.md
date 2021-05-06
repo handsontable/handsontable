@@ -57,7 +57,7 @@ To properly use the internationalization feature, you'll need to load the langua
 
 Please right click on a cell to see the translated context menu. Language files were loaded after loading Handsontable.
 
-::: example #example1
+::: example #example1 :hot-lang
 ```js
 const container = document.querySelector('#example1');
 
