@@ -10,7 +10,12 @@ canonicalUrl: /react-simple-examples
 
 ## Get started
 
-::: example #example1 :react --js 1 --html 2
+::: example #example1 :react --html 1 --js 2
+```html
+<!-- a root div in which the component is being rendered -->
+<div id="example1"></div>
+```
+
 ```jsx
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -33,16 +38,11 @@ const App = () => {
 
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
-
-```html
-<!-- a root div in which the component is being rendered -->
-<div id="example1"></div>
-```
 :::
 
 ## A single property configuration
 
-::: example #example2 :react --js 1 --html 2
+::: example #example2 :react
 ```jsx
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -67,16 +67,11 @@ const App = () => {
 
 ReactDOM.render(<App />, document.getElementById('example2'));
 ```
-
-```html
-<!-- a root div in which the component is being rendered -->
-<div id="example2"></div>
-```
 :::
 
 ## External control
 
-::: example #example3 :react --js 1 --html 2 --css 3
+::: example #example3 :react
 ```jsx
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
@@ -135,21 +130,5 @@ const App = () => {
 }
 
 ReactDOM.render(<App />, document.getElementById('example3'));
-```
-
-```html
-<!-- a root div in which the component is being rendered -->
-<div id="example3"></div>
-```
-
-```css
-.controllers {
-  width: 200px;
-  float: left;
-}
-.controllers input[type=checkbox] {
-  margin-left: 5px;
-  margin-right: 5px;
-}
 ```
 :::
