@@ -57,14 +57,13 @@ module.exports = {
         config.module
           .rule('md')
           .test(/\.md$/)
-          .use(path.resolve(__dirname,'tools/test'))
-          .loader(path.resolve(__dirname,'tools/test'))
+          .use(path.resolve(__dirname,'docs-links'))
+          .loader(path.resolve(__dirname,'docs-links'))
           .end()
       },
     },
   ],
   extendPageData($page) {
-    console.log('Do', $page.path);
     $page.versions = helpers.getVersions();
     $page.latestVersion = helpers.getLatestVersion();
     $page.currentVersion = helpers.parseVersion($page.path);
