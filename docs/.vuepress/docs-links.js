@@ -7,14 +7,18 @@ module.exports = function(src) {
   const basePath = this.rootContext;
 
   return src.replace(/\((@\/([^)]*\.md))\)/g, (m, full, file) => {
-    const fm = parseFrontmatter(fs.readFileSync(path.resolve(basePath, version, file)));
-    let permalink = fm.data.permalink;
+    let permalink = full;
+    
+    try {
+      const fm = parseFrontmatter(fs.readFileSync(path.resolve(basePath, version, file)));
 
-    if (permalink) {
-      permalink = permalink.replace(new RegExp(`^/${latest}/`), '/');
-      permalink = permalink.endsWith('/') ? permalink : `${permalink}/`;
-    } else {
-      permalink = full;
+      if (fm.data.permalink) {
+        permalink = fm.data.permalink
+        permalink = permalink.replace(new RegExp(`^/${latest}/`), '/');
+        permalink = permalink.endsWith('/') ? permalink : `${permalink}/`;
+      }
+    }catch(e){
+      console.warn(`Error occurs when trying to find "${full}" permalink. Is this file exists?`);
     }
 
     return `(${permalink})`;
