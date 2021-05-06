@@ -1,8 +1,8 @@
+const path = require('path');
 const highlight = require('./highlight');
 const helpers = require('./helpers');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
-const path = require('path');
 
 const environmentHead = process.env.BUILD_MODE === 'production' ?
   [
@@ -50,16 +50,16 @@ module.exports = {
         // inject custom markdown highlight with our snippet runner
         config
           .options
-            .highlight(highlight)
+          .highlight(highlight)
           .end();
       },
-      chainWebpack: config => {
+      chainWebpack: (config) => {
         config.module
           .rule('md')
           .test(/\.md$/)
-          .use(path.resolve(__dirname,'docs-links'))
-          .loader(path.resolve(__dirname,'docs-links'))
-          .end()
+          .use(path.resolve(__dirname, 'docs-links'))
+          .loader(path.resolve(__dirname, 'docs-links'))
+          .end();
       },
     },
   ],
