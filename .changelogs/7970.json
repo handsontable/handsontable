@@ -1,0 +1,7 @@
+{
+  "title": "Indicator for the CollapsibleColumns plugin will look good for styled TH element.",
+  "type": "fixed",
+  "issue": 7970,
+  "breaking": false,
+  "framework": "none"
+}
