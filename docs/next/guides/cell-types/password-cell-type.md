@@ -8,7 +8,7 @@ canonicalUrl: /password-cell-type
 
 [[toc]]
 
-## Password cell type
+## Overview
 
 This kind of cell behaves like a text cell with a difference that it masks its value using asterisk in cell renderer. For the cell editor, a `<input type="password">` field is used. Data is stored in the data source as plain text.
 

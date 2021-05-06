@@ -78,8 +78,7 @@ hot.refreshDimensions();
 
 You can listen for two hooks, `beforeRefreshDimensions` and `afterRefreshDimensions`.
 
-<button id="expander" className="button button--primary">Expand</button> container
-<br/><br/>
+<button id="expander" className="button button--primary">Expand container</button> 
 
 ::: example #example
 ```js

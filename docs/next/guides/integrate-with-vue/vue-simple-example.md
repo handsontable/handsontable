@@ -12,7 +12,7 @@ A `div` element of `id="example"` where the `@handsontable/vue` component will b
 
 ::: example #example1 :vue --html 1 --js 5 
 ```html
-<div id="example1" class="hot">
+<div id="example1">
     <hot-table :settings="hotSettings"></hot-table>
 </div>
 ```

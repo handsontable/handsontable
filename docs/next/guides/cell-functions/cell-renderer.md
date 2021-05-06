@@ -4,9 +4,11 @@ permalink: /next/cell-renderer
 canonicalUrl: /cell-renderer
 ---
 
-## Registering a renderer
+# Cell renderer
 
 [[toc]]
+
+## Registering a renderer
 
 When you create a renderer, a good idea is to assign it as an alias that will refer to this particular renderer function. Handsontable defines 10 aliases by default:
 

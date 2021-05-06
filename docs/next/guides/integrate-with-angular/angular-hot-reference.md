@@ -21,7 +21,7 @@ import { HotTableRegisterer } from '@handsontable/angular';
 @Component({
   selector: 'app-root',
   template: `
-  <div class="hot">
+  <div>
     <hot-table [hotId]="id" [settings]="hotSettings"></hot-table>
   </div>
   <br>

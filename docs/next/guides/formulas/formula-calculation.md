@@ -176,6 +176,7 @@ const data = [
 
 const hot4 = new Handsontable(container, {
   data,
+  height: 320,
   colHeaders: true,
   rowHeaders: true,
   contextMenu: true,

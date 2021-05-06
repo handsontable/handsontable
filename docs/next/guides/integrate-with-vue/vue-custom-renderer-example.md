@@ -14,7 +14,7 @@ You can declare a custom renderer for the `HotTable` component either by declari
 
 ::: example #example1 :vue --html 1 --js 2
 ```html
-<div id="example1" class="hot">
+<div id="example1">
   <hot-table :settings="hotSettings"></hot-table>
 </div>
 ```

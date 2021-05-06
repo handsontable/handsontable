@@ -176,6 +176,7 @@ const hot = new Handsontable(container, {
   colHeaders: ['Category', 'Artist', 'Title', 'Album', 'Label'],
   nestedRows: true,
   contextMenu: true,
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 :::

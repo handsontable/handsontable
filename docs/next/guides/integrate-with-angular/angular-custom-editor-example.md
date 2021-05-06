@@ -38,7 +38,7 @@ class CustomEditor extends Handsontable.editors.TextEditor {
 @Component({
   selector: 'app-root',
   template: `
-  <div class="hot">
+  <div>
     <hot-table [settings]="hotSettings"></hot-table>
   </div>
   `,

@@ -23,11 +23,10 @@ import * as Handsontable from 'handsontable';
   template: `
   <div>
     <hot-table
-      class="hot"
       [data]="dataset"
       [colHeaders]="true"
       [rowHeaders]="true"
-      [licenseKey]="non-commercial-and-evaluation">
+      licenseKey="non-commercial-and-evaluation">
         <hot-column data="id" [readOnly]="true" title="ID"></hot-column>
         <hot-column data="name" title="Full name"></hot-column>
         <hot-column data="address" title="Street name"></hot-column>

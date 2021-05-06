@@ -16,7 +16,7 @@ To declare column-specific settings, simply pass the settings as `hot-column` pr
 
 ::: example #example1 :vue --html 1 --js 2
 ```html
-<div id="example1" class="hot">
+<div id="example1">
   <hot-table :data="hotData">
     <hot-column title="First column header">
     </hot-column>
@@ -37,8 +37,9 @@ new Vue({
     return {
       hotData: Handsontable.helper.createSpreadsheetData(10, 10),
       secondColumnSettings: {
-        title: 'Second column header'
-      }
+        title: 'Second column header',
+        licenseKey: 'non-commercial-and-evaluation'
+      },
     }
   },
   components: {
@@ -55,7 +56,7 @@ To work with an array of objects for the `hot-column` component you need to prov
 
 ::: example #example2 :vue --html 1 --js 2
 ```html
-<div id="example2" class="hot">
+<div id="example2">
   <hot-table :data="hotData">
     <hot-column title="ID" data="id">
     </hot-column>
@@ -109,7 +110,7 @@ Be sure to turn those options off in your Handsontable config, as keeping them e
 
 ::: example #custom-renderer-example :vue --html 1 --js 2
 ```html
-<div id="custom-renderer-example" class="hot">
+<div id="custom-renderer-example">
   <hot-table :settings="hotSettings">
     <hot-column :width="250">
       <custom-renderer hot-renderer></custom-renderer>
@@ -180,7 +181,7 @@ This will give you a solid base to build upon. Note, that the editor component n
 
 ::: example #custom-editor-example :vue --html 1 --js 2 
 ```html
-<div id="custom-editor-example" class="hot">
+<div id="custom-editor-example">
   <hot-table :settings="hotSettings">
     <hot-column :width="250">
       <custom-editor hot-editor></custom-editor>
@@ -315,7 +316,7 @@ List of row indexes (starting from 0):
 
 ::: example #v-model-example :vue --html 1 --js 2
 ```html
-<div id="v-model-example" class="hot">
+<div id="v-model-example">
   <label for="mainInput">List of row indexes (starting from 0):</label><br>
     <input id="mainInput" v-model="highlightedRows"/>
 

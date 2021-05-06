@@ -10,7 +10,7 @@ canonicalUrl: /context-menu
 
 ## Context menu with default options
 
-To run the basic configuration of the Context Menu, just set the contextMenu option to `true`.
+To run the basic configuration of the Context Menu, just set the `contextMenu` option to `true`.
 
 ::: example #example1
 ```js
@@ -37,7 +37,7 @@ const hot1 = new Handsontable(container, settings);
 
 ## Context menu with specific options
 
-You can limit options available in the context menu using contextMenu option as an array of keys which are strings:
+You can define items in the menu by passing the `contextMenu` option as an array of keys which are strings:
 
 | Key | Purpose | Extra conditions |
 |----|----|----|

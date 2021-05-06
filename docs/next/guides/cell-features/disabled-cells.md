@@ -4,17 +4,23 @@ permalink: /next/disabled-cells
 canonicalUrl: /disabled-cells
 tags:
   - read-only
+  - noneditable
+  
 ---
 
 # Disabled cells
 
 [[toc]]
 
+## Overview
+
+Disabling a cell makes the cell read-only or non-editable. Both have similar outcomes, the difference between the two being that the non-editable cells allow the drag-to-fill functionality, whereas read-only cells do not.
+
 ## Read-only columns
 
-In many usage cases, you will need to configure a certain column to be read only. This column will be available for keyboard navigation and CTRL+C. Only editing and pasting data will be disabled.
+In many use cases, you will need to configure a certain column to be read-only. This column will be available for keyboard navigation and <kbd>CTRL+C</kbd>. Editing and pasting data will be disabled.
 
-To make a column read-only, declare it in the `columns` setting. You can also define a special renderer function that will dim the read-only values.
+To make a column read-only, declare it in the `columns` setting. You can also define a special renderer function that will dim the read-only values, providing a visual cue for the user that the cells are read-only.
 
 ::: example #example1
 ```js
@@ -50,7 +56,7 @@ const hot1 = new Handsontable(container, {
 
 ## Read-only specific cells
 
-This example makes cells that contain the word "Nissan" read only. It forces all cells to be processed by the `cells` function which will decide whether a cell meta should have set `readOnly` property.
+This example makes cells that contain the word "Nissan" read-only. It forces all cells to be processed by the `cells` function which will decide whether a cell's metadata should have the `readOnly` property set.
 
 ::: example #example2
 ```js
@@ -81,15 +87,15 @@ hot2.updateSettings({
 ```
 :::
 
-## Read-only cells vs non-editable cells
+## Read-only cells vs. non-editable cells
 
-Non-editable cells behave like any other cells apart from preventing you from manually changing their values. You are still allowed to copy-paste or drag-to-fill the data. There is no additional CSS class added.
+Non-editable cells behave like any other cells apart from preventing you from manually changing their values. You are still able to copy-paste or drag-to-fill the data. There is no additional CSS class added. Read-only cells do not permit the drag-to-fill functionality.
 
 ## Non-editable columns
 
-In many cases you will need to configure a certain column to be non-editable. Doing it does not change it's basic behaviour (apart from editing), which means you are still available to use keyboard navigation, <kbd>CTRL+C</kbd> and <kbd>CTRL+V</kbd> functionalities, drag-to-fill etc.
+In many cases, you will need to configure a certain column to be non-editable. Doing this does not change its basic behaviour, apart from editing. This means that you can still use the keyboard navigation <kbd>CTRL+C</kbd>, and <kbd>CTRL+V</kbd> functionalities, and drag-to-fill, etc.
 
-To make a column non-editable, declare it in the `columns` setting. You can also define a special renderer function that will dim the `editor` value.
+To make a column non-editable, declare it in the `columns` setting. You can also define a special renderer function that will dim the `editor` value. This will provide the user with a visual cue that the cell is non-editable.
 
 ::: example #example3
 ```js
@@ -128,7 +134,7 @@ const hot3 = new Handsontable(container, {
 
 ## Non-editable specific cells
 
-The following example shows the table with non-editable cells containing the word "Nissan". This property of the cell is optional and can be easily set in the configuration of Handsontable.
+The following example shows the table with non-editable cells containing the word "Nissan". This cell property is optional and can be easily set in the Handsontable configuration.
 
 ::: example #example4
 ```js

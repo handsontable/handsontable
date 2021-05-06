@@ -6,7 +6,17 @@ canonicalUrl: /merge-cells
 
 # Merge cells
 
-To enable the merge cells feature, set the `mergeCells` option to be `true` or an array. To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array: `mergeCells: [{row: 1, col: 1, rowspan: 2, colspan: 2}]`
+[[toc]]
+
+## Overview
+
+The merging cells feature enables you to combine the contents of two or more cells to create a new larger cell that spans several columns. Particularly useful when you have data that's length is greater than the width of the column. For example, a license id that's length is so long that it needs more than one column width to view it in its entirety.
+
+## How to merge cells
+
+To enable the merge cells feature, set the `mergeCells` option to be `true` or an array. 
+
+To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array: `mergeCells: [{row: 1, col: 1, rowspan: 2, colspan: 2}]`.
 
 ::: example #example1
 ```js

@@ -174,19 +174,19 @@ Please mind that selecting a column in the Filter component resets the state of 
     <select></select>
   </div>
 
-  <div class='filterSelect'>
-    <div className='controllers'>
+  <div id='filterSelect'>
+    <div class='controllers'>
       <div>
         <input type='checkbox' id='filtersSelectAll' checked="true" />
         <label for='filtersSelectAll'>(Select all)</label>
       </div>
     </div>
-    <div className='items'></div>
+    <div class='items'></div>
   </div>
 
-  <div className='buttons'>
-    <button className='apply'>Apply filter</button>
-    <button className='clear'>Clear filter</button>
+  <div class='buttons'>
+    <button class='apply'>Apply filter</button>
+    <button class='clear'>Clear filter</button>
   </div>
 </div>
 

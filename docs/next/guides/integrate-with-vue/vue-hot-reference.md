@@ -11,7 +11,7 @@ An implementation of the `@handsontable/vue` explaining how to reference the Han
 
 ::: example #example1 :vue --html 1 --js 2
 ```html
-<div id="example1" class="hot">
+<div id="example1">
   <hot-table ref="hotTableComponent" :settings="hotSettings"></hot-table><br/>
   <button v-on:click="swapHotData">Load new data!</button>
 </div>

@@ -8,13 +8,45 @@ canonicalUrl: /setting-options
 
 [[toc]]
 
-## Introduction to the `Settings` object
+## Overview
 
-- krotko o settings object - jak mozna przekazywac opcje, gdzie jest znalezc
-- wspomniec o core i plugins
-- wspomniec i podlinkowac cascade config (u dolu strony)
-- ta strona idealnie, gdyby pokazywala jak mozna zastosowac opcje do: cell, range of cells, row, row range (adjacent and non-adjacent), columns (adjacent and non-adjacent), entire grid. Idealnie gdyby pokazala tez jak to zrobic za pomoca funkcji.
-- Praca z danymi jest najwazniejsza czescia grida. Powinna byc super jasne jak: zaladowac dane, aktualizowac dane, zapisac dane, odczytac dane. Powinno byc jasne jak praco
+## Available options
+
+Opisać core i plugins i wrzucić linki do reference do obu
+
+Najlepiej jakby to było dostępne też dla wrapperów
+
+## The cascading configuration
+
+### Entire grid
+
+Contructor
+
+### Single cell
+
+Address by row / col order; A1, B2; ID column and row
+
+### Single range of cells
+
+### Multiple ranges of cells
+
+### Single column
+
+Address by col order; or ID
+
+### Single range of columns
+
+### Multiple ranges of columns
+
+### Single row
+
+Address by order or ID (from column 1)
+
+### Single range of rows
+
+### Multiple ranges of rows
+
+
 
 ## Introduction to cell options
 

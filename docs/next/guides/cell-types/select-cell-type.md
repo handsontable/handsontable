@@ -6,7 +6,13 @@ canonicalUrl: /select-cell-type
 
 # Select cell type
 
+[[toc]]
+
+## Overview
+
 Select editor should be considered an example how to write editors rather than used as a fully featured editor. It is a much simpler form of the [Dropdown editor](dropdown.md). It is suggested to use the latter in your projects.
+
+## Basic example
 
 ::: example #example1
 ```js

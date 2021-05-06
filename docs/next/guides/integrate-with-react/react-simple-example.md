@@ -13,7 +13,7 @@ canonicalUrl: /react-simple-examples
 ::: example #example1 :react --html 1 --js 2
 ```html
 <!-- a root div in which the component is being rendered -->
-<div id="example1" class="hot"></div>
+<div id="example1"></div>
 ```
 
 ```jsx
@@ -26,7 +26,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     
-    this.handsontableData = Handsontable.helper.createSpreadsheetData(100, 50);
+    this.handsontableData = Handsontable.helper.createSpreadsheetData(6, 10);
   }
   render() {
     return (<div>
@@ -61,7 +61,7 @@ import Handsontable from 'handsontable';
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.handsontableData = Handsontable.helper.createSpreadsheetData(100, 50);
+    this.handsontableData = Handsontable.helper.createSpreadsheetData(6, 10);
   }
   render() {
     return (<div>
@@ -110,7 +110,7 @@ class MyComponent extends React.Component {
     super(props);
     this.state = {
       settings: {
-        data: Handsontable.helper.createSpreadsheetData(100, 50),
+        data: Handsontable.helper.createSpreadsheetData(15, 20),
         width: 570,
         height: 220,
         licenseKey: 'non-commercial-and-evaluation'

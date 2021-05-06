@@ -46,7 +46,7 @@ Currently, the following tasks are available for building Handsontable:
 
 To run your own build, follow the below steps:
 
-1. Install Node.js (available for Windows, Mac and Linux). This will also install NPM (Node Package Manager) that handles all the dependencies. Handsontable requires **Node.js >=10** and **npm >=6** for building and testing.
+1. Install Node.js (available for Windows, Mac and Linux). This will also install NPM (Node Package Manager) that handles all the dependencies. Handsontable requires **Node.js >=15.11.0** and npm **>=7.1.1** for building and testing.
 2. Clone the Handsontable repository on your local disk and go to the directory where you cloned it.
 3. Run `npm install` to download all the dependencies defined in `package.json`. The dependencies will be downloaded into a new directory `node_modules`, that is ignored by Git.
 4. **Run `npm run build` to make your first build!**
