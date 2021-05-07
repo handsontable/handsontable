@@ -6,7 +6,7 @@ import {
 } from './../../../helpers/dom/element';
 import { partial } from './../../../helpers/function';
 import { isTouchSupported } from './../../../helpers/feature';
-import { isMobileBrowser, isChrome, isFirefox, isIOS } from './../../../helpers/browser';
+import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import { isDefined } from '../../../helpers/mixed';
 
@@ -315,7 +315,7 @@ class Event {
     // To prevent accidental redirects or other actions that the interactive elements (e.q "A" link) do
     // while the cell is highlighted, all touch events that are triggered on different cells are
     // "preventDefault"'ed. The user can interact with the element (e.q. click on the link that opens
-    // a new page) only when the same cell was previously selected (see related issue #7659).
+    // a new page) only when the same cell was previously selected (see related PR #7980).
     if (isEventCancelable) {
       const interactiveElements = ['A', 'BUTTON', 'INPUT'];
 
@@ -325,7 +325,7 @@ class Event {
       // To make the interactive elements work, the event target element has to be check. If the element
       // matches the allow-list, the event is not prevented.
       if (isIOS() &&
-          (isChrome() || isFirefox()) &&
+          (isChromeWebKit() || isFirefoxWebKit()) &&
           this.selectedCellWasTouched(target) &&
           !interactiveElements.includes(target.tagName)) {
         event.preventDefault();
