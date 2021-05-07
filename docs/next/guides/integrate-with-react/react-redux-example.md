@@ -82,10 +82,10 @@ const App = () => {
 
           <table>
             <tbody>
-              {Object.entries(hotSettings).map((setting, i) => setting[0] !== 'data' && (
-                <tr key={i}>
-                  <td><strong>{setting[0]}:</strong></td>
-                  <td>{setting[1].toString()}</td>
+              {Object.entries(hotSettings).map(([name, value]) => name !== 'data' && (
+                <tr key={`${name}${value}`}>
+                  <td><strong>{name}:</strong></td>
+                  <td>{value.toString()}</td>
                 </tr>
               ))}
             </tbody>

@@ -43,9 +43,9 @@ const App = () => {
       <label htmlFor="languages">Select language:
         {' '}
         <select value={language} onChange={updateHotLanguage} id="languages">
-          {languageList.map(lang => (
-            <option key={lang.languageCode} value={lang.languageCode}>
-              {lang.languageCode}
+          {languageList.map(({ languageCode }) => (
+            <option key={languageCode} value={languageCode}>
+              {languageCode}
             </option>
           ))}
         </select>

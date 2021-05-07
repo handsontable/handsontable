@@ -65,11 +65,9 @@ In strict mode, the **allowInvalid** option determines the behaviour in case of 
 
 ::: example #example2
 ```js
-var
-  example2 = document.getElementById('example2'),
-  hot2;
+const container = document.querySelector('#example2');
 
-hot2 = new Handsontable(example2, {
+const hot2 = new Handsontable(container, {
   data: [
     ['BMW', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
@@ -109,11 +107,9 @@ Autocomplete can be also used with Ajax data source. In the below example, sugge
 
 ::: example #example3
 ```js
-var
-  example3 = document.getElementById('example3'),
-  hot3;
+const container = document.querySelector('#example3');
 
-hot3 = new Handsontable(example3, {
+const hot3 = new Handsontable(container, {
   data: [
     ['BMW', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
@@ -125,7 +121,7 @@ hot3 = new Handsontable(example3, {
   columns: [
     {
       type: 'autocomplete',
-      source: function (query, process) {
+      source(query, process) {
         fetch('/docs/scripts/json/autocomplete.json')
           .then(response => response.json())
           .then(data => process(data.data));

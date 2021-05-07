@@ -27,8 +27,9 @@ In this example we first add a custom class `custom-class` to the cell in the to
 
 ::: example #example
 ```javascript
-var example = document.getElementById('example');
-var hot = new Handsontable(example, {
+const container = document.querySelector('#example');
+
+const hot = new Handsontable(container, {
  data: Handsontable.helper.createSpreadsheetData(5, 5),
  rowHeaders: true,
  colHeaders: true,
@@ -44,8 +45,9 @@ You can pass the styles in the `Settings` object by referencing the target cells
 
 ::: example #example1
 ```javascript
-var example1 = document.getElementById('example1');
-var hot1 = new Handsontable(example1, {
+const container = document.querySelector('#example1');
+
+const hot1 = new Handsontable(container, {
  data: Handsontable.helper.createSpreadsheetData(5, 5),
  rowHeaders: true,
  colHeaders: true,

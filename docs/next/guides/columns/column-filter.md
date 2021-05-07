@@ -53,7 +53,7 @@ To display filters while hiding the other elements in the dropdown menu, pass th
 
 ::: example #example2
 ```js
-const container = document.querySelector('@example2');
+const container = document.querySelector('#example2');
 
 const hot2 = new Handsontable(container, {
   data: [
