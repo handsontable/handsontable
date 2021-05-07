@@ -13,14 +13,16 @@ const tester = (testerFunc) => {
 };
 
 const browsers = {
-  chrome: tester((ua, vendor) => /Chrome/.test(ua) && /Google/.test(vendor)),
+  // CriOS - Chrome on iOS
+  chrome: tester(ua => /Chrome|CriOS/.test(ua)),
   edge: tester(ua => /Edge/.test(ua)),
-  firefox: tester(ua => /Firefox/.test(ua)),
+  // FxiOS - Firefox on iOS
+  firefox: tester(ua => /Firefox|FxiOS/.test(ua)),
   ie: tester(ua => /Trident/.test(ua)),
   // eslint-disable-next-line no-restricted-globals
   ie9: tester(() => !!(document.documentMode)),
   mobile: tester(ua => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
-  safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),
+  safari: tester(ua => /Safari/.test(ua)),
 };
 
 const platforms = {
