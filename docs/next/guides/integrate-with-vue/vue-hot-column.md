@@ -17,7 +17,7 @@ To declare column-specific settings, simply pass the settings as `hot-column` pr
 ::: example #example1 :vue --html 1 --js 2
 ```html
 <div id="example1">
-  <hot-table :data="hotData">
+  <hot-table :settings="hotSettings">
     <hot-column title="First column header">
     </hot-column>
     <hot-column :settings="secondColumnSettings" read-only="true">
@@ -35,7 +35,10 @@ new Vue({
   el: '#example1',
   data: function() {
     return {
-      hotData: Handsontable.helper.createSpreadsheetData(10, 10),
+      hotSettings: {
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        licenseKey: 'non-commercial-and-evaluation'
+      },
       secondColumnSettings: {
         title: 'Second column header',
         licenseKey: 'non-commercial-and-evaluation'
