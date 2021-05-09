@@ -111,7 +111,7 @@ export class Autofill extends BasePlugin {
 
     this.addHook('afterOnCellCornerMouseDown', event => this.onAfterCellCornerMouseDown(event));
     this.addHook('afterOnCellCornerDblClick', event => this.onCellCornerDblClick(event));
-    this.addHook('beforeOnCellMouseOver', (event, coords) => this.onBeforeCellMouseOver(coords));
+    this.addHook('beforeOnCellMouseOver', (_, coords) => this.onBeforeCellMouseOver(coords));
 
     super.enablePlugin();
   }
@@ -204,12 +204,6 @@ export class Autofill extends BasePlugin {
     const selectionRangeLast = this.hot.getSelectedRangeLast();
     const topLeftCorner = selectionRangeLast.getTopLeftCorner();
     const bottomRightCorner = selectionRangeLast.getBottomRightCorner();
-    let cornersOfSelectionAndDragAreas = [
-      Math.min(topLeftCorner.row, fillStartRow),
-      Math.min(topLeftCorner.col, fillStartColumn),
-      Math.max(bottomRightCorner.row, fillEndRow),
-      Math.max(bottomRightCorner.col, fillEndColumn),
-    ];
 
     this.resetSelectionOfDraggedArea();
 
@@ -220,8 +214,17 @@ export class Autofill extends BasePlugin {
       bottomRightCorner.col,
     ];
 
-    cornersOfSelectionAndDragAreas = this.hot
-      .runHooks('modifyAutofillRange', cornersOfSelectionAndDragAreas, cornersOfSelectedCells);
+    const cornersOfSelectionAndDragAreas = this.hot
+      .runHooks(
+        'modifyAutofillRange',
+        [
+          Math.min(topLeftCorner.row, fillStartRow),
+          Math.min(topLeftCorner.col, fillStartColumn),
+          Math.max(bottomRightCorner.row, fillEndRow),
+          Math.max(bottomRightCorner.col, fillEndColumn),
+        ],
+        cornersOfSelectedCells
+      );
 
     const {
       directionOfDrag,
@@ -231,9 +234,38 @@ export class Autofill extends BasePlugin {
 
     if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
       const selectionData = this.getSelectionData();
-      const beforeAutofillHook = this.hot.runHooks('beforeAutofill', startOfDragCoords, endOfDragCoords, selectionData);
 
-      if (beforeAutofillHook === false) {
+      const sourceRange = {
+        from: {
+          row: Math.min(selectionRangeLast.from.row, selectionRangeLast.to.row),
+          col: Math.min(selectionRangeLast.from.col, selectionRangeLast.to.col)
+        },
+        to: {
+          row: Math.max(selectionRangeLast.from.row, selectionRangeLast.to.row),
+          col: Math.max(selectionRangeLast.from.col, selectionRangeLast.to.col)
+        }
+      };
+
+      const targetRange = {
+        from: {
+          row: Math.min(startOfDragCoords.row, endOfDragCoords.row),
+          col: Math.min(startOfDragCoords.col, endOfDragCoords.col)
+        },
+        to: {
+          row: Math.max(startOfDragCoords.row, endOfDragCoords.row),
+          col: Math.max(startOfDragCoords.col, endOfDragCoords.col)
+        }
+      };
+
+      const beforeAutofillHookResult = this.hot.runHooks(
+        'beforeAutofill',
+        selectionData,
+        sourceRange,
+        targetRange,
+        directionOfDrag
+      );
+
+      if (beforeAutofillHookResult === false) {
         this.hot.selection.highlight.getFill().clear();
         this.hot.render();
 
@@ -241,9 +273,10 @@ export class Autofill extends BasePlugin {
       }
 
       const deltas = getDeltas(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
-      let fillData = selectionData;
 
-      if (['up', 'left'].indexOf(directionOfDrag) > -1) {
+      let fillData = beforeAutofillHookResult;
+
+      if (['up', 'left'].indexOf(directionOfDrag) > -1 && beforeAutofillHookResult === selectionData) {
         fillData = [];
 
         let dragLength = null;
@@ -285,7 +318,7 @@ export class Autofill extends BasePlugin {
       );
 
       this.setSelection(cornersOfSelectionAndDragAreas);
-      this.hot.runHooks('afterAutofill', startOfDragCoords, endOfDragCoords, selectionData);
+      this.hot.runHooks('afterAutofill', fillData, sourceRange, targetRange, directionOfDrag);
 
     } else {
       // reset to avoid some range bug

@@ -1164,6 +1164,40 @@ describe('Formulas general', () => {
         .simulate('mouseup');
     };
 
+    it('should not autofill if `beforeAutofill` returned false', () => {
+      const hot = handsontable({
+        data: [
+          ['=A1', 'x', 'x'],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        beforeAutofill: () => false
+      });
+
+      selectCell(0, 0);
+      autofill(0, 2);
+
+      expect(hot.getSourceData()).toEqual([['=A1', 'x', 'x']]);
+    });
+
+    it('should not autofill if `beforeAutofill` returned values', () => {
+      const hot = handsontable({
+        data: [
+          ['=A1', 'x', 'x'],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        beforeAutofill: () => [['a']]
+      });
+
+      selectCell(0, 0);
+      autofill(0, 2);
+
+      expect(hot.getSourceData()).toEqual([['=A1', 'a', 'a']]);
+    });
+
     it('should not autofill if there\'s a matrix in the way', () => {
       const hot = handsontable({
         data: [
@@ -1274,6 +1308,7 @@ describe('Formulas general', () => {
           ['x', 'x'],
           ['x', 'x'],
           ['x', 'x'],
+          ['y', 'y'],
         ],
         formulas: {
           engine: HyperFormula
@@ -1293,15 +1328,16 @@ describe('Formulas general', () => {
         ['=E12', '=E16'],
         ['=G12', '=G16'],
         ['=I12', '=I16'],
+        ['y', 'y'],
       ]);
     });
 
     it('should correctly autofill - range, right, partial', () => {
       const hot = handsontable({
         data: [
-          ['=E6', '=E10', 'x'],
-          ['=G6', '=G10', 'x'],
-          ['=I6', '=I10', 'x'],
+          ['=E6', '=E10', 'x', 'y'],
+          ['=G6', '=G10', 'x', 'y'],
+          ['=I6', '=I10', 'x', 'y'],
         ],
         formulas: {
           engine: HyperFormula
@@ -1312,18 +1348,18 @@ describe('Formulas general', () => {
       autofill(2, 2);
 
       expect(hot.getSourceData()).toEqual([
-        ['=E6', '=E10', '=G6'],
-        ['=G6', '=G10', '=I6'],
-        ['=I6', '=I10', '=K6'],
+        ['=E6', '=E10', '=G6', 'y'],
+        ['=G6', '=G10', '=I6', 'y'],
+        ['=I6', '=I10', '=K6', 'y'],
       ]);
     });
 
     it('should correctly autofill - range, right, overflow', () => {
       const hot = handsontable({
         data: [
-          ['=E6', '=E10', 'x', 'x', 'x'],
-          ['=G6', '=G10', 'x', 'x', 'x'],
-          ['=I6', '=I10', 'x', 'x', 'x']
+          ['=E6', '=E10', 'x', 'x', 'x', 'y'],
+          ['=G6', '=G10', 'x', 'x', 'x', 'y'],
+          ['=I6', '=I10', 'x', 'x', 'x', 'y']
         ],
         formulas: {
           engine: HyperFormula
@@ -1334,69 +1370,69 @@ describe('Formulas general', () => {
       autofill(2, 4);
 
       expect(hot.getSourceData()).toEqual([
-        ['=E6', '=E10', '=G6', '=G10', '=I6'],
-        ['=G6', '=G10', '=I6', '=I10', '=K6'],
-        ['=I6', '=I10', '=K6', '=K10', '=M6']
+        ['=E6', '=E10', '=G6', '=G10', '=I6', 'y'],
+        ['=G6', '=G10', '=I6', '=I10', '=K6', 'y'],
+        ['=I6', '=I10', '=K6', '=K10', '=M6', 'y']
       ]);
     });
 
     it('should correctly autofill - range, left, partial', () => {
       const hot = handsontable({
         data: [
-          ['x', '=E6', '=E10'],
-          ['x', '=G6', '=G10'],
-          ['x', '=I6', '=I10'],
+          ['y', 'x', '=E6', '=E10'],
+          ['y', 'x', '=G6', '=G10'],
+          ['y', 'x', '=I6', '=I10'],
         ],
         formulas: {
           engine: HyperFormula
         }
       });
 
-      selectCell(0, 1, 2, 2);
-      autofill(2, 0);
+      selectCell(0, 2, 2, 3);
+      autofill(2, 1);
 
       expect(hot.getSourceData()).toEqual([
-        ['=C10', '=E6', '=E10'],
-        ['=E10', '=G6', '=G10'],
-        ['=G10', '=I6', '=I10'],
+        ['y', '=C10', '=E6', '=E10'],
+        ['y', '=E10', '=G6', '=G10'],
+        ['y', '=G10', '=I6', '=I10'],
       ]);
     });
 
     it('should correctly autofill - range, left, overflow', () => {
       const hot = handsontable({
         data: [
-          ['x', 'x', 'x', '=E6', '=E10'],
-          ['x', 'x', 'x', '=G6', '=G10'],
-          ['x', 'x', 'x', '=I6', '=I10'],
+          ['y', 'x', 'x', 'x', '=E6', '=E10'],
+          ['y', 'x', 'x', 'x', '=G6', '=G10'],
+          ['y', 'x', 'x', 'x', '=I6', '=I10'],
         ],
         formulas: {
           engine: HyperFormula
         }
       });
 
-      selectCell(0, 3, 2, 4);
-      autofill(2, 0);
+      selectCell(0, 4, 2, 5);
+      autofill(2, 1);
 
       expect(hot.getSourceData()).toEqual([
-        ['=A10', '=C6', '=C10', '=E6', '=E10'],
-        ['=C10', '=E6', '=E10', '=G6', '=G10'],
-        ['=E10', '=G6', '=G10', '=I6', '=I10'],
+        ['y', '=A10', '=C6', '=C10', '=E6', '=E10'],
+        ['y', '=C10', '=E6', '=E10', '=G6', '=G10'],
+        ['y', '=E10', '=G6', '=G10', '=I6', '=I10'],
       ]);
     });
 
     it('should correctly autofill - range, left, odd', () => {
       const hot = handsontable({
-        data: [['x', 'x', 'x', 'x', 'x', 'x', '=Z3', '=Z5', '=Z8']],
+        data: [['y', 'x', 'x', 'x', 'x', 'x', 'x', '=Z3', '=Z5', '=Z8']],
         formulas: {
           engine: HyperFormula
         }
       });
 
-      selectCell(0, 6, 0, 8);
-      autofill(0, 0);
+      selectCell(0, 7, 0, 9);
+      autofill(0, 1);
 
       expect(hot.getSourceData()).toEqual([
-        ['=T3', '=T5', '=T8', '=W3', '=W5', '=W8', '=Z3', '=Z5', '=Z8']
+        ['y', '=T3', '=T5', '=T8', '=W3', '=W5', '=W8', '=Z3', '=Z5', '=Z8']
       ]);
     });
 
@@ -1427,6 +1463,7 @@ describe('Formulas general', () => {
     it('should correctly autofill - range, up, overflow', () => {
       const hot = handsontable({
         data: [
+          ['y', 'y'],
           ['x', 'x'],
           ['x', 'x'],
           ['x', 'x'],
@@ -1441,10 +1478,11 @@ describe('Formulas general', () => {
         }
       });
 
-      selectCell(5, 0, 7, 1);
-      autofill(0, 1);
+      selectCell(6, 0, 8, 1);
+      autofill(1, 1);
 
       expect(hot.getSourceData()).toEqual([
+        ['y', 'y'],
         ['=G1', '=G4'],
         ['=I1', '=I4'],
         ['=E4', '=E7'],
@@ -1458,17 +1496,17 @@ describe('Formulas general', () => {
 
     it('should correctly autofill - range, up, even', () => {
       const hot = handsontable({
-        data: [['x'], ['x'], ['x'], ['x'], ['x'], ['x'], ['=A9'], ['=A12']],
+        data: [['y'], ['x'], ['x'], ['x'], ['x'], ['x'], ['x'], ['=A9'], ['=A12']],
         formulas: {
           engine: HyperFormula
         }
       });
 
-      selectCell(6, 0, 7, 0);
-      autofill(0, 0);
+      selectCell(7, 0, 8, 0);
+      autofill(1, 0);
 
       expect(hot.getSourceData()).toEqual([
-        ['=A3'], ['=A6'], ['=A5'], ['=A8'], ['=A7'], ['=A10'], ['=A9'], ['=A12']
+        ['y'], ['=A3'], ['=A6'], ['=A5'], ['=A8'], ['=A7'], ['=A10'], ['=A9'], ['=A12']
       ]);
     });
   });

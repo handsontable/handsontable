@@ -324,7 +324,143 @@ describe('AutoFill', () => {
     expect(isFillHandleVisible()).toBe(true);
   });
 
-  it('should add custom value after autofill', () => {
+  describe('beforeAutofill hook autofill value overrides', () => {
+    it('should use a custom value when mutating the selection data array', () => {
+      handsontable({
+        data: [
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6]
+        ],
+        beforeAutofill(selectionData) {
+          selectionData[0][0] = 'test';
+        }
+      });
+      selectCell(0, 0);
+
+      spec().$container.find('.wtBorder.corner').simulate('mousedown');
+      spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
+      spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
+      spec().$container.find('.wtBorder.corner').simulate('mouseup');
+
+      expect(getSelected()).toEqual([[0, 0, 2, 0]]);
+      expect(getDataAtCell(1, 0)).toEqual('test');
+    });
+
+    it('should pass correct arguments to `beforeAutofill`', () => {
+      const beforeAutofill = jasmine.createSpy();
+
+      handsontable({
+        data: [
+          [1, 2, 3, 4, 5, 6],
+          ['x', 'x', 3, 4, 5, 6],
+          ['x', 'x', 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6]
+        ],
+        beforeAutofill
+      });
+
+      selectCell(0, 0, 0, 1);
+
+      spec().$container.find('.wtBorder.corner').simulate('mousedown');
+      spec().$container.find('tr:eq(2) td:eq(2)').simulate('mouseover');
+      spec().$container.find('.wtBorder.corner').simulate('mouseup');
+
+      const selectionData = [[1, 2]];
+
+      const sourceRange = {
+        from: {
+          row: 0,
+          col: 0
+        },
+        to: {
+          row: 0,
+          col: 1
+        }
+      };
+
+      const targetRange = {
+        from: {
+          row: 1,
+          col: 0
+        },
+        to: {
+          row: 2,
+          col: 1
+        }
+      };
+
+      const direction = 'down';
+
+      expect(beforeAutofill).toHaveBeenCalledWith(
+        selectionData,
+        sourceRange,
+        targetRange,
+        direction,
+        undefined, // TODO ???
+        undefined
+      );
+    });
+
+    it('should clear the whole target range if `beforeAutofill` returns an empty array of arrays', () => {
+      const hot = handsontable({
+        data: [
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6]
+        ],
+        beforeAutofill() {
+          return [[]];
+        }
+      });
+
+      selectCell(0, 0, 0, 3);
+
+      spec().$container.find('.wtBorder.corner').simulate('mousedown');
+      spec().$container.find('tr:eq(3) td:eq(3)').simulate('mouseover');
+      spec().$container.find('.wtBorder.corner').simulate('mouseup');
+
+      expect(hot.getData()).toEqual([
+        [1, 2, 3, 4, 5, 6],
+        [undefined, undefined, undefined, undefined, 5, 6],
+        [undefined, undefined, undefined, undefined, 5, 6],
+        [undefined, undefined, undefined, undefined, 5, 6]
+      ]);
+    });
+
+    it('should use input from `beforeAutofill` if data is returned', () => {
+      const hot = handsontable({
+        data: [
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6],
+          [1, 2, 3, 4, 5, 6]
+        ],
+        beforeAutofill() {
+          return [[7, 8], [9, 10]];
+        }
+      });
+
+      selectCell(0, 0, 0, 3);
+
+      spec().$container.find('.wtBorder.corner').simulate('mousedown');
+      spec().$container.find('tr:eq(3) td:eq(3)').simulate('mouseover');
+      spec().$container.find('.wtBorder.corner').simulate('mouseup');
+
+      expect(hot.getData()).toEqual([
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 7, 8, 5, 6],
+        [9, 10, 9, 10, 5, 6],
+        [7, 8, 7, 8, 5, 6]
+      ]);
+    });
+  });
+
+  it('should pass correct arguments to `afterAutofill`', () => {
+    const afterAutofill = jasmine.createSpy();
+
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -332,19 +468,78 @@ describe('AutoFill', () => {
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6]
       ],
-      beforeAutofill(start, end, data) {
-        data[0][0] = 'test';
-      }
+      afterAutofill
     });
+
+    selectCell(0, 0, 0, 1);
+
+    spec().$container.find('.wtBorder.corner').simulate('mousedown');
+    spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
+    spec().$container.find('tr:eq(2) td:eq(1)').simulate('mouseover');
+    spec().$container.find('.wtBorder.corner').simulate('mouseup');
+
+    const fillData = [[1, 2]];
+
+    const sourceRange = {
+      from: {
+        row: 0,
+        col: 0
+      },
+      to: {
+        row: 0,
+        col: 1
+      }
+    };
+
+    const targetRange = {
+      from: {
+        row: 1,
+        col: 0
+      },
+      to: {
+        row: 2,
+        col: 1
+      }
+    };
+
+    const direction = 'down';
+
+    expect(afterAutofill).toHaveBeenCalledWith(
+      fillData,
+      sourceRange,
+      targetRange,
+      direction,
+      undefined, // TODO ??
+      undefined
+    );
+  });
+
+  it('should pass the same fillData to `afterAutofill` as in the one from `beforeAutofill` by identity', () => {
+    const afterAutofill = jasmine.createSpy();
+
+    const fillData = [[]];
+
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      beforeAutofill() {
+        return fillData;
+      },
+      afterAutofill
+    });
+
     selectCell(0, 0);
 
     spec().$container.find('.wtBorder.corner').simulate('mousedown');
     spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
-    spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
+    spec().$container.find('tr:eq(2) td:eq(1)').simulate('mouseover');
     spec().$container.find('.wtBorder.corner').simulate('mouseup');
 
-    expect(getSelected()).toEqual([[0, 0, 2, 0]]);
-    expect(getDataAtCell(1, 0)).toEqual('test');
+    expect(afterAutofill.calls.first().args[0] === fillData).toBeTrue('should be identical');
   });
 
   it('should cancel autofill if beforeAutofill returns false', () => {
@@ -382,8 +577,8 @@ describe('AutoFill', () => {
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6]
       ],
-      beforeAutofill(start, end, data) {
-        data[0][0] = 'test';
+      beforeAutofill(selectionData) {
+        selectionData[0][0] = 'test';
       }
     });
     selectCell(1, 1);

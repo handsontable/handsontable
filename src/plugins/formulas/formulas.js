@@ -488,6 +488,10 @@ export class Formulas extends BasePlugin {
       return change?.address?.sheet === this.sheetId;
     });
 
+    // TODO, important - skip during autofill. Possible solutions include:
+    // 1. rewriting the autofill logic in so that it calls `copy` at most twice,
+    // 2. allowing `copy` in hyperformula batching.
+    // 3. use the internal operation property, but it might be error prone.
     if (isAffectedByChange) {
       this.hot.render();
     }
