@@ -1,3 +1,4 @@
+const path = require('path');
 const highlight = require('./highlight');
 const helpers = require('./helpers');
 const examples = require('./containers/examples');
@@ -50,6 +51,14 @@ module.exports = {
         config
           .options
           .highlight(highlight)
+          .end();
+      },
+      chainWebpack: (config) => {
+        config.module
+          .rule('md')
+          .test(/\.md$/)
+          .use(path.resolve(__dirname, 'docs-links'))
+          .loader(path.resolve(__dirname, 'docs-links'))
           .end();
       },
     },
