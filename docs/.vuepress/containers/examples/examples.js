@@ -1,5 +1,5 @@
 /**
- * Matches into: `example #ID .class :preset --html 0 --js 1 --hidden`.
+ * Matches into: `example #ID .class :preset --css 2 --html 0 --js 1 --hidden`.
  *
  * @type {RegExp}
  */
@@ -49,7 +49,6 @@ const tab = (tabName, token) =>{
 module.exports = {
   type: 'example',
   render(tokens, index, opts, env) {
-    
     const token = tokens[index];
     const m = token.info.trim().match(EXAMPLE_REGEX);
     const version = env.relativePath.split('/')[0];
