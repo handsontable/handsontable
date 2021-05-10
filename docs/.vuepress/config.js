@@ -45,6 +45,31 @@ module.exports = {
     ['container', examples],
     ['container', sourceCodeLink],
     {
+      extendMarkdown(md){
+        const render = function (tokens, options, env) {
+          var i, type,
+            result = '',
+            rules = this.rules;
+
+          for (i = 0; i < tokens.length; i++) { // overwritten here
+            type = tokens[i].type;
+
+            if (type === 'inline') {
+              result += this.renderInline(tokens[i].children, options, env);
+            } else if (typeof rules[type] !== 'undefined') {
+              result += rules[tokens[i].type](tokens, i, options, env, this);
+            } else {
+              result += this.renderToken(tokens, i, options, env);
+            }
+          }
+
+          return result;
+        };
+
+        // overwrite markdown `render` function to allow extending tokens array (remove caching before loop).
+        md.renderer.render = (tokens, options, env) => render.call(md.renderer, tokens, options, env);
+
+      },
       chainMarkdown(config) {
         // inject custom markdown highlight with our snippet runner
         config
