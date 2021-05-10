@@ -9,9 +9,9 @@ const jsfiddle = (id, html, code, css, version, preset) => {
     (p, c) =>
       p +
       (c[0] ? `<script src="${c[0]}"></script>\n` : '') +
-      (c[2] ? `<link type="text/css" rel="stylesheet" href="${c[2]}" /> \n` : ''), 
+      (c[2] ? `<link type="text/css" rel="stylesheet" href="${c[2]}" /> \n` : ''),
     '');
-    
+
   return `
     <form
       id="jsfiddle-${id}"

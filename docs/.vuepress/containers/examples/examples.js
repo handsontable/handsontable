@@ -8,43 +8,43 @@ const EXAMPLE_REGEX = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 const { buildCode } = require('./code-builder');
 const { jsfiddle } = require('./jsfiddle');
 
-const tab = (tabName, token) =>{
-  if(!token) return [];
+const tab = (tabName, token) => {
+  if (!token) return [];
 
   return [
     {
-      "type": "html_block",
-      "tag": "",
-      "attrs": null,
-      "map": [],
-      "nesting": 0,
-      "level": 1,
-      "children": null,
-      "content": `<tab name="${tabName}">`,
-      "markup": "",
-      "info": "",
-      "meta": null,
-      "block": true,
-      "hidden": false
+      type: 'html_block',
+      tag: '',
+      attrs: null,
+      map: [],
+      nesting: 0,
+      level: 1,
+      children: null,
+      content: `<tab name="${tabName}">`,
+      markup: '',
+      info: '',
+      meta: null,
+      block: true,
+      hidden: false
     },
     token,
     {
-      "type": "html_block",
-      "tag": "",
-      "attrs": null,
-      "map": [],
-      "nesting": 0,
-      "level": 1,
-      "children": null,
-      "content": "</tab>",
-      "markup": "",
-      "info": "",
-      "meta": null,
-      "block": true,
-      "hidden": false
+      type: 'html_block',
+      tag: '',
+      attrs: null,
+      map: [],
+      nesting: 0,
+      level: 1,
+      children: null,
+      content: '</tab>',
+      markup: '',
+      info: '',
+      meta: null,
+      block: true,
+      hidden: false
     }
   ];
-}
+};
 
 module.exports = {
   type: 'example',
@@ -67,11 +67,11 @@ module.exports = {
       const htmlContent = htmlToken
         ? htmlToken.content
         : `<div id="${id}" className="hot ${klass}"></div>`;
-      
+
       const cssPos = args.match(/--css (\d*)/)?.[1];
       const cssIndex = cssPos ? index + Number.parseInt(cssPos, 10) : 0;
       const cssToken = cssPos ? tokens[cssIndex] : undefined;
-      const cssContent = cssToken ? cssToken.content : ``;
+      const cssContent = cssToken ? cssToken.content : '';
 
       const jsPos = args.match(/--js (\d*)/)?.[1] || 1;
       const jsIndex = index + Number.parseInt(jsPos, 10);
@@ -82,21 +82,21 @@ module.exports = {
 
       const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), jsContent, env.relativePath);
 
-      [htmlIndex,jsIndex,cssIndex].filter(x=>!!x).sort().reverse().forEach(x=>{
-        tokens.splice(x,1);
-      })
-      
+      [htmlIndex, jsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
+        tokens.splice(x, 1);
+      });
+
       const newTokens = [
         ...tab('HTML', htmlToken),
         ...tab('Code', jsToken),
         ...tab('CSS', cssToken),
       ];
-      
-      if(!hidden) {
+
+      if (!hidden) {
         tokens.splice(index + 1, 0, ...newTokens);
       }
-      
-       return `
+
+      return `
           ${jsfiddle(id, htmlContent, jsContent, cssContent, version, preset)}
           <tabs :options="{ useUrlFragment: false }">
           <tab name="Preview">
@@ -108,7 +108,7 @@ module.exports = {
           </tab>
         `;
     } else { // close preview
-      return `</tabs>`;
+      return '</tabs>';
     }
   }
 };

@@ -45,11 +45,11 @@ module.exports = {
     ['container', examples],
     ['container', sourceCodeLink],
     {
-      extendMarkdown(md){
-        const render = function (tokens, options, env) {
-          var i, type,
-            result = '',
-            rules = this.rules;
+      extendMarkdown(md) {
+        const render = function(tokens, options, env) {
+          let i; let type;
+          let result = '';
+          const rules = this.rules;
 
           for (i = 0; i < tokens.length; i++) { // overwritten here
             type = tokens[i].type;
