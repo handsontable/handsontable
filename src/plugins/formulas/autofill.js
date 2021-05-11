@@ -149,7 +149,5 @@ export const registerAutofillHooks = (pluginInstance) => {
         throw new Error('Unexpected direction parameter');
       }
     }
-
-    pluginInstance.hot.render();
   });
 };
