@@ -275,31 +275,29 @@ export class Autofill extends BasePlugin {
       const deltas = getDeltas(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
 
       let fillData = beforeAutofillHookResult;
+      const res = beforeAutofillHookResult;
 
-      if (['up', 'left'].indexOf(directionOfDrag) > -1 && beforeAutofillHookResult === selectionData) {
+      if (['up', 'left'].indexOf(directionOfDrag) > -1 && res.length > 0 && res[0].length > 0) {
         fillData = [];
 
-        let dragLength = null;
-        let fillOffset = null;
-
         if (directionOfDrag === 'up') {
-          dragLength = endOfDragCoords.row - startOfDragCoords.row + 1;
-          fillOffset = dragLength % selectionData.length;
+          const dragLength = endOfDragCoords.row - startOfDragCoords.row + 1;
+          const fillOffset = dragLength % res.length;
 
           for (let i = 0; i < dragLength; i++) {
-            fillData.push(selectionData[(i + (selectionData.length - fillOffset)) % selectionData.length]);
+            fillData.push(res[(i + (res.length - fillOffset)) % res.length]);
           }
 
         } else {
-          dragLength = endOfDragCoords.col - startOfDragCoords.col + 1;
-          fillOffset = dragLength % selectionData[0].length;
+          const dragLength = endOfDragCoords.col - startOfDragCoords.col + 1;
+          const fillOffset = dragLength % res[0].length;
 
-          for (let i = 0; i < selectionData.length; i++) {
+          for (let i = 0; i < res.length; i++) {
             fillData.push([]);
 
             for (let j = 0; j < dragLength; j++) {
               fillData[i]
-                .push(selectionData[i][(j + (selectionData[i].length - fillOffset)) % selectionData[i].length]);
+                .push(res[i][(j + (res[i].length - fillOffset)) % res[i].length]);
             }
           }
         }

@@ -456,6 +456,42 @@ describe('AutoFill', () => {
         [7, 8, 7, 8, 5, 6]
       ]);
     });
+
+    it('should use input from `beforeAutofill` if data is returned, in the correct order, upwards', () => {
+      const hot = handsontable({
+        data: [
+          ['x'],
+          ['x'],
+          ['x'],
+          ['x'],
+          ['x'],
+          [1],
+          [1]
+        ],
+        beforeAutofill() {
+          return [
+            ['a'],
+            ['b'],
+          ];
+        }
+      });
+
+      selectCell(5, 0, 6, 0);
+
+      spec().$container.find('.wtBorder.corner').simulate('mousedown');
+      spec().$container.find('tr:eq(0) td:eq(0)').simulate('mouseover');
+      spec().$container.find('.wtBorder.corner').simulate('mouseup');
+
+      expect(hot.getData()).toEqual([
+        ['b'],
+        ['a'],
+        ['b'],
+        ['a'],
+        ['b'],
+        [1],
+        [1]
+      ]);
+    });
   });
 
   it('should pass correct arguments to `afterAutofill`', () => {
@@ -514,7 +550,7 @@ describe('AutoFill', () => {
     );
   });
 
-  it('should pass the same fillData to `afterAutofill` as in the one from `beforeAutofill` by identity', () => {
+  it('should pass the same fillData to `afterAutofill` as in the one from `beforeAutofill` by identity if it\'s empty', () => {
     const afterAutofill = jasmine.createSpy();
 
     const fillData = [[]];

@@ -665,7 +665,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterAutofill
    * @since 8.0.0
    * @param {Array[]} fillData The data that was used to fill the `targetRange`. If `beforeAutofill` was used
-   *                            and returned data, this will be the same object that was returned from `beforeAutofill`.
+   *                            and returned `[[]]`, this will be the same object that was returned from `beforeAutofill`.
    * @param {CellRange} sourceRange The range values will be filled from.
    * @param {CellRange} targetRange The range new values will be filled into.
    * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
