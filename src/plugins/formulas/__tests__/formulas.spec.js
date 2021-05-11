@@ -1181,7 +1181,7 @@ describe('Formulas general', () => {
       expect(hot.getSourceData()).toEqual([['=A1', 'x', 'x']]);
     });
 
-    it('should not autofill if `beforeAutofill` returned values', () => {
+    it('should not use the plugin\'s autofill if `beforeAutofill` returned values', () => {
       const hot = handsontable({
         data: [
           ['=A1', 'x', 'x'],
