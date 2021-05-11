@@ -58,7 +58,7 @@ describe('Events', () => {
     expect(onCellDblClick).toHaveBeenCalled();
   });
 
-  it('should "preventDefault" the "touchend" event (double-tap issue #7824)', () => {
+  it('should "preventDefault" only the second "touchend" event while double-tapping (issue #7824)', () => {
     const hot = handsontable({
       width: 400,
       height: 400,
@@ -78,11 +78,11 @@ describe('Events', () => {
 
       const event = triggerTouchEvent('touchend', cell);
 
-      expect(event.defaultPrevented).toBeTrue();
+      expect(event.defaultPrevented).toBeFalse();
     }
   });
 
-  it('should not "preventDefault" the second "touchend" event when interactive element is clicked', () => {
+  it('should not "preventDefault" the second "touchend" event when interactive element is clicked (PR#7980)', () => {
     const hot = handsontable({
       data: [['<a href="#justForTest">click me!</a>'], []],
       width: 400,
@@ -108,7 +108,7 @@ describe('Events', () => {
     }
   });
 
-  it('should block default action related to link touch and translate from the touch to click on a cell', async() => {
+  it('should "preventDefault" the link element (block its default action) when the cell is not highlighted', async() => {
     const hot = handsontable({
       data: [['<a href="#justForTest">click me!</a>'], []],
       rowHeaders: true,

@@ -12,7 +12,7 @@ describe('Core', () => {
     }
   });
 
-  it('should apply "mobile" class to the HOT container', () => {
+  it('should apply "mobile" class to the HOT root element', () => {
     const hot = handsontable({
       columns: [
         {
@@ -21,9 +21,8 @@ describe('Core', () => {
       ]
     });
 
-    const hasMobileClass = hot.container.classList.contains('mobile');
+    const hasMobileClass = hot.rootElement.classList.contains('mobile');
 
     expect(hasMobileClass).toBeTruthy();
   });
-
 });
