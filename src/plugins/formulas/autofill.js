@@ -1,3 +1,5 @@
+import { isObjectEqual } from '../../helpers/object';
+
 /**
  * Registers on the formulas plugin instance.
  *
@@ -48,7 +50,7 @@ export const registerAutofillHooks = (pluginInstance) => {
       height: target.to.row - target.from.row + 1
     };
 
-    const sheet = pluginInstance.sheetId;
+    const operations = [];
 
     switch (direction) {
       case 'right': {
@@ -58,16 +60,17 @@ export const registerAutofillHooks = (pluginInstance) => {
           const remaining = target.to.col - pasteCol + 1;
           const width = Math.min(sourceSize.width, remaining);
 
-          pluginInstance.engine.copy({
-            sheet,
-            row: source.from.row,
-            col: source.from.col
-          }, width, sourceSize.height);
-
-          pluginInstance.engine.paste({
-            sheet,
-            row: pasteRow,
-            col: pasteCol
+          operations.push({
+            copy: {
+              row: source.from.row,
+              col: source.from.col,
+              width,
+              height: sourceSize.height
+            },
+            paste: {
+              row: pasteRow,
+              col: pasteCol
+            }
           });
         }
 
@@ -81,16 +84,17 @@ export const registerAutofillHooks = (pluginInstance) => {
           const remaining = target.to.row - pasteRow + 1;
           const height = Math.min(sourceSize.height, remaining);
 
-          pluginInstance.engine.copy({
-            sheet,
-            row: source.from.row,
-            col: source.from.col
-          }, sourceSize.width, height);
-
-          pluginInstance.engine.paste({
-            sheet,
-            row: pasteRow,
-            col: pasteCol
+          operations.push({
+            copy: {
+              row: source.from.row,
+              col: source.from.col,
+              width: sourceSize.width,
+              height
+            },
+            paste: {
+              row: pasteRow,
+              col: pasteCol
+            }
           });
         }
 
@@ -105,16 +109,17 @@ export const registerAutofillHooks = (pluginInstance) => {
           const copyCol =
             ((sourceSize.width - offset + (pasteCol - target.from.col)) % sourceSize.width) + source.from.col;
 
-          pluginInstance.engine.copy({
-            sheet,
-            row: source.from.row,
-            col: copyCol
-          }, 1, sourceSize.height);
-
-          pluginInstance.engine.paste({
-            sheet,
-            row: pasteRow,
-            col: pasteCol
+          operations.push({
+            copy: {
+              row: source.from.row,
+              col: copyCol,
+              width: 1,
+              height: sourceSize.height
+            },
+            paste: {
+              row: pasteRow,
+              col: pasteCol
+            }
           });
         }
 
@@ -129,16 +134,17 @@ export const registerAutofillHooks = (pluginInstance) => {
           const copyRow =
             ((sourceSize.height - offset + (pasteRow - target.from.row)) % sourceSize.height) + source.from.row;
 
-          pluginInstance.engine.copy({
-            sheet,
-            row: copyRow,
-            col: source.from.col
-          }, sourceSize.width, 1);
-
-          pluginInstance.engine.paste({
-            sheet,
-            row: pasteRow,
-            col: pasteCol
+          operations.push({
+            copy: {
+              row: copyRow,
+              col: source.from.col,
+              width: sourceSize.width,
+              height: 1
+            },
+            paste: {
+              row: pasteRow,
+              col: pasteCol
+            }
           });
         }
 
@@ -149,5 +155,25 @@ export const registerAutofillHooks = (pluginInstance) => {
         throw new Error('Unexpected direction parameter');
       }
     }
+
+    const sheet = pluginInstance.sheetId;
+
+    operations.reduce((previousCopy, operation) => {
+      if (!isObjectEqual(previousCopy, operation.copy)) {
+        pluginInstance.engine.copy({
+          sheet,
+          row: operation.copy.row,
+          col: operation.copy.col
+        }, operation.copy.width, operation.copy.height);
+      }
+
+      pluginInstance.engine.paste({
+        sheet,
+        row: operation.paste.row,
+        col: operation.paste.col
+      });
+
+      return operation.copy;
+    }, {});
   });
 };
