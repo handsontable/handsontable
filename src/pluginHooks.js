@@ -647,12 +647,12 @@ const REGISTERED_HOOKS = [
    * {@link Options#fillHandle} option is enabled.
    *
    * @event Hooks#beforeAutofill
-   * @param {Array[][]} selectionData Data the autofill operation will start from.
+   * @param {Array[]} selectionData Data the autofill operation will start from.
    * @param {CellRange} sourceRange The range values will be filled from.
    * @param {CellRange} targetRange The range new values will be filled into.
    * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
    *
-   * @returns {boolean|Array[][]} If false, the operation is cancelled. If array of arrays, the returned data
+   * @returns {boolean|Array[]} If false, the operation is cancelled. If array of arrays, the returned data
    *                              will be passed into `populateFromArray` instead of the default autofill
    *                              algorithm's result.
    */
@@ -664,7 +664,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterAutofill
    * @since 8.0.0
-   * @param {fillData} fillData The data that was used to fill the `targetRange`. If `beforeAutofill` was used
+   * @param {Array[]} fillData The data that was used to fill the `targetRange`. If `beforeAutofill` was used
    *                            and returned data, this will be the same object that was returned from `beforeAutofill`.
    * @param {CellRange} sourceRange The range values will be filled from.
    * @param {CellRange} targetRange The range new values will be filled into.
