@@ -33,36 +33,25 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
-const colorData = [];
-const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
-let color = '';
-
-while (color = colors.shift()) {
-  colorData.push([
-    [color]
-  ]);
-}
-
-const carData = [
-  ['Tesla', 2017, 'black', 'black'],
-  ['Nissan', 2018, 'blue', 'blue'],
-  ['Chrysler', 2019, 'yellow', 'black'],
-  ['Volvo', 2020, 'white', 'gray']
-];
-
+const colorData = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
 const manufacturerData = [
-  {name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG'},
-  {name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC'},
-  {name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd'},
-  {name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation'},
-  {name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation'},
-  {name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group'}
+  { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
+  { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
+  { name: 'Nissan', country: 'Japan', owner: 'Nissan Motor Company Ltd' },
+  { name: 'Suzuki', country: 'Japan', owner: 'Suzuki Motor Corporation' },
+  { name: 'Toyota', country: 'Japan', owner: 'Toyota Motor Corporation' },
+  { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' }
 ];
 
 const hot = new Handsontable(container, {
-  data: carData,
-  colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    ['Tesla', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'white', 'gray']
+  ],
+  colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   columns: [
     {
       type: 'handsontable',

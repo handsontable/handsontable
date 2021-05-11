@@ -175,20 +175,18 @@ Method should set editor value to `newValue`.
 
 ```js
 class CalendarEditor extends TextEditor {
-  /**
-  * @param {Core} hotInstance Handsontable instance
-  * @private
-  */
   constructor(hotInstance) {
     super(hotInstance);
   }
 
   getValue() {
-    return calendar.getDate(); // returns currently selected date, for example "2013/09/15"
+    // returns currently selected date, for example "2023/09/15"
+    return calendar.getDate(); 
   }
 
   setValue() {
-    calendar.highlightDate(newValue); // highlights given date on calendar
+    // highlights given date on calendar
+    calendar.highlightDate(newValue); 
   }
 }
 ```
@@ -237,31 +235,16 @@ This method does not need to return any value.
 
 ### Common editor properties
 
-All of the undermentioned properties are available in editor instance through `this` object (e.g. `this.instance`).
+All the undermentioned properties are available in editor instance through `this` object (e.g. `this.instance`).
 
-#### instance \`Object:Handsontable.Core'
-
-The instance of Handsontable to which this editor object belongs. Set in class constructor, immutable thorough the whole lifecycle of editor.
-
-#### row `Number`
-
-The active cell row index. Updated on every `prepare()` method call.
-
-#### col `Number`
-
-The active cell col index. Updated on every `prepare()` method call.
-
-#### prop `String`
-
-The property name associated with active cell (relevant only when data source is an array of objects). Updated on every `prepare()` method call.
-
-#### TD `HTMLTableCellNode`
-
-Node object of active cell. Updated on every `prepare()` method call.
-
-#### cellProperties 'Object'
-
-An object representing active cell properties. Updated on every `prepare()` method call.
+ Property | Type        | Description
+----------|-------------|-------------
+ instance | `Handsontable.Core` | The instance of Handsontable to which this editor object belongs. Set in class constructor, immutable thorough the whole lifecycle of editor.
+row | `Number` | The active cell row index. Updated on every `prepare()` method call.
+col | `Number` | The active cell col index. Updated on every `prepare()` method call.
+prop | `String` | The property name associated with active cell (relevant only when data source is an array of objects). Updated on every `prepare()` method call.
+TD | `HTMLTableCellNode` | Node object of active cell. Updated on every `prepare()` method call.
+cellProperties | `Object` | An object representing active cell properties. Updated on every `prepare()` method call.
 
 ## How to create a custom editor?
 
@@ -311,7 +294,8 @@ const hot = new Handsontable(container, {
     },
     {
       editor: PasswordEditor
-      // If you want to use string 'password' instead of passing the actual editor class check out section "Registering editor"
+      // If you want to use string 'password' instead of passing 
+      // the actual editor class check out section "Registering editor"
     }
   ]
 });
@@ -611,11 +595,6 @@ At this point we should have an editor that is ready to use. Put the code somewh
 
 ```js
 const container = document.querySelector('#container')
-
-/*
- * PLACE EDITOR CODE HERE
- */
-
 const hot = new Handsontable(container, {
   columns: [
     {},
@@ -715,22 +694,23 @@ Choose aliases wisely. If you register your editor under name that is already re
 
 ```js
 Handsontable.editors.registerEditor('text', MyNewTextEditor);
-
-// Now 'text' alias points to MyNewTextEditor class, not Handsontable.editors.TextEditor
 ```
+
+Now 'text' alias points to MyNewTextEditor class, not `Handsontable.editors.TextEditor`.
 
 So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your editor, because you never know aliases has been registered by the user who uses your editor.
 
 ```js
 Handsontable.editors.registerEditor('select', SelectEditor);
-
-// Someone might already registered such alias
 ```
+
+Someone might already registered such alias.
+
 ```js
 Handsontable.editors.registerEditor('my.select', SelectEditor);
-
-// That's better.`
 ```
+
+That's better.
 
 ## Preparing editor for publication
 
@@ -770,14 +750,11 @@ Code enclosed in IIFE cannot be accessed from outside, unless it's intentionally
 From now on, you can use `CustomEditor` like so:
 
 ```js
-const container = document.querySelector('#container')
-
+const container = document.querySelector('#container');
 const hot = new Handsontable(container, {
-  columns: [
-    {
-      editor: Handsontable.editors.CustomEditor
-    }
-  ]
+  columns: [{
+    editor: Handsontable.editors.CustomEditor
+  }]
 });
 ```
 
@@ -814,12 +791,9 @@ From now on, you can use `CustomEditor` like so:
 
 ```js
 const container = document.querySelector('#container')
-
 const hot = new Handsontable(container, {
-  columns: [
-    {
-      editor: 'theBestEditor'
-    }
-  ]
+  columns: [{
+    editor: 'theBestEditor'
+  }]
 });
 ```

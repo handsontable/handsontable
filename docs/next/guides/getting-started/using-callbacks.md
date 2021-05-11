@@ -1,127 +1,146 @@
 ---
-title: Using callbacks
+title: Events and Hooks
 permalink: /next/using-callbacks
 canonicalUrl: /using-callbacks
+tags:
+- callback
+- hook
+- event
+- middleware
+- modify
+- after
+- before
 ---
 
-<style>
-#hooksList {
-  height: 500px;
-  overflow-y: scroll;
-}
-#hooksList li {
-  width: 50%;
-  float: left;
-  margin: 0;
-  list-style: none;
-}
-#example1 {
-  box-sizing: border-box;
-  height: 100%;
-  display: inline-block;
-  width: 50%;
-  margin: 0;
-}
-#example1-events {
-  display: inline-block;
-  box-sizing: border-box;
-  width: 49%;
-  height: 165px;
-  padding: 0.5rem;
-  overflow: auto;
-  font-size: 11px;
-  border: 1px solid #CCC;
-}
-.clear-log {
-  margin-top: 0.5rem;
-  text-align: right;
-}
-.clear-log button {
-  padding: .3rem .5rem .31rem;
-  color: #fff;
-  font-size: 13px;
-  border: none;
-  background: #9e9e9e;
-  cursor: pointer;
-}
-</style>
-
-# Using callbacks
+# Events and Hooks
 
 [[toc]]
 
-## Callbacks
+## Events
 
-Learn how to use some of the callbacks available in Handsontable. Note that some callbacks are checked on this page by default.
+If you only react to emitted hooks and forget about all their other features you can see hooks as pure events. You would want to limit your scope to `after` prefixed hooks, so they are emitted after something has happened, and the results of the actions are already committed.
 
-::: example #example1 --html 1 --js 2 --hidden
-```html
-<div id="example1"></div>
-<div id="example1-events"></div>
-<div class="clear-log">
-  <button>Clear log</button>
-</div>
+```js
+hot.addHook('afterCreateRow', (row, amount) => {
+  console.log(`${amount} row(s) were created, starting at index ${row}`);
+})
+```
 
-<h4>Choose events to be logged:</h4>
+## Middleware
+
+Concept known in JavaScript world from Node.js frameworks such as Express or Koa. A middleware is a callback that can pipe to a process and allow the developer to modify it. We're no longer just reacting to emitted event, but we can influence what's happening inside the component and modify the process.
+
+```js
+hot.addHook('modifyColWidth', (width, column) => {
+  if (column > 10) {
+    return 150;
+  }
+})
+```
+
+Note that the first argument is the current width that we're going to modify. Later arguments are immutable, additional information that can be used to decide whether the data should be modified.
+
+## Hooks
+
+We're calling them all "hooks" because although, they share some characteristics with events and middleware, they combine them both in an unique structure. We're not the only ones that use hooks convention, so you may already be familiar with the concept.
+
+Almost all `before` prefixed hooks allow the developer to return `false` and therefore, block the execution of an action. It may be used for validation, rejecting operation by the outside service, or blocking our native algoritm and replace it with a custom implementation.
+
+A great example for this is our integration with HyperFormula engine. Where creating a new row is only possible if the engine itself will allow it:
+
+```js
+hot.addHook('beforeCreateRow', (row, amount) => {
+  if (!hyperFormula.isItPossibleToAddRows(0, [row, amount])) {
+    return false;
+  }
+})
+```
+
+First argument may be modified and passed further through the hooks that are next in the queue. This characteristic is shared between `after` and `before` hooks but is mostly noticeable with the latter. Before samothing happens we can run the data through a pipeline of hooks that may modify it or reject the operation. This gives you a lot of possibilities to extend the default Handsontable functionalities and customize it for your application. 
+
+## All available hooks example
+
+Note that some callbacks are checked on this page by default.
+
+**Choose events to be logged:**
+
+<style>
+#example1_events {
+  width: 100%;
+  height: 400px;
+  overflow-y: scroll;
+}
+
+#hooksList {
+  padding: 0;
+}
+
+#hooksList li {
+  list-style: none;
+  width: 33%;
+  display: inline-block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+</style>
 
 <ul id="hooksList">
-  <li>
-    <label>
-      <input type="checkbox" id="check_select_all">
-      <strong>select all</strong>
-    </label>
-    </li>
+  <li><label><input type="checkbox" id="check_select_all">Select all</label></li>
 </ul>
-```
+
+**Events log:**
+
+<div id="example1_events"></div>
+
+::: example #example1
 ```js
-const data = [
-  ['', 'Tesla', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'],
-  ['2017', 0, 2941, 4303, 354, 5814],
-  ['2018', 3, 2905, 2867, 412, 5284],
-  ['2019', 4, 2517, 4822, 552, 6127],
-  ['2020', 2, 2422, 5399, 776, 4151]
-]
-const example1 = document.getElementById('example1');
-const hooksList = document.getElementById('hooksList');
-const hooks = Handsontable.hooks.getRegistered();
-const hotConfig = {
-  data: data,
+const config = {
+  data: [
+    ['', 'Tesla', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'],
+    ['2017', 0, 2941, 4303, 354, 5814],
+    ['2018', 3, 2905, 2867, 412, 5284],
+    ['2019', 4, 2517, 4822, 552, 6127],
+    ['2020', 2, 2422, 5399, 776, 4151]
+  ],
   minRows: 5,
   minCols: 6,
   minSpareRows: 1,
   autoWrapRow: true,
   colHeaders: true,
-  contextMenu: true,
-  licenseKey: 'non-commercial-and-evaluation'
-}
+  contextMenu: true
+};
+
+const example1_events = document.getElementById("example1_events");
+const hooksList = document.getElementById('hooksList');
+const hooks = Handsontable.hooks.getRegistered();
 
 hooks.forEach(function(hook) {
-  let checked = '';
+  var checked = '';
 
   if (hook === 'afterChange' || hook === 'afterSelection' || hook === 'afterCreateRow' || hook === 'afterRemoveRow' || hook === 'afterCreateCol' || hook === 'afterRemoveCol') {
     checked = 'checked';
   }
 
-  hooksList.innerHTML += '<li><label><input type="checkbox" ' + checked + ' id="check\_' + hook + '"> ' + hook + '</label></li>';
-  hotConfig[hook] = function() {
-    logEvents(hook, arguments);
+  hooksList.innerHTML += '<li><label><input type="checkbox" ' + checked + ' id="check_' + hook + '"> ' + hook + '</label></li>';
+  config[hook] = function() {
+    log_events(hook, arguments);
   }
 });
 
 const start = (new Date()).getTime();
-const example1Events = document.getElementById("example1-events");
 let i = 0;
 let timer;
 
-function logEvents(event, data) {
-  if (document.getElementById('check\_' + event).checked) {
+function log_events(event, data) {
+  if (document.getElementById('check_' + event).checked) {
     const now = (new Date()).getTime();
     const diff = now - start;
-    let str = '';
+    let str;
 
     const vals = [ i, "@" + numbro(diff / 1000).format('0.000'), "[" + event + "]"];
 
-    for (let d = 0; d < data.length; d++) {
+    for (var d = 0; d < data.length; d++) {
       try {
         str = JSON.stringify(data[d]);
       } catch (e) {
@@ -132,7 +151,7 @@ function logEvents(event, data) {
         continue;
       }
       if (str.length > 20) {
-        str = data[d].toString();
+        str = Object.prototype.toString.call(data[d]);
       }
       if (d < data.length - 1) {
         str += ',';
@@ -145,44 +164,35 @@ function logEvents(event, data) {
       console.log(i, "@" + numbro(diff / 1000).format('0.000'), "[" + event + "]", data);
     }
 
-    const div = document.createElement("div");
+    const div = document.createElement("DIV");
     const text = document.createTextNode(vals.join(" "));
-
     div.appendChild(text);
-    example1Events.appendChild(div);
+    example1_events.appendChild(div);
     clearTimeout(timer);
-    const timer = setTimeout(function() {
-      example1Events.scrollTop = example1Events.scrollHeight;
+    timer = setTimeout(function() {
+      example1_events.scrollTop = example1_events.scrollHeight;
     }, 10);
 
     i++;
   }
 }
 
-const clearLogButton = document.querySelector('.clear-log button');
-clearLogButton.addEventListener('click', () => {
-  example1Events.innerHTML = '';
-});
+const example1 = document.getElementById('example1');
+const hot = new Handsontable(example1, config);
 
-const selectAll = document.querySelector('#check_select_all');
-const hookCheckboxes = document.querySelectorAll('#hooksList input[type=checkbox]');
-
-selectAll.addEventListener('click', (event) => {
-  const state = event.target.checked;
-
-  hookCheckboxes.forEach((checkbox) => {
-    checkbox.checked = state;
+document.querySelector('#check_select_all').addEventListener('click', function () {
+  const state = this.checked;
+  const inputs = document.querySelectorAll('#hooksList input[type=checkbox]');
+  Array.prototype.forEach.call(inputs, function (input) {
+    input.checked = state;
   });
 });
 
-hooksList.addEventListener('click', event => {
-  if (!event.target.checked) {
-    selectAll.checked = false;
+document.querySelector('#hooksList input[type=checkbox]').addEventListener('click', function () {
+  if (!this.checked) {
+    document.getElementById('check_select_all').checked = false;
   }
 });
-
-const hot = new Handsontable(example1, hotConfig);
-
 ```
 :::
 
@@ -221,13 +231,20 @@ List of callback that operates on `source` parameter:
 * [afterChange](api/pluginHooks.md#afterchange)
 * [afterCreateCol](api/pluginHooks.md#aftercreatecol)
 * [afterCreateRow](api/pluginHooks.md#aftercreaterow)
+* [afterLoadData](api/pluginHooks.md#afterloaddata)
 * [afterSetDataAtCell](api/pluginHooks.md#aftersetdataatcell)
 * [afterSetDataAtRowProp](api/pluginHooks.md#aftersetdataatrowprop)
+* [afterSetSourceDataAtCell](api/pluginHooks.md#aftersetsourcedataatcell)
+* [afterRemoveCol](api/pluginHooks.md#afterremovecol)
+* [afterRemoveRow](api/pluginHooks.md#aftermoverow)
 * [afterValidate](api/pluginHooks.md#aftervalidate)
 * [beforeChange](api/pluginHooks.md#beforechange)
 * [beforeChangeRender](api/pluginHooks.md#beforechangerender)
 * [beforeCreateCol](api/pluginHooks.md#beforecreatecol)
 * [beforeCreateRow](api/pluginHooks.md#beforecreaterow)
+* [beforeLoadData](api/pluginHooks.md#beforeloaddata)
+* [beforeRemoveCol](api/pluginHooks.md#beforeremovecol)
+* [beforeRemoveRow](api/pluginHooks.md#beforeremoverow)
 * [beforeValidate](api/pluginHooks.md#beforevalidate)
 
 ## The `beforeKeyDown` callback
@@ -239,22 +256,19 @@ The following demo uses `beforeKeyDown` callback to modify some key bindings:
 
 ::: example #example2
 ```js
-var data = [
-  ['Tesla', 2017, 'black', 'black'],
-  ['Nissan', 2018, 'blue', 'blue'],
-  ['Chrysler', 2019, 'yellow', 'black'],
-  ['Volvo', 2020, 'yellow', 'gray']
-],
-container = document.getElementById("example2"),
-lastChange = null,
-hot2;
+let lastChange = null;
+const example2 = document.getElementById("example2")
 
-hot2 = new Handsontable(container, {
-  data: data,
+const hot2 = new Handsontable(example2, {
+  data: [
+    ['Tesla', 2017, 'black', 'black'],
+    ['Nissan', 2018, 'blue', 'blue'],
+    ['Chrysler', 2019, 'yellow', 'black'],
+    ['Volvo', 2020, 'yellow', 'gray']
+  ],
   colHeaders: true,
   rowHeaders: true,
   minSpareRows: 1,
-  licenseKey: 'non-commercial-and-evaluation',
   beforeChange: function (changes, source) {
     lastChange = changes;
   }

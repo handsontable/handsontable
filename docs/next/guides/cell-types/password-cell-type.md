@@ -18,17 +18,17 @@ const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
   data: [
-    {id: 1, name: {first: 'Chris', last: 'Right'}, password: 'plainTextPassword'},
-    {id: 2, name: {first: 'John', last: 'Honest'}, password: 'txt'},
-    {id: 3, name: {first: 'Greg', last: 'Well'}, password: 'longer'}
+    { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
+    { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
+    { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
   ],
   colHeaders: ['ID', 'First name', 'Last name', 'Password'],
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
-    {data: 'id'},
-    {data: 'name.first'},
-    {data: 'name.last'},
-    {data: 'password', type: 'password'}
+    { data: 'id' },
+    { data: 'name.first' },
+    { data: 'name.last' },
+    { data: 'password', type: 'password' }
   ]
 });
 ```
@@ -44,17 +44,17 @@ const container = document.querySelector('#example2');
 
 const hot2 = new Handsontable(container, {
   data: [
-    {id: 1, name: {first: 'Chris', last: 'Right'}, password: 'plainTextPassword'},
-    {id: 2, name: {first: 'John', last: 'Honest'}, password: 'txt'},
-    {id: 3, name: {first: 'Greg', last: 'Well'}, password: 'longer'}
+    { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
+    { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
+    { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
   ],
   colHeaders: ['ID', 'First name', 'Last name', 'Password'],
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
-    {data: 'id'},
-    {data: 'name.first'},
-    {data: 'name.last'},
-    {data: 'password', type: 'password', hashLength: 10}
+    { data: 'id' },
+    { data: 'name.first' },
+    { data: 'name.last' },
+    { data: 'password', type: 'password', hashLength: 10 }
   ]
 });
 ```
@@ -68,19 +68,19 @@ By default every hash consists of asterisks `*`. Use option `hashSymbol` to set 
 ```js
 const container = document.querySelector('#example3');
 
-const hot3 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
-    {id: 1, name: {first: 'Chris', last: 'Right'}, password: 'plainTextPassword'},
-    {id: 2, name: {first: 'John', last: 'Honest'}, password: 'txt'},
-    {id: 3, name: {first: 'Greg', last: 'Well'}, password: 'longer'}
+    { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
+    { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },
+    { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
   ],
   colHeaders: ['ID', 'First name', 'Last name', 'Password'],
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
-    {data: 'id'},
-    {data: 'name.first'},
-    {data: 'name.last'},
-    {data: 'password', type: 'password', hashSymbol: '&#9632;'}
+    { data: 'id' },
+    { data: 'name.first' },
+    { data: 'name.last' },
+    { data: 'password', type: 'password', hashSymbol: '&#9632;' }
   ]
 });
 ```
