@@ -305,6 +305,8 @@ export class Autofill extends BasePlugin {
         }
       }
 
+      this.hot.suspendRender();
+
       this.hot.populateFromArray(
         startOfDragCoords.row,
         startOfDragCoords.col,
@@ -319,6 +321,8 @@ export class Autofill extends BasePlugin {
 
       this.setSelection(cornersOfSelectionAndDragAreas);
       this.hot.runHooks('afterAutofill', fillData, sourceRange, targetRange, directionOfDrag);
+
+      this.hot.resumeRender();
 
     } else {
       // reset to avoid some range bug
