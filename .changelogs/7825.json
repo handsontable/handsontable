@@ -1,7 +1,0 @@
-{
-  "title": "Callbacks for UndoRedo plugin won't be called twice",
-  "type": "fixed",
-  "issue": 7825,
-  "breaking": false,
-  "framework": "none"
-}

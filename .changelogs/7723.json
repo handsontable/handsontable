@@ -1,7 +1,0 @@
-{
-  "title": "Fixed production package.json content",
-  "type": "fixed",
-  "issue": 7723,
-  "breaking": false,
-  "framework": "none"
-}
