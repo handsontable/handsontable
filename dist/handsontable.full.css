@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 8.4.0
- * Release date: 06/05/2021 (built at 30/04/2021 09:21:39)
+ * Release date: 11/05/2021 (built at 11/05/2021 09:12:54)
  */
 /**
  * Fix for bootstrap styles
@@ -742,13 +742,13 @@ TextRenderer placeholder value
 
 .handsontable.mobile,
 .handsontable.mobile .wtHolder {
-  -webkit-touch-callout:none;
-  -webkit-user-select:none;
-  -khtml-user-select:none;
-  -moz-user-select:none;
-  -ms-user-select:none;
-  user-select:none;
-  -webkit-tap-highlight-color:rgba(0,0,0,0);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
   -webkit-overflow-scrolling: touch;
 }
 
