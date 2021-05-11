@@ -398,7 +398,7 @@ describe('AutoFill', () => {
         sourceRange,
         targetRange,
         direction,
-        undefined, // TODO ???
+        undefined,
         undefined
       );
     });
@@ -509,7 +509,7 @@ describe('AutoFill', () => {
       sourceRange,
       targetRange,
       direction,
-      undefined, // TODO ??
+      undefined,
       undefined
     );
   });
