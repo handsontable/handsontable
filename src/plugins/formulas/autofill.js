@@ -48,7 +48,7 @@ export const registerAutofillHooks = (pluginInstance) => {
       height: target.to.row - target.from.row + 1
     };
 
-    const sheet = pluginInstance.engine.getSheetId(pluginInstance.sheetName);
+    const sheet = pluginInstance.sheetId;
 
     switch (direction) {
       case 'right': {
