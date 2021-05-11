@@ -9,6 +9,7 @@ const allowedE2EModules = [
   './htmlNormalize',
   './common',
   './mouseEvents',
+  './keyboardEvents',
   './../bootstrap',
   './helpers/custom-matchers',
   './asciiTable',
