@@ -40,7 +40,7 @@ export function getEngineSettingsOverrides(hotSettings) {
   return {
     maxColumns: hotSettings.maxColumns,
     maxRows: hotSettings.maxRows,
-    language: hotSettings[PLUGIN_KEY].language?.langCode
+    language: hotSettings[PLUGIN_KEY]?.language?.langCode
   };
 }
 
@@ -52,7 +52,7 @@ export function getEngineSettingsOverrides(hotSettings) {
  */
 export function mergeEngineSettings(hotSettings) {
   const pluginSettings = hotSettings[PLUGIN_KEY];
-  const configSettings = pluginSettings.engine.hyperformula ? pluginSettings.engine : {};
+  const configSettings = pluginSettings?.engine?.hyperformula ? pluginSettings.engine : {};
   const overrides = getEngineSettingsOverrides(hotSettings);
 
   const cleanConfigSettings = Object.keys(configSettings)
