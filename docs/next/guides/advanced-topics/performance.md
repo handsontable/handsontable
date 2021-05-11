@@ -19,7 +19,7 @@ We use Performance Lab to measure the execution times in various configurations.
 You can try setting a constant size for your table's columns. This way, Handsontable won't have to calculate the optimal width for each column. In order to do that, define the column widths in the colWidths property of your Handsontable instance configuration, for example:
 
 ```js
-var hot = new Handsontable(obj, {
+const hot = new Handsontable(obj, {
   // other options
   colWidths: [50, 150, 45]
 });

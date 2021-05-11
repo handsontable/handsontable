@@ -10,7 +10,7 @@ Select editor should be considered an example how to write editors rather than u
 
 ::: example #example1
 ```js
-const container = document.getElementById("example1");
+const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
   data: [
@@ -28,7 +28,7 @@ const hot = new Handsontable(container, {
     },
     {}
   ],
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
 ```
 :::

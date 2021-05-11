@@ -213,16 +213,20 @@ const hot = new Handsontable(container, {
   columns: [
     { type: 'password' },
     { }
-  ]
+  columns: [{
+    type: 'my.custom'
+  }]
 });
 ```
 
 We take advantage of the [cascade configuration](setting-options.md#page-config) and define a table with two columns, with `validator` set to `customValidator` function. We also set `type` of the first column to `password`. `Password` cell type does not define a validator function:
 
 ```js
-renderer: Handsontable.renderers.PasswordRenderer,
-editor: Handsontable.editors.PasswordEditor,
-validator: undefined
+{
+  renderer: Handsontable.renderers.PasswordRenderer,
+  editor: Handsontable.editors.PasswordEditor, 
+  validator: undefined
+}
 ```
 
 Because `type: 'password'` is a more specific configuration for the cells in the first column, than the `validator: customValidator`, cell functions associated with the `password` type takes precedence over the functions defined on the higher level of configuration. Therefore, the equivalent configuration is:
@@ -247,7 +251,7 @@ The below example shows some of the built-in cell types (in other words, combina
 
 ::: example #example1
 ```js
-const container = document.getElementById('example1');
+const container = document.querySelector('#example1');
 const colors = ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"];
 
 const yellowRenderer = function(instance, td, row, col, prop, value, cellProperties) {
@@ -282,7 +286,7 @@ const hot1 = new Handsontable(container, {
   cell: [
     { row: 1, col: 0, renderer: greenRenderer }
   ],
-  cells: function (row, col, prop) {
+  cells(row, col, prop) {
     if (row === 0 && col === 0) {
       this.renderer = greenRenderer;
     }

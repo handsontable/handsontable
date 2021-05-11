@@ -16,11 +16,11 @@ In this mode, the mouse and keyboard bindings are identical as in [Handsontable 
 
 ::: example #example1
 ```js
-const example1 = document.getElementById('example1');
-const colors = ['yellow', 'red', 'orange and another color', 'green', 
+const container = document.querySelector('#example1');
+const colors = ['yellow', 'red', 'orange and another color', 'green',
   'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
 
-const hot1 = new Handsontable(example1, {
+const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['BMW', 2017, 'black', 'black'],
@@ -67,12 +67,12 @@ In strict mode, the **allowInvalid** option determines the behaviour in case of 
 
 ::: example #example2
 ```js
-const example2 = document.getElementById('example2');
-const colors = ['yellow', 'red', 'orange', 'green', 'blue', 
+const container = document.querySelector('#example2');
+const colors = ['yellow', 'red', 'orange', 'green', 'blue',
   'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
 const cars = ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'];
 
-const hot2 = new Handsontable(example2, {
+const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['BMW', 2017, 'black', 'black'],
@@ -89,7 +89,7 @@ const hot2 = new Handsontable(example2, {
       strict: true
       // allowInvalid: true // true is default
     },
-    { },
+    {},
     {
       type: 'autocomplete',
       source: colors,
@@ -113,9 +113,9 @@ Autocomplete can be also used with Ajax data source. In the below example, sugge
 
 ::: example #example3
 ```js
-const example3 = document.getElementById('example3');
+const container = document.querySelector('#example3');
 
-const hot3 = new Handsontable(example3, {
+const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['BMW', 2017, 'black', 'black'],
@@ -124,10 +124,11 @@ const hot3 = new Handsontable(example3, {
     ['Volvo', 2020, 'white', 'gray']
   ],
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+  licenseKey: 'non-commercial-and-evaluation',
   columns: [
     {
       type: 'autocomplete',
-      source: function (query, process) {
+      source(query, process) {
         fetch('/docs/scripts/json/autocomplete.json')
           .then(response => response.json())
           .then(response => process(response.data));

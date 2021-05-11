@@ -12,10 +12,9 @@ Internally, cell `{type: 'dropdown'}` is equivalent to cell `{type: 'autocomplet
 
 ::: example #example1
 ```js
-const container = document.getElementById('example1');
+const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['Tesla', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
@@ -34,7 +33,8 @@ const hot = new Handsontable(container, {
       type: 'dropdown',
       source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']
     }
-  ]
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 :::

@@ -15,55 +15,51 @@ import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import Handsontable from 'handsontable';
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.hotSettings = {
-      data:
-        [['A1', 'https://handsontable.com/docs/images/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-          ['A2', 'https://handsontable.com/docs/images/examples/javascript-the-good-parts.jpg']],
-      columns: [
-        {},
-        {
-          renderer: function(instance, td, row, col, prop, value, cellProperties) {
-            const escaped = Handsontable.helper.stringify(value);
-            let img = null;
+const hotSettings = {
+  data:
+    [
+      ['A1', 'https://handsontable.com/docs/images/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+      ['A2', 'https://handsontable.com/docs/images/examples/javascript-the-good-parts.jpg']
+    ],
+  columns: [
+    {},
+    {
+      renderer(instance, td, row, col, prop, value, cellProperties) {
+        const escaped = Handsontable.helper.stringify(value);
 
-            if (escaped.indexOf('http') === 0) {
-              img = document.createElement('IMG');
-              img.src = value;
+        if (escaped.indexOf('http') === 0) {
+          const img = document.createElement('IMG');
+          img.src = value;
 
-              Handsontable.dom.addEvent(img, 'mousedown', function(event) {
-                event.preventDefault();
-              });
+          Handsontable.dom.addEvent(img, 'mousedown', event => {
+            event.preventDefault();
+          });
 
-              Handsontable.dom.empty(td);
-              td.appendChild(img);
-            }
-            else {
-              Handsontable.renderers.TextRenderer.apply(this, arguments);
-            }
+          Handsontable.dom.empty(td);
+          td.appendChild(img);
 
-            return td;
-          }
+        } else {
+          Handsontable.renderers.TextRenderer.apply(this, arguments);
         }
-      ],
-      colHeaders: true,
-      rowHeights: 55,
-      licenseKey: 'non-commercial-and-evaluation'
-    };
-  }
 
-  render() {
-    return (
-      <div>
-        <HotTable
-          id="hot"
-          settings={this.hotSettings}
-        />
-      </div>
-    );
-  }
+        return td;
+      }
+    }
+  ],
+  colHeaders: true,
+  rowHeights: 55,
+  licenseKey: 'non-commercial-and-evaluation'
+};
+
+const App = () => {
+  return (
+    <div>
+      <HotTable
+        id="hot"
+        settings={hotSettings}
+      />
+    </div>
+  );
 }
 
 ReactDOM.render(<App />, document.getElementById('example1'));

@@ -69,29 +69,29 @@ const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
 
 ::: example #example1
 ```js
-var
-  data = [
-    ['Tesla', 2017, 'black', 'black'],
-    ['Nissan', 2018, 'blue', 'blue'],
-    ['Chrysler', 2019, 'yellow', 'black'],
-    ['Volvo', 2020, 'yellow', 'gray']
-  ],
-  example = document.getElementById('example1'),
-  searchFiled = document.getElementById('search_field'),
-  hot1;
+const container = document.querySelector('#example1');
+const searchField = document.querySelector('#search_field');
 
-hot1 = new Handsontable(example, {
-  data: data,
+const data = [
+  ['Tesla', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'yellow', 'gray']
+];
+
+const hot1 = new Handsontable(container, {
+  data,
   colHeaders: true,
   search: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-Handsontable.dom.addEvent(searchFiled, 'keyup', function (event) {
-  var search = hot1.getPlugin('search');
-  var queryResult = search.query(this.value);
+Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+  const search = hot1.getPlugin('search');
+  const queryResult = search.query(this.value);
 
   console.log(queryResult);
+
   hot1.render();
 });
 ```
@@ -103,29 +103,28 @@ Handsontable.dom.addEvent(searchFiled, 'keyup', function (event) {
 
 ::: example #example2
 ```js
-var
-  data = [
-    ["Tesla", 2017, "black", "black"],
-    ["Nissan", 2018, "blue", "blue"],
-    ["Chrysler", 2019, "yellow", "black"],
-    ["Volvo", 2020, "white", "gray"]
-  ],
-  example2 = document.getElementById("example2"),
-  hot2, searchFiled2;
+const container = document.querySelector('#example2');
+const searchField = document.querySelector('#search_field2');
 
-hot2 = new Handsontable(example2,{
-  data: data,
+const data = [
+  ['Tesla', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'yellow', 'gray']
+];
+
+const hot2 = new Handsontable(container, {
+  data,
   colHeaders: true,
   search: {
     searchResultClass: 'customClass'
   },
   licenseKey: 'non-commercial-and-evaluation'
 });
-searchFiled2 = document.getElementById('search_field2');
 
-Handsontable.dom.addEvent(searchFiled2, 'keyup', function (event) {
-  var search = hot2.getPlugin('search');
-  var queryResult = search.query(this.value);
+Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+  const search = hot2.getPlugin('search');
+  const queryResult = search.query(this.value);
 
   console.log(queryResult);
   hot2.render();
@@ -139,33 +138,32 @@ Handsontable.dom.addEvent(searchFiled2, 'keyup', function (event) {
 
 ::: example #example3
 ```js
-var
-  data = [
-    ["Tesla", 2017, "black", "black"],
-    ["Nissan", 2018, "blue", "blue"],
-    ["Chrysler", 2019, "yellow", "black"],
-    ["Volvo", 2020, "white", "gray"]
-  ],
-  example3 = document.getElementById("example3"),
-  hot3, searchFiled3;
+const container = document.querySelector('#example3');
+const searchField = document.querySelector('#search_field3');
+
+const data = [
+  ["Tesla", 2017, "black", "black"],
+  ["Nissan", 2018, "blue", "blue"],
+  ["Chrysler", 2019, "yellow", "black"],
+  ["Volvo", 2020, "white", "gray"]
+];
 
 function onlyExactMatch(queryStr, value) {
   return queryStr.toString() === value.toString();
 };
 
-hot3 = new Handsontable(example3,{
-  data: data,
+const hot3 = new Handsontable(example3,{
+  data,
   colHeaders: true,
   search: {
     queryMethod: onlyExactMatch
   },
   licenseKey: 'non-commercial-and-evaluation'
 });
-searchFiled3 = document.getElementById('search_field3');
 
-Handsontable.dom.addEvent(searchFiled3, 'keyup', function(event) {
-  var search = hot3.getPlugin('search');
-  var queryResult = search.query(this.value);
+Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+  const search = hot3.getPlugin('search');
+  const queryResult = search.query(this.value);
 
   console.log(queryResult);
 
@@ -181,16 +179,19 @@ Handsontable.dom.addEvent(searchFiled3, 'keyup', function(event) {
 
 ::: example #example4
 ```js
-var
-  data = [
-    ["Tesla", 2017, "black", "black"],
-    ["Nissan", 2018, "blue", "blue"],
-    ["Chrysler", 2019, "yellow", "black"],
-    ["Volvo", 2020, "white", "gray"]
-  ],
-  example4 = document.getElementById("example4"),
-  hot4, searchFiled4, resultCount,
-  searchResultCount = 0;
+const container = document.querySelector('#example4');
+const searchField = document.querySelector('#search_field4');
+const resultCount = document.querySelector('#resultCount');
+
+let searchResultCount = 0;
+
+const data = [
+  ["Tesla", 2017, "black", "black"],
+  ["Nissan", 2018, "blue", "blue"],
+  ["Chrysler", 2019, "yellow", "black"],
+  ["Volvo", 2020, "white", "gray"]
+];
+
 
 function searchResultCounter(instance, row, col, value, result) {
   const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
@@ -204,22 +205,20 @@ function searchResultCounter(instance, row, col, value, result) {
   }
 }
 
-hot4 = new Handsontable(example4,{
-  data: data,
+const hot4 = new Handsontable(container, {
+  data,
   colHeaders: true,
   search: {
     callback: searchResultCounter
   },
   licenseKey: 'non-commercial-and-evaluation'
 });
-searchFiled4 = document.getElementById('search_field4');
-resultCount = document.getElementById('resultCount');
 
-Handsontable.dom.addEvent(searchFiled4, 'keyup', function(event) {
+Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
   searchResultCount = 0;
 
-  var search = hot4.getPlugin('search');
-  var queryResult = search.query(this.value);
+  const search = hot4.getPlugin('search');
+  const queryResult = search.query(this.value);
 
   console.log(queryResult);
   resultCount.innerText = searchResultCount.toString();

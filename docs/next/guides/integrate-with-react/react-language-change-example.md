@@ -13,56 +13,50 @@ Note, that the `language` property is bound to the component separately by using
 
 ::: example #example1 :react
 ```jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import {HotTable} from '@handsontable/react';
+import { HotTable } from '@handsontable/react';
 import Handsontable from 'handsontable';
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(5, 10),
+  colHeaders: true,
+  rowHeaders: true,
+  contextMenu: true,
+  licenseKey: 'non-commercial-and-evaluation'
+};
 
-    this.id = 'hot';
-    this.state = {
-      hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(5, 10),
-        colHeaders: true,
-        rowHeaders: true,
-        contextMenu: true,
-        licenseKey: 'non-commercial-and-evaluation'
-      },
-      language: 'en-US'
-    };
+const App = () => {
+  const [language, setLanguage] = useState('en-US');
+  const [languageList, setLanguageList] = useState([]);
 
-    this.updateHotLanguage = this.updateHotLanguage.bind(this);
-  }
+  useEffect(() => {
+    setLanguageList(Handsontable.languages.getLanguagesDictionaries());
+  }, []);
 
-  componentDidMount() {
-    this.getAllLanguageOptions();
-  }
+  const updateHotLanguage = event => {
+    setLanguage(event.target.value);
+  };
 
-  getAllLanguageOptions() {
-    const allDictionaries = Handsontable.languages.getLanguagesDictionaries();
-    const langSelect = document.querySelector('#languages');
-    langSelect.innerHTML = '';
+  return (
+    <div>
+      <label htmlFor="languages">Select language:
+        {' '}
+        <select value={language} onChange={updateHotLanguage} id="languages">
+          {languageList.map(({ languageCode }) => (
+            <option key={languageCode} value={languageCode}>
+              {languageCode}
+            </option>
+          ))}
+        </select>
+      </label>
 
-    for (let language of allDictionaries) {
-      langSelect.innerHTML += `<option value="${language.languageCode}">${language.languageCode}</option>`
-    }
-  }
+      <br/>
+      <br/>
 
-  updateHotLanguage(event) {
-    this.setState({language: event.target.value});
-  }
-
-  render() {
-    return (
-      <div>
-        <label>Select language: <select onChange={this.updateHotLanguage} id="languages" style={{width: 100 + 'px'}}></select></label><br/><br/>
-        <HotTable id={this.id} language={this.state.language} settings={this.state.hotSettings}/>
-      </div>
-    );
-  }
+      <HotTable language={language} settings={hotSettings}/>
+    </div>
+  );
 }
 
 ReactDOM.render(<App/>, document.getElementById('example1'));

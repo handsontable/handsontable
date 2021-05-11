@@ -43,8 +43,10 @@ Manually defining those functions for cells or columns would be tedious, so to s
 If, for some reason, you have to get the `renderer`, `editor` or `validator` function of specific cell you can use standard `getCellMeta(row, col)` method to get all properties of particular cell and then refer to cell functions like so:
 
 ```js
+const container = document.querySelector('#container');
+
 // get cell properties for cell [0, 0]
-var cellProperties = hot.getCellMeta(0, 0);
+const cellProperties = hot.getCellMeta(0, 0);
 cellProperties.renderer; // get cell renderer
 cellProperties.editor; // get cell editor
 cellProperties.validator; // get cell validator
@@ -53,6 +55,8 @@ cellProperties.validator; // get cell validator
 However, you have to remember that `getCellMeta()` return cell properties "as they are", which means that if you use cell type to set cell functions, instead of defining functions directly those cell functions will be `undefined`:
 
 ```js
+const container = document.querySelector('#container');
+
 const hot = new Handsontable(container, {
   columns: [{
     type: 'numeric'
@@ -60,7 +64,7 @@ const hot = new Handsontable(container, {
 });
 
 // get cell properties for cell [0, 0]
-var cellProperties = hot.getCellMeta(0, 0);
+const cellProperties = hot.getCellMeta(0, 0);
 cellProperties.renderer; // undefined
 cellProperties.editor; // undefined
 cellProperties.validator; // undefined

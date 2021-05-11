@@ -33,8 +33,9 @@ The demo below presents a data grid displaying 1 million cells (1000 rows x 1000
 
 ::: example #example1
 ```js
-var example = document.getElementById('example1');
-var hot1 = new Handsontable(example, {
+const container = document.querySelector('#example1');
+
+const hot1 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(1000, 1000),
   colWidths: 100,
   width: '100%',

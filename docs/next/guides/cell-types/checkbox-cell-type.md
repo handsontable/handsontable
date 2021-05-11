@@ -16,9 +16,9 @@ This is default usage scenario when columns data have `true` or `false` value an
 
 ::: example #example1
 ```js
-const example1 = document.getElementById('example1');
+const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(example1, {
+const hot = new Handsontable(container, {
   data: [
     { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
     { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
@@ -27,6 +27,7 @@ const hot1 = new Handsontable(example1, {
     { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
   ],
   colHeaders: ['Car model', 'Year of manufacture', 'Available'],
+  licenseKey: 'non-commercial-and-evaluation',
   columns: [
     {
       data: 'car'
@@ -51,9 +52,9 @@ If you want use other values than `true` and `false`, you have to provide this i
 
 ::: example #example2
 ```js
-const example2 = document.getElementById('example2');
+const container = document.querySelector('#example2');
 
-const hot2 = new Handsontable(example2, {
+const hot = new Handsontable(container, {
   data: [
     { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
     { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
@@ -62,6 +63,7 @@ const hot2 = new Handsontable(example2, {
     { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
   ],
   colHeaders: ['Car model', 'Year of manufacture', 'Comes in black'],
+  licenseKey: 'non-commercial-and-evaluation',
   columns: [
     {
       data: 'car'
@@ -88,9 +90,9 @@ If you want to add label to the checkbox you can use `label` option. With this o
 
 ::: example #example3
 ```js
-const example3 = document.getElementById('example3');
+const container = document.querySelector('#example3');
 
-const hot3 = new Handsontable(example3, {
+const hot = new Handsontable(container, {
   data: [
     { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
     { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },

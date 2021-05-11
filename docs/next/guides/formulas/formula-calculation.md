@@ -43,17 +43,18 @@ To enable the plugin you need to set the `formulas` property to `true`. Cells th
 
 ::: example #example1
 ```js
-var data = [
+const container = document.querySelector('#example1');
+
+const data = [
   ['=$B$2', "Maserati", "Mazda", "Mercedes", "Mini", "=A$1"],
   [2009, 0, 2941, 4303, 354, 5814],
   [2010, 5, 2905, 2867, '=SUM(A4,2,3)', '=$B1'],
   [2011, 4, 2517, 4822, 552, 6127],
   [2012, '=SUM(A2:A5)', '=SUM(B5,E3)', '=A2/B2', 12, 4151]
 ];
-var example1 = document.getElementById('example1');
 
-var hot1 = new Handsontable(example1, {
-  data: data,
+const hot1 = new Handsontable(container, {
+  data,
   colHeaders: true,
   rowHeaders: true,
   contextMenu: true,
@@ -69,7 +70,9 @@ You can pass your custom variables which can be ready to use in your formula exp
 
 ::: example #example2
 ```js
-var data = [
+const container = document.querySelector('#example2');
+
+const data = [
   ['Anderson', '92', '=IF(B1<RANGE_F, "F", IF(B1<RANGE_D, "D", IF(B1<RANGE_C, "C", IF(B1<RANGE_B, "B", "A"))))', '', '', '0-63', 'F'],
   ['Bautista', '85', '=IF(B2<RANGE_F, "F", IF(B2<RANGE_D, "D", IF(B2<RANGE_C, "C", IF(B2<RANGE_B, "B", "A"))))', '', '', '64-72', 'D'],
   ['Block', '96', '=IF(B3<RANGE_F, "F", IF(B3<RANGE_D, "D", IF(B3<RANGE_C, "C", IF(B3<RANGE_B, "B", "A"))))', '', '', '73-84', 'C'],
@@ -79,10 +82,9 @@ var data = [
   ['Crosby', '90', '=IF(B7<RANGE_F, "F", IF(B7<RANGE_D, "D", IF(B7<RANGE_C, "C", IF(B7<RANGE_B, "B", "A"))))', '', '', '', ''],
   ['Dove', '65', '=IF(B8<RANGE_F, "F", IF(B8<RANGE_D, "D", IF(B8<RANGE_C, "C", IF(B8<RANGE_B, "B", "A"))))', '', '', '', ''],
 ];
-var example2 = document.getElementById('example2');
 
-var hot2 = new Handsontable(example2, {
-  data: data,
+const hot2 = new Handsontable(container, {
+  data,
   colHeaders: true,
   rowHeaders: true,
   contextMenu: true,
@@ -108,18 +110,19 @@ At some point, you may want to update the custom variable's value. To do so, you
 
 ::: example #example3
 ```js
-var data = [
+const container = document.querySelector('#example3');
+const inputBox = document.querySelector("#calculate-field")
+const calculateButton = document.querySelector("#calculate")
+
+const data = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
   ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2;0)'],
   ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3;0)'],
   ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4;0)']
 ];
-var example3 = document.getElementById('example3');
-var inputBox = document.getElementById("calculate-field")
-var calculateButton = document.getElementById("calculate")
 
-var hot3 = new Handsontable(example3, {
-  data: data,
+const hot3 = new Handsontable(container, {
+  data,
   contextMenu: false,
   colHeaders: true,
   rowHeaders: true,
@@ -132,9 +135,9 @@ var hot3 = new Handsontable(example3, {
   }
 });
 
-var formulasPlugin = hot3.getPlugin('formulas');
+const formulasPlugin = hot3.getPlugin('formulas');
 
-Handsontable.dom.addEvent(calculateButton, 'click', function() {
+Handsontable.dom.addEvent(calculateButton, 'click', () => {
   // set variable and its value
   formulasPlugin.setVariable('ADDITIONAL_COST', parseInt(inputBox.value));
   // recalculate all formulas
@@ -149,7 +152,9 @@ The advanced example shows how to manage nested formulas. Also you can see how t
 
 ::: example #example4
 ```js
-var data = [
+const container = document.querySelector('#example4');
+
+const data = [
   ['Example #1 (looking for particular words in a sentence)', '', '', '', '', '', '', ''],
   ['Text', 'yellow', 'red', 'blue', 'green', 'pink', 'gray'],
   ['Yellow dog on green grass', "=IF(ISNUMBER(SEARCH(B2, A3)), B2, '')", "=IF(ISNUMBER(SEARCH(C2, A3)), C2, '')", "=IF(ISNUMBER(SEARCH(D2, A3)), D2, '')", "=IF(ISNUMBER(SEARCH(E2, A3)), E2, '')", "=IF(ISNUMBER(SEARCH(F2, A3)), F2, '')", "=IF(ISNUMBER(SEARCH(G2, A3)), G2, '')"],
@@ -168,10 +173,9 @@ var data = [
   ['Ken Siuk', 'ken@gmailtr.com', '=RIGHT(B16, LEN(B16) - FIND(EMAIL_SPLITTER, B16))', '', '', '', ''],
   ['Marcin Kowalski', 'ken@gmailtr.pl', '=RIGHT(B17, LEN(B17) - FIND(EMAIL_SPLITTER, B17))', '', '', '', ''],
 ];
-var example4 = document.getElementById('example4');
 
-var hot4 = new Handsontable(example4, {
-  data: data,
+const hot4 = new Handsontable(container, {
+  data,
   height: 320,
   colHeaders: true,
   rowHeaders: true,

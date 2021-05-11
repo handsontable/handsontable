@@ -1,5 +1,5 @@
 ---
-title: React installation
+title: Angular installation
 permalink: /next/angular-installation
 canonicalUrl: /angular-installation
 ---
@@ -51,5 +51,5 @@ Now, you can use the Handsontable component in your HTML files
   [colHeaders]="true"
   [rowHeaders]="true"
   [data]="dataset"
-  [licenseKey]="non-commercial-and-evaluation"></hot-table>`
+  [licenseKey]="non-commercial-and-evaluation"></hot-table>
 ```

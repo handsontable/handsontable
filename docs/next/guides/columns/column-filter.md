@@ -20,8 +20,9 @@ To enable the plugin you need to set the `filters` property to `true` and enable
 
 ::: example #example1
 ```js
-var example1 = document.getElementById('example1');
-var hot = new Handsontable(example1, {
+const container = document.querySelector('#example1');
+
+const hot = new Handsontable(container, {
   data: [
     ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
     ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
@@ -52,8 +53,9 @@ To display filters while hiding the other elements in the dropdown menu, pass th
 
 ::: example #example2
 ```js
-var example2 = document.getElementById('example2');
-var hot2 = new Handsontable(example2, {
+const container = document.querySelector('#example2');
+
+const hot2 = new Handsontable(container, {
   data: [
     ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
     ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
@@ -91,24 +93,24 @@ Please note that this demo uses a Handsontable API to a great extent.
 ::: example #example3
 ```js
 // Event for `keydown` event. Add condition after delay of 200 ms which is counted from time of last pressed key.
-var debounceFn = Handsontable.helper.debounce(function (colIndex, event) {
-  var filtersPlugin = hot3.getPlugin('filters');
+const debounceFn = Handsontable.helper.debounce((colIndex, event) => {
+  const filtersPlugin = hot3.getPlugin('filters');
 
   filtersPlugin.removeConditions(colIndex);
   filtersPlugin.addCondition(colIndex, 'contains', [event.target.value]);
   filtersPlugin.filter();
 }, 100);
 
-var addEventListeners = function (input, colIndex) {
-  input.addEventListener('keydown', function(event) {
+const addEventListeners = (input, colIndex) => {
+  input.addEventListener('keydown', event => {
     debounceFn(colIndex, event);
   });
 };
 
 // Build elements which will be displayed in header.
-var getInitializedElements = function(colIndex) {
-  var div = document.createElement('div');
-  var input = document.createElement('input');
+const getInitializedElements = colIndex => {
+  const div = document.createElement('div');
+  const input = document.createElement('input');
 
   div.className = 'filterHeader';
 
@@ -120,7 +122,7 @@ var getInitializedElements = function(colIndex) {
 };
 
 // Add elements to header on `afterGetColHeader` hook.
-var addInput = function(col, TH) {
+const addInput = (col, TH) => {
   // Hooks can return value other than number (for example `columnSorting` plugin use this).
   if (typeof col !== 'number') {
     return col;
@@ -132,14 +134,15 @@ var addInput = function(col, TH) {
 };
 
 // Deselect column after click on input.
-var doNotSelectColumn = function (event, coords) {
+const doNotSelectColumn = (event, coords) => {
   if (coords.row === -1 && event.target.nodeName === 'INPUT') {
     event.stopImmediatePropagation();
     this.deselectCell();
   }
 };
-var example3 = document.getElementById('example3');
-var hot3 = new Handsontable(example3, {
+const container = document.querySelector('#example3');
+
+const hot3 = new Handsontable(container, {
   data: [
     ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
     ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
@@ -215,13 +218,13 @@ class DOMHelper {
   }
 
   initListeners() {
-    this.chooseColumnUI.addEventListener('change', (event) => this.onSelectChanged(event));
+    this.chooseColumnUI.addEventListener('change', event => this.onSelectChanged(event));
     this.applyFilterUI.addEventListener('click', () => this.onApplyFilterClicked());
     this.clearFilterUI.addEventListener('click', () => this.onClearFilterClicked());
     this.selectAllUI.addEventListener('click', () => this.onSelectAllClicked());
   }
 
-  fillSelectByColHeaders () {
+  fillSelectByColHeaders() {
     const colHeaders = this.state.getHeaders();
 
     arrayEach(colHeaders, (colHeader, columnIndex) => {
@@ -252,7 +255,7 @@ class DOMHelper {
       input.value = cellData;
       input.checked = true;
 
-      input.addEventListener('change', (event) => this.onInputChange(event));
+      input.addEventListener('change', event => this.onInputChange(event));
 
       const label = document.createElement('label');
 
@@ -308,7 +311,7 @@ class DOMHelper {
     this.filter();
   }
 
-  onClearFilterClicked () {
+  onClearFilterClicked() {
     this.removeConditions(this.state.getSelectedColumn());
     this.state.removeValuesForFilter();
     this.filter();
@@ -367,7 +370,7 @@ class State {
   }
 
   getSourceDataAtCol(column) {
-    return this.data.map((dataAtRow) => dataAtRow[column].toString());
+    return this.data.map(dataAtRow => dataAtRow[column].toString());
   }
 
   setSelectedColumn(column) {
@@ -423,8 +426,10 @@ class Controller {
     new DOMHelper(this.state, {addConditionsByValue, filter, removeConditions});
   }
 }
-var example4 = document.getElementById('example4');
-var hot4 = new Handsontable(example4, {
+
+const container = document.querySelector('#example4');
+
+const hot4 = new Handsontable(container, {
   data: [
     ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
     ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
@@ -439,16 +444,16 @@ var hot4 = new Handsontable(example4, {
   editor: false,
   fillHandle: false,
   licenseKey: 'non-commercial-and-evaluation',
-  afterInit: function () {
+  afterInit() {
     const filtersPlugin = this.getPlugin('filters');
 
     new Controller(this, {
       selectedColumn: 0,
       addConditionsByValue: curry((values, column) => {
-        arrayEach(values, (value) => filtersPlugin.addCondition(column, 'not_contains', [value]));
+        arrayEach(values, value => filtersPlugin.addCondition(column, 'not_contains', [value]));
       }),
       filter: () => filtersPlugin.filter(),
-      removeConditions: (column) => filtersPlugin.removeConditions(column)
+      removeConditions: column => filtersPlugin.removeConditions(column)
     });
   }
 });

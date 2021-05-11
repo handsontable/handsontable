@@ -40,12 +40,13 @@ Possible values of `selectionMode`:
 
 ::: example #example1
 ```js
-var example1 = document.getElementById('example1');
-var selectOption = document.getElementById('selectOption');
-var settings1 = {
+const container = document.querySelector('#example1');
+const selectOption = document.querySelector('#selectOption');
+
+const settings1 = {
   data: Handsontable.helper.createSpreadsheetData(10, 10),
   width: 650,
-  height: 272,
+  height: 'auto',
   colWidths: 100,
   rowHeights: 23,
   rowHeaders: true,
@@ -53,11 +54,12 @@ var settings1 = {
   selectionMode: 'multiple', // 'single', 'range' or 'multiple',
   licenseKey: 'non-commercial-and-evaluation'
 };
-var hot1 = new Handsontable(example1, settings1);
 
-selectOption.addEventListener('change', function(event) {
-  var value = event.target.value;
-  var first = value.split(' ')[0].toLowerCase();
+const hot1 = new Handsontable(container, settings1);
+
+selectOption.addEventListener('change', event => {
+  const value = event.target.value;
+  const first = value.split(' ')[0].toLowerCase();
 
   hot1.updateSettings({
     selectionMode: first
@@ -77,13 +79,14 @@ To retrieve the selected cells as an array of arrays, you should use the `getSel
 
 ::: example #example2
 ```js
-var example2 = document.getElementById('example2');
-var output = document.getElementById('output');
-var getButton = document.getElementById('getButton');
-var settings2 = {
+const container = document.querySelector('#example2');
+const output = document.querySelector('#output');
+const getButton = document.querySelector('#getButton');
+
+const settings2 = {
   data: Handsontable.helper.createSpreadsheetData(10, 10),
   width: 650,
-  height: 272,
+  height: 'auto',
   colWidths: 100,
   rowHeights: 23,
   rowHeaders: true,
@@ -92,14 +95,15 @@ var settings2 = {
   selectionMode: 'multiple', // 'single', 'range' or 'multiple',
   licenseKey: 'non-commercial-and-evaluation'
 };
-var hot2 = new Handsontable(example2, settings2);
 
-getButton.addEventListener('click', function(event) {
-  var selected = hot2.getSelected();
-  var data = [];
+const hot2 = new Handsontable(container, settings2);
 
-  for (var i = 0; i < selected.length; i += 1) {
-    var item = selected[i];
+getButton.addEventListener('click', event => {
+  const selected = hot2.getSelected();
+  const data = [];
+
+  for (let i = 0; i < selected.length; i += 1) {
+    const item = selected[i];
 
     data.push(hot2.getData.apply(hot2, item));
   }
@@ -120,9 +124,10 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 
 ::: example #example3
 ```js
-var example3 = document.getElementById('example3');
-var buttons = document.getElementById('buttons');
-var settings3 = {
+const container = document.querySelector('#example3');
+const buttons = document.querySelector('#buttons');
+
+const settings3 = {
   data: Handsontable.helper.createSpreadsheetData(10, 10),
   width: 650,
   height: 272,
@@ -134,21 +139,22 @@ var settings3 = {
   selectionMode: 'multiple', // 'single', 'range' or 'multiple',
   licenseKey: 'non-commercial-and-evaluation'
 };
-var hot3 = new Handsontable(example3, settings3);
 
-buttons.addEventListener('click', function(event) {
-  var selected = hot3.getSelected();
-  var target = event.target.id;
+const hot3 = new Handsontable(container, settings3);
 
-  for (var index = 0; index < selected.length; index += 1) {
-    var item = selected[index];
-    var startRow = Math.min(item[0], item[2]);
-    var endRow = Math.max(item[0], item[2]);
-    var startCol = Math.min(item[1], item[3]);
-    var endCol = Math.max(item[1], item[3]);
+buttons.addEventListener('click', event => {
+  const selected = hot3.getSelected();
+  const target = event.target.id;
 
-    for (var rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
-      for (var columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
+  for (let index = 0; index < selected.length; index += 1) {
+    const item = selected[index];
+    const startRow = Math.min(item[0], item[2]);
+    const endRow = Math.max(item[0], item[2]);
+    const startCol = Math.min(item[1], item[3]);
+    const endCol = Math.max(item[1], item[3]);
+
+    for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
+      for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
         if (target === 'setButton') {
           hot3.setDataAtCell(rowIndex, columnIndex, 'data changed');
         }

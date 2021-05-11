@@ -32,7 +32,7 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 
 ::: example #example1
 ```js
-const container = document.getElementById('example1');
+const container = document.querySelector('#example1');
 const colorData = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
 const manufacturerData = [
   { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
@@ -59,8 +59,8 @@ const hot = new Handsontable(container, {
         colHeaders: ['Marque', 'Country', 'Parent company'],
         autoColumnSize: true,
         data: manufacturerData,
-        getValue: function() {
-          var selection = this.getSelectedLast();
+        getValue() {
+          const selection = this.getSelectedLast();
 
           // Get always manufacture name of clicked row and ignore header
           // coordinates (negative values)

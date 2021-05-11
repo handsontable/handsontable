@@ -22,7 +22,7 @@ Note that all the positive and negative integers whose magnitude is no greater t
 
 ::: example #example1
 ```js
-const container = document.getElementById('example1');
+const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
   data: [

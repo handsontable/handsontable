@@ -18,8 +18,9 @@ A draggable move handle appears above the selected column/row header. You can cl
 
 ::: example #example1
 ```js
-var example1 = document.getElementById('example1');
-var hot1 = new Handsontable(example1, {
+const container = document.querySelector('#example1');
+
+const hot1 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(200, 20),
   width: '100%',
   height: 320,

@@ -94,7 +94,7 @@ Handsontable.renderers.registerRenderer('my.custom', customRenderer);
 From now on, you can use `customRenderer` like so:
 
 ```js
-const container = document.getElementById('container');
+const container = document.querySelector('#container');
 const hot = new Handsontable(container, {
   data: someData,
   columns: [{
@@ -135,10 +135,11 @@ const data = [
   }
 ];
 
-const container1 = document.getElementById('example1');
-const hot1 = new Handsontable(container1, {
-  data: data,
+const container = document.getElementById('example1');
+const hot = new Handsontable(container, {
+  data,
   colWidths: [200, 200, 200, 80],
+  height: 'auto',
   colHeaders: ["Title", "Description", "Comments", "Cover"],
   columns: [
     { data: "title", renderer: "html" },
@@ -158,15 +159,15 @@ function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
 }
 
 function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
-  let stringifiedValue = Handsontable.helper.stringify(value);
-  let img;
+  const stringifiedValue = Handsontable.helper.stringify(value);
 
-  if (stringifiedValue.indexOf('http') === 0) {
-    img = document.createElement('IMG');
+  if (stringifiedValue.startsWith('http')) {
+    const img = document.createElement('IMG');
+
     img.src = value;
 
-    Handsontable.dom.addEvent(img, 'mousedown', function (e){
-      e.preventDefault(); // prevent selection quirk
+    Handsontable.dom.addEvent(img, 'mousedown', event =>{
+      event.preventDefault(); // prevent selection quirk
     });
 
     Handsontable.dom.empty(td);
@@ -185,23 +186,26 @@ You can also put HTML into row and column headers. If you need to attach events 
 
 ::: example #example2
 ```js
-let isChecked;
-const container2 = document.getElementById('example2'); 
+let isChecked = false;
+const container = document.querySelector('#example2');
+  
 
-const hot2 = new Handsontable(container2, { 
-  columns: [ 
-    {}, 
-    { renderer: customRenderer } 
-  ], 
-  colHeaders: function (col) { 
-    switch (col) { 
-      case 0: 
-        return '<b>Bold</b> and <em>Beautiful</em>'; 
-      case 1: 
+const hot2 = new Handsontable(container, {
+  columns: [
+    {},
+    { renderer: customRenderer }
+  ],
+  colHeaders(col) {
+    switch (col) {
+      case 0:
+        return '<b>Bold</b> and <em>Beautiful</em>';
+
+      case 1:
         let txt = "Some <input type='checkbox' class='checker' "; 
         txt += isChecked ? 'checked="checked"' : ''; 
-        txt += "> checkbox"; 
-        return txt; 
+        txt += "> checkbox";
+
+        return txt;
     } 
   } 
 }); 
@@ -210,22 +214,22 @@ function customRenderer(instance, td) {
   Handsontable.renderers.TextRenderer.apply(this, arguments); 
   if (isChecked) { 
     td.style.backgroundColor = 'yellow'; 
-  } else { 
-    td.style.backgroundColor = 'white'; 
+  } else {
+    td.style.backgroundColor = 'white';
   } 
 }
 
-Handsontable.dom.addEvent(container2, 'mousedown', function (event) { 
+Handsontable.dom.addEvent(container, 'mousedown', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     event.stopPropagation();
-  } 
-}); 
+  }
+});
 
-Handsontable.dom.addEvent(container2, 'mouseup', function (event) { 
+Handsontable.dom.addEvent(container, 'mouseup', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     isChecked = !event.target.checked; 
-    hot2.render(); 
-  } 
+    hot2.render();
+  }
 });
 ```
 :::

@@ -10,38 +10,32 @@ An implementation of the `@handsontable/react` explaining how to reference the H
 
 ::: example #example1 :react
 ```jsx
-import React from 'react';
+import React, { useRef } from 'react';
 import ReactDOM from 'react-dom';
-import {HotTable} from '@handsontable/react';
+import { HotTable } from '@handsontable/react';
 import Handsontable from 'handsontable';
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(4, 4),
+  colHeaders: true,
+  licenseKey: 'non-commercial-and-evaluation'
+};
 
-    this.id = 'hot';
-    this.hotSettings = {
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
-      colHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation'
-    };
-    this.hotTableComponent = React.createRef();
-  }
+const App = () => {
+  const hotTableComponent = useRef(null);
 
-  swapHotData() {
+  const swapHotData = () => {
     // The Handsontable instance is stored under the `hotInstance` property of the wrapper component.
-    this.hotTableComponent.current.hotInstance.loadData([['new', 'data']]);
-  }
+    hotTableComponent.current.hotInstance.loadData([['new', 'data']]);
+  };
 
-  render() {
-    return (
-      <div>
-        <HotTable ref={this.hotTableComponent} id={this.id} settings={this.hotSettings}/>
-        <br/>
-        <button onClick={this.swapHotData.bind(this)}>Load new data!</button>
-      </div>
-    );
-  }
+  return (
+    <div>
+      <HotTable ref={hotTableComponent} settings={hotSettings}/>
+      <br/>
+      <button onClick={swapHotData}>Load new data!</button>
+    </div>
+  );
 }
 
 ReactDOM.render(<App/>, document.getElementById('example1'));

@@ -41,10 +41,11 @@ When the context menu is enabled, it includes default items, including copy & cu
 
 You can use them in the same way as the rest of the predefined items in the [context menu](../context-menu.md#page-custom). These operations are executed by `document.execCommand()`.
 
-::: example #example2
+::: example #example1
 ```js
-var container2 = document.getElementById('example2');
-var hot2 = new Handsontable(container2, {
+const container = document.querySelector('#example1');
+
+const hot2 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 5),
   rowHeaders: true,
   colHeaders: true,
@@ -72,13 +73,13 @@ The **CopyPaste** plugin listens to the browser's `copy` and `cut` events. If tr
 <button id="copy">Select and copy cell B2</button>
 <button id="cut">Select and cut cell B2</button>
 
-::: example #example1
+::: example #example2
 ```js
-var container = document.getElementById('example1');
-var copyBtn = document.getElementById('copy');
-var cutBtn = document.getElementById('cut');
+const container = document.querySelector('#example2');
+const copyBtn = document.querySelector('#copy');
+const cutBtn = document.querySelector('#cut');
 
-var hot = new Handsontable(container, {
+const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   data: Handsontable.helper.createSpreadsheetData(5, 5),

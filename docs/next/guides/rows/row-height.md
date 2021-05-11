@@ -31,8 +31,9 @@ In this example we set the same height of `40px` for all rows across the entire 
 
 ::: example #example1
 ```js
-var container1 = document.getElementById('example1');
-var hot1 = new Handsontable(container1, {
+const container = document.querySelector('#example1');
+
+const hot1 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(4, 5),
   colHeaders: true,
   rowHeaders: true,
@@ -49,8 +50,9 @@ Here we set the height only for the first rows. Each additional row would be aut
 
 ::: example #example2
 ```js
-var container2 = document.getElementById('example2');
-var hot2 = new Handsontable(container2, {
+const container = document.querySelector('#example2');
+
+const hot2 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(4, 5),
   width: '100%',
   colHeaders: true,
@@ -68,15 +70,16 @@ Here we set the size of all rows as a function. In this particular example we ta
 
 ::: example #example3
 ```js
-var container3 = document.getElementById('example3');
-var hot3 = new Handsontable(container3, {
+const container = document.querySelector('#example3');
+
+const hot3 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 5),
   width: '100%',
   colHeaders: true,
   rowHeaders: true,
-  rowHeights: function(index) {
-               return (index + 1) * 20;
-             },
+  rowHeights(index) {
+    return (index + 1) * 20;
+  },
   manualRowResize: true,
   licenseKey: 'non-commercial-and-evaluation'
 });
@@ -91,8 +94,9 @@ You can adjust the size of one or rows at the same time, even if the selected ro
 
 ::: example #example4
 ```js
-var container4 = document.getElementById('example4');
-var hot4 = new Handsontable(container4, {
+const container = document.querySelector('#example4');
+
+const hot4 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 5),
   colHeaders: true,
   rowHeaders: true,

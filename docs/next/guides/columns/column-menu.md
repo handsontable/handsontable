@@ -21,8 +21,9 @@ To enable the plugin, simply set the `dropdownMenu` property to `true`, when ini
 
 ::: example #example1
 ```js
-var example1 = document.getElementById('example1');
-var hot1 = new Handsontable(example1, {
+const container = document.querySelector('#example1');
+
+const hot1 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 7),
   colHeaders: true,
   dropdownMenu: true,
@@ -37,8 +38,9 @@ You can use the default dropdown contents by setting it to `true`, but if you'd 
 
 ::: example #example2
 ```js
-var example2 = document.getElementById('example2');
-var hot2 = new Handsontable(example2, {
+const container = document.querySelector('#example2');
+
+const hot2 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 7),
   colHeaders: true,
   licenseKey: 'non-commercial-and-evaluation',

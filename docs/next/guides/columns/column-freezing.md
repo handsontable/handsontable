@@ -18,9 +18,9 @@ To make the columns on the left hand side frozen (we call them "fixed"), you nee
 
 ::: example #example1
 ```js
-var example = document.getElementById('example1');
+const container = document.querySelector('#example1');
 
-var hot1 = new Handsontable(example, {
+const hot1 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(100, 50),
   colWidths: 100,
   width: '100%',
@@ -43,13 +43,10 @@ A frozen column won't go back to the original position after you unfreeze it.
 
 ::: example #example2
 ```js
-var
-  myData = Handsontable.helper.createSpreadsheetData(100, 50),
-  container = document.getElementById('example2'),
-  hot2;
+const container = document.querySelector('#example2');
 
-hot2 = new Handsontable(container, {
-  data: myData,
+const hot2 = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(100, 50),
   colWidths: 100,
   width: '100%',
   height: 320,

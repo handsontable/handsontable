@@ -26,8 +26,8 @@ All data entered to the data-typed cells are validated agains the default date f
 
 ::: example #example1
 ```js
-const container = document.getElementById('example1');
-
+const container = document.querySelector('#example1');
+const cars = ['Audi', 'BMW', 'Chrysler', 'Citroen', 'Mercedes', 'Nissan', 'Opel', 'Suzuki', 'Toyota', 'Volvo'];
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -37,12 +37,12 @@ const hot = new Handsontable(container, {
     ['Opel', 'Astra', '02/02/2021', 7000],
     ['BMW', '320i Coupe', '07/24/2022', 30500]
   ],
+  licenseKey: 'non-commercial-and-evaluation',
   colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
   columns: [
     {
       type: 'autocomplete',
-      source: ['Audi', 'BMW', 'Chrysler', 'Citroen', 'Mercedes', 
-        'Nissan', 'Opel', 'Suzuki', 'Toyota', 'Volvo'],
+      source: cars,
       strict: false
     },
     {
@@ -61,7 +61,7 @@ const hot = new Handsontable(container, {
         showWeekNumber: true,
         numberOfMonths: 3,
         licenseKey: 'non-commercial-and-evaluation',
-        disableDayFn: function(date) {
+        disableDayFn(date) {
           // Disable Sunday and Saturday
           return date.getDay() === 0 || date.getDay() === 6;
         }

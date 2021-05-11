@@ -60,7 +60,7 @@ The final touch is to using the registered aliases, so that users can easily ref
 To sum up, a well prepared validator function should look like this:
 
 ```js
-(function(Handsontable){
+(Handsontable => {
   function customValidator(query, callback) {
     // ...your custom logic of the validator
 
@@ -76,8 +76,8 @@ To sum up, a well prepared validator function should look like this:
 From now on, you can use `customValidator` like so:
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
-  data: someData,
+const container = document.querySelector('#container')
+const hot = new Handsontable(container, {
   columns: [{
     validator: 'my.custom'
   }]
@@ -113,35 +113,37 @@ Callback console log:
 
 ::: example #example1
 ```js
-const example1 = document.getElementById('example1');
-const example1console = document.getElementById('example1console');
+const container = document.querySelector('#example1');
+const console = document.querySelector('#example1console');
+
 const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
-const emailValidator = function (value, callback) {
-  setTimeout(function(){
+
+const emailValidator = (value, callback) => {
+  setTimeout(() => {
     if (/.+@.+/.test(value)) {
       callback(true);
-    }
-    else {
+
+    } else {
       callback(false);
     }
   }, 1000);
 };
 
-const hot = new Handsontable(example1, {
+const hot = new Handsontable(container, {
   data: [
-    { id: 1, name: { first: 'Joe', last: 'Fabiano' }, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com' },
-    { id: 2, name: { first: 'Fred', last: 'Wecler' }, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com' },
-    { id: 3, name: { first: 'Steve', last: 'Wilson' }, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com' },
-    { id: 4, name: { first: 'Maria', last: 'Fernandez' }, ip: '0.0.0.1', email: 'M.Fernandez@ex.com' },
-    { id: 5, name: { first: 'Pierre', last: 'Barbault' }, ip: '0.0.0.1', email: 'Pierre.Barbault@ex.com' },
-    { id: 6, name: { first: 'Nancy', last: 'Moore' }, ip: '0.0.0.1', email: 'Nancy.Moore@ex.com' },
-    { id: 7, name: { first: 'Barbara', last: 'MacDonald' }, ip: '0.0.0.1', email: 'B.MacDonald@ex.com' },
-    { id: 8, name: { first: 'Wilma', last: 'Williams' }, ip: '0.0.0.1', email: 'Wilma.Williams@ex.com' },
-    { id: 9, name: { first: 'Sasha', last: 'Silver' }, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com' },
-    { id: 10, name: { first: 'Don', last: 'Pérignon' }, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com' },
-    { id: 11, name: { first: 'Aaron', last: 'Kinley' }, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com' }
+    {id: 1, name: {first: 'Joe', last: 'Fabiano'}, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com'},
+    {id: 2, name: {first: 'Fred', last: 'Wecler'}, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com'},
+    {id: 3, name: {first: 'Steve', last: 'Wilson'}, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com'},
+    {id: 4, name: {first: 'Maria', last: 'Fernandez'}, ip: '0.0.0.1', email: 'M.Fernandez@ex.com'},
+    {id: 5, name: {first: 'Pierre', last: 'Barbault'}, ip: '0.0.0.1', email: 'Pierre.Barbault@ex.com'},
+    {id: 6, name: {first: 'Nancy', last: 'Moore'}, ip: '0.0.0.1', email: 'Nancy.Moore@ex.com'},
+    {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, ip: '0.0.0.1', email: 'B.MacDonald@ex.com'},
+    {id: 8, name: {first: 'Wilma', last: 'Williams'}, ip: '0.0.0.1', email: 'Wilma.Williams@ex.com'},
+    {id: 9, name: {first: 'Sasha', last: 'Silver'}, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com'},
+    {id: 10, name: {first: 'Don', last: 'Pérignon'}, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com'},
+    {id: 11, name: {first: 'Aaron', last: 'Kinley'}, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com'}
   ],
-  beforeChange: function (changes, source) {
+  beforeChange(changes, source) {
     for (let i = changes.length - 1; i >= 0; i--) {
       // gently don't accept the word "foo" (remove the change at index i)
       if (changes[i][3] === 'foo') {
@@ -159,9 +161,9 @@ const hot = new Handsontable(example1, {
       }
     }
   },
-  afterChange: function (changes, source) {
+  afterChange(changes, source) {
     if (source !== 'loadData') {
-      example1console.innerText = JSON.stringify(changes);
+      console.innerText = JSON.stringify(changes);
     }
   },
   colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],

@@ -31,8 +31,9 @@ You can show/hide certain rows straight from the [Context menu](context-menu.md)
 
 ::: example #example1
 ```js
-var example1 = document.getElementById('example1');
-var hot1 = new Handsontable(example1, {
+const container = document.querySelector('#example1');
+
+const hot1 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(12,5),
   colHeaders: true,
   rowHeaders: true,
@@ -51,7 +52,7 @@ var hot1 = new Handsontable(example1, {
 You can access the plugin instance by calling
 
 ```js
-var plugin = hot.getPlugin('hiddenRows');
+const plugin = hot.getPlugin('hiddenRows');
 ```
 
 To hide a single row, call the `hideRow` method of the plugin object:
