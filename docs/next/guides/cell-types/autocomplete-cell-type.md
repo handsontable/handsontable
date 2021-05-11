@@ -12,15 +12,16 @@ canonicalUrl: /autocomplete-cell-type
 
 This example shows the usage of the Autocomplete feature in the default **lazy mode**. In this mode, user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
 
-In this mode, the mouse and keyboard bindings are identical as in [Handsontable cell type.](handsontable.md) The options are rendered from the `source` property which can be an array, or a function that returns an array.
+In this mode, the mouse and keyboard bindings are identical as in [Handsontable cell type.](handsontable-cell-type.md) The options are rendered from the `source` property which can be an array, or a function that returns an array.
 
 ::: example #example1
 ```js
-var
-  example1 = document.getElementById('example1'),
-  hot1;
+const example1 = document.getElementById('example1');
+const colors = ['yellow', 'red', 'orange and another color', 'green', 
+  'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
 
-hot1 = new Handsontable(example1, {
+const hot1 = new Handsontable(example1, {
+  licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['BMW', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
@@ -28,23 +29,22 @@ hot1 = new Handsontable(example1, {
     ['Volvo', 2020, 'white', 'gray']
   ],
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
-  licenseKey: 'non-commercial-and-evaluation',
   columns: [
     {
       type: 'autocomplete',
       source: ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'],
       strict: false
     },
-    {type: 'numeric'},
+    { type: 'numeric' },
     {
       type: 'autocomplete',
-      source: ['yellow', 'red', 'orange and another color', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'],
+      source: colors,
       strict: false,
       visibleRows: 4
     },
     {
       type: 'autocomplete',
-      source: ['yellow', 'red', 'orange and another color', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'],
+      source: colors,
       strict: false,
       trimDropdown: false
     }
@@ -55,7 +55,7 @@ hot1 = new Handsontable(example1, {
 
 ## Autocomplete strict mode
 
-This is the same example as above with a difference that autocomplete now runs in **strict mode**. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical as in [Handsontable cell type](handsontable.md) with the below differences:
+This is the same example as above with a difference that autocomplete now runs in **strict mode**. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical as in [Handsontable cell type](handsontable-cell-type.md) with the below differences:
 
 * If there is at least one option visible, there always is a selection in HOT-in-HOT.
 * When the first row is selected, pressing <kbd>ARROW UP</kbd> does not deselect HOT-in-HOT. Instead behaves as the <kbd>ENTER</kbd> key but moves the selection in the main HOT upwards.
@@ -67,36 +67,38 @@ In strict mode, the **allowInvalid** option determines the behaviour in case of 
 
 ::: example #example2
 ```js
-var
-  example2 = document.getElementById('example2'),
-  hot2;
+const example2 = document.getElementById('example2');
+const colors = ['yellow', 'red', 'orange', 'green', 'blue', 
+  'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
+const cars = ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'];
 
-hot2 = new Handsontable(example2, {
+const hot2 = new Handsontable(example2, {
+  licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['BMW', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
     ['Chrysler', 2019, 'yellow', 'black'],
     ['Volvo', 2020, 'white', 'gray']
   ],
-  colHeaders: ['Car<br>(allowInvalid true)', 'Year', 'Chassis color<br>(allowInvalid false)', 'Bumper color<br>(allowInvalid true)'],
-  licenseKey: 'non-commercial-and-evaluation',
+  colHeaders: ['Car<br>(allowInvalid true)', 'Year', 
+    'Chassis color<br>(allowInvalid false)', 'Bumper color<br>(allowInvalid true)'],
   columns: [
     {
       type: 'autocomplete',
-      source: ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'],
+      source: cars,
       strict: true
       // allowInvalid: true // true is default
     },
-    {},
+    { },
     {
       type: 'autocomplete',
-      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'],
+      source: colors,
       strict: true,
       allowInvalid: false
     },
     {
       type: 'autocomplete',
-      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'],
+      source: colors,
       strict: true,
       allowInvalid: true //true is default
     }
@@ -111,11 +113,10 @@ Autocomplete can be also used with Ajax data source. In the below example, sugge
 
 ::: example #example3
 ```js
-var
-  example3 = document.getElementById('example3'),
-  hot3;
+const example3 = document.getElementById('example3');
 
-hot3 = new Handsontable(example3, {
+const hot3 = new Handsontable(example3, {
+  licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['BMW', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
@@ -123,14 +124,13 @@ hot3 = new Handsontable(example3, {
     ['Volvo', 2020, 'white', 'gray']
   ],
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
-  licenseKey: 'non-commercial-and-evaluation',
   columns: [
     {
       type: 'autocomplete',
       source: function (query, process) {
         fetch('/docs/scripts/json/autocomplete.json')
           .then(response => response.json())
-          .then(data => process(data.data));
+          .then(response => process(response.data));
       },
       strict: true
     },
