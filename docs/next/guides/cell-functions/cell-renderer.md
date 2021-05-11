@@ -94,7 +94,7 @@ Handsontable.renderers.registerRenderer('my.custom', customRenderer);
 From now on, you can use `customRenderer` like so:
 
 ```js
-const container = document.querySelector('#container')
+const container = document.querySelector('#container');
 const hot = new Handsontable(container, {
   data: someData,
   columns: [{
