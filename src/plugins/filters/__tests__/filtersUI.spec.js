@@ -77,6 +77,7 @@ describe('Filters UI', () => {
         width: 500,
         height: 300
       });
+
       hot.rootElement.style.marginTop = '1000px';
 
       dropdownMenu(1);
@@ -892,6 +893,7 @@ describe('Filters UI', () => {
 
     it('should display empty values as "(Blank cells)"', () => {
       const data = getDataForFilters();
+
       data[3].name = '';
 
       handsontable({
@@ -915,6 +917,7 @@ describe('Filters UI', () => {
 
     it('should display `null` values as "(Blank cells)"', () => {
       const data = getDataForFilters();
+
       data[3].name = null;
 
       handsontable({
@@ -938,6 +941,7 @@ describe('Filters UI', () => {
 
     it('should display `undefined` values as "(Blank cells)"', () => {
       const data = getDataForFilters();
+
       data[3].name = void 0;
 
       handsontable({
@@ -961,6 +965,7 @@ describe('Filters UI', () => {
 
     it('shouldn\'t break "by value" items in the next filter stacks', (done) => {
       const data = getDataForFilters();
+
       data[3].name = void 0;
 
       handsontable({
@@ -1522,6 +1527,7 @@ describe('Filters UI', () => {
     });
 
     const hot2Container = document.createElement('DIV');
+
     document.body.appendChild(hot2Container);
     const hot2 = new Handsontable(hot2Container, {
       data: getDataForFilters(),
@@ -1542,6 +1548,7 @@ describe('Filters UI', () => {
 
     const th = hot2.view.wt.wtTable.getColumnHeader(1);
     const button = th.querySelector('.changeType');
+
     $(button).simulate('mousedown');
     $(button).simulate('mouseup');
     $(button).simulate('click');
@@ -2651,6 +2658,7 @@ describe('Filters UI', () => {
 
       const $multipleSelectElements = $(byValueMultipleSelect().element
         .querySelectorAll('.htUIMultipleSelectHot td input'));
+
       $multipleSelectElements.eq(0).simulate('click');
       // disjunction
       $(conditionRadioInput(1).element).find('input[type="radio"]').simulate('click');
@@ -2700,6 +2708,7 @@ describe('Filters UI', () => {
 
       const $multipleSelectElements = $(byValueMultipleSelect().element
         .querySelectorAll('.htUIMultipleSelectHot td input'));
+
       $multipleSelectElements.eq(0).simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
@@ -2784,6 +2793,7 @@ describe('Filters UI', () => {
 
       let $multipleSelectElements = $(byValueMultipleSelect().element
         .querySelectorAll('.htUIMultipleSelectHot td input'));
+
       $multipleSelectElements.get(4).scrollIntoView();
 
       $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
@@ -2888,6 +2898,7 @@ describe('Filters UI', () => {
       setTimeout(() => {
         const $multipleSelectElements = $(byValueMultipleSelect().element
           .querySelectorAll('.htUIMultipleSelectHot td input'));
+
         $multipleSelectElements.eq(0).simulate('click');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
         dropdownMenu(1);
@@ -2926,6 +2937,7 @@ describe('Filters UI', () => {
       setTimeout(() => {
         const $multipleSelectElements = $(byValueMultipleSelect().element
           .querySelectorAll('.htUIMultipleSelectHot td input'));
+
         $multipleSelectElements.eq(0).simulate('click');
         $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
         dropdownMenu(1);

@@ -14,6 +14,7 @@ import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
 import Walkontable, { CellCoords } from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
+import { isRootInstance } from './utils/rootInstance';
 
 const privatePool = new WeakMap();
 
@@ -255,6 +256,7 @@ class TableView {
 
       if (!this.isTextSelectionAllowed(event.target)) {
         const { rootWindow } = this.instance;
+
         clearTextSelection(rootWindow);
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
@@ -336,6 +338,7 @@ class TableView {
             if (event.isTargetWebComponent) {
               break;
             }
+
             // click on something that was a row but now is detached (possibly because your click triggered a rerender)
             return;
           }
@@ -516,6 +519,7 @@ class TableView {
       externalRowCalculator: this.instance.getPlugin('autoRowSize') &&
         this.instance.getPlugin('autoRowSize').isEnabled(),
       table: priv.table,
+      isDataViewInstance: () => isRootInstance(this.instance),
       preventOverflow: () => this.settings.preventOverflow,
       preventWheel: () => this.settings.preventWheel,
       stretchH: () => this.settings.stretchH,
@@ -746,9 +750,10 @@ class TableView {
         this.activeWt = wt;
         this.instance.runHooks('beforeOnCellMouseUp', event, visualCoords, TD);
 
-        // TODO: Second argument is for workaround. Callback corresponding the method `updateSettings` disable plugin
-        // and enable it again. Disabling plugin closes the menu. Thus, calling the `updateSettings` in a body of
-        // any callback executed right after some context-menu action breaks the table (#7231).
+        // TODO: The second condition check is a workaround. Callback corresponding the method `updateSettings`
+        // disable plugin and enable it again. Disabling plugin closes the menu. Thus, calling the
+        // `updateSettings` in a body of any callback executed right after some context-menu action
+        // breaks the table (#7231).
         if (isImmediatePropagationStopped(event) || this.instance.isDestroyed) {
           return;
         }
@@ -769,6 +774,24 @@ class TableView {
       onScrollVertically: () => this.instance.runHooks('afterScrollVertically'),
       onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
+      onBeforeHighlightingRowHeader: (renderableRow, headerLevel, highlightMeta) => {
+        const rowMapper = this.instance.rowIndexMapper;
+        const visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
+
+        const newVisualRow = this.instance
+          .runHooks('beforeHighlightingRowHeader', visualRow, headerLevel, highlightMeta);
+
+        return rowMapper.getRenderableFromVisualIndex(rowMapper.getFirstNotHiddenIndex(newVisualRow, 1));
+      },
+      onBeforeHighlightingColumnHeader: (renderableColumn, headerLevel, highlightMeta) => {
+        const columnMapper = this.instance.columnIndexMapper;
+        const visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
+
+        const newVisualColumn = this.instance
+          .runHooks('beforeHighlightingColumnHeader', visualColumn, headerLevel, highlightMeta);
+
+        return columnMapper.getRenderableFromVisualIndex(columnMapper.getFirstNotHiddenIndex(newVisualColumn, 1));
+      },
       onAfterDrawSelection: (currentRow, currentColumn, layerLevel) => {
         let cornersOfSelection;
         const [visualRowIndex, visualColumnIndex] =
@@ -845,18 +868,19 @@ class TableView {
         }
 
         if (viewportOffset > 0 || viewportOffset === 'auto') {
-          const rows = this.countRenderableRows();
+          const renderableRows = this.countRenderableRows();
+          const firstRenderedRow = calc.startRow;
+          const lastRenderedRow = calc.endRow;
 
           if (typeof viewportOffset === 'number') {
-            calc.startRow = Math.max(calc.startRow - viewportOffset, 0);
-            calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
+            calc.startRow = Math.max(firstRenderedRow - viewportOffset, 0);
+            calc.endRow = Math.min(lastRenderedRow + viewportOffset, renderableRows - 1);
 
           } else if (viewportOffset === 'auto') {
-            const center = calc.startRow + calc.endRow - calc.startRow;
-            const offset = Math.ceil(center / rows * 12);
+            const offset = Math.ceil(lastRenderedRow / renderableRows * 12);
 
-            calc.startRow = Math.max(calc.startRow - offset, 0);
-            calc.endRow = Math.min(calc.endRow + offset, rows - 1);
+            calc.startRow = Math.max(firstRenderedRow - offset, 0);
+            calc.endRow = Math.min(lastRenderedRow + offset, renderableRows - 1);
           }
         }
         this.instance.runHooks('afterViewportRowCalculatorOverride', calc);
@@ -869,18 +893,19 @@ class TableView {
         }
 
         if (viewportOffset > 0 || viewportOffset === 'auto') {
-          const cols = this.countRenderableColumns();
+          const renderableColumns = this.countRenderableColumns();
+          const firstRenderedColumn = calc.startColumn;
+          const lastRenderedColumn = calc.endColumn;
 
           if (typeof viewportOffset === 'number') {
-            calc.startColumn = Math.max(calc.startColumn - viewportOffset, 0);
-            calc.endColumn = Math.min(calc.endColumn + viewportOffset, cols - 1);
+            calc.startColumn = Math.max(firstRenderedColumn - viewportOffset, 0);
+            calc.endColumn = Math.min(lastRenderedColumn + viewportOffset, renderableColumns - 1);
           }
           if (viewportOffset === 'auto') {
-            const center = calc.startColumn + calc.endColumn - calc.startColumn;
-            const offset = Math.ceil(center / cols * 12);
+            const offset = Math.ceil(lastRenderedColumn / renderableColumns * 6);
 
-            calc.startRow = Math.max(calc.startColumn - offset, 0);
-            calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
+            calc.startColumn = Math.max(firstRenderedColumn - offset, 0);
+            calc.endColumn = Math.min(lastRenderedColumn + offset, renderableColumns - 1);
           }
         }
         this.instance.runHooks('afterViewportColumnCalculatorOverride', calc);
@@ -888,6 +913,7 @@ class TableView {
       rowHeaderWidth: () => this.settings.rowHeaderWidth,
       columnHeaderHeight: () => {
         const columnHeaderHeight = this.instance.runHooks('modifyColumnHeaderHeight');
+
         return this.settings.columnHeaderHeight || columnHeaderHeight;
       }
     };

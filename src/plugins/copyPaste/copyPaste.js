@@ -199,6 +199,7 @@ export class CopyPaste extends BasePlugin {
    */
   copy() {
     const priv = privatePool.get(this);
+
     priv.isTriggeredByCopy = true;
 
     this.getOrCreateFocusableElement();
@@ -211,6 +212,7 @@ export class CopyPaste extends BasePlugin {
    */
   cut() {
     const priv = privatePool.get(this);
+
     priv.isTriggeredByCut = true;
 
     this.getOrCreateFocusableElement();
@@ -553,6 +555,7 @@ export class CopyPaste extends BasePlugin {
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
         const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);
+
         pastedData = parsedConfig.data;
       } else {
         pastedData = event.clipboardData.getData('text/plain');
@@ -608,7 +611,9 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onAfterOnCellMouseUp() {
-    if (!this.hot.isListening() || this.isEditorOpened()) {
+    // Changing focused element will remove current selection. It's unnecessary in case when we give possibility
+    // for fragment selection
+    if (!this.hot.isListening() || this.isEditorOpened() || this.hot.getSettings().fragmentSelection) {
       return;
     }
 

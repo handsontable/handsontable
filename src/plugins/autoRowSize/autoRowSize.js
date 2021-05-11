@@ -279,6 +279,7 @@ export class AutoRowSize extends BasePlugin {
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
         this.hot.view.adjustElementsSize(true);
+
         // tmp
         if (this.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
           this.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
@@ -475,6 +476,7 @@ export class AutoRowSize extends BasePlugin {
     // Calculate rows height synchronously for bottom overlay
     if (fixedRowsBottom) {
       const totalRows = this.hot.countRows() - 1;
+
       this.calculateRowsHeight({ from: totalRows - fixedRowsBottom, to: totalRows });
     }
 
@@ -560,7 +562,6 @@ export class AutoRowSize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.rowIndexMapper.unregisterMap(ROW_WIDTHS_MAP_NAME);
     this.ghostTable.clean();
     super.destroy();
   }

@@ -58,6 +58,7 @@ describe('HiddenColumns', () => {
       });
 
       const plugin = getPlugin('hiddenColumns');
+
       plugin.disablePlugin();
       render();
 

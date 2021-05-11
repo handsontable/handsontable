@@ -92,6 +92,7 @@ describe('noEditor', () => {
 
     const cell = $(getCell(0, 0));
     let clicks = 0;
+
     window.scrollTo(0, cell.offset().top);
 
     setTimeout(() => {

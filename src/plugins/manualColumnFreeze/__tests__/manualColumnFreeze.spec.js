@@ -19,6 +19,7 @@ describe('manualColumnFreeze', () => {
         manualColumnFreeze: true
       });
       const plugin = hot.getPlugin('manualColumnFreeze');
+
       plugin.freezeColumn(4);
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
@@ -180,6 +181,7 @@ describe('manualColumnFreeze', () => {
         if ($(this).text() === 'Freeze column') {
           return true;
         }
+
         return false;
       });
 
@@ -209,6 +211,7 @@ describe('manualColumnFreeze', () => {
       let freezeEntry = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
         return $(this).text() === 'Unfreeze column';
       });
+
       freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
@@ -221,6 +224,7 @@ describe('manualColumnFreeze', () => {
         if ($(this).text() === 'Unfreeze column') {
           return true;
         }
+
         return false;
       });
       freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');

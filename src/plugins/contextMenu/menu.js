@@ -12,7 +12,7 @@ import {
 import Core from '../../core';
 import EventManager from '../../eventManager';
 import { arrayEach, arrayFilter, arrayReduce } from '../../helpers/array';
-import { isWindowsOS } from '../../helpers/browser';
+import { isWindowsOS, isMobileBrowser, isIpadOS } from '../../helpers/browser';
 import {
   addClass,
   empty,
@@ -202,6 +202,7 @@ class Menu {
       rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
+
         // On the Windows platform, the "contextmenu" is triggered after the "mouseup" so that's
         // why the closing menu is here. (#6507#issuecomment-582392301).
         if (isWindowsOS() && shouldAutoCloseMenu && this.hasSelectedItem()) {
@@ -219,7 +220,16 @@ class Menu {
         // after the "contextmenu". So then "mouseup" closes the menu. Otherwise, the closing
         // menu responsibility is forwarded to "afterOnCellContextMenu" callback (#6507#issuecomment-582392301).
         if ((!isWindowsOS() || !isRightClick(event)) && shouldAutoCloseMenu && this.hasSelectedItem()) {
-          this.close(true);
+          // The timeout is necessary only for mobile devices. For desktop, the click event that is fired
+          // right after the mouseup event gets the event element target the same as the mouseup event.
+          // For mobile devices, the click event is triggered with native delay (~300ms), so when the mouseup
+          // event hides the tapped element, the click event grabs the element below. As a result, the filter
+          // by condition menu is closed and immediately open on tapping the "None" item.
+          if (isMobileBrowser() || isIpadOS()) {
+            setTimeout(() => this.close(true), 325);
+          } else {
+            this.close(true);
+          }
         }
       },
       afterUnlisten: () => {
@@ -230,6 +240,7 @@ class Menu {
         }
       },
     };
+
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
     this.hotMenu = new Core(this.container, settings);
@@ -294,6 +305,7 @@ class Menu {
       keepInViewport: true,
       container: this.options.container,
     });
+
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();
     subMenu.setPosition(cell.getBoundingClientRect());
@@ -705,6 +717,7 @@ class Menu {
 
     const selection = this.hotMenu.getSelectedLast();
     let stopEvent = false;
+
     this.keyEvent = true;
 
     switch (event.keyCode) {

@@ -102,6 +102,7 @@ class Matrix {
 
       return result;
     };
+
     this.data = arrayFilter(this.data, cell => !isEqual(cell, cellValue));
   }
 

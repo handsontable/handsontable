@@ -33,6 +33,13 @@ export function spec() {
 }
 
 /**
+ * @returns {Walkontable} Returns the Walkontable instance.
+ */
+export function wot() {
+  return spec().wotInstance;
+}
+
+/**
  * Create the Walkontable instance with the provided options and cache it as `wotInstance` in the test context.
  *
  * @param {object} options Walkontable options.
@@ -236,7 +243,7 @@ export function range(start, end) {
  * @param {object} selections An object with custom selection instances.
  * @returns {object} Selection controller.
  */
-export function createSelectionController({ current, area, fill, custom } = {}) {
+export function createSelectionController({ current, area, fill, custom, activeHeader, header } = {}) {
   const currentCtrl = current || new Walkontable.Selection({
     className: 'current',
     border: {
@@ -258,11 +265,23 @@ export function createSelectionController({ current, area, fill, custom } = {}) 
       color: '#ff0000',
     },
   });
+  const activeHeaderCtrl = activeHeader || new Walkontable.Selection({
+    highlightHeaderClassName: 'active_highlight',
+  });
+  const headerCtrl = header || new Walkontable.Selection({
+    highlightHeaderClassName: 'highlight',
+  });
   const customCtrl = custom || [];
 
   return {
     getCell() {
       return currentCtrl;
+    },
+    getHeader() {
+      return headerCtrl;
+    },
+    getActiveHeader() {
+      return activeHeaderCtrl;
     },
     createOrGetArea() {
       return areaCtrl;
@@ -275,9 +294,11 @@ export function createSelectionController({ current, area, fill, custom } = {}) 
     },
     [Symbol.iterator]() {
       return [
-        fillCtrl,
         currentCtrl,
+        fillCtrl,
         areaCtrl,
+        headerCtrl,
+        activeHeaderCtrl,
         ...customCtrl,
       ][Symbol.iterator]();
     },
@@ -359,10 +380,12 @@ export function spreadsheetColumnLabel(index) {
  */
 export function walkontableCalculateScrollbarWidth() {
   const inner = document.createElement('div');
+
   inner.style.height = '200px';
   inner.style.width = '100%';
 
   const outer = document.createElement('div');
+
   outer.style.boxSizing = 'content-box';
   outer.style.height = '150px';
   outer.style.left = '0px';
@@ -375,8 +398,10 @@ export function walkontableCalculateScrollbarWidth() {
 
   (document.body || document.documentElement).appendChild(outer);
   const w1 = inner.offsetWidth;
+
   outer.style.overflow = 'scroll';
   let w2 = inner.offsetWidth;
+
   if (w1 === w2) {
     w2 = outer.clientWidth;
   }

@@ -536,6 +536,7 @@ export class ColumnSorting extends BasePlugin {
     const cellMeta = this.hot.getCellMeta(0, column);
 
     const cellMetaCopy = Object.create(cellMeta);
+
     cellMetaCopy[this.pluginKey] = this.columnMetaCache.getValueAtIndex(this.hot.toPhysicalColumn(column));
 
     return cellMetaCopy;
@@ -795,8 +796,6 @@ export class ColumnSorting extends BasePlugin {
     // TODO: Probably not supported yet by ESLint: https://github.com/eslint/eslint/issues/11045
     // eslint-disable-next-line no-unused-expressions
     this.columnStatesManager?.destroy();
-    this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
-    this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
 
     super.destroy();
   }

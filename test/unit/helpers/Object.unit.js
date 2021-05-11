@@ -114,6 +114,7 @@ describe('Object helper', () => {
       expect(instance.local).toBe(123);
 
       const initialObject = { a: 1 };
+
       instance.mySetterFunction(initialObject);
 
       expect(instance.myFunction()).toBe(initialObject);

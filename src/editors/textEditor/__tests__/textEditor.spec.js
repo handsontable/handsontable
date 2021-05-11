@@ -309,6 +309,7 @@ describe('TextEditor', () => {
     keyDown('enter');
 
     const selection = getSelected();
+
     expect(selection).toEqual([[3, 2, 3, 2]]);
   });
 
@@ -321,6 +322,7 @@ describe('TextEditor', () => {
     keyDown('enter');
 
     const selection = getSelected();
+
     expect(selection).toEqual([[3, 2, 3, 2]]);
     expect(isEditorVisible()).toEqual(false);
   });
@@ -567,8 +569,8 @@ describe('TextEditor', () => {
 
     const mainHolder = hot.view.wt.wtTable.holder;
 
-    mainHolder.scrollTop = 150;
-    mainHolder.scrollLeft = 150;
+    mainHolder.scrollTop = 500;
+    mainHolder.scrollLeft = 500;
 
     await sleep(200);
 
@@ -944,6 +946,7 @@ describe('TextEditor', () => {
     }); // CTRL+A should NOT select all table when cell is edited
 
     const selection = getSelected();
+
     expect(selection).toEqual([[2, 2, 2, 2]]);
     expect(isEditorVisible()).toEqual(true);
   });
@@ -1295,6 +1298,7 @@ describe('TextEditor', () => {
     selectCell(1, 1);
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
     const $inputHolder = $('.handsontableInputHolder');
+
     expect($(getCell(1, 1)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(1, 1)).offset().top).toEqual($inputHolder.offset().top + 1);
 
@@ -1333,6 +1337,7 @@ describe('TextEditor', () => {
     });
 
     const $holder = $(hot.view.wt.wtTable.holder);
+
     $holder.scrollTop(100);
     $holder.scrollLeft(100);
 
@@ -1343,6 +1348,7 @@ describe('TextEditor', () => {
     selectCell(1, 1);
     keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
     const $inputHolder = $('.handsontableInputHolder');
+
     expect($(getCell(1, 1, true)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(1, 1, true)).offset().top).toEqual($inputHolder.offset().top + 1);
 
@@ -1386,6 +1392,7 @@ describe('TextEditor', () => {
     keyDownUp(Handsontable.helper.KEY_CODES.ENTER);
     window.scrollBy(-300, -300);
     const $inputHolder = $('.handsontableInputHolder');
+
     expect($(getCell(1, 1, true)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(1, 1, true)).offset().top).toEqual($inputHolder.offset().top + 1);
 
@@ -1435,6 +1442,7 @@ describe('TextEditor', () => {
     const top = $(currentCell).offset().top;
 
     const $inputHolder = $('.handsontableInputHolder');
+
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
     expect(left).toEqual($inputHolder.offset().left + 1);
     expect(top).toEqual($inputHolder.offset().top + 1);
@@ -1463,6 +1471,7 @@ describe('TextEditor', () => {
     const left = $(currentCell).offset().left;
     const top = $(currentCell).offset().top;
     const $inputHolder = $('.handsontableInputHolder');
+
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
     expect(left).toEqual($inputHolder.offset().left + 1);
@@ -1492,6 +1501,7 @@ describe('TextEditor', () => {
     const top = $(currentCell).offset().top;
 
     const $inputHolder = $('.handsontableInputHolder');
+
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
     expect(left).toEqual($inputHolder.offset().left + 1);
     expect(top).toEqual($inputHolder.offset().top + 1);
@@ -1518,6 +1528,7 @@ describe('TextEditor', () => {
     const top = $(currentCell).offset().top;
 
     const $inputHolder = $('.handsontableInputHolder');
+
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
     expect(left).toEqual($inputHolder.offset().left + 1);
     expect(top).toEqual($inputHolder.offset().top + 1);
@@ -1707,6 +1718,7 @@ describe('TextEditor', () => {
       ['', '', '', '', '', '', '', '', '', '', ''],
       ['', '', '', '', '', '', '', '', '', '', ''],
     ];
+
     handsontable({
       data,
       colWidths: 40,
@@ -1766,6 +1778,7 @@ describe('TextEditor', () => {
 
   it('should not throw an exception when window.attachEvent is defined but the text area does not have attachEvent', (done) => {
     const hot = handsontable();
+
     window.attachEvent = true;
     selectCell(1, 1);
 

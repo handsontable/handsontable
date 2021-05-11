@@ -85,6 +85,7 @@ class Transformation {
       }
 
       const coords = new CellCoords(renderableRow + delta.row, renderableColumn + delta.col);
+
       rowTransformDir = 0;
       colTransformDir = 0;
 

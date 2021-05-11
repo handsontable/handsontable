@@ -952,6 +952,7 @@ describe('UndoRedo', () => {
           });
 
           const afterCreateColCallback = jasmine.createSpy('afterCreateColCallback');
+
           HOT.addHook('afterCreateCol', afterCreateColCallback);
 
           expect(countCols()).toEqual(3);
@@ -1990,6 +1991,41 @@ describe('UndoRedo', () => {
           expect(getDataAtRowProp(2, 'surname')).toEqual('Moore');
 
         });
+
+        it('should undo removal row with readonly column', () => {
+          const HOT = handsontable({
+            data: createObjectData().slice(0, 2),
+            cells(row, col) {
+              if (col === 1) {
+                return { readOnly: true };
+              }
+
+              return {};
+            }
+          });
+
+          expect(countRows()).toEqual(2);
+          expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'surname')).toEqual('Dalton');
+          expect(getDataAtRowProp(1, 'name')).toEqual('Sean');
+          expect(getDataAtRowProp(1, 'surname')).toEqual('Connery');
+
+          alter('remove_row');
+
+          expect(countRows()).toEqual(1);
+          expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'surname')).toEqual('Dalton');
+          expect(getDataAtRowProp(1, 'name')).toBeNull();
+          expect(getDataAtRowProp(1, 'surname')).toBeNull();
+
+          HOT.undo();
+
+          expect(countRows()).toEqual(2);
+          expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'surname')).toEqual('Dalton');
+          expect(getDataAtRowProp(1, 'name')).toEqual('Sean');
+          expect(getDataAtRowProp(1, 'surname')).toEqual('Connery');
+        });
       });
 
       describe('redo', () => {
@@ -2447,6 +2483,7 @@ describe('UndoRedo', () => {
         hot.getPlugin('contextMenu').executeCommand('alignment:bottom');
 
         let cellMeta = hot.getCellMeta(0, 0);
+
         expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
         expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
 
@@ -2513,6 +2550,7 @@ describe('UndoRedo', () => {
 
         // check if all cells are either non-adjusted or adjusted to the left (as default)
         let finish;
+
         for (let i = 0; i < 9; i++) {
           for (let j = 0; j < 9; j++) {
             cellMeta = hot.getCellMeta(i, j);
@@ -2581,6 +2619,7 @@ describe('UndoRedo', () => {
         hot.getPlugin('contextMenu').executeCommand('alignment:bottom');
 
         let cellMeta = hot.getCellMeta(0, 0);
+
         expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
         expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
 
@@ -2612,6 +2651,7 @@ describe('UndoRedo', () => {
 
         // check if all cells are either non-adjusted or adjusted to the left (as default)
         let finish;
+
         for (let i = 0; i < 9; i++) {
           for (let j = 0; j < 9; j++) {
             cellMeta = hot.getCellMeta(i, j);
@@ -2881,91 +2921,6 @@ describe('UndoRedo', () => {
         keyDown('ctrl+z');
         expect(getDataAtCell(0, 0)).toBe('new value');
       });
-    });
-  });
-
-  describe('Hooks', () => {
-    it('should fire a `beforeUndo` hook after the undo process begins', (done) => {
-      const beforeUndoSpy = jasmine.createSpy('beforeUndo');
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
-      });
-      let hookData = null;
-
-      hot.addHook('beforeUndo', beforeUndoSpy);
-      hot.addHook('beforeUndo', (data) => {
-        hookData = data;
-      });
-
-      alter('remove_row', 1);
-
-      setTimeout(() => {
-        hot.undo();
-      }, 10);
-
-      setTimeout(() => {
-        expect(beforeUndoSpy.calls.count()).toEqual(1);
-        expect(hookData).not.toBe(null);
-        expect(hookData.actionType).toEqual('remove_row');
-        expect(hookData.data).toEqual([['A2', 'B2']]);
-        done();
-      }, 100);
-    });
-
-    it('should fire a `beforeRedo` hook before the redo process begins', (done) => {
-      const beforeRedoSpy = jasmine.createSpy('beforeRedo');
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
-      });
-      let hookData = null;
-
-      hot.addHook('beforeRedo', beforeRedoSpy);
-      hot.addHook('beforeRedo', (data) => {
-        hookData = data;
-      });
-
-      alter('remove_row', 1);
-
-      setTimeout(() => {
-        hot.undo();
-        hot.redo();
-      }, 10);
-
-      setTimeout(() => {
-        expect(beforeRedoSpy.calls.count()).toEqual(1);
-        expect(hookData).not.toBe(null);
-        expect(hookData.actionType).toEqual('remove_row');
-        expect(hookData.data).toEqual([['A2', 'B2']]);
-        done();
-      }, 100);
-    });
-
-    it('should fire a `afterRedo` hook after the redo process begins', (done) => {
-      const afterRedoSpy = jasmine.createSpy('afterRedo');
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
-      });
-      let hookData = null;
-
-      hot.addHook('beforeRedo', afterRedoSpy);
-      hot.addHook('beforeRedo', (data) => {
-        hookData = data;
-      });
-
-      alter('remove_row', 1);
-
-      setTimeout(() => {
-        hot.undo();
-        hot.redo();
-      }, 10);
-
-      setTimeout(() => {
-        expect(afterRedoSpy.calls.count()).toEqual(1);
-        expect(hookData).not.toBe(null);
-        expect(hookData.actionType).toEqual('remove_row');
-        expect(hookData.data).toEqual([['A2', 'B2']]);
-        done();
-      }, 100);
     });
   });
 

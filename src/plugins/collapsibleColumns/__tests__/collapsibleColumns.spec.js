@@ -1515,7 +1515,7 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should maintain the collapse functionality, when the table has been scrolled', () => {
+    it('should maintain the collapse functionality, when the table has been scrolled', async() => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
@@ -1524,22 +1524,25 @@ describe('CollapsibleColumns', () => {
         height: 300
       });
 
+      // Scrolling to viewport does not work precisely without delay.
+      await sleep(50);
+
       hot.scrollViewportTo(void 0, 37);
       hot.render();
 
-      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "2_21"
+      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "AL3"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
-      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "1_13"
+      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "AL2"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
-      $(getCell(-3, 41).querySelector('.collapsibleIndicator')) // header "1_14"
+      $(getCell(-3, 41).querySelector('.collapsibleIndicator')) // header "AP2"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
-      $(getCell(-4, 46).querySelector('.collapsibleIndicator')) // header "0_11"
+      $(getCell(-4, 46).querySelector('.collapsibleIndicator')) // header "AU1"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
@@ -1564,6 +1567,10 @@ describe('CollapsibleColumns', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
+            <th class="">BC1</th>
+            <th class="collapsibleIndicator expanded" colspan="8">BD1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
           </tr>
           <tr>
             <th class="collapsibleIndicator expanded" colspan="4">AC2</th>
@@ -1581,6 +1588,10 @@ describe('CollapsibleColumns', () => {
             <th class="">AT2</th>
             <th class="collapsibleIndicator expanded" colspan="4">AU2</th>
             <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC2</th>
+            <th class="collapsibleIndicator expanded" colspan="4">BD2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
           </tr>
@@ -1602,6 +1613,10 @@ describe('CollapsibleColumns', () => {
             <th class="hiddenHeader"></th>
             <th class="collapsibleIndicator expanded" colspan="2">AW3</th>
             <th class="hiddenHeader"></th>
+            <th class="">BC3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">BD3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">BF3</th>
           </tr>
           <tr>
             <th class="">AC4</th>
@@ -1621,6 +1636,10 @@ describe('CollapsibleColumns', () => {
             <th class="">AV4</th>
             <th class="">AW4</th>
             <th class="">AX4</th>
+            <th class="">BC4</th>
+            <th class="">BD4</th>
+            <th class="">BE4</th>
+            <th class="">BF4</th>
           </tr>
         </thead>
         <tbody>
@@ -1642,6 +1661,10 @@ describe('CollapsibleColumns', () => {
             <td class="">AV1</td>
             <td class="">AW1</td>
             <td class="">AX1</td>
+            <td class="">BC1</td>
+            <td class="">BD1</td>
+            <td class="">BE1</td>
+            <td class="">BF1</td>
           </tr>
         </tbody>
         `);
@@ -1689,6 +1712,11 @@ describe('CollapsibleColumns', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
+            <th class="collapsibleIndicator expanded" colspan="4">N</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">R</th>
             <th class="collapsibleIndicator expanded" colspan="3">S</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -1702,13 +1730,13 @@ describe('CollapsibleColumns', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
-            <th class=""></th>
-            <th class=""></th>
-            <th class=""></th>
-            <th class=""></th>
-            <th class=""></th>
           </tr>
           <tr>
+            <th class="collapsibleIndicator expanded" colspan="2">N</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">P</th>
+            <th class="hiddenHeader"></th>
+            <th class="">R</th>
             <th class="">S</th>
             <th class="collapsibleIndicator expanded" colspan="2">T</th>
             <th class="hiddenHeader"></th>
@@ -1722,13 +1750,13 @@ describe('CollapsibleColumns', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
-            <th class=""></th>
-            <th class=""></th>
-            <th class=""></th>
-            <th class=""></th>
-            <th class=""></th>
           </tr>
           <tr>
+            <th class="">N</th>
+            <th class="">O</th>
+            <th class="">P</th>
+            <th class="">Q</th>
+            <th class="">R</th>
             <th class="">S</th>
             <th class="">T</th>
             <th class="">U</th>
@@ -1742,15 +1770,15 @@ describe('CollapsibleColumns', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
-            <th class=""></th>
-            <th class=""></th>
-            <th class=""></th>
-            <th class=""></th>
-            <th class=""></th>
           </tr>
         </thead>
         <tbody>
           <tr>
+            <td class="">N1</td>
+            <td class="">O1</td>
+            <td class="">P1</td>
+            <td class="">Q1</td>
+            <td class="">R1</td>
             <td class="">S1</td>
             <td class="">T1</td>
             <td class="">U1</td>
@@ -1764,11 +1792,6 @@ describe('CollapsibleColumns', () => {
             <td class="">AC1</td>
             <td class="">AD1</td>
             <td class="">AE1</td>
-            <td class="">AF1</td>
-            <td class="">AG1</td>
-            <td class="">AH1</td>
-            <td class="">AI1</td>
-            <td class="">AJ1</td>
           </tr>
         </tbody>
         `);
@@ -2338,7 +2361,7 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should maintain the expand functionality, when the table has been scrolled', () => {
+    it('should maintain the expand functionality, when the table has been scrolled', async() => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
@@ -2347,33 +2370,36 @@ describe('CollapsibleColumns', () => {
         height: 300
       });
 
+      // Scrolling to viewport does not work precisely without delay.
+      await sleep(50);
+
       hot.scrollViewportTo(void 0, 37);
       hot.render();
 
       // collapsing
-      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "2_21"
+      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "AL3"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
-      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "1_13"
+      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "AL2"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
-      $(getCell(-3, 41).querySelector('.collapsibleIndicator')) // header "1_14"
+      $(getCell(-3, 41).querySelector('.collapsibleIndicator')) // header "AP2"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
-      $(getCell(-4, 46).querySelector('.collapsibleIndicator')) // header "0_11"
+      $(getCell(-4, 46).querySelector('.collapsibleIndicator')) // header "AU1"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
 
       // expanding
-      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "1_13"
+      $(getCell(-3, 37).querySelector('.collapsibleIndicator')) // header "AL2"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
-      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "2_21"
+      $(getCell(-2, 37).querySelector('.collapsibleIndicator')) // header "AL3"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
@@ -2398,6 +2424,10 @@ describe('CollapsibleColumns', () => {
             <th class="hiddenHeader"></th>
             <th class="">AT1</th>
             <th class="collapsibleIndicator collapsed" colspan="4">AU1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC1</th>
           </tr>
           <tr>
             <th class="collapsibleIndicator expanded" colspan="4">AC2</th>
@@ -2417,6 +2447,10 @@ describe('CollapsibleColumns', () => {
             <th class="hiddenHeader"></th>
             <th class="">AT2</th>
             <th class="collapsibleIndicator expanded" colspan="4">AU2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC2</th>
           </tr>
           <tr>
             <th class="collapsibleIndicator expanded" colspan="2">AC3</th>
@@ -2436,6 +2470,10 @@ describe('CollapsibleColumns', () => {
             <th class="hiddenHeader"></th>
             <th class="">AT3</th>
             <th class="collapsibleIndicator expanded" colspan="2">AU3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">AW3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">BC3</th>
           </tr>
           <tr>
             <th class="">AC4</th>
@@ -2455,6 +2493,10 @@ describe('CollapsibleColumns', () => {
             <th class="">AQ4</th>
             <th class="">AT4</th>
             <th class="">AU4</th>
+            <th class="">AV4</th>
+            <th class="">AW4</th>
+            <th class="">AX4</th>
+            <th class="">BC4</th>
           </tr>
         </thead>
         <tbody>
@@ -2476,570 +2518,13 @@ describe('CollapsibleColumns', () => {
             <td class="">AQ1</td>
             <td class="">AT1</td>
             <td class="">AU1</td>
+            <td class="">AV1</td>
+            <td class="">AW1</td>
+            <td class="">AX1</td>
+            <td class="">BC1</td>
           </tr>
         </tbody>
         `);
-    });
-  });
-
-  describe('selection', () => {
-    it('should active highlight column header for collapsed column', () => {
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 10),
-        nestedHeaders: [
-          [{ label: 'A1', colspan: 9 }, 'J1'],
-          ['A2', { label: 'B2', colspan: 4 }, { label: 'F2', colspan: 4 }, 'J2'],
-          ['A3', 'B3', { label: 'C3', colspan: 3 }, { label: 'F3', colspan: 2 }, { label: 'H3', colspan: 2 }, 'J3'],
-          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
-        ],
-        collapsibleColumns: true
-      });
-
-      $(getCell(-2, 2)) // Select header "C3"
-        .simulate('mousedown')
-        .simulate('mouseup');
-      $(getCell(-2, 2).querySelector('.collapsibleIndicator')) // Collapse header "C3"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-
-      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class="collapsibleIndicator expanded" colspan="7">A1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J1</th>
-          </tr>
-          <tr>
-            <th class="">A2</th>
-            <th class="collapsibleIndicator expanded" colspan="2">B2</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="4">F2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J2</th>
-          </tr>
-          <tr>
-            <th class="">A3</th>
-            <th class="">B3</th>
-            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">C3</th>
-            <th class="collapsibleIndicator expanded" colspan="2">F3</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">H3</th>
-            <th class="hiddenHeader"></th>
-            <th class="">J3</th>
-          </tr>
-          <tr>
-            <th class="">A4</th>
-            <th class="">B4</th>
-            <th class="ht__active_highlight ht__highlight">C4</th>
-            <th class="">F4</th>
-            <th class="">G4</th>
-            <th class="">H4</th>
-            <th class="">I4</th>
-            <th class="">J4</th>
-          </tr>
-        </thead>
-        `);
-      expect(getSelected()).toEqual([[-1, 2, 4, 4]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -1, col: 2 });
-      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 4 });
-      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 2 });
-
-      $(getCell(-2, 7).querySelector('.collapsibleIndicator')) // Collapse header "H3"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-      $(getCell(-2, 7)) // Select header "H3"
-        .simulate('mousedown')
-        .simulate('mouseup');
-
-      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class="collapsibleIndicator expanded" colspan="6">A1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J1</th>
-          </tr>
-          <tr>
-            <th class="">A2</th>
-            <th class="collapsibleIndicator expanded" colspan="2">B2</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="3">F2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J2</th>
-          </tr>
-          <tr>
-            <th class="">A3</th>
-            <th class="">B3</th>
-            <th class="collapsibleIndicator collapsed">C3</th>
-            <th class="collapsibleIndicator expanded" colspan="2">F3</th>
-            <th class="hiddenHeader"></th>
-            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">H3</th>
-            <th class="">J3</th>
-          </tr>
-          <tr>
-            <th class="">A4</th>
-            <th class="">B4</th>
-            <th class="">C4</th>
-            <th class="">F4</th>
-            <th class="">G4</th>
-            <th class="ht__active_highlight ht__highlight">H4</th>
-            <th class="">J4</th>
-          </tr>
-        </thead>
-        `);
-      expect(getSelected()).toEqual([[-1, 7, 4, 8]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -1, col: 7 });
-      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 8 });
-      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 7 });
-
-      $(getCell(-2, 5).querySelector('.collapsibleIndicator')) // Collapse header "F3"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-      $(getCell(-3, 5)) // Select header "F2"
-        .simulate('mousedown')
-        .simulate('mouseup');
-
-      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class="collapsibleIndicator expanded" colspan="5">A1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J1</th>
-          </tr>
-          <tr>
-            <th class="">A2</th>
-            <th class="collapsibleIndicator expanded" colspan="2">B2</th>
-            <th class="hiddenHeader"></th>
-            <th class="ht__active_highlight ht__highlight collapsibleIndicator expanded" colspan="2">F2</th>
-            <th class="hiddenHeader"></th>
-            <th class="">J2</th>
-          </tr>
-          <tr>
-            <th class="">A3</th>
-            <th class="">B3</th>
-            <th class="collapsibleIndicator collapsed">C3</th>
-            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">F3</th>
-            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">H3</th>
-            <th class="">J3</th>
-          </tr>
-          <tr>
-            <th class="">A4</th>
-            <th class="">B4</th>
-            <th class="">C4</th>
-            <th class="ht__active_highlight ht__highlight">F4</th>
-            <th class="ht__active_highlight ht__highlight">H4</th>
-            <th class="">J4</th>
-          </tr>
-        </thead>
-        `);
-      expect(getSelected()).toEqual([[-1, 5, 4, 8]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -1, col: 5 });
-      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 8 });
-      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 5 });
-
-      $(getCell(-3, 5).querySelector('.collapsibleIndicator')) // Collapse header "F2"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-
-      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class="collapsibleIndicator expanded" colspan="4">A1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J1</th>
-          </tr>
-          <tr>
-            <th class="">A2</th>
-            <th class="collapsibleIndicator expanded" colspan="2">B2</th>
-            <th class="hiddenHeader"></th>
-            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">F2</th>
-            <th class="">J2</th>
-          </tr>
-          <tr>
-            <th class="">A3</th>
-            <th class="">B3</th>
-            <th class="collapsibleIndicator collapsed">C3</th>
-            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">F3</th>
-            <th class="">J3</th>
-          </tr>
-          <tr>
-            <th class="">A4</th>
-            <th class="">B4</th>
-            <th class="">C4</th>
-            <th class="ht__active_highlight ht__highlight">F4</th>
-            <th class="">J4</th>
-          </tr>
-        </thead>
-        `);
-      expect(getSelected()).toEqual([[-1, 5, 4, 8]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -1, col: 5 });
-      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 8 });
-      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 5 });
-
-      $(getCell(-3, 5).querySelector('.collapsibleIndicator')) // Expand header "F2"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-      $(getCell(-2, 5).querySelector('.collapsibleIndicator')) // Expand header "F3"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-      $(getCell(-2, 7).querySelector('.collapsibleIndicator')) // Expand header "H3"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-
-      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class="collapsibleIndicator expanded" colspan="7">A1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J1</th>
-          </tr>
-          <tr>
-            <th class="">A2</th>
-            <th class="collapsibleIndicator expanded" colspan="2">B2</th>
-            <th class="hiddenHeader"></th>
-            <th class="ht__active_highlight ht__highlight collapsibleIndicator expanded" colspan="4">F2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J2</th>
-          </tr>
-          <tr>
-            <th class="">A3</th>
-            <th class="">B3</th>
-            <th class="collapsibleIndicator collapsed">C3</th>
-            <th class="ht__active_highlight ht__highlight collapsibleIndicator expanded" colspan="2">F3</th>
-            <th class="hiddenHeader"></th>
-            <th class="ht__active_highlight ht__highlight collapsibleIndicator expanded" colspan="2">H3</th>
-            <th class="hiddenHeader"></th>
-            <th class="">J3</th>
-          </tr>
-          <tr>
-            <th class="">A4</th>
-            <th class="">B4</th>
-            <th class="">C4</th>
-            <th class="ht__active_highlight ht__highlight">F4</th>
-            <th class="ht__active_highlight ht__highlight">G4</th>
-            <th class="ht__active_highlight ht__highlight">H4</th>
-            <th class="ht__active_highlight ht__highlight">I4</th>
-            <th class="">J4</th>
-          </tr>
-        </thead>
-        `);
-      expect(getSelected()).toEqual([[-1, 5, 4, 8]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -1, col: 5 });
-      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 8 });
-      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 5 });
-    });
-
-    it('should active highlight column header for non-contiguous selection of the collapsed columns', () => {
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 10),
-        nestedHeaders: [
-          ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
-          ['A2', { label: 'B2', colspan: 8 }, 'J2', { label: 'K2', colspan: 3 }],
-          ['A3', { label: 'B3', colspan: 4 }, { label: 'F3', colspan: 4 }, 'J3', { label: 'K3', colspan: 3 }],
-          ['A4', { label: 'B4', colspan: 2 }, { label: 'D4', colspan: 2 }, { label: 'F4', colspan: 2 },
-            { label: 'H4', colspan: 2 }, 'J4', 'K4', { label: 'L4', colspan: 2 }],
-          ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5', 'K5', 'L5', 'M5'],
-        ],
-        collapsibleColumns: true
-      });
-
-      $(getCell(-2, 7)) // Select header "H4"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-      $(getCell(-2, 7).querySelector('.collapsibleIndicator')) // Collapse header "H4"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-
-      keyDown('ctrl');
-
-      $(getCell(-1, 5)) // Select header "F5"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-
-      $(getCell(-2, 1).querySelector('.collapsibleIndicator')) // Collapse header "B4"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-
-      $(getCell(-2, 3)) // Select header "D4"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-
-      keyUp('ctrl');
-
-      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class="">A1</th>
-            <th class="collapsibleIndicator expanded" colspan="6">B1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J1</th>
-          </tr>
-          <tr>
-            <th class="">A2</th>
-            <th class="collapsibleIndicator expanded" colspan="6">B2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J2</th>
-          </tr>
-          <tr>
-            <th class="">A3</th>
-            <th class="collapsibleIndicator expanded" colspan="3">B3</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="3">F3</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J3</th>
-          </tr>
-          <tr>
-            <th class="">A4</th>
-            <th class="collapsibleIndicator collapsed">B4</th>
-            <th class="ht__active_highlight ht__highlight collapsibleIndicator expanded" colspan="2">D4</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">F4</th>
-            <th class="hiddenHeader"></th>
-            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">H4</th>
-            <th class="">J4</th>
-          </tr>
-          <tr>
-            <th class="">A5</th>
-            <th class="">B5</th>
-            <th class="ht__active_highlight ht__highlight">D5</th>
-            <th class="ht__active_highlight ht__highlight">E5</th>
-            <th class="ht__active_highlight ht__highlight">F5</th>
-            <th class="">G5</th>
-            <th class="ht__active_highlight ht__highlight">H5</th>
-            <th class="">J5</th>
-          </tr>
-        </thead>
-        `);
-      // This "expect" checks buggy behavior which is not fixed yet #4964 (the last selection shouldn't be here).
-      expect(getSelected()).toEqual([[-1, 7, 4, 8], [-1, 5, 4, 5], [-1, 3, 4, 3], [-1, 3, 4, 4]]);
-
-      $(getCell(-4, 1).querySelector('.collapsibleIndicator')) // Collapse header "B1"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-
-      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class="">A1</th>
-            <th class="collapsibleIndicator collapsed" colspan="3">B1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J1</th>
-          </tr>
-          <tr>
-            <th class="">A2</th>
-            <th class="collapsibleIndicator collapsed" colspan="3">B2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J2</th>
-          </tr>
-          <tr>
-            <th class="">A3</th>
-            <th class="collapsibleIndicator expanded" colspan="3">B3</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J3</th>
-          </tr>
-          <tr>
-            <th class="">A4</th>
-            <th class="collapsibleIndicator collapsed">B4</th>
-            <th class="ht__active_highlight ht__highlight collapsibleIndicator expanded" colspan="2">D4</th>
-            <th class="hiddenHeader"></th>
-            <th class="">J4</th>
-          </tr>
-          <tr>
-            <th class="">A5</th>
-            <th class="">B5</th>
-            <th class="ht__active_highlight ht__highlight">D5</th>
-            <th class="ht__active_highlight ht__highlight">E5</th>
-            <th class="">J5</th>
-          </tr>
-        </thead>
-        `);
-      // This "expect" checks buggy behavior which is not fixed yet #4964 (the last selection shouldn't be here).
-      expect(getSelected()).toEqual([[-1, 7, 4, 8], [-1, 5, 4, 5], [-1, 3, 4, 3], [-1, 3, 4, 4]]);
-    });
-
-    it('should active highlight the column header when the header is collpased to the same colspan with as its child', () => {
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 10),
-        nestedHeaders: [
-          [{ label: 'A1', colspan: 10 }],
-          ['A2', { label: 'B2', colspan: 4 }, { label: 'F2', colspan: 4 }, 'J2'],
-          ['A3', { label: 'B3', colspan: 2 }, { label: 'D3', colspan: 2 }, { label: 'F3', colspan: 2 },
-            { label: 'H3', colspan: 2 }, 'J3'],
-        ],
-        collapsibleColumns: true
-      });
-
-      $(getCell(-1, 0)) // Select header "A3"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-
-      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class="collapsibleIndicator expanded" colspan="10">A1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-          </tr>
-          <tr>
-            <th class="ht__active_highlight ht__highlight">A2</th>
-            <th class="collapsibleIndicator expanded" colspan="4">B2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="4">F2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J2</th>
-          </tr>
-          <tr>
-            <th class="ht__active_highlight ht__highlight">A3</th>
-            <th class="collapsibleIndicator expanded" colspan="2">B3</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">D3</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">F3</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">H3</th>
-            <th class="hiddenHeader"></th>
-            <th class="">J3</th>
-          </tr>
-        </thead>
-        `);
-      expect(getSelected()).toEqual([[-1, 0, 4, 0]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -1, col: 0 });
-      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 0 });
-      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 0 });
-
-      $(getCell(-3, 0).querySelector('.collapsibleIndicator')) // Collapse header "A1"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-
-      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">A1</th>
-          </tr>
-          <tr>
-            <th class="ht__active_highlight ht__highlight">A2</th>
-          </tr>
-          <tr>
-            <th class="ht__active_highlight ht__highlight">A3</th>
-          </tr>
-        </thead>
-        `);
-      expect(getSelected()).toEqual([[-1, 0, 4, 0]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -1, col: 0 });
-      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 0 });
-      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 0 });
-
-      $(getCell(-3, 0).querySelector('.collapsibleIndicator')) // Expand header "A1"
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('click');
-
-      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class="collapsibleIndicator expanded" colspan="10">A1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-          </tr>
-          <tr>
-            <th class="ht__active_highlight ht__highlight">A2</th>
-            <th class="collapsibleIndicator expanded" colspan="4">B2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="4">F2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">J2</th>
-          </tr>
-          <tr>
-            <th class="ht__active_highlight ht__highlight">A3</th>
-            <th class="collapsibleIndicator expanded" colspan="2">B3</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">D3</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">F3</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">H3</th>
-            <th class="hiddenHeader"></th>
-            <th class="">J3</th>
-          </tr>
-        </thead>
-        `);
-      expect(getSelected()).toEqual([[-1, 0, 4, 0]]);
-      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: -1, col: 0 });
-      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 0 });
-      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 0 });
     });
   });
 
@@ -3340,8 +2825,6 @@ describe('CollapsibleColumns', () => {
             <th class="">AT1</th>
             <th class="collapsibleIndicator collapsed">AU1</th>
             <th class="">BC1</th>
-            <th class="collapsibleIndicator collapsed">BD1</th>
-            <th class="">BL1</th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -3357,8 +2840,6 @@ describe('CollapsibleColumns', () => {
             <th class="">AT2</th>
             <th class="collapsibleIndicator collapsed">AU2</th>
             <th class="">BC2</th>
-            <th class="collapsibleIndicator collapsed">BD2</th>
-            <th class="">BL2</th>
           </tr>
           <tr>
             <th class="">A3</th>
@@ -3374,8 +2855,6 @@ describe('CollapsibleColumns', () => {
             <th class="">AT3</th>
             <th class="collapsibleIndicator collapsed">AU3</th>
             <th class="">BC3</th>
-            <th class="collapsibleIndicator collapsed">BD3</th>
-            <th class="">BL3</th>
           </tr>
           <tr>
             <th class="">A4</th>
@@ -3391,8 +2870,6 @@ describe('CollapsibleColumns', () => {
             <th class="">AT4</th>
             <th class="">AU4</th>
             <th class="">BC4</th>
-            <th class="">BD4</th>
-            <th class="">BL4</th>
           </tr>
           <tr>
             <th class="">A5</th>
@@ -3408,8 +2885,6 @@ describe('CollapsibleColumns', () => {
             <th class="">AT5</th>
             <th class="">AU5</th>
             <th class="">BC5</th>
-            <th class="">BD5</th>
-            <th class="">BL5</th>
           </tr>
         </thead>
         <tbody>
@@ -3427,8 +2902,6 @@ describe('CollapsibleColumns', () => {
             <td class="">AT1</td>
             <td class="">AU1</td>
             <td class="">BC1</td>
-            <td class="">BD1</td>
-            <td class="">BL1</td>
           </tr>
         </tbody>
         `);
@@ -3439,6 +2912,8 @@ describe('CollapsibleColumns', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
+            <th class="collapsibleIndicator collapsed">B1</th>
+            <th class="">J1</th>
             <th class="collapsibleIndicator collapsed">K1</th>
             <th class="">S1</th>
             <th class="collapsibleIndicator collapsed">T1</th>
@@ -3461,6 +2936,8 @@ describe('CollapsibleColumns', () => {
             <th class="">CV1</th>
           </tr>
           <tr>
+            <th class="collapsibleIndicator collapsed">B2</th>
+            <th class="">J2</th>
             <th class="collapsibleIndicator collapsed">K2</th>
             <th class="">S2</th>
             <th class="collapsibleIndicator collapsed">T2</th>
@@ -3483,6 +2960,8 @@ describe('CollapsibleColumns', () => {
             <th class="">CV2</th>
           </tr>
           <tr>
+            <th class="collapsibleIndicator collapsed">B3</th>
+            <th class="">J3</th>
             <th class="collapsibleIndicator collapsed">K3</th>
             <th class="">S3</th>
             <th class="collapsibleIndicator collapsed">T3</th>
@@ -3505,6 +2984,8 @@ describe('CollapsibleColumns', () => {
             <th class="">CV3</th>
           </tr>
           <tr>
+            <th class="">B4</th>
+            <th class="">J4</th>
             <th class="">K4</th>
             <th class="">S4</th>
             <th class="">T4</th>
@@ -3527,6 +3008,8 @@ describe('CollapsibleColumns', () => {
             <th class="">CV4</th>
           </tr>
           <tr>
+            <th class="">B5</th>
+            <th class="">J5</th>
             <th class="">K5</th>
             <th class="">S5</th>
             <th class="">T5</th>
@@ -3551,6 +3034,8 @@ describe('CollapsibleColumns', () => {
         </thead>
         <tbody>
           <tr>
+            <td class="">B1</td>
+            <td class="">J1</td>
             <td class="">K1</td>
             <td class="">S1</td>
             <td class="">T1</td>

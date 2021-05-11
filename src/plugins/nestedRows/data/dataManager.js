@@ -297,6 +297,7 @@ class DataManager {
 
     arrayEach(parentNode.__children, (elem) => {
       rowCount += 1;
+
       if (elem.__children) {
         rowCount += this.countChildren(elem);
       }
@@ -427,9 +428,11 @@ class DataManager {
    */
   addChild(parent, element) {
     let childElement = element;
+
     this.hot.runHooks('beforeAddChild', parent, childElement);
 
     let parentIndex = null;
+
     if (parent) {
       parentIndex = this.getRowIndex(parent);
     }
@@ -542,6 +545,7 @@ class DataManager {
     if (Array.isArray(elements)) {
       rangeEach(elements[0], elements[2], (i) => {
         const translatedIndex = this.translateTrimmedRow(i);
+
         rowObjects.push(this.getDataObject(translatedIndex));
       });
 

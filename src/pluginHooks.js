@@ -1049,6 +1049,36 @@ const REGISTERED_HOOKS = [
   'modifyGetCellCoords',
 
   /**
+   * Allows modify the visual row index that is used to retrieve the row header element (TH) before it's
+   * highlighted (proper CSS class names are added). Modifying the visual row index allows building a custom
+   * implementation of the nested headers feature or other features that require highlighting other DOM
+   * elements than that the rendering engine, by default, would have highlighted.
+   *
+   * @event Hooks#beforeHighlightingRowHeader
+   * @since 8.4.0
+   * @param {number} row Visual row index.
+   * @param {number} headerLevel Column header level (0 = most distant to the table).
+   * @param {object} highlightMeta An object that contains additional information about processed selection.
+   * @returns {number|undefined}
+   */
+  'beforeHighlightingRowHeader',
+
+  /**
+   * Allows modify the visual column index that is used to retrieve the column header element (TH) before it's
+   * highlighted (proper CSS class names are added). Modifying the visual column index allows building a custom
+   * implementation of the nested headers feature or other features that require highlighting other DOM
+   * elements than that the rendering engine, by default, would have highlighted.
+   *
+   * @event Hooks#beforeHighlightingColumnHeader
+   * @since 8.4.0
+   * @param {number} column Visual column index.
+   * @param {number} headerLevel Row header level (0 = most distant to the table).
+   * @param {object} highlightMeta An object that contains additional information about processed selection.
+   * @returns {number|undefined}
+   */
+  'beforeHighlightingColumnHeader',
+
+  /**
    * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
    * {@link Options#persistentState} option is enabled.
    *
@@ -1452,6 +1482,17 @@ const REGISTERED_HOOKS = [
   'beforeUndo',
 
   /**
+   * Fired by {@link UndoRedo} plugin before changing undo stack.
+   *
+   * @event Hooks#beforeUndoStackChange
+   * @since 8.4.0
+   * @param {Array} doneActions Stack of actions which may be undone.
+   * @param {string} [source] String that identifies source of action ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @returns {*|boolean} If false is returned the action of changing undo stack is canceled.
+   */
+  'beforeUndoStackChange',
+
+  /**
    * Fired by {@link UndoRedo} plugin after the undo action. Contains information about the action that is being undone.
    * This hook is fired when {@link Options#undo} option is enabled.
    *
@@ -1460,6 +1501,16 @@ const REGISTERED_HOOKS = [
    *                        property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
    */
   'afterUndo',
+
+  /**
+   * Fired by {@link UndoRedo} plugin after changing undo stack.
+   *
+   * @event Hooks#afterUndoStackChange
+   * @since 8.4.0
+   * @param {Array} doneActionsBefore Stack of actions which could be undone before performing new action.
+   * @param {Array} doneActionsAfter Stack of actions which can be undone after performing new action.
+   */
+  'afterUndoStackChange',
 
   /**
    * Fired by {@link UndoRedo} plugin before the redo action. Contains information about the action that is being redone.
@@ -1473,6 +1524,15 @@ const REGISTERED_HOOKS = [
   'beforeRedo',
 
   /**
+   * Fired by {@link UndoRedo} plugin before changing redo stack.
+   *
+   * @event Hooks#beforeRedoStackChange
+   * @since 8.4.0
+   * @param {Array} undoneActions Stack of actions which may be redone.
+   */
+  'beforeRedoStackChange',
+
+  /**
    * Fired by {@link UndoRedo} plugin after the redo action. Contains information about the action that is being redone.
    * This hook is fired when {@link Options#undo} option is enabled.
    *
@@ -1481,6 +1541,16 @@ const REGISTERED_HOOKS = [
    *                        property of the object specifies the type of the action in a String format (e.g. `'remove_row'`).
    */
   'afterRedo',
+
+  /**
+   * Fired by {@link UndoRedo} plugin after changing redo stack.
+   *
+   * @event Hooks#afterRedoStackChange
+   * @since 8.4.0
+   * @param {Array} undoneActionsBefore Stack of actions which could be redone before performing new action.
+   * @param {Array} undoneActionsAfter Stack of actions which can be redone after performing new action.
+   */
+  'afterRedoStackChange',
 
   /**
    * Fired while retrieving the row header width.
@@ -1907,6 +1977,17 @@ const REGISTERED_HOOKS = [
    * @param {boolean} successfullyExpanded `true`, if the action affected any non-collapsible column, `false` otherwise.
    */
   'afterColumnExpand',
+
+  /**
+   * Fired by {@link AutoColumnSize} plugin within {@link SampleGenerator} utility.
+   *
+   * @event Hooks#modifyAutoColumnSizeSeed
+   * @since 8.4.0
+   * @param {string|undefined} seed Seed ID, unique name to categorize samples.
+   * @param {object} cellProperties Object containing the cell properties.
+   * @param {*} cellValue Value of the cell.
+   */
+  'modifyAutoColumnSizeSeed',
 ];
 
 /**

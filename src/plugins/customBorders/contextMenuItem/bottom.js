@@ -11,13 +11,16 @@ export default function bottom(customBordersPlugin) {
     name() {
       let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_BOTTOM);
       const hasBorder = checkSelectionBorders(this, 'bottom');
+
       if (hasBorder) {
         label = markSelected(label);
       }
+
       return label;
     },
     callback(key, selected) {
       const hasBorder = checkSelectionBorders(this, 'bottom');
+
       customBordersPlugin.prepareBorder(selected, 'bottom', hasBorder);
     }
   };

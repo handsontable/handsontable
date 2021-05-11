@@ -11,6 +11,7 @@ export const PLUGIN_KEY = 'manualColumnResize';
 export const PLUGIN_PRIORITY = 130;
 const PERSISTENT_STATE_KEY = 'manualColumnWidths';
 const privatePool = new WeakMap();
+
 /**
  * @description
  * This plugin allows to change columns width. To make columns width persistent the {@link Options#persistentState}
@@ -612,8 +613,6 @@ export class ManualColumnResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
-
     super.destroy();
   }
 }

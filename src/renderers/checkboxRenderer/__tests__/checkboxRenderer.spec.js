@@ -57,8 +57,10 @@ describe('CheckboxRenderer', () => {
 
   it('should select cell after checkbox click', async() => {
     const spy = jasmine.createSpyObj('error', ['test']);
+
     window.onerror = function() {
       spy.test();
+
       return false;
     };
 
@@ -133,6 +135,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     let checkboxes = spec().$container.find(':checkbox');
@@ -170,6 +173,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     let checkboxes = spec().$container.find(':checkbox');
@@ -272,6 +276,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     let checkboxes = spec().$container.find(':checkbox');
@@ -308,6 +313,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     let checkboxes = spec().$container.find(':checkbox');
@@ -339,6 +345,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     let checkboxes = spec().$container.find(':checkbox');
@@ -370,6 +377,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     let checkboxes = spec().$container.find(':checkbox');
@@ -448,6 +456,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     let checkboxes = spec().$container.find(':checkbox');
@@ -482,6 +491,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     let checkboxes = spec().$container.find(':checkbox');
@@ -497,6 +507,7 @@ describe('CheckboxRenderer', () => {
 
     checkboxes = spec().$container.find(':checkbox');
     const selection = getSelected();
+
     expect(selection).toEqual([[1, 0, 1, 0]]);
     expect(checkboxes.eq(0).prop('checked')).toBe(true);
     expect(checkboxes.eq(1).prop('checked')).toBe(false);
@@ -515,6 +526,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     let checkboxes = spec().$container.find(':checkbox');
@@ -530,6 +542,7 @@ describe('CheckboxRenderer', () => {
 
     checkboxes = spec().$container.find(':checkbox');
     const selection = getSelected();
+
     expect(selection).toEqual([[0, 0, 0, 0]]);
     expect(checkboxes.eq(0).prop('checked')).toBe(false);
     expect(checkboxes.eq(1).prop('checked')).toBe(false);
@@ -551,6 +564,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     let checkboxes = spec().$container.find(':checkbox');
@@ -588,6 +602,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     let checkboxes = spec().$container.find(':checkbox');
@@ -621,6 +636,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     let checkboxes = spec().$container.find(':checkbox');
@@ -656,6 +672,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     let checkboxes = spec().$container.find(':checkbox');
@@ -691,6 +708,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     expect(getDataAtCell(0, 0)).toBe('foo');
@@ -719,6 +737,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     expect(getDataAtCell(0, 0)).toBe('foo');
@@ -738,7 +757,7 @@ describe('CheckboxRenderer', () => {
       .toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
-  it('shouldn\'t change checkbo notate after hitting other keys then DELETE or BACKSPACE (from #bad-value# state)', () => {
+  it('should not change checkbox state after hitting other keys then DELETE or BACKSPACE (from #bad-value# state)', () => {
     handsontable({
       data: [['foo'], ['bar']],
       columns: [
@@ -747,6 +766,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     expect(getDataAtCell(0, 0)).toBe('foo');
@@ -790,6 +810,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     selectCell(0, 0);
@@ -813,6 +834,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     selectCell(0, 0);
@@ -824,6 +846,28 @@ describe('CheckboxRenderer', () => {
     expect(getCell(0, 0).querySelector('label').firstChild.textContent).toEqual('myLabel');
   });
 
+  it('should add label on the beginning of a checkbox element where checkbox and label are separated', () => {
+    handsontable({
+      data: [{ checked: true, label: 'myLabel' }, { checked: false, label: 'myLabel' }],
+      columns: [
+        { type: 'checkbox', data: 'checked', label: { position: 'before', property: 'label', separated: true } }
+      ]
+    });
+
+    const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
+    addHook('afterChange', afterChangeCallback);
+
+    selectCell(0, 0);
+    keyDown('space');
+
+    expect(getDataAtCell(0, 0)).toBe(false);
+    expect(getDataAtCell(1, 0)).toBe(false);
+    expect(afterChangeCallback.calls.count()).toEqual(1);
+    expect(getCell(0, 0).querySelector('label').firstChild.textContent).toEqual('myLabel');
+    expect(getCell(0, 0).querySelector('label').nextSibling.type).toEqual('checkbox');
+  });
+
   it('should add label on the end of a checkbox element', () => {
     handsontable({
       data: [{ checked: true, label: 'myLabel' }, { checked: false, label: 'myLabel' }],
@@ -833,6 +877,7 @@ describe('CheckboxRenderer', () => {
     });
 
     const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
     addHook('afterChange', afterChangeCallback);
 
     selectCell(0, 0);
@@ -842,6 +887,28 @@ describe('CheckboxRenderer', () => {
     expect(getDataAtCell(1, 0)).toBe(false);
     expect(afterChangeCallback.calls.count()).toEqual(1);
     expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('myLabel');
+  });
+
+  it('should add label on the end of a checkbox element where checkbox and label are separated', () => {
+    handsontable({
+      data: [{ checked: true, label: 'myLabel' }, { checked: false, label: 'myLabel' }],
+      columns: [
+        { type: 'checkbox', data: 'checked', label: { position: 'after', property: 'label', separated: true } }
+      ]
+    });
+
+    const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
+    addHook('afterChange', afterChangeCallback);
+
+    selectCell(0, 0);
+    keyDown('space');
+
+    expect(getDataAtCell(0, 0)).toBe(false);
+    expect(getDataAtCell(1, 0)).toBe(false);
+    expect(afterChangeCallback.calls.count()).toEqual(1);
+    expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('myLabel');
+    expect(getCell(0, 0).querySelector('label').previousSibling.type).toEqual('checkbox');
   });
 
   it('should not add label when value is incorrect (#bad-value)', () => {
@@ -994,6 +1061,58 @@ describe('CheckboxRenderer', () => {
     expect(td.textContent).toBe('');
   });
 
+  it('should allow to change state of checkboxes in column headers', () => {
+    const spy = jasmine.createSpyObj('error', ['test']);
+    const prevError = window.onerror;
+
+    window.onerror = function() {
+      spy.test();
+    };
+
+    handsontable({
+      data: [[true]],
+      type: 'checkbox',
+      colHeaders: ['<input type="checkbox"/> A'],
+    });
+
+    const headerCheckbox = getTopClone().find('input[type="checkbox"]')[0];
+
+    expect(headerCheckbox.checked).toBe(false);
+
+    headerCheckbox.click();
+
+    expect(headerCheckbox.checked).toBe(true);
+    expect(spy.test.calls.count()).toBe(0);
+
+    window.onerror = prevError;
+  });
+
+  it('should allow to change state of checkboxes in row headers', () => {
+    const spy = jasmine.createSpyObj('error', ['test']);
+    const prevError = window.onerror;
+
+    window.onerror = function() {
+      spy.test();
+    };
+
+    handsontable({
+      data: [[true]],
+      type: 'checkbox',
+      rowHeaders: ['<input type="checkbox"/> 1'],
+    });
+
+    const headerCheckbox = getLeftClone().find('input[type="checkbox"]')[0];
+
+    expect(headerCheckbox.checked).toBe(false);
+
+    headerCheckbox.click();
+
+    expect(headerCheckbox.checked).toBe(true);
+    expect(spy.test.calls.count()).toBe(0);
+
+    window.onerror = prevError;
+  });
+
   describe('CheckboxRenderer with ContextMenu', () => {
     it('should add class name `htRight` after set align in contextMenu', (done) => {
       handsontable({
@@ -1018,6 +1137,7 @@ describe('CheckboxRenderer', () => {
 
       setTimeout(() => {
         const contextSubMenu = $(`.htContextMenuSub_${menu.text()}`).find('tbody td').eq(2);
+
         contextSubMenu.simulate('mousedown');
         contextSubMenu.simulate('mouseup');
 

@@ -128,6 +128,11 @@ export class MergeCells extends BasePlugin {
     this.addHook('beforeDrawBorders', (...args) => this.onBeforeDrawAreaBorders(...args));
     this.addHook('afterDrawSelection', (...args) => this.onAfterDrawSelection(...args));
     this.addHook('beforeRemoveCellClassNames', (...args) => this.onBeforeRemoveCellClassNames(...args));
+    this.addHook('beforeUndoStackChange', (action, source) => {
+      if (source === 'MergeCells') {
+        return false;
+      }
+    });
 
     super.enablePlugin();
   }
@@ -782,6 +787,7 @@ export class MergeCells extends BasePlugin {
    */
   onBeforeSetRangeEnd(coords) {
     const selRange = this.hot.getSelectedRangeLast();
+
     selRange.highlight = new CellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
     selRange.to = coords;
     let rangeExpanded = false;

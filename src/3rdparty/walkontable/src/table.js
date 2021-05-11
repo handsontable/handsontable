@@ -274,14 +274,17 @@ class Table {
       }
       const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
       const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
+
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
       this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
 
       let performRedraw = true;
+
       // Only master table rendering can be skipped
       if (this.isMaster) {
         this.alignOverlaysWithTrimmingContainer();
         const skipRender = {};
+
         this.wot.getSetting('beforeDraw', true, skipRender);
         performRedraw = skipRender.skipRender !== true;
       }
@@ -452,6 +455,7 @@ class Table {
    */
   resetOversizedRows() {
     const { wot } = this;
+
     if (!this.isMaster && !this.is(CLONE_BOTTOM)) {
       return;
     }
@@ -621,26 +625,77 @@ class Table {
   getColumnHeader(col, level = 0) {
     const TR = this.THEAD.childNodes[level];
 
-    if (TR) {
-      return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
-    }
+    return TR?.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
+  }
+
+  /**
+   * Gets all columns headers (TH elements) from the table.
+   *
+   * @param {number} column A source column index.
+   * @returns {HTMLTableCellElement[]}
+   */
+  getColumnHeaders(column) {
+    const THs = [];
+    const visibleColumn = this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column);
+
+    this.THEAD.childNodes.forEach((TR) => {
+      const TH = TR.childNodes[visibleColumn];
+
+      if (TH) {
+        THs.push(TH);
+      }
+    });
+
+    return THs;
   }
 
   /**
    * GetRowHeader.
    *
    * @param {number} row Row index.
+   * @param {number} [level=0] Header level (0 = most distant to the table).
    * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have row headers`.
    */
-  getRowHeader(row) {
+  getRowHeader(row, level = 0) {
     if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
-      return null;
+      return;
     }
+
+    const rowHeadersCount = this.wot.getSetting('rowHeaders').length;
+
+    if (level >= rowHeadersCount) {
+      return;
+    }
+
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
 
-    if (TR) {
-      return TR.childNodes[0];
+    return TR?.childNodes[level];
+  }
+
+  /**
+   * Gets all rows headers (TH elements) from the table.
+   *
+   * @param {number} row A source row index.
+   * @returns {HTMLTableCellElement[]}
+   */
+  getRowHeaders(row) {
+    if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
+      return [];
     }
+
+    const THs = [];
+    const rowHeadersCount = this.wot.getSetting('rowHeaders').length;
+
+    for (let renderedRowIndex = 0; renderedRowIndex < rowHeadersCount; renderedRowIndex++) {
+      const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+      const TH = TR?.childNodes[renderedRowIndex];
+
+      if (TH) {
+        THs.push(TH);
+      }
+    }
+
+    return THs;
   }
 
   /**

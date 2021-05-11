@@ -1,7 +1,10 @@
 import {
   isChrome,
+  isChromeWebKit,
   isEdge,
+  isEdgeWebKit,
   isFirefox,
+  isFirefoxWebKit,
   isIE,
   isMobileBrowser,
   isMSBrowser,
@@ -9,6 +12,8 @@ import {
   isWindowsOS,
   isMacOS,
   isLinuxOS,
+  isIOS,
+  isIpadOS,
   setBrowserMeta,
   setPlatformMeta,
 } from 'handsontable/helpers/browser';
@@ -258,6 +263,70 @@ describe('Browser helper', () => {
       });
 
       expect(isEdge()).toBeTruthy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_5_1 like Mac OS X) ' +
+          'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 EdgiOS/46.3.13 Mobile/15E148 Safari/605.1.15'
+      });
+
+      expect(isEdge()).toBeFalsy();
+    });
+  });
+
+  describe('isEdgeWebKit', () => {
+    it('should recognize browser properly', () => {
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ' +
+          'Chrome/38.0.2125.111 Safari/537.36'
+      });
+
+      expect(isEdgeWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0'
+      });
+
+      expect(isEdgeWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) ' +
+          'AppleWebKit/600.1.17 (KHTML, like Gecko) Version/7.1 Safari/537.85.10'
+      });
+
+      expect(isEdgeWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (iPad; CPU OS 8_1 like Mac OS X) ' +
+          'AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B410 Safari/600.1.4'
+      });
+
+      expect(isEdgeWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'
+      });
+
+      expect(isEdgeWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/4.0 (compatible; MSIE 7.0; Windows Phone OS 7.0; Trident/3.1; IEMobile/7.0; Nokia;N70)'
+      });
+
+      expect(isEdgeWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+          'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393'
+      });
+
+      expect(isEdgeWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_5_1 like Mac OS X) ' +
+          'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 EdgiOS/46.3.13 Mobile/15E148 Safari/605.1.15'
+      });
+
+      expect(isEdgeWebKit()).toBeTruthy();
     });
   });
 
@@ -422,6 +491,77 @@ describe('Browser helper', () => {
       });
 
       expect(isChrome()).toBeTruthy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_5 like Mac OS X) ' +
+          'AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.163 Mobile/15E148 Safari/604.1',
+      });
+
+      expect(isChrome()).toBeFalsy();
+    });
+  });
+
+  describe('isChromeWebKit', () => {
+    it('should recognize browser properly', () => {
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isChromeWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isChromeWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/4.0 (compatible; MSIE 7.0; Windows Phone OS 7.0; Trident/3.1; IEMobile/7.0; Nokia;N70)',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isChromeWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ' +
+          'Chrome/38.0.2125.111 Safari/537.36',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isChromeWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) ' +
+          'AppleWebKit/600.1.17 (KHTML, like Gecko) Version/7.1 Safari/537.85.10',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isChromeWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (iPad; CPU OS 8_1 like Mac OS X) ' +
+          'AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B410 Safari/600.1.4',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isChromeWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+          'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393',
+        vendor: 'Google Inc.',
+      });
+
+      expect(isChromeWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_5 like Mac OS X) ' +
+          'AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/87.0.4280.163 Mobile/15E148 Safari/604.1',
+      });
+
+      expect(isChromeWebKit()).toBeTruthy();
     });
   });
 
@@ -479,6 +619,79 @@ describe('Browser helper', () => {
       });
 
       expect(isFirefox()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (iPhone; CPU OS 14_5_1 like Mac OS X) ' +
+          'AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/33.1 Mobile/15E148 Safari/605.1.15',
+        vendor: 'Google Inc.',
+      });
+
+      expect(isFirefox()).toBeFalsy();
+    });
+  });
+
+  describe('isFirefoxWebKit', () => {
+    it('should recognize browser properly', () => {
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isFirefoxWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isFirefoxWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/4.0 (compatible; MSIE 7.0; Windows Phone OS 7.0; Trident/3.1; IEMobile/7.0; Nokia;N70)',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isFirefoxWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ' +
+          'Chrome/38.0.2125.111 Safari/537.36',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isFirefoxWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) ' +
+          'AppleWebKit/600.1.17 (KHTML, like Gecko) Version/7.1 Safari/537.85.10',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isFirefoxWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (iPad; CPU OS 8_1 like Mac OS X) ' +
+          'AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B410 Safari/600.1.4',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isFirefoxWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+          'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393',
+        vendor: 'Google Inc.',
+      });
+
+      expect(isFirefoxWebKit()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (iPhone; CPU OS 14_5_1 like Mac OS X) ' +
+          'AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/33.1 Mobile/15E148 Safari/605.1.15',
+        vendor: 'Google Inc.',
+      });
+
+      expect(isFirefoxWebKit()).toBeTruthy();
     });
   });
 
@@ -617,6 +830,136 @@ describe('Browser helper', () => {
       });
 
       expect(isLinuxOS()).toBeTruthy();
+    });
+  });
+
+  describe('isIOS', () => {
+    it('should recognize platform correctly', () => {
+      setPlatformMeta({
+        platform: 'Win'
+      });
+
+      expect(isIOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Win32'
+      });
+
+      expect(isIOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Mac'
+      });
+
+      expect(isIOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'MacIntel'
+      });
+
+      expect(isIOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'HP-UX'
+      });
+
+      expect(isIOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Linux i686'
+      });
+
+      expect(isIOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Linux x86_64'
+      });
+
+      expect(isIOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'iPhone'
+      });
+
+      expect(isIOS()).toBeTruthy();
+
+      setPlatformMeta({
+        platform: 'iPad'
+      });
+
+      expect(isIOS()).toBeTruthy();
+
+      setPlatformMeta({
+        platform: 'iPod'
+      });
+
+      expect(isIOS()).toBeTruthy();
+    });
+  });
+
+  describe('isIpadOS', () => {
+    it('should recognize iPadOS correctly', () => {
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ' +
+          'Chrome/38.0.2125.111 Safari/537.36'
+      });
+
+      expect(isIpadOS()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0'
+      });
+
+      expect(isIpadOS()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) ' +
+          'AppleWebKit/600.1.17 (KHTML, like Gecko) Version/7.1 Safari/537.85.10'
+      });
+
+      expect(isIpadOS()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (iPad; CPU OS 8_1 like Mac OS X) ' +
+          'AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B410 Safari/600.1.4'
+      });
+
+      expect(isIpadOS()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'
+      });
+
+      expect(isIpadOS()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/4.0 (compatible; MSIE 7.0; Windows Phone OS 7.0; Trident/3.1; IEMobile/7.0; Nokia;N70)'
+      });
+
+      expect(isIpadOS()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+          'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393'
+      });
+
+      expect(isIpadOS()).toBeFalsy();
+
+      // mock navigator for iPad Pro (9.7-inch) - iOS 14.3 to overwrite maxTouchPoints read-only property
+      const navigator = {
+        maxTouchPoints: 5
+      };
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) ' +
+        'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15' // iPad Pro (9.7-inch) - iOS 14.3
+      });
+
+      setPlatformMeta({
+        platform: 'MacIntel'
+      });
+
+      expect(isIpadOS(navigator)).toBeTruthy();
     });
   });
 });

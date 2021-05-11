@@ -169,11 +169,10 @@ beforeEach(function() {
       return {
         compare(actual) {
           const viewport = hot().view.wt.wtTable.holder;
-          const horizontalPosition = viewport.scrollLeft - actual.offsetLeft;
 
           return {
-            pass: horizontalPosition === 0,
-            message: 'Expected the element to be scrolled to the top of the Handsontable viewport'
+            pass: viewport.getBoundingClientRect().x === actual.getBoundingClientRect().x,
+            message: 'Expected the element to be scrolled to the left of the Handsontable viewport'
           };
         }
       };
@@ -187,11 +186,11 @@ beforeEach(function() {
       return {
         compare(actual) {
           const viewport = hot().view.wt.wtTable.holder;
-          const horizontalPosition = viewport.scrollLeft - actual.offsetLeft + actual.clientWidth - scrollbarWidth + 1;
+          const rightBorderPosition = actual.getBoundingClientRect().x + actual.clientWidth + scrollbarWidth + 1;
 
           return {
-            pass: horizontalPosition === viewport.offsetWidth,
-            message: 'Expected the element to be scrolled to the top of the Handsontable viewport'
+            pass: rightBorderPosition === viewport.getBoundingClientRect().x + viewport.offsetWidth,
+            message: 'Expected the element to be scrolled to the right of the Handsontable viewport'
           };
         }
       };

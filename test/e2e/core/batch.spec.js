@@ -18,6 +18,7 @@ describe('Core.batch', () => {
       autoColumnSize: false,
       autoRowSize: false,
     });
+
     spyOn(hot, 'suspendRender').and.callThrough();
     spyOn(hot, 'suspendExecution').and.callThrough();
     spyOn(hot, 'resumeExecution').and.callThrough();
@@ -59,9 +60,18 @@ describe('Core.batch', () => {
     expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
     expect(hot.view.wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
     expect(columnIndexCacheUpdated).toHaveBeenCalledTimes(3);
-    expect(columnIndexCacheUpdated).toHaveBeenCalledWith(true, false, false);
+
+    expect(columnIndexCacheUpdated).toHaveBeenCalledWith({
+      indexesSequenceChanged: true,
+      trimmedIndexesChanged: false,
+      hiddenIndexesChanged: false,
+    });
     expect(rowIndexCacheUpdated).toHaveBeenCalledTimes(3);
-    expect(rowIndexCacheUpdated).toHaveBeenCalledWith(true, false, false);
+    expect(rowIndexCacheUpdated).toHaveBeenCalledWith({
+      indexesSequenceChanged: true,
+      trimmedIndexesChanged: false,
+      hiddenIndexesChanged: false,
+    });
   });
 
   it('should batch showing/hiding headers correctly', () => {
