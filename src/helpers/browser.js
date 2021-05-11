@@ -14,8 +14,11 @@ const tester = (testerFunc) => {
 
 const browsers = {
   chrome: tester((ua, vendor) => /Chrome/.test(ua) && /Google/.test(vendor)),
+  chromeWebKit: tester(ua => /CriOS/.test(ua)),
   edge: tester(ua => /Edge/.test(ua)),
+  edgeWebKit: tester(ua => /EdgiOS/.test(ua)),
   firefox: tester(ua => /Firefox/.test(ua)),
+  firefoxWebKit: tester(ua => /FxiOS/.test(ua)),
   ie: tester(ua => /Trident/.test(ua)),
   // eslint-disable-next-line no-restricted-globals
   ie9: tester(() => !!(document.documentMode)),
@@ -60,8 +63,43 @@ export function isChrome() {
 /**
  * @returns {boolean}
  */
+export function isChromeWebKit() {
+  return browsers.chromeWebKit.value;
+}
+
+/**
+ * @returns {boolean}
+ */
+export function isFirefox() {
+  return browsers.firefox.value;
+}
+
+/**
+ * @returns {boolean}
+ */
+export function isFirefoxWebKit() {
+  return browsers.firefoxWebKit.value;
+}
+
+/**
+ * @returns {boolean}
+ */
+export function isSafari() {
+  return browsers.safari.value;
+}
+
+/**
+ * @returns {boolean}
+ */
 export function isEdge() {
   return browsers.edge.value;
+}
+
+/**
+ * @returns {boolean}
+ */
+export function isEdgeWebKit() {
+  return browsers.edgeWebKit.value;
 }
 
 /**
@@ -109,20 +147,6 @@ export function isIOS() {
  */
 export function isIpadOS({ maxTouchPoints } = navigator) {
   return maxTouchPoints > 2 && platforms.mac.value;
-}
-
-/**
- * @returns {boolean}
- */
-export function isSafari() {
-  return browsers.safari.value;
-}
-
-/**
- * @returns {boolean}
- */
-export function isFirefox() {
-  return browsers.firefox.value;
 }
 
 /**
