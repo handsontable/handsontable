@@ -29,7 +29,11 @@ body, html, #app {
   min-height 100vh;
 }
 
-.hidden{
+body div {
+  user-select: initial;
+}
+
+.hidden {
   display none
 }
 
@@ -41,14 +45,15 @@ a.source-code-link{
   color #444
 }
 
-body div {
-  user-select: initial;
-}
-  
-.theme-default-content:not(.custom) > h1, .theme-default-content:not(.custom) > h2, .theme-default-content:not(.custom) > h3, .theme-default-content:not(.custom) > h4, .theme-default-content:not(.custom) > h5, .theme-default-content:not(.custom) > h6 {
+.theme-default-content:not(.custom) > h1,
+.theme-default-content:not(.custom) > h2,
+.theme-default-content:not(.custom) > h3,
+.theme-default-content:not(.custom) > h4,
+.theme-default-content:not(.custom) > h5,
+.theme-default-content:not(.custom) > h6 {
   margin-top: -2.8rem;
 }
-  
+
 /* Layout */
 
 .navbar {
@@ -68,11 +73,11 @@ body div {
     padding: 0 2.5rem 0 5rem!important;
   }
 }
-  
+
 .page-nav {
   margin-top: 1rem!important;
 }
-  
+
 .page-edit {
   margin-top: 20px!important;
 }
@@ -126,6 +131,9 @@ body div {
 h1 {
   font-size: 2rem;
   margin-bottom: 2rem!important;
+  /* Fix for anchor correct scroll positioning */
+  padding-top: 3.6rem!important;
+  margin-top: -2.8rem!important;
 }
 
 h2 {
@@ -243,7 +251,7 @@ div.js-fiddle-link {
   }
 }
 
-.page-edit .edit-link a, .page-edit .last-updated .prefix, 
+.page-edit .edit-link a, .page-edit .last-updated .prefix,
 .page-edit .last-updated .time {
 //color: #2c3e50!important;
 }
@@ -251,7 +259,7 @@ div.js-fiddle-link {
 .page-nav .inner {
   border-color: #e9eef2!important;
 }
-  
+
 /* A navigation element containing clickable fields (columns) */
 .row-items-container {
   margin: 30px 0 30px;
@@ -277,17 +285,17 @@ div.js-fiddle-link {
       width: calc(50% - 28px);
       margin-bottom: 10px;
     }
-    
+
     &:hover {
       text-decoration: none!important;
       box-shadow: 0 3px 12px #e9eef2;
     }
-    
+
     img {
       margin-top: 14px;
       max-height: 45px;
     }
-    
+
     h3 {
       margin-top: 10px;
       padding-top: 0!important;
@@ -311,26 +319,26 @@ kbd {
   border-bottom-width: 2px;
   background: #fafbff;
 }
-  
+
 /* Styles for the icon-pack page */
 
 .icons-wrapper {
   margin-top: 30px;
   text-align: center;
-  
+
   & > div {
     display: inline-block;
     width: 19%;
     margin: 0 0 2.4rem 0;
     line-height: 1;
   }
-  
+
   svg {
     width: 48px;
     height: 48px;
     fill: #282c34;
   }
-  
+
   span {
     padding: 0 10px;
     display: block;
