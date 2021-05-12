@@ -1,5 +1,6 @@
 ---
 title: Row header
+metaTitle: Row header - Guide - Handsontable Documentation
 permalink: /next/row-header
 canonicalUrl: /row-header
 tags:

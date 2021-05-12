@@ -1,5 +1,6 @@
 ---
 title: Formulas
+metaTitle: Formulas - Plugin - Handsontable Documentation
 permalink: /next/api/formulas
 canonicalUrl: /api/formulas
 editLink: false

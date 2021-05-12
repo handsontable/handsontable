@@ -1,5 +1,6 @@
 ---
 title: Formatting cells
+metaTitle: Formatting cells - Guide - Handsontable Documentation
 permalink: /next/formatting-cells
 canonicalUrl: /formatting-cells
 ---
@@ -73,7 +74,6 @@ const container = document.getElementById('example3');
 
 const hot = Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 6),
-  height: 320,
   rowHeaders: true,
   colHeaders: true,
   stretchH: 'all',

@@ -1,5 +1,6 @@
 ---
 title: Third-party licenses
+metaTitle: Third-party licenses - Guide - Handsontable Documentation
 permalink: /next/third-party-licenses
 canonicalUrl: /third-party-licenses
 ---

@@ -1,5 +1,6 @@
 ---
 title: Row hiding
+metaTitle: Row hiding - Guide - Handsontable Documentation
 permalink: /next/row-hiding
 canonicalUrl: /row-hiding
 ---

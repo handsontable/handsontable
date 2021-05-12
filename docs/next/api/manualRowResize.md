@@ -1,5 +1,6 @@
 ---
 title: ManualRowResize
+metaTitle: ManualRowResize - Plugin - Handsontable Documentation
 permalink: /next/api/manual-row-resize
 canonicalUrl: /api/manual-row-resize
 editLink: false

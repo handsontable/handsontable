@@ -1,5 +1,6 @@
 ---
 title: Comments
+metaTitle: Comments - Plugin - Handsontable Documentation
 permalink: /next/api/comments
 canonicalUrl: /api/comments
 editLink: false

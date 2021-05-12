@@ -310,6 +310,7 @@ export default {
       width 0
       border-color transparent
       position relative
+      font-size 16px
       &:focus
         cursor text
         left 0

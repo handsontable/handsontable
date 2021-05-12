@@ -1,5 +1,6 @@
 ---
 title: Security
+metaTitle: Security - Guide - Handsontable Documentation
 permalink: /next/security
 canonicalUrl: /security
 ---

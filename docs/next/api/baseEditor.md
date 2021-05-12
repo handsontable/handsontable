@@ -1,5 +1,6 @@
 ---
 title: BaseEditor
+metaTitle: BaseEditor - API Reference - Handsontable Documentation
 permalink: /next/api/base-editor
 canonicalUrl: /api/base-editor
 editLink: false

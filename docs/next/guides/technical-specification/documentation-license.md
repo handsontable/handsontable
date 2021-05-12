@@ -1,5 +1,6 @@
 ---
 title: Documentation license
+metaTitle: Documentation license - Guide - Handsontable Documentation
 permalink: /next/documentation-license
 canonicalUrl: /documentation-license
 ---

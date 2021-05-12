@@ -1,5 +1,6 @@
 ---
 title: HyperFormula integration
+metaTitle: HyperFormula integration - Guide - Handsontable Documentation
 permalink: /next/hyperformula-integration
 canonicalUrl: /hyperformula-integration
 tags:

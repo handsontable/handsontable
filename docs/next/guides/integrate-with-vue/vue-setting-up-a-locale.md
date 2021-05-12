@@ -1,5 +1,6 @@
 ---
 title: Setting up a locale
+metaTitle: Setting up a locale - Guide - Handsontable Documentation
 permalink: /next/vue-setting-up-a-locale
 canonicalUrl: /vue-setting-up-a-locale
 ---

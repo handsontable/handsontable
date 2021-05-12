@@ -1,5 +1,6 @@
 ---
 title: AutoFill values
+metaTitle: AutoFill - Guide - Handsontable Documentation
 permalink: /next/autofill-values
 canonicalUrl: /autofill-values
 tags:

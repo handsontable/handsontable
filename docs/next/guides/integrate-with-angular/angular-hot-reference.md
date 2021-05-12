@@ -1,5 +1,6 @@
 ---
 title: Referencing the Handsontable instance
+metaTitle: Referencing the Handsontable instance - Guide - Handsontable Documentation
 permalink: /next/angular-hot-reference
 canonicalUrl: /angular-hot-reference
 ---
@@ -25,7 +26,7 @@ import { HotTableRegisterer } from '@handsontable/angular';
     <hot-table [hotId]="id" [settings]="hotSettings"></hot-table>
   </div>
   <br>
-  <button (click)="swapHotData()">Load new data</button>
+  <button (click)="swapHotData()" class="controls">Load new data</button>
   `,
 })
 class AppComponent {

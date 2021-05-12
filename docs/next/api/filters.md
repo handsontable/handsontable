@@ -1,5 +1,6 @@
 ---
 title: Filters
+metaTitle: Filters - Plugin - Handsontable Documentation
 permalink: /next/api/filters
 canonicalUrl: /api/filters
 editLink: false

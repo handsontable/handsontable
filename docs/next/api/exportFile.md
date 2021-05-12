@@ -1,5 +1,6 @@
 ---
 title: ExportFile
+metaTitle: ExportFile - Plugin - Handsontable Documentation
 permalink: /next/api/export-file
 canonicalUrl: /api/export-file
 editLink: false

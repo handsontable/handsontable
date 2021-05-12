@@ -1,5 +1,6 @@
 ---
 title: Column filter
+metaTitle: Column filter - Guide - Handsontable Documentation
 permalink: /next/column-filter
 canonicalUrl: /column-filter
 tags:
@@ -187,7 +188,7 @@ Please mind that selecting a column in the Filter component resets the state of 
     <div class='items'></div>
   </div>
 
-  <div class='buttons'>
+  <div class='buttons controls'>
     <button class='apply'>Apply filter</button>
     <button class='clear'>Clear filter</button>
   </div>

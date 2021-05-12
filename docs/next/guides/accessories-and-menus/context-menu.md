@@ -1,7 +1,13 @@
 ---
 title: Context menu
+metaTitle: Context menu - Guide - Handsontable Documentation
 permalink: /next/context-menu
 canonicalUrl: /context-menu
+tags:
+  - contextual menu
+  - shortcut menu
+  - pop-up menu
+  - right-click menu
 ---
 
 # Context menu

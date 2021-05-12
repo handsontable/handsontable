@@ -1,5 +1,6 @@
 ---
 title: Row trimming
+metaTitle: Row trimming - Guide - Handsontable Documentation
 permalink: /next/row-trimming
 canonicalUrl: /row-trimming
 ---

@@ -1,5 +1,6 @@
 ---
 title: NestedHeaders
+metaTitle: NestedHeaders - Plugin - Handsontable Documentation
 permalink: /next/api/nested-headers
 canonicalUrl: /api/nested-headers
 editLink: false

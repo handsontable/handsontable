@@ -1,5 +1,6 @@
 ---
 title: CellCoords
+metaTitle: CellCoords - API Reference - Handsontable Documentation
 permalink: /next/api/coords
 canonicalUrl: /api/coords
 editLink: false

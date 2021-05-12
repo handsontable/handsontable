@@ -1,5 +1,6 @@
 ---
 title: Column width
+metaTitle: Column width - Guide - Handsontable Documentation
 permalink: /next/column-width
 canonicalUrl: /column-width
 tags:

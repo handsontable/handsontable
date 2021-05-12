@@ -1,5 +1,6 @@
 ---
 title: Time cell type
+metaTitle: Time cell type - Guide - Handsontable Documentation
 permalink: /next/time-cell-type
 canonicalUrl: /time-cell-type
 ---

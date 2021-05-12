@@ -1,5 +1,6 @@
 ---
 title: Events and Hooks
+metaTitle: Events and Hooks - Guide - Handsontable Documentation
 permalink: /next/using-callbacks
 canonicalUrl: /using-callbacks
 tags:
@@ -10,6 +11,8 @@ tags:
 - modify
 - after
 - before
+- events
+- hooks 
 ---
 
 # Events and Hooks
@@ -115,6 +118,7 @@ const config = {
   ],
   minRows: 5,
   minCols: 6,
+  stretchH: 'all',
   minSpareRows: 1,
   autoWrapRow: true,
   colHeaders: true,
@@ -122,12 +126,12 @@ const config = {
   licenseKey: 'non-commercial-and-evaluation'
 };
 
-const example1_events = document.getElementById("example1_events");
+const example1Events = document.getElementById("example1_events");
 const hooksList = document.getElementById('hooksList');
 const hooks = Handsontable.hooks.getRegistered();
 
 hooks.forEach(function(hook) {
-  var checked = '';
+  let checked = '';
 
   if (hook === 'afterChange' || hook === 'afterSelection' || hook === 'afterCreateRow' || hook === 'afterRemoveRow' || hook === 'afterCreateCol' || hook === 'afterRemoveCol') {
     checked = 'checked';
@@ -151,7 +155,7 @@ function log_events(event, data) {
 
     const vals = [ i, "@" + numbro(diff / 1000).format('0.000'), "[" + event + "]"];
 
-    for (var d = 0; d < data.length; d++) {
+    for (let d = 0; d < data.length; d++) {
       try {
         str = JSON.stringify(data[d]);
       } catch (e) {
@@ -162,7 +166,7 @@ function log_events(event, data) {
         continue;
       }
       if (str.length > 20) {
-        str = Object.prototype.toString.call(data[d]);
+        str = data[d].toString();
       }
       if (d < data.length - 1) {
         str += ',';
@@ -175,13 +179,13 @@ function log_events(event, data) {
       console.log(i, "@" + numbro(diff / 1000).format('0.000'), "[" + event + "]", data);
     }
 
-    const div = document.createElement("DIV");
+    const div = document.createElement("div");
     const text = document.createTextNode(vals.join(" "));
     div.appendChild(text);
-    example1_events.appendChild(div);
+    example1Events.appendChild(div);
     clearTimeout(timer);
-    timer = setTimeout(function() {
-      example1_events.scrollTop = example1_events.scrollHeight;
+    const timer = setTimeout(function() {
+      example1Events.scrollTop = example1Events.scrollHeight;
     }, 10);
 
     i++;

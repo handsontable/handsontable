@@ -1,9 +1,11 @@
 ---
 title: Saving data
+metaTitle: Saving data - Guide - Handsontable Documentation
 permalink: /next/saving-data
 canonicalUrl: /saving-data
 tags:
   - load and save
+  - server
 ---
 
 # Saving data

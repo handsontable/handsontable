@@ -1,5 +1,6 @@
 ---
 title: Custom editor example
+metaTitle: Custom editor example - Guide - Handsontable Documentation
 permalink: /next/vue-custom-editor-example
 canonicalUrl: /vue-custom-editor-example
 ---

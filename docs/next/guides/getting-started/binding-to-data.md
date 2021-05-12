@@ -1,5 +1,6 @@
 ---
 title: Binding to data
+metaTitle: Binding to data - Guide - Handsontable Documentation
 permalink: /next/binding-to-data
 canonicalUrl: /binding-to-data
 tags:

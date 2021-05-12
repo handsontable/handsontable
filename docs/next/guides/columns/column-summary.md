@@ -1,5 +1,6 @@
 ---
 title: Column summary
+metaTitle: Column summary - Guide - Handsontable Documentation
 permalink: /next/column-summary
 canonicalUrl: /column-summary
 tags:

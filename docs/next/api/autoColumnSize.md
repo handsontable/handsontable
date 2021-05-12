@@ -1,5 +1,6 @@
 ---
 title: AutoColumnSize
+metaTitle: AutoColumnSize - Plugin - Handsontable Documentation
 permalink: /next/api/auto-column-size
 canonicalUrl: /api/auto-column-size
 editLink: false

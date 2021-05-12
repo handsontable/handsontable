@@ -1,5 +1,6 @@
 ---
 title: Installation
+metaTitle: Installation - Guide - Handsontable Documentation
 permalink: /next/installation
 canonicalUrl: /installation
 tags:

@@ -1,5 +1,6 @@
 ---
 title: ContextMenu
+metaTitle: ContextMenu - Plugin - Handsontable Documentation
 permalink: /next/api/context-menu
 canonicalUrl: /api/context-menu
 editLink: false

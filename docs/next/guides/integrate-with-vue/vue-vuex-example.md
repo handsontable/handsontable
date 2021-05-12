@@ -1,5 +1,6 @@
 ---
 title: Vuex example
+metaTitle: Vuex example - Guide - Handsontable Documentation
 permalink: /next/vue-vuex-example
 canonicalUrl: /vue-vuex-example
 ---

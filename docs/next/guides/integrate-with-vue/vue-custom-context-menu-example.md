@@ -1,10 +1,11 @@
 ---
-title: Custom Context Menu example
+title: Custom context menu example
+metaTitle: Custom context menu example - Guide - Handsontable Documentation
 permalink: /next/vue-custom-context-menu-example
 canonicalUrl: /vue-custom-context-menu-example
 ---
 
-# Custom Context Menu example
+# Custom context menu example
 
 An implementation of the `@handsontable/vue` component with a custom Context Menu added.
 

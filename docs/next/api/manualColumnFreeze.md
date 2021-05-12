@@ -1,5 +1,6 @@
 ---
 title: ManualColumnFreeze
+metaTitle: ManualColumnFreeze - Plugin - Handsontable Documentation
 permalink: /next/api/manual-column-freeze
 canonicalUrl: /api/manual-column-freeze
 editLink: false

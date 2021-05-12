@@ -14,8 +14,6 @@ const environmentHead = process.env.BUILD_MODE === 'production' ?
         '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
       })(window,document,'script','dataLayer','GTM-55L5D3');
     `],
-    // Google Console //todo replace with valid token
-    // ['meta', { name: 'google-site-verification', content: 'MZpSOa8SNvFLRRGwUQpYVZ78kIHQoPVdVbafHhJ_d4Q' }]
   ]
   : [];
 

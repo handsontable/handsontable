@@ -1,5 +1,6 @@
 ---
 title: Basic example in React
+metaTitle: Basic example in React - Guide - Handsontable Documentation
 permalink: /next/react-simple-examples
 canonicalUrl: /react-simple-examples
 ---

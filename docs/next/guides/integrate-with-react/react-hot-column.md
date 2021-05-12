@@ -1,5 +1,6 @@
 ---
 title: Using the HotColumn component
+metaTitle: Using the HotColumn component - Guide - Handsontable Documentation
 permalink: /next/react-hot-column
 canonicalUrl: /react-hot-column
 ---

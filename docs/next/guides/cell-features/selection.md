@@ -1,5 +1,6 @@
 ---
 title: Selection
+metaTitle: Selection - Guide - Handsontable Documentation
 permalink: /next/selection
 canonicalUrl: /selection
 tags:
@@ -78,7 +79,7 @@ To retrieve the selected cells as an array of arrays, you should use the `getSel
 ```html
 <div id="example2" class="hot"></div>
 <pre id="output"></pre>
-<div>
+<div class="controls">
   <button id="getButton">Get data</button>
 </div>
 ```
@@ -137,7 +138,7 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 ```html
 <div id="example3" class="hot"></div>
 
-<div id="buttons" style="margin-top: 10px">
+<div id="buttons" class="controls" style="margin-top: 10px">
   <button id="setButton">Set data</button>
   <button id="addButton">Add class</button>
 </div>

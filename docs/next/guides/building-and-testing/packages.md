@@ -1,5 +1,6 @@
 ---
 title: Packages
+metaTitle: Packages - Guide - Handsontable Documentation
 permalink: /next/packages
 canonicalUrl: /packages
 ---
