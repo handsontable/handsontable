@@ -135,6 +135,7 @@ module.exports = {
     sidebar: helpers.getSidebars(),
     search: true,
     searchPlaceholder: 'Search guides and API...',
-    searchMaxSuggestions: 10
+    searchMaxSuggestions: 15,
+    fuzzySearchDomains: ['Core', 'Hooks', 'Options'],
   }
 };

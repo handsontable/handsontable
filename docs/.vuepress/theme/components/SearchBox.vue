@@ -49,7 +49,7 @@
 <script>
 import get from 'lodash/get'
 
-const matchQuery =  (query, page, additionalStr = null) => {
+const matchQuery =  (query, page, additionalStr = null, fuzzySearchDomains = []) => {
   let domain = get(page, 'title', '')
 
   if (get(page, 'frontmatter.tags')) {
@@ -60,10 +60,12 @@ const matchQuery =  (query, page, additionalStr = null) => {
     domain += ` ${additionalStr}`
   }
 
-  return matchTest(query, domain)
+  const isFuzzySearch = fuzzySearchDomains.includes(domain.split(' ')[0])
+
+  return matchTest(query, domain, isFuzzySearch)
 }
 
-const matchTest = (query, domain) => {
+const matchTest = (query, domain, isFuzzySearch = false) => {
   const escapeRegExp = str => str.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')
 
   // eslint-disable-next-line no-control-regex
@@ -74,7 +76,9 @@ const matchTest = (query, domain) => {
     .map(str => str.trim())
     .filter(str => !!str)
 
-  if (!nonASCIIRegExp.test(query)) {
+  if (isFuzzySearch || nonASCIIRegExp.test(query)) {
+    return words.some(word => domain.toLowerCase().indexOf(word) > -1)
+  } else {
     // if the query only has ASCII chars, treat as English
     const hasTrailingSpace = query.endsWith(' ')
     const searchRegex = new RegExp(
@@ -91,10 +95,8 @@ const matchTest = (query, domain) => {
         .join('') + '.+',
       'gi'
     )
+
     return searchRegex.test(domain)
-  } else {
-    // if the query has non-ASCII chars, treat as other languages
-    return words.some(word => domain.toLowerCase().indexOf(word) > -1)
   }
 }
 const apiRegex = /^(\/(next|(\d*\.\d*)))?\/api\//
@@ -128,6 +130,7 @@ export default {
 
       const { pages } = this.$site
       const max = this.$site.themeConfig.searchMaxSuggestions || SEARCH_MAX_SUGGESTIONS
+      const fuzzySearchDomains = this.$site.themeConfig.fuzzySearchDomains || []
       const localePath = this.$localePath
       const res = []
       for (let i = 0; i < pages.length; i++) {
@@ -143,7 +146,7 @@ export default {
           continue
         }
 
-        if (matchQuery(query, p)) {
+        if (matchQuery(query, p, null, fuzzySearchDomains)) {
           res.push(Object.assign({}, p, {
             category: apiRegex.exec(p.path) ? 'API Reference' : 'Guides'
           }))
@@ -151,7 +154,7 @@ export default {
           for (let j = 0; j < p.headers.length; j++) {
             if (res.length >= max) break
             const h = p.headers[j]
-            if (h.title && matchQuery(query, p, h.title)) {
+            if (h.title && matchQuery(query, p, h.title, fuzzySearchDomains)) {
               res.push(Object.assign({}, p, {
                 path: p.path + '#' + h.slug,
                 header: h,
@@ -294,7 +297,7 @@ export default {
       color lighten($textColor, 35%)
       font-weight 500
       .page-title
-        
+
       .header
         font-size 0.9em
         margin-left 0.25em
