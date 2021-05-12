@@ -1,5 +1,6 @@
 ---
 title: CopyPaste
+metaTitle: CopyPaste - Plugin - Handsontable Documentation
 permalink: /next/api/copy-paste
 canonicalUrl: /api/copy-paste
 editLink: false

@@ -13,8 +13,6 @@ const nonPublicPages = [
   'baseEditor',
   'coords',
   'plugins',
-  'multipleSelectionHandles',
-  'touchScroll',
   'focusableElement',
 ];
 

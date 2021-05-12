@@ -1,10 +1,11 @@
 ---
 title: Custom Context Menu example
+metaTitle: Custom contest menu example - Guide - Handsontable Documentation
 permalink: /next/react-custom-context-menu-example
 canonicalUrl: /react-custom-context-menu-example
 ---
 
-# Custom Context Menu example
+# Custom context menu - example
 
 An implementation of the `@handsontable/react` component with a custom Context Menu added.
 

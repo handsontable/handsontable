@@ -1,5 +1,6 @@
 ---
 title: HiddenColumns
+metaTitle: HiddenColumns - Plugin - Handsontable Documentation
 permalink: /next/api/hidden-columns
 canonicalUrl: /api/hidden-columns
 editLink: false

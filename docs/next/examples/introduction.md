@@ -1,13 +1,13 @@
 ---
 title: Introduction
+metaTitle: Introduction - Examples - Handsontable Documentation
 permalink: /next/examples/
 canonicalUrl: /examples/
 tags:
+    - faq
     - demo
     - how to
     - samples
-    - format
-    - style
     - support
 ---
 

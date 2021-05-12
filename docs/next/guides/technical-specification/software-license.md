@@ -1,5 +1,6 @@
 ---
 title: Software license
+metaTitle: Software license - Guide - Handsontable Documentation
 permalink: /next/software-license
 canonicalUrl: /software-license
 ---

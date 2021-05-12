@@ -1,7 +1,11 @@
 ---
 title: Searching values
+metaTitle: Searching values - Guide - Handsontable Documentation
 permalink: /next/searching-values
 canonicalUrl: /searching-values
+tags:
+  - find values
+  - highlight values
 ---
 
 # Searching values

@@ -1,5 +1,6 @@
 ---
 title: Cell validator
+metaTitle: Cell validator - Guide - Handsontable Documentation
 permalink: /next/cell-validator
 canonicalUrl: /cell-validator
 ---

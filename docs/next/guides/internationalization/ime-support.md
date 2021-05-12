@@ -1,5 +1,6 @@
 ---
 title: IME support
+metaTitle: IME support - Guide - Handsontable Documentation
 permalink: /next/ime-support
 canonicalUrl: /ime-support
 tags:

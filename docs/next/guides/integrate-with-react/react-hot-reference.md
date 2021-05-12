@@ -1,5 +1,6 @@
 ---
 title: Referencing the Handsontable instance
+metaTitle: Referencing the Handsontable instance - Guide - Handsontable Documentation
 permalink: /next/react-hot-reference
 canonicalUrl: /react-hot-reference
 ---
@@ -35,7 +36,7 @@ class App extends React.Component {
 
   render() {
     return (
-      <div>
+      <div className="controls">
         <HotTable ref={this.hotTableComponent} id={this.id} settings={this.hotSettings}/>
         <br/>
         <button onClick={this.swapHotData.bind(this)}>Load new data!</button>

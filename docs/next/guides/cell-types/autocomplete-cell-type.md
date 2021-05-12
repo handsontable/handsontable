@@ -1,5 +1,6 @@
 ---
 title: Autocomplete cell type
+metaTitle: Autocomplete cell type - Guide - Handsontable Documentation
 permalink: /next/autocomplete-cell-type
 canonicalUrl: /autocomplete-cell-type
 ---

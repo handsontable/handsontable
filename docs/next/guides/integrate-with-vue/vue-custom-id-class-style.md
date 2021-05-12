@@ -1,5 +1,6 @@
 ---
 title: Custom ID, Class, Style and other attributes
+metaTitle: Custom ID, Class, Style and other attributes - Guide - Handsontable Documentation
 permalink: /next/vue-custom-id-class-style
 canonicalUrl: /vue-custom-id-class-style
 ---

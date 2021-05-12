@@ -1,9 +1,11 @@
 ---
 title: Saving data
+metaTitle: Saving data - Guide - Handsontable Documentation
 permalink: /next/saving-data
 canonicalUrl: /saving-data
 tags:
   - load and save
+  - server
 ---
 
 # Saving data
@@ -13,6 +15,8 @@ tags:
 ## Saving changes using a callback
 
 Use the **afterChange** callback to track changes made in the data grid. In the example below, Ajax is used to load and save the data. Note that this is just a mockup and nothing is actually saved. You need to implement the server-side part by yourself.
+
+<br>
 
 <div class="controls">
   <button id="load" class="button button--primary button--blue">Load data</button>&nbsp;

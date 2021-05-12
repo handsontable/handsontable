@@ -1,5 +1,6 @@
 ---
 title: IndexMapper
+metaTitle: IndexMapper - API Reference - Handsontable Documentation
 permalink: /next/api/index-mapper
 canonicalUrl: /api/index-mapper
 editLink: false

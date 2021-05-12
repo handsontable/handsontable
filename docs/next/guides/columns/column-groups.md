@@ -1,5 +1,6 @@
 ---
 title: Column groups
+metaTitle: Column groups - Guide - Handsontable Documentation
 permalink: /next/column-groups
 canonicalUrl: /column-groups
 tags:

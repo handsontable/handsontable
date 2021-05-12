@@ -1,5 +1,6 @@
 ---
 title: Setting up a locale
+metaTitle: Setting up a locale - Guide - Handsontable Documentation
 permalink: /next/angular-setting-up-a-locale
 canonicalUrl: /angular-setting-up-a-locale
 ---

@@ -1,5 +1,6 @@
 ---
 title: Formula calculation
+metaTitle: Formula calculation - Guide - Handsontable Documentation
 permalink: /next/formula-calculation
 canonicalUrl: /formula-calculation
 ---

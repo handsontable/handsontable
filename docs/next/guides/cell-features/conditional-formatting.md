@@ -1,5 +1,6 @@
 ---
 title: Conditional formatting
+metaTitle: Conditional formatting - Guide - Handsontable Documentation
 permalink: /next/conditional-formatting
 canonicalUrl: /conditional-formatting
 ---

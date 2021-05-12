@@ -1,5 +1,6 @@
 ---
 title: Basic example in Angular
+metaTitle: Basic example in Angular - Guide - Handsontable Documentation
 permalink: /next/angular-simple-example
 canonicalUrl: /angular-simple-example
 ---

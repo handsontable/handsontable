@@ -1,7 +1,10 @@
 ---
 title: Batch operations
+metaTitle: Batch operations - Guide - Handsontable Documentation
 permalink: /next/batch-operations
 canonicalUrl: /batch-operations
+tags:
+  - suspend rendering
 ---
 
 # Batch operations

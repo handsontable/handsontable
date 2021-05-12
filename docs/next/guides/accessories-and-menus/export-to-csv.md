@@ -1,9 +1,11 @@
 ---
 title: Export to CSV
+metaTitle: Export to CSV - Guide - Handsontable Documentation
 permalink: /next/export-to-csv
 canonicalUrl: /export-to-csv
 tags:
   - export to file
+  - save file
 ---
 
 # Export to CSV

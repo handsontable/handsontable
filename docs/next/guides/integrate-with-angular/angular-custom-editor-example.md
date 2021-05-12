@@ -1,5 +1,6 @@
 ---
 title: Custom editor example
+metaTitle: Custom editor example - Guide - Handsontable Documentation
 permalink: /next/angular-custom-editor-example
 canonicalUrl: /angular-custom-editor-example
 ---

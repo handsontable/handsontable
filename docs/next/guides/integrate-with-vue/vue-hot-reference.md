@@ -1,5 +1,6 @@
 ---
 title: Referencing the Handsontable instance
+metaTitle: Referencing the Handsontable instance - Guide - Handsontable Documentation
 permalink: /next/vue-hot-reference
 ---
 
@@ -13,7 +14,7 @@ An implementation of the `@handsontable/vue` explaining how to reference the Han
 ```html
 <div id="example1">
   <hot-table ref="hotTableComponent" :settings="hotSettings"></hot-table><br/>
-  <button v-on:click="swapHotData">Load new data!</button>
+  <button v-on:click="swapHotData" class="controls">Load new data!</button>
 </div>
 ```
 ```js

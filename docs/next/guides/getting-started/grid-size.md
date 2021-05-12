@@ -1,5 +1,6 @@
 ---
 title: Grid size
+metaTitle: Grid size - Guide - Handsontable Documentation
 permalink: /next/grid-size
 canonicalUrl: /grid-size
 tags:
@@ -78,7 +79,9 @@ hot.refreshDimensions();
 
 You can listen for two hooks, `beforeRefreshDimensions` and `afterRefreshDimensions`.
 
+<div class="controls">
 <button id="expander" className="button button--primary">Expand container</button> 
+</div>
 
 ::: example #example
 ```js

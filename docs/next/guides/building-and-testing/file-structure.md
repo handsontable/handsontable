@@ -1,7 +1,14 @@
 ---
 title: File structure
+metaTitle: File structure - Guide - Handsontable Documentation
 permalink: /next/file-structure
 canonicalUrl: /file-structure
+tags:
+  - directory
+  - repository
+  - file tree
+  - folders
+  - files
 ---
 
 # File structure

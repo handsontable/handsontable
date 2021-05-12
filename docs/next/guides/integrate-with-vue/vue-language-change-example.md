@@ -1,5 +1,6 @@
 ---
 title: Language change example
+metaTitle: Language change example - Guide - Handsontable Documentation
 permalink: /next/vue-language-change-example
 canonicalUrl: /vue-language-change-example
 ---

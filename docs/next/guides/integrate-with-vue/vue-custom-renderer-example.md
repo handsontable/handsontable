@@ -1,5 +1,6 @@
 ---
 title: Custom renderer example
+metaTitle: Custom renderer example - Guide - Handsontable Documentation
 permalink: /next/vue-custom-renderer-example
 canonicalUrl: /vue-custom-renderer-example
 ---

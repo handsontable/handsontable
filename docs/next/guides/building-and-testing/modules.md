@@ -1,7 +1,10 @@
 ---
 title: Modules
+metaTitle: Modules - Guide - Handsontable Documentation
 permalink: /next/modules
 canonicalUrl: /modules
+tags:
+  - tree shaking
 ---
 
 # Modules

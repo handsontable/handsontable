@@ -10,8 +10,12 @@
 
 /* BUTTON */
 
-.page button:not(.theme-code-group__nav-tab) {
-  padding: 8px 18px;
+.controls {
+  padding-bottom: 10px;
+}
+  
+.controls button:not(.theme-code-group__nav-tab), button.controls {
+  padding: 8px 14px;
   font-size: 14px;
   display: inline-block;
   cursor: pointer;
@@ -25,9 +29,9 @@
   &:hover, &:focus, &:active {
     text-decoration: none;
   }
-  
+
   &.button {
-    
+
     // blue is default
     &--blue {
       background-color: #2456f2;

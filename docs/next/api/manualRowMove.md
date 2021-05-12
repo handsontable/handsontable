@@ -1,5 +1,6 @@
 ---
 title: ManualRowMove
+metaTitle: ManualRowMove - Plugin - Handsontable Documentation
 permalink: /next/api/manual-row-move
 canonicalUrl: /api/manual-row-move
 editLink: false

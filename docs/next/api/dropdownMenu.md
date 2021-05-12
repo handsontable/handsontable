@@ -1,5 +1,6 @@
 ---
 title: DropdownMenu
+metaTitle: DropdownMenu - Plugin - Handsontable Documentation
 permalink: /next/api/dropdown-menu
 canonicalUrl: /api/dropdown-menu
 editLink: false

@@ -1,5 +1,6 @@
 ---
 title: Hello world
+metaTitle: Hello world - Guide - Handsontable Documentation
 permalink: /next/hello-world
 canonicalUrl: /hello-world
 ---

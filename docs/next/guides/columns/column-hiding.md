@@ -1,5 +1,6 @@
 ---
 title: Column hiding
+metaTitle: Column hiding - Guide - Handsontable Documentation
 permalink: /next/column-hiding
 canonicalUrl: /column-hiding
 ---

@@ -1,5 +1,6 @@
 ---
 title: Introduction
+metaTitle: Guides - Handsontable Documentation
 permalink: /next/
 canonicalUrl: /
 ---
@@ -8,7 +9,7 @@ canonicalUrl: /
 
 [[toc]]
 
-Welcome 👋&nbsp; to Developer Guides. Here you will learn about how Handsontable works and what you can build with it. Handsontable supports the most popular frameworks such as **[React](react-installation)**, **[Angular](angular-simple-example)**, and **[Vue 2](vue-simple-example)**.
+Welcome 👋&nbsp; to Developer Guides. Here you will learn about how Handsontable works and what you can build with it. Handsontable supports the most popular frameworks such as **[React](react-simple-examples)**, **[Angular](angular-simple-example)**, and **[Vue 2](vue-simple-example)**.
 
 ## Get started with sample apps
 
@@ -18,7 +19,7 @@ Welcome 👋&nbsp; to Developer Guides. Here you will learn about how Handsontab
      <h3>JavaScript</h3>
     </a>
 
-   <a href="react-simple-example" class="row-item">
+   <a href="react-simple-examples" class="row-item">
    <img class="integration-framework-logo" src="/docs/img/pages/introduction/react.svg" alt="React logo" />
     <h3>React</h3>
    </a>
@@ -45,4 +46,4 @@ Welcome 👋&nbsp; to Developer Guides. Here you will learn about how Handsontab
 - [Contact support team](https://handsontable.com/contact?category=technical_support)
 - [Ask on forum](https://forum.handsontable.com)
 - [Report issue on GitHub](https://github.com/handsontable/handsontable/discussions)
-- [Discuss on GitHub Discussions](https://github.com/handsontable/handsontable/discussions)
+- [GitHub Discussions](https://github.com/handsontable/handsontable/discussions)

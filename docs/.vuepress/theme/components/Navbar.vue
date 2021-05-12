@@ -90,17 +90,23 @@ $navbar-horizontal-padding = 1.5rem
 .navbar
   padding $navbar-vertical-padding $navbar-horizontal-padding
   line-height $navbarHeight - 1.4rem
-  border-color: #e9eef2;
+  border-color: #e9eef2
   a, span, img
     display inline-block
     font-weight 500
     font-size: 14px
   .home-link
     margin-right 2rem
-    position relative;
-    top .6rem;
+    position relative
+    top .6rem
+    @media (max-width: $MQMobile) {
+      top .4rem
+    }
   .logo
     height $navbarHeight - 2.2rem
+    @media (max-width: $MQMobile) {
+      height 1rem
+    }
   .links
     box-sizing border-box
     background-color white

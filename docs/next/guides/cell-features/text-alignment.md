@@ -1,5 +1,6 @@
 ---
 title: Text alignment
+metaTitle: Text alignment - Guide - Handsontable Documentation
 permalink: /next/text-alignment
 canonicalUrl: /text-alignment
 ---

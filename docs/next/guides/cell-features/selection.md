@@ -1,5 +1,6 @@
 ---
 title: Selection
+metaTitle: Selection - Guide - Handsontable Documentation
 permalink: /next/selection
 canonicalUrl: /selection
 tags:
@@ -69,9 +70,8 @@ selectOption.addEventListener('change', function(event) {
 ## Getting data from the selected ranges
 
 To retrieve the selected cells as an array of arrays, you should use the `getSelected()` or `getSelectedRange()` methods.
-
-<textarea style="margin: 16px 0 7px; width: 350px; height: 87px" id="output"></textarea>
-<div>
+<textarea style="width: 350px; height: 65px; margin-top: 20px; display: block; border: 1px solid #cfdbe4; border-radius: 4px" id="output"></textarea>
+<div class="controls">
   <button id="getButton">Get data</button>
 </div>
 
@@ -113,7 +113,7 @@ getButton.addEventListener('click', function(event) {
 
 You may want to delete, format, or otherwise change the selected cells. For example, you can change a value or add CSS classes to the selected cells using the demo below.
 
-<div id="buttons" style="margin-top: 10px">
+<div id="buttons" class="controls" style="margin-top: 10px">
   <button id="setButton">Set data</button>
   <button id="addButton">Add class</button>
 </div>

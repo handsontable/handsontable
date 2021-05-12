@@ -1,9 +1,11 @@
 ---
 title: Building process
+metaTitle: Building process - Guide - Handsontable Documentation
 permalink: /next/building
 canonicalUrl: /building
 tags:
   - custom build
+  - bundling
 ---
 
 # Building process

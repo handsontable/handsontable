@@ -1,5 +1,6 @@
 ---
 title: Release notes
+metaTitle: Release notes - Guide - Handsontable Documentation
 permalink: /next/release-notes
 canonicalUrl: /release-notes
 tags:

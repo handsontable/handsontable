@@ -1,5 +1,6 @@
 ---
 title: Versioning policy
+metaTitle: Versioning policy - Guide - Handsontable Documentation
 permalink: /next/versioning-policy
 canonicalUrl: /versioning-policy
 ---

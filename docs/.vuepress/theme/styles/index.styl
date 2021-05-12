@@ -39,6 +39,11 @@ a.source-code-link{
   top -34px
   position relative
   color #444
+
+  @media (max-width: $MQMobile) {
+    float none
+    top 0
+  }
 }
 
 body div {
@@ -154,10 +159,17 @@ h3 {
 a {
   color: #104bcd;
 }
+  
+/* A div that makes the table scrollable used in the /setting-options page */
+.scrollable-table {
+  height: 382px;
+  overflow-x: scroll;
+}
 
 table {
   width: 100%;
   display: table;
+  overflow: scroll;
 
   tr {
       border-top: none;

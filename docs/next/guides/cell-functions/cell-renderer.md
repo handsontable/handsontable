@@ -1,5 +1,6 @@
 ---
 title: Cell renderer
+metaTitle: Cell renderer - Guide - Handsontable Documentation
 permalink: /next/cell-renderer
 canonicalUrl: /cell-renderer
 ---

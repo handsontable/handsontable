@@ -1,5 +1,6 @@
 ---
 title: Using the hot-column component
+metaTitle: Using the hot-column component - Guide - Handsontable Documentation
 permalink: /next/vue-hot-column
 canonicalUrl: /vue-hot-column
 ---

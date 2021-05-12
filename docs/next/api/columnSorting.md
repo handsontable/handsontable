@@ -1,5 +1,6 @@
 ---
 title: ColumnSorting
+metaTitle: ColumnSorting - Plugin - Handsontable Documentation
 permalink: /next/api/column-sorting
 canonicalUrl: /api/column-sorting
 editLink: false

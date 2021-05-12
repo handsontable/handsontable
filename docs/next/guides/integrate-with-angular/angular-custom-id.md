@@ -1,5 +1,6 @@
 ---
 title: Custom ID
+metaTitle: Custom ID - Guide - Handsontable Documentation
 permalink: /next/angular-custom-id
 canonicalUrl: /angular-custom-id
 ---

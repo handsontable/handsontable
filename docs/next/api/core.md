@@ -1,5 +1,6 @@
 ---
 title: Core
+metaTitle: Core - API Reference - Handsontable Documentation
 permalink: /next/api/core
 canonicalUrl: /api/core
 editLink: false

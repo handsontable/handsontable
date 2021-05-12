@@ -1,5 +1,6 @@
 ---
 title: Clipboard
+metaTitle: Clipboard - Guide - Handsontable Documentation
 permalink: /next/basic-clipboard
 canonicalUrl: /basic-clipboard
 tags:
@@ -69,8 +70,10 @@ Then use one of the following commands:
 
 The **CopyPaste** plugin listens to the browser's `copy` and `cut` events. If triggered, our implementation will copy or cut the selected data to the system clipboard.
 
-<button id="copy">Select and copy cell B2</button>
-<button id="cut">Select and cut cell B2</button>
+<div class="controls">
+  <button id="copy">Select and copy cell B2</button>
+  <button id="cut">Select and cut cell B2</button>
+</div>
 
 ::: example #example1
 ```js

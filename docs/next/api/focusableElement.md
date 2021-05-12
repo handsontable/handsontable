@@ -1,5 +1,6 @@
 ---
 title: FocusableElement
+metaTitle: FocusableElement - API Reference - Handsontable Documentation
 permalink: /next/api/focusable-element
 canonicalUrl: /api/focusable-element
 editLink: false

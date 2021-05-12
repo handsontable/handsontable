@@ -1,5 +1,6 @@
 ---
 title: Custom renderer example
+metaTitle: Custom renderer example - Guide - Handsontable Documentation
 permalink: /next/react-custom-renderer-example
 canonicalUrl: /react-custom-renderer-example
 ---

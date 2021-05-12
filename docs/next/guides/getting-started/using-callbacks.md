@@ -1,7 +1,11 @@
 ---
 title: Using callbacks
+metaTitle: Using callbacks - Guide - Handsontable Documentation
 permalink: /next/using-callbacks
 canonicalUrl: /using-callbacks
+tags:
+  - events
+  - hooks 
 ---
 
 <style>
@@ -23,10 +27,11 @@ canonicalUrl: /using-callbacks
   margin: 0;
 }
 #example1-events {
-  display: inline-block;
+  margin-bottom: 4px;
   box-sizing: border-box;
-  width: 49%;
-  height: 165px;
+  width: 100%;
+  float: right;
+  height: 103px;
   padding: 0.5rem;
   overflow: auto;
   font-size: 11px;
@@ -86,8 +91,10 @@ const hooksList = document.getElementById('hooksList');
 const hooks = Handsontable.hooks.getRegistered();
 const hotConfig = {
   data: data,
+  width: '100%',
   minRows: 5,
   minCols: 6,
+  stretchH: 'all',
   minSpareRows: 1,
   autoWrapRow: true,
   colHeaders: true,

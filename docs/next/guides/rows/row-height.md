@@ -1,5 +1,6 @@
 ---
 title: Row height
+metaTitle: Row height - Guide - Handsontable Documentation
 permalink: /next/row-height
 canonicalUrl: /row-height
 tags:

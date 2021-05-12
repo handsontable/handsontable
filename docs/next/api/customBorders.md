@@ -1,5 +1,6 @@
 ---
 title: CustomBorders
+metaTitle: CustomBorders - Plugin - Handsontable Documentation
 permalink: /next/api/custom-borders
 canonicalUrl: /api/custom-borders
 editLink: false

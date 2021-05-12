@@ -1,5 +1,6 @@
 ---
 title: Checkbox cell type
+metaTitle: Checkbox cell type - Guide - Handsontable Documentation
 permalink: /next/checkbox-cell-type
 canonicalUrl: /checkbox-cell-type
 ---

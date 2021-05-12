@@ -1,5 +1,6 @@
 ---
 title: Options
+metaTitle: Options - API Reference - Handsontable Documentation
 permalink: /next/api/options
 canonicalUrl: /api/options
 editLink: false
