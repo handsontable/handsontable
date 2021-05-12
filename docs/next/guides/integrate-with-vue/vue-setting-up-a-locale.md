@@ -8,10 +8,10 @@ canonicalUrl: /vue-setting-up-a-locale
 
 An example of Handsontable with locales setup in Vue.
 
-::: example #example1 :vue-numbro --html 1 --js 5
+::: example #example1 :vue-numbro --html 1 --js 2
 ```html
 <div id="example1">
-  <hot-table :data="hotData">
+  <hot-table :data="hotData" :settings="settings">
     <hot-column
       title="Product name"
       data="productName"
@@ -36,8 +36,6 @@ An example of Handsontable with locales setup in Vue.
 </div>
 ```
 
-An implementation of the `@handsontable/vue` component.
-
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
@@ -49,23 +47,18 @@ import languages from 'numbro/dist/languages.min.js';
 numbro.registerLanguage(languages['ja-JP']);
 numbro.registerLanguage(languages['tr-TR']);
 
-// define formats
-const formatJP = {
-  pattern: '0,0.00 $',
-  culture: 'ja-JP',
-};
-
-const formatTR = {
-  pattern: '0,0.00 $',
-  culture: 'tr-TR',
-};
-
 new Vue({
   el: '#example1',
-  data: function () {
+  data() {
     return {
-      formatJP,
-      formatTR,
+      formatJP: {
+        pattern: '0,0.00 $',
+        culture: 'ja-JP',
+      },
+      formatTR: {
+        pattern: '0,0.00 $',
+        culture: 'tr-TR',
+      },
       hotData: [
         {
           productName: 'Product A',
@@ -83,12 +76,15 @@ new Vue({
           TR_price: 678.1,
         },
       ],
+      settings: {
+        licenseKey: 'non-commercial-and-evaluation'
+      }
     };
   },
-components: {
-  HotTable,
-  HotColumn,
-},
+  components: {
+    HotTable,
+    HotColumn,
+  },
 });
 ```
 :::

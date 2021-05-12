@@ -158,13 +158,15 @@ hot.resumeExecution(); // It updates the cache internally
 
 The following examples show how much the `batch` method can decrease the render time. Both of the examples share the same dataset and operations. The first one shows how much time lapsed when the `batch` method was used. You can run the second example to check how much it takes to render without the `batch` method.
 
+::: example #example1 --html 1 --js 2
+```html
+<div id="example1"></div>
 <p>
-  <button id="buttonWithout" className="button button--primary">Run without batch method</button>&nbsp;
-  <button id="buttonWith" className="button button--primary">Run with batch method</button>
+  <button id="buttonWithout" class="button button--primary">Run without batch method</button>&nbsp;
+  <button id="buttonWith" class="button button--primary">Run with batch method</button>
 </p>
-<p id="logOutput"></p>
-
-::: example #example1
+<div id="logOutput"></div>
+```
 ```js
 const container = document.querySelector('#example1');
 
@@ -219,7 +221,7 @@ const alterTable = () => {
 }
 
 const logOutput = msg => {
-  const logDiv = document.querySelector('#logOuput');
+  const logDiv = document.querySelector('#logOutput');
   const div = document.createElement('div');
   const now = new Date();
 

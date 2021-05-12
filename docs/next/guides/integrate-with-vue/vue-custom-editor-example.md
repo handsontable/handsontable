@@ -44,7 +44,7 @@ class CustomEditor extends Handsontable.editors.TextEditor {
 
 new Vue({
   el: '#example1',
-  data: function() {
+  data() {
     return {
       hotSettings: {
         startRows: 5,
@@ -54,7 +54,8 @@ new Vue({
           }
         ],
         colHeaders: true,
-        colWidths: 200
+        colWidths: 200,
+        licenseKey: 'non-commercial-and-evaluation'
       }
     }
   },

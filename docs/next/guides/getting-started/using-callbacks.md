@@ -62,15 +62,25 @@ First argument may be modified and passed further through the hooks that are nex
 
 Note that some callbacks are checked on this page by default.
 
-**Choose events to be logged:**
-
-<style>
+::: example #example1 --css 1 --html 2 --js 3
+```css
 #example1_events {
-  width: 100%;
-  height: 400px;
+  width: 50%;
+  height: 166px;
+  padding: 5px;
   overflow-y: scroll;
+  float: left;
+  font-size: 11px;
+  border: 1px solid #CCC;
+  box-sizing: border-box;
 }
-
+#example1 {
+  float: left;
+  width: 50%;
+  overflow-y: scroll;
+  height: 166px;
+  margin-top: 0;
+}
 #hooksList {
   padding: 0;
 }
@@ -83,17 +93,17 @@ Note that some callbacks are checked on this page by default.
   text-overflow: ellipsis;
   overflow: hidden;
 }
-</style>
+```
+```html
+<div id="example1" class="hot"></div>
+<div id="example1_events"></div>
+
+<strong> Choose events to be logged:</strong>
 
 <ul id="hooksList">
   <li><label><input type="checkbox" id="check_select_all">Select all</label></li>
 </ul>
-
-**Events log:**
-
-<div id="example1_events"></div>
-
-::: example #example1
+```
 ```js
 const config = {
   data: [
@@ -108,7 +118,8 @@ const config = {
   minSpareRows: 1,
   autoWrapRow: true,
   colHeaders: true,
-  contextMenu: true
+  contextMenu: true,
+  licenseKey: 'non-commercial-and-evaluation'
 };
 
 const example1_events = document.getElementById("example1_events");
@@ -228,24 +239,24 @@ It's worth to mention that some of the hooks are triggered from the inside of th
 
 List of callback that operates on `source` parameter:
 
-* [afterChange](api/pluginHooks.md#afterchange)
-* [afterCreateCol](api/pluginHooks.md#aftercreatecol)
-* [afterCreateRow](api/pluginHooks.md#aftercreaterow)
-* [afterLoadData](api/pluginHooks.md#afterloaddata)
-* [afterSetDataAtCell](api/pluginHooks.md#aftersetdataatcell)
-* [afterSetDataAtRowProp](api/pluginHooks.md#aftersetdataatrowprop)
-* [afterSetSourceDataAtCell](api/pluginHooks.md#aftersetsourcedataatcell)
-* [afterRemoveCol](api/pluginHooks.md#afterremovecol)
-* [afterRemoveRow](api/pluginHooks.md#aftermoverow)
-* [afterValidate](api/pluginHooks.md#aftervalidate)
-* [beforeChange](api/pluginHooks.md#beforechange)
-* [beforeChangeRender](api/pluginHooks.md#beforechangerender)
-* [beforeCreateCol](api/pluginHooks.md#beforecreatecol)
-* [beforeCreateRow](api/pluginHooks.md#beforecreaterow)
-* [beforeLoadData](api/pluginHooks.md#beforeloaddata)
-* [beforeRemoveCol](api/pluginHooks.md#beforeremovecol)
-* [beforeRemoveRow](api/pluginHooks.md#beforeremoverow)
-* [beforeValidate](api/pluginHooks.md#beforevalidate)
+* [afterChange](@/api/pluginHooks.md#afterchange)
+* [afterCreateCol](@/api/pluginHooks.md#aftercreatecol)
+* [afterCreateRow](@/api/pluginHooks.md#aftercreaterow)
+* [afterLoadData](@/api/pluginHooks.md#afterloaddata)
+* [afterSetDataAtCell](@/api/pluginHooks.md#aftersetdataatcell)
+* [afterSetDataAtRowProp](@/api/pluginHooks.md#aftersetdataatrowprop)
+* [afterSetSourceDataAtCell](@/api/pluginHooks.md#aftersetsourcedataatcell)
+* [afterRemoveCol](@/api/pluginHooks.md#afterremovecol)
+* [afterRemoveRow](@/api/pluginHooks.md#aftermoverow)
+* [afterValidate](@/api/pluginHooks.md#aftervalidate)
+* [beforeChange](@/api/pluginHooks.md#beforechange)
+* [beforeChangeRender](@/api/pluginHooks.md#beforechangerender)
+* [beforeCreateCol](@/api/pluginHooks.md#beforecreatecol)
+* [beforeCreateRow](@/api/pluginHooks.md#beforecreaterow)
+* [beforeLoadData](@/api/pluginHooks.md#beforeloaddata)
+* [beforeRemoveCol](@/api/pluginHooks.md#beforeremovecol)
+* [beforeRemoveRow](@/api/pluginHooks.md#beforeremoverow)
+* [beforeValidate](@/api/pluginHooks.md#beforevalidate)
 
 ## The `beforeKeyDown` callback
 
@@ -257,9 +268,9 @@ The following demo uses `beforeKeyDown` callback to modify some key bindings:
 ::: example #example2
 ```js
 let lastChange = null;
-const example2 = document.getElementById("example2")
+const container = document.getElementById("example2")
 
-const hot2 = new Handsontable(example2, {
+const hot = new Handsontable(container, {
   data: [
     ['Tesla', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
@@ -269,19 +280,21 @@ const hot2 = new Handsontable(example2, {
   colHeaders: true,
   rowHeaders: true,
   minSpareRows: 1,
-  beforeChange: function (changes, source) {
+  beforeChange(changes, source) {
     lastChange = changes;
-  }
+  },
+  licenseKey: 'non-commercial-and-evaluation'
 });
 
-hot2.updateSettings({
-  beforeKeyDown: function (e) {
-    var selection = hot2.getSelected();
+hot.updateSettings({
+  beforeKeyDown(e) {
+    const selection = hot.getSelected()[0];
+    console.log(selection)
     // BACKSPACE or DELETE
     if (e.keyCode === 8 || e.keyCode === 46) {
       e.stopImmediatePropagation();
       // remove data at cell, shift up
-      hot2.spliceCol(selection[1], selection[0], 1);
+      hot.spliceCol(selection[1], selection[0], 1);
       e.preventDefault();
     }
     // ENTER
@@ -289,9 +302,9 @@ hot2.updateSettings({
       // if last change affected a single cell and did not change it's values
       if (lastChange && lastChange.length === 1 && lastChange[0][2] == lastChange[0][3]) {
         e.stopImmediatePropagation();
-        hot2.spliceCol(selection[1], selection[0], 0, '');
+        hot.spliceCol(selection[1], selection[0], 0, '');
         // add new cell
-        hot2.selectCell(selection[0], selection[1]);
+        hot.selectCell(selection[0], selection[1]);
         // select new cell
       }
     }

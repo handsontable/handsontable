@@ -53,7 +53,7 @@ const data = [
   [2012, '=SUM(A2:A5)', '=SUM(B5,E3)', '=A2/B2', 12, 4151]
 ];
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data,
   colHeaders: true,
   rowHeaders: true,
@@ -83,7 +83,7 @@ const data = [
   ['Dove', '65', '=IF(B8<RANGE_F, "F", IF(B8<RANGE_D, "D", IF(B8<RANGE_C, "C", IF(B8<RANGE_B, "B", "A"))))', '', '', '', ''],
 ];
 
-const hot2 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data,
   colHeaders: true,
   rowHeaders: true,
@@ -105,10 +105,12 @@ const hot2 = new Handsontable(container, {
 
 At some point, you may want to update the custom variable's value. To do so, you need to use both `setVariable` and one of `recalculate*` methods.
 
+::: example #example3 --html 1 --js 2
+```html
+<div id="example3"></div>
 <input id="calculate-field" name="calculate-field" title="Extra cost" type="number" placeholder="Extra cost"/>
-<button id="calculate" className="intext-btn">Calculate price</button>
-
-::: example #example3
+<button id="calculate" class="intext-btn">Calculate price</button>
+```
 ```js
 const container = document.querySelector('#example3');
 const inputBox = document.querySelector("#calculate-field")
@@ -121,7 +123,7 @@ const data = [
   ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4;0)']
 ];
 
-const hot3 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data,
   contextMenu: false,
   colHeaders: true,
@@ -135,7 +137,7 @@ const hot3 = new Handsontable(container, {
   }
 });
 
-const formulasPlugin = hot3.getPlugin('formulas');
+const formulasPlugin = hot.getPlugin('formulas');
 
 Handsontable.dom.addEvent(calculateButton, 'click', () => {
   // set variable and its value
@@ -174,7 +176,7 @@ const data = [
   ['Marcin Kowalski', 'ken@gmailtr.pl', '=RIGHT(B17, LEN(B17) - FIND(EMAIL_SPLITTER, B17))', '', '', '', ''],
 ];
 
-const hot4 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data,
   height: 320,
   colHeaders: true,

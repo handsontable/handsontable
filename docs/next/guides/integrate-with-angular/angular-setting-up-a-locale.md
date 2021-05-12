@@ -23,15 +23,10 @@ import * as languages from 'numbro/dist/languages.min';
 numbro.registerLanguage(languages['ja-JP']);
 numbro.registerLanguage(languages['tr-TR']);
 
-// define formats
-const formatJP = {
-  pattern: '0,0.00 $',
-  culture: 'ja-JP'
-};
-
-const formatTR = {
-  pattern: '0,0.00 $',
-  culture: 'tr-TR'
+type Product = {
+  productName: string,
+  JP_price: number,
+  TR_price: number
 };
 
 @Component({
@@ -61,9 +56,15 @@ const formatTR = {
   `
 })
 class AppComponent {
-  formatTR = formatTR;
-  formatJP = formatJP;
-  dataset: any[] = [
+  formatTR = {
+    pattern: '0,0.00 $',
+    culture: 'tr-TR'
+  };
+  formatJP = {
+    pattern: '0,0.00 $',
+    culture: 'ja-JP'
+  };
+  dataset: Product[] = [
     { productName: 'Product A', JP_price: 1.32, TR_price: 100.56 },
     {
       productName: 'Product B',

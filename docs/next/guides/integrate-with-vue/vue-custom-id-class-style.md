@@ -22,7 +22,7 @@ import { HotTable } from '@handsontable/vue';
 
 new Vue({
   el: '#example1',
-  data: function() {
+  data() {
     return {
       hotSettings: {
         startRows: 5,

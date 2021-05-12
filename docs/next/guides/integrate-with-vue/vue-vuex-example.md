@@ -37,13 +37,13 @@ import Handsontable from 'handsontable';
 
 new Vue({
   el: "#example1",
-  data: function() {
+  data() {
     return {
       hotSettings: {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         colHeaders: true,
         rowHeaders: true,
-        readOnly: false,
+        readOnly: true,
         afterChange: () => {
           if (this.hotRef) {
             this.$store.commit('updateData', this.hotRef.getSourceData());
@@ -54,7 +54,7 @@ new Vue({
       hotRef: null
     };
   },
-  mounted: function() {
+  mounted() {
     this.hotRef = this.$refs.wrapper.hotInstance;
     this.$store.subscribe((mutation, state) => {
       this.updateVuexPreview();
@@ -62,11 +62,11 @@ new Vue({
     this.$store.commit('updateData', this.hotRef.getSourceData());
   },
   methods: {
-    toggleReadOnly: function(event) {
+    toggleReadOnly(event) {
       this.hotSettings.readOnly = event.target.checked;
       this.$store.commit('updateSettings', {prop: 'readOnly', value: this.hotSettings.readOnly});
     },
-    updateVuexPreview: function() {
+    updateVuexPreview() {
       // This method serves only as a renderer for the Vuex's state dump.
 
       const previewTable = document.querySelector('#vuex-preview table');

@@ -30,6 +30,9 @@ Possible values of `selectionMode`:
 - `range` - Multiple cells within a single range can be selected.
 - `multiple` - Multiple non-contiguous ranges of cells can be selected.
 
+::: example #example1 --html 1 --js 2
+```html
+<div id="example1" class="hot"></div>
 <div>
   <select id="selectOption" style="width: auto; margin-top: 16px">
     <option>Single selection</option>
@@ -37,15 +40,14 @@ Possible values of `selectionMode`:
     <option selected="selected">Multiple selection</option>
   </select>
 </div>
-
-::: example #example1
+```
 ```js
 const container = document.querySelector('#example1');
 const selectOption = document.querySelector('#selectOption');
 
-const settings1 = {
+const settings = {
   data: Handsontable.helper.createSpreadsheetData(10, 10),
-  width: 650,
+  width: 'auto',
   height: 'auto',
   colWidths: 100,
   rowHeights: 23,
@@ -55,13 +57,13 @@ const settings1 = {
   licenseKey: 'non-commercial-and-evaluation'
 };
 
-const hot1 = new Handsontable(container, settings1);
+const hot = new Handsontable(container, settings);
 
 selectOption.addEventListener('change', event => {
   const value = event.target.value;
   const first = value.split(' ')[0].toLowerCase();
 
-  hot1.updateSettings({
+  hot.updateSettings({
     selectionMode: first
   });
 });
@@ -72,20 +74,34 @@ selectOption.addEventListener('change', event => {
 
 To retrieve the selected cells as an array of arrays, you should use the `getSelected()` or `getSelectedRange()` methods.
 
-<textarea style="margin: 16px 0 7px; width: 350px; height: 87px" id="output"></textarea>
+::: example #example2 --css 2 --html 1 --js 3
+```html
+<div id="example2" class="hot"></div>
+<pre id="output"></pre>
 <div>
   <button id="getButton">Get data</button>
 </div>
-
-::: example #example2
+```
+```css
+#output{
+  margin: 16px 0 7px;
+  width: 100%;
+  height: 160px;
+  overflow:scroll;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #2c3e50;
+  box-sizing: border-box;
+}
+```
 ```js
 const container = document.querySelector('#example2');
 const output = document.querySelector('#output');
 const getButton = document.querySelector('#getButton');
 
-const settings2 = {
+const settings = {
   data: Handsontable.helper.createSpreadsheetData(10, 10),
-  width: 650,
+  width: 'auto',
   height: 'auto',
   colWidths: 100,
   rowHeights: 23,
@@ -96,19 +112,19 @@ const settings2 = {
   licenseKey: 'non-commercial-and-evaluation'
 };
 
-const hot2 = new Handsontable(container, settings2);
+const hot = new Handsontable(container, settings);
 
 getButton.addEventListener('click', event => {
-  const selected = hot2.getSelected();
+  const selected = hot.getSelected();
   const data = [];
 
   for (let i = 0; i < selected.length; i += 1) {
     const item = selected[i];
-
-    data.push(hot2.getData.apply(hot2, item));
+    
+    data.push(hot.getData.apply(hot, item));
   }
 
-  output.value = JSON.stringify(data);
+  output.innerText = JSON.stringify(data, null, 2);
 });
 ```
 :::
@@ -117,19 +133,27 @@ getButton.addEventListener('click', event => {
 
 You may want to delete, format, or otherwise change the selected cells. For example, you can change a value or add CSS classes to the selected cells using the demo below.
 
+::: example #example3 --html 1 --css 2 --js 3
+```html
+<div id="example3" class="hot"></div>
+
 <div id="buttons" style="margin-top: 10px">
   <button id="setButton">Set data</button>
   <button id="addButton">Add class</button>
 </div>
-
-::: example #example3
+```
+```css
+.c-red {
+  color: red;
+}
+```
 ```js
 const container = document.querySelector('#example3');
 const buttons = document.querySelector('#buttons');
 
-const settings3 = {
+const settings = {
   data: Handsontable.helper.createSpreadsheetData(10, 10),
-  width: 650,
+  width: 'auto',
   height: 272,
   colWidths: 100,
   rowHeights: 23,
@@ -140,10 +164,10 @@ const settings3 = {
   licenseKey: 'non-commercial-and-evaluation'
 };
 
-const hot3 = new Handsontable(container, settings3);
+const hot = new Handsontable(container, settings);
 
 buttons.addEventListener('click', event => {
-  const selected = hot3.getSelected();
+  const selected = hot.getSelected();
   const target = event.target.id;
 
   for (let index = 0; index < selected.length; index += 1) {
@@ -156,17 +180,17 @@ buttons.addEventListener('click', event => {
     for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
       for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
         if (target === 'setButton') {
-          hot3.setDataAtCell(rowIndex, columnIndex, 'data changed');
+          hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
         }
 
         if (target === 'addButton') {
-          hot3.setCellMeta(rowIndex, columnIndex, 'className', 'c-deeporange');
+          hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
         }
       }
     }
   }
 
-  hot3.render();
+  hot.render();
 });
 ```
 :::

@@ -107,11 +107,14 @@ columns: [
 ```
 
 Callback console log:
+
+::: example #example1 --js 2 --html 1
+```html
+<div id="example1"></div>
 <pre class="language-js">
   <code id="example1console">Here you will see the log</code>
 </pre>
-
-::: example #example1
+```
 ```js
 const container = document.querySelector('#example1');
 const console = document.querySelector('#example1console');
