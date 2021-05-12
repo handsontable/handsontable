@@ -19,6 +19,51 @@ describe('Formulas general', () => {
     }
   });
 
+  it('should initialize the plugin properly with an array of arrays', () => {
+    const hot = handsontable({
+      data: [['10', '=A1 * 2']],
+      formulas: {
+        engine: HyperFormula
+      }
+    });
+
+    expect(hot.getSourceData()).toEqual([['10', '=A1 * 2']]);
+  });
+
+  it('should initialize the plugin properly with an array of objects', () => {
+    const hot = handsontable({
+      data: [
+        { num: 1, double: '=A1 * 2' },
+        { num: 2, double: '=A2 * 2' },
+        { num: 3, double: '=A3 * 2' },
+        { num: 4, double: '=A4 * 2' },
+        { num: 5, double: '=A5 * 2' },
+      ],
+      formulas: {
+        engine: HyperFormula
+      },
+      columns: [{ data: 'num' }, { data: 'double' }]
+    });
+
+    expect(hot.getSourceDataArray()).toEqual([
+      [1, '=A1 * 2'],
+      [2, '=A2 * 2'],
+      [3, '=A3 * 2'],
+      [4, '=A4 * 2'],
+      [5, '=A5 * 2']
+    ]);
+
+    hot.setDataAtCell(0, 0, 10);
+
+    expect(hot.getSourceDataArray()).toEqual([
+      [10, '=A1 * 2'],
+      [2, '=A2 * 2'],
+      [3, '=A3 * 2'],
+      [4, '=A4 * 2'],
+      [5, '=A5 * 2']
+    ]);
+  });
+
   it('should calculate table (simple example)', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),

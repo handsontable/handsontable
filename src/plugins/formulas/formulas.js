@@ -357,7 +357,7 @@ export class Formulas extends BasePlugin {
 
     const address = {
       row: this.hot.toVisualRow(row),
-      col,
+      col: this.hot.propToCol(col),
       sheet: this.engine.getSheetId(this.sheetName)
     };
 
