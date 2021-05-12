@@ -18,16 +18,14 @@ Below example shows how cell renderers can be used to present the template value
 
 ::: example #example1
 ```js
-var
-  tpl = ['one', 'two', 'three'],
-  data = [
-    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
-    ['2017', 10, 11, 12, 13],
-    ['2018', 20, 11, 14, 13],
-    ['2019', 30, 15, 12, 13]
-  ],
-  container = document.getElementById('example1'),
-  hot1;
+const container = document.querySelector('#example1');
+const templateValues = ['one', 'two', 'three'];
+const data = [
+  ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
+  ['2017', 10, 11, 12, 13],
+  ['2018', 20, 11, 14, 13],
+  ['2019', 30, 15, 12, 13]
+];
 
 function isEmptyRow(instance, row) {
   var rowData = instance.countRows();
@@ -42,41 +40,39 @@ function isEmptyRow(instance, row) {
 }
 
 function defaultValueRenderer(instance, td, row, col, prop, value, cellProperties) {
-  var args = arguments;
+  const args = arguments;
 
   if (args[5] === null && isEmptyRow(instance, row)) {
-    args[5] = tpl[col];
+    args[5] = templateValues[col];
     td.style.color = '#999';
-  }
-  else {
+
+  } else {
     td.style.color = '';
   }
+
   Handsontable.renderers.TextRenderer.apply(this, args);
 }
 
-hot1 = new Handsontable(container, {
+const hot1 = new Handsontable(container, {
   startRows: 8,
   startCols: 5,
   minSpareRows: 1,
   contextMenu: true,
   licenseKey: 'non-commercial-and-evaluation',
-  cells: function (row, col, prop) {
-    var cellProperties = {};
+  cells(row, col, prop) {
+    const cellProperties = {};
 
     cellProperties.renderer = defaultValueRenderer;
 
     return cellProperties;
   },
-  beforeChange: function (changes) {
-    var instance = hot1,
-      ilen = changes.length,
-      clen = instance.countCols(),
-      rowColumnSeen = {},
-      rowsToFill = {},
-      i,
-      c;
+  beforeChange(changes) {
+    const instance = hot1;
+    const columns = instance.countCols();
+    const rowColumnSeen = {};
+    const rowsToFill = {};
 
-    for (i = 0; i < ilen; i++) {
+    for (let i = 0; i < changes.length; i++) {
       // if oldVal is empty
       if (changes[i][2] === null && changes[i][3] !== null) {
         if (isEmptyRow(instance, changes[i][0])) {
@@ -86,12 +82,13 @@ hot1 = new Handsontable(container, {
         }
       }
     }
+
     for (var r in rowsToFill) {
       if (rowsToFill.hasOwnProperty(r)) {
-        for (c = 0; c < clen; c++) {
+        for (let c = 0; c < columns; c++) {
           // if it is not provided by user in this change set, take value from template
           if (!rowColumnSeen[r + '/' + c]) {
-            changes.push([r, c, null, tpl[c]]);
+            changes.push([r, c, null, templateValues[c]]);
           }
         }
       }

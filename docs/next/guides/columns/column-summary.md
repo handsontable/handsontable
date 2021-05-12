@@ -32,43 +32,28 @@ Remember that the index of the first column and row in Handsontable always start
 
 ::: example #example1
 ```js
+// Generate an array of arrays with a dummy data
+const generateData = (rows = 3, columns = 7, additionalRows = true) => {
+  let counter = 0;
 
-// Generate an object with a dummy data
-var generateDataObj = function(rows, columns, additionalRows) {
-  if (additionalRows === void 0) {
-    additionalRows = true;
-  }
-
-  var data = [];
-  var number = 0;
-
-  if (!rows) {
-    rows = 3;
-  }
-  if (!columns) {
-    columns = 7;
-  }
-
-  for (var i = 0; i < rows; i++) {
-    data[i] = [];
-    for (var j = 0; j < columns; j++) {
-      data[i][j] = number++;
-    }
-  }
+  const array2d = [...new Array(rows)]
+    .map(_ => [...new Array(columns)]
+    .map(_ => counter++));
 
   if (additionalRows) {
-    for (i = 0; i < 2; i++) {
-      data.push([]);
-    }
+    array2d.push([]);
+    array2d.push([]);
   }
 
-  return data;
+  return array2d;
 };
-var example1 = document.getElementById('example1');
 
-var hot = new Handsontable(example1, {
-  data: generateDataObj(),
-  colHeaders: function(index) { // replace the default header labels
+const container = document.querySelector('#example1');
+
+const hot = new Handsontable(container, {
+  data: generateData(),
+  height: 'auto',
+  colHeaders(index) { // replace the default header labels
     return 'Column ' + (index + 1);
   },
   rowHeaders: true,
@@ -123,41 +108,27 @@ You need to provide the destination coordinates of a row and a column for the ce
 
 ::: example #example7
 ```js
-// Generate an object with a dummy data
-var generateDataObj = function(rows, columns, additionalRows) {
-  if (additionalRows === void 0) {
-    additionalRows = true;
-  }
+// Generate an array of arrays with a dummy data
+const generateData = (rows = 3, columns = 7, additionalRows = true) => {
+  let counter = 0;
 
-  var data = [];
-  var number = 0;
-
-  if (!rows) {
-    rows = 3;
-  }
-  if (!columns) {
-    columns = 7;
-  }
-
-  for (var i = 0; i < rows; i++) {
-    data[i] = [];
-    for (var j = 0; j < columns; j++) {
-      data[i][j] = number++;
-    }
-  }
+  const array2d = [...new Array(rows)]
+    .map(_ => [...new Array(columns)]
+    .map(_ => counter++));
 
   if (additionalRows) {
-    for (i = 0; i < 2; i++) {
-      data.push([]);
-    }
+    array2d.push([]);
+    array2d.push([]);
   }
 
-  return data;
+  return array2d;
 };
-var container = document.getElementById('example7');
 
-var hot7 = new Handsontable(container, {
-  data: generateDataObj(),
+const container = document.querySelector('#example7');
+
+const hot7 = new Handsontable(container, {
+  data: generateData(),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   licenseKey: 'non-commercial-and-evaluation', 
@@ -178,41 +149,27 @@ In the below example enabling this option will put the calculation result in a c
 
 ::: example #example8
 ```js
-// Generate an object with a dummy data
-var generateDataObj = function(rows, columns, additionalRows) {
-  if (additionalRows === void 0) {
-    additionalRows = true;
-  }
+// Generate an array of arrays with a dummy data
+const generateData = (rows = 3, columns = 7, additionalRows = true) => {
+  let counter = 0;
 
-  var data = [];
-  var number = 0;
-
-  if (!rows) {
-    rows = 3;
-  }
-  if (!columns) {
-    columns = 7;
-  }
-
-  for (var i = 0; i < rows; i++) {
-    data[i] = [];
-    for (var j = 0; j < columns; j++) {
-      data[i][j] = number++;
-    }
-  }
+  const array2d = [...new Array(rows)]
+    .map(_ => [...new Array(columns)]
+    .map(_ => counter++));
 
   if (additionalRows) {
-    for (i = 0; i < 2; i++) {
-      data.push([]);
-    }
+    array2d.push([]);
+    array2d.push([]);
   }
 
-  return data;
+  return array2d;
 };
-var container = document.getElementById('example8');
 
-var hot8 = new Handsontable(container, {
-  data: generateDataObj(),
+const container = document.querySelector('#example8');
+
+const hot8 = new Handsontable(container, {
+  data: generateData(),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   licenseKey: 'non-commercial-and-evaluation', 
@@ -242,41 +199,26 @@ In the example below this configuration would do the calculations for rows: `0`,
 
 ::: example #example9
 ```js
-// Generate an object with a dummy data
-var generateDataObj = function(rows, columns, additionalRows) {
-  if (additionalRows === void 0) {
-    additionalRows = true;
-  }
+// Generate an array of arrays with a dummy data
+const generateData = (rows = 3, columns = 7, additionalRows = true) => {
+  let counter = 0;
 
-  var data = [];
-  var number = 0;
-
-  if (!rows) {
-    rows = 3;
-  }
-  if (!columns) {
-    columns = 7;
-  }
-
-  for (var i = 0; i < rows; i++) {
-    data[i] = [];
-    for (var j = 0; j < columns; j++) {
-      data[i][j] = number++;
-    }
-  }
+  const array2d = [...new Array(rows)]
+    .map(_ => [...new Array(columns)]
+    .map(_ => counter++));
 
   if (additionalRows) {
-    for (i = 0; i < 2; i++) {
-      data.push([]);
-    }
+    array2d.push([]);
+    array2d.push([]);
   }
 
-  return data;
+  return array2d;
 };
 
-var container = document.getElementById('example9');
-var hot9 = new Handsontable(container, {
-  data: generateDataObj(10, 3),
+const container = document.querySelector('#example9');
+
+const hot9 = new Handsontable(container, {
+  data: generateData(10, 3),
   colHeaders: true,
   rowHeaders: true,
   licenseKey: 'non-commercial-and-evaluation',
@@ -304,41 +246,27 @@ For example, this will make operations on the 3rd column (again, we're counting 
 
 ::: example #example10
 ```js
-// Generate an object with a dummy data
-var generateDataObj = function(rows, columns, additionalRows) {
-  if (additionalRows === void 0) {
-    additionalRows = true;
-  }
+// Generate an array of arrays with a dummy data
+const generateData = (rows = 3, columns = 7, additionalRows = true) => {
+  let counter = 0;
 
-  var data = [];
-  var number = 0;
-
-  if (!rows) {
-    rows = 3;
-  }
-  if (!columns) {
-    columns = 7;
-  }
-
-  for (var i = 0; i < rows; i++) {
-    data[i] = [];
-    for (var j = 0; j < columns; j++) {
-      data[i][j] = number++;
-    }
-  }
+  const array2d = [...new Array(rows)]
+    .map(_ => [...new Array(columns)]
+    .map(_ => counter++));
 
   if (additionalRows) {
-    for (i = 0; i < 2; i++) {
-      data.push([]);
-    }
+    array2d.push([]);
+    array2d.push([]);
   }
 
-  return data;
+  return array2d;
 };
 
-var container = document.getElementById('example10');
-var hot10 = new Handsontable(container, {
-  data: generateDataObj(5, 5),
+const container = document.querySelector('#example10');
+
+const hot10 = new Handsontable(container, {
+  data: generateData(5, 5),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   licenseKey: 'non-commercial-and-evaluation',
@@ -362,48 +290,35 @@ You can provide a function instead of an array as the config item. The function 
 
 ::: example #example11
 ```js
-// Generate an object with a dummy data
-var generateDataObj = function(rows, columns, additionalRows) {
-  if (additionalRows === void 0) {
-    additionalRows = true;
-  }
+// Generate an array of arrays with a dummy data
+const generateData = (rows = 3, columns = 7, additionalRows = true) => {
+  let counter = 0;
 
-  var data = [];
-  var number = 0;
-
-  if (!rows) {
-    rows = 3;
-  }
-  if (!columns) {
-    columns = 7;
-  }
-
-  for (var i = 0; i < rows; i++) {
-    data[i] = [];
-    for (var j = 0; j < columns; j++) {
-      data[i][j] = number++;
-    }
-  }
+  const array2d = [...new Array(rows)]
+    .map(_ => [...new Array(columns)]
+    .map(_ => counter++));
 
   if (additionalRows) {
-    for (i = 0; i < 2; i++) {
-      data.push([]);
-    }
+    array2d.push([]);
+    array2d.push([]);
   }
 
-  return data;
+  return array2d;
 };
 
-var container = document.getElementById('example11');
-var hot11 = new Handsontable(container, {
-  data: generateDataObj(5, 5, false),
+const container = document.querySelector('#example11');
+
+const hot11 = new Handsontable(container, {
+  data: generateData(5, 5, false),
+  height: 'auto',
   rowHeaders: true,
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
   licenseKey: 'non-commercial-and-evaluation',
-  columnSummary: function() {
-    var configArray = [];
-    var summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
-    for (var i = 0; i < 5; i++) {
+  columnSummary() {
+    const configArray = [];
+    const summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
+
+    for (let i = 0; i < this.hot.countCols(); i++) { // iterate over visible columns
       configArray.push({
         sourceColumn: i,
         destinationRow: 0,
@@ -423,40 +338,9 @@ This allows many possible usages: for example, you can easily calculate a total 
 
 ::: example #example12
 ```js
-// Generate an object with a dummy data
-var generateDataObj = function(rows, columns, additionalRows) {
-  if (additionalRows === void 0) {
-    additionalRows = true;
-  }
+const container = document.getElementById('example12');
 
-  var data = [];
-  var number = 0;
-
-  if (!rows) {
-    rows = 3;
-  }
-  if (!columns) {
-    columns = 7;
-  }
-
-  for (var i = 0; i < rows; i++) {
-    data[i] = [];
-    for (var j = 0; j < columns; j++) {
-      data[i][j] = number++;
-    }
-  }
-
-  if (additionalRows) {
-    for (i = 0; i < 2; i++) {
-      data.push([]);
-    }
-  }
-
-  return data;
-};
-var container = document.getElementById('example12');
-
-var hot12 = new Handsontable(container, {
+const hot12 = new Handsontable(container, {
   data: [
     {
       value: null,
@@ -475,19 +359,20 @@ var hot12 = new Handsontable(container, {
     }
   ],
   columns: [
-    {data: 'value'}
+    { data: 'value' }
   ],
   nestedRows: true,
   rowHeaders: true,
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
   licenseKey: 'non-commercial-and-evaluation',
-  columnSummary: function() {
-    var endpoints = [];
-    var nestedRowsPlugin = this.hot.getPlugin('nestedRows');
-    var getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(nestedRowsPlugin.dataManager);
-    var nestedRowsCache = null;
-    var tempEndpoint = null;
-    var resultColumn = 0;
+  columnSummary() {
+    const endpoints = [];
+    const nestedRowsPlugin = this.hot.getPlugin('nestedRows');
+    const getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(nestedRowsPlugin.dataManager);
+    const resultColumn = 0;
+
+    let tempEndpoint = null;
+    let nestedRowsCache = null;
 
     if (nestedRowsPlugin.isEnabled()) {
       nestedRowsCache = this.hot.getPlugin('nestedRows').dataManager.cache;
@@ -495,7 +380,7 @@ var hot12 = new Handsontable(container, {
       return;
     }
 
-    for (var i = 0; i < nestedRowsCache.levels[0].length; i++) {
+    for (let i = 0; i < nestedRowsCache.levels[0].length; i++) {
       tempEndpoint = {};
 
       if (!nestedRowsCache.levels[0][i].__children || nestedRowsCache.levels[0][i].__children.length === 0) {
@@ -601,7 +486,7 @@ columnSummary: [
   {
     // ...
     type: 'custom',
-    customFunction: function(endpoint) {
+    customFunction(endpoint) {
       // endpoint is an object containing the endpoint data
 
       // your function
@@ -614,41 +499,27 @@ columnSummary: [
 
 ::: example #example13
 ```js
-// Generate an object with a dummy data
-var generateDataObj = function(rows, columns, additionalRows) {
-  if (additionalRows === void 0) {
-    additionalRows = true;
-  }
+// Generate an array of arrays with a dummy data
+const generateData = (rows = 3, columns = 7, additionalRows = true) => {
+  let counter = 0;
 
-  var data = [];
-  var number = 0;
-
-  if (!rows) {
-    rows = 3;
-  }
-  if (!columns) {
-    columns = 7;
-  }
-
-  for (var i = 0; i < rows; i++) {
-    data[i] = [];
-    for (var j = 0; j < columns; j++) {
-      data[i][j] = number++;
-    }
-  }
+  const array2d = [...new Array(rows)]
+    .map(_ => [...new Array(columns)]
+    .map(_ => counter++));
 
   if (additionalRows) {
-    for (i = 0; i < 2; i++) {
-      data.push([]);
-    }
+    array2d.push([]);
+    array2d.push([]);
   }
 
-  return data;
+  return array2d;
 };
-var container = document.getElementById('example13');
 
-var hot13 = new Handsontable(container, {
-  data: generateDataObj(5, 7),
+const container = document.querySelector('#example13');
+
+const hot13 = new Handsontable(container, {
+  data: generateData(5, 7),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   licenseKey: 'non-commercial-and-evaluation',
@@ -693,30 +564,28 @@ var hot13 = new Handsontable(container, {
       destinationColumn: 5,
       reversedRowCoords: true,
       type: 'custom',
-      customFunction: function(endpoint) {
-        // this function counts the even values in the column
-
-        var evenCount = 0;
-        var hotInstance = this.hot;
+      customFunction(endpoint) { // this function counts the even values in the column
+        const hotInstance = this.hot;
+        let evenCount = 0;
 
         // helper function
-        function checkRange(rowRange) {
-          var i = rowRange[1] || rowRange[0];
-          var counter = 0;
+        const checkRange = rowRange => {
+          let i = rowRange[1] || rowRange[0];
+          let counter = 0;
 
           do {
-
-              if (parseInt(hotInstance.getDataAtCell(i, endpoint.sourceColumn), 10)%2 === 0) {
+              if (parseInt(hotInstance.getDataAtCell(i, endpoint.sourceColumn), 10) % 2 === 0) {
                 counter++;
               }
 
               i--;
             } while (i >= rowRange[0]);
+
             return counter;
           }
 
           // go through all declared ranges
-          for (var r in endpoint.ranges) {
+          for (const r in endpoint.ranges) {
             if (endpoint.ranges.hasOwnProperty(r)) {
               evenCount += checkRange(endpoint.ranges[r]);
             }
@@ -743,40 +612,9 @@ By default this option is **disabled**.
 
 ::: example #example14
 ```js
-// Generate an object with a dummy data
-var generateDataObj = function(rows, columns, additionalRows) {
-  if (additionalRows === void 0) {
-    additionalRows = true;
-  }
+const container = document.querySelector('#example14');
 
-  var data = [];
-  var number = 0;
-
-  if (!rows) {
-    rows = 3;
-  }
-  if (!columns) {
-    columns = 7;
-  }
-
-  for (var i = 0; i < rows; i++) {
-    data[i] = [];
-    for (var j = 0; j < columns; j++) {
-      data[i][j] = number++;
-    }
-  }
-
-  if (additionalRows) {
-    for (i = 0; i < 2; i++) {
-      data.push([]);
-    }
-  }
-
-  return data;
-};
-var container = document.getElementById('example14');
-
-var hot14 = new Handsontable(container, {
+const hot14 = new Handsontable(container, {
   data: [
     [0, 1, 2],
     ['3c', '4', 5],
@@ -833,40 +671,9 @@ It will result in rounding the calculation result to the appropriate amount of d
 
 ::: example #example15
 ```js
-// Generate an object with a dummy data
-var generateDataObj = function(rows, columns, additionalRows) {
-  if (additionalRows === void 0) {
-    additionalRows = true;
-  }
+const container = document.querySelector('#example15');
 
-  var data = [];
-  var number = 0;
-
-  if (!rows) {
-    rows = 3;
-  }
-  if (!columns) {
-    columns = 7;
-  }
-
-  for (var i = 0; i < rows; i++) {
-    data[i] = [];
-    for (var j = 0; j < columns; j++) {
-      data[i][j] = number++;
-    }
-  }
-
-  if (additionalRows) {
-    for (i = 0; i < 2; i++) {
-      data.push([]);
-    }
-  }
-
-  return data;
-};
-var container = document.getElementById('example15');
-
-var hot15 = new Handsontable(container, {
+const hot15 = new Handsontable(container, {
   data: [
     [0.5, 0.5],
     [0.5, 0.5],

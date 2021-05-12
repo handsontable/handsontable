@@ -44,5 +44,5 @@ npm install handsontable @handsontable/vue
   }
 </script>
 
-<style src="../node_modules/handsontable/dist/handsontable.full.css"></style>`
+<style src="../node_modules/handsontable/dist/handsontable.full.css"></style>
 ```

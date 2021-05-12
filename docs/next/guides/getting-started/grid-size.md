@@ -79,16 +79,20 @@ hot.refreshDimensions();
 
 You can listen for two hooks, `beforeRefreshDimensions` and `afterRefreshDimensions`.
 
-<div class="controls">
-<button id="expander" className="button button--primary">Expand container</button> 
-</div>
+::: example #example --html 1 --js 2
+```html
+<div id="example" class="hot"></div>
 
-::: example #example
+<div class="controls">
+  <button id="expander" className="button button--primary">Expand container</button>
+</div>
+```
 ```js
-var triggerBtn = document.getElementById('expander');
-var example = document.getElementById('example');
-var sliceElem = example.parentElement;
-var hot = new Handsontable(example, {
+const triggerBtn = document.querySelector('#expander');
+const example = document.querySelector('#example');
+const sliceElem = example.parentElement;
+
+const hot = new Handsontable(example, {
   data: Handsontable.helper.createSpreadsheetData(100, 50),
   rowHeaders: true,
   colHeaders: true,
@@ -102,18 +106,17 @@ var hot = new Handsontable(example, {
 sliceElem.style = "transition: height 0.5s; height: 150px;"
 hot.refreshDimensions();
 
-triggerBtn.addEventListener('click', function() {
+triggerBtn.addEventListener('click', () => {
   if (triggerBtn.textContent === 'Collapse') {
     triggerBtn.textContent = 'Expand';
     sliceElem.style.height = '150px';
-
   } else {
     triggerBtn.textContent = 'Collapse';
     sliceElem.style.height = '400px';
   }
 });
 
-sliceElem.addEventListener('transitionend', function(e) {
+sliceElem.addEventListener('transitionend', e => {
   if (e.propertyName === 'height') {
     hot.refreshDimensions();
   }

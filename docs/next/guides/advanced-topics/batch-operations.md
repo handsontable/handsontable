@@ -161,15 +161,19 @@ hot.resumeExecution(); // It updates the cache internally
 
 The following examples show how much the `batch` method can decrease the render time. Both of the examples share the same dataset and operations. The first one shows how much time lapsed when the `batch` method was used. You can run the second example to check how much it takes to render without the `batch` method.
 
+::: example #example1 --html 1 --js 2
+```html
+<div id="example1"></div>
 <p>
-  <button id="buttonWithout" className="button button--primary">Run without batch method</button>&nbsp;
-  <button id="buttonWith" className="button button--primary">Run with batch method</button>
+  <button id="buttonWithout" class="button button--primary">Run without batch method</button>&nbsp;
+  <button id="buttonWith" class="button button--primary">Run with batch method</button>
 </p>
-<p id="logOutput"></p>
-
-::: example #example1
+<div id="logOutput"></div>
+```
 ```js
-var data1 = [
+const container = document.querySelector('#example1');
+
+const data1 = [
   [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
   [2, 'Gloria Brown', '100% Stainless sweater', 'M', 2, 'no'],
   [3, 'Ronald Carver', 'Sunny T-shirt', 'S', 1, 'no'],
@@ -182,17 +186,17 @@ var data1 = [
   [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no']
 ];
 
-var data2 = [
+const data2 = [
   [11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes'],
 ];
 
-var data3 = [
+const data3 = [
   [12, 'Gary Erre', 'Happy dress', 'M', 1, 'no'],
   [13, 'Anna Moon', 'Unicorn shades', 'uni', 200, 'no'],
   [14, 'Elise Eli', 'Regular shades', 'uni', 1, 'no']
 ];
 
-var hot = new Handsontable(document.getElementById('example1'), {
+const hot = new Handsontable(container, {
   data: data1,
   width: 700,
   height: 260,
@@ -200,7 +204,7 @@ var hot = new Handsontable(document.getElementById('example1'), {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-function alterTable() {
+const alterTable = () => {
   hot.alter('insert_row', 10, 10);
   hot.alter('insert_col', 6, 1);
   hot.populateFromArray(10, 0, data2);
@@ -219,29 +223,29 @@ function alterTable() {
   hot.render(); // Render here is needed to populate the new "className"s
 }
 
-Handsontable.dom.addEvent(buttonWithout, 'click', function() {
-  var t1 = performance.now();
-  alterTable();
-  var t2 = performance.now();
-
-  logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
-});
-
-Handsontable.dom.addEvent(buttonWith, 'click', function() {
-  var t1 = performance.now();
-  hot.batch(alterTable);
-  var t2 = performance.now();
-
-  logOutput('Time with batch ' + (t2 - t1).toFixed(2) + 'ms');
-});
-
-function logOutput(msg) {
-  var logDiv = document.querySelector('#logOutput');
-  var div = document.createElement('div');
-  var now = new Date();
+const logOutput = msg => {
+  const logDiv = document.querySelector('#logOutput');
+  const div = document.createElement('div');
+  const now = new Date();
 
   div.innerText = '[' + now.toTimeString().slice(0, 8) + '] ' + msg;
   logDiv.insertBefore(div, logDiv.firstChild);
 }
+
+Handsontable.dom.addEvent(buttonWithout, 'click', () => {
+  const t1 = performance.now();
+  alterTable();
+  const t2 = performance.now();
+
+  logOutput('Time without batch ' + (t2 - t1).toFixed(2) + 'ms');
+});
+
+Handsontable.dom.addEvent(buttonWith, 'click', () => {
+  const t1 = performance.now();
+  hot.batch(alterTable);
+  const t2 = performance.now();
+
+  logOutput('Time with batch ' + (t2 - t1).toFixed(2) + 'ms');
+});
 ```
 :::

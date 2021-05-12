@@ -16,41 +16,36 @@ import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import Handsontable from 'handsontable';
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.hotSettings = {
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
-      colHeaders: true,
-      contextMenu: {
-        items: {
-          'row_above': {
-            name: 'Insert row above this one (custom name)'
-          },
-          'row_below': {},
-          'separator': Handsontable.plugins.ContextMenu.SEPARATOR,
-          'clear_custom': {
-            name: 'Clear all cells (custom)',
-            callback: function() {
-              this.clear();
-            }
-          }
-        }
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(5, 5),
+  colHeaders: true,
+  contextMenu: {
+    items: {
+      'row_above': {
+        name: 'Insert row above this one (custom name)'
       },
-      licenseKey: 'non-commercial-and-evaluation'
-    };
-  }
+      'row_below': {},
+      'separator': Handsontable.plugins.ContextMenu.SEPARATOR,
+      'clear_custom': {
+        name: 'Clear all cells (custom)',
+        callback: function() {
+          this.clear();
+        }
+      }
+    }
+  },
+  licenseKey: 'non-commercial-and-evaluation'
+};
 
-  render() {
-    return (
-      <div>
-        <HotTable
-          id="hot"
-          settings={this.hotSettings}
-        />
-      </div>
-    );
-  }
+const App = () => {
+  return (
+    <div>
+      <HotTable
+        id="hot"
+        settings={hotSettings}
+      />
+    </div>
+  )
 }
 
 ReactDOM.render(<App />, document.getElementById('example1'));

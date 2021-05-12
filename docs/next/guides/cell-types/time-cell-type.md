@@ -12,9 +12,11 @@ canonicalUrl: /time-cell-type
 ## Overview
 
 To use the Time cell type, set the `type: 'time'` option in the `columns` array or the `cells` function.
-The Time cell uses [Moment.js](https://github.com/moment/moment) as the time formatter, so be sure to add an additional file in your `<head>` :
+The Time cell uses [Moment.js](https://github.com/moment/moment) as the time formatter, so be sure to add a required dependency:
 
-* `/dist/moment/moment.js`
+```html
+<script src="https://cdn.jsdelivr.net/npm/moment/moment.min.js"></script>
+```
 
 All data entered to the time-typed cells are eventually validated against the default time format (`h:mm:ss a`, which translates to, for example, `9:30:00 am`) unless another format is provided as the `timeFormat`.
 If you enable the `correctFormat` config item, the values will be automatically formatted to match the desired time format.
@@ -25,10 +27,9 @@ By default, the values entered to the time-typed column are **not** validated, s
 
 ::: example #example1
 ```js
-var container = document.getElementById('example1'),
-    hot;
+const container = document.querySelector('#example1');
 
-hot = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     ['Mercedes', 'A 160', 1332284400000, 6999.95],
     ['Citroen', 'C4 Coupe', '10 30', 8330],
@@ -36,12 +37,8 @@ hot = new Handsontable(container, {
     ['Opel', 'Astra', 1332284400000, 7000],
     ['BMW', '320i Coupe', 1332284400000, 30500]
   ],
-  startRows: 7,
-  startCols: 4,
   colHeaders: ['Car', 'Model', 'Registration time', 'Price'],
   columnSorting: true,
-  contextMenu: true,
-  minSpareRows: 1,
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
     {

@@ -22,7 +22,7 @@ import Handsontable from 'handsontable';
 
 new Vue({
   el: '#example1',
-  data: function() {
+  data() {
     return {
       hotSettings: {
         data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -36,7 +36,7 @@ new Vue({
             'separator': Handsontable.plugins.ContextMenu.SEPARATOR,
             'clear_custom': {
               name: 'Clear all cells (custom)',
-              callback: function() {
+              callback() {
                 this.clear();
               }
             }

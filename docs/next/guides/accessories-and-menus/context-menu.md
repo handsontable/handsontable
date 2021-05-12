@@ -20,8 +20,9 @@ To run the basic configuration of the Context Menu, just set the `contextMenu` o
 
 ::: example #example1
 ```js
-var example1 = document.getElementById('example1');
-var settings1 = {
+const container = document.querySelector('#example1');
+
+const settings = {
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -36,7 +37,7 @@ var settings1 = {
   licenseKey: 'non-commercial-and-evaluation'
 };
 
-var hot1 = new Handsontable(example1, settings1);
+const hot1 = new Handsontable(container, settings);
 ```
 :::
 
@@ -80,8 +81,9 @@ You can define items in the menu by passing the `contextMenu` option as an array
 
 ::: example #example2
 ```js
-var example2 = document.getElementById('example2');
-var settings2 = {
+const container = document.querySelector('#example2');
+
+const settings = {
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -96,7 +98,7 @@ var settings2 = {
   licenseKey: 'non-commercial-and-evaluation'
 };
 
-var hot2 = new Handsontable(example2, settings2);
+const hot2 = new Handsontable(container, settings);
 ```
 :::
 
@@ -112,8 +114,9 @@ This example shows how to:
 
 ::: example #example3
 ```js
-var example3 = document.getElementById('example3');
-var settings3 = {
+const container = document.querySelector('#example3');
+
+const settings = {
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -126,13 +129,13 @@ var settings3 = {
   colHeaders: true,
   licenseKey: 'non-commercial-and-evaluation',
   contextMenu: {
-    callback: function (key, selection, clickEvent) {
+    callback(key, selection, clickEvent) {
       // Common callback for all options
       console.log(key, selection, clickEvent);
     },
     items: {
       "row_above": {
-        disabled: function () { // `disabled` can be a boolean or a function
+        disabled() { // `disabled` can be a boolean or a function
           // Disable option when first row was clicked
           return this.getSelectedLast()[0] === 0; // `this` === hot3
         }
@@ -145,15 +148,15 @@ var settings3 = {
         name: 'Click to add row below' // Set custom text for predefined option
       },
       "about": { // Own custom option
-        name: function () { // `name` can be a string or a function
+        name() { // `name` can be a string or a function
           return '<b>Custom option</b>'; // Name can contain HTML
         },
-        hidden: function () { // `hidden` can be a boolean or a function
+        hidden() { // `hidden` can be a boolean or a function
           // Hide the option when the first column was clicked
           return this.getSelectedLast()[1] == 0; // `this` === hot3
         },
-        callback: function(key, selection, clickEvent) { // Callback for specific option
-          setTimeout(function() {
+        callback(key, selection, clickEvent) { // Callback for specific option
+          setTimeout(() => {
             alert('Hello world!'); // Fire alert after menu close (with timeout)
           }, 0);
         }
@@ -167,8 +170,8 @@ var settings3 = {
               // Key must be in the form "parent_key:child_key"
               key: 'colors:red',
               name: 'Red',
-              callback: function(key, selection, clickEvent) {
-                setTimeout(function() {
+              callback(key, selection, clickEvent) {
+                setTimeout(() => {
                   alert('You clicked red!');
                 }, 0);
               }
@@ -180,10 +183,11 @@ var settings3 = {
       },
       "credits": { // Own custom property
         // Custom rendered element in the context menu
-        renderer: function(hot, wrapper, row, col, prop, itemValue) {
-          var elem = document.createElement('marquee');
+        renderer(hot, wrapper, row, col, prop, itemValue) {
+          const elem = document.createElement('marquee');
           elem.style.cssText = 'background: lightgray;';
           elem.textContent = 'Brought to you by...';
+
           return elem;
         },
         disableSelection: true, // Prevent mouseoever from highlighting the item for selection
@@ -193,6 +197,6 @@ var settings3 = {
   }
 };
 
-var hot3 = new Handsontable(example3, settings3);
+const hot3 = new Handsontable(container, settings);
 ```
 :::

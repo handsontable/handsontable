@@ -39,32 +39,27 @@ class CustomEditor extends Handsontable.editors.TextEditor {
   }
 }
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.hotSettings = {
-      startRows: 5,
-      columns: [
-        {
-          editor: CustomEditor
-        }
-      ],
-      colHeaders: true,
-      colWidths: 200,
-      licenseKey: 'non-commercial-and-evaluation'
-    };
-  }
+const hotSettings = {
+  startRows: 5,
+  columns: [
+    {
+      editor: CustomEditor
+    }
+  ],
+  colHeaders: true,
+  colWidths: 200,
+  licenseKey: 'non-commercial-and-evaluation'
+};
 
-  render() {
-    return (
-      <div>
-        <HotTable
-          id="hot"
-          settings={this.hotSettings}
-        />
-      </div>
-    );
-  }
+const App = () => {
+  return (
+    <div>
+      <HotTable
+        id="hot"
+        settings={hotSettings}
+      />
+    </div>
+  );
 }
 
 ReactDOM.render(<App />, document.getElementById('example1'));

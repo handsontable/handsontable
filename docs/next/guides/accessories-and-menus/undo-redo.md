@@ -40,8 +40,9 @@ Make some changes to the grid below and the use the <kbd>Ctrl/⌘Cmd + Z</kbd> c
 
 ::: example #example
 ```javascript
-var example = document.getElementById('example');
-var hot1 = new Handsontable(example, {
+const container = document.querySelector('#example');
+
+const hot = new Handsontable(container, {
  data: Handsontable.helper.createSpreadsheetData(10, 5),
  rowHeaders: true,
  colHeaders: true,

@@ -21,10 +21,9 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 
 ::: example #example1
 ```js
-var container = document.getElementById('example1'),
-  hot;
+const container = document.querySelector('#example1');
 
-hot = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(100, 50),
   height: 320,
   colWidths: 47,

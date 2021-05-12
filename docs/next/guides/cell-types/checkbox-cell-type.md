@@ -9,11 +9,7 @@ canonicalUrl: /checkbox-cell-type
 
 [[toc]]
 
-## Overview
-
-Data in such cells will be rendered as checkbox and can be easily changed by checking/unchecking the checkbox.
-
-Checking and unchecking can be performed using mouse or by pressing <kbd>SPACE</kbd>. You can change the state of multiple cells at once. Simply select cells you want to change and press <kbd>SPACE</kbd>.
+Data in such cells will be rendered as checkbox and can be easily changed by checking/unchecking the checkbox. Checking and unchecking can be performed using mouse or by pressing <kbd>SPACE</kbd>. You can change the state of multiple cells at once. Simply select cells you want to change and press <kbd>SPACE</kbd>.
 
 ## Checkbox true/false values
 
@@ -21,16 +17,15 @@ This is default usage scenario when columns data have `true` or `false` value an
 
 ::: example #example1
 ```js
-var example1 = document.getElementById('example1'),
-    hot1;
+const container = document.querySelector('#example1');
 
-hot1 = new Handsontable(example1, {
+const hot = new Handsontable(container, {
   data: [
-    {car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes'},
-    {car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes'},
-    {car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no'},
-    {car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes'},
-    {car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no'}
+    { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
+    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+    { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
+    { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
+    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
   ],
   colHeaders: ['Car model', 'Year of manufacture', 'Available'],
   licenseKey: 'non-commercial-and-evaluation',
@@ -46,7 +41,8 @@ hot1 = new Handsontable(example1, {
       data: 'available',
       type: 'checkbox'
     }
-  ]
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 :::
@@ -57,16 +53,15 @@ If you want use other values than `true` and `false`, you have to provide this i
 
 ::: example #example2
 ```js
-var example1 = document.getElementById('example2'),
-    hot2;
+const container = document.querySelector('#example2');
 
-hot2 = new Handsontable(example2, {
+const hot = new Handsontable(container, {
   data: [
-    {car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes'},
-    {car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes'},
-    {car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no'},
-    {car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes'},
-    {car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no'}
+    { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
+    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+    { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
+    { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
+    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
   ],
   colHeaders: ['Car model', 'Year of manufacture', 'Comes in black'],
   licenseKey: 'non-commercial-and-evaluation',
@@ -84,7 +79,8 @@ hot2 = new Handsontable(example2, {
       checkedTemplate: 'yes',
       uncheckedTemplate: 'no'
     }
-  ]
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 :::
@@ -95,19 +91,17 @@ If you want to add label to the checkbox you can use `label` option. With this o
 
 ::: example #example3
 ```js
-var example1 = document.getElementById('example3'),
-    hot3;
+const container = document.querySelector('#example3');
 
-hot3 = new Handsontable(example3, {
+const hot = new Handsontable(container, {
   data: [
-    {car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes'},
-    {car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes'},
-    {car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no'},
-    {car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes'},
-    {car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no'}
+    { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
+    { car: 'Citroen C4 Coupe', year: 2018, available: false, comesInBlack: 'yes' },
+    { car: 'Audi A4 Avant', year: 2019, available: true, comesInBlack: 'no' },
+    { car: 'Opel Astra', year: 2020, available: false, comesInBlack: 'yes' },
+    { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
   ],
   colHeaders: ['Car model', 'Accepted', 'Comes in black'],
-  licenseKey: 'non-commercial-and-evaluation',
   columns: [
     {
       data: 'car'

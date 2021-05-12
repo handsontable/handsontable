@@ -28,7 +28,7 @@ The **Nested Rows** plugin extends Handsontable with a new functionality - displ
 To enable the plugin, simply set the `nestedRows` property to `true`.
 
 ```js
-var hot = new Handsontable(container, {
+const hot = new Handsontable(container, {
   nestedRows: true,
 });
 ```
@@ -46,7 +46,7 @@ Take a look at this example:
 
 ::: example #example1
 ```js
-var sourceDataObject = [
+const sourceDataObject = [
   {
     category: 'Best Rock Performance',
     artist: null,
@@ -166,12 +166,13 @@ var sourceDataObject = [
       }
     ]
   }
-],
-container = document.getElementById('example1'),
-hot;
+];
 
-hot = new Handsontable(container, {
+const container = document.querySelector('#example1');
+
+const hot = new Handsontable(container, {
   data: sourceDataObject,
+  height: 'auto',
   rowHeaders: true,
   colHeaders: ['Category', 'Artist', 'Title', 'Album', 'Label'],
   nestedRows: true,

@@ -24,13 +24,14 @@ Note that the second, third and sixth rows are missing.
 
 ::: example #example1
 ```js
-var example1 = document.getElementById('example1');
-var hot1 = new Handsontable(example1, {
-    data: Handsontable.helper.createSpreadsheetData(10, 4),
-    colHeaders: true,
-    rowHeaders: true,
-    trimRows: [1, 2, 5],
-    licenseKey: 'non-commercial-and-evaluation'
+const container = document.querySelector('#example1');
+
+const hot1 = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(10, 4),
+  colHeaders: true,
+  rowHeaders: true,
+  trimRows: [1, 2, 5],
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 :::
@@ -40,7 +41,7 @@ var hot1 = new Handsontable(example1, {
 You can access the plugin instance by calling
 
 ```js
-var plugin = hot.getPlugin('trimRows');
+const plugin = hot.getPlugin('trimRows');
 ```
 
 To trim a single row, call the `trimRow` method of the plugin object:

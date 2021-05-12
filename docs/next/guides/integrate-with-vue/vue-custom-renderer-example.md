@@ -26,7 +26,7 @@ import Handsontable from 'handsontable';
 
 new Vue({
   el: '#example1',
-  data: function() {
+  data() {
     return {
       hotSettings: {
         data:
@@ -36,20 +36,20 @@ new Vue({
         columns: [
           {},
           {
-            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+            renderer(instance, td, row, col, prop, value, cellProperties) {
               const escaped = Handsontable.helper.stringify(value);
-              let img = null;
 
               if (escaped.indexOf('http') === 0) {
-                img = document.createElement('IMG');
+                const img = document.createElement('IMG');
                 img.src = value;
 
-                Handsontable.dom.addEvent(img, 'mousedown', function(event) {
+                Handsontable.dom.addEvent(img, 'mousedown', event => {
                   event.preventDefault();
                 });
 
                 Handsontable.dom.empty(td);
                 td.appendChild(img);
+
               } else {
                 Handsontable.renderers.TextRenderer.apply(this, arguments);
               }

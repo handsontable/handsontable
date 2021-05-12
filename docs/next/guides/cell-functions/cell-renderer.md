@@ -9,8 +9,6 @@ canonicalUrl: /cell-renderer
 
 [[toc]]
 
-## Registering a renderer
-
 When you create a renderer, a good idea is to assign it as an alias that will refer to this particular renderer function. Handsontable defines 10 aliases by default:
 
 * `autocomplete` for `Handsontable.renderers.AutocompleteRenderer`
@@ -25,6 +23,22 @@ When you create a renderer, a good idea is to assign it as an alias that will re
 * `time` for `Handsontable.renderers.TimeRenderer`
 
 It gives users a convenient way for defining which renderer should be used when table rendering was triggered. User doesn't need to know which renderer function is responsible for displaying the cell value, he does not even need to know that there is any function at all. What is more, you can change the render function associated with an alias without a need to change code that defines a table.
+
+## Using a cell renderer
+
+Use the renderer name of your choice when configuring the column:
+
+```js
+const container = document.getElementById('container');
+const hot = new Handsontable(container, {
+  data: someData,
+  columns: [{
+    renderer: 'numeric'
+  }]
+});
+```
+
+## Registering custom cell renderer
 
 To register your own alias use `Handsontable.renderers.registerRenderer()` function. It takes two arguments:
 
@@ -41,22 +55,23 @@ Choose aliases wisely. If you register your renderer under name that is already 
 
 ```js
 Handsontable.renderers.registerRenderer('text', asterixDecoratorRenderer);
-
-// Now 'text' alias points to `asterixDecoratorRenderer` function, not Handsontable.renderers.TextRenderer
 ```
+
+Now 'text' alias points to `asterixDecoratorRenderer` function, not `Handsontable.renderers.TextRenderer`.
 
 So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your renderer, because you never know aliases has been registered by the user who uses your renderer.
 
 ```js
 Handsontable.renderers.registerRenderer('asterix', asterixDecoratorRenderer);
-
-// Someone might already registered such alias
 ```
+
+Someone might already registered such alias
+
 ```js
 Handsontable.renderers.registerRenderer('my.asterix', asterixDecoratorRenderer);
-
-// That's better.`
 ```
+
+That's better.
 
 ## Using an alias
 
@@ -65,30 +80,27 @@ The final touch is to using the registered aliases, so that users can easily ref
 To sum up, a well prepared renderer function should look like this:
 
 ```js
-(function(Handsontable){
-  function customRenderer(hotInstance, td, row, column, prop, value, cellProperties) {
-    // Optionally include `BaseRenderer` which is responsible for adding/removing CSS classes to/from the table cells.
-    Handsontable.renderers.BaseRenderer.apply(this, arguments);
+function customRenderer(hotInstance, td, row, column, prop, value, cellProperties) {
+  // Optionally include `BaseRenderer` which is responsible for 
+  // adding/removing CSS classes to/from the table cells.
+  Handsontable.renderers.BaseRenderer.apply(this, arguments);
 
-    // ...your custom logic of the renderer
-  }
+  // ...your custom logic of the renderer
+}
 
-  // Register an alias
-  Handsontable.renderers.registerRenderer('my.custom', customRenderer);
-
-})(Handsontable);
+// Register an alias
+Handsontable.renderers.registerRenderer('my.custom', customRenderer);
 ```
 
 From now on, you can use `customRenderer` like so:
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
+const container = document.querySelector('#container');
+const hot = new Handsontable(container, {
   data: someData,
-  columns: [
-    {
-      renderer: 'my.custom'
-    }
-  ]
+  columns: [{
+    renderer: 'my.custom'
+  }]
 });
 ```
 
@@ -103,7 +115,7 @@ This example shows how to use custom cell renderers to display HTML content in a
 
 ::: example #example1
 ```js
-var data = [
+const data = [
   {
     title: "<a href='http://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691'>Professional JavaScript for Web Developers</a>",
     description: "This <a href='http://bit.ly/sM1bDf'>book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.",
@@ -122,41 +134,41 @@ var data = [
     comments: "I've never actually read it, but the <a href='http://shop.oreilly.com/product/9780596805531.do'>comments</a> are highly <strong>positive</strong>.",
     cover: "https://handsontable.com/docs/images/examples/javascript-the-definitive-guide.jpg"
   }
-],
-container1,
-hot1;
+];
 
-container1 = document.getElementById('example1');
-hot1 = new Handsontable(container1, {
-  data: data,
+const container = document.getElementById('example1');
+const hot = new Handsontable(container, {
+  data,
   colWidths: [200, 200, 200, 80],
+  height: 'auto',
   colHeaders: ["Title", "Description", "Comments", "Cover"],
   columns: [
-    {data: "title", renderer: "html"},
-    {data: "description", renderer: "html"},
-    {data: "comments", renderer: safeHtmlRenderer},
-    {data: "cover", renderer: coverRenderer}
+    { data: "title", renderer: "html" },
+    { data: "description", renderer: "html" },
+    { data: "comments", renderer: safeHtmlRenderer },
+    { data: "cover", renderer: coverRenderer }
   ],
   licenseKey: 'non-commercial-and-evaluation'
 });
 
 function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
-  // be sure you only allow certain HTML tags to avoid XSS threats (you should also remove unwanted HTML attributes)
+  // be sure you only allow certain HTML tags to avoid XSS threats 
+  // (you should also remove unwanted HTML attributes)
   td.innerHTML = Handsontable.helper.sanitize(value, {
     ALLOWED_TAGS: ['em', 'b', 'strong', 'a', 'big'],
   });
 }
 
 function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
-  var stringifiedValue = Handsontable.helper.stringify(value);
-  var img;
+  const stringifiedValue = Handsontable.helper.stringify(value);
 
-  if (stringifiedValue.indexOf('http') === 0) {
-    img = document.createElement('IMG');
+  if (stringifiedValue.startsWith('http')) {
+    const img = document.createElement('IMG');
+
     img.src = value;
 
-    Handsontable.dom.addEvent(img, 'mousedown', function (e){
-      e.preventDefault(); // prevent selection quirk
+    Handsontable.dom.addEvent(img, 'mousedown', event =>{
+      event.preventDefault(); // prevent selection quirk
     });
 
     Handsontable.dom.empty(td);
@@ -175,51 +187,67 @@ You can also put HTML into row and column headers. If you need to attach events 
 
 ::: example #example2
 ```js
-var isChecked,
-  container2 = document.getElementById('example2'), 
-  hot2; 
+let isChecked = false;
+const container = document.querySelector('#example2');
   
-hot2 = new Handsontable(container2, {
+
+const hot2 = new Handsontable(container, {
   columns: [
     {},
     { renderer: customRenderer }
   ],
-  colHeaders: function (col) {
-    var txt; 
-    
+  colHeaders(col) {
     switch (col) {
       case 0:
         return '<b>Bold</b> and <em>Beautiful</em>';
+
       case 1:
-        txt = "Some <input type='checkbox' class='checker' "; 
+        let txt = "Some <input type='checkbox' class='checker' "; 
         txt += isChecked ? 'checked="checked"' : ''; 
         txt += "> checkbox";
 
         return txt;
     } 
-  },
-  licenseKey: 'non-commercial-and-evaluation'
-});
-  
-function customRenderer(instance, td) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
-  
-  if (isChecked) {
+  } 
+}); 
+
+function customRenderer(instance, td) { 
+  Handsontable.renderers.TextRenderer.apply(this, arguments); 
+  if (isChecked) { 
     td.style.backgroundColor = 'yellow'; 
   } else {
     td.style.backgroundColor = 'white';
   } 
 }
 
-Handsontable.dom.addEvent(container2, 'mousedown', function (event) {
+Handsontable.dom.addEvent(container, 'mousedown', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
     event.stopPropagation();
   }
 });
 
-Handsontable.dom.addEvent(container2, 'mouseup', function (event) {
+Handsontable.dom.addEvent(container, 'mouseup', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
-    isChecked = !event.target.checked; hot2.render();
+    isChecked = !event.target.checked; 
+    hot2.render();
   }
 });
 ```
+:::
+
+## Adding event listeners in cell renderer function
+
+If you are writing an advanced cell renderer, and you want to add some custom behavior after a certain user action (i.e. after user hover a mouse pointer over a cell) you might be tempted to add an event listener directly to table cell node passed as an argument to the `renderer` function. Unfortunately, this will almost always cause you trouble and you will end up with either performance issues or having the listeners attached to the wrong cell.
+
+This is because Handsontable:
+
+* calls `renderer` functions multiple times per cell - this can lead to having multiple copies of the same event listener attached to a cell
+* reuses table cell nodes during table scrolling and adding/removing new rows/columns - this can lead to having event listeners attached to the wrong cell
+
+Before deciding to attach an event listener in cell renderer make sure, that there is no [Handsontable event](../getting-started/using-callbacks.md) that suits your needs. Using _Handsontable events_ system is the safest way to respond to user actions.
+
+If you did't find a suitable _Handsontable event_ put the cell content into a wrapping `<div>`, attach the event listener to the wrapper and then put it into the table cell.
+
+## Performance considerations
+
+Cell renderers are called separately for every displayed cell, during every table render. Table can be rendered multiple times during its lifetime (after table scroll, after table sorting, after cell edit etc.), therefore you should keep your `renderer` functions as simple and fast as possible or you might experience a performance drop, especially when dealing with large sets of data.

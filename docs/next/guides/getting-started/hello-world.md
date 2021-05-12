@@ -15,16 +15,16 @@ Let's start with a simple example of Handsontable instance initialized in a cont
 
 ::: example #example
 ```javascript
-var example = document.getElementById('example');
-var hot1 = new Handsontable(example, {
- data: Handsontable.helper.createSpreadsheetData(100, 50),
- colWidths: 100,
- width: '100%',
- height: 320,
- rowHeights: 23,
- rowHeaders: true,
- colHeaders: true,
- licenseKey: 'non-commercial-and-evaluation'
+const example = document.getElementById('example');
+const hot1 = new Handsontable(example, {
+  data: Handsontable.helper.createSpreadsheetData(100, 50),
+  colWidths: 100,
+  width: '100%',
+  height: 320,
+  rowHeights: 23,
+  rowHeaders: true,
+  colHeaders: true,
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 :::
@@ -34,16 +34,16 @@ var hot1 = new Handsontable(example, {
 <code-block title="JavaScript">
 
 ```js
-var example = document.getElementById('example');
-var hot1 = new Handsontable(example, {
- data: Handsontable.helper.createSpreadsheetData(100, 50),
- colWidths: 100,
- width: '100%',
- height: 320,
- rowHeights: 23,
- rowHeaders: true,
- colHeaders: true,
- licenseKey: 'non-commercial-and-evaluation'
+const example = document.getElementById('example');
+const hot1 = new Handsontable(example, {
+  data: Handsontable.helper.createSpreadsheetData(100, 50),
+  colWidths: 100,
+  width: '100%',
+  height: 320,
+  rowHeights: 23,
+  rowHeaders: true,
+  colHeaders: true,
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 

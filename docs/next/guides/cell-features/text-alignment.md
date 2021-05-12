@@ -30,10 +30,9 @@ The following code sample configures the grid to use `htCenter` and configures i
 
 ::: example #example1
 ```js
-var container = document.getElementById('example1'),
-  hot1;
+const container = document.querySelector('#example1');
 
-hot1 = new Handsontable(container, {
+const hot1 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(100, 18),
   colWidths: 100,
   height: 320,
@@ -51,7 +50,7 @@ hot1 = new Handsontable(container, {
     {row: 1, col: 1, className: "htLeft htMiddle"},
     {row: 3, col: 4, className: "htLeft htBottom"}
   ],
-  afterSetCellMeta: function (row, col, key, val) {
+  afterSetCellMeta(row, col, key, val) {
     console.log("cell meta changed", row, col, key, val);
   }
 });

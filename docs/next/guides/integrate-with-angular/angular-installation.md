@@ -1,6 +1,6 @@
 ---
-title: React installation
-metaTitle: React installation - Guide - Handsontable Documentation
+title: Angular installation
+metaTitle: Angular installation - Guide - Handsontable Documentation
 permalink: /next/angular-installation
 canonicalUrl: /angular-installation
 ---
@@ -52,5 +52,6 @@ Now, you can use the Handsontable component in your HTML files
   [colHeaders]="true"
   [rowHeaders]="true"
   [data]="dataset"
-  [licenseKey]="non-commercial-and-evaluation"></hot-table>`
+  [licenseKey]="non-commercial-and-evaluation">
+</hot-table>
 ```

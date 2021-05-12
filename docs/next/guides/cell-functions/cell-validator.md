@@ -9,62 +9,59 @@ canonicalUrl: /cell-validator
 
 [[toc]]
 
-## Overview
-Validators check that the data entered in specified cells is of the correct type. For example, if you had a cell where the expected data is a number, you would use a numeric validator to ensure that all data is only numeric. 
+When you create a validator, a good idea is to assign it as an alias that will refer to this particular validator function. Handsontable defines 5 aliases by default:
 
-## Registering a validator
+* `autocomplete` for `Handsontable.validators.AutocompleteValidator`
+* `date` for `Handsontable.validators.DateValidator`
+* `dropdown` for `Handsontable.validators.DropdownValidator`
+* `numeric` for `Handsontable.validators.NumericValidator`
+* `time` for `Handsontable.validators.TimeValidator`
 
-When you create a validator, it is good practice to assign it as an alias that will refer to the particular validator function. Handsontable defines five aliases by default:
+It gives users a convenient way for defining which validator should be used when table validation was triggered. User doesn't need to know which validator function is responsible for checking the cell value, he does not even need to know that there is any function at all. What is more, you can change the validator function associated with an alias without a need to change code that defines a table.
 
-- `autocomplete` for `Handsontable.validators.AutocompleteValidator`
-- `date` for `Handsontable.validators.DateValidator`
-- `dropdown` for `Handsontable.validators.DropdownValidator`
-- `numeric` for `Handsontable.validators.NumericValidator`
-- `time` for `Handsontable.validators.TimeValidator`
+## Registering custom cell validator
 
-This provides users with a convenient way for defining which validator should be used when table validation is triggered. The user doesn't need to know which validator function is responsible for checking the cell value, or indeed that there is any function at all. You can change a validator function associated with an alias without the need to change the code that defines a table.
+To register your own alias use `Handsontable.validators.registerValidator()` function. It takes two arguments:
 
-To register your own alias use the `Handsontable.validators.registerValidator()` function. It takes two arguments:
+* `validatorName` - a string representing a validator function
+* `validator` - a validator function that will be represented by `validatorName`
 
-- `validatorName` - a string representing a validator function
-- `validator` - a validator function that will be represented by `validatorName`
-
-For example, if you'd like to register `creditCardValidator` under the alias `credit-card`, you need to call:
+If you'd like to register `creditCardValidator` under alias `credit-card` you have to call:
 
 ```js
 Handsontable.validators.registerValidator('credit-card', creditCardValidator);
 ```
 
-If you register your validator under a name that is already registered, the target function will be overwritten:
+Choose aliases wisely. If you register your validator under name that is already registered, the target function will be overwritten:
 
 ```js
 Handsontable.validators.registerValidator('date', creditCardValidator);
-
-// Now 'date' alias points to `creditCardValidator` function, not Handsontable.validators.DateValidator
 ```
+Now 'date' alias points to `creditCardValidator` function, not `Handsontable.validators.DateValidator`.
 
-Unless you intentionally want to overwrite an existing alias, try to choose a unique name. It is good practice to prefix your aliases with a custom name, e.g., your GitHub username, to minimize the possibility of name collisions. This is especially important if you want to publish your validator, as name collisions could easily occur when users register aliases when using your validator.
+
+So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your validator, because you never know aliases has been registered by the user who uses your validator.
 
 ```js
 Handsontable.validators.registerValidator('credit-card', creditCardValidator);
-
-// Someone might have already registered this alias
 ```
+
+Someone might already registered such alias.
 
 ```js
 Handsontable.validators.registerValidator('my.credit-card', creditCardValidator);
-
-// That's better.
 ```
+
+That's better.
 
 ## Using an alias
 
-The final step is to write the registered aliases so that users can easily refer to them without the need to know what the actual validator function is.
+The final touch is to using the registered aliases, so that users can easily refer to it without the need to now the actual validator function is.
 
-A well prepared validator function should look like this:
+To sum up, a well prepared validator function should look like this:
 
 ```js
-(function(Handsontable){
+(Handsontable => {
   function customValidator(query, callback) {
     // ...your custom logic of the validator
 
@@ -77,79 +74,81 @@ A well prepared validator function should look like this:
 })(Handsontable);
 ```
 
-Once created, you can use the `customValidator` like this:
+From now on, you can use `customValidator` like so:
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
-  data: someData,
-  columns: [
-    {
-      validator: 'my.custom'
-    }
-  ]
+const container = document.querySelector('#container')
+const hot = new Handsontable(container, {
+  columns: [{
+    validator: 'my.custom'
+  }]
 });
 ```
 
 ## Full featured example
 
-Use the [**validator**](api/dataMap/metaManager/metaSchema.md#validator) method to easily validate synchronous or asynchronous changes to a cell. If you need more control, the **beforeValidate** and **afterValidate** plugin [hooks](api/pluginHooks.md#beforevalidate) are available. In the example below, `email_validator_fn` is an async validator that resolves after 1000 ms.
+Use the **validator**  method to easily validate synchronous or asynchronous changes to a cell. If you need more control, **beforeValidate** and **afterValidate** plugin hooks are available. In the below example, `email_validator_fn` is an async validator that resolves after 1000 ms.
 
-Use the **allowInvalid** [option](api/dataMap/metaManager/metaSchema.md#allowinvalid) to define if the grid should accept input that is invalid. If you need to modify the input, e.g., censor bad words, uppercase first letter, use the plugin [hook](api/pluginHooks.md#beforechange) **beforeChange**.
+Use the **allowInvalid** option to define if the grid should accept input that does not validate. If you need to modify the input (e.g. censor bad words, uppercase first letter), use the plugin hook **beforeChange**.
 
-By default, all invalid cells are defined as a `htInvalid` CSS class. If you want to change the class, add the [`invalidCellClassName`](api/dataMap/metaManager/metaSchema.md#invalidcellclassname) option to the Handsontable settings. For example:
+By default, all invalid cells are marked by `htInvalid` CSS class. If you want to change class to another you can basically add the `invalidCellClassName` option to Handsontable settings. For example:
 
+For whole table
 ```js
-// For the entire table
-invalidCellClassName: 'myInvalidClass',
+invalidCellClassName: 'myInvalidClass'
+```
 
-
-// For specified columns
+For specific columns
+```js
 columns: [
-  {data: 'firstName', invalidCellClassName: 'myInvalidClass'},
-  {data: 'lastName', invalidCellClassName: 'myInvalidSecondClass'},
-  {data: 'address'},
+  { data: 'firstName', invalidCellClassName: 'myInvalidClass' },
+  { data: 'lastName', invalidCellClassName: 'myInvalidSecondClass' },
+  { data: 'address' }
 ]
 ```
 
-<pre id="example1console"></pre>
+Callback console log:
 
-::: example #example1
+::: example #example1 --js 2 --html 1
+```html
+<div id="example1"></div>
+<pre class="language-js">
+  <code id="example1console">Here you will see the log</code>
+</pre>
+```
 ```js
-var people = [
-  {id: 1, name: {first: 'Joe', last: 'Fabiano'}, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com'},
-  {id: 2, name: {first: 'Fred', last: 'Wecler'}, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com'},
-  {id: 3, name: {first: 'Steve', last: 'Wilson'}, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com'},
-  {id: 4, name: {first: 'Maria', last: 'Fernandez'}, ip: '0.0.0.1', email: 'M.Fernandez@ex.com'},
-  {id: 5, name: {first: 'Pierre', last: 'Barbault'}, ip: '0.0.0.1', email: 'Pierre.Barbault@ex.com'},
-  {id: 6, name: {first: 'Nancy', last: 'Moore'}, ip: '0.0.0.1', email: 'Nancy.Moore@ex.com'},
-  {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, ip: '0.0.0.1', email: 'B.MacDonald@ex.com'},
-  {id: 8, name: {first: 'Wilma', last: 'Williams'}, ip: '0.0.0.1', email: 'Wilma.Williams@ex.com'},
-  {id: 9, name: {first: 'Sasha', last: 'Silver'}, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com'},
-  {id: 10, name: {first: 'Don', last: 'Pérignon'}, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com'},
-  {id: 11, name: {first: 'Aaron', last: 'Kinley'}, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com'}
-],
-example1 = document.getElementById('example1'),
-example1console = document.getElementById('example1console'),
-settings1,
-ipValidatorRegexp,
-emailValidator;
+const container = document.querySelector('#example1');
+const console = document.querySelector('#example1console');
 
-ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
-emailValidator = function (value, callback) {
-  setTimeout(function(){
+const ipValidatorRegexp = /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
+
+const emailValidator = (value, callback) => {
+  setTimeout(() => {
     if (/.+@.+/.test(value)) {
       callback(true);
-    }
-    else {
+
+    } else {
       callback(false);
     }
   }, 1000);
 };
 
-settings1 = {
-  data: people,
-  beforeChange: function (changes, source) {
-    for (var i = changes.length - 1; i >= 0; i--) {
+const hot = new Handsontable(container, {
+  data: [
+    {id: 1, name: {first: 'Joe', last: 'Fabiano'}, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com'},
+    {id: 2, name: {first: 'Fred', last: 'Wecler'}, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com'},
+    {id: 3, name: {first: 'Steve', last: 'Wilson'}, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com'},
+    {id: 4, name: {first: 'Maria', last: 'Fernandez'}, ip: '0.0.0.1', email: 'M.Fernandez@ex.com'},
+    {id: 5, name: {first: 'Pierre', last: 'Barbault'}, ip: '0.0.0.1', email: 'Pierre.Barbault@ex.com'},
+    {id: 6, name: {first: 'Nancy', last: 'Moore'}, ip: '0.0.0.1', email: 'Nancy.Moore@ex.com'},
+    {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, ip: '0.0.0.1', email: 'B.MacDonald@ex.com'},
+    {id: 8, name: {first: 'Wilma', last: 'Williams'}, ip: '0.0.0.1', email: 'Wilma.Williams@ex.com'},
+    {id: 9, name: {first: 'Sasha', last: 'Silver'}, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com'},
+    {id: 10, name: {first: 'Don', last: 'Pérignon'}, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com'},
+    {id: 11, name: {first: 'Aaron', last: 'Kinley'}, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com'}
+  ],
+  beforeChange(changes, source) {
+    for (let i = changes.length - 1; i >= 0; i--) {
       // gently don't accept the word "foo" (remove the change at index i)
       if (changes[i][3] === 'foo') {
         changes.splice(i, 1);
@@ -166,30 +165,24 @@ settings1 = {
       }
     }
   },
-  afterChange: function (changes, source) {
+  afterChange(changes, source) {
     if (source !== 'loadData') {
-      example1console.innerText = JSON.stringify(changes);
+      console.innerText = JSON.stringify(changes);
     }
   },
-  rowHeaders: true,
-  contextMenu: true,
   colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
-    {data: 'id', type: 'numeric'},
-    {data: 'name.first'},
-    {data: 'name.last'},
-    {data: 'ip', validator: ipValidatorRegexp, allowInvalid: true},
-    {data: 'email', validator: emailValidator, allowInvalid: false}
+    { data: 'id', type: 'numeric' },
+    { data: 'name.first' },
+    { data: 'name.last' },
+    { data: 'ip', validator: ipValidatorRegexp, allowInvalid: true },
+    { data: 'email', validator: emailValidator, allowInvalid: false }
   ]
-};
-
-var hot = new Handsontable(example1, settings1);
+});
 ```
 :::
 
-Callback console: `[[row, col, oldValue, newValue], ...]`
-
 Edit the above grid to see callback
 
-**Note:** Please keep in mind that changes in the table are applied after running **all validators**, both synchronous and asynchronous, from **all** changed cells.
+**Note:** Please keep in mind that changes in table are applied after running **all validators** (both synchronous and and asynchronous) from **every** changed cells.

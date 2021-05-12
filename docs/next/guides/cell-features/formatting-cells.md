@@ -19,22 +19,23 @@ A cell can be formatted either using a `CSS` attribute or with a style applied d
 
 In this example we first add a custom class `custom-class` to the cell in the top left corner.
 
+::: example #example1 --css 1 --js 2
 ```css
 .custom-class {
   color: #fff;
   background-color: #37bc6c;
 }
 ```
-
-::: example #example
 ```javascript
-var example = document.getElementById('example');
-var hot = new Handsontable(example, {
+const container = document.querySelector('#example1');
+
+const hot = new Handsontable(container, {
  data: Handsontable.helper.createSpreadsheetData(5, 5),
  rowHeaders: true,
  colHeaders: true,
  stretchH: 'all',
- licenseKey: 'non-commercial-and-evaluation'
+ licenseKey: 'non-commercial-and-evaluation', 
+ //todo lack of setting css class
 });
 ```
 :::
@@ -43,15 +44,17 @@ var hot = new Handsontable(example, {
 
 You can pass the styles in the `Settings` object by referencing the target cells.
 
-::: example #example1
+::: example #example2
 ```javascript
-var example1 = document.getElementById('example1');
-var hot1 = new Handsontable(example1, {
+const container = document.querySelector('#example2');
+
+const hot1 = new Handsontable(container, {
  data: Handsontable.helper.createSpreadsheetData(5, 5),
  rowHeaders: true,
  colHeaders: true,
  stretchH: 'all',
  licenseKey: 'non-commercial-and-evaluation'
+ //todo lack of setting borders
 });
 ```
 :::
@@ -65,12 +68,11 @@ To initialize Handsontable with predefined custom borders, provide the cell coor
 - with row/col pairs: `{row: 2, col: 2, left: { /*...*/ }}`
 - or with range details: `{range: {from: {row: 1, col: 1}, to:{row: 3, col: 4}}, left: { /*...*/ }}`
 
-::: example #example2
+::: example #example3
 ```js
-var container2 = document.getElementById('example2'),
-  hot2;
+const container = document.getElementById('example3');
 
-hot2 = Handsontable(container2, {
+const hot = Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 6),
   rowHeaders: true,
   colHeaders: true,

@@ -447,6 +447,7 @@ export default () => {
      * @memberof Options#
      * @type {Array[]}
      * @default []
+     * @category Core
      *
      * @example
      * ```js
@@ -2683,7 +2684,7 @@ export default () => {
      * @memberof Options#
      * @type {object[]|Function}
      * @default undefined
-     * @category Core
+     * @category ColumnSummary
      *
      * @example
      * ```js

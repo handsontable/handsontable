@@ -58,18 +58,20 @@ To properly use the internationalization feature, you'll need to load the langua
 
 Please right click on a cell to see the translated context menu. Language files were loaded after loading Handsontable.
 
-::: example #example1
+::: example #example1 :hot-lang
 ```js
-var dataObj = [
+const container = document.querySelector('#example1');
+
+const data = [
   ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
   ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
   ['Pellentesque', 'vulputate', 'leo', 'semper', '10/23/2015', 26],
   ['diam', 'et', 'malesuada', 'libero', '12/1/2014', 98],
   ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
 ];
-var example1 = document.getElementById('example1');
-var hot = new Handsontable(example1, {
-  data: dataObj,
+
+const hot = new Handsontable(container, {
+  data,
   contextMenu: true,
   language: 'pl-PL',
   licenseKey: 'non-commercial-and-evaluation'
@@ -203,15 +205,15 @@ You can see a full template of a sample language at the bottom of this paragraph
 
 You can register a language dictionary which is not a part of the `Handsontable` package. To do so, use the static `Handsontable.languages.registerLanguageDictionary` method and the static constant `Handsontable.languages.dictionaryKeys` which are described briefly in the next section.
 
-    ```js
-    const C = Handsontable.languages.dictionaryKeys;
+```js
+const C = Handsontable.languages.dictionaryKeys;
 
-    Handsontable.languages.registerLanguageDictionary({
-      languageCode: 'morse',
-      // Your translation in the Morse code
-      [C.FILTERS_BUTTONS_OK]: '--- -•-'
-    });
-    ```
+Handsontable.languages.registerLanguageDictionary({
+  languageCode: 'morse',
+  // Your translation in the Morse code
+  [C.FILTERS_BUTTONS_OK]: '--- -•-'
+});
+```
 
 ## Using custom keys in the translation
 

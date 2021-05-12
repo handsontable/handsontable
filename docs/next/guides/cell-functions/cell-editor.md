@@ -137,7 +137,7 @@ Returns: `Function` - a class function that inherits from the current class. The
 **Example** - inheriting from `BaseEditor` and overriding its method
 
 ```js
-var CustomEditor = Handsontable.editors.BaseEditor.prototype.extend();
+const CustomEditor = Handsontable.editors.BaseEditor.prototype.extend();
 
 // This won't alter BaseEditor.prototype.beginEditing()
 CustomEditor.prototype.beginEditing = function() {};
@@ -146,7 +146,7 @@ CustomEditor.prototype.beginEditing = function() {};
 **Example** - inheriting from another editor
 
 ```js
-var CustomTextEditor = Handsontable.editors.TextEditor.prototype.extend();
+const CustomTextEditor = Handsontable.editors.TextEditor.prototype.extend();
 
 // CustomTextEditor uses all methods implemented by TextEditor.
 // You can safely override any method without affecting original TextEditor.
@@ -176,20 +176,18 @@ Method should set editor value to `newValue`.
 
 ```js
 class CalendarEditor extends TextEditor {
-  /**
-  * @param {Core} hotInstance Handsontable instance
-  * @private
-  */
   constructor(hotInstance) {
     super(hotInstance);
   }
 
   getValue() {
-    return calendar.getDate(); // returns currently selected date, for example "2013/09/15"
+    // returns currently selected date, for example "2023/09/15"
+    return calendar.getDate(); 
   }
 
   setValue() {
-    calendar.highlightDate(newValue); // highlights given date on calendar
+    // highlights given date on calendar
+    calendar.highlightDate(newValue); 
   }
 }
 ```
@@ -238,31 +236,16 @@ This method does not need to return any value.
 
 ### Common editor properties
 
-All of the undermentioned properties are available in editor instance through `this` object (e.g. `this.instance`).
+All the undermentioned properties are available in editor instance through `this` object (e.g. `this.instance`).
 
-#### instance \`Object:Handsontable.Core'
-
-The instance of Handsontable to which this editor object belongs. Set in class constructor, immutable thorough the whole lifecycle of editor.
-
-#### row `Number`
-
-The active cell row index. Updated on every `prepare()` method call.
-
-#### col `Number`
-
-The active cell col index. Updated on every `prepare()` method call.
-
-#### prop `String`
-
-The property name associated with active cell (relevant only when data source is an array of objects). Updated on every `prepare()` method call.
-
-#### TD `HTMLTableCellNode`
-
-Node object of active cell. Updated on every `prepare()` method call.
-
-#### cellProperties 'Object'
-
-An object representing active cell properties. Updated on every `prepare()` method call.
+ Property | Type        | Description
+----------|-------------|-------------
+ instance | `Handsontable.Core` | The instance of Handsontable to which this editor object belongs. Set in class constructor, immutable thorough the whole lifecycle of editor.
+row | `Number` | The active cell row index. Updated on every `prepare()` method call.
+col | `Number` | The active cell col index. Updated on every `prepare()` method call.
+prop | `String` | The property name associated with active cell (relevant only when data source is an array of objects). Updated on every `prepare()` method call.
+TD | `HTMLTableCellNode` | Node object of active cell. Updated on every `prepare()` method call.
+cellProperties | `Object` | An object representing active cell properties. Updated on every `prepare()` method call.
 
 ## How to create a custom editor?
 
@@ -289,7 +272,7 @@ class PasswordEditor extends Handsontable.editors.TextEditor {
 
     this.TEXTAREA = this.hot.rootDocument.createElement('input');
     this.TEXTAREA.setAttribute('type', 'password');
-    this.TEXTAREA.setAttribute('data-hot-input', true);; // Makes the element recognizable by HOT as its own component's element.
+    this.TEXTAREA.setAttribute('data-hot-input', true); // Makes the element recognizable by HOT as its own component's element.
     this.textareaStyle = this.TEXTAREA.style;
     this.textareaStyle.width = 0;
     this.textareaStyle.height = 0;
@@ -303,15 +286,17 @@ class PasswordEditor extends Handsontable.editors.TextEditor {
 That's it! You can now use your new editor:
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
-  data: someData,
+const container = document.querySelector('#container')
+
+const hot = new Handsontable(container, {
   columns: [
     {
       type: 'text'
     },
     {
       editor: PasswordEditor
-      // If you want to use string 'password' instead of passing the actual editor class check out section "Registering editor"
+      // If you want to use string 'password' instead of passing 
+      // the actual editor class check out section "Registering editor"
     }
   ]
 });
@@ -342,7 +327,7 @@ Things to do:
 That's probably the easiest part. All we have to do is call `BaseEditor.prototype.extend()` function which will return a new function class that inherits from `BaseEditor`.
 
 ```js
-var SelectEditor = Handsontable.editors.BaseEditor.prototype.extend();
+const SelectEditor = Handsontable.editors.BaseEditor.prototype.extend();
 ```
 
 Task one: **DONE**
@@ -403,8 +388,9 @@ In the previous step we implemented a function that creates the `<select>` input
 We want to be able to define an option list like this:
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
-  data: someData,
+const container = document.querySelector('#container')
+
+const hot = new Handsontable(container, {
   columns: [
     {
       editor: SelectEditor,
@@ -429,7 +415,7 @@ prepare(row, col, prop, td, originalValue, cellProperties) {
 
   if (typeof selectOptions === 'function') {
     options = this.prepareOptions(selectOptions(this.row, this.col, this.prop));
-    } else {
+  } else {
     options = this.prepareOptions(selectOptions);
   }
 
@@ -456,7 +442,7 @@ prepareOptions(optionsToPrepare) {
       preparedOptions[optionsToPrepare[i]]=optionsToPrepare[i];
     }
 
-  } else if (typeof optionsToPrepare==='object' ) {
+  } else if (typeof optionsToPrepare === 'object') {
     preparedOptions=optionsToPrepare;
   }
 
@@ -609,11 +595,8 @@ Task four: **DONE**
 At this point we should have an editor that is ready to use. Put the code somewhere in your page and pass `SelectEditor` class function as value of `editor` property.
 
 ```js
-/*
-  * PLACE EDITOR CODE HERE
-  */
-var hot = new Handsontable(document.getElementById('container'), {
-  data: someData,
+const container = document.querySelector('#container')
+const hot = new Handsontable(container, {
   columns: [
     {},
     {
@@ -712,22 +695,23 @@ Choose aliases wisely. If you register your editor under name that is already re
 
 ```js
 Handsontable.editors.registerEditor('text', MyNewTextEditor);
-
-// Now 'text' alias points to MyNewTextEditor class, not Handsontable.editors.TextEditor
 ```
+
+Now 'text' alias points to MyNewTextEditor class, not `Handsontable.editors.TextEditor`.
 
 So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your editor, because you never know aliases has been registered by the user who uses your editor.
 
 ```js
 Handsontable.editors.registerEditor('select', SelectEditor);
-
-// Someone might already registered such alias
 ```
+
+Someone might already registered such alias.
+
 ```js
 Handsontable.editors.registerEditor('my.select', SelectEditor);
-
-// That's better.`
 ```
+
+That's better.
 
 ## Preparing editor for publication
 
@@ -738,8 +722,8 @@ If you plan to publish your editor or just want to keep your code nice and clean
 Put your code in a module, to avoid polluting the global namespace. You can use AMD, CommonJS or any other module pattern, but the easiest way to isolate your code is to use plain immediately invoked function expression (IIFE).
 
 ```js
-(function(Handsontable){
-  var CustomEditor = Handsontable.editors.BaseEditor.prototype.extend();
+(Handsontable => {
+  const CustomEditor = Handsontable.editors.BaseEditor.prototype.extend();
 
   // ...rest of the editor code
 
@@ -753,8 +737,8 @@ Passing `Handsontable` namespace as argument is optional (as it is defined globa
 Code enclosed in IIFE cannot be accessed from outside, unless it's intentionally exposed. To keep things well organized register your editor to the collection of editors using `Handsontable.editors.registerEditor` method. This way you can use your editor during table definition and other users will have an easy access to your editor, in case they would like to extend it.
 
 ```js
-(function(Handsontable){
-  var CustomEditor = Handsontable.editors.BaseEditor.prototype.extend();
+(Handsontable => {
+  const CustomEditor = Handsontable.editors.BaseEditor.prototype.extend();
 
   // ...rest of the editor code
 
@@ -767,20 +751,18 @@ Code enclosed in IIFE cannot be accessed from outside, unless it's intentionally
 From now on, you can use `CustomEditor` like so:
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
-  data: someData,
-  columns: [
-    {
-      editor: Handsontable.editors.CustomEditor
-    }
-  ]
+const container = document.querySelector('#container');
+const hot = new Handsontable(container, {
+  columns: [{
+    editor: Handsontable.editors.CustomEditor
+  }]
 });
 ```
 
 Extending your `CustomEditor` is also easy.
 
 ```js
-var AnotherEditor = Handsontable.editors.getEditor('custom').prototype.extend();
+const AnotherEditor = Handsontable.editors.getEditor('custom').prototype.extend();
 ```
 
 Keep in mind, that there are no restrictions to the name you choose, but choose wisely and do not overwrite existing editors. Try to keep the names unique.
@@ -792,8 +774,8 @@ The final touch is to register your editor under some alias, so that users can e
 To sum up, a well prepared editor should look like this:
 
 ```js
-(function(Handsontable){
-  var CustomEditor = Handsontable.editors.BaseEditor.prototype.extend();
+(Handsontable => {
+  const CustomEditor = Handsontable.editors.BaseEditor.prototype.extend();
 
   // ...rest of the editor code
 
@@ -809,12 +791,10 @@ To sum up, a well prepared editor should look like this:
 From now on, you can use `CustomEditor` like so:
 
 ```js
-var hot = new Handsontable(document.getElementById('container'), {
-  data: someData,
-  columns: [
-    {
-      editor: 'theBestEditor'
-    }
-  ]
+const container = document.querySelector('#container')
+const hot = new Handsontable(container, {
+  columns: [{
+    editor: 'theBestEditor'
+  }]
 });
 ```

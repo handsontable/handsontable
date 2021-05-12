@@ -28,26 +28,26 @@ Import the Handsontable styles to your project.
 Use Handsontable for React component in your app.
 
 ```jsx
-import React from 'react';
 import { HotTable } from '@handsontable/react';
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.data = [
-      ["", "Tesla", "Volvo", "Toyota", "Honda"],
-      ["2020", 10, 11, 12, 13],
-      ["2021", 20, 11, 14, 13],
-      ["2022", 30, 15, 12, 13]
-    ];
-  }
+const hotData = [
+  ["", "Tesla", "Volvo", "Toyota", "Honda"],
+  ["2020", 10, 11, 12, 13],
+  ["2021", 20, 11, 14, 13],
+  ["2022", 30, 15, 12, 13]
+];
 
-  render() {
-    return (
-      <div id="hot-app">
-        <HotTable data={this.data} colHeaders={true} rowHeaders={true} width="600" height="300" />
-      </div>
-    );
-  }
+const App = () => {
+  return (
+    <div id="hot-app">
+      <HotTable
+        data={hotData}
+        colHeaders={true}
+        rowHeaders={true}
+        width="600"
+        height="300"
+      />
+    </div>
+  );
 }
 ```

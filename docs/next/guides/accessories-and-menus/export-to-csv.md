@@ -20,9 +20,9 @@ The plugin allows you to export data from Handsontable into a `CSV` file.
 
 The plugin exposes the following methods to export data.
 
-* [**downloadFile(format, options)**](api/plugins/exportFile/exportFile.md#downloadFile) - allows you to generate a downloadable file, directly in your browser.
-* [**exportAsBlob(format, options)**](api/plugins/exportFile/exportFile.md#exportAsBlob) - allows you to export a JavaScript Blob object.
-* [**exportAsString(format, options)**](api/plugins/exportFile/exportFile.md#exportAsString) - allows you to export data as a string.
+* [**downloadFile(format, options)**](@/api/exportFile.md#downloadFile) - allows you to generate a downloadable file, directly in your browser.
+* [**exportAsBlob(format, options)**](@/api/exportFile.md#exportAsBlob) - allows you to export a JavaScript Blob object.
+* [**exportAsString(format, options)**](@/api/exportFile.md#exportAsString) - allows you to export data as a string.
 
 All of them accept the same arguments:
 
@@ -134,12 +134,16 @@ Default value: `false`
 
 ### Export to file
 
+::: example #example1 --html 1 --js 2
+```html
+<div id="example1" class="hot"></div>
 <button id="export-file">Download CSV</button>
-
-::: example #example1
+```
 ```js
-var container1 = document.getElementById('example1');
-var hot1 = new Handsontable(container1, {
+const container = document.querySelector('#example1');
+const button = document.querySelector('#export-file');
+
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(7, 7),
   colHeaders: true,
   rowHeaders: true,
@@ -147,10 +151,10 @@ var hot1 = new Handsontable(container1, {
   hiddenColumns: { columns: [1, 3, 5], indicators: true },
   licenseKey: 'non-commercial-and-evaluation'
 });
-var button1 = document.getElementById('export-file');
-var exportPlugin1 = hot1.getPlugin('exportFile');
 
-button1.addEventListener('click', function() {
+const exportPlugin1 = hot.getPlugin('exportFile');
+
+button.addEventListener('click', () => {
   exportPlugin1.downloadFile('csv', {
     bom: false,
     columnDelimiter: ',',
@@ -171,12 +175,16 @@ button1.addEventListener('click', function() {
 
 Open a console in browser developer tools to see the result for the below example.
 
+::: example #example2 --html 1 --js 2
+```html
+<div id="example2" class="hot"></div>
 <button id="export-blob">Export as a Blob</button>
-
-::: example #example2
+```
 ```js
-var container2 = document.getElementById('example2');
-var hot2 = new Handsontable(container2, {
+const container = document.querySelector('#example2');
+const button = document.querySelector('#export-blob');
+
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(7, 7),
   colHeaders: true,
   rowHeaders: true,
@@ -184,11 +192,11 @@ var hot2 = new Handsontable(container2, {
   hiddenColumns: { columns: [1, 3, 5], indicators: true },
   licenseKey: 'non-commercial-and-evaluation'
 });
-var button2 = document.getElementById('export-blob');
-var exportPlugin2 = hot2.getPlugin('exportFile');
 
-button2.addEventListener('click', function() {
-  var exportedBlob = exportPlugin2.exportAsBlob('csv', {
+const exportPlugin2 = hot.getPlugin('exportFile');
+
+button.addEventListener('click', () => {
+  const exportedBlob = exportPlugin2.exportAsBlob('csv', {
     bom: false,
     columnDelimiter: ',',
     columnHeaders: false,
@@ -208,12 +216,16 @@ button2.addEventListener('click', function() {
 
 Open a console in browser developer tools to see the result for the below example.
 
+::: example #example3 --html 1 --js 2
+```html
+<div id="example3" class="hot"></div>
 <button id="export-string">Export as a string</button>
-
-::: example #example3
+```
 ```js
-var container3 = document.getElementById('example3');
-var hot3 = new Handsontable(container3, {
+const container = document.querySelector('#example3');
+const button = document.querySelector('#export-string');
+
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(7, 7),
   colHeaders: true,
   rowHeaders: true,
@@ -221,18 +233,18 @@ var hot3 = new Handsontable(container3, {
   hiddenColumns: { columns: [1, 3, 5], indicators: true },
   licenseKey: 'non-commercial-and-evaluation'
 });
-var button3 = document.getElementById('export-string');
-var exportPlugin3 = hot3.getPlugin('exportFile');
 
-button3.addEventListener('click', function() {
-  var exportedString = exportPlugin3.exportAsString('csv', {
-      bom: false,
-      columnDelimiter: ',',
-      columnHeaders: false,
-      exportHiddenColumns: true,
-      exportHiddenRows: true,
-      rowDelimiter: '\r\n',
-      rowHeaders: true
+const exportPlugin3 = hot.getPlugin('exportFile');
+
+button.addEventListener('click', () => {
+  const exportedString = exportPlugin3.exportAsString('csv', {
+    bom: false,
+    columnDelimiter: ',',
+    columnHeaders: false,
+    exportHiddenColumns: true,
+    exportHiddenRows: true,
+    rowDelimiter: '\r\n',
+    rowHeaders: true
   });
 
   console.log(exportedString);

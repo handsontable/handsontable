@@ -9,11 +9,7 @@ canonicalUrl: /react-setting-up-a-locale
 
 An example of Handsontable with locales setup in React.
 
-::: example #example1 :react-numbro --html 1 --js 2
-```html
-<!-- a root div where the component is rendered -->
-<div id="example1" class="hot"></div>
-```
+::: example #example1 :react-numbro
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -39,55 +35,48 @@ const formatTR = {
   culture: 'tr-TR'
 };
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      hotSettings: {
-        data: [
-          {
-            productName: 'Product A',
-            JP_price: 1.32,
-            TR_price: 100.56
-          },
-          {
-            productName: 'Product B',
-            JP_price: 2.22,
-            TR_price: 453.5
-          },
-          {
-            productName: 'Product C',
-            JP_price: 3.1,
-            TR_price: 678.1
-          }
-        ],
-        autoRowSize: false,
-        autoColumnSize: false,
-        colHeaders: ['Product name', 'Price in Japan', 'Price in Turkey'],
-        licenseKey: 'non-commercial-and-evaluation'
-      }
-    };
-  }
+const hotSettings = {
+  data: [
+    {
+      productName: 'Product A',
+      JP_price: 1.32,
+      TR_price: 100.56
+    },
+    {
+      productName: 'Product B',
+      JP_price: 2.22,
+      TR_price: 453.5
+    },
+    {
+      productName: 'Product C',
+      JP_price: 3.1,
+      TR_price: 678.1
+    }
+  ],
+  autoRowSize: false,
+  autoColumnSize: false,
+  colHeaders: ['Product name', 'Price in Japan', 'Price in Turkey'],
+  licenseKey: 'non-commercial-and-evaluation'
+}
 
-  render() {
-    return (
-      <HotTable settings={this.state.hotSettings}>
-        <HotColumn data="productName" type="text" width="120" />
-        <HotColumn
-          data="JP_price"
-          type="numeric"
-          numericFormat={formatJP}
-          width="120"
-        />
-        <HotColumn
-          data="TR_price"
-          type="numeric"
-          numericFormat={formatTR}
-          width="120"
-        />
-      </HotTable>
-    );
-  }
+const App = () => {
+  return (
+    <HotTable settings={hotSettings}>
+      <HotColumn data="productName" type="text" width="120" />
+      <HotColumn
+        data="JP_price"
+        type="numeric"
+        numericFormat={formatJP}
+        width="120"
+      />
+      <HotColumn
+        data="TR_price"
+        type="numeric"
+        numericFormat={formatTR}
+        width="120"
+      />
+    </HotTable>
+  )
 }
 
 ReactDOM.render(<App />, document.getElementById('example1'));
