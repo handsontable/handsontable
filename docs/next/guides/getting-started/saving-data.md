@@ -10,9 +10,12 @@ tags:
 
 [[toc]]
 
+## Overview
+Persistent state storage is particularly useful when running multiple instances of Handsontable on one page as it allows data separation per each instance.
+
 ## Saving changes using a callback
 
-Use the **afterChange** callback to track changes made in the data grid. In the example below, Ajax is used to load and save the data. Note that this is just a mockup and nothing is actually saved. You need to implement the server-side part by yourself.
+Use the **afterChange** callback to track changes made in the data grid. In the example below, Ajax is used to load and save the data. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
 
 <div class="controls">
   <button id="load" class="button button--primary button--blue">Load data</button>&nbsp;
@@ -125,7 +128,7 @@ function ajax(url, method, params, callback) {
 
 ## Saving data locally
 
-You can save any sort of data in local storage to preserve the table state after page reloads. In order to enable the data storage mechanism, the `persistentState` option must be set to `true`. You can set it either during the Handsontable initialization or using the `updateSettings` method.
+You can save any type of data in local storage to preserve the table state after page reloads. The `persistentState` option must be set to `true` to enable the data storage mechanism. You can set it either during the Handsontable initialization or using the `updateSettings` method.
 
 When `persistentState` is enabled it exposes hooks listed below:
 
@@ -135,6 +138,6 @@ When `persistentState` is enabled it exposes hooks listed below:
 
 ## `persistentState` vs `LocalStorage API`
 
-The main reason behind using `persistentState` hooks rather than a regular LocalStorage API is that it ensures separation of data stored by multiple Handsontable instances. In other words, if you have two or more instances of Handsontable on one page, data saved by one instance will be inaccessible to the second instance. Those two instances can store data under the same key and no data would be overwritten.
+The main benefit of using `persistentState` hooks rather than a regular `LocalStorage API` is that it ensures separation of data stored by multiple Handsontable instances. For example, if you have two or more instances of Handsontable on one page, data saved by one instance will be inaccessible to the second instance. Those two instances can store data under the same key, and no data would be overwritten.
 
-In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
+For the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.

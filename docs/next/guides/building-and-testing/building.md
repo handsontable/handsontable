@@ -10,7 +10,13 @@ tags:
 
 [[toc]]
 
-The build process is using [Webpack](https://webpack.js.org/), [Babel](https://babeljs.io/) and as well as npm tasks listed in [package.json](https://github.com/handsontable/handsontable/blob/master/package.json). During this process, the source located in the `src/*` directory are transformed into the output files:
+## Overview
+
+This guide provides detailed steps for building Handsontable and outlines the tasks that are available to be run.
+
+## Introduction
+
+The build process uses [Webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/) as well as npm tasks listed in [package.json](https://github.com/handsontable/handsontable/blob/master/package.json). During this process, the source files located in the `src/*` directory are transformed into the output files:
 
 * `./dist/handsontable.js`
 * `./dist/handsontable.css`
@@ -20,14 +26,14 @@ The build process is using [Webpack](https://webpack.js.org/), [Babel](https://b
 * `./dist/handsontable.full.min.css`
 * `./dist/languages/*`
 
-More info about dist packages can be found [here](https://github.com/handsontable/handsontable/blob/master/dist/README.md). It is advised that you never modify the above-mentioned files but rather make changes in the `src/` directory and then run a proper build. This is especially important if you want to contribute your changes back to Handsontable by making a pull request.
+More info about dist packages can be found [here](https://github.com/handsontable/handsontable/blob/master/dist/README.md). It is advised that you never modify the files mentioned above. Instead, make changes in the `src/` directory and then run a proper build. This is especially important if you want to contribute your changes back to Handsontable by making a pull request.
 
-## NPM tasks
+## npm tasks
 
 Currently, the following tasks are available for building Handsontable:
 
 * `npm run test` - runs several tasks in this order:
-  * `npm run lint` - check if changes applied into source code are valid with [our code style](https://github.com/handsontable/handsontable/blob/master/.eslintrc) (inspired by [Airbnb JavaScript Style](https://github.com/airbnb/javascript)).
+  * `npm run lint` - check if changes applied to the source code adhere to [our code style](https://github.com/handsontable/handsontable/blob/master/.eslintrc).
   * `npm run test:unit` - runs the test suite in node environment. It uses [Jest](https://facebook.github.io/jest/) as a test runner.
   * `npm run test:types` - runs the tests which check if the code follows TypeScript definition.
   * `npm run test:walkontable` - runs a single build of Walkontable (the Handsontable renderer engine) followed by Jasmine test suite and executes in [Puppeteer](https://github.com/GoogleChrome/puppeteer).
@@ -46,7 +52,7 @@ Currently, the following tasks are available for building Handsontable:
 
 To run your own build, follow the below steps:
 
-1. Install Node.js (available for Windows, Mac and Linux). This will also install NPM (Node Package Manager) that handles all the dependencies. Handsontable requires **Node.js >=15.11.0** and npm **>=7.1.1** for building and testing.
+1. Install Node.js (available for Windows, macOS, and Linux). This will also install NPM - Node Package Manager, which handles all the dependencies. Handsontable requires **Node.js >=15.11.0** and npm **>=7.1.1** for building and testing.
 2. Clone the Handsontable repository on your local disk and go to the directory where you cloned it.
-3. Run `npm install` to download all the dependencies defined in `package.json`. The dependencies will be downloaded into a new directory `node_modules`, that is ignored by Git.
+3. Run `npm install` to download all the dependencies defined in `package.json`. The dependencies will be downloaded into a new directory `node_modules`, which is ignored by Git.
 4. **Run `npm run build` to make your first build!**

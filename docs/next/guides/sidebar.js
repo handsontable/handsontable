@@ -6,7 +6,7 @@ const gettingStartedItems = [
   'guides/getting-started/saving-data',
   'guides/getting-started/setting-options',
   'guides/getting-started/grid-size',
-  'guides/getting-started/using-callbacks',
+  'guides/getting-started/events-and-hooks',
   'guides/getting-started/license-key',
 ];
 

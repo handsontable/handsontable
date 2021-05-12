@@ -90,6 +90,7 @@ $navbar-horizontal-padding = 1.5rem
 .navbar
   padding $navbar-vertical-padding $navbar-horizontal-padding
   line-height $navbarHeight - 1.4rem
+  z-index 2000
   border-color: #e9eef2;
   a, span, img
     display inline-block

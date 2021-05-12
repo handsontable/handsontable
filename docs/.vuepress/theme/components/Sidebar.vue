@@ -29,6 +29,7 @@ export default {
 <style lang="stylus">
   .sidebar
     width 18rem
+    z-index 1000
     border-color #e9eef2
     background-color #fafbff
 

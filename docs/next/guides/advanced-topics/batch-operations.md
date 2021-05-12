@@ -33,17 +33,18 @@ canonicalUrl: /batch-operations
 
 ## Overview
 
-Within Handsontable any CRUD operation ends with a `render`. In most cases, this is considered an expected behavior - eventually, the table has to reflect the requested changes at some point.
+Within Handsontable, every CRUD operation ends with a `render`. In most cases, this is considered expected behaviour. The table has to reflect the requested changes at some point. However, sometimes you may find this mechanism slightly excessive.
 
-However, sometimes you may find this mechanism slightly excessive - for example, you wrote a custom function that uses several CRUD operations. Those CRUD operations will call a render for each API method but essentially, you need only one render at the end which is sufficient to reflect the changes. In this case, you can treat those combined operations as a single action and let the render wait for them to complete. To do so you need to **suspend the render** (batch the operations).
+For example, if you wrote a custom function that uses several CRUD operations, those CRUD operations will call a `render` for each API method. You only need one render at the end, which is sufficient to reflect all the changes. You can treat those combined operations as a single action and let the render wait for them to complete. To do this, use **suspend the render** to batch the operations.
 
 This can improve the overall performance of the application. Batching several operations can decrease the number of renders, so any API call that ends with a render will benefit from this improvement. It results in less layout trashing, fewer freezes, and a more responsive feel.
 
-There are several API methods you can use for suspending but the batch is the most universal one. It is a callback function - the render is executed after all operations provided inside of the body are completed. This is a recommended method as it is more safe and comfortable to use. You just need to place all operations you want to batch inside a closure. Handsontable takes care of the suspending and render a single time in the end.
-The following snippet shows a simple example of a few operations batched. Three API operations are called one after another. Without placing them inside the batch callback each single operation would end with a `render`. Thanks to the batching feature you can skip two renders and end the whole action with one render at the end. This is more optimal, and the gain grows with the number of operations placed inside the `batch`.
+There are several API methods you can use for suspending, but `batch` is the most universal method. It is a callback function where the `render` is executed after all operations provided inside of the body are completed. It is best practice to use this method as it's safer and easier to use. You just need to place all operations that you want to batch inside a closure. Handsontable takes care of the suspending and performs a single `render` at the end.
+
+The following snippet shows a simple example of a few operations batched. Three API operations are called one after another. Without placing them inside the batch callback, every single operation would end with a `render`. Thanks to the batching feature, you can skip two renders and end the whole action with one render at the end. This is more optimal, and the gain increases with the number of operations placed inside the `batch`.
 
 ```js
-// call the method on an instance
+// call the batch method on an instance
 hot.batch(() => {
   // run the operations as needed
   hot.alter('insert_row', 5, 45);
@@ -53,15 +54,16 @@ hot.batch(() => {
 });
 ```
 
-As mentioned - suspending the render results in better performance, this is especially visible for numerous operations batched. The diagram shows a comparison, the same operations were performed with (deep blue columns) and without the batch (light blue columns). The gain in speed of execution time increases with the number of operations batched.
+Suspending the render results in better performance, which is especially noticeable when numerous operations are batched. The diagram shows a comparison where the same operations were performed **with** (deep blue columns) **and without the batch** (light blue columns). The gain in speed of execution time increases with the number of operations batched.
 
 ![batch_operations_comparison](/docs/img/batch_operations_comparison.png)
 
-Note that there are other methods that can be used to batch operations, however they are slightly more advanced and should be used with caution. Flickering, glitches, or other visual distortion may happen when you forget to `resume` render after suspending it several times. Mixing methods of a render type with those focused on operations can also result in some unexpected behavior. Above all, `batch` should be sufficient in most use cases, and it is safe to work with.
+:::tip Note that other methods can be used to batch operations, but they are slightly more advanced and should be used with caution. Flickering, glitches or other visual distortion may happen when you forget to `resume` render after suspending it several times. Mixing methods of a render type with those focused on operations can also result in some unexpected behavior. Above all, `batch` should be sufficient in most use cases, and it is safe to work with.
+:::
 
 ## API methods
 
-There are several **API methods** which allow suspending:
+The following **API methods** allow suspending:
 
 - `batch`
 - `batchRender`
@@ -69,16 +71,16 @@ There are several **API methods** which allow suspending:
 - `suspendRender` and `resumeRender`
 - `suspendExecution` and `resumeExecution`
 
-By using these methods you can suspend:
+By using these methods, you can suspend:
 
 - rendering
 - execution
 - both rendering and the execution.
 
-Term "rendering" refers directly to DOM rendering, the term "execution" refers to all operations that are different from DOM rendering. Currently only the indexes recalculation allows to postpone the process.
+The term "rendering" refers directly to DOM rendering, and the term "execution" refers to all operations that are different from DOM rendering. Currently, only the indexing recalculation allows you to postpone the process.
 
-Methods which names start with **batch\*** prefix, that is: `batch`, `batchRender` and `batchExecution` are recommended to be used as the first choice if **you don't need to batch async operations**.
-Methods which names start with **suspend\*** prefix, that is: `suspendRender` and `suspendExecution` are of the second choice - useful when you need to batch async operations. In essence they work the same as **batch\*** methods but the **render has to be resumed manually**.
+Method names that are prefixed with **batch\***, i.e., `batch`, `batchRender`, and `batchExecution` are recommended to be used as the first choice if **you don't need to batch async operations**.
+Methods names that are prefixed with **suspend\***, i.e., `suspendRender` and `suspendExecution`, are the second choice. These are useful when you need to batch async operations. Essentially they work the same way as **batch\*** methods, but the **render has to be resumed manually**.
 
 ### batch* methods
 
@@ -96,13 +98,13 @@ hot.batch(() => {
   filters.addCondition(2, 'contains', ['3']);
   filters.filter();
   hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
-  // The table cache will be recalculated and table render will be called once after executing the callback
+  // The table cache will be recalculated, and table render will be called once after executing the callback
 });
 ```
 
 #### batchRender
 
-The `batchRender` method is a callback function, excessive renders can be skipped by placing the API calls inside of it. The table will be rendered after executing the callback. It is less prone to errors as you don't have to remember about resuming the render. However, there is a drawback to this method: it doesn't support async operations.
+The `batchRender` method is a callback function. Excessive renders can be skipped by placing the API calls inside it. The table will be rendered after executing the callback. It is less prone to errors as you don't have to remember to resume the render. The only drawback to this method is that it doesn't support async operations.
 
 ```js
 hot.batchRender(() => {
@@ -114,7 +116,7 @@ hot.batchRender(() => {
 
 #### batchExecution
 
-The `batchExecution` is a callback function, excessive renders can be skipped by placing the API calls inside of it. The table will be rendered after executing the callback. It is less prone to errors as you don't have to remember about resuming the operations. However, there is a drawback to this method: it doesn't support async operations.
+The `batchExecution` is a callback function. Excessive renders can be skipped by placing the API calls inside of it. The table will be rendered after executing the callback. It is less prone to errors as you don't have to remember to resume the operations. The only drawback to this method is that it doesn't support async operations.
 
 ```js
 hot.batchExecution(() => {
@@ -131,7 +133,7 @@ hot.batchExecution(() => {
 
 #### suspendRender and resumeRender
 
-To suspend the rendering process you can use `suspendRender` method just before the actions you want to batch. This is a manual approach - after suspending you have to remember to resume the process with the `resumeRender` method.
+To suspend the rendering process, you can call the `suspendRender` method just before the actions you want to batch. This is a manual approach. After suspending, you must remember to resume the process with the `resumeRender` method.
 
 ```js
 hot.suspendRender(); // suspend rendering
@@ -142,7 +144,7 @@ hot.resumeRender(); // remember to resume rendering
 
 #### suspendExecution and resumeExecution
 
-To suspend the rendering process you can use `suspendExecution` method just before the actions you want to batch. This is a manual approach - after suspending you have to remember to resume the process with the `resumeExecution` method.
+To suspend the rendering process, you can call the `suspendExecution` method just before the actions you want to batch. This is a manual approach. After suspending, you must remember to resume the process with the `resumeExecution` method.
 
 ```js
 hot.suspendExecution();
@@ -154,9 +156,9 @@ hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
 hot.resumeExecution(); // It updates the cache internally
 ```
 
-## Live demo of suspend feature
+## Live demo of the suspend feature
 
-The following examples show how much the `batch` method can decrease the render time. Both of the examples share the same dataset and operations. The first one shows how much time lapsed when the `batch` method was used. You can run the second example to check how much it takes to render without the `batch` method.
+The following examples show how much the `batch` method can decrease the render time. Both of the examples share the same dataset and operations. The first one shows how much time lapsed when the `batch` method was used. Run the second example to check how much time it takes to render without the `batch` method.
 
 <p>
   <button id="buttonWithout" className="button button--primary">Run without batch method</button>&nbsp;
@@ -215,7 +217,7 @@ const alterTable = () => {
   hot.alter('remove_row', 10, 10);
   hot.setCellMeta(0, 5, 'className', 'red-bg');
   hot.setCellMeta(10, 5, 'className', 'red-bg');
-  hot.render(); // Render here is needed to populate the new "className"s
+  hot.render(); // Render is needed here to populate the new "className"s
 }
 
 const logOutput = msg => {

@@ -12,9 +12,12 @@ tags:
 
 [[toc]]
 
+## Overview
+The following guide provides information on using a data source and manipulating how the data is displayed in the data grid.
+
 ## Array of arrays
 
-Array of arrays is the most popular choice for the more spreadsheet-like cases in which you need to give the end-user the right to manipulate the grid, eg. inserting columns, rows, decorating cells, and more.
+Array of arrays is the most popular choice for the more grid-like scenarios where you need to provide the end-user with permission to manipulate the grid, e.g., insert columns, delete rows, decorate cells, etc.
 
 ::: example #example1
 ```js
@@ -44,7 +47,7 @@ const hot1 = new Handsontable(container1, {
 
 ## Array of arrays with a selective display of columns
 
-Let's say, you want the same data source, but without the **Tesla** column:
+The following example shows how you would use the array of arrays with a selective display of columns. This scenario uses the same data source as in the previous example, this time omitting the **Tesla** column from the grid.
 
 ::: example #example2
 ```js
@@ -81,7 +84,7 @@ const hot2 = new Handsontable(container, {
 
 ## Array of objects
 
-You can use an **array of objects** as a data source.
+An **array of objects** can be used as a data source as follows:
 
 ::: example #example3
 ```js
@@ -108,7 +111,7 @@ const hot3 = new Handsontable(container3, {
 
 ## Array of objects with column as a function
 
-You can define **columns** as a function. That can be a good choice when you want to bind data more dynamically.
+It is possible to define **columns** as a function. This is good practice when you want to bind data more dynamically.
 
 ::: example #example4 .custom-class
 ```js
@@ -150,7 +153,7 @@ const hot4 = new Handsontable(container4, {
 
 ## Array of objects with column mapping
 
-Some people have nested objects. They can also be used at the data source with a little bit of column mapping. The mapping is done using the **columns** option.
+In a scenario where you have nested objects, you can use them as the data source by mapping the columns using the **columns** option.
 
 ::: example #example5
 ```js
@@ -181,9 +184,9 @@ const hot5 = new Handsontable(container5, {
 
 ## Array of objects with custom data schema
 
-When you use object data binding, Handsontable needs to know the data structure to create when you add a new row. If your data source contains at least one row, Handsontable will figure out the data structure based on the first row.
+When using object data binding, Handsontable needs to know what data structure to create when adding a new row. If your data source contains at least one row, Handsontable will figure out the data structure based on the first row.
 
-In case you want to start with an empty data source, you will need to provide the **dataSchema** option that contains the data structure for any new row added to the grid. The below example shows custom data schema with an empty data source:
+In a scenario where you start with an empty data source, you will need to provide the **dataSchema** option containing the data structure for any new row added to the grid. The example below shows a custom data schema with an empty data source:
 
 ::: example #example6
 ```js
@@ -211,9 +214,9 @@ const hot6 = new Handsontable(container, {
 
 ## Function data source and schema
 
-If your **dataSchema** is actually a constructor of an object that doesn't directly expose its members, you can specify functions for the **data** member of each **columns** item.
+If your **dataSchema** is a constructor of an object that doesn't directly expose its members, you can specify functions for the **data** member of each **columns** item.
 
-The below example shows a small example of using such objects:
+The example below shows how to use such objects:
 
 ::: example #example7
 ```js
@@ -280,11 +283,11 @@ function property(attr) {
 
 ## Understand binding as a reference
 
-Handsontable binds to your data source by reference (not by values, we don't copy input dataset; we rely on the way how JavaScript handle objects). Therefore, all the data entered in the grid will alter the original data source.
+Handsontable binds to your data source by reference, not by values. We don't copy the input dataset, and we rely on JavaScript to handle the objects. Any data entered into the grid will alter the original data source.
 
-**Note:** You should know the fact that Handsontable initialize source data for the table using a reference, but you shouldn't rely on it. For example, you shouldn't change values in source data using the reference to input dataset. Some mechanisms for handling data aren't prepared for changes from the outside, done in this way.
+**Note:** Handsontable initializes the source data for the table using a reference, but you shouldn't rely on it. For example, you shouldn't change values in the source data using the reference to the input dataset. Some mechanisms for handling data aren't prepared for external changes that are made in this way.
 
-If you have to avoid that, copy the data before you pass it to the grid. To change the data from outside Handsontable you can use our API methods, for example a change being made will be displayed immediately on the screen after calling [setDataAtCell](api/core.md#setDataAtCell) method.
+To avoid this scenario, copy the data before you pass it to the grid. To change the data from outside Handsontable, you can use our API methods. For example, a change being made will be displayed immediately on the screen after calling [setDataAtCell](api/core.md#setDataAtCell) method.
 
 ::: example #example9
 ```js
@@ -308,7 +311,7 @@ hot9.setDataAtCell(0, 1, 'Ford');
 
 ## Working with a copy of data
 
-To work with a copy of data for Handsontable, it is suggested to clone the data source before loading it into Handsontable. This can be done with `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
+When working with a copy of data for Handsontable, it is best practice is to clone the data source before loading it into Handsontable. This can be done with `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
 
 ::: example #example10
 ```js

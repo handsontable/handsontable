@@ -1,7 +1,7 @@
 ---
-title: Events and Hooks
-permalink: /next/using-callbacks
-canonicalUrl: /using-callbacks
+title: Events and hooks
+permalink: /next/events-and-hooks
+canonicalUrl: /events-and-hooks
 tags:
 - callback
 - hook
@@ -12,7 +12,7 @@ tags:
 - before
 ---
 
-# Events and Hooks
+# Events and hooks
 
 [[toc]]
 
@@ -269,6 +269,7 @@ const hot2 = new Handsontable(example2, {
   colHeaders: true,
   rowHeaders: true,
   minSpareRows: 1,
+  licenseKey: 'non-commercial-and-evaluation',
   beforeChange: function (changes, source) {
     lastChange = changes;
   }
