@@ -19,9 +19,12 @@ tags:
 
 [[toc]]
 
+## Overview
+Callbacks are used to react before or after actions occur. We refer to them as hooks. Hooks share some characteristics with events and middleware, combining them both in a unique structure. 
+
 ## Events
 
-If you only react to emitted hooks and forget about all their other features you can see hooks as pure events. You would want to limit your scope to `after` prefixed hooks, so they are emitted after something has happened, and the results of the actions are already committed.
+If you only react to emitted hooks and forget about all their other features, you can treat hooks as pure events. You would want to limit your scope to `after` prefixed hooks, so they are emitted after something has happened and the results of the actions are already committed.
 
 ```js
 hot.addHook('afterCreateRow', (row, amount) => {
@@ -31,7 +34,7 @@ hot.addHook('afterCreateRow', (row, amount) => {
 
 ## Middleware
 
-Concept known in JavaScript world from Node.js frameworks such as Express or Koa. A middleware is a callback that can pipe to a process and allow the developer to modify it. We're no longer just reacting to emitted event, but we can influence what's happening inside the component and modify the process.
+Middleware is a concept known in the JavaScript world from Node.js frameworks such as Express or Koa. Middleware is a callback that can pipe to a process and allow the developer to modify it. We're no longer just reacting to an emitted event, but we can influence what's happening inside the component and modify the process.
 
 ```js
 hot.addHook('modifyColWidth', (width, column) => {
@@ -41,15 +44,15 @@ hot.addHook('modifyColWidth', (width, column) => {
 })
 ```
 
-Note that the first argument is the current width that we're going to modify. Later arguments are immutable, additional information that can be used to decide whether the data should be modified.
+Note that the first argument is the current width that we're going to modify. Later arguments are immutable, and additional information can be used to decide whether the data should be modified.
 
 ## Hooks
 
-We're calling them all "hooks" because although, they share some characteristics with events and middleware, they combine them both in an unique structure. We're not the only ones that use hooks convention, so you may already be familiar with the concept.
+We refer to all callbacks as "hooks" because although they share some characteristics with events and middleware, they combine them both in a unique structure. You may already be familiar with the concept as we're not the only ones that use the hooks convention.
 
-Almost all `before` prefixed hooks allow the developer to return `false` and therefore, block the execution of an action. It may be used for validation, rejecting operation by the outside service, or blocking our native algoritm and replace it with a custom implementation.
+Almost all `before` prefixed hooks allow the developer to return `false` and, therefore, block the execution of an action. It may be used for validation, rejecting operation by the outside service, or blocking our native algorithm and replace it with a custom implementation.
 
-A great example for this is our integration with HyperFormula engine. Where creating a new row is only possible if the engine itself will allow it:
+A great example for this is our integration with HyperFormula engine where creating a new row is only possible if the engine itself will allow it:
 
 ```js
 hot.addHook('beforeCreateRow', (row, amount) => {
@@ -59,7 +62,7 @@ hot.addHook('beforeCreateRow', (row, amount) => {
 })
 ```
 
-First argument may be modified and passed further through the hooks that are next in the queue. This characteristic is shared between `after` and `before` hooks but is mostly noticeable with the latter. Before samothing happens we can run the data through a pipeline of hooks that may modify it or reject the operation. This gives you a lot of possibilities to extend the default Handsontable functionalities and customize it for your application. 
+The first argument may be modified and passed on through the hooks that are next in the queue. This characteristic is shared between `before` and `after` hooks but is more common with the former. Before something happens, we can run the data through a pipeline of hooks that may modify or reject the operation. This provides many possibilities to extend the default Handsontable functionality and customize it for your application. 
 
 ## All available hooks example
 
@@ -213,35 +216,37 @@ document.querySelector('#hooksList input[type=checkbox]').addEventListener('clic
 
 ## Definition for `source` argument
 
-It's worth to mention that some of the hooks are triggered from the inside of the Handsontable (Core), and some from the plugins. In some situations it is helpful to know what triggered the callback, if it was done by Handsontable itself, triggered from external code or a user action. That's why in crucial hooks Handsontable delivers `source` as an argument which informs you about who've triggered the action. Thanks to `source` you can create additional conditions based on that information.
+It's worth mentioning that some hooks are triggered from the Handsontable core and some from the plugins. In some situations, it is helpful to know what triggered the callback. Did Handsontable trigger it, or was it triggered by external code or a user action? That's why in crucial hooks, Handsontable delivers `source` as an argument informing you who triggered the action and providing detailed information about the source. Using the information retrieved in the `source`, you can create additional conditions.
 
-`source` argument is optional. It takes following values:
+`source` argument is optional. It takes the following values:
 
-* `auto` - Action triggered by Handsontable and reason for it is related directly with settings applied to Handsontable. For instance `afterCreateRow` will be fired with this when `minSpareRows` will be greater then 0;
-* `edit` - Action triggered by Handsontable after the data has been changed (for example after an edit or using `setData*` methods);
-* `loadData` - Action triggered by Handsontable after the `loadData` or `updateSettings({data: myData})`(with `data` property) method has been called;
-* `populateFromArray` - Action triggered by Handsontable after requesting for populating data;
-* `spliceCol` - Action triggered by Handsontable after the column data splicing has been done;
-* `spliceRow` - Action triggered by Handsontable after the row data splicing has been done;
-* `timeValidate` - Action triggered by Handsontable after the time validator has been called (for example after an edit);
-* `dateValidate` - Action triggered by Handsontable after the date validator has been called (for example after an edit);
-* `validateCells` - Action triggered by Handsontable after the validation process has been triggered;
-* `Autofill.fill` - Action triggered by the AutoFill plugin;
-* `ContextMenu.clearColumns` - Action triggered by the ContextMenu plugin after the "Clear column" has been clicked;
-* `ContextMenu.columnLeft` - Action triggered by the ContextMenu plugin after the "Insert column on the left" has been clicked;
-* `ContextMenu.columnRight` - Action triggered by the ContextMenu plugin after the "Insert column on the right" has been clicked;
-* `ContextMenu.removeColumn` - Action triggered by the ContextMenu plugin after the "Remove column" has been clicked;
-* `ContextMenu.removeRow` - Action triggered by the ContextMenu plugin after the "Remove Row" has been clicked;
-* `ContextMenu.rowAbove` - Action triggered by the ContextMenu plugin after the "Insert row above" has been clicked;
-* `ContextMenu.rowBelow` - Action triggered by the ContextMenu plugin after the "Insert row below" has been clicked;
-* `CopyPaste.paste` - Action triggered by the CopyPaste plugin after the value has been pasted;
-* `ObserveChanges.change` - Action triggered by the ObserveChanges plugin after the changes has been detected;
-* `UndoRedo.redo` - Action triggered by the UndoRedo plugin after the change has been redone;
-* `UndoRedo.undo` - Action triggered by the UndoRedo plugin after the change has been undone;
-* `ColumnSummary.set` - Action triggered by the ColumnSummary plugin after the calculation has been done;
-* `ColumnSummary.reset` - Action triggered by the ColumnSummary plugin after the calculation has been reset.
+| Value | Description  |
+|--|--|
+| `auto` | Action triggered by Handsontable, and the reason for it is related directly to the settings applied to Handsontable. For example, `afterCreateRow` will be fired with this when `minSpareRows` will be greater than 0. |
+| `edit` | Action triggered by Handsontable after the data has been changed, e.g., after an edit or using `setData*` methods.|
+| `loadData` | Action triggered by Handsontable after the `loadData` or `updateSettings({data: myData})` with the `data` property method has been called.|
+| `populateFromArray` | Action triggered by Handsontable after requesting for populating data.|
+| `spliceCol` |Action triggered by Handsontable after the column data splicing has been done.|
+| `spliceRow` | Action triggered by Handsontable after the row data splicing has been done.|
+| `timeValidate` | Action triggered by Handsontable after the time validator has been called, e.g., after an edit.|
+| `dateValidate` | Action triggered by Handsontable after the date validator has been called, e.g., after an edit.|
+| `validateCells` | Action triggered by Handsontable after the validation process has been triggered.|
+| `Autofill.fill` | Action triggered by the AutoFill plugin.|
+| `ContextMenu.clearColumns` | Action triggered by the ContextMenu plugin after the "Clear column" has been clicked.|
+| `ContextMenu.columnLeft` | Action triggered by the ContextMenu plugin after the "Insert column on the left" has been clicked.|
+| `ContextMenu.columnRight` | Action triggered by the ContextMenu plugin after the "Insert column on the right" has been clicked.|
+| `ContextMenu.removeColumn` | Action triggered by the ContextMenu plugin after the "Remove column" has been clicked.|
+| `ContextMenu.removeRow` | Action triggered by the ContextMenu plugin after the "Remove Row" has been clicked.|
+| `ContextMenu.rowAbove` | Action triggered by the ContextMenu plugin after the "Insert row above" has been clicked.|
+| `ContextMenu.rowBelow` | Action triggered by the ContextMenu plugin after the "Insert row below" has been clicked.|
+| `CopyPaste.paste` | Action triggered by the CopyPaste plugin after the value has been pasted.|
+| `ObserveChanges.change` | Action triggered by the ObserveChanges plugin after the changes have been detected.|
+| `UndoRedo.redo` | Action triggered by the UndoRedo plugin after the change has been redone.|
+| `UndoRedo.undo` | Action triggered by the UndoRedo plugin after the change has been undone.|
+| `ColumnSummary.set` | Action triggered by the ColumnSummary plugin after the calculation has been done.|
+| `ColumnSummary.reset` | Action triggered by the ColumnSummary plugin after the calculation has been reset.|
 
-List of callback that operates on `source` parameter:
+List of callbacks that operate on the `source` parameter:
 
 * [afterChange](@/api/pluginHooks.md#afterchange)
 * [afterCreateCol](@/api/pluginHooks.md#aftercreatecol)
@@ -266,8 +271,8 @@ List of callback that operates on `source` parameter:
 
 The following demo uses `beforeKeyDown` callback to modify some key bindings:
 
-* Pressing <kbd>DELETE</kbd> or <kbd>BACKSPACE</kbd> on a cell deletes the cell and shifts all cells beneath it in the column up resulting in the cursor (which doesn't move) having the value previously beneath it, now in the current cell.
-* Pressing <kbd>ENTER</kbd> in a cell (not changing the value) results in pushing all the cells in the column beneath this cell down one row (including current cell) resulting in a blank cell under the cursor (which hasn't moved).
+* Pressing <kbd>DELETE</kbd> or <kbd>BACKSPACE</kbd> on a cell deletes the cell and shifts all cells beneath it in the column up resulting in the cursor, which doesn't move, having the value previously beneath it, now in the current cell.
+* Pressing <kbd>ENTER</kbd> in a cell where the value remains unchanged pushes all the cells in the column beneath and including the current cell down one row. This results in a blank cell under the cursor which hasn't moved.
 
 ::: example #example2
 ```js
