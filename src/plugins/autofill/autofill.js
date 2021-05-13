@@ -277,7 +277,10 @@ export class Autofill extends BasePlugin {
       let fillData = beforeAutofillHookResult;
       const res = beforeAutofillHookResult;
 
-      if (['up', 'left'].indexOf(directionOfDrag) > -1 && res.length > 0 && res[0].length > 0) {
+      if (
+        ['up', 'left'].indexOf(directionOfDrag) > -1 &&
+        !(res.length === 1 && res[0].length === 0)
+      ) {
         fillData = [];
 
         if (directionOfDrag === 'up') {
