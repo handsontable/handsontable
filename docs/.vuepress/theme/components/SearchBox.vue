@@ -49,7 +49,7 @@
 <script>
 import get from 'lodash/get'
 
-const matchQuery =  (query, page, additionalStr = null) => {
+const matchQuery =  (query, page, additionalStr = null, fuzzySearchDomains = []) => {
   let domain = get(page, 'title', '')
 
   if (get(page, 'frontmatter.tags')) {
@@ -60,10 +60,12 @@ const matchQuery =  (query, page, additionalStr = null) => {
     domain += ` ${additionalStr}`
   }
 
-  return matchTest(query, domain)
+  const isFuzzySearch = fuzzySearchDomains.includes(domain.split(' ')[0])
+
+  return matchTest(query, domain, isFuzzySearch)
 }
 
-const matchTest = (query, domain) => {
+const matchTest = (query, domain, isFuzzySearch = false) => {
   const escapeRegExp = str => str.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')
 
   // eslint-disable-next-line no-control-regex
@@ -74,7 +76,9 @@ const matchTest = (query, domain) => {
     .map(str => str.trim())
     .filter(str => !!str)
 
-  if (!nonASCIIRegExp.test(query)) {
+  if (isFuzzySearch || nonASCIIRegExp.test(query)) {
+    return words.some(word => domain.toLowerCase().indexOf(word) > -1)
+  } else {
     // if the query only has ASCII chars, treat as English
     const hasTrailingSpace = query.endsWith(' ')
     const searchRegex = new RegExp(
@@ -91,10 +95,8 @@ const matchTest = (query, domain) => {
         .join('') + '.+',
       'gi'
     )
+
     return searchRegex.test(domain)
-  } else {
-    // if the query has non-ASCII chars, treat as other languages
-    return words.some(word => domain.toLowerCase().indexOf(word) > -1)
   }
 }
 const apiRegex = /^(\/(next|(\d*\.\d*)))?\/api\//
@@ -127,41 +129,113 @@ export default {
       }
 
       const { pages } = this.$site
-      const max = this.$site.themeConfig.searchMaxSuggestions || SEARCH_MAX_SUGGESTIONS
-      const localePath = this.$localePath
-      const res = []
-      for (let i = 0; i < pages.length; i++) {
-        if (res.length >= max) break
-        const p = pages[i]
+      const maxAPI = this.$site.themeConfig.searchMaxAPISuggestions || SEARCH_MAX_SUGGESTIONS
+      const maxGuides = this.$site.themeConfig.searchMaxGuidesSuggestions || SEARCH_MAX_SUGGESTIONS
+      const fuzzySearchDomains = this.$site.themeConfig.fuzzySearchDomains || []
+      const resAPI = []
+      const resGuides = []
+      const isSearchable = (page) => {
         // filter out results that do not match current locale
-        if (this.getPageLocalePath(p) !== localePath) {
-          continue
+        if (this.getPageLocalePath(page) !== this.$localePath) {
+          return false
         }
 
         // filter out results that do not match searchable paths
-        if (!this.isSearchable(p)) {
+        return this.isSearchable(page)
+      }
+
+      // At first, search for the phrase in the API reference main categories
+      for (let i = 0; i < pages.length; i++) {
+        if (resAPI.length >= maxAPI) break
+        const p = pages[i]
+
+        if (!isSearchable(p) || !apiRegex.test(p.path)) {
           continue
         }
 
-        if (matchQuery(query, p)) {
-          res.push(Object.assign({}, p, {
-            category: apiRegex.exec(p.path) ? 'API Reference' : 'Guides'
+        if (matchQuery(query, p, null, fuzzySearchDomains)) {
+          resAPI.push(Object.assign({}, p, {
+            category: 'API Reference'
           }))
-        } else if (p.headers) { //todo add headers at end of the result list
-          for (let j = 0; j < p.headers.length; j++) {
-            if (res.length >= max) break
-            const h = p.headers[j]
-            if (h.title && matchQuery(query, p, h.title)) {
-              res.push(Object.assign({}, p, {
-                path: p.path + '#' + h.slug,
-                header: h,
-                category: apiRegex.exec(p.path) ? 'API Reference' : 'Guides'
-              }))
+        }
+      }
+
+      // Then, if the array with results has not been filled to the limit, search
+      // the phrase in the API reference subcategories.
+      if (resAPI.length < maxAPI) {
+        for (let i = 0; i < pages.length; i++) {
+          if (resAPI.length >= maxAPI) break
+          const p = pages[i]
+
+          if (!isSearchable(p) || !apiRegex.test(p.path)) {
+            continue
+          }
+
+          if (p.headers) { //todo add headers at end of the result list
+            for (let j = 0; j < p.headers.length; j++) {
+              if (resAPI.length >= maxAPI) break
+              const h = p.headers[j]
+
+              if (h.title && matchQuery(query, p, h.title, fuzzySearchDomains)) {
+                resAPI.push(Object.assign({}, p, {
+                  path: p.path + '#' + h.slug,
+                  header: h,
+                  category: 'API Reference'
+                }))
+              }
             }
           }
         }
       }
+
+      // The same for non-API pages. Search for the phrase in categories at first
+      for (let i = 0; i < pages.length; i++) {
+        if (resGuides.length >= maxGuides) break
+        const p = pages[i]
+
+        if (!isSearchable(p) || apiRegex.test(p.path)) {
+          continue
+        }
+
+        if (matchQuery(query, p, null, fuzzySearchDomains)) {
+          resGuides.push(Object.assign({}, p, {
+            category: 'Guides'
+          }))
+        }
+      }
+
+      // Then, if the array with results has not been filled to the limit, search
+      // the phrase in the subcategories.
+      if (resGuides.length < maxGuides) {
+        for (let i = 0; i < pages.length; i++) {
+          if (resGuides.length >= maxGuides) break
+          const p = pages[i]
+
+          if (!isSearchable(p) || apiRegex.test(p.path)) {
+            continue
+          }
+
+          if (p.headers) { //todo add headers at end of the result list
+            for (let j = 0; j < p.headers.length; j++) {
+              if (resGuides.length >= maxGuides) break
+              const h = p.headers[j]
+
+              if (h.title && matchQuery(query, p, h.title, fuzzySearchDomains)) {
+                resGuides.push(Object.assign({}, p, {
+                  path: p.path + '#' + h.slug,
+                  header: h,
+                  category: 'Guides'
+                }))
+              }
+            }
+          }
+        }
+      }
+
+      const res = [].concat(resAPI, resGuides)
+
       res.sort((a,b)=>b.category.localeCompare(a.category))
+
       return res
     },
 
@@ -294,7 +368,7 @@ export default {
       color lighten($textColor, 35%)
       font-weight 500
       .page-title
-        
+
       .header
         font-size 0.9em
         margin-left 0.25em
