@@ -29,11 +29,15 @@ body, html, #app {
   min-height 100vh;
 }
 
-.hidden{
+body div {
+  user-select: initial;
+}
+
+.hidden {
   display none
 }
 
-a.source-code-link{
+a.source-code-link {
   font-size 12px
   float right
   top -34px
@@ -46,14 +50,11 @@ a.source-code-link{
   }
 }
 
-body div {
-  user-select: initial;
-}
-  
-.theme-default-content:not(.custom) > h1, .theme-default-content:not(.custom) > h2, .theme-default-content:not(.custom) > h3, .theme-default-content:not(.custom) > h4, .theme-default-content:not(.custom) > h5, .theme-default-content:not(.custom) > h6 {
+.theme-default-content:not(.custom) > h4,
+.theme-default-content:not(.custom) > h5,
+.theme-default-content:not(.custom) > h6 {
   margin-top: -2.8rem;
 }
-  
 /* Layout */
 
 .navbar {
@@ -70,16 +71,16 @@ body div {
   padding: 0 2rem 0;
 
   @media (min-width: $MQNarrow) {
-    padding: 0 2.5rem 0 5rem!important;
+    padding: 0 2.5rem 0 5rem !important;
   }
 }
-  
+
 .page-nav {
-  margin-top: 1rem!important;
+  margin-top: 1rem !important;
 }
-  
+
 .page-edit {
-  margin-top: 20px!important;
+  margin-top: 20px !important;
 }
 
 .theme-default-content:not(.custom) {
@@ -130,21 +131,28 @@ body div {
 /* Larger bottom gap of H1, H2, H3 */
 h1 {
   font-size: 2rem;
-  margin-bottom: 2rem!important;
+  margin-bottom: 2rem !important;
+  /* Fix for anchor correct scroll positioning */
+  padding-top: 4.6rem !important;
+  margin-top: -3.8rem !important;
 }
 
 h2 {
-  margin-bottom: 1rem!important;
+  margin-bottom: 1rem !important;
   padding-bottom: 6px;
-  padding-top: 3.6rem!important;
   font-size: 1.55rem;
   border-color: #e9eef2;
+  /* Fix for anchor correct scroll positioning */
+  padding-top: 5rem !important;
+  margin-top: -4.1rem !important;
 }
 
 h3 {
-  margin-bottom: 1rem!important;
-  padding-top: 3.6rem!important;
+  margin-bottom: 1rem !important;
   font-size: 1.25rem;
+  /* Fix for anchor correct scroll positioning */
+  padding-top: 5.1rem !important;
+  margin-top: -4.6rem !important;
 }
 
 .page {
@@ -252,7 +260,7 @@ div.js-fiddle-link {
   }
 }
 
-.page-edit .edit-link a, .page-edit .last-updated .prefix, 
+.page-edit .edit-link a, .page-edit .last-updated .prefix,
 .page-edit .last-updated .time {
 //color: #2c3e50!important;
 }
@@ -260,7 +268,7 @@ div.js-fiddle-link {
 .page-nav .inner {
   border-color: #e9eef2!important;
 }
-  
+
 /* A navigation element containing clickable fields (columns) */
 .row-items-container {
   margin: 30px 0 30px;
@@ -286,17 +294,17 @@ div.js-fiddle-link {
       width: calc(50% - 28px);
       margin-bottom: 10px;
     }
-    
+
     &:hover {
       text-decoration: none!important;
       box-shadow: 0 3px 12px #e9eef2;
     }
-    
+
     img {
       margin-top: 14px;
       max-height: 45px;
     }
-    
+
     h3 {
       margin-top: 10px;
       padding-top: 0!important;
@@ -320,26 +328,26 @@ kbd {
   border-bottom-width: 2px;
   background: #fafbff;
 }
-  
+
 /* Styles for the icon-pack page */
 
 .icons-wrapper {
   margin-top: 30px;
   text-align: center;
-  
+
   & > div {
     display: inline-block;
     width: 19%;
     margin: 0 0 2.4rem 0;
     line-height: 1;
   }
-  
+
   svg {
     width: 48px;
     height: 48px;
     fill: #282c34;
   }
-  
+
   span {
     padding: 0 10px;
     display: block;
