@@ -14,19 +14,21 @@ tags:
 
 [[toc]]
 
-## Introduction
+## Overview
 
-You need to define the grid's container as a starting point to initialize it. Usually, the `div` element becomes this container. This container should have defined dimensions as well as the rest of your layout. Handsontable supports relative units such as `%`, `rem`, `em`, `vh`, `vw`, as well as  `px`.
+Grid size is used to define the initial size of the grid by setting the width, height and dimensions.
 
 ## Setting the size
 
+You need to define the grid's container as a starting point to initialize it. Usually, the `div` element becomes this container. This container should have defined dimensions as well as the rest of your layout. Handsontable supports relative units such as `%`, `rem`, `em`, `vh`, `vw`, and `px`.
+
 ### Define the size in CSS styles
 
-Both `width` and `height` could be defined as inline styles or as a CSS class property. In this case, it's important to properly define what should be an `overflow` parent. Handsontable looks for the closest element with `overflow: auto` or `overflow: hidden` to use it as a scrollable container. If no such element is found a window will be used.
+Both `width` and `height` could be defined as inline styles or as a CSS class property. In this case, it's important to define what should be an `overflow` parent properly. Handsontable looks for the closest element with `overflow: auto` or `overflow: hidden` to use it as a scrollable container. If no such element is found, a window will be used.
 
 ::: tip
-Handsontable doesn't observe CSS changes for container out of the box.
-If you'd like to observe it, you can define dimensions in configuration object or create your own observer.
+Handsontable doesn't observe CSS changes for containers out of the box.
+If you'd like to observe it, you can define the dimensions in the configuration object or create your own observer.
 :::
 
 ### Pass the size in the configuration object
@@ -45,7 +47,7 @@ If you'd like to observe it, you can define dimensions in configuration object o
 }
 ```
 
-These dimensions will be set as inline styles in a container element and `overflow: hidden` will be added automatically.
+These dimensions will be set as inline styles in a container element, and `overflow: hidden` will be added automatically.
 
 If container is a block element, then its parent has to have defined `height`. By default block element is `0px` height, so `100%` from `0px` is still `0px`.
 
@@ -57,9 +59,9 @@ If you don't define the dimensions, Handsontable will generate as many rows and 
 
 ## Autoresizing
 
-Handsontable observes window resizing. If the window's dimensions have changed then we check if Handsontable should resize itself too. Due to the performance issue, we use debounce method to response on window resize.
+Handsontable observes window resizing. If the window's dimensions have changed, then we check if Handsontable should resize itself too. Due to the performance issue, we use the debounce method to respond on window resize.
 
-You can easily overwrite this behaviour by returning `false` in `beforeRefreshDimensions` hook.
+You can easily overwrite this behaviour by returning `false` in the `beforeRefreshDimensions` hook.
 
 ```js
 {
@@ -69,7 +71,7 @@ You can easily overwrite this behaviour by returning `false` in `beforeRefreshDi
 
 ## Manual resizing
 
-The Handsontable instance exposes `refreshDimensions()` method which helps you to resize grid elements properly.
+The Handsontable instance exposes the `refreshDimensions()` method, which helps you to resize grid elements properly.
 
 ```js
 const hot = new Handsontable(...);

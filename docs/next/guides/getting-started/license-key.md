@@ -9,11 +9,17 @@ canonicalUrl: /license-key
 
 [[toc]]
 
-Handsontable is available under multiple licenses, so we require you to specify which terms exactly apply to your case. You can do that by passing a license key in the `Seetings` object next to all other settings you apply.
+## Overview
 
-## Commercial license
+Handsontable is available under Commercial and Free licenses, depending on your usage. 
 
-If you use the paid version of Handsontable, then pass the string of numbers that was delivered to you after the purchase. Note that the license key is a string, so you need to wrap it in quotes `''`.
+## Settings
+
+We require you to specify which terms apply to your usage by passing in a license key in the `Settings` object along with all other settings to be applied.
+
+### Commercial license
+
+If you use the paid version of Handsontable, pass the string of numbers delivered to you after the purchase. Note that the license key is a string, so you need to wrap it in quotes `''`.
 
 ```js
 const settings = {
@@ -22,7 +28,7 @@ const settings = {
 }
 ```
 
-To use it with a framework pass the string to a `licenseKey` prop:
+To use it with a framework, pass the string to a `licenseKey` prop:
 
 <code-group>
 <code-block title="React" active>
@@ -58,13 +64,14 @@ const settings = {
   //... other options
 }
 ```
+
 ## The validation process
 
-We valite the license key to determine whether you are entitled to use the software. To do that, we simply compare the time between two dates. These dates come from two sources of information. One is the `build date` that is provided in each version of Handsontable. The other one is the `creation date` that comes with the license key. This process does not trigger any connection to any server.
+We validate the license key to determine whether you are entitled to use the software. To do that, we compare the time between two dates. These dates come from two sources of information. One is the `build date` that is provided in each version of Handsontable. The other is the `creation date` that comes with the license key. This process does not trigger any connection to any server.
 
 ## Notifications
 
-If your license key is missing, invalid, or expired, Handsontable will display an appropriate notification in two places - below the table in the form of an HTML text, and in the console. 
+If your license key is missing, invalid, or expired, Handsontable will display an appropriate notification. The notification is displayed in two places, below the table as HTML text and in the console. The messages are as follows:
 
 ### Missing license key
 

@@ -11,8 +11,11 @@ tags:
 
 [[toc]]
 
+## Overview 
+This guide details how to install Handsontable.
+
 ::: tip
-This section is dedidated to the pure JavaScript version of Handsontable. If you use a framework in your project then follow one of the available guides to install and use the library:
+This section is dedicated to the pure JavaScript version of Handsontable. If you use a framework in your project, follow one of the available guides to install and use the library:
  - [Integrate with React](../react-installation)
  - [Integrate with Angular](../angular-installation)
  - [Integrate with Vue](../vue-installation)
