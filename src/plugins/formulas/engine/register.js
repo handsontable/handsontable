@@ -2,7 +2,7 @@ import staticRegister from '../../../utils/staticRegister';
 import { isUndefined } from '../../../helpers/mixed';
 import { warn } from '../../../helpers/console';
 import { PLUGIN_KEY } from '../formulas';
-import { DEFAULT_SETTINGS, mergeEngineSettings } from './settings';
+import { DEFAULT_LICENSE_KEY, getEngineSettingsWithDefaultsAndOverrides } from './settings';
 
 /**
  * Setups the engine instance. It either creates a new (possibly shared) engine instance, or attaches
@@ -41,7 +41,7 @@ export function setupEngine(hotSettings, hotId) {
 
     if (!engineConfigItem.getConfig().licenseKey) {
       engineConfigItem.updateConfig({
-        licenseKey: DEFAULT_SETTINGS.licenseKey
+        licenseKey: DEFAULT_LICENSE_KEY
       });
     }
 
@@ -65,7 +65,7 @@ export function registerEngine(engineClass, hotSettings, hotId) {
   }
 
   const pluginSettings = hotSettings[PLUGIN_KEY];
-  const engineSettings = mergeEngineSettings(hotSettings);
+  const engineSettings = getEngineSettingsWithDefaultsAndOverrides(hotSettings);
   const engineRegistry = staticRegister(PLUGIN_KEY).getItem('engine');
 
   registerCustomFunctions(engineClass, pluginSettings.functions);
