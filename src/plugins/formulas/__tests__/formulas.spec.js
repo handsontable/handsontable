@@ -1473,6 +1473,59 @@ describe('Formulas general', () => {
     });
   });
 
+  describe('Formulas#getCellType', () => {
+    it('should return `FORMULA`', () => {
+      const hot = handsontable({
+        data: [['=2 + 2']],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      expect(hot.getPlugin('formulas').getCellType(0, 0)).toEqual('FORMULA');
+    });
+
+    it('should return `VALUE`', () => {
+      const hot = handsontable({
+        data: [['4']],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      expect(hot.getPlugin('formulas').getCellType(0, 0)).toEqual('VALUE');
+    });
+
+    it('should return `EMPTY` when out of bounds', () => {
+      const hot = handsontable({
+        data: [['4']],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      expect(hot.getPlugin('formulas').getCellType(10, 10)).toEqual('EMPTY');
+    });
+
+    it('should return correct values for background sheets', () => {
+      const hf = HyperFormula.buildFromSheets({
+        one: [['4']],
+        two: [['=2 + 2']]
+      });
+
+      const hot = handsontable({
+        formulas: {
+          engine: hf,
+          sheetName: 'one'
+        }
+      });
+
+      const sheet = hot.getPlugin('formulas').engine.getSheetId('two');
+
+      expect(hot.getPlugin('formulas').getCellType(0, 0, sheet)).toEqual('FORMULA');
+    });
+  });
+
   describe('hyperformula alter operation blocks', () => {
     it('should block creating too many rows', () => {
       const hot = handsontable({
