@@ -1,11 +1,12 @@
 ---
-title: Custom Context Menu example
+title: Custom context menu example
+metaTitle: Custom context menu example - Guide - Handsontable Documentation
 permalink: /next/angular-custom-context-menu-example
 ---
 
-# Custom Context Menu example
+# Custom context menu - example
 
-An implementation of the `@handsontable/angular` component with a custom Context Menu added.
+An implementation of the `@handsontable/angular` component with a custom context menu added.
 
 ::: example :angular --html 1 --js 2
 ```html

@@ -1,5 +1,6 @@
 ---
 title: Row moving
+metaTitle: Row moving - Guide - Handsontable Documentation
 permalink: /next/row-moving
 canonicalUrl: /row-moving
 ---

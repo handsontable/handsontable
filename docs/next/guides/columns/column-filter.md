@@ -1,5 +1,6 @@
 ---
 title: Column filter
+metaTitle: Column filter - Guide - Handsontable Documentation
 permalink: /next/column-filter
 canonicalUrl: /column-filter
 tags:
@@ -168,6 +169,9 @@ The external Filter component is controlling the main table by passing values fo
 
 Please mind that selecting a column in the Filter component resets the state of the table. This implementation can filter only one column at a time.
 
+::: example #example4 --html 1 --js 2
+```html
+<div id="example4" class="hot"></div>
 <div id='externalFilter'>
   <div class='columnChoose'>
     <label>Choose Column: </label>
@@ -184,13 +188,12 @@ Please mind that selecting a column in the Filter component resets the state of 
     <div class='items'></div>
   </div>
 
-  <div class='buttons'>
+  <div class='buttons controls'>
     <button class='apply'>Apply filter</button>
     <button class='clear'>Clear filter</button>
   </div>
 </div>
-
-::: example #example4
+```
 ```js
 const arrayEach = Handsontable.helper.arrayEach;
 const curry = Handsontable.helper.curry;

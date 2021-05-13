@@ -1,5 +1,6 @@
 ---
 title: Column moving
+metaTitle: Column moving - Guide - Handsontable Documentation
 permalink: /next/column-moving
 canonicalUrl: /column-moving
 ---

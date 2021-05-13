@@ -24,8 +24,8 @@ const jsfiddle = (id, html, code, css, version, preset) => {
       <input type="text" name="wrap" readOnly value="d" />
       <textarea name="js" readOnly v-pre>${code}</textarea>
       <textarea name="html" readOnly v-pre>
-        ${imports}
-        ${html}
+${imports}
+${html}
       </textarea>
       <textarea name="css" readOnly>${css}</textarea>
       ${isBabelPanel ? '<input type="text" name="panel_js" value="3" readOnly>' : ''}

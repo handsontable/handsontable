@@ -1,7 +1,11 @@
 ---
 title: Searching values
+metaTitle: Searching values - Guide - Handsontable Documentation
 permalink: /next/searching-values
 canonicalUrl: /searching-values
+tags:
+  - find values
+  - highlight values
 ---
 
 # Searching values
@@ -65,9 +69,11 @@ const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
 
 ## Simplest use case
 
+::: example #example1 --html 1 --js 2
+```html
 <input id="search_field" type="search" placeholder="Search"/>
-
-::: example #example1
+<div id="example1"></div>
+```
 ```js
 const container = document.querySelector('#example1');
 const searchField = document.querySelector('#search_field');
@@ -79,7 +85,7 @@ const data = [
   ['Volvo', 2020, 'yellow', 'gray']
 ];
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data,
   colHeaders: true,
   search: true,
@@ -87,21 +93,29 @@ const hot1 = new Handsontable(container, {
 });
 
 Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
-  const search = hot1.getPlugin('search');
+  const search = hot.getPlugin('search');
   const queryResult = search.query(this.value);
 
   console.log(queryResult);
 
-  hot1.render();
+  hot.render();
 });
 ```
 :::
 
 ## Custom search result class
 
+::: example #example2 --css 1 --html 2 --js 3
+````css
+.search-result-custom{
+  color: #ff0000;
+  font-weight: 900;
+}
+````
+```html
 <input id="search_field2" type="search" placeholder="Search"/>
-
-::: example #example2
+<div id="example2"></div>
+```
 ```js
 const container = document.querySelector('#example2');
 const searchField = document.querySelector('#search_field2');
@@ -113,30 +127,32 @@ const data = [
   ['Volvo', 2020, 'yellow', 'gray']
 ];
 
-const hot2 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data,
   colHeaders: true,
   search: {
-    searchResultClass: 'customClass'
+    searchResultClass: 'search-result-custom'
   },
   licenseKey: 'non-commercial-and-evaluation'
 });
 
 Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
-  const search = hot2.getPlugin('search');
+  const search = hot.getPlugin('search');
   const queryResult = search.query(this.value);
 
   console.log(queryResult);
-  hot2.render();
+  hot.render();
 });
 ```
 :::
 
 ## Custom query method
 
+::: example #example3 --html 1 --js 2
+```html
 <input id="search_field3" type="search" placeholder="Search"/>
-
-::: example #example3
+<div id="example3"></div>
+```
 ```js
 const container = document.querySelector('#example3');
 const searchField = document.querySelector('#search_field3');
@@ -152,7 +168,7 @@ function onlyExactMatch(queryStr, value) {
   return queryStr.toString() === value.toString();
 };
 
-const hot3 = new Handsontable(example3,{
+const hot = new Handsontable(example3,{
   data,
   colHeaders: true,
   search: {
@@ -162,22 +178,24 @@ const hot3 = new Handsontable(example3,{
 });
 
 Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
-  const search = hot3.getPlugin('search');
+  const search = hot.getPlugin('search');
   const queryResult = search.query(this.value);
 
   console.log(queryResult);
 
-  hot3.render();
+  hot.render();
 });
 ```
 :::
 
 ## Custom callback
 
+::: example #example4 --html 1 --js 2
+```html
 <input id="search_field4" type="search" placeholder="Search"/>
 <p><span id="resultCount">0</span> results</p>
-
-::: example #example4
+<div id="example4"></div>
+```
 ```js
 const container = document.querySelector('#example4');
 const searchField = document.querySelector('#search_field4');

@@ -1,5 +1,6 @@
 ---
 title: Row parent-child
+metaTitle: Row parent-child - Guide - Handsontable Documentation
 permalink: /next/row-parent-child
 canonicalUrl: /row-parent-child
 tags:

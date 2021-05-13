@@ -1,5 +1,6 @@
 ---
 title: Row freezing
+metaTitle: Row freezing - Guide - Handsontable Documentation
 permalink: /next/row-freezing
 canonicalUrl: /row-freezing
 tags:

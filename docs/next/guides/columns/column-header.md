@@ -1,5 +1,6 @@
 ---
 title: Column header
+metaTitle: Column header - Guide - Handsontable Documentation
 permalink: /next/column-header
 canonicalUrl: /column-header
 ---

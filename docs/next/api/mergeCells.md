@@ -1,5 +1,6 @@
 ---
 title: MergeCells
+metaTitle: MergeCells - Plugin - Handsontable Documentation
 permalink: /next/api/merge-cells
 canonicalUrl: /api/merge-cells
 editLink: false

@@ -98,7 +98,7 @@ module.exports = {
 
       return `
           ${jsfiddle(id, htmlContent, jsContent, cssContent, version, preset)}
-          <tabs :options="{ useUrlFragment: false }">
+          <tabs :options="{ useUrlFragment: false, defaultTabHash: 'code' }">
           <tab name="Preview">
               <style v-pre>${cssContent}</style>
               <div v-pre>${htmlContent}</div>

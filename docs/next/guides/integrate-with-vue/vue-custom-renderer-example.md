@@ -1,5 +1,6 @@
 ---
 title: Custom renderer example
+metaTitle: Custom renderer example - Guide - Handsontable Documentation
 permalink: /next/vue-custom-renderer-example
 canonicalUrl: /vue-custom-renderer-example
 ---
@@ -25,7 +26,7 @@ import Handsontable from 'handsontable';
 
 new Vue({
   el: '#example1',
-  data: function() {
+  data() {
     return {
       hotSettings: {
         data:
@@ -35,7 +36,7 @@ new Vue({
         columns: [
           {},
           {
-            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+            renderer(instance, td, row, col, prop, value, cellProperties) {
               const escaped = Handsontable.helper.stringify(value);
 
               if (escaped.indexOf('http') === 0) {

@@ -1,5 +1,6 @@
 ---
 title: Grid size
+metaTitle: Grid size - Guide - Handsontable Documentation
 permalink: /next/grid-size
 canonicalUrl: /grid-size
 tags:
@@ -80,9 +81,14 @@ hot.refreshDimensions();
 
 You can listen for two hooks, `beforeRefreshDimensions` and `afterRefreshDimensions`.
 
-<button id="expander" className="button button--primary">Expand container</button> 
+::: example #example --html 1 --js 2
+```html
+<div id="example" class="hot"></div>
 
-::: example #example
+<div class="controls">
+  <button id="expander" className="button button--primary">Expand container</button>
+</div>
+```
 ```js
 const triggerBtn = document.querySelector('#expander');
 const example = document.querySelector('#example');

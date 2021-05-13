@@ -1,5 +1,6 @@
 ---
 title: Using the hot-column component
+metaTitle: Using the hot-column component - Guide - Handsontable Documentation
 permalink: /next/vue-hot-column
 canonicalUrl: /vue-hot-column
 ---
@@ -41,7 +42,6 @@ new Vue({
       },
       secondColumnSettings: {
         title: 'Second column header',
-        licenseKey: 'non-commercial-and-evaluation'
       },
     }
   },
@@ -60,7 +60,7 @@ To work with an array of objects for the `hot-column` component you need to prov
 ::: example #example2 :vue --html 1 --js 2
 ```html
 <div id="example2">
-  <hot-table :data="hotData">
+  <hot-table :data="hotData" :settings="settings">
     <hot-column title="ID" data="id">
     </hot-column>
     <hot-column :settings="secondColumnSettings" read-only="true" data="name">
@@ -79,7 +79,7 @@ import Handsontable from 'handsontable';
 
 new Vue({
   el: '#example2',
-  data: function() {
+  data() {
     return {
       hotData: [
         {id: 1, name: 'Table tennis racket', payment: {price: 13, currency: 'PLN'}},
@@ -88,6 +88,9 @@ new Vue({
       ],
       secondColumnSettings: {
         title: 'Second column header'
+      },
+      settings:{
+        licenseKey: 'non-commercial-and-evaluation'
       }
     }
   },
@@ -128,7 +131,7 @@ import Handsontable from 'handsontable';
 
 const CustomRenderer = {
   template: '<div><i style="color: #a9a9a9">Row: {{row}}, column: {{col}},</i> value: {{value}}</div>',
-  data: function() {
+  data() {
     return {
       // We'll need to define properties in our data object,
       // corresponding to all of the data being injected from
@@ -152,7 +155,7 @@ const CustomRenderer = {
 
 const App = new Vue({
   el: '#custom-renderer-example',
-  data: function() {
+  data() {
     return {
       hotSettings: {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -211,7 +214,7 @@ const CustomEditor = {
   name: 'CustomEditor',
   template: '#editor-template',
   extends: BaseEditorComponent,
-  data: function() {
+  data() {
     return {
       // We'll need to define properties in our data object,
       // corresponding to all of the data being injected from
@@ -242,10 +245,10 @@ const CustomEditor = {
     }
   },
   methods: {
-    stopMousedownPropagation: function(e) {
+    stopMousedownPropagation(e) {
       e.stopPropagation();
     },
-    prepare: function(row, col, prop, td, originalValue, cellProperties) {
+    prepare(row, col, prop, td, originalValue, cellProperties) {
       // We'll need to call the `prepare` method from
       // the `BaseEditorComponent` class, as it provides
       // the component with the information needed to use the editor
@@ -264,24 +267,24 @@ const CustomEditor = {
       this.style.left = tdPosition.left + window.pageXOffset + 'px';
       this.style.top = tdPosition.top + window.pageYOffset + 'px';
     },
-    setLowerCase: function() {
+    setLowerCase() {
       this.setValue(this.value.toLowerCase());
       this.finishEditing();
     },
-    setUpperCase: function() {
+    setUpperCase() {
       this.setValue(this.value.toUpperCase());
       this.finishEditing();
     },
-    open: function() {
+    open() {
       this.isVisible = true;
     },
-    close: function() {
+    close() {
       this.isVisible = false;
     },
-    setValue: function(value) {
+    setValue(value) {
       this.value = value;
     },
-    getValue: function() {
+    getValue() {
       return this.value;
     }
   }
@@ -289,7 +292,7 @@ const CustomEditor = {
 
 const App = new Vue({
   el: '#custom-editor-example',
-  data: function() {
+  data() {
     return {
       hotSettings: {
         data: [
@@ -339,7 +342,7 @@ import Handsontable from 'handsontable';
 
 const CustomRenderer = {
   template: `<div v-bind:style="{ backgroundColor: bgColor }">{{value}}</div>`,
-  data: function() {
+  data() {
     return {
       hotInstance: null,
       TD: null,
@@ -351,7 +354,7 @@ const CustomRenderer = {
     }
   },
   computed: {
-    bgColor: function() {
+    bgColor() {
       console.log(this.$root.highlightedRows);
       return this.$root.highlightedRows.includes(this.row) ? '#40b882' : '#fff';
     }
@@ -360,7 +363,7 @@ const CustomRenderer = {
 
 const App = new Vue({
   el: '#v-model-example',
-  data: function() {
+  data() {
     return {
       hotSettings: {
         data: Handsontable.helper.createSpreadsheetData(10, 1)  ,

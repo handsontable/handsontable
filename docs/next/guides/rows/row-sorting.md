@@ -1,5 +1,6 @@
 ---
 title: Row sorting
+metaTitle: Row sorting - Guide - Handsontable Documentation
 permalink: /next/row-sorting
 canonicalUrl: /row-sorting
 ---

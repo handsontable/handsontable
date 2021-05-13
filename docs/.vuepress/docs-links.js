@@ -6,7 +6,7 @@ module.exports = function(src) {
   const latest = helpers.getLatestVersion();
   const basePath = this.rootContext;
 
-  return src.replace(/\((@\/([^)]*\.md))\)/g, (m, full, file) => {
+  return src.replace(/\((@\/([^)]*\.md))(#[^)]*)?\)/g, (m, full, file, hash) => {
     let permalink = full;
 
     try {
@@ -16,6 +16,7 @@ module.exports = function(src) {
         permalink = fm.data.permalink;
         permalink = permalink.replace(new RegExp(`^/${latest}/`), '/');
         permalink = permalink.endsWith('/') ? permalink : `${permalink}/`;
+        permalink = hash ? permalink + hash : permalink;
       }
     } catch (e) {
       // eslint-disable-next-line

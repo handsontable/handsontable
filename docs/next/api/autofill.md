@@ -1,5 +1,6 @@
 ---
 title: Autofill
+metaTitle: AutoFill - Plugin - Handsontable Documentation
 permalink: /next/api/autofill
 canonicalUrl: /api/autofill
 editLink: false

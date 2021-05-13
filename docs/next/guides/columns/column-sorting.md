@@ -1,5 +1,6 @@
 ---
 title: Column sorting
+metaTitle: Column sorting - Guide - Handsontable Documentation
 permalink: /next/column-sorting
 canonicalUrl: /column-sorting
 ---

@@ -1,5 +1,6 @@
 ---
 title: CollapsibleColumns
+metaTitle: CollapsibleColumns - Plugin - Handsontable Documentation
 permalink: /next/api/collapsible-columns
 canonicalUrl: /api/collapsible-columns
 editLink: false

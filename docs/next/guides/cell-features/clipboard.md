@@ -1,5 +1,6 @@
 ---
 title: Clipboard
+metaTitle: Clipboard - Guide - Handsontable Documentation
 permalink: /next/basic-clipboard
 canonicalUrl: /basic-clipboard
 tags:
@@ -45,7 +46,7 @@ You can use them in the same way as the rest of the predefined items in the [con
 ```js
 const container = document.querySelector('#example1');
 
-const hot2 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 5),
   rowHeaders: true,
   colHeaders: true,
@@ -70,10 +71,16 @@ Then use one of the following commands:
 
 The **CopyPaste** plugin listens to the browser's `copy` and `cut` events. If triggered, our implementation will copy or cut the selected data to the system clipboard.
 
-<button id="copy">Select and copy cell B2</button>
-<button id="cut">Select and cut cell B2</button>
 
-::: example #example2
+::: example #example2 --html 1 --js 2
+```html
+<div id="example2" class="hot"></div>
+<div class="controls">
+  <button id="copy">Select and copy cell B2</button>
+  <button id="cut">Select and cut cell B2</button>
+</div>
+```
+
 ```js
 const container = document.querySelector('#example2');
 const copyBtn = document.querySelector('#copy');

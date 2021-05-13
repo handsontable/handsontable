@@ -1,5 +1,6 @@
 ---
 title: Comments
+metaTitle: Comments - Guide - Handsontable Documentation
 permalink: /next/comments
 canonicalUrl: /comments
 tags:

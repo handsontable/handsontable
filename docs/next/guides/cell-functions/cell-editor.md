@@ -1,5 +1,6 @@
 ---
 title: Cell editor
+metaTitle: Cell editor - Guide - Handsontable Documentation
 permalink: /next/cell-editor
 canonicalUrl: /cell-editor
 ---

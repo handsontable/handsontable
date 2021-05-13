@@ -1,5 +1,6 @@
 ---
 title: ManualColumnMove
+metaTitle: ManualColumnMove - Plugin - Handsontable Documentation
 permalink: /next/api/manual-column-move
 canonicalUrl: /api/manual-column-move
 editLink: false

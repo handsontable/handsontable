@@ -1,5 +1,6 @@
 ---
 title: HiddenRows
+metaTitle: HiddenRows - Plugin - Handsontable Documentation
 permalink: /next/api/hidden-rows
 canonicalUrl: /api/hidden-rows
 editLink: false

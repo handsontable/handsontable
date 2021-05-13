@@ -1,5 +1,6 @@
 ---
 title: Supported browsers
+metaTitle: Supported browsers - Guide - Handsontable Documentation
 permalink: /next/supported-browsers
 canonicalUrl: /supported-browsers
 tags:

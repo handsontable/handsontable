@@ -1,9 +1,11 @@
 ---
 title: Export to CSV
+metaTitle: Export to CSV - Guide - Handsontable Documentation
 permalink: /next/export-to-csv
 canonicalUrl: /export-to-csv
 tags:
   - export to file
+  - save file
 ---
 
 # Export to CSV
@@ -18,9 +20,9 @@ The plugin allows you to export data from Handsontable into a `CSV` file.
 
 The plugin exposes the following methods to export data.
 
-* [**downloadFile(format, options)**](api/plugins/exportFile/exportFile.md#downloadFile) - allows you to generate a downloadable file, directly in your browser.
-* [**exportAsBlob(format, options)**](api/plugins/exportFile/exportFile.md#exportAsBlob) - allows you to export a JavaScript Blob object.
-* [**exportAsString(format, options)**](api/plugins/exportFile/exportFile.md#exportAsString) - allows you to export data as a string.
+* [**downloadFile(format, options)**](@/api/exportFile.md#downloadFile) - allows you to generate a downloadable file, directly in your browser.
+* [**exportAsBlob(format, options)**](@/api/exportFile.md#exportAsBlob) - allows you to export a JavaScript Blob object.
+* [**exportAsString(format, options)**](@/api/exportFile.md#exportAsString) - allows you to export data as a string.
 
 All of them accept the same arguments:
 
@@ -132,14 +134,16 @@ Default value: `false`
 
 ### Export to file
 
+::: example #example1 --html 1 --js 2
+```html
+<div id="example1" class="hot"></div>
 <button id="export-file">Download CSV</button>
-
-::: example #example1
+```
 ```js
 const container = document.querySelector('#example1');
 const button = document.querySelector('#export-file');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(7, 7),
   colHeaders: true,
   rowHeaders: true,
@@ -148,7 +152,7 @@ const hot1 = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-const exportPlugin1 = hot1.getPlugin('exportFile');
+const exportPlugin1 = hot.getPlugin('exportFile');
 
 button.addEventListener('click', () => {
   exportPlugin1.downloadFile('csv', {
@@ -171,14 +175,16 @@ button.addEventListener('click', () => {
 
 Open a console in browser developer tools to see the result for the below example.
 
+::: example #example2 --html 1 --js 2
+```html
+<div id="example2" class="hot"></div>
 <button id="export-blob">Export as a Blob</button>
-
-::: example #example2
+```
 ```js
 const container = document.querySelector('#example2');
 const button = document.querySelector('#export-blob');
 
-const hot2 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(7, 7),
   colHeaders: true,
   rowHeaders: true,
@@ -187,7 +193,7 @@ const hot2 = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-const exportPlugin2 = hot2.getPlugin('exportFile');
+const exportPlugin2 = hot.getPlugin('exportFile');
 
 button.addEventListener('click', () => {
   const exportedBlob = exportPlugin2.exportAsBlob('csv', {
@@ -210,14 +216,16 @@ button.addEventListener('click', () => {
 
 Open a console in browser developer tools to see the result for the below example.
 
+::: example #example3 --html 1 --js 2
+```html
+<div id="example3" class="hot"></div>
 <button id="export-string">Export as a string</button>
-
-::: example #example3
+```
 ```js
 const container = document.querySelector('#example3');
 const button = document.querySelector('#export-string');
 
-const hot3 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(7, 7),
   colHeaders: true,
   rowHeaders: true,
@@ -226,7 +234,7 @@ const hot3 = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-const exportPlugin3 = hot3.getPlugin('exportFile');
+const exportPlugin3 = hot.getPlugin('exportFile');
 
 button.addEventListener('click', () => {
   const exportedString = exportPlugin3.exportAsString('csv', {

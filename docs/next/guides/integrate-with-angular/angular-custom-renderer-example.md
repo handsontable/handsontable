@@ -1,5 +1,6 @@
 ---
 title: Custom renderer example
+metaTitle: Custom renderer example - Guide - Handsontable Documentation
 permalink: /next/angular-custom-renderer-example
 canonicalUrl: /angular-custom-renderer-example
 ---
@@ -31,11 +32,12 @@ class AppComponent {
     data:
       [
         ['A1', 'https://handsontable.com/docs/images/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-        ['A2', 'https://handsontable.com/docs/images/examples/javascript-the-good-parts.jpg']],
+        ['A2', 'https://handsontable.com/docs/images/examples/javascript-the-good-parts.jpg']
+      ],
     columns: [
       {},
       {
-        renderer: function(instance, td, row, col, prop, value, cellProperties) {
+        renderer(instance, td, row, col, prop, value, cellProperties) {
           const escaped = Handsontable.helper.stringify(value);
           let img = null;
 
@@ -43,7 +45,7 @@ class AppComponent {
             img = document.createElement('IMG');
             img.src = value;
 
-            Handsontable.dom.addEvent(img, 'mousedown', function(event) {
+            Handsontable.dom.addEvent(img, 'mousedown', event => {
               event.preventDefault();
             });
 

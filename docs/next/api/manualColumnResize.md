@@ -1,5 +1,6 @@
 ---
 title: ManualColumnResize
+metaTitle: ManualColumnResize - Plugin - Handsontable Documentation
 permalink: /next/api/manual-column-resize
 canonicalUrl: /api/manual-column-resize
 editLink: false

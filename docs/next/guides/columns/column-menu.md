@@ -1,5 +1,6 @@
 ---
 title: Column menu
+metaTitle: Column menu - Guide - Handsontable Documentation
 permalink: /next/column-menu
 canonicalUrl: /column-menu
 tags:

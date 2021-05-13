@@ -1,9 +1,11 @@
 ---
 title: Saving data
+metaTitle: Saving data - Guide - Handsontable Documentation
 permalink: /next/saving-data
 canonicalUrl: /saving-data
 tags:
   - load and save
+  - server
 ---
 
 # Saving data
@@ -17,6 +19,11 @@ Persistent state storage is particularly useful when running multiple instances 
 
 Use the **afterChange** callback to track changes made in the data grid. In the example below, Ajax is used to load and save the data. Note that this is just a mockup, and nothing is actually saved. You need to implement the server-side part by yourself.
 
+
+::: example #example1 --html 1 --js 2
+```html
+<div id="example1" class="hot"></div>
+
 <div class="controls">
   <button id="load" class="button button--primary button--blue">Load data</button>&nbsp;
   <button id="save" class="button button--primary button--blue">Save data</button>
@@ -26,9 +33,9 @@ Use the **afterChange** callback to track changes made in the data grid. In the 
   </label>
 </div>
 
-<pre id="example1console" className="console">Click "Load" to load data from server</pre>
+<pre id="example1console" class="console">Click "Load" to load data from server</pre>
 
-::: example #example1
+```
 ```js
 const container = document.querySelector('#example1');
 const exampleConsole = document.querySelector('#example1console');
@@ -132,9 +139,9 @@ You can save any type of data in local storage to preserve the table state after
 
 When `persistentState` is enabled it exposes hooks listed below:
 
-* [persistentStateSave](api/pluginHooks.md#persistentstatesave)
-* [persistentStateLoad](api/pluginHooks.md#persistentstateload)
-* [persistentStateReset](api/pluginHooks.md#persistentstatereset)
+* [persistentStateSave](@/api/pluginHooks.md#persistentstatesave)
+* [persistentStateLoad](@/api/pluginHooks.md#persistentstateload)
+* [persistentStateReset](@/api/pluginHooks.md#persistentstatereset)
 
 ## `persistentState` vs `LocalStorage API`
 

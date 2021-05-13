@@ -1,7 +1,10 @@
 ---
 title: Performance
+metaTitle: Performance - Guide - Handsontable Documentation
 permalink: /next/performance
 canonicalUrl: /performance
+tags:
+  - speed
 ---
 
 # Performance

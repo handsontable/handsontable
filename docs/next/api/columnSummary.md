@@ -1,5 +1,6 @@
 ---
 title: ColumnSummary
+metaTitle: ColumnSummary - Plugin - Handsontable Documentation
 permalink: /next/api/column-summary
 canonicalUrl: /api/column-summary
 editLink: false

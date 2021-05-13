@@ -1,5 +1,6 @@
 ---
 title: Introduction
+metaTitle: Guides - Handsontable Documentation
 permalink: /next/
 canonicalUrl: /
 ---
@@ -42,7 +43,7 @@ Welcome 👋&nbsp; to Handsontable's Developer Guides. Here you will learn how H
 
 ## Get support
 
-- [Contact support](https://handsontable.com/contact?category=technical_support)
+- [Contact support team](https://handsontable.com/contact?category=technical_support)
 - [Ask a question on our forum](https://forum.handsontable.com)
 - [Report an issue on GitHub](https://github.com/handsontable/handsontable/issues)
 - [Discuss on GitHub Discussions](https://github.com/handsontable/handsontable/discussions)

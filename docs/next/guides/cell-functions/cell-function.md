@@ -1,5 +1,6 @@
 ---
 title: Cell function
+metaTitle: Cell function - Guide - Handsontable Documentation
 permalink: /next/cell-function
 canonicalUrl: /cell-function
 ---

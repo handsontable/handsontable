@@ -1,5 +1,6 @@
 ---
 title: AutoRowSize
+metaTitle: AutoRowSize - Plugin - Handsontable Documentation
 permalink: /next/api/auto-row-size
 canonicalUrl: /api/auto-row-size
 editLink: false

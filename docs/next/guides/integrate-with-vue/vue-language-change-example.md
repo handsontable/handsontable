@@ -1,5 +1,6 @@
 ---
 title: Language change example
+metaTitle: Language change example - Guide - Handsontable Documentation
 permalink: /next/vue-language-change-example
 canonicalUrl: /vue-language-change-example
 ---
@@ -29,7 +30,7 @@ import Handsontable from 'handsontable';
 
 new Vue({
   el: '#example1',
-  data: function() {
+  data() {
     return {
       hotSettings: {
         data: Handsontable.helper.createSpreadsheetData(5, 10),
@@ -41,11 +42,11 @@ new Vue({
       language: 'en-US'
     }
   },
-  mounted: function() {
+  mounted() {
     this.getAllLanguageOptions();
   },
   methods: {
-    getAllLanguageOptions: function() {
+    getAllLanguageOptions() {
       const allDictionaries = Handsontable.languages.getLanguagesDictionaries();
       const langSelect = document.querySelector('#languages');
       langSelect.innerHTML = '';
@@ -54,7 +55,7 @@ new Vue({
         langSelect.innerHTML += `<option value="${language.languageCode}">${language.languageCode}</option>`
       }
     },
-    updateHotLanguage: function(event) {
+    updateHotLanguage(event) {
       this.language = event.target.value;
     }
   },
