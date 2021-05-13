@@ -1496,6 +1496,24 @@ describe('Formulas general', () => {
       expect(hot.getPlugin('formulas').getCellType(0, 0)).toEqual('VALUE');
     });
 
+    it('should return `MATRIX', () => {
+      const hot = handsontable({
+        data: [
+          ['1', '2'],
+          ['3', '4'],
+          ['x', ''],
+          ['', ''],
+        ],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      hot.setDataAtCell(2, 0, '{=TRANSPOSE(A1:B2)}');
+
+      expect(hot.getPlugin('formulas').getCellType(3, 1)).toEqual('MATRIX');
+    });
+
     it('should return `EMPTY` when out of bounds', () => {
       const hot = handsontable({
         data: [['4']],
