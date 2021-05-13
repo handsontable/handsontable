@@ -27,7 +27,8 @@ const getFixer = () => {
 
 };
 
-/** Some further version of Handsontable will needs different version of dependencies.
+/**
+ * Some further version of Handsontable will needs different version of dependencies.
  * The function `buildDependencyGetter` is the best place to care about that.
  *
  * @param {string} version The current selected documentation version.
@@ -41,7 +42,7 @@ const buildDependencyGetter = (version) => {
     /* eslint-disable max-len */
     const dependencies = {
       fixer,
-      hot: [handsontableJs, ['Handsontable', 'Handsontable.react'], handsontableCss],
+      hot: [handsontableJs, ['Handsontable'], handsontableCss],
       react: ['https://unpkg.com/react@17/umd/react.development.js', ['React']],
       'react-dom': ['https://unpkg.com/react-dom@17/umd/react-dom.development.js', ['ReactDOM']],
       'hot-react': ['https://cdn.jsdelivr.net/npm/@handsontable/react/dist/react-handsontable.js', ['Handsontable.react']],
@@ -75,6 +76,7 @@ const presetMap = {
   hot: ['hot'],
   'hot-lang': ['hot', 'languages'],
   react: ['hot', 'react', 'react-dom', 'hot-react', 'fixer'],
+  'react-languages': ['hot', 'languages', 'react', 'react-dom', 'hot-react', 'fixer'],
   'react-numbro': ['hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer'],
   'react-redux': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer'],
   angular: ['hot', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
