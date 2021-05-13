@@ -30,6 +30,8 @@ export const registerAutofillHooks = (pluginInstance) => {
     ) {
       return sentinel;
     }
+
+    return false;
   });
 
   pluginInstance.addHook('afterAutofill', (fillData, source, target, direction) => {
