@@ -86,6 +86,13 @@ export default {
     toggleOpen(){
       this.isOpen = !this.isOpen;  
     }
+  },
+  watch:{
+    open(val){
+      if(val) {
+        this.isOpen = val;
+      }
+    }
   }
 }
 </script>
