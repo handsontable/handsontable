@@ -9,6 +9,8 @@ canonicalUrl: /hello-world
 
 [[toc]]
 
+<HelloWorld></HelloWorld>
+
 ## Get started with basic example
 
 Let's start with a simple example of Handsontable instance initialized in a container with the defined size. Use a `createSpreadsheetData` to generate a data set of 5000 records containing dummy data. 
