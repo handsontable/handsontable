@@ -98,13 +98,14 @@ module.exports = {
 
       return `
           ${jsfiddle(id, htmlContent, jsContent, cssContent, version, preset)}
-          <tabs :options="{ useUrlFragment: false, defaultTabHash: 'code' }">
+          <tabs :options="{ useUrlFragment: false, defaultTabHash: 'code' }"
+            @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')">
           <tab name="Preview">
-              <style v-pre>${cssContent}</style>
-              <div v-pre>${htmlContent}</div>
-              <script data-jsfiddle="${id}" v-pre>
-                  useHandsontable('${version}', function(){${code}}, '${preset}');
-              </script>
+            <style v-pre>${cssContent}</style>
+            <div v-pre>${htmlContent}</div>
+            <script data-jsfiddle="${id}" v-pre>
+                useHandsontable('${version}', function(){${code}}, '${preset}');
+            </script>
           </tab>
         `;
     } else { // close preview
