@@ -20,7 +20,7 @@ tags:
 
 ## Overview
 
-By default, the column width adjusts to the width of the content. The minimum width is `50px`, indluding `1px` for borders on the sides. The column size can be passed as a `constant`, an `array` or a `function`.
+By default, the column width adjusts to the width of the content. However, if the width of the column content is less than `50px`, including `1px` for borders on the sides, the column width will remain constant at `50px`. The column size can be passed as a `constant`, an `array` or a `function`.
 
 The content inside a cell will be wrapped if it doesn't fit its size.
 
@@ -32,7 +32,7 @@ In this example we set the same width of `100px` for all columns across the enti
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 50),
   width: '100%',
   height: 'auto',
@@ -53,8 +53,8 @@ Here we set the width only for the first four columns. Each additional column wo
 ```js
 const container = document.querySelector('#example2');
 
-const hot2 = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(5, 4),
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(5, 5),
   width: '100%',
   height: 'auto',
   colHeaders: true,
@@ -68,7 +68,7 @@ const hot2 = new Handsontable(container, {
 
 ## Setting the column width using a function
 
-Here we set the size of all columns as a function. In this particular example we take a column `index` (1, 2 ...) and multiply it by `40px` in each consecutive column. 
+Here we set the size of all columns as a function. In this particular example we take a column `index` (1, 2 ...) and multiply it by `40px` in each consecutive column.
 
 ::: example #example3
 ```js
@@ -93,13 +93,13 @@ const hot3 = new Handsontable(container, {
 
 Set the option `manualColumnResize` to `true` to allow users to manually resize the column width by dragging the handle between the adjacent column headers. If you double-click on that handle then the width will be instantly adjusted to the size of the longest value in the column. Don't forget to enable column headers by setting `colHeaders` to `true`.
 
-You can adjust the size of one or columns at the same time, even if the selected columns are not placed next to each other.
+You can adjust the size of one or more columns at the same time, even if the selected columns are not placed next to each other.
 
 ::: example #example4
 ```js
 const container = document.querySelector('#example4');
 
-const hot4 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 6),
   width: '100%',
   height: 'auto',
@@ -128,7 +128,7 @@ In this case you fit all columns to the container's width equally by setting the
 ```js
 const container = document.querySelector('#example5');
 
-const hot5 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 3),
   width: '100%',
   height: 'auto',
@@ -149,7 +149,7 @@ In this example, first three columns will be set to be `80px` wide, and the last
 ```js
 const container = document.querySelector('#example6');
 
-const hot6 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 4),
   width: '100%',
   height: 'auto',
@@ -167,10 +167,10 @@ const hot6 = new Handsontable(container, {
 
 As mentioned above, the default width of the column is based on the widest value in any cell within the column. You may be wondered how it's possible for data sets containing hundreds of thousands of records.
 
-This feature is made possible thanks to the `AutoColumnSize` plugin, which is enabled by default. Internally it divides the data set into smaller sets and then render only some of them to measure their size. Then, the size is applied to the entire column based on the width of the widest found value.
+This feature is made possible thanks to the [AutoColumnSize](../api/auto-column-size) plugin, which is enabled by default. Internally it divides the data set into smaller sets and then renders only some of them to measure their size. Then, the size is applied to the entire column based on the width of the widest found value.
 
-To increase the performance you can turn off this feature by defining the fixed size for the specifed column or all columns.  
+To increase the performance you can turn off this feature by defining the fixed size for the specifed column or all columns.
 
 ## Size of the container
 
-Setting the dimmensions of the container that holds Handsontable is well described on the [Grid Size](../grid-size) page. 
+Setting the dimmensions of the container that holds Handsontable is well described on the [Grid Size](../grid-size) page.
