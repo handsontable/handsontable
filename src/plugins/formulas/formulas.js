@@ -232,6 +232,23 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Get the cell type under specified coordinates.
+   *
+   * @param {number} row Target row.
+   * @param {number} col Target column.
+   * @param {number} [sheet] The target sheet id, defaults to the current sheet.
+   *
+   * @returns {string} Possible values: 'FORMULA' | 'VALUE' | 'MATRIX' | 'EMPTY'.
+   */
+  getCellType(row, col, sheet = this.sheetId) {
+    return this.engine.getCellType({
+      sheet,
+      row,
+      col
+    });
+  }
+
+  /**
    * `beforeLoadData` hook callback.
    *
    * @param {Array} sourceData Array of arrays or array of objects containing data.
