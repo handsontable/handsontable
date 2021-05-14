@@ -7,7 +7,11 @@ register.listen = () => {
     if (typeof Handsontable !== 'undefined' && Handsontable._instanceRegisterInstalled === undefined) {
       Handsontable._instanceRegisterInstalled = true;
       Handsontable.hooks.add('afterInit', function() {
-        register.set(this.rootElement.id, this);
+        const hotId = this.rootElement
+          .closest('[hot-example-id]')
+          .getAttribute('hot-example-id');
+
+        register.set(hotId, this);
       });
     }
   } catch (e) {

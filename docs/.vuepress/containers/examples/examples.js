@@ -100,7 +100,7 @@ module.exports = {
           ${jsfiddle(id, htmlContent, jsContent, cssContent, version, preset)}
           <tabs :options="{ useUrlFragment: false, defaultTabHash: 'code' }"
             @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')">
-          <tab name="Preview">
+          <tab name="Preview" hot-example-id="${id}">
             <style v-pre>${cssContent}</style>
             <div v-pre>${htmlContent}</div>
             <script data-jsfiddle="${id}" v-pre>
