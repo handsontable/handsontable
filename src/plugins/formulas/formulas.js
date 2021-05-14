@@ -48,6 +48,15 @@ export class Formulas extends BasePlugin {
   #internalOperationPending = false;
 
   /**
+   * Flag used to prevent unnecessary renders during updates within the same Handsontable
+   * instance, which the listener to the `valuesUpdated` hook would otherwise cause.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #shouldSuspendRenders = false;
+
+  /**
    * Flag needed to mark if Handsontable was initialized with no data.
    * (Required to work around the fact, that Handsontable auto-generates sample data, when no data is provided).
    *
@@ -342,7 +351,9 @@ export class Formulas extends BasePlugin {
         return;
       }
 
+      this.#shouldSuspendRenders = true;
       this.engine.setCellContents(address, valueHolder.value);
+      this.#shouldSuspendRenders = false;
     }
   }
 
@@ -500,12 +511,14 @@ export class Formulas extends BasePlugin {
    * @param {Array} changes The values and location of applied changes.
    */
   onEngineValuesUpdated(changes) {
-    const isAffectedByChange = changes.some((change) => {
-      return change?.address?.sheet === this.sheetId;
-    });
+    if (!this.#shouldSuspendRenders) {
+      const isAffectedByChange = changes.some((change) => {
+        return change?.address?.sheet === this.sheetId;
+      });
 
-    if (isAffectedByChange) {
-      this.hot.render();
+      if (isAffectedByChange) {
+        this.hot.render();
+      }
     }
 
     this.hot.runHooks('afterFormulasValuesUpdate', changes);
