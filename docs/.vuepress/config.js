@@ -35,7 +35,7 @@ module.exports = {
     },
   },
   plugins: [
-    'tabs',
+    'vuepress-plugin-element-tabs',
     ['sitemap', {
       hostname: 'https://handsontable.com',
     }],

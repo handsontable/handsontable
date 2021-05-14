@@ -45,10 +45,10 @@
     "vue-router": "^3.5.1",
     "vue-tabs-component": "^1.5.0",
     "vuepress": "^1.8.2",
-    "vuepress-plugin-sitemap": "^2.3.1",
-    "vuepress-plugin-tabs": "^0.3.0"
+    "vuepress-plugin-sitemap": "^2.3.1"
   },
   "dependencies": {
-    "@babel/preset-react": "^7.13.13"
+    "@babel/preset-react": "^7.13.13",
+    "vuepress-plugin-element-tabs": "^0.2.8"
   }
 }
