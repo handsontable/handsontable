@@ -288,7 +288,7 @@ Handsontable binds to your data source by reference, not by values. We don't cop
 
 **Note:** Handsontable initializes the source data for the table using a reference, but you shouldn't rely on it. For example, you shouldn't change values in the source data using the reference to the input dataset. Some mechanisms for handling data aren't prepared for external changes that are made in this way.
 
-To avoid this scenario, copy the data before you pass it to the grid. To change the data from outside Handsontable, you can use our API methods. For example, a change being made will be displayed immediately on the screen after calling [setDataAtCell](api/core.md#setDataAtCell) method.
+To avoid this scenario, copy the data before you pass it to the grid. To change the data from outside Handsontable, you can use our API methods. For example, a change being made will be displayed immediately on the screen after calling [setDataAtCell](@/api/core.md#setdataatcell) method.
 
 ::: example #example9
 ```js

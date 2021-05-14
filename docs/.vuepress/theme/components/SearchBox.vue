@@ -365,7 +365,7 @@ export default {
     cursor pointer
     a
       white-space normal
-      color lighten($textColor, 35%)
+      color lighten($textColor, 25%)
       font-weight 500
       .page-title
 

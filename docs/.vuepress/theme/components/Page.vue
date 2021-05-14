@@ -34,10 +34,3 @@ export default {
   },
 }
 </script>
-
-<style lang="stylus">
-.page.api
-  h3
-    color #0B3692
-
-</style>

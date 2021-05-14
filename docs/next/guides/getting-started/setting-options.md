@@ -160,7 +160,7 @@ new Handsontable(container, {
 
 ## All options
 
-The most up to date list of options is available in the [Options](@/api/options.md) section of the API Reference. The table below is just a cheatsheet that can be useful if you're already familiar with the Handsontable API.
+The most up to date list of options is available in the [Options](@/api/metaSchema.md) section of the API Reference. The table below is just a cheatsheet that can be useful if you're already familiar with the Handsontable API.
 
 <div class="scrollable-table">
 

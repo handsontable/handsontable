@@ -183,7 +183,7 @@ To prevent this problem, it is possible to pass the `**wrapperRendererCacheSize*
 
 You can also utilize the Vue components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/vue`.
 
-This will give you a solid base to build upon. Note, that the editor component needs to tick all of the boxes that a regular editor does, such as defining the `getValue`, `setValue`, `open`, `close` and `focus` methods, which are abstract in the `BaseEditor`. For more info, check the documentation on [creating custom editors from scratch](cell-editor#selecteditor---creating-editor-from-scratch).
+This will give you a solid base to build upon. Note, that the editor component needs to tick all of the boxes that a regular editor does, such as defining the `getValue`, `setValue`, `open`, `close` and `focus` methods, which are abstract in the `BaseEditor`. For more info, check the documentation on [creating custom editors from scratch](@/guides/cell-functions/cell-editor.md#selecteditor-creating-editor-from-scratch).
 
 ::: example #custom-editor-example :vue --html 1 --js 2 
 ```html

@@ -51,9 +51,9 @@ export default {
   margin-top 2rem
   padding 1rem 1.2rem
   border-radius 6px
-  color $textColor
+  color #fff
   border 1px solid #e9eef2
-  background #fafbff
+  background #2456f2
   p
     margin 0
     padding 0
