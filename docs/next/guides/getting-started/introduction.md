@@ -24,7 +24,7 @@ Welcome 👋&nbsp; to Handsontable's Guides. Here you will learn how Handsontabl
     <h3>React</h3>
    </a>
    
-   <a href="angular-simple-examples" class="row-item">
+   <a href="angular-simple-example" class="row-item">
     <img class="integration-framework-logo" src="/docs/img/pages/introduction/angular.svg" alt="Angular logo" />
     <h3>Angular</h3>
    </a>

@@ -1,8 +1,8 @@
 ---
 title: Basic example in React
 metaTitle: Basic example in React - Guide - Handsontable Documentation
-permalink: /next/react-simple-examples
-canonicalUrl: /react-simple-examples
+permalink: /next/react-simple-example
+canonicalUrl: /react-simple-example
 ---
 
 # Basic examples
