@@ -1,5 +1,5 @@
 /**
- * Matches into: `example #ID .class :preset --css 2 --html 0 --js 1 --hidden`.
+ * Matches into: `example #ID .class :preset --css 2 --html 0 --js 1 --tab preview`.
  *
  * @type {RegExp}
  */
@@ -46,6 +46,33 @@ const tab = (tabName, token) => {
   ];
 };
 
+function getPreviewTab(id, cssContent, htmlContent, version, code, preset) {
+  return {
+    type: 'html_block',
+    tag: '',
+    attrs: null,
+    map: [],
+    nesting: 0,
+    level: 1,
+    children: null,
+    content: `
+      <tab name="Preview" hot-example-id="${id}">
+        <style v-pre>${cssContent}</style>
+        <div v-pre>${htmlContent}</div>
+        <script data-jsfiddle="${id}" v-pre>
+          useHandsontable('${version}', function(){${code}}, '${preset}');
+        </script>
+      </tab>
+    `,
+    markup: '',
+    info: '',
+    meta: null,
+    block: true,
+    hidden: false
+  }
+  ;
+}
+
 module.exports = {
   type: 'example',
   render(tokens, index, opts, env) {
@@ -78,7 +105,7 @@ module.exports = {
       const jsToken = tokens[jsIndex];
       const jsContent = jsToken.content;
 
-      const hidden = !!args.match(/--hidden/);
+      const activeTab = args.match(/--tab (code|html|css|preview)/)?.[1] || 'code';
 
       const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), jsContent, env.relativePath);
 
@@ -87,26 +114,21 @@ module.exports = {
       });
 
       const newTokens = [
-        ...tab('HTML', htmlToken),
         ...tab('Code', jsToken),
+        ...tab('HTML', htmlToken),
         ...tab('CSS', cssToken),
+        getPreviewTab(id, cssContent, htmlContent, version, code, preset)
       ];
 
-      if (!hidden) {
-        tokens.splice(index + 1, 0, ...newTokens);
-      }
+      tokens.splice(index + 1, 0, ...newTokens);
 
       return `
           ${jsfiddle(id, htmlContent, jsContent, cssContent, version, preset)}
-          <tabs :options="{ useUrlFragment: false, defaultTabHash: 'code' }"
-            @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')">
-          <tab name="Preview" hot-example-id="${id}">
-            <style v-pre>${cssContent}</style>
-            <div v-pre>${htmlContent}</div>
-            <script data-jsfiddle="${id}" v-pre>
-                useHandsontable('${version}', function(){${code}}, '${preset}');
-            </script>
-          </tab>
+          <tabs 
+            :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }" 
+            cache-lifetime="0"
+            @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
+          >
         `;
     } else { // close preview
       return '</tabs>';
