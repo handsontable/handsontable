@@ -1,7 +1,7 @@
 import { BasePlugin } from '../base';
 import { registerAutofillHooks } from './autofill';
 import staticRegister from '../../utils/staticRegister';
-import { warn } from '../../helpers/console';
+import { error, warn } from '../../helpers/console';
 import {
   isDefined,
   isUndefined
@@ -10,7 +10,7 @@ import {
   setupEngine,
   unregisterEngine
 } from './engine/register';
-import { mergeEngineSettings } from './engine/settings';
+import { getEngineSettingsWithOverrides } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
 import Hooks from '../../pluginHooks';
@@ -38,13 +38,6 @@ export class Formulas extends BasePlugin {
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
-
-  /**
-   * Plugin settings.
-   *
-   * @private
-   */
-  #settings = this.hot.getSettings()[PLUGIN_KEY];
 
   /**
    * Flag used to bypass hooks in internal operations.
@@ -160,16 +153,16 @@ export class Formulas extends BasePlugin {
    * Triggered on `updateSettings`.
    */
   updatePlugin() {
-    const hotSettings = this.hot.getSettings();
+    this.engine.updateConfig(getEngineSettingsWithOverrides(this.hot.getSettings()));
 
-    this.#settings = hotSettings[PLUGIN_KEY];
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
 
-    if (this.#settings.engine) {
-      this.engine.updateConfig(mergeEngineSettings(this.#settings));
-    }
-
-    if (isDefined(this.#settings.sheetName) && this.#settings.sheetName !== this.sheetName) {
-      this.switchSheet(this.#settings.sheetName);
+    if (
+      isDefined(pluginSettings) &&
+      isDefined(pluginSettings.sheetName) &&
+      pluginSettings.sheetName !== this.sheetName
+    ) {
+      this.switchSheet(pluginSettings.sheetName);
     }
 
     super.updatePlugin();
@@ -227,6 +220,12 @@ export class Formulas extends BasePlugin {
    * @param {string} sheetName Sheet name used in the shared HyperFormula instance.
    */
   switchSheet(sheetName) {
+    if (!this.engine.doesSheetExist(sheetName)) {
+      error(`The sheet named \`${sheetName}\` does not exist, switch aborted.`);
+
+      return;
+    }
+
     this.sheetName = sheetName;
 
     this.hot.loadData(this.engine.getSheetSerialized(this.sheetId), `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
@@ -263,7 +262,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const sheetName = this.#settings.sheetName;
+    const sheetName = this.hot.getSettings()[PLUGIN_KEY].sheetName;
 
     if (isDefined(sheetName) && this.engine.doesSheetExist(sheetName)) {
       this.sheetName = sheetName;

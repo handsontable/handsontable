@@ -593,6 +593,58 @@ describe('Formulas general', () => {
 
       expect(hfInstance1.getConfig().licenseKey).toEqual('dummy-license-key');
     });
+
+    it('should not update HyperFormula settings when Handsontable#updateSettings was called without the `formulas` key', () => {
+      const hot = handsontable({
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      expect(hot.getPlugin('formulas').engine.getConfig().binarySearchThreshold).toEqual(20);
+
+      hot.getPlugin('formulas').engine.updateConfig({
+        binarySearchThreshold: 50
+      });
+
+      hot.updateSettings({
+        colWidths: () => 400
+      });
+
+      expect(hot.getPlugin('formulas').engine.getConfig().binarySearchThreshold).toEqual(50);
+    });
+
+    it('should not update `sheetName` if `updateSettings` was got one that doesn\'t exist in the engine', () => {
+      const hot = handsontable({
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'init'
+        }
+      });
+
+      const errorSpy = jasmine.createSpy();
+
+      // eslint-disable-next-line no-console
+      const prevError = console.error.bind(console);
+
+      // eslint-disable-next-line no-console
+      console.error = (...args) => {
+        errorSpy(...args);
+        prevError(...args);
+      };
+
+      expect(hot.getPlugin('formulas').sheetName).toEqual('init');
+
+      hot.updateSettings({
+        formulas: {
+          sheetName: 'void'
+        }
+      });
+
+      expect(errorSpy).toHaveBeenCalledWith('The sheet named `void` does not exist, switch aborted.');
+
+      expect(hot.getPlugin('formulas').sheetName).toEqual('init');
+    });
   });
 
   describe('Cross-referencing', () => {

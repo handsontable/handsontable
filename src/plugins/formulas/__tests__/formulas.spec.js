@@ -215,6 +215,21 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(4)).toEqual([2012, '#ERROR!', '#ERROR!', '#DIV/0!', 12, '=SUM(E5)']);
   });
 
+  it('should not throw on `updateSettings` with an object that doesn\'t contain an `engine` key', () => {
+    const hot = handsontable({
+      data: [[]],
+      formulas: {
+        engine: HyperFormula
+      }
+    });
+
+    expect(() => hot.updateSettings({
+      colWidths() {
+        return 400;
+      }
+    })).not.toThrow();
+  });
+
   xit('should return correct values according to plugin state updated by updateSettings()', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
