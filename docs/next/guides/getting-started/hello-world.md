@@ -17,7 +17,7 @@ Let's start with a simple example of Handsontable instance initialized in a cont
 <code-group>
   <code-block title="TypeScript">
   <div style="margin-top: 33px;">
-    <iframe src="https://codesandbox.io/embed/handsontable-typescript-data-grid-hello-world-app-145es?fontsize=14&hidenavigation=1&theme=dark"
+    <iframe src="https://codesandbox.io/embed/handsontable-typescript-data-grid-hello-world-app-145es?fontsize=14&hidenavigation=1&theme=dark&view=split"
        style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
        title="Handsontable React Data Grid - Hello World App"
        allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
@@ -28,7 +28,7 @@ Let's start with a simple example of Handsontable instance initialized in a cont
 
 <code-block title="React">
   <div style="margin-top: 33px;">
-    <iframe src="https://codesandbox.io/embed/handsontable-react-data-grid-hello-world-app-yt46w?fontsize=14&hidenavigation=1&theme=dark"
+    <iframe src="https://codesandbox.io/embed/handsontable-react-data-grid-hello-world-app-yt46w?fontsize=14&hidenavigation=1&theme=dark&view=split"
        style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
        title="Handsontable React Data Grid - Hello World App"
        allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
@@ -41,7 +41,7 @@ Let's start with a simple example of Handsontable instance initialized in a cont
 ## TypeScript
 
   <div style="margin-top: 33px;">
-    <iframe src="https://codesandbox.io/embed/handsontable-typescript-data-grid-hello-world-app-145es?fontsize=14&hidenavigation=1&theme=dark"
+    <iframe src="https://codesandbox.io/embed/handsontable-typescript-data-grid-hello-world-app-145es?fontsize=14&hidenavigation=1&theme=dark&view=split"
        style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
        title="Handsontable React Data Grid - Hello World App"
        allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
@@ -52,7 +52,7 @@ Let's start with a simple example of Handsontable instance initialized in a cont
 ## React
 
   <div style="margin-top: 33px;">
-    <iframe src="https://codesandbox.io/embed/handsontable-react-data-grid-hello-world-app-yt46w?fontsize=14&hidenavigation=1&theme=dark"
+    <iframe src="https://codesandbox.io/embed/handsontable-react-data-grid-hello-world-app-yt46w?fontsize=14&hidenavigation=1&theme=dark&view=split"
        style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
        title="Handsontable React Data Grid - Hello World App"
        allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
