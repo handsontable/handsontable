@@ -647,10 +647,14 @@ const REGISTERED_HOOKS = [
    * {@link Options#fillHandle} option is enabled.
    *
    * @event Hooks#beforeAutofill
-   * @param {CellCoords} start Object containing information about first filled cell: `{row: 2, col: 0}`.
-   * @param {CellCoords} end Object containing information about last filled cell: `{row: 4, col: 1}`.
-   * @param {Array[]} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`.
-   * @returns {*|boolean} If false is returned the action is canceled.
+   * @param {Array[]} selectionData Data the autofill operation will start from.
+   * @param {CellRange} sourceRange The range values will be filled from.
+   * @param {CellRange} targetRange The range new values will be filled into.
+   * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
+   *
+   * @returns {boolean|Array[]} If false, the operation is cancelled. If array of arrays, the returned data
+   *                              will be passed into `populateFromArray` instead of the default autofill
+   *                              algorithm's result.
    */
   'beforeAutofill',
 
@@ -660,9 +664,11 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterAutofill
    * @since 8.0.0
-   * @param {CellCoords} start Object containing information about first filled cell: `{row: 2, col: 0}`.
-   * @param {CellCoords} end Object containing information about last filled cell: `{row: 4, col: 1}`.
-   * @param {Array[]} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`.
+   * @param {Array[]} fillData The data that was used to fill the `targetRange`. If `beforeAutofill` was used
+   *                            and returned `[[]]`, this will be the same object that was returned from `beforeAutofill`.
+   * @param {CellRange} sourceRange The range values will be filled from.
+   * @param {CellRange} targetRange The range new values will be filled into.
+   * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
    */
   'afterAutofill',
 

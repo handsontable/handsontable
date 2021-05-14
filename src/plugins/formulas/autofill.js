@@ -1,154 +1,181 @@
+import { isObjectEqual } from '../../helpers/object';
+
 /**
  * Registers on the formulas plugin instance.
  *
  * @param {object} pluginInstance The formulas plugin instance.
  */
 export const registerAutofillHooks = (pluginInstance) => {
-  const lastAutofillSource = { value: undefined };
+  /**
+   * The array of arrays used to check if no values were returned from
+   * `beforeAutofill`, other than our own.
+   * */
+  const sentinel = [[]];
 
   // Block autofill operation if at least one of the underlying's cell
   // contents cannot be set, e.g. if there's a matrix underneath.
-  pluginInstance.addHook('beforeAutofill', (start, end) => {
-    const width = Math.abs(start.col - end.col) + 1;
-    const height = Math.abs(start.row - end.row) + 1;
+  pluginInstance.addHook('beforeAutofill', (_, __, target) => {
+    const width = target.to.col - target.from.col + 1;
+    const height = target.to.row - target.from.row + 1;
 
-    const row = Math.min(start.row, end.row);
-    const col = Math.min(start.col, end.col);
+    const row = target.from.row;
+    const col = target.from.col;
 
     if (
-      !pluginInstance.engine.isItPossibleToSetCellContents({
+      pluginInstance.engine.isItPossibleToSetCellContents({
         sheet: pluginInstance.engine.getSheetId(pluginInstance.sheetName),
         row,
         col
       }, width, height)
     ) {
-      return false;
+      return sentinel;
     }
+
+    return false;
   });
 
-  // Abuse the `modifyAutofillRange` hook to get the autofill start coordinates.
-  pluginInstance.addHook('modifyAutofillRange', (_, entireArea) => {
-    const [startRow, startCol, endRow, endCol] = entireArea;
+  pluginInstance.addHook('afterAutofill', (fillData, source, target, direction) => {
+    // Check that the `fillData` used for autofill was the same that we
+    // returned from `beforeAutofill`. This lets end users override this
+    // plugin's autofill with their own behaviors.
+    if (fillData !== sentinel) {
+      return;
+    }
 
-    lastAutofillSource.value = {
-      start: {
-        row: startRow,
-        col: startCol
-      },
-      end: {
-        row: endRow,
-        col: endCol
-      }
-    };
-  });
-
-  // Abuse pluginInstance hook to easily figure out the direction of the autofill
-  pluginInstance.addHook('beforeAutofillInsidePopulate', (index, direction, _input, _deltas, _, selected) => {
-    const autofillTargetSize = {
-      width: selected.col,
-      height: selected.row
+    const sourceSize = {
+      width: source.to.col - source.from.col + 1,
+      height: source.to.row - source.from.row + 1
     };
 
-    const autofillSourceSize = {
-      width: Math.abs(lastAutofillSource.value.start.col - lastAutofillSource.value.end.col) + 1,
-      height: Math.abs(lastAutofillSource.value.start.row - lastAutofillSource.value.end.row) + 1
+    const targetSize = {
+      width: target.to.col - target.from.col + 1,
+      height: target.to.row - target.from.row + 1
     };
 
-    const paste = (
-      // The cell we're copy'ing to let HyperFormula adjust the references properly
-      sourceCellCoordinates,
+    const operations = [];
 
-      // The cell we're pasting into
-      targetCellCoordinates
-    ) => {
-      pluginInstance.engine.copy({
-        sheet: pluginInstance.engine.getSheetId(pluginInstance.sheetName),
-        row: sourceCellCoordinates.row,
-        col: sourceCellCoordinates.col
-      }, 1, 1);
-
-      const [{ address }] = pluginInstance.engine.paste({
-        sheet: pluginInstance.engine.getSheetId(pluginInstance.sheetName),
-        row: targetCellCoordinates.row,
-        col: targetCellCoordinates.col
-      });
-
-      const value = pluginInstance.engine.getCellSerialized(address);
-
-      return { value };
-    };
-
-    // Pretty much reimplements the logic from `src/plugins/autofill/autofill.js#fillIn`
     switch (direction) {
       case 'right': {
-        const targetCellCoordinates = {
-          row: lastAutofillSource.value.start.row + index.row,
-          col: lastAutofillSource.value.start.col + index.col + autofillSourceSize.width
-        };
+        const pasteRow = source.from.row;
 
-        const sourceCellCoordinates = {
-          row: lastAutofillSource.value.start.row + index.row,
-          col: (index.col % autofillSourceSize.width) + lastAutofillSource.value.start.col
-        };
+        for (let pasteCol = target.from.col; pasteCol <= target.to.col; pasteCol += sourceSize.width) {
+          const remaining = target.to.col - pasteCol + 1;
+          const width = Math.min(sourceSize.width, remaining);
 
-        return paste(sourceCellCoordinates, targetCellCoordinates);
-      }
+          operations.push({
+            copy: {
+              row: source.from.row,
+              col: source.from.col,
+              width,
+              height: sourceSize.height
+            },
+            paste: {
+              row: pasteRow,
+              col: pasteCol
+            }
+          });
+        }
 
-      case 'left': {
-        const targetCellCoordinates = {
-          row: lastAutofillSource.value.start.row + index.row,
-          col: lastAutofillSource.value.start.col + index.col - autofillTargetSize.width
-        };
-
-        const fillOffset = autofillTargetSize.width % autofillSourceSize.width;
-
-        const sourceCellCoordinates = {
-          row: lastAutofillSource.value.start.row + index.row,
-          col:
-          ((autofillSourceSize.width - fillOffset + index.col) %
-            autofillSourceSize.width) +
-          lastAutofillSource.value.start.col,
-        };
-
-        return paste(sourceCellCoordinates, targetCellCoordinates);
+        break;
       }
 
       case 'down': {
-        const targetCellCoordinates = {
-          row: lastAutofillSource.value.start.row + index.row + autofillSourceSize.height,
-          col: lastAutofillSource.value.start.col + index.col
-        };
+        const pasteCol = source.from.col;
 
-        const sourceCellCoordinates = {
-          row: (index.row % autofillSourceSize.height) + lastAutofillSource.value.start.row,
-          col: lastAutofillSource.value.start.col + index.col
-        };
+        for (let pasteRow = target.from.row; pasteRow <= target.to.row; pasteRow += sourceSize.height) {
+          const remaining = target.to.row - pasteRow + 1;
+          const height = Math.min(sourceSize.height, remaining);
 
-        return paste(sourceCellCoordinates, targetCellCoordinates);
+          operations.push({
+            copy: {
+              row: source.from.row,
+              col: source.from.col,
+              width: sourceSize.width,
+              height
+            },
+            paste: {
+              row: pasteRow,
+              col: pasteCol
+            }
+          });
+        }
+
+        break;
+      }
+
+      case 'left': {
+        const pasteRow = source.from.row;
+
+        for (let pasteCol = target.from.col; pasteCol <= target.to.col; pasteCol++) {
+          const offset = targetSize.width % sourceSize.width;
+          const copyCol =
+            ((sourceSize.width - offset + (pasteCol - target.from.col)) % sourceSize.width) + source.from.col;
+
+          operations.push({
+            copy: {
+              row: source.from.row,
+              col: copyCol,
+              width: 1,
+              height: sourceSize.height
+            },
+            paste: {
+              row: pasteRow,
+              col: pasteCol
+            }
+          });
+        }
+
+        break;
       }
 
       case 'up': {
-        const targetCellCoordinates = {
-          row: lastAutofillSource.value.start.row + index.row - autofillTargetSize.height,
-          col: lastAutofillSource.value.start.col + index.col
-        };
+        const pasteCol = source.from.col;
 
-        const fillOffset = autofillTargetSize.height % autofillSourceSize.height;
+        for (let pasteRow = target.from.row; pasteRow <= target.to.row; pasteRow++) {
+          const offset = targetSize.height % sourceSize.height;
+          const copyRow =
+            ((sourceSize.height - offset + (pasteRow - target.from.row)) % sourceSize.height) + source.from.row;
 
-        const sourceCellCoordinates = {
-          row:
-          ((autofillSourceSize.height - fillOffset + index.row) %
-            autofillSourceSize.height) +
-          lastAutofillSource.value.start.row,
-          col: lastAutofillSource.value.start.col + index.col,
-        };
+          operations.push({
+            copy: {
+              row: copyRow,
+              col: source.from.col,
+              width: sourceSize.width,
+              height: 1
+            },
+            paste: {
+              row: pasteRow,
+              col: pasteCol
+            }
+          });
+        }
 
-        return paste(sourceCellCoordinates, targetCellCoordinates);
+        break;
       }
 
       default: {
         throw new Error('Unexpected direction parameter');
       }
     }
+
+    const sheet = pluginInstance.sheetId;
+
+    operations.reduce((previousCopy, operation) => {
+      if (!isObjectEqual(previousCopy, operation.copy)) {
+        pluginInstance.engine.copy({
+          sheet,
+          row: operation.copy.row,
+          col: operation.copy.col
+        }, operation.copy.width, operation.copy.height);
+      }
+
+      pluginInstance.engine.paste({
+        sheet,
+        row: operation.paste.row,
+        col: operation.paste.col
+      });
+
+      return operation.copy;
+    }, {});
   });
 };

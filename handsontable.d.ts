@@ -1743,9 +1743,19 @@ declare namespace Handsontable {
       classNames: string[];
     }
 
+    interface CellCoords {
+      col: number;
+      row: number;
+    }
+
+    interface CellRange {
+      from: CellCoords;
+      to: CellCoords;
+    }
+
     interface Events {
       afterAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
-      afterAutofill?: (start: wot.CellCoords, end: wot.CellCoords, data: CellValue[][]) => void;
+      afterAutofill?: (fillData: CellValue[][], sourceRange: CellRange, targetRange: CellRange, direction: 'up' | 'down' | 'left' | 'right') => void;
       afterBeginEditing?: (row: number, column: number) => void;
       afterCellMetaReset?: () => void;
       afterChange?: (changes: CellChange[] | null, source: ChangeSource) => void;
@@ -1833,7 +1843,7 @@ declare namespace Handsontable {
       afterViewportColumnCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
       afterViewportRowCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
       beforeAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
-      beforeAutofill?: (start: wot.CellCoords, end: wot.CellCoords, data: CellValue[][]) => void | boolean;
+      beforeAutofill?: (selectionData: CellValue[][], sourceRange: CellRange, targetRange: CellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | boolean | void;
       beforeAutofillInsidePopulate?: (index: wot.CellCoords, direction: 'up' | 'down' | 'left' | 'right', input: CellValue[][], deltas: any[]) => void;
       beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: wot.CellRange[], type: 'horizontal' | 'vertical', alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
       beforeChange?: (changes: CellChange[], source: ChangeSource) => void | boolean;

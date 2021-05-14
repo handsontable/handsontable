@@ -1,0 +1,7 @@
+{
+  "title": "Changed `afterAutofill` & `beforeAutofill` hooks' signatures",
+  "type": "changed",
+  "issue": 7987,
+  "breaking": true,
+  "framework": "none"
+}
