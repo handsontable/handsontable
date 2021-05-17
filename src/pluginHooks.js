@@ -1474,14 +1474,17 @@ const REGISTERED_HOOKS = [
   /**
    * Called when a value is updated in the engine.
    *
+   * @since 9.0.0
    * @event Hooks#afterFormulasValuesUpdate
    * @param {Array} changes The values and location of applied changes.
+   * @sinc
    */
   'afterFormulasValuesUpdate',
 
   /**
    * Called when a named expression is added to the Formulas' engine instance.
    *
+   * @since 9.0.0
    * @event Hooks#afterNamedExpressionAdded
    * @param {string} namedExpressionName The name of the added expression.
    * @param {Array} changes The values and location of applied changes.
@@ -1491,6 +1494,7 @@ const REGISTERED_HOOKS = [
   /**
    * Called when a named expression is removed from the Formulas' engine instance.
    *
+   * @since 9.0.0
    * @event Hooks#afterNamedExpressionRemoved
    * @param {string} namedExpressionName The name of the removed expression.
    * @param {Array} changes The values and location of applied changes.
@@ -1500,6 +1504,7 @@ const REGISTERED_HOOKS = [
   /**
    * Called when a new sheet is added to the Formulas' engine instance.
    *
+   * @since 9.0.0
    * @event Hooks#afterSheetAdded
    * @param {string} addedSheetDisplayName The name of the added sheet.
    */
@@ -1508,6 +1513,7 @@ const REGISTERED_HOOKS = [
   /**
    * Called when a sheet in the Formulas' engine instance is renamed.
    *
+   * @since 9.0.0
    * @event Hooks#afterSheetRenamed
    * @param {string} oldDisplayName The old name of the sheet.
    * @param {string} newDisplayName The new name of the sheet.
@@ -1517,6 +1523,7 @@ const REGISTERED_HOOKS = [
   /**
    * Called when a sheet is removed from the Formulas' engine instance.
    *
+   * @since 9.0.0
    * @event Hooks#afterSheetRemoved
    * @param {string} removedSheetDisplayName The removed sheet name.
    * @param {Array} changes The values and location of applied changes.
