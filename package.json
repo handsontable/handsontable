@@ -71,8 +71,7 @@
     "examples:install": "node examples/scripts/code-examples.mjs install",
     "examples:build": "node examples/scripts/code-examples.mjs build",
     "examples:test": "node examples/scripts/code-examples.mjs test",
-    "examples:start": "http-server ./examples/tmp",
-    "build-zip": "npm install && npm run build && cd tmp && npm pack && mv handsontable*.tgz handsontable-$(date +%Y%m%d).tgz && cp ../hf-zip-readme.md README.md && zip handsontable-9.0.0-$(date +%Y%m%d).zip handsontable*.tgz README.md && rm handsontable*.tgz && mv handsontable*.zip .."
+    "examples:start": "http-server ./examples/tmp"
   },
   "keywords": [
     "data",
