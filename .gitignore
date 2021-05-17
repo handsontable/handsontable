@@ -13,6 +13,10 @@ src/3rdparty/walkontable/dist/
 dev*.html
 dev*.js
 npm-debug.log
+dist
+languages
+package.json
+package-lock.json
 
 !dist/README.md
 node_modules/
