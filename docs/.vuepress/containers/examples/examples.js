@@ -81,6 +81,7 @@ module.exports = {
       const hidden = !!args.match(/--hidden/);
 
       const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), jsContent, env.relativePath);
+      const encodedCode = encodeURI(`useHandsontable('${version}', function(){${code}}, '${preset}')`);
 
       [htmlIndex, jsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
         tokens.splice(x, 1);
@@ -103,9 +104,7 @@ module.exports = {
           <tab name="Preview" hot-example-id="${id}">
             <style v-pre>${cssContent}</style>
             <div v-pre>${htmlContent}</div>
-            <script data-jsfiddle="${id}" v-pre>
-                useHandsontable('${version}', function(){${code}}, '${preset}');
-            </script>
+            <ScriptLoader code="${encodedCode}"></ScriptLoader>
           </tab>
         `;
     } else { // close preview
