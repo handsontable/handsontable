@@ -2,24 +2,24 @@
   <div> 
     {{ selected }}
     <tabs :options="{ useUrlFragment: false }"  @changed="tabClicked">
-      <tab name="First tab" id="angular">
-        <iframe v-if="selected==='angular'" src="https://handsontable.com/" width="500" height="500"></iframe>
-        This is the content of the first tab
+      <tab name="TypeScript" id="typescript">
+        <iframe src="https://codesandbox.io/embed/handsontable-typescript-data-grid-hello-world-app-145es?fontsize=14&hidenavigation=1&theme=dark&view=split&runonclick=1" 
+          style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" 
+          title="Handsontable React Data Grid - Hello World App"
+          allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+          sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts">
+        </iframe>
       </tab>
-      <tab name="Second tab">
-        This is the content of the second tab
+      <tab name="React" id="react">
+        <iframe src="https://codesandbox.io/embed/handsontable-react-data-grid-hello-world-app-yt46w?fontsize=14&hidenavigation=1&theme=dark&view=split"
+          style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+          title="Handsontable React Data Grid - Hello World App"
+          allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+          sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts">
+        </iframe>
       </tab>
-      <tab name="Disabled tab" :is-disabled="true">
-        This content will be unavailable while :is-disabled prop set to true
-      </tab>
-      <tab id="oh-hi-mark" name="Custom fragment">
-        The fragment that is appended to the url can be customized
-      </tab>
-      <tab prefix="<span class='glyphicon glyphicon-star'></span> "
-           name="Prefix and suffix"
-           suffix=" <span class='badge'>4</span>">
-        A prefix and a suffix can be added
-      </tab>
+      <tab name="Vue" id="vue" :is-disabled="true"></tab>
+      <tab name="Angular" id="angular" :is-disabled="true"></tab>
    </tabs>
   </div>
 </template>
