@@ -1714,6 +1714,27 @@ describe('Formulas general', () => {
     });
   });
 
+  it('should not render multiple times when updating many cells', () => {
+    const afterRender = jasmine.createSpy();
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      formulas: {
+        engine: HyperFormula
+      },
+      afterRender
+    });
+
+    expect(afterRender).toHaveBeenCalledTimes(1);
+
+    selectCell(1, 1, 5, 5);
+
+    spec().$container.find('textarea.handsontableInput').simulate('keydown', { keyCode: 46 });
+    spec().$container.find('textarea.handsontableInput').simulate('keyup', { keyCode: 46 });
+
+    expect(afterRender).toHaveBeenCalledTimes(2);
+  });
+
   xdescribe('column sorting', () => {
     it('should recalculate all formulas and update theirs cell coordinates if needed', () => {
       const hot = handsontable({
