@@ -151,7 +151,6 @@ export function translateRowsToColumns(input) {
  * If the method/property is not found in an object, searching is continued recursively through prototype chain, until
  * it reaches the Object.prototype.
  *
- *
  * @param {string} methodName Name of the method/property to search (i.e. 'renderer', 'validator', 'copyable').
  * @param {boolean} [allowUndefined] If `false`, the search is continued if methodName has not been found in cell
  *   "type".

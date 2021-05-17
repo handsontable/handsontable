@@ -88,13 +88,19 @@ displaySeparator();
   cleanNodeModules();
 
   // Install fresh dependencies
-  await spawnProcess('npm i');
+  await spawnProcess('npm i --no-audit');
 
   // Clear old package builds.
-  await spawnProcess('npm run all clean');
+  await spawnProcess('npm run all clean -- --e examples');
 
-  // Build all packages.
-  await spawnProcess('npm run all build');
+  // Build all packages (except examples).
+  await spawnProcess('npm run all build -- --e examples');
+
+  // Install the "next" package for examples
+  await spawnProcess('npm run examples:install next');
+
+  // Build the examples/next directory.
+  await spawnProcess('npm run in examples build');
 
   // Test all packages.
   await spawnProcess('npm run all test');
@@ -104,6 +110,9 @@ displaySeparator();
 
   // Generate the CHANGELOG.md file.
   await spawnProcess('npm run changelog consume', { stdin: 'pipe' });
+
+  // Create the examples/[version] directory.
+  await spawnProcess(`npm run examples:version ${finalVersion}`);
 
   // Commit the changes to the release branch.
   await spawnProcess('git add .');

@@ -1811,6 +1811,7 @@ declare namespace Handsontable {
       afterPaste?: (data: CellValue[][], coords: plugins.RangeType[]) => void;
       afterPluginsInitialized?: () => void;
       afterRedo?: (action: plugins.UndoRedoAction) => void;
+      afterRedoStackChange?: (undoneActionsBefore: plugins.UndoRedoAction[], undoneActionsAfter: plugins.UndoRedoAction[]) => void;
       afterRefreshDimensions?: (previousDimensions: object, currentDimensions: object, stateChanged: boolean) => void;
       afterRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
       afterRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
@@ -1834,6 +1835,7 @@ declare namespace Handsontable {
       afterSheetRemoved?: (removedSheetDisplayName: string, changes: object[]) => void;
       afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUndo?: (action: plugins.UndoRedoAction) => void;
+      afterUndoStackChange?: (doneActionsBefore: plugins.UndoRedoAction[], doneActionsAfter: plugins.UndoRedoAction[]) => void;
       afterUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUnlisten?: () => void;
@@ -1883,6 +1885,7 @@ declare namespace Handsontable {
       beforeOnCellMouseUp?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
       beforePaste?: (data: CellValue[][], coords: plugins.RangeType[]) => void | boolean;
       beforeRedo?: (action: plugins.UndoRedoAction) => void;
+      beforeRedoStackChange?: (undoneActions: plugins.UndoRedoAction[]) => void;
       beforeRefreshDimensions?: (previousDimensions: object, currentDimensions: object, actionPossible: boolean) => boolean | void;
       beforeRemoveCellClassNames?: () => string[] | void;
       beforeRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
@@ -1900,6 +1903,7 @@ declare namespace Handsontable {
       beforeTouchScroll?: () => void;
       beforeTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void | boolean;
       beforeUndo?: (action: plugins.UndoRedoAction) => void;
+      beforeUndoStackChange?: (doneActions: plugins.UndoRedoAction[], source?: string) => void;
       beforeUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
       beforeUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
       beforeUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;

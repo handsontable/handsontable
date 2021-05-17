@@ -15,8 +15,7 @@ const DEFAULT_ERROR_ID_EXISTS = id => `The id '${id}' is already declared in a m
  * Creates a new unique map.
  *
  * @param {object} config The config for priority queue.
- * @param {Function} config.errorItemExists The function to generate custom message.
- * @param {Function} config.errorItemNotExists The function to generate custom message.
+ * @param {Function} config.errorIdExists The function to generate custom message if ID is already taken.
  * @returns {UniqueMap}
  */
 export function createUniqueMap({ errorIdExists } = {}) {

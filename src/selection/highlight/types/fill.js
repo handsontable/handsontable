@@ -5,6 +5,7 @@ import VisualSelection from '../visualSelection';
  * Creates the new instance of Selection, responsible for highlighting cells which are covered by fill handle
  * functionality. This type of selection can present on the table only one at the time.
  *
+ * @param {object} highlightParams A configuration object to create a highlight.
  * @returns {Selection}
  */
 function createHighlight({ ...restOptions }) {

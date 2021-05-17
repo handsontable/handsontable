@@ -7,6 +7,7 @@ export const CONDITION_NAME = 'begins_with';
 /**
  * @param {object} dataRow The object which holds and describes the single cell value.
  * @param {Array} inputValues An array of values to compare with.
+ * @param {*} inputValues."0" Value to check if it occurs at the beginning.
  * @returns {boolean}
  */
 export function condition(dataRow, [value]) {
