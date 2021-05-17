@@ -1,0 +1,234 @@
+# npm audit report
+
+ng-packagr  <=11.1.4
+Severity: moderate
+OS Command Injection in ng-packagr - https://npmjs.com/advisories/1692
+Depends on vulnerable versions of postcss
+Depends on vulnerable versions of postcss-url
+fix available via `npm audit fix --force`
+Will install ng-packagr@12.0.0, which is a breaking change
+node_modules/ng-packagr
+  @angular-devkit/build-ng-packagr  <=0.1000.0-rc.5
+  Depends on vulnerable versions of ng-packagr
+  node_modules/@angular-devkit/build-ng-packagr
+
+postcss  7.0.0 - 8.2.9
+Severity: moderate
+Regular Expression Denial of Service - https://npmjs.com/advisories/1693
+fix available via `npm audit fix --force`
+Will install ng-packagr@12.0.0, which is a breaking change
+node_modules/@angular-devkit/build-angular/node_modules/postcss
+node_modules/@angular-devkit/build-angular/node_modules/postcss-modules-local-by-default/node_modules/postcss
+node_modules/postcss
+  @angular-devkit/build-angular  0.10.3 - 0.1102.10 || 0.1200.0-next.0 - 0.1200.0-next.8
+  Depends on vulnerable versions of autoprefixer
+  Depends on vulnerable versions of css-loader
+  Depends on vulnerable versions of cssnano
+  Depends on vulnerable versions of postcss
+  Depends on vulnerable versions of postcss-loader
+  node_modules/@angular-devkit/build-angular
+  @vue/component-compiler-utils  >=2.4.0
+  Depends on vulnerable versions of postcss
+  node_modules/@vue/component-compiler-utils
+    @vue/component-compiler  >=4.0.0
+    Depends on vulnerable versions of @vue/component-compiler-utils
+    node_modules/@vue/component-compiler
+    rollup-plugin-vue  5.0.0 - 5.1.9
+    Depends on vulnerable versions of @vue/component-compiler-utils
+    node_modules/rollup-plugin-vue
+  autoprefixer  9.0.0 - 9.8.6
+  Depends on vulnerable versions of postcss
+  node_modules/@angular-devkit/build-angular/node_modules/autoprefixer
+  node_modules/autoprefixer
+  css-declaration-sorter  4.0.0 - 5.1.2
+  Depends on vulnerable versions of postcss
+  node_modules/css-declaration-sorter
+  css-loader  2.0.0 - 4.3.0
+  Depends on vulnerable versions of postcss
+  node_modules/@angular-devkit/build-angular/node_modules/css-loader
+  node_modules/css-loader
+  wrappers/vue/node_modules/css-loader
+  cssnano  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.1.1 - 4.1.11
+  Depends on vulnerable versions of postcss
+  node_modules/@angular-devkit/build-angular/node_modules/cssnano
+  node_modules/cssnano
+    optimize-css-assets-webpack-plugin  3.2.1 || >=5.0.2
+    Depends on vulnerable versions of cssnano
+    node_modules/optimize-css-assets-webpack-plugin
+  cssnano-preset-default  <=4.0.0-rc.2 || 4.0.1 - 4.0.8
+  Depends on vulnerable versions of cssnano-util-raw-cache
+  Depends on vulnerable versions of postcss
+  Depends on vulnerable versions of postcss-calc
+  node_modules/cssnano-preset-default
+  cssnano-util-raw-cache  >=4.0.1
+  Depends on vulnerable versions of postcss
+  node_modules/cssnano-util-raw-cache
+  icss-utils  4.0.0 - 4.1.1
+  Depends on vulnerable versions of postcss
+  node_modules/icss-utils
+    postcss-modules-local-by-default  2.0.0 - 4.0.0-rc.4
+    Depends on vulnerable versions of icss-utils
+    Depends on vulnerable versions of postcss
+    node_modules/@angular-devkit/build-angular/node_modules/postcss-modules-local-by-default
+    node_modules/postcss-modules-local-by-default
+    wrappers/vue/node_modules/postcss-modules-local-by-default
+    postcss-modules-values  2.0.0 - 4.0.0-rc.5
+    Depends on vulnerable versions of icss-utils
+    Depends on vulnerable versions of postcss
+    node_modules/@angular-devkit/build-angular/node_modules/postcss-modules-values
+    node_modules/postcss-modules-values
+    wrappers/vue/node_modules/postcss-modules-values
+  ng-packagr  <=11.1.4
+  Depends on vulnerable versions of postcss
+  Depends on vulnerable versions of postcss-url
+  node_modules/ng-packagr
+    @angular-devkit/build-ng-packagr  <=0.1000.0-rc.5
+    Depends on vulnerable versions of ng-packagr
+    node_modules/@angular-devkit/build-ng-packagr
+  postcss-calc  6.0.2 - 7.0.5
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-calc
+  postcss-colormin  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.2 - 4.0.3
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-colormin
+  postcss-convert-values  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.1
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-convert-values
+  postcss-discard-comments  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.1 - 4.0.2
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-discard-comments
+  postcss-discard-duplicates  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.2
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-discard-duplicates
+  postcss-discard-empty  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.1
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-discard-empty
+  postcss-discard-overridden  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.1
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-discard-overridden
+  postcss-import  12.0.0 - 12.0.1
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-import
+  postcss-less  3.0.0 - 3.1.4
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-less
+    stylelint  >=9.4.0
+    Depends on vulnerable versions of postcss
+    Depends on vulnerable versions of postcss-less
+    Depends on vulnerable versions of postcss-sass
+    Depends on vulnerable versions of sugarss
+    node_modules/stylelint
+  postcss-loader  3.0.0 - 4.0.1
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-loader
+  postcss-merge-longhand  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.6 - 4.0.11
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-merge-longhand
+  postcss-merge-rules  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.2 - 4.0.3
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-merge-rules
+  postcss-minify-font-values  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.2
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-minify-font-values
+  postcss-minify-gradients  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.1 - 4.0.2
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-minify-gradients
+  postcss-minify-params  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.1 - 4.0.2
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-minify-params
+  postcss-minify-selectors  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.1 - 4.0.2
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-minify-selectors
+  postcss-modules-extract-imports  2.0.0
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-modules-extract-imports
+  postcss-modules-scope  2.0.0 - 2.2.0
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-modules-scope
+  postcss-normalize-charset  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.1
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-normalize-charset
+  postcss-normalize-display-values  <=4.0.0-rc.2 || 4.0.1 - 4.0.2
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-normalize-display-values
+  postcss-normalize-positions  <=4.0.0-rc.2 || 4.0.1 - 4.0.2
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-normalize-positions
+  postcss-normalize-repeat-style  <=4.0.0-rc.2 || 4.0.1 - 4.0.2
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-normalize-repeat-style
+  postcss-normalize-string  <=4.0.0-rc.2 || 4.0.1 - 4.0.2
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-normalize-string
+  postcss-normalize-timing-functions  <=4.0.0-rc.2 || 4.0.1 - 4.0.2
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-normalize-timing-functions
+  postcss-normalize-unicode  <=4.0.0-rc.2 || 4.0.1
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-normalize-unicode
+  postcss-normalize-url  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.1
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-normalize-url
+  postcss-normalize-whitespace  <=4.0.0-rc.2 || 4.0.1 - 4.0.2
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-normalize-whitespace
+  postcss-ordered-values  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.1.1 - 4.1.2
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-ordered-values
+  postcss-reduce-initial  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.2 - 4.0.3
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-reduce-initial
+  postcss-reduce-transforms  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.1 - 4.0.2
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-reduce-transforms
+  postcss-safe-parser  4.0.0 - 4.0.2
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-safe-parser
+  postcss-sass  0.3.3 - 0.4.4
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-sass
+  postcss-scss  2.0.0 - 2.1.1
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-scss
+  postcss-svgo  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.1 - 4.0.3
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-svgo
+  postcss-unique-selectors  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.1
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-unique-selectors
+  postcss-url  8.0.0 - 10.0.0
+  Depends on vulnerable versions of postcss
+  node_modules/postcss-url
+  stylehacks  4.0.0-nightly.2020.1.9 - 4.0.0-rc.2 || 4.0.1 - 4.0.3
+  Depends on vulnerable versions of postcss
+  node_modules/stylehacks
+  sugarss  2.0.0
+  Depends on vulnerable versions of postcss
+  node_modules/sugarss
+
+ua-parser-js  0.7.14 - 0.7.23
+Severity: high
+Regular Expression Denial of Service - https://npmjs.com/advisories/1679
+fix available via `npm audit fix --force`
+Will install karma@6.3.2, which is a breaking change
+node_modules/ua-parser-js
+  karma  5.0.0 - 5.2.3
+  Depends on vulnerable versions of ua-parser-js
+  node_modules/karma
+
+xmlhttprequest-ssl  <1.6.2
+Severity: high
+Arbitrary Code Injection - https://npmjs.com/advisories/1665
+fix available via `npm audit fix`
+node_modules/xmlhttprequest-ssl
+  engine.io-client  1.6.0 - 3.5.1 || 4.0.0-alpha.0 - 4.1.3
+  Depends on vulnerable versions of xmlhttprequest-ssl
+  node_modules/engine.io-client
+
+60 vulnerabilities (56 moderate, 4 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
