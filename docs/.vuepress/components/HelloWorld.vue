@@ -1,6 +1,5 @@
 <template>
   <div> 
-    {{ selected }}
     <tabs :options="{ useUrlFragment: false }"  @changed="tabClicked">
       <tab name="TypeScript" id="typescript">
         <iframe src="https://codesandbox.io/embed/handsontable-typescript-data-grid-hello-world-app-145es?fontsize=14&hidenavigation=1&theme=dark&view=split&runonclick=1" 
