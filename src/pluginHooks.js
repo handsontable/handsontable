@@ -1477,7 +1477,6 @@ const REGISTERED_HOOKS = [
    * @since 9.0.0
    * @event Hooks#afterFormulasValuesUpdate
    * @param {Array} changes The values and location of applied changes.
-   * @sinc
    */
   'afterFormulasValuesUpdate',
 
