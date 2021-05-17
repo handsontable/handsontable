@@ -32,12 +32,30 @@ export function mockElementDimensions(element, width, height) {
 }
 
 export function simulateKeyboardEvent(type, keyCode) {
-  const event = document.createEvent('KeyboardEvent');
-  const init = (event as any).initKeyboardEvent !== void 0 ? 'initKeyboardEvent' : 'initKeyEvent';
+  const newEvent = document.createEvent('KeyboardEvent');
+  // const init = (event as any).initKeyboardEvent !== void 0 ? 'initKeyboardEvent' : 'initKeyEvent';
 
-  event[init](type, true, true, window, false, false, false, false, keyCode, 0);
+  // Chromium Hack
+  Object.defineProperty(newEvent, 'keyCode', {
+    get : function() {
+        return this.keyCodeVal;
+    }
+  });     
+  Object.defineProperty(newEvent, 'which', {
+      get : function() {
+          return this.keyCodeVal;
+      }
+  }); 
 
-  document.activeElement.dispatchEvent(event);
+  if ((newEvent as any).initKeyboardEvent !== void 0) {
+    newEvent.initKeyboardEvent(type, true, true, window, keyCode, keyCode, '', '', false, '');
+  } else {
+    newEvent.initKeyEvent(type, true, true, window, false, false, false, false, keyCode, 0);
+  }
+
+  newEvent.keyCodeVal = keyCode;
+
+  document.activeElement.dispatchEvent(newEvent);
 }
 
 export function simulateMouseEvent(element, type) {
