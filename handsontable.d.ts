@@ -1179,6 +1179,7 @@ declare namespace Handsontable {
       sheetId: number;
 
       addSheet(sheetName: string, sheetData: CellValue[][]): boolean;
+      getCellType(row: number, col: number, sheet?: number): 'FORMULA' | 'VALUE' | 'MATRIX' | 'EMPTY';
       switchSheet(sheetName: string): void;
     }
 
