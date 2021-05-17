@@ -610,6 +610,24 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(6)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getDataAtRow(7)).toEqual([2012, 10276, 12292, '#DIV/0!', 12, '=SUM(E5)']);
     });
+
+    it('should trigger beforeCreateRow and afterCreateRow hook with proper arguments while inserting row', () => {
+      const spyAfter = jasmine.createSpy('after');
+      const spyBefore = jasmine.createSpy('before');
+      const hot = handsontable({
+        data: getDataSimpleExampleFormulas(),
+        formulas: {
+          engine: HyperFormula
+        },
+        beforeCreateRow: spyBefore,
+        afterCreateRow: spyAfter,
+      });
+
+      hot.alter('insert_row', 1, 2, 'customSource');
+      expect(spyBefore).toHaveBeenCalledWith(1, 2, 'customSource', undefined, undefined, undefined);
+      expect(spyAfter).toHaveBeenCalledWith(1, 2, 'customSource', undefined, undefined, undefined);
+    });
+  });
   });
 
   describe('alter table (insert column)', () => {
@@ -652,6 +670,23 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(2)).toEqual([2010, null, null, 5, 2905, 2867, 2016, 'Maserati']);
       expect(hot.getDataAtRow(3)).toEqual([2011, null, null, 4, 2517, 4822, 552, 6127]);
       expect(hot.getDataAtRow(4)).toEqual([2012, null, null, 8042, 10058, 1004.5, 12, '=SUM(E5)']);
+    });
+
+    it('should trigger beforeCreateCol and afterCreateCol hook with proper arguments while inserting column', () => {
+      const spyAfter = jasmine.createSpy('after');
+      const spyBefore = jasmine.createSpy('before');
+      const hot = handsontable({
+        data: getDataSimpleExampleFormulas(),
+        formulas: {
+          engine: HyperFormula
+        },
+        beforeCreateCol: spyBefore,
+        afterCreateCol: spyAfter,
+      });
+
+      hot.alter('insert_col', 1, 2, 'customSource');
+      expect(spyBefore).toHaveBeenCalledWith(1, 2, 'customSource', undefined, undefined, undefined);
+      expect(spyAfter).toHaveBeenCalledWith(1, 2, 'customSource', undefined, undefined, undefined);
     });
   });
 
@@ -786,6 +821,23 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(0)).toEqual([null, null, null, null, null, null]);
       expect(hot.getDataAtRow(1)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getDataAtRow(2)).toEqual([2012, '#REF!', '#REF!', '#REF!', 12, '=SUM(E5)']);
+    });
+
+    it('should trigger beforeRemoveRow and afterRemoveRow hook with proper arguments while removing row', () => {
+      const spyAfter = jasmine.createSpy('after');
+      const spyBefore = jasmine.createSpy('before');
+      const hot = handsontable({
+        data: getDataSimpleExampleFormulas(),
+        formulas: {
+          engine: HyperFormula
+        },
+        beforeRemoveRow: spyBefore,
+        afterRemoveRow: spyAfter,
+      });
+
+      hot.alter('remove_row', 1, 3);
+      expect(spyBefore).toHaveBeenCalledWith(1, 3, [1, 2, 3], undefined, undefined, undefined);
+      expect(spyAfter).toHaveBeenCalledWith(1, 3, [1, 2, 3], undefined, undefined, undefined);
     });
   });
 
@@ -943,6 +995,23 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(2)).toEqual(['#REF!', '#REF!']);
       expect(hot.getDataAtRow(3)).toEqual([552, 6127]);
       expect(hot.getDataAtRow(4)).toEqual([12, '=SUM(E5)']);
+    });
+
+    it('should trigger beforeRemoveCol and afterRemoveCol hook while removing column', () => {
+      const spyAfter = jasmine.createSpy('after');
+      const spyBefore = jasmine.createSpy('before');
+      const hot = handsontable({
+        data: getDataSimpleExampleFormulas(),
+        formulas: {
+          engine: HyperFormula
+        },
+        beforeRemoveCol: spyBefore,
+        afterRemoveCol: spyAfter,
+      });
+
+      hot.alter('remove_col', 1, 3);
+      expect(spyBefore).toHaveBeenCalledWith(1, 3, [1, 2, 3], undefined, undefined, undefined);
+      expect(spyAfter).toHaveBeenCalledWith(1, 3, [1, 2, 3], undefined, undefined, undefined);
     });
   });
 
