@@ -16,7 +16,6 @@ module.exports.create = function create(envArgs) {
   const configFull = configFactory.create(envArgs);
 
   configBase.forEach(function(c) {
-    c.entry = ['hyperformula', ...c.entry];
     c.output.filename = PACKAGE_FILENAME + '.js';
     c.devtool = 'source-map';
     // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css files)
