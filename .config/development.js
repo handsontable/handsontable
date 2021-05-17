@@ -16,7 +16,7 @@ module.exports.create = function create(envArgs) {
   const configFull = configFactory.create(envArgs);
 
   configBase.forEach(function(c) {
-    c.entry = './src/index.js';
+    c.entry = ['hyperformula', ...c.entry];
     c.output.filename = PACKAGE_FILENAME + '.js';
     c.devtool = 'source-map';
     // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css files)
@@ -59,7 +59,7 @@ module.exports.create = function create(envArgs) {
   });
 
   configFull.forEach(function(c) {
-    c.entry = ['./src/index.full.js', './src/index.js'];
+    c.entry = ['hyperformula', ...c.entry];
     c.output.filename = PACKAGE_FILENAME + '.full.js';
     // Export these dependencies to the window object. So they can be custom configured
     // before the Handsontable initializiation.
