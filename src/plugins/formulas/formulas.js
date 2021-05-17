@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { registerAutofillHooks } from './autofill';
+import { createAutofillHooks } from './autofill';
 import staticRegister from '../../utils/staticRegister';
 import { error, warn } from '../../helpers/console';
 import {
@@ -129,7 +129,10 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
-    registerAutofillHooks(this);
+    const autofillHooks = createAutofillHooks(this);
+
+    this.addHook('beforeAutofill', autofillHooks.beforeAutofill);
+    this.addHook('afterAutofill', autofillHooks.afterAutofill);
 
     // HyperFormula events:
     this.engine.on('valuesUpdated', (...args) => this.onEngineValuesUpdated(...args));

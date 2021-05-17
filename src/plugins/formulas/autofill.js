@@ -1,20 +1,21 @@
 import { isObjectEqual } from '../../helpers/object';
 
 /**
- * Registers on the formulas plugin instance.
+ * Creates hooks for autofill.
  *
  * @param {object} pluginInstance The formulas plugin instance.
+ * @returns {object}
  */
-export const registerAutofillHooks = (pluginInstance) => {
+export const createAutofillHooks = (pluginInstance) => {
   /**
    * The array of arrays used to check if no values were returned from
    * `beforeAutofill`, other than our own.
    * */
   const sentinel = [[]];
 
-  // Block autofill operation if at least one of the underlying's cell
+  // Blocks the autofill operation if at least one of the underlying's cell
   // contents cannot be set, e.g. if there's a matrix underneath.
-  pluginInstance.addHook('beforeAutofill', (_, __, target) => {
+  const beforeAutofill = (_, __, target) => {
     const width = target.to.col - target.from.col + 1;
     const height = target.to.row - target.from.row + 1;
 
@@ -32,9 +33,9 @@ export const registerAutofillHooks = (pluginInstance) => {
     }
 
     return false;
-  });
+  };
 
-  pluginInstance.addHook('afterAutofill', (fillData, source, target, direction) => {
+  const afterAutofill = (fillData, source, target, direction) => {
     // Check that the `fillData` used for autofill was the same that we
     // returned from `beforeAutofill`. This lets end users override this
     // plugin's autofill with their own behaviors.
@@ -177,5 +178,10 @@ export const registerAutofillHooks = (pluginInstance) => {
 
       return operation.copy;
     }, {});
-  });
+  };
+
+  return {
+    beforeAutofill,
+    afterAutofill
+  };
 };
