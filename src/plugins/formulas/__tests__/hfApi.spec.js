@@ -48,6 +48,7 @@ describe('Formulas general', () => {
       expect(plugin.sheetName).toEqual('Test Sheet 2');
       expect(plugin.sheetId).toEqual(hfInstance1.getSheetId(plugin.sheetName));
       expect(getData()).toEqual(hfInstance1.getSheetSerialized(hfInstance1.getSheetId('Test Sheet 2')));
+      expect(getDataAtCell(0, 0)).toEqual(12);
     });
 
     it('should allow switching sheets stored in HF using the plugin\'s `switchSheet` method', () => {
