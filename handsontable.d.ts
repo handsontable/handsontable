@@ -1,6 +1,6 @@
 import { PikadayOptions } from 'pikaday';
 import numbro from 'numbro';
-import { HyperFormula } from 'hyperformula';
+import { HyperFormula, CellType as HyperFormulaCellType } from 'hyperformula';
 
 /**
  * @internal
@@ -1179,7 +1179,7 @@ declare namespace Handsontable {
       sheetId: number;
 
       addSheet(sheetName: string, sheetData: CellValue[][]): boolean;
-      getCellType(row: number, col: number, sheet?: number): 'FORMULA' | 'VALUE' | 'MATRIX' | 'EMPTY';
+      getCellType(row: number, col: number, sheet?: number): HyperFormulaCellType
       switchSheet(sheetName: string): void;
     }
 
