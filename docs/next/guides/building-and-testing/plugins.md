@@ -1,13 +1,11 @@
 ---
 title: Plugins
-metaTitle: Plguins - Guide - Handsontable Documentation
+metaTitle: Plugins - Guide - Handsontable Documentation
 permalink: /next/plugins
 canonicalUrl: /plugins
 tags:
   - custom plugin
   - skeleton
-  - internal
-  - external
   - extend
 ---
 
@@ -15,90 +13,98 @@ tags:
 
 ## Overview
 
-Plugin is a one great way to extend the capabilities of Handsontable. In fact, most of features available in tis library are provided by plugins.
+Plugin is a one great way to extend the capabilities of Handsontable. In fact, most of features available in this library are provided by plugins.
 
-### Plugin template
+This guide will lead you, step-by-step, through the process of creating a custom extension.
 
-There are two types of plugins: internal and external. While both extend Handsontable's functionality, the former is incorporated into the Handsontable build and the latter needs to be included from a separate file.
+### 1. Prerequisites
 
-Regardless of which plugin you are going to build, using a template will save you lots of time.
+You need to import the following things:
+- `BasePlugin` - contains the basic interface to work within Handsontable's lifecycle,
+- `registerPlugin` - utility to register the plugin in Handsontable plugins registry.
 
-#### Internal plugin
-
-The source code of this template is [available on GitHub](https://github.com/handsontable/handsontable-skeleton/tree/master/plugins/internal). Start off by cloning the entire project or copying the code to your application.
+Both provide the basic interface necessary to create a reusable plugin.
 
 ```js
-// You need to import the BasePlugin class in order to inherit from it.
-import BasePlugin from './../../_base';
-import {registerPlugin} from './../../../plugins';
+import { BasePlugin, registerPlugin } from 'handsontable/plugins';
+```
 
-/**
- * @plugin InternalPluginSkeleton
- * Note: keep in mind, that Handsontable instance creates one instance of the plugin class.
- *
- * @description
- * Blank plugin template. It needs to inherit from the BasePlugin class.
- */
-class InternalPluginSkeleton extends BasePlugin {
+### 2. Extend BasePlugin
+Extending our `BasePlugin` is a recommended way to start creating your next extension.
+In this built-in interface, we care about many factors such as backward compatibility, memory leaks preventions and proper binding plugin's instance with Handsontable.
 
-  // The argument passed to the constructor is the currently processed Handsontable instance object.
+
+```js
+export class CustomPlugin extends BasePlugin {
+  /**
+   * Define an unique plugin's key.
+   * Handsontable will use that string to register the plugin under that alias.
+   * Moreover, you might also use the same parameter to recognize the plugin's
+   * options passed through the setting object at Handsontable initialization.
+   *
+   * @returns {string}
+   */
+  static get PLUGIN_KEY() {
+    return 'customPlugin';
+  }
+
+  /**
+   * Extend the default constructor and define internal properties for your plugin.
+   *
+   * @param {Handsontable} hotInstance
+   */
   constructor(hotInstance) {
     super(hotInstance);
 
     // Initialize all your public properties in the class' constructor.
-    /**
-     * yourProperty description.
-     *
-     * @type {String}
-     */
-    this.yourProperty = '';
-    /**
-     * anotherProperty description.
-     * @type {Array}
-     */
-    this.anotherProperty = [];
+    this.configuration = null;
   }
 
   /**
    * Checks if the plugin is enabled in the settings.
    */
   isEnabled() {
-    return !!this.hot.getSettings().internalPluginSkeleton;
+    return !!this.hot.getSettings()[CustomPlugin.PLUGIN_KEY];
   }
 
   /**
-   * The enablePlugin method is triggered on the beforeInit hook. It should contain your initial plugin setup, along with
-   * the hook connections.
-   * Note, that this method is run only if the statement in the isEnabled method is true.
+   * The `enablePlugin` method is triggered on the `beforeInit` hook.
+   * It should contain your initial plugin setup, along with the hooks connections.
+   * Note, that this method is run only if the statement in the `isEnabled` method returns true.
    */
   enablePlugin() {
-    this.yourProperty = 'Your Value';
+    // Read the plugins' configuration from the initialization object.
+    this.configuration = this.hot.getSettings()[CustomPlugin.PLUGIN_KEY];
 
-    // Add all your plugin hooks here. It's a good idea to make use of the arrow functions to keep the context consistent.
+    // Add all your plugin hooks here. It's a good idea to use arrow functions to keep the plugin as a context.
     this.addHook('afterChange', (changes, source) => this.onAfterChange(changes, source));
 
-    // The super method assigns the this.enabled property to true, which can be later used to check if plugin is already enabled.
+    // The super method assigns the this.enabled property to true.
+    // It is a necessary step to update the plugin's settings properly.
     super.enablePlugin();
   }
 
   /**
-   * The disablePlugin method is used to disable the plugin. Reset all of your classes properties to their default values here.
+   * The disablePlugin method is used to disable the plugin.
    */
   disablePlugin() {
-    this.yourProperty = '';
-    this.anotherProperty = [];
+    // Reset all of your plugin class properties to their default values here.
+    this.configuration = null;
 
     // The super method takes care of clearing the hook connections and assigning the 'false' value to the 'this.enabled' property.
     super.disablePlugin();
   }
 
   /**
-   * The updatePlugin method is called on the afterUpdateSettings hook (unless the updateSettings method turned the plugin off).
-   * It should contain all the stuff your plugin needs to do to work properly after the Handsontable instance settings were modified.
+   * The updatePlugin method is called on the `afterUpdateSettings` hook
+   * (unless the updateSettings method turned the plugin off).
+   *
+   * It should contain all the stuff your plugin needs to do to work correctly
+   * after updating Handsontable instance settings.
    */
   updatePlugin() {
-
-    // The updatePlugin method needs to contain all the code needed to properly re-enable the plugin. In most cases simply disabling and enabling the plugin should do the trick.
+    // The `updatePlugin` method needs to contain all the code needed to properly re-enable the plugin.
+    // In most cases simply disabling and enabling the plugin should do the trick.
     this.disablePlugin();
     this.enablePlugin();
 
@@ -106,137 +112,64 @@ class InternalPluginSkeleton extends BasePlugin {
   }
 
   /**
+   * Define your external methods.
+   */
+  externalMethodExample() {
+    // Method definition.
+  }
+
+  /**
    * The afterChange hook callback.
    *
-   * @param {Array} changes Array of changes.
-   * @param {String} source Describes the source of the change.
+   * @param {CellChange[]} changes An array of changes.
+   * @param {string} source Describes the source of the change.
    */
   onAfterChange(changes, source) {
     // afterChange callback goes here.
   }
 
   /**
-   * The destroy method should de-assign all of your properties.
+   * The `destroy` method is the best place to clean up any instances,
+   * objects or index mappers created during the plugin's lifecycle.
    */
   destroy() {
-    // The super method takes care of de-assigning the event callbacks, plugin hooks and clearing all the plugin properties.
+    // The super method takes care of de-assigning the event callbacks,
+    // plugin hooks and clearing all the plugin properties.
     super.destroy();
   }
 }
-
-export {InternalPluginSkeleton};
-
-// You need to register your plugin in order to use it within Handsontable.
-registerPlugin('internalPluginSkeleton', InternalPluginSkeleton);
-
 ```
 
-#### External plugin
+### 3. Register CustomPlugin
+Last but not least, you need to register the plugin. This is the only way to use plugins in Handsontable.
+There are two options.
 
-Similarly to the above, this template is [hosted on GitHub](https://github.com/handsontable/handsontable-skeleton/tree/master/plugins/external).
+- You can define a static getter named `PLUGIN_KEY` that the `registerPlugin` utility will use as the plugin's alias.
+  ```js
+  // You need to register your plugin in order to use it within Handsontable.
+  registerPlugin(CustomPlugin);
+  ```
+- You can also use the alternative alias
+  ```js
+  registerPlugin('CustomAlias', CustomPlugin);
+  ```
+
+### 4. Use plugin in Handsontable
 
 ```js
-/**
- * @plugin External plugin skeleton.
- * Note: keep in mind, that Handsontable instance creates one instance of the plugin class.
- *
- * @param hotInstance
- * @constructor
- */
-function ExternalPluginSkeleton(hotInstance) {
+import Handsontable from 'handsontable';
+import { CustomPlugin } from './customPlugin';
 
-  // Call the BasePlugin constructor.
-  Handsontable.plugins.BasePlugin.call(this, hotInstance);
-
-  this._superClass = Handsontable.plugins.BasePlugin;
-
-  // Initialize all your public properties in the class' constructor.
-  /**
-   * yourProperty description.
-   *
-   * @type {String}
-   */
-  this.yourProperty = '';
-  /**
-   * anotherProperty description.
-   * @type {Array}
-   */
-  this.anotherProperty = [];
-}
-
-// Inherit the BasePlugin prototype.
-ExternalPluginSkeleton.prototype = Object.create(Handsontable.plugins.BasePlugin.prototype, {
-  constructor: {
-    writable: true,
-    configurable: true,
-    value: ExternalPluginSkeleton
-  },
+const hotInstance = new Handsontable(container, {
+  [CustomPlugin.PLUGIN_KEY]: true
 });
+```
 
-/**
- * Checks if the plugin is enabled in the settings.
- */
-ExternalPluginSkeleton.prototype.isEnabled = function() {
-  return !!this.hot.getSettings().externalPluginSkeleton;
-};
+### 5. Get a reference to the plugin's instance
+If you would like to use plugin's API you might use [`getPlugin`](../api/core/#getplugin) method to get a refernce to the plugin's instance.
 
-/**
- * The enablePlugin method is triggered on the beforeInit hook. It should contain your initial plugin setup, along with
- * the hook connections.
- * Note, that this method is run only if the statement in the isEnabled method is true.
- */
-ExternalPluginSkeleton.prototype.enablePlugin = function() {
-  this.yourProperty = 'Your Value';
+```js
+const pluginInstance = hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY);
 
-  // Add all your plugin hooks here. It's a good idea to make use of the arrow functions to keep the context consistent.
-  this.addHook('afterChange', this.onAfterChange.bind(this));
-
-  // The super class' method assigns the this.enabled property to true, which can be later used to check if plugin is already enabled.
-  this._superClass.prototype.enablePlugin.call(this);
-};
-
-/**
- * The disablePlugin method is used to disable the plugin. Reset all of your classes properties to their default values here.
- */
-ExternalPluginSkeleton.prototype.disablePlugin = function() {
-  this.yourProperty = '';
-  this.anotherProperty = [];
-
-  // The super class' method takes care of clearing the hook connections and assigning the 'false' value to the 'this.enabled' property.
-  this._superClass.prototype.disablePlugin.call(this);
-};
-
-/**
- * The updatePlugin method is called on the afterUpdateSettings hook (unless the updateSettings method turned the plugin off).
- * It should contain all the stuff your plugin needs to do to work properly after the Handsontable instance settings were modified.
- */
-ExternalPluginSkeleton.prototype.updatePlugin = function() {
-
-  // The updatePlugin method needs to contain all the code needed to properly re-enable the plugin. In most cases simply disabling and enabling the plugin should do the trick.
-  this.disablePlugin();
-  this.enablePlugin();
-
-  this._superClass.prototype.updatePlugin.call(this);
-};
-
-/**
- * The afterChange hook callback.
- *
- * @param {Array} changes Array of changes.
- * @param {String} source Describes the source of the change.
- */
-ExternalPluginSkeleton.prototype.onAfterChange = function(changes, source) {
-  // afterChange callback goes here.
-};
-
-/**
- * The destroy method should de-assign all of your properties.
- */
-ExternalPluginSkeleton.prototype.destroy = function() {
-  // The super method takes care of de-assigning the event callbacks, plugin hooks and clearing all the plugin properties.
-  this._superClass.prototype.destroy.call(this);
-};
-
-// You need to register your plugin in order to use it within Handsontable.
-Handsontable.plugins.registerPlugin('externalPluginSkeleton', ExternalPluginSkeleton);
+pluginInstance.externalMethodExample();
 ```

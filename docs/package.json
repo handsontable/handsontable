@@ -13,7 +13,7 @@
     "directory": "docs"
   },
   "scripts": {
-    "docs:assets:next": "cp ../dist/handsontable.full.css .vuepress/public/handsontable.css && cp ../dist/handsontable.full.js .vuepress/public/handsontable.js",
+    "docs:assets:next": "node .vuepress/tools/copy-assets.mjs",
     "docs:start": "npm run docs:assets:next && vuepress dev ./",
     "docs:start:no-cache": "npm run docs:assets:next && vuepress dev --no-cache ./",
     "docs:build": "npm run docs:build:no-check-links && npm run docs:check-links",
@@ -39,6 +39,7 @@
     "broken-link-checker": "^0.7.8",
     "chalk": "^4.1.1",
     "fs-extra": "^9.1.0",
+    "jsdoc-to-markdown": "^7.0.1",
     "markdown-it-regex": "^0.2.0",
     "replace-in-files": "^3.0.0",
     "semver": "^5.7.1",
