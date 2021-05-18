@@ -1,5 +1,5 @@
 /**
- * Matches into: `example #ID .class :preset --css 2 --html 0 --js 1 --tab preview`.
+ * Matches into: `example #ID .class :preset --css 2 --html 0 --js 1 --hidden`.
  *
  * @type {RegExp}
  */
@@ -46,7 +46,7 @@ const tab = (tabName, token) => {
   ];
 };
 
-function getPreviewTab(id, cssContent, htmlContent, version, code, preset) {
+function getPreviewTab(id, cssContent, htmlContent, code) {
   return {
     type: 'html_block',
     tag: '',
@@ -59,9 +59,7 @@ function getPreviewTab(id, cssContent, htmlContent, version, code, preset) {
       <tab name="Preview" hot-example-id="${id}">
         <style v-pre>${cssContent}</style>
         <div v-pre>${htmlContent}</div>
-        <script data-jsfiddle="${id}" v-pre>
-          useHandsontable('${version}', function(){${code}}, '${preset}');
-        </script>
+        <ScriptLoader code="${code}"></ScriptLoader>
       </tab>
     `,
     markup: '',
@@ -93,7 +91,7 @@ module.exports = {
       const htmlToken = htmlPos ? tokens[htmlIndex] : undefined;
       const htmlContent = htmlToken
         ? htmlToken.content
-        : `<div id="${id}" className="hot ${klass}"></div>`;
+        : `<div id="${id}" class="hot ${klass}"></div>`;
 
       const cssPos = args.match(/--css (\d*)/)?.[1];
       const cssIndex = cssPos ? index + Number.parseInt(cssPos, 10) : 0;
@@ -108,6 +106,7 @@ module.exports = {
       const activeTab = args.match(/--tab (code|html|css|preview)/)?.[1] || 'code';
 
       const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), jsContent, env.relativePath);
+      const encodedCode = encodeURI(`useHandsontable('${version}', function(){${code}}, '${preset}')`);
 
       [htmlIndex, jsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
         tokens.splice(x, 1);
@@ -117,7 +116,7 @@ module.exports = {
         ...tab('Code', jsToken),
         ...tab('HTML', htmlToken),
         ...tab('CSS', cssToken),
-        getPreviewTab(id, cssContent, htmlContent, version, code, preset)
+        getPreviewTab(id, cssContent, htmlContent, encodedCode)
       ];
 
       tokens.splice(index + 1, 0, ...newTokens);
