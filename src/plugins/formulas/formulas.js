@@ -17,6 +17,7 @@ import Hooks from '../../pluginHooks';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
+const FORMULA_TYPE = 'FORMULA';
 
 Hooks.getSingleton().register('afterNamedExpressionAdded');
 Hooks.getSingleton().register('afterNamedExpressionRemoved');
@@ -125,6 +126,7 @@ export class Formulas extends BasePlugin {
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
     this.addHook('modifyData', (...args) => this.onModifyData(...args));
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
+    this.addHook('beforeValidate', (...args) => this.onBeforeValidate(...args));
 
     this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args));
     this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args));
@@ -404,6 +406,33 @@ export class Formulas extends BasePlugin {
 
       this.engine.setCellContents(address, valueHolder.value);
     }
+  }
+
+  /**
+   * On before validate listener.
+   *
+   * @private
+   * @param {*} value Value to validate.
+   * @param {number} row Row index.
+   * @param {number} prop Column property.
+   * @returns {*}
+   */
+  onBeforeValidate(value, row, prop) {
+    const visualColumn = this.hot.propToCol(prop);
+    const visualRow = this.hot.toVisualRow(row);
+    let validateValue = value;
+
+    if (this.getCellType(visualRow, visualColumn) === FORMULA_TYPE) {
+      const address = {
+        row: visualRow,
+        col: visualColumn,
+        sheet: this.sheetId
+      };
+      
+      validateValue = this.engine.getCellValue(address);
+    }
+
+    return validateValue;
   }
 
   /**
