@@ -392,7 +392,7 @@ export class Formulas extends BasePlugin {
         row,
 
         // Workaround for inconsistencies in `src/dataSource.js`
-        col: this.hot.toPhysicalColumn(this.hot.colToProp(column)),
+        col: this.hot.toPhysicalColumn(this.hot.propToCol(column)),
         sheet: this.sheetId
       };
 
