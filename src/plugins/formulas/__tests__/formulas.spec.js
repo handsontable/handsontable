@@ -1736,7 +1736,7 @@ describe('Formulas general', () => {
   });
   
   describe('cooperation with validation', () => {
-    it('should validate result of formula properly', async() => {
+    it('should validate result of formula properly (opening and closing an editor)', async() => {
       const hot = handsontable({
         data: [
           ['=B1+5', 2, '=D1', 'text']
@@ -1768,7 +1768,7 @@ describe('Formulas general', () => {
       expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
     });
 
-    it('should validate result of formula for dependant cells properly', async() => {
+    it('should validate result of formula for dependant cells properly (formula returns text)', async() => {
       const hot = handsontable({
         data: [
           [0, '=A1', '=B1', '=C1']
@@ -1787,6 +1787,62 @@ describe('Formulas general', () => {
       expect($(getCell(0, 1)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
       expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
       expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+    });
+
+    it('should validate result of formula and dependant cells properly (formula returns error)', async() => {
+      const hot = handsontable({
+        data: [
+          ['=B1+5', 2, '=A1', '=C1']
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        type: 'numeric'
+      });
+
+      hot.setDataAtCell(0, 0, '=B1+5a');
+
+      await sleep(100); // Validator is asynchronous.
+
+      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+
+      hot.setDataAtCell(0, 0, '=B1+5');
+
+      await sleep(100); // Validator is asynchronous.
+
+      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+    });
+
+    it('should validate result of formula and dependant cells properly (formula create circular dependency)', async() => {
+      const hot = handsontable({
+        data: [
+          ['=B1+5', 2, '=A1', '=C1']
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        type: 'numeric'
+      });
+
+      hot.setDataAtCell(0, 0, '=C1');
+
+      await sleep(100); // Validator is asynchronous.
+
+      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+
+      hot.setDataAtCell(0, 0, '=B1+5');
+
+      await sleep(100); // Validator is asynchronous.
+
+      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
     });
   });
 
