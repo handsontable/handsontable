@@ -8,7 +8,8 @@ import {
 } from '../../helpers/mixed';
 import {
   setupEngine,
-  unregisterEngine
+  unregisterEngine,
+  getRegisteredHotInstances,
 } from './engine/register';
 import { getEngineSettingsWithOverrides } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
@@ -46,15 +47,6 @@ export class Formulas extends BasePlugin {
    * @type {boolean}
    */
   #internalOperationPending = false;
-
-  /**
-   * Flag used to prevent unnecessary renders during updates within the same Handsontable
-   * instance, which the listener to the `valuesUpdated` hook would otherwise cause.
-   *
-   * @private
-   * @type {boolean}
-   */
-  #shouldSuspendRenders = false;
 
   /**
    * Flag needed to mark if Handsontable was initialized with no data.
@@ -115,7 +107,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    this.engine = setupEngine(this.hot.getSettings(), this.hot.guid);
+    this.engine = setupEngine(this.hot);
 
     if (!this.engine) {
       return;
@@ -125,6 +117,8 @@ export class Formulas extends BasePlugin {
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
     this.addHook('modifyData', (...args) => this.onModifyData(...args));
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
+    this.addHook('afterSetSourceDataAtCell', (...args) => this.onAfterSetSourceDataAtCell(...args));
+    this.addHook('beforeChange', (...args) => this.onBeforeChange(...args));
 
     this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args));
     this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args));
@@ -184,7 +178,7 @@ export class Formulas extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    unregisterEngine(this.engine, this.hot.guid);
+    unregisterEngine(this.engine, this.hot);
 
     super.destroy();
   }
@@ -261,6 +255,33 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Renders dependent sheets (handsontable instances) based on the changes - list of the
+   * recalculated dependent cells.
+   *
+   * @private
+   * @param {object[]} changedCells
+   */
+  renderDependentSheets(changedCells) {
+    const affectedSheets = new Set(changedCells.map(change => change?.address?.sheet));
+    const hotInstances = new Map(
+      getRegisteredHotInstances(this.engine)
+        .map((hot) => [hot.getPlugin('formulas').sheetId, hot])
+    );
+
+    affectedSheets.forEach((sheetId) => {
+      if (sheetId !== void 0 && sheetId !== this.sheetId) {
+        console.log('affected shhet id', sheetId);
+
+        const hot = hotInstances.get(sheetId);
+
+        console.log('RENDER', sheetId);
+        hot.render();
+        hot.view?.adjustElementsSize();
+      }
+    });
+  }
+
+  /**
    * `beforeLoadData` hook callback.
    *
    * @param {Array} sourceData Array of arrays or array of objects containing data.
@@ -306,7 +327,9 @@ export class Formulas extends BasePlugin {
       if (this.engine.isItPossibleToReplaceSheetContent(this.sheetName, sourceDataArray)) {
         this.#internalOperationPending = true;
 
-        this.engine.setSheetContent(this.sheetName, this.hot.getSourceDataArray());
+        const dependentCells = this.engine.setSheetContent(this.sheetName, this.hot.getSourceDataArray());
+
+        this.renderDependentSheets(dependentCells);
 
         this.#internalOperationPending = false;
       }
@@ -327,7 +350,7 @@ export class Formulas extends BasePlugin {
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
   onModifyData(row, column, valueHolder, ioMode) {
-    if (!this.enabled || this.#internalOperationPending) {
+    if (!this.enabled || this.#internalOperationPending || ioMode !== 'get') {
       // TODO check if this line is actually ever reached
       return;
     }
@@ -337,27 +360,12 @@ export class Formulas extends BasePlugin {
       col: column,
       sheet: this.sheetId
     };
+    const cellValue = this.engine.getCellValue(address);
 
-    if (ioMode === 'get') {
-      const cellValue = this.engine.getCellValue(address);
+    // If `cellValue` is an object it is expected to be an error
+    const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
 
-      // If `cellValue` is an object it is expected to be an error
-      const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
-
-      valueHolder.value = value;
-    } else {
-      if (
-        !this.engine.isItPossibleToSetCellContents(address)
-      ) {
-        warn(`Not possible to set cell data at ${JSON.stringify(address)}`);
-
-        return;
-      }
-
-      this.#shouldSuspendRenders = true;
-      this.engine.setCellContents(address, valueHolder.value);
-      this.#shouldSuspendRenders = false;
-    }
+    valueHolder.value = value;
   }
 
   /**
@@ -371,7 +379,7 @@ export class Formulas extends BasePlugin {
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
   onModifySourceData(row, col, valueHolder, ioMode) {
-    if (!this.enabled || this.#internalOperationPending) {
+    if (!this.enabled || this.#internalOperationPending || ioMode !== 'get') {
       return;
     }
 
@@ -391,19 +399,63 @@ export class Formulas extends BasePlugin {
       sheet: this.sheetId
     };
 
-    if (ioMode === 'get') {
-      valueHolder.value = this.engine.getCellSerialized(address);
-    } else if (ioMode === 'set') {
-      if (
-        !this.engine.isItPossibleToSetCellContents(address)
-      ) {
+    valueHolder.value = this.engine.getCellSerialized(address);
+  }
+
+  /**
+   * `onBeforeChange` hook callback.
+   *
+   * @private
+   * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
+   */
+  onBeforeChange(changes) {
+    const dependentCells = [];
+
+    changes.forEach(([row, prop,, newValue]) => {
+      const address = {
+        row: this.hot.toPhysicalRow(row),
+        col: this.hot.toPhysicalColumn(this.hot.propToCol(prop)),
+        sheet: this.sheetId
+      };
+
+      if (!this.engine.isItPossibleToSetCellContents(address)) {
+        warn(`Not possible to set cell data at ${JSON.stringify(address)}`);
+
+        return;
+      }
+
+      dependentCells.push(...this.engine.setCellContents(address, newValue));
+    });
+
+    this.renderDependentSheets(dependentCells);
+  }
+
+  /**
+   * `onBeforeChange` hook callback.
+   *
+   * @private
+   * @param {Array[]} changes An array of changes in format [[row, column, oldValue, value], ...].
+   */
+  onAfterSetSourceDataAtCell(changes) {
+    const dependentCells = [];
+
+    changes.forEach(([row, column,, newValue]) => {
+      const address = {
+        row,
+        col: column,
+        sheet: this.sheetId
+      };
+
+      if (!this.engine.isItPossibleToSetCellContents(address)) {
         warn(`Not possible to set source cell data at ${JSON.stringify(address)}`);
 
         return;
       }
 
-      this.engine.setCellContents(address, valueHolder.value);
-    }
+      dependentCells.push(...this.engine.setCellContents(address, newValue));
+    });
+
+    this.renderDependentSheets(dependentCells);
   }
 
   /**
@@ -514,16 +566,6 @@ export class Formulas extends BasePlugin {
    * @param {Array} changes The values and location of applied changes.
    */
   onEngineValuesUpdated(changes) {
-    if (!this.#shouldSuspendRenders) {
-      const isAffectedByChange = changes.some((change) => {
-        return change?.address?.sheet === this.sheetId;
-      });
-
-      if (isAffectedByChange) {
-        this.hot.render();
-      }
-    }
-
     this.hot.runHooks('afterFormulasValuesUpdate', changes);
   }
 

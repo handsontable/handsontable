@@ -8,11 +8,11 @@ import { DEFAULT_LICENSE_KEY, getEngineSettingsWithDefaultsAndOverrides } from '
  * Setups the engine instance. It either creates a new (possibly shared) engine instance, or attaches
  * the plugin to an already-existing instance.
  *
- * @param {object} hotSettings Object containing the Handsontable settings.
- * @param {string} hotId Handsontable guid.
+ * @param {Handsontable} hotInstance Handsontable instance.
  * @returns {null|object} Returns the engine instance if everything worked right and `null` otherwise.
  */
-export function setupEngine(hotSettings, hotId) {
+export function setupEngine(hotInstance) {
+  const hotSettings = hotInstance.getSettings();
   const pluginSettings = hotSettings[PLUGIN_KEY];
   const engineConfigItem = pluginSettings.engine;
 
@@ -28,7 +28,7 @@ export function setupEngine(hotSettings, hotId) {
     return registerEngine(
       engineConfigItem.hyperformula ?? engineConfigItem,
       hotSettings,
-      hotId);
+      hotInstance);
 
     // `engine` is the engine instance
   } else if (typeof engineConfigItem === 'object' && isUndefined(engineConfigItem.hyperformula)) {
@@ -36,7 +36,7 @@ export function setupEngine(hotSettings, hotId) {
     const sharedEngineUsage = engineRegistry?.get(engineConfigItem);
 
     if (sharedEngineUsage) {
-      sharedEngineUsage.push(hotId);
+      sharedEngineUsage.push(hotInstance);
     }
 
     if (!engineConfigItem.getConfig().licenseKey) {
@@ -56,10 +56,10 @@ export function setupEngine(hotSettings, hotId) {
  *
  * @param {Function} engineClass The engine class.
  * @param {object} hotSettings The Handsontable settings.
- * @param {string} hotId Handsontable guid.
+ * @param {Handsontable} hotInstance Handsontable instance.
  * @returns {object} Returns the engine instance.
  */
-export function registerEngine(engineClass, hotSettings, hotId) {
+export function registerEngine(engineClass, hotSettings, hotInstance) {
   if (!staticRegister(PLUGIN_KEY).hasItem('engine')) {
     staticRegister(PLUGIN_KEY).register('engine', new Map());
   }
@@ -76,7 +76,7 @@ export function registerEngine(engineClass, hotSettings, hotId) {
   const engineInstance = engineClass.buildEmpty(engineSettings);
 
   // Add it to global registry
-  engineRegistry.set(engineInstance, [hotId]);
+  engineRegistry.set(engineInstance, [hotInstance]);
 
   registerNamedExpressions(engineInstance, pluginSettings.namedExpressions);
 
@@ -93,19 +93,33 @@ export function registerEngine(engineClass, hotSettings, hotId) {
 }
 
 /**
+ * @param {object} engine The engine instance.
+ * @returns {Handsontable[]} Returns an array with Handsontable instances.
+ */
+export function getRegisteredHotInstances(engine) {
+  if (!staticRegister(PLUGIN_KEY).hasItem('engine')) {
+    staticRegister(PLUGIN_KEY).register('engine', new Map());
+  }
+
+  const engineRegistry = staticRegister(PLUGIN_KEY).getItem('engine');
+
+  return engineRegistry.size === 0 ? [] : Array.from(engineRegistry.get(engine));
+}
+
+/**
  * Removes the HOT instance from the global register's engine usage array, and if there are no HOT instances left,
  * unregisters the engine itself.
  *
  * @param {object} engine The engine instance.
- * @param {string} hotId The Handsontable guid.
+ * @param {string} hotInstance The Handsontable instance.
  */
-export function unregisterEngine(engine, hotId) {
+export function unregisterEngine(engine, hotInstance) {
   if (engine) {
     const engineRegistry = staticRegister(PLUGIN_KEY).getItem('engine');
     const sharedEngineUsage = engineRegistry?.get(engine);
 
-    if (sharedEngineUsage && sharedEngineUsage.includes(hotId)) {
-      sharedEngineUsage.splice(sharedEngineUsage.indexOf(hotId), 1);
+    if (sharedEngineUsage && sharedEngineUsage.includes(hotInstance)) {
+      sharedEngineUsage.splice(sharedEngineUsage.indexOf(hotInstance), 1);
 
       if (sharedEngineUsage.length === 0) {
         engineRegistry.delete(engine);

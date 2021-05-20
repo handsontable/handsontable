@@ -80,7 +80,7 @@ describe('Formulas general', () => {
       expect(getDataAtCell(4, 1)).toEqual(8042);
       expect(hfInstances.size).toBeGreaterThanOrEqual(1);
       expect(relatedHfInstanceEntry.length).toEqual(1);
-      expect(relatedHfInstanceEntry[0]).toEqual(hot.guid);
+      expect(relatedHfInstanceEntry[0]).toEqual(hot);
     });
 
     it('should initialize a single working Handsontable instance, when an external HyperFormula instance was passed' +
@@ -137,8 +137,8 @@ describe('Formulas general', () => {
 
         expect(formulasPlugin1.engine !== formulasPlugin2.engine).withContext('Both of the HOT instances' +
           ' should have separate HF instances.').toBe(true);
-        expect(relatedHfInstanceEntry1[0]).toEqual(hot1.guid);
-        expect(relatedHfInstanceEntry2[0]).toEqual(hot2.guid);
+        expect(relatedHfInstanceEntry1[0]).toEqual(hot1);
+        expect(relatedHfInstanceEntry2[0]).toEqual(hot2);
       });
 
       it('should create separate HF instances, when multiple HOT instances are initialized with HF external' +
@@ -274,12 +274,12 @@ describe('Formulas general', () => {
         expect(formulasPlugin1HF).toEqual(formulasPlugin2HF);
         expect(relatedHfInstanceEntry1).toEqual(relatedHfInstanceEntry2);
         expect(relatedHfInstanceEntry1.length).toEqual(2);
-        expect(relatedHfInstanceEntry1[0]).toEqual(hot1.guid);
-        expect(relatedHfInstanceEntry1[1]).toEqual(hot2.guid);
+        expect(relatedHfInstanceEntry1[0]).toEqual(hot1);
+        expect(relatedHfInstanceEntry1[1]).toEqual(hot2);
       });
 
       it('should NOT destroy a shared HF instance if only one of the "connected" HOT instances i destroyed, but' +
-        ' should remove the HOT guid from the global registry', () => {
+        ' should remove the HOT instance from the global registry', () => {
         const hot1 = handsontable({
           data: getDataSimpleExampleFormulas(),
           formulas: {
@@ -303,7 +303,7 @@ describe('Formulas general', () => {
         hot1.destroy();
 
         expect(relatedHfInstanceEntry.length).toEqual(1);
-        expect(relatedHfInstanceEntry[0]).toEqual(hot2.guid);
+        expect(relatedHfInstanceEntry[0]).toEqual(hot2);
       });
 
       it('should destroy a shared HF instance only after every "connected" HOT instances is destroyed and remove the' +
