@@ -1734,6 +1734,61 @@ describe('Formulas general', () => {
 
     expect(afterRender).toHaveBeenCalledTimes(2);
   });
+  
+  describe('cooperation with validation', () => {
+    it('should validate result of formula properly', async() => {
+      const hot = handsontable({
+        data: [
+          ['=B1+5', 2, '=D1', 'text']
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        type: 'numeric'
+      });
+
+      selectCell(0, 0);
+      // Opening an editor
+      keyDown('enter');
+      // Closing the editor and saving changes.
+      keyDown('enter');
+      
+      await sleep(0); // Validator is asynchronous.
+
+      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+
+      selectCell(0, 2);
+      // Opening an editor
+      keyDown('enter');
+      // Closing the editor and saving changes.
+      keyDown('enter');
+
+      await sleep(100); // Validator is asynchronous.
+
+      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+    });
+
+    it('should validate result of formula for dependant cells properly', async() => {
+      const hot = handsontable({
+        data: [
+          [0, '=A1', '=B1', '=C1']
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        type: 'numeric'
+      });
+
+      hot.setDataAtCell(0, 0, 'text');
+
+      await sleep(100); // Validator is asynchronous.
+
+      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 1)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+    });
+  });
 
   xdescribe('column sorting', () => {
     it('should recalculate all formulas and update theirs cell coordinates if needed', () => {
