@@ -18,6 +18,16 @@ import Hooks from '../../pluginHooks';
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
 
+/**
+ * Check if provided expression is valid formula expression.
+ *
+ * @param {*} expression Expression to check.
+ * @returns {boolean}
+ */
+function isFormulaExpression(expression) {
+  return typeof expression === 'string' && expression.length >= 2 && expression.charAt(0) === '=';
+}
+
 Hooks.getSingleton().register('afterNamedExpressionAdded');
 Hooks.getSingleton().register('afterNamedExpressionRemoved');
 Hooks.getSingleton().register('afterSheetAdded');
