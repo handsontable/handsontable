@@ -17,7 +17,6 @@ import Hooks from '../../pluginHooks';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
-const FORMULA_TYPE = 'FORMULA';
 
 Hooks.getSingleton().register('afterNamedExpressionAdded');
 Hooks.getSingleton().register('afterNamedExpressionRemoved');
@@ -419,21 +418,14 @@ export class Formulas extends BasePlugin {
    * @returns {*}
    */
   onBeforeValidate(value, row, prop) {
-    const visualColumn = this.hot.propToCol(prop);
-    const visualRow = this.hot.toVisualRow(row);
-    let validateValue = value;
+    if (isFormulaExpression(value)) {
+      try {
+        return this.engine.calculateFormula(value, this.engine.getSheetName(this.sheetId));
 
-    if (this.getCellType(visualRow, visualColumn) === FORMULA_TYPE) {
-      const address = {
-        row: visualRow,
-        col: visualColumn,
-        sheet: this.sheetId
-      };
-
-      validateValue = this.engine.getCellValue(address);
+      } catch (e) {
+        return '#ERROR!'
+      }
     }
-
-    return validateValue;
   }
 
   /**
