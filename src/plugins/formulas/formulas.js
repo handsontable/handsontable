@@ -429,7 +429,7 @@ export class Formulas extends BasePlugin {
         col: visualColumn,
         sheet: this.sheetId
       };
-      
+
       validateValue = this.engine.getCellValue(address);
     }
 
@@ -563,47 +563,36 @@ export class Formulas extends BasePlugin {
 
   /**
    * Validate cells dependants to the cell with certain cell address.
-   * 
-   * @param {undefined|SimpleCellAddress} cellAddress - cell coordinates/
-   * @return {boolean}
+   *
+   * @param {undefined|SimpleCellAddress} cellAddress Cell coordinates.
    */
   validateCellDependents(cellAddress) {
     // Named expression won't have address.
     if (isUndefined(cellAddress)) {
-      return false;
+      return;
     }
-    
-    if (cellAddress.row === 3 && cellAddress.col === 0) {
-      console.log(this.engine.getCellValueDetailedType(cellAddress));
+
+    if (cellAddress.sheet !== this.sheetId) {
+      return;
     }
-    
+
     const typeOfValue = this.engine.getCellValueDetailedType(cellAddress);
 
     if (typeOfValue === 'ERROR') {
-      return false;
+      return;
     }
 
-    if (cellAddress.sheet === this.sheetId) {
-      const cellDependents = this.engine.getCellDependents(cellAddress);
+    this.engine.getCellDependents(cellAddress).forEach((cellAddressOrCellRange) => {
+      const isCellAddress = isUndefined(cellAddressOrCellRange.start);
 
-      cellDependents.forEach((cellAddressOrCellRange) => {
-        const isCellAddress = isUndefined(cellAddressOrCellRange.start)
+      if (isCellAddress) {
+        const { row, col } = cellAddressOrCellRange;
 
-        if (isCellAddress) {
-          const { row, col } = cellAddressOrCellRange;
-
-          this.hot.validateCell(this.hot.getDataAtCell(row, col), this.hot.getCellMeta(row, col), () => {});
-        }
-
-        return this.validateCellDependents(cellAddressOrCellRange);
-      });
-
-      if (cellDependents.length > 0) {
-        return true;
+        this.hot.validateCell(this.hot.getDataAtCell(row, col), this.hot.getCellMeta(row, col), () => {});
       }
-    };
 
-    return false;
+      this.validateCellDependents(cellAddressOrCellRange);
+    });
   }
 
   /**
