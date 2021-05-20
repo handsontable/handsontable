@@ -358,6 +358,7 @@ export class Formulas extends BasePlugin {
 
       this.#shouldSuspendRenders = true;
       this.engine.setCellContents(address, valueHolder.value);
+      this.validateCellDependents(address);
       this.#shouldSuspendRenders = false;
     }
   }
@@ -544,8 +545,12 @@ export class Formulas extends BasePlugin {
    */
   onEngineValuesUpdated(changes) {
     if (!this.#shouldSuspendRenders) {
-      const isAffectedByChange = changes.some((change) => {
-        return change?.address?.sheet === this.sheetId;
+      let isAffectedByChange = false;
+
+      changes.forEach((change) => {
+        this.validateCellDependents(change.address);
+        // There is used optional chaining, because named expression won't have address.
+        isAffectedByChange = isAffectedByChange || change?.address?.sheet === this.sheetId;
       });
 
       if (isAffectedByChange) {
@@ -554,6 +559,51 @@ export class Formulas extends BasePlugin {
     }
 
     this.hot.runHooks('afterFormulasValuesUpdate', changes);
+  }
+
+  /**
+   * Validate cells dependants to the cell with certain cell address.
+   * 
+   * @param {undefined|SimpleCellAddress} cellAddress - cell coordinates/
+   * @return {boolean}
+   */
+  validateCellDependents(cellAddress) {
+    // Named expression won't have address.
+    if (isUndefined(cellAddress)) {
+      return false;
+    }
+    
+    if (cellAddress.row === 3 && cellAddress.col === 0) {
+      console.log(this.engine.getCellValueDetailedType(cellAddress));
+    }
+    
+    const typeOfValue = this.engine.getCellValueDetailedType(cellAddress);
+
+    if (typeOfValue === 'ERROR') {
+      return false;
+    }
+
+    if (cellAddress.sheet === this.sheetId) {
+      const cellDependents = this.engine.getCellDependents(cellAddress);
+
+      cellDependents.forEach((cellAddressOrCellRange) => {
+        const isCellAddress = isUndefined(cellAddressOrCellRange.start)
+
+        if (isCellAddress) {
+          const { row, col } = cellAddressOrCellRange;
+
+          this.hot.validateCell(this.hot.getDataAtCell(row, col), this.hot.getCellMeta(row, col), () => {});
+        }
+
+        return this.validateCellDependents(cellAddressOrCellRange);
+      });
+
+      if (cellDependents.length > 0) {
+        return true;
+      }
+    };
+
+    return false;
   }
 
   /**
