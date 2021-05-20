@@ -190,3 +190,18 @@ export function registerNamedExpressions(engineInstance, namedExpressions) {
     engineInstance.resumeEvaluation();
   }
 }
+
+/**
+ * Sets up a new sheet.
+ *
+ * @param {object} engineInstance The engine instance.
+ * @param {string} sheetName The new sheet name.
+ * @returns {*}
+ */
+export function setupSheet(engineInstance, sheetName) {
+  if (isUndefined(sheetName) || !engineInstance.doesSheetExist(sheetName)) {
+    sheetName = engineInstance.addSheet(sheetName);
+  }
+
+  return sheetName;
+}

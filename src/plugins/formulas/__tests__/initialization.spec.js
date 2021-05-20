@@ -645,6 +645,51 @@ describe('Formulas general', () => {
 
       expect(hot.getPlugin('formulas').sheetName).toEqual('init');
     });
+
+    it('should initialize the HF engine with a new sheet (when the name was provided) after enabling it in the' +
+      ' updateSettings object, when it was not set up before.', () => {
+      const hot = handsontable({
+        data: [
+          [1, 2],
+          ['=A1', '=A1 + B1']
+        ]
+      });
+
+      expect(hot.getDataAtCell(1, 0)).toEqual('=A1');
+
+      hot.updateSettings({
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'init'
+        }
+      });
+
+      expect(hot.getPlugin('formulas').sheetName).toEqual('init');
+      expect(hot.getDataAtCell(1, 0)).toEqual(1);
+      expect(hot.getDataAtCell(1, 1)).toEqual(3);
+    });
+
+    it('should initialize the HF engine with a new sheet (when the name was not provided) after enabling it in the' +
+      ' updateSettings object, when it was not set up before.', () => {
+      const hot = handsontable({
+        data: [
+          [1, 2],
+          ['=A1', '=A1 + B1']
+        ]
+      });
+
+      expect(hot.getDataAtCell(1, 0)).toEqual('=A1');
+
+      hot.updateSettings({
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      expect(hot.getPlugin('formulas').sheetName).toEqual(hot.getPlugin('formulas').engine.getSheetName(0));
+      expect(hot.getDataAtCell(1, 0)).toEqual(1);
+      expect(hot.getDataAtCell(1, 1)).toEqual(3);
+    });
   });
 
   describe('Cross-referencing', () => {
