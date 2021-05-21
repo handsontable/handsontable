@@ -207,8 +207,9 @@ export class BasePlugin {
    * On update settings listener.
    *
    * @private
+   * @param {object} newSettings New set of settings passed to the `updateSettings` method.
    */
-  onUpdateSettings() {
+  onUpdateSettings(newSettings) {
     if (this.isEnabled) {
       if (this.enabled && !this.isEnabled()) {
         this.disablePlugin();
@@ -217,7 +218,7 @@ export class BasePlugin {
         this.enablePlugin();
       }
       if (this.enabled && this.isEnabled()) {
-        this.updatePlugin();
+        this.updatePlugin(newSettings);
       }
     }
   }

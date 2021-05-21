@@ -14,12 +14,13 @@ import { DEFAULT_LICENSE_KEY, getEngineSettingsWithDefaultsAndOverrides } from '
 export function setupEngine(hotInstance) {
   const hotSettings = hotInstance.getSettings();
   const pluginSettings = hotSettings[PLUGIN_KEY];
-  const engineConfigItem = pluginSettings.engine;
+  const engineConfigItem = pluginSettings?.engine;
+
+  if (pluginSettings === true) {
+    return null;
+  }
 
   if (isUndefined(engineConfigItem)) {
-    warn('Missing the required `engine` key in the Formulas settings. Please fill it with either an' +
-      ' engine class or an engine instance.');
-
     return null;
   }
 
@@ -203,4 +204,19 @@ export function registerNamedExpressions(engineInstance, namedExpressions) {
 
     engineInstance.resumeEvaluation();
   }
+}
+
+/**
+ * Sets up a new sheet.
+ *
+ * @param {object} engineInstance The engine instance.
+ * @param {string} sheetName The new sheet name.
+ * @returns {*}
+ */
+export function setupSheet(engineInstance, sheetName) {
+  if (isUndefined(sheetName) || !engineInstance.doesSheetExist(sheetName)) {
+    sheetName = engineInstance.addSheet(sheetName);
+  }
+
+  return sheetName;
 }
