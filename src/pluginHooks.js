@@ -83,14 +83,6 @@ const REGISTERED_HOOKS = [
   'afterChange',
 
   /**
-   * Fired by {@link ObserveChanges} plugin after detecting changes in the data source. This hook is fired when
-   * {@link Options#observeChanges} option is enabled.
-   *
-   * @event Hooks#afterChangesObserved
-   */
-  'afterChangesObserved',
-
-  /**
    * Fired each time user opens {@link ContextMenu} and after setting up the Context Menu's default options. These options are a collection
    * which user can select by setting an array of keys or an array of objects in {@link Options#contextMenu} option.
    *
