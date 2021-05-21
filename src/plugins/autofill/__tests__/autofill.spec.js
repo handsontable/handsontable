@@ -539,21 +539,20 @@ describe('AutoFill', () => {
     };
 
     const direction = 'down';
+    const hasFillDataChanged = false;
 
     expect(afterAutofill).toHaveBeenCalledWith(
       fillData,
       sourceRange,
       targetRange,
       direction,
-      false,
+      hasFillDataChanged,
       undefined
     );
   });
 
-  it('should pass the same fillData to `afterAutofill` as in the one from `beforeAutofill` by identity if it\'s empty', () => {
+  it('should detect custom input from `beforeAutofill` in `afterAutofill` arguments', () => {
     const afterAutofill = jasmine.createSpy();
-
-    const fillData = [[]];
 
     handsontable({
       data: [
@@ -563,19 +562,52 @@ describe('AutoFill', () => {
         [1, 2, 3, 4, 5, 6]
       ],
       beforeAutofill() {
-        return fillData;
+        return [['a']];
       },
       afterAutofill
     });
 
-    selectCell(0, 0);
+    selectCell(0, 0, 0, 1);
 
     spec().$container.find('.wtBorder.corner').simulate('mousedown');
     spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
     spec().$container.find('tr:eq(2) td:eq(1)').simulate('mouseover');
     spec().$container.find('.wtBorder.corner').simulate('mouseup');
 
-    expect(afterAutofill.calls.first().args[0] === fillData).toBeTrue('should be identical');
+    const fillData = [['a']];
+    const sourceRange = {
+      from: {
+        row: 0,
+        col: 0
+      },
+      to: {
+        row: 0,
+        col: 1
+      }
+    };
+
+    const targetRange = {
+      from: {
+        row: 1,
+        col: 0
+      },
+      to: {
+        row: 2,
+        col: 1
+      }
+    };
+
+    const direction = 'down';
+    const hasFillDataChanged = true;
+
+    expect(afterAutofill).toHaveBeenCalledWith(
+      fillData,
+      sourceRange,
+      targetRange,
+      direction,
+      hasFillDataChanged,
+      undefined
+    );
   });
 
   it('should cancel autofill if beforeAutofill returns false', () => {

@@ -669,6 +669,8 @@ const REGISTERED_HOOKS = [
    * @param {CellRange} sourceRange The range values will be filled from.
    * @param {CellRange} targetRange The range new values will be filled into.
    * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
+   * @param {boolean} hasFillDataChanged Indicates whether the original fillData has been changed in
+   *                                     the `beforeAutofill` hook.
    */
   'afterAutofill',
 
