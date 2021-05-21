@@ -367,7 +367,7 @@ export class Formulas extends BasePlugin {
 
       this.#shouldSuspendRenders = true;
       this.engine.setCellContents(address, valueHolder.value);
-      this.validateCellDependents(address);
+      this.validateCell(address);
       this.#shouldSuspendRenders = false;
     }
   }
@@ -427,13 +427,13 @@ export class Formulas extends BasePlugin {
    * @param {number} prop Column property.
    * @returns {*}
    */
-  onBeforeValidate(value, row, prop) {
+  onBeforeValidate(value) {
     if (isFormulaExpression(value)) {
       try {
         return this.engine.calculateFormula(value, this.engine.getSheetName(this.sheetId));
 
-      } catch (e) {
-        return '#ERROR!'
+      } catch (notAFormulaError) {
+        return '#ERROR!';
       }
     }
   }
@@ -546,14 +546,13 @@ export class Formulas extends BasePlugin {
    * @param {Array} changes The values and location of applied changes.
    */
   onEngineValuesUpdated(changes) {
+    changes.forEach((change) => {
+      // It will just re-render certain cell when necessary.
+      this.validateCell(change.address);
+    });
+    
     if (!this.#shouldSuspendRenders) {
-      let isAffectedByChange = false;
-
-      changes.forEach((change) => {
-        this.validateCellDependents(change.address);
-        // There is used optional chaining, because named expression won't have address.
-        isAffectedByChange = isAffectedByChange || change?.address?.sheet === this.sheetId;
-      });
+      const isAffectedByChange = changes.some(change => change?.address?.sheet === this.sheetId);
 
       if (isAffectedByChange) {
         this.hot.render();
@@ -564,11 +563,12 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Validate cells dependants to the cell with certain cell address.
-   *
-   * @param {undefined|SimpleCellAddress} cellAddress Cell coordinates.
+   * Validate cell with certain address.
+   * 
+   * @private
+   * @param cellAddress
    */
-  validateCellDependents(cellAddress) {
+  validateCell(cellAddress) {
     // Named expression won't have address.
     if (isUndefined(cellAddress)) {
       return;
@@ -578,23 +578,9 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const typeOfValue = this.engine.getCellValueDetailedType(cellAddress);
+    const { row, col } = cellAddress;
 
-    if (typeOfValue === 'ERROR') {
-      return;
-    }
-
-    this.engine.getCellDependents(cellAddress).forEach((cellAddressOrCellRange) => {
-      const isCellAddress = isUndefined(cellAddressOrCellRange.start);
-
-      if (isCellAddress) {
-        const { row, col } = cellAddressOrCellRange;
-
-        this.hot.validateCell(this.hot.getDataAtCell(row, col), this.hot.getCellMeta(row, col), () => {});
-      }
-
-      this.validateCellDependents(cellAddressOrCellRange);
-    });
+    this.hot.validateCell(this.hot.getDataAtCell(row, col), this.hot.getCellMeta(row, col), () => {});
   }
 
   /**

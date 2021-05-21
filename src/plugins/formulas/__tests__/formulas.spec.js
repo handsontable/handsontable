@@ -1734,7 +1734,7 @@ describe('Formulas general', () => {
 
     expect(afterRender).toHaveBeenCalledTimes(2);
   });
-  
+
   describe('cooperation with validation', () => {
     it('should validate result of formula properly (opening and closing an editor)', async() => {
       const hot = handsontable({
@@ -1752,7 +1752,7 @@ describe('Formulas general', () => {
       keyDown('enter');
       // Closing the editor and saving changes.
       keyDown('enter');
-      
+
       await sleep(0); // Validator is asynchronous.
 
       expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
