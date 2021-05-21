@@ -14,7 +14,7 @@ import { DEFAULT_LICENSE_KEY, getEngineSettingsWithDefaultsAndOverrides } from '
  */
 export function setupEngine(hotSettings, hotId) {
   const pluginSettings = hotSettings[PLUGIN_KEY];
-  const engineConfigItem = pluginSettings.engine;
+  const engineConfigItem = pluginSettings?.engine;
 
   if (pluginSettings === true) {
     return null;
