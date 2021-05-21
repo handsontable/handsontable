@@ -426,7 +426,8 @@ export class Formulas extends BasePlugin {
    * @returns {*}
    */
   onBeforeValidate(value) {
-    if (isFormulaExpression(value)) { // TODO: It looks like workaround. Does HF have some helper for that?
+    // We check whether there is "formula-like" value.
+    if (isFormulaExpression(value)) {
       try {
         return this.engine.calculateFormula(value, this.engine.getSheetName(this.sheetId));
 

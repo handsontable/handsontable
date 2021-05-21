@@ -1876,7 +1876,7 @@ describe('Formulas general', () => {
         type: 'numeric'
       });
 
-      hot.getPlugin('formulas').engine.setCellContents({ sheet: 0, row: 0, col: 0 }, '=B1')
+      hot.getPlugin('formulas').engine.setCellContents({ sheet: 0, row: 0, col: 0 }, '=B1');
 
       await sleep(100); // Validator is asynchronous.
 
