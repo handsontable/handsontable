@@ -1844,6 +1844,46 @@ describe('Formulas general', () => {
       expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
       expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
     });
+
+    it('should validate result of formula and dependant cells properly (formula create #REF! error)', async() => {
+      const hot = handsontable({
+        data: [
+          ['=E1', 2, '=A1', '=C1', 22]
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        type: 'numeric'
+      });
+
+      hot.alter('remove_col', 4);
+
+      await sleep(100); // Validator is asynchronous.
+
+      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+    });
+
+    it('should validate change from the outside properly', async() => {
+      const hot = handsontable({
+        data: [
+          ['=E1', 'text', '=A1', '=C1', 22]
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        type: 'numeric'
+      });
+
+      hot.getPlugin('formulas').engine.setCellContents({ sheet: 0, row: 0, col: 0 }, '=B1')
+
+      await sleep(100); // Validator is asynchronous.
+
+      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+    });
   });
 
   xdescribe('column sorting', () => {

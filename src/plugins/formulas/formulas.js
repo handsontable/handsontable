@@ -423,17 +423,15 @@ export class Formulas extends BasePlugin {
    *
    * @private
    * @param {*} value Value to validate.
-   * @param {number} row Row index.
-   * @param {number} prop Column property.
    * @returns {*}
    */
   onBeforeValidate(value) {
-    if (isFormulaExpression(value)) {
+    if (isFormulaExpression(value)) { // TODO: It looks like workaround. Does HF have some helper for that?
       try {
         return this.engine.calculateFormula(value, this.engine.getSheetName(this.sheetId));
 
       } catch (notAFormulaError) {
-        return '#ERROR!';
+        return '#ERROR!'; // TODO: Workaround. It's not translated.
       }
     }
   }
@@ -550,7 +548,7 @@ export class Formulas extends BasePlugin {
       // It will just re-render certain cell when necessary.
       this.validateCell(change.address);
     });
-    
+
     if (!this.#shouldSuspendRenders) {
       const isAffectedByChange = changes.some(change => change?.address?.sheet === this.sheetId);
 
@@ -564,9 +562,9 @@ export class Formulas extends BasePlugin {
 
   /**
    * Validate cell with certain address.
-   * 
+   *
    * @private
-   * @param cellAddress
+   * @param {undefined|SimpleCellAddress} cellAddress Cell coordinates.
    */
   validateCell(cellAddress) {
     // Named expression won't have address.
