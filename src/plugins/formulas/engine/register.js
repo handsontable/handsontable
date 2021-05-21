@@ -16,10 +16,11 @@ export function setupEngine(hotSettings, hotId) {
   const pluginSettings = hotSettings[PLUGIN_KEY];
   const engineConfigItem = pluginSettings.engine;
 
-  if (isUndefined(engineConfigItem)) {
-    warn('Missing the required `engine` key in the Formulas settings. Please fill it with either an' +
-      ' engine class or an engine instance.');
+  if (pluginSettings === true) {
+    return null;
+  }
 
+  if (isUndefined(engineConfigItem)) {
     return null;
   }
 

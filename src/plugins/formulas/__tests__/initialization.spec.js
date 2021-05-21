@@ -690,6 +690,35 @@ describe('Formulas general', () => {
       expect(hot.getDataAtCell(1, 0)).toEqual(1);
       expect(hot.getDataAtCell(1, 1)).toEqual(3);
     });
+
+    it('should initialize the HF engine with a new sheet (when the name was not provided) after enabling it in the' +
+      ' updateSettings object, when it was already enabled, then disabled', () => {
+      const hot = handsontable({
+        data: [
+          [1, 2],
+          ['=A1', '=A1 + B1']
+        ],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      hot.updateSettings({
+        formulas: false
+      });
+
+      expect(hot.getDataAtCell(1, 0)).toEqual('=A1');
+
+      hot.updateSettings({
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      expect(hot.getPlugin('formulas').sheetName).toEqual(hot.getPlugin('formulas').engine.getSheetName(0));
+      expect(hot.getDataAtCell(1, 0)).toEqual(1);
+      expect(hot.getDataAtCell(1, 1)).toEqual(3);
+    });
   });
 
   describe('Cross-referencing', () => {

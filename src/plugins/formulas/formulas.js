@@ -116,10 +116,18 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    this.engine = setupEngine(this.hot.getSettings(), this.hot.guid);
+    this.engine = setupEngine(this.hot.getSettings(), this.hot.guid) ?? this.engine;
 
     if (!this.engine) {
+      warn('Missing the required `engine` key in the Formulas settings. Please fill it with either an' +
+        ' engine class or an engine instance.');
+
       return;
+    }
+
+    // Useful for disabling -> enabling the plugin using `updateSettings` or the API.
+    if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
+      this.sheetName = this.addSheet(this.sheetName, this.hot.getSourceDataArray());
     }
 
     this.addHook('beforeLoadData', (...args) => this.onBeforeLoadData(...args));
@@ -228,20 +236,18 @@ export class Formulas extends BasePlugin {
       return false;
     }
 
-    let actualSheetName = null;
-
     try {
-      actualSheetName = this.engine.addSheet(sheetName ?? void 0);
+      const actualSheetName = this.engine.addSheet(sheetName ?? void 0);
 
       this.engine.setSheetContent(actualSheetName, sheetData);
+
+      return actualSheetName;
 
     } catch (e) {
       warn(e.message);
 
       return false;
     }
-
-    return actualSheetName;
   }
 
   /**
@@ -339,8 +345,11 @@ export class Formulas extends BasePlugin {
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
   onModifyData(row, column, valueHolder, ioMode) {
-    if (!this.enabled || this.#internalOperationPending || this.sheetName === null) {
-      // TODO check if this line is actually ever reached
+    if (
+      this.#internalOperationPending ||
+      this.sheetName === null ||
+      !this.engine.doesSheetExist(this.sheetName)
+    ) {
       return;
     }
 
@@ -383,7 +392,11 @@ export class Formulas extends BasePlugin {
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
   onModifySourceData(row, col, valueHolder, ioMode) {
-    if (!this.enabled || this.#internalOperationPending || this.sheetName === null) {
+    if (
+      this.#internalOperationPending ||
+      this.sheetName === null ||
+      !this.engine.doesSheetExist(this.sheetName)
+    ) {
       return;
     }
 
