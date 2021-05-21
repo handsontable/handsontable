@@ -230,7 +230,7 @@ describe('Formulas general', () => {
     })).not.toThrow();
   });
 
-  xit('should return correct values according to plugin state updated by updateSettings()', () => {
+  it('should return correct values according to plugin state updated by updateSettings()', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
@@ -258,10 +258,10 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-    expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, '\'=SUM(E5)']);
+    expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, '=SUM(E5)']);
   });
 
-  xit('should return correct values according to plugin state updated by disablePlugin/enablePlugin methods', () => {
+  it('should return correct values according to plugin state updated by disablePlugin/enablePlugin methods', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
@@ -287,7 +287,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-    expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, '\'=SUM(E5)']);
+    expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, '=SUM(E5)']);
   });
 
   it('should recalculate table after changing cell value (setDataAtCell)', () => {
