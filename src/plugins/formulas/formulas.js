@@ -353,13 +353,15 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `src/dataMap`.
     const address = {
-      row: this.hot.toVisualRow(row),
-      col: column,
+      row,
+      col: this.hot.toPhysicalColumn(column),
       sheet: this.sheetId
     };
 
     if (ioMode === 'get') {
+
       const cellValue = this.engine.getCellValue(address);
 
       // If `cellValue` is an object it is expected to be an error
@@ -386,12 +388,12 @@ export class Formulas extends BasePlugin {
    *
    * @private
    * @param {number} row Physical row index.
-   * @param {number} col Physical column index.
+   * @param {number} column Physical column index.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
    *   property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
-  onModifySourceData(row, col, valueHolder, ioMode) {
+  onModifySourceData(row, column, valueHolder, ioMode) {
     if (
       this.#internalOperationPending ||
       this.sheetName === null ||
@@ -410,15 +412,25 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const address = {
-      row: this.hot.toVisualRow(row),
-      col: this.hot.propToCol(col),
-      sheet: this.sheetId
-    };
-
     if (ioMode === 'get') {
+      const address = {
+        row,
+
+        // Workaround for inconsistencies in `src/dataSource.js`
+        col: this.hot.toPhysicalColumn(this.hot.propToCol(column)),
+        sheet: this.sheetId
+      };
+
       valueHolder.value = this.engine.getCellSerialized(address);
     } else if (ioMode === 'set') {
+      const address = {
+        row,
+
+        // Workaround for inconsistencies in `src/dataSource.js`
+        col: this.hot.toPhysicalColumn(column),
+        sheet: this.sheetId
+      };
+
       if (
         !this.engine.isItPossibleToSetCellContents(address)
       ) {

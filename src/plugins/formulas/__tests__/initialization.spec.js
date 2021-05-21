@@ -51,14 +51,7 @@ describe('Formulas general', () => {
 
   describe('Single Handsontable setup', () => {
     it('should throw a warning, when no `hyperformula` key was passed to the `formulas` settings', () => {
-      /* eslint-disable no-console */
-      const warnSpy = jasmine.createSpyObj('warning', ['test']);
-      const prevWarn = console.warn;
-
-      console.warn = (...args) => {
-        warnSpy.test(...args);
-        prevWarn(...args);
-      };
+      spyOn(console, 'warn');
 
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
@@ -66,12 +59,10 @@ describe('Formulas general', () => {
         licenseKey: 'non-commercial-and-evaluation'
       });
 
-      expect(warnSpy.test).toHaveBeenCalledWith('Missing the required `engine` key in the Formulas settings. ' +
+      // eslint-disable-next-line no-console
+      expect(console.warn).toHaveBeenCalledWith('Missing the required `engine` key in the Formulas settings. ' +
         'Please fill it with either an engine class or an engine instance.');
       expect(hot.getPlugin('formulas').enabled).toBe(false);
-
-      console.warn = prevWarn;
-      /* eslint-enable no-console */
     });
 
     it('should initialize a single working Handsontable instance and a single HyperFormula instance, when HF class' +
@@ -796,14 +787,7 @@ describe('Formulas general', () => {
 
     it('should throw a warning when trying to register two named expressions under the same name (and register only' +
       ' the first one)', () => {
-      /* eslint-disable no-console */
-      const warnSpy = jasmine.createSpyObj('warning', ['test']);
-      const prevWarn = console.warn;
-
-      console.warn = (...args) => {
-        warnSpy.test(...args);
-        prevWarn(...args);
-      };
+      spyOn(console, 'warn');
 
       handsontable({
         data: [['=MyLocal']],
@@ -825,10 +809,8 @@ describe('Formulas general', () => {
       });
 
       expect(getDataAtCell(0, 0)).toEqual(1234);
-      expect(warnSpy.test).toHaveBeenCalledTimes(1);
-
-      console.warn = prevWarn;
-      /* eslint-enable no-console */
+      // eslint-disable-next-line no-console
+      expect(console.warn).toHaveBeenCalledTimes(1);
     });
 
     it('should register custom function plugins before creating the HF instance', () => {
@@ -873,14 +855,7 @@ describe('Formulas general', () => {
     // TODO: uncomment after it's throwing a duplicated name error on HF's side.
     xit('should throw a warning when trying to register two custom functions under the same name (and register only' +
       ' the first one)', () => {
-      /* eslint-disable no-console */
-      const warnSpy = jasmine.createSpyObj('warning', ['test']);
-      const prevWarn = console.warn;
-
-      console.warn = (...args) => {
-        warnSpy.test(...args);
-        prevWarn(...args);
-      };
+      spyOn(console, 'warn');
 
       class CustomFP extends FunctionPlugin {
         customFP() {
@@ -924,10 +899,8 @@ describe('Formulas general', () => {
       });
 
       expect(getDataAtCell(0, 0)).toEqual('customFP output');
-      expect(warnSpy.test).toHaveBeenCalledTimes(1);
-
-      console.warn = prevWarn;
-      /* eslint-enable no-console */
+      // eslint-disable-next-line no-console
+      expect(console.warn).toHaveBeenCalledTimes(1);
 
       // cleanup
       HyperFormula.unregisterFunction('CUSTOMFP');
@@ -952,14 +925,7 @@ describe('Formulas general', () => {
 
     it('should throw a warning when trying to register two languages under the same name (and register only' +
       ' the first one)', () => {
-      /* eslint-disable no-console */
-      const warnSpy = jasmine.createSpyObj('warning', ['test']);
-      const prevWarn = console.warn;
-
-      console.warn = (...args) => {
-        warnSpy.test(...args);
-        prevWarn(...args);
-      };
+      spyOn(console, 'warn');
 
       HyperFormula.registerLanguage(plPL.langCode, plPL);
 
@@ -974,10 +940,8 @@ describe('Formulas general', () => {
       });
 
       expect(getDataAtCell(1, 0)).toEqual('test');
-      expect(warnSpy.test).toHaveBeenCalledTimes(1);
-
-      console.warn = prevWarn;
-      /* eslint-enable no-console */
+      // eslint-disable-next-line no-console
+      expect(console.warn).toHaveBeenCalledTimes(1);
 
       // cleanup
       HyperFormula.unregisterLanguage(plPL.langCode);

@@ -1286,6 +1286,32 @@ describe('Formulas general', () => {
       ]);
     });
 
+    it('should autofill an array of objects correctly', () => {
+      const hot = handsontable({
+        formulas: {
+          engine: HyperFormula
+        },
+        data: [
+          { num: 1, double: '=A1 * 2', target: 'x' },
+          { num: 2, double: '=A2 * 2', target: 'x' },
+          { num: 3, double: '=A3 * 2', target: 'x' },
+          { num: 4, double: '=A4 * 2', target: 'x' },
+          { num: 5, double: '=A5 * 2', target: 'x' },
+        ]
+      });
+
+      selectCell(0, 1, 4, 1);
+      autofill(4, 2);
+
+      expect(hot.getSourceDataArray()).toEqual([
+        [1, '=A1 * 2', '=B1 * 2'],
+        [2, '=A2 * 2', '=B2 * 2'],
+        [3, '=A3 * 2', '=B3 * 2'],
+        [4, '=A4 * 2', '=B4 * 2'],
+        [5, '=A5 * 2', '=B5 * 2']
+      ]);
+    });
+
     // Most of these tests will produce invalid values (out of bound addresses,
     // #CYCLE! errors), but we only care about the formula offsets.
     //
@@ -1735,158 +1761,340 @@ describe('Formulas general', () => {
     expect(afterRender).toHaveBeenCalledTimes(2);
   });
 
-  xdescribe('column sorting', () => {
-    it('should recalculate all formulas and update theirs cell coordinates if needed', () => {
-      const hot = handsontable({
-        data: getDataSimpleExampleFormulas(),
-        formulas: {
-          engine: HyperFormula
-        },
-        columnSorting: true,
-        width: 500,
-        height: 300
-      });
-
-      hot.updateSettings({
-        columnSorting: {
-          initialConfig: {
-            column: 2,
-            sortOrder: 'asc'
-          }
-        }
-      });
-
-      // source data is not involved in the translation process
-      expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
-      expect(hot.getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-      expect(hot.getSourceDataAtRow(2)).toEqual([2010, 5, 2905, 2867, '=SUM(A3,2,3)', '=#REF!']);
-      expect(hot.getSourceDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(hot.getSourceDataAtRow(4)).toEqual([2012, '=SUM(A1:A4)', '=SUM(B4,E2)', '=A1/B1', 12, '\'=SUM(E5)']);
-
-      expect(hot.getDataAtRow(0)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(hot.getDataAtRow(1)).toEqual([2010, 5, 2905, 2867, 2014, '#REF!']);
-      expect(hot.getDataAtRow(2)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-      expect(hot.getDataAtRow(3)).toEqual([2012, 8042, 10056, 502.75, 12, '\'=SUM(E5)']);
-      expect(hot.getDataAtRow(4)).toEqual([5, 'Maserati', 'Mazda', 'Mercedes', 'Mini', 2011]);
-
-      hot.updateSettings({
-        columnSorting: {
-          initialConfig: {
-            column: 5,
-            sortOrder: 'desc'
-          }
-        }
-      });
-
-      // source data is not involved in the translation process
-      expect(hot.getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
-      expect(hot.getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-      expect(hot.getSourceDataAtRow(2)).toEqual([2010, 5, 2905, 2867, '=SUM(A3,2,3)', '=#REF!']);
-      expect(hot.getSourceDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(hot.getSourceDataAtRow(4))
-        .toEqual([2012, '=SUM(#REF!)', '=SUM(B1,#REF!)', '=#REF!/#REF!', 12, '\'=SUM(E5)']);
-
-      expect(hot.getDataAtRow(0)).toEqual([2012, '#REF!', '#REF!', '#REF!', 12, '\'=SUM(E5)']);
-      expect(hot.getDataAtRow(1)).toEqual([2010, 5, 2905, 2867, 2016, '#REF!']);
-      expect(hot.getDataAtRow(2)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(hot.getDataAtRow(3)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-      expect(hot.getDataAtRow(4)).toEqual([5, 'Maserati', 'Mazda', 'Mercedes', 'Mini', 2012]);
+  it('should freeze correct columns with ManualColumnFreeze', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      formulas: {
+        engine: HyperFormula
+      },
+      manualColumnFreeze: true
     });
 
-    it('should recalculate formula after precedent cells value was changed', (done) => {
+    hot.getPlugin('ManualColumnFreeze').freezeColumn(2);
+
+    expect(hot.getData()).toEqual([
+      ['C1', 'A1', 'B1', 'D1', 'E1'],
+      ['C2', 'A2', 'B2', 'D2', 'E2'],
+      ['C3', 'A3', 'B3', 'D3', 'E3'],
+      ['C4', 'A4', 'B4', 'D4', 'E4'],
+      ['C5', 'A5', 'B5', 'D5', 'E5']
+    ]);
+
+    hot.getPlugin('ManualColumnFreeze').freezeColumn(2);
+
+    expect(hot.getData()).toEqual([
+      ['C1', 'B1', 'A1', 'D1', 'E1'],
+      ['C2', 'B2', 'A2', 'D2', 'E2'],
+      ['C3', 'B3', 'A3', 'D3', 'E3'],
+      ['C4', 'B4', 'A4', 'D4', 'E4'],
+      ['C5', 'B5', 'A5', 'D5', 'E5']
+    ]);
+  });
+
+  it('should support basic sorting', () => {
+    const hot = handsontable({
+      data: [
+        ['B1', 3.9],
+        ['B2', 1.13],
+        ['B1+B2', '=SUM(B1:B2)']
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      contextMenu: true,
+      formulas: {
+        engine: HyperFormula
+      },
+      columnSorting: {
+        sortEmptyCells: true,
+        initialConfig: {
+          column: 1,
+          sortOrder: 'asc'
+        }
+      }
+    });
+
+    expect(hot.getData()).toEqual([
+      ['B2', 1.13],
+      ['B1', 3.9],
+      ['B1+B2', 5.03]
+    ]);
+
+    hot.getPlugin('columnSorting').sort({
+      column: 1,
+      sortOrder: 'desc'
+    });
+
+    expect(hot.getData()).toEqual([
+      ['B1+B2', 5.03],
+      ['B1', 3.9],
+      ['B2', 1.13]
+    ]);
+
+    hot.getPlugin('columnSorting').clearSort();
+
+    expect(hot.getData()).toEqual([
+      ['B1', 3.9],
+      ['B2', 1.13],
+      ['B1+B2', 5.03]
+    ]);
+  });
+
+  describe('basic filtering support', () => {
+    it('should filter by condition', () => {
       const hot = handsontable({
-        data: getDataSimpleExampleFormulas(),
+        data: [
+          ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
+          ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
+          ['Pellentesque', 'vulputate', 'leo', 'semper', '10/23/2015', 26],
+          ['diam', 'et', 'malesuada', 'libero', '12/1/2014', 98],
+          ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
+        ],
+        columns: [
+          { type: 'text' },
+          { type: 'text' },
+          { type: 'text' },
+          { type: 'text' },
+          { type: 'date', dateFormat: 'M/D/YYYY' },
+          { type: 'numeric' }
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        dropdownMenu: true,
+        filters: true,
         formulas: {
           engine: HyperFormula
-        },
-        columnSorting: true,
-        width: 500,
-        height: 300
-      });
-
-      hot.updateSettings({
-        columnSorting: {
-          initialConfig: {
-            column: 2,
-            sortOrder: 'asc'
-          }
         }
       });
 
-      setTimeout(() => {
-        hot.setDataAtCell(4, 0, '');
+      hot.getPlugin('filters').addCondition(0, 'eq', ['orci']);
+      hot.getPlugin('filters').filter();
 
-        expect(hot.getDataAtRow(0)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-        expect(hot.getDataAtRow(1)).toEqual([2010, 5, 2905, 2867, 2014, '#REF!']);
-        expect(hot.getDataAtRow(2)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-        expect(hot.getDataAtRow(3)).toEqual([2012, 8042, 10056, 502.75, 12, '\'=SUM(E5)']);
-        expect(hot.getDataAtRow(4)).toEqual(['', 'Maserati', 'Mazda', 'Mercedes', 'Mini', 2011]);
-
-        hot.setDataAtCell(0, 0, 1);
-
-        expect(hot.getDataAtRow(0)).toEqual([1, 4, 2517, 4822, 552, 6127]);
-        expect(hot.getDataAtRow(1)).toEqual([2010, 5, 2905, 2867, 2014, '#REF!']);
-        expect(hot.getDataAtRow(2)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-        expect(hot.getDataAtRow(3)).toEqual([2012, 6032, 8046, 0.25, 12, '\'=SUM(E5)']);
-        expect(hot.getDataAtRow(4)).toEqual(['', 'Maserati', 'Mazda', 'Mercedes', 'Mini', 1]);
-
-        hot.setDataAtCell(1, 0, 2);
-
-        expect(hot.getDataAtRow(0)).toEqual([1, 4, 2517, 4822, 552, 6127]);
-        expect(hot.getDataAtRow(1)).toEqual([2, 5, 2905, 2867, 2014, '#REF!']);
-        expect(hot.getDataAtRow(2)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-        expect(hot.getDataAtRow(3)).toEqual([2012, 4024, 6038, 0.25, 12, '\'=SUM(E5)']);
-        expect(hot.getDataAtRow(4)).toEqual(['', 'Maserati', 'Mazda', 'Mercedes', 'Mini', 1]);
-
-        hot.setDataAtCell(2, 0, 3);
-
-        expect(hot.getDataAtRow(0)).toEqual([1, 4, 2517, 4822, 552, 6127]);
-        expect(hot.getDataAtRow(1)).toEqual([2, 5, 2905, 2867, 8, '#REF!']);
-        expect(hot.getDataAtRow(2)).toEqual([3, 0, 2941, 4303, 354, 5814]);
-        expect(hot.getDataAtRow(3)).toEqual([2012, 2018, 2026, 0.25, 12, '\'=SUM(E5)']);
-        expect(hot.getDataAtRow(4)).toEqual(['', 'Maserati', 'Mazda', 'Mercedes', 'Mini', 1]);
-
-        hot.setDataAtCell(3, 0, 4);
-
-        expect(hot.getDataAtRow(0)).toEqual([1, 4, 2517, 4822, 552, 6127]);
-        expect(hot.getDataAtRow(1)).toEqual([2, 5, 2905, 2867, 8, '#REF!']);
-        expect(hot.getDataAtRow(2)).toEqual([3, 0, 2941, 4303, 354, 5814]);
-        expect(hot.getDataAtRow(3)).toEqual([4, 10, 18, 0.25, 12, '\'=SUM(E5)']);
-        expect(hot.getDataAtRow(4)).toEqual(['', 'Maserati', 'Mazda', 'Mercedes', 'Mini', 1]);
-        done();
-      }, 200);
+      expect(hot.getData()).toEqual([['orci', 'et', 'dignissim', 'hendrerit', 42381, 8.5]]);
     });
 
-    it('should corectly recalculate formulas after changing formula expression in sorted cell', (done) => {
+    it('should filter by value', () => {
       const hot = handsontable({
-        data: getDataSimpleExampleFormulas(),
+        data: [
+          ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
+          ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
+          ['Pellentesque', 'vulputate', 'leo', 'semper', '10/23/2015', 26],
+          ['diam', 'et', 'malesuada', 'libero', '12/1/2014', 98],
+          ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
+        ],
+        columns: [
+          { type: 'text' },
+          { type: 'text' },
+          { type: 'text' },
+          { type: 'text' },
+          { type: 'date', dateFormat: 'M/D/YYYY' },
+          { type: 'numeric' }
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        dropdownMenu: true,
+        filters: true,
         formulas: {
           engine: HyperFormula
-        },
-        columnSorting: true,
-        width: 500,
-        height: 300
-      });
-
-      hot.updateSettings({
-        columnSorting: {
-          initialConfig: {
-            column: 2,
-            sortOrder: 'asc'
-          }
         }
       });
 
-      setTimeout(() => {
-        hot.setDataAtCell(3, 1, '=SUM(B1:B3)');
+      hot.getPlugin('filters').addCondition(0, 'by_value', [['orci']]);
+      hot.getPlugin('filters').filter();
 
-        expect(hot.getDataAtRow(0)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-        expect(hot.getDataAtRow(1)).toEqual([2010, 5, 2905, 2867, 2014, '#REF!']);
-        expect(hot.getDataAtRow(2)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-        expect(hot.getDataAtRow(3)).toEqual([2012, 9, 2023, 502.75, 12, '\'=SUM(E5)']);
-        expect(hot.getDataAtRow(4)).toEqual([5, 'Maserati', 'Mazda', 'Mercedes', 'Mini', 2011]);
-        done();
-      }, 200);
+      expect(hot.getData()).toEqual([['orci', 'et', 'dignissim', 'hendrerit', 42381, 8.5]]);
     });
+  });
+
+  it('should have very basic support for nested rows', () => {
+    const data = [
+      {
+        category: 'Best Rock Performance',
+        artist: null,
+        title: null,
+        label: null,
+        __children: [
+          {
+            title: 'Don\'t Wanna Fight',
+            artist: 'Alabama Shakes',
+            label: 'ATO Records'
+          },
+          {
+            title: 'What Kind Of Man',
+            artist: 'Florence & The Machine',
+            label: 'Republic'
+          },
+          {
+            title: 'Something From Nothing',
+            artist: 'Foo Fighters',
+            label: 'RCA Records'
+          },
+          {
+            title: 'Ex\'s & Oh\'s',
+            artist: 'Elle King',
+            label: 'RCA Records'
+          },
+          {
+            title: 'Moaning Lisa Smile',
+            artist: 'Wolf Alice',
+            label: 'RCA Records/Dirty Hit'
+          }
+        ]
+      },
+      {
+        category: 'Best Metal Performance',
+        __children: [
+          {
+            title: 'Cirice',
+            artist: 'Ghost',
+            label: 'Loma Vista Recordings'
+          },
+          {
+            title: 'Identity',
+            artist: 'August Burns Red',
+            label: 'Fearless Records'
+          },
+          {
+            title: '512',
+            artist: 'Lamb Of God',
+            label: 'Epic Records'
+          },
+          {
+            title: 'Thank You',
+            artist: 'Sevendust',
+            label: '7Bros Records'
+          },
+          {
+            title: 'Custer',
+            artist: 'Slipknot',
+            label: 'Roadrunner Records'
+          }
+        ]
+      },
+      {
+        category: 'Best Rock Song',
+        __children: [
+          {
+            title: 'Don\'t Wanna Fight',
+            artist: 'Alabama Shakes',
+            label: 'ATO Records'
+          },
+          {
+            title: 'Ex\'s & Oh\'s',
+            artist: 'Elle King',
+            label: 'RCA Records'
+          },
+          {
+            title: 'Hold Back The River',
+            artist: 'James Bay',
+            label: 'Republic'
+          },
+          {
+            title: 'Lydia',
+            artist: 'Highly Suspect',
+            label: '300 Entertainment'
+          },
+          {
+            title: 'What Kind Of Man',
+            artist: 'Florence & The Machine',
+            label: 'Republic'
+          }
+        ]
+      },
+      {
+        category: 'Best Rock Album',
+        __children: [
+          {
+            title: 'Drones',
+            artist: 'Muse',
+            label: 'Warner Bros. Records'
+          },
+          {
+            title: 'Chaos And The Calm',
+            artist: 'James Bay',
+            label: 'Republic'
+          },
+          {
+            title: 'Kintsugi',
+            artist: 'Death Cab For Cutie',
+            label: 'Atlantic'
+          },
+          {
+            title: 'Mister Asylum',
+            artist: 'Highly Suspect',
+            label: '300 Entertainment'
+          },
+          {
+            title: '.5: The Gray Chapter',
+            artist: 'Slipknot',
+            label: 'Roadrunner Records'
+          }
+        ]
+      }
+    ];
+
+    window.hot = handsontable({
+      data,
+      rowHeaders: true,
+      colHeaders: ['Category', 'Artist', 'Title', 'Album', 'Label'],
+      nestedRows: true,
+      contextMenu: true,
+      formulas: {
+        engine: HyperFormula
+      },
+      licenseKey: 'non-commercial-and-evaluation'
+    });
+
+    hot.getPlugin('nestedRows').collapsingUI.collapseMultipleChildren([0, 6, 18]);
+
+    expect(hot.getData()).toEqual([
+      ['Best Rock Performance', null, null, null],
+      ['Best Metal Performance', null, null, null],
+      ['Best Rock Song', null, null, null],
+      [null, 'Alabama Shakes', 'Don\'t Wanna Fight', 'ATO Records'],
+      [null, 'Elle King', 'Ex\'s & Oh\'s', 'RCA Records'],
+      [null, 'James Bay', 'Hold Back The River', 'Republic'],
+      [null, 'Highly Suspect', 'Lydia', '300 Entertainment'],
+      [null, 'Florence & The Machine', 'What Kind Of Man', 'Republic'],
+      ['Best Rock Album', null, null, null]
+    ]);
+  });
+
+  it('should support moving columns', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(1, 5),
+      manualColumnMove: true,
+      colHeaders: true
+    });
+
+    hot.getPlugin('ManualColumnMove').moveColumn(2, 0);
+
+    hot.getPlugin('ManualColumnMove').moveColumn(3, 0);
+    hot.getPlugin('ManualColumnMove').moveColumn(3, 0);
+
+    hot.render();
+
+    expect(hot.getData()).toEqual([['B1', 'D1', 'C1', 'A1', 'E1']]);
+  });
+
+  it('should support moving rows', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 1),
+      manualRowMove: true
+    });
+
+    hot.getPlugin('ManualRowMove').moveRow(2, 0);
+
+    hot.getPlugin('ManualRowMove').moveRow(3, 0);
+    hot.getPlugin('ManualRowMove').moveRow(3, 0);
+
+    hot.render();
+
+    expect(hot.getData()).toEqual([
+      ['A2'],
+      ['A4'],
+      ['A3'],
+      ['A1'],
+      ['A5']
+    ]);
   });
 });
