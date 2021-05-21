@@ -429,7 +429,7 @@ export class Formulas extends BasePlugin {
     // We check whether there is "formula-like" value.
     if (isFormulaExpression(value)) {
       try {
-        return this.engine.calculateFormula(value, this.engine.getSheetName(this.sheetId));
+        return this.engine.calculateFormula(value, this.sheetName);
 
       } catch (notAFormulaError) {
         return '#ERROR!'; // TODO: Workaround. It's not translated.
