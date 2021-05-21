@@ -545,7 +545,7 @@ describe('AutoFill', () => {
       sourceRange,
       targetRange,
       direction,
-      undefined,
+      false,
       undefined
     );
   });

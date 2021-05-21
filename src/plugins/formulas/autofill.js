@@ -27,7 +27,12 @@ export const createAutofillHooks = (pluginInstance) => {
     }
   };
 
-  const afterAutofill = (fillData, source, target, direction) => {
+  const afterAutofill = (fillData, source, target, direction, hasFillDataChanged) => {
+    // Skip fill handle process when the fill data was changed by user.
+    if (hasFillDataChanged) {
+      return;
+    }
+
     const sourceSize = {
       width: source.to.col - source.from.col + 1,
       height: source.to.row - source.from.row + 1
@@ -37,8 +42,6 @@ export const createAutofillHooks = (pluginInstance) => {
       width: target.to.col - target.from.col + 1,
       height: target.to.row - target.from.row + 1
     };
-
-    // TODO: Detect if the fillData was manipulated by user. If true then skip the forumlas Autofill process.
 
     const operations = [];
 

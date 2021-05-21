@@ -259,22 +259,19 @@ export class Formulas extends BasePlugin {
    * recalculated dependent cells.
    *
    * @private
-   * @param {object[]} changedCells
+   * @param {object[]} changedCells The values and location of applied changes within HF engine.
    */
   renderDependentSheets(changedCells) {
     const affectedSheets = new Set(changedCells.map(change => change?.address?.sheet));
     const hotInstances = new Map(
       getRegisteredHotInstances(this.engine)
-        .map((hot) => [hot.getPlugin('formulas').sheetId, hot])
+        .map(hot => [hot.getPlugin('formulas').sheetId, hot])
     );
 
     affectedSheets.forEach((sheetId) => {
       if (sheetId !== void 0 && sheetId !== this.sheetId) {
-        console.log('affected shhet id', sheetId);
-
         const hot = hotInstances.get(sheetId);
 
-        console.log('RENDER', sheetId);
         hot.render();
         hot.view?.adjustElementsSize();
       }
