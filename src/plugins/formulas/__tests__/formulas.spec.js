@@ -2032,7 +2032,7 @@ describe('Formulas general', () => {
       }
     ];
 
-    window.hot = handsontable({
+    handsontable({
       data,
       rowHeaders: true,
       colHeaders: ['Category', 'Artist', 'Title', 'Album', 'Label'],
