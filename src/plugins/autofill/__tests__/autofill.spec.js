@@ -351,7 +351,7 @@ describe('AutoFill', () => {
     it('should pass correct arguments to `beforeAutofill`', () => {
       const beforeAutofill = jasmine.createSpy();
 
-      handsontable({
+      const hot = handsontable({
         data: [
           [1, 2, 3, 4, 5, 6],
           ['x', 'x', 3, 4, 5, 6],
@@ -360,6 +360,12 @@ describe('AutoFill', () => {
         ],
         beforeAutofill
       });
+
+      hot.selectAll();
+      const CellRange = hot.getSelectedRangeLast().constructor;
+
+      hot.deselectCell();
+      const CellCoords = hot.getCoords(hot.getCell(0, 0)).constructor;
 
       selectCell(0, 0, 0, 1);
 
@@ -395,8 +401,16 @@ describe('AutoFill', () => {
 
       expect(beforeAutofill).toHaveBeenCalledWith(
         selectionData,
-        sourceRange,
-        targetRange,
+        new CellRange(
+          new CellCoords(sourceRange.from.row, sourceRange.from.col),
+          new CellCoords(sourceRange.from.row, sourceRange.from.col),
+          new CellCoords(sourceRange.to.row, sourceRange.to.col),
+        ),
+        new CellRange(
+          new CellCoords(targetRange.from.row, targetRange.from.col),
+          new CellCoords(targetRange.from.row, targetRange.from.col),
+          new CellCoords(targetRange.to.row, targetRange.to.col),
+        ),
         direction,
         undefined,
         undefined
@@ -497,7 +511,7 @@ describe('AutoFill', () => {
   it('should pass correct arguments to `afterAutofill`', () => {
     const afterAutofill = jasmine.createSpy();
 
-    handsontable({
+    const hot = handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
         [1, 2, 3, 4, 5, 6],
@@ -506,6 +520,12 @@ describe('AutoFill', () => {
       ],
       afterAutofill
     });
+
+    hot.selectAll();
+    const CellRange = hot.getSelectedRangeLast().constructor;
+
+    hot.deselectCell();
+    const CellCoords = hot.getCoords(hot.getCell(0, 0)).constructor;
 
     selectCell(0, 0, 0, 1);
 
@@ -542,8 +562,16 @@ describe('AutoFill', () => {
 
     expect(afterAutofill).toHaveBeenCalledWith(
       fillData,
-      sourceRange,
-      targetRange,
+      new CellRange(
+        new CellCoords(sourceRange.from.row, sourceRange.from.col),
+        new CellCoords(sourceRange.from.row, sourceRange.from.col),
+        new CellCoords(sourceRange.to.row, sourceRange.to.col),
+      ),
+      new CellRange(
+        new CellCoords(targetRange.from.row, targetRange.from.col),
+        new CellCoords(targetRange.from.row, targetRange.from.col),
+        new CellCoords(targetRange.to.row, targetRange.to.col),
+      ),
       direction,
       undefined,
       undefined

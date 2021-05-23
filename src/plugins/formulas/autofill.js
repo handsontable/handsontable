@@ -16,8 +16,8 @@ export const createAutofillHooks = (pluginInstance) => {
   // Blocks the autofill operation if at least one of the underlying's cell
   // contents cannot be set, e.g. if there's a matrix underneath.
   const beforeAutofill = (_, __, target) => {
-    const width = target.to.col - target.from.col + 1;
-    const height = target.to.row - target.from.row + 1;
+    const width = target.getWidth();
+    const height = target.getHeight();
 
     const row = target.from.row;
     const col = target.from.col;
@@ -44,13 +44,13 @@ export const createAutofillHooks = (pluginInstance) => {
     }
 
     const sourceSize = {
-      width: source.to.col - source.from.col + 1,
-      height: source.to.row - source.from.row + 1
+      width: source.getWidth(),
+      height: source.getHeight()
     };
 
     const targetSize = {
-      width: target.to.col - target.from.col + 1,
-      height: target.to.row - target.from.row + 1
+      width: target.getWidth(),
+      height: target.getHeight()
     };
 
     const operations = [];
