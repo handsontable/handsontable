@@ -2097,4 +2097,25 @@ describe('Formulas general', () => {
       ['A5']
     ]);
   });
+
+  it('should evaluate empty formula results to ???', () => {
+    const hot = handsontable({
+      data: [
+        ['', '=A1'], // empty string
+        [undefined, '=A2'], // undefined
+        [null, '=A3'], // null
+        [0, '=A4'], // actual zero
+        ['', '=Z99'] // out of bounds
+      ],
+      formulas: { engine: HyperFormula }
+    });
+
+    expect(hot.getData()).toEqual([
+      ['', ''],
+      [null, null],
+      [null, null],
+      [0, 0],
+      ['', null]
+    ]);
+  });
 });

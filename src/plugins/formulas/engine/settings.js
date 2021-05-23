@@ -10,7 +10,7 @@ const DEFAULT_SETTINGS = {
   matrixDetectionThreshold: 100,
   useColumnIndex: false,
   useStats: false,
-  evaluateNullToZero: true,
+  evaluateNullToZero: false,
   precisionEpsilon: 1e-13,
   precisionRounding: 14,
   smartRounding: true,
