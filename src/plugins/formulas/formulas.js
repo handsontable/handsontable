@@ -290,11 +290,11 @@ export class Formulas extends BasePlugin {
    *
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
-   * @param {string} source Source of the call.
+   * @param {string} [source] Source of the call.
    * @private
    */
-  onBeforeLoadData(sourceData, initialLoad, source) {
-    if ((source || '').includes(toUpperCaseFirst(PLUGIN_KEY))) {
+  onBeforeLoadData(sourceData, initialLoad, source = '') {
+    if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
       return;
     }
 
@@ -308,11 +308,11 @@ export class Formulas extends BasePlugin {
    *
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
-   * @param {string} source Source of the call.
+   * @param {string} [source] Source of the call.
    * @private
    */
-  onAfterLoadData(sourceData, initialLoad, source) {
-    if ((source || '').includes(toUpperCaseFirst(PLUGIN_KEY))) {
+  onAfterLoadData(sourceData, initialLoad, source = '') {
+    if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
       return;
     }
 
