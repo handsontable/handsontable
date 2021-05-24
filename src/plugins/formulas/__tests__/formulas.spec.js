@@ -21,13 +21,17 @@ describe('Formulas general', () => {
 
   it('should initialize the plugin properly with an array of arrays', () => {
     const hot = handsontable({
-      data: [['10', '=A1 * 2']],
+      data: [
+        ['10', '=A1 * 2']
+      ],
       formulas: {
         engine: HyperFormula
       }
     });
 
-    expect(hot.getSourceData()).toEqual([['10', '=A1 * 2']]);
+    expect(hot.getSourceData()).toEqual([
+      ['10', '=A1 * 2']
+    ]);
   });
 
   it('should initialize the plugin properly with an array of objects', () => {
@@ -217,7 +221,9 @@ describe('Formulas general', () => {
 
   it('should not throw on `updateSettings` with an object that doesn\'t contain an `engine` key', () => {
     const hot = handsontable({
-      data: [[]],
+      data: [
+        []
+      ],
       formulas: {
         engine: HyperFormula
       }
@@ -309,7 +315,11 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 100.45, 12, '=SUM(E5)']);
-    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, 20]], 'edit', void 0, void 0, void 0, void 0]);
+    expect(afterChange.calls.argsFor(1)).toEqual([
+      [
+        [1, 1, 0, 20]
+      ], 'edit', void 0, void 0, void 0, void 0
+    ]);
   });
 
   it('should recalculate table after changing source cell value (setSourceDataAtCell)', () => {
@@ -350,7 +360,11 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 0.333167495854063, 12, '=SUM(E5)']);
-    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '=Sum(a2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+    expect(afterChange.calls.argsFor(1)).toEqual([
+      [
+        [1, 1, 0, '=Sum(a2:A4)']
+      ], 'edit', void 0, void 0, void 0, void 0
+    ]);
   });
 
   it('should prevent recalculate table after changing cell value into escaped formula expression', () => {
@@ -373,7 +387,11 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#VALUE!', 12, '=SUM(E5)']);
     expect(afterChange.calls.argsFor(1))
-      .toEqual([[[1, 1, 0, '\'=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+      .toEqual([
+        [
+          [1, 1, 0, '\'=SUM(A2:A4)']
+        ], 'edit', void 0, void 0, void 0, void 0
+      ]);
   });
 
   it('should recalculate table after changing cell value from escaped formula expression into valid formula expression',
@@ -397,7 +415,11 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, 12]);
       expect(afterChange.calls.argsFor(1))
-        .toEqual([[[4, 5, '\'=SUM(E5)', '=SUM(E5)']], 'edit', void 0, void 0, void 0, void 0]);
+        .toEqual([
+          [
+            [4, 5, '\'=SUM(E5)', '=SUM(E5)']
+          ], 'edit', void 0, void 0, void 0, void 0
+        ]);
     });
 
   it('should recalculate table after changing cell value from primitive value into formula expression', () => {
@@ -419,7 +441,11 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 0.333167495854063, 12, '=SUM(E5)']);
-    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+    expect(afterChange.calls.argsFor(1)).toEqual([
+      [
+        [1, 1, 0, '=SUM(A2:A4)']
+      ], 'edit', void 0, void 0, void 0, void 0
+    ]);
   });
 
   it('should recalculate table after changing cell value from formula expression into primitive value', () => {
@@ -442,7 +468,11 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 15, 2031, '#DIV/0!', 12, '=SUM(E5)']);
     expect(afterChange.calls.argsFor(1))
-      .toEqual([[[4, 1, '=SUM(A2:A5)', 15]], 'edit', void 0, void 0, void 0, void 0]);
+      .toEqual([
+        [
+          [4, 1, '=SUM(A2:A5)', 15]
+        ], 'edit', void 0, void 0, void 0, void 0
+      ]);
   });
 
   it('should recalculate table after changing cell value from formula expression into another formula expression',
@@ -466,7 +496,11 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getDataAtRow(4)).toEqual([2012, 6030, 8046, '#DIV/0!', 12, '=SUM(E5)']);
       expect(afterChange.calls.argsFor(1))
-        .toEqual([[[4, 1, '=SUM(A2:A5)', '=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+        .toEqual([
+          [
+            [4, 1, '=SUM(A2:A5)', '=SUM(A2:A4)']
+          ], 'edit', void 0, void 0, void 0, void 0
+        ]);
     });
 
   it('should correctly recalculate formulas when precedents cells are located out of table viewport', () => {
@@ -697,7 +731,7 @@ describe('Formulas general', () => {
       });
 
     it('should recalculate table and replace coordinates in formula expressions ' +
-      'into #REF! value (removing first 4 rows)', () => {
+            'into #REF! value (removing first 4 rows)', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
@@ -715,7 +749,7 @@ describe('Formulas general', () => {
     });
 
     it('should recalculate table and update formula expression after removing rows ' +
-      'intersected on the bottom of cell range', () => {
+            'intersected on the bottom of cell range', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
@@ -741,7 +775,7 @@ describe('Formulas general', () => {
     });
 
     it('should recalculate table and update formula expression after removing rows intersected ' +
-      'on the top of cell range', () => {
+            'on the top of cell range', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
@@ -815,7 +849,7 @@ describe('Formulas general', () => {
     });
 
     it('should recalculate table and replace coordinates in formula expressions into #REF! ' +
-      'value (removing 2 columns)', () => {
+            'value (removing 2 columns)', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
@@ -840,7 +874,7 @@ describe('Formulas general', () => {
     });
 
     it('should recalculate table and replace coordinates in formula expressions into #REF! value ' +
-      '(removing first 4 columns)', () => {
+            '(removing first 4 columns)', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
@@ -865,7 +899,7 @@ describe('Formulas general', () => {
     });
 
     it('should recalculate table and update formula expression after removing columns intersected ' +
-      'on the right of cell range', () => {
+            'on the right of cell range', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
@@ -892,7 +926,7 @@ describe('Formulas general', () => {
     });
 
     it('should recalculate table and update formula expression after removing columns intersected ' +
-      'on the left of cell range', () => {
+            'on the left of cell range', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
@@ -919,7 +953,7 @@ describe('Formulas general', () => {
     });
 
     it('should recalculate table and update formula expression after removing columns ' +
-      'contains whole cell range', () => {
+            'contains whole cell range', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
@@ -1238,7 +1272,9 @@ describe('Formulas general', () => {
       selectCell(0, 0);
       autofill(0, 2);
 
-      expect(hot.getSourceData()).toEqual([['=A1', 'x', 'x']]);
+      expect(hot.getSourceData()).toEqual([
+        ['=A1', 'x', 'x']
+      ]);
     });
 
     it('should not use the plugin\'s autofill if `beforeAutofill` returned values', () => {
@@ -1249,13 +1285,17 @@ describe('Formulas general', () => {
         formulas: {
           engine: HyperFormula
         },
-        beforeAutofill: () => [['a']]
+        beforeAutofill: () => [
+          ['a']
+        ]
       });
 
       selectCell(0, 0);
       autofill(0, 2);
 
-      expect(hot.getSourceData()).toEqual([['=A1', 'a', 'a']]);
+      expect(hot.getSourceData()).toEqual([
+        ['=A1', 'a', 'a']
+      ]);
     });
 
     it('should not autofill if there\'s a matrix in the way', () => {
@@ -1508,7 +1548,9 @@ describe('Formulas general', () => {
 
     it('should correctly autofill - range, left, odd', () => {
       const hot = handsontable({
-        data: [['y', 'x', 'x', 'x', 'x', 'x', 'x', '=Z3', '=Z5', '=Z8']],
+        data: [
+          ['y', 'x', 'x', 'x', 'x', 'x', 'x', '=Z3', '=Z5', '=Z8']
+        ],
         formulas: {
           engine: HyperFormula
         }
@@ -1582,7 +1624,17 @@ describe('Formulas general', () => {
 
     it('should correctly autofill - range, up, even', () => {
       const hot = handsontable({
-        data: [['y'], ['x'], ['x'], ['x'], ['x'], ['x'], ['x'], ['=A9'], ['=A12']],
+        data: [
+          ['y'],
+          ['x'],
+          ['x'],
+          ['x'],
+          ['x'],
+          ['x'],
+          ['x'],
+          ['=A9'],
+          ['=A12']
+        ],
         formulas: {
           engine: HyperFormula
         }
@@ -1592,7 +1644,15 @@ describe('Formulas general', () => {
       autofill(1, 0);
 
       expect(hot.getSourceData()).toEqual([
-        ['y'], ['=A3'], ['=A6'], ['=A5'], ['=A8'], ['=A7'], ['=A10'], ['=A9'], ['=A12']
+        ['y'],
+        ['=A3'],
+        ['=A6'],
+        ['=A5'],
+        ['=A8'],
+        ['=A7'],
+        ['=A10'],
+        ['=A9'],
+        ['=A12']
       ]);
     });
   });
@@ -1600,7 +1660,9 @@ describe('Formulas general', () => {
   describe('Formulas#getCellType', () => {
     it('should return `FORMULA`', () => {
       const hot = handsontable({
-        data: [['=2 + 2']],
+        data: [
+          ['=2 + 2']
+        ],
         formulas: {
           engine: HyperFormula
         }
@@ -1611,7 +1673,9 @@ describe('Formulas general', () => {
 
     it('should return `VALUE`', () => {
       const hot = handsontable({
-        data: [['4']],
+        data: [
+          ['4']
+        ],
         formulas: {
           engine: HyperFormula
         }
@@ -1640,7 +1704,9 @@ describe('Formulas general', () => {
 
     it('should return `EMPTY` when out of bounds', () => {
       const hot = handsontable({
-        data: [['4']],
+        data: [
+          ['4']
+        ],
         formulas: {
           engine: HyperFormula
         }
@@ -1651,8 +1717,12 @@ describe('Formulas general', () => {
 
     it('should return correct values for background sheets', () => {
       const hf = HyperFormula.buildFromSheets({
-        one: [['4']],
-        two: [['=2 + 2']]
+        one: [
+          ['4']
+        ],
+        two: [
+          ['=2 + 2']
+        ]
       });
 
       const hot = handsontable({
@@ -1688,7 +1758,9 @@ describe('Formulas general', () => {
 
     it('should block creating too many columns', () => {
       const hot = handsontable({
-        data: [[]],
+        data: [
+          []
+        ],
         formulas: {
           engine: HyperFormula
         },
@@ -1869,7 +1941,9 @@ describe('Formulas general', () => {
       hot.getPlugin('filters').addCondition(0, 'eq', ['orci']);
       hot.getPlugin('filters').filter();
 
-      expect(hot.getData()).toEqual([['orci', 'et', 'dignissim', 'hendrerit', 42381, 8.5]]);
+      expect(hot.getData()).toEqual([
+        ['orci', 'et', 'dignissim', 'hendrerit', 42381, 8.5]
+      ]);
     });
 
     it('should filter by value', () => {
@@ -1898,138 +1972,137 @@ describe('Formulas general', () => {
         }
       });
 
-      hot.getPlugin('filters').addCondition(0, 'by_value', [['orci']]);
+      hot.getPlugin('filters').addCondition(0, 'by_value', [
+        ['orci']
+      ]);
       hot.getPlugin('filters').filter();
 
-      expect(hot.getData()).toEqual([['orci', 'et', 'dignissim', 'hendrerit', 42381, 8.5]]);
+      expect(hot.getData()).toEqual([
+        ['orci', 'et', 'dignissim', 'hendrerit', 42381, 8.5]
+      ]);
     });
   });
 
   it('should have very basic support for nested rows', () => {
-    const data = [
-      {
-        category: 'Best Rock Performance',
-        artist: null,
-        title: null,
-        label: null,
-        __children: [
-          {
-            title: 'Don\'t Wanna Fight',
-            artist: 'Alabama Shakes',
-            label: 'ATO Records'
-          },
-          {
-            title: 'What Kind Of Man',
-            artist: 'Florence & The Machine',
-            label: 'Republic'
-          },
-          {
-            title: 'Something From Nothing',
-            artist: 'Foo Fighters',
-            label: 'RCA Records'
-          },
-          {
-            title: 'Ex\'s & Oh\'s',
-            artist: 'Elle King',
-            label: 'RCA Records'
-          },
-          {
-            title: 'Moaning Lisa Smile',
-            artist: 'Wolf Alice',
-            label: 'RCA Records/Dirty Hit'
-          }
-        ]
+    const data = [{
+      category: 'Best Rock Performance',
+      artist: null,
+      title: null,
+      label: null,
+      __children: [{
+        title: 'Don\'t Wanna Fight',
+        artist: 'Alabama Shakes',
+        label: 'ATO Records'
       },
       {
-        category: 'Best Metal Performance',
-        __children: [
-          {
-            title: 'Cirice',
-            artist: 'Ghost',
-            label: 'Loma Vista Recordings'
-          },
-          {
-            title: 'Identity',
-            artist: 'August Burns Red',
-            label: 'Fearless Records'
-          },
-          {
-            title: '512',
-            artist: 'Lamb Of God',
-            label: 'Epic Records'
-          },
-          {
-            title: 'Thank You',
-            artist: 'Sevendust',
-            label: '7Bros Records'
-          },
-          {
-            title: 'Custer',
-            artist: 'Slipknot',
-            label: 'Roadrunner Records'
-          }
-        ]
+        title: 'What Kind Of Man',
+        artist: 'Florence & The Machine',
+        label: 'Republic'
       },
       {
-        category: 'Best Rock Song',
-        __children: [
-          {
-            title: 'Don\'t Wanna Fight',
-            artist: 'Alabama Shakes',
-            label: 'ATO Records'
-          },
-          {
-            title: 'Ex\'s & Oh\'s',
-            artist: 'Elle King',
-            label: 'RCA Records'
-          },
-          {
-            title: 'Hold Back The River',
-            artist: 'James Bay',
-            label: 'Republic'
-          },
-          {
-            title: 'Lydia',
-            artist: 'Highly Suspect',
-            label: '300 Entertainment'
-          },
-          {
-            title: 'What Kind Of Man',
-            artist: 'Florence & The Machine',
-            label: 'Republic'
-          }
-        ]
+        title: 'Something From Nothing',
+        artist: 'Foo Fighters',
+        label: 'RCA Records'
       },
       {
-        category: 'Best Rock Album',
-        __children: [
-          {
-            title: 'Drones',
-            artist: 'Muse',
-            label: 'Warner Bros. Records'
-          },
-          {
-            title: 'Chaos And The Calm',
-            artist: 'James Bay',
-            label: 'Republic'
-          },
-          {
-            title: 'Kintsugi',
-            artist: 'Death Cab For Cutie',
-            label: 'Atlantic'
-          },
-          {
-            title: 'Mister Asylum',
-            artist: 'Highly Suspect',
-            label: '300 Entertainment'
-          },
-          {
-            title: '.5: The Gray Chapter',
-            artist: 'Slipknot',
-            label: 'Roadrunner Records'
-          }
-        ]
+        title: 'Ex\'s & Oh\'s',
+        artist: 'Elle King',
+        label: 'RCA Records'
+      },
+      {
+        title: 'Moaning Lisa Smile',
+        artist: 'Wolf Alice',
+        label: 'RCA Records/Dirty Hit'
       }
+      ]
+    },
+    {
+      category: 'Best Metal Performance',
+      __children: [{
+        title: 'Cirice',
+        artist: 'Ghost',
+        label: 'Loma Vista Recordings'
+      },
+      {
+        title: 'Identity',
+        artist: 'August Burns Red',
+        label: 'Fearless Records'
+      },
+      {
+        title: '512',
+        artist: 'Lamb Of God',
+        label: 'Epic Records'
+      },
+      {
+        title: 'Thank You',
+        artist: 'Sevendust',
+        label: '7Bros Records'
+      },
+      {
+        title: 'Custer',
+        artist: 'Slipknot',
+        label: 'Roadrunner Records'
+      }
+      ]
+    },
+    {
+      category: 'Best Rock Song',
+      __children: [{
+        title: 'Don\'t Wanna Fight',
+        artist: 'Alabama Shakes',
+        label: 'ATO Records'
+      },
+      {
+        title: 'Ex\'s & Oh\'s',
+        artist: 'Elle King',
+        label: 'RCA Records'
+      },
+      {
+        title: 'Hold Back The River',
+        artist: 'James Bay',
+        label: 'Republic'
+      },
+      {
+        title: 'Lydia',
+        artist: 'Highly Suspect',
+        label: '300 Entertainment'
+      },
+      {
+        title: 'What Kind Of Man',
+        artist: 'Florence & The Machine',
+        label: 'Republic'
+      }
+      ]
+    },
+    {
+      category: 'Best Rock Album',
+      __children: [{
+        title: 'Drones',
+        artist: 'Muse',
+        label: 'Warner Bros. Records'
+      },
+      {
+        title: 'Chaos And The Calm',
+        artist: 'James Bay',
+        label: 'Republic'
+      },
+      {
+        title: 'Kintsugi',
+        artist: 'Death Cab For Cutie',
+        label: 'Atlantic'
+      },
+      {
+        title: 'Mister Asylum',
+        artist: 'Highly Suspect',
+        label: '300 Entertainment'
+      },
+      {
+        title: '.5: The Gray Chapter',
+        artist: 'Slipknot',
+        label: 'Roadrunner Records'
+      }
+      ]
+    }
     ];
 
     window.hot = handsontable({
@@ -2073,7 +2146,9 @@ describe('Formulas general', () => {
 
     hot.render();
 
-    expect(hot.getData()).toEqual([['B1', 'D1', 'C1', 'A1', 'E1']]);
+    expect(hot.getData()).toEqual([
+      ['B1', 'D1', 'C1', 'A1', 'E1']
+    ]);
   });
 
   it('should support moving rows', () => {
@@ -2246,6 +2321,42 @@ describe('Formulas general', () => {
       expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
       expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
       expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+    });
+
+    it('should validate change after inserting row and data update', async() => {
+      const hot = handsontable({
+        data: [
+          [2],
+          [3],
+          [4],
+          [''],
+          [''],
+          ['=SUM(A1:A5)']
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        type: 'numeric'
+      });
+
+      alter('insert_row', 1); // Insert row with value '1'
+      setDataAtCell(1, 0, 1);
+      alter('insert_row', 1); // Insert empty row
+
+      await sleep(100); // Validator is asynchronous.
+
+      expect(hot.getDataAtCell(0, 0)).toBe(2);
+      // expect(hot.getDataAtCell(0, 7)).toBe(10);
+      setDataAtCell(1, 0, 'txt'); // Change row value to the text
+
+      selectCell(7, 0);
+      keyDown('enter'); // Opening an editor
+      await sleep(100);
+      keyDown('enter'); // Closing the editor and saving changes.
+
+      await sleep(0); // Validator is asynchronous.
+      expect($(getCell(1, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(7, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
     });
   });
 });
