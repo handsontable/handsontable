@@ -184,7 +184,11 @@ module.exports = {
           'error',
           { ignore: ['handsontable', 'walkontable'] }
         ],
-        'no-restricted-globals': 'off',
+        'no-restricted-globals': [
+          'error',
+          'fit',
+          'fdescribe'
+        ],
         'no-undef': 'off',
         'handsontable/restricted-module-imports': 'off',
       }
@@ -192,7 +196,6 @@ module.exports = {
     {
       files: ['*.unit.js', '*.spec.js'],
       rules: {
-        'no-restricted-globals': 'off',
         'no-undef': 'off',
         'jsdoc/require-description-complete-sentence': 'off',
         'jsdoc/require-jsdoc': 'off',

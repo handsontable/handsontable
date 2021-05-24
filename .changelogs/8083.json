@@ -1,0 +1,7 @@
+{
+  "title": "Removed the deprecated plugins - Header Tooltips and Observe Changes.",
+  "type": "removed",
+  "issue": 8083,
+  "breaking": true,
+  "framework": "none"
+}

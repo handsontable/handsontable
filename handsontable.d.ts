@@ -183,7 +183,7 @@ declare namespace Handsontable {
   /**
    * The default sources for which the table triggers hooks.
    */
-  type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'spliceCol' | 'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' | 'Autofill.fill' | 'ContextMenu.clearColumns' | 'ContextMenu.columnLeft' | 'ContextMenu.columnRight' | 'ContextMenu.removeColumn' | 'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' | 'CopyPaste.paste' | 'ObserveChanges.change' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' | 'ColumnSummary.reset';
+  type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'spliceCol' | 'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' | 'Autofill.fill' | 'ContextMenu.clearColumns' | 'ContextMenu.columnLeft' | 'ContextMenu.columnRight' | 'ContextMenu.removeColumn' | 'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' | 'CopyPaste.paste' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' | 'ColumnSummary.reset';
   /**
    * The default cell type aliases the table has built-in.
    */
@@ -1183,12 +1183,6 @@ declare namespace Handsontable {
       switchSheet(sheetName: string): void;
     }
 
-    interface HeaderTooltips extends Base {
-      settings: boolean | object;
-
-      parseSettings(): void;
-    }
-
     interface HiddenColumns extends Base {
       isHidden(column: number): boolean;
       hideColumn(column: number): void;
@@ -1452,10 +1446,6 @@ declare namespace Handsontable {
       setObservedData(observedData: any): void;
     }
 
-    interface ObserveChanges extends Base {
-      observer: DataObserver | void;
-    }
-
     interface TouchScroll extends Base {
       clones: any[];
       lockedCollection: boolean;
@@ -1660,7 +1650,6 @@ declare namespace Handsontable {
     fixedRowsTop?: number;
     formulas?: boolean | formulas.Settings;
     fragmentSelection?: boolean | 'cell';
-    headerTooltips?: boolean | headerTooltips.Settings;
     height?: number | string | (() => number | string);
     hiddenColumns?: boolean | hiddenColumns.Settings;
     hiddenRows?: boolean | hiddenRows.Settings;
@@ -1687,7 +1676,6 @@ declare namespace Handsontable {
     nestedRows?: boolean;
     noWordWrapClassName?: string;
     numericFormat?: NumericFormatOptions;
-    observeChanges?: boolean;
     observeDOMVisibility?: boolean;
     outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
     persistentState?: boolean;
@@ -2333,7 +2321,6 @@ declare namespace Handsontable {
     ExportFile: plugins.ExportFile;
     Filters: plugins.Filters;
     Formulas: plugins.Formulas;
-    HeaderTooltips: plugins.HeaderTooltips;
     HiddenColumns: plugins.HiddenColumns;
     HiddenRows: plugins.HiddenRows;
     ManualColumnFreeze: plugins.ManualColumnFreeze;
@@ -2346,7 +2333,6 @@ declare namespace Handsontable {
     MultipleSelectionHandles: plugins.MultipleSelectionHandles;
     NestedHeaders: plugins.NestedHeaders;
     NestedRows: plugins.NestedRows;
-    ObserveChanges: plugins.ObserveChanges;
     Search: plugins.Search;
     TouchScroll: plugins.TouchScroll;
     TrimRows: plugins.TrimRows;
@@ -2374,7 +2360,6 @@ declare namespace Handsontable {
     exportFile: plugins.ExportFile;
     filters: plugins.Filters;
     formulas: plugins.Formulas;
-    headerTooltips: plugins.HeaderTooltips;
     hiddenColumns: plugins.HiddenColumns;
     hiddenRows: plugins.HiddenRows;
     manualColumnFreeze: plugins.ManualColumnFreeze;
@@ -2387,7 +2372,6 @@ declare namespace Handsontable {
     multipleSelectionHandles: plugins.MultipleSelectionHandles;
     nestedHeaders: plugins.NestedHeaders;
     nestedRows: plugins.NestedRows;
-    observeChanges: plugins.ObserveChanges;
     persistentState: plugins.PersistenState;
     search: plugins.Search;
     touchScroll: plugins.TouchScroll;
@@ -2570,14 +2554,6 @@ declare namespace Handsontable {
       variables?: {
         [key: string]: any;
       }
-    }
-  }
-
-  namespace headerTooltips {
-    interface Settings {
-      rows?: boolean;
-      columns?: boolean;
-      onlyTrimmed?: boolean;
     }
   }
 

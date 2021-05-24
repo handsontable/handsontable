@@ -38,7 +38,6 @@ describe('Public API', () => {
       expect(Handsontable.plugins.ExportFile).toBeFunction();
       expect(Handsontable.plugins.Filters).toBeFunction();
       expect(Handsontable.plugins.Formulas).toBeFunction();
-      expect(Handsontable.plugins.HeaderTooltips).toBeFunction();
       expect(Handsontable.plugins.HiddenColumns).toBeFunction();
       expect(Handsontable.plugins.HiddenRows).toBeFunction();
       expect(Handsontable.plugins.ManualColumnFreeze).toBeFunction();
@@ -51,7 +50,6 @@ describe('Public API', () => {
       expect(Handsontable.plugins.MultipleSelectionHandles).toBeFunction();
       expect(Handsontable.plugins.NestedHeaders).toBeFunction();
       expect(Handsontable.plugins.NestedRows).toBeFunction();
-      expect(Handsontable.plugins.ObserveChanges).toBeFunction();
       expect(Handsontable.plugins.PersistentState).toBeFunction();
       expect(Handsontable.plugins.Search).toBeFunction();
       expect(Handsontable.plugins.TouchScroll).toBeFunction();

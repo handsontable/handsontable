@@ -97,7 +97,6 @@ import {
   ExportFile,
   Filters,
   Formulas,
-  HeaderTooltips,
   HiddenColumns,
   HiddenRows,
   ManualColumnFreeze,
@@ -110,7 +109,6 @@ import {
   MultipleSelectionHandles,
   NestedHeaders,
   NestedRows,
-  ObserveChanges,
   PersistentState,
   Search,
   TouchScroll,
@@ -174,7 +172,6 @@ registerPlugin(DropdownMenu);
 registerPlugin(ExportFile);
 registerPlugin(Filters);
 registerPlugin(Formulas);
-registerPlugin(HeaderTooltips);
 registerPlugin(HiddenColumns);
 registerPlugin(HiddenRows);
 registerPlugin(ManualColumnFreeze);
@@ -187,7 +184,6 @@ registerPlugin(MultiColumnSorting);
 registerPlugin(MultipleSelectionHandles);
 registerPlugin(NestedHeaders);
 registerPlugin(NestedRows);
-registerPlugin(ObserveChanges);
 registerPlugin(PersistentState);
 registerPlugin(Search);
 registerPlugin(TouchScroll);

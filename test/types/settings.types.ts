@@ -225,11 +225,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
     }
   }),
   fragmentSelection: oneOf(true, 'cell'),
-  headerTooltips: oneOf(true, {
-    rows: false,
-    columns: true,
-    onlyTrimmed: true
-  }),
   height: oneOf(500, () => 500),
   hiddenColumns: oneOf(true, {
     columns: [5, 10, 15],
@@ -281,7 +276,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
   nestedRows: true,
   noWordWrapClassName: 'foo',
   numericFormat: oneOf(legacyNumericFormat, numericFormatOptions),
-  observeChanges: true,
   observeDOMVisibility: true,
   outsideClickDeselects: oneOf(true, function(target: HTMLElement) {
     return false;
