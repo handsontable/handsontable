@@ -551,10 +551,10 @@ export class Formulas extends BasePlugin {
    * @param {Array} changes The values and location of applied changes.
    */
   onEngineValuesUpdated(changes) {
+    this.validateChanges(changes);
+
     if (!this.#shouldSuspendRenders) {
-      const isAffectedByChange = changes.some((change) => {
-        return change?.address?.sheet === this.sheetId;
-      });
+      const isAffectedByChange = changes.some(change => change?.address?.sheet === this.sheetId);
 
       if (isAffectedByChange) {
         this.hot.render();
@@ -562,6 +562,24 @@ export class Formulas extends BasePlugin {
     }
 
     this.hot.runHooks('afterFormulasValuesUpdate', changes);
+  }
+
+  /**
+   * Validate changes.
+   *
+   * @private
+   * @param {Array} changes The values and location of applied changes.
+   */
+  validateChanges(changes) {
+    changes.forEach((change) => {
+      // Named expression won't have address.
+      if (change?.address?.sheet === this.sheetId) {
+        const { row, col } = change.address;
+
+        // It will just re-render certain cell when necessary.
+        this.hot.validateCell(this.hot.getDataAtCell(row, col), this.hot.getCellMeta(row, col), () => {});
+      }
+    });
   }
 
   /**
