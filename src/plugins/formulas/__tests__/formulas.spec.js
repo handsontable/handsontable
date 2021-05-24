@@ -2098,6 +2098,61 @@ describe('Formulas general', () => {
     ]);
   });
 
+  it('should perform CRUD operations in HyperFormula based on physical indexes', () => {
+    const hot = handsontable({
+      data: [
+        [1, 'a', 'b', '1c'],
+        [2, 'a', 'b', '2c'],
+        ['trimmed', 'row', '', ''],
+        ['trimmed', 'row', '', ''],
+        ['trimmed', 'row', '', ''],
+        [3, 'a', 'b', '3c'],
+        [4, 'a', 'b', '4c']
+      ],
+      formulas: {
+        engine: HyperFormula
+      },
+      trimRows: [2, 3, 4],
+      manualColumnMove: [1, 0, 2, 3]
+    });
+
+    hot.alter('remove_col', 0, 2);
+    hot.alter('remove_row', 1, 2);
+
+    expect(hot.getData()).toEqual([
+      ['b', '1c'],
+      ['b', '4c']
+    ]);
+
+    expect(hot.getSourceData()).toEqual([
+      ['b', '1c'],
+      ['', ''],
+      ['', ''],
+      ['', ''],
+      ['b', '4c']
+    ]);
+
+    hot.alter('insert_col', 0, 2);
+    hot.alter('insert_row', 1, 2);
+
+    expect(hot.getData()).toEqual([
+      [null, null, 'b', '1c'],
+      [null, null, null, null],
+      [null, null, null, null],
+      [null, null, 'b', '4c']
+    ]);
+
+    expect(hot.getSourceData()).toEqual([
+      [null, null, 'b', '1c'],
+      [null, null, '', ''],
+      [null, null, '', ''],
+      [null, null, '', ''],
+      [null, null, null, null],
+      [null, null, null, null],
+      [null, null, 'b', '4c']
+    ]);
+  });
+
   describe('cooperation with validation', () => {
     it('should validate result of formula properly (opening and closing an editor)', async() => {
       const hot = handsontable({

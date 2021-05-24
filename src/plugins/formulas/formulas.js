@@ -452,7 +452,7 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeCreateRow(row, amount) {
-    if (!this.engine.isItPossibleToAddRows(this.sheetId, [row, amount])) {
+    if (!this.engine.isItPossibleToAddRows(this.sheetId, [this.hot.toPhysicalRow(row), amount])) {
       return false;
     }
   }
@@ -466,7 +466,7 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeCreateCol(col, amount) {
-    if (!this.engine.isItPossibleToAddColumns(this.sheetId, [col, amount])) {
+    if (!this.engine.isItPossibleToAddColumns(this.sheetId, [this.hot.toPhysicalColumn(col), amount])) {
       return false;
     }
   }
@@ -477,12 +477,13 @@ export class Formulas extends BasePlugin {
    * @private
    * @param {number} row Visual index of starter row.
    * @param {number} amount Amount of rows to be removed.
+   * @param {number[]} physicalRows An array of physical rows removed from the data source.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  onBeforeRemoveRow(row, amount) {
-    if (!this.engine.isItPossibleToRemoveRows(this.sheetId, [row, amount])) {
-      return false;
-    }
+  onBeforeRemoveRow(row, amount, physicalRows) {
+    return physicalRows.every((physicalRow) => {
+      return this.engine.isItPossibleToRemoveRows(this.sheetId, [physicalRow, 1]);
+    });
   }
 
   /**
@@ -491,12 +492,13 @@ export class Formulas extends BasePlugin {
    * @private
    * @param {number} col Visual index of starter column.
    * @param {number} amount Amount of columns to be removed.
+   * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  onBeforeRemoveCol(col, amount) {
-    if (!this.engine.isItPossibleToRemoveColumns(this.sheetId, [col, amount])) {
-      return false;
-    }
+  onBeforeRemoveCol(col, amount, physicalColumns) {
+    return physicalColumns.every((physicalColumn) => {
+      return this.engine.isItPossibleToRemoveColumns(this.sheetId, [physicalColumn, 1]);
+    });
   }
 
   /**
@@ -507,7 +509,7 @@ export class Formulas extends BasePlugin {
    * @param {number} amount Number of newly created rows in the data source array.
    */
   onAfterCreateRow(row, amount) {
-    this.engine.addRows(this.sheetId, [row, amount]);
+    this.engine.addRows(this.sheetId, [this.hot.toPhysicalRow(row), amount]);
   }
 
   /**
@@ -518,7 +520,7 @@ export class Formulas extends BasePlugin {
    * @param {number} amount Number of newly created columns in the data source.
    */
   onAfterCreateCol(col, amount) {
-    this.engine.addColumns(this.sheetId, [col, amount]);
+    this.engine.addColumns(this.sheetId, [this.hot.toPhysicalColumn(col), amount]);
   }
 
   /**
@@ -527,9 +529,16 @@ export class Formulas extends BasePlugin {
    * @private
    * @param {number} row Visual index of starter row.
    * @param {number} amount An amount of removed rows.
+   * @param {number[]} physicalRows An array of physical rows removed from the data source.
    */
-  onAfterRemoveRow(row, amount) {
-    this.engine.removeRows(this.sheetId, [row, amount]);
+  onAfterRemoveRow(row, amount, physicalRows) {
+    const descendingPhysicalRows = physicalRows.sort().reverse();
+
+    this.engine.batch(() => {
+      descendingPhysicalRows.forEach((physicalRow) => {
+        this.engine.removeRows(this.sheetId, [physicalRow, 1]);
+      });
+    });
   }
 
   /**
@@ -538,9 +547,16 @@ export class Formulas extends BasePlugin {
    * @private
    * @param {number} col Visual index of starter column.
    * @param {number} amount An amount of removed columns.
+   * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    */
-  onAfterRemoveCol(col, amount) {
-    this.engine.removeColumns(this.sheetId, [col, amount]);
+  onAfterRemoveCol(col, amount, physicalColumns) {
+    const descendingPhysicalColumns = physicalColumns.sort().reverse();
+
+    this.engine.batch(() => {
+      descendingPhysicalColumns.forEach((physicalColumn) => {
+        this.engine.removeColumns(this.sheetId, [physicalColumn, 1]);
+      });
+    });
   }
 
   /**
