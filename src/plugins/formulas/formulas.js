@@ -128,6 +128,7 @@ export class Formulas extends BasePlugin {
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
     this.addHook('afterSetSourceDataAtCell', (...args) => this.onAfterSetSourceDataAtCell(...args));
     this.addHook('beforeChange', (...args) => this.onBeforeChange(...args));
+    this.addHook('beforeValidate', (...args) => this.onBeforeValidate(...args));
 
     this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args));
     this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args));
@@ -287,20 +288,58 @@ export class Formulas extends BasePlugin {
    * @param {object[]} changedCells The values and location of applied changes within HF engine.
    */
   renderDependentSheets(changedCells) {
-    const affectedSheets = new Set(changedCells.map(change => change?.address?.sheet));
     const hotInstances = new Map(
       getRegisteredHotInstances(this.engine)
         .map(hot => [hot.getPlugin('formulas').sheetId, hot])
     );
+    const affectedSheetIds = new Set();
 
-    affectedSheets.forEach((sheetId) => {
-      if (sheetId !== void 0 && sheetId !== this.sheetId) {
+    changedCells.forEach((change) => {
+      // For the Named expression the address is empty, hence the `sheetId` is undefined.
+      const sheetId = change?.address?.sheet;
+
+      if (sheetId !== void 0) {
+        if (!affectedSheetIds.has(sheetId)) {
+          affectedSheetIds.add(sheetId);
+        }
+
+        if (sheetId === this.sheetId) {
+          const { row, col } = change.address;
+
+          // It will just re-render certain cell when necessary.
+          this.hot.validateCell(this.hot.getDataAtCell(row, col), this.hot.getCellMeta(row, col), () => {});
+        }
+      }
+    });
+
+    affectedSheetIds.forEach((sheetId) => {
+      if (sheetId !== this.sheetId) {
         const hot = hotInstances.get(sheetId);
 
         hot.render();
         hot.view?.adjustElementsSize();
       }
     });
+  }
+
+  /**
+   * The hook allows to translate the formula value to calculated value before it goes to the
+   * validator function.
+   *
+   * @private
+   * @param {*} value The cell value to validate.
+   * @param {number} visualRow The visual row index.
+   * @param {number|string} prop The visual column index or property name of the column.
+   * @returns {*} Returns value to validate.
+   */
+  onBeforeValidate(value, visualRow, prop) {
+    const address = {
+      row: this.hot.toPhysicalRow(visualRow),
+      col: this.hot.toPhysicalColumn(this.hot.propToCol(prop)),
+      sheet: this.sheetId,
+    };
+
+    return this.engine.getCellValue(address);
   }
 
   /**
@@ -548,7 +587,9 @@ export class Formulas extends BasePlugin {
    * @param {number} amount Number of newly created rows in the data source array.
    */
   onAfterCreateRow(row, amount) {
-    this.engine.addRows(this.sheetId, [row, amount]);
+    const changes = this.engine.addRows(this.sheetId, [row, amount]);
+
+    this.renderDependentSheets(changes);
   }
 
   /**
@@ -559,7 +600,9 @@ export class Formulas extends BasePlugin {
    * @param {number} amount Number of newly created columns in the data source.
    */
   onAfterCreateCol(col, amount) {
-    this.engine.addColumns(this.sheetId, [col, amount]);
+    const changes = this.engine.addColumns(this.sheetId, [col, amount]);
+
+    this.renderDependentSheets(changes);
   }
 
   /**
@@ -570,7 +613,9 @@ export class Formulas extends BasePlugin {
    * @param {number} amount An amount of removed rows.
    */
   onAfterRemoveRow(row, amount) {
-    this.engine.removeRows(this.sheetId, [row, amount]);
+    const changes = this.engine.removeRows(this.sheetId, [row, amount]);
+
+    this.renderDependentSheets(changes);
   }
 
   /**
@@ -581,7 +626,9 @@ export class Formulas extends BasePlugin {
    * @param {number} amount An amount of removed columns.
    */
   onAfterRemoveCol(col, amount) {
-    this.engine.removeColumns(this.sheetId, [col, amount]);
+    const changes = this.engine.removeColumns(this.sheetId, [col, amount]);
+
+    this.renderDependentSheets(changes);
   }
 
   /**
