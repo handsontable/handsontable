@@ -19,16 +19,6 @@ import Hooks from '../../pluginHooks';
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
 
-/**
- * Check if provided expression is valid formula expression.
- *
- * @param {*} expression Expression to check.
- * @returns {boolean}
- */
-function isFormulaExpression(expression) {
-  return typeof expression === 'string' && expression.length >= 2 && expression.charAt(0) === '=';
-}
-
 Hooks.getSingleton().register('afterNamedExpressionAdded');
 Hooks.getSingleton().register('afterNamedExpressionRemoved');
 Hooks.getSingleton().register('afterSheetAdded');
@@ -144,7 +134,6 @@ export class Formulas extends BasePlugin {
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
     this.addHook('modifyData', (...args) => this.onModifyData(...args));
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
-    this.addHook('beforeValidate', (...args) => this.onBeforeValidate(...args));
 
     this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args));
     this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args));
@@ -390,7 +379,6 @@ export class Formulas extends BasePlugin {
 
       this.#shouldSuspendRenders = true;
       this.engine.setCellContents(address, valueHolder.value);
-      this.validateCell(address);
       this.#shouldSuspendRenders = false;
     }
   }
@@ -452,25 +440,6 @@ export class Formulas extends BasePlugin {
       }
 
       this.engine.setCellContents(address, valueHolder.value);
-    }
-  }
-
-  /**
-   * On before validate listener.
-   *
-   * @private
-   * @param {*} value Value to validate.
-   * @returns {*}
-   */
-  onBeforeValidate(value) {
-    // We check whether there is "formula-like" value.
-    if (isFormulaExpression(value)) {
-      try {
-        return this.engine.calculateFormula(value, this.sheetName);
-
-      } catch (notAFormulaError) {
-        return '#ERROR!'; // TODO: Workaround. It's not translated.
-      }
     }
   }
 
@@ -582,10 +551,7 @@ export class Formulas extends BasePlugin {
    * @param {Array} changes The values and location of applied changes.
    */
   onEngineValuesUpdated(changes) {
-    changes.forEach((change) => {
-      // It will just re-render certain cell when necessary.
-      this.validateCell(change.address);
-    });
+    this.validateChanges(changes);
 
     if (!this.#shouldSuspendRenders) {
       const isAffectedByChange = changes.some(change => change?.address?.sheet === this.sheetId);
@@ -599,24 +565,21 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Validate cell with certain address.
+   * Validate changes.
    *
    * @private
-   * @param {undefined|SimpleCellAddress} cellAddress Cell coordinates.
+   * @param {Array} changes The values and location of applied changes.
    */
-  validateCell(cellAddress) {
-    // Named expression won't have address.
-    if (isUndefined(cellAddress)) {
-      return;
-    }
+  validateChanges(changes) {
+    changes.forEach((change) => {
+      // Named expression won't have address.
+      if (change?.address?.sheet === this.sheetId) {
+        const { row, col } = change.address;
 
-    if (cellAddress.sheet !== this.sheetId) {
-      return;
-    }
-
-    const { row, col } = cellAddress;
-
-    this.hot.validateCell(this.hot.getDataAtCell(row, col), this.hot.getCellMeta(row, col), () => {});
+        // It will just re-render certain cell when necessary.
+        this.hot.validateCell(this.hot.getDataAtCell(row, col), this.hot.getCellMeta(row, col), () => {});
+      }
+    });
   }
 
   /**

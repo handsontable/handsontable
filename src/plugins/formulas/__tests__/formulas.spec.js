@@ -2116,7 +2116,7 @@ describe('Formulas general', () => {
       // Closing the editor and saving changes.
       keyDown('enter');
 
-      await sleep(0); // Validator is asynchronous.
+      await sleep(100); // Validator is asynchronous.
 
       expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
 
