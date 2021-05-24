@@ -4,6 +4,8 @@ import { warn } from '../../../helpers/console';
 import { PLUGIN_KEY } from '../formulas';
 import { DEFAULT_LICENSE_KEY, getEngineSettingsWithDefaultsAndOverrides } from './settings';
 
+const ENGINE_KEY = 'engine';
+
 /**
  * Setups the engine instance. It either creates a new (possibly shared) engine instance, or attaches
  * the plugin to an already-existing instance.
@@ -33,7 +35,7 @@ export function setupEngine(hotInstance) {
 
     // `engine` is the engine instance
   } else if (typeof engineConfigItem === 'object' && isUndefined(engineConfigItem.hyperformula)) {
-    const engineRegistry = staticRegister(PLUGIN_KEY).getItem('engine');
+    const engineRegistry = staticRegister(PLUGIN_KEY).getItem(ENGINE_KEY);
     const sharedEngineUsage = engineRegistry?.get(engineConfigItem);
 
     if (sharedEngineUsage) {
@@ -61,13 +63,13 @@ export function setupEngine(hotInstance) {
  * @returns {object} Returns the engine instance.
  */
 export function registerEngine(engineClass, hotSettings, hotInstance) {
-  if (!staticRegister(PLUGIN_KEY).hasItem('engine')) {
-    staticRegister(PLUGIN_KEY).register('engine', new Map());
+  if (!staticRegister(PLUGIN_KEY).hasItem(ENGINE_KEY)) {
+    staticRegister(PLUGIN_KEY).register(ENGINE_KEY, new Map());
   }
 
   const pluginSettings = hotSettings[PLUGIN_KEY];
   const engineSettings = getEngineSettingsWithDefaultsAndOverrides(hotSettings);
-  const engineRegistry = staticRegister(PLUGIN_KEY).getItem('engine');
+  const engineRegistry = staticRegister(PLUGIN_KEY).getItem(ENGINE_KEY);
 
   registerCustomFunctions(engineClass, pluginSettings.functions);
 
@@ -98,13 +100,13 @@ export function registerEngine(engineClass, hotSettings, hotInstance) {
  * @returns {Handsontable[]} Returns an array with Handsontable instances.
  */
 export function getRegisteredHotInstances(engine) {
-  if (!staticRegister(PLUGIN_KEY).hasItem('engine')) {
-    staticRegister(PLUGIN_KEY).register('engine', new Map());
+  if (!staticRegister(PLUGIN_KEY).hasItem(ENGINE_KEY)) {
+    staticRegister(PLUGIN_KEY).register(ENGINE_KEY, new Map());
   }
 
-  const engineRegistry = staticRegister(PLUGIN_KEY).getItem('engine');
+  const engineRegistry = staticRegister(PLUGIN_KEY).getItem(ENGINE_KEY);
 
-  return engineRegistry.size === 0 ? [] : Array.from(engineRegistry.get(engine));
+  return engineRegistry.size === 0 ? [] : Array.from(engineRegistry.get(engine) ?? []);
 }
 
 /**
@@ -116,7 +118,7 @@ export function getRegisteredHotInstances(engine) {
  */
 export function unregisterEngine(engine, hotInstance) {
   if (engine) {
-    const engineRegistry = staticRegister(PLUGIN_KEY).getItem('engine');
+    const engineRegistry = staticRegister(PLUGIN_KEY).getItem(ENGINE_KEY);
     const sharedEngineUsage = engineRegistry?.get(engine);
 
     if (sharedEngineUsage && sharedEngineUsage.includes(hotInstance)) {
