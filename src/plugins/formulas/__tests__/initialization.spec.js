@@ -10,6 +10,7 @@ describe('Formulas general', () => {
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
+    this.$container3 = $(`<div id="${id}-3"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -46,6 +47,21 @@ describe('Formulas general', () => {
         }
       }
       this.$container2.remove();
+    }
+
+    if (this.$container3) {
+      try {
+        if (this.$container3.handsontable('getInstance')) {
+          this.$container3.handsontable('getInstance').destroy();
+        }
+      } catch (e) {
+        // In some of the test cases we're manually destroying the Handsontable instances, so 'getInstance' may
+        // throw a post-mortem error.
+        if (!e.message.includes('instance has been destroyed')) {
+          throw e;
+        }
+      }
+      this.$container3.remove();
     }
   });
 
@@ -243,6 +259,109 @@ describe('Formulas general', () => {
 
         expect(destroySpy1).not.toHaveBeenCalled();
         expect(destroySpy2).not.toHaveBeenCalled();
+      });
+
+      it('should render only related sheets when the dependent cells are updated', () => {
+        const afterRender1 = jasmine.createSpy('afterRender1');
+        const afterRender2 = jasmine.createSpy('afterRender2');
+        const afterRender3 = jasmine.createSpy('afterRender3');
+
+        const hot1 = handsontable({
+          data: [
+            ['Ford', 'Tesla'],
+            ['Opel', '=Sheet2!A2'],
+          ],
+          formulas: {
+            engine: HyperFormula,
+            sheetName: 'Sheet1'
+          },
+          afterRender: afterRender1,
+          licenseKey: 'non-commercial-and-evaluation'
+        });
+
+        const hot2 = spec().$container2.handsontable({
+          data: [
+            ['Ford', 'Tesla'],
+            ['Opel', '=Sheet1!B1'],
+          ],
+          formulas: {
+            engine: hot1.getPlugin('formulas').engine,
+            sheetName: 'Sheet2'
+          },
+          afterRender: afterRender2,
+          licenseKey: 'non-commercial-and-evaluation'
+        }).data('handsontable');
+
+        const hot3 = spec().$container3.handsontable({
+          data: [
+            ['=Sheet1!A2', 'Tesla'],
+            ['=Sheet2!A1', '=Sheet2!B2'],
+          ],
+          formulas: {
+            engine: hot1.getPlugin('formulas').engine,
+            sheetName: 'Sheet3'
+          },
+          afterRender: afterRender3,
+          licenseKey: 'non-commercial-and-evaluation'
+        }).data('handsontable');
+
+        expect(afterRender1).toHaveBeenCalledTimes(2);
+        expect(afterRender2).toHaveBeenCalledTimes(1);
+        expect(afterRender3).toHaveBeenCalledTimes(1);
+
+        afterRender1.calls.reset();
+        afterRender2.calls.reset();
+        afterRender3.calls.reset();
+
+        hot1.setDataAtCell(0, 0, 'x');
+
+        expect(afterRender1).toHaveBeenCalledTimes(1);
+        expect(afterRender2).toHaveBeenCalledTimes(0);
+        expect(afterRender3).toHaveBeenCalledTimes(0);
+
+        afterRender1.calls.reset();
+        afterRender2.calls.reset();
+        afterRender3.calls.reset();
+
+        // All 3 sheets depends on the B1 value
+        hot1.setDataAtCell(0, 1, 'x');
+
+        expect(afterRender1).toHaveBeenCalledTimes(1);
+        expect(afterRender2).toHaveBeenCalledTimes(1);
+        expect(afterRender3).toHaveBeenCalledTimes(1);
+
+        afterRender1.calls.reset();
+        afterRender2.calls.reset();
+        afterRender3.calls.reset();
+
+        // Only Sheet3 depends on that value
+        hot2.setDataAtCell(0, 0, 'x');
+
+        expect(afterRender1).toHaveBeenCalledTimes(0);
+        expect(afterRender2).toHaveBeenCalledTimes(1);
+        expect(afterRender3).toHaveBeenCalledTimes(1);
+
+        afterRender1.calls.reset();
+        afterRender2.calls.reset();
+        afterRender3.calls.reset();
+
+        // Only Sheet3 depends on that value
+        hot1.setDataAtCell(1, 0, 'x');
+
+        expect(afterRender1).toHaveBeenCalledTimes(1);
+        expect(afterRender2).toHaveBeenCalledTimes(0);
+        expect(afterRender3).toHaveBeenCalledTimes(1);
+
+        afterRender1.calls.reset();
+        afterRender2.calls.reset();
+        afterRender3.calls.reset();
+
+        // No dependant sheets
+        hot3.setDataAtCell(0, 0, 'x');
+
+        expect(afterRender1).toHaveBeenCalledTimes(0);
+        expect(afterRender2).toHaveBeenCalledTimes(0);
+        expect(afterRender3).toHaveBeenCalledTimes(1);
       });
     });
 
