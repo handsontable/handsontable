@@ -4,7 +4,7 @@ import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { isObjectEqual } from '../../helpers/object';
 import EventManager from '../../eventManager';
-import { CellCoords } from '../../3rdparty/walkontable/src';
+import { CellCoords, CellRange } from '../../3rdparty/walkontable/src';
 import { getDeltas, getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
 
 Hooks.getSingleton().register('modifyAutofillRange');
@@ -236,27 +236,8 @@ export class Autofill extends BasePlugin {
     if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
       const selectionData = this.getSelectionData();
 
-      const sourceRange = {
-        from: {
-          row: Math.min(selectionRangeLast.from.row, selectionRangeLast.to.row),
-          col: Math.min(selectionRangeLast.from.col, selectionRangeLast.to.col)
-        },
-        to: {
-          row: Math.max(selectionRangeLast.from.row, selectionRangeLast.to.row),
-          col: Math.max(selectionRangeLast.from.col, selectionRangeLast.to.col)
-        }
-      };
-
-      const targetRange = {
-        from: {
-          row: Math.min(startOfDragCoords.row, endOfDragCoords.row),
-          col: Math.min(startOfDragCoords.col, endOfDragCoords.col)
-        },
-        to: {
-          row: Math.max(startOfDragCoords.row, endOfDragCoords.row),
-          col: Math.max(startOfDragCoords.col, endOfDragCoords.col)
-        }
-      };
+      const sourceRange = selectionRangeLast.clone();
+      const targetRange = new CellRange(startOfDragCoords, startOfDragCoords, endOfDragCoords);
 
       const beforeAutofillHookResult = this.hot.runHooks(
         'beforeAutofill',
