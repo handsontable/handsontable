@@ -20,7 +20,9 @@ export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
 
 /**
- * Check if provided expression is valid formula expression.
+ * Check if the provided expression is a looks like a formula expression. This is different from
+ * `HyperFormula#validateFormula` in that the mentioned method will return `false` for both
+ * `=B1+2aaa` and `hello`, but we only actually want to show an error for the first one during validation.
  *
  * @param {*} expression Expression to check.
  * @returns {boolean}
