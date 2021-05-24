@@ -288,10 +288,6 @@ export class Formulas extends BasePlugin {
    * @param {object[]} changedCells The values and location of applied changes within HF engine.
    */
   renderDependentSheets(changedCells) {
-    const hotInstances = new Map(
-      getRegisteredHotInstances(this.engine)
-        .map(hot => [hot.getPlugin('formulas').sheetId, hot])
-    );
     const affectedSheetIds = new Set();
 
     changedCells.forEach((change) => {
@@ -311,6 +307,11 @@ export class Formulas extends BasePlugin {
         }
       }
     });
+
+    const hotInstances = new Map(
+      getRegisteredHotInstances(this.engine)
+        .map(hot => [hot.getPlugin('formulas').sheetId, hot])
+    );
 
     affectedSheetIds.forEach((sheetId) => {
       if (sheetId !== this.sheetId) {
