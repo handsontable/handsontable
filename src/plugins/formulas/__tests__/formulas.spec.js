@@ -2098,7 +2098,7 @@ describe('Formulas general', () => {
     ]);
   });
 
-  it('should return proper empty empty formula results', () => {
+  it('should return proper empty formula results', () => {
     const hot = handsontable({
       data: [
         ['', '=A1'], // empty string
