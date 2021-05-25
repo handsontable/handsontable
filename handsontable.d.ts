@@ -1178,7 +1178,7 @@ declare namespace Handsontable {
       sheetName: string;
       sheetId: number;
 
-      addSheet(sheetName: string, sheetData: CellValue[][]): boolean;
+      addSheet(sheetName?: string|null, sheetData?: CellValue[][]): boolean|string;
       getCellType(row: number, col: number, sheet?: number): HyperFormulaCellType
       switchSheet(sheetName: string): void;
     }
