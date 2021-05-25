@@ -1,5 +1,6 @@
 import { PikadayOptions } from 'pikaday';
 import numbro from 'numbro';
+import { HyperFormula, CellType as HyperFormulaCellType } from 'hyperformula';
 
 /**
  * @internal
@@ -94,7 +95,7 @@ declare namespace _Handsontable {
     isRenderSuspended(): boolean;
     isUndoAvailable(): boolean;
     listen(): void;
-    loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[]): void;
+    loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[], source?: string): void;
     populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
     propToCol(prop: string | number): number;
     redo(): void;
@@ -1173,18 +1174,13 @@ declare namespace Handsontable {
     type UndoRedoAction = UndoRedoAction.Change | UndoRedoAction.InsertRow | UndoRedoAction.RemoveRow | UndoRedoAction.InsertCol | UndoRedoAction.RemoveCol | UndoRedoAction.Filter;
 
     interface Formulas extends Base {
-      dataProvider: DataProvider;
-      eventManager: EventManager;
-      sheet: Sheet;
-      undoRedoSnapshot: UndoRedoSnapshot;
+      engine: HyperFormula | object | Function;
+      sheetName: string;
+      sheetId: number;
 
-      getCellValue(row: number, column: number): any;
-      getVariable(name: string): any;
-      hasComputedCellValue(row: number, column: number): boolean;
-      recalculate(): void;
-      recalculateFull(): void;
-      recalculateOptimized(): void;
-      setVariable(name: string, value: any): void;
+      addSheet(sheetName?: string | null, sheetData?: CellValue[][]): boolean | string;
+      getCellType(row: number, col: number, sheet?: number): HyperFormulaCellType
+      switchSheet(sheetName: string): void;
     }
 
     interface HiddenColumns extends Base {
@@ -1738,7 +1734,7 @@ declare namespace Handsontable {
 
     interface Events {
       afterAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
-      afterAutofill?: (start: wot.CellCoords, end: wot.CellCoords, data: CellValue[][]) => void;
+      afterAutofill?: (fillData: CellValue[][], sourceRange: wot.CellRange, targetRange: wot.CellRange, direction: 'up' | 'down' | 'left' | 'right') => void;
       afterBeginEditing?: (row: number, column: number) => void;
       afterCellMetaReset?: () => void;
       afterChange?: (changes: CellChange[] | null, source: ChangeSource) => void;
@@ -1765,6 +1761,7 @@ declare namespace Handsontable {
       afterDropdownMenuHide?: (instance: plugins.DropdownMenu) => void;
       afterDropdownMenuShow?: (instance: plugins.DropdownMenu) => void;
       afterFilter?: (conditionsStack: plugins.FiltersPlugin.ColumnConditions[]) => void;
+      afterFormulasValuesUpdate?: (changes: object[]) => void;
       afterGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
       afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement) => void;
       afterGetColumnHeaderRenderers?: (renderers: ((col: number, TH: HTMLTableHeaderCellElement) => void)[]) => void;
@@ -1775,11 +1772,13 @@ declare namespace Handsontable {
       afterInit?: () => void;
       afterLanguageChange?: (languageCode: string) => void;
       afterListen?: () => void;
-      afterLoadData?: (sourceData: Handsontable.CellValue[], initialLoad: boolean) => void;
+      afterLoadData?: (sourceData: Handsontable.CellValue[], initialLoad: boolean, source: string | undefined) => void;
       afterMergeCells?: (cellRange: wot.CellRange, mergeParent: mergeCells.Settings, auto: boolean) => void;
       afterModifyTransformEnd?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
       afterModifyTransformStart?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
       afterMomentumScroll?: () => void;
+      afterNamedExpressionAdded?: (namedExpressionName: string, changes: object[]) => void;
+      afterNamedExpressionRemoved?: (namedExpressionName: string, changes: object[]) => void;
       afterOnCellContextMenu?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
       afterOnCellCornerDblClick?: (event: MouseEvent) => void;
       afterOnCellCornerMouseDown?: (event: MouseEvent) => void;
@@ -1809,6 +1808,9 @@ declare namespace Handsontable {
       afterSetDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
       afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
       afterSetSourceDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
+      afterSheetAdded?: (addedSheetDisplayName: string) => void;
+      afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
+      afterSheetRemoved?: (removedSheetDisplayName: string, changes: object[]) => void;
       afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUndo?: (action: plugins.UndoRedoAction) => void;
       afterUndoStackChange?: (doneActionsBefore: plugins.UndoRedoAction[], doneActionsAfter: plugins.UndoRedoAction[]) => void;
@@ -1822,7 +1824,7 @@ declare namespace Handsontable {
       afterViewportColumnCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
       afterViewportRowCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
       beforeAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
-      beforeAutofill?: (start: wot.CellCoords, end: wot.CellCoords, data: CellValue[][]) => void | boolean;
+      beforeAutofill?: (selectionData: CellValue[][], sourceRange: wot.CellRange, targetRange: wot.CellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | boolean | void;
       beforeAutofillInsidePopulate?: (index: wot.CellCoords, direction: 'up' | 'down' | 'left' | 'right', input: CellValue[][], deltas: any[]) => void;
       beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: wot.CellRange[], type: 'horizontal' | 'vertical', alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
       beforeChange?: (changes: CellChange[], source: ChangeSource) => void | boolean;
@@ -1852,7 +1854,7 @@ declare namespace Handsontable {
       beforeInitWalkontable?: (walkontableConfig: object) => void;
       beforeKeyDown?: (event: KeyboardEvent) => void;
       beforeLanguageChange?: (languageCode: string) => void;
-      beforeLoadData?: (sourceData: Handsontable.CellValue[], initialLoad: boolean) => void;
+      beforeLoadData?: (sourceData: Handsontable.CellValue[], initialLoad: boolean, source: string | undefined) => void;
       beforeMergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
       beforeOnCellContextMenu?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
       beforeOnCellMouseDown?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
