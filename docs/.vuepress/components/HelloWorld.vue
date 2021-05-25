@@ -2,19 +2,21 @@
   <div> 
     <tabs :options="{ useUrlFragment: false }"  @changed="tabClicked">
       <tab name="TypeScript" id="typescript">
-        <iframe v-if="selected === 'typescript'" src="https://codesandbox.io/embed/handsontable-typescript-data-grid-hello-world-app-145es?fontsize=14&hidenavigation=1&theme=dark&view=split&runonclick=1" 
-          style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" 
-          title="Handsontable React Data Grid - Hello World App"
-          allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
-          sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts">
+        <iframe v-if="selected === 'typescript'" :src="tsSrc" 
+          :style="styleAttribute"
+          :allow="allowAttribute"
+          :sandbox="sandboxAttribute"
+          title="Handsontable TypeScript Data Grid - Hello World App"
+        >
         </iframe>
       </tab>
       <tab name="React" id="react">
-        <iframe v-if="selected === 'react'" src="https://codesandbox.io/embed/handsontable-react-data-grid-hello-world-app-yt46w?fontsize=14&hidenavigation=1&theme=dark&view=split&runonclick=1"
-          style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;"
+        <iframe v-if="selected === 'react'" :src="reactSrc"
+          :style="styleAttribute"
+          :allow="allowAttribute"
+          :sandbox="sandboxAttribute"
           title="Handsontable React Data Grid - Hello World App"
-          allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
-          sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts">
+        >
         </iframe>
       </tab>
       <tab name="Vue" id="vue" :is-disabled="true"></tab>
@@ -24,17 +26,25 @@
 </template>
 
 <script>
+const hrefStart='https://codesandbox.io/embed/';
+const hrefEnd='?fontsize=14&hidenavigation=1&theme=dark&view=split&runonclick=1';
+
 export default {
   name: 'HelloWorld',
-  data(){
+  data() {
     return {
-      selected: 'asd'
+      selected: 'typescript',
+      tsSrc: `${hrefStart}handsontable-typescript-data-grid-hello-world-app-145es${hrefEnd}`,
+      reactSrc: `${hrefStart}handsontable-react-data-grid-hello-world-app-yt46w${hrefEnd}`,
+      styleAttribute: 'width: 100%; height: 500px; border: 0; border-radius: 4px; overflow: hidden;',
+      allowAttribute: 'accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; ' +
+        'microphone; midi; payment; usb; vr; xr-spatial-tracking',
+      sandboxAttribute: 'allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts',
     }
   },
   methods:{
     tabClicked(event){
       this.selected = event.tab.id;
-      console.log(event.tab, event.tab.id, this.selected, 'c');
     }
   }
 
