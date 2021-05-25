@@ -1,0 +1,7 @@
+{
+  "title": "Deprecated the `beforeAutofillInsidePopulate` hook. It will be removed in the next major release.",
+  "type": "deprecated",
+  "issue": 8095,
+  "breaking": false,
+  "framework": "none"
+}
