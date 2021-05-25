@@ -66,6 +66,93 @@ describe('Formulas general', () => {
   });
 
   describe('Single Handsontable setup', () => {
+    it('should reset static registry while enabling and disabling the plugin using updateSettings (HF as class)', () => {
+      const hot = handsontable({
+        data: getDataSimpleExampleFormulas(),
+        width: 500,
+        height: 300,
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      const staticRegister = hot.getPlugin('formulas').staticRegister;
+      const hotInstances = staticRegister.getItem('engine_relationship');
+      const sharedHotIds = staticRegister.getItem('shared_engine_usage');
+      const relatedHotInstanceEntry = hotInstances.get(hot.getPlugin('formulas').engine);
+      const sharedHotIdsEntry = sharedHotIds.get(hot.getPlugin('formulas').engine);
+
+      expect(hotInstances.size).toBe(1);
+      expect(sharedHotIds.size).toBe(1);
+
+      hot.updateSettings({
+        formulas: false
+      });
+
+      expect(hotInstances.size).toBe(0);
+      expect(sharedHotIds.size).toBe(0);
+
+      hot.updateSettings({
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      expect(hotInstances.size).toBe(1);
+      expect(sharedHotIds.size).toBe(1);
+
+      hot.updateSettings({
+        formulas: false
+      });
+
+      expect(hotInstances.size).toBe(0);
+      expect(sharedHotIds.size).toBe(0);
+    });
+
+    it('should reset static registry while enabling and disabling the plugin using updateSettings (HF as instance)', () => {
+      const hfInstance = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      const hot = handsontable({
+        data: getDataSimpleExampleFormulas(),
+        width: 500,
+        height: 300,
+        formulas: {
+          engine: hfInstance
+        }
+      });
+
+      const staticRegister = hot.getPlugin('formulas').staticRegister;
+      const hotInstances = staticRegister.getItem('engine_relationship');
+      const sharedHotIds = staticRegister.getItem('shared_engine_usage');
+      const relatedHotInstanceEntry = hotInstances.get(hot.getPlugin('formulas').engine);
+      const sharedHotIdsEntry = sharedHotIds.get(hot.getPlugin('formulas').engine);
+
+      expect(hotInstances.size).toBe(1);
+      expect(sharedHotIds.size).toBe(0);
+
+      hot.updateSettings({
+        formulas: false
+      });
+
+      expect(hotInstances.size).toBe(0);
+      expect(sharedHotIds.size).toBe(0);
+
+      hot.updateSettings({
+        formulas: {
+          engine: hfInstance
+        }
+      });
+
+      expect(hotInstances.size).toBe(1);
+      expect(sharedHotIds.size).toBe(0);
+
+      hot.updateSettings({
+        formulas: false
+      });
+
+      expect(hotInstances.size).toBe(0);
+      expect(sharedHotIds.size).toBe(0);
+    });
+
     it('should throw a warning, when no `hyperformula` key was passed to the `formulas` settings', () => {
       spyOn(console, 'warn');
 
@@ -90,13 +177,19 @@ describe('Formulas general', () => {
         },
         licenseKey: 'non-commercial-and-evaluation'
       });
-      const hfInstances = hot.getPlugin('formulas').staticRegister.getItem('engine');
-      const relatedHfInstanceEntry = hfInstances.get(hot.getPlugin('formulas').engine);
+      const staticRegister = hot.getPlugin('formulas').staticRegister;
+      const hotInstances = staticRegister.getItem('engine_relationship');
+      const sharedHotIds = staticRegister.getItem('shared_engine_usage');
+      const relatedHotInstanceEntry = hotInstances.get(hot.getPlugin('formulas').engine);
+      const sharedHotIdsEntry = sharedHotIds.get(hot.getPlugin('formulas').engine);
 
-      expect(getDataAtCell(4, 1)).toEqual(8042);
-      expect(hfInstances.size).toBeGreaterThanOrEqual(1);
-      expect(relatedHfInstanceEntry.length).toEqual(1);
-      expect(relatedHfInstanceEntry[0]).toEqual(hot);
+      expect(getDataAtCell(4, 1)).toBe(8042);
+      expect(hotInstances.size).toBe(1);
+      expect(sharedHotIds.size).toBe(1);
+      expect(relatedHotInstanceEntry.length).toBe(1);
+      expect(relatedHotInstanceEntry[0]).toBe(hot);
+      expect(sharedHotIdsEntry.length).toBe(1);
+      expect(sharedHotIdsEntry[0]).toBe(hot.guid);
     });
 
     it('should initialize a single working Handsontable instance, when an external HyperFormula instance was passed' +
@@ -109,23 +202,148 @@ describe('Formulas general', () => {
         },
         licenseKey: 'non-commercial-and-evaluation'
       });
-      const hfInstances = hot.getPlugin('formulas').staticRegister.getItem('engine');
-      const relatedHfInstanceEntry = hfInstances ?
-        hfInstances.get(hot.getPlugin('formulas').engine) :
+
+      const staticRegister = hot.getPlugin('formulas').staticRegister;
+      const hotInstances = staticRegister.getItem('engine_relationship');
+      const sharedHotIds = staticRegister.getItem('shared_engine_usage');
+      const relatedHotInstanceEntry = hotInstances.get(hot.getPlugin('formulas').engine);
+      const sharedHotIdsEntry = sharedHotIds ?
+        sharedHotIds.get(hot.getPlugin('formulas').engine) :
         void 0;
       // The registry (for the related HF instance) can be empty or undefined, depending on the context:
       // - if it's the first HOT instance on the page, it will be undefined (no registry will be ever created, because
       //   there's no need for it
       // - if it's not the first HOT instance (which will be usually the case with the test cases), the registry can be
       //   already created, but there should be no entry for the provided HyperFormula instance.
-      const noEntryInRegistry = hfInstances === void 0 || relatedHfInstanceEntry === void 0;
+      const noEntryInRegistry = sharedHotIds === void 0 || sharedHotIdsEntry === void 0;
 
-      expect(getDataAtCell(4, 1)).toEqual(8042);
+      expect(getDataAtCell(4, 1)).toBe(8042);
       expect(noEntryInRegistry).toBe(true);
+      expect(hotInstances.size).toBe(1);
+      expect(relatedHotInstanceEntry.length).toBe(1);
+      expect(relatedHotInstanceEntry[0]).toBe(hot);
     });
   });
 
   describe('Multiple Handsontable setup', () => {
+    it('should reset static registry while enabling and disabling the plugin using updateSettings (HF as class)', () => {
+      const hot1 = handsontable({
+        data: getDataSimpleExampleFormulas(),
+        formulas: {
+          engine: HyperFormula
+        },
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      const hot2 = spec().$container2.handsontable({
+        data: getDataSimpleExampleFormulas(),
+        formulas: {
+          engine: HyperFormula
+        },
+        licenseKey: 'non-commercial-and-evaluation'
+      }).data('handsontable');
+
+      const formulasPlugin1 = hot1.getPlugin('formulas');
+      const formulasPlugin2 = hot2.getPlugin('formulas');
+      const staticRegister = formulasPlugin1.staticRegister;
+      const hotInstances = staticRegister.getItem('engine_relationship');
+      const sharedHotIds = staticRegister.getItem('shared_engine_usage');
+
+      expect(hotInstances.size).toBe(2);
+      expect(sharedHotIds.size).toBe(2);
+
+      hot1.updateSettings({
+        formulas: false
+      });
+      hot2.updateSettings({
+        formulas: false
+      });
+
+      expect(hotInstances.size).toBe(0);
+      expect(sharedHotIds.size).toBe(0);
+
+      hot1.updateSettings({
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+      hot2.updateSettings({
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      expect(hotInstances.size).toBe(2);
+      expect(sharedHotIds.size).toBe(2);
+
+      hot2.updateSettings({
+        formulas: false
+      });
+
+      expect(hotInstances.size).toBe(1);
+      expect(sharedHotIds.size).toBe(1);
+    });
+
+    it('should reset static registry while enabling and disabling the plugin using updateSettings (HF as instance)', () => {
+      const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      const hfInstance2 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      const hot1 = handsontable({
+        data: getDataSimpleExampleFormulas(),
+        formulas: {
+          engine: hfInstance1
+        },
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      const hot2 = spec().$container2.handsontable({
+        data: getDataSimpleExampleFormulas(),
+        formulas: {
+          engine: hfInstance2
+        },
+        licenseKey: 'non-commercial-and-evaluation'
+      }).data('handsontable');
+
+      const formulasPlugin1 = hot1.getPlugin('formulas');
+      const formulasPlugin2 = hot2.getPlugin('formulas');
+      const staticRegister = formulasPlugin1.staticRegister;
+      const hotInstances = staticRegister.getItem('engine_relationship');
+      const sharedHotIds = staticRegister.getItem('shared_engine_usage');
+
+      expect(hotInstances.size).toBe(2);
+      expect(sharedHotIds.size).toBe(0);
+
+      hot1.updateSettings({
+        formulas: false
+      });
+      hot2.updateSettings({
+        formulas: false
+      });
+
+      expect(hotInstances.size).toBe(0);
+      expect(sharedHotIds.size).toBe(0);
+
+      hot1.updateSettings({
+        formulas: {
+          engine: hfInstance1
+        }
+      });
+      hot2.updateSettings({
+        formulas: {
+          engine: hfInstance2
+        }
+      });
+
+      expect(hotInstances.size).toBe(2);
+      expect(sharedHotIds.size).toBe(0);
+
+      hot2.updateSettings({
+        formulas: false
+      });
+
+      expect(hotInstances.size).toBe(1);
+      expect(sharedHotIds.size).toBe(0);
+    });
+
     describe('with separate HF instances', () => {
       it('should create separate HF instances, when multiple HOT instances are initialized with HF classes passed' +
         ' to the `formulas` settings.', () => {
@@ -145,16 +363,26 @@ describe('Formulas general', () => {
           licenseKey: 'non-commercial-and-evaluation'
         }).data('handsontable');
 
-        const hfInstances = hot1.getPlugin('formulas').staticRegister.getItem('engine');
         const formulasPlugin1 = hot1.getPlugin('formulas');
         const formulasPlugin2 = hot2.getPlugin('formulas');
-        const relatedHfInstanceEntry1 = hfInstances ? hfInstances.get(formulasPlugin1.engine) : void 0;
-        const relatedHfInstanceEntry2 = hfInstances ? hfInstances.get(formulasPlugin2.engine) : void 0;
+        const staticRegister = formulasPlugin1.staticRegister;
+        const hotInstances = staticRegister.getItem('engine_relationship');
+        const sharedHotIds = staticRegister.getItem('shared_engine_usage');
+        const relatedHotInstanceEntry1 = hotInstances.get(formulasPlugin1.engine);
+        const relatedHotInstanceEntry2 = hotInstances.get(formulasPlugin2.engine);
+        const sharedHotIdsEntry1 = sharedHotIds.get(formulasPlugin1.engine);
+        const sharedHotIdsEntry2 = sharedHotIds.get(formulasPlugin2.engine);
 
         expect(formulasPlugin1.engine !== formulasPlugin2.engine).withContext('Both of the HOT instances' +
           ' should have separate HF instances.').toBe(true);
-        expect(relatedHfInstanceEntry1[0]).toEqual(hot1);
-        expect(relatedHfInstanceEntry2[0]).toEqual(hot2);
+        expect(relatedHotInstanceEntry1.length).toBe(1);
+        expect(relatedHotInstanceEntry1[0]).toBe(hot1);
+        expect(relatedHotInstanceEntry2.length).toBe(1);
+        expect(relatedHotInstanceEntry2[0]).toBe(hot2);
+        expect(sharedHotIdsEntry1.length).toBe(1);
+        expect(sharedHotIdsEntry1[0]).toBe(hot1.guid);
+        expect(sharedHotIdsEntry2.length).toBe(1);
+        expect(sharedHotIdsEntry2[0]).toBe(hot2.guid);
       });
 
       it('should create separate HF instances, when multiple HOT instances are initialized with HF external' +
@@ -178,19 +406,24 @@ describe('Formulas general', () => {
           licenseKey: 'non-commercial-and-evaluation'
         }).data('handsontable');
 
-        const hfInstances = hot1.getPlugin('formulas').staticRegister.getItem('engine');
         const formulasPlugin1 = hot1.getPlugin('formulas');
         const formulasPlugin2 = hot2.getPlugin('formulas');
-        const relatedHfInstanceEntry1 = hfInstances ? hfInstances.get(formulasPlugin1.engine) : void 0;
-        const relatedHfInstanceEntry2 = hfInstances ? hfInstances.get(formulasPlugin2.engine) : void 0;
+        const staticRegister = formulasPlugin1.staticRegister;
+        const hotInstances = staticRegister.getItem('engine_relationship');
+        const sharedHotIds = staticRegister.getItem('shared_engine_usage');
+        const relatedHotInstanceEntry1 = hotInstances.get(formulasPlugin1.engine);
+        const relatedHotInstanceEntry2 = hotInstances.get(formulasPlugin2.engine);
+        const sharedHotIdsEntry1 = sharedHotIds ? sharedHotIds.get(formulasPlugin1.engine) : void 0;
+        const sharedHotIdsEntry2 = sharedHotIds ? sharedHotIds.get(formulasPlugin2.engine) : void 0;
+
         // The registry (for the related HF instance) can be empty or undefined, depending on the context:
         // - if it's the first HOT instance on the page, it will be undefined (no registry will be ever created,
         // because
         //   there's no need for it
         // - if it's not the first HOT instance (which will be usually the case with the test cases), the registry can
         // be already created, but there should be no entry for the provided HyperFormula instance.
-        const noEntryInRegistry1 = hfInstances === void 0 || relatedHfInstanceEntry1 === void 0;
-        const noEntryInRegistry2 = hfInstances === void 0 || relatedHfInstanceEntry2 === void 0;
+        const noEntryInRegistry1 = sharedHotIds === void 0 || sharedHotIdsEntry1 === void 0;
+        const noEntryInRegistry2 = sharedHotIds === void 0 || sharedHotIdsEntry2 === void 0;
 
         expect(formulasPlugin1.engine !== formulasPlugin2.engine).withContext('Both of the HOT instances' +
           ' should have separate HF instances.').toBe(true);
@@ -198,6 +431,10 @@ describe('Formulas general', () => {
           ' instance.').toBe(true);
         expect(noEntryInRegistry2).withContext('There should be no entry in the global registry for the second HOT' +
           ' instance.').toBe(true);
+        expect(relatedHotInstanceEntry1.length).toBe(1);
+        expect(relatedHotInstanceEntry1[0]).toBe(hot1);
+        expect(relatedHotInstanceEntry2.length).toBe(1);
+        expect(relatedHotInstanceEntry2[0]).toBe(hot2);
       });
 
       it('should destroy the HF instance connected to a HOT instance after destroying said HOT instance if it was' +
@@ -384,17 +621,25 @@ describe('Formulas general', () => {
           licenseKey: 'non-commercial-and-evaluation'
         }).data('handsontable');
 
-        const hfInstances = hot1.getPlugin('formulas').staticRegister.getItem('engine');
-        const formulasPlugin1HF = hot1.getPlugin('formulas').engine;
-        const formulasPlugin2HF = hot2.getPlugin('formulas').engine;
-        const relatedHfInstanceEntry1 = hfInstances ? hfInstances.get(formulasPlugin1HF) : void 0;
-        const relatedHfInstanceEntry2 = hfInstances ? hfInstances.get(formulasPlugin2HF) : void 0;
+        const formulasPlugin1 = hot1.getPlugin('formulas');
+        const formulasPlugin2 = hot2.getPlugin('formulas');
+        const staticRegister = formulasPlugin1.staticRegister;
+        const hotInstances = staticRegister.getItem('engine_relationship');
+        const sharedHotIds = staticRegister.getItem('shared_engine_usage');
+        const relatedHotInstanceEntry1 = hotInstances.get(formulasPlugin1.engine);
+        const relatedHotInstanceEntry2 = hotInstances.get(formulasPlugin2.engine);
+        const sharedHotIdsEntry1 = sharedHotIds.get(formulasPlugin1.engine);
+        const sharedHotIdsEntry2 = sharedHotIds.get(formulasPlugin2.engine);
 
-        expect(formulasPlugin1HF).toEqual(formulasPlugin2HF);
-        expect(relatedHfInstanceEntry1).toEqual(relatedHfInstanceEntry2);
-        expect(relatedHfInstanceEntry1.length).toEqual(2);
-        expect(relatedHfInstanceEntry1[0]).toEqual(hot1);
-        expect(relatedHfInstanceEntry1[1]).toEqual(hot2);
+        expect(formulasPlugin1.engine).toBe(formulasPlugin2.engine);
+        expect(sharedHotIdsEntry1).toBe(sharedHotIdsEntry2);
+        expect(sharedHotIdsEntry1.length).toBe(2);
+        expect(sharedHotIdsEntry1[0]).toBe(hot1.guid);
+        expect(sharedHotIdsEntry1[1]).toBe(hot2.guid);
+        expect(relatedHotInstanceEntry1).toBe(relatedHotInstanceEntry2);
+        expect(relatedHotInstanceEntry1.length).toBe(2);
+        expect(relatedHotInstanceEntry1[0]).toBe(hot1);
+        expect(relatedHotInstanceEntry1[1]).toBe(hot2);
       });
 
       it('should NOT destroy a shared HF instance if only one of the "connected" HOT instances i destroyed, but' +
@@ -415,14 +660,19 @@ describe('Formulas general', () => {
           licenseKey: 'non-commercial-and-evaluation'
         }).data('handsontable');
 
-        const hfInstances = hot1.getPlugin('formulas').staticRegister.getItem('engine');
-        const formulasPlugin1HF = hot1.getPlugin('formulas').engine;
-        const relatedHfInstanceEntry = hfInstances ? hfInstances.get(formulasPlugin1HF) : void 0;
+        const formulasPlugin1 = hot1.getPlugin('formulas');
+        const staticRegister = formulasPlugin1.staticRegister;
+        const hotInstances = staticRegister.getItem('engine_relationship');
+        const sharedHotIds = staticRegister.getItem('shared_engine_usage');
+        const relatedHotInstanceEntry1 = hotInstances.get(formulasPlugin1.engine);
+        const sharedHotIdsEntry1 = sharedHotIds.get(formulasPlugin1.engine);
 
         hot1.destroy();
 
-        expect(relatedHfInstanceEntry.length).toEqual(1);
-        expect(relatedHfInstanceEntry[0]).toEqual(hot2);
+        expect(sharedHotIdsEntry1.length).toBe(1);
+        expect(sharedHotIdsEntry1[0]).toBe(hot2.guid);
+        expect(relatedHotInstanceEntry1.length).toBe(1);
+        expect(relatedHotInstanceEntry1[0]).toBe(hot2);
       });
 
       it('should destroy a shared HF instance only after every "connected" HOT instances is destroyed and remove the' +
@@ -443,14 +693,16 @@ describe('Formulas general', () => {
           licenseKey: 'non-commercial-and-evaluation'
         }).data('handsontable');
 
-        const hfInstances = hot1.getPlugin('formulas').staticRegister.getItem('engine');
+        const hotInstances = hot1.getPlugin('formulas').staticRegister.getItem('engine_relationship');
+        const sharedHotIds = hot1.getPlugin('formulas').staticRegister.getItem('shared_engine_usage');
         const formulasPlugin1HF = hot1.getPlugin('formulas').engine;
         const destroySpy = spyOn(formulasPlugin1HF, 'destroy');
 
         hot1.destroy();
         hot2.destroy();
 
-        expect(hfInstances.get(formulasPlugin1HF)).toBe(void 0);
+        expect(hotInstances.get(formulasPlugin1HF)).toBeUndefined();
+        expect(sharedHotIds.get(formulasPlugin1HF)).toBeUndefined();
         expect(destroySpy).toHaveBeenCalled();
       });
     });
