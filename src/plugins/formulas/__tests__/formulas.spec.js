@@ -2190,7 +2190,7 @@ describe('Formulas general', () => {
 
         hot.alter('remove_row', 3, 1);
 
-        expect(hot.getData().length).toEqual(4);
+        expect(hot.countRows()).toBe(4);
       });
 
       it('should block removing columns based on physical indexes', () => {
@@ -2209,7 +2209,7 @@ describe('Formulas general', () => {
 
         hot.alter('remove_col', 3, 1);
 
-        expect(hot.getData().map(row => row.length)).toEqual([8, 8]);
+        expect(hot.countCols()).toBe(8);
       });
 
       it('should block adding rows based on physical indexes', () => {
@@ -2234,7 +2234,7 @@ describe('Formulas general', () => {
 
         hot.alter('insert_row', 3, 1);
 
-        expect(hot.getData().length).toEqual(4);
+        expect(hot.countRows()).toBe(4);
       });
 
       it('should block adding columns based on physical indexes', () => {
@@ -2253,7 +2253,7 @@ describe('Formulas general', () => {
 
         hot.alter('insert_col', 3, 1);
 
-        expect(hot.getData().map(row => row.length)).toEqual([8, 8]);
+        expect(hot.countCols()).toBe(8);
       });
     });
 
