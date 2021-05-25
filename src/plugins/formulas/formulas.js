@@ -27,10 +27,7 @@ Hooks.getSingleton().register('afterSheetRenamed');
 Hooks.getSingleton().register('afterFormulasValuesUpdate');
 
 /**
- * This plugin allows you to perform Excel-like calculations in your business
- * applications. It does it by an integration with our other product,
- * [HyperFormula](https://handsontable.github.io/hyperformula/), which is a
- * powerful calculation engine with an extensive number of features.
+ * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an integration with our other product, [HyperFormula](https://handsontable.github.io/hyperformula/), which is a powerful calculation engine with an extensive number of features.
  *
  * @plugin Formulas
  */
