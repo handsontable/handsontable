@@ -79,8 +79,6 @@ describe('Formulas general', () => {
       const staticRegister = hot.getPlugin('formulas').staticRegister;
       const hotInstances = staticRegister.getItem('engine_relationship');
       const sharedHotIds = staticRegister.getItem('shared_engine_usage');
-      const relatedHotInstanceEntry = hotInstances.get(hot.getPlugin('formulas').engine);
-      const sharedHotIdsEntry = sharedHotIds.get(hot.getPlugin('formulas').engine);
 
       expect(hotInstances.size).toBe(1);
       expect(sharedHotIds.size).toBe(1);
@@ -123,8 +121,6 @@ describe('Formulas general', () => {
       const staticRegister = hot.getPlugin('formulas').staticRegister;
       const hotInstances = staticRegister.getItem('engine_relationship');
       const sharedHotIds = staticRegister.getItem('shared_engine_usage');
-      const relatedHotInstanceEntry = hotInstances.get(hot.getPlugin('formulas').engine);
-      const sharedHotIdsEntry = sharedHotIds.get(hot.getPlugin('formulas').engine);
 
       expect(hotInstances.size).toBe(1);
       expect(sharedHotIds.size).toBe(0);
@@ -244,7 +240,6 @@ describe('Formulas general', () => {
       }).data('handsontable');
 
       const formulasPlugin1 = hot1.getPlugin('formulas');
-      const formulasPlugin2 = hot2.getPlugin('formulas');
       const staticRegister = formulasPlugin1.staticRegister;
       const hotInstances = staticRegister.getItem('engine_relationship');
       const sharedHotIds = staticRegister.getItem('shared_engine_usage');
@@ -304,7 +299,6 @@ describe('Formulas general', () => {
       }).data('handsontable');
 
       const formulasPlugin1 = hot1.getPlugin('formulas');
-      const formulasPlugin2 = hot2.getPlugin('formulas');
       const staticRegister = formulasPlugin1.staticRegister;
       const hotInstances = staticRegister.getItem('engine_relationship');
       const sharedHotIds = staticRegister.getItem('shared_engine_usage');
