@@ -2107,7 +2107,7 @@ describe('Formulas general', () => {
         formulas: {
           engine: HyperFormula
         },
-        type: 'numeric'
+        type: 'numeric',
       });
 
       selectCell(0, 0);
@@ -2228,7 +2228,7 @@ describe('Formulas general', () => {
       expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
     });
 
-    it('should validate change from the outside properly', async() => {
+    it('should not automatically validate changes when the engine is modified from the outside code', async() => {
       const hot = handsontable({
         data: [
           ['=E1', 'text', '=A1', '=C1', 22]
@@ -2241,6 +2241,13 @@ describe('Formulas general', () => {
 
       hot.getPlugin('formulas').engine.setCellContents({ sheet: 0, row: 0, col: 0 }, '=B1');
 
+      await sleep(100); // Validator is asynchronous.
+
+      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+
+      hot.validateCells();
       await sleep(100); // Validator is asynchronous.
 
       expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
