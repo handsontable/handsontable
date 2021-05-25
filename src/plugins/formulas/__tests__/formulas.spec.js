@@ -2098,59 +2098,195 @@ describe('Formulas general', () => {
     ]);
   });
 
-  it('should perform CRUD operations in HyperFormula based on physical indexes', () => {
-    const hot = handsontable({
-      data: [
-        [1, 'a', 'b', '1c'],
-        [2, 'a', 'b', '2c'],
-        ['trimmed', 'row', '', ''],
-        ['trimmed', 'row', '', ''],
-        ['trimmed', 'row', '', ''],
-        [3, 'a', 'b', '3c'],
-        [4, 'a', 'b', '4c']
-      ],
-      formulas: {
-        engine: HyperFormula
-      },
-      trimRows: [2, 3, 4],
-      manualColumnMove: [1, 0, 2, 3]
+  describe('should perform CRUD operations in HyperFormula based on physical indexes', () => {
+    describe('action blocking', () => {
+      it('should block removing rows based on physical indexes', () => {
+        const hot = handsontable({
+          data: [
+            ['trimmed', 'row', '', ''],
+            ['trimmed', 'row', '', ''],
+            ['trimmed', 'row', '', ''],
+            ['trimmed', 'row', '', ''],
+            ['1', '2'],
+            ['3', '4'],
+            ['x', ''],
+            ['', ''],
+          ],
+          formulas: {
+            engine: HyperFormula
+          },
+          trimRows: [0, 1, 2, 3]
+        });
+
+        hot.setDataAtCell(2, 0, '{=TRANSPOSE(A1:B2)}');
+
+        hot.alter('remove_row', 3, 1);
+
+        expect(hot.getData().length).toEqual(4);
+      });
+
+      it('should block removing columns based on physical indexes', () => {
+        const hot = handsontable({
+          data: [
+            ['moved', 'moved', 'moved', 'moved', '1', '2', 'x', ''],
+            ['moved', 'moved', 'moved', 'moved', '3', '4'],
+          ],
+          formulas: {
+            engine: HyperFormula
+          },
+          manualColumnMove: [4, 5, 6, 7, 0, 1, 2, 3]
+        });
+
+        hot.setDataAtCell(0, 2, '{=TRANSPOSE(A1:B2)}');
+
+        hot.alter('remove_col', 3, 1);
+
+        expect(hot.getData().map(row => row.length)).toEqual([8, 8]);
+      });
+
+      it('should block adding rows based on physical indexes', () => {
+        const hot = handsontable({
+          data: [
+            ['trimmed', 'row', '', ''],
+            ['trimmed', 'row', '', ''],
+            ['trimmed', 'row', '', ''],
+            ['trimmed', 'row', '', ''],
+            ['1', '2'],
+            ['3', '4'],
+            ['x', ''],
+            ['', ''],
+          ],
+          formulas: {
+            engine: HyperFormula
+          },
+          trimRows: [0, 1, 2, 3]
+        });
+
+        hot.setDataAtCell(2, 0, '{=TRANSPOSE(A1:B2)}');
+
+        hot.alter('insert_row', 3, 1);
+
+        expect(hot.getData().length).toEqual(4);
+      });
+
+      it('should block adding columns based on physical indexes', () => {
+        const hot = handsontable({
+          data: [
+            ['moved', 'moved', 'moved', 'moved', '1', '2', 'x', ''],
+            ['moved', 'moved', 'moved', 'moved', '3', '4'],
+          ],
+          formulas: {
+            engine: HyperFormula
+          },
+          manualColumnMove: [4, 5, 6, 7, 0, 1, 2, 3]
+        });
+
+        hot.setDataAtCell(0, 2, '{=TRANSPOSE(A1:B2)}');
+
+        hot.alter('insert_col', 3, 1);
+
+        expect(hot.getData().map(row => row.length)).toEqual([8, 8]);
+      });
     });
 
-    hot.alter('remove_col', 0, 2);
-    hot.alter('remove_row', 1, 2);
+    describe('performing CRUD actions', () => {
+      it('should remove rows in the right place', () => {
+        const hot = handsontable({
+          data: [
+            [1, 'a', 'b', '1c'],
+            [2, 'a', 'b', '2c'],
+            ['trimmed', 'row', '', ''],
+            ['trimmed', 'row', '', ''],
+            ['trimmed', 'row', '', ''],
+            [3, 'a', 'b', '3c'],
+            [4, 'a', 'b', '4c'],
+          ],
+          formulas: {
+            engine: HyperFormula
+          },
+          trimRows: [2, 3, 4]
+        });
 
-    expect(hot.getData()).toEqual([
-      ['b', '1c'],
-      ['b', '4c']
-    ]);
+        hot.alter('remove_row', 1, 2);
 
-    expect(hot.getSourceData()).toEqual([
-      ['b', '1c'],
-      ['', ''],
-      ['', ''],
-      ['', ''],
-      ['b', '4c']
-    ]);
+        expect(hot.getSourceData()).toEqual([
+          [1, 'a', 'b', '1c'],
+          ['trimmed', 'row', '', ''],
+          ['trimmed', 'row', '', ''],
+          ['trimmed', 'row', '', ''],
+          [4, 'a', 'b', '4c']
+        ]);
+      });
 
-    hot.alter('insert_col', 0, 2);
-    hot.alter('insert_row', 1, 2);
+      it('should remove columns in the right place', () => {
+        const hot = handsontable({
+          data: [
+            [1, 'a', 'b', '1c'],
+            [2, 'a', 'b', '2c']
+          ],
+          formulas: {
+            engine: HyperFormula
+          },
+          manualColumnMove: [1, 0, 2, 3]
+        });
 
-    expect(hot.getData()).toEqual([
-      [null, null, 'b', '1c'],
-      [null, null, null, null],
-      [null, null, null, null],
-      [null, null, 'b', '4c']
-    ]);
+        hot.alter('remove_col', 1, 2);
 
-    expect(hot.getSourceData()).toEqual([
-      [null, null, 'b', '1c'],
-      [null, null, '', ''],
-      [null, null, '', ''],
-      [null, null, '', ''],
-      [null, null, null, null],
-      [null, null, null, null],
-      [null, null, 'b', '4c']
-    ]);
+        expect(hot.getData()).toEqual([
+          ['a', '1c'],
+          ['a', '2c']
+        ]);
+      });
+
+      it('should add rows in the right place', () => {
+        const hot = handsontable({
+          data: [
+            [1, 'a', 'b', '1c'],
+            [2, 'a', 'b', '2c'],
+            ['trimmed', 'row', '', ''],
+            ['trimmed', 'row', '', ''],
+            ['trimmed', 'row', '', ''],
+            [3, 'a', 'b', '3c'],
+            [4, 'a', 'b', '4c']
+          ],
+          formulas: {
+            engine: HyperFormula
+          },
+          trimRows: [2, 3, 4]
+        });
+
+        hot.alter('insert_row', 2, 2);
+
+        expect(hot.getData()).toEqual([
+          [1, 'a', 'b', '1c'],
+          [2, 'a', 'b', '2c'],
+          [null, null, null, null],
+          [null, null, null, null],
+          [3, 'a', 'b', '3c'],
+          [4, 'a', 'b', '4c']
+        ]);
+      });
+
+      it('should add columns in the right place', () => {
+        const hot = handsontable({
+          data: [
+            [1, 'a', 'b', '1c'],
+            [2, 'a', 'b', '2c']
+          ],
+          formulas: {
+            engine: HyperFormula
+          },
+          manualColumnMove: [1, 0, 2, 3]
+        });
+
+        hot.alter('insert_col', 1, 2);
+
+        expect(hot.getData()).toEqual([
+          ['a', null, null, 1, 'b', '1c'],
+          ['a', null, null, 2, 'b', '2c']
+        ]);
+      });
+    });
   });
 
   describe('cooperation with validation', () => {
