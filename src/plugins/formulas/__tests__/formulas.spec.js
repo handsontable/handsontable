@@ -1224,6 +1224,74 @@ describe('Formulas general', () => {
         .simulate('mouseup');
     };
 
+    it('should not override result of simple autofill (populating one cell) #8050', async() => {
+      handsontable({
+        data: [
+          { car: 'Mercedes A 160', year: 2017 },
+          { car: 'Citroen C4 Coupe', year: 2018 },
+          { car: 'Audi A4 Avant', year: 2019 },
+          { car: 'Opel Astra', year: 2020 },
+          { car: 'BMW 320i Coupe', year: 2021 }
+        ],
+        columns: [
+          {
+            data: 'car'
+          },
+          {
+            data: 'year',
+            type: 'numeric'
+          },
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      selectCell(0, 0);
+      autofill(0, 1);
+
+      await sleep(100);
+
+      expect(getData()).toEqual([
+        ['Mercedes A 160', 'Mercedes A 160'],
+        ['Citroen C4 Coupe', 2018],
+        ['Audi A4 Avant', 2019],
+        ['Opel Astra', 2020],
+        ['BMW 320i Coupe', 2021],
+      ]);
+    });
+
+    it('should not override result of simple autofill (populating more cells) #8050', () => {
+      handsontable({
+        data: [
+          [1, 2, 3, 5, 7],
+          [6, 7, 9, 7, 8],
+          [5, 7, 9, 0, 4],
+          [null],
+          [1, 2, 3, 5, 7],
+          [6, 7, 9, 7, 8],
+          [5, 7, 9, 0, 4]
+        ],
+        colHeaders: true,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      selectColumns(0, 1);
+      autofill(6, 4);
+
+      expect(getData()).toEqual([
+        [1, 2, 1, 2, 1],
+        [6, 7, 6, 7, 6],
+        [5, 7, 5, 7, 5],
+        [null, null, null, null, null],
+        [1, 2, 1, 2, 1],
+        [6, 7, 6, 7, 6],
+        [5, 7, 5, 7, 5]
+      ]);
+    });
+
     it('should not autofill if `beforeAutofill` returned false', () => {
       const hot = handsontable({
         data: [
