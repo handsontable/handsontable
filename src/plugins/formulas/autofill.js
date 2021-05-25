@@ -7,12 +7,6 @@ import { isObjectEqual } from '../../helpers/object';
  * @returns {object}
  */
 export const createAutofillHooks = (pluginInstance) => {
-  /**
-   * The array of arrays used to check if no values were returned from
-   * `beforeAutofill`, other than our own.
-   * */
-  const sentinel = [[]];
-
   // Blocks the autofill operation if at least one of the underlying's cell
   // contents cannot be set, e.g. if there's a matrix underneath.
   const beforeAutofill = (_, __, target) => {
@@ -23,23 +17,19 @@ export const createAutofillHooks = (pluginInstance) => {
     const col = target.from.col;
 
     if (
-      pluginInstance.engine.isItPossibleToSetCellContents({
-        sheet: pluginInstance.engine.getSheetId(pluginInstance.sheetName),
+      !pluginInstance.engine.isItPossibleToSetCellContents({
+        sheet: pluginInstance.sheetId,
         row,
         col
       }, width, height)
     ) {
-      return sentinel;
+      return false;
     }
-
-    return false;
   };
 
-  const afterAutofill = (fillData, source, target, direction) => {
-    // Check that the `fillData` used for autofill was the same that we
-    // returned from `beforeAutofill`. This lets end users override this
-    // plugin's autofill with their own behaviors.
-    if (fillData !== sentinel) {
+  const afterAutofill = (fillData, source, target, direction, hasFillDataChanged) => {
+    // Skip fill handle process when the fill data was changed by user.
+    if (hasFillDataChanged) {
       return;
     }
 
