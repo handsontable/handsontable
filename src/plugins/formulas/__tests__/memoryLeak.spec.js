@@ -7,7 +7,6 @@ describe('Formulas memory leak check', () => {
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
-    this.$container3 = $(`<div id="${id}-3"></div>`).appendTo('body');
   });
 
   afterEach(function() {
