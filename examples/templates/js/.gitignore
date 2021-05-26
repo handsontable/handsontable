@@ -3,3 +3,4 @@ build
 .cache
 .env
 .eslintcache
+package-lock.json

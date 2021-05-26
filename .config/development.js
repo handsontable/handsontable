@@ -38,12 +38,6 @@ module.exports.create = function create(envArgs) {
         commonjs: 'pikaday',
         amd: 'pikaday',
       },
-      'hot-formula-parser': {
-        root: 'formulaParser',
-        commonjs2: 'hot-formula-parser',
-        commonjs: 'hot-formula-parser',
-        amd: 'hot-formula-parser',
-      },
       dompurify: {
         root: 'DOMPurify',
         commonjs2: 'dompurify',
@@ -64,6 +58,7 @@ module.exports.create = function create(envArgs) {
   });
 
   configFull.forEach(function(c) {
+    c.entry = ['hyperformula', ...c.entry];
     c.output.filename = PACKAGE_FILENAME + '.full.js';
     // Export these dependencies to the window object. So they can be custom configured
     // before the Handsontable initializiation.
@@ -73,7 +68,9 @@ module.exports.create = function create(envArgs) {
         {
           loader: path.resolve(__dirname, 'loader/exports-to-window-loader.js'),
           options: {
-            numbro: 'numbro',
+            globals: {
+              numbro: 'numbro',
+            }
           }
         }
       ]
@@ -84,7 +81,9 @@ module.exports.create = function create(envArgs) {
         {
           loader: path.resolve(__dirname, 'loader/exports-to-window-loader.js'),
           options: {
-            moment: 'moment',
+            globals: {
+              moment: 'moment',
+            }
           }
         }
       ]
@@ -95,7 +94,23 @@ module.exports.create = function create(envArgs) {
         {
           loader: path.resolve(__dirname, 'loader/exports-to-window-loader.js'),
           options: {
-            DOMPurify: 'dompurify',
+            globals: {
+              DOMPurify: 'dompurify',
+            }
+          }
+        }
+      ]
+    });
+    c.module.rules.unshift({
+      test: /hyperformula/,
+      use: [
+        {
+          loader: path.resolve(__dirname, 'loader/exports-to-window-loader.js'),
+          options: {
+            globals: {
+              HyperFormula: 'hyperformula',
+            },
+            defaultExport: true
           }
         }
       ]

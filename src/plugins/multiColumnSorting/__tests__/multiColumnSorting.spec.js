@@ -1027,8 +1027,6 @@ describe('MultiColumnSorting', () => {
         }
       });
 
-      await sleep(200); // Wait for ObserveChanges completion
-
       setDataAtCell(0, 0, '19:55', 'edit');
 
       await sleep(200);

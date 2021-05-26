@@ -1,5 +1,6 @@
 const allowedE2EModules = [
   'window',
+  'hyperformula*',
   'jasmine-co',
   'jest-matcher-utils',
   'html-parse-stringify',

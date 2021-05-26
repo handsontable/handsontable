@@ -1,7 +1,0 @@
-{
-  "title": "Fixed Github Action [NPM Audit] job to raport found vulnerabilities.",
-  "type": "fixed",
-  "issue": 7621,
-  "breaking": false,
-  "framework": "none"
-}

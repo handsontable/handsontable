@@ -225,11 +225,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
     }
   }),
   fragmentSelection: oneOf(true, 'cell'),
-  headerTooltips: oneOf(true, {
-    rows: false,
-    columns: true,
-    onlyTrimmed: true
-  }),
   height: oneOf(500, () => 500),
   hiddenColumns: oneOf(true, {
     columns: [5, 10, 15],
@@ -281,7 +276,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
   nestedRows: true,
   noWordWrapClassName: 'foo',
   numericFormat: oneOf(legacyNumericFormat, numericFormatOptions),
-  observeChanges: true,
   observeDOMVisibility: true,
   outsideClickDeselects: oneOf(true, function(target: HTMLElement) {
     return false;
@@ -369,6 +363,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterDropdownMenuHide: (instance) => {},
   afterDropdownMenuShow: (instance) => {},
   afterFilter: (conditionsStack) => conditionsStack[0].column,
+  afterFormulasValuesUpdate: (changes) => {},
   afterGetCellMeta: (row, col, cellProperties) => {},
   afterGetColHeader: (col, TH) => {},
   afterGetColumnHeaderRenderers: (array) => {},
@@ -379,12 +374,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterInit: () => {},
   afterLanguageChange: (languageCode) => {},
   afterListen: () => {},
-  afterLoadData: (sourceData, firstTime) => {},
+  afterLoadData: (sourceData, firstTime, source) => {},
   afterMergeCells: (cellRange, mergeParent, auto) => {},
   modifySourceData: (row, col, valueHolder, ioMode) => {},
   afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {},
   afterModifyTransformStart: (coords, rowTransformDir, colTransformDir) => {},
   afterMomentumScroll: () => {},
+  afterNamedExpressionAdded: (namedExpressionName, changes) => {},
+  afterNamedExpressionRemoved: (namedExpressionName, changes) => {},
   afterOnCellContextMenu: (event, coords, TD) => {},
   afterOnCellCornerDblClick: (event) => {},
   afterOnCellCornerMouseDown: (event) => {},
@@ -414,6 +411,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSetDataAtCell: (changes, source) => {},
   afterSetDataAtRowProp: (changes, source) => {},
   afterSetSourceDataAtCell: (changes, source) => {},
+  afterSheetAdded: (addedSheetDisplayName) => {},
+  afterSheetRenamed: (oldDisplayName, newDisplayName) => {},
+  afterSheetRemoved: (removedSheetDisplayName, changes) => {},
   afterTrimRow: (rows) => {},
   afterUndo: (action) => {},
   afterUndoStackChange: (doneActionsBefore, doneActionsAfter) => {},
@@ -457,7 +457,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeInitWalkontable: (walkontableConfig) => {},
   beforeKeyDown: (event) => {},
   beforeLanguageChange: (languageCode) => {},
-  beforeLoadData: (sourceData, firstTime) => {},
+  beforeLoadData: (sourceData, firstTime, source) => {},
   beforeMergeCells: (cellRange, auto) => {},
   beforeOnCellContextMenu: (event, coords, TD) => {},
   beforeOnCellMouseDown: (event, coords, TD, controller) => {},

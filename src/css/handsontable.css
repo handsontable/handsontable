@@ -377,4 +377,5 @@ TextRenderer placeholder value
   -moz-box-shadow: 0 0 0 6px rgba(238,238,238,1);
   box-shadow: 0 0 0 6px rgba(238,238,238,1);
   background: #eee;
+  text-align: center;
 }
