@@ -5,7 +5,37 @@ import { warn } from '../../../helpers/console';
 import { PLUGIN_KEY } from '../formulas';
 import { DEFAULT_LICENSE_KEY, getEngineSettingsWithDefaultsAndOverrides } from './settings';
 
-const ENGINE_KEY = 'engine';
+/**
+ * Prepares and returns the collection for the engine relationship with the HoT instances.
+ *
+ * @returns {Map}
+ */
+function getEngineRelationshipRegistry() {
+  const registryKey = 'engine_relationship';
+  const pluginStaticRegistry = staticRegister(PLUGIN_KEY);
+
+  if (!pluginStaticRegistry.hasItem(registryKey)) {
+    pluginStaticRegistry.register(registryKey, new Map());
+  }
+
+  return pluginStaticRegistry.getItem(registryKey);
+}
+
+/**
+ * Prepares and returns the collection for the engine shared usage.
+ *
+ * @returns {Map}
+ */
+function getSharedEngineUsageRegistry() {
+  const registryKey = 'shared_engine_usage';
+  const pluginStaticRegistry = staticRegister(PLUGIN_KEY);
+
+  if (!pluginStaticRegistry.hasItem(registryKey)) {
+    pluginStaticRegistry.register(registryKey, new Map());
+  }
+
+  return pluginStaticRegistry.getItem(registryKey);
+}
 
 /**
  * Setups the engine instance. It either creates a new (possibly shared) engine instance, or attaches
@@ -36,11 +66,17 @@ export function setupEngine(hotInstance) {
 
     // `engine` is the engine instance
   } else if (typeof engineConfigItem === 'object' && isUndefined(engineConfigItem.hyperformula)) {
-    const engineRegistry = staticRegister(PLUGIN_KEY).getItem(ENGINE_KEY);
-    const sharedEngineUsage = engineRegistry?.get(engineConfigItem);
+    const engineRelationship = getEngineRelationshipRegistry();
+    const sharedEngineUsage = getSharedEngineUsageRegistry().get(engineConfigItem);
+
+    if (!engineRelationship.has(engineConfigItem)) {
+      engineRelationship.set(engineConfigItem, []);
+    }
+
+    engineRelationship.get(engineConfigItem).push(hotInstance);
 
     if (sharedEngineUsage) {
-      sharedEngineUsage.push(hotInstance);
+      sharedEngineUsage.push(hotInstance.guid);
     }
 
     if (!engineConfigItem.getConfig().licenseKey) {
@@ -64,13 +100,10 @@ export function setupEngine(hotInstance) {
  * @returns {object} Returns the engine instance.
  */
 export function registerEngine(engineClass, hotSettings, hotInstance) {
-  if (!staticRegister(PLUGIN_KEY).hasItem(ENGINE_KEY)) {
-    staticRegister(PLUGIN_KEY).register(ENGINE_KEY, new Map());
-  }
-
   const pluginSettings = hotSettings[PLUGIN_KEY];
   const engineSettings = getEngineSettingsWithDefaultsAndOverrides(hotSettings);
-  const engineRegistry = staticRegister(PLUGIN_KEY).getItem(ENGINE_KEY);
+  const engineRegistry = getEngineRelationshipRegistry();
+  const sharedEngineRegistry = getSharedEngineUsageRegistry();
 
   registerCustomFunctions(engineClass, pluginSettings.functions);
 
@@ -81,6 +114,7 @@ export function registerEngine(engineClass, hotSettings, hotInstance) {
 
   // Add it to global registry
   engineRegistry.set(engineInstance, [hotInstance]);
+  sharedEngineRegistry.set(engineInstance, [hotInstance.guid]);
 
   registerNamedExpressions(engineInstance, pluginSettings.namedExpressions);
 
@@ -101,11 +135,7 @@ export function registerEngine(engineClass, hotSettings, hotInstance) {
  * @returns {Handsontable[]} Returns an array with Handsontable instances.
  */
 export function getRegisteredHotInstances(engine) {
-  if (!staticRegister(PLUGIN_KEY).hasItem(ENGINE_KEY)) {
-    staticRegister(PLUGIN_KEY).register(ENGINE_KEY, new Map());
-  }
-
-  const engineRegistry = staticRegister(PLUGIN_KEY).getItem(ENGINE_KEY);
+  const engineRegistry = getEngineRelationshipRegistry();
 
   return engineRegistry.size === 0 ? [] : Array.from(engineRegistry.get(engine) ?? []);
 }
@@ -119,14 +149,24 @@ export function getRegisteredHotInstances(engine) {
  */
 export function unregisterEngine(engine, hotInstance) {
   if (engine) {
-    const engineRegistry = staticRegister(PLUGIN_KEY).getItem(ENGINE_KEY);
-    const sharedEngineUsage = engineRegistry?.get(engine);
+    const engineRegistry = getEngineRelationshipRegistry();
+    const engineHotRelationship = engineRegistry.get(engine);
+    const sharedEngineRegistry = getSharedEngineUsageRegistry();
+    const sharedEngineUsage = sharedEngineRegistry.get(engine);
 
-    if (sharedEngineUsage && sharedEngineUsage.includes(hotInstance)) {
-      sharedEngineUsage.splice(sharedEngineUsage.indexOf(hotInstance), 1);
+    if (engineHotRelationship && engineHotRelationship.includes(hotInstance)) {
+      engineHotRelationship.splice(engineHotRelationship.indexOf(hotInstance), 1);
+
+      if (engineHotRelationship.length === 0) {
+        engineRegistry.delete(engine);
+      }
+    }
+
+    if (sharedEngineUsage && sharedEngineUsage.includes(hotInstance.guid)) {
+      sharedEngineUsage.splice(sharedEngineUsage.indexOf(hotInstance.guid), 1);
 
       if (sharedEngineUsage.length === 0) {
-        engineRegistry.delete(engine);
+        sharedEngineRegistry.delete(engine);
         engine.destroy();
       }
     }
