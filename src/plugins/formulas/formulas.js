@@ -162,6 +162,8 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    unregisterEngine(this.engine, this.hot);
+
     super.disablePlugin();
   }
 
