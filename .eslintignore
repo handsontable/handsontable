@@ -8,6 +8,7 @@ src/3rdparty/walkontable/dist/*
 test/lib/*
 test/dist/*
 tmp/*
+./bundle
 
 # TS Migration
 src/3rdparty/walkontable/src/filter/*.js

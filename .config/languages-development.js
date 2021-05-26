@@ -18,7 +18,7 @@ function getEntryJsFiles() {
   const filesInLanguagesDirectory = fs.readdirSync(SOURCE_LANGUAGES_DIRECTORY);
 
   filesInLanguagesDirectory.forEach((fileName) => {
-    const jsExtensionRegExp = /\.js$/;
+    const jsExtensionRegExp = /\.ts$/;
 
     if (jsExtensionRegExp.test(fileName)) {
       let fileNameWithoutExtension = fileName.replace(jsExtensionRegExp, '');
@@ -35,7 +35,7 @@ function getEntryJsFiles() {
 }
 
 const ruleForSnippetsInjection = {
-  test: /\.js$/,
+  test: /\.ts$/,
   loader: StringReplacePlugin.replace({
     replacements: [
       {
@@ -74,6 +74,9 @@ module.exports.create = function create() {
       path: path.resolve(__dirname, '../' + OUTPUT_LANGUAGES_DIRECTORY),
       umdNamedDefine: true,
     },
+    resolve: {
+      extensions: ['.ts', '.js'],
+    },
     externals: {
       [PACKAGE_FILENAME]: {
         root: 'Handsontable',
@@ -84,7 +87,7 @@ module.exports.create = function create() {
     },
     module: {
       rules: [
-        {test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader'},
+        {test: /\.ts$/, exclude: /node_modules/, loader: 'babel-loader'},
         ruleForSnippetsInjection
       ]
     },

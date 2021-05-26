@@ -12,16 +12,19 @@ module.exports.create = function create() {
     devtool: 'cheap-module-source-map',
     mode: 'none',
     output: {
-      filename: 'walkontable.js',
+      filename: 'walkontable.ts',
       globalObject: `typeof self !== 'undefined' ? self : this`,
       library: 'Walkontable',
       libraryTarget: 'var',
       path: path.resolve(wotPath, 'dist'),
     },
+    resolve: {
+      extensions: ['.ts', '.js'],
+    },
     module: {
       rules: [
         {
-          test: /\.js$/,
+          test: /\.ts$/,
           loader: 'babel-loader',
           exclude: [
             /node_modules/,

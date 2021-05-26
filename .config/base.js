@@ -12,7 +12,7 @@ licenseBody += '\nRelease date: ' + process.env.HOT_RELEASE_DATE + ' (built at '
 module.exports.create = function create(envArgs) {
   const config = {
     devtool: false,
-    entry: ['./src/index.js'],
+    entry: ['./src/index.ts'],
     performance: {
       maxEntrypointSize: 2000000,
       maxAssetSize: 2000000,
@@ -26,6 +26,7 @@ module.exports.create = function create(envArgs) {
       umdNamedDefine: true,
     },
     resolve: {
+      extensions: ['.ts', '.js'],
       alias: {},
     },
     mode: 'none',
@@ -47,7 +48,7 @@ module.exports.create = function create(envArgs) {
           loader: path.resolve(__dirname, 'loader/empty-loader.js'),
         },
         {
-          test: /\.js$/,
+          test: /\.(j|t)s$/,
           loader: 'babel-loader',
           exclude: [
             /node_modules/,

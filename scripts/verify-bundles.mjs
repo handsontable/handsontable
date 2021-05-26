@@ -21,8 +21,8 @@ async function verifyBundles() {
   const packagesInfo = {
     handsontable: {
       className: 'Handsontable',
-      umd: 'tmp/dist/handsontable.full.min.js',
-      entryFile: 'tmp/index.mjs',
+      umd: '.bundle/dist/handsontable.full.min.js',
+      entryFile: '.bundle/index.mjs',
       defaultExport: true
     },
     '@handsontable/angular': {

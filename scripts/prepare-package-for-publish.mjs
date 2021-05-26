@@ -3,7 +3,7 @@ import path from 'path';
 import glob from 'glob';
 import { displayErrorMessage } from './utils/console.mjs';
 
-const TARGET_PATH = './tmp/';
+const TARGET_PATH = './.bundle/';
 const PACKAGE_PATH = path.resolve('package.json');
 const DEV_PACKAGE = fse.readJsonSync(PACKAGE_PATH, { encoding: 'utf-8' });
 const { handsontable } = DEV_PACKAGE;

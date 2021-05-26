@@ -1,14 +1,17 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "allowJs": true,
     "declaration": true,
-    "declarationDir": "tmp/",
+    "declarationDir": ".bundle/",
   },
   "include": [
     "src/**/*.ts",
+    "src/**/*.js",
   ],
   "exclude": [
     "node_modules",
-    "src/**/__tests__/*"
+    "src/**/__tests__/*",
+    "src/**/dist/*"
   ]
 }

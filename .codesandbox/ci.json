@@ -1,10 +1,10 @@
 {
   "buildCommand": "build",
   "packages": [
-    "tmp"
+    ".bundle"
   ],
   "publishDirectory": {
-    "handsontable": "tmp"
+    "handsontable": ".bundle"
   },
   "sandboxes": [
     "github/handsontable/examples/tree/master/vanilla/pull-request"

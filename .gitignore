@@ -14,13 +14,10 @@ dev*.html
 dev*.js
 npm-debug.log
 
+.bundle/
 !dist/README.md
 node_modules/
 commonjs/
 es/
 coverage/
 tmp/
-
-
-# TS Migration
-src/3rdparty/walkontable/src/filter/*.js

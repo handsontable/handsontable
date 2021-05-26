@@ -11,7 +11,7 @@ import {
 
 const [pkgName] = process.argv.slice(2);
 const PACKAGE_LOCATIONS = new Map([
-  ['handsontable', './tmp'],
+  ['handsontable', './.bundle'],
   ['@handsontable/angular', './wrappers/angular/dist/hot-table']
 ]);
 const linkPackage = (packageName, packageLocation) => {
