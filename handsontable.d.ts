@@ -1,6 +1,10 @@
 import { PikadayOptions } from 'pikaday';
 import numbro from 'numbro';
-import { HyperFormula, CellType as HyperFormulaCellType } from 'hyperformula';
+import {
+  CellType as HyperFormulaCellType,
+  ConfigParams,
+  HyperFormula,
+} from 'hyperformula';
 
 /**
  * @internal
@@ -1174,12 +1178,12 @@ declare namespace Handsontable {
     type UndoRedoAction = UndoRedoAction.Change | UndoRedoAction.InsertRow | UndoRedoAction.RemoveRow | UndoRedoAction.InsertCol | UndoRedoAction.RemoveCol | UndoRedoAction.Filter;
 
     interface Formulas extends Base {
-      engine: HyperFormula | object | Function;
-      sheetName: string;
-      sheetId: number;
+      engine: HyperFormula | null;
+      sheetName: string | null;
+      sheetId: number | null;
 
       addSheet(sheetName?: string | null, sheetData?: CellValue[][]): boolean | string;
-      getCellType(row: number, col: number, sheet?: number): HyperFormulaCellType
+      getCellType(row: number, col: number, sheet?: number): HyperFormulaCellType;
       switchSheet(sheetName: string): void;
     }
 
@@ -2550,10 +2554,11 @@ declare namespace Handsontable {
   }
 
   namespace formulas {
+    interface HyperFormulaSettings extends Partial<ConfigParams> {
+      hyperformula: typeof HyperFormula | HyperFormula
+    }
     interface Settings {
-      variables?: {
-        [key: string]: any;
-      }
+      engine: typeof HyperFormula | HyperFormula | HyperFormulaSettings
     }
   }
 

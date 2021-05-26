@@ -83,7 +83,7 @@ export class Formulas extends BasePlugin {
   /**
    * The engine instance that will be used for this instance of Handsontable.
    *
-   * @type {HyperFormula|object}
+   * @type {HyperFormula|null}
    */
   engine = null;
 
