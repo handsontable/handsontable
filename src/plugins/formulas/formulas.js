@@ -58,6 +58,20 @@ export class Formulas extends BasePlugin {
   #hotWasInitializedWithEmptyData = false;
 
   /**
+   * The list of the HyperFormula listeners.
+   *
+   * @type {Array}
+   */
+  #engineListeners = [
+    ['valuesUpdated', (...args) => this.onEngineValuesUpdated(...args)],
+    ['namedExpressionAdded', (...args) => this.onEngineNamedExpressionsAdded(...args)],
+    ['namedExpressionRemoved', (...args) => this.onEngineNamedExpressionsRemoved(...args)],
+    ['sheetAdded', (...args) => this.onEngineSheetAdded(...args)],
+    ['sheetRenamed', (...args) => this.onEngineSheetRenamed(...args)],
+    ['sheetRemoved', (...args) => this.onEngineSheetRemoved(...args)],
+  ];
+
+  /**
    * Static register used to set up one global HyperFormula instance.
    * TODO: currently used in tests, might be removed later.
    *
@@ -147,13 +161,7 @@ export class Formulas extends BasePlugin {
     this.addHook('beforeAutofill', autofillHooks.beforeAutofill);
     this.addHook('afterAutofill', autofillHooks.afterAutofill);
 
-    // HyperFormula events:
-    this.engine.on('valuesUpdated', (...args) => this.onEngineValuesUpdated(...args));
-    this.engine.on('namedExpressionAdded', (...args) => this.onEngineNamedExpressionsAdded(...args));
-    this.engine.on('namedExpressionRemoved', (...args) => this.onEngineNamedExpressionsRemoved(...args));
-    this.engine.on('sheetAdded', (...args) => this.onEngineSheetAdded(...args));
-    this.engine.on('sheetRenamed', (...args) => this.onEngineSheetRenamed(...args));
-    this.engine.on('sheetRemoved', (...args) => this.onEngineSheetRemoved(...args));
+    this.#engineListeners.forEach(([eventName, listener]) => this.engine.on(eventName, listener));
 
     super.enablePlugin();
   }
@@ -162,6 +170,7 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#engineListeners.forEach(([eventName, listener]) => this.engine.off(eventName, listener));
     unregisterEngine(this.engine, this.hot);
 
     super.disablePlugin();
@@ -206,6 +215,8 @@ export class Formulas extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#engineListeners.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
+    this.#engineListeners = null;
     unregisterEngine(this.engine, this.hot);
 
     super.destroy();
@@ -318,12 +329,10 @@ export class Formulas extends BasePlugin {
         .map(hot => [hot.getPlugin('formulas').sheetId, hot])
     );
 
-    affectedSheetIds.forEach((sheetId) => {
-      if (sheetId !== this.sheetId) {
-        const hot = hotInstances.get(sheetId);
-
-        hot.render();
-        hot.view?.adjustElementsSize();
+    hotInstances.forEach((relatedHot, sheetId) => {
+      if (sheetId !== this.sheetId && affectedSheetIds.has(sheetId)) {
+        relatedHot.render();
+        relatedHot.view?.adjustElementsSize();
       }
     });
   }
