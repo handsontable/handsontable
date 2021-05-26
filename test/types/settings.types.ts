@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import HyperFormula from 'hyperformula';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
 declare function oneOf<T extends (string | number | boolean | undefined | null | object)[]>(...args: T): T[number];
@@ -218,12 +219,26 @@ const allSettings: Required<Handsontable.GridSettings> = {
   fixedColumnsLeft: 123,
   fixedRowsBottom: 123,
   fixedRowsTop: 123,
-  formulas: oneOf(true, {
-    variables: {
-      FOO: 64,
-      BAR: 'baz',
-    }
-  }),
+  formulas: oneOf(
+    {
+      engine: HyperFormula,
+    },
+    {
+      engine: {
+        hyperformula: HyperFormula,
+        leapYear1900: true,
+      },
+    },
+    {
+      engine: HyperFormula.buildEmpty(),
+    },
+    {
+      engine: {
+        hyperformula: HyperFormula.buildEmpty(),
+        leapYear1900: true,
+      },
+    },
+  ),
   fragmentSelection: oneOf(true, 'cell'),
   height: oneOf(500, () => 500),
   hiddenColumns: oneOf(true, {
