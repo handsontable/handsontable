@@ -254,6 +254,7 @@
       "keywords",
       "dependencies",
       "devDependencies",
+      "optionalDependencies",
       "license",
       "typings",
       "sideEffects"
