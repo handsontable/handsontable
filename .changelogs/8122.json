@@ -1,0 +1,7 @@
+{
+  "title": "Fixed column resizing when formulas results has changed width",
+  "type": "fixed",
+  "issue": 8122,
+  "breaking": false,
+  "framework": "none"
+}
