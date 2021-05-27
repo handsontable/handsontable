@@ -12,12 +12,11 @@ tags:
 [[toc]]
 
 ## Overview
-
-We use the **Filters plugin** to allow filtering the data in the table's columns using a range of pre-defined conditions.
+The **Filters plugin** allows filtering the data in the table's columns using a range of pre-defined conditions.
 
 ## Basic configuration
 
-To enable the plugin you need to set the `filters` property to `true` and enable the filters dependency, which is the [dropdownMenu](dropdown-menu.md) plugin.
+To enable the plugin, set the `filters` property to `true` and enable the filters dependency, which is the [dropdownMenu](dropdown-menu.md) plugin.
 
 ::: example #example1
 ```js
@@ -50,7 +49,7 @@ const hot = new Handsontable(container, {
 
 ## Custom filter menu
 
-To display filters while hiding the other elements in the dropdown menu, pass the elements to be displayed as an array in the configuration.
+To display filters while hiding the other elements in the dropdown menu, pass the elements to be displayed as an array into the configuration.
 
 ::: example #example2
 ```js
@@ -83,17 +82,17 @@ const hot2 = new Handsontable(container, {
 
 ## Custom implementations
 
-The examples below will give you a good idea on how to adjust the Filter plugin to your needs. That includes customizing the UI components, changing the default behavior and using filters from the outside of the table.
+The examples below show how to adjust the Filter plugin to your needs. They include customizing the UI components, changing the default behavior, and using filters outside the table.
 
 ### Filter as you type
 
-We placed a basic `input` element inside a column’s header (A, B, C…), right below the label of the column. For a better visibility it is separated with a horizontal line. The data is being filtered as you type - with a 100 ms delay. The filter element has been excluded from the selection event so when you click on it, the column doesn’t get selected.
+In this example, a basic `input` element has been placed inside a column’s header (A, B, C…). It is placed right below the column's label and is separated with a horizontal line for better visibility. The data is being filtered as you type - with a 100 ms delay. The filter element has been excluded from the selection event, so the column doesn’t get selected when clicked on.
 
 Please note that this demo uses a Handsontable API to a great extent.
 
 ::: example #example3
 ```js
-// Event for `keydown` event. Add condition after delay of 200 ms which is counted from time of last pressed key.
+// Event for `keydown` event. Add condition after delay of 200 ms which is counted from the time of last pressed key.
 const debounceFn = Handsontable.helper.debounce((colIndex, event) => {
   const filtersPlugin = hot3.getPlugin('filters');
 
@@ -124,7 +123,7 @@ const getInitializedElements = colIndex => {
 
 // Add elements to header on `afterGetColHeader` hook.
 const addInput = (col, TH) => {
-  // Hooks can return value other than number (for example `columnSorting` plugin use this).
+  // Hooks can return a value other than number (for example `columnSorting` plugin uses this).
   if (typeof col !== 'number') {
     return col;
   }
@@ -134,7 +133,7 @@ const addInput = (col, TH) => {
   }
 };
 
-// Deselect column after click on input.
+// Deselect the column after clicking on input.
 const doNotSelectColumn = (event, coords) => {
   if (coords.row === -1 && event.target.nodeName === 'INPUT') {
     event.stopImmediatePropagation();
@@ -165,9 +164,11 @@ const hot3 = new Handsontable(container, {
 
 ### Filter from the outside the table
 
-The external Filter component is controlling the main table by passing values for particular columns. Only a fraction of the code is related with Handsontable API, for example `addConditionsByValue`, `filter`, `removeConditions`.
+The external Filter component is controlling the main table by passing values for particular columns. Only a fraction of the code is related to Handsontable API, for example, `addConditionsByValue`, `filter`, and `removeConditions`.
 
-Please mind that selecting a column in the Filter component resets the state of the table. This implementation can filter only one column at a time.
+::: tip
+Note that selecting a column in the Filter component resets the state of the table. This implementation can filter only one column at a time.
+:::
 
 ::: example #example4 --html 1 --js 2
 ```html

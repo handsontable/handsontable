@@ -13,12 +13,12 @@ tags:
 
 ## Overview
 
-This plugin allows adding a configurable dropdown menu to the table's column headers.
-The dropdown menu acts like the **Context Menu**, but is triggered by clicking the button in the header.
+This plugin enables you to add a configurable dropdown menu to the table's column headers.
+The dropdown menu acts like the **Context Menu** but is triggered by clicking the button in the header.
 
 ## Quick setup
 
-To enable the plugin, simply set the `dropdownMenu` property to `true`, when initializing Handsontable.
+To enable the plugin, set the `dropdownMenu` property to `true` when initializing Handsontable.
 
 ::: example #example1
 ```js
@@ -35,7 +35,7 @@ const hot1 = new Handsontable(container, {
 
 ## Plugin configuration
 
-You can use the default dropdown contents by setting it to `true`, but if you'd like to customize it a little you can set it to use a custom list of actions. For the entry options reference, see the [Context Menu demo](context-menu.md#page-specific).
+To use the default dropdown contents, set it to `true`, or to customize it by setting it to use a custom list of actions. For the available entry options reference, see the [Context Menu demo](context-menu.md#page-specific).
 
 ::: example #example2
 ```js

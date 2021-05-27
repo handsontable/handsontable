@@ -9,13 +9,14 @@ canonicalUrl: /column-moving
 
 [[toc]]
 
-This page shows how to move columns in Handsontable.
+## Overview
+This page shows you how to move columns in Handsontable.
 
 ## Enabling plugin
 
-To enable this feature, use settings `manualColumnMove: true`.
+Use the setting `manualColumnMove: true` to enable this feature.
 
-A draggable move handle appears above the selected column header. You can click and drag it to any location in the column header body.
+A draggable move handle appears above the selected column header. You can click and drag it to any location in the grid.
 
 ::: example #example1
 ```js
