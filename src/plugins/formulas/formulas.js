@@ -277,6 +277,7 @@ export class Formulas extends BasePlugin {
     this.sheetName = sheetName;
 
     const serialized = this.engine.getSheetSerialized(this.sheetId);
+
     if (serialized.length > 0) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
     }
