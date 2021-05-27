@@ -9,11 +9,12 @@ canonicalUrl: /checkbox-cell-type
 
 [[toc]]
 
-Data in such cells will be rendered as checkbox and can be easily changed by checking/unchecking the checkbox. Checking and unchecking can be performed using mouse or by pressing <kbd>SPACE</kbd>. You can change the state of multiple cells at once. Simply select cells you want to change and press <kbd>SPACE</kbd>.
+## Overview
+Data in these cells will be rendered as a checkbox and can be easily changed by checking/unchecking the checkbox. Checking and unchecking can be performed using a mouse or by pressing <kbd>SPACE</kbd>. You can change the state of multiple cells at once by selecting the cells you want to change and pressing <kbd>SPACE</kbd>.
 
 ## Checkbox true/false values
 
-This is default usage scenario when columns data have `true` or `false` value and we want to display only checkboxes.
+This is the default usage scenario where column data has a `true` or `false` value, and we only want to display checkboxes.
 
 ::: example #example1
 ```js
@@ -49,7 +50,7 @@ const hot = new Handsontable(container, {
 
 ## Checkbox template
 
-If you want use other values than `true` and `false`, you have to provide this information using `checkedTemplate` and `uncheckedTemplate`. Handsontable will then update your data using appropriate template.
+If you want to use values other than `true` and `false`, you have to provide this information using `checkedTemplate` and `uncheckedTemplate`. Handsontable will then update your data using the appropriate template.
 
 ::: example #example2
 ```js
@@ -87,7 +88,7 @@ const hot = new Handsontable(container, {
 
 ## Checkbox labels
 
-If you want to add label to the checkbox you can use `label` option. With this option you can declare where label will be injected (before or after checkbox element) and from what data source label text will be updated.
+To add a label to the checkbox, use the `label` option. You can declare where the label will be injected with this option - either before or after the checkbox element. You can also declare from which data source the label text will be updated.
 
 ::: example #example3
 ```js
