@@ -143,7 +143,7 @@ export class Formulas extends BasePlugin {
     this.addHook('modifyData', (...args) => this.onModifyData(...args));
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
     this.addHook('afterSetSourceDataAtCell', (...args) => this.onAfterSetSourceDataAtCell(...args));
-    this.addHook('afterChange', (...args) => this.onAfterChange(...args));
+    this.addHook('beforeChange', (...args) => this.onBeforeChange(...args));
     this.addHook('beforeValidate', (...args) => this.onBeforeValidate(...args));
 
     this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args));
@@ -406,6 +406,31 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Sync a change from the change-related hooks with the engine.
+   *
+   * @private
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {Handsontable.CellValue} newValue New value.
+   * @returns {Array} Array of changes exported from the engine.
+   */
+  syncChangeWithEngine(row, column, newValue) {
+    const address = {
+      row: this.toPhysicalRowPosition(row),
+      col: this.toPhysicalColumnPosition(column),
+      sheet: this.sheetId
+    };
+
+    if (!this.engine.isItPossibleToSetCellContents(address)) {
+      warn(`Not possible to set cell data at ${JSON.stringify(address)}`);
+
+      return;
+    }
+
+    return this.engine.setCellContents(address, newValue);
+  }
+
+  /**
    * The hook allows to translate the formula value to calculated value before it goes to the
    * validator function.
    *
@@ -551,35 +576,41 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * `onAfterChange` hook callback.
+   * `onBeforeChange` hook callback.
    *
    * @private
    * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
    */
-  onAfterChange(changes) {
-    if (changes === null) {
-      return;
-    }
-
+  onBeforeChange(changes) {
     const dependentCells = [];
+    const outOfBoundsChanges = [];
 
-    changes.forEach(([row, prop,, newValue]) => {
-      const address = {
-        row: this.toPhysicalRowPosition(row),
-        col: this.toPhysicalColumnPosition(this.hot.propToCol(prop)),
-        sheet: this.sheetId
-      };
+    changes.forEach(([row, prop, , newValue]) => {
+      const column = this.hot.propToCol(prop);
 
-      if (!this.engine.isItPossibleToSetCellContents(address)) {
-        warn(`Not possible to set cell data at ${JSON.stringify(address)}`);
+      if (this.hot.toPhysicalRow(row) !== null && this.hot.toPhysicalColumn(column) !== null) {
+        dependentCells.push(...this.syncChangeWithEngine(row, column, newValue));
 
-        return;
+      } else {
+        outOfBoundsChanges.push([row, column, newValue]);
       }
-
-      dependentCells.push(...this.engine.setCellContents(address, newValue));
     });
 
-    this.renderDependentSheets(dependentCells, true);
+    if (outOfBoundsChanges.length) {
+      // Workaround for rows/columns being created two times (by HOT and the engine).
+      // (unfortunately, this requires an extra re-render)
+      this.hot.addHookOnce('afterChange', () => {
+        const outOfBoundsDependentCells = [];
+
+        outOfBoundsChanges.forEach(([row, column, newValue]) => {
+          outOfBoundsDependentCells.push(...this.syncChangeWithEngine(row, column, newValue));
+        });
+
+        this.renderDependentSheets(outOfBoundsDependentCells, true);
+      });
+    }
+
+    this.renderDependentSheets(dependentCells);
   }
 
   /**
@@ -591,7 +622,7 @@ export class Formulas extends BasePlugin {
   onAfterSetSourceDataAtCell(changes) {
     const dependentCells = [];
 
-    changes.forEach(([row, column,, newValue]) => {
+    changes.forEach(([row, column, , newValue]) => {
       const address = {
         row,
         col: this.toPhysicalColumnPosition(column),

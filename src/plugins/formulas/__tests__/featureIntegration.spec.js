@@ -1,7 +1,6 @@
 import HyperFormula from 'hyperformula';
 
 describe('Integration with other features', () => {
-  const debug = false;
   const id = 'testContainer';
 
   beforeEach(function() {
