@@ -334,7 +334,7 @@ const hot11 = new Handsontable(container, {
 ```
 :::
 
-This allows many possible usages: for example, you can easily calculate a total for a group in a group parent combining this plugin with the [Nested Rows plugin](../nested-rows.md).
+This allows many possible usages: for example, you can sum subtotals for nested groups.
 
 ::: example #example12
 ```js

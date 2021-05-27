@@ -13,9 +13,13 @@ tags:
 
 [[toc]]
 
+## Overview
+
+Column freezing locks specific columns of a grid in place, keeping them visible while scrolling to another area of the grid. We refer to frozen columns as *fixed*. Columns can be frozen during initialization and by the user.
+
 ## Freeze columns at initialization
 
-To make the columns on the left hand side frozen (we call them "fixed"), you need to pass the option `fixedColumnsLeft` in the Settings object. Remember that the container in which you initialize the data grid will need additional CSS attributes to be set: `width` and `overflow: hidden`.
+To freeze the columns on the left-hand side, you need to pass the option `fixedColumnsLeft` in the Settings object. The container you initialize the data grid in will need additional CSS attributes configured: `width` and `overflow: hidden`.
 
 ::: example #example1
 ```js
@@ -36,7 +40,7 @@ const hot1 = new Handsontable(container, {
 
 ## User-triggered freeze
 
-In order to manually freeze a column, you need to set the `manualColumnFreeze` config item to `true` in Handsontable initialization. When the Manual Column Freeze plugin is enabled, you can freeze any non-fixed column and unfreeze any fixed column in your Handsontable instance using the Context Menu.
+To manually freeze a column, you need to set the `manualColumnFreeze` config item to `true` in the Handsontable initialization. When the Manual Column Freeze plugin is enabled, you can freeze any non-fixed column and unfreeze any fixed column in your Handsontable instance using the Context Menu.
 
 ::: tip
 A frozen column won't go back to the original position after you unfreeze it.
