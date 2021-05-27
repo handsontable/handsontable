@@ -9,6 +9,8 @@ canonicalUrl: /row-moving
 
 [[toc]]
 
+## Overview
+
 This page shows how to move rows and columns in Handsontable.
 
 ## Enabling plugins
