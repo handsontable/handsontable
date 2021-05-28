@@ -1,0 +1,7 @@
+{
+  "title": "Removed an unwanted column index translation from the `modifySourceData` hook.",
+  "type": "fixed",
+  "issue": 8114,
+  "breaking": false,
+  "framework": "none"
+}
