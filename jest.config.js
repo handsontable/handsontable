@@ -1,6 +1,5 @@
 module.exports = {
   roots: [
-    '<rootDir>/test/unit',
     '<rootDir>/src'
   ],
   coverageDirectory: '<rootDir>/coverage',
