@@ -2166,6 +2166,22 @@ describe('Formulas general', () => {
     ]);
   });
 
+  it('should sync the data from the moved rows properly', () => {
+    handsontable({
+      data: [
+        [1, 'B1', '=A1 + 55', '=$C1']
+      ],
+      colHeaders: true,
+      manualColumnMove: [2, 3, 1, 0],
+      formulas: { engine: HyperFormula }
+    });
+
+    expect(getSourceDataAtCell(0, 0)).toEqual('=A1 + 55');
+    expect(getSourceDataAtCell(0, 1)).toEqual('=$C1');
+    expect(getSourceDataAtCell(0, 2)).toEqual('B1');
+    expect(getSourceDataAtCell(0, 3)).toEqual(1);
+  });
+
   describe('should perform CRUD operations in HyperFormula based on physical indexes', () => {
     describe('action blocking', () => {
       it('should block removing rows based on physical indexes', () => {

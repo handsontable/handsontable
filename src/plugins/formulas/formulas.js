@@ -476,10 +476,14 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    if (typeof column === 'string') {
+      column = this.hot.toPhysicalColumn(this.hot.propToCol(column));
+    }
+
     const address = {
       row,
       // Workaround for inconsistencies in `src/dataSource.js`
-      col: this.hot.toPhysicalColumn(this.hot.propToCol(column)),
+      col: column,
       sheet: this.sheetId
     };
 
