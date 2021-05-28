@@ -139,6 +139,15 @@ describe('Integration with other features', () => {
         [null, null, 'TEST', null, null, null],
         [null, null, null, null, null, null]
       ]);
+
+      expect(hot.getSourceData()).toEqual([
+        ['test', 2, '=UPPER($A$1)', 4, 5, 6],
+        [1, 2, '=UPPER($A$1)', 4, 5, 6],
+        [1, 2, '=UPPER($A$1)', 4, 5, 6],
+        [1, 2, '=UPPER($A$1)', 4, 5, 6],
+        [null, null, '=UPPER($A$1)', null, null, null],
+        [null, null, null, null, null, null]
+      ]);
     });
   });
 });
