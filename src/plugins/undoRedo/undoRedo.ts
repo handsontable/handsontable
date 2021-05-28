@@ -626,9 +626,6 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
 
   instance.addHookOnce('afterRender', undoneCallback);
 
-  // TODO Temporary hook for undo/redo mess
-  instance.runHooks('afterCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
-
   instance.render();
 };
 
