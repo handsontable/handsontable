@@ -1210,7 +1210,7 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(0)).toEqual([2011, 4, 552, 6127]);
       expect(hot.getSourceDataAtRow(1)).toEqual([2012, '=SUM(A1:A2)', 12, '=SUM(E5)']);
     });
-    
+
     it('should show proper value when doing undo/redo after reducing sheet size' +
       '(removing cell with value used by some formula)', () => {
       handsontable({
@@ -1228,7 +1228,7 @@ describe('Formulas general', () => {
       alter('remove_row', 0);
 
       undo();
-      
+
       expect(getSourceData()).toEqual([
         [2],
         ['=A1*10'],

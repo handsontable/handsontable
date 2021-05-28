@@ -27,7 +27,7 @@ Hooks.getSingleton().register('afterSheetRemoved');
 Hooks.getSingleton().register('afterSheetRenamed');
 Hooks.getSingleton().register('afterFormulasValuesUpdate');
 
-const isBlockedSource = (source) => source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto'; 
+const isBlockedSource = source => source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
 
 /**
  * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an integration with our other product, [HyperFormula](https://handsontable.github.io/hyperformula/), which is a powerful calculation engine with an extensive number of features.
@@ -162,9 +162,9 @@ export class Formulas extends BasePlugin {
 
     this.addHook('beforeAutofill', autofillHooks.beforeAutofill);
     this.addHook('afterAutofill', autofillHooks.afterAutofill);
-    // Handling undo actions just using HyperFormula's UndoRedo mechanism 
+    // Handling undo actions just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', () => this.engine.undo());
-    // Handling redo actions just using HyperFormula's UndoRedo mechanism 
+    // Handling redo actions just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeRedo', () => this.engine.redo());
 
     this.#engineListeners.forEach(([eventName, listener]) => this.engine.on(eventName, listener));
@@ -504,7 +504,7 @@ export class Formulas extends BasePlugin {
     if (isBlockedSource(source)) {
       return;
     }
-    
+
     const dependentCells = [];
 
     changes.forEach(([row, prop,, newValue]) => {
@@ -629,7 +629,7 @@ export class Formulas extends BasePlugin {
     if (isBlockedSource(source)) {
       return;
     }
-    
+
     const changes = this.engine.addRows(this.sheetId, [this.hot.toPhysicalRow(row), amount]);
 
     this.renderDependentSheets(changes);
@@ -648,7 +648,7 @@ export class Formulas extends BasePlugin {
     if (isBlockedSource(source)) {
       return;
     }
-    
+
     const changes = this.engine.addColumns(this.sheetId, [this.hot.toPhysicalColumn(col), amount]);
 
     this.renderDependentSheets(changes);
@@ -668,7 +668,7 @@ export class Formulas extends BasePlugin {
     if (isBlockedSource(source)) {
       return;
     }
-    
+
     const descendingPhysicalRows = physicalRows.sort().reverse();
 
     const changes = this.engine.batch(() => {
@@ -694,7 +694,7 @@ export class Formulas extends BasePlugin {
     if (isBlockedSource(source)) {
       return;
     }
-    
+
     const descendingPhysicalColumns = physicalColumns.sort().reverse();
 
     const changes = this.engine.batch(() => {
