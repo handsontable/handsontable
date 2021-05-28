@@ -625,7 +625,8 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   onAfterFormulasValuesUpdate(changes) {
-    const changedColumns = arrayMap(changes, (change) => {
+    const filteredChanges = arrayFilter(changes, change => change.address?.col !== undefined ?? false);
+    const changedColumns = arrayMap(filteredChanges, (change) => {
       return this.hot.toPhysicalColumn(this.hot.propToCol(change.address.col));
     });
 
