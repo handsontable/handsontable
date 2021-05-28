@@ -28,7 +28,9 @@ Hooks.getSingleton().register('afterSheetRenamed');
 Hooks.getSingleton().register('afterFormulasValuesUpdate');
 
 /**
- * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an integration with our other product, [HyperFormula](https://handsontable.github.io/hyperformula/), which is a powerful calculation engine with an extensive number of features.
+ * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
+ * integration with our other product, [HyperFormula](https://github.com/handsontable/hyperformula/), which is a
+ * powerful calculation engine with an extensive number of features.
  *
  * @plugin Formulas
  */
@@ -223,6 +225,68 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Helper function for `toPhysicalRowPosition` and `toPhysicalColumnPosition`.
+   *
+   * @private
+   * @param {number} visualIndex Visual entry index.
+   * @param {number} physicalIndex Physical entry index.
+   * @param {number} entriesCount Visual entries count.
+   * @param {number} sourceEntriesCount Source entries count.
+   * @param {boolean} contained `true` if it should return only indexes within boundaries of the table (basically
+   * `toPhysical` alias.
+   * @returns {*}
+   */
+  getPhysicalIndexPosition(visualIndex, physicalIndex, entriesCount, sourceEntriesCount, contained) {
+    if (!contained) {
+      if (visualIndex >= entriesCount) {
+        return sourceEntriesCount + (visualIndex - entriesCount);
+      }
+    }
+
+    return physicalIndex;
+  }
+
+  /**
+   * Returns the physical row index. The difference between this and Core's `toPhysical` is that it doesn't return
+   * `null` on rows with indexes higher than the number of rows.
+   *
+   * @private
+   * @param {number} row Visual row index.
+   * @param {boolean} [contained] `true` if it should return only indexes within boundaries of the table (basically
+   * `toPhysical` alias.
+   * @returns {number} The physical row index.
+   */
+  toPhysicalRowPosition(row, contained = false) {
+    return this.getPhysicalIndexPosition(
+      row,
+      this.hot.toPhysicalRow(row),
+      this.hot.countRows(),
+      this.hot.countSourceRows(),
+      contained
+    );
+  }
+
+  /**
+   * Returns the physical column index. The difference between this and Core's `toPhysical` is that it doesn't return
+   * `null` on columns with indexes higher than the number of columns.
+   *
+   * @private
+   * @param {number} column Visual column index.
+   * @param {boolean} [contained] `true` if it should return only indexes within boundaries of the table (basically
+   * `toPhysical` alias.
+   * @returns {number} The physical column index.
+   */
+  toPhysicalColumnPosition(column, contained = false) {
+    return this.getPhysicalIndexPosition(
+      column,
+      this.hot.toPhysicalColumn(column),
+      this.hot.countCols(),
+      this.hot.countSourceCols(),
+      contained
+    );
+  }
+
+  /**
    * Add a sheet to the shared HyperFormula instance.
    *
    * @param {string|null} [sheetName] The new sheet name. If not provided (or a null is passed), will be
@@ -306,8 +370,9 @@ export class Formulas extends BasePlugin {
    *
    * @private
    * @param {object[]} changedCells The values and location of applied changes within HF engine.
+   * @param {boolean} [renderSelf] `true` if it's supposed to render itself, `false` otherwise.
    */
-  renderDependentSheets(changedCells) {
+  renderDependentSheets(changedCells, renderSelf = false) {
     const affectedSheetIds = new Set();
 
     changedCells.forEach((change) => {
@@ -334,11 +399,39 @@ export class Formulas extends BasePlugin {
     );
 
     hotInstances.forEach((relatedHot, sheetId) => {
-      if (sheetId !== this.sheetId && affectedSheetIds.has(sheetId)) {
+      if (
+        (renderSelf || (sheetId !== this.sheetId)) &&
+        affectedSheetIds.has(sheetId)
+      ) {
         relatedHot.render();
         relatedHot.view?.adjustElementsSize();
       }
     });
+  }
+
+  /**
+   * Sync a change from the change-related hooks with the engine.
+   *
+   * @private
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {Handsontable.CellValue} newValue New value.
+   * @returns {Array} Array of changes exported from the engine.
+   */
+  syncChangeWithEngine(row, column, newValue) {
+    const address = {
+      row: this.toPhysicalRowPosition(row),
+      col: this.toPhysicalColumnPosition(column),
+      sheet: this.sheetId
+    };
+
+    if (!this.engine.isItPossibleToSetCellContents(address)) {
+      warn(`Not possible to set cell data at ${JSON.stringify(address)}`);
+
+      return;
+    }
+
+    return this.engine.setCellContents(address, newValue);
   }
 
   /**
@@ -435,7 +528,7 @@ export class Formulas extends BasePlugin {
     // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `src/dataMap`.
     const address = {
       row,
-      col: this.hot.toPhysicalColumn(column),
+      col: this.toPhysicalColumnPosition(column),
       sheet: this.sheetId
     };
     const cellValue = this.engine.getCellValue(address);
@@ -479,7 +572,7 @@ export class Formulas extends BasePlugin {
     const address = {
       row,
       // Workaround for inconsistencies in `src/dataSource.js`
-      col: this.hot.toPhysicalColumn(this.hot.propToCol(column)),
+      col: this.toPhysicalColumnPosition(this.hot.propToCol(column)),
       sheet: this.sheetId
     };
 
@@ -494,22 +587,32 @@ export class Formulas extends BasePlugin {
    */
   onBeforeChange(changes) {
     const dependentCells = [];
+    const outOfBoundsChanges = [];
 
-    changes.forEach(([row, prop,, newValue]) => {
-      const address = {
-        row: this.hot.toPhysicalRow(row),
-        col: this.hot.toPhysicalColumn(this.hot.propToCol(prop)),
-        sheet: this.sheetId
-      };
+    changes.forEach(([row, prop, , newValue]) => {
+      const column = this.hot.propToCol(prop);
 
-      if (!this.engine.isItPossibleToSetCellContents(address)) {
-        warn(`Not possible to set cell data at ${JSON.stringify(address)}`);
+      if (this.hot.toPhysicalRow(row) !== null && this.hot.toPhysicalColumn(column) !== null) {
+        dependentCells.push(...this.syncChangeWithEngine(row, column, newValue));
 
-        return;
+      } else {
+        outOfBoundsChanges.push([row, column, newValue]);
       }
-
-      dependentCells.push(...this.engine.setCellContents(address, newValue));
     });
+
+    if (outOfBoundsChanges.length) {
+      // Workaround for rows/columns being created two times (by HOT and the engine).
+      // (unfortunately, this requires an extra re-render)
+      this.hot.addHookOnce('afterChange', () => {
+        const outOfBoundsDependentCells = [];
+
+        outOfBoundsChanges.forEach(([row, column, newValue]) => {
+          outOfBoundsDependentCells.push(...this.syncChangeWithEngine(row, column, newValue));
+        });
+
+        this.renderDependentSheets(outOfBoundsDependentCells, true);
+      });
+    }
 
     this.renderDependentSheets(dependentCells);
   }
@@ -523,10 +626,10 @@ export class Formulas extends BasePlugin {
   onAfterSetSourceDataAtCell(changes) {
     const dependentCells = [];
 
-    changes.forEach(([row, column,, newValue]) => {
+    changes.forEach(([row, column, , newValue]) => {
       const address = {
         row,
-        col: this.hot.toPhysicalColumn(column),
+        col: this.toPhysicalColumnPosition(column),
         sheet: this.sheetId
       };
 
@@ -551,7 +654,7 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeCreateRow(row, amount) {
-    if (!this.engine.isItPossibleToAddRows(this.sheetId, [this.hot.toPhysicalRow(row), amount])) {
+    if (!this.engine.isItPossibleToAddRows(this.sheetId, [this.toPhysicalRowPosition(row), amount])) {
       return false;
     }
   }
@@ -565,7 +668,7 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeCreateCol(col, amount) {
-    if (!this.engine.isItPossibleToAddColumns(this.sheetId, [this.hot.toPhysicalColumn(col), amount])) {
+    if (!this.engine.isItPossibleToAddColumns(this.sheetId, [this.toPhysicalColumnPosition(col), amount])) {
       return false;
     }
   }
@@ -612,7 +715,7 @@ export class Formulas extends BasePlugin {
    * @param {number} amount Number of newly created rows in the data source array.
    */
   onAfterCreateRow(row, amount) {
-    const changes = this.engine.addRows(this.sheetId, [this.hot.toPhysicalRow(row), amount]);
+    const changes = this.engine.addRows(this.sheetId, [this.toPhysicalRowPosition(row), amount]);
 
     this.renderDependentSheets(changes);
   }
@@ -625,7 +728,7 @@ export class Formulas extends BasePlugin {
    * @param {number} amount Number of newly created columns in the data source.
    */
   onAfterCreateCol(col, amount) {
-    const changes = this.engine.addColumns(this.sheetId, [this.hot.toPhysicalColumn(col), amount]);
+    const changes = this.engine.addColumns(this.sheetId, [this.toPhysicalColumnPosition(col), amount]);
 
     this.renderDependentSheets(changes);
   }
