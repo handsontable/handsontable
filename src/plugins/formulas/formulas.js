@@ -280,7 +280,11 @@ export class Formulas extends BasePlugin {
 
     this.sheetName = sheetName;
 
-    this.hot.loadData(this.engine.getSheetSerialized(this.sheetId), `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
+    const serialized = this.engine.getSheetSerialized(this.sheetId);
+
+    if (serialized.length > 0) {
+      this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
+    }
   }
 
   /**
