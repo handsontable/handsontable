@@ -1248,6 +1248,7 @@ describe('Formulas general', () => {
       ]);
     });
 
+    // TODO: It should work when PR#8078 will be merged.
     it('should show proper value when doing undo/redo after reducing sheet size' +
       '(removing formula using value from some cell)', () => {
       handsontable({
