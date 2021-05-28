@@ -1907,7 +1907,7 @@ declare namespace Handsontable {
       modifyRowHeaderWidth?: (rowHeaderWidth: number) => void;
       modifyRowHeight?: (height: number, row: number) => void;
       modifyRowSourceData?: (row: number) => void;
-      modifySourceData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+      modifySourceData?: (row: number, column: number|string, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
       modifyTransformEnd?: (delta: wot.CellCoords) => void;
       modifyTransformStart?: (delta: wot.CellCoords) => void;
       persistentStateLoad?: (key: string, valuePlaceholder: { value: any }) => void;
