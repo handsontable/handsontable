@@ -9,6 +9,7 @@ import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
 import { ViewportColumnsCalculator } from '../../3rdparty/walkontable/src';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { isDefined } from '../../helpers/mixed';
 
 Hooks.getSingleton().register('modifyAutoColumnSizeSeed');
 
@@ -625,10 +626,8 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   onAfterFormulasValuesUpdate(changes) {
-    const filteredChanges = arrayFilter(changes, change => change.address?.col !== undefined ?? false);
-    const changedColumns = arrayMap(filteredChanges, (change) => {
-      return this.hot.toPhysicalColumn(this.hot.propToCol(change.address.col));
-    });
+    const filteredChanges = arrayFilter(changes, change => isDefined(change.address?.col));
+    const changedColumns = arrayMap(filteredChanges, change => change.address.col);
 
     this.clearCache(Array.from(new Set(changedColumns)));
   }
