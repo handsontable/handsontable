@@ -180,7 +180,7 @@ describe('Formulas general', () => {
       const afterValidate = jasmine.createSpy('afterValidate');
       const hot = handsontable({
         data: [
-          ['=E1', 'text', '=A1', '=C1', 22, '23']
+          ['=E1', 'text', '=A1', '=C1', 22, '23', '\'=A1', '12/1/2016']
         ],
         formulas: {
           engine: HyperFormula
@@ -191,13 +191,15 @@ describe('Formulas general', () => {
 
       await new Promise(resolve => hot.validateCells(resolve));
 
-      expect(afterValidate).toHaveBeenCalledTimes(6);
+      expect(afterValidate).toHaveBeenCalledTimes(8);
       expect(afterValidate).toHaveBeenCalledWith(true, 22, 0, 0, 'validateCells', void 0);
       expect(afterValidate).toHaveBeenCalledWith(false, 'text', 0, 1, 'validateCells', void 0);
       expect(afterValidate).toHaveBeenCalledWith(true, 22, 0, 2, 'validateCells', void 0);
       expect(afterValidate).toHaveBeenCalledWith(true, 22, 0, 3, 'validateCells', void 0);
       expect(afterValidate).toHaveBeenCalledWith(true, 22, 0, 4, 'validateCells', void 0);
       expect(afterValidate).toHaveBeenCalledWith(false, '23', 0, 5, 'validateCells', void 0);
+      expect(afterValidate).toHaveBeenCalledWith(false, '=A1', 0, 6, 'validateCells', void 0);
+      expect(afterValidate).toHaveBeenCalledWith(false, '12/1/2016', 0, 7, 'validateCells', void 0);
     });
   });
 });
