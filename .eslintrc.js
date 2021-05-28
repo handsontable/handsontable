@@ -6,6 +6,14 @@ module.exports = {
     'jsdoc',
     'handsontable',
   ],
+  settings: {
+    'import/resolver': {
+      node: {
+        extensions: ['.js', '.ts'],
+        moduleDirectory: ['node_modules', 'src/'],
+      },
+    },
+  },
   env: {
     browser: true,
     commonjs: true,
@@ -174,7 +182,7 @@ module.exports = {
       files: [
         'test/**',
         'src/3rdparty/walkontable/test/**',
-        '*.unit.js',
+        '*.unit.ts',
         '*.spec.js',
         'src/plugins/**/__tests__/helpers/**',
       ],
@@ -194,7 +202,7 @@ module.exports = {
       }
     },
     {
-      files: ['*.unit.js', '*.spec.js'],
+      files: ['*.unit.ts', '*.spec.js'],
       rules: {
         'no-undef': 'off',
         'jsdoc/require-description-complete-sentence': 'off',

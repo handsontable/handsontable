@@ -1,3 +1,4 @@
+import fs from 'fs';
 import {
   getLanguageDictionary,
   getLanguagesDictionaries,
@@ -8,7 +9,6 @@ import plPL from '../languages/pl-PL';
 import * as allLanguages from '../languages';
 import * as constants from '../constants';
 import Handsontable from '../../';
-import fs from 'fs';
 
 describe('i18n', () => {
   beforeAll(() => {
