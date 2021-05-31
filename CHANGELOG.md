@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
-## [9.0.0] - 2021-05-27
+## [9.0.0] - 2021-06-01
 
 ### Changed
 - **Breaking change** New Formulas plugin, with an entirely different API. See the migration guide for a full list of changes. Removed the required `hot-formula-parser` dependency for the sake of an optional one, `hyperformula`. [#6466](https://github.com/handsontable/handsontable/issues/6466)
@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed a problem with the column indicator of the Collapsible Columns plugin not being displayed properly on styled headers. [#7970](https://github.com/handsontable/handsontable/issues/7970)
+- Fixed a problem with duplicated `afterCreateCol` hooks being triggered after undoing a removal of a column. [#8076](https://github.com/handsontable/handsontable/issues/8076)
 
 ### Removed
 - **Breaking change** Removed the deprecated plugins - Header Tooltips and Observe Changes. [#8083](https://github.com/handsontable/handsontable/issues/8083)
