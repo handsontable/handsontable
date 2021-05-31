@@ -625,6 +625,12 @@ export class AutoColumnSize extends BasePlugin {
     privatePool.get(this).cachedColumnHeaders = this.hot.getColHeader();
   }
 
+  /**
+   * After formulas values updated listener.
+   *
+   * @private
+   * @param {Array} changes An array of modified data.
+   */
   onAfterFormulasValuesUpdate(changes) {
     const filteredChanges = arrayFilter(changes, change => isDefined(change.address?.col));
     const changedColumns = arrayMap(filteredChanges, change => change.address.col);
