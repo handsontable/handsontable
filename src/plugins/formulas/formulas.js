@@ -594,7 +594,8 @@ export class Formulas extends BasePlugin {
    *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
   onBeforeChange(changes, source) {
-    if (isBlockedSource(source)) {
+    // TODO: Workaround. Autofill would produce both change and paste actions which breaks UndoRedo.
+    if (isBlockedSource(source) || source === 'Autofill.fill') {
       return;
     }
 

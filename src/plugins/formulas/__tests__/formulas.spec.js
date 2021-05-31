@@ -1,5 +1,16 @@
 import HyperFormula from 'hyperformula';
 
+const fillHandleSelector = '.wtBorder.current.corner';
+
+const autofill = (endRow, endCol) => {
+  spec().$container.find(fillHandleSelector).simulate('mousedown');
+
+  spec().$container
+    .find(`tbody tr:eq(${endRow}) td:eq(${endCol})`)
+    .simulate('mouseover')
+    .simulate('mouseup');
+};
+
 describe('Formulas general', () => {
   const debug = false;
   const id = 'testContainer';
@@ -1284,20 +1295,115 @@ describe('Formulas general', () => {
         [2],
       ]);
     });
+
+    it('should cooperate with the Autofill plugin properly', async() => {
+      handsontable({
+        data: [
+          [2, 3, 4, 5],
+          ['=A1*10', null, '=A2*10'],
+        ],
+        contextMenu: true,
+        colHeaders: true,
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      selectCell(0, 0);
+      autofill(1, 0);
+
+      await sleep(100);
+
+      autofill(1, 1);
+
+      await sleep(100);
+
+      selectCell(1, 2);
+
+      autofill(1, 3);
+
+      await sleep(100);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [2, 2, 4, 5],
+        [2, 2, '=A2*10', null],
+      ]);
+      expect(getData()).toEqual([
+        [2, 2, 4, 5],
+        [2, 2, 20, null],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [2, 3, 4, 5],
+        [2, null, '=A2*10', null],
+      ]);
+      expect(getData()).toEqual([
+        [2, 3, 4, 5],
+        [2, null, 20, null],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [2, 3, 4, 5],
+        ['=A1*10', null, '=A2*10', null],
+      ]);
+      expect(getData()).toEqual([
+        [2, 3, 4, 5],
+        [20, null, 200, null],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        [2, 3, 4, 5],
+        [2, null, '=A2*10', null],
+      ]);
+      expect(getData()).toEqual([
+        [2, 3, 4, 5],
+        [2, null, 20, null],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        [2, 2, 4, 5],
+        [2, 2, '=A2*10', null],
+      ]);
+      expect(getData()).toEqual([
+        [2, 2, 4, 5],
+        [2, 2, 20, null],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        [2, 2, 4, 5],
+        [2, 2, '=A2*10', '=B2*10'],
+      ]);
+      expect(getData()).toEqual([
+        [2, 2, 4, 5],
+        [2, 2, 20, 20],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [2, 2, 4, 5],
+        [2, 2, '=A2*10', null],
+      ]);
+      expect(getData()).toEqual([
+        [2, 2, 4, 5],
+        [2, 2, 20, null],
+      ]);
+    });
   });
 
   describe('Autofill', () => {
-    const fillHandleSelector = '.wtBorder.current.corner';
-
-    const autofill = (endRow, endCol) => {
-      spec().$container.find(fillHandleSelector).simulate('mousedown');
-
-      spec().$container
-        .find(`tbody tr:eq(${endRow}) td:eq(${endCol})`)
-        .simulate('mouseover')
-        .simulate('mouseup');
-    };
-
     it('should not override result of simple autofill (populating one cell) #8050', async() => {
       handsontable({
         data: [
