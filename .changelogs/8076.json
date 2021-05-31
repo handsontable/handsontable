@@ -1,0 +1,7 @@
+{
+  "title": "Fixed a problem with duplicated `afterCreateCol` hooks being triggered after undoing a removal of a column.",
+  "type": "fixed",
+  "issue": 8076,
+  "breaking": false,
+  "framework": "none"
+}

@@ -837,7 +837,13 @@ describe('Formulas general', () => {
 
           expect(plugin.sheetId).toEqual(hfInstance1.getSheetId(plugin.sheetName));
 
-          expect(getData()).toEqual(hfInstance1.getSheetSerialized(plugin.sheetId));
+          expect(getData()).toEqual([
+            [null, null, null, null, null],
+            [null, null, null, null, null],
+            [null, null, null, null, null],
+            [null, null, null, null, null],
+            [null, null, null, null, null]
+          ]);
           expect(hfInstance1.doesSheetExist(plugin.sheetName)).toEqual(true);
           expect(hfInstance1.getSheetSerialized(plugin.sheetId)).toEqual([]);
         });
