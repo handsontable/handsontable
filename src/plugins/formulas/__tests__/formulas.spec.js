@@ -2514,4 +2514,63 @@ describe('Formulas general', () => {
       expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
     });
   });
+
+  it('shout allow for blocking changes in `onBeforeChange` via `return false`', () => {
+    const hot = handsontable({
+      formulas: {
+        engine: HyperFormula
+      },
+      data: [['x', 'x', 'x']],
+      beforeChange: () => false
+    });
+
+    // This seems to work, but only when using the editor in ui,
+    // probably because of `core.js#L1091`:
+    //
+    // ---
+    // if (beforeChangeResult === false) {
+
+    //   if (activeEditor) {
+    //     activeEditor.cancelChanges();
+    //   }
+
+    //   return;
+    // }
+    // ---
+
+    hot.setDataAtCell(0, 0, 'y');
+
+    expect(hot.getData()).toEqual([['x', 'x', 'x']]);
+  });
+
+  it('should respect user defined changes in `onBeforeChange`', () => {
+    const hot = handsontable({
+      formulas: {
+        engine: HyperFormula
+      },
+      data: [['x', 'x', 'x']],
+      beforeChange(changes) {
+        changes[0] = null;
+      }
+    });
+
+    hot.setDataAtCell(0, 0, 'y');
+
+    expect(hot.getData()).toEqual([['x', 'x', 'x']]);
+  });
+
+  it('should re-render upon changes to the engine from the outside', () => {
+    const hot = handsontable({
+      formulas: {
+        engine: HyperFormula
+      },
+      data: [['x', 'x', 'x']]
+    });
+
+    const engine = hot.getPlugin('formulas').engine;
+
+    engine.setCellContents({ sheet: 0, row: 0, col: 0 }, 10);
+
+    expect(document.querySelector('.ht_master td:first-child').textContent).toEqual('10');
+  });
 });
