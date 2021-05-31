@@ -146,9 +146,11 @@ export class Formulas extends BasePlugin {
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
     this.addHook('modifyData', (...args) => this.onModifyData(...args));
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
-    this.addHook('afterSetSourceDataAtCell', (...args) => this.onAfterSetSourceDataAtCell(...args));
-    this.addHook('beforeChange', (...args) => this.onBeforeChange(...args));
     this.addHook('beforeValidate', (...args) => this.onBeforeValidate(...args));
+
+    this.addHook('afterSetSourceDataAtCell', (...args) => this.onAfterSetSourceDataAtCell(...args));
+    this.addHook('afterSetDataAtCell', (...args) => this.onAfterSetDataAtCell(...args));
+    this.addHook('afterSetDataAtRowProp', (...args) => this.onAfterSetDataAtCell(...args));
 
     this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args));
     this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args));
@@ -386,26 +388,19 @@ export class Formulas extends BasePlugin {
    * recalculated dependent cells.
    *
    * @private
-   * @param {object[]} changedCells The values and location of applied changes within HF engine.
+   * @param {object[]} dependentCells The values and location of applied changes within HF engine.
    * @param {boolean} [renderSelf] `true` if it's supposed to render itself, `false` otherwise.
    */
-  renderDependentSheets(changedCells, renderSelf = false) {
+  renderDependentSheets(dependentCells, renderSelf = false) {
     const affectedSheetIds = new Set();
 
-    changedCells.forEach((change) => {
+    dependentCells.forEach((change) => {
       // For the Named expression the address is empty, hence the `sheetId` is undefined.
       const sheetId = change?.address?.sheet;
 
       if (sheetId !== void 0) {
         if (!affectedSheetIds.has(sheetId)) {
           affectedSheetIds.add(sheetId);
-        }
-
-        if (!this.#internalOperationPending && sheetId === this.sheetId) {
-          const { row, col } = change.address;
-
-          // It will just re-render certain cell when necessary.
-          this.hot.validateCell(this.hot.getDataAtCell(row, col), this.hot.getCellMeta(row, col), () => {});
         }
       }
     });
@@ -422,6 +417,40 @@ export class Formulas extends BasePlugin {
       ) {
         relatedHot.render();
         relatedHot.view?.adjustElementsSize();
+      }
+    });
+  }
+
+  validateDependentCells(dependentCells, changedCells) {
+    const stringifyAddress = (change) => {
+      const {
+        row,
+        col,
+        sheet
+      } = change?.address ?? {};
+
+      return isDefined(sheet) ? `${sheet}:${row}x${col}` : '';
+    };
+    const changedCellsSet = new Set(changedCells.map(change => stringifyAddress(change)));
+
+    dependentCells.forEach((change) => {
+      // For the Named expression the address is empty, hence the `sheetId` is undefined.
+      const sheetId = change?.address?.sheet;
+      const addressId = stringifyAddress(change);
+
+      // Validate the cells that depend on the calculated formulas. Skip that cells
+      // where the user directly changes the values. The Core triggers those validators.
+      if (sheetId === this.sheetId && sheetId !== void 0 && !changedCellsSet.has(addressId)) {
+        const { row, col } = change.address;
+        const visualRow = this.hot.toVisualRow(row);
+        const visualColumn = this.hot.toVisualColumn(col);
+
+        // It will just re-render certain cell when necessary.
+        this.hot.validateCell(
+          this.hot.getDataAtCell(visualRow, visualColumn),
+          this.hot.getCellMeta(visualRow, visualColumn),
+          () => {}
+        );
       }
     });
   }
@@ -471,7 +500,10 @@ export class Formulas extends BasePlugin {
         sheet: this.sheetId,
       };
 
-      return this.engine.getCellValue(address);
+      const cellValue = this.engine.getCellValue(address);
+
+      // If `cellValue` is an object it is expected to be an error
+      return (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
     }
 
     return value;
@@ -623,24 +655,34 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * `onBeforeChange` hook callback.
+   * `onAfterSetDataAtCell` hook callback.
    *
    * @private
    * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
    */
-  onBeforeChange(changes) {
+  onAfterSetDataAtCell(changes) {
     const dependentCells = [];
     const outOfBoundsChanges = [];
+    const changedCells = [];
 
     changes.forEach(([row, prop, , newValue]) => {
       const column = this.hot.propToCol(prop);
+      const physicalRow = this.hot.toPhysicalRow(row);
+      const physicalColumn = this.hot.toPhysicalColumn(column);
+      const address = {
+        row: physicalRow,
+        col: physicalColumn,
+        sheet: this.sheetId,
+      };
 
-      if (this.hot.toPhysicalRow(row) !== null && this.hot.toPhysicalColumn(column) !== null) {
+      if (physicalRow !== null && physicalColumn !== null) {
         dependentCells.push(...this.syncChangeWithEngine(row, column, newValue));
 
       } else {
         outOfBoundsChanges.push([row, column, newValue]);
       }
+
+      changedCells.push({ address });
     });
 
     if (outOfBoundsChanges.length) {
@@ -658,6 +700,7 @@ export class Formulas extends BasePlugin {
     }
 
     this.renderDependentSheets(dependentCells);
+    this.validateDependentCells(dependentCells, changedCells);
   }
 
   /**
@@ -668,6 +711,7 @@ export class Formulas extends BasePlugin {
    */
   onAfterSetSourceDataAtCell(changes) {
     const dependentCells = [];
+    const changedCells = [];
 
     changes.forEach(([row, column, , newValue]) => {
       const address = {
@@ -682,10 +726,12 @@ export class Formulas extends BasePlugin {
         return;
       }
 
+      changedCells.push({ address });
       dependentCells.push(...this.engine.setCellContents(address, newValue));
     });
 
     this.renderDependentSheets(dependentCells);
+    this.validateDependentCells(dependentCells, changedCells);
   }
 
   /**
