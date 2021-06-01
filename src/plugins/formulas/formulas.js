@@ -442,7 +442,6 @@ export class Formulas extends BasePlugin {
 
       // Validate the cells that depend on the calculated formulas. Skip that cells
       // where the user directly changes the values - the Core triggers those validators.
-      // if (sheetId === this.sheetId && sheetId !== void 0 && !changedCellsSet.has(addressId)) {
       if (sheetId !== void 0 && !changedCellsSet.has(addressId)) {
         const { row, col } = change.address;
         const visualRow = this.hot.toVisualRow(row);
