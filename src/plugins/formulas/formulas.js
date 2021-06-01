@@ -405,12 +405,7 @@ export class Formulas extends BasePlugin {
       }
     });
 
-    const hotInstances = new Map(
-      getRegisteredHotInstances(this.engine)
-        .map(hot => [hot.getPlugin('formulas').sheetId, hot])
-    );
-
-    hotInstances.forEach((relatedHot, sheetId) => {
+    getRegisteredHotInstances(this.engine).forEach((relatedHot, sheetId) => {
       if (
         (renderSelf || (sheetId !== this.sheetId)) &&
         affectedSheetIds.has(sheetId)
@@ -421,7 +416,14 @@ export class Formulas extends BasePlugin {
     });
   }
 
-  validateDependentCells(dependentCells, changedCells) {
+  /**
+   * Validates dependent cells based on the cells that are modified by the change.
+   *
+   * @private
+   * @param {object[]} dependentCells The values and location of applied changes within HF engine.
+   * @param {object[]} [changedCells] The values and location of applied changes by developer (through API or UI).
+   */
+  validateDependentCells(dependentCells, changedCells = []) {
     const stringifyAddress = (change) => {
       const {
         row,
@@ -439,16 +441,18 @@ export class Formulas extends BasePlugin {
       const addressId = stringifyAddress(change);
 
       // Validate the cells that depend on the calculated formulas. Skip that cells
-      // where the user directly changes the values. The Core triggers those validators.
-      if (sheetId === this.sheetId && sheetId !== void 0 && !changedCellsSet.has(addressId)) {
+      // where the user directly changes the values - the Core triggers those validators.
+      // if (sheetId === this.sheetId && sheetId !== void 0 && !changedCellsSet.has(addressId)) {
+      if (sheetId !== void 0 && !changedCellsSet.has(addressId)) {
         const { row, col } = change.address;
         const visualRow = this.hot.toVisualRow(row);
         const visualColumn = this.hot.toVisualColumn(col);
+        const hot = getRegisteredHotInstances(this.engine).get(sheetId);
 
         // It will just re-render certain cell when necessary.
-        this.hot.validateCell(
-          this.hot.getDataAtCell(visualRow, visualColumn),
-          this.hot.getCellMeta(visualRow, visualColumn),
+        hot.validateCell(
+          hot.getDataAtCell(visualRow, visualColumn),
+          hot.getCellMeta(visualRow, visualColumn),
           () => {}
         );
       }

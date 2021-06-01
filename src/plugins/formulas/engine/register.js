@@ -130,13 +130,16 @@ export function registerEngine(engineClass, hotSettings, hotInstance) {
 }
 
 /**
+ * Returns the list of the Handsontable instances linked to the specific engine instance.
+ *
  * @param {object} engine The engine instance.
- * @returns {Handsontable[]} Returns an array with Handsontable instances.
+ * @returns {Map<number, Handsontable>} Returns Map with Handsontable instances.
  */
 export function getRegisteredHotInstances(engine) {
   const engineRegistry = getEngineRelationshipRegistry();
+  const hotInstances = engineRegistry.size === 0 ? [] : Array.from(engineRegistry.get(engine) ?? []);
 
-  return engineRegistry.size === 0 ? [] : Array.from(engineRegistry.get(engine) ?? []);
+  return new Map(hotInstances.map(hot => [hot.getPlugin('formulas').sheetId, hot]));
 }
 
 /**
