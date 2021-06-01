@@ -1,23 +1,40 @@
 import { BasePlugin } from '../base';
-import { arrayEach } from '../../helpers/array';
-import { isObject, objectEach } from '../../helpers/object';
-import EventManager from '../../eventManager';
+import { createAutofillHooks } from './autofill';
+import staticRegister from '../../utils/staticRegister';
+import { error, warn } from '../../helpers/console';
 import {
-  isFormulaExpression,
-  toUpperCaseFormula,
-  isFormulaExpressionEscaped,
-  unescapeFormulaExpression
+  isDefined,
+  isUndefined
+} from '../../helpers/mixed';
+import {
+  setupEngine,
+  setupSheet,
+  unregisterEngine,
+  getRegisteredHotInstances,
+} from './engine/register';
+import {
+  isEscapedFormulaExpression,
+  unescapeFormulaExpression,
 } from './utils';
-import Sheet from './sheet';
-import DataProvider from './dataProvider';
-import UndoRedoSnapshot from './undoRedoSnapshot';
-import CellValue from './cell/value';
+import { getEngineSettingsWithOverrides } from './engine/settings';
+import { isArrayOfArrays } from '../../helpers/data';
+import { toUpperCaseFirst } from '../../helpers/string';
+import Hooks from '../../pluginHooks';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
 
+Hooks.getSingleton().register('afterNamedExpressionAdded');
+Hooks.getSingleton().register('afterNamedExpressionRemoved');
+Hooks.getSingleton().register('afterSheetAdded');
+Hooks.getSingleton().register('afterSheetRemoved');
+Hooks.getSingleton().register('afterSheetRenamed');
+Hooks.getSingleton().register('afterFormulasValuesUpdate');
+
 /**
- * The formulas plugin.
+ * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
+ * integration with our other product, [HyperFormula](https://github.com/handsontable/hyperformula/), which is a
+ * powerful calculation engine with an extensive number of features.
  *
  * @plugin Formulas
  */
@@ -30,44 +47,66 @@ export class Formulas extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Instance of {@link EventManager}.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = new EventManager(this);
-    /**
-     * Instance of {@link DataProvider}.
-     *
-     * @private
-     * @type {DataProvider}
-     */
-    this.dataProvider = new DataProvider(this.hot);
-    /**
-     * Instance of {@link Sheet}.
-     *
-     * @private
-     * @type {Sheet}
-     */
-    this.sheet = new Sheet(this.hot, this.dataProvider);
-    /**
-     * Instance of {@link UndoRedoSnapshot}.
-     *
-     * @private
-     * @type {UndoRedoSnapshot}
-     */
-    this.undoRedoSnapshot = new UndoRedoSnapshot(this.sheet);
-    /**
-     * Flag which indicates if table should be re-render after sheet recalculations.
-     *
-     * @type {boolean}
-     * @default false
-     * @private
-     */
-    this._skipRendering = false;
+  /**
+   * Flag used to bypass hooks in internal operations.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #internalOperationPending = false;
+
+  /**
+   * Flag needed to mark if Handsontable was initialized with no data.
+   * (Required to work around the fact, that Handsontable auto-generates sample data, when no data is provided).
+   *
+   * @type {boolean}
+   */
+  #hotWasInitializedWithEmptyData = false;
+
+  /**
+   * The list of the HyperFormula listeners.
+   *
+   * @type {Array}
+   */
+  #engineListeners = [
+    ['valuesUpdated', (...args) => this.onEngineValuesUpdated(...args)],
+    ['namedExpressionAdded', (...args) => this.onEngineNamedExpressionsAdded(...args)],
+    ['namedExpressionRemoved', (...args) => this.onEngineNamedExpressionsRemoved(...args)],
+    ['sheetAdded', (...args) => this.onEngineSheetAdded(...args)],
+    ['sheetRenamed', (...args) => this.onEngineSheetRenamed(...args)],
+    ['sheetRemoved', (...args) => this.onEngineSheetRemoved(...args)],
+  ];
+
+  /**
+   * Static register used to set up one global HyperFormula instance.
+   * TODO: currently used in tests, might be removed later.
+   *
+   * @private
+   * @type {object}
+   */
+  staticRegister = staticRegister('formulas');
+
+  /**
+   * The engine instance that will be used for this instance of Handsontable.
+   *
+   * @type {HyperFormula|null}
+   */
+  engine = null;
+
+  /**
+   * HyperFormula's sheet name.
+   *
+   * @type {string|null}
+   */
+  sheetName = null;
+
+  /**
+   * HyperFormula's sheet id.
+   *
+   * @type {number|null}
+   */
+  get sheetId() {
+    return this.sheetName === null ? null : this.engine.getSheetId(this.sheetName);
   }
 
   /**
@@ -88,32 +127,47 @@ export class Formulas extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    const settings = this.hot.getSettings()[PLUGIN_KEY];
 
-    if (isObject(settings)) {
-      if (isObject(settings.variables)) {
-        objectEach(settings.variables, (value, name) => this.setVariable(name, value));
-      }
+    this.engine = setupEngine(this.hot) ?? this.engine;
+
+    if (!this.engine) {
+      warn('Missing the required `engine` key in the Formulas settings. Please fill it with either an' +
+        ' engine class or an engine instance.');
+
+      return;
     }
 
-    this.addHook('afterColumnSort', (...args) => this.onAfterColumnSort(...args));
-    this.addHook('afterCreateCol', (...args) => this.onAfterCreateCol(...args));
-    this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
-    this.addHook('afterLoadData', () => this.onAfterLoadData());
-    this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
-    this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
-    this.addHook('afterSetDataAtCell', (...args) => this.onAfterSetDataAtCell(...args));
-    this.addHook('afterSetDataAtRowProp', (...args) => this.onAfterSetDataAtCell(...args));
-    this.addHook('beforeColumnSort', (...args) => this.onBeforeColumnSort(...args));
-    this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args));
-    this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args));
-    this.addHook('beforeRemoveCol', (...args) => this.onBeforeRemoveCol(...args));
-    this.addHook('beforeRemoveRow', (...args) => this.onBeforeRemoveRow(...args));
-    this.addHook('beforeValidate', (...args) => this.onBeforeValidate(...args));
-    this.addHook('beforeValueRender', (...args) => this.onBeforeValueRender(...args));
-    this.addHook('modifyData', (...args) => this.onModifyData(...args));
+    // Useful for disabling -> enabling the plugin using `updateSettings` or the API.
+    if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
+      this.sheetName = this.addSheet(this.sheetName, this.hot.getSourceDataArray());
+    }
 
-    this.sheet.addLocalHook('afterRecalculate', (...args) => this.onSheetAfterRecalculate(...args));
+    this.addHook('beforeLoadData', (...args) => this.onBeforeLoadData(...args));
+    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
+    this.addHook('modifyData', (...args) => this.onModifyData(...args));
+    this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
+    this.addHook('afterSetSourceDataAtCell', (...args) => this.onAfterSetSourceDataAtCell(...args));
+    this.addHook('beforeChange', (...args) => this.onBeforeChange(...args));
+    this.addHook('beforeValidate', (...args) => this.onBeforeValidate(...args));
+
+    this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args));
+    this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args));
+
+    this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
+    this.addHook('afterCreateCol', (...args) => this.onAfterCreateCol(...args));
+
+    this.addHook('beforeRemoveRow', (...args) => this.onBeforeRemoveRow(...args));
+    this.addHook('beforeRemoveCol', (...args) => this.onBeforeRemoveCol(...args));
+
+    this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
+    this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
+
+    const autofillHooks = createAutofillHooks(this);
+
+    this.addHook('beforeAutofill', autofillHooks.beforeAutofill);
+    this.addHook('afterAutofill', autofillHooks.afterAutofill);
+
+    this.#engineListeners.forEach(([eventName, listener]) => this.engine.on(eventName, listener));
 
     super.enablePlugin();
   }
@@ -122,322 +176,713 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#engineListeners.forEach(([eventName, listener]) => this.engine.off(eventName, listener));
+    unregisterEngine(this.engine, this.hot);
+
     super.disablePlugin();
   }
 
   /**
-   * Returns cell value (evaluated from formula expression) at specified cell coords.
-   *
-   * @param {number} row Row index.
-   * @param {number} column Column index.
-   * @returns {*}
-   */
-  getCellValue(row, column) {
-    const cell = this.sheet.getCellAt(row, column);
-
-    return cell ? (cell.getError() || cell.getValue()) : void 0;
-  }
-
-  /**
-   * Checks if there are any formula evaluations made under specific cell coords.
-   *
-   * @param {number} row Row index.
-   * @param {number} column Column index.
-   * @returns {boolean}
-   */
-  hasComputedCellValue(row, column) {
-    return this.sheet.getCellAt(row, column) !== null;
-  }
-
-  /**
-   * Recalculates all formulas (an algorithm will choose the best method of calculation).
-   */
-  recalculate() {
-    this.sheet.recalculate();
-  }
-
-  /**
-   * Recalculates all formulas (rebuild dependencies from scratch - slow approach).
-   */
-  recalculateFull() {
-    this.sheet.recalculateFull();
-  }
-
-  /**
-   * Recalculates all formulas (recalculate only changed cells - fast approach).
-   */
-  recalculateOptimized() {
-    this.sheet.recalculateOptimized();
-  }
-
-  /**
-   * Sets predefined variable name which can be visible while parsing formula expression.
-   *
-   * @param {string} name Variable name.
-   * @param {*} value Variable value.
-   */
-  setVariable(name, value) {
-    this.sheet.setVariable(name, value);
-  }
-
-  /**
-   * Returns variable name.
-   *
-   * @param {string} name Variable name.
-   * @returns {*}
-   */
-  getVariable(name) {
-    return this.sheet.getVariable(name);
-  }
-
-  /**
-   * Local hook listener for after sheet recalculation.
+   * Triggered on `updateSettings`.
    *
    * @private
-   * @param {Array} cells An array of recalculated/changed cells.
+   * @param {object} newSettings New set of settings passed to the `updateSettings` method.
    */
-  onSheetAfterRecalculate(cells) {
-    if (this._skipRendering) {
-      this._skipRendering = false;
+  updatePlugin(newSettings) {
+    this.engine.updateConfig(getEngineSettingsWithOverrides(this.hot.getSettings()));
 
-      return;
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+
+    if (
+      isDefined(pluginSettings) &&
+      isDefined(pluginSettings.sheetName) &&
+      pluginSettings.sheetName !== this.sheetName
+    ) {
+      this.switchSheet(pluginSettings.sheetName);
     }
-    const hot = this.hot;
 
-    arrayEach(cells, (cellValue) => {
-      if (cellValue instanceof CellValue) {
-        const { row, column } = cellValue;
+    // If no data was passed to the `updateSettings` method and no sheet is connected to the instance -> create a
+    // new sheet using the currently used data. Otherwise, it will be handled by the `afterLoadData` call.
+    if (!newSettings.data && this.sheetName === null) {
+      const sheetName = this.hot.getSettings()[PLUGIN_KEY].sheetName;
 
-        hot.validateCell(hot.getDataAtCell(row, column), hot.getCellMeta(row, column), () => {});
+      if (sheetName && this.engine.doesSheetExist(sheetName)) {
+        this.switchSheet(this.sheetName);
+
+      } else {
+        this.sheetName = this.addSheet(sheetName ?? void 0, this.hot.getSourceDataArray());
       }
-    });
-    hot.render();
-  }
-
-  /**
-   * On modify row data listener. It overwrites raw values into calculated ones and force upper case all formula expressions.
-   *
-   * @private
-   * @param {number} row Row index.
-   * @param {number} column Column index.
-   * @param {object} valueHolder Value holder as an object to change value by reference.
-   * @param {string} ioMode IO operation (`get` or `set`).
-   */
-  onModifyData(row, column, valueHolder, ioMode) {
-    if (ioMode === 'get' && this.hasComputedCellValue(row, column)) {
-      valueHolder.value = this.getCellValue(row, column);
-
-    } else if (ioMode === 'set' && isFormulaExpression(valueHolder.value)) {
-      valueHolder.value = toUpperCaseFormula(valueHolder.value);
-    }
-  }
-
-  /**
-   * On before value render listener.
-   *
-   * @private
-   * @param {*} value Value to render.
-   * @returns {*}
-   */
-  onBeforeValueRender(value) {
-    let renderValue = value;
-
-    if (isFormulaExpressionEscaped(renderValue)) {
-      renderValue = unescapeFormulaExpression(renderValue);
     }
 
-    return renderValue;
-  }
-
-  /**
-   * On before validate listener.
-   *
-   * @private
-   * @param {*} value Value to validate.
-   * @param {number} row Row index.
-   * @param {number} prop Column property.
-   * @returns {*}
-   */
-  onBeforeValidate(value, row, prop) {
-    const column = this.hot.propToCol(prop);
-    let validateValue = value;
-
-    if (this.hasComputedCellValue(row, column)) {
-      validateValue = this.getCellValue(row, column);
-    }
-
-    return validateValue;
-  }
-
-  /**
-   * `afterSetDataAtCell` listener.
-   *
-   * @private
-   * @param {Array} changes Array of changes.
-   * @param {string} [source] Source of changes.
-   */
-  onAfterSetDataAtCell(changes, source) {
-    if (source === 'loadData') {
-      return;
-    }
-
-    this.dataProvider.clearChanges();
-
-    arrayEach(changes, ([row, column, oldValue, newValue]) => {
-      const physicalColumn = this.hot.propToCol(column);
-      const physicalRow = this.hot.toPhysicalRow(row);
-      let value = newValue;
-
-      if (isFormulaExpression(value)) {
-        value = toUpperCaseFormula(value);
-      }
-
-      this.dataProvider.collectChanges(physicalRow, physicalColumn, value);
-
-      if (oldValue !== value) {
-        this.sheet.applyChanges(physicalRow, physicalColumn, value);
-      }
-    });
-    this.recalculate();
-  }
-
-  /**
-   * On before create row listener.
-   *
-   * @private
-   * @param {number} row Row index.
-   * @param {number} amount An amount of removed rows.
-   * @param {string} source Source of method call.
-   */
-  onBeforeCreateRow(row, amount, source) {
-    if (source === 'UndoRedo.undo') {
-      this.undoRedoSnapshot.restore();
-    }
-  }
-
-  /**
-   * On after create row listener.
-   *
-   * @private
-   * @param {number} row Row index.
-   * @param {number} amount An amount of created rows.
-   * @param {string} source Source of method call.
-   */
-  onAfterCreateRow(row, amount, source) {
-    this.sheet.alterManager.triggerAlter('insert_row', row, amount, source !== 'UndoRedo.undo');
-  }
-
-  /**
-   * On before remove row listener.
-   *
-   * @private
-   * @param {number} row Row index.
-   * @param {number} amount An amount of removed rows.
-   */
-  onBeforeRemoveRow(row, amount) {
-    this.undoRedoSnapshot.save('row', row, amount);
-  }
-
-  /**
-   * On after remove row listener.
-   *
-   * @private
-   * @param {number} row Row index.
-   * @param {number} amount An amount of removed rows.
-   */
-  onAfterRemoveRow(row, amount) {
-    this.sheet.alterManager.triggerAlter('remove_row', row, amount);
-  }
-
-  /**
-   * On before create column listener.
-   *
-   * @private
-   * @param {number} column Column index.
-   * @param {number} amount An amount of removed columns.
-   * @param {string} source Source of method call.
-   */
-  onBeforeCreateCol(column, amount, source) {
-    if (source === 'UndoRedo.undo') {
-      this.undoRedoSnapshot.restore();
-    }
-  }
-
-  /**
-   * On after create column listener.
-   *
-   * @private
-   * @param {number} column Column index.
-   * @param {number} amount An amount of created columns.
-   * @param {string} source Source of method call.
-   */
-  onAfterCreateCol(column, amount, source) {
-    this.sheet.alterManager.triggerAlter('insert_column', column, amount, source !== 'UndoRedo.undo');
-  }
-
-  /**
-   * On before remove column listener.
-   *
-   * @private
-   * @param {number} column Column index.
-   * @param {number} amount An amount of removed columns.
-   */
-  onBeforeRemoveCol(column, amount) {
-    this.undoRedoSnapshot.save('column', column, amount);
-  }
-
-  /**
-   * On after remove column listener.
-   *
-   * @private
-   * @param {number} column Column index.
-   * @param {number} amount An amount of created columns.
-   */
-  onAfterRemoveCol(column, amount) {
-    this.sheet.alterManager.triggerAlter('remove_column', column, amount);
-  }
-
-  /**
-   * On before column sorting listener.
-   *
-   * @private
-   * @param {number} column Sorted column index.
-   * @param {boolean} order Order type.
-   */
-  onBeforeColumnSort(column, order) {
-    this.sheet.alterManager.prepareAlter('column_sorting', column, order);
-  }
-
-  /**
-   * On after column sorting listener.
-   *
-   * @private
-   * @param {number} column Sorted column index.
-   * @param {boolean} order Order type.
-   */
-  onAfterColumnSort(column, order) {
-    this.sheet.alterManager.triggerAlter('column_sorting', column, order);
-  }
-
-  /**
-   * On after load data listener.
-   *
-   * @private
-   */
-  onAfterLoadData() {
-    this._skipRendering = true;
-    this.recalculateFull();
+    super.updatePlugin(newSettings);
   }
 
   /**
    * Destroys the plugin instance.
    */
   destroy() {
-    this.dataProvider.destroy();
-    this.dataProvider = null;
-    this.sheet.destroy();
-    this.sheet = null;
+    this.#engineListeners.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
+    this.#engineListeners = null;
+    unregisterEngine(this.engine, this.hot);
 
     super.destroy();
+  }
+
+  /**
+   * Helper function for `toPhysicalRowPosition` and `toPhysicalColumnPosition`.
+   *
+   * @private
+   * @param {number} visualIndex Visual entry index.
+   * @param {number} physicalIndex Physical entry index.
+   * @param {number} entriesCount Visual entries count.
+   * @param {number} sourceEntriesCount Source entries count.
+   * @param {boolean} contained `true` if it should return only indexes within boundaries of the table (basically
+   * `toPhysical` alias.
+   * @returns {*}
+   */
+  getPhysicalIndexPosition(visualIndex, physicalIndex, entriesCount, sourceEntriesCount, contained) {
+    if (!contained) {
+      if (visualIndex >= entriesCount) {
+        return sourceEntriesCount + (visualIndex - entriesCount);
+      }
+    }
+
+    return physicalIndex;
+  }
+
+  /**
+   * Returns the physical row index. The difference between this and Core's `toPhysical` is that it doesn't return
+   * `null` on rows with indexes higher than the number of rows.
+   *
+   * @private
+   * @param {number} row Visual row index.
+   * @param {boolean} [contained] `true` if it should return only indexes within boundaries of the table (basically
+   * `toPhysical` alias.
+   * @returns {number} The physical row index.
+   */
+  toPhysicalRowPosition(row, contained = false) {
+    return this.getPhysicalIndexPosition(
+      row,
+      this.hot.toPhysicalRow(row),
+      this.hot.countRows(),
+      this.hot.countSourceRows(),
+      contained
+    );
+  }
+
+  /**
+   * Returns the physical column index. The difference between this and Core's `toPhysical` is that it doesn't return
+   * `null` on columns with indexes higher than the number of columns.
+   *
+   * @private
+   * @param {number} column Visual column index.
+   * @param {boolean} [contained] `true` if it should return only indexes within boundaries of the table (basically
+   * `toPhysical` alias.
+   * @returns {number} The physical column index.
+   */
+  toPhysicalColumnPosition(column, contained = false) {
+    return this.getPhysicalIndexPosition(
+      column,
+      this.hot.toPhysicalColumn(column),
+      this.hot.countCols(),
+      this.hot.countSourceCols(),
+      contained
+    );
+  }
+
+  /**
+   * Add a sheet to the shared HyperFormula instance.
+   *
+   * @param {string|null} [sheetName] The new sheet name. If not provided (or a null is passed), will be
+   * auto-generated by HyperFormula.
+   * @param {Array} [sheetData] Data passed to the shared HyperFormula instance. Has to be declared as an array of
+   * arrays - array of objects is not supported in this scenario.
+   * @returns {boolean|string} `false` if the data format is unusable or it is impossible to add a new sheet to the
+   * engine, the created sheet name otherwise.
+   */
+  addSheet(sheetName, sheetData) {
+    if (isDefined(sheetData) && !isArrayOfArrays(sheetData)) {
+      warn('The provided data should be an array of arrays.');
+
+      return false;
+    }
+
+    if (sheetName !== void 0 && sheetName !== null && this.engine.doesSheetExist(sheetName)) {
+      warn('Sheet with the provided name already exists.');
+
+      return false;
+    }
+
+    try {
+      const actualSheetName = this.engine.addSheet(sheetName ?? void 0);
+
+      if (sheetData) {
+        this.engine.setSheetContent(actualSheetName, sheetData);
+      }
+
+      return actualSheetName;
+
+    } catch (e) {
+      warn(e.message);
+
+      return false;
+    }
+  }
+
+  /**
+   * Switch the sheet used as data in the Handsontable instance (it loads the data from the shared HyperFormula
+   * instance).
+   *
+   * @param {string} sheetName Sheet name used in the shared HyperFormula instance.
+   */
+  switchSheet(sheetName) {
+    if (!this.engine.doesSheetExist(sheetName)) {
+      error(`The sheet named \`${sheetName}\` does not exist, switch aborted.`);
+
+      return;
+    }
+
+    this.sheetName = sheetName;
+
+    const serialized = this.engine.getSheetSerialized(this.sheetId);
+
+    if (serialized.length > 0) {
+      this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
+    }
+  }
+
+  /**
+   * Get the cell type under specified visual coordinates.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {number} [sheet] The target sheet id, defaults to the current sheet.
+   * @returns {string} Possible values: 'FORMULA' | 'VALUE' | 'MATRIX' | 'EMPTY'.
+   */
+  getCellType(row, column, sheet = this.sheetId) {
+    return this.engine.getCellType({
+      sheet,
+      row: this.hot.toPhysicalRow(row),
+      col: this.hot.toPhysicalColumn(column)
+    });
+  }
+
+  /**
+   * Returns `true` if under specified visual coordinates is formula.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {number} [sheet] The target sheet id, defaults to the current sheet.
+   * @returns {boolean}
+   */
+  isFormulaCellType(row, column, sheet = this.sheetId) {
+    const cellType = this.getCellType(row, column, sheet);
+
+    return cellType === 'FORMULA' || cellType === 'MATRIX';
+  }
+
+  /**
+   * Renders dependent sheets (handsontable instances) based on the changes - list of the
+   * recalculated dependent cells.
+   *
+   * @private
+   * @param {object[]} changedCells The values and location of applied changes within HF engine.
+   * @param {boolean} [renderSelf] `true` if it's supposed to render itself, `false` otherwise.
+   */
+  renderDependentSheets(changedCells, renderSelf = false) {
+    const affectedSheetIds = new Set();
+
+    changedCells.forEach((change) => {
+      // For the Named expression the address is empty, hence the `sheetId` is undefined.
+      const sheetId = change?.address?.sheet;
+
+      if (sheetId !== void 0) {
+        if (!affectedSheetIds.has(sheetId)) {
+          affectedSheetIds.add(sheetId);
+        }
+
+        if (!this.#internalOperationPending && sheetId === this.sheetId) {
+          const { row, col } = change.address;
+
+          // It will just re-render certain cell when necessary.
+          this.hot.validateCell(this.hot.getDataAtCell(row, col), this.hot.getCellMeta(row, col), () => {});
+        }
+      }
+    });
+
+    const hotInstances = new Map(
+      getRegisteredHotInstances(this.engine)
+        .map(hot => [hot.getPlugin('formulas').sheetId, hot])
+    );
+
+    hotInstances.forEach((relatedHot, sheetId) => {
+      if (
+        (renderSelf || (sheetId !== this.sheetId)) &&
+        affectedSheetIds.has(sheetId)
+      ) {
+        relatedHot.render();
+        relatedHot.view?.adjustElementsSize();
+      }
+    });
+  }
+
+  /**
+   * Sync a change from the change-related hooks with the engine.
+   *
+   * @private
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {Handsontable.CellValue} newValue New value.
+   * @returns {Array} Array of changes exported from the engine.
+   */
+  syncChangeWithEngine(row, column, newValue) {
+    const address = {
+      row: this.toPhysicalRowPosition(row),
+      col: this.toPhysicalColumnPosition(column),
+      sheet: this.sheetId
+    };
+
+    if (!this.engine.isItPossibleToSetCellContents(address)) {
+      warn(`Not possible to set cell data at ${JSON.stringify(address)}`);
+
+      return;
+    }
+
+    return this.engine.setCellContents(address, newValue);
+  }
+
+  /**
+   * The hook allows to translate the formula value to calculated value before it goes to the
+   * validator function.
+   *
+   * @private
+   * @param {*} value The cell value to validate.
+   * @param {number} visualRow The visual row index.
+   * @param {number|string} prop The visual column index or property name of the column.
+   * @returns {*} Returns value to validate.
+   */
+  onBeforeValidate(value, visualRow, prop) {
+    const visualColumn = this.hot.propToCol(prop);
+
+    if (this.isFormulaCellType(visualRow, visualColumn)) {
+      const address = {
+        row: this.hot.toPhysicalRow(visualRow),
+        col: this.hot.toPhysicalColumn(visualColumn),
+        sheet: this.sheetId,
+      };
+
+      return this.engine.getCellValue(address);
+    }
+
+    return value;
+  }
+
+  /**
+   * `beforeLoadData` hook callback.
+   *
+   * @param {Array} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
+   * @param {string} [source] Source of the call.
+   * @private
+   */
+  onBeforeLoadData(sourceData, initialLoad, source = '') {
+    if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
+      return;
+    }
+
+    // This flag needs to be defined, because not passing data to HOT results in HOT auto-generating a `null`-filled
+    // initial dataset.
+    this.#hotWasInitializedWithEmptyData = isUndefined(this.hot.getSettings().data);
+  }
+
+  /**
+   * `afterLoadData` hook callback.
+   *
+   * @param {Array} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
+   * @param {string} [source] Source of the call.
+   * @private
+   */
+  onAfterLoadData(sourceData, initialLoad, source = '') {
+    if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
+      return;
+    }
+
+    this.sheetName = setupSheet(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
+
+    if (!this.#hotWasInitializedWithEmptyData) {
+      const sourceDataArray = this.hot.getSourceDataArray();
+
+      if (this.engine.isItPossibleToReplaceSheetContent(this.sheetName, sourceDataArray)) {
+        this.#internalOperationPending = true;
+
+        const dependentCells = this.engine.setSheetContent(this.sheetName, this.hot.getSourceDataArray());
+
+        this.renderDependentSheets(dependentCells);
+
+        this.#internalOperationPending = false;
+      }
+
+    } else {
+      this.switchSheet(this.sheetName);
+    }
+  }
+
+  /**
+   * `modifyData` hook callback.
+   *
+   * @private
+   * @param {number} row Physical row height.
+   * @param {number} column Physical column index.
+   * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
+   *   property.
+   * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
+   */
+  onModifyData(row, column, valueHolder, ioMode) {
+    if (
+      ioMode !== 'get' ||
+      this.#internalOperationPending ||
+      this.sheetName === null ||
+      !this.engine.doesSheetExist(this.sheetName)
+    ) {
+      return;
+    }
+
+    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
+    const isFormulaCellType = this.isFormulaCellType(this.hot.toVisualRow(row), column);
+
+    if (!isFormulaCellType) {
+      if (isEscapedFormulaExpression(valueHolder.value)) {
+        valueHolder.value = unescapeFormulaExpression(valueHolder.value);
+      }
+
+      return;
+    }
+
+    // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `src/dataMap`.
+    const address = {
+      row,
+      col: this.toPhysicalColumnPosition(column),
+      sheet: this.sheetId
+    };
+    const cellValue = this.engine.getCellValue(address);
+
+    // If `cellValue` is an object it is expected to be an error
+    const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
+
+    valueHolder.value = value;
+  }
+
+  /**
+   * `modifySourceData` hook callback.
+   *
+   * @private
+   * @param {number} row Physical row index.
+   * @param {number|string} columnOrProp Physical column index or prop.
+   * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
+   *   property.
+   * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
+   */
+  onModifySourceData(row, columnOrProp, valueHolder, ioMode) {
+    if (
+      ioMode !== 'get' ||
+      this.#internalOperationPending ||
+      this.sheetName === null ||
+      !this.engine.doesSheetExist(this.sheetName)
+    ) {
+      return;
+    }
+
+    const visualColumn = this.hot.propToCol(columnOrProp);
+
+    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
+    const isFormulaCellType = this.isFormulaCellType(this.hot.toVisualRow(row), visualColumn);
+
+    if (!isFormulaCellType) {
+      return;
+    }
+
+    const dimensions = this.engine.getSheetDimensions(this.engine.getSheetId(this.sheetName));
+
+    // Don't actually change the source data if HyperFormula is not
+    // initialized yet. This is done to allow the `afterLoadData` hook to
+    // load the existing source data with `Handsontable#getSourceDataArray`
+    // properly.
+    if (dimensions.width === 0 && dimensions.height === 0) {
+      return;
+    }
+
+    const address = {
+      row,
+      // Workaround for inconsistencies in `src/dataSource.js`
+      col: this.toPhysicalColumnPosition(visualColumn),
+      sheet: this.sheetId
+    };
+
+    valueHolder.value = this.engine.getCellSerialized(address);
+  }
+
+  /**
+   * `onBeforeChange` hook callback.
+   *
+   * @private
+   * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
+   */
+  onBeforeChange(changes) {
+    const dependentCells = [];
+    const outOfBoundsChanges = [];
+
+    changes.forEach(([row, prop, , newValue]) => {
+      const column = this.hot.propToCol(prop);
+
+      if (this.hot.toPhysicalRow(row) !== null && this.hot.toPhysicalColumn(column) !== null) {
+        dependentCells.push(...this.syncChangeWithEngine(row, column, newValue));
+
+      } else {
+        outOfBoundsChanges.push([row, column, newValue]);
+      }
+    });
+
+    if (outOfBoundsChanges.length) {
+      // Workaround for rows/columns being created two times (by HOT and the engine).
+      // (unfortunately, this requires an extra re-render)
+      this.hot.addHookOnce('afterChange', () => {
+        const outOfBoundsDependentCells = [];
+
+        outOfBoundsChanges.forEach(([row, column, newValue]) => {
+          outOfBoundsDependentCells.push(...this.syncChangeWithEngine(row, column, newValue));
+        });
+
+        this.renderDependentSheets(outOfBoundsDependentCells, true);
+      });
+    }
+
+    this.renderDependentSheets(dependentCells);
+  }
+
+  /**
+   * `onAfterSetSourceDataAtCell` hook callback.
+   *
+   * @private
+   * @param {Array[]} changes An array of changes in format [[row, column, oldValue, value], ...].
+   */
+  onAfterSetSourceDataAtCell(changes) {
+    const dependentCells = [];
+
+    changes.forEach(([row, column, , newValue]) => {
+      const address = {
+        row,
+        col: this.toPhysicalColumnPosition(column),
+        sheet: this.sheetId
+      };
+
+      if (!this.engine.isItPossibleToSetCellContents(address)) {
+        warn(`Not possible to set source cell data at ${JSON.stringify(address)}`);
+
+        return;
+      }
+
+      dependentCells.push(...this.engine.setCellContents(address, newValue));
+    });
+
+    this.renderDependentSheets(dependentCells);
+  }
+
+  /**
+   * `beforeCreateRow` hook callback.
+   *
+   * @private
+   * @param {number} row Represents the visual index of first newly created row in the data source array.
+   * @param {number} amount Number of newly created rows in the data source array.
+   * @returns {*|boolean} If false is returned the action is canceled.
+   */
+  onBeforeCreateRow(row, amount) {
+    if (!this.engine.isItPossibleToAddRows(this.sheetId, [this.toPhysicalRowPosition(row), amount])) {
+      return false;
+    }
+  }
+
+  /**
+   * `beforeCreateCol` hook callback.
+   *
+   * @private
+   * @param {number} col Represents the visual index of first newly created column in the data source.
+   * @param {number} amount Number of newly created columns in the data source.
+   * @returns {*|boolean} If false is returned the action is canceled.
+   */
+  onBeforeCreateCol(col, amount) {
+    if (!this.engine.isItPossibleToAddColumns(this.sheetId, [this.toPhysicalColumnPosition(col), amount])) {
+      return false;
+    }
+  }
+
+  /**
+   * `beforeRemoveRow` hook callback.
+   *
+   * @private
+   * @param {number} row Visual index of starter row.
+   * @param {number} amount Amount of rows to be removed.
+   * @param {number[]} physicalRows An array of physical rows removed from the data source.
+   * @returns {*|boolean} If false is returned the action is canceled.
+   */
+  onBeforeRemoveRow(row, amount, physicalRows) {
+    const possible = physicalRows.every((physicalRow) => {
+      return this.engine.isItPossibleToRemoveRows(this.sheetId, [physicalRow, 1]);
+    });
+
+    return possible === false ? false : void 0;
+  }
+
+  /**
+   * `beforeRemoveCol` hook callback.
+   *
+   * @private
+   * @param {number} col Visual index of starter column.
+   * @param {number} amount Amount of columns to be removed.
+   * @param {number[]} physicalColumns An array of physical columns removed from the data source.
+   * @returns {*|boolean} If false is returned the action is canceled.
+   */
+  onBeforeRemoveCol(col, amount, physicalColumns) {
+    const possible = physicalColumns.every((physicalColumn) => {
+      return this.engine.isItPossibleToRemoveColumns(this.sheetId, [physicalColumn, 1]);
+    });
+
+    return possible === false ? false : void 0;
+  }
+
+  /**
+   * `afterCreateRow` hook callback.
+   *
+   * @private
+   * @param {number} row Represents the visual index of first newly created row in the data source array.
+   * @param {number} amount Number of newly created rows in the data source array.
+   */
+  onAfterCreateRow(row, amount) {
+    const changes = this.engine.addRows(this.sheetId, [this.toPhysicalRowPosition(row), amount]);
+
+    this.renderDependentSheets(changes);
+  }
+
+  /**
+   * `afterCreateCol` hook callback.
+   *
+   * @private
+   * @param {number} col Represents the visual index of first newly created column in the data source.
+   * @param {number} amount Number of newly created columns in the data source.
+   */
+  onAfterCreateCol(col, amount) {
+    const changes = this.engine.addColumns(this.sheetId, [this.toPhysicalColumnPosition(col), amount]);
+
+    this.renderDependentSheets(changes);
+  }
+
+  /**
+   * `afterRemoveRow` hook callback.
+   *
+   * @private
+   * @param {number} row Visual index of starter row.
+   * @param {number} amount An amount of removed rows.
+   * @param {number[]} physicalRows An array of physical rows removed from the data source.
+   */
+  onAfterRemoveRow(row, amount, physicalRows) {
+    const descendingPhysicalRows = physicalRows.sort().reverse();
+
+    const changes = this.engine.batch(() => {
+      descendingPhysicalRows.forEach((physicalRow) => {
+        this.engine.removeRows(this.sheetId, [physicalRow, 1]);
+      });
+    });
+
+    this.renderDependentSheets(changes);
+  }
+
+  /**
+   * `afterRemoveCol` hook callback.
+   *
+   * @private
+   * @param {number} col Visual index of starter column.
+   * @param {number} amount An amount of removed columns.
+   * @param {number[]} physicalColumns An array of physical columns removed from the data source.
+   */
+  onAfterRemoveCol(col, amount, physicalColumns) {
+    const descendingPhysicalColumns = physicalColumns.sort().reverse();
+
+    const changes = this.engine.batch(() => {
+      descendingPhysicalColumns.forEach((physicalColumn) => {
+        this.engine.removeColumns(this.sheetId, [physicalColumn, 1]);
+      });
+    });
+
+    this.renderDependentSheets(changes);
+  }
+
+  /**
+   * Called when a value is updated in the engine.
+   *
+   * @private
+   * @fires Hooks#afterFormulasValuesUpdate
+   * @param {Array} changes The values and location of applied changes.
+   */
+  onEngineValuesUpdated(changes) {
+    this.hot.runHooks('afterFormulasValuesUpdate', changes);
+  }
+
+  /**
+   * Called when a named expression is added to the engine instance.
+   *
+   * @private
+   * @fires Hooks#afterNamedExpressionAdded
+   * @param {string} namedExpressionName The name of the added expression.
+   * @param {Array} changes The values and location of applied changes.
+   */
+  onEngineNamedExpressionsAdded(namedExpressionName, changes) {
+    this.hot.runHooks('afterNamedExpressionAdded', namedExpressionName, changes);
+  }
+
+  /**
+   * Called when a named expression is removed from the engine instance.
+   *
+   * @private
+   * @fires Hooks#afterNamedExpressionRemoved
+   * @param {string} namedExpressionName The name of the removed expression.
+   * @param {Array} changes The values and location of applied changes.
+   */
+  onEngineNamedExpressionsRemoved(namedExpressionName, changes) {
+    this.hot.runHooks('afterNamedExpressionRemoved', namedExpressionName, changes);
+  }
+
+  /**
+   * Called when a new sheet is added to the engine instance.
+   *
+   * @private
+   * @fires Hooks#afterSheetAdded
+   * @param {string} addedSheetDisplayName The name of the added sheet.
+   */
+  onEngineSheetAdded(addedSheetDisplayName) {
+    this.hot.runHooks('afterSheetAdded', addedSheetDisplayName);
+  }
+
+  /**
+   * Called when a sheet in the engine instance is renamed.
+   *
+   * @private
+   * @fires Hooks#afterSheetRenamed
+   * @param {string} oldDisplayName The old name of the sheet.
+   * @param {string} newDisplayName The new name of the sheet.
+   */
+  onEngineSheetRenamed(oldDisplayName, newDisplayName) {
+    this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
+  }
+
+  /**
+   * Called when a sheet is removed from the engine instance.
+   *
+   * @private
+   * @fires Hooks#afterSheetRemoved
+   * @param {string} removedSheetDisplayName The removed sheet name.
+   * @param {Array} changes The values and location of applied changes.
+   */
+  onEngineSheetRemoved(removedSheetDisplayName, changes) {
+    this.hot.runHooks('afterSheetRemoved', removedSheetDisplayName, changes);
   }
 }

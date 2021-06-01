@@ -241,6 +241,12 @@ export function range(start, end) {
  * current selection, area selection, selection for autofill and custom borders.
  *
  * @param {object} selections An object with custom selection instances.
+ * @param {Selection} [selections.current] An optional instance of the current selection.
+ * @param {Selection} [selections.area] An optional instance of the area selection.
+ * @param {Selection} [selections.fill] An optional instance of the fill selection.
+ * @param {Selection} [selections.custom] An optional instance of the custom selection.
+ * @param {Selection} [selections.activeHeader] An optional instance of the active header selection.
+ * @param {Selection} [selections.header] An optional instance of the header selection.
  * @returns {object} Selection controller.
  */
 export function createSelectionController({ current, area, fill, custom, activeHeader, header } = {}) {

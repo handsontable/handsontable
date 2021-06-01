@@ -83,14 +83,6 @@ const REGISTERED_HOOKS = [
   'afterChange',
 
   /**
-   * Fired by {@link ObserveChanges} plugin after detecting changes in the data source. This hook is fired when
-   * {@link Options#observeChanges} option is enabled.
-   *
-   * @event Hooks#afterChangesObserved
-   */
-  'afterChangesObserved',
-
-  /**
    * Fired each time user opens {@link ContextMenu} and after setting up the Context Menu's default options. These options are a collection
    * which user can select by setting an array of keys or an array of objects in {@link Options#contextMenu} option.
    *
@@ -309,6 +301,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterLoadData
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
+   * @param {string} source Source of the call.
    */
   'afterLoadData',
 
@@ -646,10 +639,14 @@ const REGISTERED_HOOKS = [
    * {@link Options#fillHandle} option is enabled.
    *
    * @event Hooks#beforeAutofill
-   * @param {CellCoords} start Object containing information about first filled cell: `{row: 2, col: 0}`.
-   * @param {CellCoords} end Object containing information about last filled cell: `{row: 4, col: 1}`.
-   * @param {Array[]} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`.
-   * @returns {*|boolean} If false is returned the action is canceled.
+   * @param {Array[]} selectionData Data the autofill operation will start from.
+   * @param {CellRange} sourceRange The range values will be filled from.
+   * @param {CellRange} targetRange The range new values will be filled into.
+   * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
+   *
+   * @returns {boolean|Array[]} If false, the operation is cancelled. If array of arrays, the returned data
+   *                              will be passed into `populateFromArray` instead of the default autofill
+   *                              algorithm's result.
    */
   'beforeAutofill',
 
@@ -659,9 +656,11 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterAutofill
    * @since 8.0.0
-   * @param {CellCoords} start Object containing information about first filled cell: `{row: 2, col: 0}`.
-   * @param {CellCoords} end Object containing information about last filled cell: `{row: 4, col: 1}`.
-   * @param {Array[]} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`.
+   * @param {Array[]} fillData The data that was used to fill the `targetRange`. If `beforeAutofill` was used
+   *                            and returned `[[]]`, this will be the same object that was returned from `beforeAutofill`.
+   * @param {CellRange} sourceRange The range values will be filled from.
+   * @param {CellRange} targetRange The range new values will be filled into.
+   * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
    */
   'afterAutofill',
 
@@ -783,6 +782,8 @@ const REGISTERED_HOOKS = [
    * @since 8.0.0
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
+   * @param {string} source Source of the call.
+   * @returns {Array} The returned array will be used as new dataset.
    */
   'beforeLoadData',
 
@@ -1460,8 +1461,65 @@ const REGISTERED_HOOKS = [
    * ```
    */
   'afterFilter',
-
   /* eslint-enable jsdoc/require-description-complete-sentence */
+
+  /**
+   * Called when a value is updated in the engine.
+   *
+   * @since 9.0.0
+   * @event Hooks#afterFormulasValuesUpdate
+   * @param {Array} changes The values and location of applied changes.
+   */
+  'afterFormulasValuesUpdate',
+
+  /**
+   * Called when a named expression is added to the Formulas' engine instance.
+   *
+   * @since 9.0.0
+   * @event Hooks#afterNamedExpressionAdded
+   * @param {string} namedExpressionName The name of the added expression.
+   * @param {Array} changes The values and location of applied changes.
+   */
+  'afterNamedExpressionAdded',
+
+  /**
+   * Called when a named expression is removed from the Formulas' engine instance.
+   *
+   * @since 9.0.0
+   * @event Hooks#afterNamedExpressionRemoved
+   * @param {string} namedExpressionName The name of the removed expression.
+   * @param {Array} changes The values and location of applied changes.
+   */
+  'afterNamedExpressionRemoved',
+
+  /**
+   * Called when a new sheet is added to the Formulas' engine instance.
+   *
+   * @since 9.0.0
+   * @event Hooks#afterSheetAdded
+   * @param {string} addedSheetDisplayName The name of the added sheet.
+   */
+  'afterSheetAdded',
+
+  /**
+   * Called when a sheet in the Formulas' engine instance is renamed.
+   *
+   * @since 9.0.0
+   * @event Hooks#afterSheetRenamed
+   * @param {string} oldDisplayName The old name of the sheet.
+   * @param {string} newDisplayName The new name of the sheet.
+   */
+  'afterSheetRenamed',
+
+  /**
+   * Called when a sheet is removed from the Formulas' engine instance.
+   *
+   * @since 9.0.0
+   * @event Hooks#afterSheetRemoved
+   * @param {string} removedSheetDisplayName The removed sheet name.
+   * @param {Array} changes The values and location of applied changes.
+   */
+  'afterSheetRemoved',
 
   /**
    * Fired while retrieving the column header height.
@@ -1563,6 +1621,7 @@ const REGISTERED_HOOKS = [
   /**
    * Fired from the `populateFromArray` method during the `autofill` process. Fired for each "autofilled" cell individually.
    *
+   * @deprecated
    * @event Hooks#beforeAutofillInsidePopulate
    * @param {object} index Object containing `row` and `col` properties, defining the number of rows/columns from the initial cell of the autofill.
    * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
@@ -2039,7 +2098,12 @@ const REMOVED_HOOKS = new Map([
  * @type {Map<string, string>}
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
-const DEPRECATED_HOOKS = new Map([]);
+const DEPRECATED_HOOKS = new Map([
+  [
+    'beforeAutofillInsidePopulate',
+    'The plugin hook "beforeAutofillInsidePopulate" is deprecated and will be removed in the next major release.'
+  ]
+]);
 
 class Hooks {
   static getSingleton() {

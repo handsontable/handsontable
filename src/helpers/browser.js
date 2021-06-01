@@ -142,6 +142,7 @@ export function isIOS() {
  *
  * @see {@https://stackoverflow.com/a/57838385}
  * @param {object} [metaObject] The browser identity collection.
+ * @param {number} [metaObject.maxTouchPoints] The maximum number of simultanous touch points.
  * @returns {boolean}
  */
 export function isIpadOS({ maxTouchPoints } = navigator) {
