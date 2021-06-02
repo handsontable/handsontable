@@ -38,7 +38,7 @@ Possible values of `selectionMode`:
   <select id="selectOption" style="width: auto; margin-top: 16px">
     <option>Single selection</option>
     <option>Range selection</option>
-    <option selected="selected">Multiple selection</option>
+    <option selected="selected">Multiple ranges selection</option>
   </select>
 </div>
 ```
@@ -84,7 +84,7 @@ To retrieve the selected cells as an array of arrays, you should use the `getSel
 </div>
 ```
 ```css
-#output{
+#output {
   margin: 16px 0 7px;
   width: 100%;
   height: 160px;
@@ -116,13 +116,13 @@ const settings = {
 const hot = new Handsontable(container, settings);
 
 getButton.addEventListener('click', event => {
-  const selected = hot.getSelected();
+  const selected = hot.getSelected() || [];
   const data = [];
 
   for (let i = 0; i < selected.length; i += 1) {
     const item = selected[i];
-    
-    data.push(hot.getData.apply(hot, item));
+
+    data.push(hot.getData(...item));
   }
 
   output.innerText = JSON.stringify(data, null, 2);
@@ -139,8 +139,8 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 <div id="example3" class="hot"></div>
 
 <div id="buttons" class="controls" style="margin-top: 10px">
-  <button id="setButton">Set data</button>
-  <button id="addButton">Add class</button>
+  <button id="set-data-action">Change selected data</button>
+  <button id="add-css-class-action">Make selected cells red</button>
 </div>
 ```
 ```css
@@ -168,23 +168,25 @@ const settings = {
 const hot = new Handsontable(container, settings);
 
 buttons.addEventListener('click', event => {
-  const selected = hot.getSelected();
+  const selected = hot.getSelected() || [];
   const target = event.target.id;
 
+  hot.suspendRender();
+
   for (let index = 0; index < selected.length; index += 1) {
-    const item = selected[index];
-    const startRow = Math.min(item[0], item[2]);
-    const endRow = Math.max(item[0], item[2]);
-    const startCol = Math.min(item[1], item[3]);
-    const endCol = Math.max(item[1], item[3]);
+    const [row1, column1, row2, column2] = selected[index];
+    const startRow = Math.max(Math.min(row1, row2), 0);
+    const endRow = Math.max(row1, row2);
+    const startCol = Math.max(Math.min(column1, column2), 0);
+    const endCol = Math.max(column1, column2);
 
     for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
       for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
-        if (target === 'setButton') {
+        if (target === 'set-data-action') {
           hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
         }
 
-        if (target === 'addButton') {
+        if (target === 'add-css-class-action') {
           hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
         }
       }
@@ -192,6 +194,7 @@ buttons.addEventListener('click', event => {
   }
 
   hot.render();
+  hot.resumeRender();
 });
 ```
 :::
@@ -211,5 +214,3 @@ By default, the cell selection "jumps" to the other end of the row or column dur
 Select any cell in the first row and press <kbd>ARROW UP</kbd> to jump to the last cell in the current column. The same thing happens when you are in first column and press <kbd>ARROW LEFT</kbd> - the selection jumps to the last column.
 
  This behavior can be disabled by setting `autoWrapCol: false` and `autoWrapRow: false`.
-
-

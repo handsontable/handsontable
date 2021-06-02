@@ -14,15 +14,15 @@ tags:
 
 ## Overview
 
-Columns in Handsontable may be grouped using multiple levels of headers. We prefer to call them "nested headers" as they utilize a tree structure.
+Columns in Handsontable may be grouped using multiple levels of headers. We refer to them as "nested headers" as they utilize a tree structure.
 
 ## Nested headers
 
-The **Nested Headers** plugin allows creating a nested header structure using the `colspan` attribute. The header cannot be wider than its parent element. In other words, headers cannot overlap each other.
+The **Nested Headers** plugin allows creating a nested header structure using the `colspan` attribute. The header cannot be wider than its parent element, i.e., headers cannot overlap each other.
 
-To make a header to span across multiple columnns, its corresponding configuration array element should be provided as an object with `label` and `colspan` properties. The `label` property defines the header's label, while the `colspan` property defines the number of columns that the header should cover.
+To make a header that spans across multiple columnns, its corresponding configuration array element should be provided as an object with `label` and `colspan` properties. The `label` property defines the header's label, while the `colspan` property defines the number of columns that the header should cover.
 
-The maximum number for `colspan` value of nested headers is 1000. This constraint is based on [_HTML table specification_](https://html.spec.whatwg.org/multipage/tables.html#dom-tdth-colspan) which sets the limit of `colspan` to 1000.
+The maximum value for `colspan` for nested headers is 1000, meaning that the maximum number of columns that a header can span is 1000.  This constraint is based on [_HTML table specification_](https://html.spec.whatwg.org/multipage/tables.html#dom-tdth-colspan), which sets the limit of `colspan` to 1000.
 
 ### Configuration
 
@@ -58,23 +58,23 @@ const hot1 = new Handsontable(container, {
 
 ## Collapsible headers
 
-The **Collapsible Columns** plugin enables to collapse/expand the columns and their headers.
+The **Collapsible Columns** plugin enables columns and their headers to be collapsed/expanded.
 
-This plugin adds button multi-column headers. Clicking these button will collapse or expands all "child" headers, leaving the first one visible.
+This plugin adds multi-column headers which have buttons. Clicking these buttons will collapse or expand all "child" headers, leaving the first one visible.
 
-You'll need to enable the [Nested Headers](nested-headers.md) plugin in order for this plugin to work properly.
+The [Nested Headers](nested-headers.md) plugin needs to be enabled for this to work properly.
 
 ### Configuration
 
-To enable the Collapsible Columns plugin, you can either set the `collapsibleColumns` property to:
+To enable the Collapsible Columns plugin, either set the `collapsibleColumns` property to:
 
-* `true` - this will enable the functionality for _all_ multi-column headers. (Every column with the `colspan` attribute defined will be extended with the "expand/collapse" button)
-* an array of objects containing information about which headers should have the "expand/collapse" buttons. The structure in this case looks like this:
+* `true` - this will enable the functionality for _all_ multi-column headers, every column with the `colspan` attribute defined will be extended with the "expand/collapse" button
+* An array of objects containing information specifying which headers should have the "expand/collapse" buttons for example:
 
   ```js
   collapsibleColumns: [
-    {row: -4, col: 1, collapsible: true}, // Add the button to the 4th-level (counting from the first table row upwards) header of the 1st column.
-    {row: -3, col: 5, collapsible: true} // Add the button to the 3rd-level (counting from the first table row upwards) header of the 5th column.
+    {row: -4, col: 1, collapsible: true}, // Add the button to the 4th-level header of the 1st column - counting from the first table row upwards. 
+    {row: -3, col: 5, collapsible: true} // Add the button to the 3rd-level header of the 5th column - counting from the first table row upwards.
   ]
   ```
 

@@ -19,16 +19,18 @@ export default {
   components: { PageEdit, PageNav },
   props: ['sidebarItems'],
   computed:{
-    isApi(){
+    isApi() {
       return this.$route.fullPath.match(/([^/]*\/)?api\//);
     }
-  }
+  },
+  methods: {
+    codePreviewTabChanged(selectedTab, hotId) {
+      const hot = window.instanceRegister.get(hotId);
+
+      if (selectedTab.tab.computedId === 'preview' && hot) {
+        hot.render();
+      }
+    }
+  },
 }
 </script>
-
-<style lang="stylus">
-.page.api
-  h3
-    color #0B3692
-
-</style>

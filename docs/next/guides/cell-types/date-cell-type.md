@@ -10,10 +10,13 @@ canonicalUrl: /date-cell-type
 [[toc]]
 
 ## Overview
+The `'date'` cell type is used to display a date in a cell or column. 
 
-To trigger the Date cell type, use the option `type: 'date'` in `columns` array or `cells` function. The Date cell uses [Pikaday datepicker](https://github.com/dbushell/Pikaday) as the UI control. Pikaday uses [Moment.js](https://github.com/moment/moment) as a date formatter.
+## Usage
 
-Note that Date cell requires additional modules :
+To trigger the date cell type, use the option `type: 'date'` in the `columns` array or `cells` function. The date cell uses [Pikaday datepicker](https://github.com/dbushell/Pikaday) as the UI control. Pikaday uses [Moment.js](https://github.com/moment/moment) as a date formatter.
+
+Note that date cell requires additional modules :
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
@@ -21,7 +24,7 @@ Note that Date cell requires additional modules :
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday@1.8.2/css/pikaday.css">
 ```
 
-All data entered to the data-typed cells are validated agains the default date format `DD/MM/YYYY` unless another format is provided. If you enable the `correctFormat` config item, the dates will be automatically formatted to match the desired format.
+All data entered into the date-type cells are validated against the default date format `DD/MM/YYYY` unless another format is provided. If you enable the `correctFormat` config item, the dates will be automatically formatted to match the desired format.
 
 ## Basic example
 

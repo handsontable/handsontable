@@ -289,7 +289,6 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   rowHeaders: true,
   minSpareRows: 1,
-  licenseKey: 'non-commercial-and-evaluation',
   beforeChange(changes, source) {
     lastChange = changes;
   },

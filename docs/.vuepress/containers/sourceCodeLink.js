@@ -1,5 +1,5 @@
 /**
- * Matches into: `example #ID .class :preset --html 0 --js 1 --hidden`.
+ * Matches into: `source-code-link https://github.com/handsontable/handsontable`.
  *
  * @type {RegExp}
  */

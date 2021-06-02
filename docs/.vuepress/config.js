@@ -69,7 +69,6 @@ module.exports = {
 
         // overwrite markdown `render` function to allow extending tokens array (remove caching before loop).
         md.renderer.render = (tokens, options, env) => render.call(md.renderer, tokens, options, env);
-
       },
       chainMarkdown(config) {
         // inject custom markdown highlight with our snippet runner
@@ -134,7 +133,7 @@ module.exports = {
     sidebarDepth: 0,
     sidebar: helpers.getSidebars(),
     search: true,
-    searchPlaceholder: 'Search guides and API...',
+    searchPlaceholder: 'Search...',
     searchMaxGuidesSuggestions: 5,
     searchMaxAPISuggestions: 10,
     fuzzySearchDomains: ['Core', 'Hooks', 'Options'],

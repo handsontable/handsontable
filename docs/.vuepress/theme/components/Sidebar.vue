@@ -28,10 +28,10 @@ export default {
 
 <style lang="stylus">
   .sidebar
-    width 18rem
+    width 17rem
     z-index 1000
     border-color #e9eef2
-    background-color #fafbff
+    background-color #fff
 
     @media (max-width: $MQMobile) {
       width 18rem

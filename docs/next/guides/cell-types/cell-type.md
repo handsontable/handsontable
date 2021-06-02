@@ -9,17 +9,26 @@ canonicalUrl: /cell-type
 
 [[toc]]
 
-## Purpose
+## Overview 
+The cell type functionality enables you to customize the appearance and validate the cell(s) when applied.
 
-As we mentioned before, there are 3 functions associated with every table cell: `renderer`, `editor` and (optionally) `validator`. Most of the time, those functions are strongly connected to each other. For example if you want to store a date in a cell, you will most likely use a renderer which will display the date using appropriate formatting (`dd/mm/yyy`, `yyy-mm-dd` etc.). You will also use an editor, which will display a calendar instead of the default text input, so user could easily pick the right date. Finally, you might want to check if the value entered by a user is valid.
+## Usage
 
-Cell type is represented by a string i.e. `"text"`, `"numeric"`, `"date"`. Each string is internally mapped to functions associated with this type. For example `"numeric"` type is associated with functions:
+There are three functions associated with every table cell: `renderer`, `editor`, and optionally `validator`. These functions are mostly used all together as they are strongly connected. 
+
+Example scenario - To store a date in a cell, you would:
+* Use a `renderer` to display the date using appropriate formatting `dd/mm/yyyy`, `yyyy-mm-dd`, etc. 
+* Use an `editor` that displays a calendar instead of the default text input, allowing the user to easily pick the right date. 
+* Use a `validator` to check if the value entered by a user is valid.
+
+Cell type is represented by a string i.e. `"text"`, `"numeric"`, `"date"`. Each string is internally mapped to functions associated with this type e.g., `"numeric"` type is associated with the following functions:
 
 * `Handsontable.renderers.NumericRenderer`
 * `Handsontable.editors.TextEditor`
 * `Handsontable.validators.NumericValidator`
 
-For example, writing:
+
+When Handsontable encounters a cell with the `type` option defined, it checks which cell functions this type refers to and uses them. For example, when setting the column type to `'password'`:
 
 ```js
 columns: [{
@@ -27,7 +36,7 @@ columns: [{
 }]
 ```
 
-Equals:
+the functions `editor`, `renderer`, and `copyable` are automatically set as follows:
 
 ```js
 columns: [{
@@ -37,11 +46,10 @@ columns: [{
 }]
 ```
 
-When Handsontable encounters a cell with `type` option defined, it checks to which cell functions this type refers and use them.
 
 ## Available cell types
 
-Handsontable comes with 9 types:
+Handsontable comes with nine types:
 
 * ["autocomplete"](autocomplete-cell-type.md) or `Handsontable.cellTypes.autocomplete`
 * ["checkbox"](checkbox-cell-type.md) or `Handsontable.cellTypes.checkbox`
@@ -54,11 +62,11 @@ Handsontable comes with 9 types:
 * ["time"](time-cell-type.md) or `Handsontable.cellTypes.time`
 * "text" or `Handsontable.cellTypes.text`
 
-the `text` cell type is the default type.
+The `text` cell type is the default type.
 
 ## Anatomy of a cell type
 
-A cell type is a predefined set of cell properties. Cell type defines what `renderer`, `editor` or `validator` should be used for a cell. They can also define any different cell property that will be assumed for each matching cell:
+A cell type is a predefined set of cell properties. Cell type defines which `renderer`, `editor` or `validator` should be used for a cell. They can also define any different cell property that will be assumed for each matching cell:
 
 ```js
 Handsontable.cellTypes.registerCellType('custom', {
@@ -91,16 +99,16 @@ columns: [{
 
 ## Registering custom cell type
 
-When you create a custom cell type, a good idea is to assign it as an alias that will refer to this particular type definition.
+When you create a custom cell type, best practice is to assign it as an alias that will refer to this particular type definition.
 
-It gives users a convenient way for defining which cell type should be used for describing cell properties. User doesn't need to know which part of code is responsible for rendering, validating or editing the cell value, he does not even need to know that there is any functions at all. What is more, you can change the cell behaviour associated with an alias without a need to change the code that defines a cell properties.
+This gives users a convenient way of defining which cell type should be used for describing cell properties. The user doesn't need to know which part of the code is responsible for rendering, validating, or editing the cell value. They do not even need to know that there are any functions at all. You can change the cell behaviour associated with an alias without changing the code that defines a cell's properties.
 
 To register your own alias use `Handsontable.cellTypes.registerCellType()` function. It takes two arguments:
 
-* `cellTypeName` - a string representing of the cell type object
-* `type` - an object with keys `editor`, `renderer` and `validator` that will be represented by `cellTypeName`
+* `cellTypeName` - a string representing the cell type object
+* `type` - an object with keys `editor`, `renderer`, and `validator` that will be represented by `cellTypeName`
 
-If you'd like to register `copyablePasswordType` under alias `copyable-password` you have to call:
+If you'd like to register `copyablePasswordType` under alias `copyable-password`, you need to call:
 
 ```js
 Handsontable.cellTypes.registerCellType('copyable-password', {
@@ -121,7 +129,7 @@ Handsontable.cellTypes.registerCellType('password', {
 // object, not Handsontable.cellTypes.password
 ```
 
-So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name to minimize the possibility of name collisions. This is especially important if you want to publish your cell type, because you never know aliases has been registered by the user who uses your cell type.
+Unless you intentionally want to overwrite an existing alias, try to choose a unique name. Best practice is to prefix your aliases with a custom name to minimize the possibility of name collisions. This is especially important if you want to publish your cell type as you never know what aliases have been registered by a user who uses your cell type.
 
 ```js
 Handsontable.cellTypes.registerCellType('copyable-password', {
@@ -129,7 +137,7 @@ Handsontable.cellTypes.registerCellType('copyable-password', {
   renderer: copyablePasswordRenderer,
 });
 ```
-Someone might already registered such alias. It would be better use an unique prefix:
+Someone might already registered such alias. It would be better use a unique prefix:
 
 ```js
 Handsontable.cellTypes.registerCellType('my.copyable-password', {
@@ -169,7 +177,7 @@ Handsontable.cellTypes.registerCellType('my.custom', {
 
 ## Using an alias
 
-The next step is to use the registered aliases, so that users can easily refer to it without the need to now the actual cell type object is.  You can use your cell definition like so:
+The next step is to use the registered aliases to enable users to easily refer to them without the need to know what the actual cell type object is. Here's an example of how you would use your cell definition:
 
 ```js
 const hot = new Handsontable(container, {
@@ -181,7 +189,7 @@ const hot = new Handsontable(container, {
 
 ## Precedence
 
-It is possible to define the `type` option together with options such as `renderer`, `editor` or `validator`. Lets look at this example:
+It is possible to define the `type` option together with options such as `renderer`, `editor` or `validator`. For example:
 
 ```js
 const hot = new Handsontable(container, {
@@ -193,7 +201,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-We defined the `type` for all cells in a column to be `numeric`. Besides that, we also defined a validator function directly. In Handsontable, cell functions defined directly always take precedence over functions associated with cell type, so the above configuration is equivalent to:
+We defined the `type` for all cells in a column to be `numeric`. We also defined a validator function directly. In Handsontable, cell functions that are defined directly always take precedence over functions associated with cell type, so the above configuration is equivalent to:
 
 ```js
 const hot = new Handsontable(container, {
@@ -220,7 +228,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-We take advantage of the [cascade configuration](setting-options.md#page-config) and define a table with two columns, with `validator` set to `customValidator` function. We also set `type` of the first column to `password`. `Password` cell type does not define a validator function:
+Using [cascade configuration](setting-options.md#page-config) we define a table with two columns, with `validator` set to `customValidator` function. The `type` of the first column is set to `password`. The `Password` cell type does not define a validator function:
 
 ```js
 {
@@ -230,7 +238,7 @@ We take advantage of the [cascade configuration](setting-options.md#page-config)
 }
 ```
 
-Because `type: 'password'` is a more specific configuration for the cells in the first column, than the `validator: customValidator`, cell functions associated with the `password` type takes precedence over the functions defined on the higher level of configuration. Therefore, the equivalent configuration is:
+Because `type: 'password'` is a more specific configuration for the cells in the first column than the `validator: customValidator`, cell functions associated with the `password` type take precedence over the functions defined on the higher level of configuration. Therefore, the equivalent configuration is:
 
 ```js
 const hot = new Handsontable(container, {
@@ -248,7 +256,7 @@ const hot = new Handsontable(container, {
 
 ## Example
 
-The below example shows some of the built-in cell types (in other words, combinations of cell renderers and editors) available in Handsontable. The same example also shows the declaration of custom cell renderers, namely `yellowRenderer` and `greenRenderer`.
+The example below shows some of the built-in cell types, i.e. combinations of cell renderers and editors available in Handsontable. The example also shows the declaration of custom cell renderers, namely `yellowRenderer` and `greenRenderer`.
 
 ::: example #example1
 ```js
