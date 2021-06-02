@@ -235,8 +235,10 @@ export class Autofill extends BasePlugin {
 
     if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
       const selectionData = this.getSelectionData();
-
       const sourceRange = selectionRangeLast.clone();
+
+      sourceRange.from.normalize(); // Selection can start from header.
+      
       const targetRange = new CellRange(startOfDragCoords, startOfDragCoords, endOfDragCoords);
 
       const beforeAutofillHookResult = this.hot.runHooks(

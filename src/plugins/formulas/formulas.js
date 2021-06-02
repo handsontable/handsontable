@@ -164,9 +164,9 @@ export class Formulas extends BasePlugin {
 
     this.addHook('beforeAutofill', autofillHooks.beforeAutofill);
     this.addHook('afterAutofill', autofillHooks.afterAutofill);
-    // Handling undo actions just using HyperFormula's UndoRedo mechanism
+    // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', () => this.engine.undo());
-    // Handling redo actions just using HyperFormula's UndoRedo mechanism
+    // Handling redo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeRedo', () => this.engine.redo());
 
     this.#engineListeners.forEach(([eventName, listener]) => this.engine.on(eventName, listener));
