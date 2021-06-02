@@ -14,319 +14,154 @@ tags:
 
 ## Overview
 
-## Available options
-
-Opisać core i plugins i wrzucić linki do reference do obu
-
-Najlepiej jakby to było dostępne też dla wrapperów
-
-## The cascading configuration
+Handsontable uses cascading configuration, a fast way to provide configuration options for the entire table, including its columns and particular cells. To show you how it works, we use the [readOnly](@/api/metaSchema.md#readOnly) and [className](@/api/metaSchema.md#className) options, which we will play in all the examples below.
 
 ### Entire grid
 
-Contructor
+By settings the [readOnly](@/api/metaSchema.md#readOnly) option, we tell Handsontable to propagate the option through the column settings down to the cells. Hence, all cells have a read-only state.
 
-### Single cell
+::: example #example1 --html 1 --css 2 --js 3
+```html
+<div id="example1" class="hot"></div>
+```
+```css
+td.bg-read-only {
+  background-color: #f2f4fb;
+}
+```
+```js
+const container = document.querySelector('#example1');
 
-Address by row / col order; A1, B2; ID column and row
-
-### Single range of cells
-
-### Multiple ranges of cells
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(5, 10),
+  readOnly: true,
+  className: 'bg-read-only',
+  width: 'auto',
+  height: 'auto',
+  rowHeaders: true,
+  colHeaders: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
 
 ### Single column
 
-Address by col order; or ID
+Moving on, let's set the read-only cells by setting the option to the specific column.
 
-### Single range of columns
+::: example #example2 --html 1 --js 2
+```html
+<div id="example2" class="hot"></div>
+```
+```js
+const container = document.querySelector('#example2');
 
-### Multiple ranges of columns
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(5, 10),
+  columns: [
+    {},
+    {},
+    { readOnly: true },
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+  ],
+  width: 'auto',
+  height: 'auto',
+  rowHeaders: true,
+  colHeaders: true,
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
 
 ### Single row
 
-Address by order or ID (from column 1)
+Row
 
-### Single range of rows
+### Single cell
 
-### Multiple ranges of rows
+And finally, let's set the read-only only for one cell.
 
-
-
-## Introduction to cell options
-
-Any constructor or column option may be overwritten for a particular cell (row/column combination), using `cell` array passed to the `Handsontable` constructor.
-
+::: example #example3 --html 1 --js 2
+```html
+<div id="example3" class="hot"></div>
+```
 ```js
-const container = document.querySelector('#example');
+const container = document.querySelector('#example3');
 
 const hot = new Handsontable(container, {
-  cell: [
-    {row: 0, col: 0, readOnly: true}
-  ]
+  data: Handsontable.helper.createSpreadsheetData(5, 10),
+  cells(row, column) {
+    if (row === 1 && column === 1) {
+      return { readOnly: true };
+    }
+  },
+  width: 'auto',
+  height: 'auto',
+  rowHeaders: true,
+  colHeaders: true,
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+:::
 
-Alternatively, use cells function property to the `Handsontable` constructor.
+## `cells` vs `cell`
 
-```js
-const container = document.querySelector('#example');
+cells vs cell
 
-const hot = new Handsontable(container, {
-  cells(row, col, prop) {
-    const cellProperties = {};
+## Show time
 
-    if (row === 0 && col === 0) {
-      cellProperties.readOnly = true;
-    }
-
-    return cellProperties;
-  }
-})
-```
-
-## The cascading configuration
-
-Handsontable utilizes cascading configuration, which is a fast way to provide configuration options for the entire grid, along with its columns and particular cells.
+With a combination of the above configuration layers, you're able to manage a more complicated setup.
 
 Consider the following example:
 
+::: example #example4 --html 1 --js 2
+```html
+<div id="example4" class="hot"></div>
+```
 ```js
-const container = document.querySelector('#example');
+const container = document.querySelector('#example4');
 
 const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(5, 10),
   readOnly: true,
   columns: [
-    {readOnly: false},
+    { readOnly: false },
     {},
-    {}
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
   ],
-  cells(row, col, prop) {
-    const cellProperties = {};
-
-    if (row === 0 && col === 0) {
-      cellProperties.readOnly = true;
+  cells(row, column) {
+    if (row === 0 && column === 0) {
+      return { readOnly: true }
     }
 
-    return cellProperties;
-  }
+    if (row === 2 && column === 2) {
+      return { readOnly: false }
+    }
+  },
+  width: 'auto',
+  height: 'auto',
+  rowHeaders: true,
+  colHeaders: true,
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
+:::
 
-The above notation will result in all TDs being read only, except for first column TDs which will be editable, except for the TD in top left corner which will still be read-only.
-
-## The cascading configuration model
-
-The cascading configuration model is based on prototypal inheritance.
-
-### Constructor
-
-Configuration options that are provided using first-level and `updateSettings` method.
-
-```js
-const container = document.querySelector('#example');
-
-new Handsontable(container, {
-  option: 'value'
-});
-```
-  
-
-### Columns
-
-Configuration options that are provided using second-level object.
-
-```js
-const container = document.querySelector('#example');
-
-new Handsontable(container, {
-  columns: {
-    option: 'value'
-  }
-});
-```
-
-### Cells
-
-Configuration options that are provided using second-level function.
-
-```js
-const container = document.querySelector('#example');
-
-new Handsontable(container, {
-  cells(row, col, prop) {
-  }
-});
-```
+The above notation results in all cells being read-only, except for the first column, which is editable. The top-left cell and cell at row and column index `3, 3` are still read-only. Their properties are individually managed within the [cells](@/api/metaSchema.md#cells) option.
 
 ## All options
 
 The most up to date list of options is available in the [Options](@/api/metaSchema.md) section of the API Reference. The table below is just a cheatsheet that can be useful if you're already familiar with the Handsontable API.
-
-<div class="scrollable-table">
-
-| First-level option | Second-level option | Core / Plugin name 	| Type 	| Default value 	|
-|-	|-	|:-:	|:-:	|:-:	|
-| activeHeaderClassName 	|  	| Core 	| string 	| "ht__active_highlight" 	|
-| allowEmpty 	|  	| Core 	| boolean 	| TRUE 	|
-| allowHtml 	|  	| Core 	| boolean 	| FALSE 	|
-| allowInsertColumn 	|  	| Core 	| boolean 	| TRUE 	|
-| allowInsertRow 	|  	| Core 	| boolean 	| TRUE 	|
-| allowInvalid 	|  	| Core 	| boolean 	| TRUE 	|
-| allowRemoveColumn 	|  	| Core 	| boolean 	| TRUE 	|
-| allowRemoveRow 	|  	| Core 	| boolean 	| TRUE 	|
-| autoColumnSize 	|  	| AutoColumnSize 	| object / boolean 	| undefined 	|
-|  	| allowSampleDuplicates 	|   	|   	|   	|
-|  	| samplingRation 	|   	|   	|   	|
-|  	| syncLimit 	|   	|   	|   	|
-|  	| userHeaders 	|   	|   	|   	|
-| autoRowSize 	|  	| autoRowSize 	| object / boolean 	| undefined 	|
-|  	| allowSampleDuplicates 	|   	|   	|   	|
-|  	| syncLimit 	|   	|   	|   	|
-| autoWrapCol 	|  	| Core 	| boolean 	| TRUE 	|
-| autoWrapRow 	|  	| Core 	| boolean 	| TRUE 	|
-| bindRowsWithHeaders 	|  	| BindRowsWithHeaders 	| boolean / string 	| undefined 	|
-| cell 	|  	| Core 	| Array&lt;Array&gt; 	| 	&#91; 	&#93; 	|
-| cells 	|  	| Core 	| function 	| undefined 	|
-| checkedTemplate 	|  	| Core 	| boolean / string / number 	| TRUE 	|
-| className 	|  	| Core 	| string / Array&lt;string&gt; 	| undefined 	|
-| colHeaders 	|  	| Core 	| boolean / Array&lt;string&gt; / function 	| null 	|
-| collapsibleColumns 	|  	| CollapsibleColumns 	| boolean / Array&lt;object&gt; 	| undefined 	|
-| columnHeaderHeight 	|  	| Core 	| number / Array&lt;number&gt; 	| undefined 	|
-| columns 	|  	| Core 	| Array&lt;object&gt; / function 	| undefined 	|
-| columnSorting 	|  	| ColumnSorting 	| boolean / object 	| undefined 	|
-|  	| compareFunctionFactory 	|   	|   	|   	|
-|  	| headerAction 	|   	|   	|   	|
-|  	| indicator 	|   	|   	|   	|
-|  	| initialConfig 	|   	|   	|   	|
-|  	| sortEmptyCells 	|   	|   	|   	|
-|  	| sortOrder 	|   	|   	|   	|
-| columnSummary 	|  	| ColumnSummary 	| Array&lt;object&gt; / function 	| undefined 	|
-|  	| destinationColumn 	|   	|   	|   	|
-|  	| destinationRow 	|   	|   	|   	|
-|  	| forceNumeric 	|   	|   	|   	|
-|  	| readOnly 	|   	|   	|   	|
-|  	| reversedRowCoords 	|   	|   	|   	|
-|  	| roundFloat 	|   	|   	|   	|
-|  	| suppressDataTypeErrors 	|   	|   	|   	|
-|  	| type 	|   	|   	|   	|
-| colWidths 	|  	| Core 	| number / Array&lt;number&gt; / string / Array&lt;string&gt; /   Array&lt;undefined&gt; / function 	| undefined 	|
-| commentedCellClassName 	|  	| Core 	| string 	| "htCommentCell" 	|
-| comments 	|  	| Comments 	| boolean / Array&lt;object&gt; 	| FALSE 	|
-|  	| displayDelay 	|   	|   	|   	|
-|  	| readOnly 	|   	|   	|   	|
-|  	| value 	|   	|   	|   	|
-| contextMenu 	|  	| ContextMenu 	| boolean / Array&lt;string&gt; / object 	| undefined 	|
-|  	| disableSelection 	|   	| boolean 	|   	|
-|  	| isCommand 	|   	| boolean 	|   	|
-|  	| items 	|   	|   	|   	|
-| copyable 	|  	| Core 	| boolean 	| TRUE 	|
-| copyPaste 	|  	| CopyPaste 	| object / boolean 	| TRUE 	|
-|  	| columnsLimit 	|   	|   	|   	|
-|  	| pasteMode 	|   	|   	|   	|
-|  	| rowsLimit 	|   	|   	|   	|
-|  	| uiContainer 	|   	|   	|   	|
-| correctFormat 	|  	| Core 	| boolean 	| FALSE 	|
-| currentColClassName 	|  	| Core 	| string 	| undefined 	|
-| currentHeaderClassName 	|  	| Core 	| string 	| "ht__highlight" 	|
-| currentRowClassName 	|  	| Core 	| string 	| undefined 	|
-| customBorders 	|  	| CustomBorders 	| boolean / Array&lt;object&gt; 	| FALSE 	|
-| data 	|  	| Core 	| Array&lt;Array&gt; / Array&lt;object&gt; 	| undefined 	|
-| dataSchema 	|  	| Core 	| object 	| undefined 	|
-| dateFormat 	|  	| Core 	| string 	| "DD/MM/YYYY" 	|
-| defaultDate 	|  	| Core 	| string 	| undefined 	|
-| disableVisualSelection 	|  	| Core 	| boolean / string / Array&lt;string&gt; 	| FALSE 	|
-| dragToScroll 	|  	| DragToScroll 	| boolean 	| TRUE 	|
-| dropdownMenu 	|  	| DropdownMenu 	| boolean / object / Array&lt;string&gt; 	| undefined 	|
-| editor 	|  	| Core 	| string / function / boolean 	| undefined 	|
-| enterBeginsEditing 	|  	| Core 	| boolean 	| TRUE 	|
-| enterMoves 	|  	| Core 	| object / function 	| {col: 0, row: 1} 	|
-| fillHandle 	|  	| Core 	| boolean / string / object 	| TRUE 	|
-| filter 	|  	| Core 	| boolean 	| TRUE 	|
-| filteringCaseSensitive 	|  	| Core 	| boolean 	| FALSE 	|
-| filters 	|  	| Filters 	| boolean 	| undefined 	|
-| fixedColumnsLeft 	|  	| Core 	| number 	| 0 	|
-| fixedRowsBottom 	|  	| Core 	| number 	| 0 	|
-| fixedRowsTop 	|  	| Core 	| number 	| 0 	|
-| formulas 	|  	| Formulas 	| boolean / object 	| undefined 	|
-| fragmentSelection 	|  	| Core 	| boolean / string 	| FALSE 	|
-| headerTooltips 	|   	| HeaderTooltips 	| boolean / object 	| undefined 	|
-| height 	|  	| Core 	| number / string / function 	| undefined 	|
-| hiddenColumns 	|  	| HiddenColumns 	| boolean / object 	| undefined 	|
-|  	| columns 	|   	|   	|   	|
-|  	| copyPasteEnabled 	|   	| boolean 	| TRUE 	|
-|  	| indicators 	|   	| boolean 	| FALSE 	|
-| hiddenRows 	|  	| HiddenRows 	| boolean / object 	| undefined 	|
-|  	| copyPasteEnabled 	|   	| boolean 	| TRUE 	|
-|  	| indicators 	|   	| boolean 	| FALSE 	|
-|  	| rows 	|   	|   	|   	|
-| invalidCellClassName 	|  	| Core 	| string 	| "htInvalid" 	|
-| label 	|  	| Core 	| object 	| undefined 	|
-| language 	|  	| Core 	| string 	| "en-US" 	|
-| licenseKey 	|  	| Core 	| string 	| undefined 	|
-| manualColumnFreeze 	|  	| ManualColumnFreeze 	| boolean 	| undefined 	|
-| manualColumnMove 	|  	| ManualColumnMove 	| boolean / Array&lt;number&gt; 	| undefined 	|
-| manualColumnResize 	|  	| ManualColumnResize 	| boolean / Array&lt;number&gt; 	| undefined 	|
-| manualRowMove 	|  	| ManualRowMove 	| boolean / Array&lt;number&gt; 	| undefined 	|
-| manualRowResize 	|  	| ManualRowResize 	| boolean / Array&lt;number&gt; 	| undefined 	|
-| maxCols 	|  	| Core 	| number 	| Infinity 	|
-| maxRows 	|  	| Core 	| number 	| Infinity 	|
-| mergeCells 	|  	| MergeCells 	| boolean / Array&lt;object&gt; 	| FALSE 	|
-| minCols 	|  	| Core 	| number 	| 0 	|
-| minRows 	|  	| Core 	| number 	| 0 	|
-| minSpareCols 	|  	| Core 	| number 	| 0 	|
-| minSpareRows 	|  	| Core 	| number 	| 0 	|
-| multiColumnSorting 	|  	| MultiColumnSorting 	| boolean / object 	| undefined 	|
-|  	| compareFunctionFactory 	|   	|   	|   	|
-|  	| headerAction 	|   	|   	|   	|
-|  	| indicator 	|   	|   	|   	|
-|  	| initialConfig 	|   	|   	|   	|
-|  	| sortEmptyCells 	|   	|   	|   	|
-| nestedHeaders 	|  	| NestedHeaders 	| Array&lt;Array&gt; 	| undefined 	|
-| nestedRows 	|  	| NestedRows 	| boolean 	| FALSE 	|
-| noWordWrapClassName 	|  	| Core 	| string 	| "htNoWrap" 	|
-| numericFormat 	|  	| Core 	| object 	| undefined 	|
-| observeChanges 	|  	| ObserveChanges 	| boolean 	| undefined 	|
-| observeDOMVisibility 	|  	| Core 	| boolean 	| TRUE 	|
-| outsideClickDeselects 	|  	| Core 	| boolean / function 	| TRUE 	|
-| persistentState 	|  	| PersistentState 	| boolean 	| FALSE 	|
-| placeholder 	|  	| Core 	| string 	| undefined 	|
-| placeholderCellClassName 	|  	| Core 	| string 	| "htPlaceholder" 	|
-| preventOverflow 	|  	| Core 	| string / boolean 	| "false" 	|
-| readOnly 	|  	| Core 	| boolean 	| FALSE 	|
-| readOnlyCellClassName 	|  	| Core 	| string 	| "htDimmed" 	|
-| renderAllRows 	|  	| Core 	| boolean 	| undefined 	|
-| renderer 	|  	| Core 	| string / function 	| undefined 	|
-| rowHeaders 	|  	| Core 	| boolean / Array&lt;string&gt; / function 	| undefined 	|
-| rowHeaderWidth 	|  	| Core 	| number / Array&lt;number&gt; 	| undefined 	|
-| rowHeights 	|  	| Core 	| number / Array&lt;number&gt; / string / Array&lt;string&gt; /   Array&lt;undefined&gt; / function 	| undefined 	|
-| search 	|  	| Search 	| boolean 	| FALSE 	|
-|  	| callback 	|   	|   	|   	|
-|  	| queryMethod 	|   	|   	|   	|
-|  	| searchResultClass 	|   	|   	|   	|
-| selectionMode 	|  	| Core 	| string 	| "multiple" 	|
-| selectOptions 	|  	| Core 	| Array&lt;string&gt; 	| undefined 	|
-| skipColumnOnPaste 	|  	| Core 	| boolean 	| FALSE 	|
-| skipRowOnPaste 	|  	| Core 	| boolean 	| FALSE 	|
-| sortByRelevance 	|  	| Core 	| boolean 	| TRUE 	|
-| source 	|  	| Core 	| Array / function 	| undefined 	|
-| startCols 	|  	| Core 	| number 	| 5 	|
-| startRows 	|  	| Core 	| number 	| 5 	|
-| stretchH 	|  	| Core 	| string 	| "none" 	|
-| strict 	|  	| Core 	| boolean 	| undefined 	|
-| tableClassName 	|  	| Core 	| string / Array&lt;string&gt; 	| undefined 	|
-| tabMoves 	|  	| Core 	| object / function 	| {row: 0, col: 1} 	|
-| title 	|  	| Core 	| string 	| undefined 	|
-| trimDropdown 	|  	| Core 	| boolean 	| TRUE 	|
-| trimRows 	|  	| TrimRows 	| boolean / Array&lt;number&gt; 	| undefined 	|
-| trimWhitespace 	|  	| Core 	| boolean 	| TRUE 	|
-| type 	|  	| Core 	| string 	| "text" 	|
-| uncheckedTemplate 	|  	| Core 	| boolean / string / number 	| FALSE 	|
-| undo 	|  	| UndoRedo 	| boolean 	| undefined 	|
-| validator 	|  	| Core 	| function / RegExp / string 	| undefined 	|
-| viewportColumnRenderingOffset 	|  	| Core 	| number / string 	| auto' 	|
-| viewportRowRenderingOffset 	|  	| Core 	| number / string 	| auto' 	|
-| visibleRows 	|  	| Core 	| number 	| 10 	|
-| width 	|  	| Core 	| number / string / function 	| undefined 	|
-| wordWrap 	|  	| Core 	| boolean 	| TRUE 	|
-
-</div>
