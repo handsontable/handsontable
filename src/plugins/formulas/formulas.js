@@ -599,28 +599,28 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const dependentCells = [];
     const outOfBoundsChanges = [];
+    const dependentCells = this.engine.batch(() => {
+      changes.forEach(([row, prop, , newValue]) => {
+        const column = this.hot.propToCol(prop);
 
-    changes.forEach(([row, prop, , newValue]) => {
-      const column = this.hot.propToCol(prop);
+        if (this.hot.toPhysicalRow(row) !== null && this.hot.toPhysicalColumn(column) !== null) {
+          this.syncChangeWithEngine(row, column, newValue);
 
-      if (this.hot.toPhysicalRow(row) !== null && this.hot.toPhysicalColumn(column) !== null) {
-        dependentCells.push(...this.syncChangeWithEngine(row, column, newValue));
-
-      } else {
-        outOfBoundsChanges.push([row, column, newValue]);
-      }
+        } else {
+          outOfBoundsChanges.push([row, column, newValue]);
+        }
+      });
     });
 
     if (outOfBoundsChanges.length) {
       // Workaround for rows/columns being created two times (by HOT and the engine).
       // (unfortunately, this requires an extra re-render)
       this.hot.addHookOnce('afterChange', () => {
-        const outOfBoundsDependentCells = [];
-
-        outOfBoundsChanges.forEach(([row, column, newValue]) => {
-          outOfBoundsDependentCells.push(...this.syncChangeWithEngine(row, column, newValue));
+        const outOfBoundsDependentCells = this.engine.batch(() => {
+          outOfBoundsChanges.forEach(([row, column, newValue]) => {
+            this.syncChangeWithEngine(row, column, newValue);
+          });
         });
 
         this.renderDependentSheets(outOfBoundsDependentCells, true);

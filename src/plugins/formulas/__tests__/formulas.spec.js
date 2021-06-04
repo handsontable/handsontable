@@ -1222,6 +1222,52 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(1)).toEqual([2012, '=SUM(A1:A2)', 12, '=SUM(E5)']);
     });
 
+    it('should cooperate properly with `setDataAtCell` action for multiple cells', () => {
+      handsontable({
+        data: [
+          [0, '=A1+1', '=B1+1'],
+        ],
+        contextMenu: true,
+        colHeaders: true,
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      setDataAtCell([
+        [0, 0, '=B1+2'],
+        [0, 1, '=C1+2'],
+        [0, 2, 10],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [0, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [0, 1, 2],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        ['=B1+2', '=C1+2', 10],
+      ]);
+      expect(getData()).toEqual([
+        [14, 12, 10],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [0, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [0, 1, 2],
+      ]);
+    });
+
     describe('should show proper value when doing undo/redo after reducing sheet size', () => {
       it('(removing cell with value used by some formula)', () => {
         handsontable({
@@ -1296,7 +1342,7 @@ describe('Formulas general', () => {
       });
     });
 
-    describe('should cooperate with the Autofill plugin properly ', () => {
+    describe('should cooperate with the Autofill plugin properly', () => {
       it('(overwriting formula)', async() => {
         handsontable({
           data: [
