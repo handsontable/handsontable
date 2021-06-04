@@ -7,8 +7,10 @@ canonicalUrl: /angular-custom-renderer-example
 
 # Custom renderer example
 
-An implementation of the `@handsontable/angular` with a custom renderer added. It takes an image url as the input and renders the image in the edited cell.
+## Overview
+The following example is an implementation of `@handsontable/angular` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
 
+## Example
 ::: example :angular --html 1 --js 2
 ```html
 <app-root></app-root>

@@ -7,7 +7,11 @@ canonicalUrl: /angular-custom-editor-example
 
 # Custom editor example
 
-An implementation of the `@handsontable/angular` component with a custom editor added. It utilizes the `placeholder` attribute in the editor's `input` element.
+## Overview
+
+The following is an implementation of the `@handsontable/angular` component with a custom editor added. It utilizes the `placeholder` attribute in the editor's `input` element.
+
+## Example 
 
 ::: example :angular --html 1 --js 2
 ```html
@@ -18,7 +22,7 @@ An implementation of the `@handsontable/angular` component with a custom editor 
 /// file: app.component.ts
 import { Component } from '@angular/core';
 import * as Handsontable from 'handsontable';
-//import { CustomEditpr } from './CustomEditor.js';
+//import { CustomEditor } from './CustomEditor.js';
 
 @Component({
   selector: 'app-root',
