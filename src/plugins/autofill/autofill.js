@@ -2,7 +2,6 @@ import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { arrayEach, arrayMap } from '../../helpers/array';
-import { isObjectEqual } from '../../helpers/object';
 import EventManager from '../../eventManager';
 import { CellCoords, CellRange } from '../../3rdparty/walkontable/src';
 import { getDeltas, getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
