@@ -230,10 +230,11 @@ const container = document.querySelector('#example5');
 const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 10),
   readOnly: true,
+  className: 'bg-read-only',
   columns: [
     {
       readOnly: false,
-      className: 'bg-read-only'
+      className: '',
     },
     {},
     {},
@@ -249,14 +250,14 @@ const hot = new Handsontable(container, {
     if (row === 0 && column === 0) {
       return {
         readOnly: true,
-        className: 'bg-read-only'
+        className: 'bg-read-only',
       }
     }
 
     if (row === 2 && column === 2) {
       return {
         readOnly: false,
-        className: 'bg-read-only'
+        className: '',
       }
     }
   },
