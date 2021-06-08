@@ -1,5 +1,4 @@
 import { BasePlugin } from '../base';
-import { createAutofillHooks } from './autofill';
 import staticRegister from '../../utils/staticRegister';
 import { error, warn } from '../../helpers/console';
 import {
@@ -160,10 +159,7 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
-    const autofillHooks = createAutofillHooks(this);
-
-    this.addHook('beforeAutofill', autofillHooks.beforeAutofill);
-    this.addHook('afterAutofill', autofillHooks.afterAutofill);
+    this.addHook('beforeAutofill', (...args) => this.onBeforeAutofill(...args));
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', () => this.engine.undo());
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism
@@ -496,10 +492,10 @@ export class Formulas extends BasePlugin {
     if (!this.#hotWasInitializedWithEmptyData) {
       const sourceDataArray = this.hot.getSourceDataArray();
 
-      if (this.engine.isItPossibleToReplaceSheetContent(this.sheetName, sourceDataArray)) {
+      if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#internalOperationPending = true;
 
-        const dependentCells = this.engine.setSheetContent(this.sheetName, this.hot.getSourceDataArray());
+        const dependentCells = this.engine.setSheetContent(this.sheetId, this.hot.getSourceDataArray());
 
         this.renderDependentSheets(dependentCells);
 
@@ -594,8 +590,7 @@ export class Formulas extends BasePlugin {
    *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
   onBeforeChange(changes, source) {
-    // TODO: Workaround. Autofill would produce both change and paste actions which breaks UndoRedo.
-    if (isBlockedSource(source) || source === 'Autofill.fill') {
+    if (isBlockedSource(source)) {
       return;
     }
 
@@ -628,6 +623,34 @@ export class Formulas extends BasePlugin {
     }
 
     this.renderDependentSheets(dependentCells);
+  }
+
+  /**
+   * `onBeforeAutofill` hook callback.
+   *
+   * @private
+   * @param {Array[]} fillData The data that was used to fill the `targetRange`. If `beforeAutofill` was used
+   * and returned `[[]]`, this will be the same object that was returned from `beforeAutofill`.
+   * @param {CellRange} sourceRange The range values will be filled from.
+   * @param {CellRange} targetRange The range new values will be filled into.
+   * @returns {boolean|*}
+   */
+  onBeforeAutofill(fillData, sourceRange, targetRange) {
+    const sourceLeftCorner = { ...sourceRange.from, sheet: this.sheetId };
+    const sourceWidth = sourceRange.getWidth();
+    const sourceHeight = sourceRange.getHeight();
+    const targetLeftCorner = { ...targetRange.from, sheet: this.sheetId };
+    const targetWidth = targetRange.getWidth();
+    const targetHeight = targetRange.getHeight();
+
+    // Blocks the autofill operation if at least one of the underlying's cell
+    // contents cannot be set, e.g. if there's a matrix underneath.
+    if (this.engine.isItPossibleToSetCellContents(targetLeftCorner, targetWidth, targetHeight) === false) {
+      return false;
+    }
+
+    return this.engine.getFillRangeData(
+      sourceLeftCorner, sourceWidth, sourceHeight, targetLeftCorner, targetWidth, targetHeight);
   }
 
   /**

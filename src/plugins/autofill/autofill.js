@@ -236,9 +236,6 @@ export class Autofill extends BasePlugin {
     if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
       const selectionData = this.getSelectionData();
       const sourceRange = selectionRangeLast.clone();
-
-      sourceRange.from.normalize(); // Selection can start from header.
-
       const targetRange = new CellRange(startOfDragCoords, startOfDragCoords, endOfDragCoords);
 
       const beforeAutofillHookResult = this.hot.runHooks(
@@ -256,19 +253,6 @@ export class Autofill extends BasePlugin {
         return false;
       }
 
-      // TODO: The `hasFillDataChanged` hook argument allows skipping processing of the autofill
-      // handler when the user modifies the fillData in the `beforeAutofill` hook. The workaround
-      // is necessary for the Formulas plugin and can be removed after implementing the missing
-      // feature for the HF (such as `getFillRangeData` method). With that the last argument could
-      // be removed from the `afterAutofill` hook.
-      const {
-        from: sourceFrom,
-        to: sourceTo,
-      } = sourceRange;
-
-      const refData = this.hot.getData(sourceFrom.row, sourceFrom.col, sourceTo.row, sourceTo.col);
-
-      const hasFillDataChanged = !isObjectEqual(refData, beforeAutofillHookResult);
       const deltas = getDeltas(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
 
       let fillData = beforeAutofillHookResult;
@@ -316,7 +300,7 @@ export class Autofill extends BasePlugin {
       );
 
       this.setSelection(cornersOfSelectionAndDragAreas);
-      this.hot.runHooks('afterAutofill', fillData, sourceRange, targetRange, directionOfDrag, hasFillDataChanged);
+      this.hot.runHooks('afterAutofill', fillData, sourceRange, targetRange, directionOfDrag);
       this.hot.render();
 
     } else {
