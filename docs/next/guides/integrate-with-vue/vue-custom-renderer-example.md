@@ -9,9 +9,13 @@ canonicalUrl: /vue-custom-renderer-example
 
 [[toc]]
 
-You can declare a custom renderer for the `HotTable` component either by declaring it as a function in the Handsontable options, or create a rendering component.
+## Overview
 
-## Declaring a renderer as a function
+You can declare a custom renderer for the `HotTable` component by declaring it as a function in the Handsontable options or creating a rendering component. 
+
+## Example - Declaring a renderer as a function
+
+The following example is an implementation of `@handsontable/vue` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
 
 ::: example #example1 :vue --html 1 --js 2
 ```html

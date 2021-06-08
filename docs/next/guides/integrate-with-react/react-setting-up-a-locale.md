@@ -7,7 +7,11 @@ canonicalUrl: /react-setting-up-a-locale
 
 # Setting up a locale
 
-An example of Handsontable with locales setup in React.
+## Overview
+
+The following example shows a Handsontable instance with locales set up in React.
+
+## Example
 
 ::: example #example1 :react-numbro
 ```jsx
