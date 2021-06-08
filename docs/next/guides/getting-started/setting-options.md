@@ -47,7 +47,7 @@ const hot = new Handsontable(container, {
 
 ### Single column
 
-Moving on, let's set the read-only cells by setting the option for column.
+Moving on, let's set the read-only cells by setting the option for columns.
 
 ::: example #example2 --html 1 --css 2 --js 3
 ```html
