@@ -27,6 +27,7 @@
       />
 
       <SearchBox />
+      <ThemeSwitcher />
 
       <NavLinks class="can-hide" />
     </div>
@@ -39,6 +40,7 @@ import SearchBox from '@theme/components/SearchBox'
 import SidebarButton from '@theme/components/SidebarButton.vue'
 import NavLinks from '@theme/components/NavLinks.vue'
 import Versions from '@theme/components/Versions.vue'
+import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue'
 export default {
   name: 'Navbar',
   components: {
@@ -46,7 +48,8 @@ export default {
     NavLinks,
     SearchBox,
     AlgoliaSearchBox,
-    Versions
+    Versions,
+    ThemeSwitcher
   },
   data () {
     return {
