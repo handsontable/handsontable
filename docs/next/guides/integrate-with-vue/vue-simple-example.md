@@ -7,9 +7,13 @@ canonicalUrl: /vue-simple-example
 
 # Basic example
 
-A simple implementation of the `@handsontable/vue` component.
+## Overview
 
-A `div` element of `id="example"` where the `@handsontable/vue` component will be rendered.
+The following example is a simple implementation of the `@handsontable/vue` component.
+
+## Example
+
+In this example, a `div` element of `id="example"` where the `@handsontable/vue` component will be rendered.
 
 ::: example #example1 :vue --html 1 --js 5 
 ```html
@@ -18,7 +22,7 @@ A `div` element of `id="example"` where the `@handsontable/vue` component will b
 </div>
 ```
 
-An implementation of the component.
+Implementing the component:
 
 ```js
 import Vue from 'vue';
