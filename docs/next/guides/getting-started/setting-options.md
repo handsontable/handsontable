@@ -14,11 +14,11 @@ tags:
 
 ## Overview
 
-Handsontable uses cascading configuration, a fast way to provide configuration options for the entire table, including its columns and particular cells. To show you how it works, we use the [readOnly](@/api/metaSchema.md#readOnly) and [className](@/api/metaSchema.md#className) options, which we will play in all the examples below.
+Handsontable uses cascading configuration, a fast way to provide configuration options for the entire table, including its columns and particular cells. To show you how it works, we use the [readOnly](@/api/metaSchema.md#readOnly) and [className](@/api/metaSchema.md#className) options.
 
 ### Entire grid
 
-By settings the [readOnly](@/api/metaSchema.md#readOnly) option, we tell Handsontable to propagate the option through the column settings down to the cells. Hence, all cells have a read-only state.
+By setting the [readOnly](@/api/metaSchema.md#readOnly) option, we propagate the option through the column settings down to the cells. As a result, all cells have a read-only state.
 
 ::: example #example1 --html 1 --css 2 --js 3
 ```html
@@ -47,11 +47,16 @@ const hot = new Handsontable(container, {
 
 ### Single column
 
-Moving on, let's set the read-only cells by setting the option to the specific column.
+Moving on, let's set the read-only cells by setting the option for column.
 
-::: example #example2 --html 1 --js 2
+::: example #example2 --html 1 --css 2 --js 3
 ```html
 <div id="example2" class="hot"></div>
+```
+```css
+td.bg-read-only {
+  background-color: #f2f4fb;
+}
 ```
 ```js
 const container = document.querySelector('#example2');
@@ -61,13 +66,19 @@ const hot = new Handsontable(container, {
   columns: [
     {},
     {},
-    { readOnly: true },
+    {
+      readOnly: true,
+      className: 'bg-read-only'
+    },
     {},
     {},
     {},
     {},
     {},
-    {},
+    {
+      readOnly: true,
+      className: 'bg-read-only'
+    },
     {},
   ],
   width: 'auto',
@@ -84,9 +95,14 @@ const hot = new Handsontable(container, {
 Using the [cells](@/api/metaSchema.md#cells) option we can apply read-only option to entire
 rows. In the example below, the second and last rows are read-only.
 
-::: example #example3 --html 1 --js 2
+::: example #example3 --html 1 --css 2 --js 3
 ```html
 <div id="example3" class="hot"></div>
+```
+```css
+td.bg-read-only {
+  background-color: #f2f4fb;
+}
 ```
 ```js
 const container = document.querySelector('#example3');
@@ -95,7 +111,10 @@ const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 10),
   cells(row, column) {
     if (row === 1 || row === 4) {
-      return { readOnly: true };
+      return {
+        readOnly: true,
+        className: 'bg-read-only'
+      };
     }
   },
   width: 'auto',
@@ -109,11 +128,16 @@ const hot = new Handsontable(container, {
 
 ### Single cell
 
-And finally, let's set the read-only only for one cell.
+And finally, let's make one of the cells read-only.
 
-::: example #example4 --html 1 --js 2
+::: example #example4 --html 1 --css 2 --js 3
 ```html
 <div id="example4" class="hot"></div>
+```
+```css
+td.bg-read-only {
+  background-color: #f2f4fb;
+}
 ```
 ```js
 const container = document.querySelector('#example4');
@@ -122,7 +146,10 @@ const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 10),
   cells(row, column) {
     if (row === 1 && column === 1) {
-      return { readOnly: true };
+      return {
+        readOnly: true,
+        className: 'bg-read-only'
+      };
     }
   },
   width: 'auto',
@@ -136,16 +163,16 @@ const hot = new Handsontable(container, {
 
 ## `cells` vs `cell`
 
-In the Options section of the API, you can find two similar options, [cell](@/api/metaSchema.md#cells-2) and [cell](@/api/metaSchema.md#cell). Using one of these options (or both), you can associate the custom properties or overwrite any entire table or column option for a particular cell. Both options allow you to set initial values for specific cells. You can check if the values are propagated by calling the [getCellMeta](@/api/core.md#getcellmeta) method. The method returns an object with all built-in options as well as those added by the developer.
+In the Options section of the API, you can find two similar options, [cell](@/api/metaSchema.md#cells-2) and [cell](@/api/metaSchema.md#cell). Using one of these options (or both), you can associate the custom properties or overwrite an entire table or column option for a particular cell. Both options allow you to set initial values for specific cells. You can check if the values are propagated by calling the [getCellMeta](@/api/core.md#getcellmeta) method. The method returns an object with all built-in options as well as those added by the developer.
 
 #### `cell`
 
-The [cell](@/api/metaSchema.md#cell) option works great for cases when you have to set initial values for your custom properties or change the initial values for the build-in options. Once the changes are propagated to the cells' meta-objects, they can be modified by the Handsontable while it is running. For example, the cell read-only state can be toggled by the context menu.
+The [cell](@/api/metaSchema.md#cell) option works great for cases when you have to set initial values for your custom properties or change the initial values for the build-in option. Once the changes are propagated to the cells' meta-objects, they can be modified by the Handsontable while it is running. For example, the cell read-only state can be modified by the context menu.
 
 ```js
 // ...
 cell: [
-  { row: 1, col: 1, readOnly: true }
+  { row: 1, col: 1, readOnly: true, className: 'bg-read-only' }
 ],
 // ...
 
@@ -160,13 +187,16 @@ hot.setCellMeta(1, 1, 'readOnly', false);
 
 The [cells](@/api/metaSchema.md#cells-2) option works slightly differently. The `cells` option is a function that invokes the logic in it before the table's rendering cycle. The options returned by that function always overwrite the entire table or column options. Thus, if you implement logic incorrectly, you won't be able to change cells' state from API or UI - as the values will be constantly overwritten by the `cells` function. You can think of this option as an opportunity to transfer the responsibility of keeping the table cells option to your application.
 
-If you want to stop, overwrite the cell meta object for particular cells, just return an empty object.
+If at some point you want to stop overwriting the cell meta object for particular cells, return an empty object, `null` or `undefined` value.
 
 ```js
 // ...
 cells(row, column) {
   if (row === 1 && column === 1) {
-    return { readOnly: true };
+    return {
+      readOnly: true,
+      className: 'bg-read-only'
+    };
   }
 },
 // ...
@@ -181,13 +211,18 @@ hot.setCellMeta(1, 1, 'readOnly', false);
 
 ## Show time
 
-With a combination of the above configuration layers, you're able to manage a more complicated setup.
+With a combination of the above configuration layers, you're able to manage a more complex setup.
 
 Consider the following example:
 
-::: example #example5 --html 1 --js 2
+::: example #example5 --html 1 --css 2 --js 3
 ```html
 <div id="example5" class="hot"></div>
+```
+```css
+td.bg-read-only {
+  background-color: #f2f4fb;
+}
 ```
 ```js
 const container = document.querySelector('#example5');
@@ -196,7 +231,10 @@ const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 10),
   readOnly: true,
   columns: [
-    { readOnly: false },
+    {
+      readOnly: false,
+      className: 'bg-read-only'
+    },
     {},
     {},
     {},
@@ -209,11 +247,17 @@ const hot = new Handsontable(container, {
   ],
   cells(row, column) {
     if (row === 0 && column === 0) {
-      return { readOnly: true }
+      return {
+        readOnly: true,
+        className: 'bg-read-only'
+      }
     }
 
     if (row === 2 && column === 2) {
-      return { readOnly: false }
+      return {
+        readOnly: false,
+        className: 'bg-read-only'
+      }
     }
   },
   width: 'auto',
@@ -225,8 +269,8 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-The above notation results in all cells being read-only, except for the first column, which is editable. The top-left cell and cell at row and column index `3, 3` are still read-only. Their properties are individually managed within the [cells](@/api/metaSchema.md#cells-2) option.
+The above snippet makes all cells read-only, except the first column, which remains editable. However, notice how the top-left cell, as well as the cell at index `3, 3` are still read-only. It's because their properties are individually managed within the [cells](@/api/metaSchema.md#cells-2) option.
 
 ## All options
 
-The most up to date list of options is available in the [Options](@/api/metaSchema.md) section of the API Reference. The table below is just a cheatsheet that can be useful if you're already familiar with the Handsontable API.
+The most up to date list of options is available in the [Options](@/api/metaSchema.md) section of the API Reference.
