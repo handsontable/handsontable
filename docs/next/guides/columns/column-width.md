@@ -20,7 +20,7 @@ tags:
 
 ## Overview
 
-By default, the column width adjusts to the width of the content. However, if the width of the column content is less than `50px`, including `1px` for borders on the sides, the column width will remain constant at `50px`. The column size can be passed as a `constant`, an `array` or a `function`.
+By default, the column width adjusts to the width of the content. However, if the width of the column content is less than `50px`, including `1px` for borders on the sides, the column width remains constant at `50px`. The column size can be passed as a `constant`, an `array` or a `function`.
 
 The content inside a cell will be wrapped if it doesn't fit the cell's width.
 
@@ -47,7 +47,7 @@ const hot = new Handsontable(container, {
 
 ## Setting the column width in an array
 
-In this example, the width is only set for the first four columns. Each additional column would automatically adjust to the content.  
+In this example, the width is only set for the first four columns. Each additional column would automatically adjust to the content.
 
 ::: example #example2
 ```js
@@ -68,7 +68,7 @@ const hot = new Handsontable(container, {
 
 ## Setting the column width using a function
 
-The column width can be set using a function. In this example, the size of all columns is set using a function by taking a column `index` (1, 2 ...) and multiplying it by `40px` for each consecutive column.
+In this example, the size of all columns is set using a function by taking a column `index` (1, 2 ...) and multiplying it by `40px` for each consecutive column.
 
 ::: example #example3
 ```js
