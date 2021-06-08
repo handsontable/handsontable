@@ -7,7 +7,13 @@ canonicalUrl: /react-custom-renderer-example
 
 # Custom renderer example
 
-An implementation of the `@handsontable/react` with a custom renderer added. It takes an image url as the input and renders the image in the edited cell.
+## Overview
+
+You can declare a custom renderer for the `HotTable` component by declaring it as a function in the Handsontable options or creating a rendering component. 
+
+## Example
+
+The following example implements `@handsontable/react` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
 
 ::: example #example1 :react
 ```jsx

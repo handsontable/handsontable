@@ -9,7 +9,11 @@ canonicalUrl: /react-simple-example
 
 [[toc]]
 
-## Get started
+## Overview
+
+The following examples outline how to perform basic tasks using a React Handsontable configuration.
+
+## Examples
 
 ::: example #example1 :react --html 1 --js 2
 ```html
