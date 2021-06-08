@@ -6,6 +6,7 @@ describe('Formulas general', () => {
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -14,8 +15,34 @@ describe('Formulas general', () => {
     }
 
     if (this.$container) {
-      destroy();
+      try {
+        if (this.$container.handsontable('getInstance')) {
+          destroy();
+        }
+      } catch (e) {
+        // In some of the test cases we're manually destroying the Handsontable instances, so 'getInstance' may
+        // throw a post-mortem error.
+        if (!e.message.includes('instance has been destroyed')) {
+          throw e;
+        }
+      }
+
       this.$container.remove();
+    }
+
+    if (this.$container2) {
+      try {
+        if (this.$container2.handsontable('getInstance')) {
+          this.$container2.handsontable('getInstance').destroy();
+        }
+      } catch (e) {
+        // In some of the test cases we're manually destroying the Handsontable instances, so 'getInstance' may
+        // throw a post-mortem error.
+        if (!e.message.includes('instance has been destroyed')) {
+          throw e;
+        }
+      }
+      this.$container2.remove();
     }
   });
 
@@ -53,100 +80,138 @@ describe('Formulas general', () => {
     });
 
     it('should validate result of formula for dependant cells properly (formula returns text)', async() => {
-      const hot = handsontable({
+      const beforeValidate = jasmine.createSpy('beforeValidate');
+
+      handsontable({
         data: [
           [0, '=A1', '=B1', '=C1']
         ],
         formulas: {
           engine: HyperFormula
         },
-        type: 'numeric'
+        type: 'numeric',
+        beforeValidate,
       });
 
-      hot.setDataAtCell(0, 0, 'text');
+      setDataAtCell(0, 0, 'text');
 
       await sleep(100); // Validator is asynchronous.
 
-      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
-      expect($(getCell(0, 1)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
-      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
-      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect(beforeValidate).toHaveBeenCalledWith('text', 0, 0, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith('text', 0, 1, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith('text', 0, 2, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith('text', 0, 3, void 0, void 0, void 0);
+      expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 1)).hasClass(getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(true);
     });
 
     it('should validate result of formula and dependant cells properly (formula returns error)', async() => {
-      const hot = handsontable({
+      const beforeValidate = jasmine.createSpy('beforeValidate');
+
+      handsontable({
         data: [
           ['=B1+5', 2, '=A1', '=C1']
         ],
         formulas: {
           engine: HyperFormula
         },
-        type: 'numeric'
+        type: 'numeric',
+        beforeValidate,
       });
 
-      hot.setDataAtCell(0, 0, '=B1+5a');
+      setDataAtCell(0, 0, '=B1+5a');
 
       await sleep(100); // Validator is asynchronous.
 
-      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
-      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
-      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect(beforeValidate).toHaveBeenCalledWith('#ERROR!', 0, 0, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith('#ERROR!', 0, 2, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith('#ERROR!', 0, 3, void 0, void 0, void 0);
+      expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(true);
 
-      hot.setDataAtCell(0, 0, '=B1+5');
+      setDataAtCell(0, 0, '=B1+5');
 
       await sleep(100); // Validator is asynchronous.
 
-      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
-      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
-      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 0, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 2, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 3, void 0, void 0, void 0);
+      expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(false);
     });
 
     it('should validate result of formula and dependant cells properly (formula create circular dependency)', async() => {
-      const hot = handsontable({
+      const beforeValidate = jasmine.createSpy('beforeValidate');
+
+      handsontable({
         data: [
           ['=B1+5', 2, '=A1', '=C1']
         ],
         formulas: {
           engine: HyperFormula
         },
-        type: 'numeric'
+        type: 'numeric',
+        beforeValidate,
       });
 
-      hot.setDataAtCell(0, 0, '=C1');
+      setDataAtCell(0, 0, '=C1');
 
       await sleep(100); // Validator is asynchronous.
 
-      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
-      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
-      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect(beforeValidate).toHaveBeenCalledWith('#CYCLE!', 0, 0, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith('#CYCLE!', 0, 2, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith('#CYCLE!', 0, 3, void 0, void 0, void 0);
+      expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(true);
 
-      hot.setDataAtCell(0, 0, '=B1+5');
+      setDataAtCell(0, 0, '=B1+5');
 
       await sleep(100); // Validator is asynchronous.
 
-      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
-      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
-      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 0, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 2, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 3, void 0, void 0, void 0);
+      expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(false);
     });
 
     it('should validate result of formula and dependant cells properly (formula create #REF! error)', async() => {
-      const hot = handsontable({
+      const beforeValidate = jasmine.createSpy('beforeValidate');
+
+      handsontable({
         data: [
           ['=E1', 2, '=A1', '=C1', 22]
         ],
         formulas: {
           engine: HyperFormula
         },
-        type: 'numeric'
+        type: 'numeric',
+        beforeValidate,
       });
 
-      hot.alter('remove_col', 4);
+      alter('remove_col', 4);
 
       await sleep(100); // Validator is asynchronous.
 
-      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
-      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
-      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect(beforeValidate).not.toHaveBeenCalled();
+      expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(false);
+
+      await new Promise(resolve => validateCells(resolve));
+
+      expect(beforeValidate).toHaveBeenCalledWith('#REF!', 0, 0, 'validateCells', void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith('#REF!', 0, 2, 'validateCells', void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith('#REF!', 0, 3, 'validateCells', void 0, void 0);
+      expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(true);
     });
 
     it('should not automatically validate changes when the engine is modified from the outside code', async() => {
@@ -168,8 +233,7 @@ describe('Formulas general', () => {
       expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
       expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
 
-      hot.validateCells();
-      await sleep(100); // Validator is asynchronous.
+      await new Promise(resolve => hot.validateCells(resolve));
 
       expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
       expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
@@ -200,6 +264,83 @@ describe('Formulas general', () => {
       expect(afterValidate).toHaveBeenCalledWith(false, '23', 0, 5, 'validateCells', void 0);
       expect(afterValidate).toHaveBeenCalledWith(false, '=A1', 0, 6, 'validateCells', void 0);
       expect(afterValidate).toHaveBeenCalledWith(false, '12/1/2016', 0, 7, 'validateCells', void 0);
+    });
+
+    it('should only call the validator once for modified cells', async() => {
+      const validator1 = jasmine.createSpy('validator1').and.callFake((value, callback) => callback(true));
+      const validator2 = jasmine.createSpy('validator2').and.callFake((value, callback) => callback(true));
+
+      handsontable({
+        data: [
+          ['=B1+5', 2, '=D1', 'text', 'foo']
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        validator: validator1,
+      });
+      spec().$container2.handsontable({
+        data: [
+          ['=Sheet1!A1', 2, '=D1', 'D', '=A1+1']
+        ],
+        formulas: {
+          engine: getPlugin('formulas').engine,
+          sheetName: 'Sheet2'
+        },
+        validator: validator2,
+      });
+
+      setDataAtCell(0, 1, 6);
+
+      await sleep(100); // Validator is asynchronous.
+
+      expect(validator1).toHaveBeenCalledTimes(2);
+      expect(validator1).toHaveBeenCalledWith(6, jasmine.any(Function));
+      expect(validator1).toHaveBeenCalledWith(11, jasmine.any(Function));
+      expect(validator2).toHaveBeenCalledTimes(2);
+      expect(validator2).toHaveBeenCalledWith(11, jasmine.any(Function));
+      expect(validator2).toHaveBeenCalledWith(12, jasmine.any(Function));
+
+      setDataAtCell(0, 4, 'bar');
+
+      await sleep(100); // Validator is asynchronous.
+
+      expect(validator1).toHaveBeenCalledTimes(3);
+      expect(validator1).toHaveBeenCalledWith('bar', jasmine.any(Function));
+      expect(validator2).toHaveBeenCalledTimes(2);
+    });
+
+    it('should validate correct visual cells', async() => {
+      const beforeValidate = jasmine.createSpy('beforeValidate');
+      const hot = handsontable({
+        data: [
+          ['1', 2, '=D1', 'text1', 'foo1'],
+          ['2', 2, '=D2', 'text2', 'foo2'],
+          ['3', 2, '=D3', 'text3', 'foo3'],
+          ['4', 2, '=D4', 'text4', 'foo4'],
+          ['5', 2, '=D5', 'text5', '=A1+3'],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        validator(value, callback) {
+          callback(false);
+        },
+        beforeValidate,
+      });
+
+      hot.columnIndexMapper.indexesSequence.setValues([0, 2, 3, 4, 1]);
+      hot.rowIndexMapper.indexesSequence.setValues([0, 2, 3, 4, 1]);
+
+      render();
+      setDataAtCell(0, 0, 6);
+
+      await sleep(100); // Validator is asynchronous.
+
+      expect(beforeValidate).toHaveBeenCalledTimes(2);
+      expect(beforeValidate).toHaveBeenCalledWith(6, 0, 0, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith(9, 3, 4, void 0, void 0, void 0);
     });
   });
 });
