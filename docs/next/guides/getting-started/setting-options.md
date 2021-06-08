@@ -167,7 +167,7 @@ In the Options section of the API, you can find two similar options, [cell](@/ap
 
 #### `cell`
 
-The [cell](@/api/metaSchema.md#cell) option works great for cases when you have to set initial values for your custom properties or change the initial values for the build-in option. Once the changes are propagated to the cells' meta-objects, they can be modified by the Handsontable while it is running. For example, the cell read-only state can be modified by the context menu.
+The [cell](@/api/metaSchema.md#cell) option works great for cases when you have to set initial values for your custom properties or change the initial values for the built-in option. Once the changes are propagated to the cells' meta-objects, they can be modified by the Handsontable while it is running. For example, the cell read-only state can be modified by the context menu.
 
 ```js
 // ...
