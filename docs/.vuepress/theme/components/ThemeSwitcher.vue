@@ -1,17 +1,19 @@
 <template>
-  <button v-on:click="toggleTheme" >Yo! {{current}}</button>
+  <span v-on:click="toggleTheme" class="theme-switcher">{{themeIcon}}</span>
 </template>
 
 <script>
 const CLASS_THEME_DARK = 'theme-dark';
 const DEFAULT_THEME_CLASS = 'theme-light';
+const DEFAULT_THEME_ICON = '☀️';
+const DARK_THEME_ICON = '🌙';
 
 const getBodyElement = () => {
   return document.querySelector('body');
 }
 
-const getBodyThemeClass = () => {
-  return getBodyElement().classList.contains(CLASS_THEME_DARK) ? CLASS_THEME_DARK : DEFAULT_THEME_CLASS;
+const getCurrentThemeIcon = () => {
+  return getBodyElement().classList.contains(CLASS_THEME_DARK) ? DARK_THEME_ICON : DEFAULT_THEME_ICON;
 }
 
 const toggleClassOnBody = () => {
@@ -31,12 +33,12 @@ export default {
   methods:{
     toggleTheme(){
       toggleClassOnBody();
-      this.current = getBodyThemeClass();
+      this.themeIcon = getCurrentThemeIcon();
     }
   },
   data(){
     return {
-      current: DEFAULT_THEME_CLASS
+      themeIcon: DEFAULT_THEME_ICON
     }
   },
   beforeMount() {
@@ -46,5 +48,11 @@ export default {
 </script>
 
 <style lang="stylus">
+
+  span.theme-switcher {
+    padding 0 20px
+    font-size 1.2rem
+    cursor pointer
+  }
 
 </style>

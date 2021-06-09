@@ -1,2 +1,121 @@
+$backgroundColor = #18191A;
+$fontColor = #bec3c9;
+$fontColorSidebar = #F5F6F7;
+$searchBoxBackground = #20232A;
+$sectionBorderColor = #20232A;
+$scrollbarThumb = #444950;
+
 body.theme-dark {
+
+  /* Elements that should have set background-color */
+  div#app,
+  header,
+  div.links,
+  aside.sidebar {
+    background $backgroundColor
+  }
+
+  h1, h2, h3, h4, h5, h6, p, li a {
+    color $fontColor
+    border-color $sectionBorderColor
+  }
+  
+  /* Navbar */
+  header.navbar {
+    border-color $sectionBorderColor
+
+    /* Navbar links */
+    & .nav-link {
+      color $fontColor
+    }
+
+    /* Support button in navbar */
+    & .dropdown-title {
+      & .title {
+        color $fontColor
+      }
+      & .arrow.down {
+        border-top-color $fontColor
+      }
+    }
+  }
+
+
+  /* Searchbox */
+  .search-box input {
+      background $searchBoxBackground url(/docs/assets/img/search.83621669.svg) 0.6rem 0.5rem no-repeat
+      background-size 1rem
+      border-color #43464d
+  }
+
+  /* Sidebar */
+  .sidebar {
+    border-right-color $sectionBorderColor
+
+    /* Sidebar collapsible elements */
+    & .sidebar-heading {
+      color #767676
+
+      & .arrow, & .arrow-down {
+        border-color #8B8B8C
+      }
+    }
+
+    /* Links in the sidebar */
+    & a.sidebar-link {
+      color $fontColorSidebar
+
+      &:hover {
+        background #242526
+      }
+
+      &.active {
+        background #242526
+        font-weight bold
+      }
+    }
+  }
+
+  /* Table of contents */
+  .table-of-contents {
+    border-left-color $sectionBorderColor
+
+    .toc-container-header {
+      color $fontColor
+    }
+
+    a.active {
+      color: $fontColorSidebar
+      font-weight bold
+    }
+  }
+
+  /* Scrollbar (works on Chrome, Edge, and Safari) */
+  aside::-webkit-scrollbar {
+    width 12px // width of the entire scrollbar
+  }
+
+  aside::-webkit-scrollbar-track {
+    background $backgroundColor // color of the tracking area
+  }
+
+  aside::-webkit-scrollbar-thumb {
+    background-color $scrollbarThumb // color of the scroll thumb
+    border-radius 20px // roundness of the scroll thumb
+    border 2px solid $backgroundColor // creates padding around scroll thumb
+  }
+
+  /* Scrollbar (works on Firefox) */
+  aside {
+    scrollbar-width thin;
+    scrollbar-color $scrollbarThumb $backgroundColor;
+  }
+
+  .tabs-component-tabs {
+    background #2f3133
+
+    .tabs-component-tab-a {
+      color $fontColor
+    }
+  }
 }
