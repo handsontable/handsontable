@@ -22,8 +22,9 @@ export default {
   props: ['code'],
   mounted() {
     const [ append, remove ] = useCodePreview(decode(this.$props.code));
+
     append(this.$el);
-    this.unmount = remove();
+    remove();
   },
   methods:{
     decode

@@ -56,10 +56,10 @@ function getPreviewTab(id, cssContent, htmlContent, code) {
     level: 1,
     children: null,
     content: `
-      <tab name="Preview" hot-example-id="${id}">
+      <tab name="Preview">
         <style v-pre>${cssContent}</style>
         <div v-pre>${htmlContent}</div>
-        <ScriptLoader code="${code}"></ScriptLoader>
+        <ScriptLoader v-if="$parent.$parent.isScriptLoaderActivated('${id}')" code="${code}"></ScriptLoader>
       </tab>
     `,
     markup: '',
@@ -123,8 +123,8 @@ module.exports = {
 
       return `
           ${jsfiddle(id, htmlContent, jsContent, cssContent, version, preset)}
-          <tabs 
-            :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }" 
+          <tabs
+            :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
             cache-lifetime="0"
             @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
           >
