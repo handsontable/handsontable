@@ -12,10 +12,8 @@
 </template>
 
 <script>
-import Vue from 'vue'
 import PageEdit from '@theme/components/PageEdit.vue'
 import PageNav from '@theme/components/PageNav.vue'
-import ScriptLoader from '../../components/ScriptLoader.vue'
 
 export default {
   components: { PageEdit, PageNav },
