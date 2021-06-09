@@ -3,7 +3,7 @@
     <SidebarButton @toggle-sidebar="$emit('toggle-sidebar')" />
 
     <RouterLink
-        :to="$localePath"
+        :to="versionedUrl($localePath)"
         class="home-link"
     >
       <img
@@ -39,6 +39,7 @@ import SearchBox from '@theme/components/SearchBox'
 import SidebarButton from '@theme/components/SidebarButton.vue'
 import NavLinks from '@theme/components/NavLinks.vue'
 import Versions from '@theme/components/Versions.vue'
+import {ensureExt} from "./util";
 export default {
   name: 'Navbar',
   components: {
@@ -47,6 +48,15 @@ export default {
     SearchBox,
     AlgoliaSearchBox,
     Versions
+  },
+  methods: {
+    versionedUrl(url){
+      if (this.$page.currentVersion === this.$page.latestVersion) {
+        return ensureExt(url);
+      } else {
+        return ensureExt('/' + this.$page.currentVersion + url);
+      }
+    }
   },
   data () {
     return {
