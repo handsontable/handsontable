@@ -46,7 +46,7 @@ const tab = (tabName, token) => {
   ];
 };
 
-function getPreviewTab(id, cssContent, htmlContent, code) {
+const getPreviewTab = (id, cssContent, htmlContent, code) => {
   return {
     type: 'html_block',
     tag: '',
@@ -67,9 +67,8 @@ function getPreviewTab(id, cssContent, htmlContent, code) {
     meta: null,
     block: true,
     hidden: false
-  }
-  ;
-}
+  };
+};
 
 module.exports = {
   type: 'example',
