@@ -17,8 +17,6 @@ import {
   spawnProcess
 } from './utils/index.mjs';
 
-const [version, releaseDate] = process.argv.slice(2);
-
 const argv = yargs(hideBin(process.argv))
   .boolean('commit')
   .default('commit', false)
@@ -30,6 +28,7 @@ const argv = yargs(hideBin(process.argv))
     ' freeze process.')
   .argv;
 
+const [version, releaseDate] = argv._;
 displaySeparator();
 
 (async() => {
