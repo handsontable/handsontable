@@ -9,24 +9,26 @@ canonicalUrl: /handsontable-cell-type
 
 ## Overview
 
-This page shows using Handsontable as a cell editor in Handsontable.
+This page describes how to use Handsontable as a cell editor in Handsontable.
+
+## Usage
 
 **HOT-in-HOT opens by any of the following:**
 
-* <kbd>F2</kbd> or <kbd>ENTER</kbd> key is pressed while the cell is selected,
-* the triangle icon is clicked,
-* the cell content is double clicked.
+* <kbd>F2</kbd> or <kbd>ENTER</kbd> key is pressed while the cell is selected
+* The triangle icon is clicked
+* The cell content is double clicked
 
 While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused at all times.
 
 **Keyboard bindings while the HOT-in-HOT is opened:**
 
-* <kbd>ESC</kbd> - close editor (cancel change),
-* <kbd>ENTER</kbd> - close editor (apply change\*), move the selection in the main HOT downwards (or according to `enterMoves` setting),
-* <kbd>TAB</kbd> - behave as the <kbd>ENTER</kbd> key, but move the selection in the main HOT to the right (or according to `tabMoves` setting),
-* <kbd>ARROW DOWN</kbd> - move the selection in HOT-in-HOT downwards. If the last row was selected, has no effect,
-* <kbd>ARROW UP</kbd> - move the selection in HOT-in-HOT upwards. If the first row was selected, deselect. If HOT-in-HOT was deselected, behave as the <kbd>ENTER</kbd> key but move the selection in the main HOT upwards,
-* <kbd>ARROW RIGTH</kbd> - move the text cursor in the text field to the left. If the text cursor was at the start position, behave as the <kbd>ENTER</kbd> key but move the selection in the main HOT to the left,
+* <kbd>ESC</kbd> - close editor and cancel change.
+* <kbd>ENTER</kbd> - close editor and apply change\*, move the selection in the main HOT downwards or according to the `enterMoves` setting.
+* <kbd>TAB</kbd> - behaves as the <kbd>ENTER</kbd> key, but move the selection in the main HOT to the right or according to the `tabMoves` setting.
+* <kbd>ARROW DOWN</kbd> - move the selection in HOT-in-HOT downwards. If the last row was selected, this has no effect.
+* <kbd>ARROW UP</kbd> - move the selection in HOT-in-HOT upwards. If the first row was selected, deselect. If HOT-in-HOT was deselected, behave as the <kbd>ENTER</kbd> key but move the selection in the main HOT upwards.
+* <kbd>ARROW RIGTH</kbd> - move the text cursor in the text field to the left. If the text cursor was at the start position, behave as the <kbd>ENTER</kbd> key but move the selection in the main HOT to the left.
 * <kbd>ARROW LEFT</kbd> - move the text cursor in the text field to the right. If the text cursor was at the end position, behave as the TAB key.
 
 ## Basic example
@@ -63,7 +65,7 @@ const hot = new Handsontable(container, {
         getValue() {
           const selection = this.getSelectedLast();
 
-          // Get always manufacture name of clicked row and ignore header
+          // Get the manufacturer name of the clicked row and ignore header
           // coordinates (negative values)
           return this.getSourceDataAtRow(Math.max(selection[0], 0)).name;
         },

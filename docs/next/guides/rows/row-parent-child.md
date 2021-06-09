@@ -16,12 +16,12 @@ tags:
 [[toc]]
 
 ::: warning
-Sorting and filtering don't work with the parent-child structure.
+Sorting and filtering features don't work with the parent-child structure.
 :::
 
 ## Overview
 
-The **Nested Rows** plugin extends Handsontable with a new functionality - displaying nested structures in a two-dimensional data table.
+The **Nested Rows** plugin extends Handsontable, adding new functionality that displays nested structures in a two-dimensional data table.
 
 ## Quick Setup
 
@@ -33,16 +33,16 @@ const hot = new Handsontable(container, {
 });
 ```
 
-Note that using all the functionalities provided by the plugin requires setting `rowHeaders` (enables the row headers) and `contextMenu` (enables the Handsontable’s context menu) to `true`, as the _collapse_ / _expand_ buttons are located in the row headers and row modification options (_add row_, _insert child_ etc.) are in the Context Menu.
+Note that using all the functionalities provided by the plugin requires enabling the row headers and the Handsontable context menu. To do this set `rowHeaders` and `contextMenu` to `true`. The _collapse_ / _expand_ buttons are located in the row headers, and the row modification options _add row_, _insert child_, etc., are in the Context Menu.
 
 ## Preparing the data source
 
-The data source has to have a certain structure to be used with the _Nested Rows_ plugin.
+The data source must have a specific structure to be used with the _Nested Rows_ plugin.
 
-The plugin requires the data source to be an **array of objects**. Each object in the array represents a single _0-level_ entry. By _0-level_ I mean an entry which is not a child to any other entry.
-If an entry has any child entries, we need to declare them (again) as an _array of objects_. To assign them to a row, we need to create a `__children` property in the parent element.
+The plugin requires the data source to be an **array of objects**. Each object in the array represents a single _0-level_ entry.  _0-level_ refers to an entry, which is not a child of any other entry.
+If an entry has any child entries, they need to be declared again as an _array of objects_. To assign them to a row, create a `__children` property in the parent element.
 
-Take a look at this example:
+Here's an example:
 
 ::: example #example1
 ```js
@@ -182,25 +182,27 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-In the example above we’ve created a data object consisting of 2016’s Grammy nominees of the “Rock” genre. As you can see, each _0-level_ entry declares a category, while their children declare nominees - they’re assigned under the `__children` properties.
+In the example above, we’ve created a data object consisting of 2016’s Grammy nominees of the “Rock” genre. Each _0-level_ entry declares a category, while their children declare nominees - assigned under the `__children` properties.
 
-Another thing to mention - the **first** 0-level object in the array needs to have all columns defined to display the table properly. They can be declared as `null` or `''` (an empty string), but they need to be defined. This is optional for the other objects.
+:::tip 
+Note that the **first** 0-level object in the array needs to have all columns defined to display the table properly. They can be declared as `null` or an empty string `''`, but they need to be defined. This is optional for the other objects.
+:::
 
 ## User interface
 
-The _Nested Rows_ plugin user interface is placed in the row headers and the Handsontable’s context menu.
+The _Nested Rows_ plugin's user interface is placed in the row headers and the Handsontable’s context menu.
 
 ### Row headers
 
 Each _parent_ row header contains a `+`/`-` button. It is used to collapse or expand its child rows.
 
-Moreover, the child rows’ headers had been given a bigger indentation, so the user can clearly recognize the child and parent elements.
+The child row headers have a bigger indentation, to enable the user to clearly recognize the child and parent elements.
 
 ### Context Menu
 
-The context menu has been extended with a few Nested Rows-related options, such as:
+The context menu has been extended with a few Nested Rows related options, such as:
 
 * Insert child row
 * Detach from parent
 
-Moreover, the “Insert row above” and “Insert row below” options were modified to work properly with the nested data structure.
+The “Insert row above” and “Insert row below” options were modified to work properly with the nested data structure.

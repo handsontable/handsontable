@@ -7,7 +7,11 @@ canonicalUrl: /react-custom-context-menu-example
 
 # Custom context menu - example
 
-An implementation of the `@handsontable/react` component with a custom Context Menu added.
+## Overview
+
+The following example is an implementation of the `@handsontable/react` component with a custom Context Menu added using React.
+
+## Example
 
 ::: example #example1 :react
 ```jsx

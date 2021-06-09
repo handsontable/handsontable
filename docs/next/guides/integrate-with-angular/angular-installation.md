@@ -7,6 +7,9 @@ canonicalUrl: /angular-installation
 
 # Installation
 
+## Overview
+Angular installation and basic usage guide.
+
 ### Install with npm
 
 This component needs the Handsontable library to work. Use [npm](https://www.npmjs.com/package/@handsontable/angular) to install the packages.
@@ -45,7 +48,7 @@ import { HotTableModule } from '@handsontable/angular';
 export class AppModule { }
 ```
 
-Now, you can use the Handsontable component in your HTML files
+Now, you can use the Handsontable component in your HTML files.
 
 ```html
 <hot-table

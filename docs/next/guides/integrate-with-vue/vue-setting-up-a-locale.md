@@ -7,7 +7,11 @@ canonicalUrl: /vue-setting-up-a-locale
 
 # Setting up a locale
 
-An example of Handsontable with locales setup in Vue.
+## Overview
+
+The following example shows a Handsontable instance with locales set up in Vue.
+
+## Example
 
 ::: example #example1 :vue-numbro --html 1 --js 2
 ```html
@@ -44,7 +48,7 @@ import 'handsontable/dist/handsontable.min.css';
 import numbro from 'numbro';
 import languages from 'numbro/dist/languages.min.js';
 
-// register needed languages
+// register the languages you need
 numbro.registerLanguage(languages['ja-JP']);
 numbro.registerLanguage(languages['tr-TR']);
 

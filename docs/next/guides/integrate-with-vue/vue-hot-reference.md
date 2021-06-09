@@ -8,7 +8,11 @@ permalink: /next/vue-hot-reference
 
 [[toc]]
 
-An implementation of the `@handsontable/vue` explaining how to reference the Handsontable instance from the wrapper component.
+## Overview
+
+The following example implements the `@handsontable/vue`, showing how to reference the Handsontable instance from the wrapper component.
+
+## Example
 
 ::: example #example1 :vue --html 1 --js 2
 ```html

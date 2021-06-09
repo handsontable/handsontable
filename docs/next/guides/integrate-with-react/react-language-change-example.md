@@ -7,10 +7,15 @@ canonicalUrl: /react-language-change-example
 
 # Language change example
 
-An implementation of the `@handsontable/react` component with an option to change the Context Menu language.
-Select a language from the selector above the table and open the Context Menu to see the result.
+## Overview
 
-Note, that the `language` property is bound to the component separately by using `language={this.language}"`, but it could be included in the `settings` prop just as well.
+The following example implements the `@handsontable/react` component with the option to change the Context Menu language configured. Select a language from the selector above the table and open the Context Menu to see the result.
+
+:::tip
+Note that the `language` property is bound to the component separately using `language={this.language}"`, but it could be included in the `settings` property just as well.
+:::
+
+## Example
 
 ::: example #example1 :react-languages
 ```jsx

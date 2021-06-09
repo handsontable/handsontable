@@ -12,7 +12,12 @@ tags:
 
 [[toc]]
 
-Specify two fixed rows with `fixedRowsTop: 2`. You'll need horizontal scrollbars, so just set a container `width` and `overflow: hidden` in CSS.
+## Overview
+Row freezing locks specific rows of a grid in place, keeping them visible while scrolling to another area of the grid.
+
+## Example 
+
+The following example specifies two fixed rows with `fixedRowsTop: 2`. Horizontal scroll bars are needed, so set a container `width` and `overflow: hidden` in CSS.
 
 ::: example #example1
 ```js

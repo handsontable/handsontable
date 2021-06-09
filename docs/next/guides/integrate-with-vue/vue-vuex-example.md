@@ -9,11 +9,13 @@ canonicalUrl: /vue-vuex-example
 
 [[toc]]
 
-An implementation of the `@handsontable/vue` component with a `readOnly` toggle switch and the Vuex state manager implemented.
+## Overview
 
- Toggle `readOnly` for the entire table
+The following example implements the `@handsontable/vue` component with a `readOnly` toggle switch and the Vuex state manager.
 
-## Vuex store dump:
+## Example - Vuex store dump:
+
+Toggle `readOnly` for the entire table.
 
 ::: example #example1 :vue-vuex --html 1 --js 2
 ```html

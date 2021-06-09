@@ -38,7 +38,7 @@ Possible values of `selectionMode`:
   <select id="selectOption" style="width: auto; margin-top: 16px">
     <option>Single selection</option>
     <option>Range selection</option>
-    <option selected="selected">Multiple selection</option>
+    <option selected="selected">Multiple ranges selection</option>
   </select>
 </div>
 ```
