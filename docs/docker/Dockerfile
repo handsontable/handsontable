@@ -2,14 +2,25 @@ FROM node:15 as build
 ARG BUILD_MODE
 ENV BUILD_MODE=${BUILD_MODE:-stage}
 
-WORKDIR app
+WORKDIR /app
 
 # dependencies
-COPY package*.json ./
+COPY docs/package*.json ./docs/
+COPY .git ./.git
+RUN pwd
+RUN ls -al
+RUN ls -al docs
+
+# install dependecies
+WORKDIR /app/docs
 RUN yarn
 
 # app
-COPY . ./
+WORKDIR /app
+COPY docs ./docs
+
+WORKDIR /app/docs
+RUN git status
 
 # clear non public documentation files
 RUN if [ "$BUILD_MODE" = "production" ] ; then     \
@@ -17,11 +28,11 @@ RUN if [ "$BUILD_MODE" = "production" ] ; then     \
     rm ./.vuepress/public/handsontable.js ./.vuepress/public/handsontable.css     \
   ; fi
 
-RUN npm run docs:build
+RUN yarn docs:build
 
 # server image
 FROM nginx:alpine
 
 # set up static content
 WORKDIR /usr/share/nginx
-COPY --from=build ./app/.vuepress/dist/docs ./html
+COPY --from=build ./app/docs/.vuepress/dist/docs ./html
