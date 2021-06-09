@@ -1,14 +1,21 @@
 <template>
   <div> 
     <tabs :options="{ useUrlFragment: false }"  @changed="tabClicked">
+      <tab name="JavaScript" id="js">
+        <iframe v-if="selected === 'js'" :src="jsSrc"
+          :style="styleAttribute"
+          :allow="allowAttribute"
+          :sandbox="sandboxAttribute"
+          title="Handsontable JavaScript Data Grid - Hello World App"
+        ></iframe>
+      </tab>
       <tab name="TypeScript" id="typescript">
         <iframe v-if="selected === 'typescript'" :src="tsSrc" 
           :style="styleAttribute"
           :allow="allowAttribute"
           :sandbox="sandboxAttribute"
           title="Handsontable TypeScript Data Grid - Hello World App"
-        >
-        </iframe>
+        ></iframe>
       </tab>
       <tab name="React" id="react">
         <iframe v-if="selected === 'react'" :src="reactSrc"
@@ -16,8 +23,7 @@
           :allow="allowAttribute"
           :sandbox="sandboxAttribute"
           title="Handsontable React Data Grid - Hello World App"
-        >
-        </iframe>
+        ></iframe>
       </tab>
       <tab name="Vue" id="vue" :is-disabled="true"></tab>
       <tab name="Angular" id="angular" :is-disabled="true"></tab>
@@ -33,7 +39,8 @@ export default {
   name: 'HelloWorld',
   data() {
     return {
-      selected: 'typescript',
+      selected: 'js',
+      jsSrc: `${hrefStart}handsontable-javascript-data-grid-hello-world-app-dzx8f${hrefEnd}`,
       tsSrc: `${hrefStart}handsontable-typescript-data-grid-hello-world-app-145es${hrefEnd}`,
       reactSrc: `${hrefStart}handsontable-react-data-grid-hello-world-app-yt46w${hrefEnd}`,
       styleAttribute: 'width: 100%; height: 500px; border: 0; border-radius: 4px; overflow: hidden;',
