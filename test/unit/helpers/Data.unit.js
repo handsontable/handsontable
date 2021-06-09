@@ -2,6 +2,8 @@ import {
   dataRowToChangesArray,
   spreadsheetColumnLabel,
   spreadsheetColumnIndex,
+  isArrayOfArrays,
+  isArrayOfObjects
 } from 'handsontable/helpers/data';
 
 describe('Data helper', () => {
@@ -49,6 +51,38 @@ describe('Data helper', () => {
         a: 'first-column',
         b: 'second-column'
       }, 3)).toMatchObject([[3, 'a', 'first-column'], [3, 'b', 'second-column']]);
+    });
+  });
+
+  describe('isArrayOfArrays', () => {
+    it('recognize if the provided argument is an array of arrays', () => {
+      expect(isArrayOfArrays()).toBe(false);
+      expect(isArrayOfArrays('test')).toBe(false);
+      expect(isArrayOfArrays(123)).toBe(false);
+      expect(isArrayOfArrays([])).toBe(false);
+      expect(isArrayOfArrays([1, 2, 3])).toBe(false);
+      expect(isArrayOfArrays(['test', 'test'])).toBe(false);
+      expect(isArrayOfArrays([1, 'test', []])).toBe(false);
+      expect(isArrayOfArrays([{}])).toBe(false);
+      expect(isArrayOfArrays([null])).toBe(false);
+      expect(isArrayOfArrays([[]])).toBe(true);
+      expect(isArrayOfArrays([['test'], [1]])).toBe(true);
+    });
+  });
+
+  describe('isArrayOfObjects', () => {
+    it('recognize if the provided argument is an array of arrays', () => {
+      expect(isArrayOfObjects()).toBe(false);
+      expect(isArrayOfObjects('test')).toBe(false);
+      expect(isArrayOfObjects(123)).toBe(false);
+      expect(isArrayOfObjects([])).toBe(false);
+      expect(isArrayOfObjects([1, 2, 3])).toBe(false);
+      expect(isArrayOfObjects(['test', 'test'])).toBe(false);
+      expect(isArrayOfObjects([1, 'test', []])).toBe(false);
+      expect(isArrayOfObjects([{}])).toBe(true);
+      expect(isArrayOfObjects([null])).toBe(false);
+      expect(isArrayOfObjects([[]])).toBe(false);
+      expect(isArrayOfObjects([['test'], [1]])).toBe(false);
     });
   });
 });

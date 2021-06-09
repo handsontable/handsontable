@@ -108,9 +108,10 @@ async function distributeBetweenPipelines(modifiedProjects) {
   const filesModifiedInLastCommit = (
     await execa('git', ['log', '--name-only', '--oneline', 'HEAD^..HEAD'], { encoding: 'utf8' })
   ).stdout.split('\n');
-  const fullTestBranchRegex = new RegExp('^(master|develop|release\/.{5,})$');
-  const configPathsRegex = new RegExp(`^(${CONFIG_PATHS.join('|').replace(/\./g,'\\.')})`);
+  const fullTestBranchRegex = new RegExp('^(master|develop|release/.{5,})$');
+  const configPathsRegex = new RegExp(`^(${CONFIG_PATHS.join('|').replace(/\./g, '\\.')})`);
   const fullTestBranchMatch = fullTestBranchRegex.test(currentBranch);
+
   filesModifiedInLastCommit.shift();
 
   const configPathMatched = filesModifiedInLastCommit.some(fileUrl => configPathsRegex.test(fileUrl));
@@ -136,7 +137,7 @@ async function distributeBetweenPipelines(modifiedProjects) {
     });
 
   } else {
-    const ignoredPathsRegex = new RegExp(`^(${IGNORED_PATHS.join('|').replace(/\./g,'\\.')})`);
+    const ignoredPathsRegex = new RegExp(`^(${IGNORED_PATHS.join('|').replace(/\./g, '\\.')})`);
     let filesMatchedCount = 0;
 
     filesModifiedInLastCommit.forEach((fileUrl) => {
@@ -149,7 +150,7 @@ async function distributeBetweenPipelines(modifiedProjects) {
       workspacePackages.forEach((packageWildcard) => {
         if (packageWildcard !== '.') {
           const escapedPackageUrl = packageWildcard.replace(/\*/g, '').replace(/\//g, '\\/');
-          const packageMatch = fileUrl.match(`(${escapedPackageUrl})(?<projectName>[^\/]*)(\/)`);
+          const packageMatch = fileUrl.match(`(${escapedPackageUrl})(?<projectName>[^/]*)(/)`);
 
           if (packageMatch) {
             const { projectName } = packageMatch.groups;

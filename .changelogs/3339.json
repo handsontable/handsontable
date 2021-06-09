@@ -1,7 +1,0 @@
-{
-  "title": "Introduced `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behaviour of AutoColumnSize sampling.",
-  "type": "added",
-  "issue": 3339,
-  "breaking": false,
-  "framework": "none"
-}

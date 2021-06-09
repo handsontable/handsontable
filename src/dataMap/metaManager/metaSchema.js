@@ -2769,36 +2769,6 @@ export default () => {
     formulas: void 0,
 
     /**
-     * @description
-     * Allows adding a tooltip to the table headers.
-     *
-     * Available options:
-     * * the `rows` property defines if tooltips should be added to row headers,
-     * * the `columns` property defines if tooltips should be added to column headers,
-     * * the `onlyTrimmed` property defines if tooltips should be added only to headers, which content is trimmed by the header itself (the content being wider then the header).
-     *
-     * @memberof Options#
-     * @type {boolean|object}
-     * @default undefined
-     * @deprecated This plugin is deprecated and will be removed in the next major release.
-     * @category HeaderTooltips
-     *
-     * @example
-     * ```js
-     * // enable tooltips for all headers
-     * headerTooltips: true,
-     *
-     * // or
-     * headerTooltips: {
-     *   rows: false,
-     *   columns: true,
-     *   onlyTrimmed: true
-     * }
-     * ```
-     */
-    headerTooltips: void 0,
-
-    /**
      * The {@link hidden-columns HiddenColumns} plugin allows hiding of certain columns. You can pass additional configuration with an
      * object notation. Options that are then available are:
      *  * `columns` - an array of rows that should be hidden on plugin initialization
@@ -2940,26 +2910,6 @@ export default () => {
      * ```
      */
     columnHeaderHeight: void 0,
-
-    /**
-     * @description
-     * Enables the {@link observe-changes ObserveChanges} plugin switches table into one-way data binding where changes are applied into
-     * data source (from outside table) will be automatically reflected in the table.
-     *
-     * For every data change [afterChangesObserved](hooks#afterchangesobserved) hook will be fired.
-     *
-     * @memberof Options#
-     * @type {boolean}
-     * @default undefined
-     * @deprecated This plugin is deprecated and will be removed in the next major release.
-     * @category ObserveChanges
-     *
-     * @example
-     * ```js
-     * observeChanges: true,
-     * ```
-     */
-    observeChanges: void 0,
 
     /**
      * If defined as `true`, the Autocomplete's suggestion list would be sorted by relevance (the closer to the left the

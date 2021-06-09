@@ -277,8 +277,6 @@ export class TrimRows extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.rowIndexMapper.unregisterMap('trimRows');
-
     super.destroy();
   }
 }

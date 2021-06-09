@@ -1,4 +1,9 @@
-import Highlight, { AREA_TYPE, HEADER_TYPE, CELL_TYPE } from './highlight/highlight';
+import Highlight from './highlight/highlight';
+import {
+  AREA_TYPE,
+  HEADER_TYPE,
+  CELL_TYPE,
+} from './highlight/constants';
 import SelectionRange from './range';
 import { CellCoords } from './../3rdparty/walkontable/src';
 import { isPressedCtrlKey } from './../utils/keyStateObserver';
@@ -601,9 +606,12 @@ class Selection {
    *
    * @param {number|string} startColumn Visual column index or column property from which the selection starts.
    * @param {number|string} [endColumn] Visual column index or column property from to the selection finishes.
+   * @param {number} [headerLevel=-1] A row header index that triggers the column selection. The value can
+   *                                  take -1 to -N, where -1 means the header closest to the cells.
+   *
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
-  selectColumns(startColumn, endColumn = startColumn) {
+  selectColumns(startColumn, endColumn = startColumn, headerLevel = -1) {
     const start = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
     const end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
 
@@ -612,7 +620,7 @@ class Selection {
     const isValid = isValidCoord(start, nrOfColumns) && isValidCoord(end, nrOfColumns);
 
     if (isValid) {
-      this.setRangeStartOnly(new CellCoords(-1, start));
+      this.setRangeStartOnly(new CellCoords(headerLevel, start));
       this.setRangeEnd(new CellCoords(nrOfRows - 1, end));
       this.finish();
     }
@@ -625,15 +633,18 @@ class Selection {
    *
    * @param {number} startRow Visual row index from which the selection starts.
    * @param {number} [endRow] Visual row index from to the selection finishes.
+   * @param {number} [headerLevel=-1] A column header index that triggers the row selection.
+   *                                  The value can take -1 to -N, where -1 means the header
+   *                                  closest to the cells.
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
-  selectRows(startRow, endRow = startRow) {
+  selectRows(startRow, endRow = startRow, headerLevel = -1) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
     const isValid = isValidCoord(startRow, nrOfRows) && isValidCoord(endRow, nrOfRows);
 
     if (isValid) {
-      this.setRangeStartOnly(new CellCoords(startRow, -1));
+      this.setRangeStartOnly(new CellCoords(startRow, headerLevel));
       this.setRangeEnd(new CellCoords(endRow, nrOfColumns - 1));
       this.finish();
     }

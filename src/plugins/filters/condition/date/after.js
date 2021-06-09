@@ -7,6 +7,7 @@ export const CONDITION_NAME = 'date_after';
 /**
  * @param {object} dataRow The object which holds and describes the single cell value.
  * @param {Array} inputValues An array of values to compare with.
+ * @param {*} inputValues."0" Minimum date of a range.
  * @returns {boolean}
  */
 export function condition(dataRow, [value]) {
