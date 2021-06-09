@@ -1,4 +1,4 @@
-import IndexMap from './indexMap';
+import { IndexMap } from './indexMap';
 import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physicallyIndexed';
 import { getListWithRemovedItems as getListWithoutIndexes } from './utils/indexesSequence';
 import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndexes';
@@ -10,7 +10,7 @@ import { isFunction } from '../../helpers/function';
  * It does not update stored values on remove/add row or column action. Otherwise, order of entries is updated after
  * such changes.
  */
-class LinkedPhysicalIndexToValueMap extends IndexMap {
+export class LinkedPhysicalIndexToValueMap extends IndexMap {
   /**
    * Indexes and values corresponding to them (entries) are stored in a certain order.
    *
@@ -149,5 +149,3 @@ class LinkedPhysicalIndexToValueMap extends IndexMap {
     return this.orderOfIndexes.map(physicalIndex => [physicalIndex, this.getValueAtIndex(physicalIndex)]);
   }
 }
-
-export default LinkedPhysicalIndexToValueMap;

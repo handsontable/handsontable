@@ -1,7 +1,0 @@
-{
-  "title": "Fixed mobile iOS problems",
-  "type": "fixed",
-  "issue": 7659,
-  "breaking": false,
-  "framework": "none"
-}

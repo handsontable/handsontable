@@ -1,7 +1,0 @@
-{
-  "title": "Fixed incorrect numericFormat's type definition.",
-  "type": "fixed",
-  "issue": 7420,
-  "breaking": false,
-  "framework": "none"
-}

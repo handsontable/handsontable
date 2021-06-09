@@ -631,7 +631,6 @@ export class AutoColumnSize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.columnIndexMapper.unregisterMap(COLUMN_SIZE_MAP_NAME);
     this.ghostTable.clean();
     super.destroy();
   }

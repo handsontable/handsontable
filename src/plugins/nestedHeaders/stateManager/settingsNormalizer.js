@@ -2,7 +2,7 @@
 import { arrayEach, arrayMap } from '../../../helpers/array';
 import { isObject } from '../../../helpers/object';
 import { stringify } from '../../../helpers/mixed';
-import { HEADER_DEFAULT_SETTINGS } from './constants';
+import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './utils';
 
 /**
  * A function that normalizes user-defined settings into one predictable
@@ -57,9 +57,7 @@ export function normalizeSettings(sourceSettings, columnsLimit = Infinity) {
     normalizedSettings.push(columns);
 
     arrayEach(headersSettings, (sourceHeaderSettings) => {
-      const headerSettings = {
-        ...HEADER_DEFAULT_SETTINGS,
-      };
+      const headerSettings = createDefaultHeaderSettings();
 
       if (isObject(sourceHeaderSettings)) {
         const {
@@ -91,11 +89,7 @@ export function normalizeSettings(sourceSettings, columnsLimit = Infinity) {
 
       if (headerSettings.colspan > 1) {
         for (let i = 0; i < headerSettings.colspan - 1; i++) {
-          columns.push({
-            ...HEADER_DEFAULT_SETTINGS,
-            isHidden: true,
-            isBlank: true,
-          });
+          columns.push(createPlaceholderHeaderSettings());
         }
       }
 
@@ -109,7 +103,7 @@ export function normalizeSettings(sourceSettings, columnsLimit = Infinity) {
   arrayEach(normalizedSettings, (headersSettings) => {
     if (headersSettings.length < columnsLength) {
       const defaultSettings = arrayMap(
-        new Array(columnsLength - headersSettings.length), () => ({ ...HEADER_DEFAULT_SETTINGS })
+        new Array(columnsLength - headersSettings.length), () => createDefaultHeaderSettings()
       );
 
       headersSettings.splice(headersSettings.length, 0, ...defaultSettings);
