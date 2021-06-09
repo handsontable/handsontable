@@ -29,6 +29,7 @@ const argv = yargs(hideBin(process.argv))
   .argv;
 
 const [version, releaseDate] = argv._;
+
 displaySeparator();
 
 (async() => {
