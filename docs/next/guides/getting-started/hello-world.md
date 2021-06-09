@@ -7,18 +7,9 @@ canonicalUrl: /hello-world
 
 # Hello world
 
-[[toc]]
+Play with the code in CodeSandbox online editor. Click to run and preview Handsontable with features such as: multi-column sorting, collapsible columns, filtering, moving rows. 
+
+Drag and drop to expand the editor and click on a "hamburger menu" to take a look at code of files.
 
 <HelloWorld></HelloWorld>
-
-## Edit in the online editor
-
-Play with the code in one of the online editors we use across this documentation - JSFiddle and CodeSandbox.
-
-- [Open JavaScript demo](https://jsfiddle.com)
-- [Open TypeScript demo](https://jsfiddle.com)
-- [Open React Functional demo](https://codesandbox.com)
-- [Open React Class demo](https://codesandbox.com)
-- [Open Angular demo](https://codesandbox.com)
-- [Open Vue demo](https://codesandbox.com)
 

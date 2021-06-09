@@ -43,7 +43,7 @@ export default {
     }
   },
   methods:{
-    tabClicked(event){
+    tabClicked(event) {
       this.selected = event.tab.id;
     }
   }
