@@ -20,7 +20,6 @@ WORKDIR /app
 COPY docs ./docs
 
 WORKDIR /app/docs
-RUN git status
 
 # clear non public documentation files
 RUN if [ "$BUILD_MODE" = "production" ] ; then     \
