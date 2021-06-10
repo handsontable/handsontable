@@ -1250,7 +1250,7 @@ disableVisualSelection: ['current', 'area'],
 
 _options.dragToScroll : boolean_
 
-Disables or enables the [drag to scroll](./DragToScroll/) functionality.
+Disables or enables the [drag to scroll](../drag-to-scroll) functionality.
 
 **Default**: <code>true</code>  
 **Category**: [DragToScroll](../drag-to-scroll)  
