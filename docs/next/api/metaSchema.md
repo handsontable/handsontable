@@ -286,7 +286,7 @@ You can also use the `useHeaders` option to take the column headers width into c
 Note: Using [Core#colWidths](./Core/#colWidths) option will forcely disable [AutoColumnSize](./AutoColumnSize/).
 
 **Default**: <code>undefined</code>  
-**Category**: [AutoColumnSize](../auto-column-size)  
+**Category**: [AutoColumnSize](./AutoColumnSize/)  
 **Example**  
 ```js
 // as a number (300 columns in sync, rest async)

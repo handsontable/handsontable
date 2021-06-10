@@ -2878,7 +2878,7 @@ Fired after Handsontable instance is initiated but before table is rendered.
 
 _modifyAutoColumnSizeSeed(seed, cellProperties, cellValue)_
 
-Fired by [AutoColumnSize](./AutoColumnSize/) plugin within [SampleGenerator](./SampleGenerator/) utility.
+Fired by [AutoColumnSize](./AutoColumnSize/) plugin within [SamplesGenerator](./SamplesGenerator/) utility.
 
 **Since**: 8.4.0  
 
