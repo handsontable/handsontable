@@ -1,17 +1,17 @@
 /* eslint-disable no-restricted-globals, no-undef, no-console, no-unused-vars */
 
-const register = new Map();
+const register = new Set();
 
 register.listen = () => {
   try {
     if (typeof Handsontable !== 'undefined' && Handsontable._instanceRegisterInstalled === undefined) {
       Handsontable._instanceRegisterInstalled = true;
       Handsontable.hooks.add('afterInit', function() {
-        const hotId = this.rootElement
-          .closest('[hot-example-id]')
-          .getAttribute('hot-example-id');
-
-        register.set(hotId, this);
+        // Collect only HoT main instances. Skip context menu, dropdown menu
+        // and other internal HoT-based components.
+        if (!this.rootElement.id.startsWith('ht_')) {
+          register.add(this);
+        }
       });
     }
   } catch (e) {

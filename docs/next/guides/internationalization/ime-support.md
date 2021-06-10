@@ -29,4 +29,4 @@ To test the IME support, you will need to change your language preferences for y
 
 ## Watch IME in action
 
-<video controls loop src="/img/pages/ime-support/ime-support-in-handsontable.mp4" width="100%"></video>
+<video controls loop src="/docs/img/pages/ime-support/ime-support-in-handsontable.mp4" width="100%"></video>
