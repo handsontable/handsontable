@@ -56,7 +56,7 @@ const getPreviewTab = (id, cssContent, htmlContent, code) => {
     level: 1,
     children: null,
     content: `
-      <tab name="Preview">
+      <tab name="Preview" id="preview-tab-${id}">
         <style v-pre>${cssContent}</style>
         <div v-pre>${htmlContent}</div>
         <ScriptLoader v-if="$parent.$parent.isScriptLoaderActivated('${id}')" code="${code}"></ScriptLoader>
