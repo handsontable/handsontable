@@ -4,6 +4,7 @@ $fontColorSidebar = #F5F6F7;
 $searchBoxBackground = #20232A;
 $sectionBorderColor = #20232A;
 $scrollbarThumb = #444950;
+$searchIcon = #eeeeee;
 
 body.theme-dark {
 
@@ -42,10 +43,16 @@ body.theme-dark {
 
 
   /* Searchbox */
-  .search-box input {
-      background $searchBoxBackground url(/docs/assets/img/search.83621669.svg) 0.6rem 0.5rem no-repeat
+  .search-box {
+    input {
+      background $searchBoxBackground url(/img/search.svg) 0.6rem 0.5rem no-repeat
       background-size 1rem
       border-color #43464d
+    }
+
+    .searchbox-search-icon {
+      stroke: $searchIcon
+    }
   }
 
   /* Sidebar */
