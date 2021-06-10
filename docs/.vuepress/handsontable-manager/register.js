@@ -9,7 +9,7 @@ register.listen = () => {
       Handsontable.hooks.add('afterInit', function() {
         // Collect only HoT main instances. Skip context menu, dropdown menu
         // and other internal HoT-based components.
-        if (this.rootElement.classList.contains('hot')) {
+        if (!this.rootElement.id.startsWith('ht_')) {
           register.add(this);
         }
       });
