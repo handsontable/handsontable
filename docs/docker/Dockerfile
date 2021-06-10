@@ -13,7 +13,7 @@ RUN ls -al docs
 
 # install dependecies
 WORKDIR /app/docs
-RUN yarn
+RUN npm ci
 
 # app
 WORKDIR /app
@@ -27,7 +27,7 @@ RUN if [ "$BUILD_MODE" = "production" ] ; then     \
     rm ./.vuepress/public/handsontable.js ./.vuepress/public/handsontable.css     \
   ; fi
 
-RUN yarn docs:build
+RUN npm run docs:build
 
 # server image
 FROM nginx:alpine
