@@ -35,7 +35,7 @@ export default {
   },
   methods: {
     codePreviewTabChanged(selectedTab, exampleId) {
-      if (selectedTab.tab.computedId === 'preview') {
+      if (selectedTab.tab.computedId.startsWith('preview-tab')) {
         this.activatedExamples.push(exampleId);
       }
     },
