@@ -33,16 +33,18 @@
 
 <script>
 const hrefStart='https://codesandbox.io/embed/';
-const hrefEnd='?fontsize=14&hidenavigation=1&theme=dark&view=split&runonclick=1';
+const hrefEnd='?fontsize=14&hidenavigation=1&theme=dark&view=preview&runonclick=1';
 
 export default {
   name: 'HelloWorld',
   data() {
+    const getUrl = (id) => `${hrefStart}${id}${hrefEnd}`;
+
     return {
       selected: 'js',
-      jsSrc: `${hrefStart}handsontable-javascript-data-grid-hello-world-app-dzx8f${hrefEnd}`,
-      tsSrc: `${hrefStart}handsontable-typescript-data-grid-hello-world-app-145es${hrefEnd}`,
-      reactSrc: `${hrefStart}handsontable-react-data-grid-hello-world-app-yt46w${hrefEnd}`,
+      jsSrc: getUrl('handsontable-javascript-data-grid-hello-world-app-dzx8f'),
+      tsSrc: getUrl('handsontable-typescript-data-grid-hello-world-app-145es'),
+      reactSrc: getUrl('handsontable-react-data-grid-hello-world-app-yt46w'),
       styleAttribute: 'width: 100%; height: 500px; border: 0; border-radius: 4px; overflow: hidden;',
       allowAttribute: 'accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; ' +
         'microphone; midi; payment; usb; vr; xr-spatial-tracking',
