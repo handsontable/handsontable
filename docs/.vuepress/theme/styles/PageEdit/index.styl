@@ -1,0 +1,31 @@
+.page-edit
+  max-width $contentWidth
+  margin 0 auto
+  padding 2rem 2.5rem
+  @media (max-width: $MQNarrow)
+    padding 2rem
+  @media (max-width: $MQMobileNarrow)
+    padding 1.5rem  padding-top 1rem
+    
+  padding-bottom 1rem
+  overflow auto
+
+  .edit-link
+    display inline-block
+    a
+      color $textColor
+      margin-right 0.25rem
+      font-size 0.9rem
+      font-weight 400
+  .last-updated
+    float right
+    font-size 0.9em
+
+@media (max-width: $MQMobile)
+  .page-edit
+    .edit-link
+      margin-bottom 0.5rem
+    .last-updated
+      font-size 0.8em
+      float none
+      text-align left

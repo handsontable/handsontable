@@ -46,13 +46,3 @@ export default {
   }
 };
 </script>
-
-<style lang="stylus">
-
-  span.theme-switcher {
-    padding 0 20px
-    font-size 1.2rem
-    cursor pointer
-  }
-
-</style>

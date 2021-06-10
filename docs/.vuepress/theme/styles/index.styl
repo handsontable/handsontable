@@ -2,6 +2,16 @@
 @import '~vuepress-plugin-tabs/dist/themes/default.styl'
 @import 'vuepress-tabs-custom'
 
+/* Theme components styles */
+@import 'Navbar/index'
+@import 'NavLinks/index'
+@import 'PageEdit/index'
+@import 'SearchBox/index'
+@import 'Sidebar/index'
+@import 'SidebarGroup/index'
+@import 'ThemeSwitcher/index'
+@import 'Versions/index'
+
 /* Code group tabs */
 @import 'code-group'
 
@@ -59,11 +69,8 @@ a.source-code-link {
 .theme-default-content:not(.custom) > h6 {
   margin-top: -2.8rem;
 }
-/* Layout */
 
-.navbar {
-  z-index: 200;
-}
+/* Layout */
 
 .page {
   padding-top: 3.6rem;
