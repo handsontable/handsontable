@@ -1,5 +1,5 @@
 /**
- * Matches into: `example #ID .class :preset --css 2 --html 0 --js 1 --hidden`.
+ * Matches into: `example #ID .class :preset --css 2 --html 0 --js 1 --no-edit`.
  *
  * @type {RegExp}
  */
@@ -103,6 +103,8 @@ module.exports = {
       const jsContent = jsToken.content;
 
       const activeTab = args.match(/--tab (code|html|css|preview)/)?.[1] || 'code';
+      
+      const noEdit = !!args.match(/--no-edit/)?.[0];
 
       const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), jsContent, env.relativePath);
       const encodedCode = encodeURI(`useHandsontable('${version}', function(){${code}}, '${preset}')`);
@@ -121,7 +123,7 @@ module.exports = {
       tokens.splice(index + 1, 0, ...newTokens);
 
       return `
-          ${jsfiddle(id, htmlContent, jsContent, cssContent, version, preset)}
+          ${!noEdit ? jsfiddle(id, htmlContent, jsContent, cssContent, version, preset) : ''}
           <tabs
             :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
             cache-lifetime="0"
