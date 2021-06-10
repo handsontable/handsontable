@@ -2,14 +2,24 @@ FROM node:15 as build
 ARG BUILD_MODE
 ENV BUILD_MODE=${BUILD_MODE:-stage}
 
-WORKDIR app
+WORKDIR /app
 
 # dependencies
-COPY package*.json ./
-RUN yarn
+COPY docs/package*.json ./docs/
+COPY .git ./.git
+RUN pwd
+RUN ls -al
+RUN ls -al docs
+
+# install dependecies
+WORKDIR /app/docs
+RUN npm ci
 
 # app
-COPY . ./
+WORKDIR /app
+COPY docs ./docs
+
+WORKDIR /app/docs
 
 # clear non public documentation files
 RUN if [ "$BUILD_MODE" = "production" ] ; then     \
@@ -24,4 +34,4 @@ FROM nginx:alpine
 
 # set up static content
 WORKDIR /usr/share/nginx
-COPY --from=build ./app/.vuepress/dist/docs ./html
+COPY --from=build ./app/docs/.vuepress/dist/docs ./html

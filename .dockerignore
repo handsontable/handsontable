@@ -1,3 +1,7 @@
+# This `.dockerignore` file created for the purpose of building the Documentation
+/
+!/.git
+!/docs/
 pids
 logs
 node_modules
