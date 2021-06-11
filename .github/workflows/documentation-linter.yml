@@ -17,12 +17,14 @@ jobs:
         with:
           node-version: '15.x'
 
-      - name: Install dependencies
+      - name: Install Handsontable dependencies
         run: |
           npm ci --no-audit
-          cd docs/
-          npm ci --no-audit
+
+      - name: Install Documentation dependencies
+        run: |
+          cd docs/ && npm ci --no-audit
 
       - name: Lint
         run: |
-          npm run docs:lint
+          cd docs/ && npm run docs:lint
