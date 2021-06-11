@@ -269,9 +269,10 @@ const traversePlugins = function* () {
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
 
-    if (['base', '__tests__'].includes(item)) {
+    if (['base', '__tests__', /* privates: */ 'touchScroll', 'multipleSelectionHandles'].includes(item)) {
       continue; // eslint-disable-line no-continue
     }
+    
     if (fs.statSync(source(path.join('plugins', item))).isDirectory()) {
       yield path.join('plugins', item, `${item}.js`);
     }
