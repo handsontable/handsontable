@@ -867,6 +867,7 @@ describe('CheckboxRenderer', () => {
     expect(getCell(0, 2).querySelector('label').offsetWidth).toBe(getCell(0, 0).offsetWidth - 9);
     expect(getCell(0, 3).querySelector('label').offsetWidth).toBe(getCell(0, 0).offsetWidth - 9);
     expect(getCell(0, 4).querySelector('label').offsetWidth).toBe(getCell(0, 0).offsetWidth - 9);
+    expect(getCell(0, 5).querySelector('label').offsetWidth).toBe(getCell(0, 0).offsetWidth - 9);
   });
 
   it('should add label on the beginning of a checkbox element where checkbox and label are separated', () => {
