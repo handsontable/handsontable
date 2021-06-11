@@ -493,7 +493,7 @@ The interpretation depends on the level on which this option is provided in the 
 If `className` is provided on the first (constructor) level, it is the applied to the Handsontable container.
 If `className` is provided on the second (`column`) or the third (`cell` or `cells`) level, it is applied to the table cell.
 
-**Default**: <code>&quot;undefined&quot;</code>  
+**Default**: <code>undefined</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -984,7 +984,7 @@ _options.currentColClassName : string_
 
 Class name for all visible columns in the current selection.
 
-**Default**: <code>&quot;undefined&quot;</code>  
+**Default**: <code>undefined</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -1022,7 +1022,7 @@ _options.currentRowClassName : string_
 
 Class name for all visible rows in the current selection.
 
-**Default**: <code>&quot;undefined&quot;</code>  
+**Default**: <code>undefined</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -1198,7 +1198,7 @@ Definition of default value which will fill the empty cells.
 
 __Note__, this option only works for [date-typed](https://docs.handsontable.com/demo-date.html) cells.
 
-**Default**: <code>&quot;undefined&quot;</code>  
+**Default**: <code>undefined</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -1313,7 +1313,7 @@ configuration.
 
 To disable cell editing completely set `editor` property to `false`.
 
-**Default**: <code>&quot;undefined&quot;</code>  
+**Default**: <code>undefined</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -1772,7 +1772,7 @@ _options.licenseKey : string_
 
 License key for commercial version of Handsontable.
 
-**Default**: <code>&quot;undefined&quot;</code>  
+**Default**: <code>undefined</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -2296,7 +2296,7 @@ _options.placeholder : string_
 When set to an non-empty string, displayed as the cell content for empty cells. If a value of a different type is provided,
 it will be stringified and applied as a string.
 
-**Default**: <code>&quot;undefined&quot;</code>  
+**Default**: <code>undefined</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -2340,7 +2340,7 @@ Possible values:
  * `horizontal` - Prevents horizontal overflow table.
  * `vertical` - Prevents vertical overflow table.
 
-**Default**: <code>&quot;false&quot;</code>  
+**Default**: <code>false</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -2431,7 +2431,7 @@ function(instance, TD, row, col, prop, value, cellProperties) {}
 
 You can read more about custom renderes [in the documentation](https://docs.handsontable.com/demo-custom-renderers.html).
 
-**Default**: <code>&quot;undefined&quot;</code>  
+**Default**: <code>undefined</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -2849,7 +2849,7 @@ _options.tableClassName : string | Array&lt;string&gt;_
 
 Class name for all tables inside container element.
 
-**Default**: <code>&quot;undefined&quot;</code>  
+**Default**: <code>undefined</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
@@ -2897,7 +2897,7 @@ _options.title : string_
 
 Defines the column header name.
 
-**Default**: <code>&quot;undefined&quot;</code>  
+**Default**: <code>undefined</code>  
 **Category**: [Core](../core)  
 **Example**  
 ```js
