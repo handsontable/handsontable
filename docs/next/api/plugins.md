@@ -34,7 +34,7 @@ canonicalUrl: /api/plugins
 |[ManualRowResize](https://dev.handsontable.com/docs/next/api/manual-row-resize/) |Drag the sizing handle to change the height of a row.|
 |[MergeCells](https://dev.handsontable.com/docs/next/api/merge-cells/) |Span the cells across multiple rows or columns.|
 |[MultiColumnSorting](https://dev.handsontable.com/docs/next/api/multi-column-sorting/)| Sort the rows by multiple columns.|
-|[MultipleSelectionHandles](https://dev.handsontable.com/docs/next/api/multiple-selection-handles/)| This plugin extends the "core" selection feature to allow users to select multiple, non-adjacent ranges of cells.|
+|[MultipleSelectionHandles](https://dev.handsontable.com/docs/next/selection/#selecting-ranges)| This plugin extends the "core" selection feature to allow users to select multiple, non-adjacent ranges of cells.|
 |[NestedHeaders](https://dev.handsontable.com/docs/next/api/nested-headers/) |Create a nested, hierarchical structure of column headers to put your data into groups.|
 |[NestedRows](https://dev.handsontable.com/docs/next/api/nested-rows/) |Enable editable views of data sources with nested (tree/parent-child) structures.|
 |[ObserveChanges](https://dev.handsontable.com/docs/next/api/observe-changes/)| Enable the ObserveChanges plugin, which switches the table into one-way data binding. Changes applied to the data source will automatically be reflected in the table.|
