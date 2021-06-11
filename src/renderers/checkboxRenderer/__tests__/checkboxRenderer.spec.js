@@ -846,6 +846,29 @@ describe('CheckboxRenderer', () => {
     expect(getCell(0, 0).querySelector('label').firstChild.textContent).toEqual('myLabel');
   });
 
+  it('should expand label to the cell size when it is not separated from input', () => {
+    handsontable({
+      data: [
+        [true, false, true, false, false, false]
+      ],
+      columns: [
+        { type: 'checkbox', label: { position: 'before', value: 'label1', separated: true } },
+        { type: 'checkbox', label: { position: 'after', value: 'label2', separated: true } },
+        { type: 'checkbox', label: { position: 'before', value: 'label3', separated: false } },
+        { type: 'checkbox', label: { position: 'after', value: 'label4', separated: false } },
+        { type: 'checkbox', label: { position: 'before', value: 'label5' } },
+        { type: 'checkbox', label: { position: 'after', value: 'label6' } },
+      ]
+    });
+
+    // 2 x 4px padding + 1px border === 9px calculated by the `offsetWidth`
+    expect(getCell(0, 0).querySelector('label').offsetWidth).not.toBe(getCell(0, 0).offsetWidth - 9);
+    expect(getCell(0, 1).querySelector('label').offsetWidth).not.toBe(getCell(0, 0).offsetWidth - 9);
+    expect(getCell(0, 2).querySelector('label').offsetWidth).toBe(getCell(0, 0).offsetWidth - 9);
+    expect(getCell(0, 3).querySelector('label').offsetWidth).toBe(getCell(0, 0).offsetWidth - 9);
+    expect(getCell(0, 4).querySelector('label').offsetWidth).toBe(getCell(0, 0).offsetWidth - 9);
+  });
+
   it('should add label on the beginning of a checkbox element where checkbox and label are separated', () => {
     handsontable({
       data: [{ checked: true, label: 'myLabel' }, { checked: false, label: 'myLabel' }],
