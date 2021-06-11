@@ -87,12 +87,9 @@ export default {
         const base = docsRepo;
 
         return (
-          `${base.replace(endingSlashRE, '')
-          }/src`
-          + `/${docsBranch}/${
-            docsDir ? `${docsDir.replace(endingSlashRE, '')}/` : ''
-          }${path
-          }?mode=edit&spa=0&at=${docsBranch}&fileviewer=file-view-default`
+          `${base.replace(endingSlashRE, '')}/src/${docsBranch}/${docsDir
+            ? `${docsDir.replace(endingSlashRE, '')}/`
+            : ''}${path}?mode=edit&spa=0&at=${docsBranch}&fileviewer=file-view-default`
         );
       }
 
@@ -102,11 +99,9 @@ export default {
         const base = docsRepo;
 
         return (
-          `${base.replace(endingSlashRE, '')
-          }/-/edit`
-          + `/${docsBranch}/${
-            docsDir ? `${docsDir.replace(endingSlashRE, '')}/` : ''
-          }${path}`
+          `${base.replace(endingSlashRE, '')}/-/edit/${docsBranch}/${docsDir
+            ? `${docsDir.replace(endingSlashRE, '')}/`
+            : ''}${path}`
         );
       }
 
@@ -115,11 +110,9 @@ export default {
         : `https://github.com/${docsRepo}`;
 
       return (
-        `${base.replace(endingSlashRE, '')
-        }/edit`
-        + `/${docsBranch}/${
-          docsDir ? `${docsDir.replace(endingSlashRE, '')}/` : ''
-        }${path}`
+        `${base.replace(endingSlashRE, '')}/edit/${docsBranch}/${docsDir
+          ? `${docsDir.replace(endingSlashRE, '')}/`
+          : ''}${path}`
       );
     }
   }

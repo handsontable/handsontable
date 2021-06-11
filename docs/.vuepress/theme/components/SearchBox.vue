@@ -181,7 +181,10 @@ export default {
 
           if (p.headers) { // todo add headers at end of the result list
             for (let j = 0; j < p.headers.length; j++) {
-              if (resAPI.length >= maxAPI) break;
+              if (resAPI.length >= maxAPI) {
+                break;
+              }
+
               const h = p.headers[j];
 
               if (h.title && matchQuery(query, p, h.title, fuzzySearchDomains)) {
@@ -228,7 +231,10 @@ export default {
 
           if (p.headers) { // todo add headers at end of the result list
             for (let j = 0; j < p.headers.length; j++) {
-              if (resGuides.length >= maxGuides) break;
+              if (resGuides.length >= maxGuides) {
+                break;
+              }
+
               const h = p.headers[j];
 
               if (h.title && matchQuery(query, p, h.title, fuzzySearchDomains)) {
