@@ -19,7 +19,7 @@ Plugin used to scroll Handsontable by selecting a cell and dragging outside of t
 
 ### dragToScroll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L3052
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L3003
 
 :::
 

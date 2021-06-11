@@ -1,5 +1,6 @@
 ---
 title: PersistentState
+metaTitle: PersistentState - Plugin - Handsontable Documentation
 permalink: /next/api/persistent-state
 canonicalUrl: /api/persistent-state
 editLink: false
@@ -28,7 +29,7 @@ with table will be cleared.
 
 ### persistentState
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1004
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1005
 
 :::
 

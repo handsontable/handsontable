@@ -1,5 +1,6 @@
 ---
 title: TrimRows
+metaTitle: TrimRows - Plugin - Handsontable Documentation
 permalink: /next/api/trim-rows
 canonicalUrl: /api/trim-rows
 editLink: false
@@ -53,7 +54,7 @@ hot.render();
 
 ### trimRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2893
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2864
 
 :::
 
