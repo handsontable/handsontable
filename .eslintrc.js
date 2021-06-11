@@ -230,5 +230,19 @@ module.exports = {
         ]
       }
     },
+    {
+      files: [
+        'docs/**/*.vue',
+      ],
+      'parser': 'vue-eslint-parser',
+      'parserOptions': {
+        'parser': 'babel-eslint',
+        'sourceType': 'module'
+      },
+      rules: {
+        'import/no-unresolved': 'off',
+        'no-restricted-globals': 'off',
+      },
+    },
   ],
 };

@@ -40,7 +40,7 @@ export default {
       return !this.isLatest || this.isNext;
     }
   }
-}
+};
 </script>
 
 <style lang="stylus">
