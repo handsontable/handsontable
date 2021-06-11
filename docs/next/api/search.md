@@ -42,7 +42,7 @@ searchPlugin.setSearchResultClass(customClass);
 
 ### search
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1521
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1529
 
 :::
 

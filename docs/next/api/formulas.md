@@ -19,7 +19,7 @@ This plugin allows you to perform Excel-like calculations in your business appli
 
 ### formulas
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2769
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2777
 
 :::
 

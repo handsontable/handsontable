@@ -24,7 +24,7 @@ The plugin creates additional components to make resizing possibly using user in
 
 ### manualColumnResize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1911
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1919
 
 :::
 
