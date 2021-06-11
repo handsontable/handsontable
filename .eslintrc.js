@@ -1,5 +1,5 @@
 module.exports = {
-  extends: ['airbnb-base', 'plugin:vue/base'],
+  extends: ['airbnb-base'],
   parser: '@babel/eslint-parser',
   plugins: [
     '@babel',
@@ -229,20 +229,6 @@ module.exports = {
           'WithStatement',
         ]
       }
-    },
-    {
-      files: [
-        'docs/**/*.vue',
-      ],
-      'parser': 'vue-eslint-parser',
-      'parserOptions': {
-        'parser': 'babel-eslint',
-        'sourceType': 'module'
-      },
-      rules: {
-        'import/no-unresolved': 'off',
-        'no-restricted-globals': 'off',
-      },
     },
   ],
 };

@@ -8,5 +8,3 @@ src/3rdparty/walkontable/dist/*
 test/lib/*
 test/dist/*
 tmp/*
-!docs/.vuepress
-docs/.vuepress/public/handsontable.js
