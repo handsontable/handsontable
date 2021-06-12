@@ -10,7 +10,7 @@ $searchIcon = #eeeeee;
 $rowItemBorderColor = #686868;
 $rowItemShadowColor = #797979;
 
-body.theme-dark {
+html.theme-dark {
 
   /* Elements that should have set background-color */
   div#app,
@@ -22,7 +22,7 @@ body.theme-dark {
 
   h1, h2, h3, h4, h5, h6, p, li a {
     color $fontColor
-    border-color $sectionBorderColor
+    border-bottom-color $sectionBorderColor
   }
   
   /* Navbar */
@@ -85,8 +85,6 @@ body.theme-dark {
     }
 
     .sidebar-group {
-      padding-left 0.5em
-
       &:not(.collapsable) .sidebar-heading:not(.clickable) {
         cursor auto
         color $fontColorSidebar

@@ -8,31 +8,31 @@ const DEFAULT_THEME_CLASS = 'theme-light';
 const DEFAULT_THEME_ICON = '☀️';
 const DARK_THEME_ICON = '🌙';
 
-const getBodyElement = () => {
-  return document.querySelector('body');
+const getHTMLElement = () => {
+  return document.querySelector('html');
 }
 
 const getCurrentThemeIcon = () => {
-  return getBodyElement().classList.contains(CLASS_THEME_DARK) ? DARK_THEME_ICON : DEFAULT_THEME_ICON;
+  return getHTMLElement().classList.contains(CLASS_THEME_DARK) ? DARK_THEME_ICON : DEFAULT_THEME_ICON;
 }
 
-const toggleClassOnBody = () => {
-  const body = getBodyElement();
-  const isDefaultTheme = body.classList.contains(DEFAULT_THEME_CLASS);
+const toggleClassOnHTML = () => {
+  const html = getHTMLElement();
+  const isDefaultTheme = html.classList.contains(DEFAULT_THEME_CLASS);
 
-  body.classList.remove(isDefaultTheme ? DEFAULT_THEME_CLASS : CLASS_THEME_DARK);
-  body.classList.add(isDefaultTheme ? CLASS_THEME_DARK : DEFAULT_THEME_CLASS);
+  html.classList.remove(isDefaultTheme ? DEFAULT_THEME_CLASS : CLASS_THEME_DARK);
+  html.classList.add(isDefaultTheme ? CLASS_THEME_DARK : DEFAULT_THEME_CLASS);
 }
 
-const setClassOnBody = (className) => {
-  getBodyElement().classList.add(className);
+const setClassOnHTML = (className) => {
+  getHTMLElement().classList.add(className);
 }
 
 export default {
   name: 'ThemeSwitcher',
   methods:{
     toggleTheme(){
-      toggleClassOnBody();
+      toggleClassOnHTML();
       this.themeIcon = getCurrentThemeIcon();
     }
   },
@@ -42,7 +42,7 @@ export default {
     }
   },
   beforeMount() {
-    setClassOnBody(DEFAULT_THEME_CLASS);
+    setClassOnHTML(DEFAULT_THEME_CLASS);
   }
 };
 </script>
