@@ -1,10 +1,14 @@
 $backgroundColor = #18191A;
 $fontColor = #bec3c9;
 $fontColorSidebar = #F5F6F7;
+$fontColorSidebarHeading = #767676;
+$fontColorTableOfContents = #F5F6F7;
 $searchBoxBackground = #20232A;
 $sectionBorderColor = #20232A;
 $scrollbarThumb = #444950;
 $searchIcon = #eeeeee;
+$rowItemBorderColor = #686868;
+$rowItemShadowColor = #797979;
 
 body.theme-dark {
 
@@ -41,7 +45,6 @@ body.theme-dark {
     }
   }
 
-
   /* Searchbox */
   .search-box {
     input {
@@ -51,7 +54,7 @@ body.theme-dark {
     }
 
     .searchbox-search-icon {
-      stroke: $searchIcon
+      stroke $searchIcon
     }
   }
 
@@ -59,9 +62,9 @@ body.theme-dark {
   .sidebar {
     border-right-color $sectionBorderColor
 
-    /* Sidebar collapsible elements */
+    /* Sidebar collapsible headings */
     & .sidebar-heading {
-      color #767676
+      color $fontColorSidebar
 
       & .arrow, & .arrow-down {
         border-color #8B8B8C
@@ -78,7 +81,15 @@ body.theme-dark {
 
       &.active {
         background #242526
-        font-weight bold
+      }
+    }
+
+    .sidebar-group {
+      padding-left 0.5em
+
+      &:not(.collapsable) .sidebar-heading:not(.clickable) {
+        cursor auto
+        color $fontColorSidebar
       }
     }
   }
@@ -91,9 +102,15 @@ body.theme-dark {
       color $fontColor
     }
 
-    a.active {
-      color: $fontColorSidebar
-      font-weight bold
+    a {
+      &.active {
+        color: $fontColorTableOfContents
+        font-weight bold
+      }
+
+      &:hover {
+        color $fontColorTableOfContents
+      }
     }
   }
 
@@ -114,8 +131,8 @@ body.theme-dark {
 
   /* Scrollbar (works on Firefox) */
   aside {
-    scrollbar-width thin;
-    scrollbar-color $scrollbarThumb $backgroundColor;
+    scrollbar-width thin
+    scrollbar-color $scrollbarThumb $backgroundColor
   }
 
   .tabs-component-tabs {
@@ -124,5 +141,22 @@ body.theme-dark {
     .tabs-component-tab-a {
       color $fontColor
     }
+  }
+
+  /* A navigation element containing clickable fields (columns) */
+  .row-items-container {
+    .row-item {
+      border-color $rowItemBorderColor
+
+      &:hover {
+        box-shadow 0 3px 12px $rowItemShadowColor
+      }
+    }
+  }
+
+  /* Inline code */
+  .theme-default-content code {
+    color $fontColor
+    background-color #393939
   }
 }
