@@ -1,16 +1,17 @@
-$backgroundColor = #18191A;
-$fontColor = #f5f6f7;
-$fontColorHeading = #767676;
-$searchBoxBackground = #20232A;
-$sectionBorderColor = #20232A;
-$scrollbarThumb = #444950;
-$searchIcon = #eeeeee;
-$rowItemBorderColor = #686868;
-$rowItemShadowColor = #797979;
+$backgroundColor = #18191A
+$fontColor = #f5f6f7
+$fontColorLink = #2456F2
+$searchBoxBackground = #20232A
+$sectionBorderColor = #20232A
+$scrollbarThumb = #444950
+$searchIcon = #eeeeee
+$rowItemBorderColor = #686868
+$rowItemShadowColor = #797979
 
 html.theme-dark {
 
   /* Elements that should have set background-color */
+  &,
   div#app,
   header,
   div.links,
@@ -18,9 +19,15 @@ html.theme-dark {
     background $backgroundColor
   }
 
-  h1, h2, h3, h4, h5, h6, p, li a {
+  body {
     color $fontColor
+  }
+  h1, h2, h3, h4, h5, h6, p {
     border-bottom-color $sectionBorderColor
+  }
+
+  a {
+    color $fontColorLink
   }
   
   /* Navbar */
@@ -99,6 +106,8 @@ html.theme-dark {
     }
 
     a {
+      color $fontColor
+
       &.active {
         color: $fontColor
         font-weight bold
@@ -156,9 +165,69 @@ html.theme-dark {
     }
   }
 
+  .page-edit {
+    .edit-link {
+      a {
+        color $fontColor
+      }
+    }
+  }
+
   /* Inline code */
   .theme-default-content code {
     color $fontColor
-    background-color #393939
+  }
+
+  .icon.outbound {
+    color $fontColor
+  }
+
+  .custom-block.tip {
+    background-color #0c0a08
+  }
+
+  /* Code block */
+  code {
+    color #ffffff
+    background #2F2F2F
+  } 
+
+  /* Version alert badge */
+  .version-alert { 
+    border-color #16110d
+
+    p {
+      color $fontColor
+    }
+  }
+
+  .custom-block p {
+    color $fontColor
+  }
+
+  .tabs-component {
+    .tabs-component-panels {
+      padding 0
+    }
+
+    section#code {
+      pre {
+        padding 30px 34px
+
+        scrollbar()
+      }
+    }
+  }
+
+  /* PageNav component */
+  .page-nav .inner {
+    border-color $sectionBorderColor
+  }
+
+  footer {
+
+    & .last-updated {
+      color $fontColor
+    }
   }
 }
