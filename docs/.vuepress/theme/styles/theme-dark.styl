@@ -1,8 +1,6 @@
 $backgroundColor = #18191A;
-$fontColor = #bec3c9;
-$fontColorSidebar = #F5F6F7;
-$fontColorSidebarHeading = #767676;
-$fontColorTableOfContents = #F5F6F7;
+$fontColor = #f5f6f7;
+$fontColorHeading = #767676;
 $searchBoxBackground = #20232A;
 $sectionBorderColor = #20232A;
 $scrollbarThumb = #444950;
@@ -64,7 +62,7 @@ html.theme-dark {
 
     /* Sidebar collapsible headings */
     & .sidebar-heading {
-      color $fontColorSidebar
+      color $fontColor
 
       & .arrow, & .arrow-down {
         border-color #8B8B8C
@@ -73,7 +71,7 @@ html.theme-dark {
 
     /* Links in the sidebar */
     & a.sidebar-link {
-      color $fontColorSidebar
+      color $fontColor
 
       &:hover {
         background #242526
@@ -87,7 +85,7 @@ html.theme-dark {
     .sidebar-group {
       &:not(.collapsable) .sidebar-heading:not(.clickable) {
         cursor auto
-        color $fontColorSidebar
+        color $fontColor
       }
     }
   }
@@ -102,12 +100,12 @@ html.theme-dark {
 
     a {
       &.active {
-        color: $fontColorTableOfContents
+        color: $fontColor
         font-weight bold
       }
 
       &:hover {
-        color $fontColorTableOfContents
+        color $fontColor
       }
     }
   }
