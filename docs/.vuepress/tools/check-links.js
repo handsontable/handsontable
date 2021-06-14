@@ -5,7 +5,7 @@ const { Renderer } = require('xlsx-renderer');
 const { logger } = require('./utils');
 
 const ACCEPTABLE_STATUS_CODES = [undefined, 200, 429];
-const PORT = 8080;
+const PORT = 8088;
 
 const spawnProcess = (command, options = {}) => {
   const cmdSplit = command.split(' ');
@@ -23,7 +23,7 @@ const spawnProcess = (command, options = {}) => {
 };
 
 // start server
-spawnProcess(`http-server ${path.resolve('.vuepress', 'dist')} -p ${PORT}`);
+spawnProcess(`http-server ${path.resolve('.vuepress', 'dist')} -s -p ${PORT}`);
 const stats = {
   brokenInternal: 0,
   brokenExternal: 0,
