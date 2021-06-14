@@ -33,7 +33,7 @@ const getFixer = () => {
  *
  * @param {string} version The current selected documentation version.
  * @returns {Function} Returns a function factory with the signature
- *                     `{function(dependency: string): [string,string[],string]} [jsUrl, dependentVars[]?, cssUrl?]`
+ *                     `{function(dependency: string): [string,string[],string]} [jsUrl, dependentVars[]?, cssUrl?]`.
  */
 const buildDependencyGetter = (version) => {
   const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version);
