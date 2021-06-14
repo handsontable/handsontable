@@ -14,6 +14,7 @@
   },
   "scripts": {
     "docs:lint": "eslint --ext .js,.vue .vuepress next",
+    "docs:lint:fix": "eslint --ext .js,.vue .vuepress next --fix",
     "docs:assets:next": "cp ../dist/handsontable.full.css .vuepress/public/handsontable.css && cp ../dist/handsontable.full.js .vuepress/public/handsontable.js",
     "docs:start": "npm run docs:assets:next && vuepress dev ./",
     "docs:start:no-cache": "npm run docs:assets:next && vuepress dev --no-cache ./",
@@ -45,10 +46,11 @@
     "markdown-it-regex": "^0.2.0",
     "replace-in-files": "^3.0.0",
     "semver": "^5.7.1",
+    "vue-eslint-parser": "^7.6.0",
     "vue-router": "^3.5.1",
     "vue-tabs-component": "^1.5.0",
+    "vuepress": "^1.8.2",
     "vuepress-plugin-sitemap": "^2.3.1",
-    "vuepress-plugin-tabs": "^0.3.0",
-    "vuepress": "^1.8.2"
+    "vuepress-plugin-tabs": "^0.3.0"
   }
 }
