@@ -11,50 +11,77 @@ canonicalUrl: /formatting-cells
 
 ## Overview
 
-Handsontable utilizes the HTML `table` structure so customization is based either on referencing to the already existing tags, such as TR/TD, or by applying your own CSS classes to HTML elements.
+Handsontable utilizes the HTML `table` structure so customization is based either on referencing to the already existing elements, such as `TR`/`TD`, or by applying your own CSS classes to HTML elements.
 
-A cell can be formatted either using a `CSS` attribute or with a style applied directly from the `Settings` object.
+A cell can be formatted either using a `CSS` class or with a style applied directly to the DOM element.
 
-## Apply custom class styles
+## Apply custom CSS class styles
 
-In this example we first add a custom class `custom-class` to the cell in the top left corner.
+In this example, we add a custom class `custom-cell` to the cell in the top left corner and add a `custom-table` CSS class that highlights the table headers.
 
 ::: example #example1 --css 1 --js 2
 ```css
-.custom-class {
+td.custom-cell {
   color: #fff;
   background-color: #37bc6c;
+}
+.custom-table thead th:nth-child(even),
+.custom-table tbody tr:nth-child(odd) th {
+  background-color: #d7f1e1;
 }
 ```
 ```javascript
 const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
- data: Handsontable.helper.createSpreadsheetData(5, 5),
- rowHeaders: true,
- colHeaders: true,
- stretchH: 'all',
- licenseKey: 'non-commercial-and-evaluation', 
- //todo lack of setting css class
+  data: Handsontable.helper.createSpreadsheetData(5, 5),
+  rowHeaders: true,
+  colHeaders: true,
+  stretchH: 'all',
+  className: 'custom-table',
+  cell: [
+    {
+      row: 0,
+      col: 0,
+      className: 'custom-cell',
+    },
+  ],
+  licenseKey: 'non-commercial-and-evaluation',
 });
 ```
 :::
 
-## Set styles with JavaScript
+## Apply inline styles
 
-You can pass the styles in the `Settings` object by referencing the target cells.
+You can apply inline styles directly to the DOM element using its `style` attribute. You can use the `renderer` option to do that.
 
 ::: example #example2
 ```javascript
 const container = document.querySelector('#example2');
 
-const hot1 = new Handsontable(container, {
- data: Handsontable.helper.createSpreadsheetData(5, 5),
- rowHeaders: true,
- colHeaders: true,
- stretchH: 'all',
- licenseKey: 'non-commercial-and-evaluation'
- //todo lack of setting borders
+Handsontable
+  .renderers
+  .registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
+    Handsontable.renderers.getRenderer('text')(hotInstance, TD, ...rest);
+
+    TD.style.fontWeight = 'bold';
+    TD.style.color = 'green';
+    TD.style.background = '#d7f1e1';
+  });
+
+const hot = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(5, 5),
+  rowHeaders: true,
+  colHeaders: true,
+  stretchH: 'all',
+  cell: [
+    {
+      row: 0,
+      col: 0,
+      renderer: 'customStylesRenderer',
+    },
+  ],
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 :::
@@ -65,8 +92,8 @@ To enable the custom borders feature, set the `customBorders` option. This can e
 
 To initialize Handsontable with predefined custom borders, provide the cell coordinates and border styles in form of an array:
 
-- with row/col pairs: `{row: 2, col: 2, left: { /*...*/ }}`
-- or with range details: `{range: {from: {row: 1, col: 1}, to:{row: 3, col: 4}}, left: { /*...*/ }}`
+- with row/col pairs: `{ row: 2, col: 2, left: { /*...*/ } }`
+- or with range details: `{ range: { from: { row: 1, col: 1 }, to: { row: 3, col: 4 } }, left: { /*...*/ } }`
 
 ::: example #example3
 ```js
