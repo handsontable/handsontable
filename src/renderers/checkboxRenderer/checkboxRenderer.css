@@ -13,3 +13,7 @@ CheckboxRenderer
   cursor: pointer;
   display: inline-block;
 }
+
+.handsontable .htCheckboxRendererLabel.fullWidth {
+  width: 100%;
+}
