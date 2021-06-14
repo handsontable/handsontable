@@ -1,6 +1,6 @@
 /* eslint-disable jsdoc/require-description-complete-sentence */
 import { arrayEach } from '../../../helpers/array';
-import { HEADER_DEFAULT_SETTINGS } from './constants';
+import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './utils';
 
 /**
  * A function that dump a tree structure into multidimensional array. That structure is
@@ -37,33 +37,46 @@ export function generateMatrix(headerRoots) {
 
   arrayEach(headerRoots, (rootNode) => {
     rootNode.walkDown((node) => {
-      const { data: { colspan, origColspan, label, isHidden, headerLevel, collapsible, isCollapsed } } = node;
-      const colspanHeaderLayer = createNestedArrayIfNecessary(matrix, headerLevel);
-
-      colspanHeaderLayer.push({
-        label,
-        colspan,
+      const nodeData = node.data;
+      const {
         origColspan,
-        collapsible,
-        isCollapsed,
-        isHidden,
-        isBlank: false,
-      });
+        columnIndex,
+        headerLevel,
+        crossHiddenColumns,
+      } = nodeData;
+      const colspanHeaderLayer = createNestedArrayIfNecessary(matrix, headerLevel);
+      let isRootSettingsFound = false;
 
-      if (origColspan > 1) {
-        for (let i = 0; i < origColspan - 1; i++) {
-          colspanHeaderLayer.push({
-            ...HEADER_DEFAULT_SETTINGS,
-            origColspan,
-            isHidden: true,
-            isBlank: true,
-          });
+      for (let i = columnIndex; i < columnIndex + origColspan; i++) {
+        const isColumnHidden = crossHiddenColumns.includes(i);
+
+        if (isColumnHidden || isRootSettingsFound) {
+          colspanHeaderLayer.push(createPlaceholderHeaderSettings(nodeData));
+        } else {
+          const headerRootSettings = createHeaderSettings(nodeData);
+
+          headerRootSettings.isRoot = true;
+          colspanHeaderLayer.push(headerRootSettings);
+          isRootSettingsFound = true;
         }
       }
     });
   });
 
   return matrix;
+}
+
+/**
+ * Creates header settings object.
+ *
+ * @param {object} nodeData The tree data object.
+ * @returns {object}
+ */
+function createHeaderSettings(nodeData) {
+  // For the matrix module we do not need to export "crossHiddenColumns" key. It's redundant here.
+  const { crossHiddenColumns, ...headerRootSettings } = createDefaultHeaderSettings(nodeData);
+
+  return headerRootSettings;
 }
 
 /**

@@ -49,7 +49,7 @@ contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo']
 
 ### contextMenu
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1775
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1784
 
 :::
 

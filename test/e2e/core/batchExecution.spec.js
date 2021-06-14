@@ -38,8 +38,16 @@ describe('Core.batchExecution', () => {
     expect(hot.suspendExecution).toHaveBeenCalledOnceWith();
     expect(hot.suspendExecution).toHaveBeenCalledBefore(hot.resumeExecution);
     expect(hot.resumeExecution).toHaveBeenCalledOnceWith(false);
-    expect(columnIndexCacheUpdated).toHaveBeenCalledOnceWith(true, false, false);
-    expect(rowIndexCacheUpdated).toHaveBeenCalledOnceWith(true, false, false);
+    expect(columnIndexCacheUpdated).toHaveBeenCalledOnceWith({
+      indexesSequenceChanged: true,
+      trimmedIndexesChanged: false,
+      hiddenIndexesChanged: false,
+    });
+    expect(rowIndexCacheUpdated).toHaveBeenCalledOnceWith({
+      indexesSequenceChanged: true,
+      trimmedIndexesChanged: false,
+      hiddenIndexesChanged: false,
+    });
   });
 
   it('should batch nested multi-line operations into one execution call', async() => {
@@ -74,8 +82,16 @@ describe('Core.batchExecution', () => {
     expect(hot.suspendExecution).toHaveBeenCalledTimes(3);
     expect(hot.resumeExecution).toHaveBeenCalledTimes(3);
     expect(hot.resumeExecution).toHaveBeenCalledWith(false);
-    expect(columnIndexCacheUpdated).toHaveBeenCalledOnceWith(true, false, false);
-    expect(rowIndexCacheUpdated).toHaveBeenCalledOnceWith(true, false, false);
+    expect(columnIndexCacheUpdated).toHaveBeenCalledOnceWith({
+      indexesSequenceChanged: true,
+      trimmedIndexesChanged: false,
+      hiddenIndexesChanged: false,
+    });
+    expect(rowIndexCacheUpdated).toHaveBeenCalledOnceWith({
+      indexesSequenceChanged: true,
+      trimmedIndexesChanged: false,
+      hiddenIndexesChanged: false,
+    });
   });
 
   it('should be possible to trigger cache update manually for wrapped operations', async() => {
@@ -118,8 +134,16 @@ describe('Core.batchExecution', () => {
     expect(hot.resumeExecution).toHaveBeenCalledTimes(4);
     expect(hot.resumeExecution).toHaveBeenCalledWith(false);
     expect(columnIndexCacheUpdated).toHaveBeenCalledTimes(2);
-    expect(columnIndexCacheUpdated).toHaveBeenCalledWith(true, false, false);
+    expect(columnIndexCacheUpdated).toHaveBeenCalledWith({
+      indexesSequenceChanged: true,
+      trimmedIndexesChanged: false,
+      hiddenIndexesChanged: false,
+    });
     expect(rowIndexCacheUpdated).toHaveBeenCalledTimes(2);
-    expect(rowIndexCacheUpdated).toHaveBeenCalledWith(true, false, false);
+    expect(rowIndexCacheUpdated).toHaveBeenCalledWith({
+      indexesSequenceChanged: true,
+      trimmedIndexesChanged: false,
+      hiddenIndexesChanged: false,
+    });
   });
 });

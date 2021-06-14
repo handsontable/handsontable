@@ -1,0 +1,7 @@
+{
+  "title": "New Formulas plugin, with an entirely different API. See the migration guide for a full list of changes. Removed the required `hot-formula-parser` dependency for the sake of an optional one, `hyperformula`.",
+  "type": "changed",
+  "issue": 6466,
+  "breaking": true,
+  "framework": "none"
+}

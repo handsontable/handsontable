@@ -1,6 +1,6 @@
 ---
 title: Plugins
-metaTitle: Plguins - Guide - Handsontable Documentation
+metaTitle: Plugins - Guide - Handsontable Documentation
 permalink: /next/plugins
 canonicalUrl: /plugins
 tags:
@@ -15,11 +15,11 @@ tags:
 
 ## Overview
 
-Plugin is a one great way to extend the capabilities of Handsontable. In fact, most of features available in tis library are provided by plugins.
+Plugin is a one great way to extend the capabilities of Handsontable. In fact, most of the features available in this library are provided by plugins.
 
 ### Plugin template
 
-There are two types of plugins: internal and external. While both extend Handsontable's functionality, the former is incorporated into the Handsontable build and the latter needs to be included from a separate file.
+There are two types of plugins: internal and external. While both extend Handsontable's functionality, the former is incorporated into the Handsontable build, and the latter needs to be included from a separate file.
 
 Regardless of which plugin you are going to build, using a template will save you lots of time.
 

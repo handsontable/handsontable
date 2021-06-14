@@ -7,12 +7,13 @@ canonicalUrl: /vue-language-change-example
 
 # Language change example
 
-An implementation of the `@handsontable/vue` component with an option to change the Context Menu language.
-Select a language from the selector above the table and open the Context Menu to see the result.
+The following example implements the `@handsontable/vue` component with the option to change the Context Menu language configured. Select a language from the selector above the table and open the Context Menu to see the result.
 
-Note, that the `language` property is bound to the component separately by using `:language="language"`, but it could be included in the `:settings` prop just as well.
+:::tip
+Note that the `language` property is bound to the component separately using `language={this.language}"`, but it could be included in the `settings` property just as well.
+:::
 
-Select language:
+## Example - Select language
 
 ::: example #example1 :vue-languages --html 1 --js 2
 ```html

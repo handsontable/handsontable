@@ -1,8 +1,12 @@
+import { AREA_TYPE } from '../constants';
 import VisualSelection from '../visualSelection';
 
 /**
  * Creates the new instance of Selection responsible for highlighting area of the selected multiple cells.
  *
+ * @param {object} highlightParams A configuration object to create a highlight.
+ * @param {number} highlightParams.layerLevel Layer level.
+ * @param {object} highlightParams.areaCornerVisible Function to determine if area's corner should be visible.
  * @returns {Selection}
  */
 function createHighlight({ layerLevel, areaCornerVisible, ...restOptions }) {
@@ -16,6 +20,7 @@ function createHighlight({ layerLevel, areaCornerVisible, ...restOptions }) {
       cornerVisible: areaCornerVisible,
     },
     ...restOptions,
+    selectionType: AREA_TYPE,
   });
 
   return s;

@@ -6,8 +6,10 @@ permalink: /next/angular-custom-context-menu-example
 
 # Custom context menu - example
 
-An implementation of the `@handsontable/angular` component with a custom context menu added.
+## Overview
+The following is an implementation of the `@handsontable/angular` component with a custom context menu added.
 
+## Example
 ::: example :angular --html 1 --js 2
 ```html
 <app-root></app-root>

@@ -35,7 +35,6 @@ module.exports.create = function create(envArgs) {
           '../node_modules/numbro/dist/languages.min.js',
           '../dist/moment/moment.js',
           '../dist/pikaday/pikaday.js',
-          '../dist/hot-formula-parser/formula-parser.js',
           '../node_modules/dompurify/dist/purify.js',
           '../dist/handsontable.js',
           '../dist/languages/all.js',

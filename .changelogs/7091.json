@@ -1,7 +1,0 @@
-{
-  "title": "Fix comments editor while destroying some HOT instance",
-  "type": "fixed",
-  "issue": 7091,
-  "breaking": false,
-  "framework": "none"
-}

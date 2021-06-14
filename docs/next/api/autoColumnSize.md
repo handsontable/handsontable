@@ -76,7 +76,7 @@ if (plugin.isEnabled()) {
 
 ### autoColumnSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2420
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2429
 
 :::
 

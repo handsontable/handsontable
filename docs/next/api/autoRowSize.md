@@ -23,9 +23,9 @@ Row height calculations are divided into sync and async part. Each of this parts
 disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
 operations don't block the browser UI.
 
-To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value to a config object:
+To configure the sync/async distribution, you can pass an absolute value (number of rows) or a percentage value to a config object:
 ```js
-// as a number (300 columns in sync, rest async)
+// as a number (300 rows in sync, rest async)
 autoRowSize: {syncLimit: 300},.
 
 // as a string (percent)
@@ -60,7 +60,7 @@ if (plugin.isEnabled()) {
 
 ### autoRowSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2448
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2457
 
 :::
 
@@ -75,12 +75,12 @@ Row height calculations are divided into sync and async stages. Each of these st
 disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
 operations don't block the browser UI.
 
-To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value.
+To configure the sync/async distribution, you can pass an absolute value (number of rows) or a percentage value.
 
 **Default**: <code>undefined</code>  
 **Example**  
 ```js
-// as a number (300 columns in sync, rest async)
+// as a number (300 rows in sync, rest async)
 autoRowSize: {syncLimit: 300},
 
 // as a string (percent)

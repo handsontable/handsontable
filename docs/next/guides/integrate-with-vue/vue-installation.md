@@ -9,6 +9,10 @@ canonicalUrl: /vue-installation
 
 [[toc]]
 
+## Overview
+
+Vue installation and basic usage guide.
+
 ## Install with npm
 
 This component needs the Handsontable library to work. Use [npm](https://www.npmjs.com/package/@handsontable/vue) to install the packages.

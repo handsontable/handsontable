@@ -32,7 +32,8 @@ const getFixer = () => {
  * The function `buildDependencyGetter` is the best place to care about that.
  *
  * @param {string} version The current selected documentation version.
- * @returns {function({dependency:string}):[string,string[],string]} [jsUrl, dependentVars[]?, cssUrl?].
+ * @returns {Function} Returns a function factory with the signature
+ *                     `{function(dependency: string): [string,string[],string]} [jsUrl, dependentVars[]?, cssUrl?]`.
  */
 const buildDependencyGetter = (version) => {
   const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version);
