@@ -1,5 +1,6 @@
 ---
 title: NestedRows
+metaTitle: NestedRows - Plugin - Handsontable Documentation
 permalink: /next/api/nested-rows
 canonicalUrl: /api/nested-rows
 editLink: false
@@ -18,7 +19,7 @@ Plugin responsible for displaying and operating on data sources with nested stru
 
 ### nestedRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L3069
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L3028
 
 :::
 

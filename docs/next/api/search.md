@@ -1,5 +1,6 @@
 ---
 title: Search
+metaTitle: Search - Plugin - Handsontable Documentation
 permalink: /next/api/search
 canonicalUrl: /api/search
 editLink: false
@@ -41,7 +42,7 @@ searchPlugin.setSearchResultClass(customClass);
 
 ### search
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1520
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1529
 
 :::
 

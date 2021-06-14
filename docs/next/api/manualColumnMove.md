@@ -33,7 +33,7 @@ The plugin creates additional components to make moving possibly using user inte
 
 ### manualColumnMove
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1889
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1898
 
 :::
 

@@ -63,7 +63,7 @@ columns: [{
 
 ### multiColumnSorting
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2033
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2042
 
 :::
 
