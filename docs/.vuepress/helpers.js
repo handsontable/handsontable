@@ -9,7 +9,8 @@ const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver
 
 module.exports = {
   getVersions(buildMode) {
-    const next = buildMode!=='production' ? ['next'] : [];
+    const next = buildMode !== 'production' ? ['next'] : [];
+
     return [...next, ...availableVersions];
   },
 
