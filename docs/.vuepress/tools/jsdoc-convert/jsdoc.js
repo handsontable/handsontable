@@ -156,7 +156,7 @@ const unescapeRedundant = text => text
   // fix randomly added quota to @default tag.
   .replace(/\*\*Default\*\*: <code>&quot;((undefined)|(false)|(true))&quot;<\/code>/g, '**Default**: <code>$1</code>')
   // remove redundant dot, which eslint enforce to add after list closing tag.
-  .replace(/<\/ul>\./g, '</ul>') 
+  .replace(/<\/ul>\./g, '</ul>')
   .replace(/&quot;&#x27;/g, '"')
   .replace(/&#x27;&quot;/g, '"');
 
