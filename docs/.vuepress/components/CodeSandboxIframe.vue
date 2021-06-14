@@ -16,7 +16,7 @@ export default {
   computed: {
     srcUrl() {
       return 'https://codesandbox.io/embed/' + this.id + 
-        '?fontsize=14&hidenavigation=1&theme=dark&view=preview&runonclick=1';
+        '?fontsize=14&hidenavigation=1&theme=light&view=preview&runonclick=1';
     }
   }
 }
