@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 9.0.0
- * Release date: 01/06/2021 (built at 31/05/2021 17:37:39)
+ * Version: 9.0.1
+ * Release date: 17/06/2021 (built at 14/06/2021 12:54:38)
  */
 /**
  * Fix for bootstrap styles
@@ -1063,6 +1063,10 @@ CheckboxRenderer
   vertical-align: middle;
   cursor: pointer;
   display: inline-block;
+}
+
+.handsontable .htCheckboxRendererLabel.fullWidth {
+  width: 100%;
 }
 
 .htCommentCell {

@@ -1,7 +1,0 @@
-{
-  "title": "Introduced new CSS style for cells of `checkbox` type to restore previous behaviour.",
-  "type": "fixed",
-  "issue": 8196,
-  "breaking": false,
-  "framework": "none"
-}
