@@ -110,25 +110,31 @@ html.theme-dark {
     }
   }
 
-  /* Scrollbar (works on Chrome, Edge, and Safari) */
-  aside::-webkit-scrollbar {
-    width 12px // width of the entire scrollbar
+  scrollbar() {
+    /* Scrollbar (works on Chrome, Edge, and Safari) */
+    &::-webkit-scrollbar {
+      width 12px // width of the entire scrollbar
+    }
+
+    &::-webkit-scrollbar-track {
+      background $backgroundColor // color of the tracking area
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color $scrollbarThumb // color of the scroll thumb
+      border-radius 20px // roundness of the scroll thumb
+      border 2px solid $backgroundColor // creates padding around scroll thumb
+    }
+
+    /* Scrollbar (works on Firefox) */
+    & {
+      scrollbar-width thin
+      scrollbar-color $scrollbarThumb $backgroundColor
+    }
   }
 
-  aside::-webkit-scrollbar-track {
-    background $backgroundColor // color of the tracking area
-  }
-
-  aside::-webkit-scrollbar-thumb {
-    background-color $scrollbarThumb // color of the scroll thumb
-    border-radius 20px // roundness of the scroll thumb
-    border 2px solid $backgroundColor // creates padding around scroll thumb
-  }
-
-  /* Scrollbar (works on Firefox) */
   aside {
-    scrollbar-width thin
-    scrollbar-color $scrollbarThumb $backgroundColor
+    scrollbar()
   }
 
   .tabs-component-tabs {
