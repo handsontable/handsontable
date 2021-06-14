@@ -1,5 +1,5 @@
 <template>
-  <div> 
+  <div>
     <tabs :options="{ useUrlFragment: false }"  @changed="tabClicked">
       <tab name="JavaScript" id="js">
         <iframe v-if="selected === 'js'" :src="jsSrc"
@@ -10,7 +10,7 @@
         ></iframe>
       </tab>
       <tab name="TypeScript" id="typescript">
-        <iframe v-if="selected === 'typescript'" :src="tsSrc" 
+        <iframe v-if="selected === 'typescript'" :src="tsSrc"
           :style="styleAttribute"
           :allow="allowAttribute"
           :sandbox="sandboxAttribute"
@@ -32,13 +32,13 @@
 </template>
 
 <script>
-const hrefStart='https://codesandbox.io/embed/';
-const hrefEnd='?fontsize=14&hidenavigation=1&theme=dark&view=preview&runonclick=1';
+const hrefStart = 'https://codesandbox.io/embed/';
+const hrefEnd = '?fontsize=14&hidenavigation=1&theme=dark&view=preview&runonclick=1';
 
 export default {
   name: 'HelloWorld',
   data() {
-    const getUrl = (id) => `${hrefStart}${id}${hrefEnd}`;
+    const getUrl = id => `${hrefStart}${id}${hrefEnd}`;
 
     return {
       selected: 'js',
@@ -49,13 +49,13 @@ export default {
       allowAttribute: 'accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; ' +
         'microphone; midi; payment; usb; vr; xr-spatial-tracking',
       sandboxAttribute: 'allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts',
-    }
+    };
   },
-  methods:{
+  methods: {
     tabClicked(event) {
       this.selected = event.tab.id;
     }
   }
 
-}
+};
 </script>
