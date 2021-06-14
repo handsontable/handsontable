@@ -1,9 +1,11 @@
 const { SiteChecker } = require('broken-link-checker'); // eslint-disable-line import/no-unresolved
 const path = require('path');
 const execa = require('execa');
+const { Renderer } = require('xlsx-renderer');
 const { logger } = require('./utils');
 
 const ACCEPTABLE_STATUS_CODES = [undefined, 200, 429];
+const PORT = 8080;
 
 const spawnProcess = (command, options = {}) => {
   const cmdSplit = command.split(' ');
@@ -21,7 +23,7 @@ const spawnProcess = (command, options = {}) => {
 };
 
 // start server
-spawnProcess(`http-server ${path.resolve('.vuepress', 'dist')} -s 8080`);
+spawnProcess(`http-server ${path.resolve('.vuepress', 'dist')} -p ${PORT}`);
 const stats = {
   brokenInternal: 0,
   brokenExternal: 0,
@@ -29,6 +31,23 @@ const stats = {
   internal: 0,
   _set: new Set()
 };
+const links = [];
+
+const saveReport = async() => {
+  const result = await new Renderer().renderFromFile(path.resolve(__dirname, './check-links-report-template.xlsx'), {
+    stats: {
+      brokenInternal: stats.brokenInternal,
+      brokenExternal: stats.brokenExternal,
+      external: stats.external,
+      internal: stats.internal,
+    },
+    links,
+    at: new Date().toLocaleString()
+  });
+
+  await result.xlsx.writeFile('./report-check-links.xlsx');
+};
+
 const siteChecker = new SiteChecker(
   {
     excludeInternalLinks: false,
@@ -72,12 +91,26 @@ const siteChecker = new SiteChecker(
         logger.log(`on: ${result.base.resolved}  \t  external link ${status} => ${result.url.resolved};`);
         stats.external += isUnique;
       }
+      links.push({
+        status,
+        isBroken: result.broken,
+        isInternal: result.internal,
+        linkFrom: result.base.resolved,
+        linkTo: result.url.resolved,
+        linkToOriginal: result.url.original
+      });
     },
 
-    end: () => {
+    end: async() => {
       logger.info('\nCHECK FOR BROKEN LINKS FINISHED');
       logger.info(`Checked internals : ${stats.internal + stats.brokenInternal}`);
       logger.info(`Checked externals : ${stats.external + stats.brokenExternal}`);
+
+      try {
+        await saveReport();
+      } catch (err) {
+        logger.warn('Error thrown while report was being generated', err);
+      }
 
       if (stats.brokenInternal || stats.brokenExternal) {
         logger.error(`Broken internals: ${stats.brokenInternal}`);
@@ -97,7 +130,7 @@ const siteChecker = new SiteChecker(
   }
 );
 
-const ARGUMENT_URL_DEFAULT = 'http://127.0.0.1:8080/docs/next/api';
+const ARGUMENT_URL_DEFAULT = `http://127.0.0.1:${PORT}/docs/next/api`;
 
 let [urlArg] = process.argv.slice(2);
 
