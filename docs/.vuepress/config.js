@@ -4,7 +4,8 @@ const helpers = require('./helpers');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 
-const environmentHead = process.env.BUILD_MODE === 'production' ?
+const buildMode = process.env.BUILD_MODE;
+const environmentHead = buildMode === 'production' ?
   [
     // Google Tag Manager, an extra element within the `ssr.html` file.
     ['script', {}, `
@@ -135,7 +136,7 @@ module.exports = {
     displayAllHeaders: true, // collapse other pages
     activeHeaderLinks: true,
     sidebarDepth: 0,
-    sidebar: helpers.getSidebars(),
+    sidebar: helpers.getSidebars(buildMode),
     search: true,
     searchPlaceholder: 'Search...',
     searchMaxGuidesSuggestions: 5,

@@ -55,8 +55,8 @@
 </template>
 
 <script>
-import { isActive } from './util'
-import DropdownTransition from '@theme/components/DropdownTransition.vue'
+import DropdownTransition from '@theme/components/DropdownTransition.vue';
+import { isActive } from './util';
 
 export default {
   name: 'SidebarGroup',
@@ -73,28 +73,29 @@ export default {
   ],
 
   // ref: https://vuejs.org/v2/guide/components-edge-cases.html#Circular-References-Between-Components
-  beforeCreate () {
+  beforeCreate() {
+    // eslint-disable-next-line global-require
     this.$options.components.SidebarLinks = require('@theme/components/SidebarLinks.vue').default;
   },
-  data(){
+  data() {
     return {
       isOpen: this.open
+    };
+  },
+  methods: {
+    isActive,
+    toggleOpen() {
+      this.isOpen = !this.isOpen;
     }
   },
-  methods: { 
-    isActive, 
-    toggleOpen(){
-      this.isOpen = !this.isOpen;  
-    }
-  },
-  watch:{
-    open(val){
-      if(val) {
+  watch: {
+    open(val) {
+      if (val) {
         this.isOpen = val;
       }
     }
   }
-}
+};
 </script>
 
 <style lang="stylus">

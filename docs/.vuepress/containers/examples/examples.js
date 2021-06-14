@@ -103,7 +103,6 @@ module.exports = {
       const jsContent = jsToken.content;
 
       const activeTab = args.match(/--tab (code|html|css|preview)/)?.[1] || 'code';
-      
       const noEdit = !!args.match(/--no-edit/)?.[0];
 
       const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), jsContent, env.relativePath);

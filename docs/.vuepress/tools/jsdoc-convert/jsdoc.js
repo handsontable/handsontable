@@ -76,8 +76,7 @@ const genSeoTitle = file => file
   // .replace(/([A-Z]+)/g, " $1") // Add spaces before each word
   .replace(/(^[a-z])/, m => m.toUpperCase()); // To upper first letter
 const seoTitle = file => seo[file] && seo[file].title || genSeoTitle(file);
-
-const genSeoMetaTitle = file => `${seoTitle(file)} - Plugin - Handsontable Documentation`; 
+const genSeoMetaTitle = file => `${seoTitle(file)} - Plugin - Handsontable Documentation`;
 const seoMetaTitle = file => seo[file] && seo[file].metaTitle || genSeoMetaTitle(file);
 
 const genSeoPermalink = file => file
@@ -126,17 +125,17 @@ const fixTypes = text => text.replace(
       prefix = '_';
       suffix = '_';
     }
-    
+
     return prefix + signame
-        .replace(/([^\w`\[#])(`)?(IndexMapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./index-mapper/$4)')
-        .replace(/([^\w`\[#])(`)?(Handsontable|Core)(#\w*)?(`)?/g, '$1[$2$3$4$5](./core/$4)')
-        .replace(/([^\w`\[#])(`)?(Hooks)((#)(event:)?(\w*))?(`)?/g, '$1[$2$3$4$8](./hooks/$5$7)')
-        .replace(/([^\w`\[#])(`)?(BaseEditor)(#\w*)?(`)?/g, '$1[$2$3$4$5](./base-editor/$4)')
-        .replace(/([^\w`\[#])(`)?(CellCoords)(#\w*)?(`)?/g, '$1[$2$3$4$5](./coords/$4)')
-        .replace(/([^\w`\[#])(`)?(FocusableWrapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./focusable-element/$4)')
-        .replace(/\.</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/`\\\*`/, '`*`')
+      .replace(/([^\w`\[#])(`)?(IndexMapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./index-mapper/$4)')
+      .replace(/([^\w`\[#])(`)?(Handsontable|Core)(#\w*)?(`)?/g, '$1[$2$3$4$5](./core/$4)')
+      .replace(/([^\w`\[#])(`)?(Hooks)((#)(event:)?(\w*))?(`)?/g, '$1[$2$3$4$8](./hooks/$5$7)')
+      .replace(/([^\w`\[#])(`)?(BaseEditor)(#\w*)?(`)?/g, '$1[$2$3$4$5](./base-editor/$4)')
+      .replace(/([^\w`\[#])(`)?(CellCoords)(#\w*)?(`)?/g, '$1[$2$3$4$5](./coords/$4)')
+      .replace(/([^\w`\[#])(`)?(FocusableWrapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./focusable-element/$4)')
+      .replace(/\.</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/`\\\*`/, '`*`')
       + suffix;
   }
 );
@@ -275,7 +274,7 @@ const traversePlugins = function* () {
     if (['base', '__tests__', /* privates: */ 'touchScroll', 'multipleSelectionHandles'].includes(item)) {
       continue; // eslint-disable-line no-continue
     }
-    
+
     if (fs.statSync(source(path.join('plugins', item))).isDirectory()) {
       yield path.join('plugins', item, `${item}.js`);
     }
