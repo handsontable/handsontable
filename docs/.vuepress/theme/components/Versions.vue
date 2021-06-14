@@ -16,21 +16,21 @@ export default {
     DropdownLink
   },
   methods: {
-    addLatest (version) {
+    addLatest(version) {
       if (version === this.$page.latestVersion) {
         return `${version} (Current)`;
       }
 
       return version;
     },
-    getLink(version){
+    getLink(version) {
       if (version === this.$page.latestVersion) {
         return '/';
       }
 
       return `/${version}/`;
     },
-    getLegacyVersions () {
+    getLegacyVersions() {
       return [
         '8.3.0',
         '8.2.0',
@@ -46,14 +46,14 @@ export default {
         '6.0.1',
         '5.0.2',
         '4.0.0'
-      ].map(v=>({
-        text: v.replace(/^(\d*\.\d*)\..*$/,'$1'),
+      ].map(v => ({
+        text: v.replace(/^(\d*\.\d*)\..*$/, '$1'),
         link: `https://handsontable.com/docs/${v}/`
-      }))
+      }));
     }
   },
   computed: {
-    item () {
+    item() {
       return {
         text: this.addLatest(this.$page.currentVersion),
         items:
@@ -61,7 +61,7 @@ export default {
             ...this.$page.versions.map(v => ({ text: `${this.addLatest(v)}`, link: this.getLink(v) })),
             ...this.getLegacyVersions()
           ]
-      }
+      };
     }
   }
 };
@@ -74,18 +74,18 @@ export default {
   position relative
   top -1px
   text-transform capitalize
-  
+
   .dropdown-title {
     text-transform capitalize
   }
 
   .icon.outbound
     display none
-    
-  .dropdown-wrapper 
+
+  .dropdown-wrapper
     height 1.8rem
 
-  .dropdown-wrapper .nav-dropdown 
+  .dropdown-wrapper .nav-dropdown
     min-width 150px
     height auto !important
     box-sizing border-box
