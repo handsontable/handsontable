@@ -196,7 +196,13 @@ html.theme-dark {
   code {
     color #ffffff
     background #2F2F2F
-  } 
+  }
+
+  kbd {
+    color #ffffff
+    background #2F2F2F
+    border-color #5a5d61
+  }
 
   /* Version alert badge */
   .version-alert { 
@@ -259,18 +265,17 @@ html.theme-dark {
     }
   }
 
-  /* Table */
   .scrollable-table {
     scrollbar()
+  }
 
-    table {
-      tr:nth-child(2n) {
-        background-color #292929
-      }
+  table {
+    tr:nth-child(2n) {
+      background-color #292929
+    }
 
-      th, td {
-        border-bottom 1px solid $sectionBorderColor
-      }
+    th, td {
+      border-bottom 1px solid $sectionBorderColor
     }
   }
 
