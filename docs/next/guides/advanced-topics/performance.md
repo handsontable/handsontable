@@ -28,7 +28,7 @@ const hot = new Handsontable(obj, {
 });
 ```
 
-For more information, see [our documentation](api/dataMap/metaManager/metaSchema.md#colwidths).
+For more information, see [our documentation](@/api/metaSchema.md#colwidths).
 
 :::tip When using this setting, Handsontable won't perform the column width calculations, so you will need to ensure that your table contents fit inside the columns with the provided widths.
 
@@ -36,13 +36,13 @@ For more information, see [our documentation](api/dataMap/metaManager/metaSchema
 
 You can configure the value of the `autoRowSize` and `autoColumnSize` options. These allow you to define the amount of width/height-related calculations made during the table's initialization.
 
-For more information, see our documentation for [rows](api/dataMap/metaManager/metaSchema.md#autorowsize) and [columns](api/dataMap/metaManager/metaSchema.md#autocolumnsize).
+For more information, see our documentation for [rows](@/api/metaSchema.md#autorowsize) and [columns](@/api/metaSchema.md#autocolumnsize).
 
 ## Define the number of pre-rendered rows and columns
 
 You can explicitly specify the number of rows and columns to be rendered outside of the visible part of the table. Better results can be achieved by setting a lower number, as fewer elements get rendered in some cases. However, sometimes setting a larger number may also work well as fewer operations are being made on each scroll event. Fine-tuning these settings and finding the sweet spot may improve the feeling of your Handsontable implementation.
 
-For more information, see our documentation for [rows](api/dataMap/metaManager/metaSchema.md#viewportrowrenderingoffset) and [columns](api/dataMap/metaManager/metaSchema.md#viewportcolumnrenderingoffset).
+For more information, see our documentation for [rows](@/api/metaSchema.md#viewportrowrenderingoffset) and [columns](@/api/metaSchema.md#viewportcolumnrenderingoffset).
 
 ## Rule of thumb: don't use too much styling
 
@@ -92,4 +92,4 @@ new Handsontable(container, {
 });
 ```
 
-You can also optimize the use of **moment.js**. To find out more about this topic, see the [modules page](modules.md).
+You can also optimize the use of **moment.js**. To find out more about this topic, see the [modules page](@/guides/building-and-testing/modules.md).
