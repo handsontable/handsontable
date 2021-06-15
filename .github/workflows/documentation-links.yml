@@ -21,10 +21,6 @@ jobs:
         working-directory: docs
         run: npm ci --no-audit
 
-      - name: Regenerate API References
-        working-directory: docs
-        run: npm run docs:api
-
       - name: Build
         working-directory: docs
         run: npm run docs:build:no-check-links
