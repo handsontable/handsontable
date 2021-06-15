@@ -51,15 +51,15 @@ columns: [{
 
 Handsontable comes with nine types:
 
-* ["autocomplete"](autocomplete-cell-type.md) or `Handsontable.cellTypes.autocomplete`
-* ["checkbox"](checkbox-cell-type.md) or `Handsontable.cellTypes.checkbox`
-* ["date"](date-cell-type.md) or `Handsontable.cellTypes.date`
-* ["dropdown"](dropdown-cell-type.md) or `Handsontable.cellTypes.dropdown`
-* ["handsontable"](handsontable-cell-type.md) or `Handsontable.cellTypes.handsontable`
-* ["numeric"](numeric-cell-type.md) or `Handsontable.cellTypes.numeric`
-* ["password"](password-cell-type.md) or `Handsontable.cellTypes.password`
-* ["select"](select-cell-type.md) or `Handsontable.cellTypes.select`
-* ["time"](time-cell-type.md) or `Handsontable.cellTypes.time`
+* ["autocomplete"](@/guides/cell-types/autocomplete-cell-type.md) or `Handsontable.cellTypes.autocomplete`
+* ["checkbox"](@/guides/cell-types/checkbox-cell-type.md) or `Handsontable.cellTypes.checkbox`
+* ["date"](@/guides/cell-types/date-cell-type.md) or `Handsontable.cellTypes.date`
+* ["dropdown"](@/guides/cell-types/dropdown-cell-type.md) or `Handsontable.cellTypes.dropdown`
+* ["handsontable"](@/guides/cell-types/handsontable-cell-type.md) or `Handsontable.cellTypes.handsontable`
+* ["numeric"](@/guides/cell-types/numeric-cell-type.md) or `Handsontable.cellTypes.numeric`
+* ["password"](@/guides/cell-types/password-cell-type.md) or `Handsontable.cellTypes.password`
+* ["select"](@/guides/cell-types/select-cell-type.md) or `Handsontable.cellTypes.select`
+* ["time"](@/guides/cell-types/time-cell-type.md) or `Handsontable.cellTypes.time`
 * "text" or `Handsontable.cellTypes.text`
 
 The `text` cell type is the default type.
@@ -228,7 +228,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-Using [cascade configuration](setting-options.md#page-config) we define a table with two columns, with `validator` set to `customValidator` function. The `type` of the first column is set to `password`. The `Password` cell type does not define a validator function:
+Using [cascade configuration](@/guides/getting-started/setting-options.md#page-config) we define a table with two columns, with `validator` set to `customValidator` function. The `type` of the first column is set to `password`. The `Password` cell type does not define a validator function:
 
 ```js
 {
