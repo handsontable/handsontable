@@ -98,28 +98,6 @@ html.theme-dark {
     }
   }
 
-  /* Table of contents */
-  .table-of-contents {
-    border-left-color $sectionBorderColor
-
-    .toc-container-header {
-      color $fontColor
-    }
-
-    a {
-      color $fontColor
-
-      &.active {
-        color: $fontColor
-        font-weight bold
-      }
-
-      &:hover {
-        color $fontColor
-      }
-    }
-  }
-
   scrollbar() {
     /* Scrollbar (works on Chrome, Edge, and Safari) */
     &::-webkit-scrollbar {
@@ -144,6 +122,29 @@ html.theme-dark {
     & {
       scrollbar-width thin
       scrollbar-color $scrollbarThumb $backgroundColor
+    }
+  }
+
+  /* Table of contents */
+  .table-of-contents {
+    border-left-color $sectionBorderColor
+    scrollbar()
+
+    .toc-container-header {
+      color $fontColor
+    }
+
+    a {
+      color $fontColor
+
+      &.active {
+        color: $fontColor
+        font-weight bold
+      }
+
+      &:hover {
+        color $fontColor
+      }
     }
   }
 
@@ -269,7 +270,7 @@ html.theme-dark {
     scrollbar()
   }
 
-  table {
+  table:not(.htCore) {
     tr:nth-child(2n) {
       background-color #292929
     }
