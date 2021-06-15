@@ -30,7 +30,7 @@ Set the `indicators` property in the plugin's configuration object to `true` to 
 
 To change the selection area of the copy/paste range, set the `copyPasteEnabled` property to `true` or `false`. By default, this property is set to `true`. If set to `false`, the hidden columns are skipped for copy/paste actions.
 
-To show/hide certain columns directly from the [Context menu](context-menu.md) use the following keys: `hidden_columns_show` and `hidden_columns_hide`.
+To show/hide certain columns directly from the [Context menu](@/guides/accessories-and-menus/context-menu.md) use the following keys: `hidden_columns_show` and `hidden_columns_hide`.
 
 ## Example
 
