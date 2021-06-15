@@ -79,7 +79,7 @@ See the example plugin configuration below:
 ```js
 const container = document.querySelector('#example2');
 
-const hot2 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     ['Tesla', 'Model 3', 'BlueStar', 'USA', '★★★★'],
     ['Tesla', 'Model S', 'WhiteStar', 'USA', '★★★★★'],
@@ -114,7 +114,7 @@ Options defined by the `columnSorting` key in the main Handsontable settings app
 
 ## Default compare functions - sorting different kinds of data
 
-As in the native [`Array.sort`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) method, our internal sorting algorithm uses the **compare function** - also known as a **comparator**. Different kinds of cells like [`date, numeric, text`](cell-types.md) are treated differently. Each of them has its own comparator for sorting a particular data type.
+As in the native [`Array.sort`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) method, our internal sorting algorithm uses the **compare function** - also known as a **comparator**. Different kinds of cells like [`date, numeric, text`](@/guides/cell-types/cell-type.md) are treated differently. Each of them has its own comparator for sorting a particular data type.
 
 As a result, you can see that different types of data are sorted properly. `Handsontable` simply needs the declared data type for the column, as shown in the example below.
 
@@ -122,7 +122,7 @@ As a result, you can see that different types of data are sorted properly. `Hand
 ```js
 const container = document.querySelector('#example3');
 
-const hot3 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
     { brand: 'Tesla', model: 'Model S', maxSpeed: 139, range: 275, seats: 7, price: 71788, productionDate: '04/02/2012' },
@@ -191,13 +191,13 @@ The next section details how the plugin may be used just for certain columns.
 
 ## Plugin options for certain columns only
 
-The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `headerAction`, `indicator`, can be set just for a particular column. This can be done by using [columns](api/dataMap/metaManager/metaSchema.md#columns) option. The example below demonstrates how to disable the indicator and **completely block sorting action for the first column**:
+The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `headerAction`, `indicator`, can be set just for a particular column. This can be done by using [columns](@/api/metaSchema.md#columns) option. The example below demonstrates how to disable the indicator and **completely block sorting action for the first column**:
 
 ::: example #example4
 ```js
 const container = document.querySelector('#example4');
 
-const hot4 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
     { brand: 'Tesla', model: 'Model S', maxSpeed: 139, range: 275, seats: 7, price: 71788, productionDate: '04/02/2012' },
@@ -287,10 +287,10 @@ beforeColumnSort(currentSortConfig, destinationSortConfigs) {
 
 The plugin provides two hooks:
 
-* [`beforeColumnSort`](api/pluginHooks.md#beforecolumnsort) runs before the sort 
+* [`beforeColumnSort`](@/api/pluginHooks.md#beforecolumnsort) runs before the sort 
   * The sort configuration obtained by the `getSortConfig` method within the callback will match the sort configuration preserved before the hook call
   * The callback for `beforeColumnSort` will return `false` and stop the table from being sorted, which results in the `afterColumnSort` hook not being called
-* [`afterColumnSort`](api/pluginHooks.md#aftercolumnsort) always runs after sorting unless the callback for `beforeColumnSort` hook returns `false`
+* [`afterColumnSort`](@/api/pluginHooks.md#aftercolumnsort) always runs after sorting unless the callback for `beforeColumnSort` hook returns `false`
 
 ::: tip
 Hooks are also run when you use the `clearSort` method or provide a configuration that won't be processed, causing validation to fail.
@@ -300,8 +300,8 @@ Hooks are also run when you use the `clearSort` method or provide a configuratio
 
 List of methods exposed by the plugin:
 
-* [`clearSort`](api/plugins/columnSorting/columnSorting.md#clearsort)
-* [`getSortConfig`](api/plugins/columnSorting/columnSorting.md#getsortconfig)
-* [`isSorted`](api/plugins/columnSorting/columnSorting.md#issorted)
-* [`setSortConfig`](api/plugins/columnSorting/columnSorting.md#setsortconfig)
-* [`sort`](api/plugins/columnSorting/columnSorting.md#sort)
+* [`clearSort`](@/api/columnSorting.md#clearsort)
+* [`getSortConfig`](@/api/columnSorting.md#getsortconfig)
+* [`isSorted`](@/api/columnSorting.md#issorted)
+* [`setSortConfig`](@/api/columnSorting.md#setsortconfig)
+* [`sort`](@/api/columnSorting.md#sort)
