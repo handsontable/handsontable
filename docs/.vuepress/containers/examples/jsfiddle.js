@@ -28,12 +28,11 @@ ${imports}
 ${html}
       </textarea>
       <textarea name="css" readOnly>${css}</textarea>
-      ${isBabelPanel ? '<input type="text" name="panel_js" value="3" readOnly>' : ''}
-      ${isAngularPanel ? '<input type="text" name="panel_js" value="4" readOnly>' : ''}
+      ${isBabelPanel || isAngularPanel ? '<input type="text" name="panel_js" value="3" readOnly>' : ''}
   }
     </form>
     <div class="js-fiddle-link">
-      <button type="submit" form="jsfiddle-${id}"><i class="fa fa-jsfiddle"></i>Edit</button>
+      <button type="submit" form="jsfiddle-${id}">Edit</button>
     </div>
   `;
 };

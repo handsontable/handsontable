@@ -1,6 +1,6 @@
-/* 
+/*
   A stylesheet for different form elements:
-  
+
   - button
   - input
   - textarea
@@ -14,7 +14,8 @@
   padding-bottom: 10px;
 }
 
-.page button:not(.theme-code-group__nav-tab), button.controls {
+// select all <button>s that are not descendants of .handsontable container elements
+.page button:not(.theme-code-group__nav-tab, .handsontable *) {
   padding: 8px 14px;
   font-size: 14px;
   display: inline-block;

@@ -8,17 +8,19 @@ const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
 const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
 
 module.exports = {
-  getVersions() {
-    return ['next', ...availableVersions];
+  getVersions(buildMode) {
+    const next = buildMode !== 'production' ? ['next'] : [];
+
+    return [...next, ...availableVersions];
   },
 
   getLatestVersion() {
     return availableVersions[0];
   },
 
-  getSidebars() {
+  getSidebars(buildMode) {
     const sidebars = { };
-    const versions = this.getVersions();
+    const versions = this.getVersions(buildMode);
 
     versions.forEach((version) => {
       // eslint-disable-next-line

@@ -1,5 +1,5 @@
 /**
- * Matches into: `example #ID .class :preset --css 2 --html 0 --js 1 --hidden`.
+ * Matches into: `example #ID .class :preset --css 2 --html 0 --js 1 --no-edit`.
  *
  * @type {RegExp}
  */
@@ -46,7 +46,7 @@ const tab = (tabName, token) => {
   ];
 };
 
-function getPreviewTab(id, cssContent, htmlContent, code) {
+const getPreviewTab = (id, cssContent, htmlContent, code) => {
   return {
     type: 'html_block',
     tag: '',
@@ -56,10 +56,10 @@ function getPreviewTab(id, cssContent, htmlContent, code) {
     level: 1,
     children: null,
     content: `
-      <tab name="Preview" hot-example-id="${id}">
+      <tab name="Preview" id="preview-tab-${id}">
         <style v-pre>${cssContent}</style>
         <div v-pre>${htmlContent}</div>
-        <ScriptLoader code="${code}"></ScriptLoader>
+        <ScriptLoader v-if="$parent.$parent.isScriptLoaderActivated('${id}')" code="${code}"></ScriptLoader>
       </tab>
     `,
     markup: '',
@@ -67,9 +67,8 @@ function getPreviewTab(id, cssContent, htmlContent, code) {
     meta: null,
     block: true,
     hidden: false
-  }
-  ;
-}
+  };
+};
 
 module.exports = {
   type: 'example',
@@ -104,6 +103,7 @@ module.exports = {
       const jsContent = jsToken.content;
 
       const activeTab = args.match(/--tab (code|html|css|preview)/)?.[1] || 'code';
+      const noEdit = !!args.match(/--no-edit/)?.[0];
 
       const code = buildCode(id + (preset.includes('angular') ? '.ts' : '.jsx'), jsContent, env.relativePath);
       const encodedCode = encodeURI(`useHandsontable('${version}', function(){${code}}, '${preset}')`);
@@ -122,9 +122,9 @@ module.exports = {
       tokens.splice(index + 1, 0, ...newTokens);
 
       return `
-          ${jsfiddle(id, htmlContent, jsContent, cssContent, version, preset)}
-          <tabs 
-            :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }" 
+          ${!noEdit ? jsfiddle(id, htmlContent, jsContent, cssContent, version, preset) : ''}
+          <tabs
+            :options="{ useUrlFragment: false, defaultTabHash: '${activeTab}' }"
             cache-lifetime="0"
             @changed="$parent.$parent.codePreviewTabChanged(...arguments, '${id}')"
           >
