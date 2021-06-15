@@ -7,7 +7,11 @@ canonicalUrl: /react-hot-reference
 
 # Referencing the Handsontable instance
 
-An implementation of the `@handsontable/react` explaining how to reference the Handsontable instance from the wrapper component.
+## Overview
+
+The following example implements the `@handsontable/react`component showing how to reference the Handsontable instance from the wrapper component.
+
+## Example
 
 ::: example #example1 :react
 ```jsx

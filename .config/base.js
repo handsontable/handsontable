@@ -12,6 +12,7 @@ licenseBody += '\nRelease date: ' + process.env.HOT_RELEASE_DATE + ' (built at '
 module.exports.create = function create(envArgs) {
   const config = {
     devtool: false,
+    entry: ['./src/index.js'],
     performance: {
       maxEntrypointSize: 2000000,
       maxAssetSize: 2000000,

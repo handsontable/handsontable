@@ -4,6 +4,7 @@ const jsdoc2md = require('jsdoc-to-markdown'); // eslint-disable-line import/no-
 const dmd = require('dmd'); // eslint-disable-line import/no-unresolved
 const path = require('path');
 const fs = require('fs');
+const childProcess = require('child_process');
 
 const { logger } = require('../utils');
 
@@ -24,37 +25,44 @@ const whitelist = [
 const seo = {
   'dataMap/metaManager/metaSchema.js': {
     title: 'Options',
+    metaTitle: 'Options - API Reference - Handsontable Documentation',
     permalink: '/next/api/options'
   },
   'pluginHooks.js': {
     title: 'Hooks',
+    metaTitle: 'Hooks - API Reference - Handsontable Documentation',
     permalink: '/next/api/hooks'
   },
   'core.js': {
     title: 'Core',
+    metaTitle: 'Core - API Reference - Handsontable Documentation',
     permalink: '/next/api/core'
   },
   'translations/indexMapper.js': {
     title: 'IndexMapper',
+    metaTitle: 'IndexMapper - API Reference - Handsontable Documentation',
     permalink: '/next/api/index-mapper'
   },
   'editors/baseEditor/baseEditor.js': {
     title: 'BaseEditor',
+    metaTitle: 'BaseEditor - API Reference - Handsontable Documentation',
     permalink: '/next/api/base-editor'
   },
   '3rdparty/walkontable/src/cell/coords.js': {
     title: 'CellCoords',
+    metaTitle: 'CellCoords - API Reference - Handsontable Documentation',
     permalink: '/next/api/coords'
   },
   'plugins/copyPaste/focusableElement.js': {
     title: 'FocusableElement',
+    metaTitle: 'FocusableElement - API Reference - Handsontable Documentation',
     permalink: '/next/api/focusable-element'
   },
 };
 
 /// classifications
-const isOptions = data => data[0].meta.filename === 'metaSchema.js';
-const isPlugin = data => data[0].customTags?.filter(tag => tag.tag === 'plugin' && tag.value).length > 0 ?? false;
+const isOptions = data => data[0]?.meta.filename === 'metaSchema.js';
+const isPlugin = data => data[0]?.customTags?.filter(tag => tag.tag === 'plugin' && tag.value).length > 0 ?? false;
 
 /// paths construction
 const source = file => path.join(__dirname, pathToSource, file);
@@ -69,6 +77,8 @@ const genSeoTitle = file => file
   // .replace(/([A-Z]+)/g, " $1") // Add spaces before each word
   .replace(/(^[a-z])/, m => m.toUpperCase()); // To upper first letter
 const seoTitle = file => seo[file] && seo[file].title || genSeoTitle(file);
+const genSeoMetaTitle = file => `${seoTitle(file)} - Plugin - Handsontable Documentation`;
+const seoMetaTitle = file => seo[file] && seo[file].metaTitle || genSeoMetaTitle(file);
 
 const genSeoPermalink = file => file
   .replace(/(^.*\/)?(.*)\.[a-zA-Z]*$/, '$2') // Get filename without full path and extension
@@ -83,6 +93,7 @@ const header = (file) => {
 
   return `---
 title: ${title}
+metaTitle: ${seoMetaTitle(file)}
 permalink: ${seoPermalink(file)}
 canonicalUrl: ${seoCanonicalUrl(file)}
 editLink: false
@@ -115,7 +126,8 @@ const fixTypes = text => text.replace(
       prefix = '_';
       suffix = '_';
     }
-    const r = prefix + signame
+
+    return prefix + signame
       .replace(/([^\w`\[#])(`)?(IndexMapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./index-mapper/$4)')
       .replace(/([^\w`\[#])(`)?(Handsontable|Core)(#\w*)?(`)?/g, '$1[$2$3$4$5](./core/$4)')
       .replace(/([^\w`\[#])(`)?(Hooks)((#)(event:)?(\w*))?(`)?/g, '$1[$2$3$4$8](./hooks/$5$7)')
@@ -125,9 +137,7 @@ const fixTypes = text => text.replace(
       .replace(/\.</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/`\\\*`/, '`*`')
-    + suffix;
-
-    return r;
+      + suffix;
   }
 );
 
@@ -144,7 +154,10 @@ const unescapeRedundant = text => text
       .replace(/\\\*/g, '*')
       .replace(/\\_/g, '_')
   )
-  .replace(/<\/ul>\./g, '</ul>') // remove redundant dot, which eslint enforce to add after list closing tag.
+  // fix randomly added quota to @default tag.
+  .replace(/\*\*Default\*\*: <code>&quot;((undefined)|(false)|(true))&quot;<\/code>/g, '**Default**: <code>$1</code>')
+  // remove redundant dot, which eslint enforce to add after list closing tag.
+  .replace(/<\/ul>\./g, '</ul>')
   .replace(/&quot;&#x27;/g, '"')
   .replace(/&#x27;&quot;/g, '"');
 
@@ -169,17 +182,23 @@ const sort = data => data.sort((m, p) => {
   return m.name.localeCompare(p.name);
 });
 
-const linkToSource = data => data.map((x) => {
-  if (x.meta && x.meta.path && x.meta.filename && x.meta.lineno) {
-    const filepath = path.relative(path.join(__dirname, '../../../../'), x.meta.path);
-    const filename = x.meta.filename;
-    const line = x.meta.lineno;
+const linkToSource = (data) => {
+  const sha = childProcess
+    .execSync('git rev-parse HEAD')
+    .toString().trim();
 
-    x.sourceLink = `https://github.com/handsontable/handsontable/blob/develop/${filepath}/${filename}#L${line}`;
-  }
+  return data.map((x) => {
+    if (x.meta && x.meta.path && x.meta.filename && x.meta.lineno) {
+      const filepath = path.relative(path.join(__dirname, '../../../../'), x.meta.path);
+      const filename = x.meta.filename;
+      const line = x.meta.lineno;
 
-  return x;
-});
+      x.sourceLink = `https://github.com/handsontable/handsontable/blob/${sha}/${filepath}/${filename}#L${line}`;
+    }
+
+    return x;
+  });
+};
 
 const optionsPerPlugin = {};
 const memorizeOptions = data => (!isOptions(data) ? data : data.map((x) => {
@@ -259,9 +278,10 @@ const traversePlugins = function* () {
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
 
-    if (['base', '__tests__'].includes(item)) {
+    if (['base', '__tests__', /* privates: */ 'touchScroll', 'multipleSelectionHandles'].includes(item)) {
       continue; // eslint-disable-line no-continue
     }
+
     if (fs.statSync(source(path.join('plugins', item))).isDirectory()) {
       yield path.join('plugins', item, `${item}.js`);
     }

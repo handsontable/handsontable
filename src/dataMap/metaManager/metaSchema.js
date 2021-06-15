@@ -7,7 +7,11 @@ import { isObjectEqual } from '../../helpers/object';
  * @class Options
  * @description
  *
- * Constructor options are applied using an object literal passed as a second argument to the Handsontable constructor.
+ * Handsontable provides many options to choose from. They come either from the [Core](core) features or [plugins](plugin-hooks).
+ *
+ * You can pass options in an object iteral notation (a comma-separated list of name-value pairs wrapped in curly braces) as a second argument of the Handsontable constructor.
+ *
+ * In the further documentation, and in Guides, we prefer calling this object a `Settings` object or `configuration` object.
  *
  * ```js
  * const container = document.getElementById('example');
@@ -18,13 +22,19 @@ import { isObjectEqual } from '../../helpers/object';
  * });
  * ```
  *
- * ---
- * ## Cascading configuration.
+ * ## Applying options to different elements of the grid
  *
- * Handsontable is using *Cascading Configuration*, which is a fast way to provide configuration options
- * for the entire table, including its columns and particular cells.
+ * Options can set for many different parts of the data grid:
  *
- * Consider the following example:
+ * - The entire grid
+ * - A column or range of columns
+ * - A row or range of rows
+ * - A cell or range of cells
+ *
+ * Options use the cascading configuration to make that possible.
+ *
+ * Take a look at the following example:
+ *
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -39,37 +49,35 @@ import { isObjectEqual } from '../../helpers/object';
  *
  *     if (row === 0 && col === 0) {
  *       cellProperties.readOnly = true;
- *     }.
+ *     }
  *
  *     return cellProperties;
  *   }
  * });
  * ```
  *
- * The above notation will result in all TDs being *read only*, except for first column TDs which will be *editable*, except for the TD in top left corner which will still be *read only*.
+ * In the above example we first set the `read-only` option for the entire grid. Then we make two exceptions of this rule:
  *
- * ### The Cascading Configuration model
+ * - We exclude the first column by passing `readOnly: false`, which in result makes it editable.
+ * - We exclude the cell in the top left corner, just like we did it with the first column.
  *
- * ##### 1. Constructor
+ * ## The cascade configuration model
  *
- * Configuration options that are provided using first-level `handsontable(container, {option: "value"})` and `updateSettings` method.
+ * ### Constructor
  *
- * ##### 2. Columns
+ * Cofiguration options that are provided using the first-level `handsontable(container, {option: "value"})` and `updateSettings` method.
  *
- * Configuration options that are provided using second-level object `handsontable(container, {columns: {option: "value"}]})`
+ * ### Columns
  *
- * ##### 3. Cells
+ * Configuration options that are provided using the second-level object `handsontable(container, {columns: {option: "value"}]})`
  *
- * Configuration options that are provided using third-level function `handsontable(container, {cells: function: (row, col, prop){ }})`
+ * ### Cells
  *
- * ---
- * ## Architecture performance
+ * Configuration options that are provided using the third-level function `handsontable(container, {cells: function: (row, col, prop){ }})`
  *
- * The Cascading Configuration model is based on prototypical inheritance. It is much faster and memory efficient
- * compared to the previous model that used jQuery extend. See: [http://jsperf.com/extending-settings](http://jsperf.com/extending-settings).
- *
- * ---
- * __Important notice:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
+ * ::: tip
+ * In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
+ * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export default () => {
@@ -2769,36 +2777,6 @@ export default () => {
     formulas: void 0,
 
     /**
-     * @description
-     * Allows adding a tooltip to the table headers.
-     *
-     * Available options:
-     * * the `rows` property defines if tooltips should be added to row headers,
-     * * the `columns` property defines if tooltips should be added to column headers,
-     * * the `onlyTrimmed` property defines if tooltips should be added only to headers, which content is trimmed by the header itself (the content being wider then the header).
-     *
-     * @memberof Options#
-     * @type {boolean|object}
-     * @default undefined
-     * @deprecated This plugin is deprecated and will be removed in the next major release.
-     * @category HeaderTooltips
-     *
-     * @example
-     * ```js
-     * // enable tooltips for all headers
-     * headerTooltips: true,
-     *
-     * // or
-     * headerTooltips: {
-     *   rows: false,
-     *   columns: true,
-     *   onlyTrimmed: true
-     * }
-     * ```
-     */
-    headerTooltips: void 0,
-
-    /**
      * The {@link hidden-columns HiddenColumns} plugin allows hiding of certain columns. You can pass additional configuration with an
      * object notation. Options that are then available are:
      *  * `columns` - an array of rows that should be hidden on plugin initialization
@@ -2940,26 +2918,6 @@ export default () => {
      * ```
      */
     columnHeaderHeight: void 0,
-
-    /**
-     * @description
-     * Enables the {@link observe-changes ObserveChanges} plugin switches table into one-way data binding where changes are applied into
-     * data source (from outside table) will be automatically reflected in the table.
-     *
-     * For every data change [afterChangesObserved](hooks#afterchangesobserved) hook will be fired.
-     *
-     * @memberof Options#
-     * @type {boolean}
-     * @default undefined
-     * @deprecated This plugin is deprecated and will be removed in the next major release.
-     * @category ObserveChanges
-     *
-     * @example
-     * ```js
-     * observeChanges: true,
-     * ```
-     */
-    observeChanges: void 0,
 
     /**
      * If defined as `true`, the Autocomplete's suggestion list would be sorted by relevance (the closer to the left the

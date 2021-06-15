@@ -6,7 +6,7 @@ import {
 } from './../../../helpers/dom/element';
 import { partial } from './../../../helpers/function';
 import { isTouchSupported } from './../../../helpers/feature';
-import { isMobileBrowser } from './../../../helpers/browser';
+import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import { isDefined } from '../../../helpers/mixed';
 
@@ -307,21 +307,34 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onTouchEnd(event) {
-    const interactiveElements = ['A', 'BUTTON', 'INPUT'];
     const target = event.target;
     const parentCellCoords = this.parentCell(target)?.coords;
-    const isHeader = isDefined(parentCellCoords) && (parentCellCoords.row < 0 || parentCellCoords.col < 0);
+    const isCellsRange = isDefined(parentCellCoords) && (parentCellCoords.row >= 0 && parentCellCoords.col >= 0);
+    const isEventCancelable = event.cancelable && isCellsRange && this.instance.getSetting('isDataViewInstance');
 
-    // When the cells contain interactive HTML tags do not "preventDefault" the event. Thanks to
-    // that, users can interact with the UI element (e.q. click on the link opens a new page).
-    // For non-interactive elements, the event is always prevented to tell the browser that we
-    // don't want to rely on the native 300ms delay. Hence the touch events can be triggered as
-    // fast as the user can (https://webkit.org/blog/5610/more-responsive-tapping-on-ios/).
-    // Related issue #7659.
-    if (event.cancelable &&
-        !isHeader &&
-        !(interactiveElements.includes(target.tagName) && this.selectedCellWasTouched(target))) {
-      event.preventDefault();
+    // To prevent accidental redirects or other actions that the interactive elements (e.q "A" link) do
+    // while the cell is highlighted, all touch events that are triggered on different cells are
+    // "preventDefault"'ed. The user can interact with the element (e.q. click on the link that opens
+    // a new page) only when the same cell was previously selected (see related PR #7980).
+    if (isEventCancelable) {
+      const interactiveElements = ['A', 'BUTTON', 'INPUT'];
+
+      // For browsers that use the WebKit as an engine (excluding Safari), there is a bug. The prevent
+      // default has to be called all the time. Otherwise, the second tap won't be triggered (probably
+      // caused by the native ~300ms delay - https://webkit.org/blog/5610/more-responsive-tapping-on-ios/).
+      // To make the interactive elements work, the event target element has to be check. If the element
+      // matches the allow-list, the event is not prevented.
+      if (isIOS() &&
+          (isChromeWebKit() || isFirefoxWebKit()) &&
+          this.selectedCellWasTouched(target) &&
+          !interactiveElements.includes(target.tagName)) {
+        event.preventDefault();
+
+      } else if (!this.selectedCellWasTouched(target)) {
+        // For other browsers, prevent default is fired only for the first tap and only when the previous
+        // highlighted cell was different.
+        event.preventDefault();
+      }
     }
 
     this.onMouseUp(event);

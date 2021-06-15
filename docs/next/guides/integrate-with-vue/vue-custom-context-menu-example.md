@@ -7,7 +7,11 @@ canonicalUrl: /vue-custom-context-menu-example
 
 # Custom context menu example
 
-An implementation of the `@handsontable/vue` component with a custom Context Menu added.
+## Overview
+
+The following example implements the `@handsontable/vue` component, adding a custom Context Menu.
+
+## Example
 
 ::: example #example1 :vue --html 1 --js 2
 ```html

@@ -1,7 +1,6 @@
-
-const api = require('./api/sidebar.js').sidebar;
-const guides = require('./guides/sidebar.js').sidebar;
-const examples = require('./examples/sidebar.js').sidebar;
+const api = require('./api/sidebar').sidebar;
+const guides = require('./guides/sidebar').sidebar;
+const examples = require('./examples/sidebar').sidebar;
 
 module.exports = {
   api, guides, examples

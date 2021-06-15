@@ -7,7 +7,11 @@ canonicalUrl: /react-redux-example
 
 # Redux example
 
-An implementation of the `@handsontable/react` component with a `readOnly` toggle switch and the Redux state manager implemented.
+## Overview
+
+The following example implements the `@handsontable/react` component with a `readOnly` toggle switch and the Redux state manager.
+
+## Example
 
 ::: example #example1 :react-redux
 ```jsx
@@ -23,7 +27,7 @@ const App = () => {
   const dispatch = useDispatch();
   const hotTableComponent = useRef(null);
 
-  const hotData = hotSettings?.data;
+  const hotData = hotSettings.data;
   const isHotData = Array.isArray(hotData);
 
   const onBeforeHotChange = changes => {
@@ -67,7 +71,7 @@ const App = () => {
           <h3>Redux store dump</h3>
 
           {isHotData && (
-            <>
+            <div>
               <strong>data:</strong>
               <table style={{ border: '1px solid #d6d6d6' }}>
                 <tbody>
@@ -78,7 +82,7 @@ const App = () => {
                     ))}
                 </tbody>
               </table>
-            </>
+            </div>
           )}
 
           <table>

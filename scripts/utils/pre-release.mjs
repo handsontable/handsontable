@@ -157,6 +157,7 @@ export function getVersionFromReleaseType(type, currentVersion) {
  *
  * @param {string} [version] Version number.
  * @param {string} [releaseDate] Release date in the `DD/MM/YYYY` format.
+ * @returns {object}
  */
 export async function scheduleRelease(version, releaseDate) {
   const currentVersion = hotPackageJson.version;
@@ -241,7 +242,7 @@ Are the version number and release date above correct?`,
     }
 
     if (!newVersion) {
-      displayErrorMessage(`Something went wrong while updating the version number with semver.`);
+      displayErrorMessage('Something went wrong while updating the version number with semver.');
       process.exit(1);
     }
 

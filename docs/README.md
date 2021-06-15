@@ -1,16 +1,16 @@
 # Handsontable Documentation
 
-For each project, the documentation is a significant place where the customers derive knowledge about how to use that tool. 
+For each project, the documentation is a significant place where the customers derive knowledge about how to use that tool.
 That explains why it is worth to care about the experience of using the documentation.
 
-This is nicer looking documentation with a great search engine. 
+This is nicer looking documentation with a great search engine.
 It uses Markdown, which makes easy documentation maintenance for non-technical personnel.
-Here we have a versioning tooling and automated deployment. 
+Here we have a versioning tooling and automated deployment.
 Thanks to all of that, creating and testing documentation becomes less time-consuming, and for our clients, it removes difficulties in using and searching the documentation.
 
 **Additional guidelines:**
 
-* [Editing guideline: see README-EDITING.md](./README-EDITING.md) 
+* [Editing guideline: see README-EDITING.md](./README-EDITING.md)
 * [Deployment guideline: see README-DEPLOYMENT.md](./README-DEPLOYMENT.md)
 
 ## Getting started
@@ -20,7 +20,7 @@ Thanks to all of that, creating and testing documentation becomes less time-cons
 npm install
 
 # Run localhost
-npm run docs:start 
+npm run docs:start
 
 # The website is running at http://localhost:8080/docs/
 ```
@@ -58,4 +58,3 @@ npm run docs:start
     helpers.js                  # Common helpers to get sidebars and list of versions
     highlight.js                # Code highlight configuration
 ```
-
