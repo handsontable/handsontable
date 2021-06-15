@@ -1,0 +1,39 @@
+name: Documentation Links Checker
+
+on:
+  push:
+    paths:
+      - 'docs/**'
+
+jobs:
+  links:
+    name: Check Links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+
+      - name: Use Node.js 15
+        uses: actions/setup-node@56899e050abffc08c2b3b61f3ec6a79a9dc3223d # https://github.com/actions/setup-node/releases/tag/v1.4.4
+        with:
+          node-version: '15.x'
+
+      - name: Install Documentation dependencies
+        working-directory: docs
+        run: npm ci --no-audit
+
+      - name: Regenerate API References
+        working-directory: docs
+        run: npm run docs:api
+
+      - name: Build
+        working-directory: docs
+        run: npm run docs:build:no-check-links
+
+      - name: Check links
+        working-directory: docs
+        run: npm run docs:check-links
+        
+      - uses: actions/upload-artifact@ee69f02b3dfdecd58bb31b4d133da38ba6fe3700 # https://github.com/actions/upload-artifact/releases/tag/v2.2.3
+        with:
+          name: report.xlsx
+          path: docs/report-check-links.xlsx
