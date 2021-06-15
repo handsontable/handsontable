@@ -12,8 +12,8 @@
 </template>
 
 <script>
-import PageEdit from '@theme/components/PageEdit.vue'
-import PageNav from '@theme/components/PageNav.vue'
+import PageEdit from '@theme/components/PageEdit.vue';
+import PageNav from '@theme/components/PageNav.vue';
 
 export default {
   components: { PageEdit, PageNav },
@@ -26,9 +26,9 @@ export default {
   data() {
     return {
       activatedExamples: [],
-    }
+    };
   },
-  computed:{
+  computed: {
     isApi() {
       return this.$route.fullPath.match(/([^/]*\/)?api\//);
     },
@@ -43,5 +43,5 @@ export default {
       return this.activatedExamples.includes(exampleId);
     }
   },
-}
+};
 </script>

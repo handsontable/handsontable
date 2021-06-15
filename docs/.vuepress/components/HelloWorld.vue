@@ -7,7 +7,7 @@
       </tab>
       <tab name="Vue" id="vue" :is-disabled="true"></tab>
       <tab name="Angular" id="angular" :is-disabled="true"></tab>
-   </tabs>
+    </tabs>
   </div>
 </template>
 
@@ -24,7 +24,7 @@ export default {
         { 
           name: 'JavaScript',
           tabId: 'js',
-          codeSandboxId: 'handsontable-javascript-data-grid-hello-world-app-dzx8f', 
+          codeSandboxId: 'handsontable-javascript-data-grid-hello-world-app-dzx8f',
           title: 'Handsontable JavaScript Data Grid - Hello World App'
         },
         {

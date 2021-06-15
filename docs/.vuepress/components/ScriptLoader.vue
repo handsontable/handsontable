@@ -8,6 +8,7 @@ const decode = (base64data) => {
 
 const useCodePreview = (code) => {
   const scriptElement = document.createElement('script');
+
   scriptElement.type = 'text/javascript';
   scriptElement.innerHTML = code;
 
@@ -21,13 +22,13 @@ export default {
   name: 'ScriptLoader',
   props: ['code'],
   mounted() {
-    const [ append, remove ] = useCodePreview(decode(this.$props.code));
+    const [append, remove] = useCodePreview(decode(this.$props.code));
 
     append(this.$el);
     remove();
   },
-  methods:{
+  methods: {
     decode
   }
-}
+};
 </script>
