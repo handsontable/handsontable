@@ -7,7 +7,7 @@ import { isObjectEqual } from '../../helpers/object';
  * @class Options
  * @description
  *
- * Handsontable provides many options to choose from. They come either from the [Core](core) features or [plugins](plugin-hooks).
+ * Handsontable provides many options to choose from. They come either from the [Core](core) features or [plugins hooks](hooks).
  *
  * You can pass options in an object iteral notation (a comma-separated list of name-value pairs wrapped in curly braces) as a second argument of the Handsontable constructor.
  *
@@ -308,7 +308,7 @@ export default () => {
      *
      * An `undefined` value is for detection in {@link Hooks#modifyColWidth} hook if plugin or setting changed the default size.
      *
-     * Note: This option will forcely disable {@link AutoColumnSize} plugin.
+     * Note: This option will forcely disable {@link auto-column-size AutoColumnSize} plugin.
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -2401,7 +2401,7 @@ export default () => {
      *
      * You can also use the `useHeaders` option to take the column headers width into calculation.
      *
-     * Note: Using {@link Core#colWidths} option will forcely disable {@link AutoColumnSize}.
+     * Note: Using {@link core Core#colWidths} option will forcely disable {@link auto-column-size AutoColumnSize}.
      *
      * @memberof Options#
      * @type {object|boolean}
