@@ -46,8 +46,8 @@ Currently, the following tasks are available for building Handsontable:
   * `npm run build:es` - transpiles files into the `import/export` format. These files are published into NPM repository later.
   * `npm run build:umd` - creates the bundles (`dist/handsontable.js`, `dist/handsontable.css`, `dist/handsontable.full.js` and `dist/handsontable.full.css`) which are compatible with UMD (Universal Module Definition).
   * `npm run build:umd.min` - creates the minified bundles (`dist/handsontable.min.js`, `dist/handsontable.min.css`, `dist/handsontable.min.full.js` and `dist/handsontable.min.full.css`) which are compatible with UMD (Universal Module Definition).
-  * `npm run build:languages` - creates the bundles containing language sets (i.e. `dist/languages/de-DE.js`, `dist/languages/all.js`) which are compatible with UMD (Universal Module Definition). More information about languages can be found [here](internationalization.md).
-  * `npm run build:languages.min` - creates the minified bundles containing language sets (i.e. `dist/languages/de-DE.min.js`, `dist/languages/all.min.js`) which are compatible with UMD (Universal Module Definition). More information about languages can be found [here](internationalization.md).
+  * `npm run build:languages` - creates the bundles containing language sets (i.e. `dist/languages/de-DE.js`, `dist/languages/all.js`) which are compatible with UMD (Universal Module Definition). More information about languages can be found [here](@/guides/internationalization/internationalization-i18n.md).
+  * `npm run build:languages.min` - creates the minified bundles containing language sets (i.e. `dist/languages/de-DE.min.js`, `dist/languages/all.min.js`) which are compatible with UMD (Universal Module Definition). More information about languages can be found [here](@/guides/internationalization/internationalization-i18n.md).
 * `npm run watch` - watches for changes in source directory and runs a build when a change is observed. For faster rebuild when a change is observed, the watcher triggers the file-building task without minify.
 
 ## Running your first build
