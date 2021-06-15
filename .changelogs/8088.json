@@ -1,7 +1,0 @@
-{
-  "title": "Added `fit` & `fdescribe` to restricted globals in test files",
-  "type": "changed",
-  "issue": 8088,
-  "breaking": false,
-  "framework": "none"
-}
