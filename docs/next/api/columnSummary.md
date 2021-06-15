@@ -48,7 +48,7 @@ const hot = new Handsontable(container, {
 
 ### columnSummary
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/dataMap/metaManager/metaSchema.js#L2716
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/dataMap/metaManager/metaSchema.js#L2716
 
 :::
 
@@ -90,7 +90,7 @@ columnSummary: [
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/plugins/columnSummary/columnSummary.js#L109
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/columnSummary/columnSummary.js#L109
 
 :::
 
@@ -102,7 +102,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/plugins/columnSummary/columnSummary.js#L77
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/columnSummary/columnSummary.js#L77
 
 :::
 
@@ -114,7 +114,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/plugins/columnSummary/columnSummary.js#L70
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/columnSummary/columnSummary.js#L70
 
 :::
 

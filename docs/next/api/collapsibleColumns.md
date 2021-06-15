@@ -52,7 +52,7 @@ const hot = new Handsontable(container, {
 
 ### collapsibleColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/dataMap/metaManager/metaSchema.js#L2676
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/dataMap/metaManager/metaSchema.js#L2676
 
 :::
 
@@ -87,7 +87,7 @@ collapsibleColumns: [
 
 ### headerStateManager
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/plugins/collapsibleColumns/collapsibleColumns.js#L104
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/collapsibleColumns/collapsibleColumns.js#L104
 
 :::
 
@@ -100,7 +100,7 @@ The NestedHeaders plugin StateManager instance.
 
 ### collapseAll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/plugins/collapsibleColumns/collapsibleColumns.js#L275
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/collapsibleColumns/collapsibleColumns.js#L275
 
 :::
 
@@ -112,7 +112,7 @@ Collapses all collapsible sections.
 
 ### collapseSection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/plugins/collapsibleColumns/collapsibleColumns.js#L250
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/collapsibleColumns/collapsibleColumns.js#L250
 
 :::
 
@@ -129,7 +129,7 @@ Collapses section at the provided coords.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/plugins/collapsibleColumns/collapsibleColumns.js#L490
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/collapsibleColumns/collapsibleColumns.js#L490
 
 :::
 
@@ -141,7 +141,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/plugins/collapsibleColumns/collapsibleColumns.js#L180
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/collapsibleColumns/collapsibleColumns.js#L180
 
 :::
 
@@ -153,7 +153,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/plugins/collapsibleColumns/collapsibleColumns.js#L126
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/collapsibleColumns/collapsibleColumns.js#L126
 
 :::
 
@@ -165,7 +165,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### expandAll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/plugins/collapsibleColumns/collapsibleColumns.js#L282
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/collapsibleColumns/collapsibleColumns.js#L282
 
 :::
 
@@ -177,7 +177,7 @@ Expands all collapsible sections.
 
 ### expandSection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/plugins/collapsibleColumns/collapsibleColumns.js#L241
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/collapsibleColumns/collapsibleColumns.js#L241
 
 :::
 
@@ -194,7 +194,7 @@ Expands section at the provided coords.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/plugins/collapsibleColumns/collapsibleColumns.js#L119
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/collapsibleColumns/collapsibleColumns.js#L119
 
 :::
 
@@ -207,7 +207,7 @@ hook and if it returns `true` than the [enablePlugin](#CollapsibleColumns+enable
 
 ### toggleAllCollapsibleSections
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/plugins/collapsibleColumns/collapsibleColumns.js#L259
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/collapsibleColumns/collapsibleColumns.js#L259
 
 :::
 
@@ -224,7 +224,7 @@ Collapses or expand all collapsible sections, depending on the action parameter.
 
 ### toggleCollapsibleSection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/plugins/collapsibleColumns/collapsibleColumns.js#L296
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/collapsibleColumns/collapsibleColumns.js#L296
 
 :::
 
@@ -243,7 +243,7 @@ Collapses/Expands a section.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8390a2dd02d021250674b337856a34094c6dad5e/src/plugins/collapsibleColumns/collapsibleColumns.js#L154
+::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/collapsibleColumns/collapsibleColumns.js#L154
 
 :::
 
