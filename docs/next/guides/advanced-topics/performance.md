@@ -66,7 +66,7 @@ hot.batch(() => {
 });
 ```
 
-See the [suspend rendering](suspend-rendering.mdx) page to find more information on how to use batching.
+See the [batch operations](@/guides/advanced-topics/batch-operations.md) page to find more information on how to use batching.
 
 ## Use modules
 

@@ -16,7 +16,7 @@ The **Filters plugin** allows filtering the data in the table's columns using a 
 
 ## Basic configuration
 
-To enable the plugin, set the `filters` property to `true` and enable the filters dependency, which is the [dropdownMenu](dropdown-menu.md) plugin.
+To enable the plugin, set the `filters` property to `true` and enable the filters dependency, which is the [dropdownMenu](@/guides/columns/column-menu.md) plugin.
 
 ::: example #example1
 ```js

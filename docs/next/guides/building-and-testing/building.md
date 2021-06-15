@@ -6,6 +6,7 @@ canonicalUrl: /building
 tags:
   - custom build
   - bundling
+  - contributing
 ---
 
 # Building process
