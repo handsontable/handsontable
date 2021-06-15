@@ -259,6 +259,21 @@ html.theme-dark {
     }
   }
 
+  /* Table */
+  .scrollable-table {
+    scrollbar()
+
+    table {
+      tr:nth-child(2n) {
+        background-color #292929
+      }
+
+      th, td {
+        border-bottom 1px solid $sectionBorderColor
+      }
+    }
+  }
+
   /* PageNav component */
   .page-nav .inner {
     border-color $sectionBorderColor
