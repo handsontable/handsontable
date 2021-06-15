@@ -22,5 +22,5 @@ export default {
       return `${urlStart}${this.id}${urlEnd}`;
     }
   }
-}
+};
 </script>
