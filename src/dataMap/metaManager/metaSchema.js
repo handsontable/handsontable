@@ -2996,7 +2996,7 @@ export default () => {
 
     /**
      * @description
-     * Disables or enables the {@link DragToScroll drag to scroll} functionality.
+     * Disables or enables the {@link drag-to-scroll drag to scroll} functionality.
      * @memberof Options#
      * @type {boolean}
      * @default true

@@ -2038,7 +2038,7 @@ const REGISTERED_HOOKS = [
   'afterColumnExpand',
 
   /**
-   * Fired by {@link auto-column-size AutoColumnSize} plugin within {@link sample-generator SampleGenerator} utility.
+   * Fired by {@link auto-column-size AutoColumnSize} plugin within SampleGenerator utility.
    *
    * @event Hooks#modifyAutoColumnSizeSeed
    * @since 8.4.0

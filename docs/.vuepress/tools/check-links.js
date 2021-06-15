@@ -72,7 +72,7 @@ const siteChecker = new SiteChecker(
 
       stats._set.add(result.url.resolved);
 
-      const status = result.http.response.statusCode;
+      const status = result.http.response?.statusCode;
 
       if (result.broken) {
         if (result.http.response && !ACCEPTABLE_STATUS_CODES.includes(status)) {

@@ -44,9 +44,9 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * autoColumnSize: {syncLimit: '40%'},
  * ```
  *
- * The plugin uses {@link GhostTable} and {@link SamplesGenerator} for calculations.
- * First, {@link SamplesGenerator} prepares samples of data with its coordinates.
- * Next {@link GhostTable} uses coordinates to get cells' renderers and append all to the DOM through DocumentFragment.
+ * The plugin uses GhostTable and SamplesGenerator for calculations.
+ * First, SamplesGenerator prepares samples of data with its coordinates.
+ * Next GhostTable uses coordinates to get cells' renderers and append all to the DOM through DocumentFragment.
  *
  * Sampling accepts additional options:
  * - *samplingRatio* - Defines how many samples for the same length will be used to calculate. Default is `3`.
@@ -122,7 +122,7 @@ export class AutoColumnSize extends BasePlugin {
      */
     this.ghostTable = new GhostTable(this.hot);
     /**
-     * Instance of {@link SamplesGenerator} for generating samples necessary for columns width calculations.
+     * Instance of SamplesGenerator for generating samples necessary for columns width calculations.
      *
      * @private
      * @type {SamplesGenerator}
