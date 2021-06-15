@@ -29,7 +29,8 @@ module.exports = {
     ['script', {
       id: 'Cookiebot',
       src: 'https://consent.cookiebot.com/uc.js',
-      'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646'
+      'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646',
+      'data-blockingmode': 'auto'
     }],
     ...environmentHead
   ],
