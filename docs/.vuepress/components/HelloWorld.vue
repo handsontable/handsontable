@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import CodeSandboxIframe from './CodeSandboxIframe';
+import CodeSandboxIframe from './CodeSandboxIframe.vue';
 
 export default {
   name: 'HelloWorld',
@@ -21,7 +21,7 @@ export default {
     return {
       selected: 'js',
       items: [
-        { 
+        {
           name: 'JavaScript',
           tabId: 'js',
           codeSandboxId: 'handsontable-javascript-data-grid-hello-world-app-dzx8f',
@@ -40,9 +40,9 @@ export default {
           title: 'Handsontable React Data Grid - Hello World App'
         }
       ]
-    }
+    };
   },
-  methods:{
+  methods: {
     tabClicked(event) {
       this.selected = event.tab.id;
     },
@@ -50,6 +50,5 @@ export default {
       return this.selected === id;
     }
   }
-
-}
+};
 </script>
