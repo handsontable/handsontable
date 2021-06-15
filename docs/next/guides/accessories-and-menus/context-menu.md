@@ -54,30 +54,30 @@ You can define items in the menu by passing the `contextMenu` option as an array
 | `---------` | Separator | |
 | `remove_row` | Insert column right action | |
 | `clear_column` | Clear column values action | |
-| `undo` | Undo action | Plugin [UndoRedo](api/plugins/undoRedo/undoRedo.md) turned on |
-| `redo` | Redo action | Plugin [UndoRedo](api/plugins/undoRedo/undoRedo.md) turned on |
+| `undo` | Undo action | Plugin [UndoRedo](@/api/plugins/undoRedo/undoRedo.md) turned on |
+| `redo` | Redo action | Plugin [UndoRedo](@/api/plugins/undoRedo/undoRedo.md) turned on |
 | `make_read_only` | Make read only action | |
 | `alignment` | Alignment actions | |
-| `cut` | Cut action | Plugin [CopyPaste](api/plugins/copyPaste/copyPaste.md) turned on |
-| `copy` | Copy action | Plugin [CopyPaste](api/plugins/copyPaste/copyPaste.md) turned on |
-| `freeze_column` | Freeze column action | Plugin [ManualColumnFreeze](api/plugins/manualColumnFreeze/manualColumnFreeze.md) turned on |
-| `unfreeze_column` | Unfreeze column action | Plugin [ManualColumnFreeze](api/plugins/manualColumnFreeze/manualColumnFreeze.md) turned on |
-| `borders` | Custom borders actions | Plugin [CustomBorders](api/plugins/customBorders/customBorders.md) turned on |
-| `commentsAddEdit` | Add and edit comment actions | Plugin [Comments](api/plugins/comments/comments.md) turned on |
-| `commentsRemove` | Remove comment action | Plugin [Comments](api/plugins/comments/comments.md) turned on |
-| `commentsReadOnly` | Make comment read only action | Plugin [Comments](api/plugins/comments/comments.md) turned on |
-| `mergeCells` | Merge and unmerge cells actions | Plugin [MergeCells](api/plugins/mergeCells/mergeCells.md) turned on |
-| `add_child` | Insert child row action | Plugin [NestedRows](api/plugins/nestedRows/nestedRows.md) turned on |
-| `detach_from_parent` | Detach from parent row action | Plugin [NestedRows](api/plugins/nestedRows/nestedRows.md) turned on |
-| `hidden_columns_hide` | Hide column(s) action | Plugin [HiddenColumns](api/plugins/hiddenColumns/hiddenColumns.md) turned on |
-| `hidden_columns_show` | Show hidden column(s) action | Plugin [HiddenColumns](api/plugins/hiddenColumns/hiddenColumns.md) turned on |
-| `hidden_rows_hide` | Hide row(s) action | Plugin [HiddenRows](api/plugins/hiddenRows/hiddenRows.md) turned on |
-| `hidden_rows_show` | Show hidden row(s) action | Plugin [HiddenRows](api/plugins/hiddenRows/hiddenRows.md) turned on |
-| `filter_by_condition` | First conditions select element | Plugin [Filters](api/plugins/filters/filters.md) turned on |
-| `filter_operators` | Operation select element | Plugin [Filters](api/plugins/filters/filters.md) turned on |
-| `filter_by_condition2` | Second conditions select element | Plugin [Filters](api/plugins/filters/filters.md) turned on |
-| `filter_by_value` | Value select element | Plugin [Filters](api/plugins/filters/filters.md) turned on |
-| `filter_action_bar` | Action bar element | Plugin [Filters](api/plugins/filters/filters.md) turned on |
+| `cut` | Cut action | Plugin [CopyPaste](@/api/plugins/copyPaste/copyPaste.md) turned on |
+| `copy` | Copy action | Plugin [CopyPaste](@/api/plugins/copyPaste/copyPaste.md) turned on |
+| `freeze_column` | Freeze column action | Plugin [ManualColumnFreeze](@/api/plugins/manualColumnFreeze/manualColumnFreeze.md) turned on |
+| `unfreeze_column` | Unfreeze column action | Plugin [ManualColumnFreeze](@/api/plugins/manualColumnFreeze/manualColumnFreeze.md) turned on |
+| `borders` | Custom borders actions | Plugin [CustomBorders](@/api/plugins/customBorders/customBorders.md) turned on |
+| `commentsAddEdit` | Add and edit comment actions | Plugin [Comments](@/api/plugins/comments/comments.md) turned on |
+| `commentsRemove` | Remove comment action | Plugin [Comments](@/api/plugins/comments/comments.md) turned on |
+| `commentsReadOnly` | Make comment read only action | Plugin [Comments](@/api/plugins/comments/comments.md) turned on |
+| `mergeCells` | Merge and unmerge cells actions | Plugin [MergeCells](@/api/plugins/mergeCells/mergeCells.md) turned on |
+| `add_child` | Insert child row action | Plugin [NestedRows](@/api/plugins/nestedRows/nestedRows.md) turned on |
+| `detach_from_parent` | Detach from parent row action | Plugin [NestedRows](@/api/plugins/nestedRows/nestedRows.md) turned on |
+| `hidden_columns_hide` | Hide column(s) action | Plugin [HiddenColumns](@/api/plugins/hiddenColumns/hiddenColumns.md) turned on |
+| `hidden_columns_show` | Show hidden column(s) action | Plugin [HiddenColumns](@/api/plugins/hiddenColumns/hiddenColumns.md) turned on |
+| `hidden_rows_hide` | Hide row(s) action | Plugin [HiddenRows](@/api/plugins/hiddenRows/hiddenRows.md) turned on |
+| `hidden_rows_show` | Show hidden row(s) action | Plugin [HiddenRows](@/api/plugins/hiddenRows/hiddenRows.md) turned on |
+| `filter_by_condition` | First conditions select element | Plugin [Filters](@/api/plugins/filters/filters.md) turned on |
+| `filter_operators` | Operation select element | Plugin [Filters](@/api/plugins/filters/filters.md) turned on |
+| `filter_by_condition2` | Second conditions select element | Plugin [Filters](@/api/plugins/filters/filters.md) turned on |
+| `filter_by_value` | Value select element | Plugin [Filters](@/api/plugins/filters/filters.md) turned on |
+| `filter_action_bar` | Action bar element | Plugin [Filters](@/api/plugins/filters/filters.md) turned on |
 
 ::: example #example2
 ```js
