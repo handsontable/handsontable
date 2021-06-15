@@ -4,6 +4,7 @@ const jsdoc2md = require('jsdoc-to-markdown'); // eslint-disable-line import/no-
 const dmd = require('dmd'); // eslint-disable-line import/no-unresolved
 const path = require('path');
 const fs = require('fs');
+const childProcess = require('child_process');
 
 const { logger } = require('../utils');
 
@@ -181,17 +182,23 @@ const sort = data => data.sort((m, p) => {
   return m.name.localeCompare(p.name);
 });
 
-const linkToSource = data => data.map((x) => {
-  if (x.meta && x.meta.path && x.meta.filename && x.meta.lineno) {
-    const filepath = path.relative(path.join(__dirname, '../../../../'), x.meta.path);
-    const filename = x.meta.filename;
-    const line = x.meta.lineno;
+const linkToSource = (data) => {
+  const sha = childProcess
+    .execSync('git rev-parse HEAD')
+    .toString().trim();
 
-    x.sourceLink = `https://github.com/handsontable/handsontable/blob/develop/${filepath}/${filename}#L${line}`;
-  }
+  return data.map((x) => {
+    if (x.meta && x.meta.path && x.meta.filename && x.meta.lineno) {
+      const filepath = path.relative(path.join(__dirname, '../../../../'), x.meta.path);
+      const filename = x.meta.filename;
+      const line = x.meta.lineno;
 
-  return x;
-});
+      x.sourceLink = `https://github.com/handsontable/handsontable/blob/${sha}/${filepath}/${filename}#L${line}`;
+    }
+
+    return x;
+  });
+};
 
 const optionsPerPlugin = {};
 const memorizeOptions = data => (!isOptions(data) ? data : data.map((x) => {
