@@ -22,6 +22,7 @@ html.theme-dark {
   body {
     color $fontColor
   }
+
   h1, h2, h3, h4, h5, h6, p {
     border-bottom-color $sectionBorderColor
   }
@@ -158,6 +159,7 @@ html.theme-dark {
   .row-items-container {
     .row-item {
       border-color $rowItemBorderColor
+      color $fontColor
 
       &:hover {
         box-shadow 0 3px 12px $rowItemShadowColor
@@ -206,16 +208,50 @@ html.theme-dark {
   }
 
   .tabs-component {
-    .tabs-component-panels {
-      padding 0
+    border-color #4d4d4e
+
+    a {
+      color $fontColor !important
+
+      &:hover {
+        color $fontColorLink !important
+      }
     }
 
-    section#code {
-      pre {
-        padding 30px 34px
+    .tabs-component-tabs {
+      border-bottom-color #4d4d4e
+    }
 
-        scrollbar()
+    .tabs-component-panels {
+      background-color #282C34
+      border-radius 0
+
+      section {
+        &#preview {
+          color initial
+          background-color #ffffff
+        }
+
+        &#code {
+          pre {
+            padding 20px 24px
+
+            scrollbar()
+          }
+        }
+
+        &#html {
+          pre {
+            scrollbar()
+          }
+        }
       }
+    }
+  }
+
+  div[class*="language-"] {
+    pre {
+      scrollbar()
     }
   }
 
