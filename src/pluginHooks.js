@@ -1286,6 +1286,7 @@ const REGISTERED_HOOKS = [
    * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/docs/demo-moving.html).
    * @param {number|undefined} dropIndex Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called.
    * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
+   * @param {boolean} uiBased `true` If the action was triggered by the native UI action.
    * @returns {void | boolean} If `false` the column will not be moved, `true` otherwise.
    */
   'beforeColumnMove',
@@ -1300,6 +1301,7 @@ const REGISTERED_HOOKS = [
    * @param {number|undefined} dropIndex Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called.
    * @param {boolean} movePossible Indicates if it was possible to move columns to the desired position.
    * @param {boolean} orderChanged Indicates if order of columns was changed by move.
+   * @param {boolean} uiBased `true` If the action was triggered by the native UI action.
    */
   'afterColumnMove',
 
@@ -1312,6 +1314,7 @@ const REGISTERED_HOOKS = [
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/docs/demo-moving.html).
    * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called.
    * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
+   * @param {boolean} uiBased `true` If the action was triggered by the native UI action.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRowMove',
@@ -1326,6 +1329,7 @@ const REGISTERED_HOOKS = [
    * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called.
    * @param {boolean} movePossible Indicates if it was possible to move rows to the desired position.
    * @param {boolean} orderChanged Indicates if order of rows was changed by move.
+   * @param {boolean} uiBased `true` If the action was triggered by the native UI action.
    */
   'afterRowMove',
 
@@ -2356,7 +2360,7 @@ class Hooks {
 
       if (length) {
         // Do not optimise this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-        while (index < length) {
+        while (index < localHandlers.length) {
           if (!localHandlers[index] || localHandlers[index].skip) {
             index += 1;
             /* eslint-disable no-continue */

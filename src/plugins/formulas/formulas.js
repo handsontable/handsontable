@@ -1,5 +1,9 @@
 import { BasePlugin } from '../base';
 import { createAutofillHooks } from './autofill';
+import {
+  getMovesFromInitialOrder,
+  moveElementsIntoFinalIndex
+} from './moving';
 import staticRegister from '../../utils/staticRegister';
 import { error, warn } from '../../helpers/console';
 import {
@@ -28,7 +32,9 @@ Hooks.getSingleton().register('afterSheetRenamed');
 Hooks.getSingleton().register('afterFormulasValuesUpdate');
 
 /**
- * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an integration with our other product, [HyperFormula](https://handsontable.github.io/hyperformula/), which is a powerful calculation engine with an extensive number of features.
+ * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
+ * integration with our other product, [HyperFormula](https://handsontable.github.io/hyperformula/), which is a
+ * powerful calculation engine with an extensive number of features.
  *
  * @plugin Formulas
  */
@@ -155,6 +161,9 @@ export class Formulas extends BasePlugin {
 
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
+
+    this.addHook('beforeColumnMove', (...args) => this.onBeforeColumnMove(...args));
+    this.addHook('beforeRowMove', (...args) => this.onBeforeRowMove(...args));
 
     const autofillHooks = createAutofillHooks(this);
 
@@ -342,6 +351,41 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Recreates the initial settings of the plugins bupassed by the engine logic.
+   *
+   * @private
+   */
+  initRelatedPluginSettings() {
+    const hotSettings = this.hot.getSettings();
+
+    // Recreate the Manual Row Move settings.
+    if (Array.isArray(hotSettings.manualRowMove)) {
+      const moveList = getMovesFromInitialOrder(hotSettings.manualRowMove);
+
+      this.engine.batch(() => {
+        moveList.forEach((move) => {
+          if (this.engine.isItPossibleToMoveRows(this.sheetId, move.from, 1, move.to)) {
+            this.engine.moveRows(this.sheetId, move.from, 1, move.to);
+          }
+        });
+      });
+    }
+
+    // Recreate the Manual Column Move settings.
+    if (Array.isArray(hotSettings.manualColumnMove)) {
+      const moveList = getMovesFromInitialOrder(hotSettings.manualColumnMove);
+
+      this.engine.batch(() => {
+        moveList.forEach((move) => {
+          if (this.engine.isItPossibleToMoveColumns(this.sheetId, move.from, 1, move.to)) {
+            this.engine.moveColumns(this.sheetId, move.from, 1, move.to);
+          }
+        });
+      });
+    }
+  }
+
+  /**
    * The hook allows to translate the formula value to calculated value before it goes to the
    * validator function.
    *
@@ -409,6 +453,10 @@ export class Formulas extends BasePlugin {
 
     } else {
       this.switchSheet(this.sheetName);
+    }
+
+    if (initialLoad) {
+      this.initRelatedPluginSettings();
     }
   }
 
@@ -672,6 +720,104 @@ export class Formulas extends BasePlugin {
     });
 
     this.renderDependentSheets(changes);
+  }
+
+  /**
+   * `beforeColumnMove` hook callback. Used to bypass and recreate the moving logic on the engine's side.
+   *
+   * @private
+   * @param {Array} movedColumns Array of visual column indexes to be moved.
+   * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the
+   *   elements will be placed after the moving action.
+   * @param {number|undefined} dropIndex Visual column index, being a drop index for the moved columns. Points to where
+   *   we are going to drop the moved elements. It's `undefined` when `dragRows` function wasn't called.
+   * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
+   * @param {boolean} uiBased `true` If the action was triggered by the native UI action.
+   * @fires Hooks#afterColumnMove
+   * @returns {boolean} `false` to bypass the moving plugin logic.
+   */
+  onBeforeColumnMove(movedColumns, finalIndex, dropIndex, movePossible, uiBased) {
+    if (!movePossible || this.sheetId === null) {
+      // Either the move was not possible or it's the initial manualColumnMove setup -> will be resolved in the
+      // `afterLoadData` hook.
+      return false;
+    }
+
+    let movePerformed = false;
+
+    this.engine.batch(() => {
+      movePerformed = moveElementsIntoFinalIndex(
+        movedColumns,
+        finalIndex,
+        this.hot.countSourceCols(),
+        (startColumn, numberOfColumns, targetColumn) =>
+          this.engine.isItPossibleToMoveColumns(this.sheetId, startColumn, numberOfColumns, targetColumn),
+        (startColumn, numberOfColumns, targetColumn) =>
+          this.engine.moveColumns(this.sheetId, startColumn, numberOfColumns, targetColumn)
+      );
+    });
+
+    if (movePerformed) {
+      this.hot.render();
+
+      if (uiBased) {
+        this.hot.selectColumns(finalIndex, finalIndex + movedColumns.length - 1);
+      }
+    }
+
+    // Because the moving logic was killed, the `after-` hook needs to be triggered separately.
+    this.hot.runHooks('afterColumnMove', movedColumns, finalIndex, dropIndex, movePossible, movePerformed);
+
+    return false;
+  }
+
+  /**
+   * `beforeRowMove` hook callback. Used to bypass and recreate the moving logic on the engine's side.
+   *
+   * @private
+   * @param {Array} movedRows Array of visual row indexes to be moved.
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements
+   *   will be placed after the moving action.
+   * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows. Points to where we
+   *   are going to drop the moved elements. It's `undefined` when `dragRows` function wasn't called.
+   * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
+   * @param {boolean} uiBased `true` If the action was triggered by the native UI action.
+   * @fires Hooks#afterRowMove
+   * @returns {boolean} `false` to bypass the moving plugin logic.
+   */
+  onBeforeRowMove(movedRows, finalIndex, dropIndex, movePossible, uiBased) {
+    if (!movePossible || this.sheetId === null) {
+      // Either the move was not possible or it's the initial manualRowMove setup -> will be resolved in the
+      // `afterLoadData` hook.
+      return false;
+    }
+
+    let movePerformed = false;
+
+    this.engine.batch(() => {
+      movePerformed = moveElementsIntoFinalIndex(
+        movedRows,
+        finalIndex,
+        this.hot.countSourceRows(),
+        (startRow, numberOfRows, targetRow) =>
+          this.engine.isItPossibleToMoveRows(this.sheetId, startRow, numberOfRows, targetRow),
+        (startRow, numberOfRows, targetRow) =>
+          this.engine.moveRows(this.sheetId, startRow, numberOfRows, targetRow)
+      );
+    });
+
+    if (movePerformed) {
+      this.hot.render();
+
+      if (uiBased) {
+        this.hot.selectRows(finalIndex, finalIndex + movedRows.length - 1);
+      }
+    }
+
+    // Because the moving logic was killed, the `after-` hook needs to be triggered separately.
+    this.hot.runHooks('afterRowMove', movedRows, finalIndex, dropIndex, movePossible, movePerformed);
+
+    return false;
   }
 
   /**

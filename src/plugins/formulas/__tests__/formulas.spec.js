@@ -2144,44 +2144,6 @@ describe('Formulas general', () => {
     expect(hot.getData()).toEqual([['B1', 'D1', 'C1', 'A1', 'E1']]);
   });
 
-  it('should support moving rows', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 1),
-      manualRowMove: true
-    });
-
-    hot.getPlugin('ManualRowMove').moveRow(2, 0);
-
-    hot.getPlugin('ManualRowMove').moveRow(3, 0);
-    hot.getPlugin('ManualRowMove').moveRow(3, 0);
-
-    hot.render();
-
-    expect(hot.getData()).toEqual([
-      ['A2'],
-      ['A4'],
-      ['A3'],
-      ['A1'],
-      ['A5']
-    ]);
-  });
-
-  it('should sync the data from the moved rows properly', () => {
-    handsontable({
-      data: [
-        [1, 'B1', '=A1 + 55', '=$C1']
-      ],
-      colHeaders: true,
-      manualColumnMove: [2, 3, 1, 0],
-      formulas: { engine: HyperFormula }
-    });
-
-    expect(getSourceDataAtCell(0, 0)).toEqual('=A1 + 55');
-    expect(getSourceDataAtCell(0, 1)).toEqual('=$C1');
-    expect(getSourceDataAtCell(0, 2)).toEqual('B1');
-    expect(getSourceDataAtCell(0, 3)).toEqual(1);
-  });
-
   describe('should perform CRUD operations in HyperFormula based on physical indexes', () => {
     describe('action blocking', () => {
       it('should block removing rows based on physical indexes', () => {

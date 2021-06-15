@@ -174,15 +174,16 @@ export class ManualColumnMove extends BasePlugin {
    * @param {Array} columns Array of visual column indexes to be moved.
    * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action.
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualColumnMove).
+   * @param {boolean} [uiBased] `true` If the action was triggered by the native UI action.
    * @fires Hooks#beforeColumnMove
    * @fires Hooks#afterColumnMove
    * @returns {boolean}
    */
-  moveColumns(columns, finalIndex) {
+  moveColumns(columns, finalIndex, uiBased = false) {
     const priv = privatePool.get(this);
     const dropIndex = priv.cachedDropIndex;
     const movePossible = this.isMovePossible(columns, finalIndex);
-    const beforeMoveHook = this.hot.runHooks('beforeColumnMove', columns, finalIndex, dropIndex, movePossible);
+    const beforeMoveHook = this.hot.runHooks('beforeColumnMove', columns, finalIndex, dropIndex, movePossible, uiBased);
 
     priv.cachedDropIndex = void 0;
 
@@ -196,7 +197,7 @@ export class ManualColumnMove extends BasePlugin {
 
     const movePerformed = movePossible && this.isColumnOrderChanged(columns, finalIndex);
 
-    this.hot.runHooks('afterColumnMove', columns, finalIndex, dropIndex, movePossible, movePerformed);
+    this.hot.runHooks('afterColumnMove', columns, finalIndex, dropIndex, movePossible, movePerformed, uiBased);
 
     return movePerformed;
   }
@@ -221,17 +222,18 @@ export class ManualColumnMove extends BasePlugin {
    * @param {Array} columns Array of visual column indexes to be dragged.
    * @param {number} dropIndex Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements.
    * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualColumnMove).
+   * @param {boolean} [uiBased] `true` If the action was triggered by the native UI action.
    * @fires Hooks#beforeColumnMove
    * @fires Hooks#afterColumnMove
    * @returns {boolean}
    */
-  dragColumns(columns, dropIndex) {
+  dragColumns(columns, dropIndex, uiBased = false) {
     const finalIndex = this.countFinalIndex(columns, dropIndex);
     const priv = privatePool.get(this);
 
     priv.cachedDropIndex = dropIndex;
 
-    return this.moveColumns(columns, finalIndex);
+    return this.moveColumns(columns, finalIndex, uiBased);
   }
 
   /**
@@ -668,7 +670,7 @@ export class ManualColumnMove extends BasePlugin {
 
     const firstMovedVisualColumn = priv.columnsToMove[0];
     const firstMovedPhysicalColumn = this.hot.toPhysicalColumn(firstMovedVisualColumn);
-    const movePerformed = this.dragColumns(priv.columnsToMove, target);
+    const movePerformed = this.dragColumns(priv.columnsToMove, target, true);
 
     priv.columnsToMove.length = 0;
 
