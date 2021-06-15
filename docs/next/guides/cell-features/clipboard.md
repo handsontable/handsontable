@@ -40,7 +40,7 @@ When the context menu is enabled, it includes default items, including copy & cu
 - Copy - as a predefined key `copy`
 - Cut - as a predefined key `cut`
 
-You can use them in the same way as the rest of the predefined items in the [context menu](../context-menu.md#page-custom). These operations are executed by `document.execCommand()`.
+You can use them in the same way as the rest of the predefined items in the [context menu](@/guides/accessories-and-menus/context-menu.md#page-custom). These operations are executed by `document.execCommand()`.
 
 ::: example #example1
 ```js
@@ -112,16 +112,16 @@ Handsontable.dom.addEvent(cutBtn, 'click', function () {
 ```
 :::
 
-**Note:** Not all selection-related Handsontable methods result in it gaining focus. Make sure your table instance is focused by calling [`hot.isListening()`](api/core.md#isListening) before copying or pasting data.
+**Note:** Not all selection-related Handsontable methods result in it gaining focus. Make sure your table instance is focused by calling [`hot.isListening()`](@/api/core.md#isListening) before copying or pasting data.
 
 ### Hooks
 
 The **CopyPaste** plugin exposes the following hooks to manipulate data during copy or cut operations:
 
-- [`beforeCopy`](api/pluginHooks.md#beforecopy)
-- [`afterCopy`](api/pluginHooks.md#aftercopy)
-- [`beforeCut`](api/pluginHooks.md#beforecut)
-- [`afterCut`](api/pluginHooks.md#aftercut)
+- [`beforeCopy`](@/api/pluginHooks.md#beforecopy)
+- [`afterCopy`](@/api/pluginHooks.md#aftercopy)
+- [`beforeCut`](@/api/pluginHooks.md#beforecut)
+- [`afterCut`](@/api/pluginHooks.md#aftercut)
 
 Examples of how to use them are provided in their descriptions.
 
@@ -151,8 +151,8 @@ Due to security reason, modern browsers disallow to read from the system clipboa
 
 The **CopyPaste** plugin exposes the following hooks to manipulate data during the pasting operation:
 
-- [`beforePaste`](api/pluginHooks.md#beforepaste)
-- [`afterPaste`](api/pluginHooks.md#afterpaste)
+- [`beforePaste`](@/api/pluginHooks.md#beforepaste)
+- [`afterPaste`](@/api/pluginHooks.md#afterpaste)
 
 Examples of how to use them are provided in their descriptions.
 
