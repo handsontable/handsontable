@@ -88,7 +88,7 @@ You can listen for two hooks, `beforeRefreshDimensions` and `afterRefreshDimensi
 </div>
 
 <div class="controls">
-  <button id="expander" className="button button--primary">Expand container</button>
+  <button id="expander" class="button button--primary">Expand container</button>
 </div>
 ```
 ```js
