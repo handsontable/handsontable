@@ -436,6 +436,15 @@ export class Formulas extends BasePlugin {
     const changedCellsSet = new Set(changedCells.map(change => stringifyAddress(change)));
 
     dependentCells.forEach((change) => {
+      const { row, col } = change.address;
+      const visualRow = this.hot.toVisualRow(row);
+      const visualColumn = this.hot.toVisualColumn(col);
+
+      // Don't try to validate cells outside of the visual part of the table.
+      if (visualRow === null || visualColumn === null) {
+        return;
+      }
+
       // For the Named expression the address is empty, hence the `sheetId` is undefined.
       const sheetId = change?.address?.sheet;
       const addressId = stringifyAddress(change);
@@ -443,9 +452,6 @@ export class Formulas extends BasePlugin {
       // Validate the cells that depend on the calculated formulas. Skip that cells
       // where the user directly changes the values - the Core triggers those validators.
       if (sheetId !== void 0 && !changedCellsSet.has(addressId)) {
-        const { row, col } = change.address;
-        const visualRow = this.hot.toVisualRow(row);
-        const visualColumn = this.hot.toVisualColumn(col);
         const hot = getRegisteredHotInstances(this.engine).get(sheetId);
 
         // It will just re-render certain cell when necessary.
