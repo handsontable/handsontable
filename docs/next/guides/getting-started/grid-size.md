@@ -107,7 +107,7 @@ const hot = new Handsontable(example, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-sliceElem.style = "transition: height 0.5s; height: 150px; margin-bottom: 10px;"
+sliceElem.style = "transition: height 0.5s; height: 150px;"
 hot.refreshDimensions();
 
 triggerBtn.addEventListener('click', () => {
