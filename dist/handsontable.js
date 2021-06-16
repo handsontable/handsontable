@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 9.0.1
- * Release date: 17/06/2021 (built at 14/06/2021 12:54:38)
+ * Release date: 17/06/2021 (built at 16/06/2021 16:20:21)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -21215,22 +21215,25 @@ var Formulas = /*#__PURE__*/function (_BasePlugin) {
         return stringifyAddress(change);
       }));
       dependentCells.forEach(function (change) {
-        var _change$address3;
+        var _change$address3, _change$address4;
 
-        // For the Named expression the address is empty, hence the `sheetId` is undefined.
-        var sheetId = change === null || change === void 0 ? void 0 : (_change$address3 = change.address) === null || _change$address3 === void 0 ? void 0 : _change$address3.sheet;
+        var _ref8 = (_change$address3 = change.address) !== null && _change$address3 !== void 0 ? _change$address3 : {},
+            row = _ref8.row,
+            col = _ref8.col;
+
+        var visualRow = (0, _mixed.isDefined)(row) ? _this12.hot.toVisualRow(row) : null;
+        var visualColumn = (0, _mixed.isDefined)(col) ? _this12.hot.toVisualColumn(col) : null; // Don't try to validate cells outside of the visual part of the table.
+
+        if (visualRow === null || visualColumn === null) {
+          return;
+        } // For the Named expression the address is empty, hence the `sheetId` is undefined.
+
+
+        var sheetId = change === null || change === void 0 ? void 0 : (_change$address4 = change.address) === null || _change$address4 === void 0 ? void 0 : _change$address4.sheet;
         var addressId = stringifyAddress(change); // Validate the cells that depend on the calculated formulas. Skip that cells
         // where the user directly changes the values - the Core triggers those validators.
 
         if (sheetId !== void 0 && !changedCellsSet.has(addressId)) {
-          var _change$address4 = change.address,
-              row = _change$address4.row,
-              col = _change$address4.col;
-
-          var visualRow = _this12.hot.toVisualRow(row);
-
-          var visualColumn = _this12.hot.toVisualColumn(col);
-
           var hot = (0, _register.getRegisteredHotInstances)(_this12.engine).get(sheetId); // It will just re-render certain cell when necessary.
 
           hot.validateCell(hot.getDataAtCell(visualRow, visualColumn), hot.getCellMeta(visualRow, visualColumn), function () {});
@@ -21445,11 +21448,11 @@ var Formulas = /*#__PURE__*/function (_BasePlugin) {
       var dependentCells = [];
       var outOfBoundsChanges = [];
       var changedCells = [];
-      changes.forEach(function (_ref8) {
-        var _ref9 = (0, _slicedToArray2.default)(_ref8, 4),
-            row = _ref9[0],
-            prop = _ref9[1],
-            newValue = _ref9[3];
+      changes.forEach(function (_ref9) {
+        var _ref10 = (0, _slicedToArray2.default)(_ref9, 4),
+            row = _ref10[0],
+            prop = _ref10[1],
+            newValue = _ref10[3];
 
         var column = _this13.hot.propToCol(prop);
 
@@ -21479,11 +21482,11 @@ var Formulas = /*#__PURE__*/function (_BasePlugin) {
         // (unfortunately, this requires an extra re-render)
         this.hot.addHookOnce('afterChange', function () {
           var outOfBoundsDependentCells = [];
-          outOfBoundsChanges.forEach(function (_ref10) {
-            var _ref11 = (0, _slicedToArray2.default)(_ref10, 3),
-                row = _ref11[0],
-                column = _ref11[1],
-                newValue = _ref11[2];
+          outOfBoundsChanges.forEach(function (_ref11) {
+            var _ref12 = (0, _slicedToArray2.default)(_ref11, 3),
+                row = _ref12[0],
+                column = _ref12[1],
+                newValue = _ref12[2];
 
             outOfBoundsDependentCells.push.apply(outOfBoundsDependentCells, (0, _toConsumableArray2.default)(_this13.syncChangeWithEngine(row, column, newValue)));
           });
@@ -21509,11 +21512,11 @@ var Formulas = /*#__PURE__*/function (_BasePlugin) {
 
       var dependentCells = [];
       var changedCells = [];
-      changes.forEach(function (_ref12) {
-        var _ref13 = (0, _slicedToArray2.default)(_ref12, 4),
-            row = _ref13[0],
-            column = _ref13[1],
-            newValue = _ref13[3];
+      changes.forEach(function (_ref13) {
+        var _ref14 = (0, _slicedToArray2.default)(_ref13, 4),
+            row = _ref14[0],
+            column = _ref14[1],
+            newValue = _ref14[3];
 
         var address = {
           row: row,
@@ -41216,7 +41219,7 @@ Handsontable.Core = function (rootElement) {
 };
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "14/06/2021 12:54:38";
+Handsontable.buildDate = "16/06/2021 16:20:21";
 Handsontable.version = "9.0.1";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
