@@ -152,10 +152,10 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-const exportPlugin1 = hot.getPlugin('exportFile');
+const exportPlugin = hot.getPlugin('exportFile');
 
 button.addEventListener('click', () => {
-  exportPlugin1.downloadFile('csv', {
+  exportPlugin.downloadFile('csv', {
     bom: false,
     columnDelimiter: ',',
     columnHeaders: false,
@@ -193,10 +193,10 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-const exportPlugin2 = hot.getPlugin('exportFile');
+const exportPlugin = hot.getPlugin('exportFile');
 
 button.addEventListener('click', () => {
-  const exportedBlob = exportPlugin2.exportAsBlob('csv', {
+  const exportedBlob = exportPlugin.exportAsBlob('csv', {
     bom: false,
     columnDelimiter: ',',
     columnHeaders: false,
@@ -234,10 +234,10 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-const exportPlugin3 = hot.getPlugin('exportFile');
+const exportPlugin = hot.getPlugin('exportFile');
 
 button.addEventListener('click', () => {
-  const exportedString = exportPlugin3.exportAsString('csv', {
+  const exportedString = exportPlugin.exportAsString('csv', {
     bom: false,
     columnDelimiter: ',',
     columnHeaders: false,

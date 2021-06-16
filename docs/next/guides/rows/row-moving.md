@@ -23,7 +23,7 @@ A draggable move handle appears above the selected column/row header. You can cl
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(200, 20),
   width: '100%',
   height: 320,
@@ -38,7 +38,7 @@ const hot1 = new Handsontable(container, {
 
 ## Drag and move actions of `manualRowMove` plugin
 
-There are significant differences between the plugin's `dragRows` and `moveRows` API functions. Both of them change the order of rows, **but** they rely on different kinds of indexes. The differences between them are shown in the diagrams below. 
+There are significant differences between the plugin's `dragRows` and `moveRows` API functions. Both of them change the order of rows, **but** they rely on different kinds of indexes. The differences between them are shown in the diagrams below.
 
 ::: tip
 Both of these methods trigger the [`beforeRowMove`](api/pluginHooks.md#beforerowmove) and [`afterRowMove`](api/pluginHooks.md#afterrowmove) hooks, but only `dragRows` passes the `dropIndex` argument to them.

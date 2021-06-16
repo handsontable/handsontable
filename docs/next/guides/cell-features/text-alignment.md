@@ -26,13 +26,13 @@ Alignment changes can be tracked using `afterSetCellMeta` callback.
 
 ## Basic example
 
-The following code sample configures the grid to use `htCenter` and configures individual cells to use different alignments. 
+The following code sample configures the grid to use `htCenter` and configures individual cells to use different alignments.
 
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(100, 18),
   colWidths: 100,
   height: 320,
@@ -41,17 +41,17 @@ const hot1 = new Handsontable(container, {
   contextMenu: true,
   licenseKey: 'non-commercial-and-evaluation',
   mergeCells: [
-    {row: 1, col: 1, rowspan: 3, colspan: 3},
-    {row: 3, col: 4, rowspan: 2, colspan: 2}
+    { row: 1, col: 1, rowspan: 3, colspan: 3 },
+    { row: 3, col: 4, rowspan: 2, colspan: 2 }
   ],
-  className: "htCenter",
+  className: 'htCenter',
   cell: [
-    {row: 0, col: 0, className: "htRight"},
-    {row: 1, col: 1, className: "htLeft htMiddle"},
-    {row: 3, col: 4, className: "htLeft htBottom"}
+    { row: 0, col: 0, className: 'htRight' },
+    { row: 1, col: 1, className: 'htLeft htMiddle' },
+    { row: 3, col: 4, className: 'htLeft htBottom' }
   ],
   afterSetCellMeta(row, col, key, val) {
-    console.log("cell meta changed", row, col, key, val);
+    console.log('cell meta changed', row, col, key, val);
   }
 });
 ```

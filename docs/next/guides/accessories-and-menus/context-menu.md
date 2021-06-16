@@ -22,7 +22,7 @@ To run the basic configuration of the Context Menu, just set the `contextMenu` o
 ```js
 const container = document.querySelector('#example1');
 
-const settings = {
+const hot = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -35,9 +35,7 @@ const settings = {
   colHeaders: true,
   contextMenu: true,
   licenseKey: 'non-commercial-and-evaluation'
-};
-
-const hot1 = new Handsontable(container, settings);
+});
 ```
 :::
 
@@ -83,7 +81,7 @@ You can define items in the menu by passing the `contextMenu` option as an array
 ```js
 const container = document.querySelector('#example2');
 
-const settings = {
+const hot = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -96,9 +94,7 @@ const settings = {
   colHeaders: true,
   contextMenu: ['row_above', 'row_below', 'remove_row'],
   licenseKey: 'non-commercial-and-evaluation'
-};
-
-const hot2 = new Handsontable(container, settings);
+});
 ```
 :::
 
@@ -116,7 +112,7 @@ This example shows how to:
 ```js
 const container = document.querySelector('#example3');
 
-const settings = {
+const hot = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -134,20 +130,20 @@ const settings = {
       console.log(key, selection, clickEvent);
     },
     items: {
-      "row_above": {
+      'row_above': {
         disabled() { // `disabled` can be a boolean or a function
           // Disable option when first row was clicked
           return this.getSelectedLast()[0] === 0; // `this` === hot3
         }
       },
       // A separator line can also be added like this:
-      // "sp1": { name: '---------' }
+      // 'sp1': { name: '---------' }
       // and the key has to be unique
-      "sp1": '---------',
-      "row_below": {
+      'sp1': '---------',
+      'row_below': {
         name: 'Click to add row below' // Set custom text for predefined option
       },
-      "about": { // Own custom option
+      'about': { // Own custom option
         name() { // `name` can be a string or a function
           return '<b>Custom option</b>'; // Name can contain HTML
         },
@@ -161,13 +157,13 @@ const settings = {
           }, 0);
         }
       },
-      "colors": { // Own custom option
+      'colors': { // Own custom option
         name: 'Colors...',
         submenu: {
           // Custom option with submenu of items
           items: [
             {
-              // Key must be in the form "parent_key:child_key"
+              // Key must be in the form 'parent_key:child_key'
               key: 'colors:red',
               name: 'Red',
               callback(key, selection, clickEvent) {
@@ -181,10 +177,11 @@ const settings = {
           ]
         }
       },
-      "credits": { // Own custom property
+      'credits': { // Own custom property
         // Custom rendered element in the context menu
         renderer(hot, wrapper, row, col, prop, itemValue) {
           const elem = document.createElement('marquee');
+
           elem.style.cssText = 'background: lightgray;';
           elem.textContent = 'Brought to you by...';
 
@@ -195,8 +192,6 @@ const settings = {
       }
     }
   }
-};
-
-const hot3 = new Handsontable(container, settings);
+});
 ```
 :::
