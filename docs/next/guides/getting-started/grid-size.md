@@ -83,7 +83,7 @@ You can listen for two hooks, `beforeRefreshDimensions` and `afterRefreshDimensi
 
 ::: example #example --html 1 --js 2
 ```html
-<div><!-- sliceElement with dynamicly added styles-->
+<div><!-- slice element with dynamically added styles -->
   <div id="example"></div>
 </div>
 
