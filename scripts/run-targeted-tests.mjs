@@ -89,14 +89,14 @@ async function distributeBetweenPipelines(modifiedProjects) {
           !isHandsontableTouched &&
           modifiedProjects.indexOf(projectName) >= Math.floor(modifiedProjects.length / pipelineCount)
         ) {
-          await spawnProcess(`npm run in ${projectName} test`);
+          await spawnProcess(`npm run in ${projectName} test -- --if-present`);
         }
       }
 
       break;
     default:
       for (const projectName of modifiedProjects) {
-        await spawnProcess(`npm run in ${projectName} test`);
+        await spawnProcess(`npm run in ${projectName} test -- --if-present`);
       }
   }
 }
@@ -148,7 +148,7 @@ async function distributeBetweenPipelines(modifiedProjects) {
       }
 
       workspacePackages.forEach((packageWildcard) => {
-        if (packageWildcard !== '.') {
+        if (packageWildcard.includes('/*')) {
           const escapedPackageUrl = packageWildcard.replace(/\*/g, '').replace(/\//g, '\\/');
           const packageMatch = fileUrl.match(`(${escapedPackageUrl})(?<projectName>[^/]*)(/)`);
 
@@ -157,6 +157,17 @@ async function distributeBetweenPipelines(modifiedProjects) {
 
             if (!touchedProjects.includes(projectName)) {
               touchedProjects.push(projectName);
+            }
+
+            filesMatchedCount += 1;
+          }
+
+        } else if (packageWildcard !== '.') {
+          const packageMatch = fileUrl.match(`^${packageWildcard}/`);
+
+          if (packageMatch) {
+            if (!touchedProjects.includes(packageWildcard)) {
+              touchedProjects.push(packageWildcard);
             }
 
             filesMatchedCount += 1;
@@ -170,9 +181,12 @@ async function distributeBetweenPipelines(modifiedProjects) {
     }
   }
 
-  // If there was anything touched except for handsontable, build handsontable for it to be
+  // If there was anything touched except for handsontable or docs, build handsontable for it to be
   // available for import in the other projects.
-  if (touchedProjects.length > 1 || (touchedProjects.length === 1 && touchedProjects[0] !== 'handsontable')) {
+  if (
+    touchedProjects.length > 1 ||
+    (touchedProjects.length === 1 && touchedProjects[0] !== 'handsontable' && touchedProjects[0] !== 'docs')
+  ) {
     await spawnProcess('npm run in handsontable build');
   }
 

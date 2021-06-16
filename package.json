@@ -180,6 +180,7 @@
     "packages": [
       ".",
       "examples",
+      "docs",
       "wrappers/*"
     ]
   },
