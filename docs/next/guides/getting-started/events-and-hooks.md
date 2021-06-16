@@ -12,7 +12,7 @@ tags:
 - after
 - before
 - events
-- hooks 
+- hooks
 ---
 
 # Events and hooks
@@ -20,7 +20,7 @@ tags:
 [[toc]]
 
 ## Overview
-Callbacks are used to react before or after actions occur. We refer to them as hooks. Hooks share some characteristics with events and middleware, combining them both in a unique structure. 
+Callbacks are used to react before or after actions occur. We refer to them as hooks. Hooks share some characteristics with events and middleware, combining them both in a unique structure.
 
 ## Events
 
@@ -62,7 +62,7 @@ hot.addHook('beforeCreateRow', (row, amount) => {
 })
 ```
 
-The first argument may be modified and passed on through the hooks that are next in the queue. This characteristic is shared between `before` and `after` hooks but is more common with the former. Before something happens, we can run the data through a pipeline of hooks that may modify or reject the operation. This provides many possibilities to extend the default Handsontable functionality and customize it for your application. 
+The first argument may be modified and passed on through the hooks that are next in the queue. This characteristic is shared between `before` and `after` hooks but is more common with the former. Before something happens, we can run the data through a pipeline of hooks that may modify or reject the operation. This provides many possibilities to extend the default Handsontable functionality and customize it for your application.
 
 ## All available hooks example
 
@@ -187,7 +187,7 @@ function log_events(event, data) {
     div.appendChild(text);
     example1Events.appendChild(div);
     clearTimeout(timer);
-    const timer = setTimeout(function() {
+    timer = setTimeout(function() {
       example1Events.scrollTop = example1Events.scrollHeight;
     }, 10);
 
