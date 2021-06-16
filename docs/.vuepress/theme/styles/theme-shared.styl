@@ -33,16 +33,6 @@ html.theme-dark {
     & .nav-link {
       color $fontColor
     }
-
-    /* Support button in navbar */
-    & .dropdown-title {
-      & .title {
-        color $fontColor
-      }
-      & .arrow.down {
-        border-top-color $fontColor
-      }
-    }
   }
 
   /* Searchbox */
@@ -55,6 +45,19 @@ html.theme-dark {
 
     .searchbox-search-icon {
       stroke $searchIcon
+    }
+  }
+
+  /* Dropdown */
+  .dropdown-wrapper {
+    & .title {
+      color $fontColor
+    }
+    & .arrow.down {
+      border-top-color $fontColor
+    }
+    .nav-dropdown {
+      background-color $backgroundColor
     }
   }
 
