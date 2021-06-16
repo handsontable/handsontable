@@ -4,7 +4,6 @@
 
 html.theme-dark {
 
-  /* Elements that should have set background-color */
   &,
   div#app,
   header,
@@ -17,12 +16,12 @@ html.theme-dark {
     color $fontColor
   }
 
-  h1, h2, h3, h4, h5, h6, p {
-    border-bottom-color $sectionBorderColor
+  a {
+    color $linkFontColor
   }
 
-  a {
-    color $fontColorLink
+  h1, h2, h3, h4, h5, h6, p {
+    border-bottom-color $sectionBorderColor
   }
   
   /* Navbar */
@@ -44,7 +43,7 @@ html.theme-dark {
     }
 
     .searchbox-search-icon {
-      stroke $searchIcon
+      stroke $searchIconColor
     }
   }
 
@@ -61,20 +60,50 @@ html.theme-dark {
     }
   }
 
-  /* Sidebar */
+  /* Scrollbar styles */
+  scrollbar() {
+    // works on Chrome, Edge, and Safari
+    &::-webkit-scrollbar {
+      width 12px // width of the entire scrollbar
+    }
+
+    &::-webkit-scrollbar-track {
+      background $backgroundColor // color of the tracking area
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color $scrollbarThumb // color of the scroll thumb
+      border-radius 20px // roundness of the scroll thumb
+      border 2px solid $backgroundColor // creates padding around scroll thumb
+    }
+
+    &::-webkit-scrollbar-corner {
+      background $backgroundColor
+    }
+
+    // works on Firefox
+    & {
+      scrollbar-width thin
+      scrollbar-color $scrollbarThumb $backgroundColor
+    }
+  }
+
+  /* Sidebar styles */
   .sidebar {
     border-right-color $sectionBorderColor
+    scrollbar()
 
-    /* Sidebar collapsible headings */
+    // sidebar collapsible headings
     & .sidebar-heading {
       color $fontColor
 
-      & .arrow, & .arrow-down {
-        border-color #8B8B8C
+      & .arrow,
+      & .arrow-down {
+        border-color $fontColor
       }
     }
 
-    /* Links in the sidebar */
+    // links in the sidebar
     & a.sidebar-link {
       color $fontColor
 
@@ -95,34 +124,7 @@ html.theme-dark {
     }
   }
 
-  scrollbar() {
-    /* Scrollbar (works on Chrome, Edge, and Safari) */
-    &::-webkit-scrollbar {
-      width 12px // width of the entire scrollbar
-    }
-
-    &::-webkit-scrollbar-track {
-      background $backgroundColor // color of the tracking area
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background-color $scrollbarThumb // color of the scroll thumb
-      border-radius 20px // roundness of the scroll thumb
-      border 2px solid $backgroundColor // creates padding around scroll thumb
-    }
-
-    &::-webkit-scrollbar-corner {
-      background $backgroundColor
-    }
-
-    /* Scrollbar (works on Firefox) */
-    & {
-      scrollbar-width thin
-      scrollbar-color $scrollbarThumb $backgroundColor
-    }
-  }
-
-  /* Table of contents */
+  /* Table of contents styles */
   .table-of-contents {
     border-left-color $sectionBorderColor
     scrollbar()
@@ -145,76 +147,7 @@ html.theme-dark {
     }
   }
 
-  aside {
-    scrollbar()
-  }
-
-  .tabs-component-tabs {
-    background #2f3133
-
-    .tabs-component-tab-a {
-      color $fontColor
-    }
-  }
-
-  /* A navigation element containing clickable fields (columns) */
-  .row-items-container {
-    .row-item {
-      border-color $rowItemBorderColor
-      color $fontColor
-
-      &:hover {
-        box-shadow 0 3px 12px $rowItemShadowColor
-      }
-    }
-  }
-
-  .page-edit {
-    .edit-link {
-      a {
-        color $fontColor
-      }
-    }
-  }
-
-  /* Inline code */
-  .theme-default-content code {
-    color $fontColor
-  }
-
-  .icon.outbound {
-    color $fontColor
-  }
-
-  .custom-block.tip {
-    background-color #0c0a08
-  }
-
-  /* Code block */
-  code {
-    color #ffffff
-    background #2F2F2F
-  }
-
-  kbd {
-    color #ffffff
-    background #2F2F2F
-    border-color #5a5d61
-  }
-
-  /* Version alert badge */
-  .version-alert { 
-    border-color #16110d
-
-    p {
-      color $fontColor
-    }
-  }
-
-  .custom-block p {
-    color $fontColor
-  }
-
+  /* Tabs component styles */
   .tabs-component {
     border-color #4d4d4e
 
@@ -222,12 +155,17 @@ html.theme-dark {
       color $fontColor !important
 
       &:hover {
-        color $fontColorLink !important
+        color $linkFontColor !important
       }
     }
 
     .tabs-component-tabs {
       border-bottom-color #4d4d4e
+      background #2f3133
+
+      .tabs-component-tab-a {
+        color $fontColor
+      }
     }
 
     .tabs-component-panels {
@@ -257,12 +195,58 @@ html.theme-dark {
     }
   }
 
+  /* A navigation element containing clickable fields (columns) */
+  .row-items-container {
+    .row-item {
+      border-color $rowItemBorderColor
+      color $fontColor
+
+      &:hover {
+        box-shadow 0 3px 12px $rowItemShadowColor
+      }
+    }
+  }
+
+  /* inline SVG icon  */
+  .icon.outbound {
+    color $fontColor
+  }
+
+  /* Tip markdown component */
+  .custom-block.tip {
+    background-color #0c0a08
+  }
+
+  /* Code element */
+  code {
+    color #ffffff
+    background #2F2F2F
+  }
+
+  /* Language specific code blocks */
   div[class*="language-"] {
     pre {
       scrollbar()
     }
   }
 
+  /* KBD element */
+  kbd {
+    color #ffffff
+    background #2F2F2F
+    border-color #5a5d61
+  }
+
+  /* Version alert badge */
+  .version-alert { 
+    border-color #16110d
+
+    p {
+      color $fontColor
+    }
+  }
+
+  /* Table styling starts */
   .scrollable-table {
     scrollbar()
   }
@@ -276,15 +260,24 @@ html.theme-dark {
       border-bottom 1px solid $sectionBorderColor
     }
   }
+  /* Table styling ends */
 
-  /* PageNav component */
-  .page-nav .inner {
-    border-color $sectionBorderColor
+  /* Bottom navigation (below footer) */
+  .page-nav {
+    .inner {
+      border-color $sectionBorderColor
+    }
   }
 
-  footer {
+  /* Footer */
+  footer.page-edit {
+    .edit-link {
+      a {
+        color $fontColor
+      }
+    }
 
-    & .last-updated {
+    .last-updated {
       color $fontColor
     }
   }
