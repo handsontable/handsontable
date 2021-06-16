@@ -1,3 +1,5 @@
+import { HyperFormula } from 'hyperformula';
+
 describe('NestedRows', () => {
   const id = 'testContainer';
   const dataInOrder = [
@@ -69,7 +71,9 @@ describe('NestedRows', () => {
             },
           ],
           nestedRows: true,
-          formulas: true,
+          formulas: {
+            engine: HyperFormula
+          },
         });
 
         expect(getDataAtCell(1, 0)).toBe(4);

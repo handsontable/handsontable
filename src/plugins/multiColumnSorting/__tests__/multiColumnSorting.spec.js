@@ -1027,7 +1027,8 @@ describe('MultiColumnSorting', () => {
         }
       });
 
-      await sleep(200); // Wait for ObserveChanges completion
+      // Firefox and Safari seem to take more time for the sorting to finish.
+      await sleep(600);
 
       setDataAtCell(0, 0, '19:55', 'edit');
 

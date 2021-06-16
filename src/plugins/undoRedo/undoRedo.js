@@ -595,7 +595,6 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
   }
 
   const sortedHeaders = arrayMap(this.headers, sortByIndexes);
-  const isFormulaPluginEnabled = instance.getPlugin('formulas')?.enabled ?? false;
   const changes = [];
 
   instance.alter('insert_col', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
@@ -611,21 +610,6 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
   instance.setSourceDataAtCell(changes);
   instance.columnIndexMapper.insertIndexes(ascendingIndexes[0], ascendingIndexes.length);
 
-  // TODO Temporary hook for undo/redo mess
-  if (isFormulaPluginEnabled) {
-    const setDataAtCellChanges = [];
-
-    arrayEach(instance.getSourceDataArray(), (rowData, rowIndex) => {
-      arrayEach(ascendingIndexes, (changedIndex, contiquesIndex) => {
-        rowData[changedIndex] = sortedData[rowIndex][contiquesIndex];
-
-        setDataAtCellChanges.push([rowIndex, changedIndex, null, rowData[changedIndex]]);
-      });
-    });
-
-    instance.getPlugin('formulas').onAfterSetDataAtCell(setDataAtCellChanges);
-  }
-
   if (typeof this.headers !== 'undefined') {
     arrayEach(sortedHeaders, (headerData, columnIndex) => {
       instance.getSettings().colHeaders[ascendingIndexes[columnIndex]] = headerData;
@@ -640,13 +624,6 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
   }, true);
 
   instance.addHookOnce('afterRender', undoneCallback);
-
-  // TODO Temporary hook for undo/redo mess
-  instance.runHooks('afterCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
-
-  if (isFormulaPluginEnabled) {
-    instance.getPlugin('formulas').recalculateFull();
-  }
 
   instance.render();
 };

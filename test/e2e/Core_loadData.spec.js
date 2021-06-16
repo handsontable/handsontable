@@ -684,4 +684,26 @@ describe('Core_loadData', () => {
     expect(getSourceData()).toEqual(arrayOfArrays());
     expect(getData()).toEqual(arrayOfArrays());
   });
+
+  it('should pass the `source` argument to the `beforeLoadData` and `afterLoadData` hooks', () => {
+    let correctSourceCount = 0;
+
+    handsontable({
+      data: arrayOfObjects(),
+      beforeLoadData: (data, firstRun, source) => {
+        if (source === 'testSource') {
+          correctSourceCount += 1;
+        }
+      },
+      afterLoadData: (data, firstRun, source) => {
+        if (source === 'testSource') {
+          correctSourceCount += 1;
+        }
+      }
+    });
+
+    loadData(arrayOfArrays(), 'testSource');
+
+    expect(correctSourceCount).toEqual(2);
+  });
 });

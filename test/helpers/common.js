@@ -92,6 +92,7 @@ export const getSelected = handsontableMethodFactory('getSelected');
 export const getSelectedLast = handsontableMethodFactory('getSelectedLast');
 export const getSelectedRange = handsontableMethodFactory('getSelectedRange');
 export const getSelectedRangeLast = handsontableMethodFactory('getSelectedRangeLast');
+export const getSettings = handsontableMethodFactory('getSettings');
 export const getSourceData = handsontableMethodFactory('getSourceData');
 export const getSourceDataArray = handsontableMethodFactory('getSourceDataArray');
 export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCell');
@@ -114,14 +115,16 @@ export const selectColumns = handsontableMethodFactory('selectColumns');
 export const selectRows = handsontableMethodFactory('selectRows');
 export const setCellMeta = handsontableMethodFactory('setCellMeta');
 export const setDataAtCell = handsontableMethodFactory('setDataAtCell');
-export const setSourceDataAtCell = handsontableMethodFactory('setSourceDataAtCell');
 export const setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
+export const setSourceDataAtCell = handsontableMethodFactory('setSourceDataAtCell');
 export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
 export const toVisualRow = handsontableMethodFactory('toVisualRow');
-export const updateSettings = handsontableMethodFactory('updateSettings');
 export const undo = handsontableMethodFactory('undo');
+export const updateSettings = handsontableMethodFactory('updateSettings');
+export const validateCell = handsontableMethodFactory('validateCell');
+export const validateCells = handsontableMethodFactory('validateCells');
 
 const specContext = {};
 
