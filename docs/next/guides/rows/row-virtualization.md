@@ -19,7 +19,9 @@ Virtualization allows Handsontable to process hundreds of thousands of records w
 
 This feature is enabled by default and can be turned off by setting the `renderAllRows` to `true`. 
 
-::: tip Note that the data grid without virtualization enabled will only work with relatively small data sets. :::
+::: tip 
+Note that the data grid without virtualization enabled will only work with relatively small data sets. 
+:::
 
 ## Configuring row virtualization
 
