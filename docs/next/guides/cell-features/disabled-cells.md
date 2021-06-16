@@ -26,7 +26,7 @@ To make a column read-only, declare it in the `columns` setting. You can also de
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     {car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black'},
     {car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue'},
@@ -62,7 +62,7 @@ This example makes cells that contain the word "Nissan" read-only. It forces all
 ```js
 const container = document.querySelector('#example2');
 
-const hot2 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     {car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black'},
     {car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue'},
@@ -73,11 +73,11 @@ const hot2 = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-hot2.updateSettings({
+hot.updateSettings({
   cells(row, col) {
     const cellProperties = {};
 
-    if (hot2.getData()[row][col] === 'Nissan') {
+    if (hot.getData()[row][col] === 'Nissan') {
       cellProperties.readOnly = true;
     }
 
@@ -101,7 +101,7 @@ To make a column non-editable, declare it in the `columns` setting. You can also
 ```js
 const container = document.querySelector('#example3');
 
-const hot3 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     {car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black'},
     {car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue'},
@@ -140,7 +140,7 @@ The following example shows the table with non-editable cells containing the wor
 ```js
 const container = document.querySelector('#example4');
 
-const hot4 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     {car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black'},
     {car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue'},
@@ -151,11 +151,11 @@ const hot4 = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-hot4.updateSettings({
+hot.updateSettings({
   cells(row, col, prop) {
     const cellProperties = {};
 
-    if (hot4.getDataAtRowProp(row, prop) === 'Nissan') {
+    if (hot.getDataAtRowProp(row, prop) === 'Nissan') {
       cellProperties.editor = false;
 
     } else {

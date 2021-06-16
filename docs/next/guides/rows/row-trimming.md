@@ -26,7 +26,7 @@ Note that the second, third, and sixth rows are missing in the following example
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(10, 4),
   colHeaders: true,
   rowHeaders: true,

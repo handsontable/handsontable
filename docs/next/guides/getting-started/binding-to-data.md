@@ -119,9 +119,9 @@ It is possible to define **columns** as a function. This is good practice when y
 const container = document.getElementById('example4');
 
 const data = [
-  { id: 1, name: {first: "Ted", last: "Right"}, address: "" },
-  { id: 2, address: "" },// HOT will create missing properties on demand
-  { id: 3, name: {first: "Joan", last: "Well"}, address: "" }
+  { id: 1, name: {first: 'Ted', last: 'Right'}, address: '' },
+  { id: 2, address: '' },// HOT will create missing properties on demand
+  { id: 3, name: {first: 'Joan', last: 'Well'}, address: '' }
 ];
 
 const hot = new Handsontable(container, {
@@ -161,9 +161,9 @@ In a scenario where you have nested objects, you can use them as the data source
 const container = document.getElementById('example5');
 
 const data = [
-  { id: 1, name: {first: "Ted", last: "Right"}, address: "" },
-  { id: 2, address: "" }, // HOT will create missing properties on demand
-  { id: 3, name: {first: "Joan", last: "Well"}, address: "" }
+  { id: 1, name: {first: 'Ted', last: 'Right'}, address: '' },
+  { id: 2, address: '' }, // HOT will create missing properties on demand
+  { id: 3, name: {first: 'Joan', last: 'Well'}, address: '' }
 ];
 
 const hot = new Handsontable(container, {
@@ -245,10 +245,10 @@ const hot = new Handsontable(container, {
 });
 
 function model(opts) {
-  let _pub = { 
-    "id": undefined,
-    "name": undefined,
-    "address": undefined
+  let _pub = {
+    id: undefined,
+    name: undefined,
+    address: undefined
   };
   let _priv = {};
 
@@ -260,12 +260,12 @@ function model(opts) {
 
   _pub.attr = function (attr, val) {
     if (typeof val === 'undefined') {
-      window.console && console.log("GET the", attr, "value of", _pub);
+      window.console && console.log('GET the', attr, 'value of', _pub);
 
       return _priv[attr];
     }
 
-    window.console && console.log("SET the", attr, "value of", _pub);
+    window.console && console.log('SET the', attr, 'value of', _pub);
     _priv[attr] = val;
 
     return _pub;
