@@ -130,7 +130,7 @@ const hot = new Handsontable(container, {
       console.log(key, selection, clickEvent);
     },
     items: {
-      'row_above': {
+      row_above: {
         disabled() { // `disabled` can be a boolean or a function
           // Disable option when first row was clicked
           return this.getSelectedLast()[0] === 0; // `this` === hot3
@@ -139,11 +139,11 @@ const hot = new Handsontable(container, {
       // A separator line can also be added like this:
       // 'sp1': { name: '---------' }
       // and the key has to be unique
-      'sp1': '---------',
-      'row_below': {
+      sp1: '---------',
+      row_below: {
         name: 'Click to add row below' // Set custom text for predefined option
       },
-      'about': { // Own custom option
+      about: { // Own custom option
         name() { // `name` can be a string or a function
           return '<b>Custom option</b>'; // Name can contain HTML
         },
@@ -157,7 +157,7 @@ const hot = new Handsontable(container, {
           }, 0);
         }
       },
-      'colors': { // Own custom option
+      colors: { // Own custom option
         name: 'Colors...',
         submenu: {
           // Custom option with submenu of items
@@ -177,7 +177,7 @@ const hot = new Handsontable(container, {
           ]
         }
       },
-      'credits': { // Own custom property
+      credits: { // Own custom property
         // Custom rendered element in the context menu
         renderer(hot, wrapper, row, col, prop, itemValue) {
           const elem = document.createElement('marquee');
