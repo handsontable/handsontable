@@ -436,9 +436,9 @@ export class Formulas extends BasePlugin {
     const changedCellsSet = new Set(changedCells.map(change => stringifyAddress(change)));
 
     dependentCells.forEach((change) => {
-      const { row, col } = change.address;
-      const visualRow = this.hot.toVisualRow(row);
-      const visualColumn = this.hot.toVisualColumn(col);
+      const { row, col } = change.address ?? {};
+      const visualRow = isDefined(row) ? this.hot.toVisualRow(row) : null;
+      const visualColumn = isDefined(col) ? this.hot.toVisualColumn(col) : null;
 
       // Don't try to validate cells outside of the visual part of the table.
       if (visualRow === null || visualColumn === null) {
