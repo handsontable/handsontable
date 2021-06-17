@@ -11,13 +11,13 @@ canonicalUrl: /column-header
 
 ## Overview
 
-Column headers are gray-colored rows used to label each column or [group of columns](../column-groups). By default, these headers are populated with letters in alphabetical order.
+Column headers are gray-colored rows used to label each column or [group of columns](@/guides/columns/column-groups.md). By default, these headers are populated with letters in alphabetical order.
 
 To reflect the type or category of data in a particular column, give it a custom name and then display it in a column header. For example, instead of letters as labels such as `A, B, C, ...` name them `ID, Full name, Country, ...`.
 
 ## Default headers
 
-Setting the [`colHeaders`](api/options/#colheaders) option to `true` enables the default column headers as shown in the example below:
+Setting the [colHeaders](@/api/metaSchema.md#colheaders) option to `true` enables the default column headers as shown in the example below:
 
 ::: example #example1
 ```js
@@ -68,4 +68,4 @@ const hot = new Handsontable(container, {
 
 ## Nested headers
 
-More complex data structures can be displayed with multiple headers, each representing a different category of data. To learn more about nested headers, see the [column groups](../column-groups) page.
+More complex data structures can be displayed with multiple headers, each representing a different category of data. To learn more about nested headers, see the [column groups](@/guides/columns/column-groups.md) page.

@@ -37,7 +37,7 @@ Contrary to `renderer` and `editor` functions, the `validator` function doesn't 
 
 ## Cell type
 
-Manually defining those functions for cells or columns would be tedious, so to simplify the configuration, Handsontable introduced [cell types](../cell-types/cell-type.md).
+Manually defining those functions for cells or columns would be tedious, so to simplify the configuration, Handsontable introduced [cell types](@/guides/cell-types/cell-type.md).
 
 ## Cell functions getters
 
