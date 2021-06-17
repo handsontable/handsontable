@@ -15,7 +15,7 @@ editLink: false
 The plugin enables exporting table data to file. It allows to export data as a string, blob or a downloadable file in
 CSV format.
 
-See [the export file demo](https://handsontable.com/docs/demo-export-file.html) for examples.
+See [the export file demo](@/guides/accessories-and-menus/export-to-csv.md) for examples.
 
 **Example**  
 ```js
@@ -51,7 +51,7 @@ exportPlugin.exportAsString('csv', {
 
 ### ExportOptions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/exportFile/exportFile.js#L67
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/exportFile/exportFile.js#L67
 
 :::
 
@@ -73,7 +73,7 @@ _ExportFile.ExportOptions : object_
 
 ### downloadFile
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/exportFile/exportFile.js#L107
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/exportFile/exportFile.js#L107
 
 :::
 
@@ -91,7 +91,7 @@ Exports table data as a downloadable file.
 
 ### exportAsBlob
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/exportFile/exportFile.js#L97
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/exportFile/exportFile.js#L97
 
 :::
 
@@ -109,7 +109,7 @@ Exports table data as a blob object.
 
 ### exportAsString
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/exportFile/exportFile.js#L86
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/exportFile/exportFile.js#L86
 
 :::
 
@@ -127,7 +127,7 @@ Exports table data as a string.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/exportFile/exportFile.js#L63
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/exportFile/exportFile.js#L63
 
 :::
 

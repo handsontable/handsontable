@@ -44,7 +44,7 @@ multiColumnSorting: {
 }
 
 // as an object passed to the `column` property, allows specifying a custom options for the desired column.
-// please take a look at documentation of `column` property: https://handsontable.com/docs/Options.html#columns
+// please take a look at documentation of `column` property: [Options#columns](./Options/#columns)
 columns: [{
   multiColumnSorting: {
     indicator: false, // disable indicator for the first column,
@@ -63,13 +63,13 @@ columns: [{
 
 ### multiColumnSorting
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/dataMap/metaManager/metaSchema.js#L2042
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/dataMap/metaManager/metaSchema.js#L2030
 
 :::
 
 _multiColumnSorting.multiColumnSorting : boolean | object_
 
-Turns on [Multi-column sorting](https://docs.handsontable.com/demo-multicolumn-sorting.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+Turns on [Multi-column sorting](@/guides/rows/row-sorting.md). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
 * `initialConfig` - Array containing objects, every with predefined keys:
   * `column` - sorted column
   * `sortOrder` - order in which column will be sorted
@@ -81,7 +81,7 @@ Turns on [Multi-column sorting](https://docs.handsontable.com/demo-multicolumn-s
 * `headerAction` - allow to click on the headers to sort
   * `true` = turn on possibility to click on the headers to sort
   * `false` = turn off possibility to click on the headers to sort
-* `sortEmptyCells` - how empty values (more information here: https://handsontable.com/docs/tutorial-cell-types.html#empty-cells) should be handled
+* `sortEmptyCells` - how empty values ([more information here](./options/#allowempty)) should be handled
   * `true` = the table sorts empty cells
   * `false` = the table moves all empty cells to the end of the table
 * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
@@ -120,7 +120,7 @@ multiColumnSorting: {
 
 ### clearSort
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/multiColumnSorting/multiColumnSorting.js#L151
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/multiColumnSorting/multiColumnSorting.js#L151
 
 :::
 
@@ -132,7 +132,7 @@ Clear the sort performed on the table.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/multiColumnSorting/multiColumnSorting.js#L115
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/multiColumnSorting/multiColumnSorting.js#L115
 
 :::
 
@@ -144,7 +144,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/multiColumnSorting/multiColumnSorting.js#L104
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/multiColumnSorting/multiColumnSorting.js#L104
 
 :::
 
@@ -156,7 +156,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getSortConfig
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/multiColumnSorting/multiColumnSorting.js#L172
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/multiColumnSorting/multiColumnSorting.js#L172
 
 :::
 
@@ -175,7 +175,7 @@ Get sort configuration for particular column or for all sorted columns. Objects 
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/multiColumnSorting/multiColumnSorting.js#L97
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/multiColumnSorting/multiColumnSorting.js#L97
 
 :::
 
@@ -188,7 +188,7 @@ hook and if it returns `true` than the [enablePlugin](#MultiColumnSorting+enable
 
 ### isSorted
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/multiColumnSorting/multiColumnSorting.js#L160
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/multiColumnSorting/multiColumnSorting.js#L160
 
 :::
 
@@ -200,7 +200,7 @@ Checks if the table is sorted (any column have to be sorted).
 
 ### setSortConfig
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/multiColumnSorting/multiColumnSorting.js#L200
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/multiColumnSorting/multiColumnSorting.js#L200
 
 :::
 
@@ -232,7 +232,7 @@ beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
 
 ### sort
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/multiColumnSorting/multiColumnSorting.js#L144
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/multiColumnSorting/multiColumnSorting.js#L144
 
 :::
 

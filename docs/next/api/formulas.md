@@ -19,7 +19,7 @@ This plugin allows you to perform Excel-like calculations in your business appli
 
 ### formulas
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/dataMap/metaManager/metaSchema.js#L2777
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/dataMap/metaManager/metaSchema.js#L2765
 
 :::
 
@@ -46,7 +46,7 @@ formulas: {
 
 ### engine
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/formulas/formulas.js#L89
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/formulas/formulas.js#L89
 
 :::
 
@@ -58,7 +58,7 @@ The engine instance that will be used for this instance of Handsontable.
 
 ### sheetId
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/formulas/formulas.js#L103
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/formulas/formulas.js#L103
 
 :::
 
@@ -70,7 +70,7 @@ HyperFormula's sheet id.
 
 ### sheetName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/formulas/formulas.js#L96
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/formulas/formulas.js#L96
 
 :::
 
@@ -83,7 +83,7 @@ HyperFormula's sheet name.
 
 ### addSheet
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/formulas/formulas.js#L236
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/formulas/formulas.js#L236
 
 :::
 
@@ -103,7 +103,7 @@ engine, the created sheet name otherwise.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/formulas/formulas.js#L218
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/formulas/formulas.js#L218
 
 :::
 
@@ -115,7 +115,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/formulas/formulas.js#L173
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/formulas/formulas.js#L173
 
 :::
 
@@ -127,7 +127,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/formulas/formulas.js#L121
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/formulas/formulas.js#L121
 
 :::
 
@@ -139,7 +139,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getCellType
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/formulas/formulas.js#L292
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/formulas/formulas.js#L292
 
 :::
 
@@ -159,7 +159,7 @@ Get the cell type under specified coordinates.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/formulas/formulas.js#L113
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/formulas/formulas.js#L113
 
 :::
 
@@ -172,7 +172,7 @@ hook and if it returns `true` than the [enablePlugin](#Formulas+enablePlugin) me
 
 ### switchSheet
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/formulas/formulas.js#L271
+::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/formulas/formulas.js#L271
 
 :::
 
