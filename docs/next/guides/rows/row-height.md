@@ -34,7 +34,7 @@ We set the same height of `40px` for all rows across the entire grid in this exa
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(4, 5),
   colHeaders: true,
   rowHeaders: true,
@@ -53,7 +53,7 @@ In this example, the height is only set for the first rows. Each additional row 
 ```js
 const container = document.querySelector('#example2');
 
-const hot2 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(4, 5),
   width: '100%',
   colHeaders: true,
@@ -67,13 +67,13 @@ const hot2 = new Handsontable(container, {
 
 ## Setting the row height using a function
 
-The row height can be set using a function. In this example, the size of all rows is set using a function that takes a row `index` (1, 2 ...) and multiplies it by `20px` for each consecutive row. 
+The row height can be set using a function. In this example, the size of all rows is set using a function that takes a row `index` (1, 2 ...) and multiplies it by `20px` for each consecutive row.
 
 ::: example #example3
 ```js
 const container = document.querySelector('#example3');
 
-const hot3 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 5),
   width: '100%',
   colHeaders: true,
@@ -97,7 +97,7 @@ You can adjust the size of one or multiple rows simultaneously, even if the sele
 ```js
 const container = document.querySelector('#example4');
 
-const hot4 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 5),
   colHeaders: true,
   rowHeaders: true,

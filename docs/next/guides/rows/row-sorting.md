@@ -11,9 +11,9 @@ canonicalUrl: /row-sorting
 
 ## Overview
 
-The column sorting plugin works as a proxy between the datasource and the Handsontable rendering module. 
+The column sorting plugin works as a proxy between the datasource and the Handsontable rendering module.
 It can:
-* Map indices of displayed rows `visual indices` to the indices of corresponding rows in the datasource `physical indices` and vice versa 
+* Map indices of displayed rows `visual indices` to the indices of corresponding rows in the datasource `physical indices` and vice versa
 * Alter the order of rows presented to a user without changing the datasource’s internal structure
 
 The sort operation is performed using a [stable sort algorithm](https://en.wikipedia.org/wiki/Sorting_algorithm#Stability) regardless of the browser you use or the size of the data set which you sort.
@@ -37,7 +37,7 @@ By default:
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     ['Tesla', 'Model 3', 'BlueStar', 'USA', '★★★★'],
     ['Tesla', 'Model S', 'WhiteStar', 'USA', '★★★★★'],
@@ -61,7 +61,7 @@ const hot1 = new Handsontable(container, {
 
 ## Extended plugin configuration
 
-Plugin options can be customized by providing a configuration as an `object`. 
+Plugin options can be customized by providing a configuration as an `object`.
 
 Here is the list of possible options to set:
 
@@ -79,7 +79,7 @@ See the example plugin configuration below:
 ```js
 const container = document.querySelector('#example2');
 
-const hot2 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     ['Tesla', 'Model 3', 'BlueStar', 'USA', '★★★★'],
     ['Tesla', 'Model S', 'WhiteStar', 'USA', '★★★★★'],
@@ -122,7 +122,7 @@ As a result, you can see that different types of data are sorted properly. `Hand
 ```js
 const container = document.querySelector('#example3');
 
-const hot3 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
     { brand: 'Tesla', model: 'Model S', maxSpeed: 139, range: 275, seats: 7, price: 71788, productionDate: '04/02/2012' },
@@ -197,7 +197,7 @@ The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `heade
 ```js
 const container = document.querySelector('#example4');
 
-const hot4 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
     { brand: 'Tesla', model: 'Model S', maxSpeed: 139, range: 275, seats: 7, price: 71788, productionDate: '04/02/2012' },
@@ -259,7 +259,7 @@ const hot4 = new Handsontable(container, {
 The plugin exposes the `setSortConfig` method. Use this to set the internal sort state.
 
 ::: tip
-The data set **won't be sorted** just by using this method. The `isSorted` and `getSortConfig` methods will return results corresponding to the previously set configuration. 
+The data set **won't be sorted** just by using this method. The `isSorted` and `getSortConfig` methods will return results corresponding to the previously set configuration.
 :::
 
 To use a custom sort implementation, you need to:
@@ -287,7 +287,7 @@ beforeColumnSort(currentSortConfig, destinationSortConfigs) {
 
 The plugin provides two hooks:
 
-* [`beforeColumnSort`](api/pluginHooks.md#beforecolumnsort) runs before the sort 
+* [`beforeColumnSort`](api/pluginHooks.md#beforecolumnsort) runs before the sort
   * The sort configuration obtained by the `getSortConfig` method within the callback will match the sort configuration preserved before the hook call
   * The callback for `beforeColumnSort` will return `false` and stop the table from being sorted, which results in the `afterColumnSort` hook not being called
 * [`afterColumnSort`](api/pluginHooks.md#aftercolumnsort) always runs after sorting unless the callback for `beforeColumnSort` hook returns `false`

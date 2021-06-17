@@ -156,7 +156,7 @@ function log_events(event, data) {
     const diff = now - start;
     let str;
 
-    const vals = [ i, "@" + numbro(diff / 1000).format('0.000'), "[" + event + "]"];
+    const vals = [ i, '@' + numbro(diff / 1000).format('0.000'), '[' + event + ']'];
 
     for (let d = 0; d < data.length; d++) {
       try {
@@ -179,11 +179,11 @@ function log_events(event, data) {
     }
 
     if (window.console) {
-      console.log(i, "@" + numbro(diff / 1000).format('0.000'), "[" + event + "]", data);
+      console.log(i, '@' + numbro(diff / 1000).format('0.000'), '[' + event + ']', data);
     }
 
-    const div = document.createElement("div");
-    const text = document.createTextNode(vals.join(" "));
+    const div = document.createElement('div');
+    const text = document.createTextNode(vals.join(' '));
     div.appendChild(text);
     example1Events.appendChild(div);
     clearTimeout(timer);
@@ -277,7 +277,7 @@ The following demo uses `beforeKeyDown` callback to modify some key bindings:
 ::: example #example2
 ```js
 let lastChange = null;
-const container = document.getElementById("example2")
+const container = document.getElementById('example2')
 
 const hot = new Handsontable(container, {
   data: [

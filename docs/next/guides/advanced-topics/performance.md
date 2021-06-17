@@ -30,7 +30,9 @@ const hot = new Handsontable(obj, {
 
 For more information, see [our documentation](api/dataMap/metaManager/metaSchema.md#colwidths).
 
-:::tip When using this setting, Handsontable won't perform the column width calculations, so you will need to ensure that your table contents fit inside the columns with the provided widths.
+::: tip
+When using this setting, Handsontable won't perform the column width calculations, so you will need to ensure that your table contents fit inside the columns with the provided widths.
+:::
 
 ## Turn off autoRowSize and/or autoColumnSize
 

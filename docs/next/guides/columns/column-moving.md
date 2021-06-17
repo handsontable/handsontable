@@ -22,7 +22,7 @@ A draggable move handle appears above the selected column header. You can click 
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(200, 20),
   width: '100%',
   height: 320,

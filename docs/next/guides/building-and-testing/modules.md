@@ -31,24 +31,24 @@ const settings = {
   filters: true,
   data: [
     {
-      city: "Fontainebleau",
-      country: "France",
+      city: 'Fontainebleau',
+      country: 'France',
     },
     {
-      city: "Milton",
-      country: "United Kingdom",
+      city: 'Milton',
+      country: 'United Kingdom',
     },
     {
-      city: "Giedlarowa",
-      country: "Poland",
+      city: 'Giedlarowa',
+      country: 'Poland',
     },
     {
-      city: "Forssa",
-      country: "Finland",
+      city: 'Forssa',
+      country: 'Finland',
     },
     {
-      city: "Halle",
-      country: "Germany",
+      city: 'Halle',
+      country: 'Germany',
     }
   ],
   dropdownMenu: true,
@@ -121,7 +121,7 @@ If you had already an import of Handsontable just remove this line:
 
 ```js
 // you no longer need this import
-import Handsontable from "handsontable";
+import Handsontable from 'handsontable';
 ```
 
 The Handsontable **base** part includes:

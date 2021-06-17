@@ -9,16 +9,16 @@ canonicalUrl: /cell-type
 
 [[toc]]
 
-## Overview 
+## Overview
 The cell type functionality enables you to customize the appearance and validate the cell(s) when applied.
 
 ## Usage
 
-There are three functions associated with every table cell: `renderer`, `editor`, and optionally `validator`. These functions are mostly used all together as they are strongly connected. 
+There are three functions associated with every table cell: `renderer`, `editor`, and optionally `validator`. These functions are mostly used all together as they are strongly connected.
 
 Example scenario - To store a date in a cell, you would:
-* Use a `renderer` to display the date using appropriate formatting `dd/mm/yyyy`, `yyyy-mm-dd`, etc. 
-* Use an `editor` that displays a calendar instead of the default text input, allowing the user to easily pick the right date. 
+* Use a `renderer` to display the date using appropriate formatting `dd/mm/yyyy`, `yyyy-mm-dd`, etc.
+* Use an `editor` that displays a calendar instead of the default text input, allowing the user to easily pick the right date.
 * Use a `validator` to check if the value entered by a user is valid.
 
 Cell type is represented by a string i.e. `"text"`, `"numeric"`, `"date"`. Each string is internally mapped to functions associated with this type e.g., `"numeric"` type is associated with the following functions:
@@ -125,7 +125,7 @@ Handsontable.cellTypes.registerCellType('password', {
   renderer: copyablePasswordRenderer,
 });
 
-// Now 'password' alias points to the newly created 
+// Now 'password' alias points to the newly created
 // object, not Handsontable.cellTypes.password
 ```
 
@@ -165,11 +165,11 @@ Handsontable.cellTypes.registerCellType('my.custom', {
   editor: MyEditor,
   renderer: customRenderer,
   validator: customValidator,
-  // You can add additional options to the cell type 
+  // You can add additional options to the cell type
   // based on Handsontable settings
   className: 'my-cell',
   allowInvalid: true,
-  // Or you can add custom properties which 
+  // Or you can add custom properties which
   // will be accessible in `cellProperties`
   myCustomCellState: 'complete',
 });
@@ -181,8 +181,8 @@ The next step is to use the registered aliases to enable users to easily refer t
 
 ```js
 const hot = new Handsontable(container, {
-  columns: [{ 
-    type: 'my.custom' 
+  columns: [{
+    type: 'my.custom'
   }]
 });
 ```
@@ -233,7 +233,7 @@ Using [cascade configuration](setting-options.md#page-config) we define a table 
 ```js
 {
   renderer: Handsontable.renderers.PasswordRenderer,
-  editor: Handsontable.editors.PasswordEditor, 
+  editor: Handsontable.editors.PasswordEditor,
   validator: undefined
 }
 ```
@@ -261,7 +261,7 @@ The example below shows some of the built-in cell types, i.e. combinations of ce
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
-const colors = ["yellow", "red", "orange", "green", "blue", "gray", "black", "white"];
+const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
 
 const yellowRenderer = function(instance, td, row, col, prop, value, cellProperties) {
   Handsontable.renderers.TextRenderer.apply(this, arguments);
@@ -274,7 +274,7 @@ const greenRenderer = function(instance, td, row, col, prop, value, cellProperti
   td.style.backgroundColor = 'green';
 };
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     { id: 1, name: 'Ted', isActive: true, color: 'orange', date: '2015-01-01' },
     { id: 2, name: 'John', isActive: false, color: 'black', date: null },
@@ -284,13 +284,13 @@ const hot1 = new Handsontable(container, {
   colHeaders: true,
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
-    { data: "id", type: 'text' },
+    { data: 'id', type: 'text' },
     // 'text' is default, you don't actually need to declare it
-    { data: "name", renderer: yellowRenderer },
+    { data: 'name', renderer: yellowRenderer },
     // use default 'text' cell type but overwrite its renderer with yellowRenderer
-    { data: "isActive", type: 'checkbox' },
-    { data: "date", type: 'date', dateFormat: 'YYYY-MM-DD' },
-    { data: "color", type: 'autocomplete', source: colors }
+    { data: 'isActive', type: 'checkbox' },
+    { data: 'date', type: 'date', dateFormat: 'YYYY-MM-DD' },
+    { data: 'color', type: 'autocomplete', source: colors }
   ],
   cell: [
     { row: 1, col: 0, renderer: greenRenderer }
