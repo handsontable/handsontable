@@ -272,7 +272,7 @@ To configure the sync/async distribution, you can pass an absolute value (number
 
 You can also use the `useHeaders` option to take the column headers width into calculation.
 
-Note: Using [Core#colWidths](./core/#colwidths) option will forcely disable [AutoColumnSize](./auto-column-size/).
+Note: Using [Core#colWidths](./core/#colwidths) option will forcibly disable [AutoColumnSize](./auto-column-size/).
 
 **Default**: <code>undefined</code>  
 **Category**: [AutoColumnSize](../auto-column-size)  
@@ -1095,7 +1095,7 @@ _options.data : Array&lt;Array&gt; | Array&lt;object&gt;_
 Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
 Can be declared as an array of arrays or an array of objects.
 
-See [Understanding binding as reference](@/guides/getting-started/binding-to-data#understand-binding-as-a-reference).
+See [Understanding binding as reference](@/guides/getting-started/binding-to-data.md#understand-binding-as-a-reference).
 
 **Default**: <code>undefined</code>  
 **Category**: [Core](../core)  
@@ -1129,7 +1129,7 @@ _options.dataSchema : object_
 
 Defines the structure of a new row when data source is an array of objects.
 
-See [data-schema](@/guides/getting-started/binding-to-data#array-of-objects-with-custom-data-schema) for more options.
+See [data-schema](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema) for more options.
 
 **Default**: <code>undefined</code>  
 **Category**: [Core](../core)  

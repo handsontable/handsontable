@@ -14,6 +14,13 @@ const nonPublicPages = [
   'coords',
   'plugins',
   'focusableElement',
+  'DataMap',
+  'hidingMap',
+  'indexesSequence',
+  'trimmingMap',
+  'samplesGenerator',
+  'physicalIndexToValueMap',
+  'ghostTable',
 ];
 
 module.exports = {
