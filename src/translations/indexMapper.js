@@ -27,13 +27,13 @@ import { ChangesObservable } from './changesObservable/observable';
  *
  * **Physical index** is a type of an index from the sequence of indexes assigned to the data source rows or columns
  *  (from 0 to n, where n is number of the cells on the axis of data set).
- * **Visual index** is a type of an index from the sequence of indexes assigned to rows or columns existing in DataMap (from 0 to n, where n is number of the cells on the axis of data set).
+ * **Visual index** is a type of an index from the sequence of indexes assigned to rows or columns existing in {@link data-map DataMap} (from 0 to n, where n is number of the cells on the axis of data set).
  * **Renderable index** is a type of an index from the sequence of indexes assigned to rows or columns whose may be rendered (when they are in a viewport; from 0 to n, where n is number of the cells renderable on the axis).
  *
  * There are different kinds of index maps which may be registered in the collections and can be used by a reference.
  * They also expose public API and trigger two local hooks such as `init` (on initialization) and `change` (on change).
  *
- * These are: IndexesSequence, PhysicalIndexToValueMap, HidingMap, and TrimmingMap.
+ * These are: {@link indexes-sequence IndexesSequence}, {@link physical-index-to-value-map PhysicalIndexToValueMap}, {@link hiding-map HidingMap}, and {@link trimming-map TrimmingMap}.
  */
 export class IndexMapper {
   constructor() {
@@ -488,7 +488,7 @@ export class IndexMapper {
   /**
    * Get all NOT hidden indexes.
    *
-   * Note: Indexes marked as hidden are included in a DataMap, but aren't rendered.
+   * Note: Indexes marked as hidden are included in a {@link data-map DataMap}, but aren't rendered.
    *
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array} List of physical indexes. Please keep in mind that index of this native array IS NOT a "visual index".

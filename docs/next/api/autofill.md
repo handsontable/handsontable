@@ -25,7 +25,7 @@ square in the corner.
 
 ### autoInsertRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/autofill/autofill.js#L90
+::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/plugins/autofill/autofill.js#L90
 
 :::
 
@@ -38,7 +38,7 @@ Specifies if can insert new rows if needed.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/autofill/autofill.js#L666
+::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/plugins/autofill/autofill.js#L666
 
 :::
 
@@ -50,7 +50,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/autofill/autofill.js#L132
+::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/plugins/autofill/autofill.js#L132
 
 :::
 
@@ -62,7 +62,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/autofill/autofill.js#L105
+::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/plugins/autofill/autofill.js#L105
 
 :::
 
@@ -74,7 +74,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/autofill/autofill.js#L98
+::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/plugins/autofill/autofill.js#L98
 
 :::
 
@@ -86,7 +86,7 @@ Checks if the plugin is enabled in the Handsontable settings.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/autofill/autofill.js#L123
+::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/plugins/autofill/autofill.js#L123
 
 :::
 
