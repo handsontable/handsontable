@@ -1,25 +1,27 @@
 <template>
-  <span v-on:click="toggleTheme" class="theme-switcher">{{themeIcon}}</span>
+  <label  id="switch" class="switch">
+      <input type="checkbox" v-on:change="toggleTheme" id="slider" :checked="isLightTheme">
+      <span class="slider round"></span>
+  </label>
 </template>
 
 <script>
 const CLASS_THEME_DARK = 'theme-dark';
-const DEFAULT_THEME_ICON = '☀️';
-const DARK_THEME_ICON = '🌙';
 
 const getHTMLElement = () => {
   return document.querySelector('html');
 }
 
-const getCurrentThemeIcon = () => {
-  return getHTMLElement().classList.contains(CLASS_THEME_DARK) ? DARK_THEME_ICON : DEFAULT_THEME_ICON;
+const isDarkTheme = () => {
+  const htmlEl = getHTMLElement();
+
+  return htmlEl.classList.contains(CLASS_THEME_DARK);
 }
 
 const toggleClassOnHTML = () => {
   const htmlEl = getHTMLElement();
-  const isDarkTheme = htmlEl.classList.contains(CLASS_THEME_DARK);
 
-  isDarkTheme ? htmlEl.classList.remove(CLASS_THEME_DARK) : htmlEl.classList.add(CLASS_THEME_DARK);
+  isDarkTheme() ? htmlEl.classList.remove(CLASS_THEME_DARK) : htmlEl.classList.add(CLASS_THEME_DARK);
 }
 
 export default {
@@ -27,13 +29,12 @@ export default {
   methods:{
     toggleTheme(){
       toggleClassOnHTML();
-      this.themeIcon = getCurrentThemeIcon();
     }
   },
-  data(){
+  data() {
     return {
-      themeIcon: DEFAULT_THEME_ICON
+      isLightTheme: !isDarkTheme()
     }
-  },
+  }
 };
 </script>
