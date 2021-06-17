@@ -1,4 +1,4 @@
-# Handsontable Documentation Editing Guidelines
+# Docs editing guidelines
 
 ## Best practices for content
 

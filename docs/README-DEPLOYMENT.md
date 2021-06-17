@@ -1,4 +1,4 @@
-# Deployment
+# Docs deployment guidelines
 
 Our server configurations watch changes for `latest` tag for an image. Refresh itself If detect newer version.
 
