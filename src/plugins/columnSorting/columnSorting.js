@@ -39,7 +39,7 @@ Hooks.getSingleton().register('afterColumnSort');
  *
  * @description
  * This plugin sorts the view by columns (but does not sort the data source!). To enable the plugin, set the
- * {@link Options#columnSorting} property to the correct value (see the examples below).
+ * {@link options#columnsorting Options#columnSorting} property to the correct value (see the examples below).
  *
  * @example
  * ```js
@@ -67,7 +67,7 @@ Hooks.getSingleton().register('afterColumnSort');
  * }
  *
  * // as an object passed to the `column` property, allows specifying a custom options for the desired column.
- * // please take a look at documentation of `column` property: {@link Options#columns}
+ * // please take a look at documentation of `column` property: https://handsontable.com/docs/Options.html#columns
  * columns: [{
  *   columnSorting: {
  *     indicator: false, // disable indicator for the first column,

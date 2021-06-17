@@ -54,7 +54,7 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  * * `'make_read_only'`
  * * `'alignment'`
  * * `'---------'` (menu item separator)
- * * `'borders'` (with {@link Options#customborders} turned on)
+ * * `'borders'` (with {@link Options#customBorders} turned on)
  * * `'commentsAddEdit'` (with {@link Options#comments} turned on)
  * * `'commentsRemove'` (with {@link Options#comments} turned on).
  *

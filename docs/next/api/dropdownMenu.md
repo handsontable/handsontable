@@ -47,7 +47,7 @@ const hot = new Handsontable(container, {
 
 ### dropdownMenu
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/dataMap/metaManager/metaSchema.js#L2725
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/dataMap/metaManager/metaSchema.js#L2725
 
 :::
 
@@ -71,7 +71,7 @@ dropdownMenu: ['remove_col', '---------', 'make_read_only', 'alignment']
 
 ### DEFAULT_ITEMS
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/dropdownMenu/dropdownMenu.js#L89
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/dropdownMenu/dropdownMenu.js#L89
 
 :::
 
@@ -84,7 +84,7 @@ Default menu items order when `dropdownMenu` is enabled by setting the config it
 
 ### close
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/dropdownMenu/dropdownMenu.js#L258
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/dropdownMenu/dropdownMenu.js#L258
 
 :::
 
@@ -96,7 +96,7 @@ Closes dropdown menu.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/dropdownMenu/dropdownMenu.js#L425
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/dropdownMenu/dropdownMenu.js#L425
 
 :::
 
@@ -108,7 +108,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/dropdownMenu/dropdownMenu.js#L213
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/dropdownMenu/dropdownMenu.js#L213
 
 :::
 
@@ -120,7 +120,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/dropdownMenu/dropdownMenu.js#L155
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/dropdownMenu/dropdownMenu.js#L155
 
 :::
 
@@ -133,7 +133,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### executeCommand
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/dropdownMenu/dropdownMenu.js#L291
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/dropdownMenu/dropdownMenu.js#L291
 
 :::
 
@@ -171,7 +171,7 @@ Or you can execute command registered in settings where `key` is your command na
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/dropdownMenu/dropdownMenu.js#L145
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/dropdownMenu/dropdownMenu.js#L145
 
 :::
 
@@ -184,7 +184,7 @@ hook and if it returns `true` than the [enablePlugin](#DropdownMenu+enablePlugin
 
 ### open
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/dropdownMenu/dropdownMenu.js#L243
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/dropdownMenu/dropdownMenu.js#L243
 
 :::
 
@@ -202,7 +202,7 @@ Opens menu and re-position it based on the passed coordinates.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/9953d24eb9962b10c035f61047a5c4bd5a35c377/src/plugins/dropdownMenu/dropdownMenu.js#L204
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/dropdownMenu/dropdownMenu.js#L204
 
 :::
 
