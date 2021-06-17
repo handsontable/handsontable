@@ -55,7 +55,7 @@ docs                            # All documentation files
 │   ├── containers              # Markdown containers `:::`
 │   │   ├── examples            # Code ex. container `::: example #exampleId .class :preset --html 1 --js 2`
 │   │   └── sourceCodeLink.js   # Add link "Source Code" on the right, `::: source-code-link [URL]`
-│   ├── handsontable-manager    # A module running Handsontable examples in different Handsontable versions
+│   ├── handsontable-manager    # A module that runs the Handsontable examples in different Handsontable versions
 │   ├── public                  # The docs' public (static) assets
 │   ├── theme                   # Theme overwrites and customizations
 │   ├── tools                   # Our custom docs tools
@@ -66,15 +66,15 @@ docs                            # All documentation files
 │   ├── config.js               # VuePress configuration
 │   ├── docs-links.js
 │   ├── enhanceApp.js           # VuePress app-level enhancements
-│   ├── helpers.js              # Common helpers to get sidebars and list of versions
+│   ├── helpers.js              # Common helpers that set up sidebars and the docs version picker
 │   ├── highlight.js            # Code highlight configuration
 ├── docker                      # Docker configuration
-├── next                        # The docs' next version, unavailable on production build
+├── next                        # The docs' next version, unavailable on the production environment
 │   ├── api                     # The API reference output, generated automatically from JSDoc. Do not edit!
-│   ├── examples                # Handsontable examples
+│   ├── examples                # The Handsontable examples
 │   ├── guides                  # The guides' source files: Markdown content
-│   └── sidebars.js
-├── semver.version              # A <semver.version> version of documentation (for example, 8.4 or 9.0).
+│   └── sidebars.js             # Sidebars configuration
+├── semver.version              # A <semver.version> version of the docs (for example, 8.4 or 9.0).
 ├── README-DEPLOYMENT.md        # Docs deployment guidelines
 ├── README-EDITING.md           # Docs editing guidelines
 └── README.md                   # The file you're looking at right now!
