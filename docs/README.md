@@ -2,7 +2,20 @@
 
 Handsontable comes with a vibrant, frequently-updated documentation portal.
 
-View the documentation's latest production version at https://handsontable.com/docs.
+View the docs' latest production version at https://handsontable.com/docs.
+
+## About Handsontable docs
+
+We treat the docs as an integral part of the Handsontable developer experience.
+
+The Handsontable docs are made up of three main sections:
+- **Guides**: Carefully-written implementation guides.
+- **Examples**: Code examples covering real-life use cases.
+- **API reference**: Full API reference, automatically generated from the source code of a required Handsontable version.
+
+We update the docs:
+- With every Handsontable version release
+- Whenever there's something new to add to improve!
 
 **See also:**
 
