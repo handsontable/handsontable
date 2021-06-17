@@ -1,6 +1,6 @@
 <template>
   <label  id="switch" class="switch">
-      <input type="checkbox" v-on:change="toggleTheme" id="slider" :checked="!isDarkTheme">
+      <input type="checkbox" v-on:change="toggleTheme" id="slider" :checked="isDarkTheme">
       <span class="slider round"></span>
   </label>
 </template>
