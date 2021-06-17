@@ -27,6 +27,9 @@ export default {
   methods:{
     toggleTheme(){
       this.isDarkTheme = !this.isDarkTheme;
+      const theme = this.isDarkTheme ? 'dark' : 'light';
+
+      localStorage.setItem('theme', theme);
 
       toggleDarkThemeClassOnHTML(this.htmlDomEl, this.isDarkTheme);
       changeLogo(this.logoDomEl, this.isDarkTheme);
@@ -40,6 +43,14 @@ export default {
     }
   },
   beforeMount() {
+    const userPrefferedTheme = localStorage.getItem('theme');
+
+    if (userPrefferedTheme) {
+      this.isDarkTheme = userPrefferedTheme === 'dark';
+
+      return;
+    }
+
     const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
     
     if (prefersDarkScheme.matches) {
