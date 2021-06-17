@@ -33,7 +33,7 @@ To show/hide certain rows directly from the [Context menu](context-menu.md), use
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(12,5),
   colHeaders: true,
   rowHeaders: true,

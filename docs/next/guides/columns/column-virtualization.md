@@ -18,7 +18,7 @@ tags:
 To process a large number of columns in a browser Handsontable utilizes the virtualization process to display only the visible part of the grid with a small offset for a better scrolling experience. This feature is turned on by default and can be turned off only for rows, not columns.
 
 ## Configuring the column virtualization
-You can experiment with the `viewportColumnRenderingOffset` config option, which determines the number of columns being displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, the virtualization will be practically turned off. 
+You can experiment with the `viewportColumnRenderingOffset` config option, which determines the number of columns being displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, the virtualization will be practically turned off.
 
 ::: warning
 Proceed with caution, as it will affect the overall performance of the grid.
@@ -39,7 +39,7 @@ The demo below presents a data grid displaying one million cells (1000 rows x 10
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(1000, 1000),
   colWidths: 100,
   width: '100%',

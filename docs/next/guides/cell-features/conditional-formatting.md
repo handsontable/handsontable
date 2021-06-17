@@ -70,7 +70,7 @@ function negativeValueRenderer(instance, td, row, col, prop, value, cellProperti
 // maps function to a lookup string
 Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: data,
   licenseKey: 'non-commercial-and-evaluation',
   afterSelection(row, col, row2, col2) {
@@ -95,7 +95,7 @@ const hot1 = new Handsontable(container, {
       cellProperties.renderer = firstRowRenderer; // uses function directly
 
     } else {
-      cellProperties.renderer = "negativeValueRenderer"; // uses lookup map
+      cellProperties.renderer = 'negativeValueRenderer'; // uses lookup map
     }
 
     return cellProperties;

@@ -69,7 +69,7 @@ const hot = new Handsontable(container, {
     { type: 'text' },
     { type: 'text' },
     { type: 'date', dateFormat: 'M/D/YYYY' },
-    { type: 'numeric '}
+    { type: 'numeric' }
   ],
   colHeaders: true,
   rowHeaders: true,
@@ -172,25 +172,25 @@ Note that selecting a column in the Filter component resets the state of the tab
 ::: example #example4 --html 1 --js 2
 ```html
 <div id="example4" class="hot"></div>
-<div id='externalFilter'>
-  <div class='columnChoose'>
+<div id="externalFilter">
+  <div class="columnChoose">
     <label>Choose Column: </label>
     <select></select>
   </div>
 
-  <div id='filterSelect'>
-    <div class='controllers'>
+  <div id="filterSelect">
+    <div class="controllers">
       <div>
         <input type='checkbox' id='filtersSelectAll' checked="checked" />
         <label for='filtersSelectAll'>(Select all)</label>
       </div>
     </div>
-    <div class='items'></div>
+    <div class="items"></div>
   </div>
 
-  <div class='buttons controls'>
-    <button class='apply'>Apply filter</button>
-    <button class='clear'>Clear filter</button>
+  <div class="buttons controls">
+    <button class="apply">Apply filter</button>
+    <button class="clear">Clear filter</button>
   </div>
 </div>
 ```

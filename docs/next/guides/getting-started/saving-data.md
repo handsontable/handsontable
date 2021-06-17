@@ -108,12 +108,12 @@ function ajax(url, method, params, callback) {
     obj = new XMLHttpRequest();
   } catch (e) {
     try {
-      obj = new ActiveXObject("Msxml2.XMLHTTP");
+      obj = new ActiveXObject('Msxml2.XMLHTTP');
     } catch (e) {
       try {
-        obj = new ActiveXObject("Microsoft.XMLHTTP");
+        obj = new ActiveXObject('Microsoft.XMLHTTP');
       } catch (e) {
-        alert("Your browser does not support Ajax.");
+        alert('Your browser does not support Ajax.');
         return false;
       }
     }
@@ -124,8 +124,8 @@ function ajax(url, method, params, callback) {
     }
   };
   obj.open(method, url, true);
-  obj.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-  obj.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  obj.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+  obj.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
   obj.send(params);
 
   return obj;

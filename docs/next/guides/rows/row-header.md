@@ -50,7 +50,7 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 };
 
 const container = document.querySelector('#example1');
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: generateData(),
   colHeaders: true,
   rowHeaders: true,

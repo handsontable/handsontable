@@ -12,7 +12,7 @@ editLink: false
 
 ## Description
 
-This plugin allows to change rows order. To make rows order persistent the [Options#persistentState](./Options/#persistentState)
+This plugin allows to change rows order. To make rows order persistent the [Options#persistentState](./options/#persistentstate)
 plugin should be enabled.
 
 API:
@@ -21,7 +21,7 @@ API:
 - `dragRow` - drag single row to the new position.
 - `dragRows` - drag many rows (as an array of indexes) to the new position.
 
-[Documentation](https://handsontable.com/docs/demo-moving.html) explain differences between drag and move actions. Please keep in mind that if you want apply visual changes,
+[Documentation](@/guides/rows/row-moving.md) explain differences between drag and move actions. Please keep in mind that if you want apply visual changes,
 you have to call manually the `render` method on the instance of Handsontable.
 
 The plugin creates additional components to make moving possibly using user interface:
@@ -33,13 +33,13 @@ The plugin creates additional components to make moving possibly using user inte
 
 ### manualRowMove
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/dataMap/metaManager/metaSchema.js#L1940
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/dataMap/metaManager/metaSchema.js#L1928
 
 :::
 
 _manualRowMove.manualRowMove : boolean | Array&lt;number&gt;_
 
-Turns on [Manual row move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial row order (as an array of row indexes).
+Turns on [Manual row move](@/guides/columns/column-moving.md), if set to a boolean or define initial row order (as an array of row indexes).
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -56,7 +56,7 @@ manualRowMove: [1, 4],
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/manualRowMove/manualRowMove.js#L712
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/manualRowMove/manualRowMove.js#L712
 
 :::
 
@@ -68,7 +68,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/manualRowMove/manualRowMove.js#L146
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/manualRowMove/manualRowMove.js#L146
 
 :::
 
@@ -80,7 +80,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### dragRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/manualRowMove/manualRowMove.js#L213
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/manualRowMove/manualRowMove.js#L213
 
 :::
 
@@ -93,13 +93,13 @@ Drag a single row to drop index position.
 | Param | Type | Description |
 | --- | --- | --- |
 | row | `number` | Visual row index to be dragged. |
-| dropIndex | `number` | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
+| dropIndex | `number` | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin). |
 
 
 
 ### dragRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/manualRowMove/manualRowMove.js#L227
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/manualRowMove/manualRowMove.js#L227
 
 :::
 
@@ -112,13 +112,13 @@ Drag multiple rows to drop index position.
 | Param | Type | Description |
 | --- | --- | --- |
 | rows | `Array` | Array of visual row indexes to be dragged. |
-| dropIndex | `number` | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
+| dropIndex | `number` | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin). |
 
 
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/manualRowMove/manualRowMove.js#L110
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/manualRowMove/manualRowMove.js#L110
 
 :::
 
@@ -130,7 +130,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/manualRowMove/manualRowMove.js#L103
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/manualRowMove/manualRowMove.js#L103
 
 :::
 
@@ -143,7 +143,7 @@ hook and if it returns `true` than the [enablePlugin](#ManualRowMove+enablePlugi
 
 ### isMovePossible
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/manualRowMove/manualRowMove.js#L244
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/manualRowMove/manualRowMove.js#L244
 
 :::
 
@@ -155,13 +155,13 @@ Indicates if it's possible to move rows to the desired position. Some of the act
 | Param | Type | Description |
 | --- | --- | --- |
 | movedRows | `Array` | Array of visual row indexes to be moved. |
-| finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
+| finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin). |
 
 
 
 ### moveRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/manualRowMove/manualRowMove.js#L166
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/manualRowMove/manualRowMove.js#L166
 
 :::
 
@@ -174,13 +174,13 @@ Moves a single row.
 | Param | Type | Description |
 | --- | --- | --- |
 | row | `number` | Visual row index to be moved. |
-| finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
+| finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin). |
 
 
 
 ### moveRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/manualRowMove/manualRowMove.js#L180
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/manualRowMove/manualRowMove.js#L180
 
 :::
 
@@ -193,13 +193,13 @@ Moves a multiple rows.
 | Param | Type | Description |
 | --- | --- | --- |
 | rows | `Array` | Array of visual row indexes to be moved. |
-| finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
+| finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin). |
 
 
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/b364b9c373a22ff506216e84d300ec6bb12ff839/src/plugins/manualRowMove/manualRowMove.js#L134
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/manualRowMove/manualRowMove.js#L134
 
 :::
 
