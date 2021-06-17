@@ -4,7 +4,6 @@
 
 <script>
 const CLASS_THEME_DARK = 'theme-dark';
-const DEFAULT_THEME_CLASS = 'theme-light';
 const DEFAULT_THEME_ICON = '☀️';
 const DARK_THEME_ICON = '🌙';
 
@@ -17,15 +16,10 @@ const getCurrentThemeIcon = () => {
 }
 
 const toggleClassOnHTML = () => {
-  const html = getHTMLElement();
-  const isDefaultTheme = html.classList.contains(DEFAULT_THEME_CLASS);
+  const htmlEl = getHTMLElement();
+  const isDarkTheme = htmlEl.classList.contains(CLASS_THEME_DARK);
 
-  html.classList.remove(isDefaultTheme ? DEFAULT_THEME_CLASS : CLASS_THEME_DARK);
-  html.classList.add(isDefaultTheme ? CLASS_THEME_DARK : DEFAULT_THEME_CLASS);
-}
-
-const setClassOnHTML = (className) => {
-  getHTMLElement().classList.add(className);
+  isDarkTheme ? htmlEl.classList.remove(CLASS_THEME_DARK) : htmlEl.classList.add(CLASS_THEME_DARK);
 }
 
 export default {
@@ -41,8 +35,5 @@ export default {
       themeIcon: DEFAULT_THEME_ICON
     }
   },
-  beforeMount() {
-    setClassOnHTML(DEFAULT_THEME_CLASS);
-  }
 };
 </script>
