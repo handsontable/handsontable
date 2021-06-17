@@ -23,7 +23,7 @@ Setting the [`colHeaders`](/next/api/options/#colheaders) option to `true` enabl
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 11),
   colHeaders: true,
   rowHeaders: true,
@@ -39,7 +39,7 @@ An array of labels can be used to set the `colHeaders` as shown in the example b
 ```js
 const container = document.querySelector('#example2');
 
-const hot2 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 9),
   colHeaders: ['ID', 'Full name', 'Position','Country', 'City', 'Address', 'Zip code', 'Mobile', 'E-mail'],
   rowHeaders: true,
@@ -55,7 +55,7 @@ The `colHeaders` can also be populated using a function as shown in the example 
 ```js
 const container = document.querySelector('#example3');
 
-const hot3 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 11),
   colHeaders(index) {
     return 'Col ' + (index + 1);

@@ -126,12 +126,12 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 
 const container = document.querySelector('#example7');
 
-const hot7 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: generateData(),
   height: 'auto',
   colHeaders: true,
   rowHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation', 
+  licenseKey: 'non-commercial-and-evaluation',
   columnSummary: [
     {
       destinationRow: 4,
@@ -167,12 +167,12 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 
 const container = document.querySelector('#example8');
 
-const hot8 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: generateData(),
   height: 'auto',
   colHeaders: true,
   rowHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation', 
+  licenseKey: 'non-commercial-and-evaluation',
   columnSummary: [
     {
       destinationRow: 1,
@@ -217,7 +217,7 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 
 const container = document.querySelector('#example9');
 
-const hot9 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: generateData(10, 3),
   colHeaders: true,
   rowHeaders: true,
@@ -240,7 +240,7 @@ const hot9 = new Handsontable(container, {
 
 ### Column source
 
-The **sourceColumn**` option specifies the column to work on.
+The **sourceColumn** option specifies the column to work on.
 
 For example, this will make operations on the 3rd column (again, we're starting from 0):
 
@@ -264,7 +264,7 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 
 const container = document.querySelector('#example10');
 
-const hot10 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: generateData(5, 5),
   height: 'auto',
   colHeaders: true,
@@ -308,7 +308,7 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 
 const container = document.querySelector('#example11');
 
-const hot11 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: generateData(5, 5, false),
   height: 'auto',
   rowHeaders: true,
@@ -340,7 +340,7 @@ This allows many possible usages: for example, you can sum subtotals for nested 
 ```js
 const container = document.getElementById('example12');
 
-const hot12 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     {
       value: null,
@@ -517,7 +517,7 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 
 const container = document.querySelector('#example13');
 
-const hot13 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: generateData(5, 7),
   height: 'auto',
   colHeaders: true,
@@ -614,7 +614,7 @@ By default this option is **disabled**.
 ```js
 const container = document.querySelector('#example14');
 
-const hot14 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     [0, 1, 2],
     ['3c', '4', 5],
@@ -673,7 +673,7 @@ This setting rounds the calculation result to the appropriate amount of digits.
 ```js
 const container = document.querySelector('#example15');
 
-const hot15 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     [0.5, 0.5],
     [0.5, 0.5],

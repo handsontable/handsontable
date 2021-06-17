@@ -31,7 +31,7 @@ const hot = new Handsontable(container, {
 
 ### bindRowsWithHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/dataMap/metaManager/metaSchema.js#L2643
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/dataMap/metaManager/metaSchema.js#L2631
 
 :::
 
@@ -52,7 +52,7 @@ bindRowsWithHeaders: true
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L111
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L111
 
 :::
 
@@ -64,7 +64,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L91
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L91
 
 :::
 
@@ -76,7 +76,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L68
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L68
 
 :::
 
@@ -88,7 +88,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L61
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L61
 
 :::
 

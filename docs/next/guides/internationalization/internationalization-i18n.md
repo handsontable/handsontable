@@ -20,24 +20,24 @@ To properly use the internationalization feature, you'll need to load the langua
 1. **ES modules (ESM)**
   ```js
   import Handsontable from 'handsontable/base';
-  import { registerLanguageDictionary, daDK } from 'handsontable/i18n';
+  import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 
-  registerLanguageDictionary(daDK);
+  registerLanguageDictionary(deDE);
 
   const hot = new Handsontable(container, {
-    language: daDK.languageCode,
+    language: deDE.languageCode,
   });
   ```
 
 2. **CommonJS (CJS)**
   ```js
   const Handsontable = require('handsontable/base').default;
-  const { registerLanguageDictionary, daDK } = require('handsontable/i18n');
+  const { registerLanguageDictionary, deDE } = require('handsontable/i18n');
 
-  registerLanguageDictionary(daDK);
+  registerLanguageDictionary(deDE);
 
   const hot = new Handsontable(container, {
-    language: daDK.languageCode,
+    language: deDE.languageCode,
   });
   ```
 
@@ -46,10 +46,10 @@ To properly use the internationalization feature, you'll need to load the langua
   Languages included this way are ready to use immediately after loading the file. Each file contains a UMD loader that looks for `Handsontable` in a global/externals context. If `Handsontable` is available then it registers itself in the proper context.
   ```html
   <script type="text/javascript" src="dist/handsontable.full.js"></script>
-  <script type="text/javascript" src="dist/languages/da-DK.js"></script>
+  <script type="text/javascript" src="dist/languages/de-DE.js"></script>
   <script>
     const hot = new Handsontable(container, {
-      language: 'da-DK',
+      language: 'de-DE',
     });
   </script>
   ```
@@ -73,7 +73,7 @@ const data = [
 const hot = new Handsontable(container, {
   data,
   contextMenu: true,
-  language: 'pl-PL',
+  language: 'de-DE',
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```

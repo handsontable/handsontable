@@ -81,7 +81,7 @@ To sum up, a well prepared renderer function should look like this:
 
 ```js
 function customRenderer(hotInstance, td, row, column, prop, value, cellProperties) {
-  // Optionally include `BaseRenderer` which is responsible for 
+  // Optionally include `BaseRenderer` which is responsible for
   // adding/removing CSS classes to/from the table cells.
   Handsontable.renderers.BaseRenderer.apply(this, arguments);
 
@@ -117,22 +117,22 @@ This example shows how to use custom cell renderers to display HTML content in a
 ```js
 const data = [
   {
-    title: "<a href='http://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691'>Professional JavaScript for Web Developers</a>",
-    description: "This <a href='http://bit.ly/sM1bDf'>book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.",
-    comments: "I would rate it &#x2605;&#x2605;&#x2605;&#x2605;&#x2606;",
-    cover: "https://handsontable.com/docs/images/examples/professional-javascript-developers-nicholas-zakas.jpg"
+    title: '<a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">Professional JavaScript for Web Developers</a>',
+    description: 'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
+    comments: 'I would rate it &#x2605;&#x2605;&#x2605;&#x2605;&#x2606;',
+    cover: 'https://handsontable.com/docs/images/examples/professional-javascript-developers-nicholas-zakas.jpg'
   },
   {
-    title: "<a href='http://shop.oreilly.com/product/9780596517748.do'>JavaScript: The Good Parts</a>",
-    description: "This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.",
-    comments: "This is the book about JavaScript",
-    cover: "https://handsontable.com/docs/images/examples/javascript-the-good-parts.jpg"
+    title: '<a href="https://shop.oreilly.com/product/9780596517748.do">JavaScript: The Good Parts</a>',
+    description: 'This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.',
+    comments: 'This is the book about JavaScript',
+    cover: 'https://handsontable.com/docs/images/examples/javascript-the-good-parts.jpg'
   },
   {
-    title: "<a href='http://shop.oreilly.com/product/9780596805531.do'>JavaScript: The Definitive Guide</a>",
-    description: "<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.",
-    comments: "I've never actually read it, but the <a href='http://shop.oreilly.com/product/9780596805531.do'>comments</a> are highly <strong>positive</strong>.",
-    cover: "https://handsontable.com/docs/images/examples/javascript-the-definitive-guide.jpg"
+    title: '<a href="https://shop.oreilly.com/product/9780596805531.do">JavaScript: The Definitive Guide</a>',
+    description: '<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.',
+    comments: 'I\'ve never actually read it, but the <a href="https://shop.oreilly.com/product/9780596805531.do">comments</a> are highly <strong>positive</strong>.',
+    cover: 'https://handsontable.com/docs/images/examples/javascript-the-definitive-guide.jpg'
   }
 ];
 
@@ -141,18 +141,18 @@ const hot = new Handsontable(container, {
   data,
   colWidths: [200, 200, 200, 80],
   height: 'auto',
-  colHeaders: ["Title", "Description", "Comments", "Cover"],
+  colHeaders: ['Title', 'Description', 'Comments', 'Cover'],
   columns: [
-    { data: "title", renderer: "html" },
-    { data: "description", renderer: "html" },
-    { data: "comments", renderer: safeHtmlRenderer },
-    { data: "cover", renderer: coverRenderer }
+    { data: 'title', renderer: 'html' },
+    { data: 'description', renderer: 'html' },
+    { data: 'comments', renderer: safeHtmlRenderer },
+    { data: 'cover', renderer: coverRenderer }
   ],
   licenseKey: 'non-commercial-and-evaluation'
 });
 
 function safeHtmlRenderer(instance, td, row, col, prop, value, cellProperties) {
-  // be sure you only allow certain HTML tags to avoid XSS threats 
+  // be sure you only allow certain HTML tags to avoid XSS threats
   // (you should also remove unwanted HTML attributes)
   td.innerHTML = Handsontable.helper.sanitize(value, {
     ALLOWED_TAGS: ['em', 'b', 'strong', 'a', 'big'],
@@ -189,9 +189,9 @@ You can also put HTML into row and column headers. If you need to attach events 
 ```js
 let isChecked = false;
 const container = document.querySelector('#example2');
-  
 
-const hot2 = new Handsontable(container, {
+
+const hot = new Handsontable(container, {
   columns: [
     {},
     { renderer: customRenderer }
@@ -202,22 +202,18 @@ const hot2 = new Handsontable(container, {
         return '<b>Bold</b> and <em>Beautiful</em>';
 
       case 1:
-        let txt = "Some <input type='checkbox' class='checker' "; 
-        txt += isChecked ? 'checked="checked"' : ''; 
-        txt += "> checkbox";
+        return `Some <input type="checkbox" class="checker" ${isChecked ? `checked="checked"` : ''}> checkbox`;
+    }
+  }
+});
 
-        return txt;
-    } 
-  } 
-}); 
-
-function customRenderer(instance, td) { 
-  Handsontable.renderers.TextRenderer.apply(this, arguments); 
-  if (isChecked) { 
-    td.style.backgroundColor = 'yellow'; 
+function customRenderer(instance, td) {
+  Handsontable.renderers.TextRenderer.apply(this, arguments);
+  if (isChecked) {
+    td.style.backgroundColor = 'yellow';
   } else {
     td.style.backgroundColor = 'white';
-  } 
+  }
 }
 
 Handsontable.dom.addEvent(container, 'mousedown', event => {
@@ -228,8 +224,8 @@ Handsontable.dom.addEvent(container, 'mousedown', event => {
 
 Handsontable.dom.addEvent(container, 'mouseup', event => {
   if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
-    isChecked = !event.target.checked; 
-    hot2.render();
+    isChecked = !event.target.checked;
+    hot.render();
   }
 });
 ```

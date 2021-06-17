@@ -6,7 +6,7 @@ canonicalUrl: /column-freezing
 tags:
   - fixing columns
   - snapping columns
-  - pinning columns 
+  - pinning columns
 ---
 
 # Column freezing
@@ -25,7 +25,7 @@ To freeze the columns on the left-hand side, you need to pass the option `fixedC
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(100, 50),
   colWidths: 100,
   width: '100%',
@@ -50,7 +50,7 @@ A frozen column won't go back to the original position after you unfreeze it.
 ```js
 const container = document.querySelector('#example2');
 
-const hot2 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(100, 50),
   colWidths: 100,
   width: '100%',

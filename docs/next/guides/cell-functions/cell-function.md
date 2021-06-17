@@ -48,6 +48,7 @@ const container = document.querySelector('#container');
 
 // get cell properties for cell [0, 0]
 const cellProperties = hot.getCellMeta(0, 0);
+
 cellProperties.renderer; // get cell renderer
 cellProperties.editor; // get cell editor
 cellProperties.validator; // get cell validator
@@ -66,6 +67,7 @@ const hot = new Handsontable(container, {
 
 // get cell properties for cell [0, 0]
 const cellProperties = hot.getCellMeta(0, 0);
+
 cellProperties.renderer; // undefined
 cellProperties.editor; // undefined
 cellProperties.validator; // undefined

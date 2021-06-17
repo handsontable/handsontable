@@ -46,7 +46,7 @@ Possible values of `selectionMode`:
 const container = document.querySelector('#example1');
 const selectOption = document.querySelector('#selectOption');
 
-const settings = {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(10, 10),
   width: 'auto',
   height: 'auto',
@@ -56,9 +56,7 @@ const settings = {
   colHeaders: true,
   selectionMode: 'multiple', // 'single', 'range' or 'multiple',
   licenseKey: 'non-commercial-and-evaluation'
-};
-
-const hot = new Handsontable(container, settings);
+});
 
 selectOption.addEventListener('change', event => {
   const value = event.target.value;
@@ -100,7 +98,7 @@ const container = document.querySelector('#example2');
 const output = document.querySelector('#output');
 const getButton = document.querySelector('#getButton');
 
-const settings = {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(10, 10),
   width: 'auto',
   height: 'auto',
@@ -111,9 +109,7 @@ const settings = {
   outsideClickDeselects: false,
   selectionMode: 'multiple', // 'single', 'range' or 'multiple',
   licenseKey: 'non-commercial-and-evaluation'
-};
-
-const hot = new Handsontable(container, settings);
+});
 
 getButton.addEventListener('click', event => {
   const selected = hot.getSelected() || [];
@@ -152,7 +148,7 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 const container = document.querySelector('#example3');
 const buttons = document.querySelector('#buttons');
 
-const settings = {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(10, 10),
   width: 'auto',
   height: 272,
@@ -163,9 +159,7 @@ const settings = {
   outsideClickDeselects: false,
   selectionMode: 'multiple', // 'single', 'range' or 'multiple',
   licenseKey: 'non-commercial-and-evaluation'
-};
-
-const hot = new Handsontable(container, settings);
+});
 
 buttons.addEventListener('click', event => {
   const selected = hot.getSelected() || [];

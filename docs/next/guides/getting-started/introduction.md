@@ -23,12 +23,12 @@ Welcome 👋&nbsp; to Handsontable's Guides. Here you will learn how Handsontabl
    <img class="integration-framework-logo" src="/docs/img/pages/introduction/react.svg" alt="React logo" />
     <h3>React</h3>
    </a>
-   
+
    <a href="angular-simple-example" class="row-item">
     <img class="integration-framework-logo" src="/docs/img/pages/introduction/angular.svg" alt="Angular logo" />
     <h3>Angular</h3>
    </a>
-   
+
    <a href="vue-simple-example" class="row-item">
     <img class="integration-framework-logo" src="/docs/img/pages/introduction/vue.svg" alt="Vue logo" />
     <h3>Vue 2</h3>

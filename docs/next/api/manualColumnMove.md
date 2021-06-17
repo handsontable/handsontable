@@ -21,7 +21,8 @@ API:
 - `dragColumn` - drag single column to the new position.
 - `dragColumns` - drag many columns (as an array of indexes) to the new position.
 
-[Documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove) explain differences between drag and move actions. Please keep in mind that if you want apply visual changes,
+[Documentation](@/guides/columns/column-moving.md) explain differences between drag and move actions.
+Please keep in mind that if you want apply visual changes,
 you have to call manually the `render` method on the instance of Handsontable.
 
 The plugin creates additional components to make moving possibly using user interface:
@@ -33,13 +34,13 @@ The plugin creates additional components to make moving possibly using user inte
 
 ### manualColumnMove
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/dataMap/metaManager/metaSchema.js#L1898
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/dataMap/metaManager/metaSchema.js#L1886
 
 :::
 
 _manualColumnMove.manualColumnMove : boolean | Array&lt;number&gt;_
 
-Turns on [Manual column move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial column order (as an array of column indexes).
+Turns on [Manual column move](@/guides/columns/column-moving.md), if set to a boolean or define initial column order (as an array of column indexes).
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -56,7 +57,7 @@ manualColumnMove: [1, 4],
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/manualColumnMove/manualColumnMove.js#L725
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/manualColumnMove/manualColumnMove.js#L727
 
 :::
 
@@ -68,7 +69,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/manualColumnMove/manualColumnMove.js#L148
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/manualColumnMove/manualColumnMove.js#L149
 
 :::
 
@@ -80,7 +81,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### dragColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/manualColumnMove/manualColumnMove.js#L215
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/manualColumnMove/manualColumnMove.js#L216
 
 :::
 
@@ -93,13 +94,13 @@ Drag a single column to drop index position.
 | Param | Type | Description |
 | --- | --- | --- |
 | column | `number` | Visual column index to be dragged. |
-| dropIndex | `number` | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove). |
+| dropIndex | `number` | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](@/guides/columns/column-moving.md#drag-and-move-actions-of-manualcolumnmove-plugin). |
 
 
 
 ### dragColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/manualColumnMove/manualColumnMove.js#L229
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/manualColumnMove/manualColumnMove.js#L230
 
 :::
 
@@ -112,13 +113,13 @@ Drag multiple columns to drop index position.
 | Param | Type | Description |
 | --- | --- | --- |
 | columns | `Array` | Array of visual column indexes to be dragged. |
-| dropIndex | `number` | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove). |
+| dropIndex | `number` | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](@/guides/columns/column-moving.md#drag-and-move-actions-of-manualcolumnmove-plugin). |
 
 
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/manualColumnMove/manualColumnMove.js#L112
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/manualColumnMove/manualColumnMove.js#L113
 
 :::
 
@@ -130,7 +131,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/manualColumnMove/manualColumnMove.js#L105
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/manualColumnMove/manualColumnMove.js#L106
 
 :::
 
@@ -143,25 +144,26 @@ hook and if it returns `true` than the [ManualColumnMove#enablePlugin](./manual-
 
 ### isMovePossible
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/manualColumnMove/manualColumnMove.js#L246
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/manualColumnMove/manualColumnMove.js#L248
 
 :::
 
 _manualColumnMove.isMovePossible(movedColumns, finalIndex) ⇒ boolean_
 
-Indicates if it's possible to move columns to the desired position. Some of the actions aren't possible, i.e. You can’t move more than one element to the last position.
+Indicates if it's possible to move columns to the desired position. Some of the actions aren't
+possible, i.e. You can’t move more than one element to the last position.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
 | movedColumns | `Array` | Array of visual column indexes to be moved. |
-| finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove). |
+| finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/columns/column-moving.md#drag-and-move-actions-of-manualcolumnmove-plugin). |
 
 
 
 ### moveColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/manualColumnMove/manualColumnMove.js#L168
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/manualColumnMove/manualColumnMove.js#L169
 
 :::
 
@@ -174,13 +176,13 @@ Moves a single column.
 | Param | Type | Description |
 | --- | --- | --- |
 | column | `number` | Visual column index to be moved. |
-| finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove). |
+| finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/columns/column-moving.md#drag-and-move-actions-of-manualcolumnmove-plugin). |
 
 
 
 ### moveColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/manualColumnMove/manualColumnMove.js#L182
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/manualColumnMove/manualColumnMove.js#L183
 
 :::
 
@@ -193,13 +195,13 @@ Moves a multiple columns.
 | Param | Type | Description |
 | --- | --- | --- |
 | columns | `Array` | Array of visual column indexes to be moved. |
-| finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove). |
+| finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/columns/column-moving.md#drag-and-move-actions-of-manualcolumnmove-plugin). |
 
 
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8b8649ff4348982784f4521edf84f87bd091a0b3/src/plugins/manualColumnMove/manualColumnMove.js#L136
+::: source-code-link https://github.com/handsontable/handsontable/blob/197fe5cb204735457250a2fe90edc9a960960d4f/src/plugins/manualColumnMove/manualColumnMove.js#L137
 
 :::
 

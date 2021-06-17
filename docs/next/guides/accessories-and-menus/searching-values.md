@@ -158,10 +158,10 @@ const container = document.querySelector('#example3');
 const searchField = document.querySelector('#search_field3');
 
 const data = [
-  ["Tesla", 2017, "black", "black"],
-  ["Nissan", 2018, "blue", "blue"],
-  ["Chrysler", 2019, "yellow", "black"],
-  ["Volvo", 2020, "white", "gray"]
+  ['Tesla', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'white', 'gray']
 ];
 
 function onlyExactMatch(queryStr, value) {
@@ -204,10 +204,10 @@ const resultCount = document.querySelector('#resultCount');
 let searchResultCount = 0;
 
 const data = [
-  ["Tesla", 2017, "black", "black"],
-  ["Nissan", 2018, "blue", "blue"],
-  ["Chrysler", 2019, "yellow", "black"],
-  ["Volvo", 2020, "white", "gray"]
+  ['Tesla', 2017, 'black', 'black'],
+  ['Nissan', 2018, 'blue', 'blue'],
+  ['Chrysler', 2019, 'yellow', 'black'],
+  ['Volvo', 2020, 'white', 'gray']
 ];
 
 

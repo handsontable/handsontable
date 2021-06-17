@@ -12,7 +12,7 @@ export const PLUGIN_PRIORITY = 220;
  *
  * @description
  * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
- * [See the demo for more information](https://handsontable.com/docs/demo-summary-calculations.html).
+ * [See the demo for more information](@/guides/columns/column-summary.md).
  *
  * @example
  * const container = document.getElementById('example');
@@ -396,7 +396,7 @@ export class ColumnSummary extends BasePlugin {
    * @private
    * @param {Array} rows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html).
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md).
    */
   onAfterRowMove(rows, finalIndex) {
     this.endpoints.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length, rows, this.pluginName);

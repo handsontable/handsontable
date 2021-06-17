@@ -23,7 +23,7 @@ The `hiddenColumns` parameter accepts an object. The `columns` property needs to
 The plugin has a feature that enables hidden column indicators to be displayed in the headers to notify the user which columns have been hidden.
 Set the `indicators` property in the plugin's configuration object to `true` to enable them.
 
-::: tip 
+::: tip
 **Important note**: The `colHeaders` option needs to be enabled when using both `nestedHeaders` and `hiddenColumns` together with `indicators`. Otherwise, the `indicators` will not appear.
 :::
 
@@ -38,7 +38,7 @@ To show/hide certain columns directly from the [Context menu](@/guides/accessori
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5,12),
   colHeaders: true,
   rowHeaders: true,
