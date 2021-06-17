@@ -95,7 +95,7 @@ To configure the sync/async distribution, you can pass an absolute value (number
 
 You can also use the `useHeaders` option to take the column headers width into calculation.
 
-Note: Using [Core#colWidths](./core/) option will forcely disable [AutoColumnSize](./auto-column-size/).
+Note: Using [Core#colWidths](./core/#colwidths) option will forcely disable [AutoColumnSize](./auto-column-size/).
 
 **Default**: <code>undefined</code>  
 **Example**  
