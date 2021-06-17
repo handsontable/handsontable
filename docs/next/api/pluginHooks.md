@@ -13,7 +13,7 @@ editLink: false
 
 ### afterAddChild
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1907
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1907
 
 :::
 
@@ -33,7 +33,7 @@ Fired by [NestedRows](./nested-rows/) plugin after adding a children to the Nest
 
 ### afterAutofill
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L655
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L655
 
 :::
 
@@ -55,7 +55,7 @@ Fired by [Autofill](./autofill/) plugin after populating the data in the autofil
 
 ### afterBeginEditing
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1938
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1938
 
 :::
 
@@ -73,7 +73,7 @@ Fired after the editor is opened and rendered.
 
 ### afterCellMetaReset
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L56
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L56
 
 :::
 
@@ -85,7 +85,7 @@ Fired after resetting a cell's meta. This happens when the [Core#updateSettings]
 
 ### afterChange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L63
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L63
 
 :::
 
@@ -116,7 +116,7 @@ new Handsontable(element, {
 
 ### afterColumnCollapse
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2037
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2037
 
 :::
 
@@ -137,7 +137,7 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns coll
 
 ### afterColumnExpand
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2061
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2061
 
 :::
 
@@ -158,7 +158,7 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns expa
 
 ### afterColumnMove
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1304
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1304
 
 :::
 
@@ -180,7 +180,7 @@ This hook is fired when [Options#manualColumnMove](./options/#manualcolumnmove) 
 
 ### afterColumnResize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1376
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1376
 
 :::
 
@@ -200,7 +200,7 @@ fired when [Options#manualColumnResize](./options/#manualcolumnresize) option is
 
 ### afterColumnSort
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1128
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1128
 
 :::
 
@@ -219,7 +219,7 @@ or [Options#multiColumnSorting](./options/#multicolumnsorting) option is enabled
 
 ### afterContextMenuDefaultOptions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L85
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L85
 
 :::
 
@@ -237,7 +237,7 @@ which user can select by setting an array of keys or an array of objects in [Opt
 
 ### afterContextMenuHide
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L124
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L124
 
 :::
 
@@ -255,7 +255,7 @@ option is enabled.
 
 ### afterContextMenuShow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L142
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L142
 
 :::
 
@@ -273,7 +273,7 @@ option is enabled.
 
 ### afterCopy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1232
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1232
 
 :::
 
@@ -292,7 +292,7 @@ option is enabled.
 
 ### afterCopyLimit
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L151
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L151
 
 :::
 
@@ -313,7 +313,7 @@ Fired by [CopyPaste](./copy-paste/) plugin after reaching the copy limit while c
 
 ### afterCreateCol
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L184
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L184
 
 :::
 
@@ -332,7 +332,7 @@ Fired after created a new column.
 
 ### afterCreateRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L207
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L207
 
 :::
 
@@ -351,7 +351,7 @@ Fired after created a new row.
 
 ### afterCut
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1186
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1186
 
 :::
 
@@ -370,7 +370,7 @@ Fired by [CopyPaste](./copy-paste/) plugin after data was cut out from the table
 
 ### afterDeselect
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L218
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L218
 
 :::
 
@@ -382,7 +382,7 @@ Fired after the current cell is deselected.
 
 ### afterDestroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L225
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L225
 
 :::
 
@@ -394,7 +394,7 @@ Fired after destroying the Handsontable instance.
 
 ### afterDetachChild
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1928
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1928
 
 :::
 
@@ -413,7 +413,7 @@ Fired by [NestedRows](./nested-rows/) plugin after detaching a child from its pa
 
 ### afterDocumentKeyDown
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L232
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L232
 
 :::
 
@@ -431,7 +431,7 @@ hooks system and consumed by Core and internal modules (e.g plugins, editors).
 
 ### afterDrawSelection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L241
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L241
 
 :::
 
@@ -453,7 +453,7 @@ Fired inside the Walkontable's selection `draw` method. Can be used to add addit
 
 ### afterDropdownMenuDefaultOptions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L104
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L104
 
 :::
 
@@ -472,7 +472,7 @@ option.
 
 ### afterDropdownMenuHide
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1887
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1887
 
 :::
 
@@ -490,7 +490,7 @@ option is enabled.
 
 ### afterDropdownMenuShow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1878
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1878
 
 :::
 
@@ -508,7 +508,7 @@ option is enabled.
 
 ### afterFilter
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1469
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1469
 
 :::
 
@@ -526,7 +526,7 @@ This hook is fired when [Options#filters](./options/#filters) option is enabled.
 
 ### afterFormulasValuesUpdate
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1498
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1498
 
 :::
 
@@ -544,7 +544,7 @@ Called when a value is updated in the engine.
 
 ### afterGetCellMeta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L263
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L263
 
 :::
 
@@ -563,7 +563,7 @@ Fired after getting the cell settings.
 
 ### afterGetColHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L273
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L273
 
 :::
 
@@ -581,7 +581,7 @@ Fired after retrieving information about a column header and appending it to the
 
 ### afterGetColumnHeaderRenderers
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1410
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1410
 
 :::
 
@@ -598,7 +598,7 @@ Fired after getting the column header renderers.
 
 ### afterGetRowHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L282
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L282
 
 :::
 
@@ -616,7 +616,7 @@ Fired after retrieving information about a row header and appending it to the ta
 
 ### afterGetRowHeaderRenderers
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1418
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1418
 
 :::
 
@@ -633,7 +633,7 @@ Fired after getting the row header renderers.
 
 ### afterHideColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1789
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1789
 
 :::
 
@@ -653,7 +653,7 @@ Fired by [HiddenColumns](./hidden-columns/) plugin after marking the columns as 
 
 ### afterHideRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1743
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1743
 
 :::
 
@@ -673,7 +673,7 @@ Fired by [HiddenRows](./hidden-rows/) plugin after marking the rows as hidden. F
 
 ### afterInit
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L291
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L291
 
 :::
 
@@ -685,7 +685,7 @@ Fired after the Handsontable instance is initiated.
 
 ### afterLanguageChange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L630
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L630
 
 :::
 
@@ -703,7 +703,7 @@ Fired after successful change of language (when proper language code was set).
 
 ### afterListen
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1988
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1988
 
 :::
 
@@ -716,7 +716,7 @@ respond in the right way.
 
 ### afterLoadData
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L298
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L298
 
 :::
 
@@ -735,7 +735,7 @@ Fired after new data is loaded (by `loadData` or `updateSettings` method) into t
 
 ### afterMergeCells
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1957
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1957
 
 :::
 
@@ -755,7 +755,7 @@ option is enabled.
 
 ### afterModifyTransformEnd
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1692
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1692
 
 :::
 
@@ -774,7 +774,7 @@ Fired after the end of the selection is being modified (e.g. Moving the selectio
 
 ### afterModifyTransformStart
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1682
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1682
 
 :::
 
@@ -793,7 +793,7 @@ Fired after the start of the selection is being modified (e.g. Moving the select
 
 ### afterMomentumScroll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L308
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L308
 
 :::
 
@@ -805,7 +805,7 @@ Fired after a scroll event, which is identified as a momentum scroll (e.g. On an
 
 ### afterNamedExpressionAdded
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1507
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1507
 
 :::
 
@@ -824,7 +824,7 @@ Called when a named expression is added to the Formulas' engine instance.
 
 ### afterNamedExpressionRemoved
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1517
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1517
 
 :::
 
@@ -843,7 +843,7 @@ Called when a named expression is removed from the Formulas' engine instance.
 
 ### afterOnCellContextMenu
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L359
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L359
 
 :::
 
@@ -866,7 +866,7 @@ with coordinates `{row: 0, col: -1}`.
 
 ### afterOnCellCornerDblClick
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L323
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L323
 
 :::
 
@@ -883,7 +883,7 @@ Fired after a `dblclick` event is triggered on the cell corner (the drag handle)
 
 ### afterOnCellCornerMouseDown
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L315
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L315
 
 :::
 
@@ -900,7 +900,7 @@ Fired after a `mousedown` event is triggered on the cell corner (the drag handle
 
 ### afterOnCellMouseDown
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L331
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L331
 
 :::
 
@@ -923,7 +923,7 @@ with coordinates `{row: 0, col: -1}`.
 
 ### afterOnCellMouseOut
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L387
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L387
 
 :::
 
@@ -942,7 +942,7 @@ Fired after leaving a cell or row/column header with the mouse cursor.
 
 ### afterOnCellMouseOver
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L373
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L373
 
 :::
 
@@ -965,7 +965,7 @@ with coords `{row: 0, col: -1}`.
 
 ### afterOnCellMouseUp
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L345
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L345
 
 :::
 
@@ -988,7 +988,7 @@ with coordinates `{row: 0, col: -1}`.
 
 ### afterPaste
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1273
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1273
 
 :::
 
@@ -1007,7 +1007,7 @@ Fired by [CopyPaste](./copy-paste/) plugin after values are pasted into table. T
 
 ### afterPluginsInitialized
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1718
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1718
 
 :::
 
@@ -1024,7 +1024,7 @@ Handsontable.hooks.add('afterPluginsInitialized', myCallback);
 
 ### afterRedo
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1626
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1626
 
 :::
 
@@ -1042,7 +1042,7 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 ### afterRedoStackChange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1636
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1636
 
 :::
 
@@ -1061,7 +1061,7 @@ Fired by [UndoRedo](./undo-redo/) plugin after changing redo stack.
 
 ### afterRefreshDimensions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2004
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2004
 
 :::
 
@@ -1080,7 +1080,7 @@ Fired after the window was resized.
 
 ### afterRemoveCellMeta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L553
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L553
 
 :::
 
@@ -1100,7 +1100,7 @@ Fired after cell meta is removed.
 
 ### afterRemoveCol
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L397
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L397
 
 :::
 
@@ -1120,7 +1120,7 @@ Fired after one or more columns are removed.
 
 ### afterRemoveRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L409
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L409
 
 :::
 
@@ -1140,7 +1140,7 @@ Fired after one or more rows are removed.
 
 ### afterRender
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L421
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L421
 
 :::
 
@@ -1157,7 +1157,7 @@ Fired after the Handsontable table is rendered.
 
 ### afterRenderer
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L443
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L443
 
 :::
 
@@ -1179,7 +1179,7 @@ Fired after finishing rendering the cell (after the renderer finishes).
 
 ### afterRowMove
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1344
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1344
 
 :::
 
@@ -1201,7 +1201,7 @@ This hook is fired when [Options#manualRowMove](./options/#manualrowmove) option
 
 ### afterRowResize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1399
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1399
 
 :::
 
@@ -1221,7 +1221,7 @@ fired when [Options#manualRowResize](./options/#manualrowresize) option is enabl
 
 ### afterScrollHorizontally
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L456
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L456
 
 :::
 
@@ -1233,7 +1233,7 @@ Fired after the horizontal scroll event.
 
 ### afterScrollVertically
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L463
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L463
 
 :::
 
@@ -1245,7 +1245,7 @@ Fired after the vertical scroll event.
 
 ### afterSelection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L470
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L470
 
 :::
 
@@ -1276,7 +1276,7 @@ new Handsontable(element, {
 
 ### afterSelectionByProp
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L492
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L492
 
 :::
 
@@ -1309,7 +1309,7 @@ new Handsontable(element, {
 
 ### afterSelectionEnd
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L516
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L516
 
 :::
 
@@ -1330,7 +1330,7 @@ Fired after one or more cells are selected (e.g. On mouse up).
 
 ### afterSelectionEndByProp
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L528
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L528
 
 :::
 
@@ -1353,7 +1353,7 @@ The `prop` and `prop2` arguments represent the source object property name inste
 
 ### afterSetCellMeta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L542
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L542
 
 :::
 
@@ -1373,7 +1373,7 @@ Fired after cell meta is changed.
 
 ### afterSetDataAtCell
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L564
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L564
 
 :::
 
@@ -1391,7 +1391,7 @@ Fired after cell data was changed.
 
 ### afterSetDataAtRowProp
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L574
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L574
 
 :::
 
@@ -1410,7 +1410,7 @@ Called only when `setDataAtRowProp` was executed.
 
 ### afterSetSourceDataAtCell
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L585
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L585
 
 :::
 
@@ -1429,7 +1429,7 @@ Fired after cell source data was changed.
 
 ### afterSheetAdded
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1527
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1527
 
 :::
 
@@ -1447,7 +1447,7 @@ Called when a new sheet is added to the Formulas' engine instance.
 
 ### afterSheetRemoved
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1546
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1546
 
 :::
 
@@ -1466,7 +1466,7 @@ Called when a sheet is removed from the Formulas' engine instance.
 
 ### afterSheetRenamed
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1536
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1536
 
 :::
 
@@ -1485,7 +1485,7 @@ Called when a sheet in the Formulas' engine instance is renamed.
 
 ### afterTrimRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1834
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1834
 
 :::
 
@@ -1506,7 +1506,7 @@ Fired by [TrimRows](./trim-rows/) plugin after trimming rows. This hook is fired
 
 ### afterUndo
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1586
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1586
 
 :::
 
@@ -1524,7 +1524,7 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 ### afterUndoStackChange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1596
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1596
 
 :::
 
@@ -1543,7 +1543,7 @@ Fired by [UndoRedo](./undo-redo/) plugin after changing undo stack.
 
 ### afterUnhideColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1812
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1812
 
 :::
 
@@ -1563,7 +1563,7 @@ Fired by [HiddenColumns](./hidden-columns/) plugin after marking the columns as 
 
 ### afterUnhideRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1766
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1766
 
 :::
 
@@ -1583,7 +1583,7 @@ Fired by [HiddenRows](./hidden-rows/) plugin after marking the rows as not hidde
 
 ### afterUnlisten
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1996
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1996
 
 :::
 
@@ -1596,7 +1596,7 @@ keyboard events.
 
 ### afterUnmergeCells
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1978
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1978
 
 :::
 
@@ -1615,7 +1615,7 @@ option is enabled.
 
 ### afterUntrimRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1857
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1857
 
 :::
 
@@ -1636,7 +1636,7 @@ Fired by [TrimRows](./trim-rows/) plugin after untrimming rows. This hook is fir
 
 ### afterUpdateSettings
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L595
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L595
 
 :::
 
@@ -1653,7 +1653,7 @@ Fired after calling the `updateSettings` method.
 
 ### afterValidate
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L603
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L603
 
 :::
 
@@ -1678,7 +1678,7 @@ __Returning false from the callback will mark the cell as invalid__.
 
 ### afterViewportColumnCalculatorOverride
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1710
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1710
 
 :::
 
@@ -1695,7 +1695,7 @@ Fired inside the `viewportColumnCalculatorOverride` method. Allows modifying the
 
 ### afterViewportRowCalculatorOverride
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1702
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1702
 
 :::
 
@@ -1712,7 +1712,7 @@ Fired inside the `viewportRowCalculatorOverride` method. Allows modifying the ro
 
 ### beforeAddChild
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1896
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1896
 
 :::
 
@@ -1732,7 +1732,7 @@ Fired by [NestedRows](./nested-rows/) plugin before adding a children to the Nes
 
 ### beforeAutofill
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L639
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L639
 
 :::
 
@@ -1756,7 +1756,7 @@ Fired by [Autofill](./autofill/) plugin before populating the data in the autofi
 
 ### beforeAutofillInsidePopulate
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1654
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1654
 
 :::
 
@@ -1778,7 +1778,7 @@ Fired from the `populateFromArray` method during the `autofill` process. Fired f
 
 ### beforeCellAlignment
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L669
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L669
 
 :::
 
@@ -1798,7 +1798,7 @@ Fired before aligning the cell contents.
 
 ### beforeChange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L688
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L688
 
 :::
 
@@ -1842,7 +1842,7 @@ new Handsontable(element, {
 
 ### beforeChangeRender
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L724
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L724
 
 :::
 
@@ -1860,7 +1860,7 @@ Fired right before rendering the changes.
 
 ### beforeColumnCollapse
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2025
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2025
 
 :::
 
@@ -1881,7 +1881,7 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns coll
 
 ### beforeColumnExpand
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2049
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2049
 
 :::
 
@@ -1902,7 +1902,7 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns expa
 
 ### beforeColumnMove
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1284
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1284
 
 :::
 
@@ -1924,7 +1924,7 @@ Fired by [ManualColumnMove](./manual-column-move/) plugin before change order of
 
 ### beforeColumnResize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1364
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1364
 
 :::
 
@@ -1945,7 +1945,7 @@ fired when [Options#manualColumnResize](./options/#manualcolumnresize) option is
 
 ### beforeColumnSort
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1115
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1115
 
 :::
 
@@ -1967,7 +1967,7 @@ This hook is fired when [Options#columnSorting](./options/#columnsorting) or [Op
 
 ### beforeContextMenuSetItems
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L94
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L94
 
 :::
 
@@ -1986,7 +1986,7 @@ one of the menu item to by always visible.
 
 ### beforeContextMenuShow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L133
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L133
 
 :::
 
@@ -2004,7 +2004,7 @@ option is enabled.
 
 ### beforeCopy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1197
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1197
 
 :::
 
@@ -2046,7 +2046,7 @@ new Handsontable(document.getElementById('example'), {
 
 ### beforeCreateCol
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L163
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L163
 
 :::
 
@@ -2075,7 +2075,7 @@ new Handsontable(element, {
 
 ### beforeCreateRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L195
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L195
 
 :::
 
@@ -2095,7 +2095,7 @@ Fired before created a new row.
 
 ### beforeCut
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1156
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1156
 
 :::
 
@@ -2133,7 +2133,7 @@ new Handsontable(element, {
 
 ### beforeDetachChild
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1918
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1918
 
 :::
 
@@ -2152,7 +2152,7 @@ Fired by [NestedRows](./nested-rows/) plugin before detaching a child from its p
 
 ### beforeDrawBorders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L734
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L734
 
 :::
 
@@ -2170,7 +2170,7 @@ Fired before drawing the borders.
 
 ### beforeDropdownMenuSetItems
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L114
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L114
 
 :::
 
@@ -2189,7 +2189,7 @@ up one of the menu item to by always visible.
 
 ### beforeDropdownMenuShow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1869
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1869
 
 :::
 
@@ -2207,7 +2207,7 @@ option is enabled.
 
 ### beforeFilter
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1437
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1437
 
 :::
 
@@ -2226,7 +2226,7 @@ This hook is fired when [Options#filters](./options/#filters) option is enabled.
 
 ### beforeGetCellMeta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L743
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L743
 
 :::
 
@@ -2245,7 +2245,7 @@ Fired before getting cell settings.
 
 ### beforeHideColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1777
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1777
 
 :::
 
@@ -2266,7 +2266,7 @@ Returning `false` in the callback will prevent the hiding action from completing
 
 ### beforeHideRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1731
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1731
 
 :::
 
@@ -2287,7 +2287,7 @@ Returning `false` in the callback will prevent the hiding action from completing
 
 ### beforeHighlightingColumnHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1071
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1071
 
 :::
 
@@ -2310,7 +2310,7 @@ elements than that the rendering engine, by default, would have highlighted.
 
 ### beforeHighlightingRowHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1056
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1056
 
 :::
 
@@ -2333,7 +2333,7 @@ elements than that the rendering engine, by default, would have highlighted.
 
 ### beforeInit
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L765
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L765
 
 :::
 
@@ -2345,7 +2345,7 @@ Fired before the Handsontable instance is initiated.
 
 ### beforeInitWalkontable
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L772
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L772
 
 :::
 
@@ -2362,7 +2362,7 @@ Fired before the Walkontable instance is initiated.
 
 ### beforeKeyDown
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L792
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L792
 
 :::
 
@@ -2382,7 +2382,7 @@ handler.
 
 ### beforeLanguageChange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L621
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L621
 
 :::
 
@@ -2400,7 +2400,7 @@ Fired before successful change of language (when proper language code was set).
 
 ### beforeLoadData
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L780
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L780
 
 :::
 
@@ -2421,7 +2421,7 @@ Fired before new data is loaded (by `loadData` or `updateSettings` method) into 
 
 ### beforeMergeCells
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1947
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1947
 
 :::
 
@@ -2440,7 +2440,7 @@ option is enabled.
 
 ### beforeOnCellContextMenu
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L825
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L825
 
 :::
 
@@ -2460,7 +2460,7 @@ Fired after the user clicked a cell, but before all the calculations related wit
 
 ### beforeOnCellMouseDown
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L803
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L803
 
 :::
 
@@ -2480,7 +2480,7 @@ Fired after the user clicked a cell, but before all the calculations related wit
 
 ### beforeOnCellMouseOut
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L848
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L848
 
 :::
 
@@ -2499,7 +2499,7 @@ Fired after the user moved cursor out from a cell, but before all the calculatio
 
 ### beforeOnCellMouseOver
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L836
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L836
 
 :::
 
@@ -2519,7 +2519,7 @@ Fired after the user moved cursor over a cell, but before all the calculations r
 
 ### beforeOnCellMouseUp
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L815
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L815
 
 :::
 
@@ -2538,7 +2538,7 @@ Fired after the user clicked a cell.
 
 ### beforePaste
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1243
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1243
 
 :::
 
@@ -2576,7 +2576,7 @@ new Handsontable(example, {
 
 ### beforeRedo
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1606
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1606
 
 :::
 
@@ -2595,7 +2595,7 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 ### beforeRedoStackChange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1617
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1617
 
 :::
 
@@ -2613,7 +2613,7 @@ Fired by [UndoRedo](./undo-redo/) plugin before changing redo stack.
 
 ### beforeRefreshDimensions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2014
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2014
 
 :::
 
@@ -2633,7 +2633,7 @@ Cancellable hook, called after resizing a window, but before redrawing a table.
 
 ### beforeRemoveCellClassNames
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L254
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L254
 
 :::
 
@@ -2647,7 +2647,7 @@ Fired inside the Walkontable's `refreshSelections` method. Can be used to remove
 
 ### beforeRemoveCellMeta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L753
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L753
 
 :::
 
@@ -2668,7 +2668,7 @@ Fired before cell meta is removed.
 
 ### beforeRemoveCol
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L858
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L858
 
 :::
 
@@ -2689,7 +2689,7 @@ Fired before one or more columns are about to be removed.
 
 ### beforeRemoveRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L871
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L871
 
 :::
 
@@ -2710,7 +2710,7 @@ Fired when one or more rows are about to be removed.
 
 ### beforeRender
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L884
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L884
 
 :::
 
@@ -2728,7 +2728,7 @@ Fired before the Handsontable table is rendered.
 
 ### beforeRenderer
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L430
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L430
 
 :::
 
@@ -2750,7 +2750,7 @@ Fired before starting rendering the cell.
 
 ### beforeRowMove
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1324
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1324
 
 :::
 
@@ -2772,7 +2772,7 @@ Fired by [ManualRowMove](./manual-row-move/) plugin before changing the order of
 
 ### beforeRowResize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1387
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1387
 
 :::
 
@@ -2793,7 +2793,7 @@ fired when [Options#manualRowResize](./options/#manualrowresize) option is enabl
 
 ### beforeSetCellMeta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L894
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L894
 
 :::
 
@@ -2815,7 +2815,7 @@ Fired before cell meta is changed.
 
 ### beforeSetRangeEnd
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L923
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L923
 
 :::
 
@@ -2832,7 +2832,7 @@ Fired before setting range is ended.
 
 ### beforeSetRangeStart
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L915
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L915
 
 :::
 
@@ -2849,7 +2849,7 @@ Fired before setting range is started.
 
 ### beforeSetRangeStartOnly
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L907
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L907
 
 :::
 
@@ -2866,7 +2866,7 @@ Fired before setting range is started but not finished yet.
 
 ### beforeStretchingColumnWidth
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1426
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1426
 
 :::
 
@@ -2885,7 +2885,7 @@ Fired before applying stretched column width to column.
 
 ### beforeTouchScroll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L931
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L931
 
 :::
 
@@ -2897,7 +2897,7 @@ Fired before the logic of handling a touch scroll, when user started scrolling o
 
 ### beforeTrimRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1823
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1823
 
 :::
 
@@ -2917,7 +2917,7 @@ Fired by [TrimRows](./trim-rows/) plugin before trimming rows. This hook is fire
 
 ### beforeUndo
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1563
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1563
 
 :::
 
@@ -2936,7 +2936,7 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 ### beforeUndoStackChange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1574
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1574
 
 :::
 
@@ -2956,7 +2956,7 @@ Fired by [UndoRedo](./undo-redo/) plugin before changing undo stack.
 
 ### beforeUnhideColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1800
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1800
 
 :::
 
@@ -2977,7 +2977,7 @@ Returning `false` in the callback will prevent the column revealing action from 
 
 ### beforeUnhideRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1754
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1754
 
 :::
 
@@ -2998,7 +2998,7 @@ Returning `false` in the callback will prevent the row revealing action from com
 
 ### beforeUnmergeCells
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1968
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1968
 
 :::
 
@@ -3017,7 +3017,7 @@ option is enabled.
 
 ### beforeUntrimRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1846
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1846
 
 :::
 
@@ -3037,7 +3037,7 @@ Fired by [TrimRows](./trim-rows/) plugin before untrimming rows. This hook is fi
 
 ### beforeValidate
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L938
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L938
 
 :::
 
@@ -3060,7 +3060,7 @@ __Note:__ this will not affect values of changes. This will change value *ONLY* 
 
 ### beforeValueRender
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L953
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L953
 
 :::
 
@@ -3079,7 +3079,7 @@ value which is passed to the renderer without modifying the renderer itself.
 
 ### construct
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L963
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L963
 
 :::
 
@@ -3091,7 +3091,7 @@ Fired after Handsontable instance is constructed (using `new` operator).
 
 ### init
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L970
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L970
 
 :::
 
@@ -3103,7 +3103,7 @@ Fired after Handsontable instance is initiated but before table is rendered.
 
 ### modifyAutoColumnSizeSeed
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2073
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2073
 
 :::
 
@@ -3123,7 +3123,7 @@ Fired by [AutoColumnSize](./auto-column-size/) plugin within SampleGenerator uti
 
 ### modifyAutofillRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1138
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1138
 
 :::
 
@@ -3142,7 +3142,7 @@ option is enabled.
 
 ### modifyColHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L977
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L977
 
 :::
 
@@ -3159,7 +3159,7 @@ Fired when a column header index is about to be modified by a callback function.
 
 ### modifyColumnHeaderHeight
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1556
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1556
 
 :::
 
@@ -3171,7 +3171,7 @@ Fired while retrieving the column header height.
 
 ### modifyColWidth
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L985
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L985
 
 :::
 
@@ -3189,7 +3189,7 @@ Fired when a column width is about to be modified by a callback function.
 
 ### modifyCopyableRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1148
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1148
 
 :::
 
@@ -3206,7 +3206,7 @@ Fired to allow modifying the copyable range with a callback function.
 
 ### modifyData
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1011
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1011
 
 :::
 
@@ -3226,7 +3226,7 @@ Fired when a data was retrieved or modified.
 
 ### modifyGetCellCoords
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1042
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1042
 
 :::
 
@@ -3247,7 +3247,7 @@ and saving values from the closed editor.
 
 ### modifyRowData
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1034
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1034
 
 :::
 
@@ -3264,7 +3264,7 @@ Fired when a data was retrieved or modified.
 
 ### modifyRowHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L994
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L994
 
 :::
 
@@ -3281,7 +3281,7 @@ Fired when a row header index is about to be modified by a callback function.
 
 ### modifyRowHeaderWidth
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1646
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1646
 
 :::
 
@@ -3298,7 +3298,7 @@ Fired while retrieving the row header width.
 
 ### modifyRowHeight
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1002
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1002
 
 :::
 
@@ -3316,7 +3316,7 @@ Fired when a row height is about to be modified by a callback function.
 
 ### modifySourceData
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1022
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1022
 
 :::
 
@@ -3337,7 +3337,7 @@ Fired when a data was retrieved or modified from the source data set.
 
 ### modifyTransformEnd
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1674
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1674
 
 :::
 
@@ -3354,7 +3354,7 @@ Fired when the end of the selection is being modified (e.g. Moving the selection
 
 ### modifyTransformStart
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1666
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1666
 
 :::
 
@@ -3371,7 +3371,7 @@ Fired when the start of the selection is being modified (e.g. Moving the selecti
 
 ### persistentStateLoad
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1086
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1086
 
 :::
 
@@ -3390,7 +3390,7 @@ Fired by [PersistentState](./persistent-state/) plugin, after loading value, sav
 
 ### persistentStateReset
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1096
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1096
 
 :::
 
@@ -3408,7 +3408,7 @@ This hook is fired when [Options#persistentState](./options/#persistentstate) op
 
 ### persistentStateSave
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L1105
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L1105
 
 :::
 
@@ -3428,7 +3428,7 @@ Fired by [PersistentState](./persistent-state/) plugin, after saving value under
 
 ### add
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2226
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2226
 
 :::
 
@@ -3467,7 +3467,7 @@ Handsontable.hooks.add('beforeInit', [myCallback, anotherCallback]);
 
 ### createEmptyBucket
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2171
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2171
 
 :::
 
@@ -3492,7 +3492,7 @@ beforeInit: [],
 
 ### deregister
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2463
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2463
 
 :::
 
@@ -3513,7 +3513,7 @@ Handsontable.hooks.deregister('myHook');
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2430
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2430
 
 :::
 
@@ -3538,7 +3538,7 @@ Handsontable.hooks.destroy(hotInstance);
 
 ### getBucket
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2186
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2186
 
 :::
 
@@ -3556,7 +3556,7 @@ Get hook bucket based on the context of the object or if argument is `undefined`
 
 ### getRegistered
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2525
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2525
 
 :::
 
@@ -3584,7 +3584,7 @@ Handsontable.hooks.getRegistered();
 
 ### has
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2330
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2330
 
 :::
 
@@ -3604,7 +3604,7 @@ If the `context` parameter is provided, it only checks for listeners assigned to
 
 ### isDeprecated
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2483
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2483
 
 :::
 
@@ -3630,7 +3630,7 @@ removed from API, `false` otherwise.
 
 ### isRegistered
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2500
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2500
 
 :::
 
@@ -3655,7 +3655,7 @@ true
 
 ### once
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2284
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2284
 
 :::
 
@@ -3679,7 +3679,7 @@ Handsontable.hooks.once('beforeInit', myCallback, hotInstance);
 
 ### register
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2447
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2447
 
 :::
 
@@ -3702,7 +3702,7 @@ Handsontable.hooks.register('myHook');
 
 ### remove
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2308
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2308
 
 :::
 
@@ -3727,7 +3727,7 @@ Handsontable.hooks.remove('beforeInit', myCallback);
 
 ### run
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/10b232936a915e3c5ade0f703700226b88bada73/src/pluginHooks.js#L2356
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/pluginHooks.js#L2356
 
 :::
 
