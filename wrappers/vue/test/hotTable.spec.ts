@@ -613,6 +613,41 @@ it('should be possible to pass props to the editor and renderer components', () 
   testWrapper.destroy();
 });
 
+describe('HOT-based CRUD actions', () => {
+  it('should should not add/remove any additional rows when calling `alter` on the HOT instance', async() => {
+    const testWrapper = mount(HotTable, {
+      propsData: {
+        data: createSampleData(4, 4),
+        rowHeaders: true,
+        colHeaders: true,
+      }
+    });
+    const hotInstance = testWrapper.vm.hotInstance;
+
+    hotInstance.alter('insert_row', 2, 2);
+    hotInstance.alter('insert_col', 2, 2);
+
+    await Vue.nextTick();
+
+    expect(hotInstance.countRows()).toEqual(6);
+    expect(hotInstance.countSourceRows()).toEqual(6);
+    expect(hotInstance.countCols()).toEqual(6);
+    expect(hotInstance.countSourceCols()).toEqual(6);
+    expect(hotInstance.getSourceData().length).toEqual(6);
+    expect(hotInstance.getSourceData()[0].length).toEqual(6);
+
+    hotInstance.alter('remove_row', 2, 2);
+    hotInstance.alter('remove_col', 2, 2);
+
+    expect(hotInstance.countRows()).toEqual(4);
+    expect(hotInstance.countSourceRows()).toEqual(4);
+    expect(hotInstance.countCols()).toEqual(4);
+    expect(hotInstance.countSourceCols()).toEqual(4);
+    expect(hotInstance.getSourceData().length).toEqual(4);
+    expect(hotInstance.getSourceData()[0].length).toEqual(4);
+  });
+});
+
 describe('cooperation with NestedRows plugin', () => {
   it('should display dataset properly #7548', async() => {
     const testWrapper = mount(HotTable, {
