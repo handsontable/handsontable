@@ -39,11 +39,11 @@ html.theme-dark {
     input {
       background $searchBoxBackground url(/img/search.svg) 0.6rem 0.5rem no-repeat
       background-size 1rem
-      border-color #43464d
+      border-color $searchBoxInputBorderColor
     }
 
     .searchbox-search-icon {
-      stroke $searchIconColor
+      stroke $searchBoxIconColor
     }
   }
 
@@ -60,7 +60,7 @@ html.theme-dark {
     }
   }
 
-  /* Scrollbar styles */
+  /* Scrollbar stylings */
   scrollbar() {
     // works on Chrome, Edge, and Safari
     &::-webkit-scrollbar {
@@ -88,7 +88,7 @@ html.theme-dark {
     }
   }
 
-  /* Sidebar styles */
+  /* Sidebar */
   .sidebar {
     border-right-color $sectionBorderColor
     scrollbar()
@@ -108,11 +108,11 @@ html.theme-dark {
       color $fontColor
 
       &:hover {
-        background #242526
+        background $sidebarLinkActionFontColor
       }
 
       &.active {
-        background #242526
+        background $sidebarLinkActionFontColor
       }
     }
 
@@ -124,7 +124,7 @@ html.theme-dark {
     }
   }
 
-  /* Table of contents styles */
+  /* Table of contents */
   .table-of-contents {
     border-left-color $sectionBorderColor
     scrollbar()
@@ -147,9 +147,9 @@ html.theme-dark {
     }
   }
 
-  /* Tabs component styles */
+  /* Tabs component */
   .tabs-component {
-    border-color #4d4d4e
+    border-color $tabsComponentBorderColor
 
     a {
       color $fontColor !important
@@ -160,8 +160,8 @@ html.theme-dark {
     }
 
     .tabs-component-tabs {
-      border-bottom-color #4d4d4e
-      background #2f3133
+      border-bottom-color $tabsComponentBorderColor
+      background $tabsComponentBackgroundColor
 
       .tabs-component-tab-a {
         color $fontColor
@@ -169,13 +169,13 @@ html.theme-dark {
     }
 
     .tabs-component-panels {
-      background-color #282C34
+      background-color $tabsComponentPanels
       border-radius 0
 
       section {
         &[id*="preview-"] {
-          color initial
-          background-color #ffffff
+          color $tabsComponentPreviewFontColor
+          background-color $tabsComponentPreviewBackgroundColor
         }
 
         &#code {
@@ -214,13 +214,13 @@ html.theme-dark {
 
   /* Tip markdown component */
   .custom-block.tip {
-    background-color #0c0a08
+    background-color $customBlockTipBackgroundColor
   }
 
   /* Code element */
   code {
-    color #ffffff
-    background #2F2F2F
+    color $codeFontColor
+    background $codeBackground
   }
 
   /* Language specific code blocks */
@@ -232,14 +232,14 @@ html.theme-dark {
 
   /* KBD element */
   kbd {
-    color #ffffff
-    background #2F2F2F
-    border-color #5a5d61
+    color $kbdFontColor
+    background $kbdBackgroundColor
+    border-color $kbdBorderColor
   }
 
   /* Version alert badge */
   .version-alert { 
-    border-color #16110d
+    border-color $versionAlertBorderColor
 
     p {
       color $fontColor
@@ -253,7 +253,7 @@ html.theme-dark {
 
   table:not(.htCore) {
     tr:nth-child(2n) {
-      background-color #292929
+      background-color $tableEvenRowBackgroundColor
     }
 
     th, td {
