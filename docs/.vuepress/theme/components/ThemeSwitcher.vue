@@ -14,35 +14,47 @@ const getDomElement = (selector) => {
   return document.querySelector(selector);
 }
 
-const isDarkTheme = () => {
-  const htmlEl = getDomElement('html');
-
-  return htmlEl.classList.contains(CLASS_THEME_DARK);
+const toggleDarkThemeClassOnHTML = (htmlDomElement, isDarkTheme) => {
+  isDarkTheme ? htmlDomElement.classList.add(CLASS_THEME_DARK) : htmlDomElement.classList.remove(CLASS_THEME_DARK);
 }
 
-const toggleClassOnHTML = (htmlDomElement) => {
-  isDarkTheme() ? htmlDomElement.classList.remove(CLASS_THEME_DARK) : htmlDomElement.classList.add(CLASS_THEME_DARK);
-}
-
-const changeLogo = (isDarkTheme) => {
-  const logo = getDomElement('header.navbar .logo');
-  logo.src = isDarkTheme ? SRC_LOGO_WHITE : SRC_LOGO_DEFAULT;
+const changeLogo = (logoEl, isDarkTheme) => {
+  logoEl.src = isDarkTheme ? SRC_LOGO_WHITE : SRC_LOGO_DEFAULT;
 }
 
 export default {
   name: 'ThemeSwitcher',
   methods:{
     toggleTheme(){
-      const htmlEl = getDomElement('html');
-      toggleClassOnHTML(htmlEl);
-      this.isDarkTheme = isDarkTheme();
-      changeLogo(this.isDarkTheme);
+      this.isDarkTheme = !this.isDarkTheme;
+
+      toggleDarkThemeClassOnHTML(this.htmlDomEl, this.isDarkTheme);
+      changeLogo(this.logoDomEl, this.isDarkTheme);
     }
   },
   data() {
     return {
-      isDarkTheme: isDarkTheme()
+      isDarkTheme: null,
+      htmlDomEl: null,
+      logoDomEl: null
     }
+  },
+  beforeMount() {
+    const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+    
+    if (prefersDarkScheme.matches) {
+      this.isDarkTheme = true;
+    } else {
+      this.isDarkTheme = false;
+    }
+  },
+  mounted() {
+    this.htmlDomEl = getDomElement('html');
+    this.logoDomEl = getDomElement('header.navbar .logo');
+
+    toggleDarkThemeClassOnHTML(this.htmlDomEl, this.isDarkTheme)
+
+    changeLogo(this.logoDomEl, this.isDarkTheme);
   }
 };
 </script>
