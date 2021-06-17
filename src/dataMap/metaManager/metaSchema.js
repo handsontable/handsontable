@@ -2389,7 +2389,7 @@ export default () => {
      *
      * You can also use the `useHeaders` option to take the column headers width into calculation.
      *
-     * Note: Using {@link core#colwidths Core#colWidths} option will forcely disable {@link auto-column-size AutoColumnSize}.
+     * Note: Using {@link core#colwidths Core#colWidths} option will forcibly disable {@link auto-column-size AutoColumnSize}.
      *
      * @memberof Options#
      * @type {object|boolean}
