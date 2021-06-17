@@ -131,7 +131,7 @@ _indexMapper.getNotHiddenIndexesLength() ⇒ number_
 
 Get length of all NOT hidden indexes.
 
-Note: Indexes marked as hidden are included in a DataMap, but aren't rendered.
+Note: Indexes marked as hidden are included in a [DataMap](./data-map/), but aren't rendered.
 
 
 
@@ -145,7 +145,7 @@ _indexMapper.getNotTrimmedIndexes([readFromCache]) ⇒ Array_
 
 Get all NOT trimmed indexes.
 
-Note: Indexes marked as trimmed aren't included in a DataMap and aren't rendered.
+Note: Indexes marked as trimmed aren't included in a [DataMap](./data-map/) and aren't rendered.
 
 
 | Param | Type | Default | Description |
@@ -166,7 +166,7 @@ _indexMapper.getNotTrimmedIndexesLength() ⇒ number_
 
 Get length of all NOT trimmed indexes.
 
-Note: Indexes marked as trimmed aren't included in a DataMap and aren't rendered.
+Note: Indexes marked as trimmed aren't included in a [DataMap](./data-map/) and aren't rendered.
 
 
 
@@ -325,7 +325,7 @@ Set default values for all indexes in registered index maps.
 
 _indexMapper.isHidden(physicalIndex) ⇒ boolean_
 
-Get whether index is hidden. Index marked as hidden is included in a DataMap, but isn't rendered.
+Get whether index is hidden. Index marked as hidden is included in a [DataMap](./data-map/), but isn't rendered.
 
 
 | Param | Type | Description |
@@ -342,7 +342,7 @@ Get whether index is hidden. Index marked as hidden is included in a DataMap, bu
 
 _indexMapper.isTrimmed(physicalIndex) ⇒ boolean_
 
-Get whether index is trimmed. Index marked as trimmed isn't included in a DataMap and isn't rendered.
+Get whether index is trimmed. Index marked as trimmed isn't included in a [DataMap](./data-map/) and isn't rendered.
 
 
 | Param | Type | Description |

@@ -48,7 +48,7 @@ export class IndexMapper {
     this.indexesSequence = new IndexesSequence();
     /**
      * Collection for different trimming maps. Indexes marked as trimmed in any map WILL NOT be included in
-     * the DataMap and won't be rendered.
+     * the {@link data-map DataMap} and won't be rendered.
      *
      * @private
      * @type {MapCollection}
@@ -56,7 +56,7 @@ export class IndexMapper {
     this.trimmingMapsCollection = new AggregatedCollection(
       valuesForIndex => valuesForIndex.some(value => value === true), false);
     /**
-     * Collection for different hiding maps. Indexes marked as hidden in any map WILL be included in the DataMap,
+     * Collection for different hiding maps. Indexes marked as hidden in any map WILL be included in the {@link data-map DataMap},
      * but won't be rendered.
      *
      * @private
@@ -458,7 +458,7 @@ export class IndexMapper {
   /**
    * Get all NOT trimmed indexes.
    *
-   * Note: Indexes marked as trimmed aren't included in a DataMap and aren't rendered.
+   * Note: Indexes marked as trimmed aren't included in a {@link data-map DataMap} and aren't rendered.
    *
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array} List of physical indexes. Index of this native array is a "visual index",
@@ -477,7 +477,7 @@ export class IndexMapper {
   /**
    * Get length of all NOT trimmed indexes.
    *
-   * Note: Indexes marked as trimmed aren't included in a DataMap and aren't rendered.
+   * Note: Indexes marked as trimmed aren't included in a {@link data-map DataMap} and aren't rendered.
    *
    * @returns {number}
    */
@@ -506,7 +506,7 @@ export class IndexMapper {
   /**
    * Get length of all NOT hidden indexes.
    *
-   * Note: Indexes marked as hidden are included in a DataMap, but aren't rendered.
+   * Note: Indexes marked as hidden are included in a {@link data-map DataMap}, but aren't rendered.
    *
    * @returns {number}
    */
@@ -583,7 +583,7 @@ export class IndexMapper {
   }
 
   /**
-   * Get whether index is trimmed. Index marked as trimmed isn't included in a DataMap and isn't rendered.
+   * Get whether index is trimmed. Index marked as trimmed isn't included in a {@link data-map DataMap} and isn't rendered.
    *
    * @param {number} physicalIndex Physical index.
    * @returns {boolean}
@@ -593,7 +593,7 @@ export class IndexMapper {
   }
 
   /**
-   * Get whether index is hidden. Index marked as hidden is included in a DataMap, but isn't rendered.
+   * Get whether index is hidden. Index marked as hidden is included in a {@link data-map DataMap}, but isn't rendered.
    *
    * @param {number} physicalIndex Physical index.
    * @returns {boolean}
