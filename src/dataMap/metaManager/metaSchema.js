@@ -7,7 +7,7 @@ import { isObjectEqual } from '../../helpers/object';
  * @class Options
  * @description
  *
- * Handsontable provides many options to choose from. They come either from the [Core](core) features or [plugins](hooks).
+ * Handsontable provides many options to choose from. They come either from the [Core](core) features or [plugins hooks](hooks).
  *
  * You can pass options in an object iteral notation (a comma-separated list of name-value pairs wrapped in curly braces) as a second argument of the Handsontable constructor.
  *
@@ -92,7 +92,7 @@ export default () => {
      * Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
      * Can be declared as an array of arrays or an array of objects.
      *
-     * See [Understanding binding as reference](@/guides/getting-started/binding-to-data#understand-binding-as-a-reference).
+     * See [Understanding binding as reference](@/guides/getting-started/binding-to-data.md#understand-binding-as-a-reference).
      *
      * @memberof Options#
      * @type {Array[]|object[]}
@@ -124,7 +124,7 @@ export default () => {
      * @description
      * Defines the structure of a new row when data source is an array of objects.
      *
-     * See [data-schema](@/guides/getting-started/binding-to-data#array-of-objects-with-custom-data-schema) for more options.
+     * See [data-schema](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema) for more options.
      *
      * @memberof Options#
      * @type {object}
@@ -296,7 +296,7 @@ export default () => {
      *
      * An `undefined` value is for detection in {@link Hooks#modifyColWidth} hook if plugin or setting changed the default size.
      *
-     * Note: This option will forcely disable {@link AutoColumnSize} plugin.
+     * Note: This option will forcely disable {@link auto-column-size AutoColumnSize} plugin.
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -2389,7 +2389,7 @@ export default () => {
      *
      * You can also use the `useHeaders` option to take the column headers width into calculation.
      *
-     * Note: Using {@link Core#colWidths} option will forcely disable {@link AutoColumnSize}.
+     * Note: Using {@link core#colwidths Core#colWidths} option will forcibly disable {@link auto-column-size AutoColumnSize}.
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -2984,7 +2984,7 @@ export default () => {
 
     /**
      * @description
-     * Disables or enables the {@link DragToScroll drag to scroll} functionality.
+     * Disables or enables the {@link drag-to-scroll drag to scroll} functionality.
      * @memberof Options#
      * @type {boolean}
      * @default true

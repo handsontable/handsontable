@@ -1572,7 +1572,7 @@ const REGISTERED_HOOKS = [
   'beforeUndo',
 
   /**
-   * Fired by {@link UndoRedo} plugin before changing undo stack.
+   * Fired by {@link undo-redo UndoRedo} plugin before changing undo stack.
    *
    * @event Hooks#beforeUndoStackChange
    * @since 8.4.0
@@ -1594,7 +1594,7 @@ const REGISTERED_HOOKS = [
   'afterUndo',
 
   /**
-   * Fired by {@link UndoRedo} plugin after changing undo stack.
+   * Fired by {@link undo-redo UndoRedo} plugin after changing undo stack.
    *
    * @event Hooks#afterUndoStackChange
    * @since 8.4.0
@@ -1615,7 +1615,7 @@ const REGISTERED_HOOKS = [
   'beforeRedo',
 
   /**
-   * Fired by {@link UndoRedo} plugin before changing redo stack.
+   * Fired by {@link undo-redo UndoRedo} plugin before changing redo stack.
    *
    * @event Hooks#beforeRedoStackChange
    * @since 8.4.0
@@ -1634,7 +1634,7 @@ const REGISTERED_HOOKS = [
   'afterRedo',
 
   /**
-   * Fired by {@link UndoRedo} plugin after changing redo stack.
+   * Fired by {@link undo-redo UndoRedo} plugin after changing redo stack.
    *
    * @event Hooks#afterRedoStackChange
    * @since 8.4.0
@@ -2071,7 +2071,7 @@ const REGISTERED_HOOKS = [
   'afterColumnExpand',
 
   /**
-   * Fired by {@link AutoColumnSize} plugin within {@link SampleGenerator} utility.
+   * Fired by {@link auto-column-size AutoColumnSize} plugin within SampleGenerator utility.
    *
    * @event Hooks#modifyAutoColumnSizeSeed
    * @since 8.4.0

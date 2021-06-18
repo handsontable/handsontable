@@ -25,7 +25,7 @@ Plugin used to scroll Handsontable by selecting a cell and dragging outside of t
 
 _dragToScroll.dragToScroll : boolean_
 
-Disables or enables the [drag to scroll](#DragToScroll) functionality.
+Disables or enables the [drag to scroll](./drag-to-scroll/) functionality.
 
 **Default**: <code>true</code>  
 **Example**  

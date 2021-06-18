@@ -33,9 +33,9 @@ autoColumnSize: {syncLimit: 300},.
 autoColumnSize: {syncLimit: '40%'},
 ```
 
-The plugin uses [GhostTable](./GhostTable/) and [SamplesGenerator](./SamplesGenerator/) for calculations.
-First, [SamplesGenerator](./SamplesGenerator/) prepares samples of data with its coordinates.
-Next [GhostTable](./GhostTable/) uses coordinates to get cells' renderers and append all to the DOM through DocumentFragment.
+The plugin uses [GhostTable](./ghost-table/) and [SamplesGenerator](./samples-generator/) for calculations.
+First, [SamplesGenerator](./samples-generator/) prepares samples of data with its coordinates.
+Next [GhostTable](./ghost-table/) uses coordinates to get cells' renderers and append all to the DOM through DocumentFragment.
 
 Sampling accepts additional options:
 - *samplingRatio* - Defines how many samples for the same length will be used to calculate. Default is `3`.
@@ -95,7 +95,7 @@ To configure the sync/async distribution, you can pass an absolute value (number
 
 You can also use the `useHeaders` option to take the column headers width into calculation.
 
-Note: Using [Core#colWidths](./Core/#colWidths) option will forcely disable [AutoColumnSize](#AutoColumnSize).
+Note: Using [Core#colWidths](./core/#colwidths) option will forcibly disable [AutoColumnSize](./auto-column-size/).
 
 **Default**: <code>undefined</code>  
 **Example**  
