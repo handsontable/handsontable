@@ -7,25 +7,31 @@
 
 <script>
 const CLASS_THEME_DARK = 'theme-dark';
-const SRC_LOGO_DEFAULT = '/img/handsontable-logo.svg'
+const SRC_LOGO_DEFAULT = '/img/handsontable-logo.svg';
 const SRC_LOGO_WHITE = '/img/handsontable-logo-white.svg';
 
 const getDomElement = (selector) => {
   return document.querySelector(selector);
-}
+};
 
 const toggleDarkThemeClassOnHTML = (htmlDomElement, isDarkTheme) => {
-  isDarkTheme ? htmlDomElement.classList.add(CLASS_THEME_DARK) : htmlDomElement.classList.remove(CLASS_THEME_DARK);
-}
+  if (isDarkTheme) {
+    htmlDomElement.classList.add(CLASS_THEME_DARK);
+
+    return;
+  }
+
+  htmlDomElement.classList.remove(CLASS_THEME_DARK);
+};
 
 const changeLogo = (logoEl, isDarkTheme) => {
   logoEl.src = isDarkTheme ? SRC_LOGO_WHITE : SRC_LOGO_DEFAULT;
-}
+};
 
 export default {
   name: 'ThemeSwitcher',
-  methods:{
-    toggleTheme(){
+  methods: {
+    toggleTheme() {
       this.isDarkTheme = !this.isDarkTheme;
       const theme = this.isDarkTheme ? 'dark' : 'light';
 
@@ -40,7 +46,7 @@ export default {
       isDarkTheme: null,
       htmlDomEl: null,
       logoDomEl: null
-    }
+    };
   },
   beforeMount() {
     const userPrefferedTheme = localStorage.getItem('theme');
@@ -51,8 +57,8 @@ export default {
       return;
     }
 
-    const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
-    
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
     if (prefersDarkScheme.matches) {
       this.isDarkTheme = true;
     } else {
@@ -63,7 +69,7 @@ export default {
     this.htmlDomEl = getDomElement('html');
     this.logoDomEl = getDomElement('header.navbar .logo');
 
-    toggleDarkThemeClassOnHTML(this.htmlDomEl, this.isDarkTheme)
+    toggleDarkThemeClassOnHTML(this.htmlDomEl, this.isDarkTheme);
 
     changeLogo(this.logoDomEl, this.isDarkTheme);
   }
