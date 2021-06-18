@@ -114,7 +114,7 @@ Options defined by the `columnSorting` key in the main Handsontable settings app
 
 ## Default compare functions - sorting different kinds of data
 
-As in the native [`Array.sort`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) method, our internal sorting algorithm uses the **compare function** - also known as a **comparator**. Different kinds of cells like [`date, numeric, text`](@/guides/cell-types/cell-type.md) are treated differently. Each of them has its own comparator for sorting a particular data type.
+As in the native [Array.sort](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) method, our internal sorting algorithm uses the **compare function** - also known as a **comparator**. Different kinds of cells like [date, numeric, text](@/guides/cell-types/cell-type.md) are treated differently. Each of them has its own comparator for sorting a particular data type.
 
 As a result, you can see that different types of data are sorted properly. `Handsontable` simply needs the declared data type for the column, as shown in the example below.
 
@@ -175,7 +175,7 @@ const hot = new Handsontable(container, {
 
 ## Custom compare functions
 
-You can pass in your own custom compare function to the sorting algorithm. This function should look the same as an argument in the native [`Array.sort`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#Parameters) method - read the [description here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#Description). It is handled by the plugin when `compareFunctionFactory` is defined in the configuration. The **compare function factory** must be placed under this key. The factory takes the parameters `sortOrder` and `columnMeta` and returns the compare function.
+You can pass in your own custom compare function to the sorting algorithm. This function should look the same as an argument in the native [Array.sort](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#Parameters) method - read the [description here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#Description). It is handled by the plugin when `compareFunctionFactory` is defined in the configuration. The **compare function factory** must be placed under this key. The factory takes the parameters `sortOrder` and `columnMeta` and returns the compare function.
 
 The example below shows how the custom compare function factory should look:
 
@@ -287,10 +287,10 @@ beforeColumnSort(currentSortConfig, destinationSortConfigs) {
 
 The plugin provides two hooks:
 
-* [`beforeColumnSort`](@/api/pluginHooks.md#beforecolumnsort) runs before the sort
+* [beforeColumnSort](@/api/pluginHooks.md#beforecolumnsort) runs before the sort
   * The sort configuration obtained by the `getSortConfig` method within the callback will match the sort configuration preserved before the hook call
   * The callback for `beforeColumnSort` will return `false` and stop the table from being sorted, which results in the `afterColumnSort` hook not being called
-* [`afterColumnSort`](@/api/pluginHooks.md#aftercolumnsort) always runs after sorting unless the callback for `beforeColumnSort` hook returns `false`
+* [afterColumnSort](@/api/pluginHooks.md#aftercolumnsort) always runs after sorting unless the callback for `beforeColumnSort` hook returns `false`
 
 ::: tip
 Hooks are also run when you use the `clearSort` method or provide a configuration that won't be processed, causing validation to fail.
@@ -300,8 +300,8 @@ Hooks are also run when you use the `clearSort` method or provide a configuratio
 
 List of methods exposed by the plugin:
 
-* [`clearSort`](@/api/columnSorting.md#clearsort)
-* [`getSortConfig`](@/api/columnSorting.md#getsortconfig)
-* [`isSorted`](@/api/columnSorting.md#issorted)
-* [`setSortConfig`](@/api/columnSorting.md#setsortconfig)
-* [`sort`](@/api/columnSorting.md#sort)
+* [clearSort](@/api/columnSorting.md#clearsort)
+* [getSortConfig](@/api/columnSorting.md#getsortconfig)
+* [isSorted](@/api/columnSorting.md#issorted)
+* [setSortConfig](@/api/columnSorting.md#setsortconfig)
+* [sort](@/api/columnSorting.md#sort)

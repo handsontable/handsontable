@@ -10,7 +10,7 @@ canonicalUrl: /formula-calculation
 [[toc]]
 
 ::: tip
-This feature will be soon replaced by the plugin integrating Handsontable with the calculation engine. [Learn more](../hyperformula-integration)
+This feature will be soon replaced by the plugin integrating Handsontable with the calculation engine. [Learn more](@/guides/formulas/hyperformula-integration.md)
 :::
 
 ## Overview

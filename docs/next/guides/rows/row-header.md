@@ -64,4 +64,4 @@ const hot = new Handsontable(container, {
 
 ## Tree grid
 
-A tree grid enables you to represent the nested data structures within the data grid. To learn more about this feature, see the  [Row parent-child](../row-parent-child) page.
+A tree grid enables you to represent the nested data structures within the data grid. To learn more about this feature, see the  [Row parent-child](@/guides/rows/row-parent-child.md) page.
