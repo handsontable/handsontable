@@ -34,7 +34,8 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
  * - `dragColumn` - drag single column to the new position.
  * - `dragColumns` - drag many columns (as an array of indexes) to the new position.
  *
- * [Documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove) explain differences between drag and move actions. Please keep in mind that if you want apply visual changes,
+ * [Documentation](@/guides/columns/column-moving.md) explain differences between drag and move actions.
+ * Please keep in mind that if you want apply visual changes,
  * you have to call manually the `render` method on the instance of Handsontable.
  *
  * The plugin creates additional components to make moving possibly using user interface:
@@ -160,7 +161,7 @@ export class ManualColumnMove extends BasePlugin {
    *
    * @param {number} column Visual column index to be moved.
    * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove).
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/columns/column-moving.md#drag-and-move-actions-of-manualcolumnmove-plugin).
    * @fires Hooks#beforeColumnMove
    * @fires Hooks#afterColumnMove
    * @returns {boolean}
@@ -174,7 +175,7 @@ export class ManualColumnMove extends BasePlugin {
    *
    * @param {Array} columns Array of visual column indexes to be moved.
    * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove).
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/columns/column-moving.md#drag-and-move-actions-of-manualcolumnmove-plugin).
    * @fires Hooks#beforeColumnMove
    * @fires Hooks#afterColumnMove
    * @returns {boolean}
@@ -207,7 +208,7 @@ export class ManualColumnMove extends BasePlugin {
    *
    * @param {number} column Visual column index to be dragged.
    * @param {number} dropIndex Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements.
-   * To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove).
+   * To check visualization of drop index please take a look at [documentation](@/guides/columns/column-moving.md#drag-and-move-actions-of-manualcolumnmove-plugin).
    * @fires Hooks#beforeColumnMove
    * @fires Hooks#afterColumnMove
    * @returns {boolean}
@@ -221,7 +222,7 @@ export class ManualColumnMove extends BasePlugin {
    *
    * @param {Array} columns Array of visual column indexes to be dragged.
    * @param {number} dropIndex Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements.
-   * To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove).
+   * To check visualization of drop index please take a look at [documentation](@/guides/columns/column-moving.md#drag-and-move-actions-of-manualcolumnmove-plugin).
    * @fires Hooks#beforeColumnMove
    * @fires Hooks#afterColumnMove
    * @returns {boolean}
@@ -236,11 +237,12 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Indicates if it's possible to move columns to the desired position. Some of the actions aren't possible, i.e. You can’t move more than one element to the last position.
+   * Indicates if it's possible to move columns to the desired position. Some of the actions aren't
+   * possible, i.e. You can’t move more than one element to the last position.
    *
    * @param {Array} movedColumns Array of visual column indexes to be moved.
    * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove).
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/columns/column-moving.md#drag-and-move-actions-of-manualcolumnmove-plugin).
    * @returns {boolean}
    */
   isMovePossible(movedColumns, finalIndex) {
@@ -266,7 +268,7 @@ export class ManualColumnMove extends BasePlugin {
    * @private
    * @param {Array} movedColumns Array of visual column indexes to be moved.
    * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove).
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/columns/column-moving.md#drag-and-move-actions-of-manualcolumnmove-plugin).
    * @returns {boolean}
    */
   isColumnOrderChanged(movedColumns, finalIndex) {

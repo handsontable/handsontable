@@ -16,7 +16,7 @@ The **Filters plugin** allows filtering the data in the table's columns using a 
 
 ## Basic configuration
 
-To enable the plugin, set the `filters` property to `true` and enable the filters dependency, which is the [dropdownMenu](dropdown-menu.md) plugin.
+To enable the plugin, set the `filters` property to `true` and enable the filters dependency, which is the [dropdownMenu](@/guides/columns/column-menu.md) plugin.
 
 ::: example #example1
 ```js
@@ -181,8 +181,8 @@ Note that selecting a column in the Filter component resets the state of the tab
   <div id="filterSelect">
     <div class="controllers">
       <div>
-        <input type="checkbox" id="filtersSelectAll" checked="true" />
-        <label for="filtersSelectAll">(Select all)</label>
+        <input type='checkbox' id='filtersSelectAll' checked="checked" />
+        <label for='filtersSelectAll'>(Select all)</label>
       </div>
     </div>
     <div class="items"></div>

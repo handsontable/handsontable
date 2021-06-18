@@ -11,7 +11,7 @@ canonicalUrl: /software-license
 
 The source code is available under two types of license in order to make it a better fit for different types of projects.
 
-You are required to specify the license under which you use the software. This can be done by entering the corresponding keyword or a generated commercial [license key](../license-key) in the `Settings` object.
+You are required to specify the license under which you use the software. This can be done by entering the corresponding keyword or a generated commercial [license key](@/guides/getting-started/license-key.md) in the `Settings` object.
 
 ## Available licenses
 
@@ -26,7 +26,7 @@ We allow you to use this software for such non-commercial purposes as, but not l
 
 **In other words, you can’t enter the production stage if your project is anyhow connected with your commercial activity.**
 
-If you want to use Handsontable in a non-commercial or an open-source project, then head to the [License Key](../license-key) page to learn about the corresponding license key.
+If you want to use Handsontable in a non-commercial or an open-source project, then head to the [License Key](@/guides/getting-started/license-key.md) page to learn about the corresponding license key.
 
 ## Commercial use
 
@@ -36,7 +36,7 @@ The enterprise license is available on demand.
 
 ## How to use the license key
 
-You can find the details about adding the license key on [this page](../license-key).
+You can find the details about adding the license key on [this page](@/guides/getting-started/license-key.md).
 
 ## Open-source license
 

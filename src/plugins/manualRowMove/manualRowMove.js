@@ -25,7 +25,7 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * @class ManualRowMove
  *
  * @description
- * This plugin allows to change rows order. To make rows order persistent the {@link Options#persistentState}
+ * This plugin allows to change rows order. To make rows order persistent the {@link options#persistentstate Options#persistentState}
  * plugin should be enabled.
  *
  * API:
@@ -34,7 +34,7 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * - `dragRow` - drag single row to the new position.
  * - `dragRows` - drag many rows (as an array of indexes) to the new position.
  *
- * [Documentation](https://handsontable.com/docs/demo-moving.html) explain differences between drag and move actions. Please keep in mind that if you want apply visual changes,
+ * [Documentation](@/guides/rows/row-moving.md) explain differences between drag and move actions. Please keep in mind that if you want apply visual changes,
  * you have to call manually the `render` method on the instance of Handsontable.
  *
  * The plugin creates additional components to make moving possibly using user interface:
@@ -158,7 +158,7 @@ export class ManualRowMove extends BasePlugin {
    *
    * @param {number} row Visual row index to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html).
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
    * @returns {boolean}
@@ -172,7 +172,7 @@ export class ManualRowMove extends BasePlugin {
    *
    * @param {Array} rows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html).
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
    * @returns {boolean}
@@ -205,7 +205,7 @@ export class ManualRowMove extends BasePlugin {
    *
    * @param {number} row Visual row index to be dragged.
    * @param {number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
-   * To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html).
+   * To check visualization of drop index please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
    * @returns {boolean}
@@ -219,7 +219,7 @@ export class ManualRowMove extends BasePlugin {
    *
    * @param {Array} rows Array of visual row indexes to be dragged.
    * @param {number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
-   * To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html).
+   * To check visualization of drop index please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
    * @returns {boolean}
@@ -238,7 +238,7 @@ export class ManualRowMove extends BasePlugin {
    *
    * @param {Array} movedRows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html).
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin).
    * @returns {boolean}
    */
   isMovePossible(movedRows, finalIndex) {
@@ -264,7 +264,7 @@ export class ManualRowMove extends BasePlugin {
    * @private
    * @param {Array} movedRows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html).
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin).
    * @returns {boolean}
    */
   isRowOrderChanged(movedRows, finalIndex) {
@@ -357,7 +357,7 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Saves the manual row positions to the persistent state (the {@link Options#persistentState} option has to be enabled).
+   * Saves the manual row positions to the persistent state (the {@link options#persistentstate Options#persistentState} option has to be enabled).
    *
    * @private
    * @fires Hooks#persistentStateSave
@@ -368,7 +368,7 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Loads the manual row positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
+   * Loads the manual row positions from the persistent state (the {@link options#persistentstate Options#persistentState} option has to be enabled).
    *
    * @private
    * @fires Hooks#persistentStateLoad

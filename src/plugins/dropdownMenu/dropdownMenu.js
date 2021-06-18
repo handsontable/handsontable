@@ -35,7 +35,7 @@ const BUTTON_CLASS_NAME = 'changeType';
  *
  * @description
  * This plugin creates the Handsontable Dropdown Menu. It allows to create a new row or column at any place in the grid
- * among [other features](https://handsontable.com/docs/demo-context-menu.html).
+ * among [other features](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options).
  * Possible values:
  * * `true` (to enable default options),
  * * `false` (to disable completely).
@@ -44,7 +44,7 @@ const BUTTON_CLASS_NAME = 'changeType';
  * * `["row_above", "row_below", "col_left", "col_right",
  * "remove_row", "remove_col", "---------", "undo", "redo"]`.
  *
- * See [the dropdown menu demo](https://handsontable.com/docs/demo-dropdown-menu.html) for examples.
+ * See [the dropdown menu demo](@/guides/columns/column-menu.md) for examples.
  *
  * @example
  * ```js

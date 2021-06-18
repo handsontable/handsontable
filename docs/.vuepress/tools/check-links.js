@@ -46,6 +46,8 @@ const saveReport = async() => {
   });
 
   await result.xlsx.writeFile('./report-check-links.xlsx');
+
+  logger.info(`XLSX report saved into ${path.resolve('./report-check-links.xlsx')}`);
 };
 
 const siteChecker = new SiteChecker(
@@ -72,7 +74,7 @@ const siteChecker = new SiteChecker(
 
       stats._set.add(result.url.resolved);
 
-      const status = result.http.response.statusCode;
+      const status = result.http.response?.statusCode;
 
       if (result.broken) {
         if (result.http.response && !ACCEPTABLE_STATUS_CODES.includes(status)) {
@@ -102,15 +104,15 @@ const siteChecker = new SiteChecker(
     },
 
     end: async() => {
-      logger.info('\nCHECK FOR BROKEN LINKS FINISHED');
-      logger.info(`Checked internals : ${stats.internal + stats.brokenInternal}`);
-      logger.info(`Checked externals : ${stats.external + stats.brokenExternal}`);
-
       try {
         await saveReport();
       } catch (err) {
         logger.warn('Error thrown while report was being generated', err);
       }
+
+      logger.info('\nCHECK FOR BROKEN LINKS FINISHED');
+      logger.info(`Checked internals : ${stats.internal + stats.brokenInternal}`);
+      logger.info(`Checked externals : ${stats.external + stats.brokenExternal}`);
 
       if (stats.brokenInternal || stats.brokenExternal) {
         logger.error(`Broken internals: ${stats.brokenInternal}`);
