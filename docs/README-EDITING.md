@@ -1,21 +1,106 @@
 # Docs editing guidelines
 
-## Best practices for content
+This page covers guidelines for editing the [Handsontable docs](https://handsontable.com/docs).
 
-Applied to `/next` and `/*.*/`.
+## Maintenance rules
 
-### Mutating API Reference content
+Before adding new docs files, check the docs [directory structure](./README.md#handsontable-docs-directory-structure), and read the guidelines below.
 
-API Reference for the next version is generated automatically, so any changes in `/next/api` will be overwritten. Please avoid changing it.
+### Filenames
 
-### JS Doc links
+* Use only lower-case characters.
+* To separate words, use `-`.
+* Use the `.md` extension. The `.vue` extension is disabled.
 
-Since we want to support case-insensitive URLs, all links in JsDoc should:
+### Subdirectories
 
-* Before `#`: use `-` to separate words, lower case.
-* After `#`: lower case.
+* If possible, avoid adding new subdirectories.
+* When adding a new subdirectory, you have to update the sidebars logic.
 
-**For instance:**
+### Front matter
+
+Each Markdown file starts with the following front matter tags:
+
+| Tag            | Meaning                                                    | Required |
+|----------------|------------------------------------------------------------|----------|
+| `title`        | The page's header.                                         | Yes      |
+| `permalink`    | The page's **unique** URL.                                 | Yes      |
+| `canonicalUrl` | A canonical URL of the page's latest version.              | Yes      |
+| `metaTitle`    | The page's SEO meta title.                                 | No       |
+| `tags`         | Tags used by the docs search engine.                       | No       |
+
+Front matter example:
+
+```
+---
+title: Introduction
+permalink: /next/api/
+canonicalUrl: /api/
+---
+```
+
+#### Sitemap headers
+
+The [`vuepress-plugin-sitemap`](https://www.npmjs.com/package/vuepress-plugin-sitemap) lets us use additional tags to customize the docs site map:
+
+```
+---
+sitemap:
+  exclude: false
+  changefreq: hourly
+---
+```
+
+## Editing the docs
+
+When editing the docs content, follow the guidelines below.
+ 
+### Editing the `next` docs version
+
+Files to be included in the docs' next version live in the `next` directory.
+
+The `next` version of the docs is available only locally and on the staging server.
+
+To display the `next` version in a browser:
+1. Start a [local Handsontable docs server](./README.md#getting-started-with-handsontable-docs).
+2. In your browser, go to http://localhost:8080/docs/next/.
+
+### Editing the `latest` docs version
+
+A [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure) with the largest version number is the `latest` version of the docs.
+
+To display the latest docs version in a browser:
+1. Start a [local Handsontable docs server](./README.md#getting-started-with-handsontable-docs).
+2. In your browser, go to http://localhost:8080/docs.
+
+### Editing an archived docs version
+
+To edit an archived docs version, go to the required [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure).
+
+To display the latest docs version in a browser:
+1. Start a [local Handsontable docs server](./README.md#getting-started-with-handsontable-docs).
+2. In your browser, go to http://localhost:8080/docs/{semver.version}/.
+
+## Editing the API reference
+
+The API reference is generated automatically from the source code.
+
+The API reference output lives in the `/next/api/` directory. **Don't edit it (we know where you live).**
+
+To edit the API reference, go into the source code and change the JSDoc comments.
+
+To generate the API reference output, run the following command from the `/docs/` directory:
+
+```bash
+npm run docs:api
+```
+
+### JSDoc links
+
+As we want to support case-insensitive URLs, follow these guidelines when editing the JSDoc links:
+
+* Use lower case characters.
+* To separate words before `#`, use `-`.
 
 ```js
 // Wrong:
@@ -32,111 +117,16 @@ Since we want to support case-insensitive URLs, all links in JsDoc should:
 /** {@link hidden-rows HiddenRows} */
 ```
 
-### Filenames
+## Adding code examples
+Inside the Markdown files, you can add code snippets that will show the code's result:
 
-Using small chars only with `-` as a word separator is recommended.
-
-### Headers
-
-Each markdown file with a content starts by Frontmatter:
-
-```markdown
----
-title: Introduction
-permalink: /next/api/
-canonicalUrl: /api/
----
-
-# Introduction
-```
-
-* **title**: A header on a page.
-* **permalink**: Url to this page, **should be unique**.
-* **canonicalUrl**: Canonical url to the latest version of this page.
-
-#### Sitemap headers
-
-The `vuepress-plugin-sitemap` give us additional headers to customise it behaviour:
-
-```
----
-sitemap:
-  exclude: false
-  changefreq: hourly
----
-```
-
-### Subdirectories
-
-I recommend to keep files flat without subdirectories. 
-If subdirectory being to add, it is required to update sidebars creating logic.
-
-### Prefer .md, avoiding .vue
-
-The `*.vue` allows us to use vue pages and components. It is undesirable because it introduces additional complexity. 
-For that purposes `.vue` suffix is disabled.
-
-Keeping all content as just `.md` file makes them more manageable.
-
-## Editing documentation content
-
-### Live demo:
-It is able to run code snippets to show result of the code:
-
-```
+```js
     ::: example #example1
+    // `#example1` is the example's ID, for creating a Handsontable container
 
     ```js
         // code here
     ```
 
     :::
-```
-
-`#example1` is id for creating handsontable container.
- 
-### Editing the `Next` version
-
-*The next version is only available on the `localhost` and on the staging server.*
-
-Files included in next versions live in dir `/next/`.
-To display it in a browser, please go into URL: `/docs/next`.
-
-### Editing the `latest` version
-
-The latest version is the largest semver valid directory inside the root directory. 
-It is in `/[number]/`.
-
-To display the latest docs version in a browser, please go into: `/docs/`.
-
-### Editing an archival version
-
-Directory: `/[number]/`.
-
-In a browser please go into: `/docs/[number]`.
-
-## Editing API Reference
-
-To edit API Reference goes into source code and change jsdocs comments. Then, to generate API Reference pages:
-
-```shell script
-npm run docs:api
-```
-
-## Versioning
-
-**Release a version**
-
-```shell script
-npm run docs:version <semver_number>
-# for instance 
-# npm run docs:version 9.0
-```
-
-**Remove a version**
-
-It is enough to remove version directory.
-
-```shell script
-rm -rf ./[NUMBER]
 ```

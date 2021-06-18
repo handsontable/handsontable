@@ -1,6 +1,30 @@
 # Docs deployment guidelines
 
+This page covers guidelines for deploying the Handsontable docs.
+
+## About docs deployment
+
 Our server configurations watch changes for `latest` tag for an image. Refresh itself If detect newer version.
+
+## Docs versioning
+
+To release a new version of the Handsontable docs:
+
+* From the `handsontable/docs` directory, run the following command:
+
+```bash
+npm run docs:version <semver.version>
+# for example:
+# npm run docs:version 9.0
+```
+
+To remove an existing version of the Handsontable docs:
+
+* Remove the docs version's [directory](./README.md#handsontable-docs-directory-structure):
+
+```bash
+rm -rf ./<semver.version>
+```
 
 ## From the console
 
@@ -10,13 +34,13 @@ Login into ghcr:
  * Login: email used for GH Account
  * Pass: PAT with `write:packages` permission: https://github.com/settings/tokens/new
 
-```shell script
+```bash
 docker login --registry docker.pkg.github.com
 ```
 
 **Deploy:**
 
-```shell script
+```bash
 docker build -t docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest .
 docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
 ```
@@ -43,7 +67,7 @@ GH Action pushes two tags into GHCR:
 
 To revert deployment:
 
-```shell script
+```bash
 docker pull docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH]
 docker tag docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH] docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
 docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest

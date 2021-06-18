@@ -2,7 +2,7 @@
 
 Handsontable comes with a vibrant, frequently-updated documentation portal.
 
-View the docs' latest production version at https://handsontable.com/docs.
+View the docs' latest production version at [handsontable.com/docs](https://handsontable.com/docs).
 
 ## About Handsontable docs
 
@@ -39,13 +39,13 @@ To start a local Handsontable docs server:
    ```bash
    npm run docs:start
    ```
-5. In your browser, go to: http://localhost:8080/docs/next/.
+5. In your browser, go to: http://localhost:8080/docs/.
 
 ## Handsontable docs npm scripts:
 
 From the `handsontable/docs` directory, you can run the following npm scripts:
 
-* `npm run docs:start` – Starts a local docs server at `localhost:8080/docs/next/`.
+* `npm run docs:start` – Starts a local docs server at `localhost:8080/docs/`.
 * `npm run docs:start:no-cache` – Starts a local docs server without cache.
 * `npm run docs:api` – Generates the Handsontable API reference into `/next/api`.
 * `npm run docs:build` – Builds the docs output into `/.vuepress/dist` and checks for broken links.
@@ -57,7 +57,7 @@ From the `handsontable/docs` directory, you can run the following npm scripts:
 * `npm run docs:check-links` – Checks for broken links.
 * `npm run docs:lint` – Runs ESLint on the `/next/` directory's content.
 * `npm run docs:lint:fix` – Runs ESLint on the `/next/` directory's content and auto-fixes problems.
-* `npm run docs:assets:next` – Prepares the `/next/` docs version's CSS and JavaScript.
+* `npm run docs:assets:next` – Prepares the `next` docs version's CSS and JavaScript.
 
 ## Handsontable docs directory structure
 
@@ -87,7 +87,7 @@ docs                            # All documentation files
 │   ├── examples                # The Handsontable examples
 │   ├── guides                  # The guides' source files: Markdown content
 │   └── sidebars.js             # Sidebars configuration
-├── semver.version              # A <semver.version> version of the docs (for example, 8.4 or 9.0).
+├── <semver.version>            # Multiple <semver.version> versions of the docs (for example, 8.4 or 9.0).
 ├── README-DEPLOYMENT.md        # Docs deployment guidelines
 ├── README-EDITING.md           # Docs editing guidelines
 └── README.md                   # The file you're looking at right now!
