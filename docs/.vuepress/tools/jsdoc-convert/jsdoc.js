@@ -107,7 +107,7 @@ editLink: false
 
 /// post processing after markdown was generated
 const fixLinks = text => text
-  .replace(/\[([^\[]*?)]\(([^:]*?)(#[^#]*?)?\)/g, '[$1](./$2/$3)') // @see https://regexr.com/5nqqr
+  .replace(/\[([^\[]*?)]\(([^:@]*?)(#[^#]*?)?\)/g, '[$1](./$2/$3)') // @see https://regexr.com/603ja
   .replace(/\.\/\//g, '');
 
 const clearEmptyOptionHeaders = text => text.replace(/## Options\n## Members/g, '## Members');

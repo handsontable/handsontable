@@ -36,7 +36,7 @@ export const PLUGIN_PRIORITY = 250;
  * @description
  * The plugin allows filtering the table data either by the built-in component or with the API.
  *
- * See [the filtering demo](https://handsontable.com/docs/demo-filtering.html) for examples.
+ * See [the filtering demo](@/guides/columns/column-filter.md) for examples.
  *
  * @example
  * ```js

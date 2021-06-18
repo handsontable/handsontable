@@ -136,8 +136,11 @@ Default value: `false`
 
 ::: example #example1 --html 1 --js 2
 ```html
-<div id="example1" class="hot"></div>
-<button id="export-file">Download CSV</button>
+<div id="example1"></div>
+
+<div class="controls">
+  <button id="export-file">Download CSV</button>
+</div>
 ```
 ```js
 const container = document.querySelector('#example1');
@@ -177,8 +180,11 @@ Open a console in browser developer tools to see the result for the below exampl
 
 ::: example #example2 --html 1 --js 2
 ```html
-<div id="example2" class="hot"></div>
-<button id="export-blob">Export as a Blob</button>
+<div id="example2"></div>
+
+<div class="controls">
+  <button id="export-blob">Export as a Blob</button>
+</div>
 ```
 ```js
 const container = document.querySelector('#example2');
@@ -218,8 +224,11 @@ Open a console in browser developer tools to see the result for the below exampl
 
 ::: example #example3 --html 1 --js 2
 ```html
-<div id="example3" class="hot"></div>
-<button id="export-string">Export as a string</button>
+<div id="example3"></div>
+
+<div class="controls">
+  <button id="export-string">Export as a string</button>
+</div>
 ```
 ```js
 const container = document.querySelector('#example3');
