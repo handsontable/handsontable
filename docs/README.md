@@ -26,20 +26,19 @@ We update the docs:
 
 To start a local Handsontable docs server:
 
-1. Make sure you're running [Node.js](https://nodejs.org/en/) 14+ and [npm](https://www.npmjs.com/) 7+.
-2. From the `handsontable/docs` directory, install the docs dependencies:
+1. From the `handsontable/docs` directory, install the docs dependencies:
     ```bash
     npm install
     ```
-3. From the `handsontable/docs` directory, generate the API reference:
+2. From the `handsontable/docs` directory, generate the API reference:
    ```bash
    npm run docs:api
    ```   
-4. From the `handsontable/docs` directory, start your local docs server:
+3. From the `handsontable/docs` directory, start your local docs server:
    ```bash
    npm run docs:start
    ```
-5. In your browser, go to: http://localhost:8080/docs/.
+4. In your browser, go to: http://localhost:8080/docs/.
 
 ## Handsontable docs npm scripts:
 
@@ -65,9 +64,9 @@ From the `handsontable/docs` directory, you can run the following npm scripts:
 docs                            # All documentation files
 ├── .vuepress                   # All VuePress files
 │   ├── components              # Vue components
-│   ├── containers              # Markdown containers `:::`
-│   │   ├── examples            # Code ex. container `::: example #exampleId .class :preset --html 1 --js 2`
-│   │   └── sourceCodeLink.js   # Add link "Source Code" on the right, `::: source-code-link [URL]`
+│   ├── containers              # Markdown containers (e.g. `::: tip` or `::: example`)
+│   │   ├── examples            # Code examples container (e.g. `::: example #exampleId .class :preset --html 1 --js 2`)
+│   │   └── sourceCodeLink.js   # `source-code-link` container. To use it, add a URL: `::: source-code-link [URL]`
 │   ├── handsontable-manager    # A module that runs the Handsontable examples in different Handsontable versions
 │   ├── public                  # The docs' public (static) assets
 │   ├── theme                   # Theme overwrites and customizations

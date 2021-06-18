@@ -148,3 +148,23 @@ To remove an existing version of the Handsontable docs:
     ```bash
     rm -rf ./<semver.version>
     ```
+
+## Markdown containers
+
+To render content in different ways, the docs use custom Markdown containers, for example:
+
+```markdown
+::: example #exampleId .class :preset --html 1 --js 2
+
+// code example
+
+:::
+```
+
+We use the following Markdown containers:
+
+| Container                    | Usage                                                      |
+|------------------------------|------------------------------------------------------------|
+| `::: tip`                    | A note.                                                    |
+| `::: example [options]`      | Renders a code example as specified in [options].          |
+| `::: source-code-link [URL]` | Adds a source code link to the right of an API ref header. |
