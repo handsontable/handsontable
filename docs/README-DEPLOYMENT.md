@@ -1,47 +1,29 @@
 # Docs deployment guidelines
 
-This page covers guidelines for deploying the Handsontable docs.
+This page covers guidelines for deploying the [Handsontable docs](https://handsontable.com/docs).
 
 ## About docs deployment
 
 Our server configuration watches for images tagged as [`:latest`](./README-EDITING.md#editing-the-latest-docs-version), and automatically refreshes after detecting a newer version.
 
-## Docs versioning
-
-To create a new version of the Handsontable docs:
-
-* From the `handsontable/docs` directory, run:
-
-```bash
-npm run docs:version <semver.version>
-# for example:
-# npm run docs:version 9.0
-```
-
-To remove an existing version of the Handsontable docs:
-
-* Remove the required version's [directory](./README.md#handsontable-docs-directory-structure):
-
-```bash
-rm -rf ./<semver.version>
-```
+A [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure) with the largest version number gets automatically tagged as the `:latest` version of the docs.\
 
 ## Docs deployment
 
 To deploy the docs from the console:
 
 1. When deploying for the first time, log in to the GitHub Container Registry (ghcr.io):
+    ```bash
+    docker login --registry docker.pkg.github.com
+    ```
     * Login: Your GitHub account email
     * Password: PAT with the `write:packages` permission: https://github.com/settings/tokens/new
 
-```bash
-docker login --registry docker.pkg.github.com
-```
 2. Deploy the docs:
-```bash
-docker build -t docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest .
-docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
-```
+    ```bash
+    docker build -t docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest .
+    docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
+    ```
 
 ### Deploying the docs from GitHub Actions
 
@@ -65,12 +47,11 @@ GitHub Actions pushes the following tags to the GitHub Container Registry:
 ### Reverting a deployment
 
 To revert a docs deployment:
-
-```bash
-docker pull docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH]
-docker tag docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH] docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
-docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
-```
+    ```bash
+    docker pull docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH]
+    docker tag docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH] docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
+    docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
+    ```
 
 ## Production environment:
 

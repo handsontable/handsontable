@@ -39,7 +39,7 @@ canonicalUrl: /api/
 ---
 ```
 
-#### Sitemap headers
+### Sitemap front matter
 
 The [`vuepress-plugin-sitemap`](https://www.npmjs.com/package/vuepress-plugin-sitemap) lets us use additional tags to customize the docs site map:
 
@@ -67,7 +67,7 @@ To display the `next` version in a browser:
 
 ### Editing the `latest` docs version
 
-A [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure) with the largest version number is the `latest` version of the docs.
+A [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure) with the largest version number gets tagged as the `latest` version of the docs.
 
 To display the latest docs version in a browser:
 1. Start a [local Handsontable docs server](./README.md#getting-started-with-handsontable-docs).
@@ -130,3 +130,21 @@ Inside the Markdown files, you can add code snippets that will show the code's r
 
     :::
 ```
+
+## Docs versioning
+
+To create a new version of the Handsontable docs:
+
+* From the `handsontable/docs` directory, run:
+    ```bash
+    npm run docs:version <semver.version>
+    # for example:
+    # npm run docs:version 9.0
+    ```
+
+To remove an existing version of the Handsontable docs:
+
+* Remove the required version's [directory](./README.md#handsontable-docs-directory-structure):
+    ```bash
+    rm -rf ./<semver.version>
+    ```
