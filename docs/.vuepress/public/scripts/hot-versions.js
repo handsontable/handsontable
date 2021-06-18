@@ -1,6 +1,10 @@
-(() => {
-  const docusaurusVersions = ['9.0'];
-  const legacyVersions = [
+(function() {
+  var versions = [
+    '9.0.0',
+    // Legacy versions
+    '8.4.0',
+    '8.3.2',
+    '8.3.1',
     '8.3.0',
     '8.2.0',
     '8.1.0',
@@ -42,12 +46,6 @@
     ['1.14.1', '0.34.1'],
     ['1.14.0', '0.34.0']
   ];
-  const versions = [...docusaurusVersions, ...legacyVersions];
-
-  // eslint-disable-next-line
-  if (window.location.hostname === 'dev.handsontable.com') {
-    versions.unshift('next');
-  }
 
   // eslint-disable-next-line
   docVersions && docVersions(versions);
