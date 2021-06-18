@@ -1,4 +1,5 @@
 (function() {
+  // eslint-disable-next-line no-var
   var versions = [
     '9.0.0',
     // Legacy versions
@@ -49,4 +50,4 @@
 
   // eslint-disable-next-line
   docVersions && docVersions(versions);
-})();
+}());
