@@ -38,12 +38,36 @@ html.theme-dark {
       background $searchBoxBackground url(/img/search.svg) 0.6rem 0.5rem no-repeat
       background-size 1rem
       border-color $searchBoxInputBorderColor
+      color $fontColor
     }
 
     .searchbox-search-icon {
       stroke $searchBoxIconColor
     }
+
+    // results
+    ul.suggestions {
+      background-color $backgroundColor
+      border-color #2d2d30
+
+      li {
+        &:not(.suggestion) {
+          border-color #3e3e42
+
+        }
+        &.suggestion {
+          span {
+            color $fontColor
+          }
+          &.focused {
+            background-color $sidebarLinkActionFontColor
+            color $linkFontColor
+          }
+        }
+      }
+    }
   }
+
 
   /* Dropdown */
   .dropdown-wrapper {
