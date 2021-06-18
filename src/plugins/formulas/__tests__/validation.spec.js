@@ -342,5 +342,34 @@ describe('Formulas general', () => {
       expect(beforeValidate).toHaveBeenCalledWith(6, 0, 0, void 0, void 0, void 0);
       expect(beforeValidate).toHaveBeenCalledWith(9, 3, 4, void 0, void 0, void 0);
     });
+
+    it('should not try to validate cells outside of the table boundaries', () => {
+      let validatorCallsCount = 0;
+      const hot = handsontable({
+        data: [
+          [100, '=A1'],
+          ['=A1', '=A1', '=A1'],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        validator: () => {},
+        beforeValidate: () => {
+          validatorCallsCount += 1;
+        }
+      });
+      const errorList = [];
+
+      try {
+        hot.setDataAtCell(0, 0, 1);
+
+      } catch (e) {
+        errorList.push(e);
+      }
+
+      expect(errorList.length).toEqual(0);
+      // 3 from the visible cells + 1 from setDataAtCell
+      expect(validatorCallsCount).toEqual(4);
+    });
   });
 });

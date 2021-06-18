@@ -1,7 +1,0 @@
-{
-  "title": "Removed the redundant internal `jsonpatch` library from the source code.",
-  "type": "removed",
-  "issue": 8140,
-  "breaking": false,
-  "framework": "none"
-}
