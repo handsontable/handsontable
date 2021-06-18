@@ -4,9 +4,9 @@ This page covers guidelines for deploying the [Handsontable docs](https://handso
 
 ## About docs deployment
 
-Our server configuration watches for images tagged as [`:latest`](./README-EDITING.md#editing-the-latest-docs-version), and automatically refreshes after detecting a newer version.
+A [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure) with the largest version number gets automatically tagged as the docs' `:latest` version.
 
-A [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure) with the largest version number gets automatically tagged as the `:latest` version of the docs.\
+Our server configuration watches for images tagged as [`:latest`](./README-EDITING.md#editing-the-latest-docs-version), and automatically refreshes after detecting a newer version.
 
 ## Docs deployment
 
@@ -46,10 +46,13 @@ GitHub Actions pushes the following tags to the GitHub Container Registry:
 
 ### Reverting a deployment
 
-To revert a docs deployment:
+To revert a docs deployment, run:
+
     ```bash
     docker pull docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH]
+
     docker tag docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH] docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
+    
     docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
     ```
 
