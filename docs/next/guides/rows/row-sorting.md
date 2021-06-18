@@ -191,7 +191,7 @@ The next section details how the plugin may be used just for certain columns.
 
 ## Plugin options for certain columns only
 
-The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `headerAction`, `indicator`, can be set just for a particular column. This can be done by using [columns](api/dataMap/metaManager/metaSchema.md#columns) option. The example below demonstrates how to disable the indicator and **completely block sorting action for the first column**:
+The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `headerAction`, `indicator`, can be set just for a particular column. This can be done by using [columns](@/api/metaSchema.md#columns) option. The example below demonstrates how to disable the indicator and **completely block sorting action for the first column**:
 
 ::: example #example4
 ```js

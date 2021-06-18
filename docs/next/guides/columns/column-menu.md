@@ -35,7 +35,7 @@ const hot = new Handsontable(container, {
 
 ## Plugin configuration
 
-To use the default dropdown contents, set it to `true`, or to customize it by setting it to use a custom list of actions. For the available entry options reference, see the [Context Menu demo](context-menu.md#page-specific).
+To use the default dropdown contents, set it to `true`, or to customize it by setting it to use a custom list of actions. For the available entry options reference, see the [Context Menu demo](@/guides/accessories-and-menus/context-menu.md#page-specific).
 
 ::: example #example2
 ```js

@@ -1048,7 +1048,7 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 _afterRedoStackChange(undoneActionsBefore, undoneActionsAfter)_
 
-Fired by [UndoRedo](./UndoRedo/) plugin after changing redo stack.
+Fired by [UndoRedo](./undo-redo/) plugin after changing redo stack.
 
 **Since**: 8.4.0  
 
@@ -1530,7 +1530,7 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 _afterUndoStackChange(doneActionsBefore, doneActionsAfter)_
 
-Fired by [UndoRedo](./UndoRedo/) plugin after changing undo stack.
+Fired by [UndoRedo](./undo-redo/) plugin after changing undo stack.
 
 **Since**: 8.4.0  
 
@@ -2601,7 +2601,7 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 _beforeRedoStackChange(undoneActions)_
 
-Fired by [UndoRedo](./UndoRedo/) plugin before changing redo stack.
+Fired by [UndoRedo](./undo-redo/) plugin before changing redo stack.
 
 **Since**: 8.4.0  
 
@@ -2942,7 +2942,7 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 _beforeUndoStackChange(doneActions, [source]) ⇒ \* | boolean_
 
-Fired by [UndoRedo](./UndoRedo/) plugin before changing undo stack.
+Fired by [UndoRedo](./undo-redo/) plugin before changing undo stack.
 
 **Since**: 8.4.0  
 
@@ -3109,7 +3109,7 @@ Fired after Handsontable instance is initiated but before table is rendered.
 
 _modifyAutoColumnSizeSeed(seed, cellProperties, cellValue)_
 
-Fired by [AutoColumnSize](./AutoColumnSize/) plugin within [SampleGenerator](./SampleGenerator/) utility.
+Fired by [AutoColumnSize](./auto-column-size/) plugin within SampleGenerator utility.
 
 **Since**: 8.4.0  
 

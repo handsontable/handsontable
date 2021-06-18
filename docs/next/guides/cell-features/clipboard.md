@@ -42,6 +42,7 @@ When the context menu is enabled, it includes default items, including copy & cu
 
 You can use them in the same way as the rest of the predefined items in the [context menu](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options). These operations are executed by `document.execCommand()`.
 
+
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
@@ -113,6 +114,7 @@ Handsontable.dom.addEvent(cutBtn, 'click', function () {
 :::
 
 **Note:** Not all selection-related Handsontable methods result in it gaining focus. Make sure your table instance is focused by calling [isListening()](@/api/core.md#islistening) before copying or pasting data.
+
 
 ### Hooks
 

@@ -20,6 +20,13 @@ const whitelist = [
   'editors/baseEditor/baseEditor.js',
   '3rdparty/walkontable/src/cell/coords.js',
   'plugins/copyPaste/focusableElement.js',
+  'DataMap.js',
+  'translations/maps/hidingMap.js',
+  'translations/maps/indexesSequence.js',
+  'translations/maps/trimmingMap.js',
+  'utils/samplesGenerator.js',
+  'translations/maps/physicalIndexToValueMap.js',
+  'utils/ghostTable.js'
 ];
 
 const seo = {
@@ -57,6 +64,41 @@ const seo = {
     title: 'FocusableElement',
     metaTitle: 'FocusableElement - API Reference - Handsontable Documentation',
     permalink: '/next/api/focusable-element'
+  },
+  'DataMap.js': {
+    title: 'DataMap',
+    metaTitle: 'DataMap - API Reference - Handsontable Documentation',
+    permalink: '/next/api/data-map'
+  },
+  'translations/maps/hidingMap.js': {
+    title: 'HidingMap',
+    metaTitle: 'HidingMap - API Reference - Handsontable Documentation',
+    permalink: '/next/api/hiding-map'
+  },
+  'translations/maps/indexesSequence.js': {
+    title: 'IndexesSequence',
+    metaTitle: 'IndexesSequence - API Reference - Handsontable Documentation',
+    permalink: '/next/api/indexes-sequence'
+  },
+  'translations/maps/trimmingMap.js': {
+    title: 'TrimmingMap',
+    metaTitle: 'TrimmingMap - API Reference - Handsontable Documentation',
+    permalink: '/next/api/trimming-map'
+  },
+  'utils/samplesGenerator.js': {
+    title: 'SamplesGenerator',
+    metaTitle: 'SamplesGenerator - API Reference - Handsontable Documentation',
+    permalink: '/next/api/samples-generator'
+  },
+  'translations/maps/physicalIndexToValueMap.js': {
+    title: 'PhysicalIndexToValueMap',
+    metaTitle: 'PhysicalIndexToValueMap - API Reference - Handsontable Documentation',
+    permalink: '/next/api/physical-index-to-value-map'
+  },
+  'utils/ghostTable.js': {
+    title: 'GhostTable',
+    metaTitle: 'GhostTable - API Reference - Handsontable Documentation',
+    permalink: '/next/api/ghost-table'
   },
 };
 
