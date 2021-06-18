@@ -4,13 +4,13 @@ This page covers guidelines for editing the [Handsontable docs](https://handsont
 
 ## Maintenance rules
 
-Before adding new docs files, check the docs [directory structure](./README.md#handsontable-docs-directory-structure), and read the guidelines below.
+When adding new docs files, check the docs [directory structure](./README.md#handsontable-docs-directory-structure), and follow the guidelines below.
 
 ### Filenames
 
 * Use only lower-case characters.
 * To separate words, use `-`.
-* Use the `.md` extension. The `.vue` extension is disabled.
+* Use the `.md` file extension. The `.vue` extension is disabled.
 
 ### Subdirectories
 
