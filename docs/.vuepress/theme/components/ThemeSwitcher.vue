@@ -35,7 +35,9 @@ export default {
       this.isDarkTheme = !this.isDarkTheme;
       const theme = this.isDarkTheme ? 'dark' : 'light';
 
-      localStorage.setItem('theme', theme);
+      if (localStorage) {
+        localStorage.setItem('theme', theme);
+      }
 
       toggleDarkThemeClassOnHTML(this.htmlDomEl, this.isDarkTheme);
       changeLogo(this.logoDomEl, this.isDarkTheme);
@@ -49,7 +51,7 @@ export default {
     };
   },
   beforeMount() {
-    const userPrefferedTheme = localStorage.getItem('theme');
+    const userPrefferedTheme = localStorage ? localStorage.getItem('theme') : 'light';
 
     if (userPrefferedTheme) {
       this.isDarkTheme = userPrefferedTheme === 'dark';
