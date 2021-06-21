@@ -1,5 +1,10 @@
 /* eslint-disable */
 (function() {
+  const isInternalFixer = /\handsontable.com$/.test(location.host);
+
+  if (!isInternalFixer && typeof Babel !== 'undefined') {
+    Babel.disableScriptTags();
+  }
   if (typeof window.exports === 'undefined') {
     window.exports = {};
   }
@@ -18,6 +23,32 @@
     }
 
     return s[0].toUpperCase() + s.substr(1);
+  }
+
+  // Necessery for jsFiddle environment
+  if (!isInternalFixer && window.addEventListener) {
+    function appendScript(code) {
+      const scriptEl = document.createElement('script');
+
+      scriptEl.text = code;
+      document.head.appendChild(scriptEl);
+    };
+
+    window.addEventListener('load', () => {
+      const sBabel = document.querySelector('script[data-presets]');
+
+      if (sBabel) {
+        appendScript(Babel.transform(sBabel.innerText, {
+          presets: ['es2015', 'react', 'stage-0'],
+          plugins: ['transform-decorators-legacy']
+        }).code);
+      }
+      const sTypescript = document.querySelector('script[type=text\\/typescript]');
+
+      if (sTypescript) {
+        appendScript(ts.transpile(sTypescript.innerText));
+      }
+    }, false);
   }
 
   window.require = function(key) {
