@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-globals
 const isBrowser = (typeof window !== 'undefined');
 
-const formatVersion = (version) => /^\d+\.\d+$/.test(version) ? version : 'latest';
+const formatVersion = version => (/^\d+\.\d+$/.test(version) ? version : 'latest');
 const getHotUrls = (version) => {
   if (version === 'next' && isBrowser) {
     return {
