@@ -18,11 +18,15 @@ tags:
 
 [[toc]]
 
+::: tip
+We have created a [migration guide](/docs/next/guides/upgrades-and-migration/upgrade-and-migration/migrating-from-8.4-to-9.0.md) for developers upgrading to v9. If you use the formula plugin please make sure you carefully read it before upgrading.</div>
+:::
+
 ## Overview
 
-The _Formulas_ plugin provides you an extensive calculation capabilities based on formulas with the spreadsheet notation. Under the hood it uses an engine called [HyperFormula](https://handsontable.github.io/hyperformula/) created by the Handsontable team as an independent library to help developers build complex data management apps.
+The _Formulas_ plugin provides you an extensive calculation capabilities based on formulas using the spreadsheet notation. Under the hood, it uses an engine called [HyperFormula](https://handsontable.github.io/hyperformula/) created by the Handsontable team as an independent library to help developers build complex data management apps.
 
-This plugin comes with a library of 386 functions grouped into categories, such as Math and trigonometry, Engineering, Statistical, Financial, and Logical. Thanks to them you can create complex data entry rules in business apps, and many more. Below are some ideas on what you can do with it:
+This plugin comes with a library of 386 functions grouped into categories, such as Math and trigonometry, Engineering, Statistical, Financial, and Logical. Using these, you can create complex data entry rules in business apps and much more. Below are some ideas on what you can do with it:
 
 *   Fully-featured spreadsheet apps
 *   Smart documents
@@ -43,13 +47,18 @@ This plugin comes with a library of 386 functions grouped into categories, such 
 *   Support for multiple Handsontable instances
 *   Uses GPU acceleration for better performance
 
+**Known limitations:**
+
+*   Doesn't work with nested rows
+*   Doesn't work with undo/redo
+
 ## Available options and methods
 
 For the list of available settings and methods, visit the [API reference](/docs/next/Formulas.html).
 
 ## Available functions
 
-This plugin inherits the calculation powers from _HyperFormula_, so the complete functions reference can be found in the [HyperFormula documentation](https://handsontable.github.io/hyperformula/guide/built-in-functions.html).
+This plugin inherits the calculation powers from _HyperFormula_. The complete functions reference can be found in the [HyperFormula documentation](https://handsontable.github.io/hyperformula/guide/built-in-functions.html).
 
 ## Basic multi-sheet example
 
@@ -59,17 +68,17 @@ Double click on a cell to open the editor and preview the formula.
 
 ```js
   var data1 = [
-    ['10.26', '', 'Sum', '=SUM(A:A)'],
-    ['20.12', '', 'Average', '=AVERAGE(A:A)'],
-    ['30.01', '', 'Median', '=MEDIAN(A:A)'],
-    ['40.29', '', 'MAX', '=MAX(A:A)'],
-    ['50.18', '', 'MIN', '=MIN(A:A)'],
+    ['10.26', null, 'Sum', '=SUM(A:A)'],
+    ['20.12', null, 'Average', '=AVERAGE(A:A)'],
+    ['30.01', null, 'Median', '=MEDIAN(A:A)'],
+    ['40.29', null, 'MAX', '=MAX(A:A)'],
+    ['50.18', null, 'MIN', '=MIN(A1:A5)'],
   ];
 
   var data2 = [
     ['Is A1 in Sheet1 > 10?', '=IF(Sheet1!A1>10,"TRUE","FALSE")'],
     ['Is A:A in Sheet > 150?', '=IF(SUM(Sheet1!A:A)>150,"TRUE","FALSE")'],
-    ['How many blank cells are in the Sheet1?', '=COUNTBLANK(Sheet1!A1:E5)'],
+    ['How many blank cells are in the Sheet1?', '=COUNTBLANK(Sheet1!A1:D5)'],
     ['Generate a random number', '=RAND()'],
     ['Number of sheets in this workbook', '=SHEETS()'],
   ];
@@ -97,7 +106,7 @@ Double click on a cell to open the editor and preview the formula.
 
 ## Data grid example
 
-This example is more typical to data grids than spreadsheets. Calculations are present in two places – in a column “Total due (fx)”, and in the summary row at the bottom.
+This example is more typical of data grids than spreadsheets. Calculations are present in two places – in a column “Total due (fx)”, and in the summary row at the bottom.
 
 ```js
 var data = [
@@ -212,6 +221,7 @@ new Handsontable(container, {
   },
   colHeaders: ["Qty", "Unit price", "Discount", "Freight", "Total due (fx)"],
   fixedRowsBottom: 2,
+  stretchH: 'all',
   height: 500
 });
 
@@ -219,13 +229,13 @@ new Handsontable(container, {
 
 ## Initialization methods
 
-There're multiple ways of initializing the plugin, you can select the most convenient one depending on your use case.
+There're multiple ways of initializing the plugin. You can select the most convenient one depending on your use case.
 
-In all cases it is required to either pass in the `HyperFormula` object or a HyperFormula instance:
+In all cases, it is required to either pass in the `HyperFormula` object or a HyperFormula instance:
 
     import { HyperFormula } from 'hyperformula';
 
-There are also other installation methods available, check out [HyperFormula's installation documentation](https://handsontable.github.io/hyperformula/guide/client-side-installation.html).
+There are also other installation methods available. Check out [HyperFormula's installation documentation](https://handsontable.github.io/hyperformula/guide/client-side-installation.html).
 
 ### Passing the HyperFormula class/instance to Handsontable
 
@@ -247,7 +257,7 @@ or
       hyperformula: HyperFormula, // or `engine: hyperformulaInstance`
       leapYear1900: false,
       binarySearchThreshold: 15,
-      // ... and more engine configuration options.
+      // ...and more engine configuration options.
       // See https://handsontable.github.io/hyperformula/api/interfaces/configparams.html#number 
     },
     // [plugin configuration]
@@ -352,20 +362,88 @@ new Handsontable(element, {
 })
 ```
 
-<div class="iframe-container">
-  <iframe 
-    src="https://www.youtube.com/embed/JJXUmACTDdk?controls=0" 
-    frameborder="0" 
-    allow="accelerometer; 
-    encrypted-media; 
-    gyroscope; 
-    picture-in-picture" 
-    allowfullscreen>
-  </iframe>
-</div>
+## Named expressions
 
-## Learn more
+You can use custom-named expressions in your formula expressions. A named expression can be either plain values or formulas with references to absolute cell addresses. To register a named expression, pass an array with `name` and `expression` to your `formulas` configuration object:
 
-*   [Plugin API reference](/docs/next/Formulas.html)
+::: example #example1
+```js
+var data = [
+  ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
+  ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2,0)'],
+  ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3,0)'],
+  ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)']
+];
+
+var container = document.getElementById('example-named-expressions');
+
+var hotNamedExpressions = new Handsontable(container, {
+  data: data,
+  colHeaders: true,
+  rowHeaders: true,
+  formulas: {
+    engine: HyperFormula,
+    namedExpressions: [
+      {
+        name: 'ADDITIONAL_COST',
+        expression: 100
+      }
+    ]
+  }
+});
+
+var input = document.getElementById("named-expressions-calculate-input");
+var formulasPlugin = hotNamedExpressions.getPlugin('formulas');
+
+var form = document.getElementById("named-expressions-form");
+form.addEventListener('submit', function(event) {
+  event.preventDefault();
+  formulasPlugin.engine.changeNamedExpression('ADDITIONAL_COST', input.value);
+  hotNamedExpressions.render();
+});
+```
+::: example #example1
+```js
+var data = [
+  ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
+  ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2,0)'],
+  ['155', 'Athens', 300, '=ROUND(ADDITIONAL_COST+C3,0)'],
+  ['156', 'Warsaw', 150, '=ROUND(ADDITIONAL_COST+C4,0)']
+];
+var container = document.getElementById('example-named-expressions');
+var hotNamedExpressions = new Handsontable(container, {
+  data: data,
+  colHeaders: true,
+  rowHeaders: true,
+  formulas: {
+    engine: HyperFormula,
+    namedExpressions: [{
+      name: 'ADDITIONAL_COST',
+      expression: 100
+    }]
+  }
+});
+var input = document.getElementById("named-expressions-calculate-input");
+var formulasPlugin = hotNamedExpressions.getPlugin('formulas');
+var form = document.getElementById("named-expressions-form");
+form.addEventListener('submit', function(event) {
+  event.preventDefault();
+  formulasPlugin.engine.changeNamedExpression('ADDITIONAL_COST', input.value);
+  hotNamedExpressions.render();
+});
+```
+:::
+
+For more information about named expressions, please refer to the [HyperFormula docs](https://handsontable.github.io/hyperformula/guide/named-ranges.html).
+
+## View the explainer video
+
+<iframe width="100%" height="425px" src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
+
+### Learn more
+
+*   [Plugin API reference](/docs/<?js= version ?>/Formulas.html)
 *   [HyperFormula guides](https://handsontable.github.io/hyperformula/)
 *   [HyperFormula API reference](https://handsontable.github.io/hyperformula/api/)
+
+[Edit this page](https://github.com/handsontable/docs/edit/<?js= version ?>/tutorials/hyperformula-integration.html)
