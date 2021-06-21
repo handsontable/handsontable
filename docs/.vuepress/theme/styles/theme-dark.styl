@@ -39,6 +39,15 @@ html.theme-dark {
       background-size 1rem
       border-color $searchBoxInputBorderColor
       color $fontColor
+
+      @media (max-width: $MQNavbarNarrow) {
+        border-color transparent
+        background-color transparent
+
+        &:focus {
+          border-color $accentColor
+        }
+      }
     }
 
     .searchbox-search-icon {

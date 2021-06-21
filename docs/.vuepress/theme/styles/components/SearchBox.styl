@@ -57,25 +57,28 @@
       a
         color $accentColor
 
-@media (max-width: $MQNarrow)
-  .search-box
+@media (max-width: $MQNavbarNarrow)
+  .search-box.search-box
+    margin-right 0
     input
       cursor pointer
       width 0
+      background-color transparent
       border-color transparent
       position relative
+      left 1rem
       font-size 16px
       &:focus
         cursor text
         left 0
-        width 10rem
+        width 8rem
 
 // Match IE11
 @media all and (-ms-high-contrast: none)
   .search-box input
     height 2rem
 
-@media (max-width: $MQNarrow) and (min-width: $MQMobile)
+@media (max-width: $MQNavbarNarrow) and (min-width: $MQMobile)
   .search-box
     .suggestions
       left 0
@@ -84,7 +87,6 @@
   .search-box
     margin-right 0
     input
-      left 1rem
     .suggestions
       right 0
 

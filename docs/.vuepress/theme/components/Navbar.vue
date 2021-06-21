@@ -15,6 +15,8 @@
     </RouterLink>
     <Versions></Versions>
 
+    <ThemeSwitcher />
+
     <div
         class="links"
         :style="linksWrapMaxWidth ? {
@@ -27,7 +29,6 @@
       />
 
       <SearchBox />
-      <ThemeSwitcher />
 
       <NavLinks class="can-hide" />
     </div>
