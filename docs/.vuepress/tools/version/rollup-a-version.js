@@ -16,7 +16,7 @@ logger.log('\n-----------------------------------------------------\n');
       {
         type: 'confirm',
         name: 'continueApiGen',
-        message: `This script will generate a new API and Guides. \nContinue?`,
+        message: 'This script will generate a new API and Guides. \nContinue?',
         default: true,
       }
     ]);
