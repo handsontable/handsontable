@@ -41,40 +41,43 @@ Released on 16th of March, 2021
 *   Fixed the incorrect `cellTypes` module paths in the `exports` entry of the `package.json` file. ([#7597](https://github.com/handsontable/handsontable/issues/7597))
 *   *Vue:* Fixed Remote Code Execution vulnerability in the dev dependencies. ([#7620](https://github.com/handsontable/handsontable/issues/7620))
 
+### 8.3.1
 
-## 8.3.1
+Released on 10th of February, 2021
+
 **Fixed**
 
-* Fixed an issue where the CSS files could be eliminated during tree-shaking [#7516](https://github.com/handsontable/handsontable/issues/7516)
-## 8.3.0
+*   Fixed an issue where the CSS files could be eliminated during tree-shaking. ([#7516](https://github.com/handsontable/handsontable/issues/7516))
+
+### 8.3.0
+
+Released on 28th of January, 2021
 
 **Added**
 
-* Introduced a new feature that allows postponing the table render and internal data cache update. The table rendering time can be reduced several-fold times by batching (using the `batch` method), multi-line API calls, or manually suspending rendering using the `suspendRender` and `resumeRender` methods. [#7274](https://github.com/handsontable/handsontable/issues/7274)
-* Introduced a possibility to import:
-  * plugins
-  * cell types
-  * editors
-  * renderers
-  * validators
-    
-  as separate modules, along with the Handsontable _base_. This change allows utilizing only the parts of Handsontable the end application is actually using, without the overhead of the full bundle. [#7403](https://github.com/handsontable/handsontable/issues/7403)
-* Added a new workflow for managing and generating changelogs. [#7405](https://github.com/handsontable/handsontable/issues/7405)
+*   Introduced a new feature that allows postponing the table render and internal data cache update. The table rendering time can be reduced several-fold times by batching (using the `batch` method), multi-line API calls, or manually suspending rendering using the `suspendRender` and `resumeRender` methods. ([#7274](https://github.com/handsontable/handsontable/issues/7274))
+*   Introduced a possibility to import:
+    1.  plugins
+    2.  cell types
+    3.  editors
+    4.  renderers
+    5.  validatorsas separate modules, along with the Handsontable _base_. This change allows utilizing only the parts of Handsontable the end application is actually using, without the overhead of the full bundle. ([#7403](https://github.com/handsontable/handsontable/issues/7403))
+*   Added a new workflow for managing and generating changelogs. ([#7405](https://github.com/handsontable/handsontable/issues/7405))
 
 **Fixed**
 
-* Fixed a bug with auto-execution of the first item in the ContextMenu plugin. [#7364](https://github.com/handsontable/handsontable/issues/7364)
-* Fixed a bug where column sorting with multi column sorting crashed the table. [#7415](https://github.com/handsontable/handsontable/issues/7415)
-* Added a missing entry for the `skipRowOnPaste` option in the TypeScript definition file. [#7394](https://github.com/handsontable/handsontable/issues/7394)
-* Added missing tests to prevent issue #7377 from resurfacing. [#7396](https://github.com/handsontable/handsontable/issues/7396)
-* Fixed an issue where altering columns did not update filters attached to columns. [#6830](https://github.com/handsontable/handsontable/issues/6830)
-* Fixed typos and wrong return types in the TypeScript definition file. [#7399](https://github.com/handsontable/handsontable/issues/7399), [#7400](https://github.com/handsontable/handsontable/issues/7400)
-* Updated the dependencies causing potential security issues, as well as Babel configuration needed after the update. [#7463](https://github.com/handsontable/handsontable/issues/7463)
+*   Fixed a bug with auto-execution of the first item in the ContextMenu plugin. ([#7364](https://github.com/handsontable/handsontable/issues/7364))
+*   Fixed a bug where column sorting with multi column sorting crashed the table. ([#7415](https://github.com/handsontable/handsontable/issues/7415))
+*   Added a missing entry for the `skipRowOnPaste` option in the TypeScript definition file. ([#7394](https://github.com/handsontable/handsontable/issues/7394))
+*   Added missing tests to prevent issue #7377 from resurfacing. ([#7396](https://github.com/handsontable/handsontable/issues/7396))
+*   Fixed an issue where altering columns did not update filters attached to columns. ([#6830](https://github.com/handsontable/handsontable/issues/6830))
+*   Fixed typos and wrong return types in the TypeScript definition file. ([#7399](https://github.com/handsontable/handsontable/issues/7399))
+*   Updated the dependencies causing potential security issues, as well as Babel configuration needed after the update. ([#7463](https://github.com/handsontable/handsontable/issues/7463))
 
 **Changed**
 
-* Corrected a typo in a helper method from the Column Sorting plugin. [#7375](https://github.com/handsontable/handsontable/issues/7375)
-* Optimized the performance of rendering the table with numerous spare rows (for `minSpareRows`, `minSpareCols`, `minRows`, and `minCols` options). [#7439](https://github.com/handsontable/handsontable/issues/7439)
+*   Corrected a typo in a helper method from the Column Sorting plugin. ([#7375](https://github.com/handsontable/handsontable/issues/7375))
+*   Optimized the performance of rendering the table with numerous spare rows (for `minSpareRows`, `minSpareCols`, `minRows`, and `minCols` options). ([#7439](https://github.com/handsontable/handsontable/issues/7439))
 
 ## 8.2.0
 

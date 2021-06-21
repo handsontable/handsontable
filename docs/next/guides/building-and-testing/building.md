@@ -19,12 +19,12 @@ This guide provides detailed steps for building Handsontable and outlines the ta
 
 ## Introduction
 
-From version `8.4.0` onward, the `handsontable` repository is configured as a monorepo, and consist of four packages:
+From version `8.3.2` onward, the `handsontable` repository is configured as a monorepo, and consist of four packages:
 
 1. `handsontable` (stored at `.` - the root directory)
-2. `@handsontable/angular` (stored at `./wrappers/angular-handsontable`
-3. `@handsontable/react` (stored at `./wrappers/react-handsontable`
-4. `@handsontable/vue` (stored at `./wrappers/vue-handsontable`
+2. `@handsontable/angular` (stored at `./wrappers/angular`)
+3. `@handsontable/react` (stored at `./wrappers/react`)
+4. `@handsontable/vue` (stored at `./wrappers/vue`)
 
 Although the packages are versioned with the same number and are released together, they all have their own build and testing processes.
 
@@ -41,8 +41,6 @@ During this process, the source files located in the `src/*` directory are trans
 * `./dist/handsontable.full.min.js`
 * `./dist/handsontable.full.min.css`
 * `./dist/languages/*`
-
-, as well as `es`, and `commonjs` builds.
 
 More info about dist packages can be found [here](https://github.com/handsontable/handsontable/blob/master/dist/README.md.
 
@@ -77,11 +75,11 @@ Each of the wrappers has its own framework-specific build environment and script
 Or by utilizing one of the helper scripts in the root directory:
 
 *   `npm run in` - Runs a command for the specified project. For Example:  
-    `npm run in angular-handsontable build` - runs the `build` command for the `@handsontable/angular` project.  
+    `npm run in angular build` - runs the `build` command for the `@handsontable/angular` project.  
     Shorthands are also available - the aforementioned command works as `npm run in angular build` as well.
 *   `npm run all` - Runs a command for all the packages. For example:  
     `npm run all build` will run the `build` command for all the defined packages.  
-    The order in which the packages are executed is defined in the `./scripts/run-all.js` script.
+    The order in which the packages are executed is defined in the `./scripts/run-all.mjs` script.
 
 ## Running your first build
 

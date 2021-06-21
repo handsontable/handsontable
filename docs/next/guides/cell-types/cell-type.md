@@ -46,7 +46,6 @@ columns: [{
 }]
 ```
 
-
 ## Available cell types
 
 Handsontable comes with nine types:
@@ -303,3 +302,15 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Empty cells
+
+Its worth to mention that values such as `''` (empty string), `null` and `undefined` are considered as empty values. You can use prepared `Handsontable.helper.isEmpty` method to check whether some value is considered as empty. Cells with empty values are displayed in a similar way for most of data types (see below).
+
+<script data-jsfiddle="example2">var data = [ ['', 'Ford', 'Tesla', 'Toyota', 'Honda'], ['2017', 10, 11, 12, 13], ['2018', 20, 11, 14, 13], ['2019', 30, 15, 12, 13] ]; var container = document.getElementById('example2'); var hot = new Handsontable(container, { data: [ ['', '', '', '', '', 'empty string'], [null, null, null, null, null, 'null'], [undefined, undefined, undefined, undefined, undefined, 'undefined'], ['non-empty text', 13000, true, 'orange', 'password', 'non-empty value'], ], columnSorting: { sortEmptyCells: true }, columns: [ {}, { type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' // this is the default culture, set up for USD }, }, { type: 'checkbox' }, { type: 'dropdown', source: ['yellow', 'red', 'orange'] }, { type: 'password' }, {}, ], colHeaders: ['type:text', 'type:numeric', 'type:checkbox', 'type:dropdown', 'type:password', 'extra info'], });</script>
+
+Empty cells may be treated in a special way, for example, the [ColumnSorting](docs/<?js= version ?>/demo-sorting.html) plugin has `sortEmptyCells` option which is responsible for establishing whether empty cells should be sorted like non-empty cells.
+
+**Note:** Please keep in mind that opening of cell with `undefined` and `null` values results in **overwriting** the original value by the empty string.
+
+**Note:** Please keep in mind that copying `undefined` and `null` values results in pasting the empty string.

@@ -42,6 +42,8 @@ To run Jasmine tests in your command line (using Puppeteer), first install all n
 
 The wrappers contain their own framework-specific testing environments. You can either run the `npm run test` script inside of the wrapper directory, or utilize the `npm run in`/`npm run all` scripts to run the tests from the root.
 
+Keep in mind that running wrapper tests require building the Handsontable (`npm run build`). Once built the wrapper can consume its main dependency. Otherwise, tests will fail.
+
 ## Environments settings
 
 * Due to Puppeteer's `setViewer` settings, the size of the window's browser should be at least 1280px wide and 720px tall.
