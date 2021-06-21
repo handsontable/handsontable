@@ -8,6 +8,10 @@ editLink: false
 
 # Formulas
 
+::: warning
+This plugin has been permanently replaced with the new one in version 9.0. Please upgrade your Handsontable version to use the [new plugin](/docs/next/demo-hyperformula-integration.html).
+:::
+
 [[toc]]
 
 ## Description
