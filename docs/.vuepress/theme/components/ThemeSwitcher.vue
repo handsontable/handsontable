@@ -7,8 +7,6 @@
 
 <script>
 const CLASS_THEME_DARK = 'theme-dark';
-const SRC_LOGO_DEFAULT = '/img/handsontable-logo.svg';
-const SRC_LOGO_WHITE = '/img/handsontable-logo-white.svg';
 
 const getDomElement = (selector) => {
   return document.querySelector(selector);
@@ -24,10 +22,6 @@ const toggleDarkThemeClassOnHTML = (htmlDomElement, isDarkTheme) => {
   htmlDomElement.classList.remove(CLASS_THEME_DARK);
 };
 
-const changeLogo = (logoEl, isDarkTheme) => {
-  logoEl.src = isDarkTheme ? SRC_LOGO_WHITE : SRC_LOGO_DEFAULT;
-};
-
 export default {
   name: 'ThemeSwitcher',
   methods: {
@@ -40,7 +34,6 @@ export default {
       }
 
       toggleDarkThemeClassOnHTML(this.htmlDomEl, this.isDarkTheme);
-      changeLogo(this.logoDomEl, this.isDarkTheme);
     }
   },
   data() {
@@ -73,7 +66,6 @@ export default {
 
     toggleDarkThemeClassOnHTML(this.htmlDomEl, this.isDarkTheme);
 
-    changeLogo(this.logoDomEl, this.isDarkTheme);
   }
 };
 </script>
