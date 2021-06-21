@@ -77,7 +77,7 @@ To display the latest docs version in a browser:
 
 To edit an archived docs version, go to the required [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure).
 
-To display the latest docs version in a browser:
+To display an archived docs version in a browser:
 1. Start a [local Handsontable docs server](./README.md#getting-started-with-handsontable-docs).
 2. In your browser, go to http://localhost:8080/docs/{semver.version}/.
 
@@ -85,7 +85,7 @@ To display the latest docs version in a browser:
 
 The API reference is generated automatically from the source code.
 
-The API reference output lives in the `/next/api/` directory. **Don't edit it (we know where you live).**
+The API reference output lives in the `/next/api/` directory.
 
 To edit the API reference, go into the source code and change the JSDoc comments.
 

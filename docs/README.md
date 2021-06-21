@@ -1,12 +1,12 @@
 # Handsontable docs
 
-Handsontable comes with a vibrant, frequently-updated documentation portal.
+We treat documentation as an integral part of the Handsontable developer experience.
+
+That's why Handsontable comes with a vibrant, frequently-updated documentation portal.
 
 View the docs' latest production version at [handsontable.com/docs](https://handsontable.com/docs).
 
 ## About Handsontable docs
-
-We treat the docs as an integral part of the Handsontable developer experience.
 
 The Handsontable docs are made up of three main sections:
 - **Guides**: Carefully-written implementation guides.
@@ -14,8 +14,8 @@ The Handsontable docs are made up of three main sections:
 - **API reference**: Full API reference, automatically generated from the source code of a required Handsontable version.
 
 We update the docs:
-- With every Handsontable version release
-- Whenever there's something new to add to improve!
+- With every Handsontable version release.
+- Whenever there's something new to add to improve.
 
 **See also:**
 
@@ -76,12 +76,12 @@ docs                            # All documentation files
 │   │   ├── utils.js            # Tools utilities
 │   │   └── version             # A tool that creates new docs versions
 │   ├── config.js               # VuePress configuration
-│   ├── docs-links.js
+│   ├── docs-links.js           # Lets us link to the docs' latest version with `@` (e.g. [link](@/guides/path/file.md.)
 │   ├── enhanceApp.js           # VuePress app-level enhancements
 │   ├── helpers.js              # Common helpers that set up sidebars and the docs version picker
 │   ├── highlight.js            # Code highlight configuration
 ├── docker                      # Docker configuration
-├── next                        # The docs' next version, unavailable on the production environment
+├── next                        # The docs' draft version, unavailable on the production environment
 │   ├── api                     # The API reference output, generated automatically from JSDoc. Do not edit!
 │   ├── examples                # The Handsontable examples
 │   ├── guides                  # The guides' source files: Markdown content
