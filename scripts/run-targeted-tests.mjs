@@ -14,6 +14,7 @@ const IGNORED_PATHS = [
   '.codesandbox',
   '.github',
   'bin',
+  'docs',
   'resources',
   '.editorconfig',
   '.gitattributes',
@@ -148,7 +149,7 @@ async function distributeBetweenPipelines(modifiedProjects) {
       }
 
       workspacePackages.forEach((packageWildcard) => {
-        if (packageWildcard !== '.') {
+        if (packageWildcard.includes('/*')) {
           const escapedPackageUrl = packageWildcard.replace(/\*/g, '').replace(/\//g, '\\/');
           const packageMatch = fileUrl.match(`(${escapedPackageUrl})(?<projectName>[^/]*)(/)`);
 
@@ -157,6 +158,17 @@ async function distributeBetweenPipelines(modifiedProjects) {
 
             if (!touchedProjects.includes(projectName)) {
               touchedProjects.push(projectName);
+            }
+
+            filesMatchedCount += 1;
+          }
+
+        } else if (packageWildcard !== '.') {
+          const packageMatch = fileUrl.match(`^${packageWildcard}/`);
+
+          if (packageMatch) {
+            if (!touchedProjects.includes(packageWildcard)) {
+              touchedProjects.push(packageWildcard);
             }
 
             filesMatchedCount += 1;
