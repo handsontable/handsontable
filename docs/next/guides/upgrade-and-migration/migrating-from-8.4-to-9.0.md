@@ -87,7 +87,6 @@ In Handsontable `9.0.0` we removed the following, previously-deprecated plugins:
 To implement functionality similar to that of the Header Tooltips plugin, you can utilize the `afterGetColHeader` and `afterGetRowHeader` hooks to add a `title` attribute to the headers.  
 See the snippet below for example implementation.
 
-::: example #example
 ```js
 var example = document.getElementById('tooltip-example');
 
@@ -106,7 +105,6 @@ var hot1 = new Handsontable(example, {
   afterGetRowHeader: onAfterGetHeader
 });
 ```
-:::
 
 ### Observe Changes
 

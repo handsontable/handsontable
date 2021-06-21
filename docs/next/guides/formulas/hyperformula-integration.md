@@ -66,6 +66,7 @@ It is possible to use the plugin in single sheet mode or with multiple Handsonta
 
 Double click on a cell to open the editor and preview the formula.
 
+::: example #example1
 ```js
   var data1 = [
     ['10.26', null, 'Sum', '=SUM(A:A)', null],
@@ -107,11 +108,13 @@ Double click on a cell to open the editor and preview the formula.
     }
   });
 ```
+:::
 
 ## Data grid example
 
 This example is more typical of data grids than spreadsheets. Calculations are present in two places – in a column “Total due (fx)”, and in the summary row at the bottom.
 
+::: example #example2
 ```js
 var data = [
   ["150", "643", "0.32", "11", "=A1*(B1*C1)+D1"],
@@ -230,6 +233,7 @@ new Handsontable(container, {
 });
 
 ```
+:::
 
 ## Initialization methods
 
@@ -370,7 +374,7 @@ new Handsontable(element, {
 
 You can use custom-named expressions in your formula expressions. A named expression can be either plain values or formulas with references to absolute cell addresses. To register a named expression, pass an array with `name` and `expression` to your `formulas` configuration object:
 
-::: example #example1
+::: example #example3
 ```js
 var data = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
@@ -406,7 +410,9 @@ form.addEventListener('submit', function(event) {
   hotNamedExpressions.render();
 });
 ```
-::: example #example1
+:::
+
+::: example #example4
 ```js
 var data = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
@@ -449,5 +455,3 @@ For more information about named expressions, please refer to the [HyperFormula 
 *   [Plugin API reference](/docs/<?js= version ?>/Formulas.html)
 *   [HyperFormula guides](https://handsontable.github.io/hyperformula/)
 *   [HyperFormula API reference](https://handsontable.github.io/hyperformula/api/)
-
-[Edit this page](https://github.com/handsontable/docs/edit/<?js= version ?>/tutorials/hyperformula-integration.html)
