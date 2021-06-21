@@ -14,7 +14,7 @@ canonicalUrl: /third-party-licenses
 
 - **HyperFormula** (provides logic for Formulas plugin)  
     Author: Handsontable  
-    License: Open source (AGPL 3.0 or Commercial)  
+    License: Open source (GPL 3.0 or Commercial)  
     [https://github.com/handsontable/hyperformula](https://github.com/handsontable/hyperformula)
 
 - **numbro.js** (handles numeric data)<br>
