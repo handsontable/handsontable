@@ -9,7 +9,8 @@ const getHotUrls = (version) => {
       languagesJs: 'https://cdn.jsdelivr.net/npm/handsontable/dist/languages/all.js'
     };
   }
-  const mappedVersion = version.match(/^\d+\.\d+\.\d+$/) ? version : 'latest';
+
+  const mappedVersion = version.match(/^\d+\.\d+$/) ? version : 'latest';
 
   return {
     handsontableJs: `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/handsontable.full.min.js`,
