@@ -66,13 +66,16 @@
       background-color transparent
       border-color transparent
       position relative
-      left 1rem
       font-size 16px
       &:focus
         cursor text
         left 0
         width 8rem
 
+@media (max-width: $MQMobile)
+  .search-box.search-box
+    input
+      left 1rem
 // Match IE11
 @media all and (-ms-high-contrast: none)
   .search-box input

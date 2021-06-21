@@ -33,20 +33,21 @@ html.theme-dark {
   }
 
   /* Searchbox */
-  .search-box {
+  .search-box.search-box {
     input {
       background $searchBoxBackground url(/img/search.svg) 0.6rem 0.5rem no-repeat
       background-size 1rem
       border-color $searchBoxInputBorderColor
       color $fontColor
 
+      &:focus {
+        border-color $accentColor
+      }
+
       @media (max-width: $MQNavbarNarrow) {
         border-color transparent
         background-color transparent
 
-        &:focus {
-          border-color $accentColor
-        }
       }
     }
 
