@@ -90,14 +90,14 @@ async function distributeBetweenPipelines(modifiedProjects) {
           !isHandsontableTouched &&
           modifiedProjects.indexOf(projectName) >= Math.floor(modifiedProjects.length / pipelineCount)
         ) {
-          await spawnProcess(`npm run in ${projectName} test -- --if-present`);
+          await spawnProcess(`npm run in ${projectName} test`);
         }
       }
 
       break;
     default:
       for (const projectName of modifiedProjects) {
-        await spawnProcess(`npm run in ${projectName} test -- --if-present`);
+        await spawnProcess(`npm run in ${projectName} test`);
       }
   }
 }
