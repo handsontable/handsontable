@@ -12,11 +12,6 @@ When adding new docs files, check the docs [directory structure](./README.md#han
 * To separate words, use `-`.
 * Use the `.md` file extension. The `.vue` extension is disabled.
 
-### Subdirectories
-
-* If possible, avoid adding new subdirectories.
-* When adding a new subdirectory, you have to update the sidebars logic.
-
 ### Front matter
 
 Each Markdown file starts with the following front matter tags:
@@ -68,6 +63,8 @@ To display the `next` version in a browser:
 ### Editing the `latest` docs version
 
 A [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure) with the largest version number gets tagged as the `latest` version of the docs.
+
+If you're editing the `latest` version, remember to make the same edits to the `next` version as well.
 
 To display the latest docs version in a browser:
 1. Start a [local Handsontable docs server](./README.md#getting-started-with-handsontable-docs).

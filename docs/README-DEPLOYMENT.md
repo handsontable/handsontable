@@ -21,7 +21,9 @@ To deploy the docs from the console:
 
 2. Deploy the docs:
     ```bash
-    docker build -t docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest .
+    npm run docs:docker:build
+    # npm run docs:docker:build:production # Production build
+
     docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
     ```
 
