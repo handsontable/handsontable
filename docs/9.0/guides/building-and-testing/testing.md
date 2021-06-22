@@ -10,7 +10,7 @@ tags:
   - end to end test
   - puppeteer
   - spec
-  - 
+  -
 ---
 
 # Testing process
@@ -37,6 +37,12 @@ To run Jasmine tests in your command line (using Puppeteer), first install all n
 * `npm run test:unit --testPathPattern=array` - runs only end-to-end tests and suites matching the filename "array".
 * `npm run test:e2e.dump` - generates the `test/E2ERunner.html` file which can by executed in the browser environment (Chrome, Firefox etc.) to check if tests passes.
 * `npm run test:e2e.dump -- --watch` - generates the `E2ERunner.html` file on every change detected in test files. It can be helpful for debugging proposes.
+
+## Testing the framework-specific wrappers.
+
+The wrappers contain their own framework-specific testing environments. You can either run the `npm run test` script inside of the wrapper directory, or utilize the `npm run in`/`npm run all` scripts to run the tests from the root.
+
+Keep in mind that running wrapper tests require building the Handsontable (`npm run build`). Once built the wrapper can consume its main dependency. Otherwise, tests will fail.
 
 ## Environments settings
 
