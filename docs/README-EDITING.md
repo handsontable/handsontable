@@ -49,8 +49,6 @@ sitemap:
 ## Editing the docs
 
 When editing the docs content, follow the guidelines below.
- 
-### Editing the `next` docs version
 
 Files to be included in the docs' next version live in the `next` directory.
 

@@ -5,7 +5,7 @@ permalink: /next/api/
 canonicalUrl: /api/
 ---
 
-# Handsontable Reference
+# Handsontable API Reference
 
 [[toc]]
 
