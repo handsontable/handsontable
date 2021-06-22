@@ -7,37 +7,53 @@ const replaceInFiles = require('replace-in-files');
 const { logger } = require('../utils');
 
 const workingDir = path.resolve(__dirname, '../../../');
+const isTTY = process.stdout.isTTY;
 
 logger.log('\n-----------------------------------------------------\n');
 
 (async() => {
-  {
-    const answers = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'continueApiGen',
-        message: 'This script will generate a new API and Guides. \nContinue?',
-        default: true,
-      }
-    ]);
+  let version = process.argv[2];
 
-    if (!answers.continueApiGen) {
-      process.exit(0);
+  if (isTTY) {
+    {
+      const answers = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'continueApiGen',
+          message: 'This script will generate a new API and Guides. \nContinue?',
+          default: true,
+        }
+      ]);
+
+      if (!answers.continueApiGen) {
+        process.exit(0);
+      }
+    }
+    {
+      const answers = await inquirer.prompt([
+        {
+          name: 'version',
+          type: 'input',
+          message: 'What version do you want to generate (required format "Major.Minor" e.g. 9.1)',
+          validate: s => (/^\d+.\d+$/.test(s) ? true : 'The provided version is not correct'),
+        },
+      ]);
+
+      version = answers.version;
     }
   }
 
-  const { version } = await inquirer.prompt([
-    {
-      name: 'version',
-      type: 'input',
-      message: 'What version do you want to generate (required format "Major.Minor" e.g. 9.1)',
-      validate: s => (/^\d+.\d+$/.test(s) ? true : 'The provided version is not correct'),
-    },
-  ]);
-
-  if (fs.existsSync(path.join(workingDir, version))) {
-    logger.error(`This version of the documentation (${version}) is already generated.`);
+  if (version === '--help') {
+    logger.info('Usages: `version <version>`, where version must be in format "Major.Minor".\n');
     process.exit(0);
+
+  } else if (!/^\d+.\d+$/.test(version)) {
+    logger.error(`The provided version is not correct.`);
+    process.exit(1);
+
+  } else if (fs.existsSync(path.join(workingDir, version))) {
+    logger.error(`This version of the documentation (${version}) is already generated.`);
+    process.exit(1);
   }
 
   // * copy `/next/` to `/${version}/`
