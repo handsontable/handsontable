@@ -21,7 +21,7 @@ This guide will lead you, step-by-step, through the process of creating a custom
 
 ### 1. Prerequisites
 
-You need to import the following things:
+You need to import the following:
 - `BasePlugin` - contains the basic interface to work within Handsontable's lifecycle,
 - `registerPlugin` - utility to register the plugin in Handsontable plugins registry.
 
