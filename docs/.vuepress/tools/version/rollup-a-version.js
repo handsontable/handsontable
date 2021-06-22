@@ -48,7 +48,7 @@ logger.log('\n-----------------------------------------------------\n');
     process.exit(0);
 
   } else if (!/^\d+.\d+$/.test(version)) {
-    logger.error(`The provided version is not correct.`);
+    logger.error('The provided version is not correct.');
     process.exit(1);
 
   } else if (fs.existsSync(path.join(workingDir, version))) {
