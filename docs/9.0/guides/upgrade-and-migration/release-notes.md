@@ -1,7 +1,7 @@
 ---
 title: Release notes
 metaTitle: Release notes - Guide - Handsontable Documentation
-permalink: /next/release-notes
+permalink: /9.0/release-notes
 canonicalUrl: /release-notes
 tags:
   - change log

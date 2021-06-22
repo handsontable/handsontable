@@ -9,7 +9,7 @@ editLink: false
 # Formulas
 
 ::: warning
-This plugin has been permanently replaced with the new one in version 9.0. Please upgrade your Handsontable version to use the [new plugin](/docs/next/demo-hyperformula-integration.html).
+This plugin has been permanently replaced with the new one in version 9.0. Please upgrade your Handsontable version to use the [new plugin](@/guides/formulas/hyperformula-integration.md).
 :::
 
 [[toc]]
@@ -22,7 +22,7 @@ This plugin allows you to perform Excel-like calculations in your business appli
 ## Options
 
 ### formulas
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/dataMap/metaManager/metaSchema.js#L2765
 
 :::
@@ -49,7 +49,7 @@ formulas: {
 ## Members
 
 ### engine
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L89
 
 :::
@@ -61,7 +61,7 @@ The engine instance that will be used for this instance of Handsontable.
 
 
 ### sheetId
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L103
 
 :::
@@ -73,7 +73,7 @@ HyperFormula's sheet id.
 
 
 ### sheetName
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L96
 
 :::
@@ -86,7 +86,7 @@ HyperFormula's sheet name.
 ## Methods
 
 ### addSheet
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L236
 
 :::
@@ -106,7 +106,7 @@ Add a sheet to the shared HyperFormula instance.
 engine, the created sheet name otherwise.  
 
 ### destroy
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L218
 
 :::
@@ -118,7 +118,7 @@ Destroys the plugin instance.
 
 
 ### disablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L173
 
 :::
@@ -130,7 +130,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 ### enablePlugin
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L121
 
 :::
@@ -142,7 +142,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### getCellType
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L292
 
 :::
@@ -162,7 +162,7 @@ Get the cell type under specified coordinates.
 **Returns**: `string` - Possible values: 'FORMULA' | 'VALUE' | 'MATRIX' | 'EMPTY'.  
 
 ### isEnabled
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L113
 
 :::
@@ -175,7 +175,7 @@ hook and if it returns `true` than the [enablePlugin](#Formulas+enablePlugin) me
 
 
 ### switchSheet
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L271
 
 :::
@@ -189,5 +189,3 @@ instance).
 | Param | Type | Description |
 | --- | --- | --- |
 | sheetName | `string` | Sheet name used in the shared HyperFormula instance. |
-
-

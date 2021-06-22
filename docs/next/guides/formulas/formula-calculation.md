@@ -10,7 +10,7 @@ canonicalUrl: /formula-calculation
 [[toc]]
 
 ::: tip
-This plugin has been permanently replaced with the new one in version 9.0. Please upgrade your Handsontable version to use the [new plugin](/docs/9.0.0/demo-hyperformula-integration.html).
+This feature will be soon replaced by the plugin integrating Handsontable with the calculation engine. [Learn more](@/guides/formulas/hyperformula-integration.md)
 :::
 
 ## Overview
