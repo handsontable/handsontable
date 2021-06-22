@@ -46,7 +46,6 @@ columns: [{
 }]
 ```
 
-
 ## Available cell types
 
 Handsontable comes with nine types:
@@ -254,7 +253,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-## Example
+## Built-in cell types example
 
 The example below shows some of the built-in cell types, i.e. combinations of cell renderers and editors available in Handsontable. The example also shows the declaration of custom cell renderers, namely `yellowRenderer` and `greenRenderer`.
 
@@ -303,3 +302,57 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Empty cells
+
+It's worth to mention that values such as `''` (empty string), `null` and `undefined` are considered empty values. You can use the `Handsontable.helper.isEmpty` method to check whether a value is considered empty. Cells with empty values are displayed in a similar way for most of the data types (see below).
+
+:::tip
+Please keep in mind that opening a cell with `undefined` and `null` values results in **overwriting** the original value with an empty string. Moreover, copying and pasting that values will result in pasting the empty string.
+:::
+
+::: example #example2
+```js
+const container = document.querySelector('#example2');
+const hot = new Handsontable(container, {
+  data: [
+    ['empty string', '', '', '', '', ''],
+    ['null', null, null, null, null, null],
+    ['undefined', undefined, undefined, undefined, undefined, undefined],
+    ['non-empty value', 'non-empty text', 13000, true, 'orange', 'password'],
+  ],
+  columnSorting: {
+    sortEmptyCells: true
+  },
+  columns: [
+    {
+      columnSorting: {
+        indicator: false,
+        headerAction: false,
+        compareFunctionFactory: function compareFunctionFactory() {
+          return function comparator() {
+            return 0; // Don't sort the first visual column.
+          };
+        }
+      },
+      readOnly: true,
+    },
+    {},
+    {
+      type: 'numeric',
+      numericFormat: {
+        pattern: '$0,0.00',
+        culture: 'en-US' // this is the default culture, set up for USD
+      },
+    },
+    { type: 'checkbox' },
+    { type: 'dropdown', source: ['yellow', 'red', 'orange'] },
+    { type: 'password' },
+  ],
+  preventOverflow: 'horizontal',
+  colHeaders: ['value<br>underneath', 'type:text', 'type:numeric', 'type:checkbox', 'type:dropdown', 'type:password'],
+});
+```
+:::
+
+Empty cells may be treated in differently in different contexts, for example, the [ColumnSorting](@/api/columnSorting.md) plugin has `sortEmptyCells` option which is responsible for establishing whether empty cells should be sorted like non-empty cells.

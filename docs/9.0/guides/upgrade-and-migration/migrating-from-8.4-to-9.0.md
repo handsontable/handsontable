@@ -9,7 +9,7 @@ canonicalUrl: /migration-from-8.4-to-9.0
 
 [[toc]]
 
-The purpose of this guide is to make it easier to migrate from v8.4.0 to v9.0.0\. In the version 9.0 we have introduced a new formula engine with has completely replaced the previous one. There is a breaking change in the formula API - even in the way the plugin itself is initialized.
+The purpose of this guide is to make it easier to migrate from v8.4.0 to v9.0.0. In the version 9.0 we have introduced a new formula engine with has completely replaced the previous one. There is a breaking change in the formula API - even in the way the plugin itself is initialized.
 
 ## Plugin initialization
 
@@ -19,7 +19,7 @@ The plugin uses HyperFormula, which is meant to be passed in as an external depe
 | --- | --- |
 | formulas: `true` | `import { HyperFormula } from 'hyperformula';`<br><br>`formulas: {`<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`engine: HyperFormula`<br>`}` |
 
-See other available initialization methods [here](/docs/next/demo-hyperformula-integration.html#initialization-methods).
+See other available initialization methods [here](@/guides/formulas/hyperformula-integration.md#initialization-methods).
 
 ## Available methods
 
@@ -39,7 +39,7 @@ See other available initialization methods [here](/docs/next/demo-hyperformula-i
 
 ## Available functions
 
-[The list of available functions can be found here](https://cdn.jsdelivr.net/npm/hyperformula/dist/hyperformula.full.min.js).
+[The list of available functions can be found here](https://github.com/handsontable/hyperformula/tree/master/src/interpreter/plugin).
 
 ## Autofill hooks
 
@@ -88,13 +88,13 @@ To implement functionality similar to that of the Header Tooltips plugin, you ca
 See the snippet below for example implementation.
 
 ```js
-var example = document.getElementById('tooltip-example');
+const example = document.getElementById('tooltip-example');
 
-var onAfterGetHeader = function(index, TH) {
+const onAfterGetHeader = function(index, TH) {
   TH.setAttribute('title', TH.querySelector('span').textContent);
 };
 
-var hot1 = new Handsontable(example, {
+const hot = new Handsontable(example, {
   data: Handsontable.helper.createSpreadsheetData(3, 3),
   rowHeights: 23,
   autoColumnSize: true,
@@ -108,4 +108,4 @@ var hot1 = new Handsontable(example, {
 
 ### Observe Changes
 
-The plugin fired the `afterChangesObserved` hook. Be sure to stop listening to it after updating to version `9.0.0+`.
+The plugin fired the `afterChangesObserved` hook. Be sure to stop listening to it after updating to version `>=9.0.0`.
