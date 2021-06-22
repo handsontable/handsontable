@@ -29,13 +29,13 @@ See other available initialization methods [here](@/guides/formulas/hyperformula
 | [`disablePlugin`](https://handsontable.com/docs/8.4.0/Formulas.html#disablePlugin) | `hot.getPlugin('formulas').disablePlugin()` | Unchanged. |
 | [`enablePlugin`](https://handsontable.com/docs/8.4.0/Formulas.html#enablePlugin) | `hot.getPlugin('formulas').enablePlugin()` | Unchanged, but do keep in mind that if you didn't pass in the plugin's config through either `updateSettings` or during Handsontable initialization this method will not do anything. |
 | [`getCellValue`](https://handsontable.com/docs/8.4.0/Formulas.html#getCellValue) | `hot.getPlugin('formulas').getCellValue(row, column)` | Use base Handsontable API instead, for example `hot.getDataAtCell(row, column)`. |
-| [`getVariable`](https://handsontable.com/docs/8.4.0/Formulas.html#getVariable) | `hot.getPlugin('formulas').getVariable(variableName)` | "Variables" in the plugin have been replaced by a more powerful alternative, [named expressions](/docs/next/demo-hyperformula-integration.html#initialization-methods#named-expressions). |
+| [`getVariable`](https://handsontable.com/docs/8.4.0/Formulas.html#getVariable) | `hot.getPlugin('formulas').getVariable(variableName)` | "Variables" in the plugin have been replaced by a more powerful alternative, [named expressions](@/guides/formulas/hyperformula-integration.md#named-expressions). |
 | [`hasComputedCellValue`](https://handsontable.com/docs/8.4.0/Formulas.html#hasComputedCellValue) | `hot.getPlugin('formulas').hasComputedCellValue(row, column)` | `hot.getPlugin('formulas').getCellType(row, column) === 'FORMULA'` |
 | [`isEnabled`](https://handsontable.com/docs/8.4.0/Formulas.html#isEnabled) | `hot.getPlugin('formulas').isEnabled()` | Unchanged. |
 | [`recalculate`](https://handsontable.com/docs/8.4.0/Formulas.html#recalculate) | `hot.getPlugin('formulas').recalculate()` | `hot.getPlguin('formulas').engine.rebuildAndRecalculate()` |
 | [`recalculateFull`](https://handsontable.com/docs/8.4.0/Formulas.html#recalculateFull) | `hot.getPlugin('formulas').recalculateFull()` | `hot.getPlguin('formulas').engine.rebuildAndRecalculate()` |
 | [`recalculateOptimized`](https://handsontable.com/docs/8.4.0/Formulas.html#recalculateOptimized) | `hot.getPlugin('formulas').recalculateOptimized()` | `hot.getPlguin('formulas').engine.rebuildAndRecalculate()` |
-| [`setVariable`](https://handsontable.com/docs/8.4.0/Formulas.html#setVariable) | `hot.getPlugin('formulas').setVariable(variableName, value)` | "Variables" in the plugin have been replaced by a more powerful alternative, [named expressions](/docs/next/demo-hyperformula-integration.html#initialization-methods#named-expressions). |
+| [`setVariable`](https://handsontable.com/docs/8.4.0/Formulas.html#setVariable) | `hot.getPlugin('formulas').setVariable(variableName, value)` | "Variables" in the plugin have been replaced by a more powerful alternative, [named expressions](@/guides/formulas/hyperformula-integration.md#named-expressions). |
 
 ## Available functions
 
