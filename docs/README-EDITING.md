@@ -114,37 +114,23 @@ As we want to support case-insensitive URLs, follow these guidelines when editin
 /** {@link hidden-rows HiddenRows} */
 ```
 
-## Adding code examples
-Inside the Markdown files, you can add code snippets that will show the code's result:
-
-```js
-    ::: example #example1
-    // `#example1` is the example's ID, for creating a Handsontable container
-
-    ```js
-        // code here
-    ```
-
-    :::
-```
-
 ## Docs versioning
 
 To create a new version of the Handsontable docs:
 
 * From the `handsontable/docs` directory, run:
-    ```bash
-    npm run docs:version <semver.version>
-    # for example:
-    # npm run docs:version 9.0
-    ```
+```bash
+npm run docs:version <semver.version>
+# for example:
+# npm run docs:version 9.0
+```
 
 To remove an existing version of the Handsontable docs:
 
 * Remove the required version's [directory](./README.md#handsontable-docs-directory-structure):
-    ```bash
-    rm -rf ./<semver.version>
-    ```
+```bash
+rm -rf ./<semver.version>
+```
 
 ## Markdown containers
 
@@ -165,3 +151,27 @@ We use the following Markdown containers:
 | `::: tip`                    | A note.                                                    |
 | `::: example [options]`      | Renders a code example as specified in [options].          |
 | `::: source-code-link [URL]` | Adds a source code link to the right of an API ref header. |
+
+### Adding code examples
+Using the `example` Markdown container, you can add code snippets that will show the code's result:
+
+```js
+::: example #exampleId .class :preset --html 1 --js 2 --css 3  --no-edit --tab preview
+// `#example1` is the example's ID, for creating a Handsontable container
+
+    ```js
+    // code here
+    ```
+:::
+```
+
+The `example` Markdown container offers the following options:
+
+| Option           | Required | Example           | Possible values                                            | Usage                          |
+|------------------|----------|-------------------|------------------------------------------------------------|--------------------------------|
+| `#exampleId`     | Yes      | `#data-grid-1`    | String                                                     | Container's unique ID.         |
+| `.class`         | No       | `.new-class`      | String                                                     | Container's custom class.      |
+| `:preset`        | No       | `:react`          | [`preset`](.vuepress/handsontable-manager/dependencies.js) | Sets code dependencies.        |
+| `--codeOption 1` | Yes      | `--html 1 --js 2` | [`codeOption`](.vuepress/highlight.js) + Number            | Sets code snippets' positions. |
+| `--no-edit`      | No       | `--no-edit`       | `--no-edit`                                                | Removes the **Edit** button.   |
+| `--tab`          | No       | `--tab preview`   | [`codeOption`](.vuepress/highlight.js) \| `preview`        | Sets a tab as open by default. |
