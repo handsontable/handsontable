@@ -59,7 +59,7 @@ export class CustomPlugin extends BasePlugin {
     /**
      * BasePlugin's constructor adds to our custom plugin the following properties:
      * - `this.hot` - A reference to the Handsontable instance, you can't overwrite this property.
-     *                It also gives you the access to [columns and rows index mappers](../api/core/#members)
+     *                It also gives you the access to columns and rows index mappers.
      */
     super(hotInstance);
 
@@ -221,7 +221,7 @@ There are two ways to do that.
   // You need to register your plugin in order to use it within Handsontable.
   registerPlugin(CustomPlugin);
   ```
-- You can also use the alternative alias.
+- You can also use the custom alias. Put a string in the first argument. The registerer will use that string as an alias instead of the `PLUGIN_KEY` getter from `CustomPlugin`.
   ```js
   registerPlugin('CustomAlias', CustomPlugin);
   ```
@@ -239,7 +239,7 @@ const hotInstance = new Handsontable(container, {
   [CustomPlugin.PLUGIN_KEY]: true,
   // You can also enable the plugin by passing an object with options.
   [CustomPlugin.PLUGIN_KEY]: {
-    optionA: 'a',
+    msg: 'user-defined message',
   },
   // You can also initialize the plugin without enabling it at the beginning.
   [CustomPlugin.PLUGIN_KEY]: false,
