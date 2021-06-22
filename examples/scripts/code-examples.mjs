@@ -64,8 +64,7 @@ const updatePackageJsonWithVersion = (projectDir, version) => {
   packageJson.dependencies.handsontable = version;
 
   if (wrapper) {
-    // TODO: uncomment it when wrappers will be using the same versioning as Handsontable
-    // packageJson.dependencies[wrapper] = version;
+    packageJson.dependencies[wrapper] = version;
   }
 
   fs.writeJsonSync(packageJsonPath, packageJson, { spaces: 2 });
@@ -127,15 +126,15 @@ switch (shellCommand) {
         displayInfoMessage(`Start copying examples to: "${versionedDir}"`);
         fs.copySync(NEXT_EXAMPLES_DIR, versionedDir);
         displayConfirmationMessage(`Examples copied to: "${versionedDir}"`);
-  
+
         const versionedExamplesFolders = getExamplesFolders(versionedDir);
         const workspaceConfigFolders = getWorkspaceConfigFolders(versionedDir);
-  
+
         versionedExamplesFolders.forEach((versionedExampleDir) => {
           updatePackageJsonWithVersion(versionedExampleDir, hotVersion);
         });
         displayConfirmationMessage('package.json updated for code examples');
-  
+
         workspaceConfigFolders.forEach((frameworkFolder) => {
           updateFrameworkWorkspacesNames(frameworkFolder, hotVersion);
         });

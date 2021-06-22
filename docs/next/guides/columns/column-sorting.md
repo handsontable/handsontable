@@ -12,11 +12,11 @@ canonicalUrl: /column-sorting
 ## This guide has been moved permanently
 
 ::: tip
-Visit the [Row sorting](../row-sorting) page to learn about sorting data in Handsontable.
+Visit the [Row sorting](@/guides/rows/row-sorting.md) page to learn about sorting data in Handsontable.
 :::
 
 ## Why and when it's been moved
 
-This guide has been moved the Row Sorting page in May 2021. The reason is that we made a mistake when we first gave this plugin a name. In fact, what we do is comparing the values in rows and sorting them accordingly. Columns have nothing to do with it.
+This guide has been moved to the Row Sorting page in May 2021. This is due to a naming error when we first named this plugin. We compare the values in **rows** and sort them accordingly. Columns have nothing to do with it.
 
-However, we may one day introduce a genuine column sorting feature. The one that changes the order of columns based on the values in the selected row.
+At some point in the future, we may introduce a column sorting feature that would change the order of columns based on the values in the selected row.

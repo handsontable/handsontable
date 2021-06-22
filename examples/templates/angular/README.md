@@ -24,9 +24,10 @@ In order to run tests for this project call `npm run start` which will launch th
 
 ## License
 
-This example is released under the MIT license.
+Handsontable is a commercial software with two licenses available:
 
-Copyrights belong to Handsoncode sp. z o.o.
+- Free for non-commercial purposes such as teaching, academic research, and evaluation. [Read it here](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf).
+- Commercial license with support and maintenance included. See [pricing plans](https://handsontable.com/pricing).
 
 ## Contact support
 

@@ -12,12 +12,11 @@ tags:
 [[toc]]
 
 ## Overview
-
-We use the **Filters plugin** to allow filtering the data in the table's columns using a range of pre-defined conditions.
+The **Filters plugin** allows filtering the data in the table's columns using a range of pre-defined conditions.
 
 ## Basic configuration
 
-To enable the plugin you need to set the `filters` property to `true` and enable the filters dependency, which is the [dropdownMenu](dropdown-menu.md) plugin.
+To enable the plugin, set the `filters` property to `true` and enable the filters dependency, which is the [dropdownMenu](@/guides/columns/column-menu.md) plugin.
 
 ::: example #example1
 ```js
@@ -32,12 +31,12 @@ const hot = new Handsontable(container, {
     ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
   ],
   columns: [
-    {type: 'text'},
-    {type: 'text'},
-    {type: 'text'},
-    {type: 'text'},
-    {type: 'date', dateFormat: 'M/D/YYYY'},
-    {type: 'numeric'}
+    { type: 'text' },
+    { type: 'text' },
+    { type: 'text' },
+    { type: 'text' },
+    { type: 'date', dateFormat: 'M/D/YYYY' },
+    { type: 'numeric' }
   ],
   colHeaders: true,
   rowHeaders: true,
@@ -50,13 +49,13 @@ const hot = new Handsontable(container, {
 
 ## Custom filter menu
 
-To display filters while hiding the other elements in the dropdown menu, pass the elements to be displayed as an array in the configuration.
+To display filters while hiding the other elements in the dropdown menu, pass the elements to be displayed as an array into the configuration.
 
 ::: example #example2
 ```js
 const container = document.querySelector('#example2');
 
-const hot2 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
     ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
@@ -65,12 +64,12 @@ const hot2 = new Handsontable(container, {
     ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
   ],
   columns: [
-    {type: 'text'},
-    {type: 'text'},
-    {type: 'text'},
-    {type: 'text'},
-    {type: 'date', dateFormat: 'M/D/YYYY'},
-    {type: 'numeric'}
+    { type: 'text' },
+    { type: 'text' },
+    { type: 'text' },
+    { type: 'text' },
+    { type: 'date', dateFormat: 'M/D/YYYY' },
+    { type: 'numeric' }
   ],
   colHeaders: true,
   rowHeaders: true,
@@ -83,19 +82,19 @@ const hot2 = new Handsontable(container, {
 
 ## Custom implementations
 
-The examples below will give you a good idea on how to adjust the Filter plugin to your needs. That includes customizing the UI components, changing the default behavior and using filters from the outside of the table.
+The examples below show how to adjust the Filter plugin to your needs. They include customizing the UI components, changing the default behavior, and using filters outside the table.
 
 ### Filter as you type
 
-We placed a basic `input` element inside a column’s header (A, B, C…), right below the label of the column. For a better visibility it is separated with a horizontal line. The data is being filtered as you type - with a 100 ms delay. The filter element has been excluded from the selection event so when you click on it, the column doesn’t get selected.
+In this example, a basic `input` element has been placed inside a column’s header (A, B, C…). It is placed right below the column's label and is separated with a horizontal line for better visibility. The data is being filtered as you type - with a 100 ms delay. The filter element has been excluded from the selection event, so the column doesn’t get selected when clicked on.
 
 Please note that this demo uses a Handsontable API to a great extent.
 
 ::: example #example3
 ```js
-// Event for `keydown` event. Add condition after delay of 200 ms which is counted from time of last pressed key.
+// Event for `keydown` event. Add condition after delay of 200 ms which is counted from the time of last pressed key.
 const debounceFn = Handsontable.helper.debounce((colIndex, event) => {
-  const filtersPlugin = hot3.getPlugin('filters');
+  const filtersPlugin = hot.getPlugin('filters');
 
   filtersPlugin.removeConditions(colIndex);
   filtersPlugin.addCondition(colIndex, 'contains', [event.target.value]);
@@ -124,7 +123,7 @@ const getInitializedElements = colIndex => {
 
 // Add elements to header on `afterGetColHeader` hook.
 const addInput = (col, TH) => {
-  // Hooks can return value other than number (for example `columnSorting` plugin use this).
+  // Hooks can return a value other than number (for example `columnSorting` plugin uses this).
   if (typeof col !== 'number') {
     return col;
   }
@@ -134,16 +133,9 @@ const addInput = (col, TH) => {
   }
 };
 
-// Deselect column after click on input.
-const doNotSelectColumn = (event, coords) => {
-  if (coords.row === -1 && event.target.nodeName === 'INPUT') {
-    event.stopImmediatePropagation();
-    this.deselectCell();
-  }
-};
 const container = document.querySelector('#example3');
 
-const hot3 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
     ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],
@@ -157,7 +149,13 @@ const hot3 = new Handsontable(container, {
   filters: true,
   colWidths: 100,
   afterGetColHeader: addInput,
-  beforeOnCellMouseDown: doNotSelectColumn,
+  beforeOnCellMouseDown(event, coords) {
+    // Deselect the column after clicking on input.
+    if (coords.row === -1 && event.target.nodeName === 'INPUT') {
+      event.stopImmediatePropagation();
+      this.deselectCell();
+    }
+  },
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -165,32 +163,34 @@ const hot3 = new Handsontable(container, {
 
 ### Filter from the outside the table
 
-The external Filter component is controlling the main table by passing values for particular columns. Only a fraction of the code is related with Handsontable API, for example `addConditionsByValue`, `filter`, `removeConditions`.
+The external Filter component is controlling the main table by passing values for particular columns. Only a fraction of the code is related to Handsontable API, for example, `addConditionsByValue`, `filter`, and `removeConditions`.
 
-Please mind that selecting a column in the Filter component resets the state of the table. This implementation can filter only one column at a time.
+::: tip
+Note that selecting a column in the Filter component resets the state of the table. This implementation can filter only one column at a time.
+:::
 
 ::: example #example4 --html 1 --js 2
 ```html
 <div id="example4" class="hot"></div>
-<div id='externalFilter'>
-  <div class='columnChoose'>
+<div id="externalFilter">
+  <div class="columnChoose">
     <label>Choose Column: </label>
     <select></select>
   </div>
 
-  <div id='filterSelect'>
-    <div class='controllers'>
+  <div id="filterSelect">
+    <div class="controllers">
       <div>
-        <input type='checkbox' id='filtersSelectAll' checked="true" />
+        <input type='checkbox' id='filtersSelectAll' checked="checked" />
         <label for='filtersSelectAll'>(Select all)</label>
       </div>
     </div>
-    <div class='items'></div>
+    <div class="items"></div>
   </div>
 
-  <div class='buttons controls'>
-    <button class='apply'>Apply filter</button>
-    <button class='clear'>Clear filter</button>
+  <div class="buttons controls">
+    <button class="apply">Apply filter</button>
+    <button class="clear">Clear filter</button>
   </div>
 </div>
 ```
@@ -432,7 +432,7 @@ class Controller {
 
 const container = document.querySelector('#example4');
 
-const hot4 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
     ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],

@@ -36,14 +36,14 @@ const data = [
   ['2021', '', '', '', '']
 ];
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   licenseKey: 'non-commercial-and-evaluation',
   fillHandle: true // possible values: true, false, "horizontal", "vertical",
 });
 
-hot1.loadData(data);
+hot.loadData(data);
 ```
 :::
 
@@ -64,7 +64,7 @@ const data = [
   ['2021', '', '', '', '']
 ];
 
-const hot2 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: data,
   rowHeaders: true,
   colHeaders: true,

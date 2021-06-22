@@ -11,6 +11,8 @@ tags:
 
 # Plugins
 
+[[toc]]
+
 ## Overview
 
 Plugin is a one great way to extend the capabilities of Handsontable. In fact, most of features available in this library are provided by plugins.

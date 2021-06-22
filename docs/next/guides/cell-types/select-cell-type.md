@@ -7,7 +7,13 @@ canonicalUrl: /select-cell-type
 
 # Select cell type
 
-Select editor should be considered an example how to write editors rather than used as a fully featured editor. It is a much simpler form of the [Dropdown editor](dropdown-cell-type.md). It is suggested to use the latter in your projects.
+[[toc]]
+
+## Overview
+The select cell type is a simpler form of the dropdown cell type.
+
+## Usage
+The select editor should be considered an example of how to write editors rather than used as a fully-featured editor. It is a much simpler form of the [Dropdown editor](@/guides/cell-types/dropdown-cell-type.md). We recommend that you use the latter in your projects.
 
 ::: example #example1
 ```js

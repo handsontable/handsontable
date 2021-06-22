@@ -27,7 +27,7 @@ Handsontable does not display the values stored in the data source directly. Ins
 
 ## Editor
 
-Cell editors are the most complex cell functions. We have prepared a separate page [custom cell editor](cell-editor.md) explaining how cell edit works and how to write your own cell editor.
+Cell editors are the most complex cell functions. We have prepared a separate page [custom cell editor](@/guides/cell-functions/cell-editor.md) explaining how cell edit works and how to write your own cell editor.
 
 ## Validator
 
@@ -37,7 +37,7 @@ Contrary to `renderer` and `editor` functions, the `validator` function doesn't 
 
 ## Cell type
 
-Manually defining those functions for cells or columns would be tedious, so to simplify the configuration, Handsontable introduced [cell types](../cell-types/cell-type.md).
+Manually defining those functions for cells or columns would be tedious, so to simplify the configuration, Handsontable introduced [cell types](@/guides/cell-types/cell-type.md).
 
 ## Cell functions getters
 
@@ -48,6 +48,7 @@ const container = document.querySelector('#container');
 
 // get cell properties for cell [0, 0]
 const cellProperties = hot.getCellMeta(0, 0);
+
 cellProperties.renderer; // get cell renderer
 cellProperties.editor; // get cell editor
 cellProperties.validator; // get cell validator
@@ -66,6 +67,7 @@ const hot = new Handsontable(container, {
 
 // get cell properties for cell [0, 0]
 const cellProperties = hot.getCellMeta(0, 0);
+
 cellProperties.renderer; // undefined
 cellProperties.editor; // undefined
 cellProperties.validator; // undefined

@@ -1,7 +1,13 @@
 import { extend, isObject } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
 import { normalizeSettings } from './settingsNormalizer';
-import { HEADER_CONFIGURABLE_PROPS } from './constants';
+
+/**
+ * List of properties which are configurable. That properties can be changed using public API.
+ *
+ * @type {string[]}
+ */
+export const HEADER_CONFIGURABLE_PROPS = ['label', 'collapsible'];
 
 /**
  * The class manages and normalizes settings passed by the developer
@@ -146,7 +152,7 @@ export default class SourceSettings {
     for (let i = columnIndex; i < headersSettings.length; i++) {
       const headerSettings = headersSettings[i];
 
-      if (headerSettings.isHidden === true) {
+      if (headerSettings.isPlaceholder) {
         throw new Error('The first column settings cannot overlap the other header layers');
       }
 

@@ -10,7 +10,7 @@ canonicalUrl: /formula-calculation
 [[toc]]
 
 ::: tip
-This feature will be soon replaced by the plugin integrating Handsontable with the calculation engine. [Learn more](../hyperformula-integration) 
+This feature will be soon replaced by the plugin integrating Handsontable with the calculation engine. [Learn more](@/guides/formulas/hyperformula-integration.md)
 :::
 
 ## Overview
@@ -47,7 +47,7 @@ To enable the plugin you need to set the `formulas` property to `true`. Cells th
 const container = document.querySelector('#example1');
 
 const data = [
-  ['=$B$2', "Maserati", "Mazda", "Mercedes", "Mini", "=A$1"],
+  ['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1'],
   [2009, 0, 2941, 4303, 354, 5814],
   [2010, 5, 2905, 2867, '=SUM(A4,2,3)', '=$B1'],
   [2011, 4, 2517, 4822, 552, 6127],
@@ -114,8 +114,8 @@ At some point, you may want to update the custom variable's value. To do so, you
 ```
 ```js
 const container = document.querySelector('#example3');
-const inputBox = document.querySelector("#calculate-field")
-const calculateButton = document.querySelector("#calculate")
+const inputBox = document.querySelector('#calculate-field')
+const calculateButton = document.querySelector('#calculate')
 
 const data = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
@@ -190,8 +190,8 @@ const hot = new Handsontable(container, {
     }
   },
   mergeCells: [
-    {row: 0, col: 0, rowspan: 1, colspan: 8},
-    {row: 11, col: 0, rowspan: 1, colspan: 8},
+    { row: 0, col: 0, rowspan: 1, colspan: 8 },
+    { row: 11, col: 0, rowspan: 1, colspan: 8 },
   ],
 });
 ```

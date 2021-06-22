@@ -36,12 +36,6 @@ module.exports.create = function create(envArgs) {
         commonjs: 'pikaday',
         amd: 'pikaday',
       },
-      'hot-formula-parser': {
-        root: 'formulaParser',
-        commonjs2: 'hot-formula-parser',
-        commonjs: 'hot-formula-parser',
-        amd: 'hot-formula-parser',
-      },
       dompurify: {
         root: 'DOMPurify',
         commonjs2: 'dompurify',

@@ -7,8 +7,10 @@ canonicalUrl: /angular-custom-id
 
 # Custom ID
 
-You can easily pass `id` and other attributes to the `hot-table` wrapper element.
-It will be applied to the root Handsontable element, allowing further customization of the table.
+## Overview
+A custom `id` can be passed in together with other attributes to the `hot-table` wrapper element. It will be applied to the root Handsontable element, allowing further customization of the table.
+
+## Example
 
 ::: example :angular --html 1 --js 2
 ```html

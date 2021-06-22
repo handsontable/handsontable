@@ -15,18 +15,17 @@ The **Hidden Rows** plugin allows hiding specific rows from the table.
 
 ## Quick setup
 
-The `hiddenRows` parameter accepts an object. To provide the rows to hide, you need to specify the `rows` property for the object - it should be defined as an array of numbers, which represents the indexes of rows that need to be hidden.
+The `hiddenRows` parameter accepts an object. To provide the rows to hide, specify the `rows` property for the object. It should be defined as an array of numbers representing the indexes of rows that need to be hidden.
 
 See [the examples section](#example) for more details.
 
 ## Additional options
 
-The plugin allows displaying hidden row indicators in the headers, to notify the user which rows have been hidden.
-To enable them, set the `indicators` property in the plugin's configuration object to `true`.
+The plugin provides the option to display hidden row indicators in the headers to notify the user which rows have been hidden. To enable them, set the `indicators` property in the plugin's configuration object to `true`.
 
-You can change the selection area of copy/paste range by setting `copyPasteEnabled` property to `true` or `false`. By default this property is set to `true`. If set to `false`, then hidden rows are being skipped for copy/paste actions.
+To change the selection area of the copy/paste range, set the `copyPasteEnabled` property to `true` or `false`. By default, this property is set to `true`. If set to `false`, the hidden rows are being skipped for copy/paste actions.
 
-You can show/hide certain rows straight from the [Context menu](context-menu.md) using the following keys: `hidden_rows_show` and `hidden_rows_hide`.
+To show/hide certain rows directly from the [Context menu](@/guides/accessories-and-menus/context-menu.md), use the following keys: `hidden_rows_show` and `hidden_rows_hide`.
 
 ## Example
 
@@ -34,7 +33,7 @@ You can show/hide certain rows straight from the [Context menu](context-menu.md)
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(12,5),
   colHeaders: true,
   rowHeaders: true,
@@ -50,7 +49,7 @@ const hot1 = new Handsontable(container, {
 
 ## API examples
 
-You can access the plugin instance by calling
+To access the plugin instance call:
 
 ```js
 const plugin = hot.getPlugin('hiddenRows');
@@ -62,7 +61,7 @@ To hide a single row, call the `hideRow` method of the plugin object:
 plugin.hideRow(4);
 ```
 
-To hide multiple rows, you can either pass them as arguments to the `hideRow` method, or pass an array of indexes to the `hideRows` method:
+To hide multiple rows, either pass them as arguments to the `hideRow` method, or pass an array of indexes to the `hideRows` method:
 
 ```js
 plugin.hideRow(0, 4, 6);
@@ -82,4 +81,4 @@ plugin.showRow(0, 4, 6);
 plugin.showRows([0, 4, 6]);
 ```
 
-To see the changes you made, call `hot.render();` to re-render the table.
+To see the changes made, call `hot.render();` to re-render the table.

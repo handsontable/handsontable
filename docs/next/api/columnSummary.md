@@ -13,7 +13,7 @@ editLink: false
 ## Description
 
 Allows making pre-defined calculations on the cell values and display the results within Handsontable.
-[See the demo for more information](https://handsontable.com/docs/demo-summary-calculations.html).
+[See the demo for more information](@/guides/columns/column-summary.md).
 
 **Example**  
 ```js
@@ -44,11 +44,53 @@ const hot = new Handsontable(container, {
 });
 ```
 
+## Options
+
+### columnSummary
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/dataMap/metaManager/metaSchema.js#L2704
+
+:::
+
+_columnSummary.columnSummary : Array&lt;object&gt; | function_
+
+Allows making pre-defined calculations on the cell values and display the results within Handsontable.
+
+Possible types:
+ * `'sum'`
+ * `'min'`
+ * `'max'`
+ * `'count'`
+ * `'average'`
+ * `'custom'` - add `customFunction`.
+
+[See the demo for more information](@/guides/columns/column-summary.md).
+
+**Default**: <code>undefined</code>  
+**Example**  
+```js
+columnSummary: [
+  {
+    destinationRow: 4,
+    destinationColumn: 1,
+    forceNumeric: true,
+    reversedRowCoords: true,
+    suppressDataTypeErrors: false,
+    readOnly: true,
+    roundFloat: false,
+    type: 'custom',
+    customFunction: function(endpoint) {
+       return 100;
+    }
+  }
+],
+```
+
 ## Methods
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/columnSummary/columnSummary.js#L109
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/columnSummary/columnSummary.js#L109
 
 :::
 
@@ -60,7 +102,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/columnSummary/columnSummary.js#L77
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/columnSummary/columnSummary.js#L77
 
 :::
 
@@ -72,7 +114,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/columnSummary/columnSummary.js#L70
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/columnSummary/columnSummary.js#L70
 
 :::
 

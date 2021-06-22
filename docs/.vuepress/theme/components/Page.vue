@@ -12,25 +12,39 @@
 </template>
 
 <script>
-import PageEdit from '@theme/components/PageEdit.vue'
-import PageNav from '@theme/components/PageNav.vue'
+import PageEdit from '@theme/components/PageEdit.vue';
+import PageNav from '@theme/components/PageNav.vue';
 
 export default {
   components: { PageEdit, PageNav },
   props: ['sidebarItems'],
-  computed:{
-    isApi() {
-      return this.$route.fullPath.match(/([^/]*\/)?api\//);
-    }
-  },
-  methods: {
-    codePreviewTabChanged(selectedTab, hotId) {
-      const hot = window.instanceRegister.get(hotId);
-
-      if (selectedTab.tab.computedId === 'preview' && hot) {
-        hot.render();
+  watch: {
+    $route(to, from) {
+      // Do not reset the `activatedExamples` array when the anchor is changed.
+      if (to.path !== from.path) {
+        this.activatedExamples = [];
       }
     }
   },
-}
+  data() {
+    return {
+      activatedExamples: [],
+    };
+  },
+  computed: {
+    isApi() {
+      return this.$route.fullPath.match(/([^/]*\/)?api\//);
+    },
+  },
+  methods: {
+    codePreviewTabChanged(selectedTab, exampleId) {
+      if (selectedTab.tab.computedId.startsWith('preview-tab')) {
+        this.activatedExamples.push(exampleId);
+      }
+    },
+    isScriptLoaderActivated(exampleId) {
+      return this.activatedExamples.includes(exampleId);
+    }
+  },
+};
 </script>

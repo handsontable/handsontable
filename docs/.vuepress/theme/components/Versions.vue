@@ -16,44 +16,45 @@ export default {
     DropdownLink
   },
   methods: {
-    addLatest (version) {
+    addLatest(version) {
       if (version === this.$page.latestVersion) {
         return `${version} (Current)`;
       }
 
       return version;
     },
-    getLink(version){
+    getLink(version) {
       if (version === this.$page.latestVersion) {
         return '/';
       }
 
       return `/${version}/`;
     },
-    getLegacyVersions () {
+    getLegacyVersions() {
       return [
-        '8.3.0',
-        '8.2.0',
-        '8.1.0',
-        '8.0.0',
-        '6.2.2',
-        '7.4.2',
-        '7.3.0',
-        '7.2.2',
-        '7.1.1',
-        '7.0.3',
-        '6.1.1',
-        '6.0.1',
-        '5.0.2',
-        '4.0.0'
-      ].map(v=>({
-        text: v.replace(/^(\d*\.\d*)\..*$/,'$1'),
-        link: `https://handsontable.com/docs/${v}/`
-      }))
+        '8.4',
+        '8.3',
+        '8.2',
+        '8.1',
+        '8.0',
+        '7.4',
+        '7.3',
+        '7.2',
+        '7.1',
+        '7.0',
+        '6.2',
+        '6.1',
+        '6.0',
+        '5.0',
+        '4.0',
+      ].map(version => ({
+        text: version,
+        link: `https://handsontable.com/docs/${version}/`
+      }));
     }
   },
   computed: {
-    item () {
+    item() {
       return {
         text: this.addLatest(this.$page.currentVersion),
         items:
@@ -61,7 +62,7 @@ export default {
             ...this.$page.versions.map(v => ({ text: `${this.addLatest(v)}`, link: this.getLink(v) })),
             ...this.getLegacyVersions()
           ]
-      }
+      };
     }
   }
 };
@@ -74,18 +75,18 @@ export default {
   position relative
   top -1px
   text-transform capitalize
-  
+
   .dropdown-title {
     text-transform capitalize
   }
 
   .icon.outbound
     display none
-    
-  .dropdown-wrapper 
+
+  .dropdown-wrapper
     height 1.8rem
 
-  .dropdown-wrapper .nav-dropdown 
+  .dropdown-wrapper .nav-dropdown
     min-width 150px
     height auto !important
     box-sizing border-box

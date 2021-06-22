@@ -11,13 +11,23 @@ canonicalUrl: /numeric-cell-type
 
 ## Overview
 
-By default, Handsontable treats all cell values as `string` type. This is because `<textarea>` returns a string as its value. In many cases you will prefer cell values to be treated as `number` type. This allows to format displayed numbers nicely and sort them correctly.
+By default, Handsontable treats all cell values as `string` type. This is because the `<textarea>` returns a string as its value. There are many cases where you need cell values to be treated as a `number` type. The numeric cell type allows you to format displayed numbers nicely and sort them correctly.
 
-To trigger the Numeric cell type, use the option `type: 'numeric'` in `columns` array or `cells` function. Make sure your cell values are numbers and not strings as Handsontable will not parse strings to numbers. You can input float-typed values in the numeric editor only using a dot or a comma as a decimal separator. For example, both `500000.5`, `500000,5` will be accepted. You are not able to use thousands separator in the editor.
+## Usage
 
-You can format the displayed values of the entered numbers. It can be done using the `numericFormat` option. Please keep in mind that it **have no influence on the way you enter data**.
+To trigger the Numeric cell type, use the option `type: 'numeric'` in the `columns` array or `cells` function. 
 
-Note that all the positive and negative integers whose magnitude is no greater than 253 (+/- 9007199254740991) are representable in the `Number` type (safe integer). Any calculations that are performed on bigger numbers won't be calculated precisely due to JavaScript limitation.
+::: tip 
+Ensure your cell values are numbers and not strings, as Handsontable will not parse strings to numbers. 
+:::
+
+You can input float-type values in the numeric editor using a dot or a comma as a decimal separator. For example, both `500000.5`, `500000,5` will be accepted. You are not able to use a thousands separator in the editor.
+
+You can format the displayed values of the entered numbers using the `numericFormat` option. Note that it ** does not influence the way you enter data**.
+
+::: tip
+All the positive and negative integers whose magnitude is no greater than 253 (+/- 9007199254740991) are representable in the `Number` type, i.e., safe integer. Any calculations that are performed on bigger numbers won't be calculated precisely due to JavaScript limitations.
+:::
 
 ## Basic example
 
@@ -39,7 +49,7 @@ const hot = new Handsontable(container, {
   columns: [
     {
       data: 'car'
-      // 1nd column is simple text, no special options here
+      // 1st column is simple text, no special options here
     },
     {
       data: 'year',

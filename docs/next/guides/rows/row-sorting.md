@@ -11,26 +11,33 @@ canonicalUrl: /row-sorting
 
 ## Overview
 
-The column sorting plugin works as a proxy between the datasource and the Handsontable rendering module. It can map indices of displayed rows (called “visual indices”) to the indices of corresponding rows in the datasource (called “physical indices”) and vice versa. This way you can alter the order of rows which are being presented to a user, without changing the datasource’s internal structure. The sort operation is performed using a [stable sort alghoritm](https://en.wikipedia.org/wiki/Sorting_algorithm#Stability) regardless of the browser you use and the size of the data set which you sort.
+The column sorting plugin works as a proxy between the datasource and the Handsontable rendering module.
+It can:
+* Map indices of displayed rows `visual indices` to the indices of corresponding rows in the datasource `physical indices` and vice versa
+* Alter the order of rows presented to a user without changing the datasource’s internal structure
+
+The sort operation is performed using a [stable sort algorithm](https://en.wikipedia.org/wiki/Sorting_algorithm#Stability) regardless of the browser you use or the size of the data set which you sort.
 
 ::: tip
-Please keep in mind that you shouldn't enable both the `columnSorting` and `multiColumnSorting` plugins simultaneously.
+The `columnSorting` and `multiColumnSorting` plugins shouldn't be enabled simultaneously.
 :::
 
 ## Basic plugin configuration
 
-The simplest way to enable the plugin is to just set the `columnSorting` key to `true`. You will then be able to **use [the API methods](#api)** and **click on the header to sort**, as you can see in the example below. What's more, by default:
+The simplest way to enable the plugin is to set the `columnSorting` key to `true`. You will then be able to **use [the API methods](#api)** and **click on the header to sort**, as shown in the example below:
 
-* no column will be sorted initially,
-* a sorting indicator will be enabled,
-* empty cells won't be sorted,
-* the sort method will use default compare functions (read more about them [here](#default-compare-functions)).
+By default:
+
+* No column will be sorted initially
+* A sorting indicator will be enabled
+* Empty cells won't be sorted
+* The sort method will use default compare functions - read more about them [here](#default-compare-functions)
 
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     ['Tesla', 'Model 3', 'BlueStar', 'USA', '★★★★'],
     ['Tesla', 'Model S', 'WhiteStar', 'USA', '★★★★★'],
@@ -54,23 +61,25 @@ const hot1 = new Handsontable(container, {
 
 ## Extended plugin configuration
 
-You can customize plugin options by providing configuration as an `object`. Here is the list of possible options to set:
+Plugin options can be customized by providing a configuration as an `object`.
 
-* `initialConfig` (`Object`), which determines the initial sort status for some column; it contains the following keys:
-  * `column` (`Number`), which determines the visual index of the sorted column
-  * `sortOrder` (`String`), which determines the order that the column will be sorted in (possible values: `'asc'` and `'desc'`)
-* `indicator` (`Boolean`), which defines whether the sorting order indicator is displayed (an arrow icon in the column header specifying the sorting order),
-* `sortEmptyCells` (`Boolean`), which defines whether empty cells should take part in the sorting process,
-* `headerAction` (`Boolean`), which defines whether clicking the header should sort the table,
-* `compareFunctionFactory` (`Function`), which defines the compare function factory (described in more detail in [this section](#custom-compare-functions)).
+Here is the list of possible options to set:
 
-Please take a look at the example plugin configuration below.
+* `initialConfig` (`Object`) determines the initial sort status for some column. It contains the following keys:
+  * `column` (`Number`) determines the visual index of the sorted column
+  * `sortOrder` (`String`) determines the order that the column will be sorted in - possible values: `'asc'` and `'desc'`
+* `indicator` (`Boolean`) defines whether the sorting order indicator is displayed - an arrow icon in the column header specifying the sorting order
+* `sortEmptyCells` (`Boolean`) defines whether empty cells should take part in the sorting process
+* `headerAction` (`Boolean`) defines whether clicking the header should sort the table
+* `compareFunctionFactory` (`Function`) defines the compare function factory - described in more detail in [this section](#custom-compare-functions)
+
+See the example plugin configuration below:
 
 ::: example #example2
 ```js
 const container = document.querySelector('#example2');
 
-const hot2 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     ['Tesla', 'Model 3', 'BlueStar', 'USA', '★★★★'],
     ['Tesla', 'Model S', 'WhiteStar', 'USA', '★★★★★'],
@@ -99,19 +108,21 @@ const hot2 = new Handsontable(container, {
 ```
 :::
 
-Please keep in mind that options defined by the `columnSorting` key in the main Handsontable settings apply to the entire table. Most of them can also be set for a particular column, as described in [this section](#column-options).
+::: tip
+Options defined by the `columnSorting` key in the main Handsontable settings apply to the entire table. Most of them can also be set for a particular column, as described in [this section](#column-options).
+:::
 
-## Default compare functions (sorting different kinds of data)
+## Default compare functions - sorting different kinds of data
 
-As in the native [`Array.sort`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) method, our internal sorting alghoritm uses the **compare function** (also known as **comparator**). Different kinds of cells (like [`date, numeric, text`](cell-types.md)) are treated in a different way. Each of them have their own comparator for sorting a particular data type.
+As in the native [Array.sort](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) method, our internal sorting algorithm uses the **compare function** - also known as a **comparator**. Different kinds of cells like [date, numeric, text](@/guides/cell-types/cell-type.md) are treated differently. Each of them has its own comparator for sorting a particular data type.
 
-As a result, you can see that different types of data are sorted properly. `Handsontable` simply needs the declared data type for the column, as you can see in the example below.
+As a result, you can see that different types of data are sorted properly. `Handsontable` simply needs the declared data type for the column, as shown in the example below.
 
 ::: example #example3
 ```js
 const container = document.querySelector('#example3');
 
-const hot3 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
     { brand: 'Tesla', model: 'Model S', maxSpeed: 139, range: 275, seats: 7, price: 71788, productionDate: '04/02/2012' },
@@ -164,9 +175,9 @@ const hot3 = new Handsontable(container, {
 
 ## Custom compare functions
 
-You can provide your own compare function to the sorting algorithm. This function should look the same as an argument in the native [`Array.sort`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#Parameters) method (read the [description here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#Description)). It is handled by the plugin when `compareFunctionFactory` is defined in the configuration. Something which we call a **compare function factory** must be placed under this key. The factory takes as parameters `sortOrder` and `columnMeta` and returns the compare function.
+You can pass in your own custom compare function to the sorting algorithm. This function should look the same as an argument in the native [Array.sort](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#Parameters) method - read the [description here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#Description). It is handled by the plugin when `compareFunctionFactory` is defined in the configuration. The **compare function factory** must be placed under this key. The factory takes the parameters `sortOrder` and `columnMeta` and returns the compare function.
 
-Please take a look at the example below which shows how the custom compare function factory should look.
+The example below shows how the custom compare function factory should look:
 
 ```js
 function compareFunctionFactory(sortOrder, columnMeta) {
@@ -176,17 +187,17 @@ function compareFunctionFactory(sortOrder, columnMeta) {
 };
 ```
 
-In the next section we’ll take a look how it may be used just for certain columns.
+The next section details how the plugin may be used just for certain columns.
 
 ## Plugin options for certain columns only
 
-The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `headerAction`, `indicator` may be set just for a particular column. This can be done through the use of the [columns](api/dataMap/metaManager/metaSchema.md#columns) option. The example below demonstrates how to disable the indicator and **completely block sorting action for the first column**.
+The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `headerAction`, `indicator`, can be set just for a particular column. This can be done by using [columns](@/api/metaSchema.md#columns) option. The example below demonstrates how to disable the indicator and **completely block sorting action for the first column**:
 
 ::: example #example4
 ```js
 const container = document.querySelector('#example4');
 
-const hot4 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     { brand: 'Tesla', model: 'Model 3', maxSpeed: 141, range: 215, seats: 5, price: 32750, productionDate: '06/29/2007' },
     { brand: 'Tesla', model: 'Model S', maxSpeed: 139, range: 275, seats: 7, price: 71788, productionDate: '04/02/2012' },
@@ -245,13 +256,18 @@ const hot4 = new Handsontable(container, {
 
 ## Custom sort implementation
 
-The plugin exposes the `setSortConfig` method, which was designed for the purpose of setting the internal sort state. Please keep in mind that the data set **won't be sorted** just by using this method. However, the `isSorted` and `getSortConfig` methods will return results corresponding to the previously set configuration. To use a custom sort implementation you have to:
+The plugin exposes the `setSortConfig` method. Use this to set the internal sort state.
 
-* provide a callback for the `beforeColumnSort` hook which will return `false`,
-* sort data by yourself (for example, on the server side),
-* set the internal state of the sort by using the `setSortConfig` method.
+::: tip
+The data set **won't be sorted** just by using this method. The `isSorted` and `getSortConfig` methods will return results corresponding to the previously set configuration.
+:::
 
-Please take a look at the custom sort implementation in the snippet below.
+To use a custom sort implementation, you need to:
+* Provide a callback for the `beforeColumnSort` hook, which will return `false`
+* Sort data by yourself - for example, on the server-side
+* Set the internal state of the sort by using the `setSortConfig` method
+
+The code snippet below provides an example of a custom sort implementation:
 
 ```js
 beforeColumnSort(currentSortConfig, destinationSortConfigs) {
@@ -271,18 +287,21 @@ beforeColumnSort(currentSortConfig, destinationSortConfigs) {
 
 The plugin provides two hooks:
 
-* [`beforeColumnSort`](api/pluginHooks.md#beforecolumnsort), which as the name suggests is run before the sort. This means that the actual sort configuration obtained by the `getSortConfig` method within the callback will be equal to the sort configuration preserved before the hook call. The callback for `beforeColumnSort`, which will return `false`, will stop the table from being sorted. As a result, the `afterColumnSort` hook will not be called.
-* [`afterColumnSort`](api/pluginHooks.md#aftercolumnsort), which is run always after the sorting, unless the callback for `beforeColumnSort` hook returns `false`.
+* [beforeColumnSort](@/api/pluginHooks.md#beforecolumnsort) runs before the sort
+  * The sort configuration obtained by the `getSortConfig` method within the callback will match the sort configuration preserved before the hook call
+  * The callback for `beforeColumnSort` will return `false` and stop the table from being sorted, which results in the `afterColumnSort` hook not being called
+* [afterColumnSort](@/api/pluginHooks.md#aftercolumnsort) always runs after sorting unless the callback for `beforeColumnSort` hook returns `false`
 
-Please keep in mind that hooks are also run when you use the `clearSort` method or provide a configuration that won't be processed (validation will fail).
+::: tip
+Hooks are also run when you use the `clearSort` method or provide a configuration that won't be processed, causing validation to fail.
+:::
 
 ## Plugin API
 
 List of methods exposed by the plugin:
 
-* [`clearSort`](api/plugins/columnSorting/columnSorting.md#clearsort)
-* [`getSortConfig`](api/plugins/columnSorting/columnSorting.md#getsortconfig)
-* [`isSorted`](api/plugins/columnSorting/columnSorting.md#issorted)
-* [`setSortConfig`](api/plugins/columnSorting/columnSorting.md#setsortconfig)
-* [`sort`](api/plugins/columnSorting/columnSorting.md#sort)
-
+* [clearSort](@/api/columnSorting.md#clearsort)
+* [getSortConfig](@/api/columnSorting.md#getsortconfig)
+* [isSorted](@/api/columnSorting.md#issorted)
+* [setSortConfig](@/api/columnSorting.md#setsortconfig)
+* [sort](@/api/columnSorting.md#sort)

@@ -13,7 +13,7 @@ export const PLUGIN_PRIORITY = 240;
  * The plugin enables exporting table data to file. It allows to export data as a string, blob or a downloadable file in
  * CSV format.
  *
- * See [the export file demo](https://handsontable.com/docs/demo-export-file.html) for examples.
+ * See [the export file demo](@/guides/accessories-and-menus/export-to-csv.md) for examples.
  *
  * @example
  * ```js

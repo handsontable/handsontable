@@ -6,6 +6,7 @@
 const path = require('path');
 const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
+const webpack = require('webpack');
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
@@ -13,6 +14,7 @@ module.exports.create = function create(envArgs) {
   config.forEach(function(c) {
     c.devtool = 'cheap-module-source-map';
     c.target = 'web';
+    c.cache = true;
     c.output = {
       libraryTarget: 'var',
       filename: '[name].entry.js',
@@ -51,7 +53,6 @@ module.exports.create = function create(envArgs) {
           '../node_modules/numbro/dist/languages.min.js',
           '../node_modules/moment/moment.js',
           '../node_modules/pikaday/pikaday.js',
-          '../node_modules/hot-formula-parser/dist/formula-parser.js',
           '../node_modules/dompurify/dist/purify.js',
           '../dist/handsontable.js',
           '../dist/languages/all.js',

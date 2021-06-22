@@ -46,23 +46,17 @@ let activeGuid = null;
  * @core
  * @class Core
  * @description
- * After Handsontable is constructed, you can modify the grid behavior using the available public methods.
  *
- * ## How to call methods.
+ * The `Handsontable` class to which we refer as to `Core`, allows you to modify the grid's behavior by using one of the available public methods.
  *
- * These are 2 equal ways to call a Handsontable method:
+ * ## How to call a method
  *
  * ```js
- * // all following examples assume that you constructed Handsontable like this
- * const hot = new Handsontable(document.getElementById('example1'), options);
+ * // First, let's contruct Handsontable
+ * const hot = new Handsontable(document.getElementById('example'), options);
  *
- * // now, to use setDataAtCell method, you can either:
+ * // Then, let's use the setDataAtCell method
  * hot.setDataAtCell(0, 0, 'new value');
- * ```
- *
- * Alternatively, you can call the method using jQuery wrapper (__obsolete__, requires initialization using our jQuery guide
- * ```js
- * $('#example1').handsontable('setDataAtCell', 0, 0, 'new value');
  * ```
  *
  * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
@@ -215,7 +209,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.selection = selection;
 
-  const onIndexMapperCacheUpdate = (flag1, flag2, hiddenIndexesChanged) => {
+  const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }) => {
     if (hiddenIndexesChanged) {
       this.selection.refresh();
     }
@@ -1991,11 +1985,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function loadData
    * @param {Array} data Array of arrays or array of objects containing data.
+   * @param {string} [source] Source of the loadData call.
    * @fires Hooks#beforeLoadData
    * @fires Hooks#afterLoadData
    * @fires Hooks#afterChange
    */
-  this.loadData = function(data) {
+  this.loadData = function(data, source) {
     if (Array.isArray(tableMeta.dataSchema)) {
       instance.dataType = 'array';
     } else if (isFunction(tableMeta.dataSchema)) {
@@ -2007,6 +2002,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (datamap) {
       datamap.destroy();
     }
+
+    data = instance.runHooks('beforeLoadData', data, firstRun, source);
 
     datamap = new DataMap(instance, data, tableMeta);
 
@@ -2056,8 +2053,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     tableMeta.data = data;
 
-    instance.runHooks('beforeLoadData', data, firstRun);
-
     datamap.dataSource = data;
     dataSource.data = data;
     dataSource.dataType = instance.dataType;
@@ -2070,7 +2065,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     grid.adjustRowsAndCols();
 
-    instance.runHooks('afterLoadData', data, firstRun);
+    instance.runHooks('afterLoadData', data, firstRun, source);
 
     if (firstRun) {
       firstRun = [null, 'loadData'];
@@ -2272,10 +2267,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     // Load data or create data map
     if (settings.data === void 0 && tableMeta.data === void 0) {
-      instance.loadData(null); // data source created just now
+      instance.loadData(null, 'updateSettings'); // data source created just now
 
     } else if (settings.data !== void 0) {
-      instance.loadData(settings.data); // data source given as option
+      instance.loadData(settings.data, 'updateSettings'); // data source given as option
 
     } else if (settings.columns !== void 0) {
       datamap.createMap();
@@ -3993,6 +3988,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     // The plugin's `destroy` method is called as a consequence and it should handle
     // unregistration of plugin's maps. Some unregistered maps reset the cache.
     instance.batchExecution(() => {
+      instance.rowIndexMapper.unregisterAll();
+      instance.columnIndexMapper.unregisterAll();
+
       pluginsRegistry
         .getItems()
         .forEach(([, plugin]) => {
@@ -4026,6 +4024,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     instance.rowIndexMapper = null;
     instance.columnIndexMapper = null;
+
     datamap = null;
     grid = null;
     selection = null;

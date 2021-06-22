@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import { ensureExt } from './util'
+import { ensureExt } from './util';
 
 export default {
   name: 'NavLink',
@@ -22,31 +22,32 @@ export default {
       required: true
     }
   },
-  watch: { $route(){ } }, // force rerender on route changed
+  watch: { $route() { } }, // force rerender on route changed
   computed: {
-    link () {
-      return ensureExt(this.item.link)
+    link() {
+      return ensureExt(this.item.link);
     },
     versionedLink() {
       if (this.$page.currentVersion === this.$page.latestVersion) {
         return ensureExt(this.item.link);
       } else {
-        return ensureExt('/' + this.$page.currentVersion + this.item.link);
+        return ensureExt(`/${this.$page.currentVersion}${this.item.link}`);
       }
     },
     exact() {
-      if(this.link === '/' && this.$route.fullPath.match(/([^/]*\/)?(api|examples)\//)) {
+      if (this.link === '/' && this.$route.fullPath.match(/([^/]*\/)?(api|examples)\//)) {
         return true;
       }
+
       return false;
     },
   },
 
   methods: {
-    focusoutAction () {
-      this.$emit('focusout')
+    focusoutAction() {
+      this.$emit('focusout');
     },
 
   }
-}
+};
 </script>

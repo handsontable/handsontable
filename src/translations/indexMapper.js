@@ -1,15 +1,25 @@
 import { arrayMap } from '../helpers/array';
-import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/indexesSequence';
-import IndexesSequence from './maps/indexesSequence';
-import TrimmingMap from './maps/trimmingMap';
-import HidingMap from './maps/hidingMap';
-import MapCollection from './mapCollection';
-import AggregatedCollection from './aggregatedCollection';
+import {
+  createIndexMap,
+  getListWithInsertedItems,
+  getListWithRemovedItems,
+  HidingMap,
+  IndexesSequence,
+  TrimmingMap,
+} from './maps';
+import {
+  AggregatedCollection,
+  MapCollection,
+} from './mapCollections';
 import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
+import { ChangesObservable } from './changesObservable/observable';
 
 /**
+ * @class IndexMapper
+ * @description
+ *
  * Index mapper stores, registers and manages the indexes on the basis of calculations collected from the subsidiary maps.
  * It should be seen as a single source of truth (regarding row and column indexes, for example, their sequence, information if they are skipped in the process of rendering (hidden or trimmed), values linked to them)
  * for any operation that considers CRUD actions such as **insertion**, **movement**, **removal** etc, and is used to properly calculate physical and visual indexes translations in both ways.
@@ -17,15 +27,15 @@ import { isDefined } from '../helpers/mixed';
  *
  * **Physical index** is a type of an index from the sequence of indexes assigned to the data source rows or columns
  *  (from 0 to n, where n is number of the cells on the axis of data set).
- * **Visual index** is a type of an index from the sequence of indexes assigned to rows or columns existing in {@link DataMap} (from 0 to n, where n is number of the cells on the axis of data set).
+ * **Visual index** is a type of an index from the sequence of indexes assigned to rows or columns existing in {@link data-map DataMap} (from 0 to n, where n is number of the cells on the axis of data set).
  * **Renderable index** is a type of an index from the sequence of indexes assigned to rows or columns whose may be rendered (when they are in a viewport; from 0 to n, where n is number of the cells renderable on the axis).
  *
  * There are different kinds of index maps which may be registered in the collections and can be used by a reference.
  * They also expose public API and trigger two local hooks such as `init` (on initialization) and `change` (on change).
  *
- * These are: {@link to IndexesSequence}, {@link to PhysicalIndexToValueMap}, {@link to HidingMap}, and {@link to TrimmingMap}.
+ * These are: {@link indexes-sequence IndexesSequence}, {@link physical-index-to-value-map PhysicalIndexToValueMap}, {@link hiding-map HidingMap}, and {@link trimming-map TrimmingMap}.
  */
-class IndexMapper {
+export class IndexMapper {
   constructor() {
     /**
      * Map for storing the sequence of indexes.
@@ -38,7 +48,7 @@ class IndexMapper {
     this.indexesSequence = new IndexesSequence();
     /**
      * Collection for different trimming maps. Indexes marked as trimmed in any map WILL NOT be included in
-     * the {@link DataMap} and won't be rendered.
+     * the {@link data-map DataMap} and won't be rendered.
      *
      * @private
      * @type {MapCollection}
@@ -46,7 +56,7 @@ class IndexMapper {
     this.trimmingMapsCollection = new AggregatedCollection(
       valuesForIndex => valuesForIndex.some(value => value === true), false);
     /**
-     * Collection for different hiding maps. Indexes marked as hidden in any map WILL be included in the {@link DataMap},
+     * Collection for different hiding maps. Indexes marked as hidden in any map WILL be included in the {@link data-map DataMap},
      * but won't be rendered.
      *
      * @private
@@ -61,6 +71,18 @@ class IndexMapper {
      * @type {MapCollection}
      */
     this.variousMapsCollection = new MapCollection();
+    /**
+     * The class instance collects row and column index changes that happen while the Handsontable
+     * is running. The object allows creating observers that you can subscribe. Each event represents
+     * the index change (e.g., insert, removing, change index value), which can be consumed by a
+     * developer to update its logic.
+     *
+     * @private
+     * @type {ChangesObservable}
+     */
+    this.hidingChangesObservable = new ChangesObservable({
+      initialIndexValue: false,
+    });
     /**
      * Cache for list of not trimmed indexes, respecting the indexes sequence (physical indexes).
      *
@@ -180,6 +202,34 @@ class IndexMapper {
   }
 
   /**
+   * It creates and returns the new instance of the ChangesObserver object. The object
+   * allows listening to the index changes that happen while the Handsontable is running.
+   *
+   * @param {string} indexMapType The index map type which we want to observe.
+   *                              Currently, only the 'hiding' index map types are observable.
+   * @returns {ChangesObserver}
+   */
+  createChangesObserver(indexMapType) {
+    if (indexMapType !== 'hiding') {
+      throw new Error(`Unsupported index map type "${indexMapType}".`);
+    }
+
+    return this.hidingChangesObservable.createObserver();
+  }
+
+  /**
+   * Creates and register the new IndexMap for specified IndexMapper instance.
+   *
+   * @param {string} indexName The uniq index name.
+   * @param {string} mapType The index map type (e.q. "hiding, "trimming", "physicalIndexToValue").
+   * @param {*} [initValueOrFn] The initial value for the index map.
+   * @returns {IndexMap}
+   */
+  createAndRegisterIndexMap(indexName, mapType, initValueOrFn) {
+    return this.registerMap(indexName, createIndexMap(mapType, initValueOrFn));
+  }
+
+  /**
    * Register map which provide some index mappings. Type of map determining to which collection it will be added.
    *
    * @param {string} uniqueName Name of the index map. It should be unique.
@@ -228,6 +278,15 @@ class IndexMapper {
     this.trimmingMapsCollection.unregister(name);
     this.hidingMapsCollection.unregister(name);
     this.variousMapsCollection.unregister(name);
+  }
+
+  /**
+   * Unregisters all collected index map instances from all map collection types.
+   */
+  unregisterAll() {
+    this.trimmingMapsCollection.unregisterAll();
+    this.hidingMapsCollection.unregisterAll();
+    this.variousMapsCollection.unregisterAll();
   }
 
   /**
@@ -399,7 +458,7 @@ class IndexMapper {
   /**
    * Get all NOT trimmed indexes.
    *
-   * Note: Indexes marked as trimmed aren't included in a {@link DataMap} and aren't rendered.
+   * Note: Indexes marked as trimmed aren't included in a {@link data-map DataMap} and aren't rendered.
    *
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array} List of physical indexes. Index of this native array is a "visual index",
@@ -418,7 +477,7 @@ class IndexMapper {
   /**
    * Get length of all NOT trimmed indexes.
    *
-   * Note: Indexes marked as trimmed aren't included in a {@link DataMap} and aren't rendered.
+   * Note: Indexes marked as trimmed aren't included in a {@link data-map DataMap} and aren't rendered.
    *
    * @returns {number}
    */
@@ -429,7 +488,7 @@ class IndexMapper {
   /**
    * Get all NOT hidden indexes.
    *
-   * Note: Indexes marked as hidden are included in a {@link DataMap}, but aren't rendered.
+   * Note: Indexes marked as hidden are included in a {@link data-map DataMap}, but aren't rendered.
    *
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array} List of physical indexes. Please keep in mind that index of this native array IS NOT a "visual index".
@@ -447,7 +506,7 @@ class IndexMapper {
   /**
    * Get length of all NOT hidden indexes.
    *
-   * Note: Indexes marked as hidden are included in a {@link DataMap}, but aren't rendered.
+   * Note: Indexes marked as hidden are included in a {@link data-map DataMap}, but aren't rendered.
    *
    * @returns {number}
    */
@@ -524,7 +583,7 @@ class IndexMapper {
   }
 
   /**
-   * Get whether index is trimmed. Index marked as trimmed isn't included in a {@link DataMap} and isn't rendered.
+   * Get whether index is trimmed. Index marked as trimmed isn't included in a {@link data-map DataMap} and isn't rendered.
    *
    * @param {number} physicalIndex Physical index.
    * @returns {boolean}
@@ -534,7 +593,7 @@ class IndexMapper {
   }
 
   /**
-   * Get whether index is hidden. Index marked as hidden is included in a {@link DataMap}, but isn't rendered.
+   * Get whether index is hidden. Index marked as hidden is included in a {@link data-map DataMap}, but isn't rendered.
    *
    * @param {number} physicalIndex Physical index.
    * @returns {boolean}
@@ -601,12 +660,16 @@ class IndexMapper {
       this.cacheFromPhysicalToVisualIndexes();
       this.cacheFromVisualToRenderabIendexes();
 
-      this.runLocalHooks(
-        'cacheUpdated',
-        this.indexesSequenceChanged,
-        this.trimmedIndexesChanged,
-        this.hiddenIndexesChanged
-      );
+      // Currently there's support only for the "hiding" map type.
+      if (this.hiddenIndexesChanged) {
+        this.hidingChangesObservable.emit(this.hidingMapsCollection.getMergedValues());
+      }
+
+      this.runLocalHooks('cacheUpdated', {
+        indexesSequenceChanged: this.indexesSequenceChanged,
+        trimmedIndexesChanged: this.trimmedIndexesChanged,
+        hiddenIndexesChanged: this.hiddenIndexesChanged,
+      });
 
       this.indexesSequenceChanged = false;
       this.trimmedIndexesChanged = false;
@@ -654,5 +717,3 @@ class IndexMapper {
 }
 
 mixin(IndexMapper, localHooks);
-
-export default IndexMapper;

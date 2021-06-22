@@ -14,7 +14,11 @@ tags:
 
 ## Overview
 
-Below example shows how cell renderers can be used to present the template values for empty rows. When a cell in the empty row is edited, the `beforeChange` callback fills the row with the template values.
+Rows can be pre-populated with template values using cell renderers.
+
+## Example
+
+The example below shows how cell renderers can be used to populate the template values in empty rows. When a cell in the empty row is edited, the `beforeChange` callback fills the row with the template values.
 
 ::: example #example1
 ```js
@@ -53,7 +57,7 @@ function defaultValueRenderer(instance, td, row, col, prop, value, cellPropertie
   Handsontable.renderers.TextRenderer.apply(this, args);
 }
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   startRows: 8,
   startCols: 5,
   minSpareRows: 1,
@@ -67,7 +71,7 @@ const hot1 = new Handsontable(container, {
     return cellProperties;
   },
   beforeChange(changes) {
-    const instance = hot1;
+    const instance = hot;
     const columns = instance.countCols();
     const rowColumnSeen = {};
     const rowsToFill = {};
@@ -76,7 +80,7 @@ const hot1 = new Handsontable(container, {
       // if oldVal is empty
       if (changes[i][2] === null && changes[i][3] !== null) {
         if (isEmptyRow(instance, changes[i][0])) {
-          // add this row/col combination to cache so it will not be overwritten by template
+          // add this row/col combination to the cache so it will not be overwritten by the template
           rowColumnSeen[changes[i][0] + '/' + changes[i][1]] = true;
           rowsToFill[changes[i][0]] = true;
         }
@@ -86,7 +90,7 @@ const hot1 = new Handsontable(container, {
     for (var r in rowsToFill) {
       if (rowsToFill.hasOwnProperty(r)) {
         for (let c = 0; c < columns; c++) {
-          // if it is not provided by user in this change set, take value from template
+          // if it is not provided by user in this change set, take the value from the template
           if (!rowColumnSeen[r + '/' + c]) {
             changes.push([r, c, null, templateValues[c]]);
           }
@@ -96,6 +100,6 @@ const hot1 = new Handsontable(container, {
   }
 });
 
-hot1.loadData(data);
+hot.loadData(data);
 ```
 :::

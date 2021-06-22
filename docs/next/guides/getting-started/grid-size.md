@@ -83,10 +83,12 @@ You can listen for two hooks, `beforeRefreshDimensions` and `afterRefreshDimensi
 
 ::: example #example --html 1 --js 2
 ```html
-<div id="example" class="hot"></div>
+<div><!-- slice element with dynamically added styles -->
+  <div id="example"></div>
+</div>
 
 <div class="controls">
-  <button id="expander" className="button button--primary">Expand container</button>
+  <button id="expander" class="button button--primary">Expand container</button>
 </div>
 ```
 ```js
@@ -105,7 +107,7 @@ const hot = new Handsontable(example, {
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-sliceElem.style = "transition: height 0.5s; height: 150px;"
+sliceElem.style = 'transition: height 0.5s; height: 150px;'
 hot.refreshDimensions();
 
 triggerBtn.addEventListener('click', () => {

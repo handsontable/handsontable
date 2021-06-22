@@ -1,8 +1,7 @@
 import { arrayMap, arrayReduce } from '../../../helpers/array';
 import SourceSettings from './sourceSettings';
 import HeadersTree from './headersTree';
-import NodeModifiers from './nodeModifiers';
-import { HEADER_DEFAULT_SETTINGS } from './constants';
+import { triggerNodeModification } from './nodeModifiers';
 import { generateMatrix } from './matrixGenerator';
 
 /**
@@ -42,13 +41,6 @@ export default class StateManager {
    * @type {SourceSettings}
    */
   #sourceSettings = new SourceSettings();
-  /**
-   * The instance of the collapsible modifier class.
-   *
-   * @private
-   * @type {NodeModifiers}
-   */
-  #nodeModifiers = new NodeModifiers();
   /**
    * The instance of the headers tree. The tree is generated after setting new configuration data.
    *
@@ -162,7 +154,7 @@ export default class StateManager {
   }
 
   /**
-   * Triggers an action (it can be "collapse" or "expand") from the NodeModifiers module. The module
+   * Triggers an action (e.g. "collapse") from the NodeModifiers module. The module
    * modifies a tree structure in such a way as to obtain the correct structure consistent with the
    * called action.
    *
@@ -180,12 +172,26 @@ export default class StateManager {
     let actionResult;
 
     if (nodeToProcess) {
-      actionResult = this.#nodeModifiers.triggerAction(action, nodeToProcess);
+      actionResult = triggerNodeModification(action, nodeToProcess, columnIndex);
 
+      // TODO (perf-tip): Trigger matrix generation once after multiple node modifications.
       this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
     }
 
     return actionResult;
+  }
+
+  /**
+   * Triggers an action (e.g. "hide-column") from the NodeModifiers module. The action is
+   * triggered starting from the lowest header. The module modifies a tree structure in
+   * such a way as to obtain the correct structure consistent with the called action.
+   *
+   * @param {string} action An action name to trigger.
+   * @param {number} columnIndex A visual column index.
+   * @returns {object|undefined}
+   */
+  triggerColumnModification(action, columnIndex) {
+    return this.triggerNodeModification(action, -1, columnIndex);
   }
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -263,7 +269,7 @@ export default class StateManager {
    *
    * @param {number} headerLevel Header level (there is support for negative and positive values).
    * @param {number} columnIndex A visual column index.
-   * @returns {object}
+   * @returns {object|null}
    */
   getHeaderSettings(headerLevel, columnIndex) {
     if (headerLevel < 0) {
@@ -271,10 +277,35 @@ export default class StateManager {
     }
 
     if (headerLevel >= this.getLayersCount()) {
-      return { ...HEADER_DEFAULT_SETTINGS };
+      return null;
     }
 
-    return this.#stateMatrix[headerLevel]?.[columnIndex] ?? { ...HEADER_DEFAULT_SETTINGS };
+    return this.#stateMatrix[headerLevel]?.[columnIndex] ?? null;
+  }
+
+  /**
+   * Gets tree data that is connected to the column header. The returned object contains all information
+   * necessary for modifying tree structure (column collapsing, hiding, etc.). It contains a header
+   * label, colspan length, or visual column index that indicates which column index the node is rendered from.
+   *
+   * @param {number} headerLevel Header level (there is support for negative and positive values).
+   * @param {number} columnIndex A visual column index.
+   * @returns {object|null}
+   */
+  getHeaderTreeNodeData(headerLevel, columnIndex) {
+    if (headerLevel < 0) {
+      headerLevel = this.rowCoordsToLevel(headerLevel);
+    }
+
+    const node = this.#headersTree.getNode(headerLevel, columnIndex);
+
+    if (!node) {
+      return null;
+    }
+
+    return {
+      ...node.data,
+    };
   }
 
   /**
@@ -287,18 +318,22 @@ export default class StateManager {
    * @returns {number}
    */
   findLeftMostColumnIndex(headerLevel, columnIndex) {
-    const { isBlank } = this.getHeaderSettings(headerLevel, columnIndex);
+    const {
+      isRoot
+    } = this.getHeaderSettings(headerLevel, columnIndex) ?? { isRoot: true };
 
-    if (isBlank === false) {
+    if (isRoot) {
       return columnIndex;
     }
 
     let stepBackColumn = columnIndex - 1;
 
     do {
-      const { isBlank: blank } = this.getHeaderSettings(headerLevel, stepBackColumn);
+      const {
+        isRoot: isRootNode
+      } = this.getHeaderSettings(headerLevel, stepBackColumn) ?? { isRoot: true };
 
-      if (blank === false) {
+      if (isRootNode) {
         break;
       }
 

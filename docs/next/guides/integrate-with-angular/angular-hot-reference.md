@@ -7,8 +7,10 @@ canonicalUrl: /angular-hot-reference
 
 # Referencing the Handsontable instance
 
-An implementation of the `@handsontable/angular` explaining how to reference the Handsontable instance from the wrapper component.
+## Overview
+The following example is an implementation of `@handsontable/angular`, which shows you how to reference the Handsontable instance from the wrapper component.
 
+## Example
 ::: example :angular --html 1 --js 2
 ```html
 <app-root></app-root>
