@@ -40,7 +40,8 @@ When the context menu is enabled, it includes default items, including copy & cu
 - Copy - as a predefined key `copy`
 - Cut - as a predefined key `cut`
 
-You can use them in the same way as the rest of the predefined items in the [context menu](../context-menu.md#page-custom). These operations are executed by `document.execCommand()`.
+You can use them in the same way as the rest of the predefined items in the [context menu](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options). These operations are executed by `document.execCommand()`.
+
 
 ::: example #example1
 ```js
@@ -112,16 +113,17 @@ Handsontable.dom.addEvent(cutBtn, 'click', function () {
 ```
 :::
 
-**Note:** Not all selection-related Handsontable methods result in it gaining focus. Make sure your table instance is focused by calling [`hot.isListening()`](api/core.md#isListening) before copying or pasting data.
+**Note:** Not all selection-related Handsontable methods result in it gaining focus. Make sure your table instance is focused by calling [isListening()](@/api/core.md#islistening) before copying or pasting data.
+
 
 ### Hooks
 
 The **CopyPaste** plugin exposes the following hooks to manipulate data during copy or cut operations:
 
-- [`beforeCopy`](api/pluginHooks.md#beforecopy)
-- [`afterCopy`](api/pluginHooks.md#aftercopy)
-- [`beforeCut`](api/pluginHooks.md#beforecut)
-- [`afterCut`](api/pluginHooks.md#aftercut)
+- [beforeCopy](@/api/pluginHooks.md#beforecopy)
+- [afterCopy](@/api/pluginHooks.md#aftercopy)
+- [beforeCut](@/api/pluginHooks.md#beforecut)
+- [afterCut](@/api/pluginHooks.md#aftercut)
 
 Examples of how to use them are provided in their descriptions.
 
@@ -151,15 +153,15 @@ Due to security reason, modern browsers disallow to read from the system clipboa
 
 The **CopyPaste** plugin exposes the following hooks to manipulate data during the pasting operation:
 
-- [`beforePaste`](api/pluginHooks.md#beforepaste)
-- [`afterPaste`](api/pluginHooks.md#afterpaste)
+- [beforePaste](@/api/pluginHooks.md#beforepaste)
+- [afterPaste](@/api/pluginHooks.md#afterpaste)
 
 Examples of how to use them are provided in their descriptions.
 
 ## Limitations
 
 1.  The **CopyPaste** plugin doesn't copy, cut or paste cells' appearance.
-2.  The data copied from Handsontable will always remain as plain text. For example, if you copy a checked checkbox, the input will be kept as a value of `"true"`.
+2.  The data copied from Handsontable will always remain as plain text. For example, if you copy a checked checkbox, the input will be kept as a value of `'true'`.
 3.  `document.execCommand` can be called only during an immediate-execute event, such as a `MouseEvent` or a `KeyboardEvent`.
 4.  Internet Explorer only supports the `Text` MIME-type. This is the equivalent of `text/plain`.
 5.  Internet Explorer displays an allow/disallow confirmation prompt the first time a user tries to call the `document.execCommand`. Unfortunately, if a user denies access to the system clipboard, no exceptions will be thrown, and `copy` and `cut` actions will be disabled for the end-user. You can read more about this browser behavior on [this page](https://github.com/zenorocha/clipboard.js/issues/77).

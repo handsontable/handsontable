@@ -43,7 +43,7 @@ By default, every hash has a length equal to the length of its corresponding val
 ```js
 const container = document.querySelector('#example2');
 
-const hot2 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     { id: 1, name: { first: 'Chris', last: 'Right' }, password: 'plainTextPassword' },
     { id: 2, name: { first: 'John', last: 'Honest' }, password: 'txt' },

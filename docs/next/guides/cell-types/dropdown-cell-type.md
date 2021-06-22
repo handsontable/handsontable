@@ -9,10 +9,10 @@ canonicalUrl: /dropdown-cell-type
 [[toc]]
 
 ## Overview
-The dropdown cell type is based on an autocomplete cell type and can also be searchable. 
+The dropdown cell type is based on an autocomplete cell type and can also be searchable.
 
 ## Usage
-This example shows the usage of the dropdown feature. Dropdown is based on [Autocomplete](autocomplete-cell-type.md) cell type. All options used by `autocomplete` cell type apply to `dropdown` as well.
+This example shows the usage of the dropdown feature. Dropdown is based on [Autocomplete](@/guides/cell-types/autocomplete-cell-type.md) cell type. All options used by `autocomplete` cell type apply to `dropdown` as well.
 
 Internally, cell `{type: 'dropdown'}` is equivalent to cell `{type: 'autocomplete', strict: true, filter: false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
 
@@ -30,7 +30,7 @@ const hot = new Handsontable(container, {
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   columns: [
     {},
-    {type: 'numeric'},
+    { type: 'numeric' },
     {
       type: 'dropdown',
       source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white']

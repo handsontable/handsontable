@@ -11,19 +11,19 @@ canonicalUrl: /column-header
 
 ## Overview
 
-Column headers are gray-colored rows used to label each column or [group of columns](../column-groups). By default, these headers are populated with letters in alphabetical order.
+Column headers are gray-colored rows used to label each column or [group of columns](@/guides/columns/column-groups.md). By default, these headers are populated with letters in alphabetical order.
 
 To reflect the type or category of data in a particular column, give it a custom name and then display it in a column header. For example, instead of letters as labels such as `A, B, C, ...` name them `ID, Full name, Country, ...`.
 
 ## Default headers
 
-Setting the [`colHeaders`](api/options/#colheaders) option to `true` enables the default column headers as shown in the example below:
+Setting the [colHeaders](@/api/metaSchema.md#colheaders) option to `true` enables the default column headers as shown in the example below:
 
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 11),
   colHeaders: true,
   rowHeaders: true,
@@ -39,7 +39,7 @@ An array of labels can be used to set the `colHeaders` as shown in the example b
 ```js
 const container = document.querySelector('#example2');
 
-const hot2 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 9),
   colHeaders: ['ID', 'Full name', 'Position','Country', 'City', 'Address', 'Zip code', 'Mobile', 'E-mail'],
   rowHeaders: true,
@@ -55,7 +55,7 @@ The `colHeaders` can also be populated using a function as shown in the example 
 ```js
 const container = document.querySelector('#example3');
 
-const hot3 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 11),
   colHeaders(index) {
     return 'Col ' + (index + 1);
@@ -68,4 +68,4 @@ const hot3 = new Handsontable(container, {
 
 ## Nested headers
 
-More complex data structures can be displayed with multiple headers, each representing a different category of data. To learn more about nested headers, see the [column groups](../column-groups) page.
+More complex data structures can be displayed with multiple headers, each representing a different category of data. To learn more about nested headers, see the [column groups](@/guides/columns/column-groups.md) page.

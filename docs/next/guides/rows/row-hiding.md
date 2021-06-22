@@ -25,7 +25,7 @@ The plugin provides the option to display hidden row indicators in the headers t
 
 To change the selection area of the copy/paste range, set the `copyPasteEnabled` property to `true` or `false`. By default, this property is set to `true`. If set to `false`, the hidden rows are being skipped for copy/paste actions.
 
-To show/hide certain rows directly from the [Context menu](context-menu.md), use the following keys: `hidden_rows_show` and `hidden_rows_hide`.
+To show/hide certain rows directly from the [Context menu](@/guides/accessories-and-menus/context-menu.md), use the following keys: `hidden_rows_show` and `hidden_rows_hide`.
 
 ## Example
 
@@ -33,7 +33,7 @@ To show/hide certain rows directly from the [Context menu](context-menu.md), use
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(12,5),
   colHeaders: true,
   rowHeaders: true,

@@ -13,17 +13,19 @@ tags:
 
 # Plugins
 
+[[toc]]
+
 ## Overview
 
 Plugin is a one great way to extend the capabilities of Handsontable. In fact, most of the features available in this library are provided by plugins.
 
-### Plugin template
+## Plugin template
 
 There are two types of plugins: internal and external. While both extend Handsontable's functionality, the former is incorporated into the Handsontable build, and the latter needs to be included from a separate file.
 
 Regardless of which plugin you are going to build, using a template will save you lots of time.
 
-#### Internal plugin
+### Internal plugin
 
 The source code of this template is [available on GitHub](https://github.com/handsontable/handsontable-skeleton/tree/master/plugins/internal). Start off by cloning the entire project or copying the code to your application.
 
@@ -131,7 +133,7 @@ registerPlugin('internalPluginSkeleton', InternalPluginSkeleton);
 
 ```
 
-#### External plugin
+### External plugin
 
 Similarly to the above, this template is [hosted on GitHub](https://github.com/handsontable/handsontable-skeleton/tree/master/plugins/external).
 

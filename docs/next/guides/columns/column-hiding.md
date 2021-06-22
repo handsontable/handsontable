@@ -23,14 +23,14 @@ The `hiddenColumns` parameter accepts an object. The `columns` property needs to
 The plugin has a feature that enables hidden column indicators to be displayed in the headers to notify the user which columns have been hidden.
 Set the `indicators` property in the plugin's configuration object to `true` to enable them.
 
-::: tip 
+::: tip
 **Important note**: The `colHeaders` option needs to be enabled when using both `nestedHeaders` and `hiddenColumns` together with `indicators`. Otherwise, the `indicators` will not appear.
 :::
 
 
 To change the selection area of the copy/paste range, set the `copyPasteEnabled` property to `true` or `false`. By default, this property is set to `true`. If set to `false`, the hidden columns are skipped for copy/paste actions.
 
-To show/hide certain columns directly from the [Context menu](context-menu.md) use the following keys: `hidden_columns_show` and `hidden_columns_hide`.
+To show/hide certain columns directly from the [Context menu](@/guides/accessories-and-menus/context-menu.md) use the following keys: `hidden_columns_show` and `hidden_columns_hide`.
 
 ## Example
 
@@ -38,7 +38,7 @@ To show/hide certain columns directly from the [Context menu](context-menu.md) u
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5,12),
   colHeaders: true,
   rowHeaders: true,

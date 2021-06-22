@@ -11,14 +11,14 @@ tags:
 
 [[toc]]
 
-## Overview 
+## Overview
 This guide details how to install Handsontable.
 
 ::: tip
 This section is dedicated to the pure JavaScript version of Handsontable. If you use a framework in your project, follow one of the available guides to install and use the library:
- - [Integrate with React](../react-installation)
- - [Integrate with Angular](../angular-installation)
- - [Integrate with Vue](../vue-installation)
+ - [Integrate with React](@/guides/integrate-with-react/react-installation.md)
+ - [Integrate with Angular](@/guides/integrate-with-angular/angular-installation.md)
+ - [Integrate with Vue](@/guides/integrate-with-vue/vue-installation.md)
 :::
 
 ## Download and install the library
@@ -27,28 +27,28 @@ Run the following command in your terminal
 
 <code-group>
   <code-block title="npm">
-  
+
   ```bash
   npm install handsontable
   ```
-  
+
   </code-block>
   <code-block title="Yarn">
-  
+
   ```bash
   yarn add handsontable
   ```
-  
+
   </code-block>
   <code-block title="Nuget">
-  
+
   ```bash
   PM> Install-Package Handsontable
   ```
-  
+
   </code-block>
   <code-block title="CDN">
-  
+
   ```html
   // minified JS
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
@@ -56,7 +56,7 @@ Run the following command in your terminal
   // minified CSS
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
   ```
-  
+
   </code-block>
 </code-group>
 
@@ -68,7 +68,7 @@ Run the following command in your terminal
 
 Import JavaScript and CSS into your application. You don't have to do that if you use CDN files.
 ```js
-import Handsontable from "handsontable";
+import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.css';
 ```
 

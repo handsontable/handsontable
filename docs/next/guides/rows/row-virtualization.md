@@ -17,13 +17,15 @@ tags:
 
 Virtualization allows Handsontable to process hundreds of thousands of records without causing the browser to hang. This technique draws only the visible part of the grid, displaying the minimum items physically rendered in the `DOM`. The elements outside the viewport are rendered when you scroll across the grid. Depending on your configuration, there might be a small offset of columns or rows rendered outside the viewport to make the scrolling performance smoother.
 
-This feature is enabled by default and can be turned off by setting the `renderAllRows` to `true`. 
+This feature is enabled by default and can be turned off by setting the `renderAllRows` to `true`.
 
-::: tip Note that the data grid without virtualization enabled will only work with relatively small data sets. :::
+::: tip 
+Note that the data grid without virtualization enabled will only work with relatively small data sets. 
+:::
 
 ## Configuring row virtualization
 
-You can experiment with the `viewportRowsRenderingOffset` config option, which determines the number of rows displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, then the virtualization will be practically turned off. 
+You can experiment with the `viewportRowsRenderingOffset` config option, which determines the number of rows displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, then the virtualization will be practically turned off.
 
 ::: warning Proceed with caution, as it will affect the overall performance of the grid. :::
 
@@ -42,7 +44,7 @@ The example below presents a data grid displaying 1 million cells (1000 rows x 1
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(1000, 1000),
   colWidths: 100,
   width: '100%',

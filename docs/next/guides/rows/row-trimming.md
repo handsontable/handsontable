@@ -11,7 +11,7 @@ canonicalUrl: /row-trimming
 
 ## Overview
 
-The _Trim Rows_ plugin allows the trimming of specific rows from the table. Rows being trimmed **aren't rendered** and **aren't included** in a `DataMap`, which can be retrieved by calling the [getData](api/core.md#getData) method.
+The _Trim Rows_ plugin allows the trimming of specific rows from the table. Rows being trimmed **aren't rendered** and **aren't included** in a `DataMap`, which can be retrieved by calling the [getData](@/api/core.md#getData) method.
 
 ## Setup
 
@@ -26,7 +26,7 @@ Note that the second, third, and sixth rows are missing in the following example
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(10, 4),
   colHeaders: true,
   rowHeaders: true,

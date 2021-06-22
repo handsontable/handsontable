@@ -14,7 +14,7 @@ tags:
 
 ## Overview
 
-Rows can be pre-populated with template values using cell renderers. 
+Rows can be pre-populated with template values using cell renderers.
 
 ## Example
 
@@ -57,7 +57,7 @@ function defaultValueRenderer(instance, td, row, col, prop, value, cellPropertie
   Handsontable.renderers.TextRenderer.apply(this, args);
 }
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   startRows: 8,
   startCols: 5,
   minSpareRows: 1,
@@ -71,7 +71,7 @@ const hot1 = new Handsontable(container, {
     return cellProperties;
   },
   beforeChange(changes) {
-    const instance = hot1;
+    const instance = hot;
     const columns = instance.countCols();
     const rowColumnSeen = {};
     const rowsToFill = {};
@@ -100,6 +100,6 @@ const hot1 = new Handsontable(container, {
   }
 });
 
-hot1.loadData(data);
+hot.loadData(data);
 ```
 :::

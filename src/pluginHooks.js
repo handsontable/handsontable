@@ -68,7 +68,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterChange
    * @param {Array} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`.
-   * @param {string} [source] String that identifies source of hook call ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @param {string} [source] String that identifies source of hook call ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @example
    * ```js
    * new Handsontable(element, {
@@ -167,7 +167,7 @@ const REGISTERED_HOOKS = [
    * @param {number} index Represents the visual index of first newly created column in the data source array.
    * @param {number} amount Number of newly created columns in the data source array.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {*} If `false` then creating columns is cancelled.
    * @example
    * ```js
@@ -188,7 +188,7 @@ const REGISTERED_HOOKS = [
    * @param {number} index Represents the visual index of first newly created column in the data source.
    * @param {number} amount Number of newly created columns in the data source.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterCreateCol',
 
@@ -199,7 +199,7 @@ const REGISTERED_HOOKS = [
    * @param {number} index Represents the visual index of first newly created row in the data source array.
    * @param {number} amount Number of newly created rows in the data source array.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeCreateRow',
@@ -211,7 +211,7 @@ const REGISTERED_HOOKS = [
    * @param {number} index Represents the visual index of first newly created row in the data source array.
    * @param {number} amount Number of newly created rows in the data source array.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterCreateRow',
 
@@ -401,7 +401,8 @@ const REGISTERED_HOOKS = [
    * @param {number} index Visual index of starter column.
    * @param {number} amount An amount of removed columns.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
-   * @param {string} [source] String that identifies source of hook call ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @param {string} [source] String that identifies source of hook call
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterRemoveCol',
 
@@ -412,7 +413,8 @@ const REGISTERED_HOOKS = [
    * @param {number} index Visual index of starter row.
    * @param {number} amount An amount of removed rows.
    * @param {number[]} physicalRows An array of physical rows removed from the data source.
-   * @param {string} [source] String that identifies source of hook call ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @param {string} [source] String that identifies source of hook call
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterRemoveRow',
 
@@ -565,7 +567,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterSetDataAtCell
    * @param {Array} changes An array of changes in format `[[row, column, oldValue, value], ...]`.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterSetDataAtCell',
 
@@ -576,7 +578,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterSetDataAtRowProp
    * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterSetDataAtRowProp',
 
@@ -611,7 +613,7 @@ const REGISTERED_HOOKS = [
    * @param {number} row Visual row index.
    * @param {string|number} prop Property name / visual column index.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {void | boolean} If `false` the cell will be marked as invalid, `true` otherwise.
    */
   'afterValidate',
@@ -690,7 +692,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeChange
    * @param {Array[]} changes 2D array containing information about each of the edited cells.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {void | boolean} If `false` all changes were cancelled, `true` otherwise.
    * @example
    * ```js
@@ -725,7 +727,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeChangeRender
    * @param {Array[]} changes Array in form of `[row, prop, oldValue, newValue]`.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'beforeChangeRender',
 
@@ -860,7 +862,8 @@ const REGISTERED_HOOKS = [
    * @param {number} index Visual index of starter column.
    * @param {number} amount Amount of columns to be removed.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
-   * @param {string} [source] String that identifies source of hook call ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @param {string} [source] String that identifies source of hook call
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRemoveCol',
@@ -872,7 +875,8 @@ const REGISTERED_HOOKS = [
    * @param {number} index Visual index of starter row.
    * @param {number} amount Amount of rows to be removed.
    * @param {number[]} physicalRows An array of physical rows removed from the data source.
-   * @param {string} [source] String that identifies source of hook call ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @param {string} [source] String that identifies source of hook call
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRemoveRow',
@@ -942,7 +946,7 @@ const REGISTERED_HOOKS = [
    * @param {number} row Visual row index.
    * @param {string|number} prop Property name / column index.
    * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */
   'beforeValidate',
 
@@ -1283,21 +1287,35 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeColumnMove
    * @param {Array} movedColumns Array of visual column indexes to be moved.
-   * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html).
-   * @param {number|undefined} dropIndex Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called.
+   * @param {number} finalIndex Visual column index, being a start index for the moved columns.
+   *                            Points to where the elements will be placed after the moving action.
+   *                            To check visualization of final index please take a look at
+   *                            [documentation](@/guides/columns/column-moving.md).
+   * @param {number|undefined} dropIndex Visual column index, being a drop index for the moved columns.
+   *                                     Points to where we are going to drop the moved elements. To check
+   *                                     visualization of drop index please take a look at
+   *                                     [documentation](@/guides/columns/column-moving.md).
+   *                                     It's `undefined` when `dragColumns` function wasn't called.
    * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
    * @returns {void | boolean} If `false` the column will not be moved, `true` otherwise.
    */
   'beforeColumnMove',
 
   /**
-   * Fired by {@link manual-column-move ManualColumnMove} plugin after changing order of the visual indexes. This hook is fired when
-   * {@link options#manualcolumnmove Options#manualColumnMove} option is enabled.
+   * Fired by {@link manual-column-move ManualColumnMove} plugin after changing order of the visual indexes.
+   * This hook is fired when {@link options#manualcolumnmove Options#manualColumnMove} option is enabled.
    *
    * @event Hooks#afterColumnMove
    * @param {Array} movedColumns Array of visual column indexes to be moved.
-   * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html).
-   * @param {number|undefined} dropIndex Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called.
+   * @param {number} finalIndex Visual column index, being a start index for the moved columns.
+   *                            Points to where the elements will be placed after the moving action.
+   *                            To check visualization of final index please take a look at
+   *                            [documentation](@/guides/columns/column-moving.md).
+   * @param {number|undefined} dropIndex Visual column index, being a drop index for the moved columns.
+   *                                     Points to where we are going to drop the moved elements.
+   *                                     To check visualization of drop index please take a look at
+   *                                     [documentation](@/guides/columns/column-moving.md).
+   *                                     It's `undefined` when `dragColumns` function wasn't called.
    * @param {boolean} movePossible Indicates if it was possible to move columns to the desired position.
    * @param {boolean} orderChanged Indicates if order of columns was changed by move.
    */
@@ -1309,21 +1327,35 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeRowMove
    * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html).
-   * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called.
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows.
+   *                            Points to where the elements will be placed after the moving action.
+   *                            To check visualization of final index please take a look at
+   *                            [documentation](@/guides/rows/row-moving.md).
+   * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows.
+   *                                     Points to where we are going to drop the moved elements.
+   *                                     To check visualization of drop index please take a look at
+   *                                     [documentation](@/guides/rows/row-moving.md).
+   *                                     It's `undefined` when `dragRows` function wasn't called.
    * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRowMove',
 
   /**
-   * Fired by {@link manual-row-move ManualRowMove} plugin after changing the order of the visual indexes. This hook is fired when
-   * {@link options#manualrowmove Options#manualRowMove} option is enabled.
+   * Fired by {@link manual-row-move ManualRowMove} plugin after changing the order of the visual indexes.
+   * This hook is fired when {@link options#manualrowmove Options#manualRowMove} option is enabled.
    *
    * @event Hooks#afterRowMove
    * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html).
-   * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called.
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows.
+   *                            Points to where the elements will be placed after the moving action.
+   *                            To check visualization of final index please take a look at
+   *                            [documentation](@/guides/rows/row-moving.md).
+   * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows.
+   *                                     Points to where we are going to drop the moved elements.
+   *                                     To check visualization of drop index please take a look at
+   *                                     [documentation](@/guides/rows/row-moving.md).
+   *                                     It's `undefined` when `dragRows` function wasn't called.
    * @param {boolean} movePossible Indicates if it was possible to move rows to the desired position.
    * @param {boolean} orderChanged Indicates if order of rows was changed by move.
    */
@@ -1403,8 +1435,8 @@ const REGISTERED_HOOKS = [
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
-   * Fired by {@link filters Filters} plugin before applying [filtering]{@link https://handsontable.com/docs/demo-filtering.html}. This hook is fired when
-   * {@link options#filters Options#filters} option is enabled.
+   * Fired by {@link filters Filters} plugin before applying [filtering](@/guides/columns/column-filter.md).
+   * This hook is fired when {@link options#filters Options#filters} option is enabled.
    *
    * @event Hooks#beforeFilter
    * @param {object[]} conditionsStack An array of objects with added formulas.
@@ -1435,8 +1467,8 @@ const REGISTERED_HOOKS = [
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
-   * Fired by {@link filters Filters} plugin after applying [filtering]{@link https://handsontable.com/docs/demo-filtering.html}. This hook is fired when
-   * {@link options#filters Options#filters} option is enabled.
+   * Fired by {@link filters Filters} plugin after applying [filtering](@/guides/columns/column-filter.md).
+   * This hook is fired when {@link options#filters Options#filters} option is enabled.
    *
    * @event Hooks#afterFilter
    * @param {object[]} conditionsStack An array of objects with added conditions.
@@ -1540,12 +1572,13 @@ const REGISTERED_HOOKS = [
   'beforeUndo',
 
   /**
-   * Fired by {@link UndoRedo} plugin before changing undo stack.
+   * Fired by {@link undo-redo UndoRedo} plugin before changing undo stack.
    *
    * @event Hooks#beforeUndoStackChange
    * @since 8.4.0
    * @param {Array} doneActions Stack of actions which may be undone.
-   * @param {string} [source] String that identifies source of action ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @param {string} [source] String that identifies source of action
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    * @returns {*|boolean} If false is returned the action of changing undo stack is canceled.
    */
   'beforeUndoStackChange',
@@ -1561,7 +1594,7 @@ const REGISTERED_HOOKS = [
   'afterUndo',
 
   /**
-   * Fired by {@link UndoRedo} plugin after changing undo stack.
+   * Fired by {@link undo-redo UndoRedo} plugin after changing undo stack.
    *
    * @event Hooks#afterUndoStackChange
    * @since 8.4.0
@@ -1582,7 +1615,7 @@ const REGISTERED_HOOKS = [
   'beforeRedo',
 
   /**
-   * Fired by {@link UndoRedo} plugin before changing redo stack.
+   * Fired by {@link undo-redo UndoRedo} plugin before changing redo stack.
    *
    * @event Hooks#beforeRedoStackChange
    * @since 8.4.0
@@ -1601,7 +1634,7 @@ const REGISTERED_HOOKS = [
   'afterRedo',
 
   /**
-   * Fired by {@link UndoRedo} plugin after changing redo stack.
+   * Fired by {@link undo-redo UndoRedo} plugin after changing redo stack.
    *
    * @event Hooks#afterRedoStackChange
    * @since 8.4.0
@@ -2038,7 +2071,7 @@ const REGISTERED_HOOKS = [
   'afterColumnExpand',
 
   /**
-   * Fired by {@link AutoColumnSize} plugin within {@link SampleGenerator} utility.
+   * Fired by {@link auto-column-size AutoColumnSize} plugin within SampleGenerator utility.
    *
    * @event Hooks#modifyAutoColumnSizeSeed
    * @since 8.4.0
@@ -2402,7 +2435,7 @@ class Hooks {
   /**
    * Registers a hook name (adds it to the list of the known hook names). Used by plugins.
    * It is not necessary to call register, but if you use it, your plugin hook will be used returned by
-   * the `getRegistered` method. (which itself is used in the demo https://handsontable.com/docs/tutorial-using-callbacks.html).
+   * the `getRegistered` method. (which itself is used in the [demo](@/guides/getting-started/events-and-hooks.md)).
    *
    * @param {string} key The hook name.
    *

@@ -28,7 +28,7 @@ const hot = new Handsontable(container, {
 
 ## Adding the comments via the Context Menu
 
-After you've enabled the plugin, the [Context Menu](context-menu.md) gains a few new items:
+After you've enabled the plugin, the [Context Menu](@/guides/accessories-and-menus/context-menu.md) gains a few new items:
 
 * Add/Edit comment
 * Delete comment
@@ -40,7 +40,7 @@ You can also pre-define comments for your table. Comments are stored in the tabl
 
 ```js
 cell: [
-  {row: 1, col: 1, comment: {value: 'Hello world!'}}
+  { row: 1, col: 1, comment: { value: 'Hello world!' } }
 ]
 ```
 
@@ -52,7 +52,7 @@ In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 ```js
 const container = document.querySelector('#example1');
 
-const hot1 = new Handsontable(container, {
+const hot = new Handsontable(container, {
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],
@@ -67,8 +67,8 @@ const hot1 = new Handsontable(container, {
   comments: true,
   licenseKey: 'non-commercial-and-evaluation',
   cell: [
-    {row: 1, col: 1, comment: {value: 'Some comment'}},
-    {row: 2, col: 2, comment: {value: 'More comments'}}
+    { row: 1, col: 1, comment: { value: 'Some comment' } },
+    { row: 2, col: 2, comment: { value: 'More comments' } }
   ]
 });
 ```
@@ -95,8 +95,8 @@ const hot = new Handsontable(container, {
   comments: true,
   licenseKey: 'non-commercial-and-evaluation',
   cell: [
-    {row: 0, col: 1, comment: {value: 'A read-only comment.', readOnly: true}},
-    {row: 0, col: 3, comment: {value: 'You can edit this comment'}}
+    { row: 0, col: 1, comment: { value: 'A read-only comment.', readOnly: true } },
+    { row: 0, col: 3, comment: { value: 'You can edit this comment' } }
   ]
 });
 ```

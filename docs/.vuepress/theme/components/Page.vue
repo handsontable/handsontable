@@ -19,8 +19,11 @@ export default {
   components: { PageEdit, PageNav },
   props: ['sidebarItems'],
   watch: {
-    $route() {
-      this.activatedExamples = [];
+    $route(to, from) {
+      // Do not reset the `activatedExamples` array when the anchor is changed.
+      if (to.path !== from.path) {
+        this.activatedExamples = [];
+      }
     }
   },
   data() {
