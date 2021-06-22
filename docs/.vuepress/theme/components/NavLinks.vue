@@ -3,7 +3,9 @@
     class="nav-links"
   >
     <!-- user links -->
-
+    <div class="nav-item theme-switcher-nav-item">
+      <ThemeSwitcher />
+    </div>
     <div class="nav-item">
       <NavVersionedLink :item="guideLink"/>
     </div>
@@ -35,6 +37,7 @@ import DropdownLink from '@theme/components/DropdownLink.vue';
 import NavLink from '@theme/components/NavLink.vue';
 import NavVersionedLink from '@theme/components/NavVersionedLink.vue';
 import { resolveNavLinkItem } from './util';
+import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 
 export default {
   name: 'NavLinks',
@@ -42,7 +45,8 @@ export default {
   components: {
     NavLink,
     DropdownLink,
-    NavVersionedLink
+    NavVersionedLink,
+    ThemeSwitcher
   },
   computed: {
     guideLink() {
