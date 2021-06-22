@@ -56,17 +56,68 @@ export class CustomPlugin extends BasePlugin {
    * @param {Handsontable} hotInstance
    */
   constructor(hotInstance) {
+    /**
+     * BasePlugin's constructor adds to our custom plugin the following properties:
+     * - `this.hot` - a reference to the Handsontable instance, you can't overwrite this property,
+     */
     super(hotInstance);
 
     // Initialize all your public properties in the class' constructor.
-    this.configuration = null;
+    this.configuration = {
+      enabled: false,
+      msg: ''
+    };
+  }
+
+  /**
+   * Unifies configuration passed to settings object.
+   *
+   * @returns {object}
+   * @throws {Error}
+   */
+  unifyConfiguration() {
+    const pluginSettings = this.hot.getSettings()[CustomPlugin.PLUGIN_KEY];
+
+    if (pluginSettings === true) {
+      return {
+        enabled: true,
+        msg: 'default msg boolean'
+      };
+    }
+    if (Object.prototype.toString.call(pluginSettings) === '[object Object]') {
+      return {
+        enabled: true,
+        msg: 'default msg obj',
+        ...pluginSettings
+      };
+    }
+    if (pluginSettings === false) {
+      return {
+        enabled: false,
+        msg: ''
+      };
+    }
+
+    throw new Error(
+      `${CustomPlugin.PLUGIN_KEY} - incorrect plugins configuration.
+      Passed:
+        - type: ${typeof pluginSettings}
+        - value: ${JSON.stringify(pluginSettings, null, ' ')}
+
+      Expected:
+        - boolean
+        - object
+      `
+    );
   }
 
   /**
    * Checks if the plugin is enabled in the settings.
    */
   isEnabled() {
-    return !!this.hot.getSettings()[CustomPlugin.PLUGIN_KEY];
+    const pluginSettings = this.unifyConfiguration();
+
+    return pluginSettings.enabled;
   }
 
   /**
@@ -76,7 +127,9 @@ export class CustomPlugin extends BasePlugin {
    */
   enablePlugin() {
     // Read the plugins' configuration from the initialization object.
-    this.configuration = this.hot.getSettings()[CustomPlugin.PLUGIN_KEY];
+    this.configuration = this.unifyConfiguration(
+      this.hot.getSettings()[CustomPlugin.PLUGIN_KEY]
+    );
 
     // Add all your plugin hooks here. It's a good idea to use arrow functions to keep the plugin as a context.
     this.addHook('afterChange', (changes, source) => this.onAfterChange(changes, source));
@@ -91,7 +144,7 @@ export class CustomPlugin extends BasePlugin {
    */
   disablePlugin() {
     // Reset all of your plugin class properties to their default values here.
-    this.configuration = null;
+    this.configuration = this.verifyConfiguration(this.hot.getSettings()[CustomPlugin.PLUGIN_KEY]);
 
     // The `BasePlugin.disablePlugin` method takes care of clearing the hook connections
     // and assigning the 'false' value to the 'this.enabled' property.
@@ -129,6 +182,11 @@ export class CustomPlugin extends BasePlugin {
    */
   onAfterChange(changes, source) {
     // afterChange callback goes here.
+    console.log(
+      `${CustomPlugin.PLUGIN_KEY}.onAfterChange - ${this.configuration.msg}`,
+      changes,
+      source
+    );
   }
 
   /**
@@ -147,7 +205,7 @@ export class CustomPlugin extends BasePlugin {
 Last but not least, you need to register the plugin. This is the only way to use plugins in Handsontable.
 There are two ways to do that.
 
-- You can define a static getter named `PLUGIN_KEY` that the `registerPlugin` utility uses as the plugin's alias.
+- You can define a static getter named `PLUGIN_KEY` that the `registerPlugin` utility uses as the plugin's alias. Usage example you can find in the above code snippet.
   ```js
   // You need to register your plugin in order to use it within Handsontable.
   registerPlugin(CustomPlugin);
@@ -158,13 +216,22 @@ There are two ways to do that.
   ```
 
 ### 4. Use plugin in Handsontable
+Accordingly, to the supported options for the plugin, you might control it, passing in its options the boolean or object.
+The following snippet presents all possible approaches:
 
 ```js
 import Handsontable from 'handsontable';
 import { CustomPlugin } from './customPlugin';
 
 const hotInstance = new Handsontable(container, {
-  [CustomPlugin.PLUGIN_KEY]: true
+  // You can enable plugin by passing `true` to use default options.
+  [CustomPlugin.PLUGIN_KEY]: true,
+  // You can also enable the plugin by passing an object with options.
+  [CustomPlugin.PLUGIN_KEY]: {
+    optionA: 'a',
+  },
+  // You can also initialize the plugin without enabling it at the beginning.
+  [CustomPlugin.PLUGIN_KEY]: false,
 });
 ```
 
