@@ -39,10 +39,10 @@ In this built-in interface, we care about many factors such as backward compatib
 ```js
 export class CustomPlugin extends BasePlugin {
   /**
-   * Define an unique plugin's key.
-   * Handsontable will use that string to register the plugin under that alias.
+   * Define a unique plugin's key.
+   * Handsontable uses that string to register the plugin under that alias.
    * Moreover, you might also use the same parameter to recognize the plugin's
-   * options passed through the setting object at Handsontable initialization.
+   * options passed through the Setting object at Handsontable initialization.
    *
    * @returns {string}
    */
@@ -93,7 +93,8 @@ export class CustomPlugin extends BasePlugin {
     // Reset all of your plugin class properties to their default values here.
     this.configuration = null;
 
-    // The super method takes care of clearing the hook connections and assigning the 'false' value to the 'this.enabled' property.
+    // The `BasePlugin.disablePlugin` method takes care of clearing the hook connections
+    // and assigning the 'false' value to the 'this.enabled' property.
     super.disablePlugin();
   }
 
@@ -144,14 +145,14 @@ export class CustomPlugin extends BasePlugin {
 
 ### 3. Register CustomPlugin
 Last but not least, you need to register the plugin. This is the only way to use plugins in Handsontable.
-There are two options.
+There are two ways to do that.
 
-- You can define a static getter named `PLUGIN_KEY` that the `registerPlugin` utility will use as the plugin's alias.
+- You can define a static getter named `PLUGIN_KEY` that the `registerPlugin` utility uses as the plugin's alias.
   ```js
   // You need to register your plugin in order to use it within Handsontable.
   registerPlugin(CustomPlugin);
   ```
-- You can also use the alternative alias
+- You can also use the alternative alias.
   ```js
   registerPlugin('CustomAlias', CustomPlugin);
   ```
@@ -168,7 +169,7 @@ const hotInstance = new Handsontable(container, {
 ```
 
 ### 5. Get a reference to the plugin's instance
-If you would like to use plugin's API you might use [`getPlugin`](../api/core/#getplugin) method to get a refernce to the plugin's instance.
+To use the plugin's API you may use [`getPlugin`](../api/core/#getplugin) method to get a reference to its instance.
 
 ```js
 const pluginInstance = hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY);
