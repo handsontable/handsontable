@@ -11,7 +11,7 @@ const babelConfig = {
     '@babel/plugin-syntax-class-properties',
     ['@babel/plugin-proposal-decorators', { legacy: true }],
     ['@babel/plugin-proposal-class-properties', { loose: true }],
-
+    ['@babel/plugin-proposal-private-methods', { loose: true }],
   ],
   targets: {
     ie: 9
