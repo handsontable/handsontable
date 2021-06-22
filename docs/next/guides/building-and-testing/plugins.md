@@ -75,7 +75,7 @@ export class CustomPlugin extends BasePlugin {
    * @returns {object}
    * @throws {Error}
    */
-  unifyConfiguration() {
+  getUnifiedConfig() {
     const pluginSettings = this.hot.getSettings()[CustomPlugin.PLUGIN_KEY];
 
     if (pluginSettings === true) {
@@ -115,7 +115,7 @@ export class CustomPlugin extends BasePlugin {
    * Checks if the plugin is enabled in the settings.
    */
   isEnabled() {
-    const pluginSettings = this.unifyConfiguration();
+    const pluginSettings = this.getUnifiedConfig();
 
     return pluginSettings.enabled;
   }
@@ -127,7 +127,7 @@ export class CustomPlugin extends BasePlugin {
    */
   enablePlugin() {
     // Read the plugins' configuration from the initialization object.
-    this.configuration = this.unifyConfiguration(
+    this.configuration = this.getUnifiedConfig(
       this.hot.getSettings()[CustomPlugin.PLUGIN_KEY]
     );
 
@@ -144,7 +144,7 @@ export class CustomPlugin extends BasePlugin {
    */
   disablePlugin() {
     // Reset all of your plugin class properties to their default values here.
-    this.configuration = this.verifyConfiguration(this.hot.getSettings()[CustomPlugin.PLUGIN_KEY]);
+    this.configuration = null;
 
     // The `BasePlugin.disablePlugin` method takes care of clearing the hook connections
     // and assigning the 'false' value to the 'this.enabled' property.
