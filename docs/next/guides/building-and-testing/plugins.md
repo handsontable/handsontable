@@ -127,9 +127,7 @@ export class CustomPlugin extends BasePlugin {
    */
   enablePlugin() {
     // Read the plugins' configuration from the initialization object.
-    this.configuration = this.getUnifiedConfig(
-      this.hot.getSettings()[CustomPlugin.PLUGIN_KEY]
-    );
+    this.configuration = this.getUnifiedConfig();
 
     // Add all your plugin hooks here. It's a good idea to use arrow functions to keep the plugin as a context.
     this.addHook('afterChange', (changes, source) => this.onAfterChange(changes, source));
@@ -161,8 +159,20 @@ export class CustomPlugin extends BasePlugin {
   updatePlugin() {
     // The `updatePlugin` method needs to contain all the code needed to properly re-enable the plugin.
     // In most cases simply disabling and enabling the plugin should do the trick.
-    this.disablePlugin();
-    this.enablePlugin();
+    const { enabled, msg } = this.getUnifiedConfig();
+
+    // You can control if settings' update should go through disable->enable routine.
+    if (enabled === false && this.enabled === true) {
+      this.disablePlugin();
+
+    } else if (enabled === true && this.enabled === false) {
+      this.enablePlugin();
+    }
+
+    // Because sometimes the only action you need is to update only one option.
+    if (this.configuration !== null && msg && this.configuration.msg !== msg) {
+      this.configuration.msg = msg;
+    }
 
     super.updatePlugin();
   }
