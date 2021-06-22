@@ -58,7 +58,8 @@ export class CustomPlugin extends BasePlugin {
   constructor(hotInstance) {
     /**
      * BasePlugin's constructor adds to our custom plugin the following properties:
-     * - `this.hot` - a reference to the Handsontable instance, you can't overwrite this property,
+     * - `this.hot` - A reference to the Handsontable instance, you can't overwrite this property.
+     *                It also gives you the access to [columns and rows index mappers](../api/core/#members)
      */
     super(hotInstance);
 
