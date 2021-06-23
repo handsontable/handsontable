@@ -71,12 +71,15 @@ export default {
   display: none;
   margin-bottom: 0;
   top: 8px;
-  left: 95px;
+  left: 75px;
 
   @media (max-width: $MQNarrow) {
     & {
       display: inline-block;
     }
+  }
+  @media (max-width: $MQMobileNarrow) {
+    left: 85px;
   }
 }
 </style>
@@ -87,8 +90,8 @@ export default {
 .switch {
   position: relative;
   display: inline-block;
-  width: 40px;
-  height: 22px;
+  width: 50px;
+  height: 24px;
   margin-right 1.5rem
   top: 8px;
   left: -9px;
@@ -122,8 +125,8 @@ export default {
 .slider:before {
   position: absolute;
   content: "";
-  height: 26px;
-  width: 26px;
+  height: 28px;
+  width: 28px;
   left: 0px;
   bottom: 4px;
   top: 0;
@@ -133,7 +136,7 @@ export default {
   transition: 0.4s;
   box-shadow: 0 0px 3px #2020203d;
   background: #ffffff url('/img/light-theme-icon.svg');
-  background-size: 70%;
+  background-size: 75%;
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -147,11 +150,11 @@ input:focus + .slider {
 }
 
 input:checked + .slider:before {
-  -webkit-transform: translateX(16px);
-  -ms-transform: translateX(16px);
-  transform: translateX(16px);
+  -webkit-transform: translateX(23px);
+  -ms-transform: translateX(23px);
+  transform: translateX(23px);
   background: #ffffff url('/img/dark-theme-icon.svg');
-  background-size: 70%;
+  background-size: 75%;
   background-repeat: no-repeat;
   background-position: center;
 }
