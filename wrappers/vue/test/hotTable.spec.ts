@@ -648,6 +648,46 @@ describe('HOT-based CRUD actions', () => {
   });
 });
 
+describe('Non-HOT based CRUD actions', () => {
+  it('should should not add/remove any additional rows when modifying a data array passed to the wrapper', async() => {
+    const externalData = createSampleData(4, 4);
+    const testWrapper = mount(HotTable, {
+      propsData: {
+        data: externalData,
+        rowHeaders: true,
+        colHeaders: true,
+      }
+    });
+    const hotInstance = testWrapper.vm.hotInstance;
+
+    externalData.push(externalData[0], externalData[0]);
+    externalData[0].push('test', 'test');
+
+    await Vue.nextTick();
+
+    expect(hotInstance.countRows()).toEqual(6);
+    expect(hotInstance.countSourceRows()).toEqual(6);
+    expect(hotInstance.countCols()).toEqual(6);
+    expect(hotInstance.countSourceCols()).toEqual(6);
+    expect(hotInstance.getSourceData().length).toEqual(6);
+    expect(hotInstance.getSourceData()[0].length).toEqual(6);
+
+    externalData.pop();
+    externalData.pop();
+    externalData[0].pop();
+    externalData[0].pop();
+
+    await Vue.nextTick();
+
+    expect(hotInstance.countRows()).toEqual(4);
+    expect(hotInstance.countSourceRows()).toEqual(4);
+    expect(hotInstance.countCols()).toEqual(4);
+    expect(hotInstance.countSourceCols()).toEqual(4);
+    expect(hotInstance.getSourceData().length).toEqual(4);
+    expect(hotInstance.getSourceData()[0].length).toEqual(4);
+  });
+});
+
 describe('cooperation with NestedRows plugin', () => {
   it('should display dataset properly #7548', async() => {
     const testWrapper = mount(HotTable, {
