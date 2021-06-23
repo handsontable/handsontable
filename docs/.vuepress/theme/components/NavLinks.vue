@@ -3,9 +3,6 @@
     class="nav-links"
   >
     <!-- user links -->
-    <div class="nav-item theme-switcher-nav-item">
-      <ThemeSwitcher />
-    </div>
     <div class="nav-item">
       <NavVersionedLink :item="guideLink"/>
     </div>
@@ -134,7 +131,7 @@ export default {
     display inline-block
     margin-left 1.5rem
     line-height 2rem
-    &:nth-child(2)
+    &:first-child
       margin-left 0
   .repo-link
     margin-left 1.5rem

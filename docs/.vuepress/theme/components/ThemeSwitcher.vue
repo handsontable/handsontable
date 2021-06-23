@@ -71,31 +71,22 @@ export default {
 </script>
 
 <style lang="stylus">
-.navbar {
-  .theme-switcher-nav-item {
-    display none !important
-  }
+/* Hide the theme switcher in the sidebar on wide screen and show on narrow screen */
+.sidebar.sidebar .switch {
+  display: none;
+  margin-bottom: 0;
+  top: 8px;
+  left: 22px;
 
-  #switch {
-    @media (max-width: $MQMobile) {
-      display none
+  @media (max-width: $MQNarrow) {
+    & {
+      display: inline-block;
     }
   }
 }
+</style>
 
-.sidebar {
-  @media (max-width: $MQMobile) {
-    .theme-switcher-nav-item {
-      display block
-
-      #switch {
-        display inline-block
-        top 0
-        left 0
-      }
-    }
-  }
-}
+<style lang="stylus" scoped>
 
 /* The switch - the box around the slider */
 .switch {
@@ -107,9 +98,9 @@ export default {
   top: 8px;
   left: -9px;
 
-  @media (max-width: $MQNavbarNarrow) {
-    left: -19px;
-    margin 0
+  /* Hide the theme switcher on narrow screen */
+  @media (max-width: $MQNarrow) {
+    display none
   }
 }
 

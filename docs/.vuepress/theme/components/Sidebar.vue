@@ -1,5 +1,7 @@
 <template>
   <aside class="sidebar">
+    <ThemeSwitcher />
+
     <NavLinks />
 
     <slot name="top" />
@@ -15,11 +17,12 @@
 <script>
 import SidebarLinks from '@theme/components/SidebarLinks.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
+import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 
 export default {
   name: 'Sidebar',
 
-  components: { SidebarLinks, NavLinks },
+  components: { SidebarLinks, NavLinks, ThemeSwitcher },
 
   props: ['items']
 };
@@ -35,6 +38,7 @@ export default {
   @media (max-width: $MQMobile) {
     width 18rem
   }
+
   ul
     padding 0
     margin 0
