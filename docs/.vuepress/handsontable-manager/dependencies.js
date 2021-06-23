@@ -21,7 +21,8 @@ const getHotUrls = (version) => {
 };
 const getFixer = () => {
   if (isBrowser) {
-    return ['/docs/scripts/fixer.js', ['require', 'exports']];
+    // eslint-disable-next-line no-restricted-globals
+    return [`${window.location.origin}/docs/scripts/fixer.js`, ['require', 'exports']];
   }
 
   return ['https://handsontable.com/docs/scripts/fixer.js', ['require', 'exports']];
