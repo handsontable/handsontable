@@ -76,7 +76,7 @@ export default {
   display: none;
   margin-bottom: 0;
   top: 8px;
-  left: 22px;
+  left: 95px;
 
   @media (max-width: $MQNarrow) {
     & {

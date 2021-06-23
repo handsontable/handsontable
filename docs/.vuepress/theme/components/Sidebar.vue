@@ -1,7 +1,8 @@
 <template>
   <aside class="sidebar">
-    <ThemeSwitcher />
-
+    <div class="theme-switcher-item">
+      Color theme: <ThemeSwitcher />
+    </div>
     <NavLinks />
 
     <slot name="top" />
@@ -29,6 +30,19 @@ export default {
 </script>
 
 <style lang="stylus">
+.theme-switcher-item {
+    position relative
+    display inline-block
+    margin-left 1.5rem
+    line-height 2rem
+    font-weight 600
+    margin-top 10px
+
+    @media (min-width: $MQNarrow) {
+      display none
+    }
+}
+
 .sidebar
   width 17rem
   z-index 1000
@@ -48,7 +62,7 @@ export default {
   .nav-links
     display none
     border-bottom 1px solid $borderColor
-    padding 0.5rem 0 0.75rem 0
+    padding 8px 0 0.75rem 0
     a
       font-weight 600
       @media (max-width: $MQMobile) {
@@ -61,6 +75,9 @@ export default {
       padding 0.5rem 0 0.5rem 1.5rem
   & > .sidebar-links
     padding 1.5rem 0
+    @media (max-width: $MQNarrow) {
+      padding-top 10px
+    }
     & > li > a.sidebar-link
       padding 0.35rem 1.5rem 0.35rem 1.25rem
       font-weight 500
