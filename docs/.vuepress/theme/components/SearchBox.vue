@@ -358,6 +358,7 @@ export default {
       color #104bcd
       cursor auto
       border-color $accentColor
+      margin-right 1rem
   .suggestions
     background #fff
     width 26rem
