@@ -21,7 +21,7 @@ Since we want to support case-insensitive URLs, all links in JsDoc should:
 // Wrong:
 /** {@link Options#autoColumnSize}. */
 
-// OK: 
+// OK:
 /** {@link options#autocolumnsize Options#autoColumnSize}. */
 
 
@@ -68,12 +68,12 @@ sitemap:
 
 ### Subdirectories
 
-I recommend to keep files flat without subdirectories. 
+I recommend to keep files flat without subdirectories.
 If subdirectory being to add, it is required to update sidebars creating logic.
 
 ### Prefer .md, avoiding .vue
 
-The `*.vue` allows us to use vue pages and components. It is undesirable because it introduces additional complexity. 
+The `*.vue` allows us to use vue pages and components. It is undesirable because it introduces additional complexity.
 For that purposes `.vue` suffix is disabled.
 
 Keeping all content as just `.md` file makes them more manageable.
@@ -94,7 +94,7 @@ It is able to run code snippets to show result of the code:
 ```
 
 `#example1` is id for creating handsontable container.
- 
+
 ### Editing the `Next` version
 
 *The next version is only available on the `localhost` and on the staging server.*
@@ -104,7 +104,7 @@ To display it in a browser, please go into URL: `/docs/next`.
 
 ### Editing the `latest` version
 
-The latest version is the largest semver valid directory inside the root directory. 
+The latest version is the largest semver valid directory inside the root directory.
 It is in `/[number]/`.
 
 To display the latest docs version in a browser, please go into: `/docs/`.
@@ -128,10 +128,10 @@ npm run docs:api
 **Release a version**
 
 ```shell script
-npm run docs:version <semver_number>
-# for instance 
-# npm run docs:version 9.0
+npm run docs:version
 ```
+
+Then you'll be asked for the version that you want to release (interactive mode).
 
 **Remove a version**
 
