@@ -24,11 +24,13 @@ export default {
       return version;
     },
     getLink(version) {
+      const pathWithoutVersion = this.$route.path.replace(/^\/(\d+\.\d+|next)/, '');
+
       if (version === this.$page.latestVersion) {
-        return '/';
+        return pathWithoutVersion;
       }
 
-      return `/${version}/`;
+      return `/${version}${pathWithoutVersion}`;
     },
     getLegacyVersions() {
       return [
