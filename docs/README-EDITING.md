@@ -154,20 +154,27 @@ Using the `example` Markdown container, you can add code snippets that show the 
 ```js
 ::: example #exampleId .class :preset --html 1 --js 2 --css 3  --no-edit --tab preview
 // `#example1` is the example's ID, for creating a Handsontable container
-
+    ```html
+    <div id="example1"></div>
+    ```
     ```js
     // code here
+    ```
+    ```css
+    /* custom css here */
     ```
 :::
 ```
 
 The `example` Markdown container offers the following options:
 
-| Option           | Required | Example           | Possible values                                            | Usage                          |
-|------------------|----------|-------------------|------------------------------------------------------------|--------------------------------|
-| `#exampleId`     | Yes      | `#data-grid-1`    | String                                                     | Container's unique ID.         |
-| `.class`         | No       | `.new-class`      | String                                                     | Container's custom class.      |
-| `:preset`        | No       | `:react`          | [`preset`](.vuepress/handsontable-manager/dependencies.js) | Sets code dependencies.        |
-| `--codeOption 1` | Yes      | `--html 1 --js 2` | [`codeOption`](.vuepress/highlight.js) + Number            | Sets code snippets' positions. |
-| `--no-edit`      | No       | `--no-edit`       | `--no-edit`                                                | Removes the **Edit** button.   |
-| `--tab`          | No       | `--tab preview`   | [`codeOption`](.vuepress/highlight.js) \| `preview`        | Sets a tab as open by default. |
+| Option         | Required | Example         | Possible values                                            | Usage                                                                                              |
+|----------------|----------|-----------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| `#exampleId`   | Yes      | `#data-grid-1`  | String                                                     | Container's unique ID.                                                                             |
+| `.class`       | No       | `.new-class`    | String                                                     | Container's custom class.                                                                          |
+| `:preset`      | No       | `:react`        | [`preset`](.vuepress/handsontable-manager/dependencies.js) | Sets code dependencies.                                                                            |
+| `--js <pos>`   | No       | `--js 1`        | Positive integer (default `1`)                             | Sets the JS code snippet's position in the markdown container.                                     |
+| `--html <pos>` | No       | `--html 2`      | Positive integer (default `0`)                             | Sets the HTML code snippet's position in the markdown container.<br><br>`0` disables the HTML tab. |
+| `--css <pos>`  | No       | `--css 2`       | Positive integer (default `0`)                             | Sets the CSS code snippet's position in the markdown container.<br><br>`0` disables the CSS tab.   |
+| `--no-edit`    | No       | `--no-edit`     | `--no-edit`                                                | Removes the **Edit** button.                                                                       |
+| `--tab`        | No       | `--tab preview` | [`codeOption`](.vuepress/highlight.js) \| `preview`        | Sets a tab as open by default.                                                                     |

@@ -30,11 +30,11 @@ To start a local Handsontable documentation server:
     ```bash
     npm install
     ```
-2. From the `handsontable/docs` directory, generate the API reference:
+2. Generate the API reference:
    ```bash
    npm run docs:api
    ```   
-3. From the `handsontable/docs` directory, start your local documentation server:
+3. Start your local documentation server:
    ```bash
    npm run docs:start
    ```
@@ -76,7 +76,7 @@ docs                            # All documentation files
 │   │   ├── utils.js            # Tools utilities
 │   │   └── version             # A tool that creates new documentation versions
 │   ├── config.js               # VuePress configuration
-│   ├── docs-links.js           # Lets us link to the documentation's latest version with `@` (e.g. [link](@/guides/path/file.md.)
+│   ├── docs-links.js           # Lets us link within the currently-selected docs version with `@` (e.g. [link](@/guides/path/file.md.)
 │   ├── enhanceApp.js           # VuePress app-level enhancements
 │   ├── helpers.js              # Common helpers that set up sidebars and the documentation version picker
 │   ├── highlight.js            # Code highlight configuration
