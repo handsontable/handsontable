@@ -75,18 +75,18 @@ export default {
   position relative
   top -1px
   text-transform capitalize
-  
+
   .dropdown-title {
     text-transform capitalize
   }
 
   .icon.outbound
     display none
-    
-  .dropdown-wrapper 
+
+  .dropdown-wrapper
     height 1.8rem
 
-  .dropdown-wrapper .nav-dropdown 
+  .dropdown-wrapper .nav-dropdown
     min-width 150px
     height auto !important
     box-sizing border-box

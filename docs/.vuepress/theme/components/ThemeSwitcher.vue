@@ -7,10 +7,7 @@
 
 <script>
 const CLASS_THEME_DARK = 'theme-dark';
-
-const getDomElement = (selector) => {
-  return document.querySelector(selector);
-};
+const STORAGE_KEY = 'handsontable/docs::color-scheme';
 
 const toggleDarkThemeClassOnHTML = (htmlDomElement, isDarkTheme) => {
   if (isDarkTheme) {
@@ -30,7 +27,7 @@ export default {
       const theme = this.isDarkTheme ? 'dark' : 'light';
 
       if (localStorage) {
-        localStorage.setItem('theme', theme);
+        localStorage.setItem(STORAGE_KEY, theme);
       }
 
       toggleDarkThemeClassOnHTML(this.htmlDomEl, this.isDarkTheme);
@@ -40,11 +37,10 @@ export default {
     return {
       isDarkTheme: null,
       htmlDomEl: null,
-      logoDomEl: null
     };
   },
   beforeMount() {
-    const userPrefferedTheme = localStorage ? localStorage.getItem('theme') : 'light';
+    const userPrefferedTheme = localStorage ? localStorage.getItem(STORAGE_KEY) : 'light';
 
     if (userPrefferedTheme) {
       this.isDarkTheme = userPrefferedTheme === 'dark';
@@ -61,8 +57,7 @@ export default {
     }
   },
   mounted() {
-    this.htmlDomEl = getDomElement('html');
-    this.logoDomEl = getDomElement('header.navbar .logo');
+    this.htmlDomEl = document.querySelector('html');
 
     toggleDarkThemeClassOnHTML(this.htmlDomEl, this.isDarkTheme);
 

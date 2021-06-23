@@ -128,7 +128,7 @@ export default {
     padding 2rem
   @media (max-width: $MQMobileNarrow)
     padding 1.5rem  padding-top 1rem
-    
+
   padding-bottom 1rem
   overflow auto
 
