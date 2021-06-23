@@ -1,54 +1,51 @@
-# Deployment
+# Documentation deployment guidelines
 
-Our server configurations watch changes for `latest` tag for an image. Refresh itself If detect newer version.
+This page covers guidelines for deploying the [Handsontable documentation](https://handsontable.com/docs).
 
-## From the console
+## About documentation deployment
 
-**Once:**
+A [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure) with the largest version number gets automatically tagged as the documentation' `:latest` version.
 
-Login into ghcr:
- * Login: email used for GH Account
- * Pass: PAT with `write:packages` permission: https://github.com/settings/tokens/new
+Our server configuration watches for images tagged as [`:latest`](./README-EDITING.md#editing-the-latest-docs-version), and automatically refreshes after detecting a newer version.
 
-```shell script
-docker login --registry docker.pkg.github.com
-```
+## Documentation deployment
 
-**Deploy:**
+To deploy the documentation using the command line:
 
-```shell script
-docker build -t docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest .
-docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
-```
+1. When deploying for the first time, log in to the GitHub Container Registry (ghcr.io):
+    ```bash
+    docker login --registry docker.pkg.github.com
+    ```
+    * Login: Your GitHub account email
+    * Password: PAT with the `write:packages` permission: https://github.com/settings/tokens/new
 
-## From GH Action
+2. Deploy the documentation:
+    ```bash
+    npm run docs:docker:build
+    # npm run docs:docker:build:production # Production build
 
-It happens automatically for each commit pushed into the `develop` branch.
+    docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
+    ```
 
-## Manually from GH Action
+### Deploying the documentation from GitHub Actions
 
-It is able to run manually deployment from any branch. To perform a deployment manually:
+GitHub Actions deploys the documentation automatically after each commit pushed to the `develop` branch.
 
-1. Go into `Actions` tab in a repo,
-2. On the left-hend side, select `documentation`,
-3. On the right-hand side, click `Run workflow`
-4. Select branch,
-5. Run workflow.
+### Manual deployment
 
-## Revert automatically deployment
+You can deploy the documentation manually, from any branch:
 
-GH Action pushes two tags into GHCR:
-* `:latest` - which is observers by a server.
-* `:[COMMIT_HASH]` - which is a backup.
+1. On a GitHub repository, select the **Actions** tab.
+2. On the left, select **Documentation**.
+3. On the right, select **Run workflow**.
+4. Select the required branch.
+5. Run the workflow.
 
-To revert deployment:
+GitHub Actions pushes the following tags to the GitHub Container Registry:
 
-```shell script
-docker pull docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH]
-docker tag docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH] docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
-docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
-```
+* `:latest` - the server configuration watches for images with this tag.
+* `:[COMMIT_HASH]` - a backup.
 
-## Production environment:
+## Production environment
 
-Doesn't exists yet.
+Coming soon.
