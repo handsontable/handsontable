@@ -4,10 +4,7 @@
   "version": "0.0.0",
   "description": "Handsontable documentation",
   "main": "index.js",
-  "authors": {
-    "name": "Paweł Siemienik",
-    "email": "siemienik.pawel@gmail.com"
-  },
+  "author": "Handsoncode <hello@handsontable.com>",
   "repository": {
     "url": "https://github.com/handsontable/handsontable",
     "directory": "docs"
