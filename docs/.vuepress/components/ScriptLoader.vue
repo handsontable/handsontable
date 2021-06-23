@@ -13,8 +13,8 @@ const useCodePreview = (code) => {
   scriptElement.innerHTML = code;
 
   return [
-    (container) => { container.append(scriptElement); },
-    () => { scriptElement.remove(); },
+    (container) => { container.appendChild(scriptElement); },
+    () => { scriptElement.parentElement.removeChild(scriptElement); },
   ];
 };
 
