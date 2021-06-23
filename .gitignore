@@ -16,6 +16,7 @@ npm-debug.log
 
 .bundle/
 !dist/README.md
+dist/hyperformula/
 node_modules/
 commonjs/
 es/
