@@ -76,7 +76,7 @@ docs                            # All documentation files
 │   │   ├── utils.js            # Tools utilities
 │   │   └── version             # A tool that creates new documentation versions
 │   ├── config.js               # VuePress configuration
-│   ├── docs-links.js           # Lets us link within the currently-selected docs version with `@` (e.g. [link](@/guides/path/file.md.)
+│   ├── docs-links.js           # Lets us link within the currently-selected docs version with `@` (e.g. [link](@/guides/path/file.md).)
 │   ├── enhanceApp.js           # VuePress app-level enhancements
 │   ├── helpers.js              # Common helpers that set up sidebars and the documentation version picker
 │   ├── highlight.js            # Code highlight configuration
