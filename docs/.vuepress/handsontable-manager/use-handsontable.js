@@ -38,7 +38,7 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot') => {
         script.loaded = true;
       });
 
-      _document.head.append(script);
+      _document.head.appendChild(script);
 
       if (cssUrl) {
         _document.head.insertAdjacentHTML(

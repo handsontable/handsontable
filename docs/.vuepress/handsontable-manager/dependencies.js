@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-globals
 const isBrowser = (typeof window !== 'undefined');
 
+const formatVersion = version => (/^\d+\.\d+$/.test(version) ? version : 'latest');
 const getHotUrls = (version) => {
   if (version === 'next' && isBrowser) {
     return {
@@ -9,7 +10,8 @@ const getHotUrls = (version) => {
       languagesJs: 'https://cdn.jsdelivr.net/npm/handsontable/dist/languages/all.js'
     };
   }
-  const mappedVersion = version.match(/^\d+\.\d+\.\d+$/) ? version : 'latest';
+
+  const mappedVersion = formatVersion(version);
 
   return {
     handsontableJs: `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/handsontable.full.min.js`,
@@ -23,8 +25,7 @@ const getFixer = () => {
     return [`${window.location.origin}/docs/scripts/fixer.js`, ['require', 'exports']];
   }
 
-  return ['https://handsontable.com/docs/8.3.2/scripts/jsfiddle-fixer.js', ['require', 'exports']];
-
+  return ['https://handsontable.com/docs/scripts/fixer.js', ['require', 'exports']];
 };
 
 /**
@@ -37,6 +38,7 @@ const getFixer = () => {
  */
 const buildDependencyGetter = (version) => {
   const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version);
+  const mappedVersion = formatVersion(version);
   const fixer = getFixer();
 
   return (dependency) => {
@@ -46,7 +48,7 @@ const buildDependencyGetter = (version) => {
       hot: [handsontableJs, ['Handsontable'], handsontableCss],
       react: ['https://unpkg.com/react@17/umd/react.development.js', ['React']],
       'react-dom': ['https://unpkg.com/react-dom@17/umd/react-dom.development.js', ['ReactDOM']],
-      'hot-react': ['https://cdn.jsdelivr.net/npm/@handsontable/react/dist/react-handsontable.js', ['Handsontable.react']],
+      'hot-react': [`https://cdn.jsdelivr.net/npm/@handsontable/react@${mappedVersion}/dist/react-handsontable.js`, ['Handsontable.react']],
       'react-redux': ['https://cdnjs.cloudflare.com/ajax/libs/react-redux/7.2.4/react-redux.min.js'],
       numbro: ['https://handsontable.com/docs/8.3.2/components/numbro/dist/languages.min.js', ['numbro.allLanguages', 'numbro']],
       redux: ['https://cdn.jsdelivr.net/npm/redux@4/dist/redux.min.js', []],
@@ -59,8 +61,8 @@ const buildDependencyGetter = (version) => {
       'angular-forms': ['https://cdn.jsdelivr.net/npm/@angular/forms@7/bundles/forms.umd.min.js', [/* todo */]],
       'angular-platform-browser': ['https://cdn.jsdelivr.net/npm/@angular/platform-browser@8/bundles/platform-browser.umd.min.js', [/* todo */]],
       'angular-platform-browser-dynamic': ['https://cdn.jsdelivr.net/npm/@angular/platform-browser-dynamic@8/bundles/platform-browser-dynamic.umd.min.js', [/* todo */]],
-      'hot-angular': ['https://cdn.jsdelivr.net/npm/@handsontable/angular@7.0.0/bundles/handsontable-angular.umd.min.js', [/* todo */]],
-      'hot-vue': ['https://cdn.jsdelivr.net/npm/@handsontable/vue@6.0.0/dist/vue-handsontable.min.js', [/* todo */]],
+      'hot-angular': [`https://cdn.jsdelivr.net/npm/@handsontable/angular@${mappedVersion}/bundles/handsontable-angular.umd.min.js`, [/* todo */]],
+      'hot-vue': [`https://cdn.jsdelivr.net/npm/@handsontable/vue@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */]],
       vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */]],
       vuex: ['https://unpkg.com/vuex@3/dist/vuex.js', [/* todo */]],
       languages: [languagesJs, [/* todo */]],
