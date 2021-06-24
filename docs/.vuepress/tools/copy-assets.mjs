@@ -1,5 +1,5 @@
-import fse from 'fs-extra';
 import path from 'path';
+import {copyFileSync} from 'fs'; 
 
 const TARGET_PATH = './.vuepress/public/';
 const filesToMove = [
@@ -10,8 +10,8 @@ const filesToMove = [
 filesToMove.forEach((fileSchema) => {
   const [from, target] = fileSchema;
 
-  fse.copySync(
+  copyFileSync(
     path.resolve(from),
-    path.resolve(`${TARGET_PATH}/${target}`),
-    { overwrite: true });
+    path.resolve(`${TARGET_PATH}/${target}`)
+  );
 });
