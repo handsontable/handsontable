@@ -15,6 +15,10 @@
       @keyup.up="onUp"
       @keyup.down="onDown"
     >
+    <span class="kbd-hint" title="press / or S to focus the search field">
+      <kbd @click="focusInput()">/</kbd>
+      <kbd @click="focusInput()">S</kbd>
+    </span>
     <ul
       v-if="showSuggestions"
       class="suggestions"
@@ -331,6 +335,10 @@ export default {
 
     unfocus() {
       this.focusIndex = -1;
+    },
+
+    focusInput() {
+      this.$refs.input.focus();
     }
   }
 };
@@ -347,7 +355,7 @@ export default {
     height: 2rem
     display inline-block
     border 1px solid #cfdbe4
-    border-radius 2rem
+    border-radius 8px
     font-size 0.9rem
     line-height 2rem
     padding 0 0.5rem 0 2rem
@@ -358,7 +366,21 @@ export default {
       color #104bcd
       cursor auto
       border-color $accentColor
-      margin-right 1rem
+      + .kbd-hint
+          opacity 0
+  .kbd-hint
+    position relative
+    left -57px
+    top -13px
+    cursor pointer
+    transition all 0.2s linear
+    kbd 
+      position absolute
+      line-height 1
+      box-sizing border-box
+      padding: 0.1em 0.25em;
+      &:first-child
+        left 24px
   .suggestions
     background #fff
     width 26rem
@@ -410,6 +432,8 @@ export default {
         cursor text
         left 0
         width 8rem
+    .kbd-hint *
+      display none
 
 @media (max-width: $MQMobile)
   .search-box.search-box
