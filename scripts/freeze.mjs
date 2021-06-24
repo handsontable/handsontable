@@ -5,6 +5,8 @@
  * It takes extends the committed changes with a new version and release date, runs builds and tests and pushes the
  * changes to the release branch.
  */
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
 import inquirer from 'inquirer';
 import semver from 'semver';
 import {
@@ -15,7 +17,18 @@ import {
   spawnProcess
 } from './utils/index.mjs';
 
-const [version, releaseDate] = process.argv.slice(2);
+const argv = yargs(hideBin(process.argv))
+  .boolean('commit')
+  .default('commit', false)
+  .describe('commit', '`true` if the state of the repo should be committed automatically at the end of the freeze' +
+    ' process.')
+  .boolean('push')
+  .default('push', false)
+  .describe('push', '`true` if the state of the repo should be pushed to remote automatically at the end of the' +
+    ' freeze process.')
+  .argv;
+
+const [version, releaseDate] = argv._;
 
 displaySeparator();
 
@@ -114,13 +127,15 @@ displaySeparator();
   // Create the examples/[version] directory.
   await spawnProcess(`npm run examples:version ${finalVersion}`);
 
-  // Commit the changes to the release branch.
-  await spawnProcess('git add .');
+  if (argv.commit === true) {
+    // Commit the changes to the release branch.
+    await spawnProcess('git add .');
 
-  // Commit the changes to the release branch.
-  await spawnProcess('git add .');
+    await spawnProcess(`git commit -m "${finalVersion}"`);
+  }
 
-  await spawnProcess(`git commit -m "${finalVersion}"`);
-
-  await spawnProcess(`git flow release publish ${finalVersion}`);
+  if (argv.push === true) {
+    // Push the changes to remote.
+    await spawnProcess(`git flow release publish ${finalVersion}`);
+  }
 })();

@@ -9,6 +9,7 @@ import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
 import { ViewportColumnsCalculator } from '../../3rdparty/walkontable/src';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { isDefined } from '../../helpers/mixed';
 
 Hooks.getSingleton().register('modifyAutoColumnSizeSeed');
 
@@ -206,6 +207,7 @@ export class AutoColumnSize extends BasePlugin {
 
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', changes => this.onBeforeChange(changes));
+    this.addHook('afterFormulasValuesUpdate', changes => this.onAfterFormulasValuesUpdate(changes));
     this.addHook('beforeRender', force => this.onBeforeRender(force));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
     this.addHook('afterInit', () => this.onAfterInit());
@@ -591,8 +593,9 @@ export class AutoColumnSize extends BasePlugin {
    * @param {Array} changes An array of modified data.
    */
   onBeforeChange(changes) {
-    const changedColumns = arrayMap(changes, ([, columnProperty]) =>
-      this.hot.toPhysicalColumn(this.hot.propToCol(columnProperty)));
+    const changedColumns = arrayMap(changes, ([, columnProperty]) => {
+      return this.hot.toPhysicalColumn(this.hot.propToCol(columnProperty));
+    });
 
     this.clearCache(Array.from(new Set(changedColumns)));
   }
@@ -625,6 +628,19 @@ export class AutoColumnSize extends BasePlugin {
    */
   onAfterInit() {
     privatePool.get(this).cachedColumnHeaders = this.hot.getColHeader();
+  }
+
+  /**
+   * After formulas values updated listener.
+   *
+   * @private
+   * @param {Array} changes An array of modified data.
+   */
+  onAfterFormulasValuesUpdate(changes) {
+    const filteredChanges = arrayFilter(changes, change => isDefined(change.address?.col));
+    const changedColumns = arrayMap(filteredChanges, change => change.address.col);
+
+    this.clearCache(Array.from(new Set(changedColumns)));
   }
 
   /**

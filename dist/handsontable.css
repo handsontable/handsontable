@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.4.0
- * Release date: 11/05/2021 (built at 11/05/2021 09:12:54)
+ * Version: 9.0.1
+ * Release date: 17/06/2021 (built at 16/06/2021 16:20:21)
  */
 /**
  * Fix for bootstrap styles
@@ -732,6 +732,7 @@ TextRenderer placeholder value
   -moz-box-shadow: 0 0 0 6px rgba(238,238,238,1);
   box-shadow: 0 0 0 6px rgba(238,238,238,1);
   background: #eee;
+  text-align: center;
 }
 
 /*
@@ -822,6 +823,10 @@ CheckboxRenderer
   vertical-align: middle;
   cursor: pointer;
   display: inline-block;
+}
+
+.handsontable .htCheckboxRendererLabel.fullWidth {
+  width: 100%;
 }
 
 .htCommentCell {
