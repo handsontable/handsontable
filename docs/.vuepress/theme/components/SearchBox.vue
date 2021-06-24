@@ -374,7 +374,7 @@ export default {
     top -13px
     cursor pointer
     transition all 0.2s linear
-    kbd 
+    kbd
       position absolute
       line-height 1
       box-sizing border-box
