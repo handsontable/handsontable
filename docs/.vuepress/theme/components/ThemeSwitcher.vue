@@ -1,7 +1,9 @@
 <template>
   <label id="switch" class="switch">
+    <div class="inner">
       <input type="checkbox" v-on:change="toggleTheme" id="slider" :checked="isDarkTheme">
       <span class="slider round"></span>
+    </div>
   </label>
 </template>
 
@@ -70,12 +72,17 @@ export default {
 .sidebar.sidebar .switch {
   display: none;
   margin-bottom: 0;
-  top: 8px;
-  left: 95px;
 
   @media (max-width: $MQNarrow) {
     & {
       display: inline-block;
+      left: 80px;
+    }
+  }
+
+  @media (max-width: $MQMobile) {
+    & {
+      left: 90px;
     }
   }
 }
@@ -83,20 +90,25 @@ export default {
 
 <style lang="stylus" scoped>
 
-/* The switch - the box around the slider */
 .switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 22px;
-  margin-right 1.5rem
-  top: 8px;
-  left: -9px;
+  width: 60px;
+  height: 32px;
+  position relative
+  display inline-block
+  top: 3px;
 
   /* Hide the theme switcher on narrow screen */
   @media (max-width: $MQNarrow) {
     display none
   }
+}
+/* The switch - the box around the slider */
+.inner {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  left: 10px;
+  top: 5px;
 }
 
 /* Hide default HTML checkbox */

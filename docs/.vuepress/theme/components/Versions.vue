@@ -70,7 +70,7 @@ export default {
 
 <style lang="stylus">
 .nav-versions
-  margin-right 2rem
+  margin-right 1.5rem
   display inline-block
   position relative
   top -1px
