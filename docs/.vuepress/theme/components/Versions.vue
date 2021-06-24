@@ -72,7 +72,7 @@ export default {
 
 <style lang="stylus">
 .nav-versions
-  margin-right 2rem
+  margin-right 1.5rem
   display inline-block
   position relative
   top -1px
@@ -107,4 +107,5 @@ export default {
     margin 0
 .dropdown-wrapper .dropdown-title .arrow, .dropdown-wrapper .mobile-dropdown-title .arrow
   margin-left 0.1rem
+
 </style>

@@ -6,14 +6,13 @@
         :to="versionedUrl($localePath)"
         class="home-link"
     >
-      <img
-          v-if="$site.themeConfig.logo"
-          class="logo"
-          :src="$withBase($site.themeConfig.logo)"
-          :alt="$siteTitle"
-      >
+
+    <Logo />
+
     </RouterLink>
     <Versions></Versions>
+
+    <ThemeSwitcher />
 
     <div
         class="links"
@@ -39,7 +38,9 @@ import SearchBox from '@theme/components/SearchBox';
 import SidebarButton from '@theme/components/SidebarButton.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 import Versions from '@theme/components/Versions.vue';
+import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 import { ensureExt } from './util';
+import Logo from './Logo.vue';
 
 export default {
   name: 'Navbar',
@@ -48,7 +49,9 @@ export default {
     NavLinks,
     SearchBox,
     AlgoliaSearchBox,
-    Versions
+    Versions,
+    ThemeSwitcher,
+    Logo
   },
   methods: {
     versionedUrl(url) {
@@ -107,6 +110,7 @@ function css(el, property) {
 <style lang="stylus">
 $navbar-vertical-padding = 0.65rem
 $navbar-horizontal-padding = 1.5rem
+
 .navbar
   padding $navbar-vertical-padding $navbar-horizontal-padding
   line-height $navbarHeight - 1.4rem
@@ -121,9 +125,10 @@ $navbar-horizontal-padding = 1.5rem
     position relative
     top .6rem
     @media (max-width: $MQMobile) {
+      margin-right 1.5rem
       top .4rem
     }
-  .logo
+  #handsontable-logo
     height $navbarHeight - 2.2rem
     @media (max-width: $MQMobile) {
       height 1rem
@@ -137,6 +142,7 @@ $navbar-horizontal-padding = 1.5rem
     right $navbar-horizontal-padding
     top $navbar-vertical-padding
     display flex
+    align-items center
     .search-box
       flex: 0 0 auto
       vertical-align top
@@ -145,6 +151,5 @@ $navbar-horizontal-padding = 1.5rem
     padding-left 4rem
     .can-hide
       display none
-    .links
-      padding-left 1.5rem
+
 </style>

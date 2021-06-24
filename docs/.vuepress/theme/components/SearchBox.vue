@@ -337,7 +337,7 @@ export default {
 </script>
 
 <style lang="stylus">
-.search-box
+.search-box.search-box
   display inline-block
   position relative
   margin-right 2rem
@@ -352,13 +352,13 @@ export default {
     line-height 2rem
     padding 0 0.5rem 0 2rem
     outline none
-    transition all .2s ease
-    background #fff url(search.svg) 0.6rem 0.5rem no-repeat
+    background #fff url('/img/search.svg') 0.6rem 0.5rem no-repeat
     background-size 1rem
     &:focus
       color #104bcd
       cursor auto
       border-color $accentColor
+      margin-right 1rem
   .suggestions
     background #fff
     width 26rem
@@ -396,25 +396,31 @@ export default {
       a
         color $accentColor
 
-@media (max-width: $MQNarrow)
-  .search-box
+@media (max-width: $MQNavbarNarrow)
+  .search-box.search-box
+    margin-right 0
     input
       cursor pointer
       width 0
+      background-color transparent
       border-color transparent
       position relative
       font-size 16px
       &:focus
         cursor text
         left 0
-        width 10rem
+        width 8rem
 
+@media (max-width: $MQMobile)
+  .search-box.search-box
+    input
+      left 1rem
 // Match IE11
 @media all and (-ms-high-contrast: none)
   .search-box input
     height 2rem
 
-@media (max-width: $MQNarrow) and (min-width: $MQMobile)
+@media (max-width: $MQNavbarNarrow) and (min-width: $MQMobile)
   .search-box
     .suggestions
       left 0
@@ -423,7 +429,6 @@ export default {
   .search-box
     margin-right 0
     input
-      left 1rem
     .suggestions
       right 0
 
@@ -433,4 +438,5 @@ export default {
       width calc(100vw - 4rem)
     input:focus
       width 8rem
+
 </style>
