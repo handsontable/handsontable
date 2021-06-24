@@ -23,8 +23,6 @@ To use HyperFormula within Handsontable, you only need your existing [Handsontab
 To use HyperFormula independently from Handsontable, you need a license key dedicated to HyperFormula. For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
 :::
 
-If you want to use HyperFormula independently from Handsontable, you need to use a license key dedicated to HyperFormula only. Please contact our Sales Team to learn more. 
-
 ## Overview
 
 The _Formulas_ plugin provides you an extensive calculation capabilities based on formulas using the spreadsheet notation. Under the hood, it uses an engine called [HyperFormula](https://handsontable.github.io/hyperformula/) created by the Handsontable team as an independent library to help developers build complex data management apps.
