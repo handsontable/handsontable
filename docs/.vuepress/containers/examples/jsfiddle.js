@@ -14,26 +14,24 @@ const jsfiddle = (id, html, code, css, version, preset) => {
 
   return `
     <form
-      id="jsfiddle-${id}"
       action=${JSFIDDLE_ENDPOINT}
       method="post"
       target="_blank"
-      style="display:none;"
     >
-      <input type="text" name="title" readOnly value="Handsontable example" />
-      <input type="text" name="wrap" readOnly value="d" />
-      <textarea name="js" readOnly v-pre>${code}</textarea>
-      <textarea name="html" readOnly v-pre>
+      <input type="hidden" name="title" readOnly value="Handsontable example" />
+      <input type="hidden" name="wrap" readOnly value="d" />
+      <textarea class="hidden" name="js" readOnly v-pre>${code}</textarea>
+      <textarea class="hidden" name="html" readOnly v-pre>
 ${imports}
 ${html}
       </textarea>
-      <textarea name="css" readOnly>${css}</textarea>
-      ${isBabelPanel || isAngularPanel ? '<input type="text" name="panel_js" value="3" readOnly>' : ''}
-  }
+      <textarea class="hidden" name="css" readOnly v-pre>${css}</textarea>
+      ${isBabelPanel || isAngularPanel ? '<input type="hidden" name="panel_js" value="3" readOnly>' : ''}
+
+      <div class="js-fiddle-link">
+        <button type="submit">Edit</button>
+      </div>
     </form>
-    <div class="js-fiddle-link">
-      <button type="submit" form="jsfiddle-${id}">Edit</button>
-    </div>
   `;
 };
 
