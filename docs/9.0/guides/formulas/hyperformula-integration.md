@@ -20,12 +20,8 @@ tags:
 
 ::: tip
 To use HyperFormula within Handsontable, you only need your standard [Handsontable license key](@/guides/getting-started/license-key.md).<br><br>
-To use HyperFormula outside Handsontable (e.g. to build a custom plugin), you need to purchase a separate [HyperFormula license key](https://handsontable.com/get-a-quote)).
+To use HyperFormula independently from Handsontable (e.g. to build a custom Handsontable plugin), you need to purchase a separate [HyperFormula license key](https://handsontable.com/get-a-quote)).
 :::
-
-
-This plugin doesn’t require obtaining additional license key. It inherits the key passed for Handsontable in Settings object. However, if you are going to use HyperFormula independently, outside Handsontable, then you need to purchase another license key.
-
 
 ## Overview
 
