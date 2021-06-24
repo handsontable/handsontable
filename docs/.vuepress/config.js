@@ -128,7 +128,7 @@ module.exports = {
       { text: 'Support',
         items: [
           { text: 'Contact support', link: 'https://handsontable.com/contact?category=technical_support' },
-          { text: 'Report an issue', link: 'https://github.com/handsontable/handsontable/issues/new' },
+          { text: 'Report an issue', link: 'https://github.com/handsontable/handsontable/issues/new/choose' },
           { text: 'Forum', link: 'https://forum.handsontable.com' },
         ]
       },
