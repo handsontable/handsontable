@@ -10,7 +10,7 @@ canonicalUrl: /angular-setting-up-a-locale
 ## Overview
 The following example shows a Handsontable instance with locales set up in Angular.
 
-## Example 
+## Example
 ::: example :angular-numbro --html 1 --js 2
 ```html
 <app-root></app-root>
@@ -36,7 +36,7 @@ type Product = {
   selector: 'app-root',
   template: `
     <div>
-      <hot-table [data]="dataset" [colHeaders]="true" [licenseKey]="non-commercial-and-evaluation">
+      <hot-table [data]="dataset" [colHeaders]="true" [licenseKey]="'non-commercial-and-evaluation'">
         <hot-column
           data="productName"
           [readOnly]="true"
