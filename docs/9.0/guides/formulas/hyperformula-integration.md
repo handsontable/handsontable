@@ -122,6 +122,7 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 ```js
 const data = [
   ['150', '643', '0.32', '11', '=A1*(B1*C1)+D1'],
+  ['172', '474', '0.51', '11', '=A2*(B2*C2)+D2'],
   ['188', '371', '0.59', '11', '=A3*(B3*C3)+D3'],
   ['162', '731', '0.21', '10', '=A4*(B4*C4)+D4'],
   ['133', '682', '0.81', '9', '=A5*(B5*C5)+D5'],
