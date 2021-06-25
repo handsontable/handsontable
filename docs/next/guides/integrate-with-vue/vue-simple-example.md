@@ -13,17 +13,14 @@ The following example is a simple implementation of the `@handsontable/vue` comp
 
 ## Example
 
-In this example, a `div` element of `id="example"` where the `@handsontable/vue` component will be rendered.
+In this example, a `div` element of `id="example1"` where the `@handsontable/vue` component will be rendered.
 
-::: example #example1 :vue --html 1 --js 5 
+::: example #example1 :vue --html 1 --js 2
 ```html
 <div id="example1">
     <hot-table :settings="hotSettings"></hot-table>
 </div>
 ```
-
-Implementing the component:
-
 ```js
 import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';

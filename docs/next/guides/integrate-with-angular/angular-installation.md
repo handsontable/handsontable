@@ -55,6 +55,6 @@ Now, you can use the Handsontable component in your HTML files.
   [colHeaders]="true"
   [rowHeaders]="true"
   [data]="dataset"
-  [licenseKey]="non-commercial-and-evaluation">
+  licenseKey="non-commercial-and-evaluation">
 </hot-table>
 ```
