@@ -358,7 +358,6 @@ export default {
       color #104bcd
       cursor auto
       border-color $accentColor
-      margin-right 1rem
   .suggestions
     background #fff
     width 26rem
@@ -410,11 +409,14 @@ export default {
         cursor text
         left 0
         width 8rem
+        margin-right 1rem
 
 @media (max-width: $MQMobile)
   .search-box.search-box
     input
       left 1rem
+      &:focus
+        margin-right 0
 // Match IE11
 @media all and (-ms-high-contrast: none)
   .search-box input
