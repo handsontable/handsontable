@@ -11,7 +11,8 @@
     prepareSettings,
     createVueComponent,
     findVNodeByType,
-    getHotColumnComponents
+    getHotColumnComponents,
+    HOT_DESTROYED_WARNING
   } from './helpers';
   import Vue, { VNode } from 'vue';
   import {
@@ -30,6 +31,10 @@
     props: propFactory('HotTable'),
     watch: {
       mergedHotSettings: function (value) {
+        if (!this.hotInstance || value === void 0) {
+          return;
+        }
+
         if (value.data) {
           if (
             this.hotInstance.isColumnModificationAllowed() ||
@@ -58,6 +63,7 @@
       }
     },
     data: function () {
+      const thisComponent: any = this;
       const rendererCache = new LRUMap(this.wrapperRendererCacheSize);
 
       // Make the LRU cache destroy each removed component
@@ -75,10 +81,25 @@
           dataLength: 0,
           currentSourceColumns: null
         },
-        hotInstance: null,
+        __hotInstance: null,
         columnSettings: null,
         rendererCache: rendererCache,
-        editorCache: new Map()
+        editorCache: new Map(),
+        get hotInstance() {
+          if (!thisComponent.__hotInstance || (thisComponent.__hotInstance && !thisComponent.__hotInstance.isDestroyed)) {
+
+            // Will return the Handsontable instance or `null` if it's not yet been created.
+            return thisComponent.__hotInstance;
+
+          } else {
+            console.warn(HOT_DESTROYED_WARNING);
+
+            return null;
+          }
+        },
+        set hotInstance(hotInstance) {
+          thisComponent.__hotInstance = hotInstance;
+        }
       };
     },
     computed: {
@@ -119,6 +140,10 @@
         this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
       },
       matchHotMappersSize: function (data: any[][]): void {
+        if (!this.hotInstance) {
+          return;
+        }
+
         const rowsToRemove: number[] = [];
         const columnsToRemove: number[] = [];
         const oldDataLength = this.miscCache.dataLength;
@@ -277,7 +302,7 @@
         }
 
         return mountedComponent.$data.hotCustomEditorClass;
-      },
+      }
     },
     mounted: function () {
       this.columnSettings = this.getColumnSettings();
@@ -285,7 +310,9 @@
       return this.hotInit();
     },
     beforeDestroy: function () {
-      this.hotInstance.destroy();
+      if (this.hotInstance) {
+        this.hotInstance.destroy();
+      }
     },
     version: (packageJson as any).version
   };

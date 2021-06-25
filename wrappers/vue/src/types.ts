@@ -4,10 +4,11 @@ import { ThisTypedComponentOptionsWithRecordProps } from 'vue/types/options';
 
 export interface HotTableData {
   __internalEdit: boolean,
+  __hotInstance: Handsontable | null,
   miscCache?: {
     currentSourceColumns?: number
   },
-  hotInstance?: Handsontable,
+  hotInstance?: Handsontable | null,
   columnSettings: HotTableProps[],
   rendererCache: any, // temporary `any`, TODO: use the LRU definition here
   editorCache: Map<string, EditorComponent>

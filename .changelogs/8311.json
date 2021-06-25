@@ -1,0 +1,7 @@
+{
+  "title": "Fixed a problem in the wrappers, where destroying the underlying Handsontable instance caused them to throw errors and crash.",
+  "type": "fixed",
+  "issue": 8311,
+  "breaking": false,
+  "framework": "angular"
+}
