@@ -172,7 +172,7 @@ const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
   data: sourceDataObject,
-  height: 'auto',
+  preventOverflow: 'horizontal',
   rowHeaders: true,
   colHeaders: ['Category', 'Artist', 'Title', 'Album', 'Label'],
   nestedRows: true,
@@ -184,7 +184,7 @@ const hot = new Handsontable(container, {
 
 In the example above, we’ve created a data object consisting of 2016’s Grammy nominees of the “Rock” genre. Each _0-level_ entry declares a category, while their children declare nominees - assigned under the `__children` properties.
 
-:::tip 
+:::tip
 Note that the **first** 0-level object in the array needs to have all columns defined to display the table properly. They can be declared as `null` or an empty string `''`, but they need to be defined. This is optional for the other objects.
 :::
 
