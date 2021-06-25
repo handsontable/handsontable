@@ -98,7 +98,8 @@ new Handsontable(container1, {
   formulas: {
     engine: hyperformulaInstance,
     sheetName: 'Sheet1'
-  }
+  },
+  licenseKey: 'non-commercial-and-evaluation'
 });
 
 const container2 = document.getElementById('example-basic-multi-sheet-2');
@@ -109,7 +110,8 @@ new Handsontable(container2, {
   formulas: {
     engine: hyperformulaInstance,
     sheetName: 'Sheet2'
-  }
+  },
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 :::
@@ -234,7 +236,8 @@ new Handsontable(container, {
   colHeaders: ['Qty', 'Unit price', 'Discount', 'Freight', 'Total due (fx)'],
   fixedRowsBottom: 2,
   stretchH: 'all',
-  height: 500
+  height: 500,
+  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 :::
@@ -409,7 +412,8 @@ const hotNamedExpressions = new Handsontable(container, {
         expression: 100
       }
     ]
-  }
+  },
+  licenseKey: 'non-commercial-and-evaluation'
 });
 
 const input = document.getElementById('named-expressions-calculate-input');
