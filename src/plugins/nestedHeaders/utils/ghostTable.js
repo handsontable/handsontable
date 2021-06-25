@@ -85,7 +85,13 @@ class GhostTable {
           }
 
           fastInnerHTML(td, headerObj.label);
-          td.colSpan = headerObj.colspan;
+
+          // The guard here is needed because on IE11 an error is thrown if you
+          // try to assign an incorrect value to `td.colSpan` here.
+          if (headerObj.colspan !== undefined) {
+            td.colSpan = headerObj.colspan;
+          }
+
           tr.appendChild(td);
         }
       }
