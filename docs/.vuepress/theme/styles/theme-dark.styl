@@ -190,20 +190,16 @@ html.theme-dark {
   .tabs-component {
     border-color $tabsComponentBorderColor
 
-    a {
-      color $fontColor !important
-
-      &:hover {
-        color $linkFontColor !important
-      }
-    }
-
     .tabs-component-tabs {
       border-bottom-color $tabsComponentBorderColor
       background $tabsComponentBackgroundColor
 
-      .tabs-component-tab-a {
-        color $fontColor
+      a {
+        color $fontColor !important
+
+        &:hover {
+          color $linkFontColor !important
+        }
       }
     }
 
@@ -254,6 +250,16 @@ html.theme-dark {
   /* Tip markdown component */
   .custom-block.tip {
     background-color $customBlockTipBackgroundColor
+  }
+
+  /* Every custom block component */
+  .custom-block {
+    color $fontColor
+  }
+
+  /* Details markdown component */
+  .custom-block.details {
+    background-color #111111
   }
 
   /* Code element */
