@@ -1,0 +1,7 @@
+{
+  "title": "Fixex column header sizes not being updated on `updateSettings` calls containing `columns`",
+  "type": "fixed",
+  "issue": 7689,
+  "breaking": false,
+  "framework": "none"
+}
