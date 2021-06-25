@@ -1295,6 +1295,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           cellProperties.valid = valid;
 
           done(valid);
+          if (!instance) {
+            return;
+          }
           instance.runHooks('postAfterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
         });
       });
