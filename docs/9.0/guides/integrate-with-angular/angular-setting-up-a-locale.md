@@ -36,7 +36,7 @@ type Product = {
   selector: 'app-root',
   template: `
     <div>
-      <hot-table [data]="dataset" [colHeaders]="true" [licenseKey]="'non-commercial-and-evaluation'">
+      <hot-table [data]="dataset" [colHeaders]="true" licenseKey="non-commercial-and-evaluation">
         <hot-column
           data="productName"
           [readOnly]="true"
