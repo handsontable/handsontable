@@ -12,11 +12,6 @@ canonicalUrl: /third-party-licenses
 
 ## Open-source software components
 
-- **HyperFormula** (provides logic for Formulas plugin)  
-    Author: Handsontable  
-    License: Open source (GPL 3.0 or Commercial)  
-    [https://github.com/handsontable/hyperformula](https://github.com/handsontable/hyperformula)
-
 - **numbro.js** (handles numeric data)<br>
     Author: Benjamin Van Ryseghem<br>
     License: Open source (MIT)<br>
