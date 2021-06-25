@@ -34,7 +34,10 @@ html.theme-dark {
 
     /* Navbar links */
     & .nav-link {
-      color $fontColor
+      color $fontColor !important
+      &::after {
+        border-left-color $fontColor !important
+      }
     }
   }
 
