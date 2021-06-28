@@ -14,12 +14,12 @@ tags:
   - function
 ---
 
-# HyperFormula integration
+# Formula calculation
 
 [[toc]]
 
 ::: tip
-We have created a [migration guide](@/guides/upgrade-and-migration/migrating-from-8.4-to-9.0.md) for developers upgrading to v9. If you use the formula plugin please make sure you carefully read it before upgrading.
+In Handsontable 9, we introduced a new formula plugin. To upgrade your Handsontable version from 8 to 9, see the [migration guide](@/guides/upgrade-and-migration/migrating-from-8.4-to-9.0.md).
 :::
 
 ## Overview

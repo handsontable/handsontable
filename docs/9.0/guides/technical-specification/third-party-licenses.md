@@ -42,7 +42,9 @@ canonicalUrl: /third-party-licenses
     License: Open source (Apache 2.0)<br>
     [https://github.com/cure53/DOMPurify](https://github.com/cure53/DOMPurify)
 
-### HyperFormula dependencies
+### Dependencies of the formula calculation plugin
+
+The below dependencies apply only if you use the new formula calculation plugin.
 
 - **bessel**<br>
     Author: SheetJS<br>
