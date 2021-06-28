@@ -197,11 +197,23 @@ html.theme-dark {
       border-bottom-color $tabsComponentBorderColor
       background $tabsComponentBackgroundColor
 
-      a {
-        color $fontColor !important
+      .tabs-component-tab {
+        a {
+          color $fontColor !important
 
-        &:hover {
-          color $linkFontColor !important
+          &:hover {
+            color $linkFontColor !important
+          }
+        }
+
+        &.is-disabled {
+          a {
+            color $fontColorDisabled !important
+          }
+
+          &:hover {
+            color $fontColorDisabled !important
+          }
         }
       }
     }
