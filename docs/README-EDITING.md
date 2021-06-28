@@ -22,7 +22,7 @@ Each Markdown file starts with the following frontmatter tags:
 | `permalink`    | The page's **unique** URL.                                 | Yes      |
 | `canonicalUrl` | A canonical URL of the page's latest version.              | Yes      |
 | `metaTitle`    | The page's SEO meta title.                                 | No       |
-| `tags`         | Tags used by the documentation search engine.                       | No       |
+| `tags`         | Tags used by the documentation search engine.              | No       |
 
 Frontmatter example:
 
