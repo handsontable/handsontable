@@ -19,7 +19,8 @@ tags:
 [[toc]]
 
 ::: tip
-We have created a [migration guide](@/guides/upgrade-and-migration/migrating-from-8.4-to-9.0.md) for developers upgrading to v9. If you use the formula plugin please make sure you carefully read it before upgrading.
+To use HyperFormula within Handsontable's default `formulas` plugin, you only need your existing [Handsontable license key](@/guides/getting-started/license-key.md).<br><br>
+To use HyperFormula independently from Handsontable, you need a license key dedicated to HyperFormula. For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
 :::
 
 ## Overview
