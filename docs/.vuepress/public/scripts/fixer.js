@@ -67,9 +67,6 @@
 
           if (nsPart === 'Angular') {
             nsPart = 'ng';
-
-          } else if (nsPart === 'HandsontablePro') {
-            nsPart = 'Handsontable';
           }
         } else {
           nsPart = `.${camelCase(k, true)}`;
@@ -81,14 +78,11 @@
       if (key === 'react-dom') {
         ns = 'ReactDOM';
 
-      } else if (key === '@handsontable/react' || key === '@handsontable-pro/react') {
+      } else if (key === '@handsontable/react') {
         ns = 'Handsontable.react';
 
-      } else if (key === '@handsontable/vue' || key === '@handsontable-pro/vue') {
+      } else if (key === '@handsontable/vue') {
         ns = 'Handsontable.vue';
-
-      } else if (key === 'handsontable-pro') {
-        ns = 'Handsontable';
 
       } else if (/^handsontable\/dist\/.+\.css$/.test(key)) { // ignore CSS imports
         ns = '';
