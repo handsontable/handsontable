@@ -1,0 +1,7 @@
+{
+  "title": "\"Fixed support for row and columns headers in parseTable utility.\"",
+  "type": "fixed",
+  "issue": 8041,
+  "breaking": false,
+  "framework": "none"
+}
