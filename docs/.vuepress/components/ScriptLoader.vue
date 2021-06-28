@@ -13,8 +13,11 @@ const useCodePreview = (code) => {
   scriptElement.innerHTML = code;
 
   return [
-    (container) => { container.appendChild(scriptElement); },
-    () => { scriptElement.parentElement.removeChild(scriptElement); },
+    (container) => {
+      container.appendChild(scriptElement);
+
+      return () => { scriptElement.parentElement.removeChild(scriptElement); };
+    },
   ];
 };
 
@@ -22,10 +25,12 @@ export default {
   name: 'ScriptLoader',
   props: ['code'],
   mounted() {
-    const [append, remove] = useCodePreview(decode(this.$props.code));
+    const [append] = useCodePreview(decode(this.$props.code));
 
-    append(this.$el);
-    remove();
+    this.removeScript = append(this.$el);
+  },
+  beforeDestroy() {
+    this.removeScript();
   },
   methods: {
     decode
