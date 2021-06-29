@@ -43,7 +43,6 @@
     "fs-extra": "^9.1.0",
     "inquirer": "^8.1.1",
     "jsdoc-to-markdown": "^7.0.1",
-    "markdown-it-regex": "^0.2.0",
     "replace-in-files": "^3.0.0",
     "semver": "^5.7.1",
     "vue-eslint-parser": "^7.6.0",
