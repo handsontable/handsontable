@@ -450,6 +450,10 @@ export class NestedRows extends BasePlugin {
    * @private
    */
   onBeforeLoadData(data) {
+    if (!data) {
+      return;
+    }
+
     this.dataManager.setData(data);
     this.dataManager.rewriteCache();
   }

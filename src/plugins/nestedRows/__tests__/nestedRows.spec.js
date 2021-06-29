@@ -58,6 +58,20 @@ describe('NestedRows', () => {
 
       expect(hot.getData()).toEqual(dataInOrder);
     });
+
+    it('should not crash the table, when there\'s no `data` provided', () => {
+      const errors = [];
+
+      try {
+        const hot = handsontable({
+          nestedRows: true
+        });
+      } catch (e) {
+        errors.push(e);
+      }
+
+      expect(errors.length).toEqual(0);
+    });
   });
 
   describe('integration', () => {

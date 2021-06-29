@@ -96,6 +96,10 @@ class DataManager {
    * @private
    */
   rewriteCache() {
+    if (!this.data?.length) {
+      return;
+    }
+
     this.cache = {
       levels: [],
       levelCount: 0,
