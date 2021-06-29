@@ -116,7 +116,6 @@ const dist = file => path.join(__dirname, pathToDist, flat(file.replace(/(.*)\.j
 /// seo
 const genSeoTitle = file => file
   .replace(/(^.*\/)?(.*?)\.[.a-zA-Z]*$/, '$2') // Get first filename segment (to the first dot) without full path
-  // .replace(/([A-Z]+)/g, " $1") // Add spaces before each word
   .replace(/(^[a-z])/, m => m.toUpperCase()); // To upper first letter
 const seoTitle = file => seo[file] && seo[file].title || genSeoTitle(file);
 const genSeoMetaTitle = file => `${seoTitle(file)} - Plugin - Handsontable Documentation`;
