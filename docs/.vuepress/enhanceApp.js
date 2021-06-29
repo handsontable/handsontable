@@ -34,7 +34,7 @@ const buildActiveHeaderLinkHandler = () => {
 };
 
 const addLatestVersionRedirection = (router, version) => {
-  const latestVersionRegExp = new RegExp(`^\/${version}\/`);
+  const latestVersionRegExp = new RegExp(`^/${version}/`);
 
   router.getRoutes().forEach((route) => {
     if (latestVersionRegExp.test(route.path)) {
