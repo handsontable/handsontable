@@ -38,10 +38,9 @@ const themeLoader = () => {
   const CLASS_THEME_DARK = 'theme-dark';
 
   const userPrefferedTheme = localStorage ? localStorage.getItem(STORAGE_KEY) : 'light';
-  let isDarkTheme = false;
 
-  if (userPrefferedTheme) {
-    userPrefferedTheme === 'dark' && document.documentElement.classList.add(CLASS_THEME_DARK);
+  if (userPrefferedTheme === 'dark') {
+    document.documentElement.classList.add(CLASS_THEME_DARK);
 
     return;
   }
@@ -53,8 +52,7 @@ const themeLoader = () => {
   } else {
     document.documentElement.classList.remove(CLASS_THEME_DARK);
   }
-
-}
+};
 
 export default ({ router, isServer }) => {
   if (!isServer) {
