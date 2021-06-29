@@ -63,7 +63,7 @@ describe('NestedRows', () => {
       const errors = [];
 
       try {
-        const hot = handsontable({
+        handsontable({
           nestedRows: true
         });
       } catch (e) {
