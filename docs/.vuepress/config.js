@@ -93,8 +93,8 @@ module.exports = {
     },
   ],
   extendPageData($page) {
-    const formatData = (dataString) => {
-      const date = new Date(dataString);
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
       const twoDigitDay = date.getDate();
       const shortMonthName = date.toLocaleString('default', { month: 'short' });
 
@@ -104,7 +104,7 @@ module.exports = {
     $page.versions = helpers.getVersions();
     $page.latestVersion = helpers.getLatestVersion();
     $page.currentVersion = helpers.parseVersion($page.path);
-    $page.lastUpdatedFormat = formatData($page.lastUpdated);
+    $page.lastUpdatedFormat = formatDate($page.lastUpdated);
 
     if ($page.currentVersion === $page.latestVersion && $page.frontmatter.permalink) {
       $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
