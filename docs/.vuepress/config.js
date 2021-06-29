@@ -31,7 +31,6 @@ module.exports = {
       src: 'https://consent.cookiebot.com/uc.js',
       'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646'
     }],
-    ['script', { src: 'scripts/theme-loader.js' }],
     ...environmentHead
   ],
   markdown: {
