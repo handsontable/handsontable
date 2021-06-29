@@ -29,6 +29,12 @@ module.exports = {
       sidebars[`/${version}/examples/`] = s.examples;
       sidebars[`/${version}/api/`] = s.api;
       sidebars[`/${version}/`] = s.guides;
+
+      if (version === this.getLatestVersion()) {
+        sidebars['/examples/'] = s.examples;
+        sidebars['/api/'] = s.api;
+        sidebars['/'] = s.guides;
+      }
     });
 
     return sidebars;

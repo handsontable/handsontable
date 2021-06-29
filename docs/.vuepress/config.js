@@ -101,8 +101,14 @@ module.exports = {
       .replace(/^\w+? /, '')
       .replace(/(\d) (\d)/, '$1, $2');
 
-    if ($page.currentVersion === $page.latestVersion && $page.frontmatter.permalink) {
-      $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
+    if ($page.currentVersion === 'latest' && $page.frontmatter.permalink) {
+      const urlPathFirstSegmentRegExp = /^\/[^/]*\//;
+
+      $page.currentVersion = $page.latestVersion;
+      $page.frontmatter.permalink = $page.frontmatter.permalink.replace(urlPathFirstSegmentRegExp, '/');
+      $page.regularPath = $page.regularPath.replace(urlPathFirstSegmentRegExp, '/');
+      $page.path = $page.path.replace(urlPathFirstSegmentRegExp, '/');
+      $page.relativePath = $page.relativePath.replace(urlPathFirstSegmentRegExp, '');
       $page.frontmatter.canonicalUrl = undefined;
     }
     if ($page.currentVersion !== $page.latestVersion && $page.frontmatter.canonicalUrl) {
@@ -110,6 +116,7 @@ module.exports = {
     }
   },
   themeConfig: {
+    latestVersion: helpers.getLatestVersion(),
     logo: '/img/handsontable-logo.svg',
     nextLinks: true,
     prevLinks: true,

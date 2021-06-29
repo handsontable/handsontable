@@ -16,7 +16,7 @@ const buildRegisterCleaner = register => (to, from) => {
 };
 
 const buildActiveHeaderLinkHandler = () => {
-  let activeLink = '';
+  let activeLink = null;
 
   return (to, from) => {
     if (to.hash !== from.hash) {
@@ -33,8 +33,19 @@ const buildActiveHeaderLinkHandler = () => {
   };
 };
 
-export default ({ router, isServer }) => {
+const addLatestVersionRedirection = (router, version) => {
+  const latestVersionRegExp = new RegExp(`^\/${version}\/`);
+
+  router.getRoutes().forEach((route) => {
+    if (latestVersionRegExp.test(route.path)) {
+      route.redirect = route.path.replace(latestVersionRegExp, '/');
+    }
+  });
+};
+
+export default ({ router, isServer, siteData }) => {
   if (!isServer) {
+    addLatestVersionRedirection(router, siteData.themeConfig.latestVersion);
 
     router.afterEach(buildRegisterCleaner(instanceRegister));
     router.afterEach(buildActiveHeaderLinkHandler());

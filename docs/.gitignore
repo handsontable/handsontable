@@ -16,3 +16,4 @@ report-check-links.xlsx
 
 /.vuepress/public/handsontable.js
 /.vuepress/public/handsontable.css
+/latest
