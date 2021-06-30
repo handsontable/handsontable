@@ -167,7 +167,8 @@ const preProcessors = [
   sort,
   linkToSource,
   memorizeOptions,
-  applyPluginOptions
+  applyPluginOptions,
+  handleLinking,
 ];
 
 const preProcess = initialData => preProcessors.reduce((data, preProcessor) => preProcessor(data), initialData);
@@ -210,7 +211,7 @@ const fixTypes = text => text.replace(
 
 const fixCategories = text => text.replace(
   /(\*\*Category\*\*: ?)([^\n- ]*)/g,
-  (_, part, signame) => `${part}[${signame}](${genSeoPermalink(signame).replace('-', '../')})`
+  (_, part, signame) => `${part}[${signame}](@/api/${signame.charAt(0).toLowerCase()}${signame.substring(1)}.md)`
 );
 
 const unescapeRedundant = text => text
