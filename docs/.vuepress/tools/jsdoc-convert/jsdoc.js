@@ -168,7 +168,6 @@ const preProcessors = [
   linkToSource,
   memorizeOptions,
   applyPluginOptions,
-  handleLinking,
 ];
 
 const preProcess = initialData => preProcessors.reduce((data, preProcessor) => preProcessor(data), initialData);
