@@ -11,18 +11,19 @@
 
   /**
    * @param string
-   * @param firstLowerCase
+   * @param UpperCase
    */
-  function camelCase(string, firstLowerCase) {
-    const s = string.replace(/-\D/g, (match) => {
-      return match.charAt(1).toUpperCase();
-    });
+  function LowerCase(string, UpperCase) {
+    const s = string.replace(/\]\([^#)]*#[a-z-]*[A-Z]/g, (match) => {
+      for (i = 0; i < s.lenght(); i++) {
+      return match.charAt(i).toLowerCase();
+    }});
 
-    if (firstLowerCase) {
+    if (UpperCase) {
       return s;
     }
 
-    return s[0].toUpperCase() + s.substr(1);
+    return s[0].toLowerCase() + s.substr(1);
   }
 
   // Necessery for jsFiddle environment
@@ -63,13 +64,13 @@
         let nsPart = '';
 
         if (index === 0) {
-          nsPart = camelCase(k.replace('@', ''));
+          nsPart = LowerCase(k.replace('@', ''));
 
           if (nsPart === 'Angular') {
             nsPart = 'ng';
           }
         } else {
-          nsPart = `.${camelCase(k, true)}`;
+          nsPart = `.${LowerCase(k, true)}`;
         }
 
         ns = ns + nsPart;
