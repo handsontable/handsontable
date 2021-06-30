@@ -89,7 +89,7 @@ _manualColumnMove.dragColumn(column, dropIndex) ⇒ boolean_
 
 Drag a single column to drop index position.
 
-**Emits**: [`Hooks#event:beforeColumnMove`](./hooks/#beforeColumnMove), [`Hooks#event:afterColumnMove`](./hooks/#afterColumnMove)  
+**Emits**: [`Hooks#event:beforeColumnMove`](@/api/pluginHooks.md#beforeColumnMove), [`Hooks#event:afterColumnMove`](@/api/pluginHooks.md#afterColumnMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -108,7 +108,7 @@ _manualColumnMove.dragColumns(columns, dropIndex) ⇒ boolean_
 
 Drag multiple columns to drop index position.
 
-**Emits**: [`Hooks#event:beforeColumnMove`](./hooks/#beforeColumnMove), [`Hooks#event:afterColumnMove`](./hooks/#afterColumnMove)  
+**Emits**: [`Hooks#event:beforeColumnMove`](@/api/pluginHooks.md#beforeColumnMove), [`Hooks#event:afterColumnMove`](@/api/pluginHooks.md#afterColumnMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -171,7 +171,7 @@ _manualColumnMove.moveColumn(column, finalIndex) ⇒ boolean_
 
 Moves a single column.
 
-**Emits**: [`Hooks#event:beforeColumnMove`](./hooks/#beforeColumnMove), [`Hooks#event:afterColumnMove`](./hooks/#afterColumnMove)  
+**Emits**: [`Hooks#event:beforeColumnMove`](@/api/pluginHooks.md#beforeColumnMove), [`Hooks#event:afterColumnMove`](@/api/pluginHooks.md#afterColumnMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -190,7 +190,7 @@ _manualColumnMove.moveColumns(columns, finalIndex) ⇒ boolean_
 
 Moves a multiple columns.
 
-**Emits**: [`Hooks#event:beforeColumnMove`](./hooks/#beforeColumnMove), [`Hooks#event:afterColumnMove`](./hooks/#afterColumnMove)  
+**Emits**: [`Hooks#event:beforeColumnMove`](@/api/pluginHooks.md#beforeColumnMove), [`Hooks#event:afterColumnMove`](@/api/pluginHooks.md#afterColumnMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |

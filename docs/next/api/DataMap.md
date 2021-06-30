@@ -156,7 +156,7 @@ _dataMap.createCol([index], [amount], [source]) ⇒ number_
 
 Creates column at the right of the data array.
 
-**Emits**: [`Hooks#event:afterCreateCol`](./hooks/#afterCreateCol)  
+**Emits**: [`Hooks#event:afterCreateCol`](@/api/pluginHooks.md#afterCreateCol)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -189,7 +189,7 @@ _dataMap.createRow([index], [amount], [source]) ⇒ number_
 
 Creates row at the bottom of the data array.
 
-**Emits**: [`Hooks#event:afterCreateRow`](./hooks/#afterCreateRow)  
+**Emits**: [`Hooks#event:afterCreateRow`](@/api/pluginHooks.md#afterCreateRow)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -405,7 +405,7 @@ _dataMap.removeCol([index], [amount], [source]) ⇒ boolean_
 
 Removes column from the data array.
 
-**Emits**: [`Hooks#event:beforeRemoveCol`](./hooks/#beforeRemoveCol), [`Hooks#event:afterRemoveCol`](./hooks/#afterRemoveCol)  
+**Emits**: [`Hooks#event:beforeRemoveCol`](@/api/pluginHooks.md#beforeRemoveCol), [`Hooks#event:afterRemoveCol`](@/api/pluginHooks.md#afterRemoveCol)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -426,7 +426,7 @@ _dataMap.removeRow([index], [amount], [source]) ⇒ boolean_
 
 Removes row from the data array.
 
-**Emits**: [`Hooks#event:beforeRemoveRow`](./hooks/#beforeRemoveRow), [`Hooks#event:afterRemoveRow`](./hooks/#afterRemoveRow)  
+**Emits**: [`Hooks#event:beforeRemoveRow`](@/api/pluginHooks.md#beforeRemoveRow), [`Hooks#event:afterRemoveRow`](@/api/pluginHooks.md#afterRemoveRow)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |

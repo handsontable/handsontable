@@ -246,7 +246,7 @@ _columnSorting.sort(sortConfig)_
 
 Sorts the table by chosen columns and orders.
 
-**Emits**: [`Hooks#event:beforeColumnSort`](./hooks/#beforeColumnSort), [`Hooks#event:afterColumnSort`](./hooks/#afterColumnSort)  
+**Emits**: [`Hooks#event:beforeColumnSort`](@/api/pluginHooks.md#beforeColumnSort), [`Hooks#event:afterColumnSort`](@/api/pluginHooks.md#afterColumnSort)  
 **Example**  
 ```js
 // sort ascending first visual column

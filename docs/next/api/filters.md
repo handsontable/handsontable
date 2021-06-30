@@ -190,7 +190,7 @@ _filters.filter()_
 
 Filters data based on added filter conditions.
 
-**Emits**: [`Hooks#event:beforeFilter`](./hooks/#beforeFilter), [`Hooks#event:afterFilter`](./hooks/#afterFilter)  
+**Emits**: [`Hooks#event:beforeFilter`](@/api/pluginHooks.md#beforeFilter), [`Hooks#event:afterFilter`](@/api/pluginHooks.md#afterFilter)  
 
 
 ### getDataMapAtColumn

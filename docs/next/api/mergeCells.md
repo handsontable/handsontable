@@ -114,7 +114,7 @@ _mergeCells.merge(startRow, startColumn, endRow, endColumn)_
 
 Merges the specified range.
 
-**Emits**: [`Hooks#event:beforeMergeCells`](./hooks/#beforeMergeCells), [`Hooks#event:afterMergeCells`](./hooks/#afterMergeCells)  
+**Emits**: [`Hooks#event:beforeMergeCells`](@/api/pluginHooks.md#beforeMergeCells), [`Hooks#event:afterMergeCells`](@/api/pluginHooks.md#afterMergeCells)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -152,7 +152,7 @@ _mergeCells.unmerge(startRow, startColumn, endRow, endColumn)_
 
 Unmerges the merged cell in the provided range.
 
-**Emits**: [`Hooks#event:beforeUnmergeCells`](./hooks/#beforeUnmergeCells), [`Hooks#event:afterUnmergeCells`](./hooks/#afterUnmergeCells)  
+**Emits**: [`Hooks#event:beforeUnmergeCells`](@/api/pluginHooks.md#beforeUnmergeCells), [`Hooks#event:afterUnmergeCells`](@/api/pluginHooks.md#afterUnmergeCells)  
 
 | Param | Type | Description |
 | --- | --- | --- |

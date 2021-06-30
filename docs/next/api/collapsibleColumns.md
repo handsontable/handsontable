@@ -232,7 +232,7 @@ _collapsibleColumns.toggleCollapsibleSection(coords, [action])_
 
 Collapses/Expands a section.
 
-**Emits**: [`Hooks#event:beforeColumnCollapse`](./hooks/#beforeColumnCollapse), [`Hooks#event:beforeColumnExpand`](./hooks/#beforeColumnExpand), [`Hooks#event:afterColumnCollapse`](./hooks/#afterColumnCollapse), [`Hooks#event:afterColumnExpand`](./hooks/#afterColumnExpand)  
+**Emits**: [`Hooks#event:beforeColumnCollapse`](@/api/pluginHooks.md#beforeColumnCollapse), [`Hooks#event:beforeColumnExpand`](@/api/pluginHooks.md#beforeColumnExpand), [`Hooks#event:afterColumnCollapse`](@/api/pluginHooks.md#afterColumnCollapse), [`Hooks#event:afterColumnExpand`](@/api/pluginHooks.md#afterColumnExpand)  
 
 | Param | Type | Description |
 | --- | --- | --- |

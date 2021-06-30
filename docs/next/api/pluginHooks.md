@@ -3432,7 +3432,7 @@ Fired by [PersistentState](./persistent-state/) plugin, after saving value under
 
 :::
 
-_hooks.add(key, callback, [context]) ⇒ [Hooks](./hooks/)_
+_hooks.add(key, callback, [context]) ⇒ [Hooks](@/api/pluginHooks.md)_
 
 Adds a listener (globally or locally) to a specified hook name.
 If the `context` parameter is provided, the hook will be added only to the instance it references.
@@ -3440,7 +3440,7 @@ Otherwise, the callback will be used everytime the hook fires on any Handsontabl
 You can provide an array of callback functions as the `callback` argument, this way they will all be fired
 once the hook is triggered.
 
-**See**: [Core#addHook](./core/#addHook)  
+**See**: [Core#addHook](@/api/core.md#addHook)  
 **Example**  
 ```js
 // single callback, added locally
@@ -3663,7 +3663,7 @@ _hooks.once(key, callback, [context])_
 
 Adds a listener to a specified hook. After the hook runs this listener will be automatically removed from the bucket.
 
-**See**: [Core#addHookOnce](./core/#addHookOnce)  
+**See**: [Core#addHookOnce](@/api/core.md#addHookOnce)  
 **Example**  
 ```js
 Handsontable.hooks.once('beforeInit', myCallback, hotInstance);
@@ -3710,7 +3710,7 @@ _hooks.remove(key, callback, [context]) ⇒ boolean_
 
 Removes a listener from a hook with a given name. If the `context` argument is provided, it removes a listener from a local hook assigned to the given Handsontable instance.
 
-**See**: [Core#removeHook](./core/#removeHook)  
+**See**: [Core#removeHook](@/api/core.md#removeHook)  
 **Example**  
 ```js
 Handsontable.hooks.remove('beforeInit', myCallback);
@@ -3736,7 +3736,7 @@ _hooks.run(context, key, [p1], [p2], [p3], [p4], [p5], [p6]) ⇒ \*_
 Runs all local and global callbacks assigned to the hook identified by the `key` parameter.
 It returns either a return value from the last called callback or the first parameter (`p1`) passed to the `run` function.
 
-**See**: [Core#runHooks](./core/#runHooks)  
+**See**: [Core#runHooks](@/api/core.md#runHooks)  
 **Example**  
 ```js
 Handsontable.hooks.run(hot, 'beforeInit');

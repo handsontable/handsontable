@@ -128,7 +128,7 @@ _dropdownMenu.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
-**Emits**: [`Hooks#event:afterDropdownMenuDefaultOptions`](./hooks/#afterDropdownMenuDefaultOptions), [`Hooks#event:beforeDropdownMenuSetItems`](./hooks/#beforeDropdownMenuSetItems)  
+**Emits**: [`Hooks#event:afterDropdownMenuDefaultOptions`](@/api/pluginHooks.md#afterDropdownMenuDefaultOptions), [`Hooks#event:beforeDropdownMenuSetItems`](@/api/pluginHooks.md#beforeDropdownMenuSetItems)  
 
 
 ### executeCommand
@@ -192,7 +192,7 @@ _dropdownMenu.open(position)_
 
 Opens menu and re-position it based on the passed coordinates.
 
-**Emits**: [`Hooks#event:beforeDropdownMenuShow`](./hooks/#beforeDropdownMenuShow), [`Hooks#event:afterDropdownMenuShow`](./hooks/#afterDropdownMenuShow)  
+**Emits**: [`Hooks#event:beforeDropdownMenuShow`](@/api/pluginHooks.md#beforeDropdownMenuShow), [`Hooks#event:afterDropdownMenuShow`](@/api/pluginHooks.md#afterDropdownMenuShow)  
 
 | Param | Type | Description |
 | --- | --- | --- |

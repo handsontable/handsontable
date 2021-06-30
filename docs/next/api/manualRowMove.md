@@ -88,7 +88,7 @@ _manualRowMove.dragRow(row, dropIndex) ⇒ boolean_
 
 Drag a single row to drop index position.
 
-**Emits**: [`Hooks#event:beforeRowMove`](./hooks/#beforeRowMove), [`Hooks#event:afterRowMove`](./hooks/#afterRowMove)  
+**Emits**: [`Hooks#event:beforeRowMove`](@/api/pluginHooks.md#beforeRowMove), [`Hooks#event:afterRowMove`](@/api/pluginHooks.md#afterRowMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -107,7 +107,7 @@ _manualRowMove.dragRows(rows, dropIndex) ⇒ boolean_
 
 Drag multiple rows to drop index position.
 
-**Emits**: [`Hooks#event:beforeRowMove`](./hooks/#beforeRowMove), [`Hooks#event:afterRowMove`](./hooks/#afterRowMove)  
+**Emits**: [`Hooks#event:beforeRowMove`](@/api/pluginHooks.md#beforeRowMove), [`Hooks#event:afterRowMove`](@/api/pluginHooks.md#afterRowMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -169,7 +169,7 @@ _manualRowMove.moveRow(row, finalIndex) ⇒ boolean_
 
 Moves a single row.
 
-**Emits**: [`Hooks#event:beforeRowMove`](./hooks/#beforeRowMove), [`Hooks#event:afterRowMove`](./hooks/#afterRowMove)  
+**Emits**: [`Hooks#event:beforeRowMove`](@/api/pluginHooks.md#beforeRowMove), [`Hooks#event:afterRowMove`](@/api/pluginHooks.md#afterRowMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -188,7 +188,7 @@ _manualRowMove.moveRows(rows, finalIndex) ⇒ boolean_
 
 Moves a multiple rows.
 
-**Emits**: [`Hooks#event:beforeRowMove`](./hooks/#beforeRowMove), [`Hooks#event:afterRowMove`](./hooks/#afterRowMove)  
+**Emits**: [`Hooks#event:beforeRowMove`](@/api/pluginHooks.md#beforeRowMove), [`Hooks#event:afterRowMove`](@/api/pluginHooks.md#afterRowMove)  
 
 | Param | Type | Description |
 | --- | --- | --- |

@@ -121,7 +121,7 @@ _manualColumnResize.loadManualColumnWidths() ⇒ Array_
 
 Loads the previously saved sizes using the persistentState plugin (the [Options#persistentState](./options/#persistentstate) option has to be enabled).
 
-**Emits**: [`Hooks#event:persistentStateLoad`](./hooks/#persistentStateLoad)  
+**Emits**: [`Hooks#event:persistentStateLoad`](@/api/pluginHooks.md#persistentStateLoad)  
 
 
 ### saveManualColumnWidths
@@ -134,7 +134,7 @@ _manualColumnResize.saveManualColumnWidths()_
 
 Saves the current sizes using the persistentState plugin (the [Options#persistentState](./options/#persistentstate) option has to be enabled).
 
-**Emits**: [`Hooks#event:persistentStateSave`](./hooks/#persistentStateSave)  
+**Emits**: [`Hooks#event:persistentStateSave`](@/api/pluginHooks.md#persistentStateSave)  
 
 
 ### setManualSize
