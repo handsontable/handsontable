@@ -16,7 +16,7 @@ It can:
 * Map indices of displayed rows `visual indices` to the indices of corresponding rows in the datasource `physical indices` and vice versa
 * Alter the order of rows presented to a user without changing the datasource’s internal structure
 
-The sort operation is performed using a [stable sort algorithm](https://en.wikipedia.org/wiki/sorting_algorithm#stability) regardless of the browser you use or the size of the data set which you sort.
+The sort operation is performed using a [stable sort algorithm](https://en.wikipedia.org/wiki/Sorting_algorithm#Stability) regardless of the browser you use or the size of the data set which you sort.
 
 ::: tip
 The `columnSorting` and `multiColumnSorting` plugins shouldn't be enabled simultaneously.

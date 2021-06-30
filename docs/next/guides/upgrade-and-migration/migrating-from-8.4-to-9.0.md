@@ -25,17 +25,17 @@ See other available initialization methods [here](@/guides/formulas/hyperformula
 
 | Method name | Before 9.0 (legacy plugin) | After 9.0 (new plugin) |
 |-|-|-|
-| [`destroy`](https://handsontable.com/docs/8.4.0/formulas.html#destroy) | `hot.getPlugin('formulas').destroy()` | Unchanged. This method will destroy the HyperFormula instance only after it is disconnected from all Handsontable instances. |
-| [`disablePlugin`](https://handsontable.com/docs/8.4.0/formulas.html#disableplugin) | `hot.getPlugin('formulas').disablePlugin()` | Unchanged. |
-| [`enablePlugin`](https://handsontable.com/docs/8.4.0/formulas.html#enableplugin) | `hot.getPlugin('formulas').enablePlugin()` | Unchanged, but do keep in mind that if you didn't pass in the plugin's config through either `updateSettings` or during Handsontable initialization this method will not do anything. |
-| [`getCellValue`](https://handsontable.com/docs/8.4.0/formulas.html#getcellvalue) | `hot.getPlugin('formulas').getCellValue(row, column)` | Use base Handsontable API instead, for example `hot.getDataAtCell(row, column)`. |
-| [`getVariable`](https://handsontable.com/docs/8.4.0/Formulas.html#getvariable) | `hot.getPlugin('formulas').getVariable(variableName)` | "Variables" in the plugin have been replaced by a more powerful alternative, [named expressions](@/guides/formulas/hyperformula-integration.md#named-expressions). |
-| [`hasComputedCellValue`](https://handsontable.com/docs/8.4.0/formulas.html#hascomputedcellvalue) | `hot.getPlugin('formulas').hasComputedCellValue(row, column)` | `hot.getPlugin('formulas').getCellType(row, column) === 'FORMULA'` |
-| [`isEnabled`](https://handsontable.com/docs/8.4.0/formulas.html#isenabled) | `hot.getPlugin('formulas').isEnabled()` | Unchanged. |
-| [`recalculate`](https://handsontable.com/docs/8.4.0/formulas.html#recalculate) | `hot.getPlugin('formulas').recalculate()` | `hot.getPlguin('formulas').engine.rebuildAndRecalculate()` |
-| [`recalculateFull`](https://handsontable.com/docs/8.4.0/formulas.html#recalculatefull) | `hot.getPlugin('formulas').recalculateFull()` | `hot.getPlguin('formulas').engine.rebuildAndRecalculate()` |
-| [`recalculateOptimized`](https://handsontable.com/docs/8.4.0/formulas.html#recalculateoptimized) | `hot.getPlugin('formulas').recalculateOptimized()` | `hot.getPlguin('formulas').engine.rebuildAndRecalculate()` |
-| [`setVariable`](https://handsontable.com/docs/8.4.0/formulas.html#setvariable) | `hot.getPlugin('formulas').setVariable(variableName, value)` | "Variables" in the plugin have been replaced by a more powerful alternative, [named expressions](@/guides/formulas/hyperformula-integration.md#named-expressions). |
+| [`destroy`](https://handsontable.com/docs/8.4.0/Formulas.html#destroy) | `hot.getPlugin('formulas').destroy()` | Unchanged. This method will destroy the HyperFormula instance only after it is disconnected from all Handsontable instances. |
+| [`disablePlugin`](https://handsontable.com/docs/8.4.0/Formulas.html#disablePlugin) | `hot.getPlugin('formulas').disablePlugin()` | Unchanged. |
+| [`enablePlugin`](https://handsontable.com/docs/8.4.0/Formulas.html#enablePlugin) | `hot.getPlugin('formulas').enablePlugin()` | Unchanged, but do keep in mind that if you didn't pass in the plugin's config through either `updateSettings` or during Handsontable initialization this method will not do anything. |
+| [`getCellValue`](https://handsontable.com/docs/8.4.0/Formulas.html#getCellValue) | `hot.getPlugin('formulas').getCellValue(row, column)` | Use base Handsontable API instead, for example `hot.getDataAtCell(row, column)`. |
+| [`getVariable`](https://handsontable.com/docs/8.4.0/Formulas.html#getVariable) | `hot.getPlugin('formulas').getVariable(variableName)` | "Variables" in the plugin have been replaced by a more powerful alternative, [named expressions](@/guides/formulas/hyperformula-integration.md#named-expressions). |
+| [`hasComputedCellValue`](https://handsontable.com/docs/8.4.0/Formulas.html#hasComputedCellValue) | `hot.getPlugin('formulas').hasComputedCellValue(row, column)` | `hot.getPlugin('formulas').getCellType(row, column) === 'FORMULA'` |
+| [`isEnabled`](https://handsontable.com/docs/8.4.0/Formulas.html#isEnabled) | `hot.getPlugin('formulas').isEnabled()` | Unchanged. |
+| [`recalculate`](https://handsontable.com/docs/8.4.0/Formulas.html#recalculate) | `hot.getPlugin('formulas').recalculate()` | `hot.getPlguin('formulas').engine.rebuildAndRecalculate()` |
+| [`recalculateFull`](https://handsontable.com/docs/8.4.0/Formulas.html#recalculateFull) | `hot.getPlugin('formulas').recalculateFull()` | `hot.getPlguin('formulas').engine.rebuildAndRecalculate()` |
+| [`recalculateOptimized`](https://handsontable.com/docs/8.4.0/Formulas.html#recalculateOptimized) | `hot.getPlugin('formulas').recalculateOptimized()` | `hot.getPlguin('formulas').engine.rebuildAndRecalculate()` |
+| [`setVariable`](https://handsontable.com/docs/8.4.0/Formulas.html#setVariable) | `hot.getPlugin('formulas').setVariable(variableName, value)` | "Variables" in the plugin have been replaced by a more powerful alternative, [named expressions](@/guides/formulas/hyperformula-integration.md#named-expressions). |
 
 ## Available functions
 

@@ -20,9 +20,9 @@ The plugin allows you to export data from Handsontable into a `CSV` file.
 
 The plugin exposes the following methods to export data.
 
-* [**downloadFile(format, options)**](@/api/exportFile.md#downloadfile) - allows you to generate a downloadable file, directly in your browser.
-* [**exportAsBlob(format, options)**](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
-* [**exportAsString(format, options)**](@/api/exportFile.md#exportasstring) - allows you to export data as a string.
+* [**downloadFile(format, options)**](@/api/exportFile.md#downloadFile) - allows you to generate a downloadable file, directly in your browser.
+* [**exportAsBlob(format, options)**](@/api/exportFile.md#exportAsBlob) - allows you to export a JavaScript Blob object.
+* [**exportAsString(format, options)**](@/api/exportFile.md#exportAsString) - allows you to export data as a string.
 
 All of them accept the same arguments:
 
