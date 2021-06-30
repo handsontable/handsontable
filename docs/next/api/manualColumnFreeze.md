@@ -13,7 +13,7 @@ editLink: false
 ## Description
 
 This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu or using API.
-You can turn it on by setting a [Options#manualColumnFreeze](./options/#manualcolumnfreeze) property to `true`.
+You can turn it on by setting a [Options#manualColumnFreeze](@/api/options.md#manualcolumnfreeze] property to `true`.
 
 **Example**  
 ```js
@@ -31,7 +31,7 @@ manualColumnFreeze: true,
 
 _manualColumnFreeze.manualColumnFreeze : boolean_
 
-Disables or enables [ManualColumnFreeze](./manual-column-freeze/) plugin.
+Disables or enables [ManualColumnFreeze](@/api/manualColumnFreeze.md] plugin.
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -91,8 +91,8 @@ Freezes the given column (add it to fixed columns).
 
 _manualColumnFreeze.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#ManualColumnFreeze+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
+hook and if it returns `true` than the [enablePlugin](@/api/.md#manualcolumnfreeze+enableplugin] method is called.
 
 
 
@@ -121,6 +121,6 @@ Unfreezes the given column (remove it from fixed columns and bring to it's previ
 
 _manualColumnFreeze.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
 
 

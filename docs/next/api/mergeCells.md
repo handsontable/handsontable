@@ -36,7 +36,7 @@ const hot = new Handsontable(document.getElementById('example'), {
 _mergeCells.mergeCells : boolean | Array&lt;object&gt;_
 
 If set to `true`, it enables a possibility to merge cells. If set to an array of objects, it merges the cells provided
-in the objects (see the example below). More information on [the demo page](@/guides/cell-features/merge-cells.md).
+in the objects (see the example below). More information on [the demo page](@/guides/cell-features/merge-cells.md].
 
 **Default**: <code>false</code>  
 **Example**  
@@ -99,8 +99,8 @@ Enables the plugin functionality for this Handsontable instance.
 
 _mergeCells.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#MergeCells+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
+hook and if it returns `true` than the [enablePlugin](@/api/.md#mergecells+enableplugin] method is called.
 
 
 
@@ -114,7 +114,7 @@ _mergeCells.merge(startRow, startColumn, endRow, endColumn)_
 
 Merges the specified range.
 
-**Emits**: [`Hooks#event:beforeMergeCells`](@/api/pluginHooks.md#beforeMergeCells), [`Hooks#event:afterMergeCells`](@/api/pluginHooks.md#afterMergeCells)  
+**Emits**: [`Hooks#event:beforeMergeCells`](@/api/pluginHooks.md#beforemergecells], [`Hooks#event:afterMergeCells`](@/api/pluginHooks.md#aftermergecells]  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -152,7 +152,7 @@ _mergeCells.unmerge(startRow, startColumn, endRow, endColumn)_
 
 Unmerges the merged cell in the provided range.
 
-**Emits**: [`Hooks#event:beforeUnmergeCells`](@/api/pluginHooks.md#beforeUnmergeCells), [`Hooks#event:afterUnmergeCells`](@/api/pluginHooks.md#afterUnmergeCells)  
+**Emits**: [`Hooks#event:beforeUnmergeCells`](@/api/pluginHooks.md#beforeunmergecells], [`Hooks#event:afterUnmergeCells`](@/api/pluginHooks.md#afterunmergecells]  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -188,6 +188,6 @@ Unmerges the selection provided as a cell range.
 
 _mergeCells.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
 
 

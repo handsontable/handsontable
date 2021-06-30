@@ -132,8 +132,8 @@ Get list of trimmed rows.
 
 _trimRows.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [AutoRowSize#enablePlugin](./auto-row-size/#enableplugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
+hook and if it returns `true` than the [AutoRowSize#enablePlugin](@/api/autoRowSize.md#enableplugin] method is called.
 
 
 
@@ -198,7 +198,7 @@ _trimRows.trimRows(rows)_
 
 Trims the rows provided in the array.
 
-**Emits**: [`Hooks#event:beforeTrimRow`](@/api/pluginHooks.md#beforeTrimRow), [`Hooks#event:afterTrimRow`](@/api/pluginHooks.md#afterTrimRow)  
+**Emits**: [`Hooks#event:beforeTrimRow`](@/api/pluginHooks.md#beforetrimrow], [`Hooks#event:afterTrimRow`](@/api/pluginHooks.md#aftertrimrow]  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -245,7 +245,7 @@ _trimRows.untrimRows(rows)_
 
 Untrims the rows provided in the array.
 
-**Emits**: [`Hooks#event:beforeUntrimRow`](@/api/pluginHooks.md#beforeUntrimRow), [`Hooks#event:afterUntrimRow`](@/api/pluginHooks.md#afterUntrimRow)  
+**Emits**: [`Hooks#event:beforeUntrimRow`](@/api/pluginHooks.md#beforeuntrimrow], [`Hooks#event:afterUntrimRow`](@/api/pluginHooks.md#afteruntrimrow]  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -261,6 +261,6 @@ Untrims the rows provided in the array.
 
 _trimRows.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
 
 

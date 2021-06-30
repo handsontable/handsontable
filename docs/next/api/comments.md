@@ -66,13 +66,13 @@ commentsPlugin.removeComment();
 
 _comments.comments : boolean | Array&lt;object&gt;_
 
-If `true`, enables the [Comments](./comments/) plugin, which enables an option to apply cell comments through the context menu
+If `true`, enables the [Comments](@/api/comments.md] plugin, which enables an option to apply cell comments through the context menu
 (configurable with context menu keys `commentsAddEdit`, `commentsRemove`).
 
 To initialize Handsontable with predefined comments, provide cell coordinates and comment text values in a form of
 an array.
 
-See [Comments](@/guides/cell-features/comments.md) demo for examples.
+See [Comments](@/guides/cell-features/comments.md] demo for examples.
 
 **Default**: <code>false</code>  
 **Example**  
@@ -169,7 +169,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 _comments.getComment() ⇒ string | undefined_
 
-Gets comment from a cell according to previously set range (see [setRange](#Comments+setRange)).
+Gets comment from a cell according to previously set range (see [setRange](@/api/.md#comments+setrange]).
 
 
 **Returns**: `string` | `undefined` - Returns a content of the comment.  
@@ -232,8 +232,8 @@ Hides the comment editor.
 
 _comments.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#Comments+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
+hook and if it returns `true` than the [enablePlugin](@/api/.md#comments+enableplugin] method is called.
 
 
 
@@ -262,7 +262,7 @@ Refreshes comment editor position and styling.
 
 _comments.removeComment([forceRender])_
 
-Removes a comment from a cell according to previously set range (see [setRange](#Comments+setRange)).
+Removes a comment from a cell according to previously set range (see [setRange](@/api/.md#comments+setrange]).
 
 
 | Param | Type | Default | Description |
@@ -298,7 +298,7 @@ Removes a comment from a specified cell.
 
 _comments.setComment(value)_
 
-Sets a comment for a cell according to the previously set range (see [setRange](#Comments+setRange)).
+Sets a comment for a cell according to the previously set range (see [setRange](@/api/.md#comments+setrange]).
 
 
 | Param | Type | Description |
@@ -334,7 +334,7 @@ Sets a comment for a specified cell.
 
 _comments.setRange(range)_
 
-Sets the current cell range to be able to use general methods like [setComment](#Comments+setComment), [removeComment](#Comments+removeComment), [show](#Comments+show).
+Sets the current cell range to be able to use general methods like [setComment](@/api/.md#comments+setcomment], [removeComment](@/api/.md#comments+removecomment], [show](@/api/.md#comments+show].
 
 
 | Param | Type | Description |
@@ -351,7 +351,7 @@ Sets the current cell range to be able to use general methods like [setComment](
 
 _comments.show() ⇒ boolean_
 
-Shows the comment editor accordingly to the previously set range (see [setRange](#Comments+setRange)).
+Shows the comment editor accordingly to the previously set range (see [setRange](@/api/.md#comments+setrange]).
 
 
 **Returns**: `boolean` - Returns `true` if comment editor was shown.  
@@ -402,6 +402,6 @@ Sets or update the comment-related cell meta.
 
 _comments.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
 
 

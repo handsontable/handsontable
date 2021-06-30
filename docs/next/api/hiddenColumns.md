@@ -67,7 +67,7 @@ hot.render();
 
 _hiddenColumns.hiddenColumns : boolean | object_
 
-The [HiddenColumns](./hidden-columns/) plugin allows hiding of certain columns. You can pass additional configuration with an
+The [HiddenColumns](@/api/hiddenColumns.md] plugin allows hiding of certain columns. You can pass additional configuration with an
 object notation. Options that are then available are:
  * `columns` - an array of rows that should be hidden on plugin initialization
  * `indicators` - enables small ui markers to indicate where are hidden columns.
@@ -179,8 +179,8 @@ Hides the columns provided in the array.
 
 _hiddenColumns.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#HiddenColumns+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
+hook and if it returns `true` than the [enablePlugin](@/api/.md#hiddencolumns+enableplugin] method is called.
 
 
 
@@ -260,6 +260,6 @@ Shows the provided columns.
 
 _hiddenColumns.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
 
 

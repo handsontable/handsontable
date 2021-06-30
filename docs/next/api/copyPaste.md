@@ -19,12 +19,12 @@ Possible values:
 * `false` (to disable completely).
 
 or an object with values:
-* `'columnsLimit'` (see [columnsLimit](#CopyPaste+columnsLimit))
-* `'rowsLimit'` (see [rowsLimit](#CopyPaste+rowsLimit))
-* `'pasteMode'` (see [pasteMode](#CopyPaste+pasteMode))
-* `'uiContainer'` (see [uiContainer](#CopyPaste+uiContainer)).
+* `'columnsLimit'` (see [columnsLimit](@/api/.md#copypaste+columnslimit])
+* `'rowsLimit'` (see [rowsLimit](@/api/.md#copypaste+rowslimit])
+* `'pasteMode'` (see [pasteMode](@/api/.md#copypaste+pastemode])
+* `'uiContainer'` (see [uiContainer](@/api/.md#copypaste+uicontainer]).
 
-See [the copy/paste demo](@/guides/cell-features/clipboard.md) for examples.
+See [the copy/paste demo](@/guides/cell-features/clipboard.md] for examples.
 
 **Example**  
 ```js
@@ -87,7 +87,7 @@ Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> 
 
 :::
 
-_copyPaste.focusableElement : [FocusableWrapper](@/api/focusableElement.md)_
+_copyPaste.focusableElement : [FocusableWrapper](@/api/focusableElement.md]_
 
 Provides focusable element to support IME and copy/paste/cut actions.
 
@@ -239,8 +239,8 @@ Creates copyable text releated to range objects.
 
 _copyPaste.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#CopyPaste+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
+hook and if it returns `true` than the [enablePlugin](@/api/.md#copypaste+enableplugin] method is called.
 
 
 
@@ -282,6 +282,6 @@ Prepares copyable text from the cells selection in the invisible textarea.
 
 _copyPaste.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
 
 

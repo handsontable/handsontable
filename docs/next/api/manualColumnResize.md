@@ -12,7 +12,7 @@ editLink: false
 
 ## Description
 
-This plugin allows to change columns width. To make columns width persistent the [Options#persistentState](./options/#persistentstate)
+This plugin allows to change columns width. To make columns width persistent the [Options#persistentState](@/api/options.md#persistentstate]
 plugin should be enabled.
 
 The plugin creates additional components to make resizing possibly using user interface:
@@ -30,7 +30,7 @@ The plugin creates additional components to make resizing possibly using user in
 
 _manualColumnResize.manualColumnResize : boolean | Array&lt;number&gt;_
 
-Turns on [Manual column resize](@/guides/columns/column-width.md#column-stretching), if set to a boolean or define initial column resized widths (an an array of widths).
+Turns on [Manual column resize](@/guides/columns/column-width.md#columnstretching], if set to a boolean or define initial column resized widths (an an array of widths).
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -106,8 +106,8 @@ Enables the plugin functionality for this Handsontable instance.
 
 _manualColumnResize.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#ManualColumnResize+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
+hook and if it returns `true` than the [enablePlugin](@/api/.md#manualcolumnresize+enableplugin] method is called.
 
 
 
@@ -119,9 +119,9 @@ hook and if it returns `true` than the [enablePlugin](#ManualColumnResize+enable
 
 _manualColumnResize.loadManualColumnWidths() ⇒ Array_
 
-Loads the previously saved sizes using the persistentState plugin (the [Options#persistentState](./options/#persistentstate) option has to be enabled).
+Loads the previously saved sizes using the persistentState plugin (the [Options#persistentState](@/api/options.md#persistentstate] option has to be enabled).
 
-**Emits**: [`Hooks#event:persistentStateLoad`](@/api/pluginHooks.md#persistentStateLoad)  
+**Emits**: [`Hooks#event:persistentStateLoad`](@/api/pluginHooks.md#persistentstateload]  
 
 
 ### saveManualColumnWidths
@@ -132,9 +132,9 @@ Loads the previously saved sizes using the persistentState plugin (the [Options#
 
 _manualColumnResize.saveManualColumnWidths()_
 
-Saves the current sizes using the persistentState plugin (the [Options#persistentState](./options/#persistentstate) option has to be enabled).
+Saves the current sizes using the persistentState plugin (the [Options#persistentState](@/api/options.md#persistentstate] option has to be enabled).
 
-**Emits**: [`Hooks#event:persistentStateSave`](@/api/pluginHooks.md#persistentStateSave)  
+**Emits**: [`Hooks#event:persistentStateSave`](@/api/pluginHooks.md#persistentstatesave]  
 
 
 ### setManualSize
@@ -164,6 +164,6 @@ Sets the new width for specified column index.
 
 _manualColumnResize.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
 
 

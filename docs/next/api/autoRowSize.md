@@ -38,7 +38,7 @@ autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},
 You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
 height. __Note__, that this might have a negative impact on performance.
 
-To configure this plugin see [Options#autoRowSize](./options/#autorowsize).
+To configure this plugin see [Options#autoRowSize](@/api/options.md#autorowsize].
 
 **Example**  
 ```js
@@ -66,7 +66,7 @@ if (plugin.isEnabled()) {
 
 _autoRowSize.autoRowSize : object | boolean_
 
-Enables or disables [AutoRowSize](./auto-row-size/) plugin. Default value is `undefined`, which has the same effect as `false`
+Enables or disables [AutoRowSize](@/api/autoRowSize.md] plugin. Default value is `undefined`, which has the same effect as `false`
 (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
 
 __Note:__ the default `syncLimit` value is set to 500 when the plugin is manually enabled by declaring it as: `autoRowSize: true`.
@@ -122,8 +122,8 @@ Number of already measured rows (we already know their sizes).
 
 _autoRowSize.calculateAllRowsHeight(colRange)_
 
-Calculate all rows heights. The calculated row will be cached in the [AutoRowSize#heights](./auto-row-size/#heights) property.
-To retrieve height for specified row use [AutoRowSize#getRowHeight](./auto-row-size/#getrowheight) method.
+Calculate all rows heights. The calculated row will be cached in the [AutoRowSize#heights](@/api/autoRowSize.md#heights] property.
+To retrieve height for specified row use [AutoRowSize#getRowHeight](@/api/autoRowSize.md#getrowheight] method.
 
 
 | Param | Type | Description |
@@ -281,7 +281,7 @@ Gets the calculated row height.
 _autoRowSize.getSyncCalculationLimit() ⇒ number_
 
 Gets value which tells how many rows should be calculated synchronously (rest of the rows will be calculated
-asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize option (see [Options#autoRowSize](./options/#autorowsize)).
+asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize option (see [Options#autoRowSize](@/api/options.md#autorowsize]).
 
 
 
@@ -293,8 +293,8 @@ asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize
 
 _autoRowSize.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeinit)
-hook and if it returns `true` than the [AutoRowSize#enablePlugin](./auto-row-size/#enableplugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
+hook and if it returns `true` than the [AutoRowSize#enablePlugin](@/api/autoRowSize.md#enableplugin] method is called.
 
 
 

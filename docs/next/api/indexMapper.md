@@ -19,13 +19,13 @@ It has a built-in cache that is updated only when the data or structure changes.
 
 **Physical index** is a type of an index from the sequence of indexes assigned to the data source rows or columns
  (from 0 to n, where n is number of the cells on the axis of data set).
-**Visual index** is a type of an index from the sequence of indexes assigned to rows or columns existing in [DataMap](./data-map/) (from 0 to n, where n is number of the cells on the axis of data set).
+**Visual index** is a type of an index from the sequence of indexes assigned to rows or columns existing in [DataMap](@/api/dataMap.md] (from 0 to n, where n is number of the cells on the axis of data set).
 **Renderable index** is a type of an index from the sequence of indexes assigned to rows or columns whose may be rendered (when they are in a viewport; from 0 to n, where n is number of the cells renderable on the axis).
 
 There are different kinds of index maps which may be registered in the collections and can be used by a reference.
 They also expose public API and trigger two local hooks such as `init` (on initialization) and `change` (on change).
 
-These are: [IndexesSequence](./indexes-sequence/), [PhysicalIndexToValueMap](./physical-index-to-value-map/), [HidingMap](./hiding-map/), and [TrimmingMap](./trimming-map/).
+These are: [IndexesSequence](@/api/indexesSequence.md], [PhysicalIndexToValueMap](@/api/physicalIndexToValueMap.md], [HidingMap](@/api/hidingMap.md], and [TrimmingMap](@/api/trimmingMap.md].
 
 
 ## Methods
@@ -111,7 +111,7 @@ _indexMapper.getNotHiddenIndexes([readFromCache]) ⇒ Array_
 
 Get all NOT hidden indexes.
 
-Note: Indexes marked as hidden are included in a [DataMap](./data-map/), but aren't rendered.
+Note: Indexes marked as hidden are included in a [DataMap](@/api/dataMap.md], but aren't rendered.
 
 
 | Param | Type | Default | Description |
@@ -131,7 +131,7 @@ _indexMapper.getNotHiddenIndexesLength() ⇒ number_
 
 Get length of all NOT hidden indexes.
 
-Note: Indexes marked as hidden are included in a [DataMap](./data-map/), but aren't rendered.
+Note: Indexes marked as hidden are included in a [DataMap](@/api/dataMap.md], but aren't rendered.
 
 
 
@@ -145,7 +145,7 @@ _indexMapper.getNotTrimmedIndexes([readFromCache]) ⇒ Array_
 
 Get all NOT trimmed indexes.
 
-Note: Indexes marked as trimmed aren't included in a [DataMap](./data-map/) and aren't rendered.
+Note: Indexes marked as trimmed aren't included in a [DataMap](@/api/dataMap.md] and aren't rendered.
 
 
 | Param | Type | Default | Description |
@@ -166,7 +166,7 @@ _indexMapper.getNotTrimmedIndexesLength() ⇒ number_
 
 Get length of all NOT trimmed indexes.
 
-Note: Indexes marked as trimmed aren't included in a [DataMap](./data-map/) and aren't rendered.
+Note: Indexes marked as trimmed aren't included in a [DataMap](@/api/dataMap.md] and aren't rendered.
 
 
 
@@ -325,7 +325,7 @@ Set default values for all indexes in registered index maps.
 
 _indexMapper.isHidden(physicalIndex) ⇒ boolean_
 
-Get whether index is hidden. Index marked as hidden is included in a [DataMap](./data-map/), but isn't rendered.
+Get whether index is hidden. Index marked as hidden is included in a [DataMap](@/api/dataMap.md], but isn't rendered.
 
 
 | Param | Type | Description |
@@ -342,7 +342,7 @@ Get whether index is hidden. Index marked as hidden is included in a [DataMap](.
 
 _indexMapper.isTrimmed(physicalIndex) ⇒ boolean_
 
-Get whether index is trimmed. Index marked as trimmed isn't included in a [DataMap](./data-map/) and isn't rendered.
+Get whether index is trimmed. Index marked as trimmed isn't included in a [DataMap](@/api/dataMap.md] and isn't rendered.
 
 
 | Param | Type | Description |

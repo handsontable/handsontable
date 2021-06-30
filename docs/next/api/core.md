@@ -33,7 +33,7 @@ hot.setDataAtCell(0, 0, 'new value');
 
 :::
 
-_core.columnIndexMapper : [IndexMapper](@/api/indexMapper.md)_
+_core.columnIndexMapper : [IndexMapper](@/api/indexMapper.md]_
 
 Instance of index mapper which is responsible for managing the column indexes.
 
@@ -58,7 +58,7 @@ after `afterDestroy` hook is called.
 
 :::
 
-_core.rowIndexMapper : [IndexMapper](@/api/indexMapper.md)_
+_core.rowIndexMapper : [IndexMapper](@/api/indexMapper.md]_
 
 Instance of index mapper which is responsible for managing the row indexes.
 
@@ -75,7 +75,7 @@ _core.addHook(key, callback)_
 
 Adds listener to the specified hook name (only for this Handsontable instance).
 
-**See**: [Hooks#add](@/api/pluginHooks.md#add)  
+**See**: [Hooks#add](@/api/pluginHooks.md#add]  
 **Example**  
 ```js
 hot.addHook('beforeInit', myCallback);
@@ -83,7 +83,7 @@ hot.addHook('beforeInit', myCallback);
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | `string` | Hook name (see [Hooks](./hooks/)). |
+| key | `string` | Hook name (see [Hooks](@/api/hooks.md]). |
 | callback | `function` <br/> `Array` | Function or array of functions. |
 
 
@@ -99,7 +99,7 @@ _core.addHookOnce(key, callback)_
 Adds listener to specified hook name (only for this Handsontable instance). After the listener is triggered,
 it will be automatically removed.
 
-**See**: [Hooks#once](@/api/pluginHooks.md#once)  
+**See**: [Hooks#once](@/api/pluginHooks.md#once]  
 **Example**  
 ```js
 hot.addHookOnce('beforeInit', myCallback);
@@ -107,7 +107,7 @@ hot.addHookOnce('beforeInit', myCallback);
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | `string` | Hook name (see [Hooks](./hooks/)). |
+| key | `string` | Hook name (see [Hooks](@/api/hooks.md]). |
 | callback | `function` <br/> `Array` | Function or array of functions. |
 
 
@@ -454,7 +454,7 @@ _core.destroy()_
 
 Removes the table from the DOM and destroys the instance of the Handsontable.
 
-**Emits**: [`Hooks#event:afterDestroy`](@/api/pluginHooks.md#afterDestroy)  
+**Emits**: [`Hooks#event:afterDestroy`](@/api/pluginHooks.md#afterdestroy]  
 
 
 ### destroyEditor
@@ -499,12 +499,12 @@ Erases content from cells that have been selected in the table.
 
 :::
 
-_core.getActiveEditor() ⇒ [BaseEditor](@/api/baseEditor.md)_
+_core.getActiveEditor() ⇒ [BaseEditor](@/api/baseEditor.md]_
 
 Returns the active editor class instance.
 
 
-**Returns**: [`BaseEditor`](@/api/baseEditor.md) - The active editor instance.  
+**Returns**: [`BaseEditor`](@/api/baseEditor.md] - The active editor instance.  
 
 ### getCell
   
@@ -547,7 +547,7 @@ hot.getCellEditor(hot.getCellMeta(1, 1));
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | `number` | Visual row index or cell meta object (see [Core#getCellMeta](./core/#getcellmeta)). |
+| row | `number` | Visual row index or cell meta object (see [Core#getCellMeta](@/api/core.md#getcellmeta]). |
 | column | `number` | Visual column index. |
 
 
@@ -563,7 +563,7 @@ _core.getCellMeta(row, column) ⇒ object_
 
 Returns the cell properties object for the given `row` and `column` coordinates.
 
-**Emits**: [`Hooks#event:beforeGetCellMeta`](@/api/pluginHooks.md#beforeGetCellMeta), [`Hooks#event:afterGetCellMeta`](@/api/pluginHooks.md#afterGetCellMeta)  
+**Emits**: [`Hooks#event:beforeGetCellMeta`](@/api/pluginHooks.md#beforegetcellmeta], [`Hooks#event:afterGetCellMeta`](@/api/pluginHooks.md#aftergetcellmeta]  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -610,7 +610,7 @@ hot.getCellRenderer(hot.getCellMeta(1, 1));
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | `number` <br/> `object` | Visual row index or cell meta object (see [Core#getCellMeta](./core/#getcellmeta)). |
+| row | `number` <br/> `object` | Visual row index or cell meta object (see [Core#getCellMeta](@/api/core.md#getcellmeta]). |
 | column | `number` | Visual column index. |
 
 
@@ -649,7 +649,7 @@ hot.getCellValidator(hot.getCellMeta(1, 1));
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | `number` <br/> `object` | Visual row index or cell meta object (see [Core#getCellMeta](./core/#getcellmeta)). |
+| row | `number` <br/> `object` | Visual row index or cell meta object (see [Core#getCellMeta](@/api/core.md#getcellmeta]). |
 | column | `number` | Visual column index. |
 
 
@@ -666,7 +666,7 @@ _core.getColHeader([column]) ⇒ Array | string | number_
 Returns an array of column headers (in string format, if they are enabled). If param `column` is given, it
 returns the header at the given column.
 
-**Emits**: [`Hooks#event:modifyColHeader`](@/api/pluginHooks.md#modifyColHeader)  
+**Emits**: [`Hooks#event:modifyColHeader`](@/api/pluginHooks.md#modifycolheader]  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -685,7 +685,7 @@ _core.getColWidth(column) ⇒ number_
 
 Returns the width of the requested column.
 
-**Emits**: [`Hooks#event:modifyColWidth`](@/api/pluginHooks.md#modifyColWidth)  
+**Emits**: [`Hooks#event:modifyColWidth`](@/api/pluginHooks.md#modifycolwidth]  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -700,7 +700,7 @@ Returns the width of the requested column.
 
 :::
 
-_core.getCoords(element) ⇒ [CellCoords](@/api/coords.md) | null_
+_core.getCoords(element) ⇒ [CellCoords](@/api/coords.md] | null_
 
 Returns the coordinates of the cell, provided as a HTML table cell element.
 
@@ -715,7 +715,7 @@ hot.getCoords(hot.getCell(1, 1));
 | element | `HTMLTableCellElement` | The HTML Element representing the cell. |
 
 
-**Returns**: [`CellCoords`](@/api/coords.md) | `null` - Visual coordinates object.  
+**Returns**: [`CellCoords`](@/api/coords.md] | `null` - Visual coordinates object.  
 
 ### getCopyableData
   
@@ -766,7 +766,7 @@ _core.getData([row], [column], [row2], [column2]) ⇒ Array&lt;Array&gt;_
 
 Returns the current data object (the same one that was passed by `data` configuration option or `loadData` method,
 unless some modifications have been applied (i.e. Sequence of rows/columns was changed, some row/column was skipped).
-If that's the case - use the [Core#getSourceData](./core/#getsourcedata) method.).
+If that's the case - use the [Core#getSourceData](@/api/core.md#getsourcedata] method.).
 
 Optionally you can provide cell range by defining `row`, `column`, `row2`, `column2` to get only a fragment of table data.
 
@@ -899,7 +899,7 @@ __Note__: If data is reordered, sorted or trimmed, the currently visible order w
 
 _core.getDataType(rowFrom, columnFrom, rowTo, columnTo) ⇒ string_
 
-Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](./options/#type)).
+Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](@/api/options.md#type]).
 If there are cells with different types in the selected range, it returns `'mixed'`.
 
 __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.
@@ -921,12 +921,12 @@ __Note__: If data is reordered, sorted or trimmed, the currently visible order w
 
 :::
 
-_core.getInstance() ⇒ [Handsontable](@/api/core.md)_
+_core.getInstance() ⇒ [Handsontable](@/api/core.md]_
 
 Returns the Handsontable instance.
 
 
-**Returns**: [`Handsontable`](@/api/core.md) - The Handsontable instance.  
+**Returns**: [`Handsontable`](@/api/core.md] - The Handsontable instance.  
 
 ### getPlugin
   
@@ -956,7 +956,7 @@ _core.getRowHeader([row]) ⇒ Array | string | number_
 
 Returns an array of row headers' values (if they are enabled). If param `row` was given, it returns the header of the given row as a string.
 
-**Emits**: [`Hooks#event:modifyRowHeader`](@/api/pluginHooks.md#modifyRowHeader)  
+**Emits**: [`Hooks#event:modifyRowHeader`](@/api/pluginHooks.md#modifyrowheader]  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -975,7 +975,7 @@ _core.getRowHeight(row) ⇒ number_
 
 Returns the row height.
 
-**Emits**: [`Hooks#event:modifyRowHeight`](@/api/pluginHooks.md#modifyRowHeight)  
+**Emits**: [`Hooks#event:modifyRowHeight`](@/api/pluginHooks.md#modifyrowheight]  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1239,9 +1239,9 @@ Returns information about if this table is configured to display column headers.
 _core.hasHook(key) ⇒ boolean_
 
 Check if for a specified hook name there are added listeners (only for this Handsontable instance). All available
-hooks you will find [Hooks](./hooks/).
+hooks you will find [Hooks](@/api/hooks.md].
 
-**See**: [Hooks#has](@/api/pluginHooks.md#has)  
+**See**: [Hooks#has](@/api/pluginHooks.md#has]  
 **Example**  
 ```js
 const hasBeforeInitListeners = hot.hasHook('beforeInit');
@@ -1323,7 +1323,7 @@ Check if all cells in the row declared by the `row` argument are empty.
 _core.isExecutionSuspended() ⇒ boolean_
 
 Checks if the table indexes recalculation process was suspended. See explanation
-in [Core#suspendExecution](./core/#suspendexecution).
+in [Core#suspendExecution](@/api/core.md#suspendexecution].
 
 **Since**: 8.3.0  
 
@@ -1349,7 +1349,7 @@ Returns `true` if the current Handsontable instance is listening to keyboard inp
 
 _core.isRenderSuspended() ⇒ boolean_
 
-Checks if the table rendering process was suspended. See explanation in [Core#suspendRender](./core/#suspendrender).
+Checks if the table rendering process was suspended. See explanation in [Core#suspendRender](@/api/core.md#suspendrender].
 
 **Since**: 8.3.0  
 
@@ -1365,7 +1365,7 @@ _core.listen()_
 Listen to the keyboard input on document body. This allows Handsontable to capture keyboard events and respond
 in the right way.
 
-**Emits**: [`Hooks#event:afterListen`](@/api/pluginHooks.md#afterListen)  
+**Emits**: [`Hooks#event:afterListen`](@/api/pluginHooks.md#afterlisten]  
 
 
 ### loadData
@@ -1380,7 +1380,7 @@ Loads new data to Handsontable. Loading new data resets the cell meta.
 Since 8.0.0 loading new data also resets states corresponding to rows and columns
 (for example, row/column sequence, column width, row height, frozen columns etc.).
 
-**Emits**: [`Hooks#event:beforeLoadData`](@/api/pluginHooks.md#beforeLoadData), [`Hooks#event:afterLoadData`](@/api/pluginHooks.md#afterLoadData), [`Hooks#event:afterChange`](@/api/pluginHooks.md#afterChange)  
+**Emits**: [`Hooks#event:beforeLoadData`](@/api/pluginHooks.md#beforeloaddata], [`Hooks#event:afterLoadData`](@/api/pluginHooks.md#afterloaddata], [`Hooks#event:afterChange`](@/api/pluginHooks.md#afterchange]  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1400,7 +1400,7 @@ _core.populateFromArray(row, column, input, [endRow], [endCol], [source], [metho
 Populate cells at position with 2D input array (e.g. `[[1, 2], [3, 4]]`). Use `endRow`, `endCol` when you
 want to cut input when a certain row is reached.
 
-Optional `method` argument has the same effect as pasteMode option (see [Options#pasteMode](./options/#pastemode)).
+Optional `method` argument has the same effect as pasteMode option (see [Options#pasteMode](@/api/options.md#pastemode]).
 
 
 | Param | Type | Default | Description |
@@ -1446,7 +1446,7 @@ _core.refreshDimensions()_
 
 Updates dimensions of the table. The method compares previous dimensions with the current ones and updates accordingly.
 
-**Emits**: [`Hooks#event:beforeRefreshDimensions`](@/api/pluginHooks.md#beforeRefreshDimensions), [`Hooks#event:afterRefreshDimensions`](@/api/pluginHooks.md#afterRefreshDimensions)  
+**Emits**: [`Hooks#event:beforeRefreshDimensions`](@/api/pluginHooks.md#beforerefreshdimensions], [`Hooks#event:afterRefreshDimensions`](@/api/pluginHooks.md#afterrefreshdimensions]  
 
 
 ### removeCellMeta
@@ -1459,7 +1459,7 @@ _core.removeCellMeta(row, column, key)_
 
 Remove a property defined by the `key` argument from the cell meta object for the provided `row` and `column` coordinates.
 
-**Emits**: [`Hooks#event:beforeRemoveCellMeta`](@/api/pluginHooks.md#beforeRemoveCellMeta), [`Hooks#event:afterRemoveCellMeta`](@/api/pluginHooks.md#afterRemoveCellMeta)  
+**Emits**: [`Hooks#event:beforeRemoveCellMeta`](@/api/pluginHooks.md#beforeremovecellmeta], [`Hooks#event:afterRemoveCellMeta`](@/api/pluginHooks.md#afterremovecellmeta]  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1477,9 +1477,9 @@ Remove a property defined by the `key` argument from the cell meta object for th
 
 _core.removeHook(key, callback)_
 
-Removes the hook listener previously registered with [Core#addHook](./core/#addhook).
+Removes the hook listener previously registered with [Core#addHook](@/api/core.md#addhook].
 
-**See**: [Hooks#remove](@/api/pluginHooks.md#remove)  
+**See**: [Hooks#remove](@/api/pluginHooks.md#remove]  
 **Example**  
 ```js
 hot.removeHook('beforeInit', myCallback);
@@ -1488,7 +1488,7 @@ hot.removeHook('beforeInit', myCallback);
 | Param | Type | Description |
 | --- | --- | --- |
 | key | `string` | Hook name. |
-| callback | `function` | Reference to the function which has been registered using [Core#addHook](./core/#addhook). |
+| callback | `function` | Reference to the function which has been registered using [Core#addHook](@/api/core.md#addhook]. |
 
 
 
@@ -1516,7 +1516,7 @@ optimal moments in its lifecycle.
 
 _core.resumeExecution([forceFlushChanges])_
 
-Resumes the execution process. In combination with the [Core#suspendExecution](./core/#suspendexecution)
+Resumes the execution process. In combination with the [Core#suspendExecution](@/api/core.md#suspendexecution]
 method it allows aggregating the table logic changes after which the cache is
 updated. Resuming the state automatically invokes the table cache updating process.
 
@@ -1537,7 +1537,7 @@ hot.resumeExecution(); // It updates the cache internally
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [forceFlushChanges] | `boolean` | <code>false</code> | `optional` If `true`, the table internal data cache is recalculated after the execution of the batched operations. For nested [Core#batchExecution](./core/#batchexecution) calls, it can be desire to recalculate the table after each batch. |
+| [forceFlushChanges] | `boolean` | <code>false</code> | `optional` If `true`, the table internal data cache is recalculated after the execution of the batched operations. For nested [Core#batchExecution](@/api/core.md#batchexecution] calls, it can be desire to recalculate the table after each batch. |
 
 
 
@@ -1549,7 +1549,7 @@ hot.resumeExecution(); // It updates the cache internally
 
 _core.resumeRender()_
 
-Resumes the rendering process. In combination with the [Core#suspendRender](./core/#suspendrender)
+Resumes the rendering process. In combination with the [Core#suspendRender](@/api/core.md#suspendrender]
 method it allows aggregating the table render cycles triggered by API calls or UI
 actions (or both) and calls the "render" once in the end. When the table is in
 the suspend state, most operations will have no visual effect until the rendering
@@ -1584,7 +1584,7 @@ _core.runHooks(key, [p1], [p2], [p3], [p4], [p5], [p6]) ⇒ \*_
 
 Run the callbacks for the hook provided in the `key` argument using the parameters given in the other arguments.
 
-**See**: [Hooks#run](@/api/pluginHooks.md#run)  
+**See**: [Hooks#run](@/api/pluginHooks.md#run]  
 **Example**  
 ```js
 // Run built-in hook
@@ -1793,7 +1793,7 @@ _core.setCellMeta(row, column, key, value)_
 
 Sets a property defined by the `key` property to the meta object of a cell corresponding to params `row` and `column`.
 
-**Emits**: [`Hooks#event:beforeSetCellMeta`](@/api/pluginHooks.md#beforeSetCellMeta), [`Hooks#event:afterSetCellMeta`](@/api/pluginHooks.md#afterSetCellMeta)  
+**Emits**: [`Hooks#event:beforeSetCellMeta`](@/api/pluginHooks.md#beforesetcellmeta], [`Hooks#event:afterSetCellMeta`](@/api/pluginHooks.md#aftersetcellmeta]  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1989,8 +1989,8 @@ once in the end. As a result, it improves the performance of wrapped operations.
 When the table is in the suspend state, most operations will have no visual
 effect until the rendering state is resumed. Resuming the state automatically
 invokes the table rendering. To make sure that after executing all operations,
-the table will be rendered, it's highly recommended to use the [Core#batchRender](./core/#batchrender)
-method or [Core#batch](./core/#batch), which additionally aggregates the logic execution
+the table will be rendered, it's highly recommended to use the [Core#batchRender](@/api/core.md#batchrender]
+method or [Core#batch](@/api/core.md#batch], which additionally aggregates the logic execution
 that happens behind the table.
 
 The method is intended to be used by advanced users. Suspending the rendering
@@ -2152,7 +2152,7 @@ the settings made post-initialization. (for example - ignore changes made using 
 Since 8.0.0 passing `columns` or `data` inside `settings` objects will result in resetting states corresponding to rows and columns
 (for example, row/column sequence, column width, row height, frozen columns etc.).
 
-**Emits**: [`Hooks#event:afterCellMetaReset`](@/api/pluginHooks.md#afterCellMetaReset), [`Hooks#event:afterUpdateSettings`](@/api/pluginHooks.md#afterUpdateSettings)  
+**Emits**: [`Hooks#event:afterCellMetaReset`](@/api/pluginHooks.md#aftercellmetareset], [`Hooks#event:afterUpdateSettings`](@/api/pluginHooks.md#afterupdatesettings]  
 **Example**  
 ```js
 hot.updateSettings({
@@ -2164,7 +2164,7 @@ hot.updateSettings({
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| settings | `object` |  | New settings object (see [Options](./options/)). |
+| settings | `object` |  | New settings object (see [Options](@/api/options.md]). |
 | [init] | `boolean` | <code>false</code> | `optional` Internally used for in initialization mode. |
 
 

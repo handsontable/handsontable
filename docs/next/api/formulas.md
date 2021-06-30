@@ -27,7 +27,7 @@ powerful calculation engine with an extensive number of features.
 
 _formulas.formulas : boolean | object_
 
-The [Formulas](./formulas/) plugin allows Handsontable to process formula expressions defined in the provided data.
+The [Formulas](@/api/formulas.md] plugin allows Handsontable to process formula expressions defined in the provided data.
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -167,8 +167,8 @@ Get the cell type under specified visual coordinates.
 
 _formulas.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#Formulas+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
+hook and if it returns `true` than the [enablePlugin](@/api/.md#formulas+enableplugin] method is called.
 
 
 

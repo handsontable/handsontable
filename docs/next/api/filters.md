@@ -14,7 +14,7 @@ editLink: false
 
 The plugin allows filtering the table data either by the built-in component or with the API.
 
-See [the filtering demo](@/guides/columns/column-filter.md) for examples.
+See [the filtering demo](@/guides/columns/column-filter.md] for examples.
 
 **Example**  
 ```js
@@ -38,7 +38,7 @@ const hot = new Handsontable(container, {
 
 _filters.filters : boolean_
 
-The [Filters](./filters/) plugin allows filtering the table data either by the built-in component or with the API.
+The [Filters](@/api/filters.md] plugin allows filtering the table data either by the built-in component or with the API.
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -190,7 +190,7 @@ _filters.filter()_
 
 Filters data based on added filter conditions.
 
-**Emits**: [`Hooks#event:beforeFilter`](@/api/pluginHooks.md#beforeFilter), [`Hooks#event:afterFilter`](@/api/pluginHooks.md#afterFilter)  
+**Emits**: [`Hooks#event:beforeFilter`](@/api/pluginHooks.md#beforefilter], [`Hooks#event:afterFilter`](@/api/pluginHooks.md#afterfilter]  
 
 
 ### getDataMapAtColumn
@@ -233,8 +233,8 @@ object containing information about selected column with keys `visualIndex` and 
 
 _filters.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#Filters+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
+hook and if it returns `true` than the [enablePlugin](@/api/.md#filters+enableplugin] method is called.
 
 
 

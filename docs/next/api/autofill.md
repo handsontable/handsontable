@@ -92,6 +92,6 @@ Checks if the plugin is enabled in the Handsontable settings.
 
 _autofill.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
 
 

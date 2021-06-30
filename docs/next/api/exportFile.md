@@ -15,7 +15,7 @@ editLink: false
 The plugin enables exporting table data to file. It allows to export data as a string, blob or a downloadable file in
 CSV format.
 
-See [the export file demo](@/guides/accessories-and-menus/export-to-csv.md) for examples.
+See [the export file demo](@/guides/accessories-and-menus/export-to-csv.md] for examples.
 
 **Example**  
 ```js
@@ -133,7 +133,7 @@ Exports table data as a string.
 
 _exportFile.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeinit)
-hook and if it returns `true` than the [ExportFile#enablePlugin](./export-file/#enableplugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
+hook and if it returns `true` than the [ExportFile#enablePlugin](@/api/exportFile.md#enableplugin] method is called.
 
 

@@ -13,7 +13,7 @@ editLink: false
 ## Description
 
 This plugin creates the Handsontable Context Menu. It allows to create a new row or column at any place in the
-grid among [other features](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options).
+grid among [other features](@/guides/accessories-and-menus/context-menu.md#contextmenuwithspecificoptions].
 Possible values:
 * `true` (to enable default options),
 * `false` (to disable completely)
@@ -31,11 +31,11 @@ or array of any available strings:
 * `'make_read_only'`
 * `'alignment'`
 * `'---------'` (menu item separator)
-* `'borders'` (with [Options#customBorders](./Options/#customBorders) turned on)
-* `'commentsAddEdit'` (with [Options#comments](./Options/#comments) turned on)
-* `'commentsRemove'` (with [Options#comments](./Options/#comments) turned on).
+* `'borders'` (with [Options#customBorders](@/api/options.md#customborders] turned on)
+* `'commentsAddEdit'` (with [Options#comments](@/api/options.md#comments] turned on)
+* `'commentsRemove'` (with [Options#comments](@/api/options.md#comments] turned on).
 
-See [the context menu demo](@/guides/accessories-and-menus/context-menu.md) for examples.
+See [the context menu demo](@/guides/accessories-and-menus/context-menu.md] for examples.
 
 **Example**  
 ```js
@@ -56,18 +56,18 @@ contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo']
 _contextMenu.contextMenu : boolean | Array&lt;string&gt; | object_
 
 Defines if the right-click context menu should be enabled. Context menu allows to create new row or column at any
-place in the grid among [other features](@/guides/accessories-and-menus/context-menu.md).
+place in the grid among [other features](@/guides/accessories-and-menus/context-menu.md].
 Possible values:
 * `true` (to enable default options),
 * `false` (to disable completely)
-* an array of [predefined options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options),
-* an object [with defined structure](@/guides/accessories-and-menus/context-menu.md#context-menu-with-fully-custom-configuration).
+* an array of [predefined options](@/guides/accessories-and-menus/context-menu.md#contextmenuwithspecificoptions],
+* an object [with defined structure](@/guides/accessories-and-menus/context-menu.md#contextmenuwithfullycustomconfiguration].
 
 If the value is an object, you can also customize the options with:
 * `disableSelection` - a `boolean`, if set to true it prevents mouseover from highlighting the item for selection
 * `isCommand` - a `boolean`, if set to false it prevents clicks from executing the command and closing the menu.
 
-See [the context menu demo](@/guides/accessories-and-menus/context-menu.md) for examples.
+See [the context menu demo](@/guides/accessories-and-menus/context-menu.md] for examples.
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -212,8 +212,8 @@ Or you can execute command registered in settings where `key` is your command na
 
 _contextMenu.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#ContextMenu+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
+hook and if it returns `true` than the [enablePlugin](@/api/.md#contextmenu+enableplugin] method is called.
 
 
 
@@ -242,6 +242,6 @@ Opens menu and re-position it based on the passed coordinates.
 
 _contextMenu.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
 
 

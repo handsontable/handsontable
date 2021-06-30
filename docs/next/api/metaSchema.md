@@ -12,7 +12,7 @@ editLink: false
 
 ## Description
 
-Handsontable provides many options to choose from. They come either from the [Core](./core/) features or [plugins hooks](./hooks/).
+Handsontable provides many options to choose from. They come either from the [Core](@/api/core.md] features or [plugins hooks](@/api/hooks.md].
 
 You can pass options in an object iteral notation (a comma-separated list of name-value pairs wrapped in curly braces) as a second argument of the Handsontable constructor.
 
@@ -66,7 +66,7 @@ In the above example we first set the `read-only` option for the entire grid. Th
 - We exclude the first column by passing `readOnly: false`, which in result makes it editable.
 - We exclude the cell in the top left corner, just like we did it with the first column.
 
-To learn more about how to use cascading settings go to the [Setting Options](@/guides/getting-started/setting-options.md) page.
+To learn more about how to use cascading settings go to the [Setting Options](@/guides/getting-started/setting-options.md] page.
 
 ::: tip
 In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
@@ -87,7 +87,7 @@ Class name for all active headers in selections. The header will be marked with 
 only when a whole column or row will be selected.
 
 **Default**: <code>"ht__active_highlight"</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Since**: 0.38.2  
 **Example**  
 ```js
@@ -108,7 +108,7 @@ If set to `true`, Handsontable will accept values that are empty (`null`, `undef
 to `false`, Handsontable will *not* accept the empty values and mark cell as invalid.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // allow empty values for all cells (whole table)
@@ -138,10 +138,10 @@ If set to `true`, data defined in `source` of the autocomplete or dropdown cell 
 
 __Warning:__ Enabling this option can cause serious XSS vulnerabilities.
 
-__Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
+__Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md] cells.
 
 **Default**: <code>false</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [{
@@ -164,7 +164,7 @@ _options.allowInsertColumn : boolean_
 If set to `false`, there won't be an option to insert new columns in the Context Menu.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // hide "Insert column left" and "Insert column right" options from the Context Menu
@@ -183,7 +183,7 @@ _options.allowInsertRow : boolean_
 If set to `false`, there won't be an option to insert new rows in the Context Menu.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // hide "Insert row above" and "Insert row below" options from the Context Menu
@@ -205,7 +205,7 @@ If set to `false`, Handsontable will *not* accept the invalid values and won't a
 This option will be particularly useful when used with the Autocomplete's `strict` mode.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // don't save the invalid values
@@ -224,7 +224,7 @@ _options.allowRemoveColumn : boolean_
 If set to `false`, there won't be an option to remove columns in the Context Menu.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // hide "Remove column" option from the Context Menu
@@ -243,7 +243,7 @@ _options.allowRemoveRow : boolean_
 If set to `false`, there won't be an option to remove rows in the Context Menu.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // hide "Remove row" option from the Context Menu
@@ -259,7 +259,7 @@ allowRemoveRow: false,
 
 _options.autoColumnSize : object | boolean_
 
-Enables or disables the [AutoColumnSize](./auto-column-size/) plugin. Default value `undefined`
+Enables or disables the [AutoColumnSize](@/api/autoColumnSize.md] plugin. Default value `undefined`
 is an equivalent of `true`, sets `syncLimit` to 50.
 Disabling this plugin can increase performance, as no size-related calculations would be done.
 To disable plugin it's necessary to set `false`.
@@ -272,10 +272,10 @@ To configure the sync/async distribution, you can pass an absolute value (number
 
 You can also use the `useHeaders` option to take the column headers width into calculation.
 
-Note: Using [Core#colWidths](./core/#colwidths) option will forcibly disable [AutoColumnSize](./auto-column-size/).
+Note: Using [Core#colWidths](@/api/core.md#colwidths] option will forcibly disable [AutoColumnSize](@/api/autoColumnSize.md].
 
 **Default**: <code>undefined</code>  
-**Category**: [AutoColumnSize](@/api/autoColumnSize.md)  
+**Category**: [AutoColumnSize](@/api/autoColumnSize.md]  
 **Example**  
 ```js
 // as a number (300 columns in sync, rest async)
@@ -303,7 +303,7 @@ autoColumnSize: { allowSampleDuplicates: true },
 
 _options.autoRowSize : object | boolean_
 
-Enables or disables [AutoRowSize](./auto-row-size/) plugin. Default value is `undefined`, which has the same effect as `false`
+Enables or disables [AutoRowSize](@/api/autoRowSize.md] plugin. Default value is `undefined`, which has the same effect as `false`
 (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
 
 __Note:__ the default `syncLimit` value is set to 500 when the plugin is manually enabled by declaring it as: `autoRowSize: true`.
@@ -315,7 +315,7 @@ operations don't block the browser UI.
 To configure the sync/async distribution, you can pass an absolute value (number of rows) or a percentage value.
 
 **Default**: <code>undefined</code>  
-**Category**: [AutoRowSize](@/api/autoRowSize.md)  
+**Category**: [AutoRowSize](@/api/autoRowSize.md]  
 **Example**  
 ```js
 // as a number (300 rows in sync, rest async)
@@ -337,7 +337,7 @@ _options.autoWrapCol : boolean_
 If `true`, pressing <kbd>ENTER</kbd> or down arrow in the last row will move to the first row in the next column.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // stop ENTER key navigation on the last row
@@ -356,7 +356,7 @@ _options.autoWrapRow : boolean_
 If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // stop TAB key navigation on the last column
@@ -372,12 +372,12 @@ autoWrapRow: false,
 
 _options.bindRowsWithHeaders : boolean | string_
 
-Enables the functionality of the [BindRowsWithHeaders](./bind-rows-with-headers/) plugin which allows binding the table rows with their headers.
+Enables the functionality of the [BindRowsWithHeaders](@/api/bindRowsWithHeaders.md] plugin which allows binding the table rows with their headers.
 If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,
 if at the initialization row 0 has a header titled "A", it will have it no matter what you do with the table.
 
 **Default**: <code>undefined</code>  
-**Category**: [BindRowsWithHeaders](@/api/bindRowsWithHeaders.md)  
+**Category**: [BindRowsWithHeaders](@/api/bindRowsWithHeaders.md]  
 **Example**  
 ```js
 // keep row data and row headers in sync
@@ -397,7 +397,7 @@ Any constructor or column option may be overwritten for a particular cell (row/c
 array passed to the Handsontable constructor.
 
 **Default**: <code>[]</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // make cell with coordinates (0, 0) read only
@@ -426,11 +426,11 @@ __Note:__ Parameters `row` and `col` always represent __physical indexes__. Exam
 operations based on the __visual__ representation of Handsontable.
 
 Possible values of `prop`:
-- property name for column's data source object, when dataset is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
-- the same number as `col`, when dataset is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
+- property name for column's data source object, when dataset is an [array of objects](@/guides/getting-started/binding-to-data.md#arrayofobjects]
+- the same number as `col`, when dataset is an [array of arrays](@/guides/getting-started/binding-to-data.md#arrayofarrays].
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 cells: function(row, column, prop) {
@@ -458,7 +458,7 @@ _options.checkedTemplate : boolean | string | number_
 Data template for `'checkbox'` type when checkbox is checked.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 checkedTemplate: 'good'
@@ -477,12 +477,12 @@ checkedTemplate: 'good'
 _options.className : string | Array&lt;string&gt;_
 
 Class name for the current element.
-The interpretation depends on the level on which this option is provided in the [cascading configuration](@/guides/getting-started/setting-options.md).
+The interpretation depends on the level on which this option is provided in the [cascading configuration](@/guides/getting-started/setting-options.md].
 If `className` is provided on the first (constructor) level, it is the applied to the Handsontable container.
 If `className` is provided on the second (`column`) or the third (`cell` or `cells`) level, it is applied to the table cell.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // can be set as a string
@@ -506,7 +506,7 @@ You can also define an array `['One', 'Two', 'Three', ...]` or a function to def
 If a function is set, then the index of the column is passed as a parameter.
 
 **Default**: <code>null</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // as a boolean
@@ -530,7 +530,7 @@ colHeaders: function(index) {
 
 _options.collapsibleColumns : boolean | Array&lt;object&gt;_
 
-The [CollapsibleColumns](./collapsible-columns/) plugin allows collapsing of columns, covered by a header with the `colspan` property
+The [CollapsibleColumns](@/api/collapsibleColumns.md] plugin allows collapsing of columns, covered by a header with the `colspan` property
 defined.
 
 Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
@@ -542,7 +542,7 @@ To limit this functionality to a smaller group of headers, define the `collapsib
 as an array of objects, as in the example below.
 
 **Default**: <code>undefined</code>  
-**Category**: [CollapsibleColumns](@/api/collapsibleColumns.md)  
+**Category**: [CollapsibleColumns](@/api/collapsibleColumns.md]  
 **Example**  
 ```js
 // enable collapsing for all headers
@@ -569,7 +569,7 @@ Allows setting a custom height of the column headers. You can provide a number o
 column header levels are defined.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // set shared height for all headers
@@ -597,10 +597,10 @@ Defines the cell properties and data binding for certain columns.
 
 __Note:__ Using this option sets a fixed number of columns (options `startCols`, `minCols`, `maxCols` will be ignored).
 
-See [documentation -> datasources.html](@/guides/getting-started/binding-to-data.md#array-of-objects-with-column-mapping) for examples.
+See [documentation -> datasources.html](@/guides/getting-started/binding-to-data.md#arrayofobjectswithcolumnmapping] for examples.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // as an array of objects
@@ -638,7 +638,7 @@ columns: function(index) {
 
 _options.columnSorting : boolean | object_
 
-Turns on [Column sorting](@/guides/rows/row-sorting.md). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+Turns on [Column sorting](@/guides/rows/row-sorting.md]. Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
 * `initialConfig` - Object with predefined keys:
   * `column` - sorted column
   * `sortOrder` - order in which column will be sorted
@@ -650,13 +650,13 @@ Turns on [Column sorting](@/guides/rows/row-sorting.md). Can be either a boolean
 * `headerAction` - allow to click on the headers to sort
   * `true` = turn on possibility to click on the headers to sort
   * `false` = turn off possibility to click on the headers to sort
-* `sortEmptyCells` - how empty values ([more information here](./options/#allowempty)) should be handled
+* `sortEmptyCells` - how empty values ([more information here](@/api/options.md#allowempty]) should be handled
   * `true` = the table sorts empty cells
   * `false` = the table moves all empty cells to the end of the table
 * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
 
 **Default**: <code>undefined</code>  
-**Category**: [ColumnSorting](@/api/columnSorting.md)  
+**Category**: [ColumnSorting](@/api/columnSorting.md]  
 **Example**  
 ```js
 // as boolean
@@ -702,10 +702,10 @@ Possible types:
  * `'average'`
  * `'custom'` - add `customFunction`.
 
-[See the demo for more information](@/guides/columns/column-summary.md).
+[See the demo for more information](@/guides/columns/column-summary.md].
 
 **Default**: <code>undefined</code>  
-**Category**: [ColumnSummary](@/api/columnSummary.md)  
+**Category**: [ColumnSummary](@/api/columnSummary.md]  
 **Example**  
 ```js
 columnSummary: [
@@ -740,12 +740,12 @@ dynamically on each render).
 
 The default width for columns in the rendering process equals 50px.
 
-An `undefined` value is for detection in [Hooks#modifyColWidth](./Hooks/#modifyColWidth) hook if plugin or setting changed the default size.
+An `undefined` value is for detection in [Hooks#modifyColWidth](@/api/hooks.md#modifycolwidth] hook if plugin or setting changed the default size.
 
-Note: This option will forcely disable [AutoColumnSize](./auto-column-size/) plugin.
+Note: This option will forcely disable [AutoColumnSize](@/api/autoColumnSize.md] plugin.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // as a number, for each column.
@@ -775,7 +775,7 @@ _options.commentedCellClassName : string_
 CSS class name added to the commented cells.
 
 **Default**: <code>"htCommentCell"</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // set custom class for commented cells
@@ -791,16 +791,16 @@ commentedCellClassName: 'has-comment',
 
 _options.comments : boolean | Array&lt;object&gt;_
 
-If `true`, enables the [Comments](./comments/) plugin, which enables an option to apply cell comments through the context menu
+If `true`, enables the [Comments](@/api/comments.md] plugin, which enables an option to apply cell comments through the context menu
 (configurable with context menu keys `commentsAddEdit`, `commentsRemove`).
 
 To initialize Handsontable with predefined comments, provide cell coordinates and comment text values in a form of
 an array.
 
-See [Comments](@/guides/cell-features/comments.md) demo for examples.
+See [Comments](@/guides/cell-features/comments.md] demo for examples.
 
 **Default**: <code>false</code>  
-**Category**: [Comments](@/api/comments.md)  
+**Category**: [Comments](@/api/comments.md]  
 **Example**  
 ```js
 // enable comments plugin
@@ -834,21 +834,21 @@ const hot = new Handsontable(document.getElementById('example'), {
 _options.contextMenu : boolean | Array&lt;string&gt; | object_
 
 Defines if the right-click context menu should be enabled. Context menu allows to create new row or column at any
-place in the grid among [other features](@/guides/accessories-and-menus/context-menu.md).
+place in the grid among [other features](@/guides/accessories-and-menus/context-menu.md].
 Possible values:
 * `true` (to enable default options),
 * `false` (to disable completely)
-* an array of [predefined options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options),
-* an object [with defined structure](@/guides/accessories-and-menus/context-menu.md#context-menu-with-fully-custom-configuration).
+* an array of [predefined options](@/guides/accessories-and-menus/context-menu.md#contextmenuwithspecificoptions],
+* an object [with defined structure](@/guides/accessories-and-menus/context-menu.md#contextmenuwithfullycustomconfiguration].
 
 If the value is an object, you can also customize the options with:
 * `disableSelection` - a `boolean`, if set to true it prevents mouseover from highlighting the item for selection
 * `isCommand` - a `boolean`, if set to false it prevents clicks from executing the command and closing the menu.
 
-See [the context menu demo](@/guides/accessories-and-menus/context-menu.md) for examples.
+See [the context menu demo](@/guides/accessories-and-menus/context-menu.md] for examples.
 
 **Default**: <code>undefined</code>  
-**Category**: [ContextMenu](@/api/contextMenu.md)  
+**Category**: [ContextMenu](@/api/contextMenu.md]  
 **Example**  
 ```js
 // as a boolean
@@ -896,7 +896,7 @@ Makes a cell copyable (pressing <kbd>CTRL</kbd> + <kbd>C</kbd> on your keyboard 
 __Note:__ this setting is `false` by default for cells with type `password`.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 cells: [
@@ -921,7 +921,7 @@ _options.copyPaste : object | boolean_
 Disables or enables the copy/paste functionality.
 
 **Default**: <code>true</code>  
-**Category**: [CopyPaste](@/api/copyPaste.md)  
+**Category**: [CopyPaste](@/api/copyPaste.md]  
 **Example**  
 ```js
 // disable copy and paste
@@ -947,10 +947,10 @@ _options.correctFormat : boolean_
 
 If `true` then dates will be automatically formatted to match the desired format.
 
-__Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md) cells.
+__Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md] cells.
 
 **Default**: <code>false</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [{
@@ -973,7 +973,7 @@ _options.currentColClassName : string_
 Class name for all visible columns in the current selection.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // This will add a 'currentColumn' class name to appropriate table cells.
@@ -992,7 +992,7 @@ _options.currentHeaderClassName : string_
 Class name for all visible headers in current selection.
 
 **Default**: <code>"ht__highlight"</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // This will add a 'ht__highlight' class name to appropriate table headers.
@@ -1011,7 +1011,7 @@ _options.currentRowClassName : string_
 Class name for all visible rows in the current selection.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // This will add a 'currentRow' class name to appropriate table cells.
@@ -1027,14 +1027,14 @@ currentRowClassName: 'currentRow',
 
 _options.customBorders : boolean | Array&lt;object&gt;_
 
-If `true`, enables the [CustomBorders](./custom-borders/) plugin, which enables an option to apply custom borders through the context
+If `true`, enables the [CustomBorders](@/api/customBorders.md] plugin, which enables an option to apply custom borders through the context
 menu (configurable with context menu key `borders`). To initialize Handsontable with predefined custom borders,
 provide cell coordinates and border styles in a form of an array.
 
-See [Custom Borders](@/guides/cell-features/formatting-cells.md#custom-cell-borders) demo for examples.
+See [Custom Borders](@/guides/cell-features/formatting-cells.md#customcellborders] demo for examples.
 
 **Default**: <code>false</code>  
-**Category**: [CustomBorders](@/api/customBorders.md)  
+**Category**: [CustomBorders](@/api/customBorders.md]  
 **Example**  
 ```js
 // enable custom borders
@@ -1095,10 +1095,10 @@ _options.data : Array&lt;Array&gt; | Array&lt;object&gt;_
 Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
 Can be declared as an array of arrays or an array of objects.
 
-See [Understanding binding as reference](@/guides/getting-started/binding-to-data.md#understand-binding-as-a-reference).
+See [Understanding binding as reference](@/guides/getting-started/binding-to-data.md#understandbindingasareference].
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // as an array of arrays
@@ -1129,10 +1129,10 @@ _options.dataSchema : object_
 
 Defines the structure of a new row when data source is an array of objects.
 
-See [data-schema](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema) for more options.
+See [data-schema](@/guides/getting-started/binding-to-data.md#arrayofobjectswithcustomdataschema] for more options.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // with data schema we can start with an empty table
@@ -1160,10 +1160,10 @@ _options.dateFormat : string_
 
 Date validation format.
 
-__Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md) cells.
+__Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md] cells.
 
 **Default**: <code>"DD/MM/YYYY"</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [{
@@ -1184,10 +1184,10 @@ _options.defaultDate : string_
 
 Definition of default value which will fill the empty cells.
 
-__Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md) cells.
+__Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md] cells.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [
@@ -1218,7 +1218,7 @@ Possible values:
  * `'header'` - Disables the headers selection, the currently selected cell selection is still present.
 
 **Default**: <code>false</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // as a boolean
@@ -1240,10 +1240,10 @@ disableVisualSelection: ['current', 'area'],
 
 _options.dragToScroll : boolean_
 
-Disables or enables the [drag to scroll](./drag-to-scroll/) functionality.
+Disables or enables the [drag to scroll](@/api/dragToScroll.md] functionality.
 
 **Default**: <code>true</code>  
-**Category**: [DragToScroll](@/api/dragToScroll.md)  
+**Category**: [DragToScroll](@/api/dragToScroll.md]  
 **Example**  
 ```js
 // don't scroll the viewport when selection gets to the viewport edge
@@ -1260,10 +1260,10 @@ dragToScroll: false,
 _options.dropdownMenu : boolean | object | Array&lt;string&gt;_
 
 This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
-the [Options#contextMenu](./options/#contextmenu), but is triggered by clicking the button in the header.
+the [Options#contextMenu](@/api/options.md#contextmenu], but is triggered by clicking the button in the header.
 
 **Default**: <code>undefined</code>  
-**Category**: [DropdownMenu](@/api/dropdownMenu.md)  
+**Category**: [DropdownMenu](@/api/dropdownMenu.md]  
 **Example**  
 ```js
 // enable dropdown menu
@@ -1286,23 +1286,23 @@ _options.editor : string | function | boolean_
 Defines the editor for the table/column/cell.
 
 If a string is provided, it may be one of the following predefined values:
- * [autocomplete](@/guides/cell-types/autocomplete-cell-type.md)
- * [checkbox](@/guides/cell-types/checkbox-cell-type.md)
- * [date](@/guides/cell-types/date-cell-type.md)
- * [dropdown](@/guides/cell-types/dropdown-cell-type.md)
- * [handsontable](@/guides/cell-types/handsontable-cell-type.md)
+ * [autocomplete](@/guides/cell-types/autocomplete-cell-type.md]
+ * [checkbox](@/guides/cell-types/checkbox-cell-type.md]
+ * [date](@/guides/cell-types/date-cell-type.md]
+ * [dropdown](@/guides/cell-types/dropdown-cell-type.md]
+ * [handsontable](@/guides/cell-types/handsontable-cell-type.md]
  * mobile
- * [password](@/guides/cell-types/password-cell-type.md)
- * [select](@/guides/cell-types/select-cell-type.md)
+ * [password](@/guides/cell-types/password-cell-type.md]
+ * [select](@/guides/cell-types/select-cell-type.md]
  * text.
 
-Or you can [register](@/guides/cell-functions/cell-editor.md#registering-an-editor) the custom editor under specified name and use its name as an alias in your
+Or you can [register](@/guides/cell-functions/cell-editor.md#registeringaneditor] the custom editor under specified name and use its name as an alias in your
 configuration.
 
 To disable cell editing completely set `editor` property to `false`.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [
@@ -1330,7 +1330,7 @@ If `true`, <kbd>ENTER</kbd> begins editing mode (like in Google Docs). If `false
 row (like Excel) and adds a new row if necessary. <kbd>TAB</kbd> adds new column if necessary.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 enterBeginsEditing: false,
@@ -1351,7 +1351,7 @@ received after the <kbd>ENTER</kbd> key has been pressed. This event object can 
 <kbd>ENTER</kbd> or <kbd>SHIFT</kbd> + <kbd>ENTER</kbd>.
 
 **Default**: <code>{col: 0, row: 1}</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // move selection diagonal by 1 cell in x and y axis
@@ -1382,7 +1382,7 @@ If `autoInsertRow` option is `true`, fill-handler will create new rows till it r
 It is enabled by default.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // enable plugin in all directions and with autoInsertRow as true
@@ -1419,10 +1419,10 @@ If defined as `true`, when the user types into the input area the Autocomplete's
 include those choices starting with what has been typed; if defined as `false` all suggestions remain shown, with
 those matching what has been typed marked in bold.
 
-__Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
+__Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md] cells.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [
@@ -1446,10 +1446,10 @@ _options.filteringCaseSensitive : boolean_
 
 If defined as `true`, filtering in the Autocomplete Editor will be case-sensitive.
 
-__Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
+__Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md] cells.
 
 **Default**: <code>false</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [
@@ -1471,10 +1471,10 @@ columns: [
 
 _options.filters : boolean_
 
-The [Filters](./filters/) plugin allows filtering the table data either by the built-in component or with the API.
+The [Filters](@/api/filters.md] plugin allows filtering the table data either by the built-in component or with the API.
 
 **Default**: <code>undefined</code>  
-**Category**: [Filters](@/api/filters.md)  
+**Category**: [Filters](@/api/filters.md]  
 **Example**  
 ```js
 // enable filters
@@ -1493,7 +1493,7 @@ _options.fixedColumnsLeft : number_
 Allows to specify the number of fixed (or *frozen*) columns on the left of the table.
 
 **Default**: <code>0</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // freeze first 3 columns of the table.
@@ -1512,7 +1512,7 @@ _options.fixedRowsBottom : number_
 Allows to specify the number of fixed (or *frozen*) rows at the bottom of the table.
 
 **Default**: <code>0</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // freeze the last 3 rows of the table.
@@ -1531,7 +1531,7 @@ _options.fixedRowsTop : number_
 Allows to specify the number of fixed (or *frozen*) rows at the top of the table.
 
 **Default**: <code>0</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // freeze the first 3 rows of the table.
@@ -1547,10 +1547,10 @@ fixedRowsTop: 3,
 
 _options.formulas : boolean | object_
 
-The [Formulas](./formulas/) plugin allows Handsontable to process formula expressions defined in the provided data.
+The [Formulas](@/api/formulas.md] plugin allows Handsontable to process formula expressions defined in the provided data.
 
 **Default**: <code>undefined</code>  
-**Category**: [Formulas](@/api/formulas.md)  
+**Category**: [Formulas](@/api/formulas.md]  
 **Example**  
 ```js
 // enable formulas plugin
@@ -1579,7 +1579,7 @@ adjacent cells or in a whole table. If set to `'cell'`, it enables the possibili
 text within a single cell's body.
 
 **Default**: <code>false</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // enable text selection within table
@@ -1602,7 +1602,7 @@ _options.height : number | string | function_
 Height of the grid. Can be a number or a function that returns a number.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // as a number
@@ -1626,13 +1626,13 @@ height: function() {
 
 _options.hiddenColumns : boolean | object_
 
-The [HiddenColumns](./hidden-columns/) plugin allows hiding of certain columns. You can pass additional configuration with an
+The [HiddenColumns](@/api/hiddenColumns.md] plugin allows hiding of certain columns. You can pass additional configuration with an
 object notation. Options that are then available are:
  * `columns` - an array of rows that should be hidden on plugin initialization
  * `indicators` - enables small ui markers to indicate where are hidden columns.
 
 **Default**: <code>undefined</code>  
-**Category**: [HiddenColumns](@/api/hiddenColumns.md)  
+**Category**: [HiddenColumns](@/api/hiddenColumns.md]  
 **Example**  
 ```js
 // enable column hiding
@@ -1656,13 +1656,13 @@ hiddenColumns: {
 
 _options.hiddenRows : boolean | object_
 
-The [HiddenRows](./hidden-rows/) plugin allows hiding of certain rows. You can pass additional configuration with an
+The [HiddenRows](@/api/hiddenRows.md] plugin allows hiding of certain rows. You can pass additional configuration with an
 object notation. Options that are then available are:
  * `rows` - an array of rows that should be hidden on plugin initialization
  * `indicators` - enables small ui markers to indicate where are hidden columns.
 
 **Default**: <code>undefined</code>  
-**Category**: [HiddenRows](@/api/hiddenRows.md)  
+**Category**: [HiddenRows](@/api/hiddenRows.md]  
 **Example**  
 ```js
 // enable row hiding
@@ -1689,7 +1689,7 @@ _options.invalidCellClassName : string_
 CSS class name for cells that did not pass validation.
 
 **Default**: <code>"htInvalid"</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // set custom validation error class
@@ -1707,9 +1707,9 @@ _options.label : object_
 
 Object which describes if renderer should create checkbox element with label element as a parent.
 
-__Note__, this option only works for [checkbox-typed](@/guides/cell-types/checkbox-cell-type.md) cells.
+__Note__, this option only works for [checkbox-typed](@/guides/cell-types/checkbox-cell-type.md] cells.
 
-By default the [checkbox](@/guides/cell-types/checkbox-cell-type.md) renderer renders the checkbox without a label.
+By default the [checkbox](@/guides/cell-types/checkbox-cell-type.md] renderer renders the checkbox without a label.
 
 Possible object properties:
  * `property` - Defines the property name of the data object, which will to be used as a label.
@@ -1720,7 +1720,7 @@ Valid values are `'before'` and '`after`' (defaults to `'after'`).
  * `separated` - Boolean which describes that checkbox & label elements are separated or not. Default value is `false`.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [{
@@ -1739,10 +1739,10 @@ columns: [{
 
 _options.language : string_
 
-Language for Handsontable translation. Possible language codes are [listed here](@/guides/internationalization/internationalization-i18n.md#list-of-available-languages).
+Language for Handsontable translation. Possible language codes are [listed here](@/guides/internationalization/internationalization-i18n.md#listofavailablelanguages].
 
 **Default**: <code>"en-US"</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // set Polish language
@@ -1761,7 +1761,7 @@ _options.licenseKey : string_
 License key for commercial version of Handsontable.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 licenseKey: '00000-00000-00000-00000-00000',
@@ -1778,10 +1778,10 @@ licenseKey: 'non-commercial-and-evaluation',
 
 _options.manualColumnFreeze : boolean_
 
-Disables or enables [ManualColumnFreeze](./manual-column-freeze/) plugin.
+Disables or enables [ManualColumnFreeze](@/api/manualColumnFreeze.md] plugin.
 
 **Default**: <code>undefined</code>  
-**Category**: [ManualColumnFreeze](@/api/manualColumnFreeze.md)  
+**Category**: [ManualColumnFreeze](@/api/manualColumnFreeze.md]  
 **Example**  
 ```js
 // enable fixed columns
@@ -1797,10 +1797,10 @@ manualColumnFreeze: true,
 
 _options.manualColumnMove : boolean | Array&lt;number&gt;_
 
-Turns on [Manual column move](@/guides/columns/column-moving.md), if set to a boolean or define initial column order (as an array of column indexes).
+Turns on [Manual column move](@/guides/columns/column-moving.md], if set to a boolean or define initial column order (as an array of column indexes).
 
 **Default**: <code>undefined</code>  
-**Category**: [ManualColumnMove](@/api/manualColumnMove.md)  
+**Category**: [ManualColumnMove](@/api/manualColumnMove.md]  
 **Example**  
 ```js
 // as a boolean to enable column move
@@ -1820,10 +1820,10 @@ manualColumnMove: [1, 4],
 
 _options.manualColumnResize : boolean | Array&lt;number&gt;_
 
-Turns on [Manual column resize](@/guides/columns/column-width.md#column-stretching), if set to a boolean or define initial column resized widths (an an array of widths).
+Turns on [Manual column resize](@/guides/columns/column-width.md#columnstretching], if set to a boolean or define initial column resized widths (an an array of widths).
 
 **Default**: <code>undefined</code>  
-**Category**: [ManualColumnResize](@/api/manualColumnResize.md)  
+**Category**: [ManualColumnResize](@/api/manualColumnResize.md]  
 **Example**  
 ```js
 // as a boolean to enable column resize
@@ -1843,10 +1843,10 @@ manualColumnResize: [40, 50],
 
 _options.manualRowMove : boolean | Array&lt;number&gt;_
 
-Turns on [Manual row move](@/guides/columns/column-moving.md), if set to a boolean or define initial row order (as an array of row indexes).
+Turns on [Manual row move](@/guides/columns/column-moving.md], if set to a boolean or define initial row order (as an array of row indexes).
 
 **Default**: <code>undefined</code>  
-**Category**: [ManualRowMove](@/api/manualRowMove.md)  
+**Category**: [ManualRowMove](@/api/manualRowMove.md]  
 **Example**  
 ```js
 // as a boolean
@@ -1866,10 +1866,10 @@ manualRowMove: [1, 4],
 
 _options.manualRowResize : boolean | Array&lt;number&gt;_
 
-Turns on [Manual row resize](@/guides/columns/column-width.md#column-stretching), if set to a boolean or define initial row resized heights (as an array of heights).
+Turns on [Manual row resize](@/guides/columns/column-width.md#columnstretching], if set to a boolean or define initial row resized heights (as an array of heights).
 
 **Default**: <code>undefined</code>  
-**Category**: [ManualRowResize](@/api/manualRowResize.md)  
+**Category**: [ManualRowResize](@/api/manualRowResize.md]  
 **Example**  
 ```js
 // as a boolean to enable row resize
@@ -1893,7 +1893,7 @@ Maximum number of cols. If set to a value lower than the initial col count, the 
 value as the number of cols.
 
 **Default**: <code>Infinity</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // limit table size to maximum 300 columns
@@ -1913,7 +1913,7 @@ Maximum number of rows. If set to a value lower than the initial row count, the 
 value as the number of rows.
 
 **Default**: <code>Infinity</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // limit table size to maximum 300 rows
@@ -1930,10 +1930,10 @@ maxRows: 300,
 _options.mergeCells : boolean | Array&lt;object&gt;_
 
 If set to `true`, it enables a possibility to merge cells. If set to an array of objects, it merges the cells provided
-in the objects (see the example below). More information on [the demo page](@/guides/cell-features/merge-cells.md).
+in the objects (see the example below). More information on [the demo page](@/guides/cell-features/merge-cells.md].
 
 **Default**: <code>false</code>  
-**Category**: [MergeCells](@/api/mergeCells.md)  
+**Category**: [MergeCells](@/api/mergeCells.md]  
 **Example**  
 ```js
 // enables the mergeCells plugin
@@ -1962,7 +1962,7 @@ Works only with an array data source. When data source in an object, you can onl
 as defined in the first data row, data schema, or the `columns` setting.
 
 **Default**: <code>0</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // set minimum table size to 10 columns
@@ -1981,7 +1981,7 @@ _options.minRows : number_
 Minimum number of rows. At least that number of rows will be created during initialization.
 
 **Default**: <code>0</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // set minimum table size to 10 rows
@@ -2001,7 +2001,7 @@ When set to 1 (or more), Handsontable will add a new column at the end of grid i
 (unless the number of rows exceeds the one set in the `maxCols` property).
 
 **Default**: <code>0</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // always add 3 empty columns at the table end
@@ -2021,7 +2021,7 @@ When set to 1 (or more), Handsontable will add a new row at the end of grid if t
 (unless the number of rows exceeds the one set in the `maxRows` property).
 
 **Default**: <code>0</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // always add 3 empty rows at the table end
@@ -2037,7 +2037,7 @@ minSpareRows: 3,
 
 _options.multiColumnSorting : boolean | object_
 
-Turns on [Multi-column sorting](@/guides/rows/row-sorting.md). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+Turns on [Multi-column sorting](@/guides/rows/row-sorting.md]. Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
 * `initialConfig` - Array containing objects, every with predefined keys:
   * `column` - sorted column
   * `sortOrder` - order in which column will be sorted
@@ -2049,13 +2049,13 @@ Turns on [Multi-column sorting](@/guides/rows/row-sorting.md). Can be either a b
 * `headerAction` - allow to click on the headers to sort
   * `true` = turn on possibility to click on the headers to sort
   * `false` = turn off possibility to click on the headers to sort
-* `sortEmptyCells` - how empty values ([more information here](./options/#allowempty)) should be handled
+* `sortEmptyCells` - how empty values ([more information here](@/api/options.md#allowempty]) should be handled
   * `true` = the table sorts empty cells
   * `false` = the table moves all empty cells to the end of the table
 * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
 
 **Default**: <code>undefined</code>  
-**Category**: [MultiColumnSorting](@/api/multiColumnSorting.md)  
+**Category**: [MultiColumnSorting](@/api/multiColumnSorting.md]  
 **Example**  
 ```js
 // as boolean
@@ -2097,7 +2097,7 @@ _options.nestedHeaders : Array&lt;Array&gt;_
 Allows creating a nested header structure, using the HTML's colspan attribute.
 
 **Default**: <code>undefined</code>  
-**Category**: [NestedHeaders](@/api/nestedHeaders.md)  
+**Category**: [NestedHeaders](@/api/nestedHeaders.md]  
 **Example**  
 ```js
 nestedHeaders: [
@@ -2118,10 +2118,10 @@ _options.nestedRows : boolean_
 
 Disable or enable the nested rows functionality - displaying nested structures in a two-dimensional data table.
 
-See [quick setup of the Nested rows](@/guides/rows/row-parent-child.md).
+See [quick setup of the Nested rows](@/guides/rows/row-parent-child.md].
 
 **Default**: <code>false</code>  
-**Category**: [NestedRows](@/api/nestedRows.md)  
+**Category**: [NestedRows](@/api/nestedRows.md]  
 **Example**  
 ```js
 nestedRows: true,
@@ -2139,7 +2139,7 @@ _options.noWordWrapClassName : string_
 CSS class name added to cells with cell meta `wordWrap: false`.
 
 **Default**: <code>"htNoWrap"</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // set custom class for cells which content won't be wrapped
@@ -2157,7 +2157,7 @@ _options.numericFormat : object_
 
 Display format for numeric typed renderers.
 
-__Note__, this option only works for [numeric-typed](@/guides/cell-types/numeric-cell-type.md) cells.
+__Note__, this option only works for [numeric-typed](@/guides/cell-types/numeric-cell-type.md] cells.
 
 Format is described by two properties:
 * `pattern` - Handled by `numbro` for purpose of formatting numbers to desired pattern. List of supported patterns can be found [here](https://numbrojs.com/format.html#numbers).
@@ -2168,7 +2168,7 @@ __Note:__ Please keep in mind that this option is used only to format the displa
 Handsontable uses [numbro](https://numbrojs.com/) as a main library for numbers formatting.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Since**: 0.35.0  
 **Example**  
 ```js
@@ -2196,7 +2196,7 @@ _options.observeDOMVisibility : boolean_
 When set to `true`, the table is re-rendered when it is detected that it was made visible in DOM.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // don't rerender the table on visibility changes
@@ -2216,7 +2216,7 @@ If `true`, mouse click outside the grid will deselect the current selection. Can
 click event target and returns a boolean.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // don't clear current selection when mouse click was outside the grid
@@ -2265,7 +2265,7 @@ Those two instances can store data under the same key and no data would be overw
 __Important:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
 
 **Default**: <code>false</code>  
-**Category**: [PersistentState](@/api/persistentState.md)  
+**Category**: [PersistentState](@/api/persistentState.md]  
 **Example**  
 ```js
 // enable the persistent state plugin
@@ -2285,7 +2285,7 @@ When set to an non-empty string, displayed as the cell content for empty cells. 
 it will be stringified and applied as a string.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // add custom placeholder content to empty cells
@@ -2304,7 +2304,7 @@ _options.placeholderCellClassName : string_
 CSS class name for cells that have a placeholder in use.
 
 **Default**: <code>"htPlaceholder"</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // set custom placeholder class
@@ -2329,7 +2329,7 @@ Possible values:
  * `vertical` - Prevents vertical overflow table.
 
 **Default**: <code>false</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 preventOverflow: 'horizontal',
@@ -2344,10 +2344,10 @@ preventOverflow: 'horizontal',
 
 _options.readOnly : boolean_
 
-Makes cell, column or comment [read only](@/guides/cell-features/disabled-cells.md#read-only-columns).
+Makes cell, column or comment [read only](@/guides/cell-features/disabled-cells.md#readonlycolumns].
 
 **Default**: <code>false</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // set as read only
@@ -2366,7 +2366,7 @@ _options.readOnlyCellClassName : string_
 CSS class name for read-only cells.
 
 **Default**: <code>"htDimmed"</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // set custom read-only class
@@ -2385,7 +2385,7 @@ _options.renderAllRows : boolean_
 If typed `true` then virtual rendering mechanism for handsontable will be disabled.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // disable virtual rows rendering
@@ -2409,7 +2409,7 @@ If a string is provided, it may be one of the following predefined values:
 * `password`.
 * `text`.
 
-Or you can [register](@/guides/cell-functions/cell-renderer.md) the custom renderer under specified name and use its name as an alias in your
+Or you can [register](@/guides/cell-functions/cell-renderer.md] the custom renderer under specified name and use its name as an alias in your
 configuration.
 
 If a function is provided, it will receive the following arguments:
@@ -2417,10 +2417,10 @@ If a function is provided, it will receive the following arguments:
 function(instance, TD, row, col, prop, value, cellProperties) {}
 ```
 
-You can read more about custom renderes [in the documentation](@/guides/cell-functions/cell-renderer.md).
+You can read more about custom renderes [in the documentation](@/guides/cell-functions/cell-renderer.md].
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // register custom renderer
@@ -2463,7 +2463,7 @@ You can also define an array `['One', 'Two', 'Three', ...]` or a function to def
 If a function is set the index of the row is passed as a parameter.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // as a boolean
@@ -2491,7 +2491,7 @@ Allows setting a custom width of the row headers. You can provide a number or an
 header levels are defined.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // set width for all row headers
@@ -2515,16 +2515,16 @@ Defines row heights in pixels. Accepts numbers, strings (that will be converted 
 (if you want to define row height separately for each row) or a function (if you want to set row height dynamically
 on each render).
 
-If the [ManualRowResize](./manual-row-resize/) or [AutoRowSize](./auto-row-size/) plugins are enabled, this is also the minimum height that can
+If the [ManualRowResize](@/api/manualRowResize.md] or [AutoRowSize](@/api/autoRowSize.md] plugins are enabled, this is also the minimum height that can
 be set via either of those two plugins.
 
 The default height for rows in the rendering process equals 23px.
 Height should be equal or greater than 23px. Table is rendered incorrectly if height is less than 23px.
 
-An `undefined` value is for detection in [Hooks#modifyRowHeight](./Hooks/#modifyRowHeight) hook if plugin or setting changed the default size.
+An `undefined` value is for detection in [Hooks#modifyRowHeight](@/api/hooks.md#modifyrowheight] hook if plugin or setting changed the default size.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // as a number, the same for all rows
@@ -2551,10 +2551,10 @@ rowHeights: function(index) {
 
 _options.search : boolean_
 
-Setting to `true` enables the [Search](./search/) plugin (see [demo](@/guides/accessories-and-menus/searching-values.md)).
+Setting to `true` enables the [Search](@/api/search.md] plugin (see [demo](@/guides/accessories-and-menus/searching-values.md]).
 
 **Default**: <code>false</code>  
-**Category**: [Search](@/api/search.md)  
+**Category**: [Search](@/api/search.md]  
 **Example**  
 ```js
 // enable search plugin
@@ -2588,10 +2588,10 @@ Defines how the table selection reacts. The selection support three different be
  * `'multiple'` Multiple ranges of cells can be selected.
 
 To see how to interact with selection by getting selected data or change styles of the selected cells go to
-[Selecting Ranges](@/guides/cell-features/selection.md).
+[Selecting Ranges](@/guides/cell-features/selection.md].
 
 **Default**: <code>"multiple"</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // only one cell can be selected at a time
@@ -2607,12 +2607,12 @@ selectionMode: 'single',
 
 _options.selectOptions : Array&lt;string&gt;_
 
-Data source for [select-typed](@/guides/cell-types/select-cell-type.md) cells.
+Data source for [select-typed](@/guides/cell-types/select-cell-type.md] cells.
 
-__Note__, this option only works for [select-typed](@/guides/cell-types/select-cell-type.md) cells.
+__Note__, this option only works for [select-typed](@/guides/cell-types/select-cell-type.md] cells.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [
@@ -2636,7 +2636,7 @@ _options.skipColumnOnPaste : boolean_
 When added to a `column` property, it skips the column on paste and pastes the data on the next column to the right.
 
 **Default**: <code>false</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [
@@ -2659,7 +2659,7 @@ _options.skipRowOnPaste : boolean_
 When added to a cell property, it skips the row on paste and pastes the data on the following row.
 
 **Default**: <code>false</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 cells: function(row, column) {
@@ -2686,10 +2686,10 @@ _options.sortByRelevance : boolean_
 If defined as `true`, the Autocomplete's suggestion list would be sorted by relevance (the closer to the left the
 match is, the higher the suggestion).
 
-__Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
+__Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md] cells.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [
@@ -2714,7 +2714,7 @@ _options.source : Array | function_
 Defines data source for Autocomplete or Dropdown cell types.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // source as a array
@@ -2748,7 +2748,7 @@ Initial number of columns.
 __Note:__ This option only has effect in Handsontable constructor and only if `data` option is not provided.
 
 **Default**: <code>5</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // start with 15 empty columns
@@ -2769,7 +2769,7 @@ Initial number of rows.
 __Note:__ This option only has effect in Handsontable constructor and only if `data` option is not provided.
 
 **Default**: <code>5</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // start with 15 empty rows
@@ -2786,13 +2786,13 @@ startRows: 15,
 _options.stretchH : string_
 
 Defines how the columns react, when the declared table width is different than the calculated sum of all column widths.
-[See more](@/guides/columns/column-width.md#column-stretching) mode. Possible values:
+[See more](@/guides/columns/column-width.md#columnstretching] mode. Possible values:
  * `'none'` Disable stretching
  * `'last'` Stretch only the last column
  * `'all'` Stretch all the columns evenly.
 
 **Default**: <code>"none"</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // fit table to the container
@@ -2812,10 +2812,10 @@ If set to `true`, the value entered into the cell must match (case-sensitive) th
 Otherwise, cell won't pass the validation. When filtering the autocomplete source list, the editor will
 be working in case-insensitive mode.
 
-__Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
+__Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md] cells.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [{
@@ -2838,7 +2838,7 @@ _options.tableClassName : string | Array&lt;string&gt;_
 Class name for all tables inside container element.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // set custom class for table element
@@ -2863,7 +2863,7 @@ received after the <kbd>TAB</kbd> key has been pressed. This event object can be
 <kbd>TAB</kbd> or <kbd>SHIFT</kbd> + <kbd>TAB</kbd>.
 
 **Default**: <code>{row: 0, col: 1}</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // move selection 2 cells away after TAB pressed.
@@ -2886,7 +2886,7 @@ _options.title : string_
 Defines the column header name.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // set header names for every column
@@ -2915,7 +2915,7 @@ Makes autocomplete or dropdown width the same as the edited cell width. If `fals
 according to its content.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [
@@ -2939,7 +2939,7 @@ _options.trimRows : boolean | Array&lt;number&gt;_
 Plugin allowing hiding of certain rows.
 
 **Default**: <code>undefined</code>  
-**Category**: [TrimRows](@/api/trimRows.md)  
+**Category**: [TrimRows](@/api/trimRows.md]  
 **Example**  
 ```js
 // enable plugin
@@ -2962,7 +2962,7 @@ _options.trimWhitespace : boolean_
 Defines whether Handsontable should trim the whitespace at the beginning and the end of the cell contents.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [
@@ -2985,21 +2985,21 @@ _options.type : string_
 Shortcut to define the combination of the cell renderer, editor and validator for the column, cell or whole table.
 
 Possible values:
- * [autocomplete](@/guides/cell-types/autocomplete-cell-type.md)
- * [checkbox](@/guides/cell-types/checkbox-cell-type.md)
- * [date](@/guides/cell-types/date-cell-type.md)
- * [dropdown](@/guides/cell-types/dropdown-cell-type.md)
- * [handsontable](@/guides/cell-types/handsontable-cell-type.md)
- * [numeric](@/guides/cell-types/numeric-cell-type.md)
- * [password](@/guides/cell-types/password-cell-type.md)
+ * [autocomplete](@/guides/cell-types/autocomplete-cell-type.md]
+ * [checkbox](@/guides/cell-types/checkbox-cell-type.md]
+ * [date](@/guides/cell-types/date-cell-type.md]
+ * [dropdown](@/guides/cell-types/dropdown-cell-type.md]
+ * [handsontable](@/guides/cell-types/handsontable-cell-type.md]
+ * [numeric](@/guides/cell-types/numeric-cell-type.md]
+ * [password](@/guides/cell-types/password-cell-type.md]
  * text
- * [time](@/guides/cell-types/time-cell-type.md).
+ * [time](@/guides/cell-types/time-cell-type.md].
 
 Or you can register the custom cell type under specified name and use
 its name as an alias in your configuration.
 
 **Default**: <code>"text"</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // register custom cell type:
@@ -3040,7 +3040,7 @@ _options.uncheckedTemplate : boolean | string | number_
 Data template for `'checkbox'` type when checkbox is unchecked.
 
 **Default**: <code>false</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 uncheckedTemplate: 'bad'
@@ -3063,7 +3063,7 @@ Note: `undefined` by default but it acts as enabled.
 You need to switch it to `false` to disable it completely.
 
 **Default**: <code>undefined</code>  
-**Category**: [UndoRedo](@/api/undoRedo.md)  
+**Category**: [UndoRedo](@/api/undoRedo.md]  
 **Example**  
 ```js
 // enable undo and redo
@@ -3091,13 +3091,13 @@ If a string is provided, it may be one of the following predefined values:
 * `numeric`,
 * `time`.
 
-Or you can [register](@/guides/cell-functions/cell-validator.md) the validator function under specified name and use its name as an alias in your
+Or you can [register](@/guides/cell-functions/cell-validator.md] the validator function under specified name and use its name as an alias in your
 configuration.
 
-See more [in the demo](@/guides/cell-functions/cell-validator.md).
+See more [in the demo](@/guides/cell-functions/cell-validator.md].
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [
@@ -3133,7 +3133,7 @@ makes Handsontable try calculating the best offset performance-wise.
 You may experiment with the value to find the one that works best for your specific implementation.
 
 **Default**: <code>&#x27;auto&#x27;</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 viewportColumnRenderingOffset: 70,
@@ -3154,7 +3154,7 @@ makes Handsontable to attempt to calculate the best offset performance-wise.
 You may test out different values to find the best one that works for your specific implementation.
 
 **Default**: <code>&#x27;auto&#x27;</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 viewportRowRenderingOffset: 70,
@@ -3173,7 +3173,7 @@ Control number of choices for the autocomplete (or dropdown) typed cells. After 
 dropdown list of choices will appear.
 
 **Default**: <code>10</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 columns: [
@@ -3197,7 +3197,7 @@ _options.width : number | string | function_
 Width of the grid. Can be a value or a function that returns a value.
 
 **Default**: <code>undefined</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // as a number
@@ -3224,7 +3224,7 @@ _options.wordWrap : boolean_
 When set to `true`, the text of the cell content is wrapped if it does not fit in the fixed column width.
 
 **Default**: <code>true</code>  
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 colWidths: 100,
@@ -3248,7 +3248,7 @@ _options.isEmptyCol(col) ⇒ boolean_
 
 Overwrites the default `isEmptyCol` method, which checks if column at the provided index is empty.
 
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // define custom checks for empty column
@@ -3273,7 +3273,7 @@ _options.isEmptyRow(row) ⇒ boolean_
 
 Overwrites the default `isEmptyRow` method, which checks if row at the provided index is empty.
 
-**Category**: [Core](@/api/core.md)  
+**Category**: [Core](@/api/core.md]  
 **Example**  
 ```js
 // define custom checks for empty row

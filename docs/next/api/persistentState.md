@@ -15,13 +15,13 @@ editLink: false
 Save the state of column sorting, column positions and column sizes in local storage to preserve table state
 between page reloads.
 
-In order to enable data storage mechanism, [persistentState](#Options+persistentState) option must be set to `true`.
+In order to enable data storage mechanism, [persistentState](@/api/.md#options+persistentstate] option must be set to `true`.
 
 When persistentState is enabled it exposes 3 hooks:
-- [Hooks#persistentStateSave](./Hooks/#persistentStateSave) - Saves value under given key in browser local storage.
-- [Hooks#persistentStateLoad](./Hooks/#persistentStateLoad) - Loads value, saved under given key, from browser local storage. The loaded
+- [Hooks#persistentStateSave](@/api/hooks.md#persistentstatesave] - Saves value under given key in browser local storage.
+- [Hooks#persistentStateLoad](@/api/hooks.md#persistentstateload] - Loads value, saved under given key, from browser local storage. The loaded
 value will be saved in `saveTo.value`.
-- [Hooks#persistentStateReset](./Hooks/#persistentStateReset) - Clears the value saved under key. If no key is given, all values associated
+- [Hooks#persistentStateReset](@/api/hooks.md#persistentstatereset] - Clears the value saved under key. If no key is given, all values associated
 with table will be cleared.
 
 
@@ -115,8 +115,8 @@ Enables the plugin functionality for this Handsontable instance.
 
 _persistentState.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#PersistentState+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
+hook and if it returns `true` than the [enablePlugin](@/api/.md#persistentstate+enableplugin] method is called.
 
 
 
@@ -181,6 +181,6 @@ Saves the data to local storage.
 
 _persistentState.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
 
 

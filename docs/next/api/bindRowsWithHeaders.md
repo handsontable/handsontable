@@ -37,7 +37,7 @@ const hot = new Handsontable(container, {
 
 _bindRowsWithHeaders.bindRowsWithHeaders : boolean | string_
 
-Enables the functionality of the [BindRowsWithHeaders](./bind-rows-with-headers/) plugin which allows binding the table rows with their headers.
+Enables the functionality of the [BindRowsWithHeaders](@/api/bindRowsWithHeaders.md] plugin which allows binding the table rows with their headers.
 If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,
 if at the initialization row 0 has a header titled "A", it will have it no matter what you do with the table.
 
@@ -94,7 +94,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 _bindRowsWithHeaders.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#BindRowsWithHeaders+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
+hook and if it returns `true` than the [enablePlugin](@/api/.md#bindrowswithheaders+enableplugin] method is called.
 
 

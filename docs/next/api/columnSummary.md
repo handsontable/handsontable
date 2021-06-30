@@ -13,7 +13,7 @@ editLink: false
 ## Description
 
 Allows making pre-defined calculations on the cell values and display the results within Handsontable.
-[See the demo for more information](@/guides/columns/column-summary.md).
+[See the demo for more information](@/guides/columns/column-summary.md].
 
 **Example**  
 ```js
@@ -64,7 +64,7 @@ Possible types:
  * `'average'`
  * `'custom'` - add `customFunction`.
 
-[See the demo for more information](@/guides/columns/column-summary.md).
+[See the demo for more information](@/guides/columns/column-summary.md].
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -120,7 +120,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 _columnSummary.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#ColumnSummary+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
+hook and if it returns `true` than the [enablePlugin](@/api/.md#columnsummary+enableplugin] method is called.
 
 

@@ -66,7 +66,11 @@ const source = file => path.join(__dirname, pathToSource, file);
 
 const flat = file => file.split('/').pop();
 
-const dist = file => path.join(__dirname, pathToDist, flat(file.replace(/(.*)\.js/, '$1.md')));
+const distFileName = file => flat(file
+  .replace(/(.*)\.js/, '$1.md') // set md extension
+  .replace(/^([A-Z])/, (_, upper) => upper.toLowerCase()) // enforce camelCase
+);
+const dist = file => path.join(__dirname, pathToDist, distFileName(file));
 
 /// seo
 const genSeoTitle = file => file
@@ -173,10 +177,6 @@ const preProcessors = [
 const preProcess = initialData => preProcessors.reduce((data, preProcessor) => preProcessor(data), initialData);
 
 /// post processing after markdown was generated
-const fixLinks = text => text
-  .replace(/\[([^\[]*?)]\(([^:@]*?)(#[^#]*?)?\)/g, '[$1](./$2/$3)') // @see https://regexr.com/603ja
-  .replace(/\.\/\//g, '');
-
 const clearEmptyOptionHeaders = text => text.replace(/## Options\n## Members/g, '## Members');
 const clearEmptyMembersHeaders = text => text.replace(/## Members\n## Methods/g, '## Methods');
 const clearEmptyFunctionsHeaders = text => text
@@ -229,14 +229,36 @@ const unescapeRedundant = text => text
   .replace(/&quot;&#x27;/g, '"')
   .replace(/&#x27;&quot;/g, '"');
 
+const fixLinks = text => text
+  .replace(/\[([^\]]*?)\]\(([^#)]*?)((#)([^)]*?))?\)/g,
+    (all, label, target, _, hash = '', anchor = '') => { // @see https://regexr.com/611b8
+      if (target.includes('://')) {
+        return all;
+      }
+      const fixedAnchor = anchor
+        .toLowerCase()
+        .replace(/-/g, '');
+
+      if (target.startsWith('@')) {
+        return `[${label}](${target}${hash}${fixedAnchor}]`;
+      }
+
+      const targetCamelCase = !target.length ? '' : `${target[0].toLowerCase()}${target.substring(1)}`
+        .replace(/-([a-z])/g, (__, char) => char.toUpperCase());
+
+      return `[${label}](@/api/${targetCamelCase}.md${hash}${fixedAnchor}]`;
+    }
+  );
+
 const postProcessors = [
-  fixLinks,
   clearEmptyOptionHeaders,
   clearEmptyMembersHeaders,
   clearEmptyFunctionsHeaders,
   fixTypes,
   fixCategories,
-  unescapeRedundant
+  unescapeRedundant,
+  fixLinks,
+  // fix
 ];
 
 const postProcess = initialText => postProcessors.reduce((text, postProcessor) => postProcessor(text), initialText);
