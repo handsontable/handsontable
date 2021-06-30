@@ -45,66 +45,21 @@ const seo = {
     metaTitle: 'Core - API Reference - Handsontable Documentation',
     permalink: '/next/api/core'
   },
-  'translations/indexMapper.js': {
-    title: 'IndexMapper',
-    metaTitle: 'IndexMapper - API Reference - Handsontable Documentation',
-    permalink: '/next/api/index-mapper'
-  },
-  'editors/baseEditor/baseEditor.js': {
-    title: 'BaseEditor',
-    metaTitle: 'BaseEditor - API Reference - Handsontable Documentation',
-    permalink: '/next/api/base-editor'
-  },
   '3rdparty/walkontable/src/cell/coords.js': {
     title: 'CellCoords',
     metaTitle: 'CellCoords - API Reference - Handsontable Documentation',
     permalink: '/next/api/coords'
   },
-  'plugins/copyPaste/focusableElement.js': {
-    title: 'FocusableElement',
-    metaTitle: 'FocusableElement - API Reference - Handsontable Documentation',
-    permalink: '/next/api/focusable-element'
-  },
-  'DataMap.js': {
-    title: 'DataMap',
-    metaTitle: 'DataMap - API Reference - Handsontable Documentation',
-    permalink: '/next/api/data-map'
-  },
-  'translations/maps/hidingMap.js': {
-    title: 'HidingMap',
-    metaTitle: 'HidingMap - API Reference - Handsontable Documentation',
-    permalink: '/next/api/hiding-map'
-  },
-  'translations/maps/indexesSequence.js': {
-    title: 'IndexesSequence',
-    metaTitle: 'IndexesSequence - API Reference - Handsontable Documentation',
-    permalink: '/next/api/indexes-sequence'
-  },
-  'translations/maps/trimmingMap.js': {
-    title: 'TrimmingMap',
-    metaTitle: 'TrimmingMap - API Reference - Handsontable Documentation',
-    permalink: '/next/api/trimming-map'
-  },
-  'utils/samplesGenerator.js': {
-    title: 'SamplesGenerator',
-    metaTitle: 'SamplesGenerator - API Reference - Handsontable Documentation',
-    permalink: '/next/api/samples-generator'
-  },
-  'translations/maps/physicalIndexToValueMap.js': {
-    title: 'PhysicalIndexToValueMap',
-    metaTitle: 'PhysicalIndexToValueMap - API Reference - Handsontable Documentation',
-    permalink: '/next/api/physical-index-to-value-map'
-  },
-  'utils/ghostTable.js': {
-    title: 'GhostTable',
-    metaTitle: 'GhostTable - API Reference - Handsontable Documentation',
-    permalink: '/next/api/ghost-table'
-  },
 };
 
 /// classifications
-const isOptions = data => data[0]?.meta.filename === 'metaSchema.js';
-const isPlugin = data => data[0]?.customTags?.filter(tag => tag.tag === 'plugin' && tag.value).length > 0 ?? false;
+const isJsdocOptions = data => data[0]?.meta.filename === 'metaSchema.js';
+const isJsdocPlugin = data => data[0]?.customTags?.filter(tag => tag.tag === 'plugin' && tag.value).length > 0 ?? false;
+const isPlugin = (file) => {
+  const parts = file.split(/[./]/);
+
+  return parts[0] === 'plugins' && parts[1] === parts[2] && parts[3] === 'js';
+};
 
 /// paths construction
 const source = file => path.join(__dirname, pathToSource, file);
@@ -116,15 +71,15 @@ const dist = file => path.join(__dirname, pathToDist, flat(file.replace(/(.*)\.j
 /// seo
 const genSeoTitle = file => file
   .replace(/(^.*\/)?(.*?)\.[.a-zA-Z]*$/, '$2') // Get first filename segment (to the first dot) without full path
-  // .replace(/([A-Z]+)/g, " $1") // Add spaces before each word
   .replace(/(^[a-z])/, m => m.toUpperCase()); // To upper first letter
 const seoTitle = file => seo[file] && seo[file].title || genSeoTitle(file);
-const genSeoMetaTitle = file => `${seoTitle(file)} - Plugin - Handsontable Documentation`;
+const genSeoMetaTitle = file =>
+  `${seoTitle(file)} - ${isPlugin(file) ? 'Plugin' : 'API Reference'} - Handsontable Documentation`;
 const seoMetaTitle = file => seo[file] && seo[file].metaTitle || genSeoMetaTitle(file);
 
 const genSeoPermalink = file => file
   .replace(/(^.*\/)?(.*)\.[a-zA-Z]*$/, '$2') // Get filename without full path and extension
-  .replace(/([A-Z]+)/g, '-$1') // Separate words
+  .replace(/([a-z])([A-Z]+)/g, '$1-$2') // Separate words
   .toLowerCase();
 const seoPermalink = file => seo[file] && seo[file].permalink || urlPrefix + genSeoPermalink(file);
 
@@ -243,7 +198,7 @@ const linkToSource = (data) => {
 };
 
 const optionsPerPlugin = {};
-const memorizeOptions = data => (!isOptions(data) ? data : data.map((x) => {
+const memorizeOptions = data => (!isJsdocOptions(data) ? data : data.map((x) => {
   if (x.category) {
     const cat = x.category.trim();
 
@@ -254,7 +209,7 @@ const memorizeOptions = data => (!isOptions(data) ? data : data.map((x) => {
   return x;
 }));
 const applyPluginOptions = (data) => {
-  if (isPlugin(data)) {
+  if (isJsdocPlugin(data)) {
     const plugin = data[0].customTags
       ?.filter(tag => tag.tag === 'plugin').pop()
       ?.value;
