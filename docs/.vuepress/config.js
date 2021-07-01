@@ -106,16 +106,13 @@ module.exports = {
     $page.currentVersion = helpers.parseVersion($page.path);
     $page.lastUpdatedFormat = formatDate($page.lastUpdated);
 
-    if ($page.currentVersion === 'latest' && $page.frontmatter.permalink) {
+    if ($page.currentVersion === $page.latestVersion && $page.frontmatter.permalink) {
       const urlPathFirstSegmentRegExp = /^\/[^/]*\//;
 
-      $page.currentVersion = $page.latestVersion;
       $page.frontmatter.permalink = $page.frontmatter.permalink.replace(urlPathFirstSegmentRegExp, '/');
-      $page.regularPath = $page.regularPath.replace(urlPathFirstSegmentRegExp, '/');
-      $page.path = $page.path.replace(urlPathFirstSegmentRegExp, '/');
-      $page.relativePath = $page.relativePath.replace(urlPathFirstSegmentRegExp, '');
       $page.frontmatter.canonicalUrl = undefined;
     }
+
     if ($page.currentVersion !== $page.latestVersion && $page.frontmatter.canonicalUrl) {
       $page.frontmatter.canonicalUrl = `https://handsontable.com/docs${$page.frontmatter.canonicalUrl}`;
     }

@@ -33,14 +33,30 @@ const buildActiveHeaderLinkHandler = () => {
   };
 };
 
-const addLatestVersionRedirection = (router, version) => {
-  const latestVersionRegExp = new RegExp(`^/${version}/`);
+/**
+ * The function iterates over the routes that point to the latest documentation
+ * (that routes that do not have a declared version in the path URL) and adds
+ * redirects to that pages but with an implicitly declared version in the URL
+ * path (e.g. redirect from "/9.0/license-key/ to "/license-key").
+ *
+ * @param {*} router The Vue Router instance.
+ * @param {string} latestVersion The latest version of the documentation.
+ */
+const addLatestVersionRedirection = (router, latestVersion) => {
+  const versionedPathRegExp = /^\/(\d+\.\d+|next)\//;
+  const toNonVersionedRedirects = router.getRoutes()
+    .reduce((routes, { path }) => {
+      if (!versionedPathRegExp.test(path)) {
+        routes.push({
+          path: `/${latestVersion}${path}`,
+          redirect: path
+        });
+      }
 
-  router.getRoutes().forEach((route) => {
-    if (latestVersionRegExp.test(route.path)) {
-      route.redirect = route.path.replace(latestVersionRegExp, '/');
-    }
-  });
+      return routes;
+    }, []);
+
+  toNonVersionedRedirects.forEach(versionedRedirect => router.addRoute(versionedRedirect));
 };
 
 export default ({ router, isServer, siteData }) => {
