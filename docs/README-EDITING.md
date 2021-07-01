@@ -14,15 +14,23 @@ When adding new documentation files, check the documentation [directory structur
 
 ### Frontmatter
 
-Each Markdown file starts with the following frontmatter tags:
+Each Markdown file can start with the following frontmatter tags:
 
 | Tag            | Meaning                                                    | Required |
-|----------------|------------------------------------------------------------|----------|
-| `title`        | The page's header.                                         | Yes      |
-| `permalink`    | The page's **unique** URL.                                 | Yes      |
-| `canonicalUrl` | A canonical URL of the page's latest version.              | Yes      |
+|----------------|------------------------------------------------------------|:--------:|
+| `title`        | The page's header. If you don't add it,<br>VuePress generates it from the page's parent's title. | Yes      |
+| `permalink`    | The page's **unique** URL. If you don't add it,<br>VuePress generates it from the Markdown file name. | Yes      |
+| `canonicalUrl` | A canonical URL of the page's latest version.              | No       |
 | `metaTitle`    | The page's SEO meta title.                                 | No       |
 | `tags`         | Tags used by the documentation search engine.              | No       |
+
+If you don't add the `title` and `permalink` tags, VuePress generates `permalink` based on the Markdown file name, and 
+
+
+
+automatically generates the output HTML page with its parent's title and permalink as the file name.
+
+generate pages with their parent's title and permalink as the file name (with .html extension). It'
 
 Frontmatter example:
 
