@@ -1,5 +1,6 @@
 import HotTable from '../src/HotTable.vue';
 import BaseEditorComponent from '../src/BaseEditorComponent.vue';
+import { HOT_DESTROYED_WARNING } from '../src/helpers';
 import { mount } from '@vue/test-utils';
 import {
   createDomContainer,
@@ -26,7 +27,7 @@ describe('hotInit', () => {
 describe('Updating the Handsontable settings', () => {
   it('should update the previously initialized Handsontable instance with a single changed property', async() => {
     let updateSettingsCalls = 0;
-    let testWrapper = mount(HotTable, {
+    const testWrapper = mount(HotTable, {
       propsData: {
         data: createSampleData(1, 1),
         licenseKey: 'non-commercial-and-evaluation',
@@ -613,6 +614,37 @@ it('should be possible to pass props to the editor and renderer components', () 
   testWrapper.destroy();
 });
 
+it('should display a warning and not throw any errors, when the underlying Handsontable instance ' +
+  'has been destroyed', () => {
+  const warnFunc = console.warn;
+  const testWrapper = mount(HotTable, {
+    propsData: {
+      data: [[1]],
+      licenseKey: 'non-commercial-and-evaluation',
+    }
+  });
+  const warnCalls = [];
+
+  console.warn = (warningMessage) => {
+    warnCalls.push(warningMessage);
+  }
+
+  expect(testWrapper.vm.hotInstance.isDestroyed).toEqual(false);
+
+  testWrapper.vm.hotInstance.destroy();
+
+  expect(testWrapper.vm.hotInstance).toEqual(null);
+
+  expect(warnCalls.length).toBeGreaterThan(0);
+  warnCalls.forEach((message) => {
+    expect(message).toEqual(HOT_DESTROYED_WARNING);
+  });
+
+  testWrapper.destroy();
+
+  console.warn = warnFunc;
+});
+
 describe('HOT-based CRUD actions', () => {
   it('should should not add/remove any additional rows when calling `alter` on the HOT instance', async() => {
     const testWrapper = mount(HotTable, {
@@ -724,5 +756,7 @@ describe('cooperation with NestedRows plugin', () => {
     await Vue.nextTick();
 
     expect(testWrapper.vm.hotInstance.countRows()).toEqual(7);
+
+    testWrapper.destroy();
   });
 });
