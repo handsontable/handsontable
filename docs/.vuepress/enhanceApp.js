@@ -37,7 +37,7 @@ const buildActiveHeaderLinkHandler = () => {
  * The function iterates over the routes that point to the latest documentation
  * (that routes that do not have a declared version in the path URL) and adds
  * redirects to that pages but with an implicitly declared version in the URL
- * path (e.g. redirect from "/9.0/license-key/ to "/license-key").
+ * path (redirect from "/9.0/license-key/ to "/license-key").
  *
  * @param {*} router The Vue Router instance.
  * @param {string} latestVersion The latest version of the documentation.
