@@ -39,7 +39,7 @@
             )
           ) {
             // If the dataset dimensions change, update the index mappers.
-            this.matchHotMappersSize(value.data);
+            this.matchHotMappersSize();
 
             // Data is automatically synchronized by reference.
             delete value.data;
@@ -71,8 +71,6 @@
       return {
         __internalEdit: false,
         miscCache: {
-          // TODO: A workaround for #7548; data.length !== rowIndexMapper.getNumberOfIndexes() for NestedRows plugin.
-          dataLength: 0,
           currentSourceColumns: null
         },
         hotInstance: null,
@@ -115,19 +113,19 @@
 
         preventInternalEditWatch(this);
 
-        this.miscCache.dataLength = newSettings?.data?.length ?? 0;
         this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
       },
-      matchHotMappersSize: function (data: any[][]): void {
+      matchHotMappersSize: function(): void {
+        const data: Handsontable.CellValue[][] = this.hotInstance.getSourceData();
         const rowsToRemove: number[] = [];
         const columnsToRemove: number[] = [];
-        const oldDataLength = this.miscCache.dataLength;
+        const indexMapperRowCount = this.hotInstance.rowIndexMapper.getNumberOfIndexes();
         const isColumnModificationAllowed = this.hotInstance.isColumnModificationAllowed();
         let indexMapperColumnCount = 0;
 
-        if (data && data.length !== oldDataLength) {
-          if (data.length < oldDataLength) {
-            for (let r = data.length; r < oldDataLength; r++) {
+        if (data && data.length !== indexMapperRowCount) {
+          if (data.length < indexMapperRowCount) {
+            for (let r = data.length; r < indexMapperRowCount; r++) {
               rowsToRemove.push(r);
             }
           }
@@ -148,12 +146,10 @@
 
         this.hotInstance.batch(() => {
           if (rowsToRemove.length > 0) {
-            this.miscCache.dataLength -= rowsToRemove.length;
             this.hotInstance.rowIndexMapper.removeIndexes(rowsToRemove);
 
           } else {
-            this.miscCache.dataLength += data.length - oldDataLength;
-            this.hotInstance.rowIndexMapper.insertIndexes(oldDataLength - 1, data.length - oldDataLength);
+            this.hotInstance.rowIndexMapper.insertIndexes(indexMapperRowCount - 1, data.length - indexMapperRowCount);
           }
 
           if (isColumnModificationAllowed && data.length !== 0) {

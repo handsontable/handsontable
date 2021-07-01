@@ -50,7 +50,9 @@ sitemap:
 
 When editing the documentation content, follow the guidelines below.
 
-Files to be included in the documentation's next version are kept in the `next` directory.
+### Editing the `next` documentation version
+
+Draft files to be included in the documentation's next version are kept in the `next` directory.
 
 The `next` version of the documentation is available only locally and on the staging server.
 
@@ -58,23 +60,15 @@ To display the `next` version in a browser:
 1. Start a [local Handsontable documentation server](./README.md#getting-started-with-handsontable-docs).
 2. In your browser, go to http://localhost:8080/docs/next/.
 
-### Editing the `latest` documentation version
+### Editing a published documentation version
 
-A [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure) with the largest version number gets tagged as the `latest` version of the documentation.
+To edit an already-published documentation version, go to the required [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure) (e.g. `9.0`).
 
-If you're editing the `latest` version, remember to make the same edits to the `next` version as well.
-
-To display the latest documentation version in a browser:
-1. Start a [local Handsontable documentation server](./README.md#getting-started-with-handsontable-docs).
-2. In your browser, go to http://localhost:8080/docs.
-
-### Editing an archived documentation version
-
-To edit an archived documentation version, go to the required [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure).
-
-To display an archived documentation version in a browser:
+To display a published documentation version in a browser:
 1. Start a [local Handsontable documentation server](./README.md#getting-started-with-handsontable-docs).
 2. In your browser, go to http://localhost:8080/docs/{semver.version}/.
+
+If you're editing the `latest` version (a version with the largest `<semver.version>` number), remember to make the same edits to the `next` version as well.
 
 ## Editing the API reference
 

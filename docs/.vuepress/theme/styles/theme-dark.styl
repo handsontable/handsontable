@@ -193,15 +193,21 @@ html.theme-dark {
   .tabs-component {
     border-color $tabsComponentBorderColor
 
-    .tabs-component-tabs {
+    ul.tabs-component-tabs {
       border-bottom-color $tabsComponentBorderColor
       background $tabsComponentBackgroundColor
 
-      a {
-        color $fontColor !important
+      .tabs-component-tab {
+        a {
+          color $fontColor
 
-        &:hover {
-          color $linkFontColor !important
+          &:hover {
+            color $linkFontColor
+          }
+        }
+
+        &.is-disabled a {
+          color $fontColorDisabled
         }
       }
     }
@@ -299,7 +305,7 @@ html.theme-dark {
     scrollbar()
   }
 
-  table:not(.htCore) {
+  table:not(.htCore):not(.pika-table) {
     tr:nth-child(2n) {
       background-color $tableEvenRowBackgroundColor
     }
