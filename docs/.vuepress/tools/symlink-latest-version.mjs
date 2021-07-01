@@ -5,11 +5,15 @@ import utils from './utils.js';
 
 const { logger } = utils;
 const latestVersion = helpers.getLatestVersion();
+const pathToLatest = path.resolve('./latest');
 
-fs.unlinkSync(path.resolve(`./latest`));
+if (fs.existsSync(pathToLatest)) {
+  fs.unlinkSync(pathToLatest);
+}
+
 fs.symlinkSync(
   path.resolve(`./${latestVersion}`),
-  path.resolve(`./latest`),
+  pathToLatest,
   'junction',
 );
 
