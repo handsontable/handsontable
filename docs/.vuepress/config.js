@@ -107,9 +107,7 @@ module.exports = {
     $page.lastUpdatedFormat = formatDate($page.lastUpdated);
 
     if ($page.currentVersion === $page.latestVersion && $page.frontmatter.permalink) {
-      const urlPathFirstSegmentRegExp = /^\/[^/]*\//;
-
-      $page.frontmatter.permalink = $page.frontmatter.permalink.replace(urlPathFirstSegmentRegExp, '/');
+      $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
       $page.frontmatter.canonicalUrl = undefined;
     }
 
