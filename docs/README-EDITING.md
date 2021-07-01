@@ -24,14 +24,6 @@ Each Markdown file can start with the following frontmatter tags:
 | `metaTitle`    | The page's SEO meta title.                                 | No       |
 | `tags`         | Tags used by the documentation search engine.              | No       |
 
-If you don't add the `title` and `permalink` tags, VuePress generates `permalink` based on the Markdown file name, and 
-
-
-
-automatically generates the output HTML page with its parent's title and permalink as the file name.
-
-generate pages with their parent's title and permalink as the file name (with .html extension). It'
-
 Frontmatter example:
 
 ```
