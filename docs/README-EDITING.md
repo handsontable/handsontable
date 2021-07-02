@@ -108,19 +108,19 @@ As we want to support case-insensitive URLs, follow these guidelines when editin
 
 To create a new version of the Handsontable documentation:
 
-* From the `handsontable/docs` directory, run:
-```bash
-npm run docs:version <semver.version>
-# for example:
-# npm run docs:version 9.0
-```
+1. From the `handsontable/docs` directory, run:
+    ```bash
+    npm run docs:version
+    ```
+2. Confirm that you want to generate a new documentation version.
+3. Enter the version number that you want to create.
 
 To remove an existing version of the Handsontable documentation:
 
 * Remove the required version's [directory](./README.md#handsontable-docs-directory-structure):
-```bash
-rm -rf ./<semver.version>
-```
+  ```bash
+  rm -rf ./<semver.version>
+  ```
 
 ## Markdown containers
 
