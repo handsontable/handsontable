@@ -19,6 +19,6 @@ Rather than display "Hello, World!", the demo contains 100 rows and 13 columns p
 
 Want to play with the code yourself? Select "Open Sandbox" in the frame's bottom right corner.
 
-The demos for Angular and Vue are coming in June 2021, stay tuned!
+The demos for Angular and Vue are coming soon, stay tuned!
 
 <HelloWorld></HelloWorld>

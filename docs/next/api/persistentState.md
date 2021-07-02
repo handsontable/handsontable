@@ -29,7 +29,7 @@ with table will be cleared.
 
 ### persistentState
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/dataMap/metaManager/metaSchema.js#L1001
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/dataMap/metaManager/metaSchema.js#L1001
 
 :::
 
@@ -73,7 +73,7 @@ persistentState: true,
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/persistentState/persistentState.js#L134
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/persistentState/persistentState.js#L134
 
 :::
 
@@ -85,7 +85,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/persistentState/persistentState.js#L81
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/persistentState/persistentState.js#L81
 
 :::
 
@@ -97,7 +97,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/persistentState/persistentState.js#L62
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/persistentState/persistentState.js#L62
 
 :::
 
@@ -109,7 +109,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/persistentState/persistentState.js#L55
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/persistentState/persistentState.js#L55
 
 :::
 
@@ -122,7 +122,7 @@ hook and if it returns `true` than the [enablePlugin](#persistentstate+enableplu
 
 ### loadValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/persistentState/persistentState.js#L103
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/persistentState/persistentState.js#L103
 
 :::
 
@@ -140,7 +140,7 @@ Loads the value from local storage.
 
 ### resetValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/persistentState/persistentState.js#L122
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/persistentState/persistentState.js#L122
 
 :::
 
@@ -157,7 +157,7 @@ Resets the data or all data from local storage.
 
 ### saveValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/persistentState/persistentState.js#L113
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/persistentState/persistentState.js#L113
 
 :::
 
@@ -175,7 +175,7 @@ Saves the data to local storage.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/persistentState/persistentState.js#L90
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/persistentState/persistentState.js#L90
 
 :::
 
