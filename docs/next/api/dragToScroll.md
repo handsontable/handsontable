@@ -19,7 +19,7 @@ Plugin used to scroll Handsontable by selecting a cell and dragging outside of t
 
 ### dragToScroll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/dataMap/metaManager/metaSchema.js#L2999
+::: source-code-link https://github.com/handsontable/handsontable/blob/7f82bcc83575639b0eab10ab2d6b2b12d0352305/src/dataMap/metaManager/metaSchema.js#L2999
 
 :::
 
@@ -38,7 +38,7 @@ dragToScroll: false,
 
 ### boundaries
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/dragToScroll/dragToScroll.js#L40
+::: source-code-link https://github.com/handsontable/handsontable/blob/7f82bcc83575639b0eab10ab2d6b2b12d0352305/src/plugins/dragToScroll/dragToScroll.js#L40
 
 :::
 
@@ -52,7 +52,7 @@ e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y
 
 ### check
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/dragToScroll/dragToScroll.js#L127
+::: source-code-link https://github.com/handsontable/handsontable/blob/7f82bcc83575639b0eab10ab2d6b2b12d0352305/src/plugins/dragToScroll/dragToScroll.js#L127
 
 :::
 
@@ -71,7 +71,7 @@ between passed boundaries.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/dragToScroll/dragToScroll.js#L263
+::: source-code-link https://github.com/handsontable/handsontable/blob/7f82bcc83575639b0eab10ab2d6b2b12d0352305/src/plugins/dragToScroll/dragToScroll.js#L263
 
 :::
 
@@ -83,7 +83,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/dragToScroll/dragToScroll.js#L96
+::: source-code-link https://github.com/handsontable/handsontable/blob/7f82bcc83575639b0eab10ab2d6b2b12d0352305/src/plugins/dragToScroll/dragToScroll.js#L96
 
 :::
 
@@ -95,7 +95,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/dragToScroll/dragToScroll.js#L70
+::: source-code-link https://github.com/handsontable/handsontable/blob/7f82bcc83575639b0eab10ab2d6b2b12d0352305/src/plugins/dragToScroll/dragToScroll.js#L70
 
 :::
 
@@ -107,7 +107,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/dragToScroll/dragToScroll.js#L63
+::: source-code-link https://github.com/handsontable/handsontable/blob/7f82bcc83575639b0eab10ab2d6b2b12d0352305/src/plugins/dragToScroll/dragToScroll.js#L63
 
 :::
 
@@ -120,7 +120,7 @@ hook and if it returns `true` than the [enablePlugin](#dragtoscroll+enableplugin
 
 ### setBoundaries
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/dragToScroll/dragToScroll.js#L107
+::: source-code-link https://github.com/handsontable/handsontable/blob/7f82bcc83575639b0eab10ab2d6b2b12d0352305/src/plugins/dragToScroll/dragToScroll.js#L107
 
 :::
 
@@ -137,7 +137,7 @@ Sets the value of the visible element.
 
 ### setCallback
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/dragToScroll/dragToScroll.js#L116
+::: source-code-link https://github.com/handsontable/handsontable/blob/7f82bcc83575639b0eab10ab2d6b2b12d0352305/src/plugins/dragToScroll/dragToScroll.js#L116
 
 :::
 
@@ -154,7 +154,7 @@ Changes callback function.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f84/src/plugins/dragToScroll/dragToScroll.js#L86
+::: source-code-link https://github.com/handsontable/handsontable/blob/7f82bcc83575639b0eab10ab2d6b2b12d0352305/src/plugins/dragToScroll/dragToScroll.js#L86
 
 :::
 
