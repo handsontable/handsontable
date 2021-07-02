@@ -14,7 +14,7 @@ When adding new documentation files, check the documentation [directory structur
 
 ### Frontmatter
 
-Each Markdown file can start with the following frontmatter tags:
+Each Markdown file starts with the following frontmatter tags:
 
 | Tag            | Meaning                                                    | Required |
 |----------------|------------------------------------------------------------|:--------:|
