@@ -232,18 +232,18 @@ const unescapeRedundant = text => text
 const fixLinks = text => text
   .replace(/\[([^\]]*?)\]\(([^#)]*?)((#)([^)]*?))?\)/g,
     (all, label, target, _, hash = '', anchor = '') => { // @see https://regexr.com/611b8
-      if (target.includes('://')) {
+      if (target.includes('://')) { // e.g https://handsontable.com/blog
         return all;
       }
       const fixedAnchor = anchor
         .toLowerCase()
         .replace(/-/g, '');
 
-      if (!target) {
+      if (!target) { // e.g #getData
         return `[${label}](${hash}${fixedAnchor})`;
       }
 
-      if (target.startsWith('@')) {
+      if (target.startsWith('@')) { // e.g. @/api/plugins.md
         return `[${label}](${target}${hash}${fixedAnchor})`;
       }
 
