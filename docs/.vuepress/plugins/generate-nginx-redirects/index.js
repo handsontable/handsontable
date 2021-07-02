@@ -12,7 +12,8 @@ module.exports = (options, context) => {
     name: pluginName,
 
     async chainMarkdown() {
-      // Workariund for the lack of the hook/callback that is triggered before "extendPageData".
+      // Workaround for the lack of the hook/callback in the VuePress that is triggered
+      // before the "extendPageData" function.
       try {
         await fsp.writeFile(outputFile, fileHead);
       } catch (ex) {
