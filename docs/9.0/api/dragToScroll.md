@@ -25,7 +25,7 @@ Plugin used to scroll Handsontable by selecting a cell and dragging outside of t
 
 _dragToScroll.dragToScroll : boolean_
 
-Disables or enables the [drag to scroll](./drag-to-scroll/) functionality.
+Disables or enables the [drag to scroll](@/api/dragToScroll.md) functionality.
 
 **Default**: <code>true</code>  
 **Example**  
@@ -113,8 +113,8 @@ Enables the plugin functionality for this Handsontable instance.
 
 _dragToScroll.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#DragToScroll+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
+hook and if it returns `true` than the [enablePlugin](#dragtoscroll+enableplugin) method is called.
 
 
 
@@ -160,6 +160,6 @@ Changes callback function.
 
 _dragToScroll.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings) is invoked.
 
 

@@ -41,7 +41,7 @@ Container element where every table will be injected.
 
 :::
 
-_ghostTable.hot : [Core](./core/)_
+_ghostTable.hot : [Core](@/api/core.md)_
 
 Handsontable instance.
 

@@ -5,7 +5,7 @@ permalink: /9.0/api/
 canonicalUrl: /api/
 ---
 
-# Handsontable Reference
+# Handsontable API Reference
 
 [[toc]]
 
@@ -31,7 +31,7 @@ The `Handsontable` class controls the essential aspects of the data grid.
 
 Hooks are two-directional events that fire whenever a specific action occurs within the instance of Handsontable.
 
-### [Options](@/api/options.md)
+### [Options](@/api/metaSchema.md)
 
 These are the settings available to be registered for the `Core` features, in addition to those provided by plugins.
 

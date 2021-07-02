@@ -14,7 +14,7 @@ editLink: false
 
 The search plugin provides an easy interface to search data across Handsontable.
 
-In order to enable search mechanism, [search](#Options+search) option must be set to `true`.
+In order to enable search mechanism, [search](#options+search) option must be set to `true`.
 
 **Example**  
 ```js
@@ -48,7 +48,7 @@ searchPlugin.setSearchResultClass(customClass);
 
 _search.search : boolean_
 
-Setting to `true` enables the [Search](./search/) plugin (see [demo](@/guides/accessories-and-menus/searching-values.md)).
+Setting to `true` enables the [Search](@/api/search.md) plugin (see [demo](@/guides/accessories-and-menus/searching-values.md)).
 
 **Default**: <code>false</code>  
 **Example**  
@@ -154,8 +154,8 @@ Gets search result cells class name.
 
 _search.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [AutoRowSize#enablePlugin](./auto-row-size/#enableplugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
+hook and if it returns `true` than the [AutoRowSize#enablePlugin](@/api/autoRowSize.md#enableplugin) method is called.
 
 
 
@@ -238,6 +238,6 @@ Sets search result cells class name. This class name will be added to each cell 
 
 _search.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings) is invoked.
 
 

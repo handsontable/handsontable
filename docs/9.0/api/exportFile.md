@@ -133,7 +133,7 @@ Exports table data as a string.
 
 _exportFile.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeinit)
-hook and if it returns `true` than the [ExportFile#enablePlugin](./export-file/#enableplugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
+hook and if it returns `true` than the [ExportFile#enablePlugin](@/api/exportFile.md#enableplugin) method is called.
 
 
