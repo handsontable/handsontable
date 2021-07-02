@@ -38,7 +38,7 @@ autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},
 You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
 height. __Note__, that this might have a negative impact on performance.
 
-To configure this plugin see [Options#autoRowSize](@/api/options.md#autorowsize).
+To configure this plugin see [Options#autoRowSize](@/api/metaSchema.md#autorowsize).
 
 **Example**  
 ```js
@@ -281,7 +281,7 @@ Gets the calculated row height.
 _autoRowSize.getSyncCalculationLimit() ⇒ number_
 
 Gets value which tells how many rows should be calculated synchronously (rest of the rows will be calculated
-asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize option (see [Options#autoRowSize](@/api/options.md#autorowsize)).
+asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize option (see [Options#autoRowSize](@/api/metaSchema.md#autorowsize)).
 
 
 
@@ -293,7 +293,7 @@ asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize
 
 _autoRowSize.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
 hook and if it returns `true` than the [AutoRowSize#enablePlugin](@/api/autoRowSize.md#enableplugin) method is called.
 
 

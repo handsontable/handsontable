@@ -16,7 +16,7 @@ The _CollapsibleColumns_ plugin allows collapsing of columns, covered by a heade
 
 Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
 
-Setting the [Options#collapsiblecolumns](@/api/options.md#collapsiblecolumns) property to `true` will display a "collapse/expand" button in every header
+Setting the [Options#collapsiblecolumns](@/api/metaSchema.md#collapsiblecolumns) property to `true` will display a "collapse/expand" button in every header
 with a defined `colspan` property.
 
 To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property as an array
@@ -200,7 +200,7 @@ Expands section at the provided coords.
 
 _collapsibleColumns.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
 hook and if it returns `true` than the [enablePlugin](#collapsiblecolumns+enableplugin) method is called.
 
 

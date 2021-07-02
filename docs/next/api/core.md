@@ -83,7 +83,7 @@ hot.addHook('beforeInit', myCallback);
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | `string` | Hook name (see [Hooks](@/api/hooks.md)). |
+| key | `string` | Hook name (see [Hooks](@/api/pluginHooks.md)). |
 | callback | `function` <br/> `Array` | Function or array of functions. |
 
 
@@ -107,7 +107,7 @@ hot.addHookOnce('beforeInit', myCallback);
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | `string` | Hook name (see [Hooks](@/api/hooks.md)). |
+| key | `string` | Hook name (see [Hooks](@/api/pluginHooks.md)). |
 | callback | `function` <br/> `Array` | Function or array of functions. |
 
 
@@ -899,7 +899,7 @@ __Note__: If data is reordered, sorted or trimmed, the currently visible order w
 
 _core.getDataType(rowFrom, columnFrom, rowTo, columnTo) ⇒ string_
 
-Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](@/api/options.md#type)).
+Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](@/api/metaSchema.md#type)).
 If there are cells with different types in the selected range, it returns `'mixed'`.
 
 __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.
@@ -1239,7 +1239,7 @@ Returns information about if this table is configured to display column headers.
 _core.hasHook(key) ⇒ boolean_
 
 Check if for a specified hook name there are added listeners (only for this Handsontable instance). All available
-hooks you will find [Hooks](@/api/hooks.md).
+hooks you will find [Hooks](@/api/pluginHooks.md).
 
 **See**: [Hooks#has](@/api/pluginHooks.md#has)  
 **Example**  
@@ -1400,7 +1400,7 @@ _core.populateFromArray(row, column, input, [endRow], [endCol], [source], [metho
 Populate cells at position with 2D input array (e.g. `[[1, 2], [3, 4]]`). Use `endRow`, `endCol` when you
 want to cut input when a certain row is reached.
 
-Optional `method` argument has the same effect as pasteMode option (see [Options#pasteMode](@/api/options.md#pastemode)).
+Optional `method` argument has the same effect as pasteMode option (see [Options#pasteMode](@/api/metaSchema.md#pastemode)).
 
 
 | Param | Type | Default | Description |
@@ -2164,7 +2164,7 @@ hot.updateSettings({
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| settings | `object` |  | New settings object (see [Options](@/api/options.md)). |
+| settings | `object` |  | New settings object (see [Options](@/api/metaSchema.md)). |
 | [init] | `boolean` | <code>false</code> | `optional` Internally used for in initialization mode. |
 
 

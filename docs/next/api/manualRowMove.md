@@ -12,7 +12,7 @@ editLink: false
 
 ## Description
 
-This plugin allows to change rows order. To make rows order persistent the [Options#persistentState](@/api/options.md#persistentstate)
+This plugin allows to change rows order. To make rows order persistent the [Options#persistentState](@/api/metaSchema.md#persistentstate)
 plugin should be enabled.
 
 API:
@@ -136,7 +136,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 _manualRowMove.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
 hook and if it returns `true` than the [enablePlugin](#manualrowmove+enableplugin) method is called.
 
 

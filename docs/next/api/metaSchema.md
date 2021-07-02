@@ -12,7 +12,7 @@ editLink: false
 
 ## Description
 
-Handsontable provides many options to choose from. They come either from the [Core](@/api/core.md) features or [plugins hooks](@/api/hooks.md).
+Handsontable provides many options to choose from. They come either from the [Core](@/api/core.md) features or [plugins hooks](@/api/pluginHooks.md).
 
 You can pass options in an object iteral notation (a comma-separated list of name-value pairs wrapped in curly braces) as a second argument of the Handsontable constructor.
 
@@ -650,7 +650,7 @@ Turns on [Column sorting](@/guides/rows/row-sorting.md). Can be either a boolean
 * `headerAction` - allow to click on the headers to sort
   * `true` = turn on possibility to click on the headers to sort
   * `false` = turn off possibility to click on the headers to sort
-* `sortEmptyCells` - how empty values ([more information here](@/api/options.md#allowempty)) should be handled
+* `sortEmptyCells` - how empty values ([more information here](@/api/metaSchema.md#allowempty)) should be handled
   * `true` = the table sorts empty cells
   * `false` = the table moves all empty cells to the end of the table
 * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
@@ -740,7 +740,7 @@ dynamically on each render).
 
 The default width for columns in the rendering process equals 50px.
 
-An `undefined` value is for detection in [Hooks#modifyColWidth](@/api/hooks.md#modifycolwidth) hook if plugin or setting changed the default size.
+An `undefined` value is for detection in [Hooks#modifyColWidth](@/api/pluginHooks.md#modifycolwidth) hook if plugin or setting changed the default size.
 
 Note: This option will forcely disable [AutoColumnSize](@/api/autoColumnSize.md) plugin.
 
@@ -1260,7 +1260,7 @@ dragToScroll: false,
 _options.dropdownMenu : boolean | object | Array&lt;string&gt;_
 
 This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
-the [Options#contextMenu](@/api/options.md#contextmenu), but is triggered by clicking the button in the header.
+the [Options#contextMenu](@/api/metaSchema.md#contextmenu), but is triggered by clicking the button in the header.
 
 **Default**: <code>undefined</code>  
 **Category**: [DropdownMenu](@/api/dropdownMenu.md)  
@@ -2049,7 +2049,7 @@ Turns on [Multi-column sorting](@/guides/rows/row-sorting.md). Can be either a b
 * `headerAction` - allow to click on the headers to sort
   * `true` = turn on possibility to click on the headers to sort
   * `false` = turn off possibility to click on the headers to sort
-* `sortEmptyCells` - how empty values ([more information here](@/api/options.md#allowempty)) should be handled
+* `sortEmptyCells` - how empty values ([more information here](@/api/metaSchema.md#allowempty)) should be handled
   * `true` = the table sorts empty cells
   * `false` = the table moves all empty cells to the end of the table
 * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
@@ -2521,7 +2521,7 @@ be set via either of those two plugins.
 The default height for rows in the rendering process equals 23px.
 Height should be equal or greater than 23px. Table is rendered incorrectly if height is less than 23px.
 
-An `undefined` value is for detection in [Hooks#modifyRowHeight](@/api/hooks.md#modifyrowheight) hook if plugin or setting changed the default size.
+An `undefined` value is for detection in [Hooks#modifyRowHeight](@/api/pluginHooks.md#modifyrowheight) hook if plugin or setting changed the default size.
 
 **Default**: <code>undefined</code>  
 **Category**: [Core](@/api/core.md)  

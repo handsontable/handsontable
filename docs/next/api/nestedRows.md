@@ -106,7 +106,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 _nestedRows.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
 hook and if it returns `true` than the [enablePlugin](#nestedrows+enableplugin) method is called.
 
 

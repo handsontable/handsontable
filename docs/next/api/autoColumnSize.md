@@ -54,7 +54,7 @@ Sampling accepts additional options:
   }
 ```
 
-To configure this plugin see [Options#autoColumnSize](@/api/options.md#autocolumnsize).
+To configure this plugin see [autoColumnSize](#options+autocolumnsize).
 
 **Example**  
 ```js
@@ -300,7 +300,7 @@ Gets the last visible column.
 _autoColumnSize.getSyncCalculationLimit() ⇒ number_
 
 Gets value which tells how many columns should be calculated synchronously (rest of the columns will be calculated
-asynchronously). The limit is calculated based on `syncLimit` set to `autoColumnSize` option (see [Options#autoColumnSize](@/api/options.md#autocolumnsize)).
+asynchronously). The limit is calculated based on `syncLimit` set to `autoColumnSize` option (see [Options#autoColumnSize](@/api/metaSchema.md#autocolumnsize)).
 
 
 
@@ -312,7 +312,7 @@ asynchronously). The limit is calculated based on `syncLimit` set to `autoColumn
 
 _autoColumnSize.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
 hook and if it returns `true` than the [#enablePlugin](@/api/autoColumnSize.md#enableplugin) method is called.
 
 

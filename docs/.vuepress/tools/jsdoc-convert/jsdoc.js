@@ -229,6 +229,10 @@ const unescapeRedundant = text => text
   .replace(/&quot;&#x27;/g, '"')
   .replace(/&#x27;&quot;/g, '"');
 
+const linkAliases = {
+  options: 'metaSchema',
+  hooks: 'pluginHooks'
+};
 const fixLinks = text => text
   .replace(/\[([^\]]*?)\]\(([^#)]*?)((#)([^)]*?))?\)/g,
     (all, label, target, _, hash = '', anchor = '') => { // @see https://regexr.com/611b8
@@ -247,8 +251,10 @@ const fixLinks = text => text
         return `[${label}](${target}${hash}${fixedAnchor})`;
       }
 
-      const targetCamelCase = !target.length ? '' : `${target[0].toLowerCase()}${target.substring(1)}`
+      let targetCamelCase = !target.length ? '' : `${target[0].toLowerCase()}${target.substring(1)}`
         .replace(/-([a-z])/g, (__, char) => char.toUpperCase());
+
+      targetCamelCase = linkAliases[targetCamelCase] || targetCamelCase;
 
       return `[${label}](@/api/${targetCamelCase}.md${hash}${fixedAnchor})`;
     }

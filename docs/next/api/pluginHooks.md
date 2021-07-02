@@ -20,7 +20,7 @@ editLink: false
 _afterAddChild(parent, element, index)_
 
 Fired by [NestedRows](@/api/nestedRows.md) plugin after adding a children to the NestedRows structure. This hook is fired when
-[Options#nestedRows](@/api/options.md#nestedrows) option is enabled.
+[Options#nestedRows](@/api/metaSchema.md#nestedrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -40,7 +40,7 @@ Fired by [NestedRows](@/api/nestedRows.md) plugin after adding a children to the
 _afterAutofill(fillData, sourceRange, targetRange, direction)_
 
 Fired by [Autofill](@/api/autofill.md) plugin after populating the data in the autofill feature. This hook is fired when
-[Options#fillHandle](@/api/options.md#fillhandle) option is enabled.
+[Options#fillHandle](@/api/metaSchema.md#fillhandle) option is enabled.
 
 **Since**: 8.0.0  
 
@@ -122,7 +122,7 @@ new Handsontable(element, {
 
 _afterColumnCollapse(currentCollapsedColumns, destinationCollapsedColumns, collapsePossible, successfullyCollapsed)_
 
-Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns collapse. This hook is fired when [Options#collapsibleColumns](@/api/options.md#collapsiblecolumns) option is enabled.
+Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns collapse. This hook is fired when [Options#collapsibleColumns](@/api/metaSchema.md#collapsiblecolumns) option is enabled.
 
 **Since**: 8.0.0  
 
@@ -143,7 +143,7 @@ Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns
 
 _afterColumnExpand(currentCollapsedColumns, destinationCollapsedColumns, expandPossible, successfullyExpanded)_
 
-Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns expand. This hook is fired when [Options#collapsibleColumns](@/api/options.md#collapsiblecolumns) option is enabled.
+Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns expand. This hook is fired when [Options#collapsibleColumns](@/api/metaSchema.md#collapsiblecolumns) option is enabled.
 
 **Since**: 8.0.0  
 
@@ -165,7 +165,7 @@ Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns
 _afterColumnMove(movedColumns, finalIndex, dropIndex, movePossible, orderChanged)_
 
 Fired by [ManualColumnMove](@/api/manualColumnMove.md) plugin after changing order of the visual indexes.
-This hook is fired when [Options#manualColumnMove](@/api/options.md#manualcolumnmove) option is enabled.
+This hook is fired when [Options#manualColumnMove](@/api/metaSchema.md#manualcolumnmove) option is enabled.
 
 
 | Param | Type | Description |
@@ -187,7 +187,7 @@ This hook is fired when [Options#manualColumnMove](@/api/options.md#manualcolumn
 _afterColumnResize(newSize, column, isDoubleClick)_
 
 Fired by [ManualColumnResize](@/api/manualColumnResize.md) plugin after rendering the table with modified column sizes. This hook is
-fired when [Options#manualColumnResize](@/api/options.md#manualcolumnresize) option is enabled.
+fired when [Options#manualColumnResize](@/api/metaSchema.md#manualcolumnresize) option is enabled.
 
 
 | Param | Type | Description |
@@ -206,8 +206,8 @@ fired when [Options#manualColumnResize](@/api/options.md#manualcolumnresize) opt
 
 _afterColumnSort(currentSortConfig, destinationSortConfigs)_
 
-Fired by [ColumnSorting](@/api/columnSorting.md) and [MultiColumnSorting](@/api/multiColumnSorting.md) plugins after sorting the column. This hook is fired when [Options#columnSorting](@/api/options.md#columnsorting)
-or [Options#multiColumnSorting](@/api/options.md#multicolumnsorting) option is enabled.
+Fired by [ColumnSorting](@/api/columnSorting.md) and [MultiColumnSorting](@/api/multiColumnSorting.md) plugins after sorting the column. This hook is fired when [Options#columnSorting](@/api/metaSchema.md#columnsorting)
+or [Options#multiColumnSorting](@/api/metaSchema.md#multicolumnsorting) option is enabled.
 
 
 | Param | Type | Description |
@@ -226,7 +226,7 @@ or [Options#multiColumnSorting](@/api/options.md#multicolumnsorting) option is e
 _afterContextMenuDefaultOptions(predefinedItems)_
 
 Fired each time user opens [ContextMenu](@/api/contextMenu.md) and after setting up the Context Menu's default options. These options are a collection
-which user can select by setting an array of keys or an array of objects in [Options#contextMenu](@/api/options.md#contextmenu) option.
+which user can select by setting an array of keys or an array of objects in [Options#contextMenu](@/api/metaSchema.md#contextmenu) option.
 
 
 | Param | Type | Description |
@@ -243,7 +243,7 @@ which user can select by setting an array of keys or an array of objects in [Opt
 
 _afterContextMenuHide(context)_
 
-Fired by [ContextMenu](@/api/contextMenu.md) plugin after hiding the Context Menu. This hook is fired when [Options#contextMenu](@/api/options.md#contextmenu)
+Fired by [ContextMenu](@/api/contextMenu.md) plugin after hiding the Context Menu. This hook is fired when [Options#contextMenu](@/api/metaSchema.md#contextmenu)
 option is enabled.
 
 
@@ -261,7 +261,7 @@ option is enabled.
 
 _afterContextMenuShow(context)_
 
-Fired by [ContextMenu](@/api/contextMenu.md) plugin after opening the Context Menu. This hook is fired when [Options#contextMenu](@/api/options.md#contextmenu)
+Fired by [ContextMenu](@/api/contextMenu.md) plugin after opening the Context Menu. This hook is fired when [Options#contextMenu](@/api/metaSchema.md#contextmenu)
 option is enabled.
 
 
@@ -279,7 +279,7 @@ option is enabled.
 
 _afterCopy(data, coords)_
 
-Fired by [CopyPaste](@/api/copyPaste.md) plugin after data are pasted into table. This hook is fired when [Options#copyPaste](@/api/options.md#copypaste)
+Fired by [CopyPaste](@/api/copyPaste.md) plugin after data are pasted into table. This hook is fired when [Options#copyPaste](@/api/metaSchema.md#copypaste)
 option is enabled.
 
 
@@ -299,7 +299,7 @@ option is enabled.
 _afterCopyLimit(selectedRows, selectedColumns, copyRowsLimit, copyColumnsLimit)_
 
 Fired by [CopyPaste](@/api/copyPaste.md) plugin after reaching the copy limit while copying data. This hook is fired when
-[Options#copyPaste](@/api/options.md#copypaste) option is enabled.
+[Options#copyPaste](@/api/metaSchema.md#copypaste) option is enabled.
 
 
 | Param | Type | Description |
@@ -358,7 +358,7 @@ Fired after created a new row.
 _afterCut(data, coords)_
 
 Fired by [CopyPaste](@/api/copyPaste.md) plugin after data was cut out from the table. This hook is fired when
-[Options#copyPaste](@/api/options.md#copypaste) option is enabled.
+[Options#copyPaste](@/api/metaSchema.md#copypaste) option is enabled.
 
 
 | Param | Type | Description |
@@ -401,7 +401,7 @@ Fired after destroying the Handsontable instance.
 _afterDetachChild(parent, element)_
 
 Fired by [NestedRows](@/api/nestedRows.md) plugin after detaching a child from its parent. This hook is fired when
-[Options#nestedRows](@/api/options.md#nestedrows) option is enabled.
+[Options#nestedRows](@/api/metaSchema.md#nestedrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -460,7 +460,7 @@ Fired inside the Walkontable's selection `draw` method. Can be used to add addit
 _afterDropdownMenuDefaultOptions(predefinedItems)_
 
 Fired by [DropdownMenu](@/api/dropdownMenu.md) plugin after setting up the Dropdown Menu's default options. These options are a
-collection which user can select by setting an array of keys or an array of objects in [Options#dropdownMenu](@/api/options.md#dropdownmenu)
+collection which user can select by setting an array of keys or an array of objects in [Options#dropdownMenu](@/api/metaSchema.md#dropdownmenu)
 option.
 
 
@@ -478,7 +478,7 @@ option.
 
 _afterDropdownMenuHide(instance)_
 
-Fired by [DropdownMenu](@/api/dropdownMenu.md) plugin after hiding the Dropdown Menu. This hook is fired when [Options#dropdownMenu](@/api/options.md#dropdownmenu)
+Fired by [DropdownMenu](@/api/dropdownMenu.md) plugin after hiding the Dropdown Menu. This hook is fired when [Options#dropdownMenu](@/api/metaSchema.md#dropdownmenu)
 option is enabled.
 
 
@@ -496,7 +496,7 @@ option is enabled.
 
 _afterDropdownMenuShow(dropdownMenu)_
 
-Fired by [DropdownMenu](@/api/dropdownMenu.md) plugin after opening the Dropdown Menu. This hook is fired when [Options#dropdownMenu](@/api/options.md#dropdownmenu)
+Fired by [DropdownMenu](@/api/dropdownMenu.md) plugin after opening the Dropdown Menu. This hook is fired when [Options#dropdownMenu](@/api/metaSchema.md#dropdownmenu)
 option is enabled.
 
 
@@ -515,7 +515,7 @@ option is enabled.
 _afterFilter(conditionsStack)_
 
 Fired by [Filters](@/api/filters.md) plugin after applying [filtering](@/guides/columns/column-filter.md).
-This hook is fired when [Options#filters](@/api/options.md#filters) option is enabled.
+This hook is fired when [Options#filters](@/api/metaSchema.md#filters) option is enabled.
 
 
 | Param | Type | Description |
@@ -639,7 +639,7 @@ Fired after getting the row header renderers.
 
 _afterHideColumns(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)_
 
-Fired by [HiddenColumns](@/api/hiddenColumns.md) plugin after marking the columns as hidden. Fired only if the [Options#hiddenColumns](@/api/options.md#hiddencolumns) option is enabled.
+Fired by [HiddenColumns](@/api/hiddenColumns.md) plugin after marking the columns as hidden. Fired only if the [Options#hiddenColumns](@/api/metaSchema.md#hiddencolumns) option is enabled.
 
 
 | Param | Type | Description |
@@ -659,7 +659,7 @@ Fired by [HiddenColumns](@/api/hiddenColumns.md) plugin after marking the column
 
 _afterHideRows(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)_
 
-Fired by [HiddenRows](@/api/hiddenRows.md) plugin after marking the rows as hidden. Fired only if the [Options#hiddenRows](@/api/options.md#hiddenrows) option is enabled.
+Fired by [HiddenRows](@/api/hiddenRows.md) plugin after marking the rows as hidden. Fired only if the [Options#hiddenRows](@/api/metaSchema.md#hiddenrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -741,7 +741,7 @@ Fired after new data is loaded (by `loadData` or `updateSettings` method) into t
 
 _afterMergeCells(cellRange, mergeParent, [auto])_
 
-Fired by [MergeCells](@/api/mergeCells.md) plugin after cell merging. This hook is fired when [Options#mergeCells](@/api/options.md#mergecells)
+Fired by [MergeCells](@/api/mergeCells.md) plugin after cell merging. This hook is fired when [Options#mergeCells](@/api/metaSchema.md#mergecells)
 option is enabled.
 
 
@@ -995,7 +995,7 @@ with coordinates `{row: 0, col: -1}`.
 _afterPaste(data, coords)_
 
 Fired by [CopyPaste](@/api/copyPaste.md) plugin after values are pasted into table. This hook is fired when
-[Options#copyPaste](@/api/options.md#copypaste) option is enabled.
+[Options#copyPaste](@/api/metaSchema.md#copypaste) option is enabled.
 
 
 | Param | Type | Description |
@@ -1031,7 +1031,7 @@ Handsontable.hooks.add('afterPluginsInitialized', myCallback);
 _afterRedo(action)_
 
 Fired by [UndoRedo](@/api/undoRedo.md) plugin after the redo action. Contains information about the action that is being redone.
-This hook is fired when [Options#undo](@/api/options.md#undo) option is enabled.
+This hook is fired when [Options#undo](@/api/metaSchema.md#undo) option is enabled.
 
 
 | Param | Type | Description |
@@ -1186,7 +1186,7 @@ Fired after finishing rendering the cell (after the renderer finishes).
 _afterRowMove(movedRows, finalIndex, dropIndex, movePossible, orderChanged)_
 
 Fired by [ManualRowMove](@/api/manualRowMove.md) plugin after changing the order of the visual indexes.
-This hook is fired when [Options#manualRowMove](@/api/options.md#manualrowmove) option is enabled.
+This hook is fired when [Options#manualRowMove](@/api/metaSchema.md#manualrowmove) option is enabled.
 
 
 | Param | Type | Description |
@@ -1208,7 +1208,7 @@ This hook is fired when [Options#manualRowMove](@/api/options.md#manualrowmove) 
 _afterRowResize(newSize, row, isDoubleClick)_
 
 Fired by [ManualRowResize](@/api/manualRowResize.md) plugin after rendering the table with modified row sizes. This hook is
-fired when [Options#manualRowResize](@/api/options.md#manualrowresize) option is enabled.
+fired when [Options#manualRowResize](@/api/metaSchema.md#manualrowresize) option is enabled.
 
 
 | Param | Type | Description |
@@ -1491,7 +1491,7 @@ Called when a sheet in the Formulas' engine instance is renamed.
 
 _afterTrimRow(currentTrimConfig, destinationTrimConfig, actionPossible, stateChanged) ⇒ undefined | boolean_
 
-Fired by [TrimRows](@/api/trimRows.md) plugin after trimming rows. This hook is fired when [Options#trimRows](@/api/options.md#trimrows) option is enabled.
+Fired by [TrimRows](@/api/trimRows.md) plugin after trimming rows. This hook is fired when [Options#trimRows](@/api/metaSchema.md#trimrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -1513,7 +1513,7 @@ Fired by [TrimRows](@/api/trimRows.md) plugin after trimming rows. This hook is 
 _afterUndo(action)_
 
 Fired by [UndoRedo](@/api/undoRedo.md) plugin after the undo action. Contains information about the action that is being undone.
-This hook is fired when [Options#undo](@/api/options.md#undo) option is enabled.
+This hook is fired when [Options#undo](@/api/metaSchema.md#undo) option is enabled.
 
 
 | Param | Type | Description |
@@ -1549,7 +1549,7 @@ Fired by [UndoRedo](@/api/undoRedo.md) plugin after changing undo stack.
 
 _afterUnhideColumns(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)_
 
-Fired by [HiddenColumns](@/api/hiddenColumns.md) plugin after marking the columns as not hidden. Fired only if the [Options#hiddenColumns](@/api/options.md#hiddencolumns) option is enabled.
+Fired by [HiddenColumns](@/api/hiddenColumns.md) plugin after marking the columns as not hidden. Fired only if the [Options#hiddenColumns](@/api/metaSchema.md#hiddencolumns) option is enabled.
 
 
 | Param | Type | Description |
@@ -1569,7 +1569,7 @@ Fired by [HiddenColumns](@/api/hiddenColumns.md) plugin after marking the column
 
 _afterUnhideRows(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)_
 
-Fired by [HiddenRows](@/api/hiddenRows.md) plugin after marking the rows as not hidden. Fired only if the [Options#hiddenRows](@/api/options.md#hiddenrows) option is enabled.
+Fired by [HiddenRows](@/api/hiddenRows.md) plugin after marking the rows as not hidden. Fired only if the [Options#hiddenRows](@/api/metaSchema.md#hiddenrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -1602,7 +1602,7 @@ keyboard events.
 
 _afterUnmergeCells(cellRange, [auto])_
 
-Fired by [MergeCells](@/api/mergeCells.md) plugin after unmerging the cells. This hook is fired when [Options#mergeCells](@/api/options.md#mergecells)
+Fired by [MergeCells](@/api/mergeCells.md) plugin after unmerging the cells. This hook is fired when [Options#mergeCells](@/api/metaSchema.md#mergecells)
 option is enabled.
 
 
@@ -1621,7 +1621,7 @@ option is enabled.
 
 _afterUntrimRow(currentTrimConfig, destinationTrimConfig, actionPossible, stateChanged) ⇒ undefined | boolean_
 
-Fired by [TrimRows](@/api/trimRows.md) plugin after untrimming rows. This hook is fired when [Options#trimRows](@/api/options.md#trimrows) option is enabled.
+Fired by [TrimRows](@/api/trimRows.md) plugin after untrimming rows. This hook is fired when [Options#trimRows](@/api/metaSchema.md#trimrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -1719,7 +1719,7 @@ Fired inside the `viewportRowCalculatorOverride` method. Allows modifying the ro
 _beforeAddChild(parent, element, index)_
 
 Fired by [NestedRows](@/api/nestedRows.md) plugin before adding a children to the NestedRows structure. This hook is fired when
-[Options#nestedRows](@/api/options.md#nestedrows) option is enabled.
+[Options#nestedRows](@/api/metaSchema.md#nestedrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -1739,7 +1739,7 @@ Fired by [NestedRows](@/api/nestedRows.md) plugin before adding a children to th
 _beforeAutofill(selectionData, sourceRange, targetRange, direction) ⇒ boolean | Array&lt;Array&gt;_
 
 Fired by [Autofill](@/api/autofill.md) plugin before populating the data in the autofill feature. This hook is fired when
-[Options#fillHandle](@/api/options.md#fillhandle) option is enabled.
+[Options#fillHandle](@/api/metaSchema.md#fillhandle) option is enabled.
 
 
 | Param | Type | Description |
@@ -1866,7 +1866,7 @@ Fired right before rendering the changes.
 
 _beforeColumnCollapse(currentCollapsedColumns, destinationCollapsedColumns, collapsePossible) ⇒ undefined | boolean_
 
-Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns collapse. This hook is fired when [Options#collapsibleColumns](@/api/options.md#collapsiblecolumns) option is enabled.
+Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns collapse. This hook is fired when [Options#collapsibleColumns](@/api/metaSchema.md#collapsiblecolumns) option is enabled.
 
 **Since**: 8.0.0  
 
@@ -1887,7 +1887,7 @@ Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns
 
 _beforeColumnExpand(currentCollapsedColumns, destinationCollapsedColumns, expandPossible) ⇒ undefined | boolean_
 
-Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns expand. This hook is fired when [Options#collapsibleColumns](@/api/options.md#collapsiblecolumns) option is enabled.
+Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns expand. This hook is fired when [Options#collapsibleColumns](@/api/metaSchema.md#collapsiblecolumns) option is enabled.
 
 **Since**: 8.0.0  
 
@@ -1909,7 +1909,7 @@ Fired by [CollapsibleColumns](@/api/collapsibleColumns.md) plugin before columns
 _beforeColumnMove(movedColumns, finalIndex, dropIndex, movePossible) ⇒ void | boolean_
 
 Fired by [ManualColumnMove](@/api/manualColumnMove.md) plugin before change order of the visual indexes. This hook is fired when
-[Options#manualColumnMove](@/api/options.md#manualcolumnmove) option is enabled.
+[Options#manualColumnMove](@/api/metaSchema.md#manualcolumnmove) option is enabled.
 
 
 | Param | Type | Description |
@@ -1931,7 +1931,7 @@ Fired by [ManualColumnMove](@/api/manualColumnMove.md) plugin before change orde
 _beforeColumnResize(newSize, column, isDoubleClick) ⇒ number_
 
 Fired by [ManualColumnResize](@/api/manualColumnResize.md) plugin before rendering the table with modified column sizes. This hook is
-fired when [Options#manualColumnResize](@/api/options.md#manualcolumnresize) option is enabled.
+fired when [Options#manualColumnResize](@/api/metaSchema.md#manualcolumnresize) option is enabled.
 
 
 | Param | Type | Description |
@@ -1954,7 +1954,7 @@ _beforeColumnSort(currentSortConfig, destinationSortConfigs) ⇒ boolean | void_
 Fired by [ColumnSorting](@/api/columnSorting.md) and [MultiColumnSorting](@/api/multiColumnSorting.md) plugins before sorting the column. If you return `false` value inside callback for hook, then sorting
 will be not applied by the Handsontable (useful for server-side sorting).
 
-This hook is fired when [Options#columnSorting](@/api/options.md#columnsorting) or [Options#multiColumnSorting](@/api/options.md#multicolumnsorting) option is enabled.
+This hook is fired when [Options#columnSorting](@/api/metaSchema.md#columnsorting) or [Options#multiColumnSorting](@/api/metaSchema.md#multicolumnsorting) option is enabled.
 
 
 | Param | Type | Description |
@@ -1992,7 +1992,7 @@ one of the menu item to by always visible.
 
 _beforeContextMenuShow(context)_
 
-Fired by [ContextMenu](@/api/contextMenu.md) plugin before opening the Context Menu. This hook is fired when [Options#contextMenu](@/api/options.md#contextmenu)
+Fired by [ContextMenu](@/api/contextMenu.md) plugin before opening the Context Menu. This hook is fired when [Options#contextMenu](@/api/metaSchema.md#contextmenu)
 option is enabled.
 
 
@@ -2102,7 +2102,7 @@ Fired before created a new row.
 _beforeCut(data, coords) ⇒ \*_
 
 Fired by [CopyPaste](@/api/copyPaste.md) plugin before copying the values into clipboard and before clearing values of
-the selected cells. This hook is fired when [Options#copyPaste](@/api/options.md#copypaste) option is enabled.
+the selected cells. This hook is fired when [Options#copyPaste](@/api/metaSchema.md#copypaste) option is enabled.
 
 **Example**  
 ```js
@@ -2140,7 +2140,7 @@ new Handsontable(element, {
 _beforeDetachChild(parent, element)_
 
 Fired by [NestedRows](@/api/nestedRows.md) plugin before detaching a child from its parent. This hook is fired when
-[Options#nestedRows](@/api/options.md#nestedrows) option is enabled.
+[Options#nestedRows](@/api/metaSchema.md#nestedrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -2195,7 +2195,7 @@ up one of the menu item to by always visible.
 
 _beforeDropdownMenuShow(dropdownMenu)_
 
-Fired by [DropdownMenu](@/api/dropdownMenu.md) plugin before opening the dropdown menu. This hook is fired when [Options#dropdownMenu](@/api/options.md#dropdownmenu)
+Fired by [DropdownMenu](@/api/dropdownMenu.md) plugin before opening the dropdown menu. This hook is fired when [Options#dropdownMenu](@/api/metaSchema.md#dropdownmenu)
 option is enabled.
 
 
@@ -2214,7 +2214,7 @@ option is enabled.
 _beforeFilter(conditionsStack) ⇒ boolean_
 
 Fired by [Filters](@/api/filters.md) plugin before applying [filtering](@/guides/columns/column-filter.md).
-This hook is fired when [Options#filters](@/api/options.md#filters) option is enabled.
+This hook is fired when [Options#filters](@/api/metaSchema.md#filters) option is enabled.
 
 
 | Param | Type | Description |
@@ -2251,7 +2251,7 @@ Fired before getting cell settings.
 
 _beforeHideColumns(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean_
 
-Fired by [HiddenColumns](@/api/hiddenColumns.md) plugin before marking the columns as hidden. Fired only if the [Options#hiddenColumns](@/api/options.md#hiddencolumns) option is enabled.
+Fired by [HiddenColumns](@/api/hiddenColumns.md) plugin before marking the columns as hidden. Fired only if the [Options#hiddenColumns](@/api/metaSchema.md#hiddencolumns) option is enabled.
 Returning `false` in the callback will prevent the hiding action from completing.
 
 
@@ -2272,7 +2272,7 @@ Returning `false` in the callback will prevent the hiding action from completing
 
 _beforeHideRows(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean_
 
-Fired by [HiddenRows](@/api/hiddenRows.md) plugin before marking the rows as hidden. Fired only if the [Options#hiddenRows](@/api/options.md#hiddenrows) option is enabled.
+Fired by [HiddenRows](@/api/hiddenRows.md) plugin before marking the rows as hidden. Fired only if the [Options#hiddenRows](@/api/metaSchema.md#hiddenrows) option is enabled.
 Returning `false` in the callback will prevent the hiding action from completing.
 
 
@@ -2427,7 +2427,7 @@ Fired before new data is loaded (by `loadData` or `updateSettings` method) into 
 
 _beforeMergeCells(cellRange, [auto])_
 
-Fired by [MergeCells](@/api/mergeCells.md) plugin before cell merging. This hook is fired when [Options#mergeCells](@/api/options.md#mergecells)
+Fired by [MergeCells](@/api/mergeCells.md) plugin before cell merging. This hook is fired when [Options#mergeCells](@/api/metaSchema.md#mergecells)
 option is enabled.
 
 
@@ -2545,7 +2545,7 @@ Fired after the user clicked a cell.
 _beforePaste(data, coords) ⇒ \*_
 
 Fired by [CopyPaste](@/api/copyPaste.md) plugin before values are pasted into table. This hook is fired when
-[Options#copyPaste](@/api/options.md#copypaste) option is enabled.
+[Options#copyPaste](@/api/metaSchema.md#copypaste) option is enabled.
 
 **Example**  
 ```js
@@ -2583,7 +2583,7 @@ new Handsontable(example, {
 _beforeRedo(action) ⇒ \* | boolean_
 
 Fired by [UndoRedo](@/api/undoRedo.md) plugin before the redo action. Contains information about the action that is being redone.
-This hook is fired when [Options#undo](@/api/options.md#undo) option is enabled.
+This hook is fired when [Options#undo](@/api/metaSchema.md#undo) option is enabled.
 
 
 | Param | Type | Description |
@@ -2757,7 +2757,7 @@ Fired before starting rendering the cell.
 _beforeRowMove(movedRows, finalIndex, dropIndex, movePossible) ⇒ \* | boolean_
 
 Fired by [ManualRowMove](@/api/manualRowMove.md) plugin before changing the order of the visual indexes. This hook is fired when
-[Options#manualRowMove](@/api/options.md#manualrowmove) option is enabled.
+[Options#manualRowMove](@/api/metaSchema.md#manualrowmove) option is enabled.
 
 
 | Param | Type | Description |
@@ -2779,7 +2779,7 @@ Fired by [ManualRowMove](@/api/manualRowMove.md) plugin before changing the orde
 _beforeRowResize(newSize, row, isDoubleClick) ⇒ number_
 
 Fired by [ManualRowResize](@/api/manualRowResize.md) plugin before rendering the table with modified row sizes. This hook is
-fired when [Options#manualRowResize](@/api/options.md#manualrowresize) option is enabled.
+fired when [Options#manualRowResize](@/api/metaSchema.md#manualrowresize) option is enabled.
 
 
 | Param | Type | Description |
@@ -2903,7 +2903,7 @@ Fired before the logic of handling a touch scroll, when user started scrolling o
 
 _beforeTrimRow(currentTrimConfig, destinationTrimConfig, actionPossible) ⇒ undefined | boolean_
 
-Fired by [TrimRows](@/api/trimRows.md) plugin before trimming rows. This hook is fired when [Options#trimRows](@/api/options.md#trimrows) option is enabled.
+Fired by [TrimRows](@/api/trimRows.md) plugin before trimming rows. This hook is fired when [Options#trimRows](@/api/metaSchema.md#trimrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -2924,7 +2924,7 @@ Fired by [TrimRows](@/api/trimRows.md) plugin before trimming rows. This hook is
 _beforeUndo(action) ⇒ \* | boolean_
 
 Fired by [UndoRedo](@/api/undoRedo.md) plugin before the undo action. Contains information about the action that is being undone.
-This hook is fired when [Options#undo](@/api/options.md#undo) option is enabled.
+This hook is fired when [Options#undo](@/api/metaSchema.md#undo) option is enabled.
 
 
 | Param | Type | Description |
@@ -2962,7 +2962,7 @@ Fired by [UndoRedo](@/api/undoRedo.md) plugin before changing undo stack.
 
 _beforeUnhideColumns(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean_
 
-Fired by [HiddenColumns](@/api/hiddenColumns.md) plugin before marking the columns as not hidden. Fired only if the [Options#hiddenColumns](@/api/options.md#hiddencolumns) option is enabled.
+Fired by [HiddenColumns](@/api/hiddenColumns.md) plugin before marking the columns as not hidden. Fired only if the [Options#hiddenColumns](@/api/metaSchema.md#hiddencolumns) option is enabled.
 Returning `false` in the callback will prevent the column revealing action from completing.
 
 
@@ -2983,7 +2983,7 @@ Returning `false` in the callback will prevent the column revealing action from 
 
 _beforeUnhideRows(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean_
 
-Fired by [HiddenRows](@/api/hiddenRows.md) plugin before marking the rows as not hidden. Fired only if the [Options#hiddenRows](@/api/options.md#hiddenrows) option is enabled.
+Fired by [HiddenRows](@/api/hiddenRows.md) plugin before marking the rows as not hidden. Fired only if the [Options#hiddenRows](@/api/metaSchema.md#hiddenrows) option is enabled.
 Returning `false` in the callback will prevent the row revealing action from completing.
 
 
@@ -3004,7 +3004,7 @@ Returning `false` in the callback will prevent the row revealing action from com
 
 _beforeUnmergeCells(cellRange, [auto])_
 
-Fired by [MergeCells](@/api/mergeCells.md) plugin before unmerging the cells. This hook is fired when [Options#mergeCells](@/api/options.md#mergecells)
+Fired by [MergeCells](@/api/mergeCells.md) plugin before unmerging the cells. This hook is fired when [Options#mergeCells](@/api/metaSchema.md#mergecells)
 option is enabled.
 
 
@@ -3023,7 +3023,7 @@ option is enabled.
 
 _beforeUntrimRow(currentTrimConfig, destinationTrimConfig, actionPossible) ⇒ undefined | boolean_
 
-Fired by [TrimRows](@/api/trimRows.md) plugin before untrimming rows. This hook is fired when [Options#trimRows](@/api/options.md#trimrows) option is enabled.
+Fired by [TrimRows](@/api/trimRows.md) plugin before untrimming rows. This hook is fired when [Options#trimRows](@/api/metaSchema.md#trimrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -3129,7 +3129,7 @@ Fired by [AutoColumnSize](@/api/autoColumnSize.md) plugin within SampleGenerator
 
 _modifyAutofillRange(startArea, entireArea)_
 
-Fired by [Autofill](@/api/autofill.md) plugin after setting range of autofill. This hook is fired when [Options#fillHandle](@/api/options.md#fillhandle)
+Fired by [Autofill](@/api/autofill.md) plugin after setting range of autofill. This hook is fired when [Options#fillHandle](@/api/metaSchema.md#fillhandle)
 option is enabled.
 
 
@@ -3378,7 +3378,7 @@ Fired when the start of the selection is being modified (e.g. Moving the selecti
 _persistentStateLoad(key, valuePlaceholder)_
 
 Fired by [PersistentState](@/api/persistentState.md) plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
-[Options#persistentState](@/api/options.md#persistentstate) option is enabled.
+[Options#persistentState](@/api/metaSchema.md#persistentstate) option is enabled.
 
 
 | Param | Type | Description |
@@ -3397,7 +3397,7 @@ Fired by [PersistentState](@/api/persistentState.md) plugin, after loading value
 _persistentStateReset([key])_
 
 Fired by [PersistentState](@/api/persistentState.md) plugin after resetting data from local storage. If no key is given, all values associated with table will be cleared.
-This hook is fired when [Options#persistentState](@/api/options.md#persistentstate) option is enabled.
+This hook is fired when [Options#persistentState](@/api/metaSchema.md#persistentstate) option is enabled.
 
 
 | Param | Type | Description |
@@ -3415,7 +3415,7 @@ This hook is fired when [Options#persistentState](@/api/options.md#persistentsta
 _persistentStateSave(key, value)_
 
 Fired by [PersistentState](@/api/persistentState.md) plugin, after saving value under given key in browser local storage. This hook is fired when
-[Options#persistentState](@/api/options.md#persistentstate) option is enabled.
+[Options#persistentState](@/api/metaSchema.md#persistentstate) option is enabled.
 
 
 | Param | Type | Description |
