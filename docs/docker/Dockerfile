@@ -34,4 +34,7 @@ FROM nginx:alpine
 
 # set up static content
 WORKDIR /usr/share/nginx
+
+COPY --from=build ./app/docs/docker/default.conf /etc/nginx/conf.d/default.conf
+COPY --from=build ./app/docs/docker/redirects.conf /etc/nginx/redirects.conf
 COPY --from=build ./app/docs/.vuepress/dist/docs ./html
