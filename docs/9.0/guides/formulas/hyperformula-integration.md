@@ -1,8 +1,8 @@
 ---
-title: Formula calculation
-metaTitle: Formula calculation - Guide - Handsontable Documentation
-permalink: /9.0/formula-calculation
-canonicalUrl: /formula-calculation
+title: HyperFormula integration
+metaTitle: HyperFormula integration - Guide - Handsontable Documentation
+permalink: /9.0/hyperformula-integration
+canonicalUrl: /hyperformula-integration
 tags:
 - formula
 - excel
@@ -14,12 +14,13 @@ tags:
 - function
 ---
 
-# Formula calculation
+# HyperFormula integration
 
 [[toc]]
 
 ::: tip
-In Handsontable 9, we introduced a new formula plugin. To upgrade your Handsontable version from 8 to 9, see the [migration guide](@/guides/upgrade-and-migration/migrating-from-8.4-to-9.0.md).
+To use HyperFormula within Handsontable's default `formulas` plugin, you only need your existing [Handsontable license key](@/guides/getting-started/license-key.md).<br><br>
+To use HyperFormula independently from Handsontable, you need a license key dedicated to HyperFormula. For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
 :::
 
 ## Overview
@@ -98,8 +99,7 @@ new Handsontable(container1, {
   formulas: {
     engine: hyperformulaInstance,
     sheetName: 'Sheet1'
-  },
-  licenseKey: 'non-commercial-and-evaluation'
+  }
 });
 
 const container2 = document.getElementById('example-basic-multi-sheet-2');
@@ -110,8 +110,7 @@ new Handsontable(container2, {
   formulas: {
     engine: hyperformulaInstance,
     sheetName: 'Sheet2'
-  },
-  licenseKey: 'non-commercial-and-evaluation'
+  }
 });
 ```
 :::
@@ -236,8 +235,7 @@ new Handsontable(container, {
   colHeaders: ['Qty', 'Unit price', 'Discount', 'Freight', 'Total due (fx)'],
   fixedRowsBottom: 2,
   stretchH: 'all',
-  height: 500,
-  licenseKey: 'non-commercial-and-evaluation'
+  height: 500
 });
 ```
 :::
@@ -412,8 +410,7 @@ const hotNamedExpressions = new Handsontable(container, {
         expression: 100
       }
     ]
-  },
-  licenseKey: 'non-commercial-and-evaluation'
+  }
 });
 
 const input = document.getElementById('named-expressions-calculate-input');
