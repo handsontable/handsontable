@@ -4,17 +4,18 @@ const buildMode = process.env.BUILD_MODE;
 
 module.exports = (options, context) => {
   const pluginName = 'hot/assets-versioning';
-  const defaultPluginOptions = {
+
+  return {
     name: pluginName,
 
     ready() {
-      context.themeConfig.sidebar = helpers.getSidebars(buildMode)
-    }
-  }
+      context.themeConfig.sidebar = helpers.getSidebars(buildMode);
+    },
 
-  return Object.assign(defaultPluginOptions, {
     /**
      * Extends and updates a page with additional information for versioning.
+     *
+     * @param {object} $page The $page value of the page you’re currently reading.
      */
     extendPageData($page) {
       const formatDate = (dateString) => {
@@ -39,5 +40,5 @@ module.exports = (options, context) => {
         $page.frontmatter.canonicalUrl = `https://handsontable.com/docs${$page.frontmatter.canonicalUrl}`;
       }
     }
-  })
-}
+  };
+};
