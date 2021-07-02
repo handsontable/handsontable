@@ -110,7 +110,7 @@ new Handsontable(element, {
 | Param | Type | Description |
 | --- | --- | --- |
 | changes | `Array` | 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. |
-| [source] | `string` | `optional` String that identifies source of hook call ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of hook call ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 
@@ -171,8 +171,8 @@ This hook is fired when [Options#manualColumnMove](@/api/options.md#manualcolumn
 | Param | Type | Description |
 | --- | --- | --- |
 | movedColumns | `Array` | Array of visual column indexes to be moved. |
-| finalIndex | `number` | Visual column index, being a start index for the moved columns.                            Points to where the elements will be placed after the moving action.                            To check visualization of final index please take a look at                            [documentation](@/guides/columns/column-moving.md]. |
-| dropIndex | `number` <br/> `undefined` | Visual column index, being a drop index for the moved columns.                                     Points to where we are going to drop the moved elements.                                     To check visualization of drop index please take a look at                                     [documentation](@/guides/columns/column-moving.md].                                     It's `undefined` when `dragColumns` function wasn't called. |
+| finalIndex | `number` | Visual column index, being a start index for the moved columns.                            Points to where the elements will be placed after the moving action.                            To check visualization of final index please take a look at                            [documentation](@/guides/columns/column-moving.md). |
+| dropIndex | `number` <br/> `undefined` | Visual column index, being a drop index for the moved columns.                                     Points to where we are going to drop the moved elements.                                     To check visualization of drop index please take a look at                                     [documentation](@/guides/columns/column-moving.md).                                     It's `undefined` when `dragColumns` function wasn't called. |
 | movePossible | `boolean` | Indicates if it was possible to move columns to the desired position. |
 | orderChanged | `boolean` | Indicates if order of columns was changed by move. |
 
@@ -326,7 +326,7 @@ Fired after created a new column.
 | --- | --- | --- |
 | index | `number` | Represents the visual index of first newly created column in the data source. |
 | amount | `number` | Number of newly created columns in the data source. |
-| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 
@@ -345,7 +345,7 @@ Fired after created a new row.
 | --- | --- | --- |
 | index | `number` | Represents the visual index of first newly created row in the data source array. |
 | amount | `number` | Number of newly created rows in the data source array. |
-| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 
@@ -514,7 +514,7 @@ option is enabled.
 
 _afterFilter(conditionsStack)_
 
-Fired by [Filters](@/api/filters.md) plugin after applying [filtering](@/guides/columns/column-filter.md].
+Fired by [Filters](@/api/filters.md) plugin after applying [filtering](@/guides/columns/column-filter.md).
 This hook is fired when [Options#filters](@/api/options.md#filters) option is enabled.
 
 
@@ -1114,7 +1114,7 @@ Fired after one or more columns are removed.
 | index | `number` | Visual index of starter column. |
 | amount | `number` | An amount of removed columns. |
 | physicalColumns | `Array<number>` | An array of physical columns removed from the data source. |
-| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 
@@ -1134,7 +1134,7 @@ Fired after one or more rows are removed.
 | index | `number` | Visual index of starter row. |
 | amount | `number` | An amount of removed rows. |
 | physicalRows | `Array<number>` | An array of physical rows removed from the data source. |
-| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 
@@ -1192,8 +1192,8 @@ This hook is fired when [Options#manualRowMove](@/api/options.md#manualrowmove) 
 | Param | Type | Description |
 | --- | --- | --- |
 | movedRows | `Array` | Array of visual row indexes to be moved. |
-| finalIndex | `number` | Visual row index, being a start index for the moved rows.                            Points to where the elements will be placed after the moving action.                            To check visualization of final index please take a look at                            [documentation](@/guides/rows/row-moving.md]. |
-| dropIndex | `number` <br/> `undefined` | Visual row index, being a drop index for the moved rows.                                     Points to where we are going to drop the moved elements.                                     To check visualization of drop index please take a look at                                     [documentation](@/guides/rows/row-moving.md].                                     It's `undefined` when `dragRows` function wasn't called. |
+| finalIndex | `number` | Visual row index, being a start index for the moved rows.                            Points to where the elements will be placed after the moving action.                            To check visualization of final index please take a look at                            [documentation](@/guides/rows/row-moving.md). |
+| dropIndex | `number` <br/> `undefined` | Visual row index, being a drop index for the moved rows.                                     Points to where we are going to drop the moved elements.                                     To check visualization of drop index please take a look at                                     [documentation](@/guides/rows/row-moving.md).                                     It's `undefined` when `dragRows` function wasn't called. |
 | movePossible | `boolean` | Indicates if it was possible to move rows to the desired position. |
 | orderChanged | `boolean` | Indicates if order of rows was changed by move. |
 
@@ -1385,7 +1385,7 @@ Fired after cell data was changed.
 | Param | Type | Description |
 | --- | --- | --- |
 | changes | `Array` | An array of changes in format `[[row, column, oldValue, value], ...]`. |
-| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 
@@ -1404,7 +1404,7 @@ Called only when `setDataAtRowProp` was executed.
 | Param | Type | Description |
 | --- | --- | --- |
 | changes | `Array` | An array of changes in format `[[row, prop, oldValue, value], ...]`. |
-| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 
@@ -1671,7 +1671,7 @@ __Returning false from the callback will mark the cell as invalid__.
 | value | `*` | The value in question. |
 | row | `number` | Visual row index. |
 | prop | `string` <br/> `number` | Property name / visual column index. |
-| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 **Returns**: `void` | `boolean` - If `false` the cell will be marked as invalid, `true` otherwise.  
@@ -1835,7 +1835,7 @@ new Handsontable(element, {
 | Param | Type | Description |
 | --- | --- | --- |
 | changes | `Array<Array>` | 2D array containing information about each of the edited cells. |
-| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 **Returns**: `void` | `boolean` - If `false` all changes were cancelled, `true` otherwise.  
@@ -1854,7 +1854,7 @@ Fired right before rendering the changes.
 | Param | Type | Description |
 | --- | --- | --- |
 | changes | `Array<Array>` | Array in form of `[row, prop, oldValue, newValue]`. |
-| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 
@@ -1915,8 +1915,8 @@ Fired by [ManualColumnMove](@/api/manualColumnMove.md) plugin before change orde
 | Param | Type | Description |
 | --- | --- | --- |
 | movedColumns | `Array` | Array of visual column indexes to be moved. |
-| finalIndex | `number` | Visual column index, being a start index for the moved columns.                            Points to where the elements will be placed after the moving action.                            To check visualization of final index please take a look at                            [documentation](@/guides/columns/column-moving.md]. |
-| dropIndex | `number` <br/> `undefined` | Visual column index, being a drop index for the moved columns.                                     Points to where we are going to drop the moved elements. To check                                     visualization of drop index please take a look at                                     [documentation](@/guides/columns/column-moving.md].                                     It's `undefined` when `dragColumns` function wasn't called. |
+| finalIndex | `number` | Visual column index, being a start index for the moved columns.                            Points to where the elements will be placed after the moving action.                            To check visualization of final index please take a look at                            [documentation](@/guides/columns/column-moving.md). |
+| dropIndex | `number` <br/> `undefined` | Visual column index, being a drop index for the moved columns.                                     Points to where we are going to drop the moved elements. To check                                     visualization of drop index please take a look at                                     [documentation](@/guides/columns/column-moving.md).                                     It's `undefined` when `dragColumns` function wasn't called. |
 | movePossible | `boolean` | Indicates if it's possible to move rows to the desired position. |
 
 
@@ -2068,7 +2068,7 @@ new Handsontable(element, {
 | --- | --- | --- |
 | index | `number` | Represents the visual index of first newly created column in the data source array. |
 | amount | `number` | Number of newly created columns in the data source array. |
-| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 **Returns**: `*` - If `false` then creating columns is cancelled.  
@@ -2088,7 +2088,7 @@ Fired before created a new row.
 | --- | --- | --- |
 | index | `number` | Represents the visual index of first newly created row in the data source array. |
 | amount | `number` | Number of newly created rows in the data source array. |
-| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 **Returns**: `*` | `boolean` - If false is returned the action is canceled.  
@@ -2213,7 +2213,7 @@ option is enabled.
 
 _beforeFilter(conditionsStack) ⇒ boolean_
 
-Fired by [Filters](@/api/filters.md) plugin before applying [filtering](@/guides/columns/column-filter.md].
+Fired by [Filters](@/api/filters.md) plugin before applying [filtering](@/guides/columns/column-filter.md).
 This hook is fired when [Options#filters](@/api/options.md#filters) option is enabled.
 
 
@@ -2682,7 +2682,7 @@ Fired before one or more columns are about to be removed.
 | index | `number` | Visual index of starter column. |
 | amount | `number` | Amount of columns to be removed. |
 | physicalColumns | `Array<number>` | An array of physical columns removed from the data source. |
-| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 **Returns**: `*` | `boolean` - If false is returned the action is canceled.  
@@ -2703,7 +2703,7 @@ Fired when one or more rows are about to be removed.
 | index | `number` | Visual index of starter row. |
 | amount | `number` | Amount of rows to be removed. |
 | physicalRows | `Array<number>` | An array of physical rows removed from the data source. |
-| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 **Returns**: `*` | `boolean` - If false is returned the action is canceled.  
@@ -2763,8 +2763,8 @@ Fired by [ManualRowMove](@/api/manualRowMove.md) plugin before changing the orde
 | Param | Type | Description |
 | --- | --- | --- |
 | movedRows | `Array` | Array of visual row indexes to be moved. |
-| finalIndex | `number` | Visual row index, being a start index for the moved rows.                            Points to where the elements will be placed after the moving action.                            To check visualization of final index please take a look at                            [documentation](@/guides/rows/row-moving.md]. |
-| dropIndex | `number` <br/> `undefined` | Visual row index, being a drop index for the moved rows.                                     Points to where we are going to drop the moved elements.                                     To check visualization of drop index please take a look at                                     [documentation](@/guides/rows/row-moving.md].                                     It's `undefined` when `dragRows` function wasn't called. |
+| finalIndex | `number` | Visual row index, being a start index for the moved rows.                            Points to where the elements will be placed after the moving action.                            To check visualization of final index please take a look at                            [documentation](@/guides/rows/row-moving.md). |
+| dropIndex | `number` <br/> `undefined` | Visual row index, being a drop index for the moved rows.                                     Points to where we are going to drop the moved elements.                                     To check visualization of drop index please take a look at                                     [documentation](@/guides/rows/row-moving.md).                                     It's `undefined` when `dragRows` function wasn't called. |
 | movePossible | `boolean` | Indicates if it's possible to move rows to the desired position. |
 
 
@@ -2949,7 +2949,7 @@ Fired by [UndoRedo](@/api/undoRedo.md) plugin before changing undo stack.
 | Param | Type | Description |
 | --- | --- | --- |
 | doneActions | `Array` | Stack of actions which may be undone. |
-| [source] | `string` | `optional` String that identifies source of action                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of action                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 **Returns**: `*` | `boolean` - If false is returned the action of changing undo stack is canceled.  
@@ -3054,7 +3054,7 @@ __Note:__ this will not affect values of changes. This will change value *ONLY* 
 | value | `*` | Value of the cell. |
 | row | `number` | Visual row index. |
 | prop | `string` <br/> `number` | Property name / column index. |
-| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument]). |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definitionforsourceargument)). |
 
 
 
@@ -3432,7 +3432,7 @@ Fired by [PersistentState](@/api/persistentState.md) plugin, after saving value 
 
 :::
 
-_hooks.add(key, callback, [context]) ⇒ [Hooks](@/api/pluginHooks.md]_
+_hooks.add(key, callback, [context]) ⇒ [Hooks](@/api/pluginHooks.md)_
 
 Adds a listener (globally or locally) to a specified hook name.
 If the `context` parameter is provided, the hook will be added only to the instance it references.
@@ -3440,7 +3440,7 @@ Otherwise, the callback will be used everytime the hook fires on any Handsontabl
 You can provide an array of callback functions as the `callback` argument, this way they will all be fired
 once the hook is triggered.
 
-**See**: [Core#addHook](@/api/core.md#addhook]  
+**See**: [Core#addHook](@/api/core.md#addhook)  
 **Example**  
 ```js
 // single callback, added locally
@@ -3463,7 +3463,7 @@ Handsontable.hooks.add('beforeInit', [myCallback, anotherCallback]);
 | [context] | `object` | <code>null</code> | `optional` The context for the hook callback to be added - a Handsontable instance or leave empty. |
 
 
-**Returns**: [`Hooks`](#hooks] - Instance of Hooks.  
+**Returns**: [`Hooks`](#hooks) - Instance of Hooks.  
 
 ### createEmptyBucket
   
@@ -3663,7 +3663,7 @@ _hooks.once(key, callback, [context])_
 
 Adds a listener to a specified hook. After the hook runs this listener will be automatically removed from the bucket.
 
-**See**: [Core#addHookOnce](@/api/core.md#addhookonce]  
+**See**: [Core#addHookOnce](@/api/core.md#addhookonce)  
 **Example**  
 ```js
 Handsontable.hooks.once('beforeInit', myCallback, hotInstance);
@@ -3687,7 +3687,7 @@ _hooks.register(key)_
 
 Registers a hook name (adds it to the list of the known hook names). Used by plugins.
 It is not necessary to call register, but if you use it, your plugin hook will be used returned by
-the `getRegistered` method. (which itself is used in the [demo](@/guides/getting-started/events-and-hooks.md]).
+the `getRegistered` method. (which itself is used in the [demo](@/guides/getting-started/events-and-hooks.md)).
 
 **Example**  
 ```js
@@ -3710,7 +3710,7 @@ _hooks.remove(key, callback, [context]) ⇒ boolean_
 
 Removes a listener from a hook with a given name. If the `context` argument is provided, it removes a listener from a local hook assigned to the given Handsontable instance.
 
-**See**: [Core#removeHook](@/api/core.md#removehook]  
+**See**: [Core#removeHook](@/api/core.md#removehook)  
 **Example**  
 ```js
 Handsontable.hooks.remove('beforeInit', myCallback);
@@ -3736,7 +3736,7 @@ _hooks.run(context, key, [p1], [p2], [p3], [p4], [p5], [p6]) ⇒ \*_
 Runs all local and global callbacks assigned to the hook identified by the `key` parameter.
 It returns either a return value from the last called callback or the first parameter (`p1`) passed to the `run` function.
 
-**See**: [Core#runHooks](@/api/core.md#runhooks]  
+**See**: [Core#runHooks](@/api/core.md#runhooks)  
 **Example**  
 ```js
 Handsontable.hooks.run(hot, 'beforeInit');

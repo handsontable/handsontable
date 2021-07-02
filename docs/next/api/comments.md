@@ -72,7 +72,7 @@ If `true`, enables the [Comments](@/api/comments.md) plugin, which enables an op
 To initialize Handsontable with predefined comments, provide cell coordinates and comment text values in a form of
 an array.
 
-See [Comments](@/guides/cell-features/comments.md] demo for examples.
+See [Comments](@/guides/cell-features/comments.md) demo for examples.
 
 **Default**: <code>false</code>  
 **Example**  
@@ -169,7 +169,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 _comments.getComment() ⇒ string | undefined_
 
-Gets comment from a cell according to previously set range (see [setRange](#comments+setrange]).
+Gets comment from a cell according to previously set range (see [setRange](#comments+setrange)).
 
 
 **Returns**: `string` | `undefined` - Returns a content of the comment.  
@@ -233,7 +233,7 @@ Hides the comment editor.
 _comments.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
-hook and if it returns `true` than the [enablePlugin](#comments+enableplugin] method is called.
+hook and if it returns `true` than the [enablePlugin](#comments+enableplugin) method is called.
 
 
 
@@ -262,7 +262,7 @@ Refreshes comment editor position and styling.
 
 _comments.removeComment([forceRender])_
 
-Removes a comment from a cell according to previously set range (see [setRange](#comments+setrange]).
+Removes a comment from a cell according to previously set range (see [setRange](#comments+setrange)).
 
 
 | Param | Type | Default | Description |
@@ -298,7 +298,7 @@ Removes a comment from a specified cell.
 
 _comments.setComment(value)_
 
-Sets a comment for a cell according to the previously set range (see [setRange](#comments+setrange]).
+Sets a comment for a cell according to the previously set range (see [setRange](#comments+setrange)).
 
 
 | Param | Type | Description |
@@ -334,7 +334,7 @@ Sets a comment for a specified cell.
 
 _comments.setRange(range)_
 
-Sets the current cell range to be able to use general methods like [setComment](#comments+setcomment], [removeComment](#comments+removecomment], [show](#comments+show].
+Sets the current cell range to be able to use general methods like [setComment](#comments+setcomment), [removeComment](#comments+removecomment), [show](#comments+show).
 
 
 | Param | Type | Description |
@@ -351,7 +351,7 @@ Sets the current cell range to be able to use general methods like [setComment](
 
 _comments.show() ⇒ boolean_
 
-Shows the comment editor accordingly to the previously set range (see [setRange](#comments+setrange]).
+Shows the comment editor accordingly to the previously set range (see [setRange](#comments+setrange)).
 
 
 **Returns**: `boolean` - Returns `true` if comment editor was shown.  

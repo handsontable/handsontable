@@ -30,7 +30,7 @@ The plugin creates additional components to make resizing possibly using user in
 
 _manualRowResize.manualRowResize : boolean | Array&lt;number&gt;_
 
-Turns on [Manual row resize](@/guides/columns/column-width.md#columnstretching], if set to a boolean or define initial row resized heights (as an array of heights).
+Turns on [Manual row resize](@/guides/columns/column-width.md#columnstretching), if set to a boolean or define initial row resized heights (as an array of heights).
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -90,7 +90,7 @@ Enables the plugin functionality for this Handsontable instance.
 _manualRowResize.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
-hook and if it returns `true` than the [enablePlugin](#manualrowresize+enableplugin] method is called.
+hook and if it returns `true` than the [enablePlugin](#manualrowresize+enableplugin) method is called.
 
 
 
@@ -105,7 +105,7 @@ _manualRowResize.loadManualRowHeights() ⇒ Array_
 Loads the previously saved sizes using the persistentState plugin (the [Options#persistentState](@/api/options.md#persistentstate) option
 has be enabled).
 
-**Emits**: [`Hooks#event:persistentStateLoad`](@/api/pluginHooks.md#persistentstateload]  
+**Emits**: [`Hooks#event:persistentStateLoad`](@/api/pluginHooks.md#persistentstateload)  
 
 
 ### saveManualRowHeights
@@ -119,7 +119,7 @@ _manualRowResize.saveManualRowHeights()_
 Saves the current sizes using the persistentState plugin (the [Options#persistentState](@/api/options.md#persistentstate) option has to be
 enabled).
 
-**Emits**: [`Hooks#event:persistentStateSave`](@/api/pluginHooks.md#persistentstatesave]  
+**Emits**: [`Hooks#event:persistentStateSave`](@/api/pluginHooks.md#persistentstatesave)  
 
 
 ### setManualSize

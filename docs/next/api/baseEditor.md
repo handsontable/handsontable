@@ -17,7 +17,7 @@ editLink: false
 
 :::
 
-_baseEditor.[BaseEditor](@/api/baseEditor.md]_
+_baseEditor.[BaseEditor](@/api/baseEditor.md)_
 
 
 
@@ -63,7 +63,7 @@ Visual column index.
 
 :::
 
-_baseEditor.hot : [Handsontable](@/api/core.md]_
+_baseEditor.hot : [Handsontable](@/api/core.md)_
 
 A reference to the source instance of the Handsontable.
 
@@ -75,7 +75,7 @@ A reference to the source instance of the Handsontable.
 
 :::
 
-_baseEditor.instance : [Handsontable](@/api/core.md]_
+_baseEditor.instance : [Handsontable](@/api/core.md)_
 
 ***Deprecated***
 

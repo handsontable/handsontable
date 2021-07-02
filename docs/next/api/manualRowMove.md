@@ -21,7 +21,7 @@ API:
 - `dragRow` - drag single row to the new position.
 - `dragRows` - drag many rows (as an array of indexes) to the new position.
 
-[Documentation](@/guides/rows/row-moving.md] explain differences between drag and move actions. Please keep in mind that if you want apply visual changes,
+[Documentation](@/guides/rows/row-moving.md) explain differences between drag and move actions. Please keep in mind that if you want apply visual changes,
 you have to call manually the `render` method on the instance of Handsontable.
 
 The plugin creates additional components to make moving possibly using user interface:
@@ -39,7 +39,7 @@ The plugin creates additional components to make moving possibly using user inte
 
 _manualRowMove.manualRowMove : boolean | Array&lt;number&gt;_
 
-Turns on [Manual row move](@/guides/columns/column-moving.md], if set to a boolean or define initial row order (as an array of row indexes).
+Turns on [Manual row move](@/guides/columns/column-moving.md), if set to a boolean or define initial row order (as an array of row indexes).
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -88,12 +88,12 @@ _manualRowMove.dragRow(row, dropIndex) ⇒ boolean_
 
 Drag a single row to drop index position.
 
-**Emits**: [`Hooks#event:beforeRowMove`](@/api/pluginHooks.md#beforerowmove], [`Hooks#event:afterRowMove`](@/api/pluginHooks.md#afterrowmove]  
+**Emits**: [`Hooks#event:beforeRowMove`](@/api/pluginHooks.md#beforerowmove), [`Hooks#event:afterRowMove`](@/api/pluginHooks.md#afterrowmove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | row | `number` | Visual row index to be dragged. |
-| dropIndex | `number` | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](@/guides/rows/row-moving.md#dragandmoveactionsofmanualrowmoveplugin]. |
+| dropIndex | `number` | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](@/guides/rows/row-moving.md#dragandmoveactionsofmanualrowmoveplugin). |
 
 
 
@@ -107,12 +107,12 @@ _manualRowMove.dragRows(rows, dropIndex) ⇒ boolean_
 
 Drag multiple rows to drop index position.
 
-**Emits**: [`Hooks#event:beforeRowMove`](@/api/pluginHooks.md#beforerowmove], [`Hooks#event:afterRowMove`](@/api/pluginHooks.md#afterrowmove]  
+**Emits**: [`Hooks#event:beforeRowMove`](@/api/pluginHooks.md#beforerowmove), [`Hooks#event:afterRowMove`](@/api/pluginHooks.md#afterrowmove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | rows | `Array` | Array of visual row indexes to be dragged. |
-| dropIndex | `number` | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](@/guides/rows/row-moving.md#dragandmoveactionsofmanualrowmoveplugin]. |
+| dropIndex | `number` | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](@/guides/rows/row-moving.md#dragandmoveactionsofmanualrowmoveplugin). |
 
 
 
@@ -137,7 +137,7 @@ Enables the plugin functionality for this Handsontable instance.
 _manualRowMove.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
-hook and if it returns `true` than the [enablePlugin](#manualrowmove+enableplugin] method is called.
+hook and if it returns `true` than the [enablePlugin](#manualrowmove+enableplugin) method is called.
 
 
 
@@ -155,7 +155,7 @@ Indicates if it's possible to move rows to the desired position. Some of the act
 | Param | Type | Description |
 | --- | --- | --- |
 | movedRows | `Array` | Array of visual row indexes to be moved. |
-| finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#dragandmoveactionsofmanualrowmoveplugin]. |
+| finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#dragandmoveactionsofmanualrowmoveplugin). |
 
 
 
@@ -169,12 +169,12 @@ _manualRowMove.moveRow(row, finalIndex) ⇒ boolean_
 
 Moves a single row.
 
-**Emits**: [`Hooks#event:beforeRowMove`](@/api/pluginHooks.md#beforerowmove], [`Hooks#event:afterRowMove`](@/api/pluginHooks.md#afterrowmove]  
+**Emits**: [`Hooks#event:beforeRowMove`](@/api/pluginHooks.md#beforerowmove), [`Hooks#event:afterRowMove`](@/api/pluginHooks.md#afterrowmove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | row | `number` | Visual row index to be moved. |
-| finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#dragandmoveactionsofmanualrowmoveplugin]. |
+| finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#dragandmoveactionsofmanualrowmoveplugin). |
 
 
 
@@ -188,12 +188,12 @@ _manualRowMove.moveRows(rows, finalIndex) ⇒ boolean_
 
 Moves a multiple rows.
 
-**Emits**: [`Hooks#event:beforeRowMove`](@/api/pluginHooks.md#beforerowmove], [`Hooks#event:afterRowMove`](@/api/pluginHooks.md#afterrowmove]  
+**Emits**: [`Hooks#event:beforeRowMove`](@/api/pluginHooks.md#beforerowmove), [`Hooks#event:afterRowMove`](@/api/pluginHooks.md#afterrowmove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | rows | `Array` | Array of visual row indexes to be moved. |
-| finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#dragandmoveactionsofmanualrowmoveplugin]. |
+| finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#dragandmoveactionsofmanualrowmoveplugin). |
 
 
 

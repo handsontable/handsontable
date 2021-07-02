@@ -18,7 +18,7 @@ This plugin enables an option to apply custom borders through the context menu (
 To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form
 of an array.
 
-See [Custom Borders](@/guides/cell-features/formatting-cells.md#customcellborders] demo for more examples.
+See [Custom Borders](@/guides/cell-features/formatting-cells.md#customcellborders) demo for more examples.
 
 **Example**  
 ```js
@@ -73,7 +73,7 @@ If `true`, enables the [CustomBorders](@/api/customBorders.md) plugin, which ena
 menu (configurable with context menu key `borders`). To initialize Handsontable with predefined custom borders,
 provide cell coordinates and border styles in a form of an array.
 
-See [Custom Borders](@/guides/cell-features/formatting-cells.md#customcellborders] demo for examples.
+See [Custom Borders](@/guides/cell-features/formatting-cells.md#customcellborders) demo for examples.
 
 **Default**: <code>false</code>  
 **Example**  
@@ -228,7 +228,7 @@ customBordersPlugin.getBorders();
 _customBorders.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
-hook and if it returns `true` than the [enablePlugin](#customborders+enableplugin] method is called.
+hook and if it returns `true` than the [enablePlugin](#customborders+enableplugin) method is called.
 
 
 

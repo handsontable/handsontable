@@ -66,7 +66,7 @@ columns: [{
 
 _columnSorting.columnSorting : boolean | object_
 
-Turns on [Column sorting](@/guides/rows/row-sorting.md]. Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+Turns on [Column sorting](@/guides/rows/row-sorting.md). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
 * `initialConfig` - Object with predefined keys:
   * `column` - sorted column
   * `sortOrder` - order in which column will be sorted
@@ -188,7 +188,7 @@ Get sort configuration for particular column or for all sorted columns. Objects 
 _columnSorting.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the Handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
-hook and if it returns `true` than the [enablePlugin](#columnsorting+enableplugin] method is called.
+hook and if it returns `true` than the [enablePlugin](#columnsorting+enableplugin) method is called.
 
 
 
@@ -246,7 +246,7 @@ _columnSorting.sort(sortConfig)_
 
 Sorts the table by chosen columns and orders.
 
-**Emits**: [`Hooks#event:beforeColumnSort`](@/api/pluginHooks.md#beforecolumnsort], [`Hooks#event:afterColumnSort`](@/api/pluginHooks.md#aftercolumnsort]  
+**Emits**: [`Hooks#event:beforeColumnSort`](@/api/pluginHooks.md#beforecolumnsort), [`Hooks#event:afterColumnSort`](@/api/pluginHooks.md#aftercolumnsort)  
 **Example**  
 ```js
 // sort ascending first visual column

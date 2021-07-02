@@ -19,12 +19,12 @@ Possible values:
 * `false` (to disable completely).
 
 or an object with values:
-* `'columnsLimit'` (see [columnsLimit](#copypaste+columnslimit])
-* `'rowsLimit'` (see [rowsLimit](#copypaste+rowslimit])
-* `'pasteMode'` (see [pasteMode](#copypaste+pastemode])
-* `'uiContainer'` (see [uiContainer](#copypaste+uicontainer]).
+* `'columnsLimit'` (see [columnsLimit](#copypaste+columnslimit))
+* `'rowsLimit'` (see [rowsLimit](#copypaste+rowslimit))
+* `'pasteMode'` (see [pasteMode](#copypaste+pastemode))
+* `'uiContainer'` (see [uiContainer](#copypaste+uicontainer)).
 
-See [the copy/paste demo](@/guides/cell-features/clipboard.md] for examples.
+See [the copy/paste demo](@/guides/cell-features/clipboard.md) for examples.
 
 **Example**  
 ```js
@@ -87,7 +87,7 @@ Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> 
 
 :::
 
-_copyPaste.focusableElement : [FocusableWrapper](@/api/focusableElement.md]_
+_copyPaste.focusableElement : [FocusableWrapper](@/api/focusableElement.md)_
 
 Provides focusable element to support IME and copy/paste/cut actions.
 
@@ -240,7 +240,7 @@ Creates copyable text releated to range objects.
 _copyPaste.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
-hook and if it returns `true` than the [enablePlugin](#copypaste+enableplugin] method is called.
+hook and if it returns `true` than the [enablePlugin](#copypaste+enableplugin) method is called.
 
 
 

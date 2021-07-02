@@ -21,7 +21,7 @@ API:
 - `dragColumn` - drag single column to the new position.
 - `dragColumns` - drag many columns (as an array of indexes) to the new position.
 
-[Documentation](@/guides/columns/column-moving.md] explain differences between drag and move actions.
+[Documentation](@/guides/columns/column-moving.md) explain differences between drag and move actions.
 Please keep in mind that if you want apply visual changes,
 you have to call manually the `render` method on the instance of Handsontable.
 
@@ -40,7 +40,7 @@ The plugin creates additional components to make moving possibly using user inte
 
 _manualColumnMove.manualColumnMove : boolean | Array&lt;number&gt;_
 
-Turns on [Manual column move](@/guides/columns/column-moving.md], if set to a boolean or define initial column order (as an array of column indexes).
+Turns on [Manual column move](@/guides/columns/column-moving.md), if set to a boolean or define initial column order (as an array of column indexes).
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -89,12 +89,12 @@ _manualColumnMove.dragColumn(column, dropIndex) ⇒ boolean_
 
 Drag a single column to drop index position.
 
-**Emits**: [`Hooks#event:beforeColumnMove`](@/api/pluginHooks.md#beforecolumnmove], [`Hooks#event:afterColumnMove`](@/api/pluginHooks.md#aftercolumnmove]  
+**Emits**: [`Hooks#event:beforeColumnMove`](@/api/pluginHooks.md#beforecolumnmove), [`Hooks#event:afterColumnMove`](@/api/pluginHooks.md#aftercolumnmove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | column | `number` | Visual column index to be dragged. |
-| dropIndex | `number` | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](@/guides/columns/column-moving.md#dragandmoveactionsofmanualcolumnmoveplugin]. |
+| dropIndex | `number` | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](@/guides/columns/column-moving.md#dragandmoveactionsofmanualcolumnmoveplugin). |
 
 
 
@@ -108,12 +108,12 @@ _manualColumnMove.dragColumns(columns, dropIndex) ⇒ boolean_
 
 Drag multiple columns to drop index position.
 
-**Emits**: [`Hooks#event:beforeColumnMove`](@/api/pluginHooks.md#beforecolumnmove], [`Hooks#event:afterColumnMove`](@/api/pluginHooks.md#aftercolumnmove]  
+**Emits**: [`Hooks#event:beforeColumnMove`](@/api/pluginHooks.md#beforecolumnmove), [`Hooks#event:afterColumnMove`](@/api/pluginHooks.md#aftercolumnmove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | columns | `Array` | Array of visual column indexes to be dragged. |
-| dropIndex | `number` | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](@/guides/columns/column-moving.md#dragandmoveactionsofmanualcolumnmoveplugin]. |
+| dropIndex | `number` | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](@/guides/columns/column-moving.md#dragandmoveactionsofmanualcolumnmoveplugin). |
 
 
 
@@ -157,7 +157,7 @@ possible, i.e. You can’t move more than one element to the last position.
 | Param | Type | Description |
 | --- | --- | --- |
 | movedColumns | `Array` | Array of visual column indexes to be moved. |
-| finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/columns/column-moving.md#dragandmoveactionsofmanualcolumnmoveplugin]. |
+| finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/columns/column-moving.md#dragandmoveactionsofmanualcolumnmoveplugin). |
 
 
 
@@ -171,12 +171,12 @@ _manualColumnMove.moveColumn(column, finalIndex) ⇒ boolean_
 
 Moves a single column.
 
-**Emits**: [`Hooks#event:beforeColumnMove`](@/api/pluginHooks.md#beforecolumnmove], [`Hooks#event:afterColumnMove`](@/api/pluginHooks.md#aftercolumnmove]  
+**Emits**: [`Hooks#event:beforeColumnMove`](@/api/pluginHooks.md#beforecolumnmove), [`Hooks#event:afterColumnMove`](@/api/pluginHooks.md#aftercolumnmove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | column | `number` | Visual column index to be moved. |
-| finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/columns/column-moving.md#dragandmoveactionsofmanualcolumnmoveplugin]. |
+| finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/columns/column-moving.md#dragandmoveactionsofmanualcolumnmoveplugin). |
 
 
 
@@ -190,12 +190,12 @@ _manualColumnMove.moveColumns(columns, finalIndex) ⇒ boolean_
 
 Moves a multiple columns.
 
-**Emits**: [`Hooks#event:beforeColumnMove`](@/api/pluginHooks.md#beforecolumnmove], [`Hooks#event:afterColumnMove`](@/api/pluginHooks.md#aftercolumnmove]  
+**Emits**: [`Hooks#event:beforeColumnMove`](@/api/pluginHooks.md#beforecolumnmove), [`Hooks#event:afterColumnMove`](@/api/pluginHooks.md#aftercolumnmove)  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | columns | `Array` | Array of visual column indexes to be moved. |
-| finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/columns/column-moving.md#dragandmoveactionsofmanualcolumnmoveplugin]. |
+| finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](@/guides/columns/column-moving.md#dragandmoveactionsofmanualcolumnmoveplugin). |
 
 
 

@@ -198,7 +198,7 @@ _trimRows.trimRows(rows)_
 
 Trims the rows provided in the array.
 
-**Emits**: [`Hooks#event:beforeTrimRow`](@/api/pluginHooks.md#beforetrimrow], [`Hooks#event:afterTrimRow`](@/api/pluginHooks.md#aftertrimrow]  
+**Emits**: [`Hooks#event:beforeTrimRow`](@/api/pluginHooks.md#beforetrimrow), [`Hooks#event:afterTrimRow`](@/api/pluginHooks.md#aftertrimrow)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -245,7 +245,7 @@ _trimRows.untrimRows(rows)_
 
 Untrims the rows provided in the array.
 
-**Emits**: [`Hooks#event:beforeUntrimRow`](@/api/pluginHooks.md#beforeuntrimrow], [`Hooks#event:afterUntrimRow`](@/api/pluginHooks.md#afteruntrimrow]  
+**Emits**: [`Hooks#event:beforeUntrimRow`](@/api/pluginHooks.md#beforeuntrimrow), [`Hooks#event:afterUntrimRow`](@/api/pluginHooks.md#afteruntrimrow)  
 
 | Param | Type | Description |
 | --- | --- | --- |

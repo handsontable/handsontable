@@ -27,7 +27,7 @@ _nestedRows.nestedRows : boolean_
 
 Disable or enable the nested rows functionality - displaying nested structures in a two-dimensional data table.
 
-See [quick setup of the Nested rows](@/guides/rows/row-parent-child.md].
+See [quick setup of the Nested rows](@/guides/rows/row-parent-child.md).
 
 **Default**: <code>false</code>  
 **Example**  
@@ -107,7 +107,7 @@ Enables the plugin functionality for this Handsontable instance.
 _nestedRows.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
-hook and if it returns `true` than the [enablePlugin](#nestedrows+enableplugin] method is called.
+hook and if it returns `true` than the [enablePlugin](#nestedrows+enableplugin) method is called.
 
 
 

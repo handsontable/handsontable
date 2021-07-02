@@ -240,11 +240,11 @@ const fixLinks = text => text
         .replace(/-/g, '');
 
       if (!target) {
-        return `[${label}](${hash}${fixedAnchor}]`;
+        return `[${label}](${hash}${fixedAnchor})`;
       }
 
       if (target.startsWith('@')) {
-        return `[${label}](${target}${hash}${fixedAnchor}]`;
+        return `[${label}](${target}${hash}${fixedAnchor})`;
       }
 
       const targetCamelCase = !target.length ? '' : `${target[0].toLowerCase()}${target.substring(1)}`

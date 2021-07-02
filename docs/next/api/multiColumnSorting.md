@@ -13,7 +13,7 @@ editLink: false
 ## Description
 
 This plugin sorts the view by columns (but does not sort the data source!). To enable the plugin, set the
-[multiColumnSorting](#options+multicolumnsorting] property to the correct value (see the examples below).
+[multiColumnSorting](#options+multicolumnsorting) property to the correct value (see the examples below).
 
 **Example**  
 ```js
@@ -69,7 +69,7 @@ columns: [{
 
 _multiColumnSorting.multiColumnSorting : boolean | object_
 
-Turns on [Multi-column sorting](@/guides/rows/row-sorting.md]. Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+Turns on [Multi-column sorting](@/guides/rows/row-sorting.md). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
 * `initialConfig` - Array containing objects, every with predefined keys:
   * `column` - sorted column
   * `sortOrder` - order in which column will be sorted
@@ -182,7 +182,7 @@ Get sort configuration for particular column or for all sorted columns. Objects 
 _multiColumnSorting.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the Handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
-hook and if it returns `true` than the [enablePlugin](#multicolumnsorting+enableplugin] method is called.
+hook and if it returns `true` than the [enablePlugin](#multicolumnsorting+enableplugin) method is called.
 
 
 
@@ -240,7 +240,7 @@ _multiColumnSorting.sort(sortConfig)_
 
 Sorts the table by chosen columns and orders.
 
-**Emits**: [`Hooks#event:beforeColumnSort`](@/api/pluginHooks.md#beforecolumnsort], [`Hooks#event:afterColumnSort`](@/api/pluginHooks.md#aftercolumnsort]  
+**Emits**: [`Hooks#event:beforeColumnSort`](@/api/pluginHooks.md#beforecolumnsort), [`Hooks#event:afterColumnSort`](@/api/pluginHooks.md#aftercolumnsort)  
 **Example**  
 ```js
 // sort ascending first visual column
