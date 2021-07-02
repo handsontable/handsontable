@@ -54,7 +54,7 @@ const hot = new Handsontable(container, {
 _dropdownMenu.dropdownMenu : boolean | object | Array&lt;string&gt;_
 
 This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
-the [Options#contextMenu](@/api/options.md#contextmenu], but is triggered by clicking the button in the header.
+the [Options#contextMenu](@/api/options.md#contextmenu), but is triggered by clicking the button in the header.
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -177,8 +177,8 @@ Or you can execute command registered in settings where `key` is your command na
 
 _dropdownMenu.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
-hook and if it returns `true` than the [enablePlugin](@/api/.md#dropdownmenu+enableplugin] method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
+hook and if it returns `true` than the [enablePlugin](@/api/.md#dropdownmenu+enableplugin) method is called.
 
 
 
@@ -208,6 +208,6 @@ Opens menu and re-position it based on the passed coordinates.
 
 _dropdownMenu.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings) is invoked.
 
 

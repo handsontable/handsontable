@@ -69,7 +69,7 @@ customBorders: [
 
 _customBorders.customBorders : boolean | Array&lt;object&gt;_
 
-If `true`, enables the [CustomBorders](@/api/customBorders.md] plugin, which enables an option to apply custom borders through the context
+If `true`, enables the [CustomBorders](@/api/customBorders.md) plugin, which enables an option to apply custom borders through the context
 menu (configurable with context menu key `borders`). To initialize Handsontable with predefined custom borders,
 provide cell coordinates and border styles in a form of an array.
 
@@ -227,8 +227,8 @@ customBordersPlugin.getBorders();
 
 _customBorders.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
-hook and if it returns `true` than the [enablePlugin](@/api/.md#customborders+enableplugin] method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
+hook and if it returns `true` than the [enablePlugin](@/api/.md#customborders+enableplugin) method is called.
 
 
 
@@ -271,6 +271,6 @@ customBordersPlugin.setBorders(hot.getSelectedRange(), {left: {hide: false, widt
 
 _customBorders.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings) is invoked.
 
 

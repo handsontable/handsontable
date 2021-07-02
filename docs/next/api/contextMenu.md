@@ -31,9 +31,9 @@ or array of any available strings:
 * `'make_read_only'`
 * `'alignment'`
 * `'---------'` (menu item separator)
-* `'borders'` (with [Options#customBorders](@/api/options.md#customborders] turned on)
-* `'commentsAddEdit'` (with [Options#comments](@/api/options.md#comments] turned on)
-* `'commentsRemove'` (with [Options#comments](@/api/options.md#comments] turned on).
+* `'borders'` (with [Options#customBorders](@/api/options.md#customborders) turned on)
+* `'commentsAddEdit'` (with [Options#comments](@/api/options.md#comments) turned on)
+* `'commentsRemove'` (with [Options#comments](@/api/options.md#comments) turned on).
 
 See [the context menu demo](@/guides/accessories-and-menus/context-menu.md] for examples.
 
@@ -212,8 +212,8 @@ Or you can execute command registered in settings where `key` is your command na
 
 _contextMenu.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
-hook and if it returns `true` than the [enablePlugin](@/api/.md#contextmenu+enableplugin] method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
+hook and if it returns `true` than the [enablePlugin](@/api/.md#contextmenu+enableplugin) method is called.
 
 
 
@@ -242,6 +242,6 @@ Opens menu and re-position it based on the passed coordinates.
 
 _contextMenu.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings) is invoked.
 
 

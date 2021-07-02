@@ -99,8 +99,8 @@ Enables the plugin functionality for this Handsontable instance.
 
 _mergeCells.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
-hook and if it returns `true` than the [enablePlugin](@/api/.md#mergecells+enableplugin] method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
+hook and if it returns `true` than the [enablePlugin](@/api/.md#mergecells+enableplugin) method is called.
 
 
 
@@ -188,6 +188,6 @@ Unmerges the selection provided as a cell range.
 
 _mergeCells.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings) is invoked.
 
 

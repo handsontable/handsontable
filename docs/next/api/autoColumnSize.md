@@ -33,9 +33,9 @@ autoColumnSize: {syncLimit: 300},.
 autoColumnSize: {syncLimit: '40%'},
 ```
 
-The plugin uses [GhostTable](@/api/ghostTable.md] and [SamplesGenerator](@/api/samplesGenerator.md] for calculations.
-First, [SamplesGenerator](@/api/samplesGenerator.md] prepares samples of data with its coordinates.
-Next [GhostTable](@/api/ghostTable.md] uses coordinates to get cells' renderers and append all to the DOM through DocumentFragment.
+The plugin uses [GhostTable](@/api/ghostTable.md) and [SamplesGenerator](@/api/samplesGenerator.md) for calculations.
+First, [SamplesGenerator](@/api/samplesGenerator.md) prepares samples of data with its coordinates.
+Next [GhostTable](@/api/ghostTable.md) uses coordinates to get cells' renderers and append all to the DOM through DocumentFragment.
 
 Sampling accepts additional options:
 - *samplingRatio* - Defines how many samples for the same length will be used to calculate. Default is `3`.
@@ -54,7 +54,7 @@ Sampling accepts additional options:
   }
 ```
 
-To configure this plugin see [Options#autoColumnSize](@/api/options.md#autocolumnsize].
+To configure this plugin see [Options#autoColumnSize](@/api/options.md#autocolumnsize).
 
 **Example**  
 ```js
@@ -82,7 +82,7 @@ if (plugin.isEnabled()) {
 
 _autoColumnSize.autoColumnSize : object | boolean_
 
-Enables or disables the [AutoColumnSize](@/api/autoColumnSize.md] plugin. Default value `undefined`
+Enables or disables the [AutoColumnSize](@/api/autoColumnSize.md) plugin. Default value `undefined`
 is an equivalent of `true`, sets `syncLimit` to 50.
 Disabling this plugin can increase performance, as no size-related calculations would be done.
 To disable plugin it's necessary to set `false`.
@@ -95,7 +95,7 @@ To configure the sync/async distribution, you can pass an absolute value (number
 
 You can also use the `useHeaders` option to take the column headers width into calculation.
 
-Note: Using [Core#colWidths](@/api/core.md#colwidths] option will forcibly disable [AutoColumnSize](@/api/autoColumnSize.md].
+Note: Using [Core#colWidths](@/api/core.md#colwidths) option will forcibly disable [AutoColumnSize](@/api/autoColumnSize.md).
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -151,8 +151,8 @@ Number of already measured columns (we already know their sizes).
 
 _autoColumnSize.calculateAllColumnsWidth(rowRange)_
 
-Calculates all columns width. The calculated column will be cached in the [AutoColumnSize#widths](@/api/autoColumnSize.md#widths] property.
-To retrieve width for specified column use [AutoColumnSize#getColumnWidth](@/api/autoColumnSize.md#getcolumnwidth] method.
+Calculates all columns width. The calculated column will be cached in the [AutoColumnSize#widths](@/api/autoColumnSize.md#widths) property.
+To retrieve width for specified column use [AutoColumnSize#getColumnWidth](@/api/autoColumnSize.md#getcolumnwidth) method.
 
 
 | Param | Type | Description |
@@ -300,7 +300,7 @@ Gets the last visible column.
 _autoColumnSize.getSyncCalculationLimit() ⇒ number_
 
 Gets value which tells how many columns should be calculated synchronously (rest of the columns will be calculated
-asynchronously). The limit is calculated based on `syncLimit` set to `autoColumnSize` option (see [Options#autoColumnSize](@/api/options.md#autocolumnsize]).
+asynchronously). The limit is calculated based on `syncLimit` set to `autoColumnSize` option (see [Options#autoColumnSize](@/api/options.md#autocolumnsize)).
 
 
 
@@ -312,8 +312,8 @@ asynchronously). The limit is calculated based on `syncLimit` set to `autoColumn
 
 _autoColumnSize.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
-hook and if it returns `true` than the [#enablePlugin](@/api/autoColumnSize.md#enableplugin] method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
+hook and if it returns `true` than the [#enablePlugin](@/api/autoColumnSize.md#enableplugin) method is called.
 
 
 
@@ -349,6 +349,6 @@ Recalculates all columns width (overwrite cache values).
 
 _autoColumnSize.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings) is invoked.
 
 

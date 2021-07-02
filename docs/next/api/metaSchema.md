@@ -12,7 +12,7 @@ editLink: false
 
 ## Description
 
-Handsontable provides many options to choose from. They come either from the [Core](@/api/core.md] features or [plugins hooks](@/api/hooks.md].
+Handsontable provides many options to choose from. They come either from the [Core](@/api/core.md) features or [plugins hooks](@/api/hooks.md).
 
 You can pass options in an object iteral notation (a comma-separated list of name-value pairs wrapped in curly braces) as a second argument of the Handsontable constructor.
 
@@ -259,7 +259,7 @@ allowRemoveRow: false,
 
 _options.autoColumnSize : object | boolean_
 
-Enables or disables the [AutoColumnSize](@/api/autoColumnSize.md] plugin. Default value `undefined`
+Enables or disables the [AutoColumnSize](@/api/autoColumnSize.md) plugin. Default value `undefined`
 is an equivalent of `true`, sets `syncLimit` to 50.
 Disabling this plugin can increase performance, as no size-related calculations would be done.
 To disable plugin it's necessary to set `false`.
@@ -272,7 +272,7 @@ To configure the sync/async distribution, you can pass an absolute value (number
 
 You can also use the `useHeaders` option to take the column headers width into calculation.
 
-Note: Using [Core#colWidths](@/api/core.md#colwidths] option will forcibly disable [AutoColumnSize](@/api/autoColumnSize.md].
+Note: Using [Core#colWidths](@/api/core.md#colwidths) option will forcibly disable [AutoColumnSize](@/api/autoColumnSize.md).
 
 **Default**: <code>undefined</code>  
 **Category**: [AutoColumnSize](@/api/autoColumnSize.md]  
@@ -303,7 +303,7 @@ autoColumnSize: { allowSampleDuplicates: true },
 
 _options.autoRowSize : object | boolean_
 
-Enables or disables [AutoRowSize](@/api/autoRowSize.md] plugin. Default value is `undefined`, which has the same effect as `false`
+Enables or disables [AutoRowSize](@/api/autoRowSize.md) plugin. Default value is `undefined`, which has the same effect as `false`
 (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
 
 __Note:__ the default `syncLimit` value is set to 500 when the plugin is manually enabled by declaring it as: `autoRowSize: true`.
@@ -372,7 +372,7 @@ autoWrapRow: false,
 
 _options.bindRowsWithHeaders : boolean | string_
 
-Enables the functionality of the [BindRowsWithHeaders](@/api/bindRowsWithHeaders.md] plugin which allows binding the table rows with their headers.
+Enables the functionality of the [BindRowsWithHeaders](@/api/bindRowsWithHeaders.md) plugin which allows binding the table rows with their headers.
 If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,
 if at the initialization row 0 has a header titled "A", it will have it no matter what you do with the table.
 
@@ -530,7 +530,7 @@ colHeaders: function(index) {
 
 _options.collapsibleColumns : boolean | Array&lt;object&gt;_
 
-The [CollapsibleColumns](@/api/collapsibleColumns.md] plugin allows collapsing of columns, covered by a header with the `colspan` property
+The [CollapsibleColumns](@/api/collapsibleColumns.md) plugin allows collapsing of columns, covered by a header with the `colspan` property
 defined.
 
 Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
@@ -650,7 +650,7 @@ Turns on [Column sorting](@/guides/rows/row-sorting.md]. Can be either a boolean
 * `headerAction` - allow to click on the headers to sort
   * `true` = turn on possibility to click on the headers to sort
   * `false` = turn off possibility to click on the headers to sort
-* `sortEmptyCells` - how empty values ([more information here](@/api/options.md#allowempty]) should be handled
+* `sortEmptyCells` - how empty values ([more information here](@/api/options.md#allowempty)) should be handled
   * `true` = the table sorts empty cells
   * `false` = the table moves all empty cells to the end of the table
 * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
@@ -740,9 +740,9 @@ dynamically on each render).
 
 The default width for columns in the rendering process equals 50px.
 
-An `undefined` value is for detection in [Hooks#modifyColWidth](@/api/hooks.md#modifycolwidth] hook if plugin or setting changed the default size.
+An `undefined` value is for detection in [Hooks#modifyColWidth](@/api/hooks.md#modifycolwidth) hook if plugin or setting changed the default size.
 
-Note: This option will forcely disable [AutoColumnSize](@/api/autoColumnSize.md] plugin.
+Note: This option will forcely disable [AutoColumnSize](@/api/autoColumnSize.md) plugin.
 
 **Default**: <code>undefined</code>  
 **Category**: [Core](@/api/core.md]  
@@ -791,7 +791,7 @@ commentedCellClassName: 'has-comment',
 
 _options.comments : boolean | Array&lt;object&gt;_
 
-If `true`, enables the [Comments](@/api/comments.md] plugin, which enables an option to apply cell comments through the context menu
+If `true`, enables the [Comments](@/api/comments.md) plugin, which enables an option to apply cell comments through the context menu
 (configurable with context menu keys `commentsAddEdit`, `commentsRemove`).
 
 To initialize Handsontable with predefined comments, provide cell coordinates and comment text values in a form of
@@ -1027,7 +1027,7 @@ currentRowClassName: 'currentRow',
 
 _options.customBorders : boolean | Array&lt;object&gt;_
 
-If `true`, enables the [CustomBorders](@/api/customBorders.md] plugin, which enables an option to apply custom borders through the context
+If `true`, enables the [CustomBorders](@/api/customBorders.md) plugin, which enables an option to apply custom borders through the context
 menu (configurable with context menu key `borders`). To initialize Handsontable with predefined custom borders,
 provide cell coordinates and border styles in a form of an array.
 
@@ -1240,7 +1240,7 @@ disableVisualSelection: ['current', 'area'],
 
 _options.dragToScroll : boolean_
 
-Disables or enables the [drag to scroll](@/api/dragToScroll.md] functionality.
+Disables or enables the [drag to scroll](@/api/dragToScroll.md) functionality.
 
 **Default**: <code>true</code>  
 **Category**: [DragToScroll](@/api/dragToScroll.md]  
@@ -1260,7 +1260,7 @@ dragToScroll: false,
 _options.dropdownMenu : boolean | object | Array&lt;string&gt;_
 
 This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
-the [Options#contextMenu](@/api/options.md#contextmenu], but is triggered by clicking the button in the header.
+the [Options#contextMenu](@/api/options.md#contextmenu), but is triggered by clicking the button in the header.
 
 **Default**: <code>undefined</code>  
 **Category**: [DropdownMenu](@/api/dropdownMenu.md]  
@@ -1471,7 +1471,7 @@ columns: [
 
 _options.filters : boolean_
 
-The [Filters](@/api/filters.md] plugin allows filtering the table data either by the built-in component or with the API.
+The [Filters](@/api/filters.md) plugin allows filtering the table data either by the built-in component or with the API.
 
 **Default**: <code>undefined</code>  
 **Category**: [Filters](@/api/filters.md]  
@@ -1547,7 +1547,7 @@ fixedRowsTop: 3,
 
 _options.formulas : boolean | object_
 
-The [Formulas](@/api/formulas.md] plugin allows Handsontable to process formula expressions defined in the provided data.
+The [Formulas](@/api/formulas.md) plugin allows Handsontable to process formula expressions defined in the provided data.
 
 **Default**: <code>undefined</code>  
 **Category**: [Formulas](@/api/formulas.md]  
@@ -1626,7 +1626,7 @@ height: function() {
 
 _options.hiddenColumns : boolean | object_
 
-The [HiddenColumns](@/api/hiddenColumns.md] plugin allows hiding of certain columns. You can pass additional configuration with an
+The [HiddenColumns](@/api/hiddenColumns.md) plugin allows hiding of certain columns. You can pass additional configuration with an
 object notation. Options that are then available are:
  * `columns` - an array of rows that should be hidden on plugin initialization
  * `indicators` - enables small ui markers to indicate where are hidden columns.
@@ -1656,7 +1656,7 @@ hiddenColumns: {
 
 _options.hiddenRows : boolean | object_
 
-The [HiddenRows](@/api/hiddenRows.md] plugin allows hiding of certain rows. You can pass additional configuration with an
+The [HiddenRows](@/api/hiddenRows.md) plugin allows hiding of certain rows. You can pass additional configuration with an
 object notation. Options that are then available are:
  * `rows` - an array of rows that should be hidden on plugin initialization
  * `indicators` - enables small ui markers to indicate where are hidden columns.
@@ -1778,7 +1778,7 @@ licenseKey: 'non-commercial-and-evaluation',
 
 _options.manualColumnFreeze : boolean_
 
-Disables or enables [ManualColumnFreeze](@/api/manualColumnFreeze.md] plugin.
+Disables or enables [ManualColumnFreeze](@/api/manualColumnFreeze.md) plugin.
 
 **Default**: <code>undefined</code>  
 **Category**: [ManualColumnFreeze](@/api/manualColumnFreeze.md]  
@@ -2049,7 +2049,7 @@ Turns on [Multi-column sorting](@/guides/rows/row-sorting.md]. Can be either a b
 * `headerAction` - allow to click on the headers to sort
   * `true` = turn on possibility to click on the headers to sort
   * `false` = turn off possibility to click on the headers to sort
-* `sortEmptyCells` - how empty values ([more information here](@/api/options.md#allowempty]) should be handled
+* `sortEmptyCells` - how empty values ([more information here](@/api/options.md#allowempty)) should be handled
   * `true` = the table sorts empty cells
   * `false` = the table moves all empty cells to the end of the table
 * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
@@ -2515,13 +2515,13 @@ Defines row heights in pixels. Accepts numbers, strings (that will be converted 
 (if you want to define row height separately for each row) or a function (if you want to set row height dynamically
 on each render).
 
-If the [ManualRowResize](@/api/manualRowResize.md] or [AutoRowSize](@/api/autoRowSize.md] plugins are enabled, this is also the minimum height that can
+If the [ManualRowResize](@/api/manualRowResize.md) or [AutoRowSize](@/api/autoRowSize.md) plugins are enabled, this is also the minimum height that can
 be set via either of those two plugins.
 
 The default height for rows in the rendering process equals 23px.
 Height should be equal or greater than 23px. Table is rendered incorrectly if height is less than 23px.
 
-An `undefined` value is for detection in [Hooks#modifyRowHeight](@/api/hooks.md#modifyrowheight] hook if plugin or setting changed the default size.
+An `undefined` value is for detection in [Hooks#modifyRowHeight](@/api/hooks.md#modifyrowheight) hook if plugin or setting changed the default size.
 
 **Default**: <code>undefined</code>  
 **Category**: [Core](@/api/core.md]  
@@ -2551,7 +2551,7 @@ rowHeights: function(index) {
 
 _options.search : boolean_
 
-Setting to `true` enables the [Search](@/api/search.md] plugin (see [demo](@/guides/accessories-and-menus/searching-values.md]).
+Setting to `true` enables the [Search](@/api/search.md) plugin (see [demo](@/guides/accessories-and-menus/searching-values.md]).
 
 **Default**: <code>false</code>  
 **Category**: [Search](@/api/search.md]  

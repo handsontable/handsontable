@@ -246,7 +246,7 @@ const fixLinks = text => text
       const targetCamelCase = !target.length ? '' : `${target[0].toLowerCase()}${target.substring(1)}`
         .replace(/-([a-z])/g, (__, char) => char.toUpperCase());
 
-      return `[${label}](@/api/${targetCamelCase}.md${hash}${fixedAnchor}]`;
+      return `[${label}](@/api/${targetCamelCase}.md${hash}${fixedAnchor})`;
     }
   );
 

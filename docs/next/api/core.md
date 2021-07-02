@@ -83,7 +83,7 @@ hot.addHook('beforeInit', myCallback);
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | `string` | Hook name (see [Hooks](@/api/hooks.md]). |
+| key | `string` | Hook name (see [Hooks](@/api/hooks.md)). |
 | callback | `function` <br/> `Array` | Function or array of functions. |
 
 
@@ -107,7 +107,7 @@ hot.addHookOnce('beforeInit', myCallback);
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | `string` | Hook name (see [Hooks](@/api/hooks.md]). |
+| key | `string` | Hook name (see [Hooks](@/api/hooks.md)). |
 | callback | `function` <br/> `Array` | Function or array of functions. |
 
 
@@ -547,7 +547,7 @@ hot.getCellEditor(hot.getCellMeta(1, 1));
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | `number` | Visual row index or cell meta object (see [Core#getCellMeta](@/api/core.md#getcellmeta]). |
+| row | `number` | Visual row index or cell meta object (see [Core#getCellMeta](@/api/core.md#getcellmeta)). |
 | column | `number` | Visual column index. |
 
 
@@ -610,7 +610,7 @@ hot.getCellRenderer(hot.getCellMeta(1, 1));
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | `number` <br/> `object` | Visual row index or cell meta object (see [Core#getCellMeta](@/api/core.md#getcellmeta]). |
+| row | `number` <br/> `object` | Visual row index or cell meta object (see [Core#getCellMeta](@/api/core.md#getcellmeta)). |
 | column | `number` | Visual column index. |
 
 
@@ -649,7 +649,7 @@ hot.getCellValidator(hot.getCellMeta(1, 1));
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | `number` <br/> `object` | Visual row index or cell meta object (see [Core#getCellMeta](@/api/core.md#getcellmeta]). |
+| row | `number` <br/> `object` | Visual row index or cell meta object (see [Core#getCellMeta](@/api/core.md#getcellmeta)). |
 | column | `number` | Visual column index. |
 
 
@@ -766,7 +766,7 @@ _core.getData([row], [column], [row2], [column2]) ⇒ Array&lt;Array&gt;_
 
 Returns the current data object (the same one that was passed by `data` configuration option or `loadData` method,
 unless some modifications have been applied (i.e. Sequence of rows/columns was changed, some row/column was skipped).
-If that's the case - use the [Core#getSourceData](@/api/core.md#getsourcedata] method.).
+If that's the case - use the [Core#getSourceData](@/api/core.md#getsourcedata) method.).
 
 Optionally you can provide cell range by defining `row`, `column`, `row2`, `column2` to get only a fragment of table data.
 
@@ -899,7 +899,7 @@ __Note__: If data is reordered, sorted or trimmed, the currently visible order w
 
 _core.getDataType(rowFrom, columnFrom, rowTo, columnTo) ⇒ string_
 
-Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](@/api/options.md#type]).
+Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](@/api/options.md#type)).
 If there are cells with different types in the selected range, it returns `'mixed'`.
 
 __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.
@@ -1239,7 +1239,7 @@ Returns information about if this table is configured to display column headers.
 _core.hasHook(key) ⇒ boolean_
 
 Check if for a specified hook name there are added listeners (only for this Handsontable instance). All available
-hooks you will find [Hooks](@/api/hooks.md].
+hooks you will find [Hooks](@/api/hooks.md).
 
 **See**: [Hooks#has](@/api/pluginHooks.md#has]  
 **Example**  
@@ -1323,7 +1323,7 @@ Check if all cells in the row declared by the `row` argument are empty.
 _core.isExecutionSuspended() ⇒ boolean_
 
 Checks if the table indexes recalculation process was suspended. See explanation
-in [Core#suspendExecution](@/api/core.md#suspendexecution].
+in [Core#suspendExecution](@/api/core.md#suspendexecution).
 
 **Since**: 8.3.0  
 
@@ -1349,7 +1349,7 @@ Returns `true` if the current Handsontable instance is listening to keyboard inp
 
 _core.isRenderSuspended() ⇒ boolean_
 
-Checks if the table rendering process was suspended. See explanation in [Core#suspendRender](@/api/core.md#suspendrender].
+Checks if the table rendering process was suspended. See explanation in [Core#suspendRender](@/api/core.md#suspendrender).
 
 **Since**: 8.3.0  
 
@@ -1400,7 +1400,7 @@ _core.populateFromArray(row, column, input, [endRow], [endCol], [source], [metho
 Populate cells at position with 2D input array (e.g. `[[1, 2], [3, 4]]`). Use `endRow`, `endCol` when you
 want to cut input when a certain row is reached.
 
-Optional `method` argument has the same effect as pasteMode option (see [Options#pasteMode](@/api/options.md#pastemode]).
+Optional `method` argument has the same effect as pasteMode option (see [Options#pasteMode](@/api/options.md#pastemode)).
 
 
 | Param | Type | Default | Description |
@@ -1477,7 +1477,7 @@ Remove a property defined by the `key` argument from the cell meta object for th
 
 _core.removeHook(key, callback)_
 
-Removes the hook listener previously registered with [Core#addHook](@/api/core.md#addhook].
+Removes the hook listener previously registered with [Core#addHook](@/api/core.md#addhook).
 
 **See**: [Hooks#remove](@/api/pluginHooks.md#remove]  
 **Example**  
@@ -1488,7 +1488,7 @@ hot.removeHook('beforeInit', myCallback);
 | Param | Type | Description |
 | --- | --- | --- |
 | key | `string` | Hook name. |
-| callback | `function` | Reference to the function which has been registered using [Core#addHook](@/api/core.md#addhook]. |
+| callback | `function` | Reference to the function which has been registered using [Core#addHook](@/api/core.md#addhook). |
 
 
 
@@ -1516,7 +1516,7 @@ optimal moments in its lifecycle.
 
 _core.resumeExecution([forceFlushChanges])_
 
-Resumes the execution process. In combination with the [Core#suspendExecution](@/api/core.md#suspendexecution]
+Resumes the execution process. In combination with the [Core#suspendExecution](@/api/core.md#suspendexecution)
 method it allows aggregating the table logic changes after which the cache is
 updated. Resuming the state automatically invokes the table cache updating process.
 
@@ -1537,7 +1537,7 @@ hot.resumeExecution(); // It updates the cache internally
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [forceFlushChanges] | `boolean` | <code>false</code> | `optional` If `true`, the table internal data cache is recalculated after the execution of the batched operations. For nested [Core#batchExecution](@/api/core.md#batchexecution] calls, it can be desire to recalculate the table after each batch. |
+| [forceFlushChanges] | `boolean` | <code>false</code> | `optional` If `true`, the table internal data cache is recalculated after the execution of the batched operations. For nested [Core#batchExecution](@/api/core.md#batchexecution) calls, it can be desire to recalculate the table after each batch. |
 
 
 
@@ -1549,7 +1549,7 @@ hot.resumeExecution(); // It updates the cache internally
 
 _core.resumeRender()_
 
-Resumes the rendering process. In combination with the [Core#suspendRender](@/api/core.md#suspendrender]
+Resumes the rendering process. In combination with the [Core#suspendRender](@/api/core.md#suspendrender)
 method it allows aggregating the table render cycles triggered by API calls or UI
 actions (or both) and calls the "render" once in the end. When the table is in
 the suspend state, most operations will have no visual effect until the rendering
@@ -1989,8 +1989,8 @@ once in the end. As a result, it improves the performance of wrapped operations.
 When the table is in the suspend state, most operations will have no visual
 effect until the rendering state is resumed. Resuming the state automatically
 invokes the table rendering. To make sure that after executing all operations,
-the table will be rendered, it's highly recommended to use the [Core#batchRender](@/api/core.md#batchrender]
-method or [Core#batch](@/api/core.md#batch], which additionally aggregates the logic execution
+the table will be rendered, it's highly recommended to use the [Core#batchRender](@/api/core.md#batchrender)
+method or [Core#batch](@/api/core.md#batch), which additionally aggregates the logic execution
 that happens behind the table.
 
 The method is intended to be used by advanced users. Suspending the rendering
@@ -2164,7 +2164,7 @@ hot.updateSettings({
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| settings | `object` |  | New settings object (see [Options](@/api/options.md]). |
+| settings | `object` |  | New settings object (see [Options](@/api/options.md)). |
 | [init] | `boolean` | <code>false</code> | `optional` Internally used for in initialization mode. |
 
 

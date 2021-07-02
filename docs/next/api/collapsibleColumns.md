@@ -16,7 +16,7 @@ The _CollapsibleColumns_ plugin allows collapsing of columns, covered by a heade
 
 Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
 
-Setting the [Options#collapsiblecolumns](@/api/options.md#collapsiblecolumns] property to `true` will display a "collapse/expand" button in every header
+Setting the [Options#collapsiblecolumns](@/api/options.md#collapsiblecolumns) property to `true` will display a "collapse/expand" button in every header
 with a defined `colspan` property.
 
 To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property as an array
@@ -58,7 +58,7 @@ const hot = new Handsontable(container, {
 
 _collapsibleColumns.collapsibleColumns : boolean | Array&lt;object&gt;_
 
-The [CollapsibleColumns](@/api/collapsibleColumns.md] plugin allows collapsing of columns, covered by a header with the `colspan` property
+The [CollapsibleColumns](@/api/collapsibleColumns.md) plugin allows collapsing of columns, covered by a header with the `colspan` property
 defined.
 
 Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
@@ -200,8 +200,8 @@ Expands section at the provided coords.
 
 _collapsibleColumns.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit]
-hook and if it returns `true` than the [enablePlugin](@/api/.md#collapsiblecolumns+enableplugin] method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
+hook and if it returns `true` than the [enablePlugin](@/api/.md#collapsiblecolumns+enableplugin) method is called.
 
 
 
@@ -249,6 +249,6 @@ Collapses/Expands a section.
 
 _collapsibleColumns.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings] is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings) is invoked.
 
 
