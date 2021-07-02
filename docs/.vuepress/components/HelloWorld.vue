@@ -52,3 +52,13 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.codeSandboxIframe {
+  width: 100%;
+  height: 500px;
+  border: 0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+</style>
