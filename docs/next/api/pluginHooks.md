@@ -3463,7 +3463,7 @@ Handsontable.hooks.add('beforeInit', [myCallback, anotherCallback]);
 | [context] | `object` | <code>null</code> | `optional` The context for the hook callback to be added - a Handsontable instance or leave empty. |
 
 
-**Returns**: [`Hooks`](@/api/.md#hooks) - Instance of Hooks.  
+**Returns**: [`Hooks`](#hooks] - Instance of Hooks.  
 
 ### createEmptyBucket
   

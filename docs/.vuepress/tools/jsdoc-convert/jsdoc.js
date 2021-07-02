@@ -239,6 +239,10 @@ const fixLinks = text => text
         .toLowerCase()
         .replace(/-/g, '');
 
+      if (!target) {
+        return `[${label}](${hash}${fixedAnchor}]`;
+      }
+
       if (target.startsWith('@')) {
         return `[${label}](${target}${hash}${fixedAnchor}]`;
       }

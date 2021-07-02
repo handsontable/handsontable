@@ -14,7 +14,7 @@ editLink: false
 
 The search plugin provides an easy interface to search data across Handsontable.
 
-In order to enable search mechanism, [search](@/api/.md#options+search) option must be set to `true`.
+In order to enable search mechanism, [search](#options+search] option must be set to `true`.
 
 **Example**  
 ```js

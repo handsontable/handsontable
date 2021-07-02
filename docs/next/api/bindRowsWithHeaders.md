@@ -95,6 +95,6 @@ Enables the plugin functionality for this Handsontable instance.
 _bindRowsWithHeaders.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
-hook and if it returns `true` than the [enablePlugin](@/api/.md#bindrowswithheaders+enableplugin) method is called.
+hook and if it returns `true` than the [enablePlugin](#bindrowswithheaders+enableplugin] method is called.
 
 

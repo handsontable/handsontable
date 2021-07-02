@@ -15,7 +15,7 @@ editLink: false
 Save the state of column sorting, column positions and column sizes in local storage to preserve table state
 between page reloads.
 
-In order to enable data storage mechanism, [persistentState](@/api/.md#options+persistentstate) option must be set to `true`.
+In order to enable data storage mechanism, [persistentState](#options+persistentstate] option must be set to `true`.
 
 When persistentState is enabled it exposes 3 hooks:
 - [Hooks#persistentStateSave](@/api/hooks.md#persistentstatesave) - Saves value under given key in browser local storage.
@@ -116,7 +116,7 @@ Enables the plugin functionality for this Handsontable instance.
 _persistentState.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
-hook and if it returns `true` than the [enablePlugin](@/api/.md#persistentstate+enableplugin) method is called.
+hook and if it returns `true` than the [enablePlugin](#persistentstate+enableplugin] method is called.
 
 
 

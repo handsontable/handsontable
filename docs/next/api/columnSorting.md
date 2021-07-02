@@ -188,7 +188,7 @@ Get sort configuration for particular column or for all sorted columns. Objects 
 _columnSorting.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the Handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
-hook and if it returns `true` than the [enablePlugin](@/api/.md#columnsorting+enableplugin) method is called.
+hook and if it returns `true` than the [enablePlugin](#columnsorting+enableplugin] method is called.
 
 
 

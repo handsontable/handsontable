@@ -178,7 +178,7 @@ Or you can execute command registered in settings where `key` is your command na
 _dropdownMenu.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/hooks.md#beforeinit)
-hook and if it returns `true` than the [enablePlugin](@/api/.md#dropdownmenu+enableplugin) method is called.
+hook and if it returns `true` than the [enablePlugin](#dropdownmenu+enableplugin] method is called.
 
 
 

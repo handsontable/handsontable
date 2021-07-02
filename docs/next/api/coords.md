@@ -61,7 +61,7 @@ Checks if this cell coordinates are the same as cell coordinates given as an arg
 
 | Param | Type | Description |
 | --- | --- | --- |
-| cellCoords | [`CellCoords`](@/api/.md#cellcoords) | Cell coordinates to equal. |
+| cellCoords | [`CellCoords`](#cellcoords] | Cell coordinates to equal. |
 
 
 
