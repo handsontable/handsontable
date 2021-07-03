@@ -253,6 +253,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() beforeDrawBorders: Handsontable.GridSettings['beforeDrawBorders'];
   @Input() beforeDropdownMenuSetItems: Handsontable.GridSettings['beforeDropdownMenuSetItems'];
   @Input() beforeDropdownMenuShow: Handsontable.GridSettings['beforeDropdownMenuShow'];
+  @Input() beforeFilterValueOptionsShow: Handsontable.GridSettings['beforeFilterValueOptionsShow'];
   @Input() beforeFilter: Handsontable.GridSettings['beforeFilter'];
   @Input() beforeGetCellMeta: Handsontable.GridSettings['beforeGetCellMeta'];
   @Input() beforeHideColumns: Handsontable.GridSettings['beforeHideColumns'];

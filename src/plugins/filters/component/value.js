@@ -189,6 +189,10 @@ class ValueComponent extends BaseComponent {
     const values = unifyColumnValues(this._getColumnVisibleValues());
     const items = intersectValues(values, values, defaultBlankCellValue);
 
+    const lastSelectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
+    const visualIndex = lastSelectedColumn && lastSelectedColumn.visualIndex;
+    this.hot.runHooks('beforeFilterValueOptionsShow', visualIndex, items)
+
     this.getMultipleSelectElement().setItems(items);
     super.reset();
     this.getMultipleSelectElement().setValue(values);
