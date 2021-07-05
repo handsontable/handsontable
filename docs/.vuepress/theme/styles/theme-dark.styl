@@ -218,8 +218,8 @@ html.theme-dark {
 
       section {
         &[id*="preview-"] {
-          color $fontColor
-          background-color $tabsComponentBackgroundColor
+          color $tabsComponentBackgroundColor /* Related to issue #8355 */
+          background-color white; /* Related to issue #8355 */
         }
 
         &#code {
