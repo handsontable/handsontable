@@ -17,7 +17,7 @@ const buildRegisterCleaner = register => (to, from) => {
 };
 
 const buildActiveHeaderLinkHandler = () => {
-  let activeLink = '';
+  let activeLink = null;
 
   return (to, from) => {
     if (to.hash !== from.hash) {
@@ -36,8 +36,8 @@ const buildActiveHeaderLinkHandler = () => {
 
 export default ({ router, isServer }) => {
   if (!isServer) {
-
     themeLoader();
+
     router.afterEach(buildRegisterCleaner(instanceRegister));
     router.afterEach(buildActiveHeaderLinkHandler());
   }

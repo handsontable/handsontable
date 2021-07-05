@@ -1,8 +1,9 @@
 const path = require('path');
 const highlight = require('./highlight');
-const helpers = require('./helpers');
 const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
+const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
+const assetsVersioningPlugin = require('./plugins/assets-versioning');
 
 const buildMode = process.env.BUILD_MODE;
 const environmentHead = buildMode === 'production' ?
@@ -91,29 +92,11 @@ module.exports = {
           .end();
       },
     },
+    assetsVersioningPlugin,
+    [nginxRedirectsPlugin, {
+      outputFile: path.resolve(__dirname, '../docker/redirects.conf')
+    }],
   ],
-  extendPageData($page) {
-    const formatDate = (dateString) => {
-      const date = new Date(dateString);
-      const twoDigitDay = date.getDate();
-      const shortMonthName = date.toLocaleString('default', { month: 'short' });
-
-      return `${shortMonthName} ${twoDigitDay}, ${date.getFullYear()}`;
-    };
-
-    $page.versions = helpers.getVersions();
-    $page.latestVersion = helpers.getLatestVersion();
-    $page.currentVersion = helpers.parseVersion($page.path);
-    $page.lastUpdatedFormat = formatDate($page.lastUpdated);
-
-    if ($page.currentVersion === $page.latestVersion && $page.frontmatter.permalink) {
-      $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
-      $page.frontmatter.canonicalUrl = undefined;
-    }
-    if ($page.currentVersion !== $page.latestVersion && $page.frontmatter.canonicalUrl) {
-      $page.frontmatter.canonicalUrl = `https://handsontable.com/docs${$page.frontmatter.canonicalUrl}`;
-    }
-  },
   themeConfig: {
     nextLinks: true,
     prevLinks: true,
@@ -140,7 +123,6 @@ module.exports = {
     displayAllHeaders: true, // collapse other pages
     activeHeaderLinks: true,
     sidebarDepth: 0,
-    sidebar: helpers.getSidebars(buildMode),
     search: true,
     searchPlaceholder: 'Search...',
     searchMaxGuidesSuggestions: 5,
