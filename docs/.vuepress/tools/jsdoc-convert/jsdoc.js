@@ -20,7 +20,7 @@ const whitelist = [
   'editors/baseEditor/baseEditor.js',
   '3rdparty/walkontable/src/cell/coords.js',
   'plugins/copyPaste/focusableElement.js',
-  'DataMap.js',
+  'dataMap.js',
   'translations/maps/hidingMap.js',
   'translations/maps/indexesSequence.js',
   'translations/maps/trimmingMap.js',

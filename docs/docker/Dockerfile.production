@@ -1,5 +1,5 @@
 FROM node:15 as build
-ENV BUILD_MODE=stage
+ENV BUILD_MODE=production
 
 WORKDIR /app
 
@@ -16,12 +16,13 @@ RUN npm ci
 
 # app
 WORKDIR /app
-COPY src ./src
 COPY docs ./docs
 
 WORKDIR /app/docs
 
-RUN npm run docs:api
+RUN rm -rf ./next/
+RUN rm ./.vuepress/public/handsontable.js ./.vuepress/public/handsontable.css
+
 RUN npm run docs:build
 
 # server image
