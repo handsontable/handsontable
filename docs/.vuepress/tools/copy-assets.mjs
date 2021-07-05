@@ -1,5 +1,5 @@
 import path from 'path';
-import {copyFileSync} from 'fs'; 
+import { copyFileSync } from 'fs';
 
 const TARGET_PATH = './.vuepress/public/';
 const filesToMove = [
