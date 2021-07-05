@@ -1400,6 +1400,17 @@ const REGISTERED_HOOKS = [
    * @returns {number} Returns new width which will be applied to the column element.
    */
   'beforeStretchingColumnWidth',
+  /* eslint-disable jsdoc/require-description-complete-sentence */
+  /**
+   * Fired by {@link Filters} plugin before applying [filtering]{@link https://handsontable.com/docs/demo-filtering.html}. This hook is fired before
+   * {@link Options#filters} filter dropdown menu is show.
+   *
+   * @event Hooks#beforeFilterValueOptionsShow
+   * @param {number} column visual index
+   * @param {number} column physical index
+   * @param {string[]} Dropdown menu items
+   * @returns {void}
+   */
   'beforeFilterValueOptionsShow',
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**

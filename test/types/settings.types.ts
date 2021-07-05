@@ -462,6 +462,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeDrawBorders: (corners, borderClassName) => {},
   beforeDropdownMenuSetItems: (menuItems) => {},
   beforeDropdownMenuShow: (instance) => {},
+  beforeFilterValueOptionsShow: (visualIndex, physicalIndex, dropdownMenuItems) => {},
   beforeFilter: (conditionsStack) => { conditionsStack[0].conditions[0].name == 'begins_with' },
   beforeGetCellMeta: (row, col, cellProperties) => {},
   beforeHideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
