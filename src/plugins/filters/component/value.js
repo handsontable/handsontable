@@ -189,9 +189,10 @@ class ValueComponent extends BaseComponent {
     const values = unifyColumnValues(this._getColumnVisibleValues());
     const items = intersectValues(values, values, defaultBlankCellValue);
 
-    const lastSelectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
-    const visualIndex = lastSelectedColumn && lastSelectedColumn.visualIndex;
-    this.hot.runHooks('beforeFilterValueOptionsShow', visualIndex, items)
+    const visualIndex = this._getColumnVisualIndex();
+    const physicalIndex = this._getColumnPhysicalIndex();
+
+    this.hot.runHooks('beforeFilterValueOptionsShow', visualIndex, physicalIndex, items);
 
     this.getMultipleSelectElement().setItems(items);
     super.reset();
@@ -212,14 +213,39 @@ class ValueComponent extends BaseComponent {
   }
 
   /**
+   * Get visual index for currently selected column.
+   *
+   * @returns {Array}
+   * @private
+   */
+  _getColumnVisualIndex() {
+    const lastSelectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
+    const visualIndex = lastSelectedColumn && lastSelectedColumn.visualIndex;
+
+    return visualIndex;
+  }
+
+  /**
+   * Get physical index for currently selected column.
+   *
+   * @returns {Array}
+   * @private
+   */
+  _getColumnPhysicalIndex() {
+    const lastSelectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
+    const physicalIndex = lastSelectedColumn && lastSelectedColumn.physicalIndex;
+
+    return physicalIndex;
+  }
+
+  /**
    * Get data for currently selected column.
    *
    * @returns {Array}
    * @private
    */
   _getColumnVisibleValues() {
-    const lastSelectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
-    const visualIndex = lastSelectedColumn && lastSelectedColumn.visualIndex;
+    const visualIndex = this._getColumnVisualIndex();
 
     return arrayMap(this.hot.getDataAtCol(visualIndex), v => toEmptyString(v));
   }
