@@ -16,7 +16,7 @@ It can:
 * Map indices of displayed rows `visual indices` to the indices of corresponding rows in the datasource `physical indices` and vice versa
 * Alter the order of rows presented to a user without changing the datasource’s internal structure
 
-The sort operation is performed using a [stable sort algorithm](https://en.wikipedia.org/wiki/sorting_algorithm#Stability) regardless of the browser you use or the size of the data set which you sort.
+The sort operation is performed using a [stable sort algorithm](https://en.wikipedia.org/wiki/Sorting_algorithm#Stability) regardless of the browser you use or the size of the data set which you sort.
 
 ::: tip
 The `columnSorting` and `multiColumnSorting` plugins shouldn't be enabled simultaneously.
@@ -175,7 +175,7 @@ const hot = new Handsontable(container, {
 
 ## Custom compare functions
 
-You can pass in your own custom compare function to the sorting algorithm. This function should look the same as an argument in the native [Array.sort](https://developer.mozilla.org/en-US/docs/web/javaScript/reference/global_objects/array/sort#Parameters) method - read the [description here](https://developer.mozilla.org/en-US/docs/web/javaScript/reference/global_objects/array/sort#Description). It is handled by the plugin when `compareFunctionFactory` is defined in the configuration. The **compare function factory** must be placed under this key. The factory takes the parameters `sortOrder` and `columnMeta` and returns the compare function.
+You can pass in your own custom compare function to the sorting algorithm. This function should look the same as an argument in the native [Array.sort](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#Parameters) method - read the [description here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#Description). It is handled by the plugin when `compareFunctionFactory` is defined in the configuration. The **compare function factory** must be placed under this key. The factory takes the parameters `sortOrder` and `columnMeta` and returns the compare function.
 
 The example below shows how the custom compare function factory should look:
 
