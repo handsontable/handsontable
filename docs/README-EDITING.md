@@ -72,15 +72,18 @@ If you're editing the `latest` version (a version with the largest `<semver.vers
 
 ## Editing the API reference
 
-The API reference is generated automatically from the source code, into the `/next/api/` directory.
+The `next` version's API reference is generated automatically from the source code, into the `/next/api/` directory.
 
-To edit the API reference, go into the source code and change the JSDoc comments.
-
-To generate the API reference output, run the following command from the `/docs/` directory:
-
-```bash
-npm run docs:api
-```
+To edit the `next` version's API reference:
+1. Go into the source code and change the required JSDoc comments.
+2. Generate the `next` version's API reference output:
+    ```bash
+    npm run docs:api
+    ```
+    
+To edit a published version's API reference:
+1. Go to the required version's API reference output: `/docs/<semver.version>/api` (e.g. `/docs/9.0/api`).
+2. Edit the required Markdown files.
 
 ### JSDoc links
 
