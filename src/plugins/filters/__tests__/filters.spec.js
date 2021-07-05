@@ -734,6 +734,71 @@ describe('Filters', () => {
   });
 
   describe('Hooks', () => {
+    describe('`beforeFilterValueOptionsShow` hook', () => {
+      const disorderData = [{
+        id: 1,
+        name: 'Z',
+      }, {
+        id: 2,
+        name: 'A2',
+      }, {
+        id: 3,
+        name: 'a1',
+      }, {
+        id: 4,
+        name: 'B',
+      }];
+
+      it('should trigger `beforeFilterValueOptionsShow` when dropdown menu show', () => {
+        const spy = jasmine.createSpy();
+
+        handsontable({
+          data: disorderData,
+          columns: getColumnsForFilters(),
+          dropdownMenu: true,
+          filters: true,
+          beforeFilterValueOptionsShow: spy,
+          width: 500,
+          height: 300
+        });
+        dropdownMenu(1);
+        expect(spy).toHaveBeenCalled();
+        const filterValueOptions = dropdownMenuRootElement().querySelectorAll('.htUIMultipleSelectHot tbody tr');
+
+        expect(Array.from(filterValueOptions).map(tr => tr.textContent))
+          .toEqual(['A2', 'B', 'Z', 'a1']);
+      });
+
+      it('should `beforeFilterValueOptionsShow` hook able to adjust filtering values order', async() => {
+        const spy = jasmine.createSpy('beforeFilterValueOptionsShow').and.callFake(
+          (visualIndex, physicalIndex, items) => {
+            items.sort((i, j) => {
+              if (i.value.toString().toLowerCase() < j.value.toString().toLowerCase()) return -1;
+
+              if (i.value.toString().toLowerCase() > j.value.toString().toLowerCase()) return 1;
+
+              return 0;
+            });
+          });
+
+        handsontable({
+          data: disorderData,
+          columns: getColumnsForFilters(),
+          dropdownMenu: true,
+          filters: true,
+          beforeFilterValueOptionsShow: spy,
+          width: 500,
+          height: 300
+        });
+        dropdownMenu(1);
+        expect(spy).toHaveBeenCalled();
+        const filterValueOptions = dropdownMenuRootElement().querySelectorAll('.htUIMultipleSelectHot tbody tr');
+
+        expect(Array.from(filterValueOptions).map(tr => tr.textContent))
+          .toEqual(['a1', 'A2', 'B', 'Z']);
+      });
+    });
+
     describe('`beforeFilter` hook', () => {
       it('should trigger `beforeFilter` hook after filtering values', () => {
         const hot = handsontable({
