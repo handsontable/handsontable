@@ -110,7 +110,6 @@ const cellTypesItems = [
 
 const formulasItems = [
   'guides/formulas/formula-calculation',
-  'guides/formulas/hyperformula-integration',
 ];
 
 const accessoriesAndMenusItems = [
@@ -163,6 +162,7 @@ const upgradeAndMigrationItems = [
   'guides/upgrade-and-migration/versioning-policy',
   // TODO 'guides/upgrade-and-migration/roadmap',
   'guides/upgrade-and-migration/migrating-from-7.4-to-8.0',
+  'guides/upgrade-and-migration/migrating-from-8.4-to-9.0',
 ];
 
 module.exports = {

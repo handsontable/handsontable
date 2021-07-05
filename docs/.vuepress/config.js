@@ -93,13 +93,18 @@ module.exports = {
     },
   ],
   extendPageData($page) {
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      const twoDigitDay = date.getDate();
+      const shortMonthName = date.toLocaleString('default', { month: 'short' });
+
+      return `${shortMonthName} ${twoDigitDay}, ${date.getFullYear()}`;
+    };
+
     $page.versions = helpers.getVersions();
     $page.latestVersion = helpers.getLatestVersion();
     $page.currentVersion = helpers.parseVersion($page.path);
-    $page.lastUpdatedFormat = new Date($page.lastUpdated)
-      .toDateString()
-      .replace(/^\w+? /, '')
-      .replace(/(\d) (\d)/, '$1, $2');
+    $page.lastUpdatedFormat = formatDate($page.lastUpdated);
 
     if ($page.currentVersion === $page.latestVersion && $page.frontmatter.permalink) {
       $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
@@ -110,7 +115,6 @@ module.exports = {
     }
   },
   themeConfig: {
-    logo: '/img/handsontable-logo.svg',
     nextLinks: true,
     prevLinks: true,
     repo: 'handsontable/handsontable',
@@ -128,7 +132,7 @@ module.exports = {
       { text: 'Support',
         items: [
           { text: 'Contact support', link: 'https://handsontable.com/contact?category=technical_support' },
-          { text: 'Report an issue', link: 'https://github.com/handsontable/handsontable/issues/new' },
+          { text: 'Report an issue', link: 'https://github.com/handsontable/handsontable/issues/new/choose' },
           { text: 'Forum', link: 'https://forum.handsontable.com' },
         ]
       },

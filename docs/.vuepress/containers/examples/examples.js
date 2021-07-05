@@ -91,6 +91,7 @@ module.exports = {
       const htmlContent = htmlToken
         ? htmlToken.content
         : `<div id="${id}" class="hot ${klass}"></div>`;
+      const htmlContentRoot = `<div data-preset-type="${preset}">${htmlContent}</div>`;
 
       const cssPos = args.match(/--css (\d*)/)?.[1];
       const cssIndex = cssPos ? index + Number.parseInt(cssPos, 10) : 0;
@@ -116,7 +117,7 @@ module.exports = {
         ...tab('Code', jsToken),
         ...tab('HTML', htmlToken),
         ...tab('CSS', cssToken),
-        getPreviewTab(id, cssContent, htmlContent, encodedCode)
+        getPreviewTab(id, cssContent, htmlContentRoot, encodedCode)
       ];
 
       tokens.splice(index + 1, 0, ...newTokens);

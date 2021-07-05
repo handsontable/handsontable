@@ -360,7 +360,7 @@ export default {
     line-height 2rem
     padding 0 0.5rem 0 2rem
     outline none
-    background #fff url('/img/search.svg') 0.6rem 0.5rem no-repeat
+    background #fff url('/docs/img/search.svg') 0.6rem 0.5rem no-repeat
     background-size 1rem
     &:focus
       color #104bcd
@@ -432,6 +432,7 @@ export default {
         cursor text
         left 0
         width 8rem
+        margin-right 1rem
     .kbd-hint *
       display none
 
@@ -439,6 +440,8 @@ export default {
   .search-box.search-box
     input
       left 1rem
+      &:focus
+        margin-right 0
 // Match IE11
 @media all and (-ms-high-contrast: none)
   .search-box input

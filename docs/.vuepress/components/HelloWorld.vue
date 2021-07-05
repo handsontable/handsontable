@@ -16,30 +16,33 @@ import CodeSandboxIframe from './CodeSandboxIframe.vue';
 
 export default {
   name: 'HelloWorld',
+  props: ['sandboxesIds'],
   components: { CodeSandboxIframe },
   data() {
+    const sandboxesInfo = [
+      {
+        name: 'JavaScript',
+        tabId: 'js',
+        title: 'Handsontable JavaScript Data Grid - Hello World App'
+      },
+      {
+        name: 'TypeScript',
+        tabId: 'typescript',
+        title: 'Handsontable TypeScript Data Grid - Hello World App'
+      },
+      {
+        name: 'React',
+        tabId: 'react',
+        title: 'Handsontable React Data Grid - Hello World App'
+      }
+      // Zip sandbox information with sandbox ID passed by markdown file (needed for versioning).
+    ].map((sandboxInfo, index) => {
+      return { ...sandboxInfo, codeSandboxId: this.sandboxesIds[index] };
+    });
+
     return {
       selected: 'js',
-      items: [
-        {
-          name: 'JavaScript',
-          tabId: 'js',
-          codeSandboxId: 'handsontable-javascript-data-grid-hello-world-app-dzx8f',
-          title: 'Handsontable JavaScript Data Grid - Hello World App'
-        },
-        {
-          name: 'TypeScript',
-          tabId: 'typescript',
-          codeSandboxId: 'handsontable-typescript-data-grid-hello-world-app-145es',
-          title: 'Handsontable TypeScript Data Grid - Hello World App'
-        },
-        {
-          name: 'React',
-          tabId: 'react',
-          codeSandboxId: 'handsontable-react-data-grid-hello-world-app-yt46w',
-          title: 'Handsontable React Data Grid - Hello World App'
-        }
-      ]
+      items: sandboxesInfo
     };
   },
   methods: {
@@ -52,3 +55,13 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.codeSandboxIframe {
+  width: 100%;
+  height: 500px;
+  border: 0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+</style>

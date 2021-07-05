@@ -1,27 +1,74 @@
-/* eslint-disable no-restricted-globals, no-undef, no-console, no-unused-vars */
+/* global Handsontable, ReactDOM, ng */
+/**
+ * Returns a function that will destroy the demo resources.
+ *
+ * @param {string} presetType The demo preset name.
+ * @param {object} resources The resources connected with a demo.
+ * @param {HTMLElement} resources.rootExampleElement The root DOM element, container for the demo.
+ * @param {Handsontable} resources.hotInstance The Handsontable instance.
+ * @returns {Function}
+ */
+function createDestroyableResource(presetType, { rootExampleElement, hotInstance }) {
+  return () => {
+    if (presetType.startsWith('vue')) {
+      rootExampleElement.firstChild.__vue__.$root.$destroy();
 
-const register = new Set();
+    } else if (presetType.startsWith('react')) {
+      ReactDOM.unmountComponentAtNode(rootExampleElement.firstChild);
 
-register.listen = () => {
-  try {
-    if (typeof Handsontable !== 'undefined' && Handsontable._instanceRegisterInstalled === undefined) {
-      Handsontable._instanceRegisterInstalled = true;
-      Handsontable.hooks.add('afterInit', function() {
-        // Collect only HoT main instances. Skip context menu, dropdown menu
-        // and other internal HoT-based components.
-        if (!this.rootElement.id.startsWith('ht_')) {
-          register.add(this);
-        }
-      });
+    } else if (presetType.startsWith('angular')) {
+      ng.core.getPlatform().destroy();
+
+    } else if (!hotInstance.isDestroyed) {
+      // Skip internal HoT-based components (e.g. context menu, dropdown menu). They
+      // are managed by the HoT itself.
+      hotInstance.destroy();
     }
-  } catch (e) {
-    console.error('handsontableInstancesRegister initialization failed', e);
-  }
-};
+  };
+}
 
-register.destroyAll = () => {
-  register.forEach(instance => instance.destroy());
-  register.clear();
-};
+/**
+ * Creates registerer for demo instances.
+ *
+ * @returns {object} Returns an object with `listen` and `destroyAll` methods.
+ */
+function createRegister() {
+  const register = new Set();
 
-module.exports = { register };
+  const listen = () => {
+    try {
+      if (typeof Handsontable !== 'undefined' && Handsontable._instanceRegisterInstalled === undefined) {
+        Handsontable._instanceRegisterInstalled = true;
+        Handsontable.hooks.add('afterInit', function() {
+          const rootExampleElement = this.rootElement.closest('[data-preset-type]');
+
+          if (rootExampleElement) {
+            const examplePresetType = rootExampleElement.getAttribute('data-preset-type');
+
+            register.add(createDestroyableResource(examplePresetType, {
+              rootExampleElement,
+              hotInstance: this,
+            }));
+          }
+        });
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('handsontableInstancesRegister initialization failed', e);
+    }
+  };
+
+  const destroyAll = () => {
+    register.forEach(destroyableResource => destroyableResource());
+    register.clear();
+  };
+
+  return {
+    listen,
+    destroyAll,
+  };
+}
+
+module.exports = {
+  register: createRegister()
+};

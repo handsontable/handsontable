@@ -34,14 +34,17 @@ html.theme-dark {
 
     /* Navbar links */
     & .nav-link {
-      color $fontColor
+      color $fontColor !important
+      &::after {
+        border-left-color $fontColor !important
+      }
     }
   }
 
   /* Searchbox */
   .search-box.search-box {
     input {
-      background $searchBoxBackground url(/img/search.svg) 0.6rem 0.5rem no-repeat
+      background $searchBoxBackground url(/docs/img/search.svg) 0.6rem 0.5rem no-repeat
       background-size 1rem
       border-color $searchBoxInputBorderColor
       color $fontColor
@@ -190,20 +193,22 @@ html.theme-dark {
   .tabs-component {
     border-color $tabsComponentBorderColor
 
-    a {
-      color $fontColor !important
-
-      &:hover {
-        color $linkFontColor !important
-      }
-    }
-
-    .tabs-component-tabs {
+    ul.tabs-component-tabs {
       border-bottom-color $tabsComponentBorderColor
       background $tabsComponentBackgroundColor
 
-      .tabs-component-tab-a {
-        color $fontColor
+      .tabs-component-tab {
+        a {
+          color $fontColor
+
+          &:hover {
+            color $linkFontColor
+          }
+        }
+
+        &.is-disabled a {
+          color $fontColorDisabled
+        }
       }
     }
 
@@ -256,6 +261,16 @@ html.theme-dark {
     background-color $customBlockTipBackgroundColor
   }
 
+  /* Every custom block component */
+  .custom-block {
+    color $fontColor
+  }
+
+  /* Details markdown component */
+  .custom-block.details {
+    background-color #111111
+  }
+
   /* Code element */
   code {
     color $codeFontColor
@@ -290,7 +305,7 @@ html.theme-dark {
     scrollbar()
   }
 
-  table:not(.htCore) {
+  table:not(.htCore):not(.pika-table) {
     tr:nth-child(2n) {
       background-color $tableEvenRowBackgroundColor
     }

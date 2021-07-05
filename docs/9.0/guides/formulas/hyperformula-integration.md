@@ -19,7 +19,8 @@ tags:
 [[toc]]
 
 ::: tip
-We have created a [migration guide](@/guides/upgrade-and-migration/migrating-from-8.4-to-9.0.md) for developers upgrading to v9. If you use the formula plugin please make sure you carefully read it before upgrading.
+To use HyperFormula within Handsontable's default `formulas` plugin, you only need your existing [Handsontable license key](@/guides/getting-started/license-key.md).<br><br>
+To use HyperFormula independently from Handsontable, you need a license key dedicated to HyperFormula. For details, [contact our Sales Team](https://handsontable.com/get-a-quote).
 :::
 
 ## Overview
@@ -122,6 +123,7 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 ```js
 const data = [
   ['150', '643', '0.32', '11', '=A1*(B1*C1)+D1'],
+  ['172', '474', '0.51', '11', '=A2*(B2*C2)+D2'],
   ['188', '371', '0.59', '11', '=A3*(B3*C3)+D3'],
   ['162', '731', '0.21', '10', '=A4*(B4*C4)+D4'],
   ['133', '682', '0.81', '9', '=A5*(B5*C5)+D5'],
