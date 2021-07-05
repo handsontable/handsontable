@@ -27,6 +27,7 @@ RUN if [ "$BUILD_MODE" = "production" ] ; then     \
     rm ./.vuepress/public/handsontable.js ./.vuepress/public/handsontable.css     \
   ; fi
 
+RUN npm run docs:api
 RUN npm run docs:build
 
 # server image
