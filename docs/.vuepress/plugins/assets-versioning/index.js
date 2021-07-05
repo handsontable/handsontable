@@ -1,5 +1,4 @@
 const CopyPlugin = require('copy-webpack-plugin');
-const fse = require('fs-extra');
 const path = require('path');
 const helpers = require('../../helpers');
 
@@ -44,9 +43,9 @@ module.exports = (options, context) => {
     },
 
     chainWebpack(config) {
-      const files = helpers.getVersions().map((version) => ({
+      const files = helpers.getVersions().map(version => ({
         context: path.resolve(context.sourceDir, version, 'public'),
-        from: `**/*`,
+        from: '**/*',
         to: `${version}/`,
         force: true,
       }));
