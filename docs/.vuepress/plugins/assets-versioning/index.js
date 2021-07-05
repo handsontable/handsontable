@@ -1,3 +1,6 @@
+const CopyPlugin = require('copy-webpack-plugin');
+const fse = require('fs-extra');
+const path = require('path');
 const helpers = require('../../helpers');
 
 const buildMode = process.env.BUILD_MODE;
@@ -38,6 +41,19 @@ module.exports = (options, context) => {
       if ($page.currentVersion !== $page.latestVersion && $page.frontmatter.canonicalUrl) {
         $page.frontmatter.canonicalUrl = `https://handsontable.com/docs${$page.frontmatter.canonicalUrl}`;
       }
-    }
+    },
+
+    chainWebpack(config) {
+      const files = helpers.getVersions().map((version) => ({
+        context: path.resolve(context.sourceDir, version, 'public'),
+        from: `**/*`,
+        to: `${version}/`,
+        force: true,
+      }));
+
+      config
+        .plugin(`${pluginName}:assets-copy`)
+        .use(CopyPlugin, [files]);
+    },
   };
 };

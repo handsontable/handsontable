@@ -322,11 +322,11 @@ Methods `moveColumn`, `moveColumns`, `moveRow`, and `moveRows` have their argume
 
 The "drag" methods comes with the `dropIndex` parameter. It directs where to **place** the dragged elements. The place you intend to drag the element is managed by **drop indexes**. You can imagine some sort of a drop zone between actual indexes of elements:
 
-![drag_action](/docs/img/drag_action.svg)
+![drag_action](/docs/9.0/img/drag_action.svg)
 
 The "move" methods comes with the `finalIndex` parameter. It tells where to **overlap** the first element from the moved ones. The place you intend to move the element is managed by **visual indexes**.
 
-![move_action](/docs/img/move_action.svg)
+![move_action](/docs/9.0/img/move_action.svg)
 
 Please note that in case of "move" methods some move actions are limited. For example, if you initiate a move of **more than one element** to the **last position** (visual index = the number of items - 1) the operation will be canceled. The first element in the collection you would like to move will try to reach the last position (`finalIndex`) which is feasible. However, the next ones will attempt to reach the position exceeding the number of all items.
 
@@ -460,11 +460,11 @@ const physicalColumn = this.hot.toPhysicalColumn(column);
 
 It used to select just one cell:
 
-![LMB_was](/docs/img/LMB_was.gif)
+![LMB_was](/docs/9.0/img/LMB_was.gif)
 
 Now the expected behavior is to select all cells:
 
-![LMB_is](/docs/img/LMB_is.gif)
+![LMB_is](/docs/9.0/img/LMB_is.gif)
 
 To keep the previous behavior you need to use the following workaround:
 
