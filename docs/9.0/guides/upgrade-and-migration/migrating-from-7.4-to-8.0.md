@@ -352,11 +352,11 @@ const hotInstance = new Handsontable(container, {
 
 The results before:
 
-![before_8](/docs/img/spare_before_8.svg)
+![before_8](/docs/9.0/img/spare_before_8.svg)
 
 The results after:
 
-![after_8](/docs/img/spare_after_8.svg)
+![after_8](/docs/9.0/img/spare_after_8.svg)
 
 To ensure your application works as expected you should review it and search the use cases of `minSpareRows` or `minRows`, if the application relied on this mechanism you may need to adapt it. For example, in prior versions the following code:
 
