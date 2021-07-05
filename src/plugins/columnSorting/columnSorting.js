@@ -39,7 +39,7 @@ Hooks.getSingleton().register('afterColumnSort');
  *
  * @description
  * This plugin sorts the view by columns (but does not sort the data source!). To enable the plugin, set the
- * {@link options#columnsorting Options#columnSorting} property to the correct value (see the examples below).
+ * {@link Options#columnSorting} property to the correct value (see the examples below).
  *
  * @example
  * ```js
