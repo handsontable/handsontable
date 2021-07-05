@@ -1,10 +1,9 @@
 const helpers = require('../../helpers');
 
 const buildMode = process.env.BUILD_MODE;
+const pluginName = 'hot/assets-versioning';
 
 module.exports = (options, context) => {
-  const pluginName = 'hot/assets-versioning';
-
   return {
     name: pluginName,
 
