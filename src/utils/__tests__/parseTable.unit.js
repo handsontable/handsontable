@@ -1,9 +1,8 @@
-import { instanceToHTML, _dataToHTML, htmlToGridSettings } from 'handsontable/utils/parseTable';
-import Handsontable from 'handsontable';
-import { registerCellType } from 'handsontable/cellTypes';
-import { CELL_TYPE, TextCellType } from 'handsontable/cellTypes/textType';
+import { instanceToHTML, _dataToHTML, htmlToGridSettings } from '../parseTable';
+import Handsontable from '../../index';
+import { registerCellType, TextCellType } from '../../cellTypes';
 
-registerCellType(CELL_TYPE, TextCellType);
+registerCellType(TextCellType);
 
 describe('instanceToHTML', () => {
   it('should convert clear instance into HTML table', () => {
@@ -20,7 +19,43 @@ describe('instanceToHTML', () => {
     ].join(''));
   });
 
-  it('should convert headers into HTML table', () => {
+  it('should convert column headers into HTML table', () => {
+    const hot = new Handsontable(document.createElement('div'), {
+      colHeaders: true,
+      data: [
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+      ],
+    });
+
+    expect(instanceToHTML(hot)).toBe([
+      '<table><thead>',
+      '<tr><th>A</th><th>B</th></tr>',
+      '</thead><tbody>',
+      '<tr><td >A1</td><td >B1</td></tr>',
+      '<tr><td >A2</td><td >B2</td></tr>',
+      '</tbody></table>',
+    ].join(''));
+  });
+
+  it('should convert row headers into HTML table', () => {
+    const hot = new Handsontable(document.createElement('div'), {
+      rowHeaders: true,
+      data: [
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+      ],
+    });
+
+    expect(instanceToHTML(hot)).toBe([
+      '<table><tbody>',
+      '<tr><th>1</th><td >A1</td><td >B1</td></tr>',
+      '<tr><th>2</th><td >A2</td><td >B2</td></tr>',
+      '</tbody></table>',
+    ].join(''));
+  });
+
+  it('should convert column and rows headers into HTML table', () => {
     const hot = new Handsontable(document.createElement('div'), {
       colHeaders: true,
       rowHeaders: true,
