@@ -47,6 +47,12 @@ logger.log('\n-----------------------------------------------------\n');
     from: /permalink: \/next\//g,
     to: `permalink: /${version}/`,
   });
+  // replace all versioning assets to the new version
+  await replaceInFiles({
+    files: path.join(workingDir, version, '**/*.md'),
+    from: /\/docs\/next\//g,
+    to: `/docs/${version}/`,
+  });
   logger.success(`Permalinks for current latest (${version}) updated.\n`);
 
   // * print kind information, that version was been created.

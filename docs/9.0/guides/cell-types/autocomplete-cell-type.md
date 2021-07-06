@@ -10,7 +10,7 @@ canonicalUrl: /autocomplete-cell-type
 [[toc]]
 
 ## Overview
-The `autocomplete` cell type enables the user to choose a suggested option while typing. Autocomplete can be configured in three different ways, lazy mode, strict mode, and strict mode using Ajax. 
+The `autocomplete` cell type enables the user to choose a suggested option while typing. Autocomplete can be configured in three different ways, lazy mode, strict mode, and strict mode using Ajax.
 
 ## Autocomplete lazy mode
 
@@ -84,7 +84,7 @@ const hot = new Handsontable(container, {
     ['Chrysler', 2019, 'yellow', 'black'],
     ['Volvo', 2020, 'white', 'gray']
   ],
-  colHeaders: ['Car<br>(allowInvalid true)', 'Year', 
+  colHeaders: ['Car<br>(allowInvalid true)', 'Year',
     'Chassis color<br>(allowInvalid false)', 'Bumper color<br>(allowInvalid true)'],
   columns: [
     {
@@ -133,7 +133,7 @@ const hot = new Handsontable(container, {
     {
       type: 'autocomplete',
       source(query, process) {
-        fetch('/docs/scripts/json/autocomplete.json')
+        fetch('/docs/9.0/scripts/json/autocomplete.json')
           .then(response => response.json())
           .then(response => process(response.data));
       },

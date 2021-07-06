@@ -62,7 +62,7 @@ const hot = new Handsontable(container, {
 
     clearTimeout(autosaveNotification);
 
-    ajax('/docs/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
+    ajax('/docs/scripts/next/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
       exampleConsole.innerText = 'Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')';
       autosaveNotification = setTimeout(() => {
         exampleConsole.innerText ='Changes will be autosaved';
@@ -72,7 +72,7 @@ const hot = new Handsontable(container, {
 });
 
 Handsontable.dom.addEvent(load, 'click', () => {
-  ajax('/docs/scripts/json/load.json', 'GET', '', res => {
+  ajax('/docs/next/scripts/json/load.json', 'GET', '', res => {
     const data = JSON.parse(res.response);
 
     hot.loadData(data.data);
@@ -82,7 +82,7 @@ Handsontable.dom.addEvent(load, 'click', () => {
 });
 Handsontable.dom.addEvent(save, 'click', () => {
   // save all cell's data
-  ajax('/docs/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
+  ajax('/docs/next/scripts/json/save.json', 'GET', JSON.stringify({ data: hot.getData() }), res => {
     const response = JSON.parse(res.response);
 
     if (response.result === 'ok') {
