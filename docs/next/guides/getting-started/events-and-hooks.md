@@ -80,7 +80,6 @@ Note that some callbacks are checked on this page by default.
   box-sizing: border-box;
 }
 #example1 {
-  height: 166px;
   margin-top: 0;
 }
 #hooksList {
