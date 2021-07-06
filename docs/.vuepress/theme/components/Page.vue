@@ -38,8 +38,15 @@ export default {
   },
   methods: {
     codePreviewTabChanged(selectedTab, exampleId) {
+      const changedClass = 'selected-preview';
+      const parentContainer = selectedTab.tab.$el.parentElement;
+
+      // Removing class by method compatible with IE
+      parentContainer.className = parentContainer.className.replace(new RegExp(` ?${changedClass}`), '');
+
       if (selectedTab.tab.computedId.startsWith('preview-tab')) {
         this.activatedExamples.push(exampleId);
+        parentContainer.className += ` ${changedClass}`; // Adding class by method compatible with IE
       }
     },
     isScriptLoaderActivated(exampleId) {
