@@ -71,20 +71,15 @@ Note that some callbacks are checked on this page by default.
 ::: example #example1 --css 1 --html 2 --js 3
 ```css
 #example1_events {
-  width: 50%;
   height: 166px;
   padding: 5px;
+  margin: 10px 0;
   overflow-y: scroll;
-  float: left;
   font-size: 11px;
   border: 1px solid #CCC;
   box-sizing: border-box;
 }
 #example1 {
-  float: left;
-  width: 50%;
-  overflow-y: scroll;
-  height: 166px;
   margin-top: 0;
 }
 #hooksList {
