@@ -1709,6 +1709,56 @@ describe('NestedHeaders', () => {
         `);
     });
 
+    it('should allow scrolling (and lazy loading) the columns properly, ' +
+      'when some of the leftmost columns are hidden', async() => {
+      const nestedHeaders = [
+        [
+          {
+            label: 'A',
+            colspan: 20
+          }, {
+            label: 'B',
+            colspan: 40
+          }
+        ],
+        []
+      ];
+
+      for (let i = 0; i < 59; i += 1) {
+        nestedHeaders[1].push(`-${i + 1}-`);
+      }
+
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 60),
+        colHeaders: true,
+        nestedHeaders,
+      });
+
+      const onErrorFn = window.onerror;
+      const errorSpy = jasmine.createSpy('bound to error when scrolling the table horizontally');
+
+      window.onerror = () => {
+        errorSpy();
+
+        return true;
+      };
+
+      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValues([true, true, true, true, true, true]);
+      hot.render();
+
+      await sleep(200);
+
+      hot.scrollViewportTo(0, 15);
+
+      await sleep(300);
+
+      window.onerror = onErrorFn;
+
+      expect(errorSpy).not.toHaveBeenCalled();
+    });
+
     describe('with cooperation with the HidingColumns plugin', () => {
       it('should keep the headers in sync with a dataset using initial settings', () => {
         handsontable({

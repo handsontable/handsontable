@@ -4,6 +4,7 @@ import {
   fastInnerHTML,
   empty,
 } from '../../helpers/dom/element';
+import { isNumeric } from '../../helpers/number';
 import { isLeftClick, isRightClick } from '../../helpers/dom/event';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
@@ -523,7 +524,9 @@ export class NestedHeaders extends BasePlugin {
       const startColumn = this.#stateManager.findLeftMostColumnIndex(headerLayer, calc.startColumn);
       const renderedStartColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(startColumn);
 
-      if (renderedStartColumn < calc.startColumn) {
+      // `renderedStartColumn` can be `null` if the leftmost columns are hidden. In that case -> ignore that header
+      // level, as it should be handled by the "parent" header
+      if (isNumeric(renderedStartColumn) && renderedStartColumn < calc.startColumn) {
         newStartColumn = renderedStartColumn;
         break;
       }
