@@ -27,6 +27,7 @@ RUN if [ "$BUILD_MODE" = "production" ] ; then     \
     rm ./.vuepress/public/handsontable.js ./.vuepress/public/handsontable.css     \
   ; fi
 
+RUN npm run docs:api
 RUN npm run docs:build
 
 # server image
@@ -34,4 +35,11 @@ FROM nginx:alpine
 
 # set up static content
 WORKDIR /usr/share/nginx
+
+COPY --from=build ./app/docs/docker/default.conf /etc/nginx/conf.d/default.conf
+COPY --from=build ./app/docs/docker/redirects.conf /etc/nginx/redirects.conf
 COPY --from=build ./app/docs/.vuepress/dist/docs ./html
+
+# a fuse that checks the external Nginx config files. It fails the image
+# building when the config contains some syntax errors.
+RUN nginx -t

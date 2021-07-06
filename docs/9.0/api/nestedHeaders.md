@@ -128,6 +128,6 @@ Check if plugin is enabled.
 
 _nestedHeaders.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings) is invoked.
 
 

@@ -120,7 +120,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 _columnSummary.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#ColumnSummary+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
+hook and if it returns `true` than the [enablePlugin](#columnsummary+enableplugin) method is called.
 
 

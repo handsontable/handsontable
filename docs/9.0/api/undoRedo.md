@@ -68,7 +68,7 @@ _undoRedo.done(wrappedAction, [source])_
 
 Stash information about performed actions.
 
-**Emits**: [`Hooks#event:beforeUndoStackChange`](./hooks/#beforeUndoStackChange), [`Hooks#event:afterUndoStackChange`](./hooks/#afterUndoStackChange), [`Hooks#event:beforeRedoStackChange`](./hooks/#beforeRedoStackChange), [`Hooks#event:afterRedoStackChange`](./hooks/#afterRedoStackChange)  
+**Emits**: [`Hooks#event:beforeUndoStackChange`](@/api/pluginHooks.md#beforeundostackchange), [`Hooks#event:afterUndoStackChange`](@/api/pluginHooks.md#afterundostackchange), [`Hooks#event:beforeRedoStackChange`](@/api/pluginHooks.md#beforeredostackchange), [`Hooks#event:afterRedoStackChange`](@/api/pluginHooks.md#afterredostackchange)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -137,7 +137,7 @@ _undoRedo.redo()_
 
 Redo the previous action performed to the table (used to reverse an undo).
 
-**Emits**: [`Hooks#event:beforeUndoStackChange`](./hooks/#beforeUndoStackChange), [`Hooks#event:afterUndoStackChange`](./hooks/#afterUndoStackChange), [`Hooks#event:beforeRedoStackChange`](./hooks/#beforeRedoStackChange), [`Hooks#event:afterRedoStackChange`](./hooks/#afterRedoStackChange), [`Hooks#event:beforeRedo`](./hooks/#beforeRedo), [`Hooks#event:afterRedo`](./hooks/#afterRedo)  
+**Emits**: [`Hooks#event:beforeUndoStackChange`](@/api/pluginHooks.md#beforeundostackchange), [`Hooks#event:afterUndoStackChange`](@/api/pluginHooks.md#afterundostackchange), [`Hooks#event:beforeRedoStackChange`](@/api/pluginHooks.md#beforeredostackchange), [`Hooks#event:afterRedoStackChange`](@/api/pluginHooks.md#afterredostackchange), [`Hooks#event:beforeRedo`](@/api/pluginHooks.md#beforeredo), [`Hooks#event:afterRedo`](@/api/pluginHooks.md#afterredo)  
 
 
 ### undo
@@ -150,6 +150,6 @@ _undoRedo.undo()_
 
 Undo the last action performed to the table.
 
-**Emits**: [`Hooks#event:beforeUndoStackChange`](./hooks/#beforeUndoStackChange), [`Hooks#event:afterUndoStackChange`](./hooks/#afterUndoStackChange), [`Hooks#event:beforeRedoStackChange`](./hooks/#beforeRedoStackChange), [`Hooks#event:afterRedoStackChange`](./hooks/#afterRedoStackChange), [`Hooks#event:beforeUndo`](./hooks/#beforeUndo), [`Hooks#event:afterUndo`](./hooks/#afterUndo)  
+**Emits**: [`Hooks#event:beforeUndoStackChange`](@/api/pluginHooks.md#beforeundostackchange), [`Hooks#event:afterUndoStackChange`](@/api/pluginHooks.md#afterundostackchange), [`Hooks#event:beforeRedoStackChange`](@/api/pluginHooks.md#beforeredostackchange), [`Hooks#event:afterRedoStackChange`](@/api/pluginHooks.md#afterredostackchange), [`Hooks#event:beforeUndo`](@/api/pluginHooks.md#beforeundo), [`Hooks#event:afterUndo`](@/api/pluginHooks.md#afterundo)  
 
 

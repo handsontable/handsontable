@@ -4,14 +4,14 @@ metaTitle: HyperFormula integration - Guide - Handsontable Documentation
 permalink: /9.0/hyperformula-integration
 canonicalUrl: /hyperformula-integration
 tags:
-  - formula
-  - excel
-  - spreadsheet
-  - gpu
-  - worksheet
-  - workbook
-  - sheet
-  - function
+- formula
+- excel
+- spreadsheet
+- gpu
+- worksheet
+- workbook
+- sheet
+- function
 ---
 
 # HyperFormula integration

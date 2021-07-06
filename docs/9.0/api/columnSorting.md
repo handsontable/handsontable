@@ -13,7 +13,7 @@ editLink: false
 ## Description
 
 This plugin sorts the view by columns (but does not sort the data source!). To enable the plugin, set the
-[Options#columnSorting](./options/#columnsorting) property to the correct value (see the examples below).
+[columnSorting](#options+columnsorting) property to the correct value (see the examples below).
 
 **Example**  
 ```js
@@ -78,7 +78,7 @@ Turns on [Column sorting](@/guides/rows/row-sorting.md). Can be either a boolean
 * `headerAction` - allow to click on the headers to sort
   * `true` = turn on possibility to click on the headers to sort
   * `false` = turn off possibility to click on the headers to sort
-* `sortEmptyCells` - how empty values ([more information here](./options/#allowempty)) should be handled
+* `sortEmptyCells` - how empty values ([more information here](@/api/metaSchema.md#allowempty)) should be handled
   * `true` = the table sorts empty cells
   * `false` = the table moves all empty cells to the end of the table
 * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
@@ -187,8 +187,8 @@ Get sort configuration for particular column or for all sorted columns. Objects 
 
 _columnSorting.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the Handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#ColumnSorting+enablePlugin) method is called.
+Checks if the plugin is enabled in the Handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
+hook and if it returns `true` than the [enablePlugin](#columnsorting+enableplugin) method is called.
 
 
 
@@ -246,7 +246,7 @@ _columnSorting.sort(sortConfig)_
 
 Sorts the table by chosen columns and orders.
 
-**Emits**: [`Hooks#event:beforeColumnSort`](./hooks/#beforeColumnSort), [`Hooks#event:afterColumnSort`](./hooks/#afterColumnSort)  
+**Emits**: [`Hooks#event:beforeColumnSort`](@/api/pluginHooks.md#beforecolumnsort), [`Hooks#event:afterColumnSort`](@/api/pluginHooks.md#aftercolumnsort)  
 **Example**  
 ```js
 // sort ascending first visual column
