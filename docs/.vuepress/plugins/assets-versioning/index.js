@@ -43,7 +43,7 @@ module.exports = (options, context) => {
     },
 
     chainWebpack(config) {
-      const files = helpers.getVersions().map(version => ({
+      const files = helpers.getVersions(buildMode).map(version => ({
         context: path.resolve(context.sourceDir, version, 'public'),
         from: '**/*',
         to: `${version}/`,
