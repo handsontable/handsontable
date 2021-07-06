@@ -383,6 +383,7 @@ export default {
         left 24px
   .suggestions
     background #fff
+    max-width calc(100vw - 4rem)
     width 26rem
     position absolute
     top 1.6rem
