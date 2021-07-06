@@ -8,9 +8,15 @@ A [`<semver.version>` directory](./README.md#handsontable-docs-directory-structu
 
 Our server configuration watches for images tagged as [`:latest`](./README-EDITING.md#editing-the-latest-docs-version), and automatically refreshes after detecting a newer version.
 
+## Docker settings
+
+Before generating the documentation, set [Docker's runtime memory limit](https://docs.docker.com/docker-for-mac/).
+
+The recommended runtime memory limit is 8 GB. It allows us to generate 4 documentation versions at a time.
+
 ## Deploying the documentation using the command line
 
-Docker's recommended memory limit (8 GB) allows us to deploy 4 documentation versions at a time.
+To deploy the documentation using the command line:
 
 1. When deploying for the first time, log in to the GitHub Container Registry (ghcr.io):
     ```bash
