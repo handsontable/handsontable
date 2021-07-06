@@ -10,7 +10,7 @@ Our server configuration watches for images tagged as [`:latest`](./README-EDITI
 
 ## Deploying the documentation using the command line
 
-As of now, you can deploy no more than 3 documentation versions at once.
+Docker's recommended memory limit (8 GB) allows us to deploy 4 documentation versions at a time.
 
 1. When deploying for the first time, log in to the GitHub Container Registry (ghcr.io):
     ```bash
