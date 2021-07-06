@@ -27,11 +27,11 @@ The API enables you to control the data grid programmatically. With this API, yo
 
 The `Handsontable` class controls the essential aspects of the data grid.
 
-### [Hooks](@/api/hooks.md)
+### [Hooks](@/api/pluginHooks.md)
 
 Hooks are two-directional events that fire whenever a specific action occurs within the instance of Handsontable.
 
-### [Options](@/api/options.md)
+### [Options](@/api/metaSchema.md)
 
 These are the settings available to be registered for the `Core` features, in addition to those provided by plugins.
 

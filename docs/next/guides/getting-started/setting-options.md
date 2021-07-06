@@ -14,11 +14,11 @@ tags:
 
 ## Overview
 
-Handsontable uses cascading configuration, a fast way to provide configuration options for the entire table, including its columns and particular cells. To show you how it works, we use the [readOnly](@/api/metaSchema.md#readOnly) and [className](@/api/metaSchema.md#className) options.
+Handsontable uses cascading configuration, a fast way to provide configuration options for the entire table, including its columns and particular cells. To show you how it works, we use the [readOnly](@/api/metaSchema.md#readonly) and [className](@/api/metaSchema.md#classname) options.
 
 ### Entire grid
 
-By setting the [readOnly](@/api/metaSchema.md#readOnly) option, we propagate the option through the column settings down to the cells. As a result, all cells have a read-only state.
+By setting the [readOnly](@/api/metaSchema.md#readonly) option, we propagate the option through the column settings down to the cells. As a result, all cells have a read-only state.
 
 ::: example #example1 --html 1 --css 2 --js 3
 ```html

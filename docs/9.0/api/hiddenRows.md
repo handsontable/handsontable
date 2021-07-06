@@ -68,7 +68,7 @@ hot.render();
 
 _hiddenRows.hiddenRows : boolean | object_
 
-The [HiddenRows](./hidden-rows/) plugin allows hiding of certain rows. You can pass additional configuration with an
+The [HiddenRows](@/api/hiddenRows.md) plugin allows hiding of certain rows. You can pass additional configuration with an
 object notation. Options that are then available are:
  * `rows` - an array of rows that should be hidden on plugin initialization
  * `indicators` - enables small ui markers to indicate where are hidden columns.
@@ -180,8 +180,8 @@ Hides the rows provided in the array.
 
 _hiddenRows.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#HiddenRows+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
+hook and if it returns `true` than the [enablePlugin](#hiddenrows+enableplugin) method is called.
 
 
 
@@ -261,6 +261,6 @@ Shows the rows provided in the array.
 
 _hiddenRows.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings) is invoked.
 
 

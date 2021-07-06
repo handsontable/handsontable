@@ -110,7 +110,6 @@ const cellTypesItems = [
 
 const formulasItems = [
   'guides/formulas/formula-calculation',
-  'guides/formulas/hyperformula-integration',
 ];
 
 const accessoriesAndMenusItems = [

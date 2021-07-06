@@ -19,7 +19,7 @@
     "docs:build:no-check-links": "vuepress build -d .vuepress/dist/docs ./",
     "docs:docker:build": "npm run docs:docker:build:staging",
     "docs:docker:build:staging": "npm run docs:assets:next && docker build -f docker/Dockerfile -t docs-md ../",
-    "docs:docker:build:production": "docker build -f docker/Dockerfile -t docs-md --build-arg BUILD_MODE=production ../",
+    "docs:docker:build:production": "docker build -f docker/Dockerfile.production -t docs-md:production ../",
     "docs:version": "cd .vuepress/tools/version && node rollup-a-version.js",
     "docs:api": "cd .vuepress/tools/jsdoc-convert && node jsdoc.js",
     "docs:check-links": "node .vuepress/tools/check-links.js"

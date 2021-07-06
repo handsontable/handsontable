@@ -99,8 +99,8 @@ Enables the plugin functionality for this Handsontable instance.
 
 _mergeCells.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#MergeCells+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
+hook and if it returns `true` than the [enablePlugin](#mergecells+enableplugin) method is called.
 
 
 
@@ -114,7 +114,7 @@ _mergeCells.merge(startRow, startColumn, endRow, endColumn)_
 
 Merges the specified range.
 
-**Emits**: [`Hooks#event:beforeMergeCells`](./hooks/#beforeMergeCells), [`Hooks#event:afterMergeCells`](./hooks/#afterMergeCells)  
+**Emits**: [`Hooks#event:beforeMergeCells`](@/api/pluginHooks.md#beforemergecells), [`Hooks#event:afterMergeCells`](@/api/pluginHooks.md#aftermergecells)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -152,7 +152,7 @@ _mergeCells.unmerge(startRow, startColumn, endRow, endColumn)_
 
 Unmerges the merged cell in the provided range.
 
-**Emits**: [`Hooks#event:beforeUnmergeCells`](./hooks/#beforeUnmergeCells), [`Hooks#event:afterUnmergeCells`](./hooks/#afterUnmergeCells)  
+**Emits**: [`Hooks#event:beforeUnmergeCells`](@/api/pluginHooks.md#beforeunmergecells), [`Hooks#event:afterUnmergeCells`](@/api/pluginHooks.md#afterunmergecells)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -188,6 +188,6 @@ Unmerges the selection provided as a cell range.
 
 _mergeCells.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings) is invoked.
 
 
