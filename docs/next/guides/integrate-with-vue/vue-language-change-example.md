@@ -38,6 +38,7 @@ new Vue({
         colHeaders: true,
         rowHeaders: true,
         contextMenu: true,
+        height: 'auto',
         licenseKey: 'non-commercial-and-evaluation'
       },
       language: 'en-US'

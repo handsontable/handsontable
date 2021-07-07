@@ -11,7 +11,7 @@ canonicalUrl: /row-trimming
 
 ## Overview
 
-The _Trim Rows_ plugin allows the trimming of specific rows from the table. Rows being trimmed **aren't rendered** and **aren't included** in a `DataMap`, which can be retrieved by calling the [getData](@/api/core.md#getData) method.
+The _Trim Rows_ plugin allows the trimming of specific rows from the table. Rows being trimmed **aren't rendered** and **aren't included** in a `DataMap`, which can be retrieved by calling the [getData](@/api/core.md#getdata) method.
 
 ## Setup
 
@@ -31,6 +31,7 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   rowHeaders: true,
   trimRows: [1, 2, 5],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```

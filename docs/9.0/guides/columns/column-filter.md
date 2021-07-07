@@ -38,6 +38,7 @@ const hot = new Handsontable(container, {
     { type: 'date', dateFormat: 'M/D/YYYY' },
     { type: 'numeric' }
   ],
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   dropdownMenu: true,
@@ -71,6 +72,7 @@ const hot = new Handsontable(container, {
     { type: 'date', dateFormat: 'M/D/YYYY' },
     { type: 'numeric' }
   ],
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   filters: true,
@@ -143,6 +145,7 @@ const hot = new Handsontable(container, {
     ['diam', 'et', 'malesuada', 'libero', '12/1/2014', 98],
     ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
   ],
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   className: 'as-you-type-demo',
@@ -440,6 +443,7 @@ const hot = new Handsontable(container, {
     ['diam', 'et', 'malesuada', 'libero', '12/1/2014', 98],
     ['orci', 'et', 'dignissim', 'hendrerit', '12/1/2016', 8.5]
   ],
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   filters: true,

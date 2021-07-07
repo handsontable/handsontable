@@ -88,6 +88,7 @@ const hot = new Handsontable(container, {
   data: data,
   rowHeaders: true,
   colHeaders: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
 });
 ```
@@ -108,6 +109,7 @@ const hot = new Handsontable(container, {
   data: data,
   rowHeaders: true,
   colHeaders: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
 });
 ```

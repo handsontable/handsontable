@@ -302,7 +302,11 @@ const data = [
   ['2020', 10, 11, 12, 13, 15, 16],
   ['2021', 10, 11, 12, 13, 15, 16]
 ];
-const settings = { data: data, licenseKey: 'non-commercial-and-evaluation' };
+const settings = {
+  data: data,
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+};
 
 const hot = new Handsontable(container, settings);
 
@@ -329,6 +333,7 @@ const data = [
 
 const hot = new Handsontable(container, {
   data: JSON.parse(JSON.stringify(data)),
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```

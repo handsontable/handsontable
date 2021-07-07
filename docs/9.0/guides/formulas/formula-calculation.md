@@ -4,14 +4,14 @@ metaTitle: Formula calculation - Guide - Handsontable Documentation
 permalink: /9.0/formula-calculation
 canonicalUrl: /formula-calculation
 tags:
-- formula
-- excel
-- spreadsheet
-- gpu
-- worksheet
-- workbook
-- sheet
-- function
+  - formula
+  - excel
+  - spreadsheet
+  - gpu
+  - worksheet
+  - workbook
+  - sheet
+  - function
 ---
 
 # Formula calculation
@@ -95,6 +95,7 @@ new Handsontable(container1, {
   data: data1,
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   formulas: {
     engine: hyperformulaInstance,
     sheetName: 'Sheet1'
@@ -107,6 +108,7 @@ new Handsontable(container2, {
   data: data2,
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   formulas: {
     engine: hyperformulaInstance,
     sheetName: 'Sheet2'
@@ -404,6 +406,7 @@ const hotNamedExpressions = new Handsontable(container, {
   data: data,
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   formulas: {
     engine: HyperFormula,
     namedExpressions: [

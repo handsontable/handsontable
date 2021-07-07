@@ -9,7 +9,7 @@ canonicalUrl: /react-custom-renderer-example
 
 ## Overview
 
-You can declare a custom renderer for the `HotTable` component by declaring it as a function in the Handsontable options or creating a rendering component. 
+You can declare a custom renderer for the `HotTable` component by declaring it as a function in the Handsontable options or creating a rendering component.
 
 ## Example
 
@@ -55,6 +55,7 @@ const hotSettings = {
   ],
   colHeaders: true,
   rowHeights: 55,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 };
 

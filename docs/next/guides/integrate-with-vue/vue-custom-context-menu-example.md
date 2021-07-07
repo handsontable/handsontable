@@ -46,6 +46,7 @@ new Vue({
             }
           }
         },
+        height: 'auto',
         licenseKey: 'non-commercial-and-evaluation'
       }
     }

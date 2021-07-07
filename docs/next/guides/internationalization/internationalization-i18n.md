@@ -73,6 +73,7 @@ const data = [
 const hot = new Handsontable(container, {
   data,
   contextMenu: true,
+  height: 'auto',
   language: 'de-DE',
   licenseKey: 'non-commercial-and-evaluation'
 });
@@ -244,7 +245,7 @@ Handsontable.languages.getLanguagesDictionaries()
 
 Returns: `Array`
 
-### Get the phrase for specified dictionary key 
+### Get the phrase for specified dictionary key
 
 Handsontable.languages.getTranslatedPhrase(languageCode: `String`, dictionaryKey: `String`, extraArguments: `Mixed`)
 

@@ -52,6 +52,7 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   contextMenu: ['copy', 'cut'],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -92,6 +93,7 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   data: Handsontable.helper.createSpreadsheetData(5, 5),
   outsideClickDeselects: false,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 

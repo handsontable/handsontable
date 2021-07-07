@@ -196,6 +196,7 @@ const hot = new Handsontable(container, {
     {},
     { renderer: customRenderer }
   ],
+  height: 'auto',
   colHeaders(col) {
     switch (col) {
       case 0:

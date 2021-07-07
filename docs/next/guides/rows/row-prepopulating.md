@@ -62,6 +62,7 @@ const hot = new Handsontable(container, {
   startCols: 5,
   minSpareRows: 1,
   contextMenu: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   cells(row, col, prop) {
     const cellProperties = {};

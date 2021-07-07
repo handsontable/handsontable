@@ -38,6 +38,7 @@ class AppComponent {
     startCols: 5,
     colHeaders: true,
     stretchH: 'all',
+    height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'
   };
   id = 'my-custom-id';

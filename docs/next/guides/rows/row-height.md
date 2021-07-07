@@ -36,6 +36,7 @@ const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(4, 5),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   rowHeights: 40,
@@ -56,6 +57,7 @@ const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(4, 5),
   width: '100%',
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   rowHeights: [40, 40, 40, 40],
@@ -76,6 +78,7 @@ const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 5),
   width: '100%',
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   rowHeights(index) {
@@ -99,6 +102,7 @@ const container = document.querySelector('#example4');
 
 const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 5),
+  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   rowHeights: 40,
