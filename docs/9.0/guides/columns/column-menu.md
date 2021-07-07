@@ -28,6 +28,7 @@ const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 7),
   colHeaders: true,
   dropdownMenu: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -45,6 +46,7 @@ const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 7),
   colHeaders: true,
   licenseKey: 'non-commercial-and-evaluation',
+  height: 'auto',
   dropdownMenu: [
     'remove_col',
     '---------',

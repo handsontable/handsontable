@@ -11,7 +11,7 @@ canonicalUrl: /angular-custom-editor-example
 
 The following is an implementation of the `@handsontable/angular` component with a custom editor added. It utilizes the `placeholder` attribute in the editor's `input` element.
 
-## Example 
+## Example
 
 ::: example :angular --html 1 --js 2
 ```html
@@ -42,6 +42,7 @@ class AppComponent {
     ],
     colHeaders: true,
     colWidths: 200,
+    height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'
   };
 }

@@ -54,6 +54,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: ['Brand', 'Model', 'Code name', 'Country of origin', 'Rank'],
   columnSorting: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```

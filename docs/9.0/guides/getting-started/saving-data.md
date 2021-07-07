@@ -50,6 +50,7 @@ const hot = new Handsontable(container, {
   startCols: 6,
   rowHeaders: true,
   colHeaders: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   afterChange: function (change, source) {
     if (source === 'loadData') {

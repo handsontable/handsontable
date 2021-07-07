@@ -47,6 +47,7 @@ new Vue({
         colHeaders: true,
         rowHeaders: true,
         readOnly: true,
+        height: 'auto',
         afterChange: () => {
           if (this.hotRef) {
             this.$store.commit('updateData', this.hotRef.getSourceData());

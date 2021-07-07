@@ -116,6 +116,7 @@ const config = {
   ],
   minRows: 5,
   minCols: 6,
+  height: 'auto',
   stretchH: 'all',
   minSpareRows: 1,
   autoWrapRow: true,
@@ -283,6 +284,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   minSpareRows: 1,
   beforeChange(changes, source) {
     lastChange = changes;

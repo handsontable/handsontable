@@ -152,6 +152,7 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   hiddenRows: { rows: [1, 3, 5], indicators: true },
   hiddenColumns: { columns: [1, 3, 5], indicators: true },
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -196,6 +197,7 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   hiddenRows: { rows: [1, 3, 5], indicators: true },
   hiddenColumns: { columns: [1, 3, 5], indicators: true },
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -240,6 +242,7 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   hiddenRows: { rows: [1, 3, 5], indicators: true },
   hiddenColumns: { columns: [1, 3, 5], indicators: true },
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 

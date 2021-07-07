@@ -15,10 +15,10 @@ By default, Handsontable treats all cell values as `string` type. This is becaus
 
 ## Usage
 
-To trigger the Numeric cell type, use the option `type: 'numeric'` in the `columns` array or `cells` function. 
+To trigger the Numeric cell type, use the option `type: 'numeric'` in the `columns` array or `cells` function.
 
-::: tip 
-Ensure your cell values are numbers and not strings, as Handsontable will not parse strings to numbers. 
+::: tip
+Ensure your cell values are numbers and not strings, as Handsontable will not parse strings to numbers.
 :::
 
 You can input float-type values in the numeric editor using a dot or a comma as a decimal separator. For example, both `500000.5`, `500000,5` will be accepted. You are not able to use a thousands separator in the editor.
@@ -46,6 +46,7 @@ const hot = new Handsontable(container, {
   colHeaders: ['Car', 'Year', 'Price ($)', 'Price (€)'],
   columnSorting : true,
   licenseKey: 'non-commercial-and-evaluation',
+  height: 'auto',
   columns: [
     {
       data: 'car'
