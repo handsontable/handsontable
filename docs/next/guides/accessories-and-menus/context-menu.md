@@ -34,6 +34,7 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   contextMenu: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -93,6 +94,7 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   contextMenu: ['row_above', 'row_below', 'remove_row'],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -124,6 +126,7 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   licenseKey: 'non-commercial-and-evaluation',
+  height: 'auto',
   contextMenu: {
     callback(key, selection, clickEvent) {
       // Common callback for all options

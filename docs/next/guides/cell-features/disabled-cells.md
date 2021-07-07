@@ -35,6 +35,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   licenseKey: 'non-commercial-and-evaluation',
+  height: 'auto',
   columns: [
     {
       data: 'car',
@@ -70,6 +71,7 @@ const hot = new Handsontable(container, {
     {car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray'}
   ],
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -110,6 +112,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
   licenseKey: 'non-commercial-and-evaluation',
+  height: 'auto',
   columns: [
     {
       data: 'car',
@@ -148,6 +151,7 @@ const hot = new Handsontable(container, {
     {car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray'}
   ],
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 

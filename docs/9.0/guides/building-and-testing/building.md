@@ -51,7 +51,7 @@ It is advised that you never modify the files mentioned above. Instead, make cha
 Currently, the following tasks are available for building Handsontable:
 
 * `npm run test` - runs several tasks in this order:
-  * `npm run lint` - check if changes applied to the source code adhere to [our code style](https://github.com/handsontable/handsontable/blob/master/.eslintrc).
+  * `npm run lint` - check if changes applied to the source code adhere to [our code style](https://github.com/handsontable/handsontable/blob/master/.eslintrc.js).
   * `npm run test:unit` - runs the test suite in node environment. It uses [Jest](https://facebook.github.io/jest/) as a test runner.
   * `npm run test:types` - runs the tests which check if the code follows TypeScript definition.
   * `npm run test:walkontable` - runs a single build of Walkontable (the Handsontable renderer engine) followed by Jasmine test suite and executes in [Puppeteer](https://github.com/GoogleChrome/puppeteer).

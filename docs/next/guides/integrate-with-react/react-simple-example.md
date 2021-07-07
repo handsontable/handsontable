@@ -35,6 +35,7 @@ const App = () => {
         data={hotData}
         colHeaders={true}
         rowHeaders={true}
+        height='auto'
         licenseKey="non-commercial-and-evaluation"
       />
     </div>
@@ -63,6 +64,7 @@ const App = () => {
           data: hotData,
           colHeaders: true,
           rowHeaders: true,
+          height: 'auto',
           licenseKey: 'non-commercial-and-evaluation'
         }}
       />
@@ -91,6 +93,7 @@ const App = () => {
       height: 220,
       licenseKey: 'non-commercial-and-evaluation'
     }
+
     return initialState;
   });
 

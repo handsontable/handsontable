@@ -42,6 +42,7 @@ const hot = new Handsontable(container, {
     rows: [3, 5, 9],
     indicators: true
   },
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```

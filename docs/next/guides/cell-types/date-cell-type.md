@@ -10,7 +10,7 @@ canonicalUrl: /date-cell-type
 [[toc]]
 
 ## Overview
-The `'date'` cell type is used to display a date in a cell or column. 
+The `'date'` cell type is used to display a date in a cell or column.
 
 ## Usage
 
@@ -41,8 +41,8 @@ const hot = new Handsontable(container, {
     ['Opel', 'Astra', '02/02/2021', 7000],
     ['BMW', '320i Coupe', '07/24/2022', 30500]
   ],
-  licenseKey: 'non-commercial-and-evaluation',
   colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
+  height: 'auto',
   columns: [
     {
       type: 'autocomplete',
@@ -57,7 +57,7 @@ const hot = new Handsontable(container, {
       dateFormat: 'MM/DD/YYYY',
       correctFormat: true,
       defaultDate: '01/01/1900',
-      // datePicker additional options 
+      // datePicker additional options
       // (see https://github.com/dbushell/Pikaday#configuration)
       datePickerConfig: {
         // First day of the week (0: Sunday, 1: Monday, etc)

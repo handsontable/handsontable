@@ -281,6 +281,7 @@ const hot = new Handsontable(container, {
     { id: 4, name: 'Ben', isActive: false, color: 'blue', date: null },
   ],
   colHeaders: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
     { data: 'id', type: 'text' },
@@ -324,6 +325,7 @@ const hot = new Handsontable(container, {
   columnSorting: {
     sortEmptyCells: true
   },
+  height: 'auto',
   columns: [
     {
       columnSorting: {

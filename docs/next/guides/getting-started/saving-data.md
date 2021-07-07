@@ -50,6 +50,7 @@ const hot = new Handsontable(container, {
   startCols: 6,
   rowHeaders: true,
   colHeaders: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   afterChange: function (change, source) {
     if (source === 'loadData') {
@@ -62,7 +63,7 @@ const hot = new Handsontable(container, {
 
     clearTimeout(autosaveNotification);
 
-    ajax('/docs/scripts/next/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
+    ajax('/docs/next/scripts/json/save.json', 'GET', JSON.stringify({ data: change }), data => {
       exampleConsole.innerText = 'Autosaved (' + change.length + ' ' + 'cell' + (change.length > 1 ? 's' : '') + ')';
       autosaveNotification = setTimeout(() => {
         exampleConsole.innerText ='Changes will be autosaved';

@@ -4,14 +4,14 @@ metaTitle: Formula calculation - Guide - Handsontable Documentation
 permalink: /9.0/formula-calculation
 canonicalUrl: /formula-calculation
 tags:
-- formula
-- excel
-- spreadsheet
-- gpu
-- worksheet
-- workbook
-- sheet
-- function
+  - formula
+  - excel
+  - spreadsheet
+  - gpu
+  - worksheet
+  - workbook
+  - sheet
+  - function
 ---
 
 # Formula calculation

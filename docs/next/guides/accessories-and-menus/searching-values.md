@@ -89,6 +89,7 @@ const hot = new Handsontable(container, {
   data,
   colHeaders: true,
   search: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -133,6 +134,7 @@ const hot = new Handsontable(container, {
   search: {
     searchResultClass: 'search-result-custom'
   },
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -168,12 +170,13 @@ function onlyExactMatch(queryStr, value) {
   return queryStr.toString() === value.toString();
 };
 
-const hot = new Handsontable(example3,{
+const hot = new Handsontable(container, {
   data,
   colHeaders: true,
   search: {
     queryMethod: onlyExactMatch
   },
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 
@@ -229,6 +232,7 @@ const hot4 = new Handsontable(container, {
   search: {
     callback: searchResultCounter
   },
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 
