@@ -252,7 +252,7 @@ const hotInstance = new Handsontable(container, {
 ```
 
 ### 5. Get a reference to the plugin's instance
-To use the plugin's API, call the [`getPlugin`](../api/core/#getplugin) method to get a reference to the plugin's instance.
+To use the plugin's API, call the [`getPlugin`](@/api/core.md#getplugin) method to get a reference to the plugin's instance.
 
 ```js
 const pluginInstance = hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY);

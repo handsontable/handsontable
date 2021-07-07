@@ -42,7 +42,7 @@ Row index.
 
 :::
 
-_cellCoords.clone() ⇒ [CellCoords](./coords/)_
+_cellCoords.clone() ⇒ [CellCoords](@/api/coords.md)_
 
 Clones the coordinates.
 
@@ -61,7 +61,7 @@ Checks if this cell coordinates are the same as cell coordinates given as an arg
 
 | Param | Type | Description |
 | --- | --- | --- |
-| cellCoords | [`CellCoords`](#CellCoords) | Cell coordinates to equal. |
+| cellCoords | [`CellCoords`](#cellcoords) | Cell coordinates to equal. |
 
 
 
@@ -156,7 +156,7 @@ Checks if given set of coordinates is valid in context of a given Walkontable in
 
 :::
 
-_cellCoords.normalize() ⇒ [CellCoords](./coords/)_
+_cellCoords.normalize() ⇒ [CellCoords](@/api/coords.md)_
 
 Normalizes the coordinates to the nearest valid position. The coordinates that point
 to the headers (negative values) are normalized to 0.

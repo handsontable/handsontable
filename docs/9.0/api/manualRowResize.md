@@ -12,7 +12,7 @@ editLink: false
 
 ## Description
 
-This plugin allows to change rows height. To make rows height persistent the [Options#persistentState](./Options/#persistentState)
+This plugin allows to change rows height. To make rows height persistent the [Options#persistentState](@/api/metaSchema.md#persistentstate)
 plugin should be enabled.
 
 The plugin creates additional components to make resizing possibly using user interface:
@@ -30,7 +30,7 @@ The plugin creates additional components to make resizing possibly using user in
 
 _manualRowResize.manualRowResize : boolean | Array&lt;number&gt;_
 
-Turns on [Manual row resize](@/guides/columns/column-width.md#column-stretching), if set to a boolean or define initial row resized heights (as an array of heights).
+Turns on [Manual row resize](@/guides/columns/column-width.md#columnstretching), if set to a boolean or define initial row resized heights (as an array of heights).
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -89,8 +89,8 @@ Enables the plugin functionality for this Handsontable instance.
 
 _manualRowResize.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#ManualRowResize+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
+hook and if it returns `true` than the [enablePlugin](#manualrowresize+enableplugin) method is called.
 
 
 
@@ -102,10 +102,10 @@ hook and if it returns `true` than the [enablePlugin](#ManualRowResize+enablePlu
 
 _manualRowResize.loadManualRowHeights() ⇒ Array_
 
-Loads the previously saved sizes using the persistentState plugin (the [Options#persistentState](./Options/#persistentState) option
+Loads the previously saved sizes using the persistentState plugin (the [Options#persistentState](@/api/metaSchema.md#persistentstate) option
 has be enabled).
 
-**Emits**: [`Hooks#event:persistentStateLoad`](./hooks/#persistentStateLoad)  
+**Emits**: [`Hooks#event:persistentStateLoad`](@/api/pluginHooks.md#persistentstateload)  
 
 
 ### saveManualRowHeights
@@ -116,10 +116,10 @@ has be enabled).
 
 _manualRowResize.saveManualRowHeights()_
 
-Saves the current sizes using the persistentState plugin (the [Options#persistentState](./Options/#persistentState) option has to be
+Saves the current sizes using the persistentState plugin (the [Options#persistentState](@/api/metaSchema.md#persistentstate) option has to be
 enabled).
 
-**Emits**: [`Hooks#event:persistentStateSave`](./hooks/#persistentStateSave)  
+**Emits**: [`Hooks#event:persistentStateSave`](@/api/pluginHooks.md#persistentstatesave)  
 
 
 ### setManualSize
@@ -149,6 +149,6 @@ Sets the new height for specified row index.
 
 _manualRowResize.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings) is invoked.
 
 

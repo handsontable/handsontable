@@ -14,15 +14,15 @@ When adding new documentation files, check the documentation [directory structur
 
 ### Frontmatter
 
-Each Markdown file starts with the following frontmatter tags:
+Each Markdown file can start with the following frontmatter tags:
 
-| Tag            | Meaning                                                    | Required |
-|----------------|------------------------------------------------------------|----------|
-| `title`        | The page's header.                                         | Yes      |
-| `permalink`    | The page's **unique** URL.                                 | Yes      |
-| `canonicalUrl` | A canonical URL of the page's latest version.              | Yes      |
-| `metaTitle`    | The page's SEO meta title.                                 | No       |
-| `tags`         | Tags used by the documentation search engine.              | No       |
+| Tag            | Meaning                                                    | Default value           |
+|----------------|------------------------------------------------------------|-------------------------|
+| `title`        | The page's header. | If not set, gets generated from the page's parent's title.      |
+| `permalink`    | The page's **unique** URL. | If not set, gets generated from the Markdown file name. |
+| `canonicalUrl` | A canonical URL of the page's latest version.              | None (not required)     |
+| `metaTitle`    | The page's SEO meta title.                                 | None (not required)     |
+| `tags`         | Tags used by the documentation search engine.              | None (not required)     |
 
 Frontmatter example:
 
@@ -72,15 +72,18 @@ If you're editing the `latest` version (a version with the largest `<semver.vers
 
 ## Editing the API reference
 
-The API reference is generated automatically from the source code, into the `/next/api/` directory.
+The `next` version's API reference is generated automatically from the source code, into the `/next/api/` directory.
 
-To edit the API reference, go into the source code and change the JSDoc comments.
-
-To generate the API reference output, run the following command from the `/docs/` directory:
-
-```bash
-npm run docs:api
-```
+To edit the `next` version's API reference:
+1. Go into the source code and change the required JSDoc comments.
+2. Generate the `next` version's API reference output:
+    ```bash
+    npm run docs:api
+    ```
+    
+To edit a published version's API reference:
+1. Go to the required version's API reference output: `/docs/<semver.version>/api` (e.g. `/docs/9.0/api`).
+2. Edit the required Markdown files.
 
 ### JSDoc links
 
@@ -108,19 +111,19 @@ As we want to support case-insensitive URLs, follow these guidelines when editin
 
 To create a new version of the Handsontable documentation:
 
-* From the `handsontable/docs` directory, run:
-```bash
-npm run docs:version <semver.version>
-# for example:
-# npm run docs:version 9.0
-```
+1. From the `handsontable/docs` directory, run:
+    ```bash
+    npm run docs:version
+    ```
+2. Confirm that you want to generate a new documentation version.
+3. Enter the version number that you want to create.
 
 To remove an existing version of the Handsontable documentation:
 
 * Remove the required version's [directory](./README.md#handsontable-docs-directory-structure):
-```bash
-rm -rf ./<semver.version>
-```
+  ```bash
+  rm -rf ./<semver.version>
+  ```
 
 ## Markdown containers
 
@@ -162,13 +165,13 @@ Using the `example` Markdown container, you can add code snippets that show the 
 
 The `example` Markdown container offers the following options:
 
-| Option         | Required | Example         | Possible values                                            | Usage                                                                                              |
-|----------------|----------|-----------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
-| `#exampleId`   | Yes      | `#data-grid-1`  | String                                                     | Container's unique ID.                                                                             |
-| `.class`       | No       | `.new-class`    | String                                                     | Container's custom class.                                                                          |
-| `:preset`      | No       | `:react`        | [`preset`](.vuepress/handsontable-manager/dependencies.js) | Sets code dependencies.                                                                            |
-| `--js <pos>`   | No       | `--js 1`        | Positive integer<br>(default `1`)                          | Sets the JS code snippet's position<br>in the markdown container.                                     |
-| `--html <pos>` | No       | `--html 2`      | Positive integer<br>(default `0`)                          | Sets the HTML code snippet's position<br>in the markdown container.<br><br>`0` disables the HTML tab. |
-| `--css <pos>`  | No       | `--css 2`       | Positive integer<br>(default `0`)                          | Sets the CSS code snippet's position<br>in the markdown container.<br><br>`0` disables the CSS tab.   |
-| `--no-edit`    | No       | `--no-edit`     | `--no-edit`                                                | Removes the **Edit** button.                                                                       |
-| `--tab`        | No       | `--tab preview` | [`codeOption`](.vuepress/highlight.js) \| `preview`        | Sets a tab as open by default.                                                                     |
+| Option         | Required | Example         | Possible values                                            | Usage                                                                                                                     |
+|----------------|----------|-----------------|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| `#exampleId`   | Yes      | `#data-grid-1`  | String                                                     | Container's unique ID.                                                                                                    |
+| `.class`       | No       | `.new-class`    | String                                                     | Container's custom class.                                                                                                 |
+| `:preset`      | No       | `:react`        | `hot` \| `react` \| `angular` \| `vue`                     | Sets code dependencies.                                                                                                   |
+| `--js <pos>`   | No       | `--js 1`        | Positive integer<br>(default `1`)                          | Sets the JS code snippet's position<br>in the markdown container.                                                         |
+| `--html <pos>` | No       | `--html 2`      | Positive integer<br>(default `0`)                          | Sets the HTML code snippet's position<br>in the markdown container.<br><br>`0` disables the HTML tab.                     |
+| `--css <pos>`  | No       | `--css 2`       | Positive integer<br>(default `0`)                          | Sets the CSS code snippet's position<br>in the markdown container.<br><br>`0` disables the CSS tab.                       |
+| `--no-edit`    | No       | `--no-edit`     | `--no-edit`                                                | Removes the **Edit** button.                                                                                              |
+| `--tab`        | No       | `--tab preview` | `formula` \| `hf` \| `hyperformula` \|<br>`html` \| `kt` \| `md` \| `preview` \| `py` \| `rb` \|<br>`rs` \| `sh` \| `styl` \| `ts` \| `vue` \| `yml` | Sets a tab as open by default.  |

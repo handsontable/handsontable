@@ -20,7 +20,7 @@ const whitelist = [
   'editors/baseEditor/baseEditor.js',
   '3rdparty/walkontable/src/cell/coords.js',
   'plugins/copyPaste/focusableElement.js',
-  'DataMap.js',
+  'dataMap.js',
   'translations/maps/hidingMap.js',
   'translations/maps/indexesSequence.js',
   'translations/maps/trimmingMap.js',
@@ -45,86 +45,45 @@ const seo = {
     metaTitle: 'Core - API Reference - Handsontable Documentation',
     permalink: '/next/api/core'
   },
-  'translations/indexMapper.js': {
-    title: 'IndexMapper',
-    metaTitle: 'IndexMapper - API Reference - Handsontable Documentation',
-    permalink: '/next/api/index-mapper'
-  },
-  'editors/baseEditor/baseEditor.js': {
-    title: 'BaseEditor',
-    metaTitle: 'BaseEditor - API Reference - Handsontable Documentation',
-    permalink: '/next/api/base-editor'
-  },
   '3rdparty/walkontable/src/cell/coords.js': {
     title: 'CellCoords',
     metaTitle: 'CellCoords - API Reference - Handsontable Documentation',
     permalink: '/next/api/coords'
   },
-  'plugins/copyPaste/focusableElement.js': {
-    title: 'FocusableElement',
-    metaTitle: 'FocusableElement - API Reference - Handsontable Documentation',
-    permalink: '/next/api/focusable-element'
-  },
-  'DataMap.js': {
-    title: 'DataMap',
-    metaTitle: 'DataMap - API Reference - Handsontable Documentation',
-    permalink: '/next/api/data-map'
-  },
-  'translations/maps/hidingMap.js': {
-    title: 'HidingMap',
-    metaTitle: 'HidingMap - API Reference - Handsontable Documentation',
-    permalink: '/next/api/hiding-map'
-  },
-  'translations/maps/indexesSequence.js': {
-    title: 'IndexesSequence',
-    metaTitle: 'IndexesSequence - API Reference - Handsontable Documentation',
-    permalink: '/next/api/indexes-sequence'
-  },
-  'translations/maps/trimmingMap.js': {
-    title: 'TrimmingMap',
-    metaTitle: 'TrimmingMap - API Reference - Handsontable Documentation',
-    permalink: '/next/api/trimming-map'
-  },
-  'utils/samplesGenerator.js': {
-    title: 'SamplesGenerator',
-    metaTitle: 'SamplesGenerator - API Reference - Handsontable Documentation',
-    permalink: '/next/api/samples-generator'
-  },
-  'translations/maps/physicalIndexToValueMap.js': {
-    title: 'PhysicalIndexToValueMap',
-    metaTitle: 'PhysicalIndexToValueMap - API Reference - Handsontable Documentation',
-    permalink: '/next/api/physical-index-to-value-map'
-  },
-  'utils/ghostTable.js': {
-    title: 'GhostTable',
-    metaTitle: 'GhostTable - API Reference - Handsontable Documentation',
-    permalink: '/next/api/ghost-table'
-  },
 };
 
 /// classifications
-const isOptions = data => data[0]?.meta.filename === 'metaSchema.js';
-const isPlugin = data => data[0]?.customTags?.filter(tag => tag.tag === 'plugin' && tag.value).length > 0 ?? false;
+const isJsdocOptions = data => data[0]?.meta.filename === 'metaSchema.js';
+const isJsdocPlugin = data => data[0]?.customTags?.filter(tag => tag.tag === 'plugin' && tag.value).length > 0 ?? false;
+const isPlugin = (file) => {
+  const parts = file.split(/[./]/);
+
+  return parts[0] === 'plugins' && parts[1] === parts[2] && parts[3] === 'js';
+};
 
 /// paths construction
 const source = file => path.join(__dirname, pathToSource, file);
 
 const flat = file => file.split('/').pop();
 
-const dist = file => path.join(__dirname, pathToDist, flat(file.replace(/(.*)\.js/, '$1.md')));
+const distFileName = file => flat(file
+  .replace(/(.*)\.js/, '$1.md') // set md extension
+  .replace(/^([A-Z])/, (_, upper) => upper.toLowerCase()) // enforce camelCase
+);
+const dist = file => path.join(__dirname, pathToDist, distFileName(file));
 
 /// seo
 const genSeoTitle = file => file
   .replace(/(^.*\/)?(.*?)\.[.a-zA-Z]*$/, '$2') // Get first filename segment (to the first dot) without full path
-  // .replace(/([A-Z]+)/g, " $1") // Add spaces before each word
   .replace(/(^[a-z])/, m => m.toUpperCase()); // To upper first letter
 const seoTitle = file => seo[file] && seo[file].title || genSeoTitle(file);
-const genSeoMetaTitle = file => `${seoTitle(file)} - Plugin - Handsontable Documentation`;
+const genSeoMetaTitle = file =>
+  `${seoTitle(file)} - ${isPlugin(file) ? 'Plugin' : 'API Reference'} - Handsontable Documentation`;
 const seoMetaTitle = file => seo[file] && seo[file].metaTitle || genSeoMetaTitle(file);
 
 const genSeoPermalink = file => file
   .replace(/(^.*\/)?(.*)\.[a-zA-Z]*$/, '$2') // Get filename without full path and extension
-  .replace(/([A-Z]+)/g, '-$1') // Separate words
+  .replace(/([a-z])([A-Z]+)/g, '$1-$2') // Separate words
   .toLowerCase();
 const seoPermalink = file => seo[file] && seo[file].permalink || urlPrefix + genSeoPermalink(file);
 
@@ -147,75 +106,7 @@ editLink: false
 `;
 };
 
-/// post processing after markdown was generated
-const fixLinks = text => text
-  .replace(/\[([^\[]*?)]\(([^:@]*?)(#[^#]*?)?\)/g, '[$1](./$2/$3)') // @see https://regexr.com/603ja
-  .replace(/\.\/\//g, '');
-
-const clearEmptyOptionHeaders = text => text.replace(/## Options\n## Members/g, '## Members');
-const clearEmptyMembersHeaders = text => text.replace(/## Members\n## Methods/g, '## Methods');
-const clearEmptyFunctionsHeaders = text => text
-  .replace(/(## Methods\n)+$/g, '\n')
-  .replace(/(## Methods\n## Methods\n\n## Description)/g, '## Description');
-
-const fixTypes = text => text.replace(
-  /(::: signame |\*\*Returns\*\*:|\*\*See\*\*:|\*\*Emits\*\*:)( ?[^\n-]*)/g,
-  (_, part, signame) => {
-    let suffix = '';
-    let prefix = part;
-
-    if (part === '::: signame ') {
-      prefix = '_';
-      suffix = '_';
-    }
-
-    return prefix + signame
-      .replace(/([^\w`\[#])(`)?(IndexMapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./index-mapper/$4)')
-      .replace(/([^\w`\[#])(`)?(Handsontable|Core)(#\w*)?(`)?/g, '$1[$2$3$4$5](./core/$4)')
-      .replace(/([^\w`\[#])(`)?(Hooks)((#)(event:)?(\w*))?(`)?/g, '$1[$2$3$4$8](./hooks/$5$7)')
-      .replace(/([^\w`\[#])(`)?(BaseEditor)(#\w*)?(`)?/g, '$1[$2$3$4$5](./base-editor/$4)')
-      .replace(/([^\w`\[#])(`)?(CellCoords)(#\w*)?(`)?/g, '$1[$2$3$4$5](./coords/$4)')
-      .replace(/([^\w`\[#])(`)?(FocusableWrapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./focusable-element/$4)')
-      .replace(/\.</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/`\\\*`/, '`*`')
-      + suffix;
-  }
-);
-
-const fixCategories = text => text.replace(
-  /(\*\*Category\*\*: ?)([^\n- ]*)/g,
-  (_, part, signame) => `${part}[${signame}](${genSeoPermalink(signame).replace('-', '../')})`
-);
-
-const unescapeRedundant = text => text
-  .replace(/`[^`\n]*`/g, m => // get all inline codes
-    m.replace(/\&lt;/g, '<')
-      .replace(/\&gt;/g, '>')
-      .replace(/\.</g, '<')
-      .replace(/\\\*/g, '*')
-      .replace(/\\_/g, '_')
-  )
-  // fix randomly added quota to @default tag.
-  .replace(/\*\*Default\*\*: <code>&quot;((undefined)|(false)|(true))&quot;<\/code>/g, '**Default**: <code>$1</code>')
-  // remove redundant dot, which eslint enforce to add after list closing tag.
-  .replace(/<\/ul>\./g, '</ul>')
-  .replace(/&quot;&#x27;/g, '"')
-  .replace(/&#x27;&quot;/g, '"');
-
-const postProcessors = [
-  fixLinks,
-  clearEmptyOptionHeaders,
-  clearEmptyMembersHeaders,
-  clearEmptyFunctionsHeaders,
-  fixTypes,
-  fixCategories,
-  unescapeRedundant
-];
-
-const postProcess = initialText => postProcessors.reduce((text, postProcessor) => postProcessor(text), initialText);
-
-/// post processing before markdown will be generated and after jsdoc was parsed
+/// pre processing before markdown will be generated and after jsdoc was parsed
 const sort = data => data.sort((m, p) => {
   if (m.kind === 'constructor' || m.kind === 'class') return -1;
 
@@ -243,7 +134,7 @@ const linkToSource = (data) => {
 };
 
 const optionsPerPlugin = {};
-const memorizeOptions = data => (!isOptions(data) ? data : data.map((x) => {
+const memorizeOptions = data => (!isJsdocOptions(data) ? data : data.map((x) => {
   if (x.category) {
     const cat = x.category.trim();
 
@@ -254,7 +145,7 @@ const memorizeOptions = data => (!isOptions(data) ? data : data.map((x) => {
   return x;
 }));
 const applyPluginOptions = (data) => {
-  if (isPlugin(data)) {
+  if (isJsdocPlugin(data)) {
     const plugin = data[0].customTags
       ?.filter(tag => tag.tag === 'plugin').pop()
       ?.value;
@@ -280,10 +171,107 @@ const preProcessors = [
   sort,
   linkToSource,
   memorizeOptions,
-  applyPluginOptions
+  applyPluginOptions,
 ];
 
 const preProcess = initialData => preProcessors.reduce((data, preProcessor) => preProcessor(data), initialData);
+
+/// post processing after markdown was generated
+const clearEmptyOptionHeaders = text => text.replace(/## Options\n## Members/g, '## Members');
+const clearEmptyMembersHeaders = text => text.replace(/## Members\n## Methods/g, '## Methods');
+const clearEmptyFunctionsHeaders = text => text
+  .replace(/(## Methods\n)+$/g, '\n')
+  .replace(/(## Methods\n## Methods\n\n## Description)/g, '## Description');
+
+const fixTypes = text => text.replace(
+  /(::: signame |\*\*Returns\*\*:|\*\*See\*\*:|\*\*Emits\*\*:)( ?[^\n-]*)/g,
+  (_, part, signame) => {
+    let suffix = '';
+    let prefix = part;
+
+    if (part === '::: signame ') {
+      prefix = '_';
+      suffix = '_';
+    }
+
+    return prefix + signame
+      // todo dynamically
+      .replace(/([^\w`\[#])(`)?(IndexMapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](@/api/indexMapper.md$4)')
+      .replace(/([^\w`\[#])(`)?(Handsontable|Core)(#\w*)?(`)?/g, '$1[$2$3$4$5](@/api/core.md$4)')
+      .replace(/([^\w`\[#])(`)?(Hooks)((#)(event:)?(\w*))?(`)?/g, '$1[$2$3$4$8](@/api/pluginHooks.md$5$7)')
+      .replace(/([^\w`\[#])(`)?(BaseEditor)(#\w*)?(`)?/g, '$1[$2$3$4$5](@/api/baseEditor.md$4)')
+      .replace(/([^\w`\[#])(`)?(CellCoords)(#\w*)?(`)?/g, '$1[$2$3$4$5](@/api/coords.md$4)')
+      .replace(/([^\w`\[#])(`)?(FocusableWrapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](@/api/focusableElement.md$4)')
+      .replace(/\.</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/`\\\*`/, '`*`')
+      + suffix;
+  }
+);
+
+const fixCategories = text => text.replace(
+  /(\*\*Category\*\*: ?)([^\n- ]*)/g,
+  (_, part, signame) => `${part}[${signame}](@/api/${signame.charAt(0).toLowerCase()}${signame.substring(1)}.md)`
+);
+
+const unescapeRedundant = text => text
+  .replace(/`[^`\n]*`/g, m => // get all inline codes
+    m.replace(/\&lt;/g, '<')
+      .replace(/\&gt;/g, '>')
+      .replace(/\.</g, '<')
+      .replace(/\\\*/g, '*')
+      .replace(/\\_/g, '_')
+  )
+  // fix randomly added quota to @default tag.
+  .replace(/\*\*Default\*\*: <code>&quot;((undefined)|(false)|(true))&quot;<\/code>/g, '**Default**: <code>$1</code>')
+  // remove redundant dot, which eslint enforce to add after list closing tag.
+  .replace(/<\/ul>\./g, '</ul>')
+  .replace(/&quot;&#x27;/g, '"')
+  .replace(/&#x27;&quot;/g, '"');
+
+const linkAliases = {
+  options: 'metaSchema',
+  hooks: 'pluginHooks'
+};
+const fixLinks = text => text
+  .replace(/\[([^\]]*?)\]\(([^#)]*?)((#)([^)]*?))?\)/g,
+    (all, label, target, _, hash = '', anchor = '') => { // @see https://regexr.com/611b8
+      if (target.includes('://')) { // e.g https://handsontable.com/blog
+        return all;
+      }
+      const fixedAnchor = anchor
+        .toLowerCase()
+        .replace(/-/g, '');
+
+      if (!target) { // e.g #getData
+        return `[${label}](${hash}${fixedAnchor})`;
+      }
+
+      if (target.startsWith('@')) { // e.g. @/api/plugins.md
+        return `[${label}](${target}${hash}${fixedAnchor})`;
+      }
+
+      let targetCamelCase = !target.length ? '' : `${target[0].toLowerCase()}${target.substring(1)}`
+        .replace(/-([a-z])/g, (__, char) => char.toUpperCase());
+
+      targetCamelCase = linkAliases[targetCamelCase] || targetCamelCase;
+
+      return `[${label}](@/api/${targetCamelCase}.md${hash}${fixedAnchor})`;
+    }
+  );
+
+const postProcessors = [
+  clearEmptyOptionHeaders,
+  clearEmptyMembersHeaders,
+  clearEmptyFunctionsHeaders,
+  fixTypes,
+  fixCategories,
+  unescapeRedundant,
+  fixLinks,
+  // fix
+];
+
+const postProcess = initialText => postProcessors.reduce((text, postProcessor) => postProcessor(text), initialText);
 
 /// jsdoc2md integration
 const fromJsdoc = file => jsdoc2md.getTemplateDataSync({

@@ -13,7 +13,7 @@ editLink: false
 ## Description
 
 This plugin creates the Handsontable Dropdown Menu. It allows to create a new row or column at any place in the grid
-among [other features](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options).
+among [other features](@/guides/accessories-and-menus/context-menu.md#contextmenuwithspecificoptions).
 Possible values:
 * `true` (to enable default options),
 * `false` (to disable completely).
@@ -54,7 +54,7 @@ const hot = new Handsontable(container, {
 _dropdownMenu.dropdownMenu : boolean | object | Array&lt;string&gt;_
 
 This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
-the [Options#contextMenu](./options/#contextmenu), but is triggered by clicking the button in the header.
+the [Options#contextMenu](@/api/metaSchema.md#contextmenu), but is triggered by clicking the button in the header.
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -128,7 +128,7 @@ _dropdownMenu.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
-**Emits**: [`Hooks#event:afterDropdownMenuDefaultOptions`](./hooks/#afterDropdownMenuDefaultOptions), [`Hooks#event:beforeDropdownMenuSetItems`](./hooks/#beforeDropdownMenuSetItems)  
+**Emits**: [`Hooks#event:afterDropdownMenuDefaultOptions`](@/api/pluginHooks.md#afterdropdownmenudefaultoptions), [`Hooks#event:beforeDropdownMenuSetItems`](@/api/pluginHooks.md#beforedropdownmenusetitems)  
 
 
 ### executeCommand
@@ -177,8 +177,8 @@ Or you can execute command registered in settings where `key` is your command na
 
 _dropdownMenu.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#DropdownMenu+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
+hook and if it returns `true` than the [enablePlugin](#dropdownmenu+enableplugin) method is called.
 
 
 
@@ -192,7 +192,7 @@ _dropdownMenu.open(position)_
 
 Opens menu and re-position it based on the passed coordinates.
 
-**Emits**: [`Hooks#event:beforeDropdownMenuShow`](./hooks/#beforeDropdownMenuShow), [`Hooks#event:afterDropdownMenuShow`](./hooks/#afterDropdownMenuShow)  
+**Emits**: [`Hooks#event:beforeDropdownMenuShow`](@/api/pluginHooks.md#beforedropdownmenushow), [`Hooks#event:afterDropdownMenuShow`](@/api/pluginHooks.md#afterdropdownmenushow)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -208,6 +208,6 @@ Opens menu and re-position it based on the passed coordinates.
 
 _dropdownMenu.updatePlugin()_
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Updates the plugin state. This method is executed when [Core#updateSettings](@/api/core.md#updatesettings) is invoked.
 
 

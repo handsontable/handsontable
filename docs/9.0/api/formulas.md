@@ -12,7 +12,9 @@ editLink: false
 
 ## Description
 
-This plugin allows you to perform Excel-like calculations in your business applications. It does it by an integration with our other product, [HyperFormula](https://handsontable.github.io/hyperformula/), which is a powerful calculation engine with an extensive number of features.
+This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
+integration with our other product, [HyperFormula](https://github.com/handsontable/hyperformula/), which is a
+powerful calculation engine with an extensive number of features.
 
 
 ## Options
@@ -25,7 +27,7 @@ This plugin allows you to perform Excel-like calculations in your business appli
 
 _formulas.formulas : boolean | object_
 
-The [Formulas](./formulas/) plugin allows Handsontable to process formula expressions defined in the provided data.
+The [Formulas](@/api/formulas.md) plugin allows Handsontable to process formula expressions defined in the provided data.
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -46,7 +48,7 @@ formulas: {
 
 ### engine
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L89
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L95
 
 :::
 
@@ -58,7 +60,7 @@ The engine instance that will be used for this instance of Handsontable.
 
 ### sheetId
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L103
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L109
 
 :::
 
@@ -70,7 +72,7 @@ HyperFormula's sheet id.
 
 ### sheetName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L96
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L102
 
 :::
 
@@ -83,7 +85,7 @@ HyperFormula's sheet name.
 
 ### addSheet
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L236
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L306
 
 :::
 
@@ -103,7 +105,7 @@ engine, the created sheet name otherwise.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L218
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L226
 
 :::
 
@@ -115,7 +117,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L173
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L181
 
 :::
 
@@ -127,7 +129,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L121
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L127
 
 :::
 
@@ -139,19 +141,19 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getCellType
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L292
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L365
 
 :::
 
-_formulas.getCellType(row, col, [sheet]) ⇒ string_
+_formulas.getCellType(row, column, [sheet]) ⇒ string_
 
-Get the cell type under specified coordinates.
+Get the cell type under specified visual coordinates.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | `number` | Target row. |
-| col | `number` | Target column. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
 | [sheet] | `number` | `optional` The target sheet id, defaults to the current sheet. |
 
 
@@ -159,20 +161,39 @@ Get the cell type under specified coordinates.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L113
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L119
 
 :::
 
 _formulas.isEnabled() ⇒ boolean_
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#Formulas+enablePlugin) method is called.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
+hook and if it returns `true` than the [enablePlugin](#formulas+enableplugin) method is called.
+
+
+
+### isFormulaCellType
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L381
+
+:::
+
+_formulas.isFormulaCellType(row, column, [sheet]) ⇒ boolean_
+
+Returns `true` if under specified visual coordinates is formula.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| [sheet] | `number` | `optional` The target sheet id, defaults to the current sheet. |
 
 
 
 ### switchSheet
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L271
+::: source-code-link https://github.com/handsontable/handsontable/blob/cc0c2380ac56edcef53c26bf9dc35eadf81459f8/src/plugins/formulas/formulas.js#L341
 
 :::
 

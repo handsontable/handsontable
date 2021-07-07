@@ -8,7 +8,13 @@ A [`<semver.version>` directory](./README.md#handsontable-docs-directory-structu
 
 Our server configuration watches for images tagged as [`:latest`](./README-EDITING.md#editing-the-latest-docs-version), and automatically refreshes after detecting a newer version.
 
-## Documentation deployment
+## Docker settings
+
+Before generating the documentation, set [Docker's runtime memory limit](https://docs.docker.com/docker-for-mac/).
+
+The recommended runtime memory limit is 8 GB. It allows us to generate 4 documentation versions at a time.
+
+## Deploying the documentation using the command line
 
 To deploy the documentation using the command line:
 
@@ -27,11 +33,16 @@ To deploy the documentation using the command line:
     docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
     ```
 
-### Deploying the documentation from GitHub Actions
+## Deploying the documentation from GitHub Actions
 
 GitHub Actions deploys the documentation automatically after each commit pushed to the `develop` branch.
 
-### Manual deployment
+GitHub Actions pushes the following tags to the GitHub Container Registry:
+
+* `:latest` - the server configuration watches for images with this tag.
+* `:[COMMIT_HASH]` - a backup.
+
+### Manually deploying the documentation from GitHub Actions
 
 You can deploy the documentation manually, from any branch:
 
@@ -40,11 +51,6 @@ You can deploy the documentation manually, from any branch:
 3. On the right, select **Run workflow**.
 4. Select the required branch.
 5. Run the workflow.
-
-GitHub Actions pushes the following tags to the GitHub Container Registry:
-
-* `:latest` - the server configuration watches for images with this tag.
-* `:[COMMIT_HASH]` - a backup.
 
 ## Production environment
 

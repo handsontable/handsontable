@@ -28,7 +28,6 @@ Released on 1st of June, 2021
 
 *   Fixed a problem with the column indicator of the Collapsible Columns plugin not being displayed properly on styled headers. ([#7970](https://github.com/handsontable/handsontable/issues/7970))
 *   Fixed a problem with duplicated `afterCreateCol` hooks being triggered after undoing a removal of a column. ([#8076](https://github.com/handsontable/handsontable/issues/8076))
-*   Fixed a problem with duplicated `afterCreateCol` hooks being triggered after undoing a removal of a column. ([#8076](https://github.com/handsontable/handsontable/issues/8076))
 *   Fixed a problem with formulas not being calculated in certain conditions. ([#4430](https://github.com/handsontable/handsontable/issues/4430))
 *   Fixed a bug with formulas displaying incorrect values after inserting new rows. ([#4654](https://github.com/handsontable/handsontable/issues/4654))
 *   Fixed a problem with the `AVARAGE` formula being updated incorrectly. ([#4675](https://github.com/handsontable/handsontable/issues/4675))

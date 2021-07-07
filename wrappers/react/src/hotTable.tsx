@@ -9,6 +9,7 @@ import {
   HotEditorElement
 } from './types';
 import {
+  HOT_DESTROYED_WARNING,
   AUTOSIZE_WARNING,
   createEditorPortal,
   createPortal,
@@ -54,9 +55,10 @@ class HotTable extends React.Component<HotTableProps, {}> {
   /**
    * Reference to the Handsontable instance.
    *
+   * @private
    * @type {Object}
    */
-  hotInstance: Handsontable = null;
+  __hotInstance: Handsontable | null = null;
   /**
    * Reference to the main Handsontable DOM element.
    *
@@ -147,6 +149,30 @@ class HotTable extends React.Component<HotTableProps, {}> {
    */
   static get version(): string {
     return (packageJson as any).version;
+  }
+
+  /**
+   * Getter for the property storing the Handsontable instance.
+   */
+  get hotInstance(): Handsontable | null {
+    if (!this.__hotInstance || (this.__hotInstance && !this.__hotInstance.isDestroyed)) {
+
+      // Will return the Handsontable instance or `null` if it's not yet been created.
+      return this.__hotInstance;
+
+    } else {
+      console.warn(HOT_DESTROYED_WARNING);
+
+      return null;
+    }
+  }
+
+  /**
+   * Setter for the property storing the Handsontable instance.
+   * @param {Handsontable} hotInstance The Handsontable instance.
+   */
+  set hotInstance(hotInstance) {
+    this.__hotInstance = hotInstance;
   }
 
   /**
@@ -403,7 +429,13 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * @param {Handsontable.GridSettings} newGlobalSettings New global settings passed as Handsontable config.
    */
   displayAutoSizeWarning(newGlobalSettings: Handsontable.GridSettings): void {
-    if (this.hotInstance.getPlugin('autoRowSize').enabled || this.hotInstance.getPlugin('autoColumnSize').enabled) {
+    if (
+      this.hotInstance &&
+      (
+        this.hotInstance.getPlugin('autoRowSize').enabled ||
+        this.hotInstance.getPlugin('autoColumnSize').enabled
+      )
+    ){
       if (this.componentRendererColumns.size > 0) {
         warn(AUTOSIZE_WARNING);
       }
@@ -447,7 +479,9 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * @param {Object} newSettings The settings object.
    */
   private updateHot(newSettings: Handsontable.GridSettings): void {
-    this.hotInstance.updateSettings(newSettings, false);
+    if (this.hotInstance) {
+      this.hotInstance.updateSettings(newSettings, false);
+    }
   }
 
   /**
@@ -519,7 +553,10 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * Destroy the Handsontable instance when the parent component unmounts.
    */
   componentWillUnmount(): void {
-    this.hotInstance.destroy();
+    if (this.hotInstance) {
+      this.hotInstance.destroy();
+    }
+
     removeEditorContainers(this.getOwnerDocument());
   }
 
