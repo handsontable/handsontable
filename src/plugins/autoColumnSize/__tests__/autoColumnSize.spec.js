@@ -899,7 +899,7 @@ describe('AutoColumnSize', () => {
       expect(colWidth(spec().$container, 1)).toBe(50);
 
       setDataAtCell(0, 0, 999999999999);
-      await sleep(50);
+      await sleep(200);
 
       expect(colWidth(spec().$container, 1)).toBe(130);
     });
