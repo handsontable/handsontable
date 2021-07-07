@@ -167,7 +167,7 @@ h3 {
 a {
   color: #104bcd;
 }
-  
+
 /* A div that makes the table scrollable used in the /setting-options page */
 .scrollable-table {
   height: 382px;
@@ -177,7 +177,6 @@ a {
 table {
   width: 100%;
   display: table;
-  word-break: break-word;
   overflow: scroll;
 
   tr {
@@ -190,6 +189,10 @@ table {
       line-height: 1.7;
       text-align: left;
   }
+}
+
+.migration-guide table {
+  word-break: break-word;
 }
 
 // floating sidebar should be inline on mobile, and float on wider screens
