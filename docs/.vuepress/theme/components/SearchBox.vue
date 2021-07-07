@@ -52,8 +52,9 @@
 
 <script>
 /* global SEARCH_MAX_SUGGESTIONS, SEARCH_HOTKEYS */
-
 import get from 'lodash/get';
+
+const ALLOWED_TAGS = ['BODY', 'A', 'BUTTON'];
 
 const matchTest = (query, domain, isFuzzySearch = false) => {
   const escapeRegExp = str => str.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -294,7 +295,8 @@ export default {
     },
 
     onHotkey(event) {
-      const isValidElement = event.srcElement === document.body || event.srcElement.tagName === 'A';
+      const isValidElement = ALLOWED_TAGS.includes(event.srcElement.tagName)
+        || event.srcElement.id === 'slider'; // theme switcher;
 
       if (isValidElement && SEARCH_HOTKEYS.includes(event.key)) {
         this.$refs.input.focus();
