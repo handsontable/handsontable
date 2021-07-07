@@ -294,7 +294,9 @@ export default {
     },
 
     onHotkey(event) {
-      if (event.srcElement === document.body && SEARCH_HOTKEYS.includes(event.key)) {
+      const isValidElement = event.srcElement === document.body || event.srcElement.tagName === 'A';
+
+      if (isValidElement && SEARCH_HOTKEYS.includes(event.key)) {
         this.$refs.input.focus();
         event.preventDefault();
       }
