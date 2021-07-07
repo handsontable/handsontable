@@ -3,6 +3,8 @@ title: Hello world
 metaTitle: Hello world - Guide - Handsontable Documentation
 permalink: /9.0/hello-world
 canonicalUrl: /hello-world
+tags:
+  - demo
 ---
 
 # Hello world

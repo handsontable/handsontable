@@ -26,6 +26,7 @@ Tests are run in [BrowserStack](https://www.browserstack.com/) as well as on a l
 | Safari | Firefox for iOS |
 | Edge Chromium | Safari iOS |
 | Edge | Samsung Internet |
+| Opera | Opera |
 | QQ browser | Opera |
 | Internet Explorer 11* |  |
 
