@@ -221,6 +221,7 @@ const hot = new Handsontable(container, {
   data: generateData(10, 3),
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   columnSummary: [
     {
@@ -364,6 +365,7 @@ const hot = new Handsontable(container, {
   nestedRows: true,
   rowHeaders: true,
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   columnSummary() {
     const endpoints = [];
@@ -622,6 +624,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   columnSummary: [
     {
       destinationRow: 0,
@@ -682,6 +685,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   columnSummary: [
     {

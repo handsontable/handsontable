@@ -60,6 +60,7 @@ const hotSettings = {
   autoRowSize: false,
   autoColumnSize: false,
   colHeaders: ['Product name', 'Price in Japan', 'Price in Turkey'],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 }
 

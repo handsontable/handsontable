@@ -23,7 +23,7 @@ The time cell uses [Moment.js](https://github.com/moment/moment) as the time for
 All data entered into the time-typed cells is eventually validated against the default time format - `h:mm:ss a`, which translates to, for example, `9:30:00 am` unless another format is provided as the `timeFormat`.
 If you enable the `correctFormat` config item, the values will be automatically formatted to match the desired time format.
 
-::: tip 
+::: tip
 By default, the values entered into the time-type column are **not** validated, so if you want them to display in the proper format, remember to call `hot.validateCells()` after the table initialization.
 :::
 
@@ -44,6 +44,7 @@ const hot = new Handsontable(container, {
   colHeaders: ['Car', 'Model', 'Registration time', 'Price'],
   columnSorting: true,
   licenseKey: 'non-commercial-and-evaluation',
+  height: 'auto',
   columns: [
     {
       type: 'autocomplete',

@@ -28,6 +28,7 @@ const hot = new Handsontable(container, {
     ['Volvo', 2020, 'white', 'gray']
   ],
   colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+  height: 'auto',
   columns: [
     {},
     { type: 'numeric' },

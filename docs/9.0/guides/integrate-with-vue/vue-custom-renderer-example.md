@@ -11,7 +11,7 @@ canonicalUrl: /vue-custom-renderer-example
 
 ## Overview
 
-You can declare a custom renderer for the `HotTable` component by declaring it as a function in the Handsontable options or creating a rendering component. 
+You can declare a custom renderer for the `HotTable` component by declaring it as a function in the Handsontable options or creating a rendering component.
 
 ## Example - Declaring a renderer as a function
 
@@ -64,6 +64,7 @@ new Vue({
         ],
         colHeaders: true,
         rowHeights: 55,
+        height: 'auto',
         licenseKey: 'non-commercial-and-evaluation'
       }
     }

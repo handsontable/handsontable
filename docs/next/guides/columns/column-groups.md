@@ -45,6 +45,7 @@ const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 10),
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   nestedHeaders: [
     ['A', { label: 'B', colspan: 8 }, 'C'],
     ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
@@ -89,6 +90,7 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   rowHeaders: true,
   colWidths: 60,
+  height: 'auto',
   nestedHeaders: [
     ['A', { label: 'B', colspan: 8 }, 'C'],
     ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],

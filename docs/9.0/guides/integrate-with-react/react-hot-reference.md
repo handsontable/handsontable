@@ -23,6 +23,7 @@ import Handsontable from 'handsontable';
 const hotSettings = {
   data: Handsontable.helper.createSpreadsheetData(4, 4),
   colHeaders: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 };
 

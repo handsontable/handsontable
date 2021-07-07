@@ -39,8 +39,9 @@ const data = [
 const hot = new Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation',
-  fillHandle: true // possible values: true, false, "horizontal", "vertical",
+  fillHandle: true, // possible values: true, false, "horizontal", "vertical",
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
 });
 
 hot.loadData(data);
@@ -72,6 +73,7 @@ const hot = new Handsontable(container, {
     direction: 'vertical',
     autoInsertRow: true
   },
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```

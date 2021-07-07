@@ -50,6 +50,7 @@ const hotSettings = {
   ],
   colHeaders: true,
   colWidths: 200,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 };
 

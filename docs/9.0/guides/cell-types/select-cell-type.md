@@ -27,6 +27,7 @@ const hot = new Handsontable(container, {
   ],
   colWidths: [50, 70, 50],
   colHeaders: true,
+  height: 'auto',
   columns: [
     {},
     {

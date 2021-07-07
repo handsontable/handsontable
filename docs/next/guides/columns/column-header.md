@@ -27,6 +27,7 @@ const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 11),
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -43,6 +44,7 @@ const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(3, 9),
   colHeaders: ['ID', 'Full name', 'Position','Country', 'City', 'Address', 'Zip code', 'Mobile', 'E-mail'],
   rowHeaders: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -61,6 +63,7 @@ const hot = new Handsontable(container, {
     return 'Col ' + (index + 1);
   },
   rowHeaders: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```

@@ -8,7 +8,7 @@ canonicalUrl: /angular-language-change-example
 # Language change example
 
 ## Overview
-The following example is an implementation of the `@handsontable/angular` component with an option to change the Context Menu language. 
+The following example is an implementation of the `@handsontable/angular` component with an option to change the Context Menu language.
 
 Select a language from the selector above the table and open the Context Menu to see the result.
 
@@ -40,6 +40,7 @@ class AppComponent {
     colHeaders: true,
     rowHeaders: true,
     contextMenu: true,
+    height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'
   };
   language = 'en-US';

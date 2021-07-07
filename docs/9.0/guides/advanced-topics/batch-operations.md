@@ -200,8 +200,8 @@ const data3 = [
 
 const hot = new Handsontable(container, {
   data: data1,
-  width: 700,
-  height: 260,
+  width: 'auto',
+  height: 'auto',
   colHeaders: ['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return'],
   licenseKey: 'non-commercial-and-evaluation'
 });

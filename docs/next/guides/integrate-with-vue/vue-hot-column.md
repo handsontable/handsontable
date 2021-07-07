@@ -188,7 +188,7 @@ You can also utilize the Vue components to create custom editors. To do so, you'
 
 This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the `getValue`, `setValue`, `open`, `close`, and `focus` methods. These are abstract in the `BaseEditor`. For more info, check the documentation on [creating custom editors from scratch](@/guides/cell-functions/cell-editor.md#selecteditor-creating-editor-from-scratch).
 
-::: example #custom-editor-example :vue --html 1 --js 2 
+::: example #custom-editor-example :vue --html 1 --js 2
 ```html
 <div id="custom-editor-example">
   <hot-table :settings="hotSettings">

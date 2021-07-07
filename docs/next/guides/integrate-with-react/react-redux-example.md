@@ -107,6 +107,7 @@ const initialReduxStoreState = {
   colHeaders: true,
   rowHeaders: true,
   readOnly: false,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 };
 

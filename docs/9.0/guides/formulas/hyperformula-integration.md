@@ -96,6 +96,7 @@ new Handsontable(container1, {
   data: data1,
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   formulas: {
     engine: hyperformulaInstance,
     sheetName: 'Sheet1'
@@ -107,6 +108,7 @@ new Handsontable(container2, {
   data: data2,
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   formulas: {
     engine: hyperformulaInstance,
     sheetName: 'Sheet2'
@@ -233,6 +235,7 @@ new Handsontable(container, {
     engine: HyperFormula,
   },
   colHeaders: ['Qty', 'Unit price', 'Discount', 'Freight', 'Total due (fx)'],
+  height: 'auto',
   fixedRowsBottom: 2,
   stretchH: 'all',
   height: 500
@@ -402,6 +405,7 @@ const hotNamedExpressions = new Handsontable(container, {
   data: data,
   colHeaders: true,
   rowHeaders: true,
+  height: 'auto',
   formulas: {
     engine: HyperFormula,
     namedExpressions: [

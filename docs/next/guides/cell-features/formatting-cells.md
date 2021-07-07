@@ -46,6 +46,7 @@ const hot = new Handsontable(container, {
       className: 'custom-cell',
     },
   ],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
@@ -81,6 +82,7 @@ const hot = new Handsontable(container, {
       renderer: 'customStylesRenderer',
     },
   ],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 ```
@@ -104,6 +106,7 @@ const hot = Handsontable(container, {
   rowHeaders: true,
   colHeaders: true,
   stretchH: 'all',
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   customBorders: [
     {
