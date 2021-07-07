@@ -191,6 +191,7 @@ table {
   }
 }
 
+/* fix for very wide tables in the migration guides */
 .migration-guide table {
   word-break: break-word;
 }
@@ -206,6 +207,10 @@ table {
 @media (max-width: $MQMobile) {
   .page {
     padding-left: 0;
+  }
+
+  table {
+    word-break: break-word;
   }
 }
 
