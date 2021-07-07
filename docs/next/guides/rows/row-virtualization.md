@@ -27,7 +27,9 @@ Note that the data grid without virtualization enabled will only work with relat
 
 You can experiment with the `viewportRowsRenderingOffset` config option, which determines the number of rows displayed outside the visible viewport. If the number passed to that option is greater than the total columns in your data set, then the virtualization will be practically turned off.
 
-::: warning Proceed with caution, as it will affect the overall performance of the grid. :::
+::: warning
+Proceed with caution, as it will affect the overall performance of the grid.
+:::
 
 To make the grid scrollable, set the constant width and height to the same as the container holding Handsontable and set the `overflow` property to `hidden` in the container's stylesheet. If the table contains enough rows or columns, it will be scrollable.
 
