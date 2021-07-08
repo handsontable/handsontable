@@ -36,7 +36,7 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  * @class ContextMenu
  * @description
  * This plugin creates the Handsontable Context Menu. It allows to create a new row or column at any place in the
- * grid among [other features](https://handsontable.com/docs/demo-context-menu.html).
+ * grid among [other features](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options).
  * Possible values:
  * * `true` (to enable default options),
  * * `false` (to disable completely)
@@ -58,7 +58,7 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  * * `'commentsAddEdit'` (with {@link Options#comments} turned on)
  * * `'commentsRemove'` (with {@link Options#comments} turned on).
  *
- * See [the context menu demo](https://handsontable.com/docs/demo-context-menu.html) for examples.
+ * See [the context menu demo](@/guides/accessories-and-menus/context-menu.md) for examples.
  *
  * @example
  * ```js

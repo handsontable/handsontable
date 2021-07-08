@@ -46,23 +46,17 @@ let activeGuid = null;
  * @core
  * @class Core
  * @description
- * After Handsontable is constructed, you can modify the grid behavior using the available public methods.
  *
- * ## How to call methods.
+ * The `Handsontable` class to which we refer as to `Core`, allows you to modify the grid's behavior by using one of the available public methods.
  *
- * These are 2 equal ways to call a Handsontable method:
+ * ## How to call a method
  *
  * ```js
- * // all following examples assume that you constructed Handsontable like this
- * const hot = new Handsontable(document.getElementById('example1'), options);
+ * // First, let's contruct Handsontable
+ * const hot = new Handsontable(document.getElementById('example'), options);
  *
- * // now, to use setDataAtCell method, you can either:
+ * // Then, let's use the setDataAtCell method
  * hot.setDataAtCell(0, 0, 'new value');
- * ```
- *
- * Alternatively, you can call the method using jQuery wrapper (__obsolete__, requires initialization using our jQuery guide
- * ```js
- * $('#example1').handsontable('setDataAtCell', 0, 0, 'new value');
  * ```
  *
  * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
@@ -1248,6 +1242,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     /**
      * @param {boolean} valid Indicates if the validation was successful.
      * @param {boolean} [canBeValidated=true] Flag which controls the validation process.
+     * @private
      */
     function done(valid, canBeValidated = true) {
       // Fixes GH#3903
@@ -1472,7 +1467,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Populate cells at position with 2D input array (e.g. `[[1, 2], [3, 4]]`). Use `endRow`, `endCol` when you
    * want to cut input when a certain row is reached.
    *
-   * Optional `method` argument has the same effect as pasteMode option (see {@link Options#pasteMode}).
+   * Optional `method` argument has the same effect as pasteMode option (see {@link options#pastemode Options#pasteMode}).
    *
    * @memberof Core#
    * @function populateFromArray
@@ -1499,7 +1494,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Adds/removes data from the column. This method works the same as Array.splice for arrays (see {@link DataMap#spliceCol}).
+   * Adds/removes data from the column. This method works the same as Array.splice for arrays.
    *
    * @memberof Core#
    * @function spliceCol
@@ -1514,7 +1509,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Adds/removes data from the row. This method works the same as Array.splice for arrays (see {@link DataMap#spliceRow}).
+   * Adds/removes data from the row. This method works the same as Array.splice for arrays.
    *
    * @memberof Core#
    * @function spliceRow
@@ -1636,7 +1631,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Checks if the table rendering process was suspended. See explanation in {@link Core#suspendRender}.
+   * Checks if the table rendering process was suspended. See explanation in {@link core#suspendrender Core#suspendRender}.
    *
    * @memberof Core#
    * @function isRenderSuspended
@@ -1654,8 +1649,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * When the table is in the suspend state, most operations will have no visual
    * effect until the rendering state is resumed. Resuming the state automatically
    * invokes the table rendering. To make sure that after executing all operations,
-   * the table will be rendered, it's highly recommended to use the {@link Core#batchRender}
-   * method or {@link Core#batch}, which additionally aggregates the logic execution
+   * the table will be rendered, it's highly recommended to use the {@link core#batchrender Core#batchRender}
+   * method or {@link core#batch Core#batch}, which additionally aggregates the logic execution
    * that happens behind the table.
    *
    * The method is intended to be used by advanced users. Suspending the rendering
@@ -1683,7 +1678,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Resumes the rendering process. In combination with the {@link Core#suspendRender}
+   * Resumes the rendering process. In combination with the {@link core#suspendrender Core#suspendRender}
    * method it allows aggregating the table render cycles triggered by API calls or UI
    * actions (or both) and calls the "render" once in the end. When the table is in
    * the suspend state, most operations will have no visual effect until the rendering
@@ -1784,7 +1779,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Checks if the table indexes recalculation process was suspended. See explanation
-   * in {@link Core#suspendExecution}.
+   * in {@link core#suspendexecution Core#suspendExecution}.
    *
    * @memberof Core#
    * @function isExecutionSuspended
@@ -1824,7 +1819,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Resumes the execution process. In combination with the {@link Core#suspendExecution}
+   * Resumes the execution process. In combination with the {@link core#suspendexecution Core#suspendExecution}
    * method it allows aggregating the table logic changes after which the cache is
    * updated. Resuming the state automatically invokes the table cache updating process.
    *
@@ -1835,7 +1830,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function resumeExecution
    * @param {boolean} [forceFlushChanges=false] If `true`, the table internal data cache
    * is recalculated after the execution of the batched operations. For nested
-   * {@link Core#batchExecution} calls, it can be desire to recalculate the table
+   * {@link core#batchexecution Core#batchExecution} calls, it can be desire to recalculate the table
    * after each batch.
    * @since 8.3.0
    * @example
@@ -2128,7 +2123,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Returns the current data object (the same one that was passed by `data` configuration option or `loadData` method,
    * unless some modifications have been applied (i.e. Sequence of rows/columns was changed, some row/column was skipped).
-   * If that's the case - use the {@link Core#getSourceData} method.).
+   * If that's the case - use the {@link core#getsourcedata Core#getSourceData} method.).
    *
    * Optionally you can provide cell range by defining `row`, `column`, `row2`, `column2` to get only a fragment of table data.
    *
@@ -2159,7 +2154,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Returns a string value of the selected range. Each column is separated by tab, each row is separated by a new
-   * line character (see {@link DataMap#getCopyableText}).
+   * line character.
    *
    * @memberof Core#
    * @function getCopyableText
@@ -2174,7 +2169,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the data's copyable value at specified `row` and `column` index (see {@link DataMap#getCopyable}).
+   * Returns the data's copyable value at specified `row` and `column` index.
    *
    * @memberof Core#
    * @function getCopyableData
@@ -2210,7 +2205,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function updateSettings
-   * @param {object} settings New settings object (see {@link Options}).
+   * @param {object} settings New settings object (see {@link options Options}).
    * @param {boolean} [init=false] Internally used for in initialization mode.
    * @example
    * ```js
@@ -2440,10 +2435,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function alter
    * @param {string} action Possible alter operations:
-   *  * `'insert_row'`
-   *  * `'insert_col'`
-   *  * `'remove_row'`
-   *  * `'remove_col'`.
+   *  <ul>
+   *    <li> `'insert_row'` </li>
+   *    <li> `'insert_col'` </li>
+   *    <li> `'remove_row'` </li>
+   *    <li> `'remove_col'` </li>
+   * </ul>.
    * @param {number|number[]} index Visual index of the row/column before which the new row/column will be
    *                                inserted/removed or an array of arrays in format `[[index, amount],...]`.
    * @param {number} [amount=1] Amount of rows/columns to be inserted or removed.
@@ -2541,7 +2538,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the property name that corresponds with the given column index (see {@link DataMap#colToProp}).
+   * Returns the property name that corresponds with the given column index.
    * If the data source is an array of arrays, it returns the columns index.
    *
    * @memberof Core#
@@ -2554,7 +2551,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns column index that corresponds with the given property (see {@link DataMap#propToCol}).
+   * Returns column index that corresponds with the given property.
    *
    * @memberof Core#
    * @function propToCol
@@ -2634,7 +2631,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns value at visual `row` and `prop` indexes (see {@link DataMap#get}).
+   * Returns value at visual `row` and `prop` indexes.
    *
    * __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.
    *
@@ -2852,7 +2849,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * @description
-   * Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](https://handsontable.com/docs/Options.html#type)).
+   * Returns a data type defined in the Handsontable settings under the `type` key ({@link options#type Options#type}).
    * If there are cells with different types in the selected range, it returns `'mixed'`.
    *
    * __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.
@@ -3108,7 +3105,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getCellRenderer
-   * @param {number|object} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
+   * @param {number|object} row Visual row index or cell meta object (see {@link core#getcellmeta Core#getCellMeta}).
    * @param {number} column Visual column index.
    * @returns {Function} The renderer function.
    * @example
@@ -3128,7 +3125,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getCellEditor
-   * @param {number} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
+   * @param {number} row Visual row index or cell meta object (see {@link core#getcellmeta Core#getCellMeta}).
    * @param {number} column Visual column index.
    * @returns {Function} The editor class.
    * @example
@@ -3148,7 +3145,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getCellValidator
-   * @param {number|object} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
+   * @param {number|object} row Visual row index or cell meta object (see {@link core#getcellmeta Core#getCellMeta}).
    * @param {number} column Visual column index.
    * @returns {Function|RegExp|undefined} The validator function.
    * @example
@@ -4112,7 +4109,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function addHook
    * @see Hooks#add
-   * @param {string} key Hook name (see {@link Hooks}).
+   * @param {string} key Hook name (see {@link hooks Hooks}).
    * @param {Function|Array} callback Function or array of functions.
    * @example
    * ```js
@@ -4125,7 +4122,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Check if for a specified hook name there are added listeners (only for this Handsontable instance). All available
-   * hooks you will find {@link Hooks}.
+   * hooks you will find {@link hooks Hooks}.
    *
    * @memberof Core#
    * @function hasHook
@@ -4149,7 +4146,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function addHookOnce
    * @see Hooks#once
-   * @param {string} key Hook name (see {@link Hooks}).
+   * @param {string} key Hook name (see {@link hooks Hooks}).
    * @param {Function|Array} callback Function or array of functions.
    * @example
    * ```js
@@ -4161,13 +4158,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Removes the hook listener previously registered with {@link Core#addHook}.
+   * Removes the hook listener previously registered with {@link core#addhook Core#addHook}.
    *
    * @memberof Core#
    * @function removeHook
    * @see Hooks#remove
    * @param {string} key Hook name.
-   * @param {Function} callback Reference to the function which has been registered using {@link Core#addHook}.
+   * @param {Function} callback Reference to the function which has been registered using {@link core#addhook Core#addHook}.
    *
    * @example
    * ```js

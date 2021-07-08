@@ -22,6 +22,7 @@ export const PLUGIN_PRIORITY = 320;
 
 /**
  * @plugin HiddenRows
+ * @class HiddenRows
  *
  * @description
  * Plugin allows to hide certain rows. The hiding is achieved by rendering the rows with height set as 0px.

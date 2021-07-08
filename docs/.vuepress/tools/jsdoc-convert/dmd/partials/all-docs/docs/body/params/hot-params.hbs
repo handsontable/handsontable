@@ -1,0 +1,12 @@
+{{#if params}}
+
+{{tableHead params "name|Param" "type|Type" "defaultvalue|Default" "description|Description" ~}}
+
+{{#tableRow params "name" "type" "defaultvalue" "description" ~}}
+| {{#if @col1}}{{>param-table-name}} | {{/if~}}
+{{#if @col2}}{{>hot-linked-type-list types=type.names delimiter=" <br/> " }} | {{/if~}}
+{{#if @col3}}{{>hot-defaultvalue}} | {{/if~}}
+{{#if @col4}}{{#if optional}}`optional` {{/if}}{{{stripNewlines (inlineLinks description)}}} |{{/if}}
+{{/tableRow}}
+
+{{/if}}
