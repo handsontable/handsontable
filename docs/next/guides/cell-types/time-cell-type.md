@@ -44,7 +44,6 @@ const hot = new Handsontable(container, {
   colHeaders: ['Car', 'Model', 'Registration time', 'Price'],
   columnSorting: true,
   licenseKey: 'non-commercial-and-evaluation',
-  height: 'auto',
   columns: [
     {
       type: 'autocomplete',
