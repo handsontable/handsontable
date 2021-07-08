@@ -22,9 +22,11 @@ Toggle `readOnly` for the entire table.
 <div id="example1">
   <div id="example-preview">
     <div id="toggle-boxes">
+      <br/>
       <input v-on:click="toggleReadOnly" checked id="readOnlyCheck" type="checkbox"/>
       <label for="readOnlyCheck"> Toggle <code>readOnly</code> for the entire table</label>
     </div>
+    <br/>
     <hot-table ref="wrapper" :settings="hotSettings"></hot-table>
   </div>
   <div id="vuex-preview">

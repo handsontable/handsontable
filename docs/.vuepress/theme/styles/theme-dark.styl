@@ -21,7 +21,7 @@ html.theme-dark {
   h1, h2, h3, h4, h5, h6, p {
     border-bottom-color $sectionBorderColor
   }
-  
+
   #handsontable-logo {
     path {
       fill #ffffff
@@ -215,7 +215,7 @@ html.theme-dark {
     .tabs-component-panels {
       background-color $tabsComponentPanels
       border-radius 0
-      
+
       &.selected-preview {
         color $tabsComponentBackgroundColor /* Related to issue #8355 */
         background-color white; /* Related to issue #8355 */
@@ -261,6 +261,10 @@ html.theme-dark {
     color $fontColor
   }
 
+  .icons-wrapper svg {
+    fill: $fontColor
+  }
+
   /* Tip markdown component */
   .custom-block.tip {
     background-color $customBlockTipBackgroundColor
@@ -277,7 +281,7 @@ html.theme-dark {
   }
 
   /* Code element */
-  code {
+  code:not(.selected-preview *) {
     color $codeFontColor
     background $codeBackground
   }
@@ -297,7 +301,7 @@ html.theme-dark {
   }
 
   /* Version alert badge */
-  .version-alert { 
+  .version-alert {
     border-color $versionAlertBorderColor
 
     p {
@@ -310,7 +314,7 @@ html.theme-dark {
     scrollbar()
   }
 
-  table:not(.htCore):not(.pika-table) {
+  table:not(.selected-preview *):not(.pika-table) {
     tr:nth-child(2n) {
       background-color $tableEvenRowBackgroundColor
     }
