@@ -1,0 +1,3 @@
+{{#if customTags}}{{#each customTags}}**{{titleCase tag}}**: {{#with (parseType value)~}}
+{{#if type}}{{>link to=type}}{{/if}}{{#if description}}{{{inlineLinks description}}}{{/if}}{{/with}}  
+{{/each}}{{/if~}}

@@ -13,15 +13,16 @@ const PERSISTENT_STATE_KEY = 'manualColumnWidths';
 const privatePool = new WeakMap();
 
 /**
+ * @plugin ManualColumnResize
+ * @class ManualColumnResize
+ *
  * @description
- * This plugin allows to change columns width. To make columns width persistent the {@link Options#persistentState}
+ * This plugin allows to change columns width. To make columns width persistent the {@link options#persistentstate Options#persistentState}
  * plugin should be enabled.
  *
  * The plugin creates additional components to make resizing possibly using user interface:
  * - handle - the draggable element that sets the desired width of the column.
  * - guide - the helper guide that shows the desired width as a vertical guide.
- *
- * @plugin ManualColumnResize
  */
 export class ManualColumnResize extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -125,7 +126,7 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   * Saves the current sizes using the persistentState plugin (the {@link options#persistentstate Options#persistentState} option has to be enabled).
    *
    * @fires Hooks#persistentStateSave
    */
@@ -134,7 +135,7 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   * Loads the previously saved sizes using the persistentState plugin (the {@link options#persistentstate Options#persistentState} option has to be enabled).
    *
    * @returns {Array}
    * @fires Hooks#persistentStateLoad

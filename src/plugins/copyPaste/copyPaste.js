@@ -47,7 +47,7 @@ const META_HEAD = [
  * * `'pasteMode'` (see {@link CopyPaste#pasteMode})
  * * `'uiContainer'` (see {@link CopyPaste#uiContainer}).
  *
- * See [the copy/paste demo](https://handsontable.com/docs/demo-copy-paste.html) for examples.
+ * See [the copy/paste demo](@/guides/cell-features/clipboard.md) for examples.
  *
  * @example
  * ```js
