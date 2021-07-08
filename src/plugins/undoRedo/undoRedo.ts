@@ -21,7 +21,7 @@ export const PLUGIN_KEY = 'undoRedo';
  * @plugin UndoRedo
  * @param {Core} instance The Handsontable instance.
  */
-function UndoRedo(instance): any {
+function UndoRedo(instance) {
   const plugin = this;
 
   this.instance = instance;
@@ -747,7 +747,7 @@ class MergeCellsAction extends UndoRedo.Action {
     mergeCellsPlugin.mergeRange(this.cellRange);
   }
 }
-UndoRedo.MergeCellsAction = MergeCellsAction as Function;
+UndoRedo.MergeCellsAction = MergeCellsAction;
 
 /**
  * Unmerge Cells action.
@@ -777,7 +777,7 @@ class UnmergeCellsAction extends UndoRedo.Action {
     instance.render();
   }
 }
-UndoRedo.UnmergeCellsAction = UnmergeCellsAction as Function;
+UndoRedo.UnmergeCellsAction = UnmergeCellsAction;
 
 /**
  * ManualRowMove action.

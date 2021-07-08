@@ -13,39 +13,39 @@ const pathToSource = '../../../../src';
 const pathToDist = '../../../next/api';
 const urlPrefix = '/next/api/';
 const whitelist = [
-  'dataMap/metaManager/metaSchema.js',
-  'pluginHooks.js',
-  'core.js',
-  'translations/indexMapper.js',
-  'editors/baseEditor/baseEditor.js',
-  '3rdparty/walkontable/src/cell/coords.js',
-  'plugins/copyPaste/focusableElement.js',
-  'dataMap.js',
-  'translations/maps/hidingMap.js',
-  'translations/maps/indexesSequence.js',
-  'translations/maps/trimmingMap.js',
-  'utils/samplesGenerator.js',
-  'translations/maps/physicalIndexToValueMap.js',
-  'utils/ghostTable.js'
+  'dataMap/metaManager/metaSchema.ts',
+  'pluginHooks.ts',
+  'core.ts',
+  'translations/indexMapper.ts',
+  'editors/baseEditor/baseEditor.ts',
+  '3rdparty/walkontable/src/cell/coords.ts',
+  'plugins/copyPaste/focusableElement.ts',
+  'dataMap.ts',
+  'translations/maps/hidingMap.ts',
+  'translations/maps/indexesSequence.ts',
+  'translations/maps/trimmingMap.ts',
+  'utils/samplesGenerator.ts',
+  'translations/maps/physicalIndexToValueMap.ts',
+  'utils/ghostTable.ts'
 ];
 
 const seo = {
-  'dataMap/metaManager/metaSchema.js': {
+  'dataMap/metaManager/metaSchema.ts': {
     title: 'Options',
     metaTitle: 'Options - API Reference - Handsontable Documentation',
     permalink: '/next/api/options'
   },
-  'pluginHooks.js': {
+  'pluginHooks.ts': {
     title: 'Hooks',
     metaTitle: 'Hooks - API Reference - Handsontable Documentation',
     permalink: '/next/api/hooks'
   },
-  'core.js': {
+  'core.ts': {
     title: 'Core',
     metaTitle: 'Core - API Reference - Handsontable Documentation',
     permalink: '/next/api/core'
   },
-  '3rdparty/walkontable/src/cell/coords.js': {
+  '3rdparty/walkontable/src/cell/coords.ts': {
     title: 'CellCoords',
     metaTitle: 'CellCoords - API Reference - Handsontable Documentation',
     permalink: '/next/api/coords'
@@ -53,12 +53,12 @@ const seo = {
 };
 
 /// classifications
-const isJsdocOptions = data => data[0]?.meta.filename === 'metaSchema.js';
+const isJsdocOptions = data => data[0]?.meta.filename === 'metaSchema.ts';
 const isJsdocPlugin = data => data[0]?.customTags?.filter(tag => tag.tag === 'plugin' && tag.value).length > 0 ?? false;
 const isPlugin = (file) => {
   const parts = file.split(/[./]/);
 
-  return parts[0] === 'plugins' && parts[1] === parts[2] && parts[3] === 'js';
+  return parts[0] === 'plugins' && parts[1] === parts[2] && parts[3] === 'ts';
 };
 
 /// paths construction
@@ -67,7 +67,7 @@ const source = file => path.join(__dirname, pathToSource, file);
 const flat = file => file.split('/').pop();
 
 const distFileName = file => flat(file
-  .replace(/(.*)\.js/, '$1.md') // set md extension
+  .replace(/(.*)\.ts/, '$1.md') // set md extension
   .replace(/^([A-Z])/, (_, upper) => upper.toLowerCase()) // enforce camelCase
 );
 const dist = file => path.join(__dirname, pathToDist, distFileName(file));
@@ -277,6 +277,7 @@ const postProcess = initialText => postProcessors.reduce((text, postProcessor) =
 const fromJsdoc = file => jsdoc2md.getTemplateDataSync({
   files: source(file),
   'no-cache': true,
+  configure: path.join(__dirname, 'jsdoc.json')
 });
 
 const toMd = data => dmd(data, {
@@ -313,7 +314,7 @@ const traversePlugins = function* () {
     }
 
     if (fs.statSync(source(path.join('plugins', item))).isDirectory()) {
-      yield path.join('plugins', item, `${item}.js`);
+      yield path.join('plugins', item, `${item}.ts`);
     }
   }
 };
