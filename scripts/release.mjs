@@ -4,12 +4,20 @@
  *
  * It merges the release branch to the `develop` and `master` branches and pushes them, along with the created tags.
  */
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
 import inquirer from 'inquirer';
 import {
   displayErrorMessage,
   displaySeparator,
   spawnProcess,
 } from './utils/index.mjs';
+
+const argv = yargs(hideBin(process.argv))
+  .boolean('push')
+  .default('push', false)
+  .describe('push', '`true` if the release should be pushed to `develop` and `master` along with the tags.')
+  .argv;
 
 displaySeparator();
 
@@ -61,7 +69,7 @@ displaySeparator();
     // Merge the changes to the `develop` and `master` branches.
     await spawnProcess(`git flow release finish -s ${branchName.replace('release/', '')}`);
 
-    if (process.argv.includes('--push')) {
+    if (argv.push === true) {
       await spawnProcess('git checkout develop');
       await spawnProcess('git push origin develop');
       await spawnProcess('git checkout master');

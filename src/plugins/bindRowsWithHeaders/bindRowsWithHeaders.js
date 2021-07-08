@@ -14,6 +14,7 @@ const bindTypeToMapStrategy = new Map([
 
 /**
  * @plugin BindRowsWithHeaders
+ * @class BindRowsWithHeaders
  *
  * @description
  * Plugin allows binding the table rows with their headers.
