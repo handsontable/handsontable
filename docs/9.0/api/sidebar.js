@@ -22,11 +22,14 @@ const nonPublicPages = [
   'physicalIndexToValueMap',
   'ghostTable',
 ];
-const {getLatestVersion} = require('../../.vuepress/helpers');
+const { getLatestVersion } = require('../../.vuepress/helpers');
+
 const getUrlVersionPart = () => {
   const version = path.resolve(__dirname, '../').split('/').pop();
+
   return getLatestVersion() === version ? '' : `/${version}`;
-}
+};
+
 module.exports = {
   sidebar: [
     ...apiHighLevelPages,
