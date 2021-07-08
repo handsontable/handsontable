@@ -1,5 +1,5 @@
 ---
-name: "Handsontable"
+name:  "Handsontable Documentation"
 about: Issues regarding Handsontable documentation.
 title: ""
 labels: "Documentation"
