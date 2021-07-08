@@ -19,8 +19,8 @@ export const PLUGIN_KEY = 'customBorders';
 export const PLUGIN_PRIORITY = 90;
 
 /**
- * @class CustomBorders
  * @plugin CustomBorders
+ * @class CustomBorders
  *
  * @description
  * This plugin enables an option to apply custom borders through the context menu (configurable with context menu key
@@ -29,7 +29,7 @@ export const PLUGIN_PRIORITY = 90;
  * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form
  * of an array.
  *
- * See [Custom Borders](https://handsontable.com/docs/demo-customizing-borders.html) demo for more examples.
+ * See [Custom Borders](@/guides/cell-features/formatting-cells.md#custom-cell-borders) demo for more examples.
  *
  * @example
  * ```js

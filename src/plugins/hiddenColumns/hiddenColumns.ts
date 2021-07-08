@@ -23,6 +23,7 @@ export const PLUGIN_PRIORITY = 310;
 
 /**
  * @plugin HiddenColumns
+ * @class HiddenColumns
  *
  * @description
  * Plugin allows to hide certain columns. The hiding is achieved by not rendering the columns. The plugin not modifies

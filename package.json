@@ -181,8 +181,8 @@
   "workspaces": {
     "packages": [
       ".",
-      "wrappers/*",
-      "examples"
+      "examples",
+      "wrappers/*"
     ]
   },
   "typings": "./handsontable.d.ts",
