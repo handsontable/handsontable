@@ -35,6 +35,7 @@ Hooks.getSingleton().register('afterColumnSort');
 // DIFF - MultiColumnSorting & ColumnSorting: changed configuration documentation.
 /**
  * @plugin ColumnSorting
+ * @class ColumnSorting
  *
  * @description
  * This plugin sorts the view by columns (but does not sort the data source!). To enable the plugin, set the
@@ -78,7 +79,8 @@ Hooks.getSingleton().register('afterColumnSort');
  *       }
  *     }
  *   }
- * }]```
+ * }]
+ * ```
  */
 export class ColumnSorting extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -305,7 +307,8 @@ export class ColumnSorting extends BasePlugin {
    *   this.loadData(newData); // Load new data set and re-render the table.
    *
    *   return false; // The blockade for the default sort action.
-   * }```
+   * }
+   * ```
    *
    * @param {undefined|object|Array} sortConfig Single column sort configuration or full sort configuration (for all sorted columns).
    * The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains
