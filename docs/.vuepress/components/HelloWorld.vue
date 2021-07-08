@@ -6,7 +6,6 @@
         </CodeSandboxIframe>
       </tab>
       <tab name="Vue" id="vue" :is-disabled="true"></tab>
-      <tab name="Angular" id="angular" :is-disabled="true"></tab>
     </tabs>
   </div>
 </template>
@@ -23,17 +22,22 @@ export default {
       {
         name: 'JavaScript',
         tabId: 'js',
-        title: 'Handsontable JavaScript Data Grid - Hello World App'
+        title: 'Handsontable JavaScript Data Grid - Hello World App',
       },
       {
         name: 'TypeScript',
         tabId: 'typescript',
-        title: 'Handsontable TypeScript Data Grid - Hello World App'
+        title: 'Handsontable TypeScript Data Grid - Hello World App',
       },
       {
         name: 'React',
         tabId: 'react',
-        title: 'Handsontable React Data Grid - Hello World App'
+        title: 'Handsontable React Data Grid - Hello World App',
+      },
+      {
+        name: 'Angular',
+        tabId: 'angular',
+        title: 'Handsontable Angular Data Grid - Hello World App',
       }
       // Zip sandbox information with sandbox ID passed by markdown file (needed for versioning).
     ].map((sandboxInfo, index) => {

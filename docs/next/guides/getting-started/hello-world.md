@@ -27,4 +27,5 @@ The demos for Angular and Vue are coming soon, stay tuned!
   'handsontable-javascript-data-grid-hello-world-app-dzx8f',
   'handsontable-typescript-data-grid-hello-world-app-145es',
   'handsontable-react-data-grid-hello-world-app-yt46w',
+  'handsontable-angular-data-grid-hello-world-app-50pb7',
 ]"></HelloWorld>
