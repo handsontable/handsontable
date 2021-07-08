@@ -2,7 +2,7 @@
 name:  "Handsontable Documentation"
 about: Issues regarding Handsontable documentation.
 title: ""
-labels: "Documentation"
+labels: "Type: Documentation"
 assignees: ""
 ---
 
