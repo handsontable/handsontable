@@ -38,7 +38,6 @@ const hot = new Handsontable(container, {
     { type: 'date', dateFormat: 'M/D/YYYY' },
     { type: 'numeric' }
   ],
-  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   dropdownMenu: true,
@@ -72,7 +71,6 @@ const hot = new Handsontable(container, {
     { type: 'date', dateFormat: 'M/D/YYYY' },
     { type: 'numeric' }
   ],
-  height: 'auto',
   colHeaders: true,
   rowHeaders: true,
   filters: true,
