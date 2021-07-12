@@ -25,7 +25,6 @@ const colors = ['yellow', 'red', 'orange and another color', 'green',
   'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
 
 const hot = new Handsontable(container, {
-  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['BMW', 2017, 'black', 'black'],
@@ -79,7 +78,6 @@ const cars = ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'];
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  height: 'auto',
   data: [
     ['BMW', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
@@ -123,7 +121,6 @@ const container = document.querySelector('#example3');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  height: 'auto',
   data: [
     ['BMW', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
