@@ -1,7 +1,7 @@
 import {
   isKey,
   isCtrlMetaKey,
-} from 'handsontable/helpers/unicode';
+} from '../unicode';
 
 describe('Unicode helper', () => {
   //
