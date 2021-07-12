@@ -25,8 +25,8 @@ import Handsontable from 'handsontable';
 const hotSettings = {
   data:
     [
-      ['A1', 'https://handsontable.com/docs/images/examples/professional-javascript-developers-nicholas-zakas.jpg'],
-      ['A2', 'https://handsontable.com/docs/images/examples/javascript-the-good-parts.jpg']
+      ['A1', 'https://handsontable.com/docs/9.0/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+      ['A2', 'https://handsontable.com/docs/9.0/img/examples/javascript-the-good-parts.jpg']
     ],
   columns: [
     {},
@@ -55,7 +55,6 @@ const hotSettings = {
   ],
   colHeaders: true,
   rowHeights: 55,
-  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 };
 

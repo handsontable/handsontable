@@ -365,7 +365,6 @@ const hot = new Handsontable(container, {
   nestedRows: true,
   rowHeaders: true,
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
-  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   columnSummary() {
     const endpoints = [];
