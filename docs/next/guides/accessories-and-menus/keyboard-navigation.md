@@ -54,9 +54,9 @@ tags:
 | <kbd>Delete</kbd>  | <kbd>Delete</kbd> | Empty cell |
 | <kbd>Shift</kbd> + <kbd>Enter ⏎</kbd> | <kbd>Shift</kbd> + <kbd>Enter ⏎</kbd> | Opens editor and move to the cell above current active cell (if exists) |
 | <kbd>Ctrl</kbd> + <kbd>Enter ⏎</kbd> | <kbd>Ctrl</kbd> + <kbd>Enter ⏎</kbd> | Opens editor and adds new line in the cell |
-| <kbd>Ctrl</kbd> + <kbd>C</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Insert</kbd> | <kbd>Cmd</kbd> + <kbd>C</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Insert</kbd> | Copy cell's content |
+| <kbd>Ctrl</kbd> + <kbd>C</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Insert</kbd> | <kbd>Cmd</kbd> + <kbd>C</kbd> | Copy cell's content |
 | <kbd>Ctrl</kbd> + <kbd>X</kbd> | <kbd>Cmd</kbd> + <kbd>X</kbd> | Cut cell's content |
-| <kbd>Ctrl</kbd> + <kbd>V</kbd><br>or<br><kbd>Shift</kbd> + <kbd>Insert</kbd> | <kbd>Cmd</kbd> + <kbd>V</kbd><br>or<br><kbd>Shift</kbd> + <kbd>Insert</kbd> | Paste cell's content |
+| <kbd>Ctrl</kbd> + <kbd>V</kbd><br>or<br><kbd>Shift</kbd> + <kbd>Insert</kbd> | <kbd>Cmd</kbd> + <kbd>V</kbd> | Paste cell's content |
 | <kbd>Ctrl</kbd> + <kbd>Enter ⏎</kbd> | <kbd>Cmd</kbd> + <kbd>Enter ⏎</kbd> | Fill all selected cells with edited cell's value |
 | <kbd>Ctrl</kbd> + <kbd>Z</kbd>  | <kbd>Cmd</kbd> + <kbd>Z</kbd> | undo |
 | <kbd>Ctrl</kbd> + <kbd>Y</kbd> | <kbd>Cmd</kbd> + <kbd>Y</kbd> | redo |
