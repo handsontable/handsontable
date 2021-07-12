@@ -12,12 +12,13 @@
 <script>
 export default {
   name: 'CodeSandboxIframe',
-  props: ['id', 'title'],
+  props: ['id', 'title', 'selectedFile'],
   computed: {
     srcUrl() {
       const theme = 'light';
       const urlStart = 'https://codesandbox.io/embed/';
-      const urlEnd = `?fontsize=13&hidenavigation=1&theme=${theme}&view=preview&runonclick=1`;
+      const selectedFile = encodeURIComponent(this.selectedFile);
+      const urlEnd = `?fontsize=13&hidenavigation=1&&module=${selectedFile}&theme=${theme}&view=preview&runonclick=1`;
 
       return `${urlStart}${this.id}${urlEnd}`;
     }
