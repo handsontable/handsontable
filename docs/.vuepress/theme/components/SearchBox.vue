@@ -152,10 +152,12 @@ export default {
       const maxAPI = this.$site.themeConfig.searchMaxAPISuggestions || SEARCH_MAX_SUGGESTIONS;
       const maxGuides = this.$site.themeConfig.searchMaxGuidesSuggestions || SEARCH_MAX_SUGGESTIONS;
       const fuzzySearchDomains = this.$site.themeConfig.fuzzySearchDomains || [];
-      const APISearchDomainPriorityList = ([...this.$site
-          .themeConfig.APISearchDomainPriorityList || []]).reverse();
-      const guidesSearchDomainPriorityList = ([...this.$site
-          .themeConfig.guidesSearchDomainPriorityList || []]).reverse();
+      const APISearchDomainPriorityList = ([
+        ...this.$site.themeConfig.APISearchDomainPriorityList || []
+      ]).reverse();
+      const guidesSearchDomainPriorityList = ([
+        ...this.$site.themeConfig.guidesSearchDomainPriorityList || []
+      ]).reverse();
       const resAPI = [];
       const resGuides = [];
       const isSearchable = (page) => {
