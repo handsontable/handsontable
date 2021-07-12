@@ -140,7 +140,6 @@ const container = document.getElementById('example1');
 const hot = new Handsontable(container, {
   data,
   colWidths: [200, 200, 200, 80],
-  height: 'auto',
   colHeaders: ['Title', 'Description', 'Comments', 'Cover'],
   columns: [
     { data: 'title', renderer: 'html' },
@@ -196,7 +195,6 @@ const hot = new Handsontable(container, {
     {},
     { renderer: customRenderer }
   ],
-  height: 'auto',
   colHeaders(col) {
     switch (col) {
       case 0:

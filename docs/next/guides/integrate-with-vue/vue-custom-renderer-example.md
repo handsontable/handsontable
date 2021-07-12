@@ -64,7 +64,6 @@ new Vue({
         ],
         colHeaders: true,
         rowHeights: 55,
-        height: 'auto',
         licenseKey: 'non-commercial-and-evaluation'
       }
     }

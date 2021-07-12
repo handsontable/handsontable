@@ -81,8 +81,6 @@ const hot = new Handsontable(container, {
     },
     {},
   ],
-  width: 'auto',
-  height: 'auto',
   rowHeaders: true,
   colHeaders: true,
   licenseKey: 'non-commercial-and-evaluation'
@@ -261,8 +259,6 @@ const hot = new Handsontable(container, {
       }
     }
   },
-  width: 'auto',
-  height: 'auto',
   rowHeaders: true,
   colHeaders: true,
   licenseKey: 'non-commercial-and-evaluation'
