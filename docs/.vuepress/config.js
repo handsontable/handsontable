@@ -128,5 +128,10 @@ module.exports = {
     searchMaxGuidesSuggestions: 5,
     searchMaxAPISuggestions: 10,
     fuzzySearchDomains: ['Core', 'Hooks', 'Options'],
+    // The list modifies the search results position. When the search phrase matches the pages
+    // below, the search suggestions are placed before the rest results. The pages declared in
+    // the array at the beginning have the highest display priority.
+    APISearchDomainPriorityList: ['Options'],
+    guidesSearchDomainPriorityList: [],
   }
 };
