@@ -37,7 +37,8 @@ describe('NestedRows', () => {
         nestedRows: true
       });
 
-      expect(errorSpy).toHaveBeenCalledWith(Handsontable.plugins.NestedRows.WRONG_DATA_TYPE_ERROR);
+      expect(errorSpy).toHaveBeenCalledWith('The Nested Rows plugin requires an Array of Objects as a dataset to be' +
+        ' provided. The plugin has been disabled.');
     });
 
     it('should display an error and disable the plugin, when an array of arrays was provided as a dataset', () => {
@@ -48,7 +49,8 @@ describe('NestedRows', () => {
         nestedRows: true
       });
 
-      expect(errorSpy).toHaveBeenCalledWith(Handsontable.plugins.NestedRows.WRONG_DATA_TYPE_ERROR);
+      expect(errorSpy).toHaveBeenCalledWith('The Nested Rows plugin requires an Array of Objects as a dataset to be' +
+        ' provided. The plugin has been disabled.');
     });
   });
 

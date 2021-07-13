@@ -16,6 +16,12 @@ export const PLUGIN_PRIORITY = 300;
 const privatePool = new WeakMap();
 
 /**
+ * Error message for the wrong data type error.
+ */
+const WRONG_DATA_TYPE_ERROR = 'The Nested Rows plugin requires an Array of Objects as a dataset to be' +
+  ' provided. The plugin has been disabled.';
+
+/**
  * @plugin NestedRows
  * @class NestedRows
  *
@@ -30,14 +36,6 @@ export class NestedRows extends BasePlugin {
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
-
-  /**
-   * Error message for the wrong data type error.
-   *
-   * @returns {string}
-   */
-  static WRONG_DATA_TYPE_ERROR = 'The Nested Rows plugin requires an Array of Objects as a dataset to be' +
-    ' provided. The plugin has been disabled.';
 
   constructor(hotInstance) {
     super(hotInstance);
@@ -463,7 +461,7 @@ export class NestedRows extends BasePlugin {
    */
   onBeforeLoadData(data) {
     if (!isArrayOfObjects(data)) {
-      error(this.constructor.WRONG_DATA_TYPE_ERROR);
+      error(WRONG_DATA_TYPE_ERROR);
 
       this.disablePlugin();
 
