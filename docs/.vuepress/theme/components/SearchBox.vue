@@ -149,15 +149,17 @@ export default {
       }
 
       const { pages } = this.$site;
-      const maxAPI = this.$site.themeConfig.searchMaxAPISuggestions || SEARCH_MAX_SUGGESTIONS;
-      const maxGuides = this.$site.themeConfig.searchMaxGuidesSuggestions || SEARCH_MAX_SUGGESTIONS;
-      const fuzzySearchDomains = this.$site.themeConfig.fuzzySearchDomains || [];
-      const APISearchDomainPriorityList = ([
-        ...this.$site.themeConfig.APISearchDomainPriorityList || []
-      ]).reverse();
-      const guidesSearchDomainPriorityList = ([
-        ...this.$site.themeConfig.guidesSearchDomainPriorityList || []
-      ]).reverse();
+
+      const {
+        apiMaxSuggestions = SEARCH_MAX_SUGGESTIONS,
+        guidesMaxSuggestions = SEARCH_MAX_SUGGESTIONS,
+        fuzzySearchDomains = [],
+        apiSearchDomainPriorityList = [],
+        guidesSearchDomainPriorityList = [],
+      } = this.$site.themeConfig.searchOptions;
+
+      const apiPriorityList = [...apiSearchDomainPriorityList].reverse();
+      const guidesPriorityList = [...guidesSearchDomainPriorityList].reverse();
       const resAPI = [];
       const resGuides = [];
       const isSearchable = (page) => {
@@ -179,7 +181,7 @@ export default {
         }
 
         const category = 'API Reference';
-        const priority = APISearchDomainPriorityList.indexOf(get(p, 'title', ''));
+        const priority = apiPriorityList.indexOf(get(p, 'title', ''));
 
         if (matchQuery(query, p, null, fuzzySearchDomains)) {
           resAPI.push({
@@ -215,7 +217,7 @@ export default {
         }
 
         const category = 'Guides';
-        const priority = guidesSearchDomainPriorityList.indexOf(get(p, 'title', ''));
+        const priority = guidesPriorityList.indexOf(get(p, 'title', ''));
 
         if (matchQuery(query, p, null, fuzzySearchDomains)) {
           resGuides.push({
@@ -247,7 +249,7 @@ export default {
       resAPI.sort(priorityCompare);
       resGuides.sort(priorityCompare);
 
-      const res = [].concat(resAPI.splice(0, maxAPI), resGuides.splice(0, maxGuides));
+      const res = [].concat(resAPI.splice(0, apiMaxSuggestions), resGuides.splice(0, guidesMaxSuggestions));
 
       res.sort((a, b) => b.category.localeCompare(a.category));
 
@@ -264,7 +266,7 @@ export default {
   },
 
   mounted() {
-    this.placeholder = this.$site.themeConfig.searchPlaceholder || '';
+    this.placeholder = this.$site.themeConfig.searchOptions.placeholder || '';
     document.addEventListener('keydown', this.onHotkey);
   },
 

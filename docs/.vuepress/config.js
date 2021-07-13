@@ -124,14 +124,16 @@ module.exports = {
     activeHeaderLinks: true,
     sidebarDepth: 0,
     search: true,
-    searchPlaceholder: 'Search...',
-    searchMaxGuidesSuggestions: 5,
-    searchMaxAPISuggestions: 10,
-    fuzzySearchDomains: ['Core', 'Hooks', 'Options'],
-    // The list modifies the search results position. When the search phrase matches the pages
-    // below, the search suggestions are placed before the rest results. The pages declared in
-    // the array at the beginning have the highest display priority.
-    APISearchDomainPriorityList: ['Options'],
-    guidesSearchDomainPriorityList: [],
+    searchOptions: {
+      placeholder: 'Search...',
+      guidesMaxSuggestions: 5,
+      apiMaxSuggestions: 10,
+      fuzzySearchDomains: ['Core', 'Hooks', 'Options'],
+      // The list modifies the search results position. When the search phrase matches the pages
+      // below, the search suggestions are placed before the rest results. The pages declared in
+      // the array at the beginning have the highest display priority.
+      apiSearchDomainPriorityList: ['Options'],
+      guidesSearchDomainPriorityList: [],
+    }
   }
 };
