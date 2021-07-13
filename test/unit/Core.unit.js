@@ -72,8 +72,8 @@ describe('Core', () => {
   it('should reset cache only once after initialization with an Array of Objects data source', () => {
     const core = new Core(container, {
       data: [
-        {test: 'a1', foo: 'b1'},
-        {test: 'a2', foo: 'b2'}
+        { test: 'a1', foo: 'b1' },
+        { test: 'a2', foo: 'b2' }
       ],
       autoRowSize: true,
       autoColumnSize: true,
