@@ -69,7 +69,9 @@ Double click on a cell to open the editor and preview the formula.
 
 ::: example #example1 --html 1 --js 2
 ```html
+<h3>Sheet 1</h3>
 <div id="example-basic-multi-sheet-1"></div>
+<h3>Sheet 2</h3>
 <div id="example-basic-multi-sheet-2"></div>
 ```
 ```js
@@ -435,7 +437,7 @@ For more information about named expressions, please refer to the [HyperFormula 
 
 <iframe width="100%" height="425px" src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
 
-### Learn more
+## Learn more
 
 *   [Plugin API reference](@/api/formulas.md)
 *   [HyperFormula guides](https://handsontable.github.io/hyperformula/)
