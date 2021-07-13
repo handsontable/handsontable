@@ -37,6 +37,7 @@ Hooks.getSingleton().register('afterFormulasValuesUpdate');
  * powerful calculation engine with an extensive number of features.
  *
  * @plugin Formulas
+ * @class Formulas
  */
 export class Formulas extends BasePlugin {
   static get PLUGIN_KEY() {
