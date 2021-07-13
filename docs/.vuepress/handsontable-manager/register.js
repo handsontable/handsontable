@@ -37,13 +37,17 @@ function createRegister() {
     return;
   }
 
-  const register = new Set();
-
   const domMatches = Element.prototype.matches ||
     Element.prototype.msMatchesSelector ||
     Element.prototype.webkitMatchesSelector;
 
-  // Polyfill (IE9+) for DOM.closest method (https://developer.mozilla.org/en-US/docs/Web/API/Element/closest)
+  /**
+   * Polyfill (IE9+) for DOM.closest method (https://developer.mozilla.org/en-US/docs/Web/API/Element/closest).
+   *
+   * @param {Element} element The element the traversing begins from.
+   * @param {string} selector The selector list.
+   * @returns {Element|null}
+   */
   function closest(element, selector) {
     let el = element;
 
@@ -57,7 +61,7 @@ function createRegister() {
     } while (el !== null && el.nodeType === Node.ELEMENT_NODE);
 
     return null;
-  };
+  }
 
   const register = new Set();
 
