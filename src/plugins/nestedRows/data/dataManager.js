@@ -96,7 +96,7 @@ class DataManager {
    * @private
    */
   rewriteCache() {
-    if (!this.data?.length) {
+    if (Array.isArray(data) === false || data.length === 0) {
       return;
     }
 
