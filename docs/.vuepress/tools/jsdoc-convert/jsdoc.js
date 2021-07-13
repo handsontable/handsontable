@@ -239,15 +239,24 @@ const fixLinks = text => text
       if (target.includes('://')) { // e.g https://handsontable.com/blog
         return all;
       }
-      const fixedAnchor = anchor
+      let fixedAnchor = anchor
         .toLowerCase()
         .replace(/-/g, '');
 
-      if (!target) { // e.g #getData
-        return `[${label}](${hash}${fixedAnchor})`;
+      // e.g. #Options+autoColumnSize or #getData
+      if (!target) {
+        if (fixedAnchor.includes('+')) {
+          const splitted = fixedAnchor.split('+');
+
+          target = splitted[0];
+          fixedAnchor = splitted[1];
+        } else {
+          return `[${label}](${hash}${fixedAnchor})`;
+        }
       }
 
-      if (target.startsWith('@')) { // e.g. @/api/plugins.md
+      // e.g. @/api/plugins.md
+      if (target.startsWith('@')) {
         return `[${label}](${target}${hash}${fixedAnchor})`;
       }
 
