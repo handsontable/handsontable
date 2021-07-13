@@ -245,13 +245,14 @@ const fixLinks = text => text
 
       // e.g. #Options+autoColumnSize or #getData
       if (!target) {
-        if (fixedAnchor.includes('+')) {
+        if (!fixedAnchor.includes('+')) {
+          return `[${label}](${hash}${fixedAnchor})`;
+        } else {
           const splitted = fixedAnchor.split('+');
 
           target = splitted[0];
           fixedAnchor = splitted[1];
-        } else {
-          return `[${label}](${hash}${fixedAnchor})`;
+          label = `${anchor.split('+')[0]}#${label}`;
         }
       }
 
