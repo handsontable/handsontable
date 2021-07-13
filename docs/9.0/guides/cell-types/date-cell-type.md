@@ -42,7 +42,6 @@ const hot = new Handsontable(container, {
     ['BMW', '320i Coupe', '07/24/2022', 30500]
   ],
   colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
-  height: 'auto',
   columns: [
     {
       type: 'autocomplete',

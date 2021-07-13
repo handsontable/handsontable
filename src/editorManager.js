@@ -1,5 +1,5 @@
 import { CellCoords } from './3rdparty/walkontable/src';
-import { KEY_CODES, isMetaKey, isCtrlMetaKey } from './helpers/unicode';
+import { KEY_CODES, isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
@@ -356,15 +356,18 @@ class EditorManager {
 
     this.instance.runHooks('beforeKeyDown', event);
 
+    const { keyCode } = event;
+
     // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is produced when unfinished
     // character is entering (using IME editor). It is fired mainly on linux (ubuntu) with installed ibus-pinyin package.
-    if (this.destroyed || event.keyCode === 229) {
+    if (this.destroyed || keyCode === 229) {
       return;
     }
     if (isImmediatePropagationStopped(event)) {
       return;
     }
-    this.lastKeyCode = event.keyCode;
+
+    this.lastKeyCode = keyCode;
 
     if (!this.selection.isSelected()) {
       return;
@@ -373,7 +376,7 @@ class EditorManager {
     const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;
 
     if (this.activeEditor && !this.activeEditor.isWaiting()) {
-      if (!isMetaKey(event.keyCode) && !isCtrlMetaKey(event.keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
+      if (!isFunctionKey(keyCode) && !isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
         this.openEditor('', event);
 
         return;
@@ -385,7 +388,7 @@ class EditorManager {
     const rangeModifier = isShiftPressed ? this.selection.setRangeEnd : this.selection.setRangeStart;
     let tabMoves;
 
-    switch (event.keyCode) {
+    switch (keyCode) {
       case KEY_CODES.A:
         if (!this.isEditorOpened() && isCtrlPressed) {
           this.instance.selectAll();
