@@ -14,7 +14,7 @@ basement_dist
 report-check-links.xlsx
 ~$*.xlsx
 
-/.vuepress/public/handsontable/
+/.vuepress/public/handsontable
 
 /docker/redirects.conf
 /next/api/
