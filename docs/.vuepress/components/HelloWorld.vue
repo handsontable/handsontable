@@ -1,8 +1,12 @@
 <template>
   <div>
     <tabs :options="{ useUrlFragment: false }" @changed="tabClicked">
-      <tab v-for="item in items" :name="item.name" :id="item.tabId">
-        <CodeSandboxIframe :id="item.codeSandboxId" :title="item.title" v-if="isSelected(item.tabId)">
+      <tab v-for="demo in this.demos" :name="demo.name" :id="getTabId(demo.name)">
+        <CodeSandboxIframe
+          :id="demo.codeSandboxId"
+          :title="demo.title"
+          :selectedFile="demo.selectedFile"
+          v-if="isSelected(getTabId(demo.name))">
         </CodeSandboxIframe>
       </tab>
       <tab name="Vue" id="vue" :is-disabled="true"></tab>
@@ -15,41 +19,17 @@ import CodeSandboxIframe from './CodeSandboxIframe.vue';
 
 export default {
   name: 'HelloWorld',
-  props: ['sandboxesIds'],
+  props: ['demos'],
   components: { CodeSandboxIframe },
   data() {
-    const sandboxesInfo = [
-      {
-        name: 'JavaScript',
-        tabId: 'js',
-        title: 'Handsontable JavaScript Data Grid - Hello World App',
-      },
-      {
-        name: 'TypeScript',
-        tabId: 'typescript',
-        title: 'Handsontable TypeScript Data Grid - Hello World App',
-      },
-      {
-        name: 'React',
-        tabId: 'react',
-        title: 'Handsontable React Data Grid - Hello World App',
-      },
-      {
-        name: 'Angular',
-        tabId: 'angular',
-        title: 'Handsontable Angular Data Grid - Hello World App',
-      }
-      // Zip sandbox information with sandbox ID passed by markdown file (needed for versioning).
-    ].map((sandboxInfo, index) => {
-      return { ...sandboxInfo, codeSandboxId: this.sandboxesIds[index] };
-    });
-
     return {
-      selected: 'js',
-      items: sandboxesInfo
+      selected: 'javascript',
     };
   },
   methods: {
+    getTabId(demoName) {
+      return demoName.toLowerCase();
+    },
     tabClicked(event) {
       this.selected = event.tab.id;
     },
