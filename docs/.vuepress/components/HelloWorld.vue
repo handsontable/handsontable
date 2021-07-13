@@ -2,10 +2,10 @@
   <div>
     <tabs :options="{ useUrlFragment: false }" @changed="tabClicked">
       <tab v-for="demo in this.demos" :name="demo.name" :id="getTabId(demo.name)">
-        <CodeSandboxIframe 
-          :id="demo.codeSandboxId" 
-          :title="demo.title" 
-          :selectedFile="demo.selectedFile" 
+        <CodeSandboxIframe
+          :id="demo.codeSandboxId"
+          :title="demo.title"
+          :selectedFile="demo.selectedFile"
           v-if="isSelected(getTabId(demo.name))">
         </CodeSandboxIframe>
       </tab>
