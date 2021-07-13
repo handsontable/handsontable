@@ -96,10 +96,6 @@ class DataManager {
    * @private
    */
   rewriteCache() {
-    if (Array.isArray(data) === false || data.length === 0) {
-      return;
-    }
-
     this.cache = {
       levels: [],
       levelCount: 0,

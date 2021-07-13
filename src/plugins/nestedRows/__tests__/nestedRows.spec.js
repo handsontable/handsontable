@@ -29,6 +29,53 @@ describe('NestedRows', () => {
     }
   });
 
+  describe('Initialization', () => {
+    it('should display an error and disable the plugin, when no data was provided', () => {
+      const errorSpy = jasmine.createSpy('init errors');
+
+      // eslint-disable-next-line no-console
+      const prevError = console.error.bind(console);
+
+      // eslint-disable-next-line no-console
+      console.error = (...args) => {
+        errorSpy(...args);
+        prevError(...args);
+      };
+
+      handsontable({
+        nestedRows: true
+      });
+
+      expect(errorSpy).toHaveBeenCalledWith(Handsontable.plugins.NestedRows.WRONG_DATA_TYPE_ERROR);
+
+      // eslint-disable-next-line no-console
+      console.error = prevError;
+    });
+
+    it('should display an error and disable the plugin, when an array of arrays was provided as a dataset', () => {
+      const errorSpy = jasmine.createSpy('init errors');
+
+      // eslint-disable-next-line no-console
+      const prevError = console.error.bind(console);
+
+      // eslint-disable-next-line no-console
+      console.error = (...args) => {
+        errorSpy(...args);
+        prevError(...args);
+      };
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        nestedRows: true
+      });
+
+      expect(errorSpy).toHaveBeenCalledWith(Handsontable.plugins.NestedRows.WRONG_DATA_TYPE_ERROR);
+
+      // eslint-disable-next-line no-console
+      console.error = prevError;
+    });
+  });
+
   describe('Displaying a nested structure', () => {
     it('should display as many rows as there are overall elements in a nested structure', () => {
       const hot = handsontable({
@@ -1017,6 +1064,9 @@ describe('NestedRows', () => {
     });
 
     setTimeout(() => {
+      // The plugin is disabled after being initialized with the wrong type of dataset.
+      hot.getPlugin('nestedRows').enablePlugin();
+
       hot.loadData(getMoreComplexNestedData());
       expect(hot.countRows()).toEqual(13);
       done();

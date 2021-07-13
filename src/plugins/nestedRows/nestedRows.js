@@ -3,13 +3,16 @@ import DataManager from './data/dataManager';
 import CollapsingUI from './ui/collapsing';
 import HeadersUI from './ui/headers';
 import ContextMenuUI from './ui/contextMenu';
-
-import './nestedRows.css';
+import { error } from '../../helpers/console';
+import { isArrayOfObjects } from '../../helpers/data';
 import { TrimmingMap } from '../../translations';
 import RowMoveController from './utils/rowMoveController';
 
+import './nestedRows.css';
+
 export const PLUGIN_KEY = 'nestedRows';
 export const PLUGIN_PRIORITY = 300;
+
 const privatePool = new WeakMap();
 
 /**
@@ -27,6 +30,14 @@ export class NestedRows extends BasePlugin {
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
+
+  /**
+   * Error message for the wrong data type error.
+   *
+   * @returns {string}
+   */
+  static WRONG_DATA_TYPE_ERROR = 'The Nested Rows plugin requires an Array of Objects as a dataset to be' +
+    ' provided. The plugin has been disabled.';
 
   constructor(hotInstance) {
     super(hotInstance);
@@ -451,7 +462,11 @@ export class NestedRows extends BasePlugin {
    * @private
    */
   onBeforeLoadData(data) {
-    if (!data) {
+    if (!isArrayOfObjects(data)) {
+      error(this.constructor.WRONG_DATA_TYPE_ERROR);
+
+      this.disablePlugin();
+
       return;
     }
 
