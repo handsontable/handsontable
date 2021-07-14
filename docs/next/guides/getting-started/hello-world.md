@@ -23,8 +23,23 @@ Want to play with the code yourself? Select "Open Sandbox" in the frame's bottom
 
 The demos for Angular and Vue are coming soon, stay tuned!
 
-<HelloWorld :sandboxesIds="[
-  'handsontable-javascript-data-grid-hello-world-app-dzx8f',
-  'handsontable-typescript-data-grid-hello-world-app-145es',
-  'handsontable-react-data-grid-hello-world-app-yt46w',
+<HelloWorld :demos="[
+  {
+    name: 'JavaScript',
+    title: 'Handsontable JavaScript Data Grid - Hello World App',
+    codeSandboxId: 'handsontable-javascript-data-grid-hello-world-app-dzx8f',
+    selectedFile: '/src/index.js',
+  },
+  {
+    name: 'TypeScript',
+    title: 'Handsontable TypeScript Data Grid - Hello World App',
+    codeSandboxId: 'handsontable-typescript-data-grid-hello-world-app-145es',
+    selectedFile: '/src/index.ts',
+  },
+  {
+    name: 'React',
+    title: 'Handsontable React Data Grid - Hello World App',
+    codeSandboxId: 'handsontable-react-data-grid-hello-world-app-yt46w',
+    selectedFile: '/src/index.tsx',
+  },
 ]"></HelloWorld>
