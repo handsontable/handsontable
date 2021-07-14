@@ -1,13 +1,13 @@
-/* 
+/*
   Customization of the native code group tabs
 */
 
 .theme-code-group {
-  
+
   li, button {
     outline: none!important;
   }
-  
+
   .theme-code-group__nav {
 
     .theme-code-group__nav-tab {
@@ -23,4 +23,15 @@
 /* Hide the name of the programming language */
 div[class*="language-"]::before {
   content: '';
+}
+
+div[class*="language-"] .highlight-lines {
+  .highlighted::after {
+    content: '+';
+    color: #ffffff;
+  }
+
+  .highlighted {
+    background-color: #2e542e;
+  }
 }
