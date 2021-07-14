@@ -21,7 +21,8 @@ COPY docs ./docs
 WORKDIR /app/docs
 
 RUN rm -rf ./next/
-RUN rm ./.vuepress/public/handsontable.js ./.vuepress/public/handsontable.css
+# Removes the symlink to the "next" Handsontable version.
+RUN rm ./.vuepress/public/handsontable
 
 RUN npm run docs:build
 
