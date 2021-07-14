@@ -325,7 +325,7 @@ export default {
         return;
       }
 
-      if (this.$route.path !== this.suggestions[i].path) {
+      if (this.$route.fullPath !== this.suggestions[i].path) {
         this.$router.push(this.suggestions[i].path);
       }
 
