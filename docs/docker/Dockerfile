@@ -19,6 +19,12 @@ WORKDIR /app
 COPY src ./src
 COPY docs ./docs
 
+# The symlink points to the outside file system, so it needs to be removed.
+RUN rm /app/docs/.vuepress/public/handsontable
+
+# Instead, copy the Handsontable files into the image.
+COPY dist /app/docs/.vuepress/public/handsontable
+
 WORKDIR /app/docs
 
 RUN npm run docs:api
@@ -34,6 +40,6 @@ COPY --from=build ./app/docs/docker/default.conf /etc/nginx/conf.d/default.conf
 COPY --from=build ./app/docs/docker/redirects.conf /etc/nginx/redirects.conf
 COPY --from=build ./app/docs/.vuepress/dist/docs ./html
 
-# a fuse that checks the external Nginx config files. It fails the image
+# A fuse that checks the external Nginx config files. It fails the image
 # building when the config contains some syntax errors.
 RUN nginx -t
