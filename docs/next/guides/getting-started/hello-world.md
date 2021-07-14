@@ -21,7 +21,7 @@ Rather than display "Hello, World!", the demo contains 100 rows and 13 columns p
 
 Want to play with the code yourself? Select "Open Sandbox" in the frame's bottom right corner.
 
-The demos for Angular and Vue are coming soon, stay tuned!
+The demos for Vue is coming soon, stay tuned!
 
 <HelloWorld :demos="[
   {
@@ -41,5 +41,11 @@ The demos for Angular and Vue are coming soon, stay tuned!
     title: 'Handsontable React Data Grid - Hello World App',
     codeSandboxId: 'handsontable-react-data-grid-hello-world-app-yt46w',
     selectedFile: '/src/index.tsx',
+  },
+  {
+    name: 'Angular',
+    title: 'Handsontable Angular Data Grid - Hello World App',
+    codeSandboxId: 'handsontable-angular-data-grid-hello-world-app-50pb7',
+    selectedFile: '/src/data-grid/data-grid.component.ts',
   },
 ]"></HelloWorld>
