@@ -240,8 +240,7 @@ const fixLinks = text => text
         return all;
       }
       const fixedAnchor = anchor
-        .toLowerCase()
-        .replace(/-/g, '');
+        .toLowerCase();
 
       if (!target) { // e.g #getData
         return `[${label}](${hash}${fixedAnchor})`;
