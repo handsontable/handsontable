@@ -518,11 +518,19 @@ export class NestedHeaders extends BasePlugin {
    * @param {object} calc Viewport column calculator.
    */
   onAfterViewportColumnCalculatorOverride(calc) {
+    const headerLayersCount = this.#stateManager.getLayersCount();
     let newStartColumn = calc.startColumn;
+    let nonRenderable = !!headerLayersCount;
 
-    for (let headerLayer = 0; headerLayer < this.#stateManager.getLayersCount(); headerLayer++) {
+    for (let headerLayer = 0; headerLayer < headerLayersCount; headerLayer++) {
       const startColumn = this.#stateManager.findLeftMostColumnIndex(headerLayer, calc.startColumn);
       const renderedStartColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(startColumn);
+
+      // If any of the headers for that column index is rendered, all of them should be rendered properly, see
+      // comment below.
+      if (startColumn >= 0) {
+        nonRenderable = false;
+      }
 
       // `renderedStartColumn` can be `null` if the leftmost columns are hidden. In that case -> ignore that header
       // level, as it should be handled by the "parent" header
@@ -532,7 +540,12 @@ export class NestedHeaders extends BasePlugin {
       }
     }
 
-    calc.startColumn = newStartColumn;
+    // If no headers for the provided column index are renderable, start rendering from the beginning of the upmost
+    // header for that position.
+    calc.startColumn =
+      nonRenderable ?
+        this.#stateManager.getHeaderTreeNodeData(0, newStartColumn).columnIndex :
+        newStartColumn;
   }
 
   /**
