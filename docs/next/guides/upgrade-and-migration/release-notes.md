@@ -13,6 +13,19 @@ tags:
 
 [[toc]]
 
+## 9.0.1
+
+Released on 17th of June, 2021
+
+**Fixed**
+
+*   Fixed an issue where the validator function was called twice when the Formulas plugin was enabled. ([#8138](https://github.com/handsontable/handsontable/issues/8138))
+*   Introduced a new CSS style for cells of the `checkbox` type to restore previous behaviour. ([#8196](https://github.com/handsontable/handsontable/issues/8196))
+
+**Removed**
+
+*   Removed the redundant internal `jsonpatch` library from the source code. ([#8140](https://github.com/handsontable/handsontable/issues/8140))
+
 ## 9.0.0
 
 Released on 1st of June, 2021
@@ -105,7 +118,7 @@ Released on 16th of March, 2021
 *   Fixed the incorrect `cellTypes` module paths in the `exports` entry of the `package.json` file. ([#7597](https://github.com/handsontable/handsontable/issues/7597))
 *   *Vue:* Fixed Remote Code Execution vulnerability in the dev dependencies. ([#7620](https://github.com/handsontable/handsontable/issues/7620))
 
-### 8.3.1
+## 8.3.1
 
 Released on 10th of February, 2021
 
@@ -113,7 +126,7 @@ Released on 10th of February, 2021
 
 *   Fixed an issue where the CSS files could be eliminated during tree-shaking. ([#7516](https://github.com/handsontable/handsontable/issues/7516))
 
-### 8.3.0
+## 8.3.0
 
 Released on 28th of January, 2021
 
