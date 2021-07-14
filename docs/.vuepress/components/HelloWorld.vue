@@ -9,8 +9,6 @@
           v-if="isSelected(getTabId(demo.name))">
         </CodeSandboxIframe>
       </tab>
-      <tab name="Vue" id="vue" :is-disabled="true"></tab>
-      <tab name="Angular" id="angular" :is-disabled="true"></tab>
     </tabs>
   </div>
 </template>
