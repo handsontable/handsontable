@@ -184,7 +184,7 @@ function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
 
 You can also put HTML into row and column headers. If you need to attach events to DOM elements like the checkbox below, just remember to identify the element by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id attribute must be unique.
 
-::: example #example2
+::: example #example2 --js 1 --css 2
 ```js
 let isChecked = false;
 const container = document.querySelector('#example2');
@@ -227,6 +227,12 @@ Handsontable.dom.addEvent(container, 'mouseup', event => {
     hot.render();
   }
 });
+```
+```css
+.handsontable th:nth-child(2) span.colHeader {
+  display: flex;
+  align-items: center;
+}
 ```
 :::
 
