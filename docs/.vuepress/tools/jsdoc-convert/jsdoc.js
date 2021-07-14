@@ -239,7 +239,7 @@ const fixLinks = text => text
       if (target.includes('://')) { // e.g https://handsontable.com/blog
         return all;
       }
-      const fixedAnchor = anchor
+      let fixedAnchor = anchor
         .toLowerCase();
 
       // e.g. #Options+autoColumnSize or #getData
