@@ -7,9 +7,11 @@ import { isObjectEqual } from '../../helpers/object';
  * @class Options
  * @description
  *
- * ## Constructor options.
+ * Handsontable provides many options to choose from. They come either from the [Core](core) features or [plugins hooks](hooks).
  *
- * Constructor options are applied using an object literal passed as a second argument to the Handsontable constructor.
+ * You can pass options in an object iteral notation (a comma-separated list of name-value pairs wrapped in curly braces) as a second argument of the Handsontable constructor.
+ *
+ * In the further documentation, and in Guides, we prefer calling this object a `Settings` object or `configuration` object.
  *
  * ```js
  * const container = document.getElementById('example');
@@ -20,19 +22,25 @@ import { isObjectEqual } from '../../helpers/object';
  * });
  * ```
  *
- * ---
- * ## Cascading configuration.
+ * ## Applying options to different elements of the grid
  *
- * Handsontable is using *Cascading Configuration*, which is a fast way to provide configuration options
- * for the entire table, including its columns and particular cells.
+ * Options can set for many different parts of the data grid:
  *
- * Consider the following example:
+ * - The entire grid
+ * - A column or range of columns
+ * - A row or range of rows
+ * - A cell or range of cells
+ *
+ * Options use the cascading configuration to make that possible.
+ *
+ * Take a look at the following example:
+ *
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
  *   readOnly: true,
  *   columns: [
- *     {readOnly: false},
+ *     { readOnly: false },
  *     {},
  *     {},
  *   ],
@@ -41,37 +49,23 @@ import { isObjectEqual } from '../../helpers/object';
  *
  *     if (row === 0 && col === 0) {
  *       cellProperties.readOnly = true;
- *     }.
+ *     }
  *
  *     return cellProperties;
  *   }
  * });
  * ```
  *
- * The above notation will result in all TDs being *read only*, except for first column TDs which will be *editable*, except for the TD in top left corner which will still be *read only*.
+ * In the above example we first set the `read-only` option for the entire grid. Then we make two exceptions of this rule:
  *
- * ### The Cascading Configuration model
+ * - We exclude the first column by passing `readOnly: false`, which in result makes it editable.
+ * - We exclude the cell in the top left corner, just like we did it with the first column.
  *
- * ##### 1. Constructor
+ * To learn more about how to use cascading settings go to the [Setting Options](@/guides/getting-started/setting-options.md) page.
  *
- * Configuration options that are provided using first-level `handsontable(container, {option: "value"})` and `updateSettings` method.
- *
- * ##### 2. Columns
- *
- * Configuration options that are provided using second-level object `handsontable(container, {columns: {option: "value"}]})`
- *
- * ##### 3. Cells
- *
- * Configuration options that are provided using third-level function `handsontable(container, {cells: function: (row, col, prop){ }})`
- *
- * ---
- * ## Architecture performance
- *
- * The Cascading Configuration model is based on prototypical inheritance. It is much faster and memory efficient
- * compared to the previous model that used jQuery extend. See: [http://jsperf.com/extending-settings](http://jsperf.com/extending-settings).
- *
- * ---
- * __Important notice:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
+ * ::: tip
+ * In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
+ * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export default () => {
@@ -82,6 +76,8 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default undefined
+     * @category Core
+     *
      * @example
      * ```js
      * licenseKey: '00000-00000-00000-00000-00000',
@@ -96,11 +92,13 @@ export default () => {
      * Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
      * Can be declared as an array of arrays or an array of objects.
      *
-     * See [Understanding binding as reference](https://docs.handsontable.com/tutorial-data-binding.html#page-reference).
+     * See [Understanding binding as reference](@/guides/getting-started/binding-to-data.md#understand-binding-as-a-reference).
      *
      * @memberof Options#
      * @type {Array[]|object[]}
      * @default undefined
+     * @category Core
+     *
      * @example
      * ```js
      * // as an array of arrays
@@ -126,14 +124,15 @@ export default () => {
      * @description
      * Defines the structure of a new row when data source is an array of objects.
      *
-     * See [data-schema](https://docs.handsontable.com/tutorial-data-sources.html#page-data-schema) for more options.
+     * See [data-schema](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema) for more options.
      *
      * @memberof Options#
      * @type {object}
      * @default undefined
+     * @category Core
      *
      * @example
-     * ```
+     * ```js
      * // with data schema we can start with an empty table
      * data: null,
      * dataSchema: {id: null, name: {first: null, last: null}, address: null},
@@ -156,9 +155,10 @@ export default () => {
      * @memberof Options#
      * @type {number|string|Function}
      * @default undefined
+     * @category Core
      *
      * @example
-     * ```
+     * ```js
      * // as a number
      * width: 500,
      *
@@ -179,6 +179,7 @@ export default () => {
      * @memberof Options#
      * @type {number|string|Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -205,6 +206,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 5
+     * @category Core
      *
      * @example
      * ```js
@@ -223,6 +225,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 5
+     * @category Core
      *
      * @example
      * ```js
@@ -240,6 +243,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string[]|Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -265,6 +269,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string[]|Function}
      * @default null
+     * @category Core
      *
      * @example
      * ```js
@@ -291,11 +296,12 @@ export default () => {
      *
      * An `undefined` value is for detection in {@link Hooks#modifyColWidth} hook if plugin or setting changed the default size.
      *
-     * Note: This option will forcely disable {@link AutoColumnSize} plugin.
+     * Note: This option will forcely disable {@link auto-column-size AutoColumnSize} plugin.
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -321,7 +327,7 @@ export default () => {
      * (if you want to define row height separately for each row) or a function (if you want to set row height dynamically
      * on each render).
      *
-     * If the {@link ManualRowResize} or {@link AutoRowSize} plugins are enabled, this is also the minimum height that can
+     * If the {@link manual-row-resize ManualRowResize} or {@link auto-row-size AutoRowSize} plugins are enabled, this is also the minimum height that can
      * be set via either of those two plugins.
      *
      * The default height for rows in the rendering process equals 23px.
@@ -332,6 +338,7 @@ export default () => {
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -358,11 +365,12 @@ export default () => {
      *
      * __Note:__ Using this option sets a fixed number of columns (options `startCols`, `minCols`, `maxCols` will be ignored).
      *
-     * See [documentation -> datasources.html](https://docs.handsontable.com/tutorial-data-sources.html#page-nested) for examples.
+     * See [documentation -> datasources.html](@/guides/getting-started/binding-to-data.md#array-of-objects-with-column-mapping) for examples.
      *
      * @memberof Options#
      * @type {object[]|Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -403,12 +411,13 @@ export default () => {
      * operations based on the __visual__ representation of Handsontable.
      *
      * Possible values of `prop`:
-     * - property name for column's data source object, when dataset is an [array of objects](https://handsontable.com/docs/tutorial-data-sources.html#page-object)
-     * - the same number as `col`, when dataset is an [array of arrays](https://handsontable.com/docs/tutorial-data-sources.html#page-array).
+     * - property name for column's data source object, when dataset is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
+     * - the same number as `col`, when dataset is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
      *
      * @memberof Options#
      * @type {Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -434,6 +443,7 @@ export default () => {
      * @memberof Options#
      * @type {Array[]}
      * @default []
+     * @category Core
      *
      * @example
      * ```js
@@ -451,17 +461,18 @@ export default () => {
 
     /**
      * @description
-     * If `true`, enables the {@link Comments} plugin, which enables an option to apply cell comments through the context menu
+     * If `true`, enables the {@link comments Comments} plugin, which enables an option to apply cell comments through the context menu
      * (configurable with context menu keys `commentsAddEdit`, `commentsRemove`).
      *
      * To initialize Handsontable with predefined comments, provide cell coordinates and comment text values in a form of
      * an array.
      *
-     * See [Comments](https://docs.handsontable.com/demo-comments_.html) demo for examples.
+     * See [Comments](@/guides/cell-features/comments.md) demo for examples.
      *
      * @memberof Options#
      * @type {boolean|object[]}
      * @default false
+     * @category Comments
      *
      * @example
      * ```js
@@ -490,15 +501,16 @@ export default () => {
 
     /**
      * @description
-     * If `true`, enables the {@link CustomBorders} plugin, which enables an option to apply custom borders through the context
+     * If `true`, enables the {@link custom-borders CustomBorders} plugin, which enables an option to apply custom borders through the context
      * menu (configurable with context menu key `borders`). To initialize Handsontable with predefined custom borders,
      * provide cell coordinates and border styles in a form of an array.
      *
-     * See [Custom Borders](https://docs.handsontable.com/demo-custom-borders.html) demo for examples.
+     * See [Custom Borders](@/guides/cell-features/formatting-cells.md#custom-cell-borders) demo for examples.
      *
      * @memberof Options#
      * @type {boolean|object[]}
      * @default false
+     * @category CustomBorders
      *
      * @example
      * ```js
@@ -556,6 +568,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 0
+     * @category Core
      *
      * @example
      * ```js
@@ -573,6 +586,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 0
+     * @category Core
      *
      * @example
      * ```js
@@ -589,6 +603,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default Infinity
+     * @category Core
      *
      * @example
      * ```js
@@ -605,6 +620,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default Infinity
+     * @category Core
      *
      * @example
      * ```js
@@ -621,6 +637,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 0
+     * @category Core
      *
      * @example
      * ```js
@@ -637,6 +654,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 0
+     * @category Core
      *
      * @example
      * ```js
@@ -652,6 +670,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -667,6 +686,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -682,6 +702,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -697,6 +718,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -714,11 +736,12 @@ export default () => {
      *  * `'multiple'` Multiple ranges of cells can be selected.
      *
      * To see how to interact with selection by getting selected data or change styles of the selected cells go to
-     * [https://docs.handsontable.com/demo-selecting-ranges.html](https://docs.handsontable.com/demo-selecting-ranges.html).
+     * [Selecting Ranges](@/guides/cell-features/selection.md).
      *
      * @memberof Options#
      * @type {string}
      * @default 'multiple'
+     * @category Core
      *
      * @example
      * ```js
@@ -742,6 +765,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string|object}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -776,6 +800,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 0
+     * @category Core
      *
      * @example
      * ```js
@@ -791,6 +816,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 0
+     * @category Core
      *
      * @example
      * ```js
@@ -806,6 +832,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 0
+     * @category Core
      *
      * @example
      * ```js
@@ -822,6 +849,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|Function}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -843,6 +871,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -860,6 +889,7 @@ export default () => {
      * @memberof Options#
      * @type {object|Function}
      * @default {col: 0, row: 1}
+     * @category Core
      *
      * @example
      * ```js
@@ -882,6 +912,7 @@ export default () => {
      * @memberof Options#
      * @type {object|Function}
      * @default {row: 0, col: 1}
+     * @category Core
      *
      * @example
      * ```js
@@ -901,6 +932,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -916,6 +948,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -957,6 +990,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category PersistentState
      *
      * @example
      * ```js
@@ -972,6 +1006,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -987,6 +1022,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -1002,6 +1038,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'ht__highlight'
+     * @category Core
      *
      * @example
      * ```js
@@ -1019,6 +1056,7 @@ export default () => {
      * @type {string}
      * @since 0.38.2
      * @default 'ht__active_highlight'
+     * @category Core
      *
      * @example
      * ```js
@@ -1030,13 +1068,14 @@ export default () => {
 
     /**
      * Class name for the current element.
-     * The interpretation depends on the level on which this option is provided in the [cascading configuration](https://handsontable.com/docs/Options.html).
+     * The interpretation depends on the level on which this option is provided in the [cascading configuration](@/guides/getting-started/setting-options.md).
      * If `className` is provided on the first (constructor) level, it is the applied to the Handsontable container.
      * If `className` is provided on the second (`column`) or the third (`cell` or `cells`) level, it is applied to the table cell.
      *
      * @memberof Options#
      * @type {string|string[]}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -1055,6 +1094,7 @@ export default () => {
      * @memberof Options#
      * @type {string|string[]}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -1070,7 +1110,7 @@ export default () => {
     /**
      * @description
      * Defines how the columns react, when the declared table width is different than the calculated sum of all column widths.
-     * [See more](https://docs.handsontable.com/demo-stretching.html) mode. Possible values:
+     * [See more](@/guides/columns/column-width.md#column-stretching) mode. Possible values:
      *  * `'none'` Disable stretching
      *  * `'last'` Stretch only the last column
      *  * `'all'` Stretch all the columns evenly.
@@ -1078,6 +1118,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'none'
+     * @category Core
      *
      * @example
      * ```js
@@ -1094,6 +1135,7 @@ export default () => {
      * @type {Function}
      * @param {number} row Visual row index.
      * @returns {boolean}
+     * @category Core
      *
      * @example
      * ```js
@@ -1133,6 +1175,7 @@ export default () => {
      * @type {Function}
      * @param {number} col Visual column index.
      * @returns {boolean}
+     * @category Core
      *
      * @example
      * ```js
@@ -1164,6 +1207,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -1182,6 +1226,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -1198,6 +1243,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -1223,6 +1269,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'htInvalid'
+     * @category Core
      *
      * @example
      * ```js
@@ -1239,6 +1286,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -1254,6 +1302,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'htPlaceholder'
+     * @category Core
      *
      * @example
      * ```js
@@ -1269,6 +1318,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'htDimmed'
+     * @category Core
      *
      * @example
      * ```js
@@ -1289,7 +1339,7 @@ export default () => {
      * * `password`.
      * * `text`.
      *
-     * Or you can [register](https://docs.handsontable.com/demo-custom-renderers.html) the custom renderer under specified name and use its name as an alias in your
+     * Or you can [register](@/guides/cell-functions/cell-renderer.md) the custom renderer under specified name and use its name as an alias in your
      * configuration.
      *
      * If a function is provided, it will receive the following arguments:
@@ -1297,11 +1347,12 @@ export default () => {
      * function(instance, TD, row, col, prop, value, cellProperties) {}
      * ```
      *
-     * You can read more about custom renderes [in the documentation](https://docs.handsontable.com/demo-custom-renderers.html).
+     * You can read more about custom renderes [in the documentation](@/guides/cell-functions/cell-renderer.md).
      *
      * @memberof Options#
      * @type {string|Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -1341,6 +1392,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'htCommentCell'
+     * @category Core
      *
      * @example
      * ```js
@@ -1358,6 +1410,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -1373,11 +1426,12 @@ export default () => {
 
     /**
      * @description
-     * Makes cell, column or comment [read only](https://docs.handsontable.com/demo-read-only.html).
+     * Makes cell, column or comment [read only](@/guides/cell-features/disabled-cells.md#read-only-columns).
      *
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -1394,6 +1448,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -1414,6 +1469,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -1433,11 +1489,12 @@ export default () => {
 
     /**
      * @description
-     * Setting to `true` enables the {@link Search} plugin (see [demo](https://docs.handsontable.com/demo-search-for-values.html)).
+     * Setting to `true` enables the {@link search Search} plugin (see [demo](@/guides/accessories-and-menus/searching-values.md)).
      *
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category Search
      *
      * @example
      * ```js
@@ -1464,15 +1521,15 @@ export default () => {
      * Shortcut to define the combination of the cell renderer, editor and validator for the column, cell or whole table.
      *
      * Possible values:
-     *  * [autocomplete](https://docs.handsontable.com/demo-autocomplete.html)
-     *  * [checkbox](https://docs.handsontable.com/demo-checkbox.html)
-     *  * [date](https://docs.handsontable.com/demo-date.html)
-     *  * [dropdown](https://docs.handsontable.com/demo-dropdown.html)
-     *  * [handsontable](https://docs.handsontable.com/demo-handsontable.html)
-     *  * [numeric](https://docs.handsontable.com/demo-numeric.html)
-     *  * [password](https://docs.handsontable.com/demo-password.html)
+     *  * [autocomplete](@/guides/cell-types/autocomplete-cell-type.md)
+     *  * [checkbox](@/guides/cell-types/checkbox-cell-type.md)
+     *  * [date](@/guides/cell-types/date-cell-type.md)
+     *  * [dropdown](@/guides/cell-types/dropdown-cell-type.md)
+     *  * [handsontable](@/guides/cell-types/handsontable-cell-type.md)
+     *  * [numeric](@/guides/cell-types/numeric-cell-type.md)
+     *  * [password](@/guides/cell-types/password-cell-type.md)
      *  * text
-     *  * [time](https://docs.handsontable.com/demo-time.html).
+     *  * [time](@/guides/cell-types/time-cell-type.md).
      *
      * Or you can register the custom cell type under specified name and use
      * its name as an alias in your configuration.
@@ -1480,6 +1537,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'text'
+     * @category Core
      *
      * @example
      * ```js
@@ -1520,6 +1578,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -1539,17 +1598,17 @@ export default () => {
      * Defines the editor for the table/column/cell.
      *
      * If a string is provided, it may be one of the following predefined values:
-     *  * [autocomplete](https://docs.handsontable.com/demo-autocomplete.html)
-     *  * [checkbox](https://docs.handsontable.com/demo-checkbox.html)
-     *  * [date](https://docs.handsontable.com/demo-date.html)
-     *  * [dropdown](https://docs.handsontable.com/demo-dropdown.html)
-     *  * [handsontable](https://docs.handsontable.com/demo-handsontable.html)
-     *  * [mobile](https://docs.handsontable.com/demo-mobiles-and-tablets.html)
-     *  * [password](https://docs.handsontable.com/demo-password.html)
-     *  * [select](https://docs.handsontable.com/demo-select.html)
+     *  * [autocomplete](@/guides/cell-types/autocomplete-cell-type.md)
+     *  * [checkbox](@/guides/cell-types/checkbox-cell-type.md)
+     *  * [date](@/guides/cell-types/date-cell-type.md)
+     *  * [dropdown](@/guides/cell-types/dropdown-cell-type.md)
+     *  * [handsontable](@/guides/cell-types/handsontable-cell-type.md)
+     *  * mobile
+     *  * [password](@/guides/cell-types/password-cell-type.md)
+     *  * [select](@/guides/cell-types/select-cell-type.md)
      *  * text.
      *
-     * Or you can [register](https://docs.handsontable.com/tutorial-cell-editor.html#registering-an-editor) the custom editor under specified name and use its name as an alias in your
+     * Or you can [register](@/guides/cell-functions/cell-editor.md#registering-an-editor) the custom editor under specified name and use its name as an alias in your
      * configuration.
      *
      * To disable cell editing completely set `editor` property to `false`.
@@ -1557,6 +1616,7 @@ export default () => {
      * @memberof Options#
      * @type {string|Function|boolean}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -1581,6 +1641,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 10
+     * @category Core
      *
      * @example
      * ```js
@@ -1602,6 +1663,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -1622,6 +1684,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -1642,6 +1705,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'htNoWrap'
+     * @category Core
      *
      * @example
      * ```js
@@ -1654,22 +1718,23 @@ export default () => {
     /**
      * @description
      * Defines if the right-click context menu should be enabled. Context menu allows to create new row or column at any
-     * place in the grid among [other features](https://docs.handsontable.com/demo-context-menu.html).
+     * place in the grid among [other features](@/guides/accessories-and-menus/context-menu.md).
      * Possible values:
      * * `true` (to enable default options),
      * * `false` (to disable completely)
-     * * an array of [predefined options](https://docs.handsontable.com/demo-context-menu.html#page-specific),
-     * * an object [with defined structure](https://docs.handsontable.com/demo-context-menu.html#page-custom).
+     * * an array of [predefined options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options),
+     * * an object [with defined structure](@/guides/accessories-and-menus/context-menu.md#context-menu-with-fully-custom-configuration).
      *
      * If the value is an object, you can also customize the options with:
      * * `disableSelection` - a `boolean`, if set to true it prevents mouseover from highlighting the item for selection
      * * `isCommand` - a `boolean`, if set to false it prevents clicks from executing the command and closing the menu.
      *
-     * See [the context menu demo](https://docs.handsontable.com/demo-context-menu.html) for examples.
+     * See [the context menu demo](@/guides/accessories-and-menus/context-menu.md) for examples.
      *
      * @memberof Options#
      * @type {boolean|string[]|object}
      * @default undefined
+     * @category ContextMenu
      *
      * @example
      * ```js
@@ -1712,6 +1777,7 @@ export default () => {
      * @memberof Options#
      * @type {object|boolean}
      * @default true
+     * @category CopyPaste
      *
      * @example
      * ```js
@@ -1737,6 +1803,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default undefined
+     * @category UndoRedo
      *
      * @example
      * ```js
@@ -1748,7 +1815,7 @@ export default () => {
 
     /**
      * @description
-     * Turns on [Column sorting](https://docs.handsontable.com/demo-sorting-data.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+     * Turns on [Column sorting](@/guides/rows/row-sorting.md). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
      * * `initialConfig` - Object with predefined keys:
      *   * `column` - sorted column
      *   * `sortOrder` - order in which column will be sorted
@@ -1760,7 +1827,7 @@ export default () => {
      * * `headerAction` - allow to click on the headers to sort
      *   * `true` = turn on possibility to click on the headers to sort
      *   * `false` = turn off possibility to click on the headers to sort
-     * * `sortEmptyCells` - how empty values (more information here: https://handsontable.com/docs/tutorial-cell-types.html#empty-cells) should be handled
+     * * `sortEmptyCells` - how empty values ([more information here](options#allowempty)) should be handled
      *   * `true` = the table sorts empty cells
      *   * `false` = the table moves all empty cells to the end of the table
      * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
@@ -1768,6 +1835,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
+     * @category ColumnSorting
      *
      * @example
      * ```js
@@ -1792,16 +1860,18 @@ export default () => {
      *       // Some value comparisons which will return -1, 0 or 1...
      *     }
      *   }
-     * }```
+     * }
+     * ```
      */
     columnSorting: void 0,
 
     /**
-     * Turns on [Manual column move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial column order (as an array of column indexes).
+     * Turns on [Manual column move](@/guides/columns/column-moving.md), if set to a boolean or define initial column order (as an array of column indexes).
      *
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
+     * @category ManualColumnMove
      *
      * @example
      * ```js
@@ -1817,11 +1887,12 @@ export default () => {
 
     /**
      * @description
-     * Turns on [Manual column resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial column resized widths (an an array of widths).
+     * Turns on [Manual column resize](@/guides/columns/column-width.md#column-stretching), if set to a boolean or define initial column resized widths (an an array of widths).
      *
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
+     * @category ManualColumnResize
      *
      * @example
      * ```js
@@ -1837,11 +1908,12 @@ export default () => {
 
     /**
      * @description
-     * Turns on [Manual row move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial row order (as an array of row indexes).
+     * Turns on [Manual row move](@/guides/columns/column-moving.md), if set to a boolean or define initial row order (as an array of row indexes).
      *
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
+     * @category ManualRowMove
      *
      * @example
      * ```js
@@ -1857,11 +1929,12 @@ export default () => {
 
     /**
      * @description
-     * Turns on [Manual row resize](https://docs.handsontable.com/demo-resizing.html), if set to a boolean or define initial row resized heights (as an array of heights).
+     * Turns on [Manual row resize](@/guides/columns/column-width.md#column-stretching), if set to a boolean or define initial row resized heights (as an array of heights).
      *
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
+     * @category ManualRowResize
      *
      * @example
      * ```js
@@ -1878,11 +1951,12 @@ export default () => {
     /**
      * @description
      * If set to `true`, it enables a possibility to merge cells. If set to an array of objects, it merges the cells provided
-     * in the objects (see the example below). More information on [the demo page](https://docs.handsontable.com/demo-merge-cells.html).
+     * in the objects (see the example below). More information on [the demo page](@/guides/cell-features/merge-cells.md).
      *
      * @memberof Options#
      * @type {boolean|object[]}
      * @default false
+     * @category MergeCells
      *
      * @example
      * ```js
@@ -1902,7 +1976,7 @@ export default () => {
 
     /**
      * @description
-     * Turns on [Multi-column sorting](https://docs.handsontable.com/demo-multicolumn-sorting.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+     * Turns on [Multi-column sorting](@/guides/rows/row-sorting.md). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
      * * `initialConfig` - Array containing objects, every with predefined keys:
      *   * `column` - sorted column
      *   * `sortOrder` - order in which column will be sorted
@@ -1914,7 +1988,7 @@ export default () => {
      * * `headerAction` - allow to click on the headers to sort
      *   * `true` = turn on possibility to click on the headers to sort
      *   * `false` = turn off possibility to click on the headers to sort
-     * * `sortEmptyCells` - how empty values (more information here: https://handsontable.com/docs/tutorial-cell-types.html#empty-cells) should be handled
+     * * `sortEmptyCells` - how empty values ([more information here](options#allowempty)) should be handled
      *   * `true` = the table sorts empty cells
      *   * `false` = the table moves all empty cells to the end of the table
      * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
@@ -1922,6 +1996,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
+     * @category MultiColumnSorting
      *
      * @example
      * ```js
@@ -1949,7 +2024,8 @@ export default () => {
      *       // Some value comparisons which will return -1, 0 or 1...
      *     }
      *   }
-     * }```
+     * }
+     * ```
      */
     multiColumnSorting: void 0,
     /**
@@ -1962,6 +2038,7 @@ export default () => {
      * @memberof Options#
      * @type {number|string}
      * @default 'auto'
+     * @category Core
      *
      * @example
      * ```js
@@ -1980,6 +2057,7 @@ export default () => {
      * @memberof Options#
      * @type {number|string}
      * @default 'auto'
+     * @category Core
      *
      * @example
      * ```js
@@ -2002,14 +2080,15 @@ export default () => {
      * * `numeric`,
      * * `time`.
      *
-     * Or you can [register](https://docs.handsontable.com/demo-data-validation.html) the validator function under specified name and use its name as an alias in your
+     * Or you can [register](@/guides/cell-functions/cell-validator.md) the validator function under specified name and use its name as an alias in your
      * configuration.
      *
-     * See more [in the demo](https://docs.handsontable.com/demo-data-validation.html).
+     * See more [in the demo](@/guides/cell-functions/cell-validator.md).
      *
      * @memberof Options#
      * @type {Function|RegExp|string}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2047,6 +2126,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string|string[]}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -2063,11 +2143,12 @@ export default () => {
     disableVisualSelection: false,
 
     /**
-     * Disables or enables {@link ManualColumnFreeze} plugin.
+     * Disables or enables {@link manual-column-freeze ManualColumnFreeze} plugin.
      *
      * @memberof Options#
      * @type {boolean}
      * @default undefined
+     * @category ManualColumnFreeze
      *
      * @example
      * ```js
@@ -2083,6 +2164,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -2102,6 +2184,7 @@ export default () => {
      * @memberof Options#
      * @type {Array|Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2131,6 +2214,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2155,6 +2239,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string|number}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -2172,6 +2257,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string|number}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -2187,9 +2273,9 @@ export default () => {
      * @description
      * Object which describes if renderer should create checkbox element with label element as a parent.
      *
-     * __Note__, this option only works for [checkbox-typed](https://docs.handsontable.com/demo-checkbox.html) cells.
+     * __Note__, this option only works for [checkbox-typed](@/guides/cell-types/checkbox-cell-type.md) cells.
      *
-     * By default the [checkbox](https://docs.handsontable.com/demo-checkbox.html) renderer renders the checkbox without a label.
+     * By default the [checkbox](@/guides/cell-types/checkbox-cell-type.md) renderer renders the checkbox without a label.
      *
      * Possible object properties:
      *  * `property` - Defines the property name of the data object, which will to be used as a label.
@@ -2202,6 +2288,7 @@ export default () => {
      * @memberof Options#
      * @type {object}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2217,20 +2304,21 @@ export default () => {
     /**
      * Display format for numeric typed renderers.
      *
-     * __Note__, this option only works for [numeric-typed](https://docs.handsontable.com/demo-numeric.html) cells.
+     * __Note__, this option only works for [numeric-typed](@/guides/cell-types/numeric-cell-type.md) cells.
      *
      * Format is described by two properties:
-     * * `pattern` - Handled by `numbro` for purpose of formatting numbers to desired pattern. List of supported patterns can be found [here](http://numbrojs.com/format.html#numbers).
-     * * `culture` - Handled by `numbro` for purpose of formatting currencies. Examples showing how it works can be found [here](http://numbrojs.com/format.html#currency). List of supported cultures can be found [here](http://numbrojs.com/languages.html#supported-languages).
+     * * `pattern` - Handled by `numbro` for purpose of formatting numbers to desired pattern. List of supported patterns can be found [here](https://numbrojs.com/format.html#numbers).
+     * * `culture` - Handled by `numbro` for purpose of formatting currencies. Examples showing how it works can be found [here](https://numbrojs.com/format.html#currency). List of supported cultures can be found [here](https://numbrojs.com/languages.html#supported-languages).
      *
      * __Note:__ Please keep in mind that this option is used only to format the displayed output! It has no effect on the input data provided for the cell. The numeric data can be entered to the table only as floats (separated by a dot or a comma) or integers, and are stored in the source dataset as JavaScript numbers.
      *
-     * Handsontable uses [numbro](http://numbrojs.com/) as a main library for numbers formatting.
+     * Handsontable uses [numbro](https://numbrojs.com/) as a main library for numbers formatting.
      *
      * @memberof Options#
      * @since 0.35.0
      * @type {object}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2249,11 +2337,12 @@ export default () => {
     numericFormat: void 0,
 
     /**
-     * Language for Handsontable translation. Possible language codes are [listed here](https://docs.handsontable.com/tutorial-internationalization.html#available-languages).
+     * Language for Handsontable translation. Possible language codes are [listed here](@/guides/internationalization/internationalization-i18n.md#list-of-available-languages).
      *
      * @memberof Options#
      * @type {string}
      * @default 'en-US'
+     * @category Core
      *
      * @example
      * ```js
@@ -2264,13 +2353,14 @@ export default () => {
     language: 'en-US',
 
     /**
-     * Data source for [select-typed](https://docs.handsontable.com/demo-select.html) cells.
+     * Data source for [select-typed](@/guides/cell-types/select-cell-type.md) cells.
      *
-     * __Note__, this option only works for [select-typed](https://docs.handsontable.com/demo-select.html) cells.
+     * __Note__, this option only works for [select-typed](@/guides/cell-types/select-cell-type.md) cells.
      *
      * @memberof Options#
      * @type {string[]}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2286,7 +2376,7 @@ export default () => {
     selectOptions: void 0,
 
     /**
-     * Enables or disables the {@link AutoColumnSize} plugin. Default value `undefined`
+     * Enables or disables the {@link auto-column-size AutoColumnSize} plugin. Default value `undefined`
      * is an equivalent of `true`, sets `syncLimit` to 50.
      * Disabling this plugin can increase performance, as no size-related calculations would be done.
      * To disable plugin it's necessary to set `false`.
@@ -2299,11 +2389,12 @@ export default () => {
      *
      * You can also use the `useHeaders` option to take the column headers width into calculation.
      *
-     * Note: Using {@link Core#colWidths} option will forcely disable {@link AutoColumnSize}.
+     * Note: Using {@link core#colwidths Core#colWidths} option will forcibly disable {@link auto-column-size AutoColumnSize}.
      *
      * @memberof Options#
      * @type {object|boolean}
      * @default undefined
+     * @category AutoColumnSize
      *
      * @example
      * ```js
@@ -2326,7 +2417,7 @@ export default () => {
     autoColumnSize: void 0,
 
     /**
-     * Enables or disables {@link AutoRowSize} plugin. Default value is `undefined`, which has the same effect as `false`
+     * Enables or disables {@link auto-row-size AutoRowSize} plugin. Default value is `undefined`, which has the same effect as `false`
      * (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
      *
      * __Note:__ the default `syncLimit` value is set to 500 when the plugin is manually enabled by declaring it as: `autoRowSize: true`.
@@ -2335,15 +2426,16 @@ export default () => {
      * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
      * operations don't block the browser UI.
      *
-     * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value.
+     * To configure the sync/async distribution, you can pass an absolute value (number of rows) or a percentage value.
      *
      * @memberof Options#
      * @type {object|boolean}
      * @default undefined
+     * @category AutoRowSize
      *
      * @example
      * ```js
-     * // as a number (300 columns in sync, rest async)
+     * // as a number (300 rows in sync, rest async)
      * autoRowSize: {syncLimit: 300},
      *
      * // as a string (percent)
@@ -2355,11 +2447,12 @@ export default () => {
     /**
      * Date validation format.
      *
-     * __Note__, this option only works for [date-typed](https://docs.handsontable.com/demo-date.html) cells.
+     * __Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md) cells.
      *
      * @memberof Options#
      * @type {string}
      * @default 'DD/MM/YYYY'
+     * @category Core
      *
      * @example
      * ```js
@@ -2375,11 +2468,12 @@ export default () => {
     /**
      * If `true` then dates will be automatically formatted to match the desired format.
      *
-     * __Note__, this option only works for [date-typed](https://docs.handsontable.com/demo-date.html) cells.
+     * __Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md) cells.
      *
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -2396,11 +2490,12 @@ export default () => {
     /**
      * Definition of default value which will fill the empty cells.
      *
-     * __Note__, this option only works for [date-typed](https://docs.handsontable.com/demo-date.html) cells.
+     * __Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md) cells.
      *
      * @memberof Options#
      * @type {string}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2420,11 +2515,12 @@ export default () => {
      * Otherwise, cell won't pass the validation. When filtering the autocomplete source list, the editor will
      * be working in case-insensitive mode.
      *
-     * __Note__, this option only works for [autocomplete-typed](https://docs.handsontable.com/demo-autocomplete.html) cells.
+     * __Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
      *
      * @memberof Options#
      * @type {boolean}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2443,11 +2539,12 @@ export default () => {
      *
      * __Warning:__ Enabling this option can cause serious XSS vulnerabilities.
      *
-     * __Note__, this option only works for [autocomplete-typed](https://docs.handsontable.com/demo-autocomplete.html) cells.
+     * __Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
      *
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -2467,6 +2564,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2488,6 +2586,7 @@ export default () => {
      * @memberof Options#
      * @type {string|boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -2503,6 +2602,7 @@ export default () => {
      * @private
      * @type {boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -2513,13 +2613,14 @@ export default () => {
 
     /**
      * @description
-     * Enables the functionality of the {@link BindRowsWithHeaders} plugin which allows binding the table rows with their headers.
+     * Enables the functionality of the {@link bind-rows-with-headers BindRowsWithHeaders} plugin which allows binding the table rows with their headers.
      * If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,
      * if at the initialization row 0 has a header titled "A", it will have it no matter what you do with the table.
      *
      * @memberof Options#
      * @type {boolean|string}
      * @default undefined
+     * @category BindRowsWithHeaders
      *
      * @example
      * ```js
@@ -2531,7 +2632,7 @@ export default () => {
 
     /**
      * @description
-     * The {@link CollapsibleColumns} plugin allows collapsing of columns, covered by a header with the `colspan` property
+     * The {@link collapsible-columns CollapsibleColumns} plugin allows collapsing of columns, covered by a header with the `colspan` property
      * defined.
      *
      * Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
@@ -2545,6 +2646,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object[]}
      * @default undefined
+     * @category CollapsibleColumns
      *
      * @example
      * ```js
@@ -2573,14 +2675,15 @@ export default () => {
      *  * `'average'`
      *  * `'custom'` - add `customFunction`.
      *
-     * [See the demo for more information](https://docs.handsontable.com/demo-summary-calculations.html).
+     * [See the demo for more information](@/guides/columns/column-summary.md).
      *
      * @memberof Options#
      * @type {object[]|Function}
      * @default undefined
+     * @category ColumnSummary
      *
      * @example
-     * ```
+     * ```js
      * columnSummary: [
      *   {
      *     destinationRow: 4,
@@ -2602,11 +2705,12 @@ export default () => {
 
     /**
      * This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
-     * the {@link Options#contextMenu}, but is triggered by clicking the button in the header.
+     * the {@link options#contextmenu Options#contextMenu}, but is triggered by clicking the button in the header.
      *
      * @memberof Options#
      * @type {boolean|object|string[]}
      * @default undefined
+     * @category DropdownMenu
      *
      * @example
      * ```js
@@ -2621,11 +2725,12 @@ export default () => {
     dropdownMenu: void 0,
 
     /**
-     * The {@link Filters} plugin allows filtering the table data either by the built-in component or with the API.
+     * The {@link filters Filters} plugin allows filtering the table data either by the built-in component or with the API.
      *
      * @memberof Options#
      * @type {boolean}
      * @default undefined
+     * @category Filters
      *
      * @example
      * ```js
@@ -2636,11 +2741,12 @@ export default () => {
     filters: void 0,
 
     /**
-     * The {@link Formulas} plugin allows Handsontable to process formula expressions defined in the provided data.
+     * The {@link formulas Formulas} plugin allows Handsontable to process formula expressions defined in the provided data.
      *
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
+     * @category Formulas
      *
      * @example
      * ```js
@@ -2659,7 +2765,7 @@ export default () => {
     formulas: void 0,
 
     /**
-     * The {@link HiddenColumns} plugin allows hiding of certain columns. You can pass additional configuration with an
+     * The {@link hidden-columns HiddenColumns} plugin allows hiding of certain columns. You can pass additional configuration with an
      * object notation. Options that are then available are:
      *  * `columns` - an array of rows that should be hidden on plugin initialization
      *  * `indicators` - enables small ui markers to indicate where are hidden columns.
@@ -2667,6 +2773,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
+     * @category HiddenColumns
      *
      * @example
      * ```js
@@ -2685,7 +2792,7 @@ export default () => {
     hiddenColumns: void 0,
 
     /**
-     * The {@link HiddenRows} plugin allows hiding of certain rows. You can pass additional configuration with an
+     * The {@link hidden-rows HiddenRows} plugin allows hiding of certain rows. You can pass additional configuration with an
      * object notation. Options that are then available are:
      *  * `rows` - an array of rows that should be hidden on plugin initialization
      *  * `indicators` - enables small ui markers to indicate where are hidden columns.
@@ -2693,6 +2800,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
+     * @category HiddenRows
      *
      * @example
      * ```js
@@ -2717,9 +2825,10 @@ export default () => {
      * @memberof Options#
      * @type {Array[]}
      * @default undefined
+     * @category NestedHeaders
      *
      * @example
-     * ```
+     * ```js
      * nestedHeaders: [
      *   ['A', {label: 'B', colspan: 8}, 'C'],
      *   ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
@@ -2736,6 +2845,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
+     * @category TrimRows
      *
      * @example
      * ```js
@@ -2757,6 +2867,7 @@ export default () => {
      * @memberof Options#
      * @type {number|number[]}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2778,6 +2889,7 @@ export default () => {
      * @memberof Options#
      * @type {number|number[]}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2799,11 +2911,12 @@ export default () => {
      * If defined as `true`, the Autocomplete's suggestion list would be sorted by relevance (the closer to the left the
      * match is, the higher the suggestion).
      *
-     * __Note__, this option only works for [autocomplete-typed](https://docs.handsontable.com/demo-autocomplete.html) cells.
+     * __Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
      *
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -2824,11 +2937,12 @@ export default () => {
      * include those choices starting with what has been typed; if defined as `false` all suggestions remain shown, with
      * those matching what has been typed marked in bold.
      *
-     * __Note__, this option only works for [autocomplete-typed](https://docs.handsontable.com/demo-autocomplete.html) cells.
+     * __Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
      *
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -2847,11 +2961,12 @@ export default () => {
     /**
      * If defined as `true`, filtering in the Autocomplete Editor will be case-sensitive.
      *
-     * __Note__, this option only works for [autocomplete-typed](https://docs.handsontable.com/demo-autocomplete.html) cells.
+     * __Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
      *
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -2869,11 +2984,11 @@ export default () => {
 
     /**
      * @description
-     * Disables or enables the drag to scroll functionality.
-     *
+     * Disables or enables the {@link drag-to-scroll drag to scroll} functionality.
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category DragToScroll
      *
      * @example
      * ```js
@@ -2887,7 +3002,7 @@ export default () => {
      * @description
      * Disable or enable the nested rows functionality - displaying nested structures in a two-dimensional data table.
      *
-     * See [quick setup of the Nested rows](https://handsontable.com/docs/demo-nested-rows.html).
+     * See [quick setup of the Nested rows](@/guides/rows/row-parent-child.md).
      * @example
      * ```js
      * nestedRows: true,
@@ -2896,6 +3011,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category NestedRows
      */
     nestedRows: void 0,
   };
