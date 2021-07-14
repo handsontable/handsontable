@@ -5,9 +5,9 @@ const formatVersion = version => (/^\d+\.\d+$/.test(version) ? version : 'latest
 const getHotUrls = (version) => {
   if (version === 'next' && isBrowser) {
     return {
-      handsontableJs: '/docs/handsontable.js',
-      handsontableCss: '/docs/handsontable.css',
-      languagesJs: 'https://cdn.jsdelivr.net/npm/handsontable/dist/languages/all.js'
+      handsontableJs: '/docs/handsontable/handsontable.full.js',
+      handsontableCss: '/docs/handsontable/handsontable.full.css',
+      languagesJs: '/docs/handsontable/languages/all.js'
     };
   }
 
