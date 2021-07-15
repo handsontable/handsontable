@@ -4,7 +4,6 @@ const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
-
 const buildMode = process.env.BUILD_MODE;
 const environmentHead = buildMode === 'production' ?
   [
@@ -18,6 +17,34 @@ const environmentHead = buildMode === 'production' ?
     `],
   ]
   : [];
+
+// Constants needed for the `slugify` method (https://vuepress.vuejs.org/config/#markdown-slugify)
+const rControl = /[\u0000-\u001f]/g
+const rSpecial = /[\s~`!@#$%^&*()\-_+=[\]{}|\\;:"'“”‘’–—<>,.?/]+/g
+const rCombining = /[\u0300-\u036F]/g
+
+// Improved the original code, PR is reported for VuePress repo: https://github.com/vuejs/vuepress/pull/2897.
+// Took from: https://github.com/vuejs/vuepress/blob/master/packages/%40vuepress/shared-utils/src/slugify.ts
+const customSlugify = (str) => {
+  // Split accented characters into components
+  return str.normalize('NFKD')
+    // Remove links, just leave hyperlink's text
+    .replace(/\[(.*)?]\(.*?\)/g,'$1')
+    // Remove accents
+    .replace(rCombining, '')
+    // Remove control characters
+    .replace(rControl, '')
+    // Replace special characters
+    .replace(rSpecial, '-')
+    // Remove continuous separators
+    .replace(/\-{2,}/g, '-')
+    // Remove prefixing and trailing separators
+    .replace(/^\-+|\-+$/g, '')
+    // ensure it doesn't start with a number (#121)
+    .replace(/^(\d)/, '_$1')
+    // lowercase
+    .toLowerCase()
+};
 
 module.exports = {
   patterns: ['**/*.md', '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'], // to enable vue pages add: '**/*.vue'.
@@ -37,7 +64,8 @@ module.exports = {
   markdown: {
     toc: {
       includeLevel: [2, 3],
-      containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
+      containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>',
+      slugify: customSlugify,
     },
   },
   plugins: [
