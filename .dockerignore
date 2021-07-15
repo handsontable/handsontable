@@ -16,6 +16,5 @@ config.local.js
 basement_dist
 .idea
 
-# this file are required for build process (in opposite to .gitignore)
-!/.vuepress/public/handsontable.js
-!/.vuepress/public/handsontable.css
+# this file are required for Docs build process (in opposite to .gitignore)
+!/dist/
