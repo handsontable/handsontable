@@ -128,7 +128,7 @@ We use the following Markdown containers:
 Using the `example` Markdown container, you can add code snippets that show the code's result:
 
 ```md
-::: example #exampleId .class :preset --html 1 --js 2 --css 3  --no-edit --tab preview
+::: example #exampleId .class :react-redux --html 1 --js 2 --css 3  --no-edit --tab preview
     ```html
     <div id="exampleId"></div>
     ```
@@ -147,7 +147,7 @@ The `example` Markdown container offers the following options:
 |----------------|----------|-----------------|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
 | `#exampleId`   | No       | `#example1`     | String                                                     | Container's unique ID.                                                                                                    |
 | `.class`       | No       | `.new-class`    | String                                                     | Container's custom class.                                                                                                 |
-| `:preset`      | No       | `:hot`          | `:hot` \| `:hot-lang` \| `:react` \| `:react-languages` \| `:react-numbro` \| `:react-redux` \| `:angular` \| `:angular-languages` \| `:angular-numbro` \| `:vue` \| `:vue-numbro` \| `:vue-languages` \| `:vue-vuex'  | Sets code dependencies. |
+| `:preset`      | No       | `:hot`          | `:hot` \| `:hot-lang` \| `:react` \| `:react-languages` \| `:react-numbro` \| `:react-redux` \| `:angular` \| `:angular-languages` \| `:angular-numbro` \| `:vue` \| `:vue-numbro` \| `:vue-languages` \| `:vue-vuex`  | Sets code dependencies. |
 | `--js <pos>`   | No       | `--js 1`        | Positive integer<br>(default `1`)                          | Sets the JS code snippet's position<br>in the markdown container.                                                         |
 | `--html <pos>` | No       | `--html 2`      | Positive integer<br>(default `0`)                          | Sets the HTML code snippet's position<br>in the markdown container.<br><br>`0` disables the HTML tab.                     |
 | `--css <pos>`  | No       | `--css 2`       | Positive integer<br>(default `0`)                          | Sets the CSS code snippet's position<br>in the markdown container.<br><br>`0` disables the CSS tab.                       |
