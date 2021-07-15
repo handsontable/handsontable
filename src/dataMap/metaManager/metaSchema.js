@@ -7,7 +7,7 @@ import { isObjectEqual } from '../../helpers/object';
  * @class Options
  * @description
  *
- * Handsontable provides many options to choose from. They come either from the [Core](core) features or [plugins hooks](hooks).
+ * Handsontable provides many options to choose from. They come either from the {@link Core} features or {@link Hooks}.
  *
  * You can pass options in an object iteral notation (a comma-separated list of name-value pairs wrapped in curly braces) as a second argument of the Handsontable constructor.
  *
@@ -1827,7 +1827,7 @@ export default () => {
      * * `headerAction` - allow to click on the headers to sort
      *   * `true` = turn on possibility to click on the headers to sort
      *   * `false` = turn off possibility to click on the headers to sort
-     * * `sortEmptyCells` - how empty values ([more information here](options#allowempty)) should be handled
+     * * `sortEmptyCells` - how empty values should be handled, for more information see @{link Options#allowEmpty}
      *   * `true` = the table sorts empty cells
      *   * `false` = the table moves all empty cells to the end of the table
      * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
@@ -1988,7 +1988,7 @@ export default () => {
      * * `headerAction` - allow to click on the headers to sort
      *   * `true` = turn on possibility to click on the headers to sort
      *   * `false` = turn off possibility to click on the headers to sort
-     * * `sortEmptyCells` - how empty values ([more information here](options#allowempty)) should be handled
+     * * `sortEmptyCells` - how empty values should be handled, for more information see @{link Options#allowEmpty}
      *   * `true` = the table sorts empty cells
      *   * `false` = the table moves all empty cells to the end of the table
      * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
