@@ -54,7 +54,7 @@ import { toSingleLine } from './helpers/templateLiteralTag';
 // @TODO: Move plugin description hooks to plugin?
 const REGISTERED_HOOKS = [
   /**
-   * Fired after resetting a cell's meta. This happens when the {@link core#updatesettings Core#updateSettings} method is called.
+   * Fired after resetting a cell's meta. This happens when the {@link Core#updateSettings} method is called.
    *
    * @event Hooks#afterCellMetaReset
    */
@@ -83,8 +83,8 @@ const REGISTERED_HOOKS = [
   'afterChange',
 
   /**
-   * Fired each time user opens {@link context-menu ContextMenu} and after setting up the Context Menu's default options. These options are a collection
-   * which user can select by setting an array of keys or an array of objects in {@link options#contextmenu Options#contextMenu} option.
+   * Fired each time user opens {@link ContextMenu} and after setting up the Context Menu's default options. These options are a collection
+   * which user can select by setting an array of keys or an array of objects in {@link Options#contextMenu} option.
    *
    * @event Hooks#afterContextMenuDefaultOptions
    * @param {Array} predefinedItems An array of objects containing information about the pre-defined Context Menu items.
@@ -92,7 +92,7 @@ const REGISTERED_HOOKS = [
   'afterContextMenuDefaultOptions',
 
   /**
-   * Fired each time user opens {@link context-menu ContextMenu} plugin before setting up the Context Menu's items but after filtering these options by
+   * Fired each time user opens {@link ContextMenu} plugin before setting up the Context Menu's items but after filtering these options by
    * user (`contextMenu` option). This hook can by helpful to determine if user use specified menu item or to set up
    * one of the menu item to by always visible.
    *
@@ -102,8 +102,8 @@ const REGISTERED_HOOKS = [
   'beforeContextMenuSetItems',
 
   /**
-   * Fired by {@link dropdown-menu DropdownMenu} plugin after setting up the Dropdown Menu's default options. These options are a
-   * collection which user can select by setting an array of keys or an array of objects in {@link options#dropdownmenu Options#dropdownMenu}
+   * Fired by {@link DropdownMenu} plugin after setting up the Dropdown Menu's default options. These options are a
+   * collection which user can select by setting an array of keys or an array of objects in {@link Options#dropdownMenu}
    * option.
    *
    * @event Hooks#afterDropdownMenuDefaultOptions
@@ -112,7 +112,7 @@ const REGISTERED_HOOKS = [
   'afterDropdownMenuDefaultOptions',
 
   /**
-   * Fired by {@link dropdown-menu DropdownMenu} plugin before setting up the Dropdown Menu's items but after filtering these options
+   * Fired by {@link DropdownMenu} plugin before setting up the Dropdown Menu's items but after filtering these options
    * by user (`dropdownMenu` option). This hook can by helpful to determine if user use specified menu item or to set
    * up one of the menu item to by always visible.
    *
@@ -122,7 +122,7 @@ const REGISTERED_HOOKS = [
   'beforeDropdownMenuSetItems',
 
   /**
-   * Fired by {@link context-menu ContextMenu} plugin after hiding the Context Menu. This hook is fired when {@link options#contextmenu Options#contextMenu}
+   * Fired by {@link ContextMenu} plugin after hiding the Context Menu. This hook is fired when {@link Options#contextMenu}
    * option is enabled.
    *
    * @event Hooks#afterContextMenuHide
@@ -131,7 +131,7 @@ const REGISTERED_HOOKS = [
   'afterContextMenuHide',
 
   /**
-   * Fired by {@link context-menu ContextMenu} plugin before opening the Context Menu. This hook is fired when {@link options#context-menu Options#contextMenu}
+   * Fired by {@link ContextMenu} plugin before opening the Context Menu. This hook is fired when {@link Options#contextMenu}
    * option is enabled.
    *
    * @event Hooks#beforeContextMenuShow
@@ -140,7 +140,7 @@ const REGISTERED_HOOKS = [
   'beforeContextMenuShow',
 
   /**
-   * Fired by {@link context-menu ContextMenu} plugin after opening the Context Menu. This hook is fired when {@link options#contextmenu Options#contextMenu}
+   * Fired by {@link ContextMenu} plugin after opening the Context Menu. This hook is fired when {@link Options#contextMenu}
    * option is enabled.
    *
    * @event Hooks#afterContextMenuShow
@@ -149,8 +149,8 @@ const REGISTERED_HOOKS = [
   'afterContextMenuShow',
 
   /**
-   * Fired by {@link copy-paste CopyPaste} plugin after reaching the copy limit while copying data. This hook is fired when
-   * {@link options#copypaste Options#copyPaste} option is enabled.
+   * Fired by {@link CopyPaste} plugin after reaching the copy limit while copying data. This hook is fired when
+   * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterCopyLimit
    * @param {number} selectedRows Count of selected copyable rows.
@@ -637,8 +637,8 @@ const REGISTERED_HOOKS = [
   'afterLanguageChange',
 
   /**
-   * Fired by {@link autofill Autofill} plugin before populating the data in the autofill feature. This hook is fired when
-   * {@link options#fillhandle Options#fillHandle} option is enabled.
+   * Fired by {@link Autofill} plugin before populating the data in the autofill feature. This hook is fired when
+   * {@link Options#fillHandle} option is enabled.
    *
    * @event Hooks#beforeAutofill
    * @param {Array[]} selectionData Data the autofill operation will start from.
@@ -653,8 +653,8 @@ const REGISTERED_HOOKS = [
   'beforeAutofill',
 
   /**
-   * Fired by {@link autofill Autofill} plugin after populating the data in the autofill feature. This hook is fired when
-   * {@link options#fillhandle Options#fillHandle} option is enabled.
+   * Fired by {@link Autofill} plugin after populating the data in the autofill feature. This hook is fired when
+   * {@link Options#fillHandle} option is enabled.
    *
    * @event Hooks#afterAutofill
    * @since 8.0.0
@@ -1084,8 +1084,8 @@ const REGISTERED_HOOKS = [
   'beforeHighlightingColumnHeader',
 
   /**
-   * Fired by {@link persistent-state PersistentState} plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
-   * {@link options#persistentstate Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
+   * {@link Options#persistentState} option is enabled.
    *
    * @event Hooks#persistentStateLoad
    * @param {string} key Key.
@@ -1094,8 +1094,8 @@ const REGISTERED_HOOKS = [
   'persistentStateLoad',
 
   /**
-   * Fired by {@link persistent-state PersistentState} plugin after resetting data from local storage. If no key is given, all values associated with table will be cleared.
-   * This hook is fired when {@link options#persistentstate Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin after resetting data from local storage. If no key is given, all values associated with table will be cleared.
+   * This hook is fired when {@link Options#persistentState} option is enabled.
    *
    * @event Hooks#persistentStateReset
    * @param {string} [key] Key.
@@ -1103,8 +1103,8 @@ const REGISTERED_HOOKS = [
   'persistentStateReset',
 
   /**
-   * Fired by {@link persistent-state PersistentState} plugin, after saving value under given key in browser local storage. This hook is fired when
-   * {@link options#persistentstate Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin, after saving value under given key in browser local storage. This hook is fired when
+   * {@link Options#persistentState} option is enabled.
    *
    * @event Hooks#persistentStateSave
    * @param {string} key Key.
@@ -1113,10 +1113,10 @@ const REGISTERED_HOOKS = [
   'persistentStateSave',
 
   /**
-   * Fired by {@link column-sorting ColumnSorting} and {@link multi-column-sorting MultiColumnSorting} plugins before sorting the column. If you return `false` value inside callback for hook, then sorting
+   * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugins before sorting the column. If you return `false` value inside callback for hook, then sorting
    * will be not applied by the Handsontable (useful for server-side sorting).
    *
-   * This hook is fired when {@link options#columnsorting Options#columnSorting} or {@link options#multicolumnsorting Options#multiColumnSorting} option is enabled.
+   * This hook is fired when {@link Options#columnSorting} or {@link Options#multiColumnSorting} option is enabled.
    *
    * @event Hooks#beforeColumnSort
    * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
@@ -1126,8 +1126,8 @@ const REGISTERED_HOOKS = [
   'beforeColumnSort',
 
   /**
-   * Fired by {@link column-sorting ColumnSorting} and {@link multi-column-sorting MultiColumnSorting} plugins after sorting the column. This hook is fired when {@link options#columnsorting Options#columnSorting}
-   * or {@link options#multicolumnsorting Options#multiColumnSorting} option is enabled.
+   * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugins after sorting the column. This hook is fired when {@link Options#columnSorting}
+   * or {@link Options#multiColumnSorting} option is enabled.
    *
    * @event Hooks#afterColumnSort
    * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
@@ -1136,7 +1136,7 @@ const REGISTERED_HOOKS = [
   'afterColumnSort',
 
   /**
-   * Fired by {@link autofill Autofill} plugin after setting range of autofill. This hook is fired when {@link options#fillhandle Options#fillHandle}
+   * Fired by {@link Autofill} plugin after setting range of autofill. This hook is fired when {@link Options#fillHandle}
    * option is enabled.
    *
    * @event Hooks#modifyAutofillRange
@@ -1154,8 +1154,8 @@ const REGISTERED_HOOKS = [
   'modifyCopyableRange',
 
   /**
-   * Fired by {@link copy-paste CopyPaste} plugin before copying the values into clipboard and before clearing values of
-   * the selected cells. This hook is fired when {@link options#copypaste Options#copyPaste} option is enabled.
+   * Fired by {@link CopyPaste} plugin before copying the values into clipboard and before clearing values of
+   * the selected cells. This hook is fired when {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#beforeCut
    * @param {Array[]} data An array of arrays which contains data to cut.
@@ -1184,8 +1184,8 @@ const REGISTERED_HOOKS = [
   'beforeCut',
 
   /**
-   * Fired by {@link copy-paste CopyPaste} plugin after data was cut out from the table. This hook is fired when
-   * {@link options#copypaste Options#copyPaste} option is enabled.
+   * Fired by {@link CopyPaste} plugin after data was cut out from the table. This hook is fired when
+   * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterCut
    * @param {Array[]} data An array of arrays which contains the cutted out data.
@@ -1230,7 +1230,7 @@ const REGISTERED_HOOKS = [
   'beforeCopy',
 
   /**
-   * Fired by {@link copy-paste CopyPaste} plugin after data are pasted into table. This hook is fired when {@link options#copypaste Options#copyPaste}
+   * Fired by {@link CopyPaste} plugin after data are pasted into table. This hook is fired when {@link Options#copyPaste}
    * option is enabled.
    *
    * @event Hooks#afterCopy
@@ -1241,8 +1241,8 @@ const REGISTERED_HOOKS = [
   'afterCopy',
 
   /**
-   * Fired by {@link copy-paste CopyPaste} plugin before values are pasted into table. This hook is fired when
-   * {@link options#copypaste Options#copyPaste} option is enabled.
+   * Fired by {@link CopyPaste} plugin before values are pasted into table. This hook is fired when
+   * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#beforePaste
    * @param {Array[]} data An array of arrays which contains data to paste.
@@ -1271,8 +1271,8 @@ const REGISTERED_HOOKS = [
   'beforePaste',
 
   /**
-   * Fired by {@link copy-paste CopyPaste} plugin after values are pasted into table. This hook is fired when
-   * {@link options#copypaste Options#copyPaste} option is enabled.
+   * Fired by {@link CopyPaste} plugin after values are pasted into table. This hook is fired when
+   * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterPaste
    * @param {Array[]} data An array of arrays which contains the pasted data.
@@ -1282,8 +1282,8 @@ const REGISTERED_HOOKS = [
   'afterPaste',
 
   /**
-   * Fired by {@link manual-column-move ManualColumnMove} plugin before change order of the visual indexes. This hook is fired when
-   * {@link options#manualcolumnmove Options#manualColumnMove} option is enabled.
+   * Fired by {@link ManualColumnMove} plugin before change order of the visual indexes. This hook is fired when
+   * {@link Options#manualColumnMove} option is enabled.
    *
    * @event Hooks#beforeColumnMove
    * @param {Array} movedColumns Array of visual column indexes to be moved.
@@ -1302,8 +1302,8 @@ const REGISTERED_HOOKS = [
   'beforeColumnMove',
 
   /**
-   * Fired by {@link manual-column-move ManualColumnMove} plugin after changing order of the visual indexes.
-   * This hook is fired when {@link options#manualcolumnmove Options#manualColumnMove} option is enabled.
+   * Fired by {@link ManualColumnMove} plugin after changing order of the visual indexes.
+   * This hook is fired when {@link Options#manualColumnMove} option is enabled.
    *
    * @event Hooks#afterColumnMove
    * @param {Array} movedColumns Array of visual column indexes to be moved.
@@ -1322,8 +1322,8 @@ const REGISTERED_HOOKS = [
   'afterColumnMove',
 
   /**
-   * Fired by {@link manual-row-move ManualRowMove} plugin before changing the order of the visual indexes. This hook is fired when
-   * {@link options#manualrowmove Options#manualRowMove} option is enabled.
+   * Fired by {@link ManualRowMove} plugin before changing the order of the visual indexes. This hook is fired when
+   * {@link Options#manualRowMove} option is enabled.
    *
    * @event Hooks#beforeRowMove
    * @param {Array} movedRows Array of visual row indexes to be moved.
@@ -1342,8 +1342,8 @@ const REGISTERED_HOOKS = [
   'beforeRowMove',
 
   /**
-   * Fired by {@link manual-row-move ManualRowMove} plugin after changing the order of the visual indexes.
-   * This hook is fired when {@link options#manualrowmove Options#manualRowMove} option is enabled.
+   * Fired by {@link ManualRowMove} plugin after changing the order of the visual indexes.
+   * This hook is fired when {@link Options#manualRowMove} option is enabled.
    *
    * @event Hooks#afterRowMove
    * @param {Array} movedRows Array of visual row indexes to be moved.
@@ -1362,8 +1362,8 @@ const REGISTERED_HOOKS = [
   'afterRowMove',
 
   /**
-   * Fired by {@link manual-column-resize ManualColumnResize} plugin before rendering the table with modified column sizes. This hook is
-   * fired when {@link options#manualcolumnresize Options#manualColumnResize} option is enabled.
+   * Fired by {@link ManualColumnResize} plugin before rendering the table with modified column sizes. This hook is
+   * fired when {@link Options#manualColumnResize} option is enabled.
    *
    * @event Hooks#beforeColumnResize
    * @param {number} newSize Calculated new column width.
