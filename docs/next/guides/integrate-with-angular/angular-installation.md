@@ -7,6 +7,8 @@ canonicalUrl: /angular-installation
 
 # Installation
 
+[[toc]]
+
 ## Overview
 Angular installation and basic usage guide.
 

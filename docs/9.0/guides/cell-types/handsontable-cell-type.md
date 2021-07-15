@@ -7,6 +7,8 @@ canonicalUrl: /handsontable-cell-type
 
 # Handsontable cell type
 
+[[toc]]
+
 ## Overview
 
 This page describes how to use Handsontable as a cell editor in Handsontable.
