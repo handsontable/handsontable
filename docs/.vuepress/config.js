@@ -29,7 +29,7 @@ const customSlugify = (str) => {
   // Split accented characters into components
   return str.normalize('NFKD')
     // Remove links, just leave hyperlink's text
-    .replace(/\[(.*)?]\(.*?\)/g,'$1')
+    .replace(/^\[(.*)?(]\(.*?\))$/g,'$1')
     // Remove accents
     .replace(rCombining, '')
     // Remove control characters
