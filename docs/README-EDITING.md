@@ -85,28 +85,6 @@ To edit a published version's API reference:
 1. Go to the required version's API reference output: `/docs/<semver.version>/api` (e.g. `/docs/9.0/api`).
 2. Edit the required Markdown files.
 
-### JSDoc links
-
-As we want to support case-insensitive URLs, follow these guidelines when editing the JSDoc links:
-
-* Use lower case characters.
-* To separate words before `#`, use `-`.
-
-```js
-// Wrong:
-/** {@link Options#autoColumnSize}. */
-
-// OK: 
-/** {@link options#autocolumnsize Options#autoColumnSize}. */
-
-
-// Wrong:
-/** {@link HiddenRows} */
-
-// OK:
-/** {@link hidden-rows HiddenRows} */
-```
-
 ## Documentation versioning
 
 To create a new version of the Handsontable documentation:
@@ -143,16 +121,16 @@ We use the following Markdown containers:
 |------------------------------|------------------------------------------------------------|
 | `::: tip`                    | A note.                                                    |
 | `::: example [options]`      | Renders a code example as specified in [options].          |
-| `::: source-code-link [URL]` | Adds a source code link to the right of an API ref header. |
+| `::: source-code-link <URL>` | Adds a source code link to the API ref header. |
 
 ### Adding code examples
+
 Using the `example` Markdown container, you can add code snippets that show the code's result:
 
-```js
+```md
 ::: example #exampleId .class :preset --html 1 --js 2 --css 3  --no-edit --tab preview
-// `#example1` is the example's ID, for creating a Handsontable container
     ```html
-    <div id="example1"></div>
+    <div id="exampleId"></div>
     ```
     ```js
     // code here
@@ -167,11 +145,11 @@ The `example` Markdown container offers the following options:
 
 | Option         | Required | Example         | Possible values                                            | Usage                                                                                                                     |
 |----------------|----------|-----------------|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| `#exampleId`   | Yes      | `#data-grid-1`  | String                                                     | Container's unique ID.                                                                                                    |
+| `#exampleId`   | No       | `#example1`     | String                                                     | Container's unique ID.                                                                                                    |
 | `.class`       | No       | `.new-class`    | String                                                     | Container's custom class.                                                                                                 |
-| `:preset`      | No       | `:react`        | `hot` \| `react` \| `angular` \| `vue`                     | Sets code dependencies.                                                                                                   |
+| `:preset`      | No       | `:hot`          | `:hot` \| `:hot-lang` \| `:react` \| `:react-languages` \| `:react-numbro` \| `:react-redux` \| `:angular` \| `:angular-languages` \| `:angular-numbro` \| `:vue` \| `:vue-numbro` \| `:vue-languages` \| `:vue-vuex'  | Sets code dependencies. |
 | `--js <pos>`   | No       | `--js 1`        | Positive integer<br>(default `1`)                          | Sets the JS code snippet's position<br>in the markdown container.                                                         |
 | `--html <pos>` | No       | `--html 2`      | Positive integer<br>(default `0`)                          | Sets the HTML code snippet's position<br>in the markdown container.<br><br>`0` disables the HTML tab.                     |
 | `--css <pos>`  | No       | `--css 2`       | Positive integer<br>(default `0`)                          | Sets the CSS code snippet's position<br>in the markdown container.<br><br>`0` disables the CSS tab.                       |
 | `--no-edit`    | No       | `--no-edit`     | `--no-edit`                                                | Removes the **Edit** button.                                                                                              |
-| `--tab`        | No       | `--tab preview` | `formula` \| `hf` \| `hyperformula` \|<br>`html` \| `kt` \| `md` \| `preview` \| `py` \| `rb` \|<br>`rs` \| `sh` \| `styl` \| `ts` \| `vue` \| `yml` | Sets a tab as open by default.  |
+| `--tab <tab>`  | No       | `--tab preview` | `code` \| `html` \| `css` \| `preview` | Sets a tab as open by default.  |
