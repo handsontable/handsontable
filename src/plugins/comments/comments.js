@@ -44,7 +44,12 @@ const META_READONLY = 'readOnly';
  *
  * ```js
  * comments: {
- *   displayDelay: 1000
+ *   displayDelay: 1000,
+ *   readOnly: true,
+ *   style: {
+ *     width: 300,
+ *     height: 100
+ *   }
  * }
  * ```
  *
