@@ -4109,7 +4109,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function addHook
    * @see Hooks#add
-   * @param {string} key Hook name (see {@link hooks Hooks}).
+   * @param {string} key Hook name (see {@link Hooks}).
    * @param {Function|Array} callback Function or array of functions.
    * @example
    * ```js
@@ -4122,7 +4122,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Check if for a specified hook name there are added listeners (only for this Handsontable instance). All available
-   * hooks you will find {@link hooks Hooks}.
+   * hooks you will find {@link Hooks}.
    *
    * @memberof Core#
    * @function hasHook
@@ -4146,7 +4146,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function addHookOnce
    * @see Hooks#once
-   * @param {string} key Hook name (see {@link hooks Hooks}).
+   * @param {string} key Hook name (see {@link Hooks}).
    * @param {Function|Array} callback Function or array of functions.
    * @example
    * ```js
@@ -4158,13 +4158,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Removes the hook listener previously registered with {@link core#addhook Core#addHook}.
+   * Removes the hook listener previously registered with {@link Core#addHook}.
    *
    * @memberof Core#
    * @function removeHook
    * @see Hooks#remove
    * @param {string} key Hook name.
-   * @param {Function} callback Reference to the function which has been registered using {@link core#addhook Core#addHook}.
+   * @param {Function} callback Reference to the function which has been registered using {@link Core#addHook}.
    *
    * @example
    * ```js
