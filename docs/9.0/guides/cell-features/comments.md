@@ -104,9 +104,9 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-## Set width and height for comment
+## Set a comment box's size
 
-You can use constant dimensions for comment box using `style` parameter.
+To set the width and height of a comment box, use the `style` parameter.
 
 ::: example #example3
 ```js
@@ -125,6 +125,7 @@ const hot = new Handsontable(container, {
   comments: true,
   cell: [
     { row: 1, col: 1, comment: { value: 'Some comment' } },
+    // add the `style` parameter
     { row: 2, col: 2, comment: { value: 'Comment 200x50 px', style: { width: 200, height: 50 } } }
   ],
   height: 'auto',
@@ -133,9 +134,9 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-## Configure display delay
+## Set a delay for displaying comments
 
-It's also possible to set how many time it will take to show a comment. Just use `displayDelay` parameter.
+To display comments after a pre-configured time delay, use the `displayDelay` parameter.
 
 ::: example #example4
 ```js
@@ -152,7 +153,8 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   contextMenu: true,
   comments: { 
-    displayDelay: 100,
+    // on mouseover, wait 2 seconds before the comment box displays
+    displayDelay: 2000,
   },
   cell: [
     { row: 1, col: 1, comment: { value: 'Some comment' } },
