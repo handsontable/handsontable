@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue with an error being thrown when lazy loading columns on a setup with Nested Headers + Hidden Columns.",
+  "type": "fixed",
+  "issue": 7160,
+  "breaking": false,
+  "framework": "none"
+}
