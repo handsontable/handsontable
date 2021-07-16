@@ -79,9 +79,9 @@ const hot = new Handsontable(container, {
 
 By default, all comments are editable. To change this, set the `readOnly` parameter to `true` when adding a comment. This example makes the "Tesla" comment attached to a cell read-only, whereas the "Honda" comment attached to another cell is editable.
 
-::: example #example
+::: example #example2
 ```js
-const container = document.querySelector('#example');
+const container = document.querySelector('#example2');
 
 const hot = new Handsontable(container, {
   data: [
@@ -97,6 +97,65 @@ const hot = new Handsontable(container, {
   cell: [
     { row: 0, col: 1, comment: { value: 'A read-only comment.', readOnly: true } },
     { row: 0, col: 3, comment: { value: 'You can edit this comment' } }
+  ],
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
+
+## Set width and height for comment
+
+You can use constant dimensions for comment box using `style` parameter.
+
+::: example #example3
+```js
+const container = document.querySelector('#example3');
+
+const hot = new Handsontable(container, {
+  data: [
+    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
+    ['2017', 10, 11, 12, 13, 15, 16],
+    ['2018', 10, 11, 12, 13, 15, 16],
+    ['2019', 10, 11, 12, 13, 15, 16],
+  ],
+  rowHeaders: true,
+  colHeaders: true,
+  contextMenu: true,
+  comments: true,
+  cell: [
+    { row: 1, col: 1, comment: { value: 'Some comment' } },
+    { row: 2, col: 2, comment: { value: 'Comment 200x50 px', style: { width: 200, height: 50 } } }
+  ],
+  height: 'auto',
+  licenseKey: 'non-commercial-and-evaluation'
+});
+```
+:::
+
+## Configure display delay
+
+It's also possible to set how many time it will take to show a comment. Just use `displayDelay` parameter.
+
+::: example #example4
+```js
+const container = document.querySelector('#example4');
+
+const hot = new Handsontable(container, {
+  data: [
+    ['', 'Tesla', 'Toyota', 'Honda', 'Ford'],
+    ['2018', 10, 11, 12, 13, 15, 16],
+    ['2019', 10, 11, 12, 13, 15, 16],
+    ['2020', 10, 11, 12, 13, 15, 16],
+  ],
+  rowHeaders: true,
+  colHeaders: true,
+  contextMenu: true,
+  comments: { 
+    displayDelay: 100,
+  },
+  cell: [
+    { row: 1, col: 1, comment: { value: 'Some comment' } },
   ],
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
