@@ -152,7 +152,7 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   contextMenu: true,
   comments: { 
-    displayDelay: 100,
+    displayDelay: 500,
   },
   cell: [
     { row: 1, col: 1, comment: { value: 'Some comment' } },
