@@ -153,7 +153,8 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   contextMenu: true,
   comments: { 
-    displayDelay: 100,
+    // on mouseover, wait 2 seconds before the comment box displays
+    displayDelay: 2000,
   },
   cell: [
     { row: 1, col: 1, comment: { value: 'Some comment' } },
