@@ -29,7 +29,7 @@ Welcome 👋&nbsp; to Handsontable's Guides. Here you will learn how Handsontabl
     <h3>Angular</h3>
    </a>
 
-   <a href="vue-simple-example" class="row-item">
+   <a href="/docs/next/vue-simple-example" class="row-item">
     <img class="integration-framework-logo" src="/docs/next/img/pages/introduction/vue.svg" alt="Vue logo" />
     <h3>Vue 2</h3>
    </a>
