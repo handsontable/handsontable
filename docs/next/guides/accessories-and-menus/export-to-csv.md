@@ -44,7 +44,7 @@ Allows you to export data with a BOM signature.
 
 **Please note:** This property will prepend content with the UTF-16BE BOM signature (_FE FF_). The browser will convert the signature to the UTF-8 value (_EF BB BF_) automatically.
 
-You can use this property in all of the [available methods](#methods).
+You can use this property in all of the [available methods](#available-methods).
 
 Default value: `true`
 
@@ -52,7 +52,7 @@ Default value: `true`
 
 Allows you to define the columns delimiter.
 
-You can use this property in all of the [available methods](#methods).
+You can use this property in all of the [available methods](#available-methods).
 
 Default value: `','`
 
@@ -60,7 +60,7 @@ Default value: `','`
 
 Allows to export data with their column header.
 
-You can use this property in all of the [available methods](#methods).
+You can use this property in all of the [available methods](#available-methods).
 
 Default value: `false`
 
@@ -68,7 +68,7 @@ Default value: `false`
 
 Allows you to export data from hidden columns.
 
-You can use this property in all of the [available methods](#methods).
+You can use this property in all of the [available methods](#available-methods).
 
 Default value: `false`
 
@@ -76,7 +76,7 @@ Default value: `false`
 
 Allows you to export data from hidden rows.
 
-You can use this property in all of the [available methods](#methods).
+You can use this property in all of the [available methods](#available-methods).
 
 Default value: `false`
 
@@ -110,7 +110,7 @@ Default value: `'text/csv'`
 
 Allows you to define a range of dataset to export. It's represented by an array of numeric, visual indexes `[startRow, startColumn, endRow, endColumn]`.
 
-You can use this property in all of the [available methods](#methods).
+You can use this property in all of the [available methods](#available-methods).
 
 Default value: `'text/csv'`
 
@@ -118,7 +118,7 @@ Default value: `'text/csv'`
 
 Allows you to define rows delimiter.
 
-You can use this property in all of the [available methods](#methods).
+You can use this property in all of the [available methods](#available-methods).
 
 Default value: `'\r\n'`
 
@@ -126,7 +126,7 @@ Default value: `'\r\n'`
 
 Allows you to export data with their row header.
 
-You can use this property in all of the [available methods](#methods).
+You can use this property in all of the [available methods](#available-methods).
 
 Default value: `false`
 
