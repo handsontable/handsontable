@@ -13,7 +13,7 @@ The following is an implementation of the `@handsontable/angular` component with
 
 ## Example
 
-::: example :angular --html 1 --js 2
+::: example :angular --html 1 --js 2 --no-edit
 ```html
 <app-root></app-root>
 ```
@@ -42,7 +42,6 @@ class AppComponent {
     ],
     colHeaders: true,
     colWidths: 200,
-    height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'
   };
 }

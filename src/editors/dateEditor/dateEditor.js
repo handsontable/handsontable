@@ -5,7 +5,7 @@ import { TextEditor } from '../textEditor';
 import EventManager from '../../eventManager';
 import { addClass, outerHeight } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
-import { isMetaKey } from '../../helpers/unicode';
+import { isFunctionKey } from '../../helpers/unicode';
 
 export const EDITOR_TYPE = 'date';
 
@@ -151,9 +151,9 @@ export class DateEditor extends TextEditor {
     const offset = this.TD.getBoundingClientRect();
     const dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
     const datePickerConfig = this.$datePicker.config();
-    let dateStr;
     const isMouseDown = this.instance.view.isMouseDown();
-    const isMeta = event ? isMetaKey(event.keyCode) : false;
+    const isMeta = event ? isFunctionKey(event.keyCode) : false;
+    let dateStr;
 
     this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
     this.datePickerStyle.left = `${this.hot.rootWindow.pageXOffset + offset.left}px`;

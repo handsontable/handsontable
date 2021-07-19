@@ -33,6 +33,36 @@ function createDestroyableResource(presetType, { rootExampleElement, hotInstance
  * @returns {object} Returns an object with `listen` and `destroyAll` methods.
  */
 function createRegister() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const domMatches = Element.prototype.matches ||
+    Element.prototype.msMatchesSelector ||
+    Element.prototype.webkitMatchesSelector;
+
+  /**
+   * Polyfill (IE9+) for DOM.closest method (https://developer.mozilla.org/en-US/docs/Web/API/Element/closest).
+   *
+   * @param {Element} element The element the traversing begins from.
+   * @param {string} selector The selector list.
+   * @returns {Element|null}
+   */
+  function closest(element, selector) {
+    let el = element;
+
+    do {
+      if (domMatches.call(el, selector)) {
+        return el;
+      }
+
+      el = el.parentElement || el.parentNode;
+
+    } while (el !== null && el.nodeType === Node.ELEMENT_NODE);
+
+    return null;
+  }
+
   const register = new Set();
 
   const listen = () => {
@@ -40,7 +70,7 @@ function createRegister() {
       if (typeof Handsontable !== 'undefined' && Handsontable._instanceRegisterInstalled === undefined) {
         Handsontable._instanceRegisterInstalled = true;
         Handsontable.hooks.add('afterInit', function() {
-          const rootExampleElement = this.rootElement.closest('[data-preset-type]');
+          const rootExampleElement = closest(this.rootElement, '[data-preset-type]');
 
           if (rootExampleElement) {
             const examplePresetType = rootExampleElement.getAttribute('data-preset-type');

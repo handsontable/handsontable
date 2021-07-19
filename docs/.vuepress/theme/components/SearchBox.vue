@@ -56,6 +56,17 @@ import get from 'lodash/get';
 
 const ALLOWED_TAGS = ['BODY', 'A', 'BUTTON'];
 
+const priorityCompare = (a, b) => {
+  if (a.priority > b.priority) {
+    return -1;
+
+  } else if (a.priority < b.priority) {
+    return 1;
+  }
+
+  return 0;
+};
+
 const matchTest = (query, domain, isFuzzySearch = false) => {
   const escapeRegExp = str => str.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
 
@@ -138,9 +149,17 @@ export default {
       }
 
       const { pages } = this.$site;
-      const maxAPI = this.$site.themeConfig.searchMaxAPISuggestions || SEARCH_MAX_SUGGESTIONS;
-      const maxGuides = this.$site.themeConfig.searchMaxGuidesSuggestions || SEARCH_MAX_SUGGESTIONS;
-      const fuzzySearchDomains = this.$site.themeConfig.fuzzySearchDomains || [];
+
+      const {
+        apiMaxSuggestions = SEARCH_MAX_SUGGESTIONS,
+        guidesMaxSuggestions = SEARCH_MAX_SUGGESTIONS,
+        fuzzySearchDomains = [],
+        apiSearchDomainPriorityList = [],
+        guidesSearchDomainPriorityList = [],
+      } = this.$site.themeConfig.searchOptions;
+
+      const apiPriorityList = [...apiSearchDomainPriorityList].reverse();
+      const guidesPriorityList = [...guidesSearchDomainPriorityList].reverse();
       const resAPI = [];
       const resGuides = [];
       const isSearchable = (page) => {
@@ -155,105 +174,82 @@ export default {
 
       // At first, search for the phrase in the API reference main categories
       for (let i = 0; i < pages.length; i++) {
-        if (resAPI.length >= maxAPI) {
-          break;
-        }
-
         const p = pages[i];
 
         if (!isSearchable(p) || !apiRegex.test(p.path)) {
           continue; // eslint-disable-line
         }
 
+        const category = 'API Reference';
+        const priority = apiPriorityList.indexOf(get(p, 'title', ''));
+
         if (matchQuery(query, p, null, fuzzySearchDomains)) {
-          resAPI.push({ ...p, category: 'API Reference' });
+          resAPI.push({
+            ...p,
+            category,
+            priority,
+          });
         }
-      }
 
-      // Then, if the array with results has not been filled to the limit, search
-      // the phrase in the API reference subcategories.
-      if (resAPI.length < maxAPI) {
-        for (let i = 0; i < pages.length; i++) {
-          if (resAPI.length >= maxAPI) {
-            break;
-          }
+        if (p.headers) {
+          for (let j = 0; j < p.headers.length; j++) {
+            const h = p.headers[j];
 
-          const p = pages[i];
-
-          if (!isSearchable(p) || !apiRegex.test(p.path)) {
-            continue; // eslint-disable-line
-          }
-
-          if (p.headers) { // todo add headers at end of the result list
-            for (let j = 0; j < p.headers.length; j++) {
-              if (resAPI.length >= maxAPI) {
-                break;
-              }
-
-              const h = p.headers[j];
-
-              if (h.title && matchQuery(query, p, h.title, fuzzySearchDomains)) {
-                resAPI.push({ ...p,
-                  path: `${p.path}#${h.slug}`,
-                  header: h,
-                  category: 'API Reference' });
-              }
+            if (h.title && matchQuery(query, p, h.title, fuzzySearchDomains)) {
+              resAPI.push({
+                ...p,
+                path: `${p.path}#${h.slug}`,
+                header: h,
+                category,
+                priority,
+              });
             }
           }
         }
       }
 
-      // The same for non-API pages. Search for the phrase in categories at first
+      // The same for non-API pages.
       for (let i = 0; i < pages.length; i++) {
-        if (resGuides.length >= maxGuides) {
-          break;
-        }
-
         const p = pages[i];
 
         if (!isSearchable(p) || apiRegex.test(p.path)) {
           continue; // eslint-disable-line
         }
 
+        const category = 'Guides';
+        const priority = guidesPriorityList.indexOf(get(p, 'title', ''));
+
         if (matchQuery(query, p, null, fuzzySearchDomains)) {
-          resGuides.push({ ...p, category: 'Guides' });
+          resGuides.push({
+            ...p,
+            category,
+            // Give the higher priority for the main pages as with a lot of results
+            // the main pages are more relevant to the query
+            priority: priority + 1,
+          });
         }
-      }
 
-      // Then, if the array with results has not been filled to the limit, search
-      // the phrase in the subcategories.
-      if (resGuides.length < maxGuides) {
-        for (let i = 0; i < pages.length; i++) {
-          if (resGuides.length >= maxGuides) {
-            break;
-          }
+        if (p.headers) {
+          for (let j = 0; j < p.headers.length; j++) {
+            const h = p.headers[j];
 
-          const p = pages[i];
-
-          if (!isSearchable(p) || apiRegex.test(p.path)) {
-            continue; // eslint-disable-line
-          }
-
-          if (p.headers) { // todo add headers at end of the result list
-            for (let j = 0; j < p.headers.length; j++) {
-              if (resGuides.length >= maxGuides) {
-                break;
-              }
-
-              const h = p.headers[j];
-
-              if (h.title && matchQuery(query, p, h.title, fuzzySearchDomains)) {
-                resGuides.push({ ...p,
-                  path: `${p.path}#${h.slug}`,
-                  header: h,
-                  category: 'Guides' });
-              }
+            if (h.title && matchQuery(query, p, h.title, fuzzySearchDomains)) {
+              resGuides.push({
+                ...p,
+                path: `${p.path}#${h.slug}`,
+                header: h,
+                category,
+                priority,
+              });
             }
           }
         }
       }
 
-      const res = [].concat(resAPI, resGuides);
+      resAPI.sort(priorityCompare);
+      resGuides.sort(priorityCompare);
+
+      const res = [].concat(resAPI.splice(0, apiMaxSuggestions), resGuides.splice(0, guidesMaxSuggestions));
 
       res.sort((a, b) => b.category.localeCompare(a.category));
 
@@ -270,7 +266,7 @@ export default {
   },
 
   mounted() {
-    this.placeholder = this.$site.themeConfig.searchPlaceholder || '';
+    this.placeholder = this.$site.themeConfig.searchOptions.placeholder || '';
     document.addEventListener('keydown', this.onHotkey);
   },
 
@@ -328,7 +324,11 @@ export default {
       if (!this.showSuggestions) {
         return;
       }
-      this.$router.push(this.suggestions[i].path);
+
+      if (this.$route.fullPath !== this.suggestions[i].path) {
+        this.$router.push(this.suggestions[i].path);
+      }
+
       this.query = '';
       this.focusIndex = 0;
     },
