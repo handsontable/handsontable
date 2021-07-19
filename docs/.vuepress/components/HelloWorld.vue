@@ -27,7 +27,7 @@ export default {
   },
   methods: {
     getTabId(demoName) {
-      return demoName.toLowerCase();
+      return demoName.replace(/\s/g, '').toLowerCase();
     },
     tabClicked(event) {
       this.selected = event.tab.id;
