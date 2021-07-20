@@ -13,7 +13,7 @@ The following is an implementation of the `@handsontable/angular` component with
 
 ## Example
 
-::: example :angular --html 1 --js 2
+::: example :angular --html 1 --js 2 --no-edit
 ```html
 <app-root></app-root>
 ```
