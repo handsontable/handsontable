@@ -1,7 +1,0 @@
-{
-  "title": "Upgraded eslint and eslint-related modules.",
-  "type": "changed",
-  "issue": 7531,
-  "breaking": false,
-  "framework": "none"
-}

@@ -92,6 +92,7 @@ export const getSelected = handsontableMethodFactory('getSelected');
 export const getSelectedLast = handsontableMethodFactory('getSelectedLast');
 export const getSelectedRange = handsontableMethodFactory('getSelectedRange');
 export const getSelectedRangeLast = handsontableMethodFactory('getSelectedRangeLast');
+export const getSettings = handsontableMethodFactory('getSettings');
 export const getSourceData = handsontableMethodFactory('getSourceData');
 export const getSourceDataArray = handsontableMethodFactory('getSourceDataArray');
 export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCell');
@@ -114,14 +115,16 @@ export const selectColumns = handsontableMethodFactory('selectColumns');
 export const selectRows = handsontableMethodFactory('selectRows');
 export const setCellMeta = handsontableMethodFactory('setCellMeta');
 export const setDataAtCell = handsontableMethodFactory('setDataAtCell');
-export const setSourceDataAtCell = handsontableMethodFactory('setSourceDataAtCell');
 export const setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
+export const setSourceDataAtCell = handsontableMethodFactory('setSourceDataAtCell');
 export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
 export const toVisualRow = handsontableMethodFactory('toVisualRow');
-export const updateSettings = handsontableMethodFactory('updateSettings');
 export const undo = handsontableMethodFactory('undo');
+export const updateSettings = handsontableMethodFactory('updateSettings');
+export const validateCell = handsontableMethodFactory('validateCell');
+export const validateCells = handsontableMethodFactory('validateCells');
 
 const specContext = {};
 
@@ -362,162 +365,6 @@ export function dropdownMenuRootElement() {
   }
 
   return root;
-}
-
-/**
- * Returns a function that triggers a key event.
- *
- * @param {string} type Event type.
- * @returns {Function}
- */
-export function handsontableKeyTriggerFactory(type) {
-  return function(key, extend) {
-    const ev = {}; // $.Event(type);
-    let keyToTrigger = key;
-
-    if (typeof keyToTrigger === 'string') {
-      if (keyToTrigger.indexOf('ctrl+') > -1) {
-        keyToTrigger = keyToTrigger.substring(5);
-        ev.ctrlKey = true;
-        ev.metaKey = true;
-      }
-
-      if (keyToTrigger.indexOf('shift+') > -1) {
-        keyToTrigger = keyToTrigger.substring(6);
-        ev.shiftKey = true;
-      }
-
-      switch (keyToTrigger) {
-        case 'tab':
-          ev.keyCode = 9;
-          break;
-
-        case 'enter':
-          ev.keyCode = 13;
-          break;
-
-        case 'esc':
-          ev.keyCode = 27;
-          break;
-
-        case 'f2':
-          ev.keyCode = 113;
-          break;
-
-        case 'arrow_left':
-          ev.keyCode = 37;
-          break;
-
-        case 'arrow_up':
-          ev.keyCode = 38;
-          break;
-
-        case 'arrow_right':
-          ev.keyCode = 39;
-          break;
-
-        case 'arrow_down':
-          ev.keyCode = 40;
-          break;
-
-        case 'ctrl':
-          if (window.navigator.platform.includes('Mac')) {
-            ev.keyCode = 91;
-          } else {
-            ev.keyCode = 17;
-          }
-          break;
-
-        case 'shift':
-          ev.keyCode = 16;
-          break;
-
-        case 'backspace':
-          ev.keyCode = 8;
-          break;
-
-        case 'delete':
-          ev.keyCode = 46;
-          break;
-
-        case 'space':
-          ev.keyCode = 32;
-          break;
-
-        case 'home':
-          ev.keyCode = 36;
-          break;
-
-        case 'end':
-          ev.keyCode = 35;
-          break;
-
-        case 'x':
-          ev.keyCode = 88;
-          break;
-
-        case 'c':
-          ev.keyCode = 67;
-          break;
-
-        case 'v':
-          ev.keyCode = 86;
-          break;
-
-        case 'a':
-          ev.keyCode = 65;
-          break;
-
-        case 'y':
-          ev.keyCode = 89;
-          break;
-
-        case 'z':
-          ev.keyCode = 90;
-          break;
-
-        default:
-          throw new Error(`Unrecognised key name: ${keyToTrigger}`);
-      }
-
-    } else if (typeof keyToTrigger === 'number') {
-      ev.keyCode = keyToTrigger;
-    }
-
-    $.extend(ev, extend);
-    $(document.activeElement).simulate(type, ev);
-  };
-}
-
-export const keyDown = handsontableKeyTriggerFactory('keydown');
-export const keyUp = handsontableKeyTriggerFactory('keyup');
-
-/**
- * Presses keyDown, then keyUp.
- *
- * @param {string} key The key code which will be associated with the event.
- * @param {object} extend Additional options which extends the event.
- */
-export function keyDownUp(key, extend) {
-  if (typeof key === 'string' && key.indexOf('shift+') > -1) {
-    keyDown('shift');
-  }
-
-  keyDown(key, extend);
-  keyUp(key, extend);
-
-  if (typeof key === 'string' && key.indexOf('shift+') > -1) {
-    keyUp('shift');
-  }
-}
-
-/**
- * Returns current value of the keyboard proxy textarea.
- *
- * @returns {string}
- */
-export function keyProxy() {
-  return spec().$container.find('textarea.handsontableInput');
 }
 
 /**

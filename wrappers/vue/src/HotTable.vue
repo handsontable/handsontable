@@ -11,7 +11,8 @@
     prepareSettings,
     createVueComponent,
     findVNodeByType,
-    getHotColumnComponents
+    getHotColumnComponents,
+    HOT_DESTROYED_WARNING
   } from './helpers';
   import Vue, { VNode } from 'vue';
   import {
@@ -30,6 +31,10 @@
     props: propFactory('HotTable'),
     watch: {
       mergedHotSettings: function (value) {
+        if (!this.hotInstance || value === void 0) {
+          return;
+        }
+
         if (value.data) {
           if (
             this.hotInstance.isColumnModificationAllowed() ||
@@ -39,7 +44,7 @@
             )
           ) {
             // If the dataset dimensions change, update the index mappers.
-            this.matchHotMappersSize(value.data);
+            this.matchHotMappersSize();
 
             // Data is automatically synchronized by reference.
             delete value.data;
@@ -58,6 +63,7 @@
       }
     },
     data: function () {
+      const thisComponent: any = this;
       const rendererCache = new LRUMap(this.wrapperRendererCacheSize);
 
       // Make the LRU cache destroy each removed component
@@ -71,14 +77,27 @@
       return {
         __internalEdit: false,
         miscCache: {
-          // TODO: A workaround for #7548; data.length !== rowIndexMapper.getNumberOfIndexes() for NestedRows plugin.
-          dataLength: 0,
           currentSourceColumns: null
         },
-        hotInstance: null,
+        __hotInstance: null,
         columnSettings: null,
         rendererCache: rendererCache,
-        editorCache: new Map()
+        editorCache: new Map(),
+        get hotInstance() {
+          if (!thisComponent.__hotInstance || (thisComponent.__hotInstance && !thisComponent.__hotInstance.isDestroyed)) {
+
+            // Will return the Handsontable instance or `null` if it's not yet been created.
+            return thisComponent.__hotInstance;
+
+          } else {
+            console.warn(HOT_DESTROYED_WARNING);
+
+            return null;
+          }
+        },
+        set hotInstance(hotInstance) {
+          thisComponent.__hotInstance = hotInstance;
+        }
       };
     },
     computed: {
@@ -115,19 +134,23 @@
 
         preventInternalEditWatch(this);
 
-        this.miscCache.dataLength = newSettings?.data?.length ?? 0;
         this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
       },
-      matchHotMappersSize: function (data: any[][]): void {
+      matchHotMappersSize: function(): void {
+        if (!this.hotInstance) {
+          return;
+        }
+
+        const data: Handsontable.CellValue[][] = this.hotInstance.getSourceData();
         const rowsToRemove: number[] = [];
         const columnsToRemove: number[] = [];
-        const oldDataLength = this.miscCache.dataLength;
+        const indexMapperRowCount = this.hotInstance.rowIndexMapper.getNumberOfIndexes();
         const isColumnModificationAllowed = this.hotInstance.isColumnModificationAllowed();
         let indexMapperColumnCount = 0;
 
-        if (data && data.length !== oldDataLength) {
-          if (data.length < oldDataLength) {
-            for (let r = data.length; r < oldDataLength; r++) {
+        if (data && data.length !== indexMapperRowCount) {
+          if (data.length < indexMapperRowCount) {
+            for (let r = data.length; r < indexMapperRowCount; r++) {
               rowsToRemove.push(r);
             }
           }
@@ -148,12 +171,10 @@
 
         this.hotInstance.batch(() => {
           if (rowsToRemove.length > 0) {
-            this.miscCache.dataLength -= rowsToRemove.length;
             this.hotInstance.rowIndexMapper.removeIndexes(rowsToRemove);
 
           } else {
-            this.miscCache.dataLength += data.length - oldDataLength;
-            this.hotInstance.rowIndexMapper.insertIndexes(oldDataLength - 1, data.length - oldDataLength);
+            this.hotInstance.rowIndexMapper.insertIndexes(indexMapperRowCount - 1, data.length - indexMapperRowCount);
           }
 
           if (isColumnModificationAllowed && data.length !== 0) {
@@ -277,7 +298,7 @@
         }
 
         return mountedComponent.$data.hotCustomEditorClass;
-      },
+      }
     },
     mounted: function () {
       this.columnSettings = this.getColumnSettings();
@@ -285,7 +306,9 @@
       return this.hotInit();
     },
     beforeDestroy: function () {
-      this.hotInstance.destroy();
+      if (this.hotInstance) {
+        this.hotInstance.destroy();
+      }
     },
     version: (packageJson as any).version
   };

@@ -11,6 +11,10 @@ import {
   unregisterEngine,
   getRegisteredHotInstances,
 } from './engine/register';
+import {
+  isEscapedFormulaExpression,
+  unescapeFormulaExpression,
+} from './utils';
 import { getEngineSettingsWithOverrides } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
@@ -34,6 +38,7 @@ const isBlockedSource = source => source === 'UndoRedo.undo' || source === 'Undo
  * powerful calculation engine with an extensive number of features.
  *
  * @plugin Formulas
+ * @class Formulas
  */
 export class Formulas extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -143,9 +148,11 @@ export class Formulas extends BasePlugin {
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
     this.addHook('modifyData', (...args) => this.onModifyData(...args));
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
-    this.addHook('afterSetSourceDataAtCell', (...args) => this.onAfterSetSourceDataAtCell(...args));
-    this.addHook('beforeChange', (...args) => this.onBeforeChange(...args));
     this.addHook('beforeValidate', (...args) => this.onBeforeValidate(...args));
+
+    this.addHook('afterSetSourceDataAtCell', (...args) => this.onAfterSetSourceDataAtCell(...args));
+    this.addHook('afterSetDataAtCell', (...args) => this.onAfterSetDataAtCell(...args));
+    this.addHook('afterSetDataAtRowProp', (...args) => this.onAfterSetDataAtCell(...args));
 
     this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args));
     this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args));
@@ -350,20 +357,33 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Get the cell type under specified coordinates.
+   * Get the cell type under specified visual coordinates.
    *
-   * @param {number} row Target row.
-   * @param {number} col Target column.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
    * @param {number} [sheet] The target sheet id, defaults to the current sheet.
-   *
    * @returns {string} Possible values: 'FORMULA' | 'VALUE' | 'MATRIX' | 'EMPTY'.
    */
-  getCellType(row, col, sheet = this.sheetId) {
+  getCellType(row, column, sheet = this.sheetId) {
     return this.engine.getCellType({
       sheet,
-      row,
-      col
+      row: this.hot.toPhysicalRow(row),
+      col: this.hot.toPhysicalColumn(column)
     });
+  }
+
+  /**
+   * Returns `true` if under specified visual coordinates is formula.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {number} [sheet] The target sheet id, defaults to the current sheet.
+   * @returns {boolean}
+   */
+  isFormulaCellType(row, column, sheet = this.sheetId) {
+    const cellType = this.getCellType(row, column, sheet);
+
+    return cellType === 'FORMULA' || cellType === 'MATRIX';
   }
 
   /**
@@ -371,13 +391,13 @@ export class Formulas extends BasePlugin {
    * recalculated dependent cells.
    *
    * @private
-   * @param {object[]} changedCells The values and location of applied changes within HF engine.
+   * @param {object[]} dependentCells The values and location of applied changes within HF engine.
    * @param {boolean} [renderSelf] `true` if it's supposed to render itself, `false` otherwise.
    */
-  renderDependentSheets(changedCells, renderSelf = false) {
+  renderDependentSheets(dependentCells, renderSelf = false) {
     const affectedSheetIds = new Set();
 
-    changedCells.forEach((change) => {
+    dependentCells.forEach((change) => {
       // For the Named expression the address is empty, hence the `sheetId` is undefined.
       const sheetId = change?.address?.sheet;
 
@@ -385,28 +405,64 @@ export class Formulas extends BasePlugin {
         if (!affectedSheetIds.has(sheetId)) {
           affectedSheetIds.add(sheetId);
         }
-
-        if (sheetId === this.sheetId) {
-          const { row, col } = change.address;
-
-          // It will just re-render certain cell when necessary.
-          this.hot.validateCell(this.hot.getDataAtCell(row, col), this.hot.getCellMeta(row, col), () => {});
-        }
       }
     });
 
-    const hotInstances = new Map(
-      getRegisteredHotInstances(this.engine)
-        .map(hot => [hot.getPlugin('formulas').sheetId, hot])
-    );
-
-    hotInstances.forEach((relatedHot, sheetId) => {
+    getRegisteredHotInstances(this.engine).forEach((relatedHot, sheetId) => {
       if (
         (renderSelf || (sheetId !== this.sheetId)) &&
         affectedSheetIds.has(sheetId)
       ) {
         relatedHot.render();
         relatedHot.view?.adjustElementsSize();
+      }
+    });
+  }
+
+  /**
+   * Validates dependent cells based on the cells that are modified by the change.
+   *
+   * @private
+   * @param {object[]} dependentCells The values and location of applied changes within HF engine.
+   * @param {object[]} [changedCells] The values and location of applied changes by developer (through API or UI).
+   */
+  validateDependentCells(dependentCells, changedCells = []) {
+    const stringifyAddress = (change) => {
+      const {
+        row,
+        col,
+        sheet
+      } = change?.address ?? {};
+
+      return isDefined(sheet) ? `${sheet}:${row}x${col}` : '';
+    };
+    const changedCellsSet = new Set(changedCells.map(change => stringifyAddress(change)));
+
+    dependentCells.forEach((change) => {
+      const { row, col } = change.address ?? {};
+      const visualRow = isDefined(row) ? this.hot.toVisualRow(row) : null;
+      const visualColumn = isDefined(col) ? this.hot.toVisualColumn(col) : null;
+
+      // Don't try to validate cells outside of the visual part of the table.
+      if (visualRow === null || visualColumn === null) {
+        return;
+      }
+
+      // For the Named expression the address is empty, hence the `sheetId` is undefined.
+      const sheetId = change?.address?.sheet;
+      const addressId = stringifyAddress(change);
+
+      // Validate the cells that depend on the calculated formulas. Skip that cells
+      // where the user directly changes the values - the Core triggers those validators.
+      if (sheetId !== void 0 && !changedCellsSet.has(addressId)) {
+        const hot = getRegisteredHotInstances(this.engine).get(sheetId);
+
+        // It will just re-render certain cell when necessary.
+        hot.validateCell(
+          hot.getDataAtCell(visualRow, visualColumn),
+          hot.getCellMeta(visualRow, visualColumn),
+          () => {}
+        );
       }
     });
   }
@@ -447,13 +503,22 @@ export class Formulas extends BasePlugin {
    * @returns {*} Returns value to validate.
    */
   onBeforeValidate(value, visualRow, prop) {
-    const address = {
-      row: this.hot.toPhysicalRow(visualRow),
-      col: this.hot.toPhysicalColumn(this.hot.propToCol(prop)),
-      sheet: this.sheetId,
-    };
+    const visualColumn = this.hot.propToCol(prop);
 
-    return this.engine.getCellValue(address);
+    if (this.isFormulaCellType(visualRow, visualColumn)) {
+      const address = {
+        row: this.hot.toPhysicalRow(visualRow),
+        col: this.hot.toPhysicalColumn(visualColumn),
+        sheet: this.sheetId,
+      };
+
+      const cellValue = this.engine.getCellValue(address);
+
+      // If `cellValue` is an object it is expected to be an error
+      return (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
+    }
+
+    return value;
   }
 
   /**
@@ -527,6 +592,17 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
+    const isFormulaCellType = this.isFormulaCellType(this.hot.toVisualRow(row), column);
+
+    if (!isFormulaCellType) {
+      if (isEscapedFormulaExpression(valueHolder.value)) {
+        valueHolder.value = unescapeFormulaExpression(valueHolder.value);
+      }
+
+      return;
+    }
+
     // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `src/dataMap`.
     const address = {
       row,
@@ -546,18 +622,27 @@ export class Formulas extends BasePlugin {
    *
    * @private
    * @param {number} row Physical row index.
-   * @param {number} column Physical column index.
+   * @param {number|string} columnOrProp Physical column index or prop.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
    *   property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
-  onModifySourceData(row, column, valueHolder, ioMode) {
+  onModifySourceData(row, columnOrProp, valueHolder, ioMode) {
     if (
       ioMode !== 'get' ||
       this.#internalOperationPending ||
       this.sheetName === null ||
       !this.engine.doesSheetExist(this.sheetName)
     ) {
+      return;
+    }
+
+    const visualColumn = this.hot.propToCol(columnOrProp);
+
+    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
+    const isFormulaCellType = this.isFormulaCellType(this.hot.toVisualRow(row), visualColumn);
+
+    if (!isFormulaCellType) {
       return;
     }
 
@@ -574,21 +659,13 @@ export class Formulas extends BasePlugin {
     const address = {
       row,
       // Workaround for inconsistencies in `src/dataSource.js`
-      col: this.toPhysicalColumnPosition(this.hot.propToCol(column)),
+      col: this.toPhysicalColumnPosition(visualColumn),
       sheet: this.sheetId
     };
 
     valueHolder.value = this.engine.getCellSerialized(address);
   }
 
-  /**
-   * `onBeforeChange` hook callback.
-   *
-   * @private
-   * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
-   * @param {string} [source] String that identifies source of hook call
-   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
-   */
   onBeforeChange(changes, source) {
     if (isBlockedSource(source)) {
       return;
@@ -607,6 +684,45 @@ export class Formulas extends BasePlugin {
         }
       });
     });
+  }
+
+  /**
+   * `onAfterSetDataAtCell` hook callback.
+   *
+   * @private
+   * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
+   * @param {string} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
+   */
+  onAfterSetDataAtCell(changes, source) {
+    if (isBlockedSource(source)) {
+      return;
+    }
+
+    const outOfBoundsChanges = [];
+    const changedCells = [];
+
+    const dependentCells = this.engine.batch(() => {
+      changes.forEach(([row, prop, , newValue]) => {
+        const column = this.hot.propToCol(prop);
+        const physicalRow = this.hot.toPhysicalRow(row);
+        const physicalColumn = this.hot.toPhysicalColumn(column);
+        const address = {
+          row: physicalRow,
+          col: physicalColumn,
+          sheet: this.sheetId,
+        };
+
+        if (physicalRow !== null && physicalColumn !== null) {
+          this.syncChangeWithEngine(row, column, newValue);
+
+        } else {
+          outOfBoundsChanges.push([row, column, newValue]);
+        }
+
+        changedCells.push({ address });
+      });
+    });
 
     if (outOfBoundsChanges.length) {
       // Workaround for rows/columns being created two times (by HOT and the engine).
@@ -623,6 +739,7 @@ export class Formulas extends BasePlugin {
     }
 
     this.renderDependentSheets(dependentCells);
+    this.validateDependentCells(dependentCells, changedCells);
   }
 
   /**
@@ -649,8 +766,20 @@ export class Formulas extends BasePlugin {
       return false;
     }
 
-    return this.engine.getFillRangeData(
-      sourceLeftCorner, sourceWidth, sourceHeight, targetLeftCorner, targetWidth, targetHeight);
+    const sourceEnd = {
+      row: sourceLeftCorner.row + sourceHeight - 1,
+      col: sourceLeftCorner.col + sourceWidth - 1,
+      sheet: sourceLeftCorner.sheet,
+    };
+    const source = { start: sourceLeftCorner, end: sourceEnd };
+    const targetEnd = {
+      row: targetLeftCorner.row + targetHeight - 1,
+      col: targetLeftCorner.col + targetWidth - 1,
+      sheet: targetLeftCorner.sheet,
+    };
+    const target = { start: targetLeftCorner, end: targetEnd };
+
+    return this.engine.getFillRangeData(source, target);
   }
 
   /**
@@ -661,6 +790,7 @@ export class Formulas extends BasePlugin {
    */
   onAfterSetSourceDataAtCell(changes) {
     const dependentCells = [];
+    const changedCells = [];
 
     changes.forEach(([row, column, , newValue]) => {
       const address = {
@@ -675,10 +805,12 @@ export class Formulas extends BasePlugin {
         return;
       }
 
+      changedCells.push({ address });
       dependentCells.push(...this.engine.setCellContents(address, newValue));
     });
 
     this.renderDependentSheets(dependentCells);
+    this.validateDependentCells(dependentCells, changedCells);
   }
 
   /**

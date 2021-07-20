@@ -65,8 +65,8 @@ describe('Integration with other features', () => {
       expect(hot.countCols()).toEqual(3);
       expect(hot.getData()).toEqual([
         [1, 'x', null],
-        [2, 1, 'x'],
-        [null, 2, 'y']
+        [2, '1', 'x'],
+        [null, '2', 'y']
       ]);
     });
   });

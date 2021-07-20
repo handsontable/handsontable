@@ -58,7 +58,7 @@ export function instanceToHTML(instance) {
 
       } else {
         const cellData = data[row][column];
-        const { hidden, rowspan, colspan } = instance.getCellMeta(row - rowModifier, column - columnModifier);
+        const { hidden, rowspan, colspan } = instance.getCellMeta(row - columnModifier, column - rowModifier);
 
         if (!hidden) {
           const attrs = [];

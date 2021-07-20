@@ -8,6 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [9.0.1] - 2021-06-17
+
+### Fixed
+- Fixed an issue where the validator function was called twice when the Formulas plugin was enabled. [#8138](https://github.com/handsontable/handsontable/issues/8138)
+- Introduced a new CSS style for cells of the `checkbox` type to restore previous behaviour. [#8196](https://github.com/handsontable/handsontable/issues/8196)
+
+### Removed
+- Removed the redundant internal `jsonpatch` library from the source code. [#8140](https://github.com/handsontable/handsontable/issues/8140)
+
+## [9.0.0] - 2021-06-01
+
+### Changed
+- **Breaking change** New Formulas plugin, with an entirely different API. See the migration guide for a full list of changes. Removed the required `hot-formula-parser` dependency for the sake of an optional one, `hyperformula`. [#6466](https://github.com/handsontable/handsontable/issues/6466)
+- **Breaking change** Changed the `afterAutofill` and `beforeAutofill` hooks' signatures. [#7987](https://github.com/handsontable/handsontable/issues/7987)
+- Upgraded `eslint` and eslint-related modules. [#7531](https://github.com/handsontable/handsontable/issues/7531)
+- Added `fit` & `fdescribe` to restricted globals in test files. [#8088](https://github.com/handsontable/handsontable/issues/8088)
+
+### Fixed
+- Fixed a problem with the column indicator of the Collapsible Columns plugin not being displayed properly on styled headers. [#7970](https://github.com/handsontable/handsontable/issues/7970)
+- Fixed a problem with duplicated `afterCreateCol` hooks being triggered after undoing a removal of a column. [#8076](https://github.com/handsontable/handsontable/issues/8076)
+
+### Removed
+- **Breaking change** Removed the deprecated plugins - Header Tooltips and Observe Changes. [#8083](https://github.com/handsontable/handsontable/issues/8083)
+
+### Deprecated
+- Deprecated the `beforeAutofillInsidePopulate` hook. It will be removed in the next major release. [#8095](https://github.com/handsontable/handsontable/issues/8095)
+
 ## [8.4.0] - 2021-05-11
 
 ### Added

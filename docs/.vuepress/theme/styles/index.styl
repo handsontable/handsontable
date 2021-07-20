@@ -1,0 +1,396 @@
+/* VuePress Tabs */
+@import '~vuepress-plugin-tabs/dist/themes/default.styl'
+@import 'vuepress-tabs-custom'
+
+/* Code group tabs */
+@import 'code-group'
+
+/* Table of contents */
+@import 'table-of-contents'
+
+/* Temporary stylesheet for various elements */
+@import 'quirks'
+
+/* Handsontable styles */
+@import 'handsontable'
+
+/* Forms */
+@import 'form'
+
+/* Examples */
+@import 'examples'
+
+/* Themes */
+@import 'theme-dark'
+
+
+body {
+  font-size: 15px;
+}
+
+body, html, #app {
+  min-height 100vh;
+}
+
+body div {
+  user-select: initial;
+}
+
+.hidden {
+  display none
+}
+
+a.source-code-link {
+  font-size 12px
+  float right
+  top -34px
+  position relative
+  color #444
+
+  @media (max-width: $MQMobile) {
+    float none
+    top 0
+  }
+}
+
+.theme-default-content:not(.custom) > h4,
+.theme-default-content:not(.custom) > h5,
+.theme-default-content:not(.custom) > h6 {
+  margin-top: -2.8rem;
+}
+
+/* Layout */
+
+.page {
+  padding-top: 3.6rem;
+}
+
+// Fix for layout overlapping. Works for IE10+
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  .page {
+    float: left;
+  }
+}
+
+.page-top, .page-edit, .page-nav {
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 0 2rem 0;
+
+  @media (min-width: $MQNarrow) {
+    padding: 0 2.5rem 0 4rem !important;
+  }
+}
+
+.page-nav {
+  margin-top: 1rem !important;
+}
+
+.page-edit {
+  margin-top: 20px !important;
+}
+
+.theme-default-content:not(.custom) {
+  padding: 2rem;
+
+  @media (min-width: $MQNarrow) {
+    padding: 2rem 2.5rem 2rem 4rem;
+  }
+}
+
+.theme-default-content > h1:first-child {
+  padding-top: 2rem;
+}
+
+/* iFrames */
+.iframe-container {
+  overflow: hidden;
+  // aspect ration of the video (for 16:9 it is 9/16= 0.5625)
+  padding-top: 56.25%;
+  position: relative;
+}
+
+.iframe-container iframe {
+  border: 0;
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+/*
+  TODO: It's workaround, and it should be removed. It seems that there is no option to disable title for a custom
+  containers: https://v1.vuepress.vuejs.org/guide/markdown.html#custom-containers
+*/
+.custom-block-title {
+  display: none;
+}
+
+/*
+  TODO: It's workaround, and it should be removed. It seems that there is no option to disable title for a custom
+  containers: https://v1.vuepress.vuejs.org/guide/markdown.html#custom-containers
+*/
+.custom-block.tip {
+  border-color: #2456f2;
+}
+
+/* Larger bottom gap of H1, H2, H3 */
+h1 {
+  font-size: 2rem;
+  margin-bottom: 2rem !important;
+  /* Fix for anchor correct scroll positioning */
+  padding-top: 4.6rem !important;
+  margin-top: -3.8rem !important;
+}
+
+h2 {
+  margin-bottom: 1rem !important;
+  padding-bottom: 6px;
+  font-size: 1.55rem;
+  border-color: #e9eef2;
+  /* Fix for anchor correct scroll positioning */
+  padding-top: 5rem !important;
+  margin-top: -4.1rem !important;
+}
+
+h3 {
+  margin-bottom: 1rem !important;
+  font-size: 1.25rem;
+  /* Fix for anchor correct scroll positioning */
+  padding-top: 5.1rem !important;
+  margin-top: -4.6rem !important;
+}
+
+.page {
+  ul, ol {
+      padding-left: 2.2em;
+  }
+  ul {
+      list-style-type: square;
+  }
+}
+
+a {
+  color: #104bcd;
+}
+
+/* A div that makes the table scrollable used in the /setting-options page */
+.scrollable-table {
+  height: 382px;
+  overflow-x: scroll;
+}
+
+table {
+  width: 100%;
+  display: table;
+  overflow: scroll;
+
+  tr {
+      border-top: none;
+  }
+
+  th, td {
+      border: none;
+      border-bottom: 1px solid #e9eef2;
+      line-height: 1.7;
+      text-align: left;
+  }
+}
+
+/* fix for very wide tables in the migration guides */
+.migration-guide table {
+  word-break: break-word;
+}
+
+// floating sidebar should be inline on mobile, and float on wider screens
+
+@media (max-width: $MQNarrow) {
+  .page {
+    padding-left: 17rem;
+  }
+}
+
+@media (max-width: $MQMobile) {
+  .page {
+    padding-left: 0;
+  }
+
+  table {
+    word-break: break-word;
+  }
+}
+
+@media (min-width: 1080px) {
+  .page {
+      .page-edit
+      .page-nav
+      .page-top
+      .theme-default-content {
+          margin: 0;
+          max-width: calc(100% - 370px);
+      }
+  }
+}
+@media (min-width: 1200px) {
+.page {
+  .page-edit
+  .page-nav
+  .page-top
+  .theme-default-content {
+    max-width: calc(100% - 370px);
+
+    .table-of-contents {
+      right: 0;
+    }
+  }
+}
+}
+@media (min-width: 1500px) {
+.page {
+  .page-edit
+  .page-nav
+  .page-top
+  .theme-default-content {
+    max-width: 900px;
+
+    .table-of-contents {
+      left: calc(900px + 416px);
+    }
+  }
+}
+}
+div.js-fiddle-link {
+  position: relative;
+  top: 6px;
+  z-index: 10;
+  float: right;
+  right: 60px;
+  width: 0;
+
+  button {
+    padding: 6px 14px!important;
+  }
+  button:hover{
+    background: #454554;
+  }
+}
+
+.page-edit .edit-link a, .page-edit .last-updated .prefix,
+.page-edit .last-updated .time {
+//color: #2c3e50!important;
+}
+
+.page-nav .inner {
+  border-color: #e9eef2;
+}
+
+/* A navigation element containing clickable fields (columns) */
+.row-items-container {
+  margin: 30px 0 30px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: flex-start;
+  align-content: normal;
+  flex-wrap: wrap;
+
+  .row-item {
+    width: calc(25% - 48px);
+    margin: 0 6px;
+    flex-grow: 1;
+    flex-basis: auto;
+    text-align: center;
+    color: $textColor;
+    border: 1px solid #e9eef2;
+    border-radius: 8px;
+    transition: all .15s ease;
+
+    @media(max-width: $MQNarrow) {
+      width: calc(50% - 28px);
+      margin-bottom: 10px;
+    }
+
+    &:hover {
+      text-decoration: none!important;
+      box-shadow: 0 3px 12px #e9eef2;
+    }
+
+    img {
+      margin-top: 14px;
+      max-height: 45px;
+    }
+
+    h3 {
+      margin-top: 10px!important;
+      padding-top: 0!important;
+      font-size: 16px;
+    }
+  }
+}
+
+.theme-default-content code {
+  color: $textColor;
+  background-color: #eef0f7;
+}
+
+/* Keyboard keys names formatting */
+
+kbd {
+  padding: 0 0.25em;
+  font-size: 13px;
+  white-space: nowrap;
+  border: 1px solid #bbc6d3;
+  border-bottom-width: 2px;
+  background: #fafbff;
+}
+
+/* Styles for the icon-pack page */
+
+.icons-wrapper {
+  margin-top: 30px;
+  text-align: center;
+
+  & > div {
+    display: inline-block;
+    width: 19%;
+    margin: 0 0 2.4rem 0;
+    line-height: 1;
+  }
+
+  svg {
+    width: 48px;
+    height: 48px;
+    fill: #282c34;
+  }
+
+  span {
+    padding: 0 10px;
+    display: block;
+    white-space: word-wrap;
+    overflow: hidden;
+    font-size: 12px;
+    text-align: center;
+  }
+}
+
+@media (max-width: $MQMobileNarrow) {
+  .icons-wrapper {
+    > div {
+      width: 49%;
+    }
+
+    svg {
+      width: 55px;
+      height: 55px;
+    }
+  }
+}
+
+/* Code field styling */
+
+@media (max-width: $MQMobileNarrow) {
+  .theme-default-content div[class*="language-"] {
+    margin initial
+  }
+}

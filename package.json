@@ -10,7 +10,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "8.4.0",
+  "version": "9.0.1",
   "main": "index",
   "module": "index.mjs",
   "jsnext:main": "index.mjs",
@@ -97,7 +97,7 @@
     "pikaday": "1.8.0"
   },
   "optionalDependencies": {
-    "hyperformula": "0.6.1"
+    "hyperformula": "1.0.0"
   },
   "devDependencies": {
     "@actions/core": "^1.2.6",
@@ -178,8 +178,8 @@
   "workspaces": {
     "packages": [
       ".",
-      "wrappers/*",
-      "examples"
+      "examples",
+      "wrappers/*"
     ]
   },
   "typings": "./handsontable.d.ts",

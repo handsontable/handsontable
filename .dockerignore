@@ -1,0 +1,20 @@
+# This `.dockerignore` file created for the purpose of building the Documentation
+/
+!/.git
+!/docs/
+pids
+logs
+node_modules
+npm-debug.log
+coverage/
+run
+dist
+.DS_Store
+.nyc_output
+.basement
+config.local.js
+basement_dist
+.idea
+
+# this file are required for Docs build process (in opposite to .gitignore)
+!/dist/
