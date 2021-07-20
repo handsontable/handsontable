@@ -666,26 +666,6 @@ export class Formulas extends BasePlugin {
     valueHolder.value = this.engine.getCellSerialized(address);
   }
 
-  onBeforeChange(changes, source) {
-    if (isBlockedSource(source)) {
-      return;
-    }
-
-    const outOfBoundsChanges = [];
-    const dependentCells = this.engine.batch(() => {
-      changes.forEach(([row, prop, , newValue]) => {
-        const column = this.hot.propToCol(prop);
-
-        if (this.hot.toPhysicalRow(row) !== null && this.hot.toPhysicalColumn(column) !== null) {
-          this.syncChangeWithEngine(row, column, newValue);
-
-        } else {
-          outOfBoundsChanges.push([row, column, newValue]);
-        }
-      });
-    });
-  }
-
   /**
    * `onAfterSetDataAtCell` hook callback.
    *
