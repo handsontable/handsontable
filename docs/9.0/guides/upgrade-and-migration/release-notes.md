@@ -13,6 +13,23 @@ tags:
 
 [[toc]]
 
+## 9.0.2
+
+**Fixed**
+- Fixed an issue with an error being thrown when lazy loading columns on a setup with Nested Headers + Hidden Columns. [#7160](https://github.com/handsontable/handsontable/issues/7160)
+- Fixed column header sizes not being updated on `updateSettings` calls containing `columns`. [#7689](https://github.com/handsontable/handsontable/issues/7689)
+- Fixed functional keys' behaviour to prevent unexpected editing. [#7838](https://github.com/handsontable/handsontable/issues/7838)
+- Fixed missing collapsible indicator on IE. [#8028](https://github.com/handsontable/handsontable/issues/8028)
+- Fixed support for row and column headers in parseTable utility. [#8041](https://github.com/handsontable/handsontable/issues/8041)
+- Fixed a bug where not providing the data object with the Nested Rows plugin enabled crashed the table. [#8171](https://github.com/handsontable/handsontable/issues/8171)
+- *Vue:* Fixed an issue, where adding rows to the Handsontable instance wrapped for Vue resulted in additional rows being inserted at the end of the table. [#8148](https://github.com/handsontable/handsontable/issues/8148)
+- *Vue:* Fixed a problem in the Vue wrapper, where destroying the underlying Handsontable instance caused it to throw errors and crash. [#8311](https://github.com/handsontable/handsontable/issues/8311)
+- *React:* Fixed a problem in the React wrapper, where destroying the underlying Handsontable instance caused it to throw errors and crash. [#8311](https://github.com/handsontable/handsontable/issues/8311)
+- *Angular:* Fixed a problem in the Angular wrapper, where destroying the underlying Handsontable instance caused it to throw errors and crash. [#8311](https://github.com/handsontable/handsontable/issues/8311)
+
+**Added**
+- Added new documentation engine [#7624](https://github.com/handsontable/handsontable/issues/7624)
+
 ## 9.0.1
 
 Released on 17th of June, 2021
