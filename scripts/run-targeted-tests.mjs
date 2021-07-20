@@ -39,6 +39,9 @@ const argv = yargs(hideBin(process.argv))
     '\n - pipeline 2: `unit`, `type`, `walkontable` and `e2e` tests for Handsontable.' +
     '\n\n If HOT was _not_ modified, both pipelines run the other packages\' tests (distributed ~50/50).' +
     '\n\n If no pipeline is defined, all the test run consecutively.')
+  .string('ci-branch')
+  .describe('ci-branch', 'Branch name recognized by the CI. Used to work around the fact, that CI checks out at a' +
+    ' commit hash, not a branch name.')
   .argv;
 
 const workspacePackages = hotPackageJson.workspaces.packages;
@@ -111,7 +114,7 @@ async function distributeBetweenPipelines(modifiedProjects) {
   ).stdout.split('\n');
   const fullTestBranchRegex = new RegExp('^(master|develop|release/.{5,})$');
   const configPathsRegex = new RegExp(`^(${CONFIG_PATHS.join('|').replace(/\./g, '\\.')})`);
-  const fullTestBranchMatch = fullTestBranchRegex.test(currentBranch);
+  const fullTestBranchMatch = fullTestBranchRegex.test(argv.ciBranch || currentBranch);
 
   filesModifiedInLastCommit.shift();
 
