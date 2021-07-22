@@ -19,6 +19,28 @@ import { isDefined } from './helpers/mixed';
 
 const copyableLookup = cellMethodLookupFactory('copyable', false);
 
+/*
+This class contains open-source contributions covered by the MIT license.
+
+1) In the `createRow` method: Row creation using functional `dataSchema` value
+2) In the `set` method: Data setting using functional `prop` value
+3) in the `get` method: Data getting using functional `prop` value
+
+The remaining part of this code comment contains the full license text of these contributions.
+
+======
+
+The MIT License
+
+Copyright 2013 Nicholas Bollweg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 /**
  * Utility class that gets and saves data from/to the data source using mapping of columns numbers to object property names.
  *
@@ -649,19 +671,6 @@ class DataMap {
       value = out;
 
     } else if (typeof prop === 'function') {
-      /**
-       *  Allows for interacting with complex structures, for example
-       *  d3/jQuery getter/setter properties:
-       *
-       *    {columns: [{
-       *      data: function(row, value){
-       *        if(arguments.length === 1){
-       *          return row.property();
-       *        }
-       *        row.property(value);
-       *      }
-       *    }]}.
-       */
       value = prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0]);
     }
 
@@ -739,7 +748,6 @@ class DataMap {
       out[sliced[i]] = newValue;
 
     } else if (typeof prop === 'function') {
-      /* see the `function` handler in `get` */
       prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0], newValue);
 
     } else {
