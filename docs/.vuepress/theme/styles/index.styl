@@ -65,6 +65,13 @@ a.source-code-link {
   padding-top: 3.6rem;
 }
 
+// Fix for layout overlapping. Works for IE10+
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  .page {
+    float: left;
+  }
+}
+
 .page-top, .page-edit, .page-nav {
   max-width: 740px;
   margin: 0 auto;
