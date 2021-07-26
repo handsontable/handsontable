@@ -2376,6 +2376,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.forceFullRender = true; // used when data was changed
       editorManager.lockEditor();
       instance._refreshBorders(null);
+      instance.view.wt.wtOverlays.adjustElementsSize();
       editorManager.unlockEditor();
     }
 
