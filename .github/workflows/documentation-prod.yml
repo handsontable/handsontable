@@ -5,6 +5,9 @@ env:
   GHA_DOCKER_TAG_SHA: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:prod-${{ github.sha }}
 
 on:
+  push:
+    branches:
+      - develop
   workflow_dispatch:
 
 defaults:
