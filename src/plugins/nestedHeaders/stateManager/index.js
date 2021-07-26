@@ -328,7 +328,7 @@ export default class StateManager {
 
     let stepBackColumn = columnIndex - 1;
 
-    do {
+    while (stepBackColumn >= 0) {
       const {
         isRoot: isRootNode
       } = this.getHeaderSettings(headerLevel, stepBackColumn) ?? { isRoot: true };
@@ -338,7 +338,7 @@ export default class StateManager {
       }
 
       stepBackColumn -= 1;
-    } while (columnIndex >= 0);
+    }
 
     return stepBackColumn;
   }
