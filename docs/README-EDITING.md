@@ -103,6 +103,19 @@ To remove an existing version of the Handsontable documentation:
   rm -rf ./<semver.version>
   ```
 
+## Markdown links
+
+Linking page in a single version requires using `@`-syntaxt. For instance: `[Core](@/api/core.md)`.
+* After the `@` should be provided relative file path from the current version root dir.
+* **Target file should define a permalink in Frontmatter section.**
+* File path should contain an extension (`.md`).
+* It is allowed to use anchors: `[Core](@/api/core.md#some-anchor)`.
+* If generating final URL fails, then it outputs the initial value as a relative link. That is caught then by the linking-checker tool.
+
+Many examples you may find by searching `](@/` in the `next` directory.
+
+Please try to avoid linking using absolute or relative URLs. It is much better to use the `@`-syntaxt
+
 ## Markdown containers
 
 To render content in different ways, the documentation uses custom Markdown containers, for example:
