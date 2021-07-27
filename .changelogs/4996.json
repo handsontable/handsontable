@@ -1,0 +1,7 @@
+{
+  "title": "Unifies fourth argument name and description, `controller`, for selection manipulation in `beforeOnCellMouseDown` and `beforeOnCellMouseOver` hooks.",
+  "type": "changed",
+  "issue": 4996,
+  "breaking": false,
+  "framework": "none"
+}
