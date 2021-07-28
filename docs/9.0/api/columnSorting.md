@@ -13,7 +13,7 @@ editLink: false
 ## Description
 
 This plugin sorts the view by columns (but does not sort the data source!). To enable the plugin, set the
-[columnSorting](#options+columnsorting) property to the correct value (see the examples below).
+[Options#columnSorting](@/api/metaSchema.md#columnsorting) property to the correct value (see the examples below).
 
 **Example**  
 ```js
@@ -60,7 +60,7 @@ columns: [{
 
 ### columnSorting
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/659ab339a149a32bdd86eea5b599b7eb50c49555/src/dataMap/metaManager/metaSchema.js#L1866
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/dataMap/metaManager/metaSchema.js#L1866
 
 :::
 
@@ -114,7 +114,7 @@ columnSorting: {
 
 ### clearSort
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/659ab339a149a32bdd86eea5b599b7eb50c49555/src/plugins/columnSorting/columnSorting.js#L264
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L264
 
 :::
 
@@ -126,7 +126,7 @@ Clear the sort performed on the table.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/659ab339a149a32bdd86eea5b599b7eb50c49555/src/plugins/columnSorting/columnSorting.js#L798
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L798
 
 :::
 
@@ -138,7 +138,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/659ab339a149a32bdd86eea5b599b7eb50c49555/src/plugins/columnSorting/columnSorting.js#L175
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L175
 
 :::
 
@@ -150,7 +150,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/659ab339a149a32bdd86eea5b599b7eb50c49555/src/plugins/columnSorting/columnSorting.js#L139
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L139
 
 :::
 
@@ -162,7 +162,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getSortConfig
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/659ab339a149a32bdd86eea5b599b7eb50c49555/src/plugins/columnSorting/columnSorting.js#L285
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L285
 
 :::
 
@@ -181,20 +181,20 @@ Get sort configuration for particular column or for all sorted columns. Objects 
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/659ab339a149a32bdd86eea5b599b7eb50c49555/src/plugins/columnSorting/columnSorting.js#L132
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L132
 
 :::
 
 _columnSorting.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the Handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
-hook and if it returns `true` than the [enablePlugin](#columnsorting+enableplugin) method is called.
+hook and if it returns `true` than the [ColumnSorting#enablePlugin](@/api/columnsorting.md#enableplugin) method is called.
 
 
 
 ### isSorted
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/659ab339a149a32bdd86eea5b599b7eb50c49555/src/plugins/columnSorting/columnSorting.js#L273
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L273
 
 :::
 
@@ -206,7 +206,7 @@ Checks if the table is sorted (any column have to be sorted).
 
 ### setSortConfig
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/659ab339a149a32bdd86eea5b599b7eb50c49555/src/plugins/columnSorting/columnSorting.js#L317
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L317
 
 :::
 
@@ -238,7 +238,7 @@ beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
 
 ### sort
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/659ab339a149a32bdd86eea5b599b7eb50c49555/src/plugins/columnSorting/columnSorting.js#L225
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/columnSorting/columnSorting.js#L225
 
 :::
 
