@@ -246,11 +246,11 @@ const fixLinks = text => text
         if (!fixedAnchor.includes('+')) {
           return `[${label}](${hash}${fixedAnchor})`;
         } else {
-          const splitted = anchor.split('+');
+          const [newTarget, newAnchor] = anchor.split('+');
 
-          target = splitted[0];
-          fixedAnchor = splitted[1].toLowerCase();
-          label = `${splitted[0]}#${label}`;
+          target = newTarget;
+          fixedAnchor = newAnchor.toLowerCase();
+          label = `${newTarget}#${label}`;
         }
       }
 
