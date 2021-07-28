@@ -137,7 +137,7 @@ Enables the plugin functionality for this Handsontable instance.
 _manualRowMove.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
-hook and if it returns `true` than the [ManualRowMove#enablePlugin](@/api/manualrowmove.md#enableplugin) method is called.
+hook and if it returns `true` than the [ManualRowMove#enablePlugin](@/api/manualRowMove.md#enableplugin) method is called.
 
 
 
