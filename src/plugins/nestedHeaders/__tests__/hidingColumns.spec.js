@@ -1709,6 +1709,83 @@ describe('NestedHeaders', () => {
         `);
     });
 
+    it('should allow scrolling (and lazy loading) the columns properly, ' +
+      'when some of the leftmost columns are hidden', async() => {
+      $('.jasmine_html-reporter').hide(); // Workaround for making the test more predictable.
+      const nestedHeaders = [
+        [
+          {
+            label: 'A',
+            colspan: 20
+          }, {
+            label: 'B',
+            colspan: 40
+          }
+        ],
+        []
+      ];
+
+      for (let i = 0; i < 60; i += 1) {
+        nestedHeaders[1].push(`-${i + 1}-`);
+      }
+
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 60),
+        colHeaders: true,
+        nestedHeaders,
+        width: 500,
+        height: 400
+      });
+
+      const onErrorFn = window.onerror;
+      const errorSpy = jasmine.createSpy('bound to error when scrolling the table horizontally');
+
+      window.onerror = () => {
+        errorSpy();
+
+        return true;
+      };
+
+      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValues([true, true, true]);
+      hot.render();
+
+      await sleep(200);
+
+      hot.scrollViewportTo(0, 7);
+
+      await sleep(200);
+
+      // Gets the topmost header around the middle of the table - checks if the widest parent headers are rendered
+      // correctly.
+      const topHeaderInTheMiddle =
+        document.elementFromPoint(
+          hot.rootElement.offsetLeft + (hot.rootElement.offsetWidth / 2),
+          hot.rootElement.offsetTop + 5
+        );
+
+      expect(
+        topHeaderInTheMiddle.nodeName === 'TH' ||
+        topHeaderInTheMiddle.parentNode.nodeName === 'TH'
+      ).toEqual(true);
+
+      hidingMap.setValues([true, true, true, true, true, true]);
+      hot.render();
+
+      await sleep(200);
+
+      hot.scrollViewportTo(0, 15);
+
+      await sleep(300);
+
+      window.onerror = onErrorFn;
+
+      expect(errorSpy).not.toHaveBeenCalled();
+
+      $('.jasmine_html-reporter').show();
+    });
+
     describe('with cooperation with the HidingColumns plugin', () => {
       it('should keep the headers in sync with a dataset using initial settings', () => {
         handsontable({

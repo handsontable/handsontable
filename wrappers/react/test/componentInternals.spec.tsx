@@ -3,18 +3,13 @@ import {
   mount,
   ReactWrapper
 } from 'enzyme';
-import {
-  HotTable
-} from '../src/hotTable';
-import {
-  HotColumn
-} from '../src/hotColumn';
+import { HotTable } from '../src/hotTable';
+import { HotColumn } from '../src/hotColumn';
 import {
   mockElementDimensions,
   sleep,
-  RendererComponent,
-  EditorComponent
 } from './_helpers';
+import { HOT_DESTROYED_WARNING } from "../src/helpers";
 import { BaseEditorComponent } from '../src/baseEditorComponent';
 import Handsontable from 'handsontable';
 
@@ -345,6 +340,42 @@ describe('Component lifecyle', () => {
     });
 
     wrapper.detach();
+    done();
+  });
+
+  it('should display a warning and not throw any errors, when the underlying Handsontable instance ' +
+    'has been destroyed', async(done) => {
+    const warnFunc = console.warn;
+    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+      <HotTable
+        id="test-hot"
+        data={[[2]]}
+        licenseKey="non-commercial-and-evaluation"
+      />, {attachTo: document.body.querySelector('#hotContainer')}
+    );
+    const warnCalls = [];
+
+    await sleep(300);
+
+    console.warn = (warningMessage) => {
+      warnCalls.push(warningMessage);
+    };
+
+    expect(wrapper.instance().hotInstance.isDestroyed).toEqual(false);
+
+    wrapper.instance().hotInstance.destroy();
+
+    expect(wrapper.instance().hotInstance).toEqual(null);
+
+    expect(warnCalls.length).toBeGreaterThan(0);
+    warnCalls.forEach((message) => {
+      expect(message).toEqual(HOT_DESTROYED_WARNING);
+    });
+
+    wrapper.detach();
+
+    console.warn = warnFunc;
+
     done();
   });
 });

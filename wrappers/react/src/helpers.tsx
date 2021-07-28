@@ -11,6 +11,12 @@ export const AUTOSIZE_WARNING = 'Your `HotTable` configuration includes `autoRow
   ' the component-based renderers`. Disable `autoRowSize` and `autoColumnSize` to prevent row and column misalignment.';
 
 /**
+ * Message for the warning thrown if the Handsontable instance has been destroyed.
+ */
+export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' +
+  ' used properly.';
+
+/**
  * Default classname given to the wrapper container.
  */
 const DEFAULT_CLASSNAME = 'hot-wrapper-editor-container';

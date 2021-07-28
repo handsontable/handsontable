@@ -4,6 +4,7 @@ import {
   fastInnerHTML,
   empty,
 } from '../../helpers/dom/element';
+import { isNumeric } from '../../helpers/number';
 import { isLeftClick, isRightClick } from '../../helpers/dom/event';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
@@ -22,6 +23,8 @@ export const PLUGIN_PRIORITY = 280;
 
 /**
  * @plugin NestedHeaders
+ * @class NestedHeaders
+ *
  * @description
  * The plugin allows to create a nested header structure, using the HTML's colspan attribute.
  *
@@ -517,19 +520,34 @@ export class NestedHeaders extends BasePlugin {
    * @param {object} calc Viewport column calculator.
    */
   onAfterViewportColumnCalculatorOverride(calc) {
+    const headerLayersCount = this.#stateManager.getLayersCount();
     let newStartColumn = calc.startColumn;
+    let nonRenderable = !!headerLayersCount;
 
-    for (let headerLayer = 0; headerLayer < this.#stateManager.getLayersCount(); headerLayer++) {
+    for (let headerLayer = 0; headerLayer < headerLayersCount; headerLayer++) {
       const startColumn = this.#stateManager.findLeftMostColumnIndex(headerLayer, calc.startColumn);
       const renderedStartColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(startColumn);
 
-      if (renderedStartColumn < calc.startColumn) {
+      // If any of the headers for that column index is rendered, all of them should be rendered properly, see
+      // comment below.
+      if (startColumn >= 0) {
+        nonRenderable = false;
+      }
+
+      // `renderedStartColumn` can be `null` if the leftmost columns are hidden. In that case -> ignore that header
+      // level, as it should be handled by the "parent" header
+      if (isNumeric(renderedStartColumn) && renderedStartColumn < calc.startColumn) {
         newStartColumn = renderedStartColumn;
         break;
       }
     }
 
-    calc.startColumn = newStartColumn;
+    // If no headers for the provided column index are renderable, start rendering from the beginning of the upmost
+    // header for that position.
+    calc.startColumn =
+      nonRenderable ?
+        this.#stateManager.getHeaderTreeNodeData(0, newStartColumn).columnIndex :
+        newStartColumn;
   }
 
   /**

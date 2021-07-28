@@ -10,6 +10,7 @@ export const PLUGIN_PRIORITY = 160;
 /**
  * @private
  * @plugin MultipleSelectionHandles
+ * @class MultipleSelectionHandles
  */
 export class MultipleSelectionHandles extends BasePlugin {
   static get PLUGIN_KEY() {
