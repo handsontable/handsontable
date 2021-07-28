@@ -15,6 +15,8 @@ tags:
 
 ## 9.0.2
 
+Released on 28th of July, 2021
+
 **Fixed**
 - Fixed an issue with an error being thrown when lazy loading columns on a setup with Nested Headers + Hidden Columns. [#7160](https://github.com/handsontable/handsontable/issues/7160)
 - Fixed column header sizes not being updated on `updateSettings` calls containing `columns`. [#7689](https://github.com/handsontable/handsontable/issues/7689)
