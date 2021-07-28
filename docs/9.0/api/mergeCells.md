@@ -100,7 +100,7 @@ Enables the plugin functionality for this Handsontable instance.
 _mergeCells.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
-hook and if it returns `true` than the [MergeCells#enablePlugin](@/api/mergecells.md#enableplugin) method is called.
+hook and if it returns `true` than the [MergeCells#enablePlugin](@/api/mergeCells.md#enableplugin) method is called.
 
 
 

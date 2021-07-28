@@ -239,19 +239,18 @@ const fixLinks = text => text
       if (target.includes('://')) { // e.g https://handsontable.com/blog
         return all;
       }
-      let fixedAnchor = anchor
-        .toLowerCase();
+      let fixedAnchor = anchor.toLowerCase();
 
       // e.g. #Options+autoColumnSize or #getData
       if (!target) {
         if (!fixedAnchor.includes('+')) {
           return `[${label}](${hash}${fixedAnchor})`;
         } else {
-          const splitted = fixedAnchor.split('+');
+          const splitted = anchor.split('+');
 
           target = splitted[0];
-          fixedAnchor = splitted[1];
-          label = `${anchor.split('+')[0]}#${label}`;
+          fixedAnchor = splitted[1].toLowerCase();
+          label = `${splitted[0]}#${label}`;
         }
       }
 
