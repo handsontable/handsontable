@@ -19,10 +19,10 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
   const selectedRow = selection.isSelectedByRowHeader();
 
   if (isShiftKey && currentSelection) {
-    if (coords.row >= 0 && coords.col >= 0 && !controller.cells) {
+    if (coords.row >= 0 && coords.col >= 0 && !controller.cell) {
       selection.setRangeEnd(coords);
 
-    } else if ((selectedCorner || selectedRow) && coords.row >= 0 && coords.col >= 0 && !controller.cells) {
+    } else if ((selectedCorner || selectedRow) && coords.row >= 0 && coords.col >= 0 && !controller.cell) {
       selection.setRangeEnd(new CellCoords(coords.row, coords.col));
 
     } else if (selectedCorner && coords.row < 0 && !controller.column) {
@@ -56,7 +56,7 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
         selection.selectRows(coords.row, coords.row, coords.col);
       }
 
-    } else if (coords.col >= 0 && coords.row >= 0 && !controller.cells) {
+    } else if (coords.col >= 0 && coords.row >= 0 && !controller.cell) {
       if (performSelection) {
         selection.setRangeStart(coords);
       }
