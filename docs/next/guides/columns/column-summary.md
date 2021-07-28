@@ -710,7 +710,7 @@ const hot = new Handsontable(container, {
 If your table contains more data types than just numeric data, you can:
 - Either skip non-numeric values in your `columnSummary` calculations
 - Or try to force non-numeric values into numeric values, with the [`forceNumeric` option](#forcing-numeric-values)
-- Or throw an error when a non-numeric value is passed to your `columnSummary` calculations
+- Or throw an error when a non-numeric value is passed to your `columnSummary` calculationsg
  
 To throw errors, set the `suppressDataTypeErrors` property to `false` (by default, `suppressDataTypeErrors` is set to `true`).
 
