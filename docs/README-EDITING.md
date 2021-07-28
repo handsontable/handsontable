@@ -105,16 +105,32 @@ To remove an existing version of the Handsontable documentation:
 
 ## Markdown links
 
-Linking page in a single version requires using `@`-syntaxt. For instance: `[Core](@/api/core.md)`.
-* After the `@` should be provided relative file path from the current version root dir.
-* **Target file should define a permalink in Frontmatter section.**
-* File path should contain an extension (`.md`).
-* It is allowed to use anchors: `[Core](@/api/core.md#some-anchor)`.
-* If generating final URL fails, then it outputs the initial value as a relative link. That is caught then by the linking-checker tool.
+When linking to other documentation pages, avoid using absolute links or relative URLs.
 
-Many examples you may find by searching `](@/` in the `next` directory.
+To link to another page in the same documentation version, use the following syntax:
 
-Please try to avoid linking using absolute or relative URLs. It is much better to use the `@`-syntaxt
+```markdown
+[link_text](@/relative_file_path_from_this_version's_root/file_name.md#some-anchor)
+\```
+
+For example, to link to a file called `core.md`, from anywhere in the same documentation version:
+
+```markdown
+[Core](@/api/core.md)
+\```
+
+Follow these rules:
+* After the `@` character, provide the target's relative file path (from the current version's root directory).<br>
+  For example: `[Clipboard][@/guides/cell-features/clipboard.md]`.
+* After the target file's name, add the `.md` [extension](#filenames)<br>
+  For example: `[Autofill](@/api/autofill.md)`.
+* To link to a specific section, use anchors.<br>
+  For example: `[Core](@/api/core.md#some-anchor)`.
+
+Also, the following rules apply:
+* The target file needs to have the `permalink` [frontmatter](#frontmatter) tag defined.
+* If generating a final URL link fails, the initial value gets output as a relative link.<br>
+  The documentation's [link checker](./README.md#documentation-npm-scripts) catches such failed links.
 
 ## Markdown containers
 
