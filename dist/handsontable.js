@@ -73204,7 +73204,10 @@ var ManualColumnFreeze = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(ManualColumnFreeze.prototype), "updatePlugin", this).call(this);
     }
     /**
-     * Freezes the given column (add it to fixed columns).
+     * Freezes the specified column (i.e. adds it to fixed columns).
+     *
+     * `freezeColumn()` doesn't re-render the table,
+     * so you need to call the `render()` method afterward.
      *
      * @param {number} column Visual column index.
      */
