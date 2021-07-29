@@ -2765,10 +2765,14 @@ export default () => {
     formulas: void 0,
 
     /**
-     * The {@link hidden-columns HiddenColumns} plugin allows hiding of certain columns. You can pass additional configuration with an
-     * object notation. Options that are then available are:
-     *  * `columns` - an array of rows that should be hidden on plugin initialization
-     *  * `indicators` - enables small ui markers to indicate where are hidden columns.
+     * The `hiddenColumns` option enables and configures the {@link hidden-columns `hiddenColumns` plugin}.
+     * 
+     * To enable the `hiddenColumns` plugin, set the `hiddenColumns` option to `true`.
+     *
+     * To enable `hiddenColumns` plugin and configure its settings, set the `hiddenColumns` option to an object with the following properties:
+     *  * `columns`: An array of indexes of columns that are hidden on plugin initialization.
+     *  * `copyPasteEnabled`: When set to `true`, takes hidden columns into account when copying or pasting data.
+     *  * `indicators`: When set to `true`, displays UI markers to indicate the presence of hidden columns.
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -2777,14 +2781,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable column hiding
+     * // enable the `hiddenColumns` plugin
      * hiddenColumns: true,
      *
-     * // or
+     * // or enable `hiddenColumns` plugin, and configure its settings
      * hiddenColumns: {
      *   // set columns that are hidden by default
      *   columns: [5, 10, 15],
-     *   // show where are hidden columns
+     *   // take hidden columns into account when copying or pasting
+     *   copyPasteEnabled: true,
+     *   // show where hidden columns are
      *   indicators: true
      * }
      * ```
