@@ -649,7 +649,7 @@ export default () => {
 
     /**
      * When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns.
-     * (unless the number of rows exceeds the one set in the `maxCols` property).
+     * (unless the number of columns exceeds the one set in the `maxCols` property).
      *
      * @memberof Options#
      * @type {number}
