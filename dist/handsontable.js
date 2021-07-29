@@ -35137,8 +35137,14 @@ var _default = function _default() {
     maxCols: Infinity,
 
     /**
-     * When set to 1 (or more), Handsontable will add a new row at the end of grid if there are no more empty rows.
-     * (unless the number of rows exceeds the one set in the `maxRows` property).
+     * When set to an integer of more than `0`, appends the set number of empty rows
+     * to the bottom of your table.
+     *
+     * `minSpareRows` sets a minimum number of empty rows,
+     * so if there already are other empty rows at the bottom of your table,
+     * they are counted into the number set in `minSpareRows`.
+     *
+     * The total number of rows can't exceed the number set in `maxRows`.
      *
      * @memberof Options#
      * @type {number}
@@ -35154,8 +35160,17 @@ var _default = function _default() {
     minSpareRows: 0,
 
     /**
-     * When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns.
-     * (unless the number of columns exceeds the one set in the `maxCols` property).
+     * When set to an integer of more than `0`, appends the set number of empty columns
+     * to the right-hand end of your table.
+     *
+     * `minSpareCols` sets a minimum number of empty columns,
+     * so if there already are other empty columns at the right-hand end of your table,
+     * they are counted into the number set in `minSpareCols`.
+     *
+     * The total number of columns can't exceed the number set in `maxCols`.
+     *
+     * `minSpareCols` works only when your table data is an array of arrays
+     * (it doesn't work when your table data is an array of objects).
      *
      * @memberof Options#
      * @type {number}
