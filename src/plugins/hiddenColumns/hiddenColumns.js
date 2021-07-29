@@ -26,7 +26,7 @@ export const PLUGIN_PRIORITY = 310;
  *
  * @description
  * The `hiddenColumns` plugin lets you hide columns of your choice by default.
- * 
+ *
  * "Hiding a column" means that the hidden column doesn't get rendered.
  * The `hiddenColumns` plugin doesn't modify the source data, and doesn't participate in data transformation
  * (the shape of data returned by the `getData*` methods stays intact).

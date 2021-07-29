@@ -2766,7 +2766,7 @@ export default () => {
 
     /**
      * The `hiddenColumns` option enables and configures the {@link hidden-columns `hiddenColumns` plugin}.
-     * 
+     *
      * To enable the `hiddenColumns` plugin, set the `hiddenColumns` option to `true`.
      *
      * To enable `hiddenColumns` plugin and configure its settings, set the `hiddenColumns` option to an object with the following properties:
