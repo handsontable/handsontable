@@ -42,7 +42,7 @@ During this process, the source files located in the `src/*` directory are trans
 * `./dist/handsontable.full.min.css`
 * `./dist/languages/*`
 
-More info about dist packages can be found [here](https://github.com/handsontable/handsontable/blob/master/dist/README.md.
+More info about dist packages can be found [here](https://github.com/handsontable/handsontable/blob/master/dist/README.md).
 
 It is advised that you never modify the files mentioned above. Instead, make changes in the `src/` directory and then run a proper build. This is especially important if you want to contribute your changes back to Handsontable by making a pull request.
 
