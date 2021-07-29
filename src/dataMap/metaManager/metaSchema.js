@@ -2769,7 +2769,7 @@ export default () => {
      *
      * To enable the `hiddenColumns` plugin, set the `hiddenColumns` option to `true`.
      *
-     * To enable `hiddenColumns` plugin and configure its settings, set the `hiddenColumns` option to an object with the following properties:
+     * To enable the `hiddenColumns` plugin and configure its settings, set the `hiddenColumns` option to an object with the following properties:
      *  * `columns`: An array of indexes of columns that are hidden on plugin initialization.
      *  * `copyPasteEnabled`: When set to `true`, takes hidden columns into account when copying or pasting data.
      *  * `indicators`: When set to `true`, displays UI markers to indicate the presence of hidden columns.
