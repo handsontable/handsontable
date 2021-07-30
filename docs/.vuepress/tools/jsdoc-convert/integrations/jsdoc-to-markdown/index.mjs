@@ -1,7 +1,7 @@
 import jsdoc2md from 'jsdoc-to-markdown';
 import dmd from 'dmd';
 import path from 'path';
-import {fileURLToPath} from "url";
+import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

@@ -10,8 +10,8 @@
     "directory": "docs"
   },
   "scripts": {
-    "docs:lint": "eslint --ext .js,.vue .vuepress next",
-    "docs:lint:fix": "eslint --ext .js,.vue .vuepress next --fix",
+    "docs:lint": "eslint --ext .js,.vue,.mjs .vuepress next",
+    "docs:lint:fix": "eslint --ext .js,.vue,.mjs .vuepress next --fix",
     "docs:assets:next": "node .vuepress/tools/link-assets.mjs",
     "docs:start": "npm run docs:assets:next && vuepress dev ./",
     "docs:start:no-cache": "npm run docs:assets:next && vuepress dev --no-cache ./",
