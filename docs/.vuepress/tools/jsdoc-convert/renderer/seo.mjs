@@ -1,4 +1,6 @@
-export const buildHeaderWriter = ({ seo, urlPrefix, escape }) => {
+const escape = text => text.replace(/[{}<>]/g, '').replace(/~/g, '-');
+
+export const buildHeaderWriter = ({ seo, urlPrefix }) => {
   const genSeoTitle = file => escape(
     file.replace(/(^.*\/)?(.*?)\.[.a-zA-Z]*$/, '$2') // Get first filename segment (to the first dot) without full path
   ).replace(/(^[a-z])/, m => m.toUpperCase()); // To upper first letter
