@@ -25,13 +25,13 @@ export const PLUGIN_PRIORITY = 310;
  * @class HiddenColumns
  *
  * @description
- * The `hiddenColumns` plugin lets you hide columns of your choice by default.
+ * The `HiddenColumns` plugin lets you hide columns of your choice by default.
  *
  * "Hiding a column" means that the hidden column doesn't get rendered.
- * The `hiddenColumns` plugin doesn't modify the source data, and doesn't participate in data transformation
+ * The `HiddenColumns` plugin doesn't modify the source data, and doesn't participate in data transformation
  * (the shape of data returned by the `getData*` methods stays intact).
  *
- * Available `hiddenColumns` plugin settings:
+ * Available `HiddenColumns` plugin settings:
  *  * `columns`: An array of indexes of columns that are hidden on plugin initialization.
  *  * `copyPasteEnabled`: When set to `true`, takes hidden columns into account when copying or pasting data.
  *  * `indicators`: When set to `true`, displays UI markers to indicate the presence of hidden columns.
