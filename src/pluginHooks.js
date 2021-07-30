@@ -1899,6 +1899,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterDetachChild
    * @param {object} parent An object representing the parent from which the element was detached.
    * @param {object} element The detached element.
+   * @param {number} finalElementPosition The final row index of the detached element.
    */
   'afterDetachChild',
 

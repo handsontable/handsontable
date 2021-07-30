@@ -384,9 +384,10 @@ export class NestedRows extends BasePlugin {
    * @private
    * @param {object} parent Parent element.
    * @param {object} element New child element.
+   * @param {number} finalElementRowIndex The final row index of the detached element.
    */
-  onAfterDetachChild(parent, element) {
-    this.collapsingUI.collapsedRowsStash.shiftStash(this.dataManager.getRowIndex(element), null, -1);
+  onAfterDetachChild(parent, element, finalElementRowIndex) {
+    this.collapsingUI.collapsedRowsStash.shiftStash(finalElementRowIndex, null, -1);
     this.collapsingUI.collapsedRowsStash.applyStash();
 
     this.headersUI.updateRowHeaderWidth();
