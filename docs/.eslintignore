@@ -1,0 +1,4 @@
+node_modules
+!.vuepress
+.vuepress/public/handsontable.js
+.vuepress/dist
