@@ -151,7 +151,7 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-The `columnSummary` plugin doesn't automatically add new rows to display its summary results.
+The `ColumnSummary` plugin doesn't automatically add new rows to display its summary results.
 
 So, to display a summary result below your existing rows:
 - Either [set the `reversedRowCoords` option to `true`](#reversedrowcoords)
