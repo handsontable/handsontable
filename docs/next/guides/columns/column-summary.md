@@ -237,7 +237,7 @@ const hot = new Handsontable(container, {
 
 ## Setting the calculation range
 
-By default, the `columnSummary` plugin makes calculations on data from all rows in the endpoint's destination column. However, you can specify it differently by column and row.
+By default, the `ColumnSummary` plugin makes calculations on data from all rows in the endpoint's destination column. However, you can specify it differently by column and row.
 
 The properties responsible for this are `ranges` and `sourceColumn`.
 
