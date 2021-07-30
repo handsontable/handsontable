@@ -83,7 +83,7 @@ const hot = new Handsontable(container, {
 
 ## Basic setup
 
-To initialize the `columnSummary` plugin, set a `columnSummary` property in your Handsontable instance's `settings` object.
+To initialize the `ColumnSummary` plugin, set a `columnSummary` property in your Handsontable instance's `settings` object.
 
 Declare the `columnSummary` property as an array of objects, where each object represents a single endpoint, i.e. the "output" cell or a single calculation.
 
