@@ -19,7 +19,7 @@ import { applyOptionsToPlugins } from './preProcessors/applyOptionsToPlugins.mjs
 
 import { buildPostProcessor } from './postProcessor.mjs';
 import { outputCleaners } from './postProcessors/outputCleaners.mjs';
-import { typesLinkingFixers } from './postProcessors/typesLinkingFixers.mjs';
+import { buildTypesLinkingFixers } from './postProcessors/typesLinkingFixers.mjs';
 import { unescapeRedundant } from './postProcessors/unescapeRedundant.mjs';
 import { jsdocLinksFixer } from './postProcessors/jsdocLinksFixer.mjs';
 
@@ -32,56 +32,16 @@ const escape = text => text.replace(/[{}<>]/g, '').replace(/~/g, '-')
 
 const header = buildHeaderWriter({ seo, urlPrefix, escape });
 const { source, dist } = buildPathsDeterminants({ pathToSource, pathToDist });
-const preProcessor = buildPreProcessor([
-  sortJsdocMembers,
-  applyLinkToSource,
-  ...applyOptionsToPlugins,
-  (data) => { // todo extract; clear class memberof (f.i. BasePlugin is member of BasePlugin)
-    data.some(member => {
-      if(member.kind === "class") {
-        member.memberof = undefined
-      }
-      return member.kind === "class";
-    });
-    return data;
-  },
-  (data) => { // todo extract; add a class data if doesn't exist.
-    const first = data[0];
-    if(first.kind === 'class'){
-      return data; // class element exists, all's right 
-    }
-    return [
-      {
-        "id": first.memberof,
-        "longname": first.memberof,
-        "name": first.memberof,
-        "kind": "class",
-        "scope": "global",
-      },
-      ...data
-    ];
-  }
-  ]);
-
-const postProcessor = buildPostProcessor([
-  ...outputCleaners,
-  ...typesLinkingFixers,
-  unescapeRedundant,
-  jsdocLinksFixer,
-]);
 const { parseJsdoc, generateMarkdown } = buildJsdocToMarkdownIntegrator({ source });
 
 /// main logic : parse
 const parse = function* () {
-  const getFileName = member => escape(
-    (
+  const getName = member => escape(
       (member.kind === 'class' && member.name) // if class get class name
       || member.memberof?.split('#')[0]  // if member of a class 
       || 'global' // else (if global)
-    )
-    +'.md'
   );
-  const groupMember = (map, member) => map.set(getFileName(member), [...map.get(getFileName(member)) || [], member]);
+  const groupMember = (map, member) => map.set(getName(member), [...map.get(getName(member)) || [], member]);
 
   logger.info("Parsing jsdoc comments...");
   const data = parseJsdoc(`**/*.js`);
@@ -90,8 +50,12 @@ const parse = function* () {
   const membersPerFile = data.reduce(groupMember, new Map());
 
   logger.info(`Parsed ${membersPerFile.size} API Refs pages.`);
-  yield* membersPerFile.entries();
-};
+  
+  const parsedTypes = [...membersPerFile.keys()];
+  for (const [type, members] of membersPerFile) {
+    yield {type, members, metaData: {parsedTypes}};
+  }
+}
 
 
 /// main logic: render
@@ -111,21 +75,61 @@ const write = (file, output) => {
   fs.writeFileSync(file, output);
 };
 
-const render = (file, rawJsdocData) => {
-  const jsdocData = preProcessor(rawJsdocData);
-  return write(dist(file), header(file, isJsdocPlugin(jsdocData)) +  postProcessor(generateMarkdown(jsdocData)));
+const render = (fileName, members, parsedTypes) => {
+  const preProcessor = buildPreProcessor([
+    sortJsdocMembers,
+    applyLinkToSource,
+    ...applyOptionsToPlugins,
+    (data) => { // todo extract; clear class memberof (f.i. BasePlugin is member of BasePlugin)
+      data.some(member => {
+        if(member.kind === "class") {
+          member.memberof = undefined
+        }
+        return member.kind === "class";
+      });
+      return data;
+    },
+    (data) => { // todo extract; add a class data if doesn't exist.
+      const first = data[0];
+      if(first.kind === 'class'){
+        return data; // class element exists, all's right 
+      }
+      return [
+        {
+          "id": first.memberof,
+          "longname": first.memberof,
+          "name": first.memberof,
+          "kind": "class",
+          "scope": "global",
+        },
+        ...data
+      ];
+    }
+  ]);
+
+  const postProcessor = buildPostProcessor([
+    ...outputCleaners,
+    ...buildTypesLinkingFixers({parsedTypes}),
+    unescapeRedundant,
+    jsdocLinksFixer,
+  ]);
+  
+  const jsdocData = preProcessor(members);
+  return write(dist(fileName), header(fileName, isJsdocPlugin(jsdocData)) +  postProcessor(generateMarkdown(jsdocData)));
 }
 
 /// program:
 const errors = [];
 
-for (const [file, jsdoc] of parse()) { // eslint-disable-line no-restricted-syntax
-  logger.log('Generating: ', dist(file));
+for (const {type, members, metaData:{parsedTypes}} of parse()) { // eslint-disable-line no-restricted-syntax
+  const fileName = `${type}.md`;
+  
+  logger.log(`Generating \`${type}\` into:`, dist(fileName));
   try {
-    render(file, jsdoc);
+    render(fileName, members, parsedTypes);
   } catch (e) {
     logger.error('ERROR: ', e);
-    errors.push({ file, e });
+    errors.push({ type, e });
   }
 }
 
