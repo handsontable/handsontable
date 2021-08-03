@@ -21,7 +21,8 @@ COPY docs ./docs
 WORKDIR /app/docs
 
 RUN rm -rf ./next/
-RUN rm ./.vuepress/public/handsontable.js ./.vuepress/public/handsontable.css
+# Removes the symlink to the "next" Handsontable version.
+# RUN rm ./.vuepress/public/handsontable # todo causes an error `rm: cannot remove './.vuepress/public/handsontable': No such file or directory` (@see https://github.com/handsontable/handsontable/runs/3180829710?check_suite_focus=true#step:4:157)
 
 RUN npm run docs:build
 

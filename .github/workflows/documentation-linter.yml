@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'docs/**'
+  pull_request:
+    types: [ opened, synchronize, reopened ]
 
 jobs:
   lint:

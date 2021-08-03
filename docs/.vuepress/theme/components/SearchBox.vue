@@ -324,7 +324,11 @@ export default {
       if (!this.showSuggestions) {
         return;
       }
-      this.$router.push(this.suggestions[i].path);
+
+      if (this.$route.fullPath !== this.suggestions[i].path) {
+        this.$router.push(this.suggestions[i].path);
+      }
+
       this.query = '';
       this.focusIndex = 0;
     },
