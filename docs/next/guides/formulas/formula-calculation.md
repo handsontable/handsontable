@@ -76,19 +76,19 @@ Double click on a cell to open the editor and preview the formula.
 ```
 ```js
 const data1 = [
-  ['10.26', null, 'Sum', '=SUM(A:A)', null],
-  ['20.12', null, 'Average', '=AVERAGE(A:A)', null],
-  ['30.01', null, 'Median', '=MEDIAN(A:A)', null],
-  ['40.29', null, 'MAX', '=MAX(A:A)', null],
-  ['50.18', null, 'MIN', '=MIN(A1:A5)', null],
+  ['10.26', null, 'Sum', '=SUM(A:A)'],
+  ['20.12', null, 'Average', '=AVERAGE(A:A)'],
+  ['30.01', null, 'Median', '=MEDIAN(A:A)'],
+  ['40.29', null, 'MAX', '=MAX(A:A)'],
+  ['50.18', null, 'MIN', '=MIN(A1:A5)'],
 ];
 
 const data2 = [
-  ['Is A1 in Sheet1 > 10?', '=IF(Sheet1!A1>10,"TRUE","FALSE")', null, null],
-  ['Is A:A in Sheet > 150?', '=IF(SUM(Sheet1!A:A)>150,"TRUE","FALSE")', null, null],
-  ['How many blank cells are in the Sheet1?', '=COUNTBLANK(Sheet1!A1:E5)', null, null],
-  ['Generate a random number', '=RAND()', null, null],
-  ['Number of sheets in this workbook', '=SHEETS()', null, null],
+  ['Is A1 in Sheet1 > 10?', '=IF(Sheet1!A1>10,"TRUE","FALSE")'],
+  ['Is A:A in Sheet > 150?', '=IF(SUM(Sheet1!A:A)>150,"TRUE","FALSE")'],
+  ['How many blank cells are in the Sheet1?', '=COUNTBLANK(Sheet1!A1:D5)'],
+  ['Generate a random number', '=RAND()'],
+  ['Number of sheets in this workbook', '=SHEETS()'],
 ];
 
 const hyperformulaInstance = HyperFormula.buildEmpty();
