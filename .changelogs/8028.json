@@ -1,7 +1,0 @@
-{
-  "title": "Fixed missing collapsible indicator on IE",
-  "type": "fixed",
-  "issue": 8028,
-  "breaking": false,
-  "framework": "none"
-}

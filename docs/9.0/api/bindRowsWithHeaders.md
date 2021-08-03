@@ -31,7 +31,7 @@ const hot = new Handsontable(container, {
 
 ### bindRowsWithHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/659ab339a149a32bdd86eea5b599b7eb50c49555/src/dataMap/metaManager/metaSchema.js#L2631
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/dataMap/metaManager/metaSchema.js#L2631
 
 :::
 
@@ -52,7 +52,7 @@ bindRowsWithHeaders: true
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/659ab339a149a32bdd86eea5b599b7eb50c49555/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L111
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L111
 
 :::
 
@@ -64,7 +64,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/659ab339a149a32bdd86eea5b599b7eb50c49555/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L91
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L91
 
 :::
 
@@ -76,7 +76,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/659ab339a149a32bdd86eea5b599b7eb50c49555/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L68
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L68
 
 :::
 
@@ -88,13 +88,13 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/659ab339a149a32bdd86eea5b599b7eb50c49555/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L61
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/plugins/bindRowsWithHeaders/bindRowsWithHeaders.js#L61
 
 :::
 
 _bindRowsWithHeaders.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
-hook and if it returns `true` than the [enablePlugin](#bindrowswithheaders+enableplugin) method is called.
+hook and if it returns `true` than the [BindRowsWithHeaders#enablePlugin](@/api/bindRowsWithHeaders.md#enableplugin) method is called.
 
 
