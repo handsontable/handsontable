@@ -440,7 +440,7 @@ For more information about named expressions, please refer to the [HyperFormula 
 
 <iframe width="100%" height="425px" src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
 
-### Learn more
+## Learn more
 
 *   [Plugin API reference](@/api/formulas.md)
 *   [HyperFormula guides](https://handsontable.github.io/hyperformula/)
