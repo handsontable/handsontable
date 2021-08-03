@@ -26,7 +26,8 @@ ${imports}
 ${html}
       </textarea>
       <textarea class="hidden" name="css" readOnly v-pre>${css}</textarea>
-      ${isBabelPanel || isAngularPanel ? '<input type="hidden" name="panel_js" value="3" readOnly>' : ''}
+      ${isBabelPanel ? '<input type="hidden" name="panel_js" value="3" readOnly>' : ''}
+      ${isAngularPanel ? '<input type="hidden" name="panel_js" value="4" readOnly>' : ''}
 
       <div class="js-fiddle-link">
         <button type="submit">Edit</button>
