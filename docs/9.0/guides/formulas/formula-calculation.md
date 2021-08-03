@@ -67,12 +67,19 @@ It is possible to use the plugin in single sheet mode or with multiple Handsonta
 
 Double click on a cell to open the editor and preview the formula.
 
-::: example #example1 --html 1 --js 2
+::: example #example1 --html 1 --css 2 --js 3
 ```html
-<h3>Sheet 1</h3>
+<h3 class="demo-preview">Sheet 1</h3>
 <div id="example-basic-multi-sheet-1"></div>
-<h3>Sheet 2</h3>
+<h3 class="demo-preview">Sheet 2</h3>
 <div id="example-basic-multi-sheet-2"></div>
+```
+```css
+h3.demo-preview {
+  margin-bottom: 0.3rem !important;
+  padding-top: 0 !important;
+  margin-top: 0.5rem !important;
+}
 ```
 ```js
 const data1 = [
