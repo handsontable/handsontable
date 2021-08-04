@@ -25,7 +25,7 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
  * @class ManualColumnMove
  *
  * @description
- * This plugin allows to change columns order. To make columns order persistent the {@link options#persistentstate Options#persistentState}
+ * This plugin allows to change columns order. To make columns order persistent the {@link Options#persistentState}
  * plugin should be enabled.
  *
  * API:
@@ -98,8 +98,8 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link hooks#beforeInit Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link manual-column-move#enableplugin ManualColumnMove#enablePlugin} method is called.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ManualColumnMove#enablePlugin} method is called.
    *
    * @returns {boolean}
    */
@@ -132,7 +132,7 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link core#updatesettings Core#updateSettings} is invoked.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -355,7 +355,7 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Saves the manual column positions to the persistent state (the {@link options#persistentstate Options#persistentState} option has to be enabled).
+   * Saves the manual column positions to the persistent state (the {@link Options#persistentState} option has to be enabled).
    *
    * @private
    * @fires Hooks#persistentStateSave
@@ -365,7 +365,7 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Loads the manual column positions from the persistent state (the {@link options#persistentstate Options#persistentState} option has to be enabled).
+   * Loads the manual column positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
    *
    * @private
    * @fires Hooks#persistentStateLoad
