@@ -19,10 +19,10 @@ Possible values:
 * `false` (to disable completely).
 
 or an object with values:
-* `'columnsLimit'` (see [CopyPaste#columnsLimit](@/api/copypaste.md#columnslimit))
-* `'rowsLimit'` (see [CopyPaste#rowsLimit](@/api/copypaste.md#rowslimit))
-* `'pasteMode'` (see [CopyPaste#pasteMode](@/api/copypaste.md#pastemode))
-* `'uiContainer'` (see [CopyPaste#uiContainer](@/api/copypaste.md#uicontainer)).
+* `'columnsLimit'` (see [CopyPaste#columnsLimit](@/api/copyPaste.md#columnslimit))
+* `'rowsLimit'` (see [CopyPaste#rowsLimit](@/api/copyPaste.md#rowslimit))
+* `'pasteMode'` (see [CopyPaste#pasteMode](@/api/copyPaste.md#pastemode))
+* `'uiContainer'` (see [CopyPaste#uiContainer](@/api/copyPaste.md#uicontainer)).
 
 See [the copy/paste demo](@/guides/cell-features/clipboard.md) for examples.
 
@@ -240,7 +240,7 @@ Creates copyable text releated to range objects.
 _copyPaste.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
-hook and if it returns `true` than the [CopyPaste#enablePlugin](@/api/copypaste.md#enableplugin) method is called.
+hook and if it returns `true` than the [CopyPaste#enablePlugin](@/api/copyPaste.md#enableplugin) method is called.
 
 
 

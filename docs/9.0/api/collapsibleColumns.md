@@ -201,7 +201,7 @@ Expands section at the provided coords.
 _collapsibleColumns.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](@/api/pluginHooks.md#beforeinit)
-hook and if it returns `true` than the [CollapsibleColumns#enablePlugin](@/api/collapsiblecolumns.md#enableplugin) method is called.
+hook and if it returns `true` than the [CollapsibleColumns#enablePlugin](@/api/collapsibleColumns.md#enableplugin) method is called.
 
 
 
