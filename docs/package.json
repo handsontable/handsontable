@@ -10,8 +10,8 @@
     "directory": "docs"
   },
   "scripts": {
-    "docs:lint": "eslint --ext .js,.vue .vuepress next",
-    "docs:lint:fix": "eslint --ext .js,.vue .vuepress next --fix",
+    "docs:lint": "eslint --ext .js,.vue,.mjs .vuepress next",
+    "docs:lint:fix": "eslint --ext .js,.vue,.mjs .vuepress next --fix",
     "docs:assets:next": "node .vuepress/tools/link-assets.mjs",
     "docs:start": "npm run docs:assets:next && vuepress dev ./",
     "docs:start:no-cache": "npm run docs:assets:next && vuepress dev --no-cache ./",
@@ -21,7 +21,7 @@
     "docs:docker:build:staging": "npm run docs:assets:next && docker build -f docker/Dockerfile -t docs-md ../",
     "docs:docker:build:production": "docker build -f docker/Dockerfile.production -t docs-md:production ../",
     "docs:version": "cd .vuepress/tools/version && node rollup-a-version.js",
-    "docs:api": "cd .vuepress/tools/jsdoc-convert && node jsdoc.js",
+    "docs:api": "node .vuepress/tools/jsdoc-convert/index.mjs",
     "docs:check-links": "node .vuepress/tools/check-links.js"
   },
   "license": "CC BY 4.0",
