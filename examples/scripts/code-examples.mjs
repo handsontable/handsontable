@@ -7,8 +7,7 @@ import rimraf from 'rimraf';
 import { spawnProcess } from '../../scripts/utils/processes.mjs';
 import { displayInfoMessage, displayConfirmationMessage, displayErrorMessage } from '../../scripts/utils/console.mjs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT_DIR = __dirname.split('examples')[0];
 const NEXT_EXAMPLES_DIR = path.join(REPO_ROOT_DIR, 'examples', 'next');
 const TMP_DIR_NAME = 'tmp';
