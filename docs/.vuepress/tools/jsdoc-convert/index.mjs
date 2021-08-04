@@ -6,7 +6,7 @@ import fs from 'fs';
 import utils from '../utils.js';
 
 /// internal dependencies
-import configuration from './configuration.js';
+import configuration from './configuration.mjs';
 import { isPlugin } from './predictors.mjs';
 import { buildHeaderWriter } from './seo.mjs';
 import { buildPathsDeterminants } from './paths.mjs';

@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   pathToSource: '../../../../src',
   pathToDist: '../../../next/api',
   urlPrefix: '/next/api/',
