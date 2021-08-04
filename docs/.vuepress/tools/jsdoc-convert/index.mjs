@@ -1,9 +1,6 @@
 /// npm dependencies
-import jsdoc2md from 'jsdoc-to-markdown';
-import dmd from 'dmd';
 import path from 'path';
 import fs from 'fs';
-import childProcess from 'child_process';
 
 /// shared dependencies
 import utils from '../utils.js';
