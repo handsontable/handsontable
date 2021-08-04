@@ -1,4 +1,3 @@
-/* eslint-disable no-useless-escape */
 /// npm dependencies
 import jsdoc2md from 'jsdoc-to-markdown';
 import dmd from 'dmd';
