@@ -3039,7 +3039,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return metaManager.getCellsMeta();
   };
 
-  this.memoizedGetCellMeta = new SimpleMap();
+  // Compare native Map vs HashObject
+  // this.memoizedGetCellMeta = new SimpleMap();
+  this.memoizedGetCellMeta = new Map();
+  
   this.getCellMeta = function(row, column) {
     if (this.renderCall) {
       const key = `${row}-${column}`;
