@@ -1,4 +1,3 @@
-/* eslint-disable no-useless-escape */
 /// npm dependencies
 import fs from 'fs';
 
@@ -6,7 +5,7 @@ import fs from 'fs';
 import utils from '../utils.js';
 
 /// internal dependencies
-import configuration from './configuration.js';
+import configuration from './configuration.mjs';
 import { isJsdocPlugin } from './predictors.mjs';
 import { buildHeaderWriter } from './seo.mjs';
 import { buildPathsDeterminants } from './paths.mjs';
