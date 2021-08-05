@@ -67,6 +67,8 @@ const hot = new Handsontable(container, {
   data,
   colHeaders: true,
   minSpareRows: 1,
+  height: 'auto',
+  width: 'auto',
   columns: [
     { data: 0 },
     // skip the second column
@@ -167,6 +169,8 @@ const data = [
 const hot = new Handsontable(container, {
   data,
   colHeaders: true,
+  height: 'auto',
+  width: 'auto',
   columns: [
     { data: 'id' },
     { data: 'name.first' },
@@ -195,6 +199,8 @@ const hot = new Handsontable(container, {
   startRows: 5,
   startCols: 4,
   colHeaders: ['ID', 'First Name', 'Last Name', 'Address'],
+  height: 'auto',
+  width: 'auto',
   columns: [
     { data: 'id' },
     { data: 'name.first' },
@@ -226,6 +232,8 @@ const hot = new Handsontable(container, {
     model({ id: 5, name: 'Michael Fair', address: '' })
   ],
   dataSchema: model,
+  height: 'auto',
+  width: 'auto',
   colHeaders: ['ID', 'Name', 'Address'],
   columns: [
     { data: property('id') },
