@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - develop
-      - feature/autoupdate
 
 jobs:
   autoupdate:
