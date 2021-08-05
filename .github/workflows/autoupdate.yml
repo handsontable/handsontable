@@ -1,0 +1,17 @@
+name: autoupdate
+on:
+  push:
+    branches:
+      - develop
+      - feature/autoupdate
+
+jobs:
+  autoupdate:
+    name: autoupdate
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: docker://chinthakagodawita/autoupdate-action@sha256:f0db4944adb5eb64565d4b2f8bb2b3f767a7224327d217c272935d21dbe7b541 # :v1
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          PR_LABELS: "autoupdate"
+          RETRY_COUNT: "1"
