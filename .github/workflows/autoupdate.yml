@@ -1,5 +1,5 @@
 name: autoupdate
-on:
+on: 
   push:
     branches:
       - develop
