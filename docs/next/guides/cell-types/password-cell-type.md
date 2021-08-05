@@ -24,6 +24,7 @@ const hot = new Handsontable(container, {
     { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
   ],
   colHeaders: ['ID', 'First name', 'Last name', 'Password'],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
     { data: 'id' },
@@ -50,6 +51,7 @@ const hot = new Handsontable(container, {
     { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
   ],
   colHeaders: ['ID', 'First name', 'Last name', 'Password'],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
     { data: 'id' },
@@ -76,6 +78,7 @@ const hot = new Handsontable(container, {
     { id: 3, name: { first: 'Greg', last: 'Well' }, password: 'longer' }
   ],
   colHeaders: ['ID', 'First name', 'Last name', 'Password'],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
     { data: 'id' },
