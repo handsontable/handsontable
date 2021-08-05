@@ -43,12 +43,11 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: ['Car', 'Model', 'Registration time', 'Price'],
   columnSorting: true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
     {
-      type: 'autocomplete',
-      source: ['Audi', 'BMW', 'Chrysler', 'Citroen', 'Mercedes', 'Nissan', 'Opel', 'Suzuki', 'Toyota', 'Volvo'],
-      strict: false
+      type: 'text',
     },
     {
       // 2nd cell is simple text, no special options here

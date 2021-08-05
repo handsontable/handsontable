@@ -43,6 +43,7 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   rowHeaders: true,
   contextMenu: true,
+  height: 'auto',
   hiddenColumns: {
     columns: [3, 5, 9],
     indicators: true
