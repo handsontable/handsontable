@@ -1,4 +1,5 @@
 node_modules
 !.vuepress
-.vuepress/public/handsontable.js
+.vuepress/public/handsontable
+.vuepress/public/scripts/hot-versions.js
 .vuepress/dist

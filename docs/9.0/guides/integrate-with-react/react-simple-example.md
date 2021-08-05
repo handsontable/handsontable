@@ -89,7 +89,6 @@ const App = () => {
   const [settings, setSettings] = useState(() => {
     const initialState = {
       data: Handsontable.helper.createSpreadsheetData(15, 20),
-      width: 570,
       height: 220,
       licenseKey: 'non-commercial-and-evaluation'
     }
