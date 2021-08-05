@@ -4,7 +4,7 @@ export const jsdocLinksFixer = text => text
       if (target.includes('://')) { // e.g https://handsontable.com/blog
         return all;
       }
-      
+
       let fixedAnchor = anchor.toLowerCase();
 
       // e.g. #Options+autoColumnSize or #getData
