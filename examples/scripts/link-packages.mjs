@@ -15,8 +15,7 @@ import {
 import examplesPackageJson from '../package.json';
 import hotPackageJson from '../../package.json';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const workspaces = examplesPackageJson.workspaces.packages;
 const hotWorkspaces = hotPackageJson.workspaces.packages;
 const isPackageRequired = (packageName, packageLocation) => {
