@@ -11,8 +11,8 @@ import {
 
 import hotPackageJson from '../../package.json';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 const workspacePackages = hotPackageJson.workspaces.packages;
 
 /**

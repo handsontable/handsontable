@@ -1,7 +1,0 @@
-{
-  "title": "\"Fixed functional keys' behaviour to prevent unexpected editing.\"",
-  "type": "fixed",
-  "issue": 7838,
-  "breaking": false,
-  "framework": "none"
-}

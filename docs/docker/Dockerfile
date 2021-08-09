@@ -19,10 +19,7 @@ WORKDIR /app
 COPY src ./src
 COPY docs ./docs
 
-# The symlink points to the outside file system, so it needs to be removed.
-RUN rm /app/docs/.vuepress/public/handsontable
-
-# Instead, copy the Handsontable files into the image.
+# Copy the Handsontable files for the "next" version into the image.
 COPY dist /app/docs/.vuepress/public/handsontable
 
 WORKDIR /app/docs
