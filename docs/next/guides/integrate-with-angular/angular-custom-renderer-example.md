@@ -64,6 +64,7 @@ class AppComponent {
     ],
     colHeaders: true,
     rowHeights: 55,
+    height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'
   };
 }
