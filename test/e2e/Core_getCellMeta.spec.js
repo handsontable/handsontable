@@ -38,6 +38,8 @@ describe('Core_getCellMeta', () => {
       }
     });
     allCellsReadOnly = true;
+
+    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
     selectCell(2, 2);
 
     keyDown('enter');
@@ -54,6 +56,8 @@ describe('Core_getCellMeta', () => {
       }
     });
     allCellsReadOnly = false;
+
+    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
     selectCell(2, 2);
 
     keyDown('enter');

@@ -81,6 +81,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const globalMeta = metaManager.getGlobalMeta();
   const pluginsRegistry = createUniqueMap();
 
+  /**
+   * Proof of concept - work in progress.
+   *
+   * @type {Map}
+   */
+  const cellMetaMemo = new Map();
+
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
   }
@@ -210,6 +217,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.selection = selection;
 
   const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }) => {
+    instance._clearCellMetaMemo();
+
     if (hiddenIndexesChanged) {
       this.selection.refresh();
     }
@@ -2955,6 +2964,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         arrayEach(cellMetaRow, (cellMeta, columnIndex) => this.setCellMetaObject(visualIndex, columnIndex, cellMeta));
       });
     }
+
+    instance._clearCellMetaMemo();
   };
 
   /**
@@ -3043,6 +3054,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       physicalColumn = column;
     }
 
+    const key = `${physicalRow}x${physicalColumn}`;
+
+    if (cellMetaMemo.has(key)) {
+      const cell = cellMetaMemo.get(key);
+
+      cell.visualRow = row;
+      cell.visualCol = column;
+      cell.row = physicalRow;
+      cell.col = physicalColumn;
+
+      return cell;
+    }
+
     const prop = datamap.colToProp(column);
     const cellProperties = metaManager.getCellMeta(physicalRow, physicalColumn);
 
@@ -3073,7 +3097,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     instance.runHooks('afterGetCellMeta', row, column, cellProperties);
 
+    cellMetaMemo.set(key, cellProperties);
+
     return cellProperties;
+  };
+
+  /**
+   * Proof of concept - work in progress.
+   */
+  this._clearCellMetaMemo = function() {
+    cellMetaMemo.clear();
   };
 
   /**

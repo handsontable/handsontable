@@ -133,6 +133,10 @@ class TableView {
         this.adjustElementsSize(true);
       }
 
+      if (this.instance.forceFullRender) {
+        this.instance._clearCellMetaMemo();
+      }
+
       this.wt.draw(!this.instance.forceFullRender);
       this.instance.forceFullRender = false;
       this.instance.renderCall = false;
