@@ -217,8 +217,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.selection = selection;
 
   const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }) => {
-    instance._clearCellMetaMemo();
-
     if (hiddenIndexesChanged) {
       this.selection.refresh();
     }

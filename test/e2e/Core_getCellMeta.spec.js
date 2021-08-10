@@ -212,10 +212,12 @@ describe('Core_getCellMeta', () => {
     hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
     hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
-    hot.getCellMeta(0, 1);
+    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
+    hot.getCellMeta(0, 0);
 
-    expect(rowInsideHook).toEqual(0);
-    expect(colInsideHook).toEqual(1);
+    // The last beforeGetCellMeta call should be called with visual index 4, 4
+    expect(rowInsideHook).toBe(4);
+    expect(colInsideHook).toBe(4);
   });
 
   it('should expand "type" property to cell meta when property is added in the `beforeGetCellMeta` hook', () => {
@@ -274,9 +276,11 @@ describe('Core_getCellMeta', () => {
     hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
     hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
+    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
     hot.getCellMeta(0, 1);
 
-    expect(rowInsideHook).toEqual(0);
-    expect(colInsideHook).toEqual(1);
+    // The last beforeGetCellMeta call should be called with visual index 4, 4
+    expect(rowInsideHook).toBe(4);
+    expect(colInsideHook).toBe(4);
   });
 });
