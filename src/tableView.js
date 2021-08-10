@@ -127,14 +127,14 @@ class TableView {
    */
   render() {
     if (!this.instance.isRenderSuspended()) {
+      if (this.instance.forceFullRender) {
+        this.instance._clearCellMetaMemo();
+      }
+
       if (this.postponedAdjustElementsSize) {
         this.postponedAdjustElementsSize = false;
 
         this.adjustElementsSize(true);
-      }
-
-      if (this.instance.forceFullRender) {
-        this.instance._clearCellMetaMemo();
       }
 
       this.wt.draw(!this.instance.forceFullRender);
