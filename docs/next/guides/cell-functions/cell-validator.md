@@ -171,6 +171,7 @@ const hot = new Handsontable(container, {
     }
   },
   colHeaders: ['ID', 'First name', 'Last name', 'IP', 'E-mail'],
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
     { data: 'id', type: 'numeric' },

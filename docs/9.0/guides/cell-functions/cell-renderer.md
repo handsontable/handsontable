@@ -141,6 +141,7 @@ const hot = new Handsontable(container, {
   data,
   colWidths: [200, 200, 200, 80],
   colHeaders: ['Title', 'Description', 'Comments', 'Cover'],
+  height: 'auto',
   columns: [
     { data: 'title', renderer: 'html' },
     { data: 'description', renderer: 'html' },
@@ -191,6 +192,7 @@ const container = document.querySelector('#example2');
 
 
 const hot = new Handsontable(container, {
+  height: 'auto',
   columns: [
     {},
     { renderer: customRenderer }
