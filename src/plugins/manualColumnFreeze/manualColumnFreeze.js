@@ -14,7 +14,7 @@ const privatePool = new WeakMap();
  *
  * @description
  * This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu or using API.
- * You can turn it on by setting a {@link options#manualcolumnfreeze Options#manualColumnFreeze} property to `true`.
+ * You can turn it on by setting a {@link Options#manualColumnFreeze} property to `true`.
  *
  * @example
  * ```js

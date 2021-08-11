@@ -25,7 +25,7 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * @class ManualRowMove
  *
  * @description
- * This plugin allows to change rows order. To make rows order persistent the {@link options#persistentstate Options#persistentState}
+ * This plugin allows to change rows order. To make rows order persistent the {@link Options#persistentState}
  * plugin should be enabled.
  *
  * API:
@@ -357,7 +357,7 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Saves the manual row positions to the persistent state (the {@link options#persistentstate Options#persistentState} option has to be enabled).
+   * Saves the manual row positions to the persistent state (the {@link Options#persistentState} option has to be enabled).
    *
    * @private
    * @fires Hooks#persistentStateSave
@@ -368,7 +368,7 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Loads the manual row positions from the persistent state (the {@link options#persistentstate Options#persistentState} option has to be enabled).
+   * Loads the manual row positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
    *
    * @private
    * @fires Hooks#persistentStateLoad
