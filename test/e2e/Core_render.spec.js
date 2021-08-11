@@ -72,7 +72,7 @@ describe('Core_render', () => {
       data: [
         ['Joe Red']
       ],
-      afterRender() {
+      afterViewRender() {
         counter += 1;
       }
     });

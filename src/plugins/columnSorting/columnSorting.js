@@ -185,7 +185,7 @@ export class ColumnSorting extends BasePlugin {
 
     // Changing header width and removing indicator.
     this.hot.addHook('afterGetColHeader', clearColHeader);
-    this.hot.addHookOnce('afterRender', () => {
+    this.hot.addHookOnce('afterViewRender', () => {
       this.hot.removeHook('afterGetColHeader', clearColHeader);
     });
 

@@ -421,11 +421,11 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after the Handsontable table is rendered.
    *
-   * @event Hooks#afterRender
+   * @event Hooks#afterViewRender
    * @param {boolean} isForced Is `true` if rendering was triggered by a change of settings or data; or `false` if
    *                           rendering was triggered by scrolling or moving selection.
    */
-  'afterRender',
+  'afterViewRender',
 
   /**
    * Fired before starting rendering the cell.
@@ -884,12 +884,15 @@ const REGISTERED_HOOKS = [
   /**
    * Fired before the Handsontable table is rendered.
    *
-   * @event Hooks#beforeRender
+   * @event Hooks#beforeViewRender
    * @param {boolean} isForced If `true` rendering was triggered by a change of settings or data; or `false` if
    *                           rendering was triggered by scrolling or moving selection.
    * @param {object} skipRender Object with `skipRender` property, if it is set to `true ` the next rendering cycle will be skipped.
    */
+  'beforeViewRender',
+
   'beforeRender',
+  'afterRender',
 
   /**
    * Fired before cell meta is changed.

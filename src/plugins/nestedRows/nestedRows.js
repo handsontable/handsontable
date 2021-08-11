@@ -96,7 +96,7 @@ export class NestedRows extends BasePlugin {
     this.rowMoveController = new RowMoveController(this);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
-    this.addHook('beforeRender', (...args) => this.onBeforeRender(...args));
+    this.addHook('beforeViewRender', (...args) => this.onBeforeRender(...args));
     this.addHook('modifyRowData', (...args) => this.onModifyRowData(...args));
     this.addHook('modifySourceLength', (...args) => this.onModifySourceLength(...args));
     this.addHook('beforeDataSplice', (...args) => this.onBeforeDataSplice(...args));

@@ -68,7 +68,7 @@ export class TouchScroll extends BasePlugin {
       return;
     }
 
-    this.addHook('afterRender', () => this.onAfterRender());
+    this.addHook('afterViewRender', () => this.onAfterRender());
     this.registerEvents();
 
     super.enablePlugin();
