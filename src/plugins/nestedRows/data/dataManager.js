@@ -590,7 +590,7 @@ class DataManager {
 
     if (indexWithinParent !== null && indexWithinParent !== void 0) {
       const removedRowIndexes = Array.from(
-        Array(childRowIndex + childCount + 1).keys()
+        new Array(childRowIndex + childCount + 1).keys()
       ).splice(-1 * (childCount + 1));
 
       this.hot.runHooks(
