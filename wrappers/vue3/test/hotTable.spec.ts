@@ -19,7 +19,7 @@ describe('hotInit', () => {
       }
     });
 
-    expect(typeof testWrapper.vm.hotInstance).toEqual('object');
+    expect(typeof testWrapper.componentVM.hotInstance).toEqual('object');
     expect(testWrapper.vm.hotInstance.getDataAtCell(0, 0)).toEqual('0-0');
   });
 });
@@ -32,22 +32,22 @@ describe('Updating the Handsontable settings', () => {
         data: createSampleData(1, 1),
         licenseKey: 'non-commercial-and-evaluation',
         rowHeaders: true,
-        afterUpdateSettings: function () {
+        afterUpdateSettings() {
           updateSettingsCalls++;
         }
       }
     });
 
-    expect(testWrapper.vm.hotInstance.getSettings().rowHeaders).toEqual(true);
+    expect(testWrapper.componentVM.hotInstance.getSettings().rowHeaders).toEqual(true);
 
     testWrapper.setProps({
       rowHeaders: false
     });
 
-    await Vue.nextTick();
+    await testWrapper.rootVM.$nextTick();
 
     expect(updateSettingsCalls).toEqual(1);
-    expect(testWrapper.vm.hotInstance.getSettings().rowHeaders).toEqual(false);
+    expect(testWrapper.componentVM.hotInstance.getSettings().rowHeaders).toEqual(false);
   });
 
   it('should update the previously initialized Handsontable instance only once with multiple changed properties', async() => {
