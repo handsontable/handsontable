@@ -2956,7 +2956,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     // TODO(temp)
-    metaManager.metaMemo.clear();
+    metaManager.dynamicMeta.metaSyncMemo.clear();
   };
 
   /**

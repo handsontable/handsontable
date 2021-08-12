@@ -2,9 +2,9 @@ import GlobalMeta from './metaLayers/globalMeta';
 import TableMeta from './metaLayers/tableMeta';
 import ColumnMeta from './metaLayers/columnMeta';
 import CellMeta from './metaLayers/cellMeta';
-import Hooks from '../../pluginHooks';
+import DynamicMeta from './metaLayers/dynamicMeta';
 import localHooks from '../../mixins/localHooks';
-import { mixin, hasOwnProperty } from '../../helpers/object';
+import { mixin } from '../../helpers/object';
 
 /**
  * With the Meta Manager class, it can be possible to manage with meta objects for different layers in
@@ -56,14 +56,10 @@ export default class MetaManager {
      * @type {CellMeta}
      */
     this.cellMeta = new CellMeta(this.columnMeta);
-
-    this.metaMemo = new Set();
-
-    Hooks.getSingleton().add('beforeRender', (forceFullRender) => {
-      if (forceFullRender) {
-        this.metaMemo.clear();
-      }
-    }, this.hot);
+    /**
+     * @type {DynamicMeta}
+     */
+    this.dynamicMeta = new DynamicMeta(this, hot);
   }
 
   /**
@@ -152,36 +148,7 @@ export default class MetaManager {
     cellMeta.row = physicalRow;
     cellMeta.col = physicalColumn;
 
-    const cacheKey = `${physicalRow}x${physicalColumn}`;
-
-    if (this.metaMemo.has(cacheKey)) {
-      return cellMeta;
-    }
-
-    const prop = this.hot.colToProp(visualColumn);
-
-    cellMeta.prop = prop;
-
-    this.hot.runHooks('beforeGetCellMeta', visualRow, visualColumn, cellMeta);
-
-    // for `type` added or changed in beforeGetCellMeta
-    if (this.hot.hasHook('beforeGetCellMeta') && hasOwnProperty(cellMeta, 'type')) {
-      this.updateCellMeta(physicalRow, physicalColumn, {
-        type: cellMeta.type,
-      });
-    }
-
-    if (cellMeta.cells) {
-      const settings = cellMeta.cells(physicalRow, physicalColumn, prop);
-
-      if (settings) {
-        this.updateCellMeta(physicalRow, physicalColumn, settings);
-      }
-    }
-
-    this.hot.runHooks('afterGetCellMeta', visualRow, visualColumn, cellMeta);
-
-    this.metaMemo.add(cacheKey);
+    this.runLocalHooks('afterGetCellMeta', cellMeta);
 
     return cellMeta;
   }
@@ -266,8 +233,6 @@ export default class MetaManager {
    */
   createRow(physicalRow, amount = 1) {
     this.cellMeta.createRow(physicalRow, amount);
-
-    // this.metaMemo.clear();
   }
 
   /**
@@ -278,8 +243,6 @@ export default class MetaManager {
    */
   removeRow(physicalRow, amount = 1) {
     this.cellMeta.removeRow(physicalRow, amount);
-
-    // this.metaMemo.clear();
   }
 
   /**
@@ -291,8 +254,6 @@ export default class MetaManager {
   createColumn(physicalColumn, amount = 1) {
     this.cellMeta.createColumn(physicalColumn, amount);
     this.columnMeta.createColumn(physicalColumn, amount);
-
-    // this.metaMemo.clear();
   }
 
   /**
@@ -304,8 +265,6 @@ export default class MetaManager {
   removeColumn(physicalColumn, amount = 1) {
     this.cellMeta.removeColumn(physicalColumn, amount);
     this.columnMeta.removeColumn(physicalColumn, amount);
-
-    // this.metaMemo.clear();
   }
 
   /**
