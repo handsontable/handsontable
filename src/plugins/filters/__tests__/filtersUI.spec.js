@@ -1516,7 +1516,7 @@ describe('Filters UI', () => {
     }, 100);
   });
 
-  it('should allow opening the filtering dropdown menu, when there are multiple Handsontable instances present', () => {
+  it('should open dropdown menu properly, when there are multiple Handsontable instances present', () => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -1541,10 +1541,20 @@ describe('Filters UI', () => {
     expect(document.querySelectorAll('.htDropdownMenu').length).toBe(2);
 
     dropdownMenu(1);
-    closeDropdownMenu();
 
     expect(getPlugin('dropdownMenu').menu.container.style.display).toBe('block');
     expect(getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
+    expect(hot2.getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
+    expect(hot2.getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
+
+    $(document.body).simulate('mousedown');
+    $(document.body).simulate('mouseup');
+    $(document.body).simulate('click');
+
+    expect(getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
+    expect(getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
+    expect(hot2.getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
+    expect(hot2.getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
 
     const th = hot2.view.wt.wtTable.getColumnHeader(1);
     const button = th.querySelector('.changeType');
@@ -1553,7 +1563,16 @@ describe('Filters UI', () => {
     $(button).simulate('mouseup');
     $(button).simulate('click');
 
+    expect(getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
+    expect(getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
     expect(hot2.getPlugin('dropdownMenu').menu.container.style.display).toBe('block');
+    expect(hot2.getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
+
+    dropdownMenu(1);
+
+    expect(getPlugin('dropdownMenu').menu.container.style.display).toBe('block');
+    expect(getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
+    expect(hot2.getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
     expect(hot2.getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
 
     hot2.destroy();
