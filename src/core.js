@@ -34,7 +34,7 @@ import {
   stopObserving as keyStateStopObserving
 } from './utils/keyStateObserver';
 import { Selection } from './selection';
-import { MetaManager, DataMap } from './dataMap/index';
+import { MetaManager, DynamicCellMetaMod, DataMap } from './dataMap/index';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 
 let activeGuid = null;
@@ -76,7 +76,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   userSettings.language = getValidLanguageCode(userSettings.language);
 
-  const metaManager = new MetaManager(instance, userSettings);
+  const metaManager = new MetaManager(instance, userSettings, [DynamicCellMetaMod]);
   const tableMeta = metaManager.getTableMeta();
   const globalMeta = metaManager.getGlobalMeta();
   const pluginsRegistry = createUniqueMap();
@@ -2956,7 +2956,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     // TODO(temp)
-    metaManager.dynamicMeta.metaSyncMemo.clear();
+    instance.render();
   };
 
   /**

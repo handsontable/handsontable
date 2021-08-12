@@ -85,11 +85,13 @@ describe('MetaManager', () => {
   describe('getCellMeta()', () => {
     it('should pass a method call to CellMeta layer', () => {
       const metaManager = new MetaManager();
+      const metaMock = {};
+      const optionsMock = {};
 
-      spyOn(metaManager.cellMeta, 'getMeta').and.returnValue('foo');
+      spyOn(metaManager.cellMeta, 'getMeta').and.returnValue(metaMock);
 
-      expect(metaManager.getCellMeta(34, 22, 'key')).toBe('foo');
-      expect(metaManager.cellMeta.getMeta).toHaveBeenCalledWith(34, 22, 'key');
+      expect(metaManager.getCellMeta(34, 22, optionsMock)).toBe(metaMock);
+      expect(metaManager.cellMeta.getMeta).toHaveBeenCalledWith(34, 22);
     });
   });
 

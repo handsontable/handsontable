@@ -2,7 +2,6 @@ import GlobalMeta from './metaLayers/globalMeta';
 import TableMeta from './metaLayers/tableMeta';
 import ColumnMeta from './metaLayers/columnMeta';
 import CellMeta from './metaLayers/cellMeta';
-import DynamicMeta from './metaLayers/dynamicMeta';
 import localHooks from '../../mixins/localHooks';
 import { mixin } from '../../helpers/object';
 
@@ -34,7 +33,7 @@ import { mixin } from '../../helpers/object';
  * A more detailed description of the specific layers can be found in the "metaLayers/" modules description.
  */
 export default class MetaManager {
-  constructor(hot, customSettings = {}) {
+  constructor(hot, customSettings = {}, metaMods = []) {
     /**
      * @type {Handsontable}
      */
@@ -56,10 +55,8 @@ export default class MetaManager {
      * @type {CellMeta}
      */
     this.cellMeta = new CellMeta(this.columnMeta);
-    /**
-     * @type {DynamicMeta}
-     */
-    this.dynamicMeta = new DynamicMeta(this, hot);
+
+    metaMods.forEach(ModifierClass => new ModifierClass(this));
   }
 
   /**

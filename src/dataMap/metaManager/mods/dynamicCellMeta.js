@@ -4,16 +4,12 @@ import { hasOwnProperty } from '../../../helpers/object';
 /**
  *
  */
-export default class DynamicMeta {
-  constructor(metaManager, hot) {
+export class DynamicCellMetaMod {
+  constructor(metaManager) {
     /**
      * @type {MetaManager}
      */
     this.metaManager = metaManager;
-    /**
-     * @type {Handsontable}
-     */
-    this.hot = hot;
     /**
      * @type {Map}
      */
@@ -25,11 +21,11 @@ export default class DynamicMeta {
       if (forceFullRender) {
         this.metaSyncMemo.clear();
       }
-    }, this.hot);
+    }, this.metaManager.hot);
   }
 
   /**
-   * @param {object} The cell meta object.
+   * @param {object} cellMeta The cell meta object.
    */
   extendCellMeta(cellMeta) {
     const {
@@ -45,15 +41,15 @@ export default class DynamicMeta {
       visualRow,
       visualCol,
     } = cellMeta;
-
-    const prop = this.hot.colToProp(visualCol);
+    const hot = this.metaManager.hot;
+    const prop = hot.colToProp(visualCol);
 
     cellMeta.prop = prop;
 
-    this.hot.runHooks('beforeGetCellMeta', visualRow, visualCol, cellMeta);
+    hot.runHooks('beforeGetCellMeta', visualRow, visualCol, cellMeta);
 
     // for `type` added or changed in beforeGetCellMeta
-    if (this.hot.hasHook('beforeGetCellMeta') && hasOwnProperty(cellMeta, 'type')) {
+    if (hot.hasHook('beforeGetCellMeta') && hasOwnProperty(cellMeta, 'type')) {
       this.metaManager.updateCellMeta(physicalRow, physicalColumn, {
         type: cellMeta.type,
       });
@@ -67,7 +63,7 @@ export default class DynamicMeta {
       }
     }
 
-    this.hot.runHooks('afterGetCellMeta', visualRow, visualCol, cellMeta);
+    hot.runHooks('afterGetCellMeta', visualRow, visualCol, cellMeta);
 
     if (!this.metaSyncMemo.has(physicalRow)) {
       this.metaSyncMemo.set(physicalRow, new Set());
