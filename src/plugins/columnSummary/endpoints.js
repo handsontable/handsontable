@@ -232,12 +232,12 @@ class Endpoints {
       // We need to run it on a next avaiable hook, because the TrimRows' `afterCreateRow` hook triggers after this one,
       // and it needs to be run to properly calculate the endpoint value.
       const beforeRenderCallback = () => {
-        this.hot.removeHook('beforeRender', beforeRenderCallback);
+        this.hot.removeHook('beforeViewRender', beforeRenderCallback);
 
         return this.refreshAllEndpoints();
       };
 
-      this.hot.addHookOnce('beforeRender', beforeRenderCallback);
+      this.hot.addHookOnce('beforeViewRender', beforeRenderCallback);
 
       return;
     }

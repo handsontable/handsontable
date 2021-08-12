@@ -1002,8 +1002,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   this.init = function() {
-    dataSource.setData(tableMeta.data);
+    if (firstRun) {
+      instance.addHook('beforeRender', (forceFullRender) => {
+        if (forceFullRender) {
+          cellMetaMemo.clear();
+        }
+      });
+    }
 
+    dataSource.setData(tableMeta.data);
     instance.runHooks('beforeInit');
 
     if (isMobileBrowser() || isIpadOS()) {
@@ -2963,7 +2970,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       });
     }
 
-    instance._clearCellMetaMemo();
+    // TODO(temp)
+    cellMetaMemo.clear();
   };
 
   /**
@@ -3098,13 +3106,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     cellMetaMemo.set(key, cellProperties);
 
     return cellProperties;
-  };
-
-  /**
-   * Proof of concept - work in progress.
-   */
-  this._clearCellMetaMemo = function() {
-    cellMetaMemo.clear();
   };
 
   /**

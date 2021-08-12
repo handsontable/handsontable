@@ -127,9 +127,7 @@ class TableView {
    */
   render() {
     if (!this.instance.isRenderSuspended()) {
-      if (this.instance.forceFullRender) {
-        this.instance._clearCellMetaMemo();
-      }
+      this.instance.runHooks('beforeRender', this.instance.forceFullRender);
 
       if (this.postponedAdjustElementsSize) {
         this.postponedAdjustElementsSize = false;
@@ -138,6 +136,7 @@ class TableView {
       }
 
       this.wt.draw(!this.instance.forceFullRender);
+      this.instance.runHooks('afterRender', this.instance.forceFullRender);
       this.instance.forceFullRender = false;
       this.instance.renderCall = false;
     }
@@ -1026,7 +1025,7 @@ class TableView {
   beforeRender(force, skipRender) {
     if (force) {
       // this.instance.forceFullRender = did Handsontable request full render?
-      this.instance.runHooks('beforeRender', this.instance.forceFullRender, skipRender);
+      this.instance.runHooks('beforeViewRender', this.instance.forceFullRender, skipRender);
     }
   }
 
@@ -1040,7 +1039,7 @@ class TableView {
   onDraw(force) {
     if (force) {
       // this.instance.forceFullRender = did Handsontable request full render?
-      this.instance.runHooks('afterRender', this.instance.forceFullRender);
+      this.instance.runHooks('afterViewRender', this.instance.forceFullRender);
     }
   }
 
