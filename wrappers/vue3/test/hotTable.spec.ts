@@ -1,6 +1,6 @@
 import {HotTable} from '../src/HotTable.vue';
 import BaseEditorComponent from '../src/BaseEditorComponent.vue';
-import { HOT_DESTROYED_WARNING } from '../src/helpers';
+import { WARNING_HOT_DESTROYED } from '../src/helpers';
 import { mount } from '@vue/test-utils';
 import {
   createDomContainer,
@@ -8,7 +8,7 @@ import {
   mockClientDimensions
 } from './_helpers';
 import { LRUMap } from "../src/lib/lru/lru";
-import {Vue} from 'vue';
+import {h, Vue} from 'vue';
 
 describe('hotInit', () => {
   it('should initialize Handsontable and assign it to the `hotInstace` property of the provided object', () => {
@@ -51,8 +51,8 @@ describe('Updating the Handsontable settings', () => {
   });
 
   it('should update the previously initialized Handsontable instance only once with multiple changed properties', async() => {
-    let App = Vue.extend({
-      data: function () {
+    const appComponent = {
+      data() {
         return {
           rowHeaders: true,
           colHeaders: true,
@@ -60,43 +60,41 @@ describe('Updating the Handsontable settings', () => {
         }
       },
       methods: {
-        updateData: function () {
+        updateData() {
           this.rowHeaders = false;
           this.colHeaders = false;
           this.readOnly = false;
         }
       },
-      render(h) {
+      render() {
         // HotTable
         return h(HotTable, {
-          ref: 'hotInstance',
-          props: {
-            rowHeaders: this.rowHeaders,
-            colHeaders: this.colHeaders,
-            readOnly: this.readOnly,
-            afterUpdateSettings: function () {
-              updateSettingsCalls++;
-            }
+          ref: 'dataGrid',
+          rowHeaders: this.rowHeaders,
+          colHeaders: this.colHeaders,
+          readOnly: this.readOnly,
+          afterUpdateSettings() {
+            updateSettingsCalls++;
           }
         })
       }
-    });
+    };
 
-    let testWrapper = mount(App, {
+    let testWrapper = mount(appComponent, {
       sync: false
     });
 
     let updateSettingsCalls = 0;
 
-    const hotTableComponent = testWrapper.vm.$children[0];
+    const hotTableComponent = testWrapper.componentVM.$refs.dataGrid;
 
     expect(hotTableComponent.hotInstance.getSettings().rowHeaders).toEqual(true);
     expect(hotTableComponent.hotInstance.getSettings().colHeaders).toEqual(true);
     expect(hotTableComponent.hotInstance.getSettings().readOnly).toEqual(true);
 
-    testWrapper.vm.updateData();
-
-    await Vue.nextTick();
+    testWrapper.componentVM.updateData();
+    await testWrapper.rootVM.$nextTick();
+    
     expect(updateSettingsCalls).toEqual(1);
     expect(hotTableComponent.hotInstance.getSettings().rowHeaders).toEqual(false);
     expect(hotTableComponent.hotInstance.getSettings().colHeaders).toEqual(false);
@@ -637,7 +635,7 @@ it('should display a warning and not throw any errors, when the underlying Hands
 
   expect(warnCalls.length).toBeGreaterThan(0);
   warnCalls.forEach((message) => {
-    expect(message).toEqual(HOT_DESTROYED_WARNING);
+    expect(message).toEqual(WARNING_HOT_DESTROYED);
   });
 
   testWrapper.destroy();

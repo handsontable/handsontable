@@ -7,7 +7,7 @@ let bulkComponentContainer = null;
 /**
  * Message for the warning thrown if the Handsontable instance has been destroyed.
  */
-export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' +
+export const WARNING_HOT_DESTROYED = 'The Handsontable instance bound to this component was destroyed and cannot be' +
   ' used properly.';
 
 /**

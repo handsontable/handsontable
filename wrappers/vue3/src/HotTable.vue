@@ -8,7 +8,7 @@
  
   import {defineComponent} from "vue";
   import {
-    getHotColumnComponents,
+    getHotColumnComponents, WARNING_HOT_DESTROYED,
     prepareSettings,
     preventInternalEditWatch,
     propFactory,
@@ -16,6 +16,7 @@
   } from "./helpers";
   import {HotTableProps} from "./types";
   import Handsontable from 'handsontable';
+  import {LRUMap} from "./lib/lru/lru";
 
   export const HotTable = {
     template:`
@@ -23,6 +24,44 @@
        <slot></slot>
       </div>
     `,
+    data() {
+      const self: any = this;
+      const rendererCache = new LRUMap(this.wrapperRendererCacheSize);
+
+      // Make the LRU cache destroy each removed component
+      rendererCache.shift = function () {
+        let entry = LRUMap.prototype.shift.call(this);
+        entry[1].component.$destroy();
+
+        return entry;
+      };
+
+      return {
+        __internalEdit: false,
+        miscCache: {
+          currentSourceColumns: null
+        },
+        __hotInstance: null,
+        columnSettings: null,
+        rendererCache: rendererCache,
+        editorCache: new Map(),
+        get hotInstance() {
+          if (!self.__hotInstance || (self.__hotInstance && !self.__hotInstance.isDestroyed)) {
+
+            // Will return the Handsontable instance or `null` if it's not yet been created.
+            return self.__hotInstance;
+
+          } else {
+            console.warn(WARNING_HOT_DESTROYED);
+
+            return null;
+          }
+        },
+        set hotInstance(hotInstance) {
+          self.__hotInstance = hotInstance;
+        }
+      };
+    },
     props: tablePropFactory(),
     mounted() { 
       return this.hotInit();
