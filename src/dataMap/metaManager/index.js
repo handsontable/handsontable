@@ -2,6 +2,9 @@ import GlobalMeta from './metaLayers/globalMeta';
 import TableMeta from './metaLayers/tableMeta';
 import ColumnMeta from './metaLayers/columnMeta';
 import CellMeta from './metaLayers/cellMeta';
+import Hooks from '../../pluginHooks';
+import localHooks from '../../mixins/localHooks';
+import { mixin, hasOwnProperty } from '../../helpers/object';
 
 /**
  * With the Meta Manager class, it can be possible to manage with meta objects for different layers in
@@ -31,11 +34,15 @@ import CellMeta from './metaLayers/cellMeta';
  * A more detailed description of the specific layers can be found in the "metaLayers/" modules description.
  */
 export default class MetaManager {
-  constructor(customSettings = {}) {
+  constructor(hot, customSettings = {}) {
+    /**
+     * @type {Handsontable}
+     */
+    this.hot = hot;
     /**
      * @type {GlobalMeta}
      */
-    this.globalMeta = new GlobalMeta();
+    this.globalMeta = new GlobalMeta(hot);
     this.globalMeta.updateMeta(customSettings);
     /**
      * @type {TableMeta}
@@ -49,6 +56,14 @@ export default class MetaManager {
      * @type {CellMeta}
      */
     this.cellMeta = new CellMeta(this.columnMeta);
+
+    this.metaMemo = new Set();
+
+    Hooks.getSingleton().add('beforeRender', (forceFullRender) => {
+      if (forceFullRender) {
+        this.metaMemo.clear();
+      }
+    }, this.hot);
   }
 
   /**
@@ -124,10 +139,66 @@ export default class MetaManager {
    *
    * @param {number} physicalRow The physical row index.
    * @param {number} physicalColumn The physical column index.
-   * @param {string} [key] If the key exists its value will be returned, otherwise the whole cell meta object.
+   * @param {object} options An additional options that are used to extend the cell meta object.
+   * @param {number} options.visualRow The visual row index of the currently requested cell meta object.
+   * @param {number} options.visualColumn The visual column index of the currently requested cell meta object.
    * @returns {object}
    */
-  getCellMeta(physicalRow, physicalColumn, key) {
+  getCellMeta(physicalRow, physicalColumn, { visualRow, visualColumn }) {
+    const cellMeta = this.cellMeta.getMeta(physicalRow, physicalColumn);
+
+    cellMeta.visualRow = visualRow;
+    cellMeta.visualCol = visualColumn;
+    cellMeta.row = physicalRow;
+    cellMeta.col = physicalColumn;
+
+    const cacheKey = `${physicalRow}x${physicalColumn}`;
+
+    if (this.metaMemo.has(cacheKey)) {
+      return cellMeta;
+    }
+
+    const prop = this.hot.colToProp(visualColumn);
+
+    cellMeta.prop = prop;
+
+    this.hot.runHooks('beforeGetCellMeta', visualRow, visualColumn, cellMeta);
+
+    // for `type` added or changed in beforeGetCellMeta
+    if (this.hot.hasHook('beforeGetCellMeta') && hasOwnProperty(cellMeta, 'type')) {
+      this.updateCellMeta(physicalRow, physicalColumn, {
+        type: cellMeta.type,
+      });
+    }
+
+    if (cellMeta.cells) {
+      const settings = cellMeta.cells(physicalRow, physicalColumn, prop);
+
+      if (settings) {
+        this.updateCellMeta(physicalRow, physicalColumn, settings);
+      }
+    }
+
+    this.hot.runHooks('afterGetCellMeta', visualRow, visualColumn, cellMeta);
+
+    this.metaMemo.add(cacheKey);
+
+    return cellMeta;
+  }
+
+  /**
+   * Gets value from the cell meta object defined by the "key" property.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {string} key Defines the value that will be returned from the cell meta object.
+   * @returns {*}
+   */
+  getCellMetaKeyValue(physicalRow, physicalColumn, key) {
+    if (typeof key !== 'string') {
+      throw new Error('The passed cell meta object key is not a string');
+    }
+
     return this.cellMeta.getMeta(physicalRow, physicalColumn, key);
   }
 
@@ -195,6 +266,8 @@ export default class MetaManager {
    */
   createRow(physicalRow, amount = 1) {
     this.cellMeta.createRow(physicalRow, amount);
+
+    // this.metaMemo.clear();
   }
 
   /**
@@ -205,6 +278,8 @@ export default class MetaManager {
    */
   removeRow(physicalRow, amount = 1) {
     this.cellMeta.removeRow(physicalRow, amount);
+
+    // this.metaMemo.clear();
   }
 
   /**
@@ -216,6 +291,8 @@ export default class MetaManager {
   createColumn(physicalColumn, amount = 1) {
     this.cellMeta.createColumn(physicalColumn, amount);
     this.columnMeta.createColumn(physicalColumn, amount);
+
+    // this.metaMemo.clear();
   }
 
   /**
@@ -227,6 +304,8 @@ export default class MetaManager {
   removeColumn(physicalColumn, amount = 1) {
     this.cellMeta.removeColumn(physicalColumn, amount);
     this.columnMeta.removeColumn(physicalColumn, amount);
+
+    // this.metaMemo.clear();
   }
 
   /**
@@ -244,3 +323,5 @@ export default class MetaManager {
     this.columnMeta.clearCache();
   }
 }
+
+mixin(MetaManager, localHooks);
