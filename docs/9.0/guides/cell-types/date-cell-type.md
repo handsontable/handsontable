@@ -31,7 +31,6 @@ All data entered into the date-type cells are validated against the default date
 ::: example #example1
 ```js
 const container = document.querySelector('#example1');
-const cars = ['Audi', 'BMW', 'Chrysler', 'Citroen', 'Mercedes', 'Nissan', 'Opel', 'Suzuki', 'Toyota', 'Volvo'];
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
@@ -42,11 +41,10 @@ const hot = new Handsontable(container, {
     ['BMW', '320i Coupe', '07/24/2022', 30500]
   ],
   colHeaders: ['Car', 'Model', 'Registration date', 'Price'],
+  height: 'auto',
   columns: [
     {
-      type: 'autocomplete',
-      source: cars,
-      strict: false
+      type: 'text',
     },
     {
       // 2nd cell is simple text, no special options here
