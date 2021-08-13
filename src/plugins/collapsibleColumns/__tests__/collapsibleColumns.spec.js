@@ -3962,8 +3962,8 @@ describe('CollapsibleColumns', () => {
     });
 
     describe('drop-down menu', () => {
-      it('should close drop-down menu after click on indicator which shows a column', () => {
-        const hot = handsontable({
+      xit('should close drop-down menu after click on indicator which shows a column', () => {
+        handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 10),
           colHeaders: true,
           rowHeaders: true,
@@ -3989,7 +3989,7 @@ describe('CollapsibleColumns', () => {
         $dropDownIndicator.simulate('mouseup');
         $dropDownIndicator.simulate('click');
 
-        $(getCell(-2, 1).querySelector('.collapsibleIndicator'))
+        $(getCell(-4, 1).querySelector('.collapsibleIndicator'))
           .simulate('mousedown')
           .simulate('mouseup')
           .simulate('click');
