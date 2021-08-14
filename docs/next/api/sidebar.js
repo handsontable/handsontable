@@ -4,24 +4,17 @@ const path = require('path');
 const apiHighLevelPages = [
   'introduction',
   'core',
-  'pluginHooks',
-  'metaSchema'
+  'hooks',
+  'options'
 ];
 
-const nonPublicPages = [
-  'indexMapper',
-  'baseEditor',
-  'coords',
-  'plugins',
-  'focusableElement',
-  'DataMap',
-  'hidingMap',
-  'indexesSequence',
-  'trimmingMap',
-  'samplesGenerator',
-  'physicalIndexToValueMap',
-  'ghostTable',
-];
+const plugins = fs.readdirSync(path.join(__dirname, './'))
+  .filter((fileName) => {
+    const file = fs.readFileSync(path.resolve(__dirname, fileName));
+
+    return file.includes('hotPlugin: true\n');
+  }).map(fileName => fileName.split('.').shift());
+
 const { getLatestVersion } = require('../../.vuepress/helpers');
 
 const getUrlVersionPart = () => {
@@ -37,8 +30,7 @@ module.exports = {
       title: 'Plugins',
       path: `${getUrlVersionPart()}/api/plugins`,
       collapsable: false,
-      children: fs.readdirSync(path.join(__dirname, './'))
-        .filter(f => !['sidebar', ...nonPublicPages, ...apiHighLevelPages].includes(f.split('.').shift()))
+      children: plugins
     },
   ]
 };
