@@ -807,8 +807,8 @@ const REGISTERED_HOOKS = [
    * @param {Event} event The `mousedown` event object.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
    * @param {HTMLTableCellElement} TD TD element.
-   * @param {object} controller An object with keys `row`, `column` and `cells` which contains boolean values. This
-   *                            object allows or disallows changing the selection for the particular axies.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   'beforeOnCellMouseDown',
 
@@ -840,8 +840,8 @@ const REGISTERED_HOOKS = [
    * @param {Event} event The `mouseover` event object.
    * @param {CellCoords} coords CellCoords object containing the visual coordinates of the clicked cell.
    * @param {HTMLTableCellElement} TD TD element.
-   * @param {object} controller An object with keys `row`, `column` and `cells` which contains boolean values. This
-   *                            object allows or disallows changing the selection for the particular axies.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   'beforeOnCellMouseOver',
 
