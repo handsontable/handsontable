@@ -168,6 +168,7 @@ declare namespace Handsontable {
    */
   type CellValue = any;
 
+
   /**
    * A cell change represented by `[row, column, prevValue, nextValue]`.
    */
@@ -178,6 +179,11 @@ declare namespace Handsontable {
    * Row objects can have any data assigned to them, not just column data, and can define a `__children` array for nested rows.
    */
   type RowObject = { [prop: string]: any };
+
+  /**
+   * An object containing possible options to use in SelectEditor.
+   */
+  type SelectOptionsObject = { [prop: string]: string };
 
   /**
    * A single row of source data, which can be represented as an array of values, or an object with key/value pairs.
@@ -1696,7 +1702,7 @@ declare namespace Handsontable {
     rowHeights?: number | string | number[] | string[] | undefined[] | (number | string | undefined)[] | ((index: number) => string | number | undefined);
     search?: boolean | search.Settings;
     selectionMode?: 'single' | 'range' | 'multiple';
-    selectOptions?: string[];
+    selectOptions?: string[] | SelectOptionsObject | ((visualRow: number, visualColumn: number, prop: string | number) => string[] | SelectOptionsObject);
     skipColumnOnPaste?: boolean;
     skipRowOnPaste?: boolean;
     sortByRelevance?: boolean;

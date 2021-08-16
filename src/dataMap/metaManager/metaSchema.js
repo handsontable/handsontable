@@ -2358,7 +2358,7 @@ export default () => {
      * __Note__, this option only works for [select-typed](@/guides/cell-types/select-cell-type.md) cells.
      *
      * @memberof Options#
-     * @type {string[]}
+     * @type {string[]|object|Function}
      * @default undefined
      * @category Core
      *
@@ -2367,8 +2367,26 @@ export default () => {
      * columns: [
      *   {
      *     editor: 'select',
-     *     // add three select options to choose from
+     *     // as an array of strings, `option.value` and `option.textContent` uses the same value
      *     selectOptions: ['A', 'B', 'C'],
+     *     // as an object - `option.value` points a key, `option.textContent` contains string assigned to the key
+     *     selectOptions: {
+     *       value1: 'Label 1',
+     *       value2: 'Label 2',
+     *       value3: 'Label 3',
+     *     },
+     *     // as a function returning possible options as an array
+     *     selectOptions(visualRow, visualColumn, prop) {
+     *       return ['A', 'B', 'C'];
+     *     },
+     *     // as a function returning possible options as an object
+     *     selectOptions(visualRow, visualColumn, prop) {
+     *       return {
+     *         value1: 'Label 1',
+     *         value2: 'Label 2',
+     *         value3: 'Label 3',
+     *       };
+     *     },
      *   }
      * ],
      * ```
