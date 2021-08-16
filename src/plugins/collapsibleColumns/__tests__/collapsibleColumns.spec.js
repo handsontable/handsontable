@@ -3960,42 +3960,5 @@ describe('CollapsibleColumns', () => {
         expect(getCell(-1, 2)).toBeNull();
       });
     });
-
-    describe('drop-down menu', () => {
-      xit('should close drop-down menu after click on indicator which shows a column', () => {
-        handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 10),
-          colHeaders: true,
-          rowHeaders: true,
-          nestedHeaders: [
-            ['A', { label: 'B', colspan: 8 }, 'C'],
-            ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
-            ['H',
-              { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
-              { label: 'L', colspan: 2 }, 'M'], ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
-          ],
-          collapsibleColumns: [
-            { row: -4, col: 1, collapsible: true },
-            { row: -3, col: 1, collapsible: true },
-            { row: -2, col: 1, collapsible: true },
-            { row: -2, col: 3, collapsible: true }
-          ],
-          dropdownMenu: true,
-        });
-
-        const $dropDownIndicator = $(getCell(-1, 0)).find('.changeType');
-
-        $dropDownIndicator.simulate('mousedown');
-        $dropDownIndicator.simulate('mouseup');
-        $dropDownIndicator.simulate('click');
-
-        $(getCell(-4, 1).querySelector('.collapsibleIndicator'))
-          .simulate('mousedown')
-          .simulate('mouseup')
-          .simulate('click');
-
-        expect(getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
-      });
-    });
   });
 });
