@@ -1864,7 +1864,7 @@ declare namespace Handsontable {
       beforeOnCellMouseDown?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
       beforeOnCellMouseOut?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
       beforeOnCellMouseOver?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
-      beforeOnCellMouseUp?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
+      beforeOnCellMouseUp?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
       beforePaste?: (data: CellValue[][], coords: plugins.RangeType[]) => void | boolean;
       beforeRedo?: (action: plugins.UndoRedoAction) => void;
       beforeRedoStackChange?: (undoneActions: plugins.UndoRedoAction[]) => void;
@@ -1974,7 +1974,7 @@ declare namespace Handsontable {
   interface SelectionController {
     row: boolean;
     column: boolean;
-    cells: boolean;
+    cell: boolean;
   }
 
   namespace RecordTranslation {

@@ -386,16 +386,16 @@ export class NestedHeaders extends BasePlugin {
    * @param {MouseEvent} event Mouse event.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
    * @param {CellCoords} TD The table cell or header element.
-   * @param {object} blockCalculations An object with keys `row`, `column` and `cell` which contains boolean values.
-   *                                   This object allows or disallows changing the selection for the particular axies.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
+  onBeforeOnCellMouseDown(event, coords, TD, controller) {
     const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
 
     if (headerNodeData) {
       // Block the Selection module in controlling how the columns are selected. Pass the
       // responsibility of the column selection to this plugin (see "onAfterOnCellMouseDown" hook).
-      blockCalculations.column = true;
+      controller.column = true;
     }
   }
 
@@ -453,10 +453,10 @@ export class NestedHeaders extends BasePlugin {
    * @param {MouseEvent} event Mouse event.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
    * @param {HTMLElement} TD The cell element.
-   * @param {object} blockCalculations An object with keys `row`, `column` and `cell` which contains boolean values.
-   *                                   This object allows or disallows changing the selection for the particular axies.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
+  onBeforeOnCellMouseOver(event, coords, TD, controller) {
     if (!this.hot.view.isMouseDown()) {
       return;
     }
@@ -479,8 +479,8 @@ export class NestedHeaders extends BasePlugin {
 
     // Block the Selection module in controlling how the columns and cells are selected.
     // From now on, the plugin is responsible for the selection.
-    blockCalculations.column = true;
-    blockCalculations.cell = true;
+    controller.column = true;
+    controller.cell = true;
 
     const columnsToSelect = [];
 
