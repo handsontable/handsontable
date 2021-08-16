@@ -140,9 +140,9 @@ You can save any type of data in local storage to preserve the table state after
 
 When `persistentState` is enabled it exposes hooks listed below:
 
-* [persistentStateSave](@/api/pluginHooks.md#persistentstatesave)
-* [persistentStateLoad](@/api/pluginHooks.md#persistentstateload)
-* [persistentStateReset](@/api/pluginHooks.md#persistentstatereset)
+* [persistentStateSave](@/api/hooks.md#persistentstatesave)
+* [persistentStateLoad](@/api/hooks.md#persistentstateload)
+* [persistentStateReset](@/api/hooks.md#persistentstatereset)
 
 ## `persistentState` vs `LocalStorage API`
 

@@ -42,7 +42,7 @@ There are significant differences between the plugin's [dragRows](@/api/manualRo
 
 
 ::: tip
-Both of these methods trigger the [beforeRowMove](@/api/pluginHooks.md#beforerowmove) and [afterRowMove](@/api/pluginHooks.md#afterrowmove) hooks, but only [dragRows](@/api/manualRowMove.md#dragrows) passes the `dropIndex` argument to them.
+Both of these methods trigger the [beforeRowMove](@/api/hooks.md#beforerowmove) and [afterRowMove](@/api/hooks.md#afterrowmove) hooks, but only [dragRows](@/api/manualRowMove.md#dragrows) passes the `dropIndex` argument to them.
 :::
 
 The [dragRows](@/api/manualRowMove.md#dragrows) method has a `dropIndex` parameter, which points to where the elements are being dropped.
