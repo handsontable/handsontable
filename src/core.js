@@ -2955,7 +2955,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       });
     }
 
-    // TODO(temp)
     instance.render();
   };
 
