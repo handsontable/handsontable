@@ -25,31 +25,31 @@ Want to play with the code yourself? Select "Open Sandbox" in the frame's bottom
   {
     name: 'JavaScript',
     title: 'Handsontable JavaScript Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-javascript-data-grid-hello-world-app-dzx8f',
+    codeSandboxId: 'handsontable-javascript-data-grid-hello-world-app-1cc81',
     selectedFile: '/src/index.js',
   },
   {
     name: 'TypeScript',
     title: 'Handsontable TypeScript Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-typescript-data-grid-hello-world-app-145es',
+    codeSandboxId: 'handsontable-typescript-data-grid-hello-world-app-tbsul',
     selectedFile: '/src/index.ts',
   },
   {
     name: 'React',
     title: 'Handsontable React Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-react-data-grid-hello-world-app-yt46w',
+    codeSandboxId: 'handsontable-react-data-grid-hello-world-app-bhipr',
     selectedFile: '/src/index.tsx',
   },
   {
     name: 'Angular',
     title: 'Handsontable Angular Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-angular-data-grid-hello-world-app-50pb7',
+    codeSandboxId: 'handsontable-angular-data-grid-hello-world-app-dhojw',
     selectedFile: '/src/data-grid/data-grid.component.ts',
   },
   {
-    name: 'Vue',
+    name: 'Vue 2',
     title: 'Handsontable Vue Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-vue-data-grid-hello-world-app-hh2hk',
+    codeSandboxId: 'handsontable-vue-data-grid-hello-world-app-5qgo7',
     selectedFile: '/src/components/DataGrid.vue',
   },
 ]"></HelloWorld>
