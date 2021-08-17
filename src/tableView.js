@@ -661,7 +661,7 @@ class TableView {
       },
       onCellMouseDown: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
-        const blockCalculations = {
+        const controller = {
           row: false,
           column: false,
           cell: false
@@ -672,7 +672,7 @@ class TableView {
         this.activeWt = wt;
         priv.mouseDown = true;
 
-        this.instance.runHooks('beforeOnCellMouseDown', event, visualCoords, TD, blockCalculations);
+        this.instance.runHooks('beforeOnCellMouseDown', event, visualCoords, TD, controller);
 
         if (isImmediatePropagationStopped(event)) {
           return;
@@ -681,7 +681,7 @@ class TableView {
         handleMouseEvent(event, {
           coords: visualCoords,
           selection: this.instance.selection,
-          controller: blockCalculations,
+          controller,
         });
 
         this.instance.runHooks('afterOnCellMouseDown', event, visualCoords, TD);
@@ -723,14 +723,14 @@ class TableView {
       onCellMouseOver: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
 
-        const blockCalculations = {
+        const controller = {
           row: false,
           column: false,
           cell: false
         };
 
         this.activeWt = wt;
-        this.instance.runHooks('beforeOnCellMouseOver', event, visualCoords, TD, blockCalculations);
+        this.instance.runHooks('beforeOnCellMouseOver', event, visualCoords, TD, controller);
 
         if (isImmediatePropagationStopped(event)) {
           return;
@@ -740,7 +740,7 @@ class TableView {
           handleMouseEvent(event, {
             coords: visualCoords,
             selection: this.instance.selection,
-            controller: blockCalculations,
+            controller,
           });
         }
 
