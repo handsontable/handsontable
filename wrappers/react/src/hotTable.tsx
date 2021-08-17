@@ -453,16 +453,16 @@ class HotTable extends React.Component<HotTableProps, {}> {
   }
 
   /**
-   * Handsontable's `beforeRender` hook callback.
+   * Handsontable's `beforeViewRender` hook callback.
    */
-  handsontableBeforeRender(): void {
+  handsontableBeforeViewRender(): void {
     this.getRenderedCellCache().clear();
   }
 
   /**
-   * Handsontable's `afterRender` hook callback.
+   * Handsontable's `afterViewRender` hook callback.
    */
-  handsontableAfterRender(): void {
+  handsontableAfterViewRender(): void {
     this.portalManager.setState(() => {
       return Object.assign({}, {
         portals: this.portalCacheArray
@@ -516,12 +516,12 @@ class HotTable extends React.Component<HotTableProps, {}> {
 
     this.hotInstance = new Handsontable.Core(this.hotElementRef, newGlobalSettings);
 
-    this.hotInstance.addHook('beforeRender', function (isForced) {
-      hotTableComponent.handsontableBeforeRender();
+    this.hotInstance.addHook('beforeViewRender', function (isForced) {
+      hotTableComponent.handsontableBeforeViewRender();
     });
 
-    this.hotInstance.addHook('afterRender', function () {
-      hotTableComponent.handsontableAfterRender();
+    this.hotInstance.addHook('afterViewRender', function () {
+      hotTableComponent.handsontableAfterViewRender();
     });
 
     // `init` missing in Handsontable's type definitions.

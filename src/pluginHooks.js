@@ -419,15 +419,6 @@ const REGISTERED_HOOKS = [
   'afterRemoveRow',
 
   /**
-   * Fired after the Handsontable table is rendered.
-   *
-   * @event Hooks#afterViewRender
-   * @param {boolean} isForced Is `true` if rendering was triggered by a change of settings or data; or `false` if
-   *                           rendering was triggered by scrolling or moving selection.
-   */
-  'afterViewRender',
-
-  /**
    * Fired before starting rendering the cell.
    *
    * @event Hooks#beforeRenderer
@@ -882,16 +873,46 @@ const REGISTERED_HOOKS = [
   'beforeRemoveRow',
 
   /**
-   * Fired before the Handsontable table is rendered.
+   * Fired before the Handsontable's view rendering engine is rendered.
    *
    * @event Hooks#beforeViewRender
-   * @param {boolean} isForced If `true` rendering was triggered by a change of settings or data; or `false` if
-   *                           rendering was triggered by scrolling or moving selection.
+   * @since 10.0.0
+   * @param {boolean} isForced If `true` rendering was triggered by a change of settings, data or a logic that needs
+   *                           full render table cycle; or `false` if rendering was triggered by scrolling or
+   *                           moving selection.
    * @param {object} skipRender Object with `skipRender` property, if it is set to `true ` the next rendering cycle will be skipped.
    */
   'beforeViewRender',
 
+  /**
+   * Fired before the Handsontable's view rendering engine is rendered.
+   *
+   * @event Hooks#afterViewRender
+   * @since 10.0.0
+   * @param {boolean} isForced If `true` rendering was triggered by a change of settings, data or a logic that needs
+   *                           full render table cycle; or `false` if rendering was triggered by scrolling or
+   *                           moving selection.
+   */
+  'afterViewRender',
+
+  /**
+   * Fired before the Handsontable's view rendering engine is rendered.
+   *
+   * @event Hooks#beforeRender
+   * @param {boolean} isForced If `true` rendering was triggered by a change of settings, data or a logic that needs
+   *                           full render table cycle; or `false` if rendering was triggered by scrolling or
+   *                           moving selection.
+   */
   'beforeRender',
+
+  /**
+   * Fired after the Handsontable table is rendered.
+   *
+   * @event Hooks#afterRender
+   * @param {boolean} isForced If `true` rendering was triggered by a change of settings, data or a logic that needs
+   *                           full render table cycle; or `false` if rendering was triggered by scrolling or
+   *                           moving selection.
+   */
   'afterRender',
 
   /**

@@ -109,6 +109,57 @@ describe('MetaManager', () => {
       expect(metaManager.getCellMeta(34, 22, optionsMock)).toBe(metaMock);
       expect(metaManager.cellMeta.getMeta).toHaveBeenCalledWith(34, 22);
     });
+
+    it('should extend the cell meta object for physical and visual indexes', () => {
+      const metaManager = new MetaManager();
+      const metaMock = {
+        foo: 'bar',
+      };
+
+      spyOn(metaManager.cellMeta, 'getMeta').and.returnValue(metaMock);
+
+      metaManager.getCellMeta(34, 22, {
+        visualRow: 3,
+        visualColumn: 5,
+      });
+
+      expect(metaMock).toEqual({
+        row: 34,
+        col: 22,
+        visualRow: 3,
+        visualCol: 5,
+        foo: 'bar',
+      });
+    });
+  });
+
+  describe('getCellMetaKeyValue()', () => {
+    it('should pass a method call to CellMeta layer', () => {
+      const metaManager = new MetaManager();
+      const metaMock = {};
+
+      spyOn(metaManager.cellMeta, 'getMeta').and.returnValue(metaMock);
+
+      expect(metaManager.getCellMetaKeyValue(34, 22, 'foo')).toBe(metaMock);
+      expect(metaManager.cellMeta.getMeta).toHaveBeenCalledWith(34, 22, 'foo');
+    });
+
+    it('should throw an error when the "key" is not a string', () => {
+      const metaManager = new MetaManager();
+
+      spyOn(metaManager.cellMeta, 'getMeta');
+
+      expect(() => {
+        metaManager.getCellMetaKeyValue(34, 22);
+      }).toThrow('The passed cell meta object key is not a string');
+      expect(() => {
+        metaManager.getCellMetaKeyValue(34, 22, 1);
+      }).toThrow('The passed cell meta object key is not a string');
+      expect(() => {
+        metaManager.getCellMetaKeyValue(34, 22, {});
+      }).toThrow('The passed cell meta object key is not a string');
+      expect(metaManager.cellMeta.getMeta).not.toHaveBeenCalled();
+    });
   });
 
   describe('setCellMeta()', () => {
