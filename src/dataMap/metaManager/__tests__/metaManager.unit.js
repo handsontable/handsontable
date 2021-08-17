@@ -5,6 +5,22 @@ import ColumnMeta from 'handsontable/dataMap/metaManager/metaLayers/columnMeta';
 import CellMeta from 'handsontable/dataMap/metaManager/metaLayers/cellMeta';
 
 describe('MetaManager', () => {
+  it('should instantiate the mod class with proper list of arguments', () => {
+    const constructorSpy = jest.fn();
+
+    class CacheCellMetaMod {
+      constructor(...args) {
+        constructorSpy.apply(constructorSpy, args);
+      }
+    }
+
+    const hotMock = {};
+    const meta = new MetaManager(hotMock, {}, [CacheCellMetaMod]);
+
+    expect(constructorSpy).toHaveBeenCalledTimes(1);
+    expect(constructorSpy).toHaveBeenCalledWith(meta);
+  });
+
   describe('constructor()', () => {
     it('should initialize all meta layers', () => {
       const metaManager = new MetaManager();

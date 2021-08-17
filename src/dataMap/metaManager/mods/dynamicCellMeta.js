@@ -1,5 +1,6 @@
 import Hooks from '../../../pluginHooks';
 import { hasOwnProperty } from '../../../helpers/object';
+import { isFunction } from '../../../helpers/function';
 
 /**
  *
@@ -48,19 +49,22 @@ export class DynamicCellMetaMod {
 
     hot.runHooks('beforeGetCellMeta', visualRow, visualCol, cellMeta);
 
-    // for `type` added or changed in beforeGetCellMeta
-    if (hot.hasHook('beforeGetCellMeta') && hasOwnProperty(cellMeta, 'type')) {
-      this.metaManager.updateCellMeta(physicalRow, physicalColumn, {
-        type: cellMeta.type,
-      });
+    // Extend a `type` value added or changed in beforeGetCellMeta hook
+    const cellType = hasOwnProperty(cellMeta, 'type') ? cellMeta.type : null;
+    let cellSettings = isFunction(cellMeta.cells) ? cellMeta.cells(physicalRow, physicalColumn, prop) : null;
+
+    if (cellType) {
+      if (cellSettings) {
+        cellSettings.type = cellSettings.type ?? cellType;
+      } else {
+        cellSettings = {
+          type: cellType,
+        };
+      }
     }
 
-    if (cellMeta.cells) {
-      const settings = cellMeta.cells(physicalRow, physicalColumn, prop);
-
-      if (settings) {
-        this.metaManager.updateCellMeta(physicalRow, physicalColumn, settings);
-      }
+    if (cellSettings) {
+      this.metaManager.updateCellMeta(physicalRow, physicalColumn, cellSettings);
     }
 
     hot.runHooks('afterGetCellMeta', visualRow, visualCol, cellMeta);
