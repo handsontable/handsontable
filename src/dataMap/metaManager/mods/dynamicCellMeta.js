@@ -3,7 +3,16 @@ import { hasOwnProperty } from '../../../helpers/object';
 import { isFunction } from '../../../helpers/function';
 
 /**
+ * @class DynamicCellMetaMod
  *
+ * The DynamicCellMeta modifier allows extending the cell meta objects returned by the
+ * `getCellMeta` from the MetaManager by additional property values. Those properties
+ * can be dynamically added by using the Handsontable hooks (`afterGetCellMeta` and
+ * `afterGetCellMeta`) or by Handsontable `cells` setting function.
+ *
+ * The `getCellMeta` method is used very widely within the source code. To make sure
+ * that dynamically added properties do not slow down the method execution time, the
+ * logic is triggered only once per table slow render cycle.
  */
 export class DynamicCellMetaMod {
   constructor(metaManager) {
@@ -26,6 +35,13 @@ export class DynamicCellMetaMod {
   }
 
   /**
+   * Extends the cell meta object for user-specific values. The cell meta object can be
+   * extended by listening to the `beforeGetCellMeta` or `afterGetCellMeta` Handsontable hooks
+   * or by Handsontable `cells` setting function.
+   *
+   * The extending process is synchronized with the table life cycle, and it happens only
+   * once per slow table render cycle.
+   *
    * @param {object} cellMeta The cell meta object.
    */
   extendCellMeta(cellMeta) {
