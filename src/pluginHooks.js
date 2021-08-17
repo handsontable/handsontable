@@ -875,6 +875,8 @@ const REGISTERED_HOOKS = [
   /**
    * Fired before the Handsontable's view rendering engine is rendered.
    *
+   * __Note:__ In v9.x and earlier, this hook was named "beforeRender".
+   *
    * @event Hooks#beforeViewRender
    * @since 10.0.0
    * @param {boolean} isForced If `true` rendering was triggered by a change of settings, data or a logic that needs
@@ -885,7 +887,10 @@ const REGISTERED_HOOKS = [
   'beforeViewRender',
 
   /**
-   * Fired before the Handsontable's view rendering engine is rendered.
+   * Fired after the Handsontable's view rendering engine is rendered but before the selection borders redraw
+   * and scroll syncing.
+   *
+   * __Note:__ In v9.x and earlier, this hook was named "afterRender".
    *
    * @event Hooks#afterViewRender
    * @since 10.0.0
@@ -896,7 +901,9 @@ const REGISTERED_HOOKS = [
   'afterViewRender',
 
   /**
-   * Fired before the Handsontable's view rendering engine is rendered.
+   * Fired before the Handsontable table is rendered. The event is fired right after the Handsontable
+   * business logic is executed and right before the rendering engine will start to call Handsontable
+   * Core logic, renderers, cell meta objects etc. to update the view.
    *
    * @event Hooks#beforeRender
    * @param {boolean} isForced If `true` rendering was triggered by a change of settings, data or a logic that needs
@@ -906,7 +913,7 @@ const REGISTERED_HOOKS = [
   'beforeRender',
 
   /**
-   * Fired after the Handsontable table is rendered.
+   * The event is fired right after the Handsontable view rendering engine update the view.
    *
    * @event Hooks#afterRender
    * @param {boolean} isForced If `true` rendering was triggered by a change of settings, data or a logic that needs

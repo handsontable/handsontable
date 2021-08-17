@@ -15,7 +15,7 @@ describe('Core_getCellMeta', () => {
   it('should get proper cell meta when indexes was modified', () => {
     const hot = handsontable({
       minRows: 5,
-      minCols: 5
+      minCols: 5,
     });
 
     hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
@@ -74,10 +74,12 @@ describe('Core_getCellMeta', () => {
     });
 
     selectCell(0, 0);
-    expect(getCellMeta(0, 0).readOnly).toBe(true);
-    keyDown('enter');
-    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
 
+    expect(getCellMeta(0, 0).readOnly).toBe(true);
+
+    keyDown('enter');
+
+    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
 
   it('should use default cell editor for a cell that has declared only cell renderer', () => {
@@ -99,6 +101,7 @@ describe('Core_getCellMeta', () => {
     keyDown('enter');
     document.activeElement.value = 'new value';
     destroyEditor();
+
     expect(getDataAtCell(2, 2)).toEqual('new value');
   });
 
@@ -128,7 +131,7 @@ describe('Core_getCellMeta', () => {
     expect(getCell(1, 1).style.backgroundColor).toEqual('');
   });
 
-  it('this in cells should point to cellProperties', () => {
+  it('"this" in cells should point to cellProperties', () => {
     let called = 0;
     let _row;
     let _this;
@@ -143,8 +146,8 @@ describe('Core_getCellMeta', () => {
 
     const HOT = getInstance();
 
-    expect(called).toBeGreaterThan(0);
-    expect(_this.row).toEqual(_row);
+    expect(called).toBe(25); // default dataset is 5x5 so 25 calls
+    expect(_this.row).toBe(_row);
     expect(_this.instance).toBe(HOT);
   });
 

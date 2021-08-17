@@ -108,6 +108,7 @@ export const redo = handsontableMethodFactory('redo');
 export const refreshDimensions = handsontableMethodFactory('refreshDimensions');
 export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
 export const render = handsontableMethodFactory('render');
+export const scrollViewportTo = handsontableMethodFactory('scrollViewportTo');
 export const selectAll = handsontableMethodFactory('selectAll');
 export const selectCell = handsontableMethodFactory('selectCell');
 export const selectCells = handsontableMethodFactory('selectCells');
