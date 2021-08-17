@@ -371,17 +371,13 @@ describe('SelectEditor', () => {
 
     handsontable({
       data: [
-        { a: 'A1', b: 'B1', c: 'C1', d: 'D1'},
-        { a: 'A2', b: 'B2', c: 'C2', d: 'D2'},
-        { a: 'A3', b: 'B3', c: 'C3', d: 'D3'},
-        { a: 'A4', b: 'B4', c: 'C4', d: 'D4'},
+        { a: 'A1', b: 'B1', c: 'C1', d: 'D1' },
+        { a: 'A2', b: 'B2', c: 'C2', d: 'D2' },
+        { a: 'A3', b: 'B3', c: 'C3', d: 'D3' },
+        { a: 'A4', b: 'B4', c: 'C4', d: 'D4' },
       ],
-      columns: [
-        {
-          editor: 'select',
-          selectOptions: options
-        }
-      ]
+      editor: 'select',
+      selectOptions: options
     });
 
     selectCell(1, 1);
