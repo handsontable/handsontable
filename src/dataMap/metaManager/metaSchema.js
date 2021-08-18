@@ -2382,19 +2382,19 @@ export default () => {
      * columns: [
      *   {
      *     editor: 'select',
-     *     // as an array of strings, `option.value` and `option.textContent` uses the same value
+     *     // as an array of strings: `option.value` and `option.textContent` use the same value
      *     selectOptions: ['A', 'B', 'C'],
-     *     // as an object - `option.value` points a key, `option.textContent` contains string assigned to the key
+     *     // as an object: `option.value` appoints a key, and `option.textContent` contains a string assigned to the key
      *     selectOptions: {
      *       value1: 'Label 1',
      *       value2: 'Label 2',
      *       value3: 'Label 3',
      *     },
-     *     // as a function returning possible options as an array
+     *     // as a function that returns possible options as an array
      *     selectOptions(visualRow, visualColumn, prop) {
      *       return ['A', 'B', 'C'];
      *     },
-     *     // as a function returning possible options as an object
+     *     // as a function that returns possible options as an object
      *     selectOptions(visualRow, visualColumn, prop) {
      *       return {
      *         value1: 'Label 1',

@@ -1,5 +1,5 @@
 {
-  "title": "Improved documentation and TypeScript definition for 'selectOptions' option.",
+  "title": "Improved the documentation and TypeScript definition of the `selectOptions` option.",
   "type": "changed",
   "issue": 8488,
   "breaking": false,
