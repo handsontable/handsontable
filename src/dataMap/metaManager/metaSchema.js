@@ -1507,7 +1507,7 @@ export default () => {
      * Setting to `true` enables the {@link Search} plugin (see [demo](@/guides/accessories-and-menus/searching-values.md)).
      *
      * @memberof Options#
-     * @type {boolean}
+     * @type {boolean|object}
      * @default false
      * @category Search
      *
