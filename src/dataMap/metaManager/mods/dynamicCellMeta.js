@@ -7,7 +7,7 @@ import { isFunction } from '../../../helpers/function';
  *
  * The DynamicCellMeta modifier allows extending the cell meta objects returned by the
  * `getCellMeta` from the MetaManager by additional property values. Those properties
- * can be dynamically added by using the Handsontable hooks (`afterGetCellMeta` and
+ * can be dynamically added by the Handsontable hooks (`afterGetCellMeta` and
  * `afterGetCellMeta`) or by Handsontable `cells` setting function.
  *
  * The `getCellMeta` method is used very widely within the source code. To make sure
