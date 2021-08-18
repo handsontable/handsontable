@@ -96,7 +96,7 @@ export class NestedRows extends BasePlugin {
     this.rowMoveController = new RowMoveController(this);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
-    this.addHook('beforeViewRender', (...args) => this.onBeforeRender(...args));
+    this.addHook('beforeViewRender', (...args) => this.onBeforeViewRender(...args));
     this.addHook('modifyRowData', (...args) => this.onModifyRowData(...args));
     this.addHook('modifySourceLength', (...args) => this.onModifySourceLength(...args));
     this.addHook('beforeDataSplice', (...args) => this.onBeforeDataSplice(...args));
@@ -432,13 +432,13 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * `beforeRender` hook callback.
+   * `beforeViewRender` hook callback.
    *
    * @param {boolean} force Indicates if the render call was trigered by a change of settings or data.
    * @param {object} skipRender An object, holder for skipRender functionality.
    * @private
    */
-  onBeforeRender(force, skipRender) {
+  onBeforeViewRender(force, skipRender) {
     const priv = privatePool.get(this);
 
     if (priv.skipRender) {

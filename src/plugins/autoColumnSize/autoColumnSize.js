@@ -208,7 +208,7 @@ export class AutoColumnSize extends BasePlugin {
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', changes => this.onBeforeChange(changes));
     this.addHook('afterFormulasValuesUpdate', changes => this.onAfterFormulasValuesUpdate(changes));
-    this.addHook('beforeViewRender', force => this.onBeforeRender(force));
+    this.addHook('beforeViewRender', force => this.onBeforeViewRender(force));
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
     this.addHook('afterInit', () => this.onAfterInit());
     super.enablePlugin();
@@ -556,11 +556,11 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * On before render listener.
+   * On before view render listener.
    *
    * @private
    */
-  onBeforeRender() {
+  onBeforeViewRender() {
     this.calculateVisibleColumnsWidth();
 
     if (this.isNeedRecalculate() && !this.inProgress) {
