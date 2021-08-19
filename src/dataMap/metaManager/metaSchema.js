@@ -1504,20 +1504,20 @@ export default () => {
 
     /**
      * @description
-     * Setting to `true` enables the {@link Search} plugin (see [demo](@/guides/accessories-and-menus/searching-values.md)).
+     * If set to `true`, enables the {@link Search} plugin with a default configuration.
+     * If set to an object, enables the {@link Search} plugin with a custom configuration.
+     * See the guide on [how to search values in Handsontable](@/guides/accessories-and-menus/searching-values.md).
      *
      * @memberof Options#
-     * @type {boolean}
+     * @type {boolean|object}
      * @default false
      * @category Search
      *
      * @example
      * ```js
-     * // enable search plugin
+     * // set to `true`, to enable the Search plugin with a default configuration
      * search: true,
-     *
-     * // or
-     * // as an object with detailed configuration
+     * // or set to an object, to enable the Search plugin with a custom configuration
      * search: {
      *   searchResultClass: 'customClass',
      *   queryMethod: function(queryStr, value) {
@@ -1527,6 +1527,9 @@ export default () => {
      *     ...
      *   }
      * }
+     *
+     * // set to `false, to disable the Search plugin
+     * search: false,
      * ```
      */
     search: false,
