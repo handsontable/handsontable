@@ -347,13 +347,6 @@ export function dropdownMenu(columnIndex) {
 }
 
 /**
- * Closes the dropdown menu.
- */
-export function closeDropdownMenu() {
-  $(document).simulate('mousedown');
-}
-
-/**
  * @returns {HTMLElement}
  */
 export function dropdownMenuRootElement() {

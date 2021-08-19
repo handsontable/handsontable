@@ -810,4 +810,29 @@ describe('NestedHeaders', () => {
       expect(afterOnCellMouseDown.calls.argsFor(0)[2]).toBe(corner);
     });
   });
+
+  describe('cooperation with drop-down menu element', () => {
+    it('should close drop-down menu after click on header which sorts a column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 11),
+        colHeaders: true,
+        rowHeaders: true,
+        columnSorting: true,
+        dropdownMenu: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+        ],
+      });
+
+      const $firstHeader = spec().$container.find('.ht_master table.htCore thead th span.columnSorting');
+
+      dropdownMenu(0);
+
+      $firstHeader.simulate('mousedown');
+      $firstHeader.simulate('mouseup');
+      $firstHeader.simulate('click');
+
+      expect(getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
+    });
+  });
 });
