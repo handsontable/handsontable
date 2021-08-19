@@ -366,6 +366,31 @@ describe('SelectEditor', () => {
     expect($options.eq(2).html()).toMatch(options.lam);
   });
 
+  it('should use visual indexes and property as function\'s argument', () => {
+    const options = jasmine.createSpy('options');
+
+    handsontable({
+      data: [
+        { a: 'A1', b: 'B1', c: 'C1', d: 'D1' },
+        { a: 'A2', b: 'B2', c: 'C2', d: 'D2' },
+        { a: 'A3', b: 'B3', c: 'C3', d: 'D3' },
+        { a: 'A4', b: 'B4', c: 'C4', d: 'D4' },
+      ],
+      editor: 'select',
+      selectOptions: options
+    });
+
+    selectCell(1, 1);
+    selectCell(0, 2);
+    selectCell(3, 3);
+
+    expect(options).toHaveBeenCalledTimes(3);
+    expect(options).toHaveBeenCalledWith(1, 1, 'b');
+    expect(options).toHaveBeenCalledWith(0, 2, 'c');
+    expect(options).toHaveBeenCalledWith(3, 3, 'd');
+
+  });
+
   it('should populate select with given options (function:array)', () => {
     const options = function() {
       return [
