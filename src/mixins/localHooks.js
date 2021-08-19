@@ -1,5 +1,5 @@
-import { arrayEach } from './../helpers/array';
 import { defineGetter } from './../helpers/object';
+import { fastCall } from './../helpers/function';
 
 const MIXIN_NAME = 'localHooks';
 
@@ -34,11 +34,22 @@ const localHooks = {
    * Run hooks.
    *
    * @param {string} key The hook name.
-   * @param {*} params Additional parameters passed to callback function.
+   * @param {*} [arg1] Additional parameter passed to callback function.
+   * @param {*} [arg2] Additional parameter passed to callback function.
+   * @param {*} [arg3] Additional parameter passed to callback function.
+   * @param {*} [arg4] Additional parameter passed to callback function.
+   * @param {*} [arg5] Additional parameter passed to callback function.
+   * @param {*} [arg6] Additional parameter passed to callback function.
    */
-  runLocalHooks(key, ...params) {
+  runLocalHooks(key, arg1, arg2, arg3, arg4, arg5, arg6) {
     if (this._localHooks[key]) {
-      arrayEach(this._localHooks[key], callback => callback.apply(this, params));
+      const length = this._localHooks[key].length;
+
+      // Do not optimize this loop with the arrayEach or arrow function! If you do, You'll
+      // decrease perf because of GC. The "...rest" ES6+ syntax as well decreases the performance.
+      for (let i = 0; i < length; i++) {
+        fastCall(this._localHooks[key][i], this, arg1, arg2, arg3, arg4, arg5, arg6);
+      }
     }
   },
 
