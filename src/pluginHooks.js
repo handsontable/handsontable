@@ -879,11 +879,9 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeViewRender
    * @since 10.0.0
-   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of 
-   *                                                 data, or a logic that needs a full Handsontable render cycle.
-   *
-   *                                                 If set to `false`, the rendering gets triggered by scrolling or
-   *                                                 moving the selection.
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
    * @param {object} skipRender Object with `skipRender` property, if it is set to `true ` the next rendering cycle will be skipped.
    */
   'beforeViewRender',
@@ -896,39 +894,35 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterViewRender
    * @since 10.0.0
-   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of 
-   *                                                 data, or a logic that needs a full Handsontable render cycle.
-   *
-   *                                                 If set to `false`, the rendering gets triggered by scrolling or
-   *                                                 moving the selection.
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
    */
   'afterViewRender',
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Fired before Handsontable's view-rendering engine updates the view.
-   * 
+   *
    * The `beforeRender` event is fired right after the Handsontable
    * business logic is executed and right before the rendering engine starts calling
    * the Core logic, renderers, cell meta objects etc. to update the view.
    *
    * @event Hooks#beforeRender
-   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of 
-   *                                                 data, or a logic that needs a full Handsontable render cycle.
-   *
-   *                                                 If set to `false`, the rendering gets triggered by scrolling or
-   *                                                 moving the selection.
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
    */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   'beforeRender',
 
   /**
    * Fired after Handsontable's view-rendering engine updates the view.
    *
    * @event Hooks#afterRender
-   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of 
-   *                                                 data, or a logic that needs a full Handsontable render cycle.
-   *
-   *                                                 If set to `false`, the rendering gets triggered by scrolling or
-   *                                                 moving the selection.
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
    */
   'afterRender',
 
