@@ -85,7 +85,10 @@ export class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Freezes the given column (add it to fixed columns).
+   * Freezes the specified column (adds it to fixed columns).
+   *
+   * `freezeColumn()` doesn't re-render the table,
+   * so you need to call the `render()` method afterward.
    *
    * @param {number} column Visual column index.
    */
