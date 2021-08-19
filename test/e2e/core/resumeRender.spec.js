@@ -42,8 +42,8 @@ describe('Core.resumeRender', () => {
     expect(hot.view.wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(0);
     expect(beforeRender).toHaveBeenCalledTimes(1);
     expect(afterRender).toHaveBeenCalledTimes(1);
-    // Walkontable calculators decide that the slow render path is not necessary, so
-    // the view render hooks are not triggered.
+    // Walkontable calculators decide that the slow render path is not necessary,
+    // so the `beforeViewRender` and `afterViewRender` hooks are not triggered.
     expect(beforeViewRender).toHaveBeenCalledTimes(0);
     expect(afterViewRender).toHaveBeenCalledTimes(0);
   });

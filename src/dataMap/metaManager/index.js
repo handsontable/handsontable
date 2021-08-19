@@ -132,7 +132,7 @@ export default class MetaManager {
    *
    * @param {number} physicalRow The physical row index.
    * @param {number} physicalColumn The physical column index.
-   * @param {object} options An additional options that are used to extend the cell meta object.
+   * @param {object} options Additional options that are used to extend the cell meta object.
    * @param {number} options.visualRow The visual row index of the currently requested cell meta object.
    * @param {number} options.visualColumn The visual column index of the currently requested cell meta object.
    * @returns {object}
@@ -151,7 +151,7 @@ export default class MetaManager {
   }
 
   /**
-   * Gets value from the cell meta object defined by the "key" property.
+   * Gets a value (defined by the `key` property) from the cell meta object.
    *
    * @param {number} physicalRow The physical row index.
    * @param {number} physicalColumn The physical column index.

@@ -1,5 +1,5 @@
 {
-  "title": "Changed what and when the `beforeRender` and `afterRender` hooks are triggered. Added two new hooks `beforeViewRender` and `afterViewRender`",
+  "title": "Changed what the `beforeRender` and `afterRender` hooks are, and when they are triggered. Added two new hooks: `beforeViewRender` and `afterViewRender`.",
   "type": "changed",
   "issue": 6303,
   "breaking": true,

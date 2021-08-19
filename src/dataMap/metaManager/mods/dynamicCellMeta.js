@@ -5,14 +5,17 @@ import { isFunction } from '../../../helpers/function';
 /**
  * @class DynamicCellMetaMod
  *
- * The DynamicCellMeta modifier allows extending the cell meta objects returned by the
- * `getCellMeta` from the MetaManager by additional property values. Those properties
- * can be dynamically added by the Handsontable hooks (`afterGetCellMeta` and
- * `afterGetCellMeta`) or by Handsontable `cells` setting function.
+ * The `DynamicCellMetaMod` modifier allows for extending cell meta objects
+ * (returned by `getCellMeta()` from `MetaManager`)
+ * by user-specific properties.
  *
- * The `getCellMeta` method is used very widely within the source code. To make sure
- * that dynamically added properties do not slow down the method execution time, the
- * logic is triggered only once per table slow render cycle.
+ * The user-specific properties can be added and changed dynamically,
+ * either by Handsontable's hooks (`beforeGetCellMeta` and`afterGetCellMeta`),
+ * or by Handsontable's `cells` option.
+ *
+ * The `getCellMeta()` method is used widely throughout the source code.
+ * To boost the method's execution time,
+ * the logic is triggered only once per one Handsontable slow render cycle.
  */
 export class DynamicCellMetaMod {
   constructor(metaManager) {
@@ -35,12 +38,13 @@ export class DynamicCellMetaMod {
   }
 
   /**
-   * Extends the cell meta object for user-specific values. The cell meta object can be
-   * extended by listening to the `beforeGetCellMeta` or `afterGetCellMeta` Handsontable hooks
-   * or by Handsontable `cells` setting function.
+   * Extends the cell meta object by user-specific properties.
    *
-   * The extending process is synchronized with the table life cycle, and it happens only
-   * once per slow table render cycle.
+   * The cell meta object can be extended dynamically,
+   * either by Handsontable's hooks (`beforeGetCellMeta` and`afterGetCellMeta`),
+   * or by Handsontable's `cells` option.
+   *
+   * To boost performance, the extending process is triggered only once per one slow Handsontable render cycle.
    *
    * @param {object} cellMeta The cell meta object.
    */
@@ -65,7 +69,7 @@ export class DynamicCellMetaMod {
 
     hot.runHooks('beforeGetCellMeta', visualRow, visualCol, cellMeta);
 
-    // Extend a `type` value added or changed in beforeGetCellMeta hook
+    // extend a `type` value, added or changed in the `beforeGetCellMeta` hook
     const cellType = hasOwnProperty(cellMeta, 'type') ? cellMeta.type : null;
     let cellSettings = isFunction(cellMeta.cells) ? cellMeta.cells(physicalRow, physicalColumn, prop) : null;
 
