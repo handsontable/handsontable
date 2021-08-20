@@ -320,7 +320,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
     }
   }),
   selectionMode: oneOf('single', 'range', 'multiple'),
-  selectOptions: ['A', 'B', 'C'],
+  selectOptions: oneOf(
+    ['A', 'B', 'C'],
+    { a: 'A', b: 'B', c: 'C'},
+    (visualRow: number, visualColumn: number, prop: string | number) => ['A', 'B', 'C'],
+    (visualRow: number, visualColumn: number, prop: string | number) => ({ a: 'A', b: 'B', c: 'C'}),
+  ),
   skipColumnOnPaste: true,
   skipRowOnPaste: true,
   sortByRelevance: true,
