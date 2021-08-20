@@ -604,7 +604,7 @@ const hot = new Handsontable(container, {
 
 In the example below, some cells are read-only, and some cells are editable:
 - By default, all cells are read-only (as set in the top-level [grid options](#setting-grid-options)).
-- For the first column, the mid-level [column options](#setting-column-options) overwrite the top-level [grid options.](#setting-grid-options).<br>
+- For the first column, the mid-level [column options](#setting-column-options) overwrite the top-level [grid options](#setting-grid-options).<br>
   As a result, the first column cells are editable.
 - For cell `A1` (`0`, `0`), the bottom-level [cell options](#setting-cell-options) overwrite both the mid-level [column options](#setting-column-options), and the top-level [grid options.](#setting-grid-options)<br>
   As a result, cell `A1` (`0`, `0`) is read-only, despite being part of the editable first column.
