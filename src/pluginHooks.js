@@ -3,6 +3,7 @@ import { objectEach } from './helpers/object';
 import { substitute } from './helpers/string';
 import { warn } from './helpers/console';
 import { toSingleLine } from './helpers/templateLiteralTag';
+import { fastCall } from './helpers/function';
 
 /**
  * @description
@@ -2403,8 +2404,8 @@ class Hooks {
             /* eslint-disable no-continue */
             continue;
           }
-          // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-          const res = globalHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
+
+          const res = fastCall(globalHandlers[index], context, p1, p2, p3, p4, p5, p6);
 
           if (res !== void 0) {
             // eslint-disable-next-line no-param-reassign
@@ -2431,8 +2432,8 @@ class Hooks {
             /* eslint-disable no-continue */
             continue;
           }
-          // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-          const res = localHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
+
+          const res = fastCall(localHandlers[index], context, p1, p2, p3, p4, p5, p6);
 
           if (res !== void 0) {
             // eslint-disable-next-line no-param-reassign

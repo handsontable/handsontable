@@ -142,7 +142,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
       }
     }
   ],
-  colWidths: oneOf(100, '100px', [100, '100px', void 0], ((index: number) => oneOf('100px', 100, void 0))),
+  colWidths: oneOf(100, '100px', [100, '100px'], ((index: number) => oneOf('100px', 100, void 0))),
   commentedCellClassName: 'foo',
   comments: oneOf(true, { displayDelay: 123 }, [
     {

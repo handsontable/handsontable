@@ -386,7 +386,7 @@ describe('ContextMenu', () => {
 
       await selectContextSubmenuOption('Alignment', 'Right');
 
-      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(2, 3, 'className', 'htRight', undefined, undefined);
+      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(2, 3, 'className', 'htRight');
     });
 
     it('should not add clasName to cell after changing alignment by context menu, if `beforeSetCellMeta` returned false', async() => {
