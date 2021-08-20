@@ -31,43 +31,49 @@ const hot = new Handsontable(container, {
 ```
 
 Depending on your needs, you can apply [configuration options](@/api/options.md) to different elements of your grid, such as:
-- [The entire grid](#grid-options)
-- [Individual columns (or a range of columns)](#column-options)
-- [Individual rows (or a range of rows)](#row-options)
-- [Individual cells (or a range of cells)](#cell-options)
-- [Individual grid elements, based on any logic you implement](#cells)
+- [The entire grid](#setting-grid-options)
+- [Individual columns](#setting-column-options)
+- [Individual rows](#setting-row-options)
+- [Individual cells](#setting-cell-options)
+- [Individual grid elements, based on any logic you implement](#implementing-custom-logic)
 
 For the full list of available configuration options, see the [configuration options' API reference](@/api/options.md).
 
 ### Cascading configuration
 
-Handsontable's configuration is cascaded down from the top-level [`GlobalMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/globalMeta.js) options, through the mid-level [`ColumnMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/columnMeta.js) options, to the bottom-level [`CellMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/cellMeta.js) options. For more details on Handsontable's cascading configuration, see [this file](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/index.js).
+Handsontable's configuration is cascaded down from the top-level [`GlobalMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/globalMeta.js) options, through the mid-level [`ColumnMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/columnMeta.js) options, to the bottom-level [`CellMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/cellMeta.js) options.
+
+For more details on Handsontable's cascading configuration, see [this file](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/index.js).
 
 ### Plugin options
 
-Configuration options can come:
-* From Handsontable's [Core](@/api/core.md)
-* From Handsontable's [plugins](@/api/plugins.md)
-* From Handsontable's [hooks](@/api/hooks.md)
+Configuration options can come from:
+* Handsontable's [Core](@/api/core.md)
+* Handsontable's [plugins](@/api/plugins.md)
+* Handsontable's [hooks](@/api/hooks.md)
 
-To find out where a given option comes from, check the **Category** label in the [configuration options' API reference](@/api/options.md).
+To use an option that comes from a Handsontable plugin, you need to [import and register](@/guides/building-and-testing/modules.md#importing-plugins) that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
 
-To use an option that comes from a Handsontable plugin, you need to import and register that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
-
-For more details on importing and registering plugins, see [this section](@/guides/building-and-testing/modules.md#importing-plugins).
+To find out if an option comes from a plugin, check the `Category` label in the [configuration options' API reference](@/api/options.md).
 
 ## Setting grid options
 
-To apply a configuration option to the entire grid:
+To apply configuration options to the entire grid:
 
-- Pass your option as a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid), using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
-    ```js
-    const hot = new Handsontable(container, {
-      // configuration options, applied to the entire grid
-      width: 400,
-      height: 300
-    });
-    ```
+- Pass your options as a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid), using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer).
+
+For example, to set the entire grid's [width](@/api/options.md#width) and [height](@/api/options.md#height):
+```js
+const hot = new Handsontable(container, {
+  // top-level grid options apply to the entire grid
+  width: 400,
+  height: 300
+});
+```
+
+::: tip
+To use an option that comes from a Handsontable plugin, [import and register](@/guides/building-and-testing/modules.md#importing-plugins) that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
+:::
 
 #### Example
 
@@ -87,11 +93,11 @@ td.read-only-background {
 ```js
 const container = document.querySelector('#example1');
 
-const hot = new Handsontable(scontainer, {
+const hot = new Handsontable(container, {
   // configuration options, in the object literal notation
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 10),
-  // `readOnly` option, applied to each cell of the entire grid
+  // `readOnly` option, apply to each cell of the entire grid
   readOnly: true,
   className: 'read-only-background',
   width: 'auto',
@@ -99,24 +105,28 @@ const hot = new Handsontable(scontainer, {
   rowHeaders: true,
   colHeaders: true
 });
+
+// check a cell's options
+// returns `true`
+hot.getCellMeta(0, 0).readOnly;
 ```
 :::
 
 ## Setting column options
 
-To apply a configuration option to an individual column (or a range of columns):
+To apply configuration options to an individual column (or a range of columns), use the [`columns`](@/api/options.md#columns) option.
 
 1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`columns`](@/api/options.md#columns).
     ```js
     const hot = new Handsontable(container, {
-      // some top-level options, applied to the entire grid
+      // top-level grid options apply to the entire grid
       width: 400,
       height: 300,
-      // `columns` option
+      // the `columns` option
       columns: 
     });
     ```
-2. To the [`columns`](@/api/options.md#columns) option, assign an array of objects.<br>
+2. Set the [`columns`](@/api/options.md#columns) option to an array of objects.<br>
    Each object represents one column, and the objects' order represents the columns' order.
     ```js
     const hot = new Handsontable(container, {
@@ -127,14 +137,14 @@ To apply a configuration option to an individual column (or a range of columns):
       ],
     });
     ```
-
-3. In the object that represents your required column, add your column options.
+3. In the object that represents your required column, add your column options.<br>
+   For example, to make each cell of the third column read-only, and assign a `read-only-background` class to them:
     ```js
     const hot = new Handsontable(container, {
       columns: [
         {},
         {},
-        // column options, applied to each cell of the third column
+        // column options, apply to each cell of the third column
         {
           readOnly: true,
           className: 'read-only-background'
@@ -143,9 +153,13 @@ To apply a configuration option to an individual column (or a range of columns):
     });
     ```
 
+::: tip
+To use an option that comes from a Handsontable plugin, [import and register](@/guides/building-and-testing/modules.md#importing-plugins) that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
+:::
+
 #### Example
 
-We've got a grid with ten columns. The third column and the ninth column are set as [`readOnly`](@/api/options.md#readonly), and are assigned a [`className`](@/api/options.md#classname). The mid-level column options are cascaded down to the bottom-level [cell options](#setting-cell-options).
+In a grid with ten columns, the third column and the ninth column are set as [`readOnly`](@/api/options.md#readonly), and are assigned a [`className`](@/api/options.md#classname). The mid-level column options are cascaded down to the bottom-level [cell options](#setting-cell-options).
 
 As a result, each cell in the third and ninth columns is read-only and has the `read-only-background` class:
 
@@ -162,13 +176,21 @@ td.read-only-background {
 const container = document.querySelector('#example2');
 
 const hot = new Handsontable(container, {
+  // top-level grid options
+  licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 10),
   width: 'auto',
   height: 'auto',
+  rowHeaders: true,
+  colHeaders: true,
+  // in the top-level grid options, all cells are editable
+  readOnly: false,
   columns: [
     {},
     {},
     {
+      // mid-level column options overwrite the top-level grid options
+      // apply only to each cell of the third column
       readOnly: true,
       className: 'read-only-background'
     },
@@ -178,22 +200,82 @@ const hot = new Handsontable(container, {
     {},
     {},
     {
+      // mid-level column options overwrite the top-level grid options
+      // apply only to each cell of the ninth column
       readOnly: true,
       className: 'read-only-background'
     },
     {},
-  ],
-  rowHeaders: true,
-  colHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  ]
 });
+
+// check a cell's options
+// returns `false`
+hot.getCellMeta(0, 0).readOnly;
+
+// returns `true`
+hot.getCellMeta(0, 2).readOnly;
 ```
 :::
 
 ## Setting row options
 
-Using the [cells](@/api/options.md#cells) option we can apply read-only option to entire
-rows. In the example below, the second and last rows are read-only.
+To apply configuration options to an individual row (or a range of rows), use the [`cells`](@/api/options.md#cells) option.
+
+The `cells` option overwrites all other options.
+
+::: tip
+The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cells) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
+:::
+
+1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`cells`](@/api/cells.md#cells).
+    ```js
+    const hot = new Handsontable(container, {
+      // top-level grid options apply to the entire grid
+      width: 400,
+      height: 300,
+      // the `cells` option
+      cells:
+    });
+    ```
+2. Set the [`cells`](@/api/options.md#cells) option to a function. It can take three arguments:<br>
+   - `row`: a row coordinate (a **physical** index)
+   - `col`: a column coordinate (a **physical** index)
+   - `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
+   If your [`data`](@/api/options.md#data) is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
+    ```js
+    const hot = new Handsontable(container, {
+      // the `cells` option set to a function
+      cells: function(row, col, prop) {
+        // the `cells` function's body
+      }
+    });
+    ```
+3. In the [`cells`](@/api/options.md#cells) function's body, implement a logic that selects your required row(s).<br>
+   For example, to make each cell of the first row and each cell of the fourth row read-only, and assign a `read-only-background` class to them:
+    ```js
+    const hot = new Handsontable(container, {
+      // the `cells` options overwrite all other options
+      cells: function(row, col, prop) {
+        if (row === 1 || row === 4) {
+          return {
+            // row options, apply to each cell of the first row
+            // and to each cell of the fourth row
+            readOnly: true,
+            className: `read-only-background` 
+          };
+        }
+      }
+    });
+    ```
+
+::: tip
+To use an option that comes from a Handsontable plugin, [import and register](@/guides/building-and-testing/modules.md#importing-plugins) that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
+:::
+
+#### Example
+
+In a grid with five rows, the first row and the fourth row are set as [`readOnly`](@/api/options.md#readonly), and are assigned a [`className`](@/api/options.md#classname), using the [`cells`](@/api/options.md#cells) option:
 
 ::: example #example3 --html 1 --css 2 --js 3
 ```html
@@ -208,8 +290,16 @@ td.read-only-background {
 const container = document.querySelector('#example3');
 
 const hot = new Handsontable(container, {
+  // top-level grid options apply to the entire grid
+  licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 10),
-  cells(row, column) {
+  width: 'auto',
+  height: 'auto',
+  rowHeaders: true,
+  colHeaders: true,
+  // the `cells` options overwrite all other options
+  // apply only to each cell of rows 1 and 4, as specified in the function's body
+  cells: function(row, column) {
     if (row === 1 || row === 4) {
       return {
         readOnly: true,
@@ -217,18 +307,72 @@ const hot = new Handsontable(container, {
       };
     }
   },
-  width: 'auto',
-  height: 'auto',
-  rowHeaders: true,
-  colHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation'
 });
+
+// check a cell's options
+// returns `false`
+hot.getCellMeta(0, 0).readOnly;
+
+// returns `true`
+hot.getCellMeta(0, 1).readOnly;
 ```
 :::
 
 ## Setting cell options
 
-And finally, let's make one of the cells read-only.
+To apply configuration options to individual cells, use the [`cell`](@/api/options.md#cell) option.
+
+1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`cell`](@/api/options.md#cell).
+    ```js
+    const hot = new Handsontable(container, {
+      // top-level grid options apply to the entire grid
+      width: 400,
+      height: 300,
+      // the `cell` option
+      cell: 
+    });
+    ```
+2. Set the [`cell`](@/api/options.md#columns) option to an array of objects.<br>
+    ```js
+    const hot = new Handsontable(container, {
+      // the `cell` option set to an array of objects
+      cell: [
+        {},
+        {}
+      ],
+    });
+    ```
+3. In each object, set your configuration options for one particular cell.<br>
+   To select a cell, use the `row` and `col` coordinates.<br>
+   For example, to make cells `A1` (`0`, `0`) and `B2` (`1`, `1`) read-only, and assign a `read-only-background` class to them:
+    ```js
+    const hot = new Handsontable(container, {
+      cell: [
+        {
+          // cell options, apply only to a cell with coordinates (0, 0)
+          row: 0,
+          col: 0,
+          readOnly: true,
+          className: 'read-only-background'
+        },
+        {
+          // cell options, apply only to a cell with coordinates (1, 1)
+          row: 1,
+          col: 1,
+          readOnly: true,
+          className: 'read-only-background'
+        }
+      ],
+    });
+    ```
+
+::: tip
+To use an option that comes from a Handsontable plugin, [import and register](@/guides/building-and-testing/modules.md#importing-plugins) that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
+:::
+
+#### Example
+
+In a grid with five rows and ten columns, cell `A1` and cell `B2` are set as [`readOnly`](@/api/options.md#readonly), and are assigned a [`className`](@/api/options.md#classname), using the [`cell`](@/api/options.md#cell) option:
 
 ::: example #example4 --html 1 --css 2 --js 3
 ```html
@@ -243,68 +387,291 @@ td.read-only-background {
 const container = document.querySelector('#example4');
 
 const hot = new Handsontable(container, {
+  // top-level grid options apply to the entire grid
   data: Handsontable.helper.createSpreadsheetData(5, 10),
-  cells(row, column) {
-    if (row === 1 && column === 1) {
+  licenseKey: 'non-commercial-and-evaluation',
+  width: 'auto',
+  height: 'auto',
+  rowHeaders: true,
+  colHeaders: true,
+  readOnly: false,
+  cell: [
+    {
+      // bottom-level cell options overwrite the top-level grid options
+      // apply only to a cell with coordinates (0, 0)
+      row: 0,
+      col: 0,
+      readOnly: true,
+      className: 'read-only-background'
+    },
+    {
+      // bottom-level cell options overwrite the top-level grid options
+      // apply only to a cell with coordinates (1, 1)
+      row: 1,
+      col: 1,
+      readOnly: true,
+      className: 'read-only-background'
+    }
+  ]
+});
+
+// check a cell's options
+// returns `true`
+hot.getCellMeta(0, 0).readOnly;
+
+// returns `false`
+hot.getCellMeta(0, 1).readOnly;
+```
+:::
+
+### Checking cell options
+
+When Handsontable is running, you can check a cell's current options, using the [`getCellMeta()`](@/api/core.md#getcellmeta) method.
+
+The [`getCellMeta()`](@/api/core.md#getcellmeta) method returns an object with:
+- All built-in options
+- Any options you add
+
+For example:
+
+```js
+const container = document.querySelector('example');
+
+const hot = new Handsontable(container, {
+  // top-level grid options apply to the entire grid
+  data: Handsontable.helper.createSpreadsheetData(5, 10),
+  licenseKey: 'non-commercial-and-evaluation',
+  width: 'auto',
+  height: 'auto',
+  rowHeaders: true,
+  colHeaders: true,
+  // in the top-level grid options, all cells are read-only
+  readOnly: false,
+  cell: [
+    {
+      // bottom-level cell options overwrite the top-level grid options
+      // apply only to a cell with coordinates (1, 1)
+      row: 1,
+      col: 1,
+      readOnly: true,
+      className: 'read-only-background'
+    }
+  ]
+});
+
+// for cell (0, 0), the `readOnly` option is the default (`false`)
+// returns `false`
+hot.getCellMeta(0, 0).readOnly;
+
+// for cell (1, 1), the `cell` option overwrote the default `readOnly` value
+// returns `true`
+hot.getCellMeta(1, 1).readOnly;
+```
+
+### Changing cell options
+
+When Handsontable is running, you can change the initial cell options, using the [`setCellMeta()`](@/api/core.md#setcellmeta) method.
+
+For example:
+
+```js
+const container = document.querySelector('example');
+
+const hot = new Handsontable(container, {
+  // top-level grid options apply to the entire grid
+  data: Handsontable.helper.createSpreadsheetData(5, 10),
+  licenseKey: 'non-commercial-and-evaluation',
+  width: 'auto',
+  height: 'auto',
+  rowHeaders: true,
+  colHeaders: true,
+  // in the top-level grid options, all cells are read-only
+  readOnly: false,
+  cell: [
+    {
+      // bottom-level cell options overwrite the top-level grid options
+      // apply only to a cell with coordinates (1, 1)
+      row: 1,
+      col: 1,
+      readOnly: true,
+      className: 'read-only-background'
+    }
+  ]
+});
+
+// for cell (0, 0), the `readOnly` option is the default (`false`)
+// returns `false`
+hot.getCellMeta(0, 0).readOnly;
+
+// for cell (1, 1), the `cell` option overwrote the default `readOnly` value
+// returns `true`
+hot.getCellMeta(1, 1).readOnly;
+
+// change the `readOnly` option of cell (1, 1) back to `false`
+hot.setCellMeta(1, 1, readOnly, false);
+
+// returns `false`
+hot.getCellMeta(1, 1).readOnly;
+```
+
+## Implementing custom logic
+
+You can apply configuration options to individual grid elements (columns, rows, cells), based on any logic you implement, using the [`cells`](@/api/options.md#cells) option.
+
+The `cells` option overwrites all other options.
+
+::: tip
+The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cells) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
+:::
+
+1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`cells`](@/api/cells.md#cells).
+    ```js
+    const hot = new Handsontable(container, {
+      // top-level grid options apply to the entire grid
+      width: 400,
+      height: 300,
+      // the `cells` option
+      cells:
+    });
+    ```
+2. Set the [`cells`](@/api/options.md#cells) option to a function. It can take three arguments:<br>
+   - `row`: a row coordinate (a **physical** index)
+   - `col`: a column coordinate (a **physical** index)
+   - `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
+   If your [`data`](@/api/options.md#data) is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
+    ```js
+    const hot = new Handsontable(container, {
+      // the `cells` option set to a function
+      cells: function(row, col, prop) {
+        // the `cells` function's body
+      }
+    });
+    ```
+3. In the [`cells`](@/api/options.md#cells) function's body, implement a logic that selects your required columns, rows, or cells (as combinations of `row` and `col` coordinates).<br>
+   For example:
+    ```js
+    const hot = new Handsontable(container, {
+      cells: function (row, col) {
+        if (row === 1 || row === 5 && col === 1) {
+          return {
+            readOnly: true,
+            className: 'read-only-background'
+          };
+        }
+      }
+    });
+    ```
+
+#### Example
+
+In the example below, the [`cells`](@/api/options.md#cells) options overwrite the top-level grid options.
+
+::: example #example5 --html 1 --css 2 --js 3
+```html
+<div id="example5" class="hot"></div>
+```
+```css
+td.read-only-background {
+  background-color: #f2f4fb;
+}
+```
+```js
+const container = document.querySelector('#example5');
+
+const hot = new Handsontable(container, {
+  // top-level grid options apply to the entire grid
+  licenseKey: 'non-commercial-and-evaluation',
+  data: Handsontable.helper.createSpreadsheetData(5, 10),
+  width: 'auto',
+  height: 'auto',
+  rowHeaders: true,
+  colHeaders: true,
+  // the `cells` option overwrites the top-level grid options
+  // apply only to cells selected by your custom logic
+  cells: function (row, col) {
+    if (row === 1 || row === 3 && col === 1) {
       return {
         readOnly: true,
         className: 'read-only-background'
       };
     }
-  },
-  width: 'auto',
-  height: 'auto',
-  rowHeaders: true,
-  colHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation'
+  }
 });
 ```
 :::
 
-### `cells` vs `cell`
+## Configuration example
 
-In the Options section of the API, you can find two similar options, [cell](@/api/options.md#cells-2) and [cell](@/api/options.md#cell). Using one of these options (or both), you can associate the custom properties or overwrite an entire table or column option for a particular cell. Both options allow you to set initial values for specific cells. You can check if the values are propagated by calling the [getCellMeta](@/api/core.md#getcellmeta) method. The method returns an object with all built-in options as well as those added by the developer.
+In the example below, some cells are read-only, and some cells are editable:
+- By default, all cells are read-only (as set in the top-level [grid options](#setting-grid-options)).
+- For the first column, the mid-level [column options](#setting-column-options) overwrite the top-level [grid options.](#setting-grid-options).<br>
+  As a result, the first column cells are editable.
+- For cell `A1` (`0`, `0`), the bottom-level [cell options](#setting-cell-options) overwrite both the mid-level [column options](#setting-column-options), and the top-level [grid options.](#setting-grid-options)<br>
+  As a result, cell `A1` (`0`, `0`) is read-only, despite being part of the editable first column.
+- For cell `C3` (`3`, `3`), the [`cells` option](#implementing-custom-logic) overwrites all other options.<br>
+  As a result, cell `C3` (`3`, `3`) is editable, despite not being part of the editable first column.
 
-#### `cell`
-
-The [cell](@/api/options.md#cell) option works great for cases when you have to set initial values for your custom properties or change the initial values for the built-in option. Once the changes are propagated to the cells' meta-objects, they can be modified by the Handsontable while it is running. For example, the cell read-only state can be modified by the context menu.
-
-```js
-// ...
-cell: [
-  { row: 1, col: 1, readOnly: true, className: 'read-only-background' }
-],
-// ...
-
-hot.getCellMeta(0, 0).readOnly === false; // By default the option is "false"
-hot.getCellMeta(1, 1).readOnly === true; // the "cell" overwrites the value
-
-// The state can be changed using API or UI e.g.
-hot.setCellMeta(1, 1, 'readOnly', false);
+::: example #example6 --html 1 --css 2 --js 3
+```html
+<div id="example6" class="hot"></div>
 ```
-
-#### `cells`
-
-The [cells](@/api/options.md#cells-2) option works slightly differently. The `cells` option is a function that invokes the logic in it before the table's rendering cycle. The options returned by that function always overwrite the entire table or column options. Thus, if you implement logic incorrectly, you won't be able to change cells' state from API or UI - as the values will be constantly overwritten by the `cells` function. You can think of this option as an opportunity to transfer the responsibility of keeping the table cells option to your application.
-
-If at some point you want to stop overwriting the cell meta object for particular cells, return an empty object, `null` or `undefined` value.
-
+```css
+read-only-background {
+  background-color: #f2f4fb;
+}
+```
 ```js
-// ...
-cells(row, column) {
-  if (row === 1 && column === 1) {
-    return {
+const container = document.querySelector('#example6');
+
+const hot = new Handsontable(container, {
+  // top-level grid options apply to the entire grid
+  licenseKey: 'non-commercial-and-evaluation',
+  data: Handsontable.helper.createSpreadsheetData(5, 10),
+  // in the top-level grid options, all cells are read-only
+  readOnly: true,
+  className: 'read-only-background',
+  width: 'auto',
+  height: 'auto',
+  rowHeaders: true,
+  colHeaders: true,
+  // mid-level column options overwrite the top-level grid options
+  columns: [
+    // each cell in the first column is editable
+    {
+      readOnly: false,
+      className: '',
+    },
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+    {},
+  ],
+  // bottom-level cell options overwrite the mid-level column options
+  // and ovewrite the top-level grid-options
+  cell: [
+    {
+      // cell (0, 0) is read-only
+      row: 0,
+      col: 0,
       readOnly: true,
       className: 'read-only-background'
-    };
-  }
-},
-// ...
-
-hot.getCellMeta(0, 0).readOnly === false; // By default the option is "false"
-hot.getCellMeta(1, 1).readOnly === true; // the "cells" overwrites the value
-
-// In this case, an attempt to change the state will have no effect. The `readOnly`
-// property always returns `true`.
-hot.setCellMeta(1, 1, 'readOnly', false);
+    },
+  ],
+  // the `cells` option's logic overwrites all other options
+  cells: function(row, column) {
+    // cell (2, 2) is editable
+    if (row === 2 && column === 2) {
+      return {
+        readOnly: false,
+        className: '',
+      }
+    }
+  },
+});
 ```
+:::
