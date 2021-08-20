@@ -41,7 +41,25 @@ For the full list of available configuration options, see the [configuration opt
 
 ### Cascading configuration
 
-Handsontable's configuration is cascaded down from the top-level [`GlobalMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/globalMeta.js) options, through the mid-level [`ColumnMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/columnMeta.js) options, to the bottom-level [`CellMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/cellMeta.js) options.
+Handsontable's configuration cascades down:
+- From the top-level [grid options](#setting-grid-options) ([`GlobalMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/globalMeta.js))
+- Through the mid-level [column options](#setting-column-options) ([`ColumnMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/columnMeta.js))
+- To the bottom-level [cell options](#setting-cell-options) ([`CellMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/cellMeta.js))
+
+When you modify the mid-level [column options](#setting-column-options) (using the [`columns`](@/api/options.md#columns) option):
+- The options that you change overwrite the top-level [grid options](#setting-grid-options).
+- The options that you change cascade down to the bottom-level [cell options](#setting-cell-options).
+- Any unchanged options are inherited from the top-level [grid options](#setting-grid-options).
+
+When you modify the bottom-level [cell options](#setting-cell-options) (using the [`cell`](@/api/options.md#cell) option):
+- The options that you change overwrite the top-level [grid options](#setting-grid-options).
+- The options that you change overwrite the mid-level [column options](#setting-column-options).
+- Any unchanged options are inherited from the mid-level [column options](#setting-column-options) or the top-level [grid options](#setting-grid-options).
+
+When you modify any options with the [`cells`](@/api/options.md#cells) function, the changes overwrite all other options.
+::: tip
+The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
+:::
 
 For more details on Handsontable's cascading configuration, see [this file](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/index.js).
 
@@ -65,7 +83,7 @@ To apply configuration options to the entire grid:
 For example, to set the entire grid's [width](@/api/options.md#width) and [height](@/api/options.md#height):
 ```js
 const hot = new Handsontable(container, {
-  // top-level grid options apply to the entire grid
+  // top-level grid options that apply to the entire grid
   width: 400,
   height: 300
 });
@@ -77,7 +95,11 @@ To use an option that comes from a Handsontable plugin, [import and register](@/
 
 #### Example
 
-To configure each cell in the grid as read-only, apply the [`readOnly`](@/api/options.md#readonly) option as a top-level grid option. The top-level grid options are cascaded down, through the mid-level [column options](#setting-column-options), and to the bottom-level [cell options](#setting-cell-options).
+To configure each cell in the grid as read-only, apply the [`readOnly`](@/api/options.md#readonly) option as a top-level grid option. 
+
+The top-level grid options cascade down:
+- To the mid-level [column options](#setting-column-options)
+- To the bottom-level [cell options](#setting-cell-options)
 
 As a result, each cell in the grid is read-only:
 
@@ -97,7 +119,7 @@ const hot = new Handsontable(container, {
   // configuration options, in the object literal notation
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 10),
-  // `readOnly` option, apply to each cell of the entire grid
+  // `readOnly` option, applies to each cell of the entire grid
   readOnly: true,
   className: 'read-only-background',
   width: 'auto',
@@ -118,8 +140,8 @@ To apply configuration options to an individual column (or a range of columns), 
 
 1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`columns`](@/api/options.md#columns).
     ```js
-    const hot = new Handsontable(container, {
-      // top-level grid options apply to the entire grid
+    const hot = new Handsontable(container, {mi
+      // top-level grid options that apply to the entire grid
       width: 400,
       height: 300,
       // the `columns` option
@@ -159,7 +181,11 @@ To use an option that comes from a Handsontable plugin, [import and register](@/
 
 #### Example
 
-In a grid with ten columns, the third column and the ninth column are set as [`readOnly`](@/api/options.md#readonly), and are assigned a [`className`](@/api/options.md#classname). The mid-level column options are cascaded down to the bottom-level [cell options](#setting-cell-options).
+The [`columns`](@/api/options.md#columns) option sets each cell of the third column and the ninth column as [`readOnly`](@/api/options.md#readonly), and assigns a [`className`](@/api/options.md#classname) to them.
+
+The modified mid-level column options:
+- Overwrite the top-level [grid options](#setting-grid-options)
+- Cascade down to the bottom-level [cell options](#setting-cell-options)
 
 As a result, each cell in the third and ninth columns is read-only and has the `read-only-background` class:
 
@@ -222,16 +248,16 @@ hot.getCellMeta(0, 2).readOnly;
 
 To apply configuration options to an individual row (or a range of rows), use the [`cells`](@/api/options.md#cells) option.
 
-The `cells` option overwrites all other options.
+Any options modified through [`cells`](@/api/options.md#cells) overwrite all other options.
 
 ::: tip
-The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cells) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
+The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
 :::
 
-1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`cells`](@/api/cells.md#cells).
+1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`cells`](@/api/options.md#cells).
     ```js
     const hot = new Handsontable(container, {
-      // top-level grid options apply to the entire grid
+      // top-level grid options that apply to the entire grid
       width: 400,
       height: 300,
       // the `cells` option
@@ -275,7 +301,9 @@ To use an option that comes from a Handsontable plugin, [import and register](@/
 
 #### Example
 
-In a grid with five rows, the first row and the fourth row are set as [`readOnly`](@/api/options.md#readonly), and are assigned a [`className`](@/api/options.md#classname), using the [`cells`](@/api/options.md#cells) option:
+In the example below, the [`cells`](@/api/options.md#cells) option sets each cell in the first and fourth row as [`readOnly`](@/api/options.md#readonly), and assigns them a [`className`](@/api/options.md#classname).
+
+Options modified through [`cells`](@/api/options.md#cells) overwrite all other options.
 
 ::: example #example3 --html 1 --css 2 --js 3
 ```html
@@ -290,7 +318,7 @@ td.read-only-background {
 const container = document.querySelector('#example3');
 
 const hot = new Handsontable(container, {
-  // top-level grid options apply to the entire grid
+  // top-level grid options that apply to the entire grid
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 10),
   width: 'auto',
@@ -325,14 +353,14 @@ To apply configuration options to individual cells, use the [`cell`](@/api/optio
 1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`cell`](@/api/options.md#cell).
     ```js
     const hot = new Handsontable(container, {
-      // top-level grid options apply to the entire grid
+      // top-level grid options that apply to the entire grid
       width: 400,
       height: 300,
       // the `cell` option
       cell: 
     });
     ```
-2. Set the [`cell`](@/api/options.md#columns) option to an array of objects.<br>
+2. Set the [`cell`](@/api/options.md#cell) option to an array of objects.<br>
     ```js
     const hot = new Handsontable(container, {
       // the `cell` option set to an array of objects
@@ -372,7 +400,11 @@ To use an option that comes from a Handsontable plugin, [import and register](@/
 
 #### Example
 
-In a grid with five rows and ten columns, cell `A1` and cell `B2` are set as [`readOnly`](@/api/options.md#readonly), and are assigned a [`className`](@/api/options.md#classname), using the [`cell`](@/api/options.md#cell) option:
+In the example below, the [`cell`](@/api/options.md#cell) option sets cell `A1`(`0`, `0`) and cell `B2`(`1`, `1`) as [`readOnly`](@/api/options.md#readonly), and assigns a [`className`](@/api/options.md#classname) to them.
+
+The modified [`cell`](@/api/options.md#cell) options:
+- Overwrite the top-level [grid options](#setting-grid-options)
+- Overwrite the mid-level [column options](#setting-column-options)
 
 ::: example #example4 --html 1 --css 2 --js 3
 ```html
@@ -387,7 +419,7 @@ td.read-only-background {
 const container = document.querySelector('#example4');
 
 const hot = new Handsontable(container, {
-  // top-level grid options apply to the entire grid
+  // top-level grid options that apply to the entire grid
   data: Handsontable.helper.createSpreadsheetData(5, 10),
   licenseKey: 'non-commercial-and-evaluation',
   width: 'auto',
@@ -438,7 +470,7 @@ For example:
 const container = document.querySelector('example');
 
 const hot = new Handsontable(container, {
-  // top-level grid options apply to the entire grid
+  // top-level grid options that apply to the entire grid
   data: Handsontable.helper.createSpreadsheetData(5, 10),
   licenseKey: 'non-commercial-and-evaluation',
   width: 'auto',
@@ -478,7 +510,7 @@ For example:
 const container = document.querySelector('example');
 
 const hot = new Handsontable(container, {
-  // top-level grid options apply to the entire grid
+  // top-level grid options that apply to the entire grid
   data: Handsontable.helper.createSpreadsheetData(5, 10),
   licenseKey: 'non-commercial-and-evaluation',
   width: 'auto',
@@ -518,16 +550,16 @@ hot.getCellMeta(1, 1).readOnly;
 
 You can apply configuration options to individual grid elements (columns, rows, cells), based on any logic you implement, using the [`cells`](@/api/options.md#cells) option.
 
-The `cells` option overwrites all other options.
+The [`cells`](@/api/options.md#cells) option overwrites all other options.
 
 ::: tip
-The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cells) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
+The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
 :::
 
 1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`cells`](@/api/cells.md#cells).
     ```js
     const hot = new Handsontable(container, {
-      // top-level grid options apply to the entire grid
+      // top-level grid options that apply to the entire grid
       width: 400,
       height: 300,
       // the `cells` option
@@ -564,7 +596,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
 
 #### Example
 
-In the example below, the [`cells`](@/api/options.md#cells) options overwrite the top-level grid options.
+In the example below, the modified [`cells`](@/api/options.md#cells) options overwrite the top-level grid options.
 
 ::: example #example5 --html 1 --css 2 --js 3
 ```html
@@ -579,7 +611,7 @@ td.read-only-background {
 const container = document.querySelector('#example5');
 
 const hot = new Handsontable(container, {
-  // top-level grid options apply to the entire grid
+  // top-level grid options that apply to the entire grid
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 10),
   width: 'auto',
@@ -624,7 +656,7 @@ read-only-background {
 const container = document.querySelector('#example6');
 
 const hot = new Handsontable(container, {
-  // top-level grid options apply to the entire grid
+  // top-level grid options that apply to the entire grid
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 10),
   // in the top-level grid options, all cells are read-only
