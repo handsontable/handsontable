@@ -33,13 +33,13 @@ const localHooks = {
   /**
    * Run hooks.
    *
-   * @param {string} key The hook name.
-   * @param {*} [arg1] Additional parameter passed to callback function.
-   * @param {*} [arg2] Additional parameter passed to callback function.
-   * @param {*} [arg3] Additional parameter passed to callback function.
-   * @param {*} [arg4] Additional parameter passed to callback function.
-   * @param {*} [arg5] Additional parameter passed to callback function.
-   * @param {*} [arg6] Additional parameter passed to callback function.
+   * @param {string} key The name of the hook to run.
+   * @param {*} [arg1] An additional parameter passed to the callback function.
+   * @param {*} [arg2] An additional parameter passed to the callback function.
+   * @param {*} [arg3] An additional parameter passed to the callback function.
+   * @param {*} [arg4] An additional parameter passed to the callback function.
+   * @param {*} [arg5] An additional parameter passed to the callback function.
+   * @param {*} [arg6] An additional parameter passed to the callback function.
    */
   runLocalHooks(key, arg1, arg2, arg3, arg4, arg5, arg6) {
     if (this._localHooks[key]) {
