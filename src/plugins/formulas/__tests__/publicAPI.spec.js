@@ -20,7 +20,7 @@ describe('Formulas public API', () => {
   });
 
   describe('isFormulaCellType()', () => {
-    it('should return `true` when under the cell is formula (including matrix cell types)', () => {
+    it('should return `true` when under the cell is formula', () => {
       handsontable({
         data: [
           ['1', '2'],
@@ -36,7 +36,7 @@ describe('Formulas public API', () => {
         }
       });
 
-      setDataAtCell(2, 0, '{=TRANSPOSE(A1:B2)}');
+      setDataAtCell(2, 0, '=TRANSPOSE(A1:B2)');
 
       const formulas = getPlugin('formulas');
 
@@ -44,7 +44,7 @@ describe('Formulas public API', () => {
       expect(formulas.isFormulaCellType(0, 1)).toBe(false);
       expect(formulas.isFormulaCellType(1, 0)).toBe(false);
       expect(formulas.isFormulaCellType(2, 0)).toBe(true);
-      expect(formulas.isFormulaCellType(3, 0)).toBe(true);
+      expect(formulas.isFormulaCellType(3, 0)).toBe(false);
       expect(formulas.isFormulaCellType(4, 0)).toBe(true);
       expect(formulas.isFormulaCellType(4, 1)).toBe(false);
       expect(formulas.isFormulaCellType(5, 0)).toBe(false);
@@ -72,15 +72,15 @@ describe('Formulas public API', () => {
         }
       });
 
-      setDataAtCell(2, 0, '{=TRANSPOSE(A1:B2)}');
+      setDataAtCell(2, 0, '=TRANSPOSE(A1:B2)');
 
       const formulas = getPlugin('formulas');
 
       expect(formulas.getCellType(0, 0)).toBe('VALUE');
       expect(formulas.getCellType(0, 1)).toBe('VALUE');
       expect(formulas.getCellType(1, 0)).toBe('VALUE');
-      expect(formulas.getCellType(2, 0)).toBe('MATRIX');
-      expect(formulas.getCellType(3, 0)).toBe('MATRIX');
+      expect(formulas.getCellType(2, 0)).toBe('ARRAYFORMULA');
+      expect(formulas.getCellType(3, 0)).toBe('VALUE');
       expect(formulas.getCellType(4, 0)).toBe('FORMULA');
       expect(formulas.getCellType(4, 1)).toBe('VALUE');
       expect(formulas.getCellType(5, 0)).toBe('VALUE');

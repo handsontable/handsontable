@@ -710,7 +710,7 @@ describe('Formulas general', () => {
           const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
           hfInstance1.addSheet('Test Sheet');
-          hfInstance1.setSheetContent('Test Sheet', [[1, 2, 3], [4, 5, 6]]);
+          hfInstance1.setSheetContent(hfInstance1.getSheetId('Test Sheet'), [[1, 2, 3], [4, 5, 6]]);
 
           handsontable({
             data: [['foo']],
@@ -801,7 +801,7 @@ describe('Formulas general', () => {
           const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
           hfInstance1.addSheet('Test Sheet');
-          hfInstance1.setSheetContent('Test Sheet', [[1, 2, 3], [4, 5, 6]]);
+          hfInstance1.setSheetContent(hfInstance1.getSheetId('Test Sheet'), [[1, 2, 3], [4, 5, 6]]);
 
           handsontable({
             formulas: {
@@ -863,9 +863,6 @@ describe('Formulas general', () => {
       const plugin = getPlugin('formulas');
       const hfConfig = plugin.engine.getConfig();
 
-      expect(hfConfig.binarySearchThreshold).toEqual(20);
-      expect(hfConfig.matrixDetection).toEqual(false);
-      expect(hfConfig.matrixDetectionThreshold).toEqual(100);
       expect(hfConfig.useColumnIndex).toEqual(false);
       expect(hfConfig.useStats).toEqual(false);
       expect(hfConfig.evaluateNullToZero).toEqual(true);
@@ -880,8 +877,6 @@ describe('Formulas general', () => {
 
       hfInstance1.updateConfig({
         binarySearchThreshold: 25,
-        matrixDetection: false,
-        matrixDetectionThreshold: 125,
         useColumnIndex: true,
         useStats: true,
       });
@@ -897,8 +892,6 @@ describe('Formulas general', () => {
       const hfConfig = plugin.engine.getConfig();
 
       expect(hfConfig.binarySearchThreshold).toEqual(25);
-      expect(hfConfig.matrixDetection).toEqual(false);
-      expect(hfConfig.matrixDetectionThreshold).toEqual(125);
       expect(hfConfig.useColumnIndex).toEqual(true);
       expect(hfConfig.useStats).toEqual(true);
     });
@@ -909,8 +902,6 @@ describe('Formulas general', () => {
           engine: {
             hyperformula: HyperFormula,
             binarySearchThreshold: 25,
-            matrixDetection: false,
-            matrixDetectionThreshold: 125,
             useColumnIndex: true,
             useStats: true,
           }
@@ -922,8 +913,6 @@ describe('Formulas general', () => {
       const hfConfig = plugin.engine.getConfig();
 
       expect(hfConfig.binarySearchThreshold).toEqual(25);
-      expect(hfConfig.matrixDetection).toEqual(false);
-      expect(hfConfig.matrixDetectionThreshold).toEqual(125);
       expect(hfConfig.useColumnIndex).toEqual(true);
       expect(hfConfig.useStats).toEqual(true);
     });
@@ -1181,7 +1170,7 @@ describe('Formulas general', () => {
 
       expect(getDataAtCell(0, 0)).toEqual(1234);
       // eslint-disable-next-line no-console
-      expect(console.warn).toHaveBeenCalledTimes(1);
+      expect(console.warn).toHaveBeenCalledWith('Name of Named Expression \'MyLocal\' is already present');
     });
 
     it('should register custom function plugins before creating the HF instance', () => {
@@ -1312,7 +1301,7 @@ describe('Formulas general', () => {
 
       expect(getDataAtCell(1, 0)).toEqual('test');
       // eslint-disable-next-line no-console
-      expect(console.warn).toHaveBeenCalledTimes(1);
+      expect(console.warn).toHaveBeenCalledWith('Language already registered.');
 
       // cleanup
       HyperFormula.unregisterLanguage(plPL.langCode);
