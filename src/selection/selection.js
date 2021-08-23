@@ -528,6 +528,10 @@ class Selection {
    * otherwise.
    */
   selectAll(includeRowHeaders = false, includeColumnHeaders = false) {
+    if (this.tableProps.skipSelection()) {
+      return false;
+    }
+
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
 
@@ -556,6 +560,10 @@ class Selection {
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectCells(selectionRanges) {
+    if (this.tableProps.skipSelection()) {
+      return false;
+    }
+
     const selectionType = detectSelectionType(selectionRanges);
 
     if (selectionType === SELECTION_TYPE_EMPTY) {
@@ -615,6 +623,10 @@ class Selection {
     const start = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
     const end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
 
+    if (this.tableProps.skipSelection()) {
+      return false;
+    }
+
     const nrOfColumns = this.tableProps.countCols();
     const nrOfRows = this.tableProps.countRows();
     const isValid = isValidCoord(start, nrOfColumns) && isValidCoord(end, nrOfColumns);
@@ -639,6 +651,10 @@ class Selection {
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectRows(startRow, endRow = startRow, headerLevel = -1) {
+    if (this.tableProps.skipSelection()) {
+      return false;
+    }
+
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
     const isValid = isValidCoord(startRow, nrOfRows) && isValidCoord(endRow, nrOfRows);

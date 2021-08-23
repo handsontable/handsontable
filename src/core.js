@@ -203,6 +203,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     countRowsTranslated: () => this.view.countRenderableRows(),
     visualToRenderableCoords,
     renderableToVisualCoords,
+    skipSelection: () => this.runHooks('beforeSelection') === false,
     isDisabledCellSelection: (visualRow, visualColumn) =>
       instance.getCellMeta(visualRow, visualColumn).disableVisualSelection
   });

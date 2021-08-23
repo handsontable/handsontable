@@ -450,13 +450,15 @@ export class CollapsibleColumns extends BasePlugin {
       if (hasClass(event.target, 'expanded')) {
         this.eventManager.fireEvent(event.target, 'mouseup');
         this.toggleCollapsibleSection([coords], 'collapse');
+        // This callback will skip next, "custom" selection performed by the `NestedHeaders` plugin within `onAfterOnCellMouseDown` hook.
+        this.hot.addHookOnce('beforeSelection', () => false);
 
       } else if (hasClass(event.target, 'collapsed')) {
         this.eventManager.fireEvent(event.target, 'mouseup');
         this.toggleCollapsibleSection([coords], 'expand');
+        // This callback will skip next, "custom" selection performed by the `NestedHeaders` plugin within `onAfterOnCellMouseDown` hook.
+        this.hot.addHookOnce('beforeSelection', () => false);
       }
-
-      stopImmediatePropagation(event);
     }
   }
 

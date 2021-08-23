@@ -892,6 +892,15 @@ const REGISTERED_HOOKS = [
   'beforeRender',
 
   /**
+   * Fired before any type of selection.
+   *
+   * @event Hooks#beforeSelect
+   * @since 10.0.0
+   * @returns {*|boolean} If false is returned the selection is canceled.
+   */
+  'beforeSetCellMeta',
+
+  /**
    * Fired before cell meta is changed.
    *
    * @event Hooks#beforeSetCellMeta
