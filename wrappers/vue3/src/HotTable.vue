@@ -6,15 +6,12 @@
 
 <script lang="ts">
  
-  import {defineComponent} from "vue";
   import {
-    getHotColumnComponents, WARNING_HOT_DESTROYED,
+    WARNING_HOT_DESTROYED,
     prepareSettings,
     preventInternalEditWatch,
-    propFactory,
     tablePropFactory
   } from "./helpers";
-  import {HotTableProps} from "./types";
   import Handsontable from 'handsontable';
   import {LRUMap} from "./lib/lru/lru";
 
@@ -67,7 +64,7 @@
       return this.hotInit();
     },
     watch: {
-      mergedHotSettings: function (value) {
+      mergedHotSettings(value) {
         if (!this.hotInstance || value === void 0) {
           return;
         }
@@ -109,7 +106,7 @@
         preventInternalEditWatch(this);
 
       },
-      matchHotMappersSize: function(): void {
+      matchHotMappersSize(): void {
         if (!this.hotInstance) {
           return;
         }
@@ -163,7 +160,7 @@
 
     },
     computed: {
-      mergedHotSettings: function (): Handsontable.GridSettings {
+      mergedHotSettings(): Handsontable.GridSettings {
         return prepareSettings(this.$props, this.hotInstance ? this.hotInstance.getSettings() : void 0);
       }
     },

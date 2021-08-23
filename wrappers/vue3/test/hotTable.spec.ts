@@ -20,7 +20,7 @@ describe('hotInit', () => {
     });
 
     expect(typeof testWrapper.componentVM.hotInstance).toEqual('object');
-    expect(testWrapper.vm.hotInstance.getDataAtCell(0, 0)).toEqual('0-0');
+    expect(testWrapper.componentVM.hotInstance.getDataAtCell(0, 0)).toEqual('0-0');
   });
 });
 
@@ -103,9 +103,9 @@ describe('Updating the Handsontable settings', () => {
 
   it('should update the previously initialized Handsontable instance with only the options that are passed to the' +
     ' component as props and actually changed', async() => {
-    let newHotSettings = null;
-    let App = Vue.extend({
-      data: function () {
+    let newHotSettings = [];
+    const appComponent = {
+      data() {
         return {
           rowHeaders: true,
           colHeaders: true,
@@ -113,36 +113,36 @@ describe('Updating the Handsontable settings', () => {
         }
       },
       methods: {
-        updateData: function () {
+        updateData() {
           this.rowHeaders = false;
           this.colHeaders = false;
           this.readOnly = false;
         }
       },
-      render(h) {
+      render() {
         // HotTable
         return h(HotTable, {
           ref: 'hotInstance',
-          props: {
+         
             rowHeaders: this.rowHeaders,
             colHeaders: this.colHeaders,
             readOnly: this.readOnly,
             minSpareRows: 4,
-            afterUpdateSettings: function (newSettings) {
+            afterUpdateSettings(newSettings) {
               newHotSettings = newSettings
             }
-          }
+          
         })
       }
-    });
+    };
 
-    let testWrapper = mount(App, {
+    let testWrapper = mount(appComponent, {
       sync: false
     });
 
-    testWrapper.vm.updateData();
+    testWrapper.componentVM.updateData();
 
-    await Vue.nextTick();
+    await testWrapper.rootVM.$nextTick();
 
     expect(Object.keys(newHotSettings).length).toBe(3)
   });
@@ -150,116 +150,116 @@ describe('Updating the Handsontable settings', () => {
   it('should not call Handsontable\'s `updateSettings` method, when the table data was changed by reference, and the' +
     ' dataset is an array of arrays', async() => {
     let newHotSettings = null;
-    let App = Vue.extend({
-      data: function () {
+    const appComponent = {
+      data() {
         return {
           data: [[1, 2, 3]],
         }
       },
       methods: {
-        modifyFirstRow: function () {
+        modifyFirstRow() {
           Vue.set(this.data, 0, [22, 32, 42]);
         },
-        addRow: function () {
+        addRow() {
           this.data.push([2, 3, 4]);
         },
-        removeRow: function () {
+        removeRow() {
           this.data.pop()
         },
       },
-      render(h) {
+      render() {
         // HotTable
         return h(HotTable, {
           ref: 'hotInstance',
-          props: {
+         
             data: this.data,
-            afterUpdateSettings: function (newSettings) {
+            afterUpdateSettings(newSettings) {
               newHotSettings = newSettings
             }
-          }
+          
         })
       }
-    });
+    };
 
-    let testWrapper = mount(App, {
+    let testWrapper = mount(appComponent, {
       sync: false
     });
 
-    testWrapper.vm.addRow();
+    testWrapper.componentVM.addRow();
 
-    await Vue.nextTick();
+    await testWrapper.rootVM.$nextTick();
 
-    expect(testWrapper.vm.$children[0].hotInstance.getData()).toEqual([[1, 2, 3], [2, 3, 4]]);
+    expect(testWrapper.componentVM.$children[0].hotInstance.getData()).toEqual([[1, 2, 3], [2, 3, 4]]);
     expect(newHotSettings).toBe(null);
 
-    testWrapper.vm.removeRow();
+    testWrapper.componentVM.removeRow();
 
-    await Vue.nextTick();
+    await testWrapper.rootVM.$nextTick();
 
-    expect(testWrapper.vm.$children[0].hotInstance.getData()).toEqual([[1, 2, 3]]);
+    expect(testWrapper.componentVM.$children[0].hotInstance.getData()).toEqual([[1, 2, 3]]);
     expect(newHotSettings).toBe(null);
 
-    testWrapper.vm.modifyFirstRow();
+    testWrapper.componentVM.modifyFirstRow();
 
-    await Vue.nextTick();
+    await testWrapper.rootVM.$nextTick();
 
-    expect(testWrapper.vm.$children[0].hotInstance.getData()).toEqual([[22, 32, 42]]);
+    expect(testWrapper.componentVM.$children[0].hotInstance.getData()).toEqual([[22, 32, 42]]);
     expect(newHotSettings).toBe(null);
 
-    testWrapper.vm.removeRow();
+    testWrapper.componentVM.removeRow();
 
-    await Vue.nextTick();
+    await testWrapper.rootVM.$nextTick();
 
-    expect(testWrapper.vm.$children[0].hotInstance.getData()).toEqual([]);
+    expect(testWrapper.componentVM.$children[0].hotInstance.getData()).toEqual([]);
     expect(newHotSettings).toBe(null);
   });
 
   it('should call Handsontable\'s `updateSettings` method, when the table data was changed by reference while the' +
     ' dataset is an array of object and property number changed', async() => {
     let newHotSettings = null;
-    let App = Vue.extend({
-      data: function () {
+    const appComponent = {
+      data() {
         return {
           data: [{a: 1, b: 2, c: 3}],
         }
       },
       methods: {
-        updateData: function (changedRow) {
+        updateData(changedRow) {
           Vue.set(this.data, 0, Object.assign({}, changedRow));
         }
       },
-      render(h) {
+      render() {
         // HotTable
         return h(HotTable, {
           ref: 'hotInstance',
-          props: {
+         
             data: this.data,
-            afterUpdateSettings: function (newSettings) {
+            afterUpdateSettings(newSettings) {
               newHotSettings = newSettings
             }
-          }
+          
         })
       }
-    });
+    }
 
-    let testWrapper = mount(App, {
+    let testWrapper = mount(appComponent, {
       sync: false
     });
 
-    testWrapper.vm.updateData({a: 1, b: 2, c: 3, d: 4});
+    testWrapper.componentVM.updateData({a: 1, b: 2, c: 3, d: 4});
 
-    await Vue.nextTick();
+    await testWrapper.rootVM.$nextTick();
 
-    expect(testWrapper.vm.$children[0].hotInstance.getData()).toEqual([[1, 2, 3, 4]]);
+    expect(testWrapper.componentVM.$children[0].hotInstance.getData()).toEqual([[1, 2, 3, 4]]);
     expect(JSON.stringify(newHotSettings)).toBe(JSON.stringify({
       data: [{a: 1, b: 2, c: 3, d: 4}]
     }));
 
-    testWrapper.vm.updateData({a: 1});
+    testWrapper.componentVM.updateData({a: 1});
 
-    await Vue.nextTick();
+    await testWrapper.rootVM.$nextTick();
 
-    expect(testWrapper.vm.$children[0].hotInstance.getData()).toEqual([[1]]);
+    expect(testWrapper.componentVM.$children[0].hotInstance.getData()).toEqual([[1]]);
     expect(JSON.stringify(newHotSettings)).toBe(JSON.stringify({
       data: [{a: 1}]
     }));
@@ -268,50 +268,50 @@ describe('Updating the Handsontable settings', () => {
   it('should NOT call Handsontable\'s `updateSettings` method, when the table data was changed by reference while the' +
     ' dataset is an array of object and property number DID NOT change', async() => {
     let newHotSettings = null;
-    let App = Vue.extend({
-      data: function () {
+    const appComponent = {
+      data() {
         return {
           data: [{a: 1, b: 2, c: 3}],
         }
       },
       methods: {
-        addRow: function () {
+        addRow() {
           this.data.push({a: 12, b: 22, c: 32})
         },
-        removeRow: function () {
+        removeRow() {
           this.data.pop()
         }
       },
-      render(h) {
+      render() {
         // HotTable
         return h(HotTable, {
           ref: 'hotInstance',
-          props: {
+         
             data: this.data,
-            afterUpdateSettings: function (newSettings) {
+            afterUpdateSettings(newSettings) {
               newHotSettings = newSettings
             }
-          }
+          
         })
       }
-    });
+    };
 
-    let testWrapper = mount(App, {
+    let testWrapper = mount(appComponent, {
       sync: false
     });
 
-    testWrapper.vm.addRow();
+    testWrapper.componentVM.addRow();
 
-    await Vue.nextTick();
+    await testWrapper.rootVM.$nextTick();
 
-    expect(testWrapper.vm.$children[0].hotInstance.getData()).toEqual([[1, 2, 3], [12, 22, 32]]);
+    expect(testWrapper.componentVM.$children[0].hotInstance.getData()).toEqual([[1, 2, 3], [12, 22, 32]]);
     expect(newHotSettings).toBe(null);
 
-    testWrapper.vm.removeRow();
+    testWrapper.componentVM.removeRow();
 
-    await Vue.nextTick();
+    await testWrapper.rootVM.$nextTick();
 
-    expect(testWrapper.vm.$children[0].hotInstance.getData()).toEqual([[1, 2, 3]]);
+    expect(testWrapper.componentVM.$children[0].hotInstance.getData()).toEqual([[1, 2, 3]]);
     expect(newHotSettings).toBe(null);
   });
 });
@@ -395,7 +395,7 @@ describe('Global editors and renderers', () => {
     
     const dummyEditorComponent = app.component('editor-component', {
       extends: BaseEditorComponent,
-      render(h) {
+      render() {
         return h('div', {
           'attrs': {
             'id': 'dummy-editor'
@@ -405,7 +405,7 @@ describe('Global editors and renderers', () => {
     });
 
     const dummyRendererComponent = app.component('renderer-component', {
-      render(h) {
+      render() {
         return h('div', {
           'attrs': {
             'id': 'dummy-renderer'
@@ -415,19 +415,19 @@ describe('Global editors and renderers', () => {
     });
 
     const container = {
-      render(h) {
+      render() {
         // HotTable
         return h(HotTable, {
-          props: {
+         
             data: createSampleData(50, 2),
             autoRowSize: false,
             autoColumnSize: false,
             width: 400,
             height: 400,
-            init: function () {
+            init() {
               mockClientDimensions(this.rootElement, 400, 400);
             }
-          }
+          
         }, [
           h(dummyRendererComponent, {
             attrs: {
@@ -446,7 +446,7 @@ describe('Global editors and renderers', () => {
     let testWrapper = app.mount(container, {
       attachTo: createDomContainer()
     });
-    const hotTableComponent = testWrapper.vm.$children[0];
+    const hotTableComponent = testWrapper.componentVM.$children[0];
     const globalEditor = hotTableComponent.hotInstance.getSettings().editor;
     const globalEditorInstance = new globalEditor(hotTableComponent.hotInstance);
 
@@ -462,7 +462,7 @@ it('should inject an `isRenderer` and `isEditor` properties to renderer/editor c
   const dummyEditorComponent = Vue.component('renderer-component', {
     name: 'EditorComponent',
     extends: BaseEditorComponent,
-    render: function (h) {
+    render() {
       return h('div', {
         'attrs': {
           'id': 'dummy-editor'
@@ -473,7 +473,7 @@ it('should inject an `isRenderer` and `isEditor` properties to renderer/editor c
 
   const dummyRendererComponent = Vue.component('renderer-component', {
     name: 'RendererComponent',
-    render: function (h) {
+    render() {
       return h('div', {
         'attrs': {
           'id': 'dummy-renderer'
@@ -482,16 +482,16 @@ it('should inject an `isRenderer` and `isEditor` properties to renderer/editor c
     }
   });
 
-  let App = Vue.extend({
-    render(h) {
+  const appComponent = {
+    render() {
       // HotTable
       return h(HotTable, {
-        props: {
+       
           data: createSampleData(50, 2),
           licenseKey: 'non-commercial-and-evaluation',
           autoRowSize: false,
           autoColumnSize: false
-        }
+        
       }, [
         h(dummyRendererComponent, {
           attrs: {
@@ -505,12 +505,12 @@ it('should inject an `isRenderer` and `isEditor` properties to renderer/editor c
         })
       ])
     }
-  });
+  };
 
-  let testWrapper = mount(App, {
+  let testWrapper = mount(appComponent, {
     attachTo: createDomContainer()
   });
-  const hotTableComponent = testWrapper.vm.$children[0];
+  const hotTableComponent = testWrapper.componentVM.$children[0];
 
   expect(hotTableComponent.$data.rendererCache.get('0-0').component.$data.isRenderer).toEqual(true);
   expect(hotTableComponent.$data.editorCache.get('EditorComponent').$data.isEditor).toEqual(true);
@@ -520,8 +520,8 @@ it('should inject an `isRenderer` and `isEditor` properties to renderer/editor c
 
 it('should be possible to access the `hotInstance` property of the HotTable instance from a parent-component', () => {
   let hotInstanceFromRef = 'not-set';
-  let App = Vue.extend({
-    data: function () {
+  const appComponent = {
+    data() {
       return {
         rowHeaders: true,
         colHeaders: true,
@@ -535,21 +535,21 @@ it('should be possible to access the `hotInstance` property of the HotTable inst
         }
       }
     },
-    render(h) {
+    render() {
       // HotTable
       return h(HotTable, {
         ref: 'hTable',
-        props: {
+       
           rowHeaders: this.rowHeaders,
           colHeaders: this.colHeaders,
           readOnly: this.readOnly,
           cells: this.cellsCallback
-        }
+        
       })
     }
-  });
+  };
 
-  let testWrapper = mount(App, {
+  let testWrapper = mount(appComponent, {
     attachTo: createDomContainer()
   });
 
@@ -563,7 +563,7 @@ it('should be possible to pass props to the editor and renderer components', () 
     name: 'EditorComponent',
     extends: BaseEditorComponent,
     props: ['test-prop'],
-    render: function (h) {
+    render() {
       return h('div', {});
     }
   });
@@ -571,19 +571,19 @@ it('should be possible to pass props to the editor and renderer components', () 
   const dummyRendererComponent = Vue.component('renderer-component', {
     name: 'RendererComponent',
     props: ['test-prop'],
-    render: function (h) {
+    render() {
       return h('div', {});
     }
   });
 
-  let App = Vue.extend({
-    render(h) {
+  const appComponent = {
+    render() {
       // HotTable
       return h(HotTable, {
-        props: {
+       
           data: createSampleData(1, 1),
           licenseKey: 'non-commercial-and-evaluation',
-        }
+        
       }, [
         h(dummyRendererComponent, {
           attrs: {
@@ -599,12 +599,12 @@ it('should be possible to pass props to the editor and renderer components', () 
         })
       ])
     }
-  });
+  };
 
-  let testWrapper = mount(App, {
+  let testWrapper = mount(appComponent, {
     attachTo: createDomContainer()
   });
-  const hotTableComponent = testWrapper.vm.$children[0];
+  const hotTableComponent = testWrapper.componentVM.$children[0];
 
   expect(hotTableComponent.rendererCache.get('0-0').component.$props.testProp).toEqual('test-prop-value');
   expect(hotTableComponent.editorCache.get('EditorComponent').$props.testProp).toEqual('test-prop-value');
@@ -627,11 +627,11 @@ it('should display a warning and not throw any errors, when the underlying Hands
     warnCalls.push(warningMessage);
   }
 
-  expect(testWrapper.vm.hotInstance.isDestroyed).toEqual(false);
+  expect(testWrapper.componentVM.hotInstance.isDestroyed).toEqual(false);
 
-  testWrapper.vm.hotInstance.destroy();
+  testWrapper.componentVM.hotInstance.destroy();
 
-  expect(testWrapper.vm.hotInstance).toEqual(null);
+  expect(testWrapper.componentVM.hotInstance).toEqual(null);
 
   expect(warnCalls.length).toBeGreaterThan(0);
   warnCalls.forEach((message) => {
@@ -652,12 +652,12 @@ describe('HOT-based CRUD actions', () => {
         colHeaders: true,
       }
     });
-    const hotInstance = testWrapper.vm.hotInstance;
+    const hotInstance = testWrapper.componentVM.hotInstance;
 
     hotInstance.alter('insert_row', 2, 2);
     hotInstance.alter('insert_col', 2, 2);
 
-    await Vue.nextTick();
+    await testWrapper.rootVM.$nextTick();
 
     expect(hotInstance.countRows()).toEqual(6);
     expect(hotInstance.countSourceRows()).toEqual(6);
@@ -688,12 +688,12 @@ describe('Non-HOT based CRUD actions', () => {
         colHeaders: true,
       }
     });
-    const hotInstance = testWrapper.vm.hotInstance;
+    const hotInstance = testWrapper.componentVM.hotInstance;
 
     externalData.push(externalData[0], externalData[0]);
     externalData[0].push('test', 'test');
 
-    await Vue.nextTick();
+    await testWrapper.rootVM.$nextTick();
 
     expect(hotInstance.countRows()).toEqual(6);
     expect(hotInstance.countSourceRows()).toEqual(6);
@@ -707,7 +707,7 @@ describe('Non-HOT based CRUD actions', () => {
     externalData[0].pop();
     externalData[0].pop();
 
-    await Vue.nextTick();
+    await testWrapper.rootVM.$nextTick();
 
     expect(hotInstance.countRows()).toEqual(4);
     expect(hotInstance.countSourceRows()).toEqual(4);
@@ -749,11 +749,11 @@ describe('cooperation with NestedRows plugin', () => {
       }
     });
 
-    expect(testWrapper.vm.hotInstance.countRows()).toEqual(7);
+    expect(testWrapper.componentVM.hotInstance.countRows()).toEqual(7);
 
-    await Vue.nextTick();
+    await testWrapper.rootVM.$nextTick();
 
-    expect(testWrapper.vm.hotInstance.countRows()).toEqual(7);
+    expect(testWrapper.componentVM.hotInstance.countRows()).toEqual(7);
 
     testWrapper.destroy();
   });
