@@ -529,7 +529,7 @@ class Selection {
    */
   selectAll(includeRowHeaders = false, includeColumnHeaders = false) {
     if (this.tableProps.skipSelection()) {
-      return false;
+      return;
     }
 
     const nrOfRows = this.tableProps.countRows();

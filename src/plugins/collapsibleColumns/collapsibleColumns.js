@@ -8,7 +8,6 @@ import {
   fastInnerText
 } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
-import { stopImmediatePropagation } from '../../helpers/dom/event';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
