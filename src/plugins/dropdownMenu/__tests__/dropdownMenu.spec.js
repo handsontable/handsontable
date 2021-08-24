@@ -329,7 +329,7 @@ describe('DropdownMenu', () => {
         .simulate('mouseup');
 
       expect(afterCreateColCallback)
-        .toHaveBeenCalledWith(2, 1, 'ContextMenu.columnLeft', undefined, undefined, undefined);
+        .toHaveBeenCalledWith(2, 1, 'ContextMenu.columnLeft');
       expect(countCols()).toEqual(5);
     });
 
@@ -355,7 +355,7 @@ describe('DropdownMenu', () => {
         .simulate('mouseup');
 
       expect(afterCreateColCallback)
-        .toHaveBeenCalledWith(3, 1, 'ContextMenu.columnRight', undefined, undefined, undefined);
+        .toHaveBeenCalledWith(3, 1, 'ContextMenu.columnRight');
       expect(countCols()).toEqual(5);
     });
 

@@ -190,10 +190,10 @@ describe('CopyPaste', () => {
 
       expect(beforeCopySpy.calls.count()).toEqual(1);
       expect(beforeCopySpy).toHaveBeenCalledWith(
-        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
       expect(afterCopySpy.calls.count()).toEqual(1);
       expect(afterCopySpy).toHaveBeenCalledWith(
-        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
     });
 
     it('should be possible to block copying', () => {
@@ -390,10 +390,10 @@ describe('CopyPaste', () => {
 
       expect(beforeCutSpy.calls.count()).toEqual(1);
       expect(beforeCutSpy).toHaveBeenCalledWith(
-        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
       expect(afterCutSpy.calls.count()).toEqual(1);
       expect(afterCutSpy).toHaveBeenCalledWith(
-        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
     });
   });
 
@@ -617,11 +617,11 @@ describe('CopyPaste', () => {
 
       expect(beforePasteSpy.calls.count()).toEqual(1);
       expect(beforePasteSpy).toHaveBeenCalledWith(
-        [['Kia']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+        [['Kia']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
 
       expect(afterPasteSpy.calls.count()).toEqual(1);
       expect(afterPasteSpy).toHaveBeenCalledWith(
-        [['Kia']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+        [['Kia']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
     });
 
     it('should be possible to block pasting', async() => {
@@ -747,7 +747,7 @@ describe('CopyPaste', () => {
         [0, 0, null, 'Kia'],
         [1, 0, null, 'Nissan'],
         [2, 0, null, 'Toyota']
-      ], 'CopyPaste.paste', void 0, void 0, void 0, void 0);
+      ], 'CopyPaste.paste');
     });
 
     it('should properly paste data with multiline text', async() => {

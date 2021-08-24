@@ -348,8 +348,8 @@ describe('ContextMenu', () => {
       expect(afterSelectionEndByPropCallback.calls.count()).toEqual(1);
       expect(afterSelectionCallback).toHaveBeenCalledWith(0, 0, 0, 0, jasmine.any(Object), 0);
       expect(afterSelectionByPropCallback).toHaveBeenCalledWith(0, 0, 0, 0, jasmine.any(Object), 0);
-      expect(afterSelectionEndCallback).toHaveBeenCalledWith(0, 0, 0, 0, 0, void 0);
-      expect(afterSelectionEndByPropCallback).toHaveBeenCalledWith(0, 0, 0, 0, 0, void 0);
+      expect(afterSelectionEndCallback).toHaveBeenCalledWith(0, 0, 0, 0, 0);
+      expect(afterSelectionEndByPropCallback).toHaveBeenCalledWith(0, 0, 0, 0, 0);
     });
 
     it('should not open the menu after clicking an open editor', () => {
@@ -1354,7 +1354,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Insert row above
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.rowAbove', void 0, void 0, void 0);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.rowAbove');
       expect(countRows()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1386,7 +1386,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Insert row above
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.rowBelow', void 0, void 0, void 0);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.rowBelow');
       expect(countRows()).toEqual(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1469,7 +1469,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Insert row above
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.rowAbove', void 0, void 0, void 0);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.rowAbove');
       expect(countRows()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1495,7 +1495,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Insert row below
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.rowBelow', void 0, void 0, void 0);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.rowBelow');
       expect(countRows()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1521,7 +1521,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Insert row below
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.rowBelow', void 0, void 0, void 0);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.rowBelow');
       expect(countRows()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1549,7 +1549,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Insert col left
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', void 0, void 0, void 0);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft');
       expect(countCols()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1581,7 +1581,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Insert column right
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.columnRight', void 0, void 0, void 0);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.columnRight');
       expect(countCols()).toEqual(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1608,7 +1608,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Insert col left
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', void 0, void 0, void 0);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft');
       expect(countCols()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1635,7 +1635,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Insert col right
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', void 0, void 0, void 0);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft');
       expect(countCols()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1662,7 +1662,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Insert col right
 
-      expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.columnRight', void 0, void 0, void 0);
+      expect(afterCreateColCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.columnRight');
       expect(countCols()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1689,7 +1689,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Remove row
 
-      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeRow', void 0, void 0);
+      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeRow');
       expect(countRows()).toEqual(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1717,7 +1717,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Remove row
 
-      expect(afterRemoveRowCallback).toHaveBeenCalledWith(0, 1, [0], 'ContextMenu.removeRow', void 0, void 0);
+      expect(afterRemoveRowCallback).toHaveBeenCalledWith(0, 1, [0], 'ContextMenu.removeRow');
       expect(countRows()).toBe(0);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1744,7 +1744,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Remove row
 
-      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeRow', void 0, void 0);
+      expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeRow');
       expect(countRows()).toBe(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1771,7 +1771,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Remove col
 
-      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeColumn', void 0, void 0);
+      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeColumn');
       expect(countCols()).toBe(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1799,7 +1799,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Remove column
 
-      expect(afterRemoveColCallback).toHaveBeenCalledWith(0, 1, [0], 'ContextMenu.removeColumn', void 0, void 0);
+      expect(afterRemoveColCallback).toHaveBeenCalledWith(0, 1, [0], 'ContextMenu.removeColumn');
       expect(countCols()).toBe(0);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1828,7 +1828,7 @@ describe('ContextMenu', () => {
         .simulate('mousedown')
         .simulate('mouseup'); // Remove col
 
-      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeColumn', void 0, void 0);
+      expect(afterRemoveColCallback).toHaveBeenCalledWith(1, 3, [1, 2, 3], 'ContextMenu.removeColumn');
       expect(countCols()).toEqual(1);
     });
 
