@@ -252,18 +252,19 @@ export function curryRight(func) {
 }
 
 /**
- * Calls the function in the fast possible way. In contrast to the `apply` method
- * (passing arguments as an array), the `call` allows to pass the argument directly, so
- * there is not GC cost.
+ * Calls a function in the quickest way available.
  *
- * @param {Function} func Function to call.
- * @param {*} context The value to use as "this" when calling func.
- * @param {*} [arg1] Arguments for the function.
- * @param {*} [arg2] Arguments for the function.
- * @param {*} [arg3] Arguments for the function.
- * @param {*} [arg4] Arguments for the function.
- * @param {*} [arg5] Arguments for the function.
- * @param {*} [arg6] Arguments for the function.
+ * In contrast to the `apply()` method that passes arguments as an array,
+ * the `call()` method passes arguments directly, to avoid garbage collection costs.
+ *
+ * @param {Function} func The function to call.
+ * @param {*} context The value to use as `this` when calling the `func` function.
+ * @param {*} [arg1] An argument passed to the `func` function.
+ * @param {*} [arg2] An argument passed to `func` function.
+ * @param {*} [arg3] An argument passed to `func` function.
+ * @param {*} [arg4] An argument passed to `func` function.
+ * @param {*} [arg5] An argument passed to `func` function.
+ * @param {*} [arg6] An argument passed to `func` function.
  * @returns {*}
  */
 export function fastCall(func, context, arg1, arg2, arg3, arg4, arg5, arg6) {

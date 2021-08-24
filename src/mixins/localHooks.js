@@ -33,20 +33,21 @@ const localHooks = {
   /**
    * Run hooks.
    *
-   * @param {string} key The hook name.
-   * @param {*} [arg1] Additional parameter passed to callback function.
-   * @param {*} [arg2] Additional parameter passed to callback function.
-   * @param {*} [arg3] Additional parameter passed to callback function.
-   * @param {*} [arg4] Additional parameter passed to callback function.
-   * @param {*} [arg5] Additional parameter passed to callback function.
-   * @param {*} [arg6] Additional parameter passed to callback function.
+   * @param {string} key The name of the hook to run.
+   * @param {*} [arg1] An additional parameter passed to the callback function.
+   * @param {*} [arg2] An additional parameter passed to the callback function.
+   * @param {*} [arg3] An additional parameter passed to the callback function.
+   * @param {*} [arg4] An additional parameter passed to the callback function.
+   * @param {*} [arg5] An additional parameter passed to the callback function.
+   * @param {*} [arg6] An additional parameter passed to the callback function.
    */
   runLocalHooks(key, arg1, arg2, arg3, arg4, arg5, arg6) {
     if (this._localHooks[key]) {
       const length = this._localHooks[key].length;
 
-      // Do not optimize this loop with the arrayEach or arrow function! If you do, You'll
-      // decrease perf because of GC. The "...rest" ES6+ syntax as well decreases the performance.
+      // don't optimize this loop with the `arrayEach()` method or arrow functions
+      // otherwise, performance will decrease because of garbage collection
+      // using the `...rest` syntax (ES6 and later) will decrease performance as well
       for (let i = 0; i < length; i++) {
         fastCall(this._localHooks[key][i], this, arg1, arg2, arg3, arg4, arg5, arg6);
       }
