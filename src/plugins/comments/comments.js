@@ -243,7 +243,7 @@ export class Comments extends BasePlugin {
    * @returns {boolean}
    */
   targetIsCellWithComment(event) {
-    const closestCell = closest(event.target, 'TD', 'TBODY');
+    const closestCell = closest(event.target, ['TD'], 'TBODY');
 
     return !!(closestCell && hasClass(closestCell, 'htCommentCell') && closest(closestCell, [this.hot.rootElement]));
   }
@@ -558,7 +558,7 @@ export class Comments extends BasePlugin {
     }
 
     if (!this.contextMenuEvent && !this.targetIsCommentTextArea(event)) {
-      const eventCell = closest(event.target, 'TD', 'TBODY');
+      const eventCell = closest(event.target, ['TD'], 'TBODY');
       let coordinates = null;
 
       if (eventCell) {
