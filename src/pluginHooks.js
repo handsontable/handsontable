@@ -898,7 +898,7 @@ const REGISTERED_HOOKS = [
    * @since 10.0.0
    * @returns {*|boolean} If false is returned the selection is canceled.
    */
-  'beforeSetCellMeta',
+  'beforeSelection',
 
   /**
    * Fired before cell meta is changed.

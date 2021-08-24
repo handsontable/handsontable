@@ -620,12 +620,12 @@ class Selection {
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectColumns(startColumn, endColumn = startColumn, headerLevel = -1) {
-    const start = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
-    const end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
-
     if (this.tableProps.skipSelection()) {
       return false;
     }
+
+    const start = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
+    const end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
 
     const nrOfColumns = this.tableProps.countCols();
     const nrOfRows = this.tableProps.countRows();
