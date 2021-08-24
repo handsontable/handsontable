@@ -1,0 +1,7 @@
+{
+  "title": "Introduced new hook triggered just before any type of selection and giving ability to block the action. Fixed problem related to cooperation of CollapsibleColumns and DropdownMenu plugins.",
+  "type": "added",
+  "issue": 8640,
+  "breaking": false,
+  "framework": "none"
+}
