@@ -419,15 +419,6 @@ const REGISTERED_HOOKS = [
   'afterRemoveRow',
 
   /**
-   * Fired after the Handsontable table is rendered.
-   *
-   * @event Hooks#afterRender
-   * @param {boolean} isForced Is `true` if rendering was triggered by a change of settings or data; or `false` if
-   *                           rendering was triggered by scrolling or moving selection.
-   */
-  'afterRender',
-
-  /**
    * Fired before starting rendering the cell.
    *
    * @event Hooks#beforeRenderer
@@ -882,14 +873,58 @@ const REGISTERED_HOOKS = [
   'beforeRemoveRow',
 
   /**
-   * Fired before the Handsontable table is rendered.
+   * Fired before Handsontable's view-rendering engine is rendered.
    *
-   * @event Hooks#beforeRender
-   * @param {boolean} isForced If `true` rendering was triggered by a change of settings or data; or `false` if
-   *                           rendering was triggered by scrolling or moving selection.
+   * __Note:__ In Handsontable 9.x and earlier, the `beforeViewRender` hook was named `beforeRender`.
+   *
+   * @event Hooks#beforeViewRender
+   * @since 10.0.0
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
    * @param {object} skipRender Object with `skipRender` property, if it is set to `true ` the next rendering cycle will be skipped.
    */
+  'beforeViewRender',
+
+  /**
+   * Fired after Handsontable's view-rendering engine is rendered,
+   * but before redrawing the selection borders and before scroll syncing.
+   *
+   * __Note:__ In Handsontable 9.x and earlier, the `afterViewRender` hook was named `afterRender`.
+   *
+   * @event Hooks#afterViewRender
+   * @since 10.0.0
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
+   */
+  'afterViewRender',
+
+  /* eslint-disable jsdoc/require-description-complete-sentence */
+  /**
+   * Fired before Handsontable's view-rendering engine updates the view.
+   *
+   * The `beforeRender` event is fired right after the Handsontable
+   * business logic is executed and right before the rendering engine starts calling
+   * the Core logic, renderers, cell meta objects etc. to update the view.
+   *
+   * @event Hooks#beforeRender
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
+   */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   'beforeRender',
+
+  /**
+   * Fired after Handsontable's view-rendering engine updates the view.
+   *
+   * @event Hooks#afterRender
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
+   */
+  'afterRender',
 
   /**
    * Fired before cell meta is changed.
