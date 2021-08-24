@@ -5,6 +5,8 @@ const helpers = require('../../helpers');
 const buildMode = process.env.BUILD_MODE;
 const pluginName = 'hot/assets-versioning';
 
+const DOCS_VERSION = process.env.DOCS_VERSION || '**';
+
 module.exports = (options, context) => {
   return {
     name: pluginName,
@@ -31,10 +33,10 @@ module.exports = (options, context) => {
       $page.latestVersion = helpers.getLatestVersion();
       $page.currentVersion = helpers.parseVersion($page.path);
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
+      $page.frontmatter.canonicalUrl = `https://handsontable.com/docs/${$page.frontmatter.canonicalUrl}`;
 
-      if ($page.currentVersion === $page.latestVersion && $page.frontmatter.permalink) {
+      if ((DOCS_VERSION !== '**' || $page.currentVersion === $page.latestVersion) && $page.frontmatter.permalink) {
         $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
-        $page.frontmatter.canonicalUrl = undefined;
       }
 
       if ($page.currentVersion !== $page.latestVersion && $page.frontmatter.canonicalUrl) {
@@ -43,12 +45,14 @@ module.exports = (options, context) => {
     },
 
     chainWebpack(config) {
-      const files = helpers.getVersions(buildMode).map(version => ({
-        context: path.resolve(context.sourceDir, version, 'public'),
-        from: '**/*',
-        to: `${version}/`,
-        force: true,
-      }));
+      const files = helpers.getVersions(buildMode)
+        .filter(v => DOCS_VERSION === v || DOCS_VERSION === '**')
+        .map(version => ({
+          context: path.resolve(context.sourceDir, version, 'public'),
+          from: '**/*',
+          to: `${DOCS_VERSION === '**' ? version : '.'}/`,
+          force: true,
+        }));
 
       config
         .plugin(`${pluginName}:assets-copy`)

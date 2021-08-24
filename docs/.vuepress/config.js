@@ -4,8 +4,12 @@ const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
+const { getLatestVersion } = require('./helpers');
 
 const buildMode = process.env.BUILD_MODE;
+const version = process.env.DOCS_VERSION || '**';
+const base = version === '**' ? '/docs/' : `/docs/${version}`;
+
 const environmentHead = buildMode === 'production' ?
   [
     // Google Tag Manager, an extra element within the `ssr.html` file.
@@ -20,9 +24,9 @@ const environmentHead = buildMode === 'production' ?
   : [];
 
 module.exports = {
-  patterns: ['**/*.md', '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'], // to enable vue pages add: '**/*.vue'.
+  patterns: [`${version}/*.md`, `${version}/**/*.md`, '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'], // to enable vue pages add: '**/*.vue'.
   description: 'Handsontable',
-  base: '/docs/',
+  base,
   head: [
     ['link', { rel: 'icon', href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png' }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
