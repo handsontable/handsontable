@@ -1,26 +1,10 @@
 const { SiteChecker } = require('broken-link-checker'); // eslint-disable-line import/no-unresolved
 const path = require('path');
-const execa = require('execa');
 const { Renderer } = require('xlsx-renderer');
-const { logger } = require('./utils');
+const { logger, spawnProcess } = require('./utils');
 
 const ACCEPTABLE_STATUS_CODES = [undefined, 200, 429];
 const PORT = 8088;
-
-const spawnProcess = (command, options = {}) => {
-  const cmdSplit = command.split(' ');
-  const mainCmd = cmdSplit[0];
-
-  cmdSplit.shift();
-
-  if (!options.silent) {
-    options.stdin = options.stdin ?? 'inherit';
-    options.stdout = options.stdout ?? 'inherit';
-    options.stderr = options.stderr ?? 'inherit';
-  }
-
-  return execa(mainCmd, cmdSplit, options);
-};
 
 // start server
 spawnProcess(`http-server ${path.resolve('.vuepress', 'dist')} -s -p ${PORT}`);
