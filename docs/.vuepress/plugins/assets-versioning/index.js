@@ -1,6 +1,7 @@
 const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
 const helpers = require('../../helpers');
+const { getLatestVersion } = require('../../helpers');
 
 const buildMode = process.env.BUILD_MODE;
 const pluginName = 'hot/assets-versioning';
@@ -50,7 +51,7 @@ module.exports = (options, context) => {
         .map(version => ({
           context: path.resolve(context.sourceDir, version, 'public'),
           from: '**/*',
-          to: `${DOCS_VERSION === '**' ? version : '.'}/`,
+          to: `${DOCS_VERSION === '**' || version === getLatestVersion() ? version : '.'}/`,
           force: true,
         }));
 

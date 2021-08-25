@@ -8,7 +8,7 @@ const { getLatestVersion } = require('./helpers');
 
 const buildMode = process.env.BUILD_MODE;
 const version = process.env.DOCS_VERSION || '**';
-const base = version === '**' ? '/docs/' : `/docs/${version}`;
+const base = version === '**' || version === getLatestVersion() ? '/docs/' : `/docs/${version}/`;
 
 const environmentHead = buildMode === 'production' ?
   [
