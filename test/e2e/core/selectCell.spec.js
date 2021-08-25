@@ -666,10 +666,10 @@ describe('Core.selectCell', () => {
     expect(afterSelectionByProp.calls.argsFor(0)).toEqual([1, 'prop2', 1, 'prop2', jasmine.any(Object), 0]);
 
     expect(afterSelectionEnd.calls.count()).toBe(1);
-    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([1, 2, 1, 2, 0, void 0]);
+    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([1, 2, 1, 2, 0]);
 
     expect(afterSelectionEndByProp.calls.count()).toBe(1);
-    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([1, 'prop2', 1, 'prop2', 0, void 0]);
+    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([1, 'prop2', 1, 'prop2', 0]);
 
     expect(beforeSetRangeStart.calls.count()).toBe(0);
 
@@ -719,10 +719,10 @@ describe('Core.selectCell', () => {
     expect(afterSelectionByProp.calls.argsFor(0)).toEqual([1, 'prop2', 2, 'prop4', jasmine.any(Object), 0]);
 
     expect(afterSelectionEnd.calls.count()).toBe(1);
-    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([1, 2, 2, 4, 0, void 0]);
+    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([1, 2, 2, 4, 0]);
 
     expect(afterSelectionEndByProp.calls.count()).toBe(1);
-    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([1, 'prop2', 2, 'prop4', 0, void 0]);
+    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([1, 'prop2', 2, 'prop4', 0]);
 
     expect(beforeSetRangeStart.calls.count()).toBe(0);
 

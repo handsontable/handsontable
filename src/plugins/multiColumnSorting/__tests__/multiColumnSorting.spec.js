@@ -1750,7 +1750,7 @@ describe('MultiColumnSorting', () => {
     expect(beforeColumnSortHandler).toHaveBeenCalledWith([], [{
       column: 0,
       sortOrder: 'asc'
-    }], true, void 0, void 0, void 0);
+    }], true);
   });
 
   it('should not sorting column when beforeColumnSort returns false', (done) => {
@@ -1793,7 +1793,7 @@ describe('MultiColumnSorting', () => {
     expect(beforeColumnSortCallback).toHaveBeenCalledWith([], [{
       column: 0,
       sortOrder: 'asc'
-    }], true, void 0, void 0, void 0);
+    }], true);
   });
 
   it('should fire afterColumnSort event after data has been sorted', () => {
@@ -1817,7 +1817,7 @@ describe('MultiColumnSorting', () => {
     expect(afterColumnSortHandler).toHaveBeenCalledWith([], [{
       column: 0,
       sortOrder: 'asc'
-    }], true, void 0, void 0, void 0);
+    }], true);
   });
 
   it('should add afterColumnSort event listener in constructor', () => {
@@ -1835,7 +1835,7 @@ describe('MultiColumnSorting', () => {
     expect(afterColumnSortCallback).toHaveBeenCalledWith([], [{
       column: 0,
       sortOrder: 'asc'
-    }], true, void 0, void 0, void 0);
+    }], true);
   });
 
   it('should fire hooks with proper hook argument when sorting is not possible', () => {
@@ -1853,11 +1853,11 @@ describe('MultiColumnSorting', () => {
     expect(beforeColumnSortCallback).toHaveBeenCalledWith([], [{
       column: 1000,
       sortOrder: 'asc'
-    }], false, void 0, void 0, void 0);
+    }], false);
 
     // "After" hook always run! Team decision.
 
-    expect(afterColumnSortCallback).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
+    expect(afterColumnSortCallback).toHaveBeenCalledWith([], [], false);
   });
 
   it('should insert row when plugin is enabled, but table hasn\'t been sorted', () => {

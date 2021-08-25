@@ -520,10 +520,10 @@ describe('Core.selectColumns', () => {
     expect(afterSelectionByProp.calls.argsFor(0)).toEqual([-1, 'prop1', 19, 'prop1', jasmine.any(Object), 0]);
 
     expect(afterSelectionEnd.calls.count()).toBe(1);
-    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([-1, 1, 19, 1, 0, void 0]);
+    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([-1, 1, 19, 1, 0]);
 
     expect(afterSelectionEndByProp.calls.count()).toBe(1);
-    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([-1, 'prop1', 19, 'prop1', 0, void 0]);
+    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([-1, 'prop1', 19, 'prop1', 0]);
 
     expect(beforeSetRangeStart.calls.count()).toBe(0);
 
@@ -573,10 +573,10 @@ describe('Core.selectColumns', () => {
     expect(afterSelectionByProp.calls.argsFor(0)).toEqual([-1, 'prop1', 19, 'prop2', jasmine.any(Object), 0]);
 
     expect(afterSelectionEnd.calls.count()).toBe(1);
-    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([-1, 1, 19, 2, 0, void 0]);
+    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([-1, 1, 19, 2, 0]);
 
     expect(afterSelectionEndByProp.calls.count()).toBe(1);
-    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([-1, 'prop1', 19, 'prop2', 0, void 0]);
+    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([-1, 'prop1', 19, 'prop2', 0]);
 
     expect(beforeSetRangeStart.calls.count()).toBe(0);
 

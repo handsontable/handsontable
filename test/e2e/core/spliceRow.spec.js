@@ -97,7 +97,7 @@ describe('Core.spliceRow', () => {
 
     hot.spliceRow(2, 1, 3, 'X1', 'X2', 'X3', 'X4');
 
-    expect(spyBefore).toHaveBeenCalledWith(5, 1, 'spliceRow', undefined, undefined, undefined);
-    expect(spyAfter).toHaveBeenCalledWith(5, 1, 'spliceRow', undefined, undefined, undefined);
+    expect(spyBefore).toHaveBeenCalledWith(5, 1, 'spliceRow');
+    expect(spyAfter).toHaveBeenCalledWith(5, 1, 'spliceRow');
   });
 });
