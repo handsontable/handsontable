@@ -446,7 +446,7 @@ describe('manualColumnResize', () => {
 
     resizeColumn(0, 100);
 
-    expect(beforeColumnResizeCallback).toHaveBeenCalledWith(100, 0, false, void 0, void 0, void 0);
+    expect(beforeColumnResizeCallback).toHaveBeenCalledWith(100, 0, false);
     expect(colWidth(spec().$container, 0)).toEqual(100);
   });
 
@@ -492,7 +492,7 @@ describe('manualColumnResize', () => {
 
     resizeColumn(0, 100);
 
-    expect(afterColumnResizeCallback).toHaveBeenCalledWith(100, 0, false, void 0, void 0, void 0);
+    expect(afterColumnResizeCallback).toHaveBeenCalledWith(100, 0, false);
     expect(colWidth(spec().$container, 0)).toEqual(100);
   });
 

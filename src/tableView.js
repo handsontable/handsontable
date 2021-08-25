@@ -127,6 +127,8 @@ class TableView {
    */
   render() {
     if (!this.instance.isRenderSuspended()) {
+      this.instance.runHooks('beforeRender', this.instance.forceFullRender);
+
       if (this.postponedAdjustElementsSize) {
         this.postponedAdjustElementsSize = false;
 
@@ -134,6 +136,7 @@ class TableView {
       }
 
       this.wt.draw(!this.instance.forceFullRender);
+      this.instance.runHooks('afterRender', this.instance.forceFullRender);
       this.instance.forceFullRender = false;
       this.instance.renderCall = false;
     }
@@ -770,7 +773,7 @@ class TableView {
         this.instance.runHooks('afterOnCellCornerDblClick', event);
       },
       beforeDraw: (force, skipRender) => this.beforeRender(force, skipRender),
-      onDraw: force => this.onDraw(force),
+      onDraw: force => this.afterRender(force),
       onScrollVertically: () => this.instance.runHooks('afterScrollVertically'),
       onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
@@ -1017,26 +1020,27 @@ class TableView {
    * @private
    * @param {boolean} force If `true` rendering was triggered by a change of settings or data or `false` if
    *                        rendering was triggered by scrolling or moving selection.
-   * @param {boolean} skipRender Indicates whether the rendering is skipped.
+   * @param {object} skipRender Object with `skipRender` property, if it is set to `true ` the next rendering
+   *                            cycle will be skipped.
    */
   beforeRender(force, skipRender) {
     if (force) {
       // this.instance.forceFullRender = did Handsontable request full render?
-      this.instance.runHooks('beforeRender', this.instance.forceFullRender, skipRender);
+      this.instance.runHooks('beforeViewRender', this.instance.forceFullRender, skipRender);
     }
   }
 
   /**
-   * `onDraw` callback.
+   * `afterRender` callback.
    *
    * @private
    * @param {boolean} force If `true` rendering was triggered by a change of settings or data or `false` if
    *                        rendering was triggered by scrolling or moving selection.
    */
-  onDraw(force) {
+  afterRender(force) {
     if (force) {
       // this.instance.forceFullRender = did Handsontable request full render?
-      this.instance.runHooks('afterRender', this.instance.forceFullRender);
+      this.instance.runHooks('afterViewRender', this.instance.forceFullRender);
     }
   }
 

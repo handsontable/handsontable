@@ -34,7 +34,7 @@ import {
   stopObserving as keyStateStopObserving
 } from './utils/keyStateObserver';
 import { Selection } from './selection';
-import { MetaManager, DataMap } from './dataMap/index';
+import { MetaManager, DynamicCellMetaMod, DataMap } from './dataMap/index';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 
 let activeGuid = null;
@@ -76,7 +76,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   userSettings.language = getValidLanguageCode(userSettings.language);
 
-  const metaManager = new MetaManager(userSettings);
+  const metaManager = new MetaManager(instance, userSettings, [DynamicCellMetaMod]);
   const tableMeta = metaManager.getTableMeta();
   const globalMeta = metaManager.getGlobalMeta();
   const pluginsRegistry = createUniqueMap();
@@ -996,7 +996,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.init = function() {
     dataSource.setData(tableMeta.data);
-
     instance.runHooks('beforeInit');
 
     if (isMobileBrowser() || isIpadOS()) {
@@ -2916,7 +2915,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.removeCellMeta = function(row, column, key) {
     const [physicalRow, physicalColumn] = [this.toPhysicalRow(row), this.toPhysicalColumn(column)];
-    let cachedValue = metaManager.getCellMeta(physicalRow, physicalColumn, key);
+    let cachedValue = metaManager.getCellMetaKeyValue(physicalRow, physicalColumn, key);
 
     const hookResult = instance.runHooks('beforeRemoveCellMeta', row, column, key, cachedValue);
 
@@ -2955,6 +2954,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         arrayEach(cellMetaRow, (cellMeta, columnIndex) => this.setCellMetaObject(visualIndex, columnIndex, cellMeta));
       });
     }
+
+    instance.render();
   };
 
   /**
@@ -3043,37 +3044,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       physicalColumn = column;
     }
 
-    const prop = datamap.colToProp(column);
-    const cellProperties = metaManager.getCellMeta(physicalRow, physicalColumn);
-
-    // TODO(perf): Add assigning this props and executing below code only once per table render cycle.
-    cellProperties.row = physicalRow;
-    cellProperties.col = physicalColumn;
-    cellProperties.visualRow = row;
-    cellProperties.visualCol = column;
-    cellProperties.prop = prop;
-    cellProperties.instance = instance;
-
-    instance.runHooks('beforeGetCellMeta', row, column, cellProperties);
-
-    // for `type` added or changed in beforeGetCellMeta
-    if (instance.hasHook('beforeGetCellMeta') && hasOwnProperty(cellProperties, 'type')) {
-      metaManager.updateCellMeta(physicalRow, physicalColumn, {
-        type: cellProperties.type,
-      });
-    }
-
-    if (cellProperties.cells) {
-      const settings = cellProperties.cells(physicalRow, physicalColumn, prop);
-
-      if (settings) {
-        metaManager.updateCellMeta(physicalRow, physicalColumn, settings);
-      }
-    }
-
-    instance.runHooks('afterGetCellMeta', row, column, cellProperties);
-
-    return cellProperties;
+    return metaManager.getCellMeta(physicalRow, physicalColumn, {
+      visualRow: row,
+      visualColumn: column,
+    });
   };
 
   /**

@@ -1819,8 +1819,8 @@ declare namespace Handsontable {
       afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
       afterSetSourceDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
       afterSheetAdded?: (addedSheetDisplayName: string) => void;
-      afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
       afterSheetRemoved?: (removedSheetDisplayName: string, changes: object[]) => void;
+      afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
       afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUndo?: (action: plugins.UndoRedoAction) => void;
       afterUndoStackChange?: (doneActionsBefore: plugins.UndoRedoAction[], doneActionsAfter: plugins.UndoRedoAction[]) => void;
@@ -1833,6 +1833,7 @@ declare namespace Handsontable {
       afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number, source: ChangeSource) => void | boolean;
       afterViewportColumnCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
       afterViewportRowCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
+      afterViewRender?: (isForced: boolean) => void;
       beforeAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
       beforeAutofill?: (selectionData: CellValue[][], sourceRange: wot.CellRange, targetRange: wot.CellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | boolean | void;
       beforeAutofillInsidePopulate?: (index: wot.CellCoords, direction: 'up' | 'down' | 'left' | 'right', input: CellValue[][], deltas: any[]) => void;
@@ -1879,7 +1880,7 @@ declare namespace Handsontable {
       beforeRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
       beforeRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
       beforeRemoveRow?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
-      beforeRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
+      beforeRender?: (isForced: boolean) => void;
       beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
       beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | void, movePossible: boolean) => void;
       beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
@@ -1898,6 +1899,7 @@ declare namespace Handsontable {
       beforeUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void | boolean;
       beforeValidate?: (value: CellValue, row: number, prop: string | number, source?: ChangeSource) => void;
       beforeValueRender?: (value: CellValue, cellProperties: CellProperties) => void;
+      beforeViewRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
       construct?: () => void;
       init?: () => void;
       modifyAutoColumnSizeSeed?: (seed: string, cellProperties: CellProperties, cellValue: CellValue) => string | void;

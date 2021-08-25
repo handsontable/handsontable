@@ -309,7 +309,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 100.45, 12, '=SUM(E5)']);
-    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, 20]], 'edit', void 0, void 0, void 0, void 0]);
+    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, 20]], 'edit']);
   });
 
   it('should recalculate table after changing source cell value (setSourceDataAtCell)', () => {
@@ -350,7 +350,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 0.333167495854063, 12, '=SUM(E5)']);
-    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '=Sum(a2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '=Sum(a2:A4)']], 'edit']);
   });
 
   it('should prevent recalculate table after changing cell value into escaped formula expression', () => {
@@ -373,7 +373,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#VALUE!', 12, '=SUM(E5)']);
     expect(afterChange.calls.argsFor(1))
-      .toEqual([[[1, 1, 0, '\'=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+      .toEqual([[[1, 1, 0, '\'=SUM(A2:A4)']], 'edit']);
   });
 
   it('should recalculate table after changing cell value from escaped formula expression into valid formula expression',
@@ -397,7 +397,7 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, 12]);
       expect(afterChange.calls.argsFor(1))
-        .toEqual([[[4, 5, '\'=SUM(E5)', '=SUM(E5)']], 'edit', void 0, void 0, void 0, void 0]);
+        .toEqual([[[4, 5, '\'=SUM(E5)', '=SUM(E5)']], 'edit']);
     });
 
   it('should recalculate table after changing cell value from primitive value into formula expression', () => {
@@ -419,7 +419,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 0.333167495854063, 12, '=SUM(E5)']);
-    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '=SUM(A2:A4)']], 'edit']);
   });
 
   it('should recalculate table after changing cell value from formula expression into primitive value', () => {
@@ -442,7 +442,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 15, 2031, '#DIV/0!', 12, '=SUM(E5)']);
     expect(afterChange.calls.argsFor(1))
-      .toEqual([[[4, 1, '=SUM(A2:A5)', 15]], 'edit', void 0, void 0, void 0, void 0]);
+      .toEqual([[[4, 1, '=SUM(A2:A5)', 15]], 'edit']);
   });
 
   it('should recalculate table after changing cell value from formula expression into another formula expression',
@@ -466,7 +466,7 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getDataAtRow(4)).toEqual([2012, 6030, 8046, '#DIV/0!', 12, '=SUM(E5)']);
       expect(afterChange.calls.argsFor(1))
-        .toEqual([[[4, 1, '=SUM(A2:A5)', '=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+        .toEqual([[[4, 1, '=SUM(A2:A5)', '=SUM(A2:A4)']], 'edit']);
     });
 
   it('should correctly recalculate formulas when precedents cells are located out of table viewport', () => {
@@ -1809,24 +1809,24 @@ describe('Formulas general', () => {
   });
 
   it('should not render multiple times when updating many cells', () => {
-    const afterRender = jasmine.createSpy();
+    const afterViewRender = jasmine.createSpy();
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       formulas: {
         engine: HyperFormula
       },
-      afterRender
+      afterViewRender
     });
 
-    expect(afterRender).toHaveBeenCalledTimes(1);
+    expect(afterViewRender).toHaveBeenCalledTimes(1);
 
     selectCell(1, 1, 5, 5);
 
     spec().$container.find('textarea.handsontableInput').simulate('keydown', { keyCode: 46 });
     spec().$container.find('textarea.handsontableInput').simulate('keyup', { keyCode: 46 });
 
-    expect(afterRender).toHaveBeenCalledTimes(2);
+    expect(afterViewRender).toHaveBeenCalledTimes(2);
   });
 
   it('should freeze correct columns with ManualColumnFreeze', () => {

@@ -624,7 +624,7 @@ describe('Core_view', () => {
     expect(spec().$container.width()).toBeAroundValue(parentWidth * 0.5, 0.5);
   });
 
-  it('should fire beforeRender event after table has been scrolled', async() => {
+  it('should fire beforeViewRender event after table has been scrolled', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
@@ -635,7 +635,7 @@ describe('Core_view', () => {
 
     const beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
 
-    hot.addHook('beforeRender', beforeRenderCallback);
+    hot.addHook('beforeViewRender', beforeRenderCallback);
     spec().$container.find('.ht_master .wtHolder').scrollTop(1000);
 
     await sleep(200);
@@ -643,7 +643,7 @@ describe('Core_view', () => {
     expect(beforeRenderCallback.calls.count()).toBe(1);
   });
 
-  it('should fire afterRender event after table has been scrolled', async() => {
+  it('should fire afterViewRender event after table has been scrolled', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
@@ -654,7 +654,7 @@ describe('Core_view', () => {
 
     const afterRenderCallback = jasmine.createSpy('afterRenderCallback');
 
-    hot.addHook('afterRender', afterRenderCallback);
+    hot.addHook('afterViewRender', afterRenderCallback);
     spec().$container.find('.ht_master .wtHolder').first().scrollTop(1000);
 
     await sleep(200);
@@ -662,7 +662,7 @@ describe('Core_view', () => {
     expect(afterRenderCallback.calls.count()).toBe(1);
   });
 
-  it('should fire afterRender event after table physically rendered', async() => {
+  it('should fire afterViewRender event after table physically rendered', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
@@ -671,14 +671,14 @@ describe('Core_view', () => {
       data: Handsontable.helper.createSpreadsheetData(20, 3)
     });
 
-    hot.addHook('afterRender', () => {
+    hot.addHook('afterViewRender', () => {
       hot.view.wt.wtTable.holder.style.overflow = 'scroll';
       hot.view.wt.wtTable.holder.style.width = '220px';
     });
     spec().$container.find('.ht_master .wtHolder').first().scrollTop(1000);
 
     await sleep(100);
-    // after afterRender hook triggered element style shouldn't changed
+    // after afterViewRender hook triggered element style shouldn't changed
     expect(hot.view.wt.wtTable.holder.style.overflow).toBe('scroll');
     expect(hot.view.wt.wtTable.holder.style.width).toBe('220px');
   });
