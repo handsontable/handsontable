@@ -1,0 +1,7 @@
+{
+  "title": "Changed the default values for `autoWrapRow` and `autoWrapCol` options",
+  "type": "changed",
+  "issue": 8662,
+  "breaking": true,
+  "framework": "none"
+}
