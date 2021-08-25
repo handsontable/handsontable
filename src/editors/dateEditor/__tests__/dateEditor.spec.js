@@ -745,7 +745,7 @@ describe('DateEditor', () => {
   });
 
   it('should use the default Pikaday\'s cofiguration if cell does not customize picker', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [['10/12/2020', '01/14/2017']],
       columns: [
         {
