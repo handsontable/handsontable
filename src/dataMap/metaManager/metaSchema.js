@@ -955,7 +955,7 @@ export default () => {
      * autoWrapRow: false,
      * ```
      */
-    autoWrapRow: true,
+    autoWrapRow: false,
 
     /**
      * If `true`, pressing <kbd>ENTER</kbd> or down arrow in the last row will move to the first row in the next column.
@@ -971,7 +971,7 @@ export default () => {
      * autoWrapCol: false,
      * ```
      */
-    autoWrapCol: true,
+    autoWrapCol: false,
 
     /**
      * @description

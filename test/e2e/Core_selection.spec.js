@@ -1676,6 +1676,8 @@ describe('Core_selection', () => {
   it('selection should move down throughout the table when the last row is hidden', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
+      autoWrapCol: true,
+      autoWrapRow: true,
       hiddenRows: {
         rows: [2]
       }
@@ -1692,6 +1694,8 @@ describe('Core_selection', () => {
   it('selection should move to the right throughout the table when the last column is hidden', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
+      autoWrapCol: true,
+      autoWrapRow: true,
       hiddenColumns: {
         columns: [2]
       }
