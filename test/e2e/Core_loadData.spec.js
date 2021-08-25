@@ -269,7 +269,7 @@ describe('Core_loadData', () => {
       cells: cellsSpy,
     });
 
-    expect(cellsSpy.calls.count()).toEqual(43);
+    expect(cellsSpy.calls.count()).toBe(12);
   });
 
   it('should not invoke the cells callback multiple times with the same row/col (with overlays)', () => {
@@ -284,7 +284,7 @@ describe('Core_loadData', () => {
       cells: cellsSpy
     });
 
-    expect(cellsSpy.calls.count()).toEqual(56);
+    expect(cellsSpy.calls.count()).toBe(12);
   });
 
   it('should remove grid rows if new data source has less of them', () => {

@@ -43,7 +43,7 @@ describe('numericValidator', () => {
     setDataAtCell(2, 0, '');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, '', 2, 'id', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, '', 2, 'id');
       done();
     }, 100);
   });
@@ -64,7 +64,7 @@ describe('numericValidator', () => {
     setDataAtCell(2, 0, 'test');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id');
       done();
     }, 100);
   });
@@ -85,7 +85,7 @@ describe('numericValidator', () => {
     setDataAtCell(2, 0, '123');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
       done();
     }, 100);
   });
@@ -106,7 +106,7 @@ describe('numericValidator', () => {
     setDataAtCell(2, 0, '-123');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, -123, 2, 'id', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, -123, 2, 'id');
       done();
     }, 100);
   });
@@ -127,7 +127,7 @@ describe('numericValidator', () => {
     setDataAtCell(2, 0, '1e+23');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, 1e+23, 2, 'id', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, 1e+23, 2, 'id');
       done();
     }, 100);
   });
@@ -148,7 +148,7 @@ describe('numericValidator', () => {
     setDataAtCell(2, 0, '1e-23');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, 1e-23, 2, 'id', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, 1e-23, 2, 'id');
       done();
     }, 100);
   });
@@ -170,7 +170,7 @@ describe('numericValidator', () => {
       setDataAtCell(2, 0, '');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, '', 2, 'id', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, '', 2, 'id');
         done();
       }, 100);
     });
@@ -191,7 +191,7 @@ describe('numericValidator', () => {
       setDataAtCell(2, 0, null);
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, null, 2, 'id', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, null, 2, 'id');
         done();
       }, 100);
     });
@@ -209,10 +209,10 @@ describe('numericValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(2, 0, void 0);
+      setDataAtCell(2, 0);
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, void 0, 2, 'id', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, void 0, 2, 'id');
         done();
       }, 100);
     });
@@ -233,7 +233,7 @@ describe('numericValidator', () => {
       setDataAtCell(2, 0, 0);
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(true, 0, 2, 'id', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(true, 0, 2, 'id');
         done();
       }, 100);
     });

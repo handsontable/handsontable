@@ -493,9 +493,9 @@ describe('Formulas general', () => {
       });
 
       it('should render only related sheets when the dependent cells are updated', () => {
-        const afterRender1 = jasmine.createSpy('afterRender1');
-        const afterRender2 = jasmine.createSpy('afterRender2');
-        const afterRender3 = jasmine.createSpy('afterRender3');
+        const afterViewRender1 = jasmine.createSpy('afterViewRender1');
+        const afterViewRender2 = jasmine.createSpy('afterViewRender2');
+        const afterViewRender3 = jasmine.createSpy('afterViewRender3');
 
         const hot1 = handsontable({
           data: [
@@ -506,7 +506,7 @@ describe('Formulas general', () => {
             engine: HyperFormula,
             sheetName: 'Sheet1'
           },
-          afterRender: afterRender1,
+          afterViewRender: afterViewRender1,
           licenseKey: 'non-commercial-and-evaluation'
         });
 
@@ -519,7 +519,7 @@ describe('Formulas general', () => {
             engine: hot1.getPlugin('formulas').engine,
             sheetName: 'Sheet2'
           },
-          afterRender: afterRender2,
+          afterViewRender: afterViewRender2,
           licenseKey: 'non-commercial-and-evaluation'
         }).data('handsontable');
 
@@ -532,67 +532,67 @@ describe('Formulas general', () => {
             engine: hot1.getPlugin('formulas').engine,
             sheetName: 'Sheet3'
           },
-          afterRender: afterRender3,
+          afterViewRender: afterViewRender3,
           licenseKey: 'non-commercial-and-evaluation'
         }).data('handsontable');
 
-        expect(afterRender1).toHaveBeenCalledTimes(2);
-        expect(afterRender2).toHaveBeenCalledTimes(1);
-        expect(afterRender3).toHaveBeenCalledTimes(1);
+        expect(afterViewRender1).toHaveBeenCalledTimes(2);
+        expect(afterViewRender2).toHaveBeenCalledTimes(1);
+        expect(afterViewRender3).toHaveBeenCalledTimes(1);
 
-        afterRender1.calls.reset();
-        afterRender2.calls.reset();
-        afterRender3.calls.reset();
+        afterViewRender1.calls.reset();
+        afterViewRender2.calls.reset();
+        afterViewRender3.calls.reset();
 
         hot1.setDataAtCell(0, 0, 'x');
 
-        expect(afterRender1).toHaveBeenCalledTimes(1);
-        expect(afterRender2).toHaveBeenCalledTimes(0);
-        expect(afterRender3).toHaveBeenCalledTimes(0);
+        expect(afterViewRender1).toHaveBeenCalledTimes(1);
+        expect(afterViewRender2).toHaveBeenCalledTimes(0);
+        expect(afterViewRender3).toHaveBeenCalledTimes(0);
 
-        afterRender1.calls.reset();
-        afterRender2.calls.reset();
-        afterRender3.calls.reset();
+        afterViewRender1.calls.reset();
+        afterViewRender2.calls.reset();
+        afterViewRender3.calls.reset();
 
         // All 3 sheets depends on the B1 value
         hot1.setDataAtCell(0, 1, 'x');
 
-        expect(afterRender1).toHaveBeenCalledTimes(1);
-        expect(afterRender2).toHaveBeenCalledTimes(1);
-        expect(afterRender3).toHaveBeenCalledTimes(1);
+        expect(afterViewRender1).toHaveBeenCalledTimes(1);
+        expect(afterViewRender2).toHaveBeenCalledTimes(1);
+        expect(afterViewRender3).toHaveBeenCalledTimes(1);
 
-        afterRender1.calls.reset();
-        afterRender2.calls.reset();
-        afterRender3.calls.reset();
+        afterViewRender1.calls.reset();
+        afterViewRender2.calls.reset();
+        afterViewRender3.calls.reset();
 
         // Only Sheet3 depends on that value
         hot2.setDataAtCell(0, 0, 'x');
 
-        expect(afterRender1).toHaveBeenCalledTimes(0);
-        expect(afterRender2).toHaveBeenCalledTimes(1);
-        expect(afterRender3).toHaveBeenCalledTimes(1);
+        expect(afterViewRender1).toHaveBeenCalledTimes(0);
+        expect(afterViewRender2).toHaveBeenCalledTimes(1);
+        expect(afterViewRender3).toHaveBeenCalledTimes(1);
 
-        afterRender1.calls.reset();
-        afterRender2.calls.reset();
-        afterRender3.calls.reset();
+        afterViewRender1.calls.reset();
+        afterViewRender2.calls.reset();
+        afterViewRender3.calls.reset();
 
         // Only Sheet3 depends on that value
         hot1.setDataAtCell(1, 0, 'x');
 
-        expect(afterRender1).toHaveBeenCalledTimes(1);
-        expect(afterRender2).toHaveBeenCalledTimes(0);
-        expect(afterRender3).toHaveBeenCalledTimes(1);
+        expect(afterViewRender1).toHaveBeenCalledTimes(1);
+        expect(afterViewRender2).toHaveBeenCalledTimes(0);
+        expect(afterViewRender3).toHaveBeenCalledTimes(1);
 
-        afterRender1.calls.reset();
-        afterRender2.calls.reset();
-        afterRender3.calls.reset();
+        afterViewRender1.calls.reset();
+        afterViewRender2.calls.reset();
+        afterViewRender3.calls.reset();
 
         // No dependant sheets
         hot3.setDataAtCell(0, 0, 'x');
 
-        expect(afterRender1).toHaveBeenCalledTimes(0);
-        expect(afterRender2).toHaveBeenCalledTimes(0);
-        expect(afterRender3).toHaveBeenCalledTimes(1);
+        expect(afterViewRender1).toHaveBeenCalledTimes(0);
+        expect(afterViewRender2).toHaveBeenCalledTimes(0);
+        expect(afterViewRender3).toHaveBeenCalledTimes(1);
       });
     });
 

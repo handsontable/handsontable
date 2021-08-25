@@ -5,6 +5,22 @@ import ColumnMeta from 'handsontable/dataMap/metaManager/metaLayers/columnMeta';
 import CellMeta from 'handsontable/dataMap/metaManager/metaLayers/cellMeta';
 
 describe('MetaManager', () => {
+  it('should instantiate the mod class with proper list of arguments', () => {
+    const constructorSpy = jest.fn();
+
+    class CacheCellMetaMod {
+      constructor(...args) {
+        constructorSpy.apply(constructorSpy, args);
+      }
+    }
+
+    const hotMock = {};
+    const meta = new MetaManager(hotMock, {}, [CacheCellMetaMod]);
+
+    expect(constructorSpy).toHaveBeenCalledTimes(1);
+    expect(constructorSpy).toHaveBeenCalledWith(meta);
+  });
+
   describe('constructor()', () => {
     it('should initialize all meta layers', () => {
       const metaManager = new MetaManager();
@@ -85,11 +101,64 @@ describe('MetaManager', () => {
   describe('getCellMeta()', () => {
     it('should pass a method call to CellMeta layer', () => {
       const metaManager = new MetaManager();
+      const metaMock = {};
+      const optionsMock = {};
 
-      spyOn(metaManager.cellMeta, 'getMeta').and.returnValue('foo');
+      spyOn(metaManager.cellMeta, 'getMeta').and.returnValue(metaMock);
 
-      expect(metaManager.getCellMeta(34, 22, 'key')).toBe('foo');
-      expect(metaManager.cellMeta.getMeta).toHaveBeenCalledWith(34, 22, 'key');
+      expect(metaManager.getCellMeta(34, 22, optionsMock)).toBe(metaMock);
+      expect(metaManager.cellMeta.getMeta).toHaveBeenCalledWith(34, 22);
+    });
+
+    it('should extend the cell meta object for physical and visual indexes', () => {
+      const metaManager = new MetaManager();
+      const metaMock = {
+        foo: 'bar',
+      };
+
+      spyOn(metaManager.cellMeta, 'getMeta').and.returnValue(metaMock);
+
+      metaManager.getCellMeta(34, 22, {
+        visualRow: 3,
+        visualColumn: 5,
+      });
+
+      expect(metaMock).toEqual({
+        row: 34,
+        col: 22,
+        visualRow: 3,
+        visualCol: 5,
+        foo: 'bar',
+      });
+    });
+  });
+
+  describe('getCellMetaKeyValue()', () => {
+    it('should pass a method call to CellMeta layer', () => {
+      const metaManager = new MetaManager();
+      const metaMock = {};
+
+      spyOn(metaManager.cellMeta, 'getMeta').and.returnValue(metaMock);
+
+      expect(metaManager.getCellMetaKeyValue(34, 22, 'foo')).toBe(metaMock);
+      expect(metaManager.cellMeta.getMeta).toHaveBeenCalledWith(34, 22, 'foo');
+    });
+
+    it('should throw an error when the "key" is not a string', () => {
+      const metaManager = new MetaManager();
+
+      spyOn(metaManager.cellMeta, 'getMeta');
+
+      expect(() => {
+        metaManager.getCellMetaKeyValue(34, 22);
+      }).toThrow('The passed cell meta object key is not a string');
+      expect(() => {
+        metaManager.getCellMetaKeyValue(34, 22, 1);
+      }).toThrow('The passed cell meta object key is not a string');
+      expect(() => {
+        metaManager.getCellMetaKeyValue(34, 22, {});
+      }).toThrow('The passed cell meta object key is not a string');
+      expect(metaManager.cellMeta.getMeta).not.toHaveBeenCalled();
     });
   });
 

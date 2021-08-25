@@ -15,7 +15,7 @@ describe('Core_getCellMeta', () => {
   it('should get proper cell meta when indexes was modified', () => {
     const hot = handsontable({
       minRows: 5,
-      minCols: 5
+      minCols: 5,
     });
 
     hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
@@ -38,6 +38,8 @@ describe('Core_getCellMeta', () => {
       }
     });
     allCellsReadOnly = true;
+
+    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
     selectCell(2, 2);
 
     keyDown('enter');
@@ -54,6 +56,8 @@ describe('Core_getCellMeta', () => {
       }
     });
     allCellsReadOnly = false;
+
+    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
     selectCell(2, 2);
 
     keyDown('enter');
@@ -70,10 +74,12 @@ describe('Core_getCellMeta', () => {
     });
 
     selectCell(0, 0);
-    expect(getCellMeta(0, 0).readOnly).toBe(true);
-    keyDown('enter');
-    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
 
+    expect(getCellMeta(0, 0).readOnly).toBe(true);
+
+    keyDown('enter');
+
+    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
 
   it('should use default cell editor for a cell that has declared only cell renderer', () => {
@@ -95,6 +101,7 @@ describe('Core_getCellMeta', () => {
     keyDown('enter');
     document.activeElement.value = 'new value';
     destroyEditor();
+
     expect(getDataAtCell(2, 2)).toEqual('new value');
   });
 
@@ -124,7 +131,7 @@ describe('Core_getCellMeta', () => {
     expect(getCell(1, 1).style.backgroundColor).toEqual('');
   });
 
-  it('this in cells should point to cellProperties', () => {
+  it('"this" in cells should point to cellProperties', () => {
     let called = 0;
     let _row;
     let _this;
@@ -139,8 +146,8 @@ describe('Core_getCellMeta', () => {
 
     const HOT = getInstance();
 
-    expect(called).toBeGreaterThan(0);
-    expect(_this.row).toEqual(_row);
+    expect(called).toBe(25); // default dataset is 5x5 so 25 calls
+    expect(_this.row).toBe(_row);
     expect(_this.instance).toBe(HOT);
   });
 
@@ -208,10 +215,12 @@ describe('Core_getCellMeta', () => {
     hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
     hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
-    hot.getCellMeta(0, 1);
+    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
+    hot.getCellMeta(0, 0);
 
-    expect(rowInsideHook).toEqual(0);
-    expect(colInsideHook).toEqual(1);
+    // The last beforeGetCellMeta call should be called with visual index 4, 4
+    expect(rowInsideHook).toBe(4);
+    expect(colInsideHook).toBe(4);
   });
 
   it('should expand "type" property to cell meta when property is added in the `beforeGetCellMeta` hook', () => {
@@ -270,9 +279,11 @@ describe('Core_getCellMeta', () => {
     hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
     hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
+    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
     hot.getCellMeta(0, 1);
 
-    expect(rowInsideHook).toEqual(0);
-    expect(colInsideHook).toEqual(1);
+    // The last beforeGetCellMeta call should be called with visual index 4, 4
+    expect(rowInsideHook).toBe(4);
+    expect(colInsideHook).toBe(4);
   });
 });
