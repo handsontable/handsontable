@@ -8,6 +8,7 @@ const {logger, spawnProcess} = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const cleanUp = () => {
+  logger.info('Clean up dist')
   fse.removeSync(path.resolve(__dirname, `../dist`));
 };
 const moveNext = (versions) => {
@@ -16,8 +17,10 @@ const moveNext = (versions) => {
   }
   return versions;
 }
+
 const buildVersion =  (version) => {
-  logger.log(`* Build ${version}`);
+   logger.info(`Build `, version);
+   
    spawnProcess(
     `node_modules/.bin/vuepress build -d .vuepress/dist/prebuild-${version.replace('.','-')}`, 
     { 
@@ -27,16 +30,23 @@ const buildVersion =  (version) => {
       },
     }, 
      true
-   )
+   );
+   return version;
 };
+const concatenate = (version, index) =>{
+  const prebuild = path.resolve(__dirname, '../../', `.vuepress/dist/prebuild-${version.replace('.', '-')}`)
+  const dist = path.resolve(__dirname, '../../', `.vuepress/dist/docs${index === 0 ? '' : `/${version}` }`);
+  
+  logger.info("Apply built version to the `docs/`", version, dist)
+  
+  fse.moveSync(prebuild, dist)
+}
 const buildApp = async () => {
-  logger.info(`Build started at ${new Date().toString()}`)
-  logger.log('Clean up dist:')
+  logger.info(`Build started at`, new Date().toString())
   cleanUp();
-  logger.log('Build versions:')
     moveNext(getVersions()) // next shouldn't be at the first position.
     .map(buildVersion)
-    // .forEach(concatenateDist)
+    .forEach(concatenate)
 }
 
 buildApp();
