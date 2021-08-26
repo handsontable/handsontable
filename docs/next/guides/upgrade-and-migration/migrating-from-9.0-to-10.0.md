@@ -21,9 +21,7 @@ If you use the `beforeRender` or `afterRender` hooks, update their names in your
 | `beforeRender` | [`beforeViewRender`](@/api/hooks.md#beforeviewrender) |
 | `afterRender`  | [`afterViewRender`](@/api/hooks.md#afterviewrender)   |
 
-Now, the hooks previously named `beforeRender` and `afterRender` do completely new things.
-
-For more details, see the [Handsontable 10.0 API reference](@/api/hooks.md):
+Now, the hooks previously named `beforeRender` and `afterRender` do completely new things. For more details, see the [Handsontable 10.0 API reference](@/api/hooks.md):
 - [`beforeRender`](@/api/hooks.md#beforerender)
 - [`afterRender`](@/api/hooks.md#afterrender)
 - [`beforeViewRender`](@/api/hooks.md#beforeviewrender)
