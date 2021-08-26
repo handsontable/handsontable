@@ -1881,7 +1881,7 @@ describe('TextEditor', () => {
 
       await sleep(100);
 
-      expect($(textarea).width()).toBe(175);
+      expect($(textarea).width()).toBeAroundValue(178);
       expect($(textarea).height()).toBe(23);
     });
   });
