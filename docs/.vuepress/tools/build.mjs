@@ -19,7 +19,7 @@ const moveNext = (versions) => {
 }
 
 const buildVersion =  (version) => {
-   logger.info(`Build `, version);
+   logger.info(`Version ${version} build started at`, new Date().toString());
    
    spawnProcess(
     `node_modules/.bin/vuepress build -d .vuepress/dist/prebuild-${version.replace('.','-')}`, 
@@ -31,7 +31,9 @@ const buildVersion =  (version) => {
     }, 
      true
    );
-   return version;
+  logger.success(`Version build finished at`,  new Date().toString());
+
+  return version;
 };
 const concatenate = (version, index) =>{
   const prebuild = path.resolve(__dirname, '../../', `.vuepress/dist/prebuild-${version.replace('.', '-')}`)
@@ -42,11 +44,15 @@ const concatenate = (version, index) =>{
   fse.moveSync(prebuild, dist)
 }
 const buildApp = async () => {
-  logger.info(`Build started at`, new Date().toString())
+  const startedAt = new Date().toString();
+  logger.info(`Build started at`, startedAt)
   cleanUp();
     moveNext(getVersions()) // next shouldn't be at the first position.
     .map(buildVersion)
     .forEach(concatenate)
+  logger.log(`Build has started at`, startedAt)
+  logger.success(`Build finished at`, new Date().toString())
+
 }
 
 buildApp();
