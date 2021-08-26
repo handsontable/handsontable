@@ -30,6 +30,7 @@ module.exports = (options, context) => {
         return `${shortMonthName} ${twoDigitDay}, ${date.getFullYear()}`;
       };
 
+      $page.DOCS_VERSION = DOCS_VERSION;
       $page.versions = helpers.getVersions(buildMode);
       $page.latestVersion = helpers.getLatestVersion();
       $page.currentVersion = helpers.parseVersion($page.path);

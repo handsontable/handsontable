@@ -10,9 +10,7 @@
     <Logo />
 
     </RouterLink>
-    <ClientOnly>
-      <Versions></Versions>
-    </ClientOnly>
+    <Versions></Versions>
 
     <ThemeSwitcher />
 

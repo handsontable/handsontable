@@ -27,10 +27,10 @@ export default {
       const pathWithoutVersion = this.$route.path.replace(/^\/(\d+\.\d+|next)/, '');
 
       if (version === this.$page.latestVersion) {
-        return `${window.location.origin}/docs${pathWithoutVersion}`;
+        return `/docs${pathWithoutVersion}`;
       }
 
-      return `${window.location.origin}/docs/${version}${pathWithoutVersion}`;
+      return `/docs/${version}${pathWithoutVersion}`;
     },
     getLegacyVersions() {
       return [
@@ -61,7 +61,12 @@ export default {
         text: this.addLatest(this.$page.currentVersion),
         items:
           [
-            ...this.$page.versions.map(v => ({ text: `${this.addLatest(v)}`, link: this.getLink(v), target: '_self' })),
+            ...this.$page.versions.map(v => ({
+              text: `${this.addLatest(v)}`,
+              link: this.getLink(v),
+              target: '_self',
+              isHtmlLink: true
+            })),
             ...this.getLegacyVersions()
           ]
       };

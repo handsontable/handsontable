@@ -37,7 +37,7 @@ const saveReport = async() => {
 const siteChecker = new SiteChecker(
   {
     excludeInternalLinks: false,
-    excludeExternalLinks: false,
+    excludeExternalLinks: true,
     excludeLinksToSamePage: true,
     filterLevel: 2,
     acceptedSchemes: ['http', 'https'],
