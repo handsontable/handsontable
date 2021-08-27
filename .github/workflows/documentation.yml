@@ -7,7 +7,6 @@ on:
   push:
     branches:
       - develop
-      - feature/issue-8338
     paths:
       - 'docs/**'
   workflow_dispatch:
