@@ -25,8 +25,19 @@ const container = document.getElementById('example');
 
 const hot = new Handsontable(container, {
   // configuration options, in the object literal notation
+  licenseKey: "non-commercial-and-evaluation",
+  data: Handsontable.helper.createSpreadsheetData(5, 10),
   width: 400,
-  height: 300
+  height: 300,
+  colHeaders: true,
+  rowHeaders: true,
+  collapsibleColumns: true,
+  customBorders: true,
+  dropdownMenu: true,
+  multiColumnSorting: true,
+  filters: true,
+  rowHeaders: true,
+  manualRowMove: true,
 });
 ```
 
