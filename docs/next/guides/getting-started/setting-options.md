@@ -132,7 +132,6 @@ const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 10),
   // the `readOnly` option, applies to each cell of the entire grid
   readOnly: true,
-  className: 'read-only-background',
   width: 'auto',
   height: 'auto',
   rowHeaders: true,
@@ -171,7 +170,7 @@ To apply configuration options to an individual column (or a range of columns), 
     });
     ```
 3. In the object that represents your required column, add your column options.<br>
-   For example, to make each cell of the third column read-only, and assign a `read-only-background` class to them:
+   For example, to make each cell of the third column read-only:
     ```js
     const hot = new Handsontable(container, {
       columns: [
@@ -180,7 +179,6 @@ To apply configuration options to an individual column (or a range of columns), 
         // column options, apply to each cell of the third column
         {
           readOnly: true,
-          className: 'read-only-background'
         },
       ],
     });
@@ -192,13 +190,13 @@ If you use Handsontable through [modules](@/guides/building-and-testing/modules.
 
 #### Example
 
-The [`columns`](@/api/options.md#columns) option sets each cell of the third column and the ninth column as [`readOnly`](@/api/options.md#readonly), and assigns a [`className`](@/api/options.md#classname) to them.
+The [`columns`](@/api/options.md#columns) option sets each cell of the third column and the ninth column as [`readOnly`](@/api/options.md#readonly).
 
 The modified mid-level column options:
 - Overwrite the top-level [grid options](#setting-grid-options)
 - Cascade down to the bottom-level [cell options](#setting-cell-options)
 
-As a result, each cell in the third and ninth columns is read-only and has the `read-only-background` class:
+As a result, each cell in the third and ninth columns is read-only:
 
 ::: example #example2 --html 1 --css 2 --js 3
 ```html
@@ -229,7 +227,6 @@ const hot = new Handsontable(container, {
       // mid-level column options overwrite the top-level grid options
       // apply only to each cell of the third column
       readOnly: true,
-      className: 'read-only-background'
     },
     {},
     {},
@@ -240,7 +237,6 @@ const hot = new Handsontable(container, {
       // mid-level column options overwrite the top-level grid options
       // apply only to each cell of the ninth column
       readOnly: true,
-      className: 'read-only-background'
     },
     {},
   ]
@@ -289,7 +285,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
     });
     ```
 3. In the [`cells`](@/api/options.md#cells) function's body, implement a logic that selects your required row(s).<br>
-   For example, to make each cell of the first row and each cell of the fourth row read-only, and assign a `read-only-background` class to them:
+   For example, to make each cell of the first row and each cell of the fourth row read-only:
     ```js
     const hot = new Handsontable(container, {
       // the `cells` options overwrite all other options
@@ -299,7 +295,6 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
             // row options, apply to each cell of the first row
             // and to each cell of the fourth row
             readOnly: true,
-            className: `read-only-background` 
           };
         }
       }
@@ -312,7 +307,7 @@ If you use Handsontable through [modules](@/guides/building-and-testing/modules.
 
 #### Example
 
-In the example below, the [`cells`](@/api/options.md#cells) option sets each cell in the first and fourth row as [`readOnly`](@/api/options.md#readonly), and assigns them a [`className`](@/api/options.md#classname).
+In the example below, the [`cells`](@/api/options.md#cells) option sets each cell in the first and fourth row as [`readOnly`](@/api/options.md#readonly).
 
 Options modified through [`cells`](@/api/options.md#cells) overwrite all other options.
 
@@ -342,7 +337,6 @@ const hot = new Handsontable(container, {
     if (row === 1 || row === 4) {
       return {
         readOnly: true,
-        className: 'read-only-background'
       };
     }
   },
@@ -383,7 +377,7 @@ To apply configuration options to individual cells, use the [`cell`](@/api/optio
     ```
 3. In each object, set your configuration options for one particular cell.<br>
    To select a cell, use the `row` and `col` coordinates.<br>
-   For example, to make cells `A1` (`0`, `0`) and `B2` (`1`, `1`) read-only, and assign a `read-only-background` class to them:
+   For example, to make cells `A1` (`0`, `0`) and `B2` (`1`, `1`) read-only:
     ```js
     const hot = new Handsontable(container, {
       cell: [
@@ -392,14 +386,12 @@ To apply configuration options to individual cells, use the [`cell`](@/api/optio
           row: 0,
           col: 0,
           readOnly: true,
-          className: 'read-only-background'
         },
         {
           // cell options, apply only to a cell with coordinates (1, 1)
           row: 1,
           col: 1,
           readOnly: true,
-          className: 'read-only-background'
         }
       ],
     });
@@ -411,7 +403,7 @@ If you use Handsontable through [modules](@/guides/building-and-testing/modules.
 
 #### Example
 
-In the example below, the [`cell`](@/api/options.md#cell) option sets cell `A1`(`0`, `0`) and cell `B2`(`1`, `1`) as [`readOnly`](@/api/options.md#readonly), and assigns a [`className`](@/api/options.md#classname) to them.
+In the example below, the [`cell`](@/api/options.md#cell) option sets cell `A1`(`0`, `0`) and cell `B2`(`1`, `1`) as [`readOnly`](@/api/options.md#readonly).
 
 The modified [`cell`](@/api/options.md#cell) options:
 - Overwrite the top-level [grid options](#setting-grid-options)
@@ -445,7 +437,6 @@ const hot = new Handsontable(container, {
       row: 0,
       col: 0,
       readOnly: true,
-      className: 'read-only-background'
     },
     {
       // bottom-level cell options overwrite the top-level grid options
@@ -453,7 +444,6 @@ const hot = new Handsontable(container, {
       row: 1,
       col: 1,
       readOnly: true,
-      className: 'read-only-background'
     }
   ]
 });
@@ -497,7 +487,6 @@ const hot = new Handsontable(container, {
       row: 1,
       col: 1,
       readOnly: true,
-      className: 'read-only-background'
     }
   ]
 });
@@ -537,7 +526,6 @@ const hot = new Handsontable(container, {
       row: 1,
       col: 1,
       readOnly: true,
-      className: 'read-only-background'
     }
   ]
 });
@@ -598,7 +586,6 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
         if (row === 1 || row === 5 && col === 1) {
           return {
             readOnly: true,
-            className: 'read-only-background'
           };
         }
       }
@@ -635,7 +622,6 @@ const hot = new Handsontable(container, {
     if (row === 1 || row === 3 && col === 1) {
       return {
         readOnly: true,
-        className: 'read-only-background'
       };
     }
   }
@@ -672,7 +658,6 @@ const hot = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(5, 10),
   // in the top-level grid options, all cells are read-only
   readOnly: true,
-  className: 'read-only-background',
   width: 'auto',
   height: 'auto',
   rowHeaders: true,
@@ -702,7 +687,6 @@ const hot = new Handsontable(container, {
       row: 0,
       col: 0,
       readOnly: true,
-      className: 'read-only-background'
     },
   ],
   // the `cells` option's logic overwrites all other options
