@@ -29,7 +29,11 @@ jobs:
 
       - name: Dependencies
         run: |
-          npm ci
+          npm ci 
+      
+      - name: Api docs
+        run: |
+          npm run docs:api
 
       - name: Docker build
         run: |
