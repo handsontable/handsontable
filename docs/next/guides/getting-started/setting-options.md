@@ -61,7 +61,7 @@ When you modify any options with the [`cells`](@/api/options.md#cells) function,
 The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
 :::
 
-For more details on Handsontable's cascading configuration, see [this file](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/index.js).
+For more details on Handsontable's cascading configuration, see the [MetaManager class](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/index.js).
 
 ### Plugin options
 
@@ -119,7 +119,7 @@ const hot = new Handsontable(container, {
   // configuration options, in the object literal notation
   licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5, 10),
-  // `readOnly` option, applies to each cell of the entire grid
+  // the `readOnly` option, applies to each cell of the entire grid
   readOnly: true,
   className: 'read-only-background',
   width: 'auto',
