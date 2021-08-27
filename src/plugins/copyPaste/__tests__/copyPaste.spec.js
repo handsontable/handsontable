@@ -36,6 +36,52 @@ describe('CopyPaste', () => {
 
       expect($('.HandsontableCopyPaste').length).toEqual(0);
     });
+
+    it('should do not create textarea element if copyPaste is disabled on initialization', () => {
+      handsontable({
+        copyPaste: false
+      });
+
+      expect($('.HandsontableCopyPaste').length).toEqual(0);
+    });
+  });
+
+  describe('`copyPaste` settings', () => {
+    it('should `rowsLimit` be set to its default `Infinity` value', () => {
+      handsontable({
+        copyPaste: true
+      });
+
+      expect(getPlugin('CopyPaste').rowsLimit).toBe(Infinity);
+    });
+
+    it('should be possible to set custom rows limit', () => {
+      handsontable({
+        copyPaste: {
+          rowsLimit: 100,
+        }
+      });
+
+      expect(getPlugin('CopyPaste').rowsLimit).toBe(100);
+    });
+
+    it('should `columnsLimit` be set to its default `Infinity` value', () => {
+      handsontable({
+        copyPaste: true
+      });
+
+      expect(getPlugin('CopyPaste').columnsLimit).toBe(Infinity);
+    });
+
+    it('should be possible to set custom columns limit', () => {
+      handsontable({
+        copyPaste: {
+          columnsLimit: 100,
+        }
+      });
+
+      expect(getPlugin('CopyPaste').columnsLimit).toBe(100);
+    });
   });
 
   describe('focusable element', () => {
