@@ -349,7 +349,7 @@ To apply configuration options to individual cells, use the [`cell`](@/api/optio
     ```
 3. In each object, set your configuration options for one particular cell.<br>
    To select a cell, use the `row` and `col` coordinates.<br>
-   For example, to make cells `A1` (`0`, `0`) and `B2` (`1`, `1`) read-only:
+   For example, to make cells `A1` (`0, 0`) and `B2` (`1, 1`) read-only:
     ```js
     const hot = new Handsontable(container, {
       cell: [
@@ -375,7 +375,7 @@ If you use Handsontable through [modules](@/guides/building-and-testing/modules.
 
 #### Example
 
-In the example below, the [`cell`](@/api/options.md#cell) option sets cell `A1`(`0`, `0`) and cell `B2`(`1`, `1`) as [`readOnly`](@/api/options.md#readonly).
+In the example below, the [`cell`](@/api/options.md#cell) option sets cell `A1`(`0, 0`) and cell `B2`(`1, 1`) as [`readOnly`](@/api/options.md#readonly).
 
 The modified [`cell`](@/api/options.md#cell) options:
 - Overwrite the top-level [grid options](#setting-grid-options)
@@ -597,10 +597,10 @@ In the example below, some cells are read-only, and some cells are editable:
 - By default, all cells are read-only (as set in the top-level [grid options](#setting-grid-options)).
 - For the first column, the mid-level [column options](#setting-column-options) overwrite the top-level [grid options](#setting-grid-options).<br>
   As a result, the first column cells are editable.
-- For cell `A1` (`0`, `0`), the bottom-level [cell options](#setting-cell-options) overwrite both the mid-level [column options](#setting-column-options), and the top-level [grid options.](#setting-grid-options)<br>
-  As a result, cell `A1` (`0`, `0`) is read-only, despite being part of the editable first column.
-- For cell `C3` (`3`, `3`), the [`cells` option](#implementing-custom-logic) overwrites all other options.<br>
-  As a result, cell `C3` (`3`, `3`) is editable, despite not being part of the editable first column.
+- For cell `A1` (`0, 0`), the bottom-level [cell options](#setting-cell-options) overwrite both the mid-level [column options](#setting-column-options), and the top-level [grid options.](#setting-grid-options)<br>
+  As a result, cell `A1` (`0, 0`) is read-only, despite being part of the editable first column.
+- For cell `C3` (`3, 3`), the [`cells` option](#implementing-custom-logic) overwrites all other options.<br>
+  As a result, cell `C3` (`3, 3`) is editable, despite not being part of the editable first column.
 
 ::: example #example6 --html 1 --js 2
 ```html
