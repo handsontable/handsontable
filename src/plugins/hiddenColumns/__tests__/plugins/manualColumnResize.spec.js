@@ -137,7 +137,7 @@ describe('HiddenColumns', () => {
         .simulate('mouseup')
       ;
 
-      expect(colWidth(spec().$container, 1)).toBeAroundValue(85, 1); // 55 (initial column width) + 30
+      expect(colWidth(spec().$container, 1)).toBe(82); // 52 (initial column width) + 30
     });
   });
 });

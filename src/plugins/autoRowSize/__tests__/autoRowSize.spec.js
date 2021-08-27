@@ -396,14 +396,12 @@ describe('AutoRowSize', () => {
 
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22); // -1px of cell border
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(22); // -1px of cell border
-    // expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBeInArray([22, 42]); // -1px of cell border
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBe(22); // -1px of cell border
 
-    resizeColumn.call(this, 1, 100);
+    resizeColumn.call(this, 1, 90);
 
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(22);
     expect(parseInt(hot.getCell(1, -1).style.height, 10)).toBe(42);
-    // expect([63, 84]).toEqual(jasmine.arrayContaining([parseInt(hot.getCell(2, -1).style.height, 10)]));
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBe(63);
 
     resizeColumn.call(this, 1, 50);

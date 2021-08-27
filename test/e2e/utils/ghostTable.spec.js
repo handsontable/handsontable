@@ -220,9 +220,9 @@ describe('GhostTable', () => {
 
       expect(widthSpy.calls.count()).toBe(3);
       expect(widthSpy.calls.argsFor(0)[0]).toBe(0);
-      expect(widthSpy.calls.argsFor(0)[1]).toBe(72);
+      expect(widthSpy.calls.argsFor(0)[1]).toBe(71);
       expect(widthSpy.calls.argsFor(1)[0]).toBe(1);
-      expect(widthSpy.calls.argsFor(1)[1]).toBe(35);
+      expect(widthSpy.calls.argsFor(1)[1]).toBe(34);
       expect(widthSpy.calls.argsFor(2)[0]).toBe(2);
       expect(widthSpy.calls.argsFor(2)[1]).toBe(57);
     });
