@@ -104,7 +104,7 @@ If you use Handsontable through [modules](@/guides/building-and-testing/modules.
 
 #### Example
 
-To configure each cell in the grid as read-only, apply the [`readOnly`](@/api/options.md#readonly) option as a top-level grid option. 
+To configure each cell in the grid as read-only, apply the [`readOnly`](@/api/options.md#readonly) option as a top-level grid option.
 
 The top-level grid options cascade down:
 - To the mid-level [column options](#setting-column-options)
@@ -157,7 +157,8 @@ To apply configuration options to an individual column (or a range of columns), 
     });
     ```
 2. Set the [`columns`](@/api/options.md#columns) option to an array of objects.<br>
-   Each object represents one column, and the objects' order represents the columns' order.
+   Each object represents one column.<br>
+   The objects' order represents the columns' order (i.e. the columns' physical indexes).
     ```js
     const hot = new Handsontable(container, {
       columns: [
@@ -188,7 +189,9 @@ If you use Handsontable through [modules](@/guides/building-and-testing/modules.
 
 #### Example
 
-The [`columns`](@/api/options.md#columns) option sets each cell of the third column and the ninth column as [`readOnly`](@/api/options.md#readonly).
+In the example below, the [`columns`](@/api/options.md#columns) option is set to a function.
+
+The function applies the `readOnly: true` option to each column that has a physical index of either `2` or `8`.
 
 The modified mid-level column options:
 - Overwrite the top-level [grid options](#setting-grid-options)
@@ -218,26 +221,12 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   // in the top-level grid options, all cells are editable
   readOnly: false,
-  columns: [
-    {},
-    {},
-    {
-      // mid-level column options overwrite the top-level grid options
-      // apply only to each cell of the third column
-      readOnly: true,
-    },
-    {},
-    {},
-    {},
-    {},
-    {},
-    {
-      // mid-level column options overwrite the top-level grid options
-      // apply only to each cell of the ninth column
-      readOnly: true,
-    },
-    {},
-  ]
+  columns: function(index) {
+    return {
+      type: index > 0 ? 'numeric' : 'text',
+      readOnly: index == 2 || index == 8
+    }
+  }
 });
 
 // check a cell's options
@@ -360,7 +349,7 @@ To apply configuration options to individual cells, use the [`cell`](@/api/optio
       width: 400,
       height: 300,
       // the `cell` option
-      cell: 
+      cell: []
     });
     ```
 2. Set the [`cell`](@/api/options.md#cell) option to an array of objects.<br>
@@ -560,7 +549,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
       width: 400,
       height: 300,
       // the `cells` option
-      cells:
+      cells: {}
     });
     ```
 2. Set the [`cells`](@/api/options.md#cells) option to a function. It can take three arguments:<br>
