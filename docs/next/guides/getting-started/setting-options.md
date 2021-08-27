@@ -112,14 +112,9 @@ The top-level grid options cascade down:
 
 As a result, each cell in the grid is read-only:
 
-::: example #example1 --html 1 --css 2 --js 3
+::: example #example1 --html 1 --js 2
 ```html
 <div id="example1" class="hot"></div>
-```
-```css
-td.read-only-background {
-  background-color: #f2f4fb;
-}
 ```
 ```js
 const container = document.querySelector('#example1');
@@ -199,14 +194,9 @@ The modified mid-level column options:
 
 As a result, each cell in the third and ninth columns is read-only:
 
-::: example #example2 --html 1 --css 2 --js 3
+::: example #example2 --html 1 --js 2
 ```html
 <div id="example2" class="hot"></div>
-```
-```css
-td.read-only-background {
-  background-color: #f2f4fb;
-}
 ```
 ```js
 const container = document.querySelector('#example2');
@@ -298,14 +288,9 @@ In the example below, the [`cells`](@/api/options.md#cells) option sets each cel
 
 Options modified through [`cells`](@/api/options.md#cells) overwrite all other options.
 
-::: example #example3 --html 1 --css 2 --js 3
+::: example #example3 --html 1 --js 2
 ```html
 <div id="example3" class="hot"></div>
-```
-```css
-td.read-only-background {
-  background-color: #f2f4fb;
-}
 ```
 ```js
 const container = document.querySelector('#example3');
@@ -396,14 +381,9 @@ The modified [`cell`](@/api/options.md#cell) options:
 - Overwrite the top-level [grid options](#setting-grid-options)
 - Overwrite the mid-level [column options](#setting-column-options)
 
-::: example #example4 --html 1 --css 2 --js 3
+::: example #example4 --html 1 --js 2
 ```html
 <div id="example4" class="hot"></div>
-```
-```css
-td.read-only-background {
-  background-color: #f2f4fb;
-}
 ```
 ```js
 const container = document.querySelector('#example4');
@@ -583,14 +563,9 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
 
 In the example below, the modified [`cells`](@/api/options.md#cells) options overwrite the top-level grid options.
 
-::: example #example5 --html 1 --css 2 --js 3
+::: example #example5 --html 1 --js 2
 ```html
 <div id="example5" class="hot"></div>
-```
-```css
-td.read-only-background {
-  background-color: #f2f4fb;
-}
 ```
 ```js
 const container = document.querySelector('#example5');
@@ -627,14 +602,9 @@ In the example below, some cells are read-only, and some cells are editable:
 - For cell `C3` (`3`, `3`), the [`cells` option](#implementing-custom-logic) overwrites all other options.<br>
   As a result, cell `C3` (`3`, `3`) is editable, despite not being part of the editable first column.
 
-::: example #example6 --html 1 --css 2 --js 3
+::: example #example6 --html 1 --js 2
 ```html
 <div id="example6" class="hot"></div>
-```
-```css
-read-only-background {
-  background-color: #f2f4fb;
-}
 ```
 ```js
 const container = document.querySelector('#example6');
