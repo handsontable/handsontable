@@ -70,7 +70,7 @@ Configuration options can come from:
 * Handsontable's [plugins](@/api/plugins.md)
 * Handsontable's [hooks](@/api/hooks.md)
 
-To use an option that comes from a Handsontable plugin, you need to [import and register](@/guides/building-and-testing/modules.md#importing-plugins) that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
+If you use Handsontable through [modules](@/guides/building-and-testing/modules.md): to use an option that comes from a Handsontable plugin, you need to [import and register](@/guides/building-and-testing/modules.md#importing-plugins) that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
 
 To find out if an option comes from a plugin, check the `Category` label in the [configuration options' API reference](@/api/options.md).
 
@@ -90,7 +90,7 @@ const hot = new Handsontable(container, {
 ```
 
 ::: tip
-To use an option that comes from a Handsontable plugin, [import and register](@/guides/building-and-testing/modules.md#importing-plugins) that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
+If you use Handsontable through [modules](@/guides/building-and-testing/modules.md): to use an option that comes from a Handsontable plugin, [import and register](@/guides/building-and-testing/modules.md#importing-plugins) that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
 :::
 
 #### Example
@@ -176,7 +176,7 @@ To apply configuration options to an individual column (or a range of columns), 
     ```
 
 ::: tip
-To use an option that comes from a Handsontable plugin, [import and register](@/guides/building-and-testing/modules.md#importing-plugins) that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
+If you use Handsontable through [modules](@/guides/building-and-testing/modules.md): to use an option that comes from a Handsontable plugin, [import and register](@/guides/building-and-testing/modules.md#importing-plugins) that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
 :::
 
 #### Example
@@ -296,7 +296,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
     ```
 
 ::: tip
-To use an option that comes from a Handsontable plugin, [import and register](@/guides/building-and-testing/modules.md#importing-plugins) that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
+If you use Handsontable through [modules](@/guides/building-and-testing/modules.md): to use an option that comes from a Handsontable plugin, [import and register](@/guides/building-and-testing/modules.md#importing-plugins) that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
 :::
 
 #### Example
@@ -395,7 +395,7 @@ To apply configuration options to individual cells, use the [`cell`](@/api/optio
     ```
 
 ::: tip
-To use an option that comes from a Handsontable plugin, [import and register](@/guides/building-and-testing/modules.md#importing-plugins) that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
+If you use Handsontable through [modules](@/guides/building-and-testing/modules.md): to use an option that comes from a Handsontable plugin, [import and register](@/guides/building-and-testing/modules.md#importing-plugins) that plugin when [initializing](@/guides/getting-started/installation.md#initialize-the-grid) your Handsontable instance.
 :::
 
 #### Example
