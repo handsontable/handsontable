@@ -31,12 +31,10 @@ const hot = new Handsontable(container, {
   height: 300,
   colHeaders: true,
   rowHeaders: true,
-  collapsibleColumns: true,
   customBorders: true,
   dropdownMenu: true,
   multiColumnSorting: true,
   filters: true,
-  rowHeaders: true,
   manualRowMove: true,
 });
 ```
