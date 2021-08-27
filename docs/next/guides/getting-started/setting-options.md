@@ -153,7 +153,7 @@ To apply configuration options to an individual column (or a range of columns), 
       width: 400,
       height: 300,
       // the `columns` option
-      columns: 
+      columns: []
     });
     ```
 2. Set the [`columns`](@/api/options.md#columns) option to an array of objects.<br>
