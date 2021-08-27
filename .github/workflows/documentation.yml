@@ -31,7 +31,7 @@ jobs:
         run: |
           npm ci 
       
-      - name: Api docs
+      - name: Generate API references
         run: |
           npm run docs:api
 
