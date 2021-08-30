@@ -691,7 +691,7 @@ describe('TextEditor', () => {
 
   it('should render undefined in textarea', () => {
     handsontable();
-    setDataAtCell(2, 2, void 0);
+    setDataAtCell(2, 2);
     selectCell(2, 2);
 
     keyDown('enter');

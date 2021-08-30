@@ -36,6 +36,52 @@ describe('CopyPaste', () => {
 
       expect($('.HandsontableCopyPaste').length).toEqual(0);
     });
+
+    it('should do not create textarea element if copyPaste is disabled on initialization', () => {
+      handsontable({
+        copyPaste: false
+      });
+
+      expect($('.HandsontableCopyPaste').length).toEqual(0);
+    });
+  });
+
+  describe('`copyPaste` settings', () => {
+    it('should `rowsLimit` be set to its default `Infinity` value', () => {
+      handsontable({
+        copyPaste: true
+      });
+
+      expect(getPlugin('CopyPaste').rowsLimit).toBe(Infinity);
+    });
+
+    it('should be possible to set custom rows limit', () => {
+      handsontable({
+        copyPaste: {
+          rowsLimit: 100,
+        }
+      });
+
+      expect(getPlugin('CopyPaste').rowsLimit).toBe(100);
+    });
+
+    it('should `columnsLimit` be set to its default `Infinity` value', () => {
+      handsontable({
+        copyPaste: true
+      });
+
+      expect(getPlugin('CopyPaste').columnsLimit).toBe(Infinity);
+    });
+
+    it('should be possible to set custom columns limit', () => {
+      handsontable({
+        copyPaste: {
+          columnsLimit: 100,
+        }
+      });
+
+      expect(getPlugin('CopyPaste').columnsLimit).toBe(100);
+    });
   });
 
   describe('focusable element', () => {
@@ -190,10 +236,10 @@ describe('CopyPaste', () => {
 
       expect(beforeCopySpy.calls.count()).toEqual(1);
       expect(beforeCopySpy).toHaveBeenCalledWith(
-        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
       expect(afterCopySpy.calls.count()).toEqual(1);
       expect(afterCopySpy).toHaveBeenCalledWith(
-        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
     });
 
     it('should be possible to block copying', () => {
@@ -390,10 +436,10 @@ describe('CopyPaste', () => {
 
       expect(beforeCutSpy.calls.count()).toEqual(1);
       expect(beforeCutSpy).toHaveBeenCalledWith(
-        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
       expect(afterCutSpy.calls.count()).toEqual(1);
       expect(afterCutSpy).toHaveBeenCalledWith(
-        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
     });
   });
 
@@ -617,11 +663,11 @@ describe('CopyPaste', () => {
 
       expect(beforePasteSpy.calls.count()).toEqual(1);
       expect(beforePasteSpy).toHaveBeenCalledWith(
-        [['Kia']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+        [['Kia']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
 
       expect(afterPasteSpy.calls.count()).toEqual(1);
       expect(afterPasteSpy).toHaveBeenCalledWith(
-        [['Kia']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+        [['Kia']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
     });
 
     it('should be possible to block pasting', async() => {
@@ -747,7 +793,7 @@ describe('CopyPaste', () => {
         [0, 0, null, 'Kia'],
         [1, 0, null, 'Nissan'],
         [2, 0, null, 'Toyota']
-      ], 'CopyPaste.paste', void 0, void 0, void 0, void 0);
+      ], 'CopyPaste.paste');
     });
 
     it('should properly paste data with multiline text', async() => {

@@ -182,7 +182,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
 
     resizeRow(0, 100);
-    expect(beforeRowResizeCallback).toHaveBeenCalledWith(100, 0, false, void 0, void 0, void 0);
+    expect(beforeRowResizeCallback).toHaveBeenCalledWith(100, 0, false);
     expect(rowHeight(spec().$container, 0)).toEqual(101);
   });
 
@@ -226,7 +226,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
 
     resizeRow(0, 100);
-    expect(afterRowResizeCallback).toHaveBeenCalledWith(100, 0, false, void 0, void 0, void 0);
+    expect(afterRowResizeCallback).toHaveBeenCalledWith(100, 0, false);
     expect(rowHeight(spec().$container, 0)).toEqual(101);
   });
 
@@ -927,23 +927,23 @@ describe('manualRowResize', () => {
 
       resizeRow(2, 300);
 
-      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([300, 2, false, void 0, void 0, void 0]);
-      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([300, 2, false, void 0, void 0, void 0]);
+      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([300, 2, false]);
+      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([300, 2, false]);
 
       resizeRow(2, -10);
 
-      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false, void 0, void 0, void 0]);
-      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false, void 0, void 0, void 0]);
+      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false]);
+      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false]);
 
       resizeRow(2, 100);
 
-      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([100, 2, false, void 0, void 0, void 0]);
-      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([100, 2, false, void 0, void 0, void 0]);
+      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([100, 2, false]);
+      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([100, 2, false]);
 
       resizeRow(2, 5);
 
-      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false, void 0, void 0, void 0]);
-      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false, void 0, void 0, void 0]);
+      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false]);
+      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false]);
     });
   });
 });

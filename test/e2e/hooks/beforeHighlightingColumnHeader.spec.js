@@ -49,12 +49,12 @@ describe('Hook', () => {
       });
 
       expect(spy.calls.allArgs()).toEqual([
-        [2, 0, createHighlightMeta({ columnCursor: 0 }), void 0, void 0, void 0],
-        [3, 0, createHighlightMeta({ columnCursor: 1 }), void 0, void 0, void 0],
-        [4, 0, createHighlightMeta({ columnCursor: 2 }), void 0, void 0, void 0],
-        [2, 0, createHighlightMeta({ columnCursor: 0 }), void 0, void 0, void 0],
-        [3, 0, createHighlightMeta({ columnCursor: 1 }), void 0, void 0, void 0],
-        [4, 0, createHighlightMeta({ columnCursor: 2 }), void 0, void 0, void 0],
+        [2, 0, createHighlightMeta({ columnCursor: 0 })],
+        [3, 0, createHighlightMeta({ columnCursor: 1 })],
+        [4, 0, createHighlightMeta({ columnCursor: 2 })],
+        [2, 0, createHighlightMeta({ columnCursor: 0 })],
+        [3, 0, createHighlightMeta({ columnCursor: 1 })],
+        [4, 0, createHighlightMeta({ columnCursor: 2 })],
       ]);
     });
 
@@ -81,22 +81,22 @@ describe('Hook', () => {
       });
 
       expect(spy.calls.allArgs()).toEqual([
-        [2, 0, createHighlightMeta({ columnCursor: 0 }), void 0, void 0, void 0],
-        [3, 0, createHighlightMeta({ columnCursor: 1 }), void 0, void 0, void 0],
-        [4, 0, createHighlightMeta({ columnCursor: 2 }), void 0, void 0, void 0],
-        [5, 0, createHighlightMeta({ columnCursor: 3 }), void 0, void 0, void 0],
-        [2, 0, createActiveHighlightMeta({ columnCursor: 0 }), void 0, void 0, void 0],
-        [3, 0, createActiveHighlightMeta({ columnCursor: 1 }), void 0, void 0, void 0],
-        [4, 0, createActiveHighlightMeta({ columnCursor: 2 }), void 0, void 0, void 0],
-        [5, 0, createActiveHighlightMeta({ columnCursor: 3 }), void 0, void 0, void 0],
-        [2, 0, createHighlightMeta({ columnCursor: 0 }), void 0, void 0, void 0],
-        [3, 0, createHighlightMeta({ columnCursor: 1 }), void 0, void 0, void 0],
-        [4, 0, createHighlightMeta({ columnCursor: 2 }), void 0, void 0, void 0],
-        [5, 0, createHighlightMeta({ columnCursor: 3 }), void 0, void 0, void 0],
-        [2, 0, createActiveHighlightMeta({ columnCursor: 0 }), void 0, void 0, void 0],
-        [3, 0, createActiveHighlightMeta({ columnCursor: 1 }), void 0, void 0, void 0],
-        [4, 0, createActiveHighlightMeta({ columnCursor: 2 }), void 0, void 0, void 0],
-        [5, 0, createActiveHighlightMeta({ columnCursor: 3 }), void 0, void 0, void 0],
+        [2, 0, createHighlightMeta({ columnCursor: 0 })],
+        [3, 0, createHighlightMeta({ columnCursor: 1 })],
+        [4, 0, createHighlightMeta({ columnCursor: 2 })],
+        [5, 0, createHighlightMeta({ columnCursor: 3 })],
+        [2, 0, createActiveHighlightMeta({ columnCursor: 0 })],
+        [3, 0, createActiveHighlightMeta({ columnCursor: 1 })],
+        [4, 0, createActiveHighlightMeta({ columnCursor: 2 })],
+        [5, 0, createActiveHighlightMeta({ columnCursor: 3 })],
+        [2, 0, createHighlightMeta({ columnCursor: 0 })],
+        [3, 0, createHighlightMeta({ columnCursor: 1 })],
+        [4, 0, createHighlightMeta({ columnCursor: 2 })],
+        [5, 0, createHighlightMeta({ columnCursor: 3 })],
+        [2, 0, createActiveHighlightMeta({ columnCursor: 0 })],
+        [3, 0, createActiveHighlightMeta({ columnCursor: 1 })],
+        [4, 0, createActiveHighlightMeta({ columnCursor: 2 })],
+        [5, 0, createActiveHighlightMeta({ columnCursor: 3 })],
       ]);
     });
 

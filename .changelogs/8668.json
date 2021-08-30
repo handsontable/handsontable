@@ -1,0 +1,7 @@
+{
+  "title": "Improved the arguments forwarding in the hooks",
+  "type": "changed",
+  "issue": 8668,
+  "breaking": false,
+  "framework": "none"
+}
