@@ -2793,7 +2793,7 @@ describe('CollapsibleColumns', () => {
     it('should collapse all headers (complicated nested headers settings)', () => {
       const $wrapper = $('<div></div>').css({
         width: 400,
-        height: 200,
+        height: 300,
         overflow: 'hidden',
       });
 
