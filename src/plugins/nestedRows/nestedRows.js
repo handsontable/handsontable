@@ -96,7 +96,7 @@ export class NestedRows extends BasePlugin {
     this.rowMoveController = new RowMoveController(this);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
-    this.addHook('beforeRender', (...args) => this.onBeforeRender(...args));
+    this.addHook('beforeViewRender', (...args) => this.onBeforeViewRender(...args));
     this.addHook('modifyRowData', (...args) => this.onModifyRowData(...args));
     this.addHook('modifySourceLength', (...args) => this.onModifySourceLength(...args));
     this.addHook('beforeDataSplice', (...args) => this.onBeforeDataSplice(...args));
@@ -394,9 +394,10 @@ export class NestedRows extends BasePlugin {
    * @private
    * @param {object} parent Parent element.
    * @param {object} element New child element.
+   * @param {number} finalElementRowIndex The final row index of the detached element.
    */
-  onAfterDetachChild(parent, element) {
-    this.collapsingUI.collapsedRowsStash.shiftStash(this.dataManager.getRowIndex(element), null, -1);
+  onAfterDetachChild(parent, element, finalElementRowIndex) {
+    this.collapsingUI.collapsedRowsStash.shiftStash(finalElementRowIndex, null, -1);
     this.collapsingUI.collapsedRowsStash.applyStash();
 
     this.headersUI.updateRowHeaderWidth();
@@ -432,13 +433,13 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * `beforeRender` hook callback.
+   * `beforeViewRender` hook callback.
    *
    * @param {boolean} force Indicates if the render call was trigered by a change of settings or data.
    * @param {object} skipRender An object, holder for skipRender functionality.
    * @private
    */
-  onBeforeRender(force, skipRender) {
+  onBeforeViewRender(force, skipRender) {
     const priv = privatePool.get(this);
 
     if (priv.skipRender) {

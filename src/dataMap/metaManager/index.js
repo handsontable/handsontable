@@ -2,6 +2,8 @@ import GlobalMeta from './metaLayers/globalMeta';
 import TableMeta from './metaLayers/tableMeta';
 import ColumnMeta from './metaLayers/columnMeta';
 import CellMeta from './metaLayers/cellMeta';
+import localHooks from '../../mixins/localHooks';
+import { mixin } from '../../helpers/object';
 
 /**
  * With the Meta Manager class, it can be possible to manage with meta objects for different layers in
@@ -31,11 +33,15 @@ import CellMeta from './metaLayers/cellMeta';
  * A more detailed description of the specific layers can be found in the "metaLayers/" modules description.
  */
 export default class MetaManager {
-  constructor(customSettings = {}) {
+  constructor(hot, customSettings = {}, metaMods = []) {
+    /**
+     * @type {Handsontable}
+     */
+    this.hot = hot;
     /**
      * @type {GlobalMeta}
      */
-    this.globalMeta = new GlobalMeta();
+    this.globalMeta = new GlobalMeta(hot);
     this.globalMeta.updateMeta(customSettings);
     /**
      * @type {TableMeta}
@@ -49,6 +55,8 @@ export default class MetaManager {
      * @type {CellMeta}
      */
     this.cellMeta = new CellMeta(this.columnMeta);
+
+    metaMods.forEach(ModifierClass => new ModifierClass(this));
   }
 
   /**
@@ -124,10 +132,37 @@ export default class MetaManager {
    *
    * @param {number} physicalRow The physical row index.
    * @param {number} physicalColumn The physical column index.
-   * @param {string} [key] If the key exists its value will be returned, otherwise the whole cell meta object.
+   * @param {object} options Additional options that are used to extend the cell meta object.
+   * @param {number} options.visualRow The visual row index of the currently requested cell meta object.
+   * @param {number} options.visualColumn The visual column index of the currently requested cell meta object.
    * @returns {object}
    */
-  getCellMeta(physicalRow, physicalColumn, key) {
+  getCellMeta(physicalRow, physicalColumn, { visualRow, visualColumn }) {
+    const cellMeta = this.cellMeta.getMeta(physicalRow, physicalColumn);
+
+    cellMeta.visualRow = visualRow;
+    cellMeta.visualCol = visualColumn;
+    cellMeta.row = physicalRow;
+    cellMeta.col = physicalColumn;
+
+    this.runLocalHooks('afterGetCellMeta', cellMeta);
+
+    return cellMeta;
+  }
+
+  /**
+   * Gets a value (defined by the `key` property) from the cell meta object.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {string} key Defines the value that will be returned from the cell meta object.
+   * @returns {*}
+   */
+  getCellMetaKeyValue(physicalRow, physicalColumn, key) {
+    if (typeof key !== 'string') {
+      throw new Error('The passed cell meta object key is not a string');
+    }
+
     return this.cellMeta.getMeta(physicalRow, physicalColumn, key);
   }
 
@@ -244,3 +279,5 @@ export default class MetaManager {
     this.columnMeta.clearCache();
   }
 }
+
+mixin(MetaManager, localHooks);

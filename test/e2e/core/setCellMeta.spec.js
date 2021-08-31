@@ -125,8 +125,8 @@ describe('Core.setCellMeta', () => {
 
     hot.setCellMeta(0, 1, 'className', className);
 
-    expect(beforeSetCellMeta).toHaveBeenCalledWith(0, 1, 'className', className, undefined, undefined);
-    expect(afterSetCellMeta).toHaveBeenCalledWith(0, 1, 'className', className, undefined, undefined);
+    expect(beforeSetCellMeta).toHaveBeenCalledWith(0, 1, 'className', className);
+    expect(afterSetCellMeta).toHaveBeenCalledWith(0, 1, 'className', className);
   });
 
   it('should NOT call the `afterSetCellMeta` hook, if the `beforeSetCellMeta` returned false', () => {

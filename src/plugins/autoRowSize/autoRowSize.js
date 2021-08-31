@@ -44,7 +44,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
  * height. __Note__, that this might have a negative impact on performance.
  *
- * To configure this plugin see {@link options#autorowsize Options#autoRowSize}.
+ * To configure this plugin see {@link Options#autoRowSize}.
  *
  * @example
  *
@@ -156,8 +156,8 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link hooks#beforeinit Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link auto-row-size#enableplugin AutoRowSize#enablePlugin} method is called.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link AutoRowSize#enablePlugin} method is called.
    *
    * @returns {boolean}
    */
@@ -180,7 +180,7 @@ export class AutoRowSize extends BasePlugin {
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', changes => this.onBeforeChange(changes));
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
-    this.addHook('beforeRender', force => this.onBeforeRender(force));
+    this.addHook('beforeViewRender', force => this.onBeforeViewRender(force));
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
     this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
 
@@ -245,8 +245,8 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Calculate all rows heights. The calculated row will be cached in the {@link auto-row-size#heights AutoRowSize#heights} property.
-   * To retrieve height for specified row use {@link auto-row-size#getrowheight AutoRowSize#getRowHeight} method.
+   * Calculate all rows heights. The calculated row will be cached in the {@link AutoRowSize#heights} property.
+   * To retrieve height for specified row use {@link AutoRowSize#getRowHeight} method.
    *
    * @param {object|number} colRange Row index or an object with `from` and `to` properties which define row range.
    */
@@ -337,7 +337,7 @@ export class AutoRowSize extends BasePlugin {
 
   /**
    * Gets value which tells how many rows should be calculated synchronously (rest of the rows will be calculated
-   * asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize option (see {@link options#autorowsize Options#autoRowSize}).
+   * asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize option (see {@link Options#autoRowSize}).
    *
    * @returns {number}
    */
@@ -457,11 +457,11 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * On before render listener.
+   * On before view render listener.
    *
    * @private
    */
-  onBeforeRender() {
+  onBeforeViewRender() {
     const force = this.hot.renderCall;
     const fixedRowsBottom = this.hot.getSettings().fixedRowsBottom;
     const firstVisibleRow = this.getFirstVisibleRow();

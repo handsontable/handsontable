@@ -2474,7 +2474,7 @@ Fired after the user clicked a cell, but before all the calculations related wit
 | event | `Event` | The `mousedown` event object. |
 | coords | `CellCoords` | Cell coords object containing the visual coordinates of the clicked cell. |
 | TD | `HTMLTableCellElement` | TD element. |
-| controller | `object` | An object with keys `row`, `column` and `cells` which contains boolean values. This                            object allows or disallows changing the selection for the particular axies. |
+| controller | `object` | An object with properties `row`, `column` and `cells`. Each property contains a boolean value that allows or disallows changing the selection for that particular area. |
 
 
 
@@ -2513,7 +2513,7 @@ Fired after the user moved cursor over a cell, but before all the calculations r
 | event | `Event` | The `mouseover` event object. |
 | coords | `CellCoords` | CellCoords object containing the visual coordinates of the clicked cell. |
 | TD | `HTMLTableCellElement` | TD element. |
-| controller | `object` | An object with keys `row`, `column` and `cells` which contains boolean values. This                            object allows or disallows changing the selection for the particular axies. |
+| controller | `object` | An object with properties `row`, `column` and `cell`. Each property contains a boolean value that allows or disallows changing the selection for that particular area. |
 
 
 

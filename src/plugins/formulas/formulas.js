@@ -2,6 +2,7 @@ import { BasePlugin } from '../base';
 import { createAutofillHooks } from './autofill';
 import staticRegister from '../../utils/staticRegister';
 import { error, warn } from '../../helpers/console';
+import { isNumeric } from '../../helpers/number';
 import {
   isDefined,
   isUndefined
@@ -164,6 +165,8 @@ export class Formulas extends BasePlugin {
 
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
+
+    this.addHook('afterDetachChild', (...args) => this.onAfterDetachChild(...args));
 
     const autofillHooks = createAutofillHooks(this);
 
@@ -723,7 +726,13 @@ export class Formulas extends BasePlugin {
     const dependentCells = [];
     const changedCells = [];
 
-    changes.forEach(([row, column, , newValue]) => {
+    changes.forEach(([row, prop, , newValue]) => {
+      const column = this.hot.propToCol(prop);
+
+      if (!isNumeric(column)) {
+        return;
+      }
+
       const address = {
         row,
         col: this.toPhysicalColumnPosition(column),
@@ -870,6 +879,38 @@ export class Formulas extends BasePlugin {
     });
 
     this.renderDependentSheets(changes);
+  }
+
+  /**
+   * `afterDetachChild` hook callback.
+   * Used to sync the data of the rows detached in the Nested Rows plugin with the engine's dataset.
+   *
+   * @private
+   * @param {object} parent An object representing the parent from which the element was detached.
+   * @param {object} element The detached element.
+   * @param {number} finalElementRowIndex The final row index of the detached element.
+   */
+  onAfterDetachChild(parent, element, finalElementRowIndex) {
+    this.#internalOperationPending = true;
+
+    const rowsData = this.hot.getSourceDataArray(
+      finalElementRowIndex,
+      0,
+      finalElementRowIndex + (element.__children?.length || 0),
+      this.hot.countSourceCols()
+    );
+
+    this.#internalOperationPending = false;
+
+    rowsData.forEach((row, relativeRowIndex) => {
+      row.forEach((value, colIndex) => {
+        this.engine.setCellContents({
+          col: colIndex,
+          row: finalElementRowIndex + relativeRowIndex,
+          sheet: this.sheetId
+        }, [[value]]);
+      });
+    });
   }
 
   /**

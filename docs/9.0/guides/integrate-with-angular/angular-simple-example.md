@@ -29,6 +29,7 @@ import * as Handsontable from 'handsontable';
       [data]="dataset"
       [colHeaders]="true"
       [rowHeaders]="true"
+      height="auto"
       licenseKey="non-commercial-and-evaluation">
         <hot-column data="id" [readOnly]="true" title="ID"></hot-column>
         <hot-column data="name" title="Full name"></hot-column>
