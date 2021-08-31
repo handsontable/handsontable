@@ -380,11 +380,11 @@ export class Formulas extends BasePlugin {
    * @returns {string} Possible values: 'FORMULA' | 'VALUE' | 'ARRAYFORMULA' | 'EMPTY'.
    */
   getCellType(row, column, sheet = this.sheetId) {
-    return attempt(() => this.engine.getCellType({
+    return this.engine.getCellType({
       sheet,
-      row: this.hot.toPhysicalRow(row),
-      col: this.hot.toPhysicalColumn(column)
-    })) ?? 'EMPTY';
+      row: this.hot.toPhysicalRow(row) ?? Infinity,
+      col: this.hot.toPhysicalColumn(column) ?? Infinity
+    });
   }
 
   /**
