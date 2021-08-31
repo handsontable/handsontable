@@ -2200,4 +2200,28 @@ describe('Formulas general', () => {
       });
     });
   });
+
+  it('should work with a sheet name that contains a `-` (#8057)', () => {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5],
+        [9, 8, 7, 6, '=myOwnCalc'],
+      ],
+      formulas: {
+        engine: HyperFormula,
+        sheetName: 'my-sheet',
+        namedExpressions: [
+          {
+            name: 'myOwnCalc',
+            expression: '=\'my-sheet\'!$A$1+100',
+          }
+        ],
+      }
+    });
+
+    expect(getData()).toEqual([
+      [1, 2, 3, 4, 5],
+      [9, 8, 7, 6, 101],
+    ]);
+  });
 });
