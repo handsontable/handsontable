@@ -97,10 +97,10 @@ describe('Formulas general', () => {
 
       await sleep(100); // Validator is asynchronous.
 
-      expect(beforeValidate).toHaveBeenCalledWith('text', 0, 0, void 0, void 0, void 0);
-      expect(beforeValidate).toHaveBeenCalledWith('text', 0, 1, void 0, void 0, void 0);
-      expect(beforeValidate).toHaveBeenCalledWith('text', 0, 2, void 0, void 0, void 0);
-      expect(beforeValidate).toHaveBeenCalledWith('text', 0, 3, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith('text', 0, 0);
+      expect(beforeValidate).toHaveBeenCalledWith('text', 0, 1);
+      expect(beforeValidate).toHaveBeenCalledWith('text', 0, 2);
+      expect(beforeValidate).toHaveBeenCalledWith('text', 0, 3);
       expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(true);
       expect($(getCell(0, 1)).hasClass(getSettings().invalidCellClassName)).toBe(true);
       expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
@@ -125,9 +125,9 @@ describe('Formulas general', () => {
 
       await sleep(100); // Validator is asynchronous.
 
-      expect(beforeValidate).toHaveBeenCalledWith('#ERROR!', 0, 0, void 0, void 0, void 0);
-      expect(beforeValidate).toHaveBeenCalledWith('#ERROR!', 0, 2, void 0, void 0, void 0);
-      expect(beforeValidate).toHaveBeenCalledWith('#ERROR!', 0, 3, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith('#ERROR!', 0, 0);
+      expect(beforeValidate).toHaveBeenCalledWith('#ERROR!', 0, 2);
+      expect(beforeValidate).toHaveBeenCalledWith('#ERROR!', 0, 3);
       expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(true);
       expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
       expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(true);
@@ -136,9 +136,9 @@ describe('Formulas general', () => {
 
       await sleep(100); // Validator is asynchronous.
 
-      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 0, void 0, void 0, void 0);
-      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 2, void 0, void 0, void 0);
-      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 3, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 0);
+      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 2);
+      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 3);
       expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(false);
       expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
       expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(false);
@@ -162,9 +162,9 @@ describe('Formulas general', () => {
 
       await sleep(100); // Validator is asynchronous.
 
-      expect(beforeValidate).toHaveBeenCalledWith('#CYCLE!', 0, 0, void 0, void 0, void 0);
-      expect(beforeValidate).toHaveBeenCalledWith('#CYCLE!', 0, 2, void 0, void 0, void 0);
-      expect(beforeValidate).toHaveBeenCalledWith('#CYCLE!', 0, 3, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith('#CYCLE!', 0, 0);
+      expect(beforeValidate).toHaveBeenCalledWith('#CYCLE!', 0, 2);
+      expect(beforeValidate).toHaveBeenCalledWith('#CYCLE!', 0, 3);
       expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(true);
       expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
       expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(true);
@@ -173,9 +173,9 @@ describe('Formulas general', () => {
 
       await sleep(100); // Validator is asynchronous.
 
-      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 0, void 0, void 0, void 0);
-      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 2, void 0, void 0, void 0);
-      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 3, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 0);
+      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 2);
+      expect(beforeValidate).toHaveBeenCalledWith(7, 0, 3);
       expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(false);
       expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
       expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(false);
@@ -206,9 +206,9 @@ describe('Formulas general', () => {
 
       await new Promise(resolve => validateCells(resolve));
 
-      expect(beforeValidate).toHaveBeenCalledWith('#REF!', 0, 0, 'validateCells', void 0, void 0);
-      expect(beforeValidate).toHaveBeenCalledWith('#REF!', 0, 2, 'validateCells', void 0, void 0);
-      expect(beforeValidate).toHaveBeenCalledWith('#REF!', 0, 3, 'validateCells', void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith('#REF!', 0, 0, 'validateCells');
+      expect(beforeValidate).toHaveBeenCalledWith('#REF!', 0, 2, 'validateCells');
+      expect(beforeValidate).toHaveBeenCalledWith('#REF!', 0, 3, 'validateCells');
       expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(true);
       expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
       expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(true);
@@ -256,14 +256,14 @@ describe('Formulas general', () => {
       await new Promise(resolve => hot.validateCells(resolve));
 
       expect(afterValidate).toHaveBeenCalledTimes(8);
-      expect(afterValidate).toHaveBeenCalledWith(true, 22, 0, 0, 'validateCells', void 0);
-      expect(afterValidate).toHaveBeenCalledWith(false, 'text', 0, 1, 'validateCells', void 0);
-      expect(afterValidate).toHaveBeenCalledWith(true, 22, 0, 2, 'validateCells', void 0);
-      expect(afterValidate).toHaveBeenCalledWith(true, 22, 0, 3, 'validateCells', void 0);
-      expect(afterValidate).toHaveBeenCalledWith(true, 22, 0, 4, 'validateCells', void 0);
-      expect(afterValidate).toHaveBeenCalledWith(false, '23', 0, 5, 'validateCells', void 0);
-      expect(afterValidate).toHaveBeenCalledWith(false, '=A1', 0, 6, 'validateCells', void 0);
-      expect(afterValidate).toHaveBeenCalledWith(false, '12/1/2016', 0, 7, 'validateCells', void 0);
+      expect(afterValidate).toHaveBeenCalledWith(true, 22, 0, 0, 'validateCells');
+      expect(afterValidate).toHaveBeenCalledWith(false, 'text', 0, 1, 'validateCells');
+      expect(afterValidate).toHaveBeenCalledWith(true, 22, 0, 2, 'validateCells');
+      expect(afterValidate).toHaveBeenCalledWith(true, 22, 0, 3, 'validateCells');
+      expect(afterValidate).toHaveBeenCalledWith(true, 22, 0, 4, 'validateCells');
+      expect(afterValidate).toHaveBeenCalledWith(false, '23', 0, 5, 'validateCells');
+      expect(afterValidate).toHaveBeenCalledWith(false, '=A1', 0, 6, 'validateCells');
+      expect(afterValidate).toHaveBeenCalledWith(false, '12/1/2016', 0, 7, 'validateCells');
     });
 
     it('should only call the validator once for modified cells', async() => {
@@ -339,8 +339,8 @@ describe('Formulas general', () => {
       await sleep(100); // Validator is asynchronous.
 
       expect(beforeValidate).toHaveBeenCalledTimes(2);
-      expect(beforeValidate).toHaveBeenCalledWith(6, 0, 0, void 0, void 0, void 0);
-      expect(beforeValidate).toHaveBeenCalledWith(9, 3, 4, void 0, void 0, void 0);
+      expect(beforeValidate).toHaveBeenCalledWith(6, 0, 0);
+      expect(beforeValidate).toHaveBeenCalledWith(9, 3, 4);
     });
 
     it('should not try to validate cells outside of the table boundaries', () => {

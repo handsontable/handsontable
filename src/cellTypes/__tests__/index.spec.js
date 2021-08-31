@@ -72,7 +72,7 @@ describe('cellTypes', () => {
 
     await sleep(100);
 
-    expect(onAfterValidate).toHaveBeenCalledWith(true, 10, 1, 0, undefined, undefined);
+    expect(onAfterValidate).toHaveBeenCalledWith(true, 10, 1, 0);
     expect(getCell(1, 0).innerHTML).toBe('--10--');
 
     selectCell(0, 0);
@@ -82,7 +82,7 @@ describe('cellTypes', () => {
 
     await sleep(100);
 
-    expect(onAfterValidate).toHaveBeenCalledWith(false, '**hello**', 0, 0, 'edit', undefined);
+    expect(onAfterValidate).toHaveBeenCalledWith(false, '**hello**', 0, 0, 'edit');
     expect(getCell(0, 0).innerHTML).toBe('--**hello**--');
   });
 

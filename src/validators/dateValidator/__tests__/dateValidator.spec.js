@@ -37,7 +37,7 @@ describe('dateValidator', () => {
     setDataAtCell(0, 0, '');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date');
       done();
     }, 100);
   });
@@ -57,7 +57,7 @@ describe('dateValidator', () => {
     setDataAtCell(1, 0, '2016-03-18');
     await sleep(200);
 
-    expect(onAfterValidate).toHaveBeenCalledWith(true, '2016-03-18', 1, 'date', undefined, undefined);
+    expect(onAfterValidate).toHaveBeenCalledWith(true, '2016-03-18', 1, 'date');
     expect(getDataAtCell(1, 0)).toEqual('03/18/2016');
   });
 
@@ -77,7 +77,7 @@ describe('dateValidator', () => {
     setDataAtCell(0, 0, 'wat');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, 'wat', 0, 'date', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, 'wat', 0, 'date');
       done();
     }, 100);
   });
@@ -97,7 +97,7 @@ describe('dateValidator', () => {
     setDataAtCell(0, 0, '01/01/2015 ops');
     await sleep(200);
 
-    expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/2015 ops', 0, 'date', undefined, undefined);
+    expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/2015 ops', 0, 'date');
     expect(getDataAtCell(0, 0)).toEqual('01/01/2015');
   });
 
@@ -117,7 +117,7 @@ describe('dateValidator', () => {
     setDataAtCell(0, 0, '33/01/2014');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, '33/01/2014', 0, 'date', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, '33/01/2014', 0, 'date');
       done();
     }, 100);
   });
@@ -138,7 +138,7 @@ describe('dateValidator', () => {
     setDataAtCell(1, 0, '01/01/15');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/15', 1, 'date', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/15', 1, 'date');
       done();
     }, 100);
   });
@@ -159,7 +159,7 @@ describe('dateValidator', () => {
     setDataAtCell(1, 0, '01/01/2015');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/2015', 1, 'date', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/2015', 1, 'date');
       done();
     }, 100);
   });
@@ -180,7 +180,7 @@ describe('dateValidator', () => {
     setDataAtCell(1, 0, '01/01/2015');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, '01/01/2015', 1, 'date', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, '01/01/2015', 1, 'date');
       done();
     }, 100);
   });
@@ -201,7 +201,7 @@ describe('dateValidator', () => {
     setDataAtCell(1, 0, '23/03/15');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, '23/03/15', 1, 'date', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, '23/03/15', 1, 'date');
       done();
     }, 100);
   });
@@ -223,7 +223,7 @@ describe('dateValidator', () => {
       setDataAtCell(1, 0, '');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, '', 1, 'date', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, '', 1, 'date');
         done();
       }, 100);
     });
@@ -244,7 +244,7 @@ describe('dateValidator', () => {
       setDataAtCell(1, 0, null);
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, null, 1, 'date', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, null, 1, 'date');
         done();
       }, 100);
     });
@@ -262,10 +262,10 @@ describe('dateValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, void 0);
+      setDataAtCell(1, 0);
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, void 0, 1, 'date', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, void 0, 1, 'date');
         done();
       }, 100);
     });
@@ -288,7 +288,7 @@ describe('dateValidator', () => {
       setDataAtCell(1, 0, '11/23/2013');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, '11/23/2013', 1, 'date', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, '11/23/2013', 1, 'date');
         done();
       }, 100);
     });
@@ -309,7 +309,7 @@ describe('dateValidator', () => {
       setDataAtCell(1, 0, '11/23/2013');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, '11/23/2013', 1, 'date', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, '11/23/2013', 1, 'date');
         done();
       }, 100);
     });
@@ -329,7 +329,7 @@ describe('dateValidator', () => {
       setDataAtCell(1, 0, '1/10/15');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(true, '1/10/15', 1, 'date', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(true, '1/10/15', 1, 'date');
       }, 100);
 
       setTimeout(() => {
@@ -353,7 +353,7 @@ describe('dateValidator', () => {
       setDataAtCell(1, 0, '5.3.2016');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(true, '5.3.2016', 1, 'date', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(true, '5.3.2016', 1, 'date');
       }, 100);
 
       setTimeout(() => {
@@ -378,7 +378,7 @@ describe('dateValidator', () => {
       setDataAtCell(1, 0, 'test non-date string');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-date string', 1, 'date', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-date string', 1, 'date');
         done();
       }, 100);
     });

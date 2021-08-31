@@ -43,7 +43,7 @@ describe('autocompleteValidator', () => {
       setDataAtCell(0, 0, '');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 0, undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 0);
         done();
       }, 100);
     });
@@ -79,7 +79,7 @@ describe('autocompleteValidator', () => {
       setDataAtCell(0, 0, '');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 0, undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 0);
         done();
       }, 100);
     });
@@ -115,7 +115,7 @@ describe('autocompleteValidator', () => {
       setDataAtCell(0, 0, '');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, '', 0, 0, undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, '', 0, 0);
         done();
       }, 100);
     });
@@ -153,9 +153,9 @@ describe('autocompleteValidator', () => {
       setDataAtCell(0, 2, '');
 
       setTimeout(() => {
-        expect(onAfterValidate.calls.argsFor(0)).toEqual([true, '', 0, 0, undefined, undefined]);
-        expect(onAfterValidate.calls.argsFor(1)).toEqual([false, '', 0, 1, undefined, undefined]);
-        expect(onAfterValidate.calls.argsFor(2)).toEqual([true, '', 0, 2, undefined, undefined]);
+        expect(onAfterValidate.calls.argsFor(0)).toEqual([true, '', 0, 0]);
+        expect(onAfterValidate.calls.argsFor(1)).toEqual([false, '', 0, 1]);
+        expect(onAfterValidate.calls.argsFor(2)).toEqual([true, '', 0, 2]);
         done();
       }, 100);
     });
@@ -189,13 +189,13 @@ describe('autocompleteValidator', () => {
       });
 
       setDataAtCell(0, 0, null);
-      setDataAtCell(0, 1, void 0);
+      setDataAtCell(0, 1);
       setDataAtCell(0, 2, '');
 
       setTimeout(() => {
-        expect(onAfterValidate.calls.argsFor(0)).toEqual([false, null, 0, 0, undefined, undefined]);
-        expect(onAfterValidate.calls.argsFor(1)).toEqual([false, void 0, 0, 1, undefined, undefined]);
-        expect(onAfterValidate.calls.argsFor(2)).toEqual([false, '', 0, 2, undefined, undefined]);
+        expect(onAfterValidate.calls.argsFor(0)).toEqual([false, null, 0, 0]);
+        expect(onAfterValidate.calls.argsFor(1)).toEqual([false, void 0, 0, 1]);
+        expect(onAfterValidate.calls.argsFor(2)).toEqual([false, '', 0, 2]);
         done();
       }, 100);
     });
@@ -221,7 +221,7 @@ describe('autocompleteValidator', () => {
       setDataAtCell(0, 0, 'Some');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, 'Some', 0, 0, undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, 'Some', 0, 0);
         done();
       }, 100);
     });

@@ -36,13 +36,13 @@ describe('validators', () => {
 
     await sleep(100);
 
-    expect(onAfterValidate).toHaveBeenCalledWith(true, 10, 1, 0, undefined, undefined);
+    expect(onAfterValidate).toHaveBeenCalledWith(true, 10, 1, 0);
 
     hot.setDataAtCell(2, 0, 2);
 
     await sleep(100);
 
-    expect(onAfterValidate).toHaveBeenCalledWith(false, 2, 2, 0, undefined, undefined);
+    expect(onAfterValidate).toHaveBeenCalledWith(false, 2, 2, 0);
   });
 
   it('should retrieve predefined validators by its names', () => {

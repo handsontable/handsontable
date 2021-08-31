@@ -15,6 +15,13 @@ describe('GlobalMeta', () => {
     expect(meta.meta).toHaveProperty('constructor', meta.metaCtor);
   });
 
+  it('should set Handsontable instance in the meta prototype', () => {
+    const hotMock = {};
+    const meta = new GlobalMeta(hotMock);
+
+    expect(meta.meta.instance).toBe(hotMock);
+  });
+
   describe('getMetaConstructor()', () => {
     it('should returns meta constructor', () => {
       const meta = new GlobalMeta();

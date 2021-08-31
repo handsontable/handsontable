@@ -37,7 +37,7 @@ describe('timeValidator', () => {
     setDataAtCell(0, 0, '');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'time', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'time');
       done();
     }, 100);
   });
@@ -58,7 +58,7 @@ describe('timeValidator', () => {
     setDataAtCell(0, 0, 'nd');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, 'nd', 0, 'time', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, 'nd', 0, 'time');
       done();
     }, 100);
   });
@@ -79,7 +79,7 @@ describe('timeValidator', () => {
     setDataAtCell(0, 0, '30:10:25');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, '30:10:25', 0, 'time', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, '30:10:25', 0, 'time');
       done();
     }, 100);
   });
@@ -100,7 +100,7 @@ describe('timeValidator', () => {
     setDataAtCell(1, 0, '20:20:01');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, '20:20:01', 1, 'time', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, '20:20:01', 1, 'time');
       done();
     }, 100);
   });
@@ -121,7 +121,7 @@ describe('timeValidator', () => {
     setDataAtCell(1, 0, '5:10:15 am');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, '5:10:15 am', 1, 'time', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, '5:10:15 am', 1, 'time');
       done();
     }, 100);
   });
@@ -142,7 +142,7 @@ describe('timeValidator', () => {
     setDataAtCell(1, 0, '16:32:03');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, '16:32:03', 1, 'time', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, '16:32:03', 1, 'time');
       done();
     }, 100);
   });
@@ -164,7 +164,7 @@ describe('timeValidator', () => {
       setDataAtCell(1, 0, '');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, '', 1, 'time', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, '', 1, 'time');
         done();
       }, 100);
     });
@@ -185,7 +185,7 @@ describe('timeValidator', () => {
       setDataAtCell(1, 0, null);
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, null, 1, 'time', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, null, 1, 'time');
         done();
       }, 100);
     });
@@ -203,10 +203,10 @@ describe('timeValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, void 0);
+      setDataAtCell(1, 0);
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, void 0, 1, 'time', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, void 0, 1, 'time');
         done();
       }, 100);
     });
@@ -229,7 +229,7 @@ describe('timeValidator', () => {
       setDataAtCell(1, 0, '13:00:00');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, '13:00:00', 1, 'time', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, '13:00:00', 1, 'time');
         done();
       }, 100);
     });
@@ -250,7 +250,7 @@ describe('timeValidator', () => {
       setDataAtCell(1, 0, '13:00:00');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, '13:00:00', 1, 'time', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, '13:00:00', 1, 'time');
         done();
       }, 100);
     });
@@ -270,7 +270,7 @@ describe('timeValidator', () => {
       setDataAtCell(1, 0, '16:35:01');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(true, '16:35:01', 1, 'time', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(true, '16:35:01', 1, 'time');
       }, 100);
 
       setTimeout(() => {
@@ -296,7 +296,7 @@ describe('timeValidator', () => {
       setDataAtCell(1, 0, currentDateTime.getTime()); // timestamp in milliseconds
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(true, currentDateTime.getTime(), 1, 'time', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(true, currentDateTime.getTime(), 1, 'time');
       }, 100);
 
       setTimeout(() => {
@@ -329,7 +329,7 @@ describe('timeValidator', () => {
 
       setTimeout(() => {
         expect(onAfterValidate)
-          .toHaveBeenCalledWith(true, currentDateTime.toISOString(), 1, 'time', undefined, undefined);
+          .toHaveBeenCalledWith(true, currentDateTime.toISOString(), 1, 'time');
       }, 100);
 
       setTimeout(() => {
@@ -359,7 +359,7 @@ describe('timeValidator', () => {
       setDataAtCell(1, 0, '19');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(true, '19', 1, 'time', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(true, '19', 1, 'time');
       }, 100);
 
       setTimeout(() => {
@@ -383,7 +383,7 @@ describe('timeValidator', () => {
       setDataAtCell(1, 0, '57');
       await sleep(100);
 
-      expect(onAfterValidate).toHaveBeenCalledWith(true, '57', 1, 'time', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, '57', 1, 'time');
 
       await sleep(100);
 
@@ -406,7 +406,7 @@ describe('timeValidator', () => {
       setDataAtCell(1, 0, 'test non-time string');
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-time string', 1, 'time', undefined, undefined);
+        expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-time string', 1, 'time');
         done();
       }, 100);
     });
