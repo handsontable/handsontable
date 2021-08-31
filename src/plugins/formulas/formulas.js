@@ -396,9 +396,11 @@ export class Formulas extends BasePlugin {
    * @returns {boolean}
    */
   isFormulaCellType(row, column, sheet = this.sheetId) {
-    const cellType = this.getCellType(row, column, sheet);
-
-    return cellType === 'FORMULA' || cellType === 'ARRAYFORMULA';
+    return this.engine.doesCellHaveFormula({
+      sheet,
+      row: this.hot.toPhysicalRow(row),
+      col: this.hot.toPhysicalColumn(column)
+    });
   }
 
   /**
