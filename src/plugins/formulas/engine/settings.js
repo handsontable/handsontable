@@ -5,6 +5,7 @@ export const DEFAULT_LICENSE_KEY = 'internal-use-in-handsontable';
 const DEFAULT_SETTINGS = {
   licenseKey: DEFAULT_LICENSE_KEY,
 
+  useArrayArithmetic: true,
   useColumnIndex: false,
   useStats: false,
   evaluateNullToZero: true,
