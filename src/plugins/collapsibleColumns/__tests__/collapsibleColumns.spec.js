@@ -1730,6 +1730,7 @@ describe('CollapsibleColumns', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
+            <th class=""></th>
           </tr>
           <tr>
             <th class="collapsibleIndicator expanded" colspan="2">N</th>
@@ -1740,6 +1741,7 @@ describe('CollapsibleColumns', () => {
             <th class="">S</th>
             <th class="collapsibleIndicator expanded" colspan="2">T</th>
             <th class="hiddenHeader"></th>
+            <th class=""></th>
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
@@ -1770,6 +1772,7 @@ describe('CollapsibleColumns', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
+            <th class=""></th>
           </tr>
         </thead>
         <tbody>
@@ -1792,6 +1795,7 @@ describe('CollapsibleColumns', () => {
             <td class="">AC1</td>
             <td class="">AD1</td>
             <td class="">AE1</td>
+            <td class="">AF1</td>
           </tr>
         </tbody>
         `);

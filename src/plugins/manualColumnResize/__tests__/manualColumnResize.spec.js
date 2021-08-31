@@ -398,7 +398,7 @@ describe('manualColumnResize', () => {
       await sleep(1000);
 
       expect($columnHeaders.eq(0).width()).toBe(24);
-      expect($columnHeaders.eq(1).width()).toBe(74);
+      expect($columnHeaders.eq(1).width()).toBe(69);
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
       expect($columnHeaders.eq(4).width()).toBe(79);
@@ -640,8 +640,8 @@ describe('manualColumnResize', () => {
     await sleep(600);
 
     expect(colWidth(spec().$container, 1)).toBe(26);
-    expect(colWidth(spec().$container, 2)).toBe(27);
-    expect(colWidth(spec().$container, 3)).toBe(27);
+    expect(colWidth(spec().$container, 2)).toBe(26);
+    expect(colWidth(spec().$container, 3)).toBe(26);
   });
 
   it('should adjust resize handles position after table size changed', () => {

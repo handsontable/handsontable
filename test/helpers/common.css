@@ -11,7 +11,8 @@
  * default Handsontable's styles with this one.
  */
 .handsontable {
-  font-family: Arial, sans-serif;
+  font-family: serif;
   font-size: 13px;
   font-weight: normal;
+  text-rendering: geometricPrecision;
 }
