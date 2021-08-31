@@ -549,32 +549,25 @@ export class Formulas extends BasePlugin {
    * @returns {boolean|*}
    */
   onBeforeAutofill(fillData, sourceRange, targetRange) {
-    const sourceLeftCorner = { ...sourceRange.from, sheet: this.sheetId };
-    const sourceWidth = sourceRange.getWidth();
-    const sourceHeight = sourceRange.getHeight();
-    const targetLeftCorner = { ...targetRange.from, sheet: this.sheetId };
-    const targetWidth = targetRange.getWidth();
-    const targetHeight = targetRange.getHeight();
+    const withSheetId = range => ({ ...range, sheet: this.sheetId });
 
-    // Blocks the autofill operation if HyperFormula says that at least one of the underlying's cell contents cannot be set.
-    if (this.engine.isItPossibleToSetCellContents(targetLeftCorner, targetWidth, targetHeight) === false) {
+    const engineSourceRange = {
+      start: withSheetId(sourceRange.getTopLeftCorner()),
+      end: withSheetId(sourceRange.getBottomRightCorner())
+    };
+
+    const engineTargetRange = {
+      start: withSheetId(targetRange.getTopLeftCorner()),
+      end: withSheetId(targetRange.getBottomRightCorner())
+    };
+
+    // Blocks the autofill operation if HyperFormula says that at least one of
+    // the underlying cell's contents cannot be set.
+    if (this.engine.isItPossibleToSetCellContents(engineTargetRange) === false) {
       return false;
     }
 
-    const sourceEnd = {
-      row: sourceLeftCorner.row + sourceHeight - 1,
-      col: sourceLeftCorner.col + sourceWidth - 1,
-      sheet: sourceLeftCorner.sheet,
-    };
-    const source = { start: sourceLeftCorner, end: sourceEnd };
-    const targetEnd = {
-      row: targetLeftCorner.row + targetHeight - 1,
-      col: targetLeftCorner.col + targetWidth - 1,
-      sheet: targetLeftCorner.sheet,
-    };
-    const target = { start: targetLeftCorner, end: targetEnd };
-
-    return this.engine.getFillRangeData(source, target);
+    return this.engine.getFillRangeData(engineSourceRange, engineTargetRange);
   }
 
   /**
