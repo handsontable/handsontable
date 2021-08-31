@@ -1635,6 +1635,24 @@ describe('Formulas general', () => {
         ['y'], ['=A3'], ['=A6'], ['=A5'], ['=A8'], ['=A7'], ['=A10'], ['=A9'], ['=A12']
       ]);
     });
+
+    it('should allow for mutating autofill results when using formulas (#8107)', () => {
+      handsontable({
+        data: [
+          ['2016', 1, 1, 2, 3],
+        ],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      addHook('beforeChange', (changes) => { changes[0] = null; });
+
+      selectCell(0, 0);
+      autofill(0, 2);
+
+      expect(getData()).toEqual([['2016', 1, '2016', 2, 3]]);
+    });
   });
 
   describe('Formulas#getCellType', () => {
