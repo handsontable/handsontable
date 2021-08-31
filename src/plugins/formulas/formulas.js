@@ -398,8 +398,8 @@ export class Formulas extends BasePlugin {
   isFormulaCellType(row, column, sheet = this.sheetId) {
     return this.engine.doesCellHaveFormula({
       sheet,
-      row: this.hot.toPhysicalRow(row),
-      col: this.hot.toPhysicalColumn(column)
+      row: this.hot.toPhysicalRow(row) ?? Infinity,
+      col: this.hot.toPhysicalColumn(column) ?? Infinity
     });
   }
 
@@ -649,7 +649,7 @@ export class Formulas extends BasePlugin {
     }
 
     // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
-    const isFormulaCellType = attempt(() => this.isFormulaCellType(this.hot.toVisualRow(row), column));
+    const isFormulaCellType = this.isFormulaCellType(this.hot.toVisualRow(row), column);
 
     if (!isFormulaCellType) {
       if (isEscapedFormulaExpression(valueHolder.value)) {
@@ -696,7 +696,7 @@ export class Formulas extends BasePlugin {
     const visualColumn = this.hot.propToCol(columnOrProp);
 
     // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
-    const isFormulaCellType = attempt(() => this.isFormulaCellType(this.hot.toVisualRow(row), visualColumn));
+    const isFormulaCellType = this.isFormulaCellType(this.hot.toVisualRow(row), visualColumn);
 
     if (!isFormulaCellType) {
       return;
