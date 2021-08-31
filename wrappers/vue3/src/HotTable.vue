@@ -93,7 +93,7 @@
           this.hotInstance.render();
         }
 
-        // this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols(); //todo
+        this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
       }
     },
     methods: {
@@ -105,6 +105,7 @@
 
         preventInternalEditWatch(this);
 
+        this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
       },
       matchHotMappersSize(): void {
         if (!this.hotInstance) {
