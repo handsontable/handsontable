@@ -1,1 +1,1 @@
-export {buildRenderer} from "./renderer.mjs";
+export { buildRenderer } from './renderer.mjs';

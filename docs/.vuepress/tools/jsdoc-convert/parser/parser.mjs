@@ -1,6 +1,6 @@
 const escape = text => text.replace(/[{}<>]/g, '').replace(/~/g, '-');
 
-export const buildParser = ({logger, parseJsdoc}) => function* () {
+export const buildParser = ({ logger, parseJsdoc }) => function* () {
   const getName = member => escape(
     (member.kind === 'class' && member.name) // if class get class name
     || member.memberof?.split('#')[0] // if member of a class

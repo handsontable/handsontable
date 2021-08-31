@@ -1,1 +1,1 @@
-export {buildParser} from "./parser.mjs";
+export { buildParser } from './parser.mjs';

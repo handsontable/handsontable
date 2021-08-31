@@ -1,8 +1,4 @@
-/** .......
- * Clear class memberof (f.i. BasePlugin is member of BasePlugin)
- *
- * @param data
- */
+// Clear class memberof (f.i. BasePlugin is member of BasePlugin)
 export const clearMemberofIfClass = (data) => {
   data.some((member) => {
     if (member.kind === 'class') {

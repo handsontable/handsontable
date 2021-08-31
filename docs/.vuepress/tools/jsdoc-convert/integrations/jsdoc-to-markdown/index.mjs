@@ -1,1 +1,1 @@
-export {buildJsdocToMarkdownIntegrator} from "./integrator.mjs";
+export { buildJsdocToMarkdownIntegrator } from './integrator.mjs';
