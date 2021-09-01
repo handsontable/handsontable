@@ -1734,7 +1734,6 @@ describe('TextEditor', () => {
 
     await sleep(150);
 
-    // expect([105, 119]).toEqual(jasmine.arrayContaining([$editorInput.height()]));
     expect($editorInput.height()).toBe(84);
   });
 
