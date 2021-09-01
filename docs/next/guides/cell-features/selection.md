@@ -201,10 +201,10 @@ For non-contiguous selection, multiple classes are making each level a bit darke
 
 Unfortunately, there is no easy way to change the border color of the selection.
 
-## Jumping to the first/last cell
+## Jumping across the grid's edge 
 
-By default, the cell selection "jumps" to the other end of the row or column during navigating across the grid using the arrow keys.
+When you use keyboard navigation, and you reach a row's or column's edge, you can set the cell selection to jump to the opposite end of the grid.
 
-Select any cell in the first row and press <kbd>ARROW UP</kbd> to jump to the last cell in the current column. The same thing happens when you are in first column and press <kbd>ARROW LEFT</kbd> - the selection jumps to the last column.
-
- This behavior can be disabled by setting `autoWrapCol: false` and `autoWrapRow: false`.
+To enable this behavior, set the following [configuration options](@/guides/getting-started/setting-options.md):
+- [`autoWrapCol: true`](@/api/options.md#autowrapcol) (for columns)
+- [`autoWrapRow: true`](@/api/options.md#autowraprow) (for rows)

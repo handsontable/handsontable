@@ -942,33 +942,35 @@ export default () => {
     tabMoves: { row: 0, col: 1 },
 
     /**
-     * If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.
+     * If set to `true`: when you're in the last column, pressing <kbd>TAB</kbd> (or the right arrow key)
+     * takes you to the next row's first column.
      *
      * @memberof Options#
      * @type {boolean}
-     * @default true
+     * @default false
      * @category Core
      *
      * @example
      * ```js
-     * // stop TAB key navigation on the last column
-     * autoWrapRow: false,
+     * // enable the TAB key navigation in the last column
+     * autoWrapRow: true,
      * ```
      */
     autoWrapRow: false,
 
     /**
-     * If `true`, pressing <kbd>ENTER</kbd> or down arrow in the last row will move to the first row in the next column.
+     * If set to `true`: when you're in the last row, pressing <kbd>ENTER</kbd> (or the down arrow key)
+     * takes you to the next column's first row.
      *
      * @memberof Options#
      * @type {boolean}
-     * @default true
+     * @default false
      * @category Core
      *
      * @example
      * ```js
-     * // stop ENTER key navigation on the last row
-     * autoWrapCol: false,
+     * // enable the ENTER key navigation in the last row
+     * autoWrapCol: true,
      * ```
      */
     autoWrapCol: false,
