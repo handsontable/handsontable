@@ -974,11 +974,13 @@ let cachedScrollbarWidth;
 function walkontableCalculateScrollbarWidth(rootDocument = document) {
   const inner = rootDocument.createElement('div');
 
+  inner.className = 'handsontable';
   inner.style.height = '200px';
   inner.style.width = '100%';
 
   const outer = rootDocument.createElement('div');
 
+  outer.className = 'handsontable';
   outer.style.boxSizing = 'content-box';
   outer.style.height = '150px';
   outer.style.left = '0px';
