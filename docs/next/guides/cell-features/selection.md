@@ -201,10 +201,24 @@ For non-contiguous selection, multiple classes are making each level a bit darke
 
 Unfortunately, there is no easy way to change the border color of the selection.
 
-## Jumping across the grid's edge 
+## Jumping across the grid's edges 
 
-When you use keyboard navigation, and you reach a row's or column's edge, you can set the cell selection to jump to the opposite end of the grid.
+When you use keyboard navigation, and you cross an edge of the grid, you can set cell selection to jump to the opposite edge.
 
-To enable this behavior, set the following [configuration options](@/guides/getting-started/setting-options.md):
-- [`autoWrapCol: true`](@/api/options.md#autowrapcol) (for columns)
-- [`autoWrapRow: true`](@/api/options.md#autowraprow) (for rows)
+#### Jumping across vertical edges
+
+To enable jumping across the left and right edges:
+- Set the [`autoWrapRow` configuration option](@/api/options.md#autowraprow) to `true`.
+
+To jump across a vertical edge:
+- When cell selection is on a row's first cell, press the left arrow key.
+- When cell selection is on a row's last cell, press the right arrow key, or press <kbd>TAB</kbd>.
+
+#### Jumping across horizontal edges
+
+To enable jumping across the top and bottom edges:
+- Set the [`autoWrapCol` configuration option](@/api/options.md#autowrapcol) to `true`.
+
+To jump across a horizontal edge:
+- When cell selection is on a column's first cell, press the up arrow key.
+- When cell selection is on a column's last cell, press the down arrow key, or press <kbd>ENTER</kbd>.

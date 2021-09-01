@@ -942,8 +942,9 @@ export default () => {
     tabMoves: { row: 0, col: 1 },
 
     /**
-     * If set to `true`: when you're in the last column, pressing <kbd>TAB</kbd> (or the right arrow key)
-     * takes you to the next row's first column.
+     * If set to `true`: when you use keyboard navigation,
+     * and you cross the grid's left or right edge,
+     * cell selection jumps to the opposite edge.
      *
      * @memberof Options#
      * @type {boolean}
@@ -952,15 +953,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable the TAB key navigation in the last column
+     * // enable jumping across the grid's vertical edges
      * autoWrapRow: true,
      * ```
      */
     autoWrapRow: false,
 
     /**
-     * If set to `true`: when you're in the last row, pressing <kbd>ENTER</kbd> (or the down arrow key)
-     * takes you to the next column's first row.
+     * If set to `true`: when you use keyboard navigation,
+     * and you cross the grid's top or bottom edge,
+     * cell selection jumps to the grid's opposite edge.
      *
      * @memberof Options#
      * @type {boolean}
@@ -969,7 +971,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable the ENTER key navigation in the last row
+     * // enable jumping across the grid's horizontal edges
      * autoWrapCol: true,
      * ```
      */
