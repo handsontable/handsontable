@@ -100,7 +100,7 @@ export class NestedRows extends BasePlugin {
     this.addHook('modifyRowData', (...args) => this.onModifyRowData(...args));
     this.addHook('modifySourceLength', (...args) => this.onModifySourceLength(...args));
     this.addHook('beforeDataSplice', (...args) => this.onBeforeDataSplice(...args));
-    this.addHook('beforeDataFilter', (...args) => this.onBeforeDataFilter(...args));
+    this.addHook('filterData', (...args) => this.onFilterData(...args));
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.onAfterContextMenuDefaultOptions(...args));
     this.addHook('afterGetRowHeader', (...args) => this.onAfterGetRowHeader(...args));
     this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
@@ -245,15 +245,15 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * Called before the source data filtering. Returning `false` stops the native filtering.
+   * Provide custom source data filtering. It's handled by core method and replaces the native filtering.
    *
    * @private
    * @param {number} index The index where the data filtering starts.
    * @param {number} amount An amount of rows which filtering applies to.
    * @param {number} physicalRows Physical row indexes.
-   * @returns {boolean}
+   * @returns {Array}
    */
-  onBeforeDataFilter(index, amount, physicalRows) {
+  onFilterData(index, amount, physicalRows) {
     const priv = privatePool.get(this);
 
     this.collapsingUI.collapsedRowsStash.stash();
@@ -263,7 +263,7 @@ export class NestedRows extends BasePlugin {
 
     priv.skipRender = true;
 
-    return false;
+    return this.dataManager.getData().slice(); // Data contains reference sometimes.
   }
 
   /**
