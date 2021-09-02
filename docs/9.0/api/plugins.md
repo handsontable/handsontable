@@ -24,8 +24,8 @@ canonicalUrl: /api/plugins
 |[ExportFile](@/api/exportFile.md) |Export the data to a CSV file (note: this plugin provides a capability to export the data to only a CSV file type, its name might cause confusion).|
 |[Filters](@/api/filters.md) |Display rows that meet your criteria and hide the rest.|
 |[Formulas](@/api/formulas.md) | Use Excel-like functions inside of cells to perform calculations.|
-|[HiddenColumns](@/api/hiddenColumns.md) |Hide specific columns.|
-|[HiddenRows](@/api/hiddenRows.md) |Hide specific rows.|
+|[HiddenColumns](@/api/hiddenColumns.md) |Hide selected columns.|
+|[HiddenRows](@/api/hiddenRows.md) |Hide selected rows.|
 |[ManualColumnFreeze](@/api/manualColumnFreeze.md) |Pin the columns to the left to keep them visible while scrolling.|
 |[ManualColumnMove](@/api/manualColumnMove.md) |Drag a column to change its order in the data grid.|
 |[ManualColumnResize](@/api/manualColumnResize.md) | Drag the sizing handle to change the width of a column.|
