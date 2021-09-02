@@ -2780,7 +2780,7 @@ export default () => {
      * The {@link Formulas} plugin allows Handsontable to process formula expressions defined in the provided data.
      *
      * @memberof Options#
-     * @type {boolean|object}
+     * @type {object}
      * @default undefined
      * @category Formulas
      *
