@@ -28,12 +28,12 @@ To simply enable column hiding (without further configuration), set the [`hidden
 const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5,12),
   colHeaders: true,
   rowHeaders: true,
   // enable the `HiddenColumns` plugin
   hiddenColumns: true,
-  licenseKey: 'non-commercial-and-evaluation'
 });
 ```
 :::
@@ -55,15 +55,15 @@ Now, those columns are hidden by default:
 const container = document.querySelector('#example2');
 
 const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5,12),
   colHeaders: true,
   rowHeaders: true,
   // enable the `HiddenColumns` plugin
   hiddenColumns: {
-    // specify columns that are hidden by default
+    // specify columns hidden by default
     columns: [3, 5, 9]
-  },
-  licenseKey: 'non-commercial-and-evaluation'
+  }
 });
 ```
 :::
@@ -83,6 +83,7 @@ If you use both the [`NestedHeaders`](@/api/nestedheaders.md) plugin and the [`H
 const container = document.querySelector('#example3');
 
 const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5,12),
   colHeaders: true,
   rowHeaders: true,
@@ -90,8 +91,7 @@ const hot = new Handsontable(container, {
     columns: [3, 5, 9],
     // show UI indicators to mark hidden columns
     indicators: true
-  },
-  licenseKey: 'non-commercial-and-evaluation'
+  }
 });
 ```
 :::
@@ -107,6 +107,7 @@ Enable both the [`ContextMenu`](@/api/contextMenu.md) plugin and the [`HiddenCol
 const container = document.querySelector('#example4');
 
 const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5,12),
   colHeaders: true,
   rowHeaders: true,
@@ -117,8 +118,7 @@ const hot = new Handsontable(container, {
   hiddenColumns: {
     columns: [3, 5, 9],
     indicators: true
-  },
-  licenseKey: 'non-commercial-and-evaluation'
+  }
 });
 ```
 :::
@@ -130,6 +130,7 @@ You can also add the column hiding menu items individually, by adding the [`hidd
 const container = document.querySelector('#example5');
 
 const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5,12),
   colHeaders: true,
   rowHeaders: true,
@@ -138,15 +139,14 @@ const hot = new Handsontable(container, {
   hiddenColumns: {
     columns: [3, 5, 9],
     indicators: true
-  },
-  licenseKey: 'non-commercial-and-evaluation'
+  }
 });
 ```
 :::
 
 ### Step 4: Set up copy and paste behavior
 
-By default, hidden columns are included when the end user copies and pastes data.
+By default, hidden columns are included in copying and pasting.
 
 To exclude hidden columns from copying and pasting, in the `hiddenColumns` object, set the `copyPasteEnable` property to `false`:
 
@@ -155,6 +155,7 @@ To exclude hidden columns from copying and pasting, in the `hiddenColumns` objec
 const container = document.querySelector('#example6');
 
 const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
   data: Handsontable.helper.createSpreadsheetData(5,12),
   colHeaders: true,
   rowHeaders: true,
@@ -164,8 +165,7 @@ const hot = new Handsontable(container, {
     indicators: true,
     // exclude hidden columns from copying and pasting
     copyPasteEnabled: false
-  },
-  licenseKey: 'non-commercial-and-evaluation'
+  }
 });
 ```
 :::
