@@ -1087,4 +1087,26 @@ describe('NestedRows', () => {
 
     expect(rowHeaders).toEqual(['A', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S']);
   });
+
+  it('should work properly when multiple alters have been performed', () => {
+    handsontable({
+      data: getSimplerNestedData(),
+      nestedRows: true,
+      rowHeaders: true
+    });
+
+    const dataAtStart = getData();
+
+    alter('insert_row', 0, 2);
+
+    expect(getData()).toEqual([[null, null, null, null], [null, null, null, null], ...dataAtStart]);
+
+    alter('remove_row', 0, 2);
+
+    expect(getData()).toEqual(dataAtStart);
+
+    alter('insert_row', 0, 2);
+
+    expect(getData()).toEqual([[null, null, null, null], [null, null, null, null], ...dataAtStart]);
+  });
 });
