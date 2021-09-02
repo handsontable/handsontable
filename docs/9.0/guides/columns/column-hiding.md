@@ -15,7 +15,7 @@ The **Hidden Columns** plugin allows hiding specific columns from the table.
 
 ## Quick setup
 
-The `hiddenColumns` parameter accepts an object. The `columns` property needs to be specified for the object to hide specified columns. It should be defined as an array of numbers representing the indexes of columns that need to be hidden.
+The `hiddenColumns` parameter accepts an object. The `columns` property needs to be specified for the object to hide specific columns. It should be defined as an array of numbers representing the indexes of columns that need to be hidden.
 
 
 ## Additional options
