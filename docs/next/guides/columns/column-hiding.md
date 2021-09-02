@@ -13,12 +13,11 @@ You can hide columns, using the [`HiddenColumns`](@/api/hiddenColumns.md) plugin
 
 ## About column hiding
 
-"Hiding a column" means that the hidden column doesn't get rendered.
+"Hiding a column" means that the hidden column doesn't get rendered as a DOM element.
 
-This means that when you're hiding a column:
+When you're hiding a column:
 - The source data doesn't get modified.
-- The [`HiddenColumns`](@/api/hiddenColumns.md) plugin doesn't participate in data transformation.
-- The shape of the data returned by the [`getData*()` methods](@/api/core.md#getdata) stays intact.
+- The [`HiddenColumns`](@/api/hiddenColumns.md) plugin doesn't participate in data transformation<br>(the shape of the data returned by the [`getData*()` methods](@/api/core.md#getdata) stays intact).
 
 ## Enabling column hiding
 
