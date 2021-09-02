@@ -245,7 +245,9 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
       width: 400,
       height: 300,
       // the `cells` option
-      cells:
+      cells: function() {
+        
+      };
     });
     ```
 2. Set the [`cells`](@/api/options.md#cells) option to a function. It can take three arguments:<br>
@@ -529,7 +531,9 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
       width: 400,
       height: 300,
       // the `cells` option
-      cells: {}
+      cells: function() {
+        
+      };
     });
     ```
 2. Set the [`cells`](@/api/options.md#cells) option to a function. It can take three arguments:<br>
