@@ -238,7 +238,7 @@ Any options modified through [`cells`](@/api/options.md#cells) overwrite all oth
 The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
 :::
 
-1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`cells`](@/api/options.md#cells).
+1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`cells`](@/api/options.md#cells), and set it to a function.
     ```js
     const hot = new Handsontable(container, {
       // top-level grid options that apply to the entire grid
@@ -250,7 +250,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
       };
     });
     ```
-2. Set the [`cells`](@/api/options.md#cells) option to a function. It can take three arguments:<br>
+2. The function can take three arguments:<br>
    - `row`: a row coordinate (a **physical** index)
    - `col`: a column coordinate (a **physical** index)
    - `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
@@ -524,7 +524,7 @@ The [`cells`](@/api/options.md#cells) option overwrites all other options.
 The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
 :::
 
-1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`cells`](@/api/cells.md#cells).
+1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`cells`](@/api/cells.md#cells), and set it to a function.
     ```js
     const hot = new Handsontable(container, {
       // top-level grid options that apply to the entire grid
@@ -536,7 +536,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
       };
     });
     ```
-2. Set the [`cells`](@/api/options.md#cells) option to a function. It can take three arguments:<br>
+2. The function can take three arguments:<br>
    - `row`: a row coordinate (a **physical** index)
    - `col`: a column coordinate (a **physical** index)
    - `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
