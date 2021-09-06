@@ -1088,25 +1088,63 @@ describe('NestedRows', () => {
     expect(rowHeaders).toEqual(['A', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S']);
   });
 
-  it('should work properly when multiple alters have been performed', () => {
-    handsontable({
-      data: getSimplerNestedData(),
-      nestedRows: true,
-      rowHeaders: true
+  describe('should work properly when some alters have been performed', () => {
+    it('inserting and removing rows', () => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        rowHeaders: true
+      });
+
+      const dataAtStart = getData();
+
+      alter('insert_row', 0, 2);
+
+      expect(getData()).toEqual([[null, null, null, null], [null, null, null, null], ...dataAtStart]);
+
+      alter('remove_row', 0, 2);
+
+      expect(getData()).toEqual(dataAtStart);
+
+      alter('insert_row', 0, 2);
+
+      expect(getData()).toEqual([[null, null, null, null], [null, null, null, null], ...dataAtStart]);
     });
 
-    const dataAtStart = getData();
+    it('inserting rows and changing cell values', () => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        rowHeaders: true
+      });
 
-    alter('insert_row', 0, 2);
+      const dataAtStart = getData();
 
-    expect(getData()).toEqual([[null, null, null, null], [null, null, null, null], ...dataAtStart]);
+      alter('insert_row', 0, 1);
 
-    alter('remove_row', 0, 2);
+      setDataAtCell(0, 0, 'value');
 
-    expect(getData()).toEqual(dataAtStart);
+      alter('insert_row', 0, 1);
 
-    alter('insert_row', 0, 2);
+      expect(getData()).toEqual([[null, null, null, null], ['value', null, null, null], ...dataAtStart]);
+    });
 
-    expect(getData()).toEqual([[null, null, null, null], [null, null, null, null], ...dataAtStart]);
+    it('inserting rows after calling the `updateSettings` method and changing cell value', () => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        rowHeaders: true
+      });
+
+      updateSettings({});
+
+      setDataAtCell(0, 0, 'value');
+
+      const dataAtStart = getData();
+
+      alter('insert_row', 0, 1);
+
+      expect(getData()).toEqual([[null, null, null, null], ...dataAtStart]);
+    });
   });
 });
