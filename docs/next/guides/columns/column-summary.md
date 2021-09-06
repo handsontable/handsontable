@@ -14,25 +14,41 @@ tags:
 
 [[toc]]
 
-## Overview
+You can easily calculate and display column summaries, using the [`ColumnSummary`](@/api/columnSummary.md) plugin.
 
-With this feature, you can create a summary row at the bottom of the table.
+## About column summary
 
-Each cell in the summary row presents the result of a calculation based on the values in the column. Think of this plugin as a pre-defined set of functions such as `sum`, `average`, `max`, and more.
+The [`ColumnSummary`](@/api/columnSummary.md) plugin lets you quickly summarize a column, in any way you want.
 
-## Basic example
+To set up the way a column summary is calculated, you can:
+- Either select one of our [predefined column summary functions](#column-summary-functions)
+- Or define a [custom column summary function]()
 
-This example retrieves information about the values in the following three columns:
+### Column summary functions
 
-- The `min` value in Column 1
-- The `max` value in Column 3
-- The `sum` of all values in Column 5
+You can use the following column summary functions:
 
-The index of the first column and row in Handsontable always starts from 0. In this case **Column 1** has index 0.
+| Function                                                                                                                   | Description                                                                                        |
+| -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| [`sum`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L146-L161)     | Returns the sum of all values in a column.                                                         |
+| [`min`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L193-L226)     | Returns the lowest value in a column.                                                              |
+| [`max`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L193-L226)     | Returns the highest value in a column.                                                             |
+| [`count`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L293-L313)   | Returns the number of all non-empty cells in a column.                                             |
+| [`average`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L315-L327) | Returns the sum of all values in a column,<br>divided by the number of non-empty cells in that column. |
+| [`custom`](https://github.com/handsontable/handsontable/blob/master/src/plugins/columnSummary/columnSummary.js#L138-L139)  | Lets you define a custom column summary function.                                                  |
+
+### Column summary example
+
+The example below calculates and displays the following column summaries:
+- The sum of all values ([`sum`](@/api/columnSummary.md#options)) in the first column (the column with index `0`)
+- The lowest value ([`min`](@/api/columnSummary.md#options)) in the second column (the column with index `1`)
+- The highest value ([`max`](@/api/columnSummary.md#options)) in the third column (the column with index `2`)
+- The number of non-empty cells ([`count`](@/api/columnSummary.md#options)) in the fourth column (the column with index `3`)
+- The average value ([`average`](@/api/columnSummary.md#options)) in the fifth column (the column with index `4`)
 
 ::: example #example1
 ```js
-// Generate an array of arrays with a dummy data
+// generate an array of arrays with dummy data
 const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   let counter = 0;
 
@@ -51,15 +67,21 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  // use the generated dummy data to initialize a Handsontable instance
   data: generateData(),
   height: 'auto',
-  colHeaders(index) { // replace the default header labels
-    return 'Column ' + (index + 1);
-  },
+  colHeaders: true,
   rowHeaders: true,
   contextMenu: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // enable and configure the `ColumnSummary` plugin
   columnSummary: [
+    {
+      destinationRow: 4,
+      destinationColumn: 0,
+      type: 'sum',
+      forceNumeric: true
+    },
     {
       destinationRow: 4,
       destinationColumn: 1,
@@ -67,19 +89,39 @@ const hot = new Handsontable(container, {
     },
     {
       destinationRow: 4,
-      destinationColumn: 3,
+      destinationColumn: 2,
       type: 'max'
     },
     {
       destinationRow: 4,
-      destinationColumn: 5,
-      type: 'sum',
-      forceNumeric: true
+      destinationColumn: 3,
+      type: 'count'
+    },
+    {
+      destinationRow: 4,
+      destinationColumn: 4,
+      type: 'average'
     }
   ]
 });
 ```
 :::
+
+## Setting up a column summary
+
+To set up a column summary, follow the steps below.
+
+### Step 1: Enable the `ColumnSummary` plugin
+
+### Step 2: Specify what you want to summarize
+
+### Step 3: Select the summary calculation function
+
+### Step 4: Display the summary
+
+## Column summary options
+
+## Column summary API methods
 
 ## Basic setup
 
