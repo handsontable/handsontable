@@ -1111,22 +1111,59 @@ describe('NestedRows', () => {
       expect(getData()).toEqual([[null, null, null, null], [null, null, null, null], ...dataAtStart]);
     });
 
-    it('inserting rows and changing cell values', () => {
-      handsontable({
-        data: getSimplerNestedData(),
-        nestedRows: true,
-        rowHeaders: true
+    describe('inserting rows and changing cell values ', () => {
+      it('(by API)', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true,
+          rowHeaders: true
+        });
+
+        const dataAtStart = getData();
+
+        alter('insert_row', 0, 1);
+
+        setDataAtCell(0, 0, 'value');
+
+        alter('insert_row', 0, 1);
+
+        expect(getData()).toEqual([[null, null, null, null], ['value', null, null, null], ...dataAtStart]);
       });
 
-      const dataAtStart = getData();
+      it('(using context menu)', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true,
+          rowHeaders: true,
+          contextMenu: true
+        });
 
-      alter('insert_row', 0, 1);
+        const dataAtStart = getData();
 
-      setDataAtCell(0, 0, 'value');
+        selectCell(0, 0);
+        contextMenu();
 
-      alter('insert_row', 0, 1);
+        $('.htContextMenu .ht_master .htCore')
+          .find('tbody td')
+          .not('.htSeparator')
+          .eq(2) // Insert row above
+          .simulate('mousedown')
+          .simulate('mouseup');
 
-      expect(getData()).toEqual([[null, null, null, null], ['value', null, null, null], ...dataAtStart]);
+        setDataAtCell(0, 0, 'value');
+
+        selectCell(0, 0);
+        contextMenu();
+
+        $('.htContextMenu .ht_master .htCore')
+          .find('tbody td')
+          .not('.htSeparator')
+          .eq(2) // Insert row above
+          .simulate('mousedown')
+          .simulate('mouseup');
+
+        expect(getData()).toEqual([[null, null, null, null], ['value', null, null, null], ...dataAtStart]);
+      });
     });
 
     it('inserting rows after calling the `updateSettings` method and changing cell value', () => {
