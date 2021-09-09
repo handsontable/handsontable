@@ -1166,7 +1166,7 @@ describe('NestedRows', () => {
       });
     });
 
-    it('inserting rows after calling the `updateSettings` method and changing cell value', () => {
+    it('inserting rows after calling the `updateSettings` method and changing a cell value', () => {
       handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,
@@ -1174,6 +1174,25 @@ describe('NestedRows', () => {
       });
 
       updateSettings({});
+
+      setDataAtCell(0, 0, 'value');
+
+      const dataAtStart = getData();
+
+      alter('insert_row', 0, 1);
+
+      expect(getData()).toEqual([[null, null, null, null], ...dataAtStart]);
+    });
+
+    it('inserting rows after moving some row and changing a cell value', () => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        rowHeaders: true,
+        manualRowMove: true,
+      });
+
+      getPlugin('manualRowMove').dragRows([3], 5);
 
       setDataAtCell(0, 0, 'value');
 

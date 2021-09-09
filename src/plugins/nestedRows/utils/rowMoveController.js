@@ -94,9 +94,11 @@ export default class RowMoveController {
 
     this.shiftCollapsibleParentsLocations(physicalStartIndexes, physicalDropIndex, sameParent);
 
+    const currentSourceData = this.dataManager.getData();
+
     this.moveRows(physicalStartIndexes, physicalDropIndex, targetParent);
 
-    this.dataManager.updateWithData(this.dataManager.getRawSourceData());
+    this.dataManager.updateWithData(currentSourceData);
 
     this.moveCellsMeta(physicalStartIndexes, physicalDropIndex);
 
