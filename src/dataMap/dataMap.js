@@ -1,8 +1,8 @@
-import { stringify } from './3rdparty/SheetClip';
+import { stringify } from '../3rdparty/SheetClip';
 import {
   cellMethodLookupFactory,
   countFirstRowKeys
-} from './helpers/data';
+} from '../helpers/data';
 import {
   createObjectPropListener,
   deepClone,
@@ -12,10 +12,10 @@ import {
   hasOwnProperty,
   isObject,
   objectEach
-} from './helpers/object';
-import { extendArray, to2dArray } from './helpers/array';
-import { rangeEach } from './helpers/number';
-import { isDefined } from './helpers/mixed';
+} from '../helpers/object';
+import { extendArray, to2dArray } from '../helpers/array';
+import { rangeEach } from '../helpers/number';
+import { isDefined } from '../helpers/mixed';
 
 const copyableLookup = cellMethodLookupFactory('copyable', false);
 
