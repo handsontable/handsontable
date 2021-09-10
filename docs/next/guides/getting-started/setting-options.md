@@ -544,7 +544,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
     ```js
     const hot = new Handsontable(container, {
       // the `cells` option set to a function
-      cells: function(row, col, prop) {
+      cells(row, col, prop) {
         // the `cells` function's body
       }
     });
