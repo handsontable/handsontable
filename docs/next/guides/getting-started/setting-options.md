@@ -553,8 +553,8 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
    For example:
     ```js
     const hot = new Handsontable(container, {
-      cells: function (row, col) {
-        if (row === 1 || row === 5 && col === 1) {
+      cells(row, col) {
+        if ((row === 1 || row === 5) && col === 1) {
           return {
             readOnly: true,
           };
