@@ -381,7 +381,7 @@ In the example below, the [`cell`](@/api/options.md#cell) option sets cell `A1`(
 
 The modified [`cell`](@/api/options.md#cell) options:
 - Overwrite the top-level [grid options](#setting-grid-options)
-- Overwrite td-level [column options](#setting-column-options)
+- Overwrite mid-level [column options](#setting-column-options)
 
 ::: example #example4 --html 1 --js 2
 ```html
