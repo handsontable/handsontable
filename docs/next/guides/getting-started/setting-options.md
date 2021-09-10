@@ -531,7 +531,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
       width: 400,
       height: 300,
       // the `cells` option
-      cells: function() {
+      cells() {
         
       };
     });
