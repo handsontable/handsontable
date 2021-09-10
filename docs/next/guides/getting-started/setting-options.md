@@ -584,8 +584,8 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   // the `cells` option overwrites the top-level grid options
   // apply only to cells selected by your custom logic
-  cells: function (row, col) {
-    if (row === 1 || row === 3 && col === 1) {
+  cells(row, col) {
+    if ((row === 1 || row === 3) && col === 1) {
       return {
         readOnly: true,
       };
