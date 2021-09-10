@@ -133,11 +133,13 @@ export class NestedRows extends BasePlugin {
   updatePlugin() {
     this.disablePlugin();
 
-    const vanillaSourceData = this.hot.getSourceData();
+    // We store a state of the data manager.
+    const currentSourceData = this.dataManager.getData();
 
     this.enablePlugin();
 
-    this.dataManager.updateWithData(vanillaSourceData);
+    // After enabling plugin previously stored data is restored.
+    this.dataManager.updateWithData(currentSourceData);
 
     super.updatePlugin();
   }
@@ -407,16 +409,9 @@ export class NestedRows extends BasePlugin {
    * `afterCreateRow` hook callback.
    *
    * @private
-   * @param {number} index Represents the visual index of first newly created row in the data source array.
-   * @param {number} amount Number of newly created rows in the data source array.
-   * @param {string} source String that identifies source of hook call.
    */
-  onAfterCreateRow(index, amount, source) {
-    if (source === this.pluginName) {
-      return;
-    }
-
-    this.dataManager.updateWithData(this.dataManager.getRawSourceData());
+  onAfterCreateRow() {
+    this.dataManager.rewriteCache();
   }
 
   /**

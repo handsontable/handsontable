@@ -96,7 +96,7 @@ export default class RowMoveController {
 
     this.moveRows(physicalStartIndexes, physicalDropIndex, targetParent);
 
-    this.dataManager.updateWithData(this.dataManager.getRawSourceData());
+    this.dataManager.rewriteCache();
 
     this.moveCellsMeta(physicalStartIndexes, physicalDropIndex);
 
