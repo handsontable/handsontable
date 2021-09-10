@@ -214,7 +214,7 @@ const hot = new Handsontable(container, {
   columns(index) {
     return {
       type: index > 0 ? 'numeric' : 'text',
-      readOnly: index == 2 || index == 8
+      readOnly: index === 2 || index === 8
     }
   }
 });
