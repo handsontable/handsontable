@@ -268,7 +268,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
     ```js
     const hot = new Handsontable(container, {
       // the `cells` options overwrite all other options
-      cells: function(row, col, prop) {
+      cells(row, col, prop) {
         if (row === 1 || row === 4) {
           return {
             // row options, apply to each cell of the first row
