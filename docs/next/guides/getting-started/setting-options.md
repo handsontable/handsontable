@@ -143,7 +143,7 @@ To apply configuration options to an individual column (or a range of columns), 
 
 1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`columns`](@/api/options.md#columns).
     ```js
-    const hot = new Handsontable(container, {mi
+    const hot = new Handsontable(container, {
       // top-level grid options that apply to the entire grid
       width: 400,
       height: 300,
@@ -211,10 +211,10 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   // in the top-level grid options, all cells are editable
   readOnly: false,
-  columns: function(index) {
+  columns(index) {
     return {
       type: index > 0 ? 'numeric' : 'text',
-      readOnly: index == 2 || index == 8
+      readOnly: index === 2 || index === 8
     }
   }
 });
@@ -245,7 +245,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
       width: 400,
       height: 300,
       // the `cells` option
-      cells: function() {
+      cells() {
         
       };
     });
@@ -258,7 +258,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
     ```js
     const hot = new Handsontable(container, {
       // the `cells` option set to a function
-      cells: function(row, col, prop) {
+      cells(row, col, prop) {
         // the `cells` function's body
       }
     });
@@ -268,7 +268,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
     ```js
     const hot = new Handsontable(container, {
       // the `cells` options overwrite all other options
-      cells: function(row, col, prop) {
+      cells(row, col, prop) {
         if (row === 1 || row === 4) {
           return {
             // row options, apply to each cell of the first row
@@ -307,7 +307,7 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   // the `cells` options overwrite all other options
   // apply only to each cell of rows 1 and 4, as specified in the function's body
-  cells: function(row, column) {
+  cells(row, column) {
     if (row === 1 || row === 4) {
       return {
         readOnly: true,
@@ -531,7 +531,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
       width: 400,
       height: 300,
       // the `cells` option
-      cells: function() {
+      cells() {
         
       };
     });
@@ -544,7 +544,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
     ```js
     const hot = new Handsontable(container, {
       // the `cells` option set to a function
-      cells: function(row, col, prop) {
+      cells(row, col, prop) {
         // the `cells` function's body
       }
     });
@@ -553,8 +553,8 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
    For example:
     ```js
     const hot = new Handsontable(container, {
-      cells: function (row, col) {
-        if (row === 1 || row === 5 && col === 1) {
+      cells(row, col) {
+        if ((row === 1 || row === 5) && col === 1) {
           return {
             readOnly: true,
           };
@@ -584,8 +584,8 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   // the `cells` option overwrites the top-level grid options
   // apply only to cells selected by your custom logic
-  cells: function (row, col) {
-    if (row === 1 || row === 3 && col === 1) {
+  cells(row, col) {
+    if ((row === 1 || row === 3) && col === 1) {
       return {
         readOnly: true,
       };
@@ -651,7 +651,7 @@ const hot = new Handsontable(container, {
     },
   ],
   // the `cells` option's logic overwrites all other options
-  cells: function(row, column) {
+  cells(row, column) {
     // cell (2, 2) is editable
     if (row === 2 && column === 2) {
       return {
