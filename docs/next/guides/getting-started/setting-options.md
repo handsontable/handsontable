@@ -211,7 +211,7 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   // in the top-level grid options, all cells are editable
   readOnly: false,
-  columns: function(index) {
+  columns(index) {
     return {
       type: index > 0 ? 'numeric' : 'text',
       readOnly: index == 2 || index == 8
