@@ -191,6 +191,16 @@ export class DateEditor extends TextEditor {
       // datepicker, but don't fill the editor input
       this.$datePicker.gotoToday();
     }
+
+    this.datePickerStyle.display = 'block';
+  }
+
+  /**
+   * Hide data picker.
+   */
+  hideDatepicker() {
+    this.datePickerStyle.display = 'none';
+    this.$datePicker.hide();
   }
 
   /**
@@ -221,7 +231,7 @@ export class DateEditor extends TextEditor {
         dateStr = moment(dateStr).format(this.cellProperties.dateFormat || this.defaultDateFormat);
       }
       this.setValue(dateStr);
-      this.$datePicker.hide();
+      this.hideDatepicker();
 
       if (origOnSelect) {
         origOnSelect();
