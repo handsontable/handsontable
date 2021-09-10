@@ -381,7 +381,7 @@ In the example below, the [`cell`](@/api/options.md#cell) option sets cell `A1`(
 
 The modified [`cell`](@/api/options.md#cell) options:
 - Overwrite the top-level [grid options](#setting-grid-options)
-- Overwrite the mid-level [column options](#setting-column-options)
+- Overwrite td-level [column options](#setting-column-options)
 
 ::: example #example4 --html 1 --js 2
 ```html
@@ -431,7 +431,7 @@ hot.getCellMeta(0, 1).readOnly;
 When Handsontable is running, you can check a cell's current options, using the [`getCellMeta()`](@/api/core.md#getcellmeta) method.
 
 The [`getCellMeta()`](@/api/core.md#getcellmeta) method returns an object with:
-- All built-in options
+- All built-in options (stored in the [prototype](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object_prototypes) of [`CellMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/cellMeta.js))
 - Any options you add
 
 For example:
