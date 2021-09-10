@@ -143,7 +143,7 @@ To apply configuration options to an individual column (or a range of columns), 
 
 1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`columns`](@/api/options.md#columns).
     ```js
-    const hot = new Handsontable(container, {mi
+    const hot = new Handsontable(container, {
       // top-level grid options that apply to the entire grid
       width: 400,
       height: 300,
