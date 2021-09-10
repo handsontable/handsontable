@@ -16,6 +16,8 @@ describe('HiddenRows', () => {
     it('should go to the closest not hidden cell on the bottom while navigating by arrow down', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
+        autoWrapRow: true,
+        autoWrapCol: true,
         hiddenRows: {
           rows: [1, 2, 3],
         },
@@ -38,6 +40,8 @@ describe('HiddenRows', () => {
     it('should go to the closest not hidden cell on the top while navigating by arrow up', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
+        autoWrapRow: true,
+        autoWrapCol: true,
         hiddenRows: {
           rows: [1, 2, 3],
         },
@@ -65,6 +69,8 @@ describe('HiddenRows', () => {
        'all rows on the bottom are hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
+        autoWrapRow: true,
+        autoWrapCol: true,
         hiddenRows: {
           rows: [3, 4],
         },
@@ -93,6 +99,8 @@ describe('HiddenRows', () => {
        'all rows on the top are hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
+        autoWrapRow: true,
+        autoWrapCol: true,
         hiddenRows: {
           rows: [0, 1],
         },
@@ -121,6 +129,8 @@ describe('HiddenRows', () => {
        'row on the bottom is hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
+        autoWrapRow: true,
+        autoWrapCol: true,
         hiddenRows: {
           rows: [1, 2, 3],
         },
@@ -148,6 +158,8 @@ describe('HiddenRows', () => {
        'row on the top is hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
+        autoWrapRow: true,
+        autoWrapCol: true,
         hiddenRows: {
           rows: [1, 2, 3],
         },
@@ -175,6 +187,8 @@ describe('HiddenRows', () => {
       it('first rows are hidden', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 5),
+          autoWrapRow: true,
+          autoWrapCol: true,
           rowHeaders: true,
           colHeaders: true,
           hiddenRows: {
@@ -206,6 +220,8 @@ describe('HiddenRows', () => {
       it('last rows are hidden', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 5),
+          autoWrapRow: true,
+          autoWrapCol: true,
           rowHeaders: true,
           colHeaders: true,
           hiddenRows: {
@@ -237,6 +253,8 @@ describe('HiddenRows', () => {
       it('just one row is visible (row at the start is not hidden)', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 5),
+          autoWrapRow: true,
+          autoWrapCol: true,
           rowHeaders: true,
           colHeaders: true,
           hiddenRows: {
@@ -376,6 +394,8 @@ describe('HiddenRows', () => {
       it('just one row is visible (row at the end is not hidden)', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 5),
+          autoWrapRow: true,
+          autoWrapCol: true,
           rowHeaders: true,
           colHeaders: true,
           hiddenRows: {

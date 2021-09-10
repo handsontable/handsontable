@@ -336,6 +336,8 @@ describe('MergeCells', () => {
       ' bottom edge of the table', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
+        autoWrapRow: true,
+        autoWrapCol: true,
         mergeCells: [
           { row: 8, col: 8, rowspan: 2, colspan: 2 }
         ]
@@ -432,7 +434,9 @@ describe('MergeCells', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         mergeCells: [
           { row: 0, col: 0, rowspan: 2, colspan: 2 }
-        ]
+        ],
+        autoWrapRow: true,
+        autoWrapCol: true,
       });
 
       hot.setDataAtCell(0, 0, 'top-left-corner!');

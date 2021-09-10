@@ -146,7 +146,6 @@
 }
 
 .handsontable .htUIClearAll a, .handsontable .htUISelectAll a {
-  color: #3283D8;
   font-size: 0.75em;
 }
 
@@ -188,7 +187,7 @@
   color: #000;
   cursor: pointer;
   font-family: inherit;
-  font-size: 0.7em;
+  font-size: 0.75em;
   font-weight: bold;
   height: 19px;
   min-width: 64px;
@@ -221,7 +220,7 @@
   border-radius: 2px;
   border: 1px solid #d2d1d1;
   font-family: inherit;
-  font-size: 0.7em;
+  font-size: 0.75em;
   font-weight: bold;
   padding: 3px 20px 3px 10px;
   text-overflow: ellipsis;
