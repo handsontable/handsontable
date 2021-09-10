@@ -651,7 +651,7 @@ const hot = new Handsontable(container, {
     },
   ],
   // the `cells` option's logic overwrites all other options
-  cells: function(row, column) {
+  cells(row, column) {
     // cell (2, 2) is editable
     if (row === 2 && column === 2) {
       return {
