@@ -1,9 +1,9 @@
 import { DynamicCellMetaMod } from '../dynamicCellMeta';
 import MetaManager from '../../';
-import Handsontable from '../../../../';
+import Handsontable from 'handsontable';
 import Hooks from '../../../../pluginHooks';
 
-jest.mock('../../../../');
+jest.mock('handsontable');
 
 beforeEach(() => {
   Handsontable.mockImplementation(() => {
