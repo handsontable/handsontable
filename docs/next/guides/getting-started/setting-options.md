@@ -431,7 +431,7 @@ hot.getCellMeta(0, 1).readOnly;
 When Handsontable is running, you can check a cell's current options, using the [`getCellMeta()`](@/api/core.md#getcellmeta) method.
 
 The [`getCellMeta()`](@/api/core.md#getcellmeta) method returns an object with:
-- All built-in options (stored in the [prototype](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object_prototypes) of [`CellMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/cellMeta.js))
+- All built-in options (stored in the [`CellMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/cellMeta.js) [prototype](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object_prototypes))
 - Any options you add
 
 For example:
