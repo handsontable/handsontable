@@ -733,7 +733,7 @@ describe('Filters', () => {
     });
   });
 
-  fdescribe('Filter Options Order', () => {
+  describe('Filter Options Order', () => {
     it('should options order by alphabet', () => {
       const disorderData = [
         { id: 1, name: 'Z' },
