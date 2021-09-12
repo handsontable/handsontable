@@ -75,6 +75,81 @@ export function toEmptyString(value) {
   return value === null || value === void 0 ? '' : value;
 }
 
+// https://stackoverflow.com/a/25047903/508236
+const isDate = function(date) {
+  // eslint-disable-next-line
+  return date !== null && (new Date(date) !== 'Invalid Date') && !isNaN(new Date(date));
+};
+
+const isString = function(target) {
+  return Object.prototype.toString.call(target) === '[object String]';
+};
+
+const removeEmptyValue = function(values) {
+  let result = false;
+
+  values.forEach((item, index) => {
+    if (!item) {
+      result = true;
+      values.splice(index, 1);
+    }
+  });
+
+  return result;
+};
+
+const removeNAValue = function(values) {
+  let result = false;
+
+  values.forEach((item, index) => {
+    if (item.toString() === 'N/A') {
+      result = true;
+      values.splice(index, 1);
+    }
+  });
+
+  return result;
+};
+
+const removePleaseSelectValue = function(values) {
+  let result = false;
+
+  values.forEach((item, index) => {
+    if (item.toString() === 'Please Select') {
+      result = true;
+      values.splice(index, 1);
+    }
+  });
+
+  return result;
+};
+
+const sortDateElement = function(values) {
+  values.sort((a, b) => {
+    return +new Date(a) >= +new Date(b) ? 1 : -1;
+  });
+};
+
+const sortStringElement = function(values) {
+  values.sort((a, b) => {
+    return a.toString().toLowerCase() > b.toString().toLowerCase() ? 1 : -1;
+  });
+};
+
+const defaultSortFn = function(values) {
+  values.sort((a, b) => {
+    if (typeof a === 'number' && typeof b === 'number') {
+      return a - b;
+    }
+
+    if (a === b) {
+      return 0;
+    }
+
+    return a > b ? 1 : -1;
+  });
+};
+
 /**
  * Unify column values (replace `null` and `undefined` values into empty string, unique values and sort them).
  *
@@ -89,17 +164,31 @@ export function unifyColumnValues(values) {
   } else {
     unifiedValues = arrayUnique(unifiedValues);
   }
-  unifiedValues = unifiedValues.sort((a, b) => {
-    if (typeof a === 'number' && typeof b === 'number') {
-      return a - b;
-    }
 
-    if (a === b) {
-      return 0;
-    }
+  const hasNAValue = removeNAValue(unifiedValues);
+  const hasEmptyValue = removeEmptyValue(unifiedValues);
+  const hasPleaseSelectValue = removePleaseSelectValue(unifiedValues);
 
-    return a > b ? 1 : -1;
-  });
+  const everyElementIsDateType = unifiedValues.every(item => isDate(item));
+  const everyElementIsStringType = unifiedValues.every(item => isString(item));
+
+  if (everyElementIsDateType) {
+    sortDateElement(unifiedValues);
+  } else if (everyElementIsStringType) {
+    sortStringElement(unifiedValues);
+  } else {
+    defaultSortFn(unifiedValues);
+  }
+
+  if (hasEmptyValue) {
+    unifiedValues.unshift('');
+  }
+  if (hasNAValue) {
+    unifiedValues.unshift('N/A');
+  }
+  if (hasPleaseSelectValue) {
+    unifiedValues.unshift('Please Select');
+  }
 
   return unifiedValues;
 }

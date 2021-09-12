@@ -733,72 +733,199 @@ describe('Filters', () => {
     });
   });
 
-  describe('Hooks', () => {
-    describe('`beforeFilterValueOptionsShow` hook', () => {
-      const disorderData = [{
-        id: 1,
-        name: 'Z',
-      }, {
-        id: 2,
-        name: 'A2',
-      }, {
-        id: 3,
-        name: 'a1',
-      }, {
-        id: 4,
-        name: 'B',
-      }];
+  fdescribe('Filter Options Order', () => {
+    it('should options order by alphabet', () => {
+      const disorderData = [
+        { id: 1, name: 'Z' },
+        { id: 2, name: 'A2' },
+        { id: 3, name: 'a1' },
+        { id: 4, name: 'B' }
+      ];
 
-      it('should trigger `beforeFilterValueOptionsShow` when dropdown menu show', () => {
-        const spy = jasmine.createSpy();
-
-        handsontable({
-          data: disorderData,
-          columns: getColumnsForFilters(),
-          dropdownMenu: true,
-          filters: true,
-          beforeFilterValueOptionsShow: spy,
-          width: 500,
-          height: 300
-        });
-        dropdownMenu(1);
-        expect(spy).toHaveBeenCalled();
-        const filterValueOptions = dropdownMenuRootElement().querySelectorAll('.htUIMultipleSelectHot tbody tr');
-
-        expect(Array.from(filterValueOptions).map(tr => tr.textContent))
-          .toEqual(['A2', 'B', 'Z', 'a1']);
+      handsontable({
+        data: disorderData,
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
       });
+      dropdownMenu(1);
+      const filterValueOptions = dropdownMenuRootElement().querySelectorAll('.htUIMultipleSelectHot tbody tr');
 
-      it('should `beforeFilterValueOptionsShow` hook able to adjust filtering values order', async() => {
-        const spy = jasmine.createSpy('beforeFilterValueOptionsShow').and.callFake(
-          (visualIndex, physicalIndex, items) => {
-            items.sort((i, j) => {
-              if (i.value.toString().toLowerCase() < j.value.toString().toLowerCase()) return -1;
-
-              if (i.value.toString().toLowerCase() > j.value.toString().toLowerCase()) return 1;
-
-              return 0;
-            });
-          });
-
-        handsontable({
-          data: disorderData,
-          columns: getColumnsForFilters(),
-          dropdownMenu: true,
-          filters: true,
-          beforeFilterValueOptionsShow: spy,
-          width: 500,
-          height: 300
-        });
-        dropdownMenu(1);
-        expect(spy).toHaveBeenCalled();
-        const filterValueOptions = dropdownMenuRootElement().querySelectorAll('.htUIMultipleSelectHot tbody tr');
-
-        expect(Array.from(filterValueOptions).map(tr => tr.textContent))
-          .toEqual(['a1', 'A2', 'B', 'Z']);
-      });
+      expect(Array.from(filterValueOptions).map(tr => tr.textContent))
+        .toEqual(['a1', 'A2', 'B', 'Z']);
     });
 
+    it('should order "N/A" first', () => {
+      const disorderData = [
+        { id: 2, name: 'A2', },
+        { id: 3, name: 'a1', },
+        { id: 4, name: 'B', },
+        { id: 4, name: 'N/A' }
+      ];
+
+      handsontable({
+        data: disorderData,
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+      dropdownMenu(1);
+      const filterValueOptions = dropdownMenuRootElement().querySelectorAll('.htUIMultipleSelectHot tbody tr');
+
+      expect(Array.from(filterValueOptions).map(tr => tr.textContent))
+        .toEqual(['N/A', 'a1', 'A2', 'B']);
+    });
+
+    it('should order empty string first', () => {
+      const disorderData = [
+        { id: 2, name: 'A2', },
+        { id: 3, name: 'a1', },
+        { id: 4, name: 'B', },
+        { id: 4, name: '', }
+      ];
+
+      handsontable({
+        data: disorderData,
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+      dropdownMenu(1);
+      const filterValueOptions = dropdownMenuRootElement().querySelectorAll('.htUIMultipleSelectHot tbody tr');
+
+      expect(Array.from(filterValueOptions).map(tr => tr.textContent))
+        .toEqual(['(Blank cells)', 'a1', 'A2', 'B']);
+    });
+
+    it('should order null value first', () => {
+      const disorderData = [
+        { id: 2, name: 'A2', },
+        { id: 3, name: 'a1', },
+        { id: 4, name: 'B', },
+        { id: 4, name: null, }
+      ];
+
+      handsontable({
+        data: disorderData,
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+      dropdownMenu(1);
+      const filterValueOptions = dropdownMenuRootElement().querySelectorAll('.htUIMultipleSelectHot tbody tr');
+
+      expect(Array.from(filterValueOptions).map(tr => tr.textContent))
+        .toEqual(['(Blank cells)', 'a1', 'A2', 'B']);
+    });
+
+    it('should merge null, undefined and empty string to single blank cell option', () => {
+      const disorderData = [
+        { id: 2, name: 'A2', },
+        { id: 3, name: 'a1', },
+        { id: 4, name: 'B', },
+        { id: 4, name: null, },
+        { id: 5, name: '', },
+        { id: 6, name: undefined, }
+      ];
+
+      handsontable({
+        data: disorderData,
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+      dropdownMenu(1);
+      const filterValueOptions = dropdownMenuRootElement().querySelectorAll('.htUIMultipleSelectHot tbody tr');
+
+      expect(Array.from(filterValueOptions).map(tr => tr.textContent))
+        .toEqual(['(Blank cells)', 'a1', 'A2', 'B']);
+    });
+
+    it('should show "Please Select", "N/A", blank cell first', () => {
+      const disorderData = [
+        { id: 2, name: 'A2', },
+        { id: 3, name: 'a1', },
+        { id: 4, name: 'B', },
+        { id: 4, name: '', },
+        { id: 5, name: 'N/A', },
+        { id: 6, name: 'Please Select', }
+      ];
+
+      handsontable({
+        data: disorderData,
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+      dropdownMenu(1);
+      const filterValueOptions = dropdownMenuRootElement().querySelectorAll('.htUIMultipleSelectHot tbody tr');
+
+      expect(Array.from(filterValueOptions).map(tr => tr.textContent))
+        .toEqual(['Please Select', 'N/A', '(Blank cells)', 'a1', 'A2', 'B']);
+    });
+
+    it('should sort date', () => {
+      const disorderData = [
+        { id: 2, name: '21 Jun 2021', },
+        { id: 3, name: '20 Jun 2021', },
+        { id: 4, name: '19 Jun 2020', },
+        { id: 5, name: 'N/A', },
+        { id: 6, name: '', },
+      ];
+
+      handsontable({
+        data: disorderData,
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+      dropdownMenu(1);
+      const filterValueOptions = dropdownMenuRootElement().querySelectorAll('.htUIMultipleSelectHot tbody tr');
+
+      expect(Array.from(filterValueOptions).map(tr => tr.textContent))
+        .toEqual(['N/A', '(Blank cells)', '19 Jun 2020', '20 Jun 2021', '21 Jun 2021']);
+    });
+
+    it('should hybrid data type options', () => {
+      const disorderData = [
+        { id: 4, name: '19 Jun 2020', },
+        { id: 5, name: 'comments', },
+        { id: 5, name: 'N/A', },
+        { id: 6, name: '', },
+        { id: 7, name: '0002', },
+      ];
+
+      handsontable({
+        data: disorderData,
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+      dropdownMenu(1);
+      const filterValueOptions = dropdownMenuRootElement().querySelectorAll('.htUIMultipleSelectHot tbody tr');
+
+      expect(Array.from(filterValueOptions).map(tr => tr.textContent))
+        .toEqual(['N/A', '(Blank cells)', '0002', '19 Jun 2020', 'comments']);
+    });
+  });
+
+  describe('Hooks', () => {
     describe('`beforeFilter` hook', () => {
       it('should trigger `beforeFilter` hook after filtering values', () => {
         const hot = handsontable({
