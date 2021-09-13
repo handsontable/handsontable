@@ -13,12 +13,12 @@ describe('settings', () => {
   });
 
   describe('autoWrapCol', () => {
-    it('should be defaults true', () => {
+    it('should be `false` by default', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5)
       });
 
-      expect(hot.getSettings().autoWrapCol).toBe(true);
+      expect(hot.getSettings().autoWrapCol).toBe(false);
     });
 
     it('should move to the neighboring column when it reaches the end of the current', () => {

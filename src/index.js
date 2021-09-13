@@ -2,7 +2,7 @@ import Handsontable from './base';
 import EventManager, { getListenersCounter } from './eventManager';
 import { getRegisteredMapsCounter } from './translations';
 import Hooks from './pluginHooks';
-import { metaSchemaFactory } from './dataMap/index';
+import { metaSchemaFactory } from './dataMap';
 
 import jQueryWrapper from './helpers/wrappers/jquery';
 
