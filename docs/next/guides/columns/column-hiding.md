@@ -131,7 +131,7 @@ const container = document.querySelector('#example5');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: Handsontable.helper.createSpreadsheetData(5,12),
+  data: Handsontable.helper.createSpreadsheetData(5, 12),
   colHeaders: true,
   rowHeaders: true,
   // individually add column hiding context menu items
