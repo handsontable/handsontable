@@ -863,11 +863,11 @@ describe('CheckboxRenderer', () => {
 
     // 2 x 4px padding + 1px border === 9px calculated by the `offsetWidth`
     expect(getCell(0, 0).querySelector('label').offsetWidth).not.toBe(getCell(0, 0).offsetWidth - 9);
-    expect(getCell(0, 1).querySelector('label').offsetWidth).not.toBe(getCell(0, 0).offsetWidth - 9);
-    expect(getCell(0, 2).querySelector('label').offsetWidth).toBe(getCell(0, 0).offsetWidth - 9);
-    expect(getCell(0, 3).querySelector('label').offsetWidth).toBe(getCell(0, 0).offsetWidth - 9);
-    expect(getCell(0, 4).querySelector('label').offsetWidth).toBe(getCell(0, 0).offsetWidth - 9);
-    expect(getCell(0, 5).querySelector('label').offsetWidth).toBe(getCell(0, 0).offsetWidth - 9);
+    expect(getCell(0, 1).querySelector('label').offsetWidth).not.toBe(getCell(0, 1).offsetWidth - 9);
+    expect(getCell(0, 2).querySelector('label').offsetWidth).toBe(getCell(0, 2).offsetWidth - 9);
+    expect(getCell(0, 3).querySelector('label').offsetWidth).toBe(getCell(0, 3).offsetWidth - 9);
+    expect(getCell(0, 4).querySelector('label').offsetWidth).toBe(getCell(0, 4).offsetWidth - 9);
+    expect(getCell(0, 5).querySelector('label').offsetWidth).toBe(getCell(0, 5).offsetWidth - 9);
   });
 
   it('should add label on the beginning of a checkbox element where checkbox and label are separated', () => {

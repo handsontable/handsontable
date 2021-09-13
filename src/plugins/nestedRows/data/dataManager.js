@@ -521,8 +521,6 @@ class DataManager {
       this.plugin.enableCoreAPIModifiers();
     }
 
-    this.updateWithData(this.getRawSourceData());
-
     // Workaround for refreshing cache losing the reference to the mocked row.
     childElement = this.getDataObject(index);
 
