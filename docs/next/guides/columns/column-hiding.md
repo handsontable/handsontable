@@ -156,7 +156,7 @@ const container = document.querySelector('#example6');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: Handsontable.helper.createSpreadsheetData(5,12),
+  data: Handsontable.helper.createSpreadsheetData(5, 12),
   colHeaders: true,
   rowHeaders: true,
   contextMenu: [`hidden_columns_show`, `hidden_columns_hide`],
