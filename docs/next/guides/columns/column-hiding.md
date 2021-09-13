@@ -56,7 +56,7 @@ const container = document.querySelector('#example2');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: Handsontable.helper.createSpreadsheetData(5,12),
+  data: Handsontable.helper.createSpreadsheetData(5, 12),
   colHeaders: true,
   rowHeaders: true,
   // enable the `HiddenColumns` plugin
