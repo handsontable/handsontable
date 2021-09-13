@@ -1,9 +1,8 @@
-/* eslint-disable no-useless-escape */
 /// shared dependencies
 import utils from '../utils.js';
 
 /// internal dependencies
-import configuration from './configuration.js';
+import configuration from './configuration.mjs';
 import { buildPathsDeterminants } from './paths.mjs';
 import { buildJsdocToMarkdownIntegrator } from './integrations/jsdoc-to-markdown/index.mjs';
 import { buildRenderer } from './renderer/index.mjs';
