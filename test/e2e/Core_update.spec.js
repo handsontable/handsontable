@@ -636,7 +636,7 @@ describe('Core_updateSettings', () => {
     updateSettings(newSettings);
 
     expect(afterUpdateSettings)
-      .toHaveBeenCalledWith(newSettings, undefined, undefined, undefined, undefined, undefined);
+      .toHaveBeenCalledWith(newSettings);
   });
 
   it('should not extend parameter passed to `afterUpdateSettings` hook by another properties', () => {
@@ -710,5 +710,23 @@ describe('Core_updateSettings', () => {
     updateSettings({});
 
     expect(correctSourceCount).toEqual(2);
+  });
+
+  it('should adjust column header size if `columns` is included in `updateSettings`', () => {
+    handsontable({
+      colHeaders: true,
+      data: [{
+        brand: 'Mercedes'
+      }]
+    });
+
+    updateSettings({
+      columns: [{
+        data: 'brand'
+      }]
+    });
+
+    expect($('.ht_master .wtHider')[0].offsetWidth)
+      .toEqual($('.ht_master td')[0].offsetWidth);
   });
 });

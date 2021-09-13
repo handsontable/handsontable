@@ -22,7 +22,7 @@ WORKDIR /app/docs
 
 RUN rm -rf ./next/
 # Removes the symlink to the "next" Handsontable version.
-RUN rm ./.vuepress/public/handsontable
+RUN rm -f ./.vuepress/public/handsontable
 
 RUN npm run docs:build
 

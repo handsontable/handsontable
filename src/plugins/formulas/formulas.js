@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import staticRegister from '../../utils/staticRegister';
 import { error, warn } from '../../helpers/console';
+import { isNumeric } from '../../helpers/number';
 import {
   isDefined,
   isUndefined
@@ -171,6 +172,7 @@ export class Formulas extends BasePlugin {
     this.addHook('beforeUndo', () => this.engine.undo());
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeRedo', () => this.engine.redo());
+    this.addHook('afterDetachChild', (...args) => this.onAfterDetachChild(...args));
 
     this.#engineListeners.forEach(([eventName, listener]) => this.engine.on(eventName, listener));
 
@@ -592,7 +594,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
+    // `column` is here as visual index because of inconsistencies related to hook execution in `DataMap`.
     const isFormulaCellType = this.isFormulaCellType(this.hot.toVisualRow(row), column);
 
     if (!isFormulaCellType) {
@@ -603,7 +605,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `src/dataMap`.
+    // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `DataMap`.
     const address = {
       row,
       col: this.toPhysicalColumnPosition(column),
@@ -639,7 +641,7 @@ export class Formulas extends BasePlugin {
 
     const visualColumn = this.hot.propToCol(columnOrProp);
 
-    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
+    // `column` is here as visual index because of inconsistencies related to hook execution in `DataMap`.
     const isFormulaCellType = this.isFormulaCellType(this.hot.toVisualRow(row), visualColumn);
 
     if (!isFormulaCellType) {
@@ -772,7 +774,13 @@ export class Formulas extends BasePlugin {
     const dependentCells = [];
     const changedCells = [];
 
-    changes.forEach(([row, column, , newValue]) => {
+    changes.forEach(([row, prop, , newValue]) => {
+      const column = this.hot.propToCol(prop);
+
+      if (!isNumeric(column)) {
+        return;
+      }
+
       const address = {
         row,
         col: this.toPhysicalColumnPosition(column),
@@ -943,6 +951,38 @@ export class Formulas extends BasePlugin {
     });
 
     this.renderDependentSheets(changes);
+  }
+
+  /**
+   * `afterDetachChild` hook callback.
+   * Used to sync the data of the rows detached in the Nested Rows plugin with the engine's dataset.
+   *
+   * @private
+   * @param {object} parent An object representing the parent from which the element was detached.
+   * @param {object} element The detached element.
+   * @param {number} finalElementRowIndex The final row index of the detached element.
+   */
+  onAfterDetachChild(parent, element, finalElementRowIndex) {
+    this.#internalOperationPending = true;
+
+    const rowsData = this.hot.getSourceDataArray(
+      finalElementRowIndex,
+      0,
+      finalElementRowIndex + (element.__children?.length || 0),
+      this.hot.countSourceCols()
+    );
+
+    this.#internalOperationPending = false;
+
+    rowsData.forEach((row, relativeRowIndex) => {
+      row.forEach((value, colIndex) => {
+        this.engine.setCellContents({
+          col: colIndex,
+          row: finalElementRowIndex + relativeRowIndex,
+          sheet: this.sheetId
+        }, [[value]]);
+      });
+    });
   }
 
   /**

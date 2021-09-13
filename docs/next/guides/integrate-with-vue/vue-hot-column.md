@@ -40,7 +40,8 @@ new Vue({
     return {
       hotSettings: {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
-        licenseKey: 'non-commercial-and-evaluation'
+        height: 'auto',
+        licenseKey: 'non-commercial-and-evaluation',
       },
       secondColumnSettings: {
         title: 'Second column header',
@@ -84,14 +85,15 @@ new Vue({
   data() {
     return {
       hotData: [
-        {id: 1, name: 'Table tennis racket', payment: {price: 13, currency: 'PLN'}},
-        {id: 2, name: 'Outdoor game ball', payment: {price: 14, currency: 'USD'}},
-        {id: 3, name: 'Mountain bike', payment: {price: 300, currency: 'USD'}}
+        { id: 1, name: 'Table tennis racket', payment: { price: 13, currency: 'PLN' } },
+        { id: 2, name: 'Outdoor game ball', payment: { price: 14, currency: 'USD' } },
+        { id: 3, name: 'Mountain bike', payment: { price: 300, currency: 'USD' } }
       ],
       secondColumnSettings: {
         title: 'Second column header'
       },
-      settings:{
+      settings: {
+        height: 'auto',
         licenseKey: 'non-commercial-and-evaluation'
       }
     }
@@ -163,6 +165,7 @@ const App = new Vue({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         autoRowSize: false,
         autoColumnSize: false,
+        height: 'auto',
         licenseKey: 'non-commercial-and-evaluation',
       }
     }
@@ -302,7 +305,8 @@ const App = new Vue({
           ['Obrien Fischer'], ['Alexandria Gordon'], ['John Stafford'], ['Regina Waters'], ['Kay Bentley'], ['Emerson Drake'], ['Deann Stapleton']
         ],
         licenseKey: 'non-commercial-and-evaluation',
-        rowHeaders: true
+        rowHeaders: true,
+        height: 'auto',
       }
     }
   },
@@ -372,7 +376,8 @@ const App = new Vue({
         data: Handsontable.helper.createSpreadsheetData(10, 1)  ,
         licenseKey: 'non-commercial-and-evaluation',
         autoRowSize: false,
-        autoColumnSize: false
+        autoColumnSize: false,
+        height: 'auto',
       },
       highlightedRows: ''
     }

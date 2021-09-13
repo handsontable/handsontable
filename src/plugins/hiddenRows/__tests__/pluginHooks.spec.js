@@ -27,7 +27,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').hideRow(2);
 
-        expect(beforeHideRows).toHaveBeenCalledWith([0], [0, 2], true, void 0, void 0, void 0);
+        expect(beforeHideRows).toHaveBeenCalledWith([0], [0, 2], true);
       });
 
       it('should fire the `beforeHideRows` hook before hiding multiple rows by plugin API', () => {
@@ -43,7 +43,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').hideRows([2, 3, 4]);
 
-        expect(beforeHideRows).toHaveBeenCalledWith([0], [0, 2, 3, 4], true, void 0, void 0, void 0);
+        expect(beforeHideRows).toHaveBeenCalledWith([0], [0, 2, 3, 4], true);
       });
 
       it('should be possible to cancel the hiding action by returning `false` from the `beforeHideRows` hook', () => {
@@ -72,7 +72,7 @@ describe('HiddenRows', () => {
 
         plugin.hideRows([0, 5, 10, 15]);
 
-        expect(beforeHideRows).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
+        expect(beforeHideRows).toHaveBeenCalledWith([], [], false);
         expect(plugin.isHidden(0)).toBeFalsy();
         expect(plugin.isHidden(5)).toBeFalsy();
         expect(plugin.isHidden(10)).toBeFalsy();
@@ -92,7 +92,7 @@ describe('HiddenRows', () => {
 
         plugin.hideRows([0, 5, 1.1]);
 
-        expect(beforeHideRows).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
+        expect(beforeHideRows).toHaveBeenCalledWith([], [], false);
         expect(plugin.isHidden(0)).toBeFalsy();
         expect(plugin.isHidden(5)).toBeFalsy();
       });
@@ -110,7 +110,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').hideRow(2);
 
-        expect(afterHideRows).toHaveBeenCalledWith([], [2], true, true, void 0, void 0);
+        expect(afterHideRows).toHaveBeenCalledWith([], [2], true, true);
       });
 
       it('should fire the `afterHideRows` hook after hiding multiple columns by plugin API', () => {
@@ -124,7 +124,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').hideRows([2, 3, 4]);
 
-        expect(afterHideRows).toHaveBeenCalledWith([], [2, 3, 4], true, true, void 0, void 0);
+        expect(afterHideRows).toHaveBeenCalledWith([], [2, 3, 4], true, true);
       });
 
       it('it should NOT fire the `afterHideRows` hook, if the `beforeHideRows` hook returned false', () => {
@@ -155,7 +155,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').hideRows([0, 5]);
 
-        expect(afterHideRows).toHaveBeenCalledWith([0, 5], [0, 5], true, false, void 0, void 0);
+        expect(afterHideRows).toHaveBeenCalledWith([0, 5], [0, 5], true, false);
       });
 
       it('should return `true` as the third and fourth parameter, if the hiding action changed the state of the hiddenRows plugin', () => {
@@ -171,7 +171,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').hideRows([0, 5, 6]);
 
-        expect(afterHideRows).toHaveBeenCalledWith([0, 5], [0, 5, 6], true, true, void 0, void 0);
+        expect(afterHideRows).toHaveBeenCalledWith([0, 5], [0, 5, 6], true, true);
       });
 
       it('should not perform hiding and return `false` as the third and fourth parameter of the `afterHideRows` hook' +
@@ -188,7 +188,7 @@ describe('HiddenRows', () => {
 
         plugin.hideRows([0, 5, 10, 15]);
 
-        expect(afterHideRows).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
+        expect(afterHideRows).toHaveBeenCalledWith([], [], false, false);
         expect(plugin.isHidden(0)).toBeFalsy();
         expect(plugin.isHidden(5)).toBeFalsy();
         expect(plugin.isHidden(10)).toBeFalsy();
@@ -208,7 +208,7 @@ describe('HiddenRows', () => {
 
         plugin.hideRows([0, 5, 1.1]);
 
-        expect(afterHideRows).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
+        expect(afterHideRows).toHaveBeenCalledWith([], [], false, false);
         expect(plugin.isHidden(0)).toBeFalsy();
         expect(plugin.isHidden(5)).toBeFalsy();
       });
@@ -228,7 +228,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').showRow(2);
 
-        expect(beforeUnhideRows).toHaveBeenCalledWith([0, 2], [0], true, void 0, void 0, void 0);
+        expect(beforeUnhideRows).toHaveBeenCalledWith([0, 2], [0], true);
       });
 
       it('should fire the `beforeUnhideRows` hook before unhiding the multiple, previously hidden rows ', () => {
@@ -244,7 +244,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').showRows([2, 3, 4]);
 
-        expect(beforeUnhideRows).toHaveBeenCalledWith([0, 2, 3, 4], [0], true, void 0, void 0, void 0);
+        expect(beforeUnhideRows).toHaveBeenCalledWith([0, 2, 3, 4], [0], true);
       });
 
       it('should be possible to cancel the unhiding action by returning `false` from the `beforeUnhideRows` hook', () => {
@@ -277,7 +277,7 @@ describe('HiddenRows', () => {
 
         plugin.showRows([0, 5, 10, 15]);
 
-        expect(beforeUnhideRows).toHaveBeenCalledWith([0, 5], [0, 5], false, void 0, void 0, void 0);
+        expect(beforeUnhideRows).toHaveBeenCalledWith([0, 5], [0, 5], false);
         expect(plugin.isHidden(0)).toBeTruthy();
         expect(plugin.isHidden(5)).toBeTruthy();
       });
@@ -298,7 +298,7 @@ describe('HiddenRows', () => {
 
         plugin.showRows([0, 5, 10, 15]);
 
-        expect(beforeUnhideRows).toHaveBeenCalledWith([0, 5], [0, 5], false, void 0, void 0, void 0);
+        expect(beforeUnhideRows).toHaveBeenCalledWith([0, 5], [0, 5], false);
         expect(plugin.isHidden(0)).toBeTruthy();
         expect(plugin.isHidden(5)).toBeTruthy();
       });
@@ -318,7 +318,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').showRow(2);
 
-        expect(afterUnhideRows).toHaveBeenCalledWith([2], [], true, true, void 0, void 0);
+        expect(afterUnhideRows).toHaveBeenCalledWith([2], [], true, true);
       });
 
       it('should fire the `afterUnhideRows` hook after unhiding a multiple, previously hidden rows', () => {
@@ -334,7 +334,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').showRows([2, 3, 4]);
 
-        expect(afterUnhideRows).toHaveBeenCalledWith([2, 3, 4], [], true, true, void 0, void 0);
+        expect(afterUnhideRows).toHaveBeenCalledWith([2, 3, 4], [], true, true);
       });
 
       it('it should NOT fire the `afterUnhideRows` hook, if the `beforeUnhideRows` hook returned false', () => {
@@ -363,7 +363,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').showRows([0, 5]);
 
-        expect(afterUnhideRows).toHaveBeenCalledWith([], [], true, false, void 0, void 0);
+        expect(afterUnhideRows).toHaveBeenCalledWith([], [], true, false);
       });
 
       it('should return `true` as the fourth parameter, if the unhiding action changed the state of the hiddenRows plugin', () => {
@@ -379,7 +379,7 @@ describe('HiddenRows', () => {
 
         getPlugin('hiddenRows').showRows([0, 5, 6]);
 
-        expect(afterUnhideRows).toHaveBeenCalledWith([0, 5], [], true, true, void 0, void 0);
+        expect(afterUnhideRows).toHaveBeenCalledWith([0, 5], [], true, true);
       });
 
       it('should not perform hiding and return `false` as the third and fourth parameter of the `afterUnhideRows` hook' +
@@ -398,7 +398,7 @@ describe('HiddenRows', () => {
 
         plugin.showRows([0, 5, 1.1]);
 
-        expect(afterUnhideRows).toHaveBeenCalledWith([0, 5], [0, 5], false, false, void 0, void 0);
+        expect(afterUnhideRows).toHaveBeenCalledWith([0, 5], [0, 5], false, false);
         expect(plugin.isHidden(0)).toBeTruthy();
         expect(plugin.isHidden(5)).toBeTruthy();
       });

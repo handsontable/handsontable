@@ -131,20 +131,15 @@ describe('Core.setSourceDataAtCell', () => {
 
     setSourceDataAtCell(0, 'foo', 'foo2', 'caller-custom-source');
 
-    let hookArguments = new Array(6).fill(void 0);
-
-    hookArguments[0] = [[0, 'foo', 'bar', 'foo2']];
-    hookArguments[1] = 'caller-custom-source';
-
-    expect(afterSetSourceDataAtCellSpy).toHaveBeenCalledWith(...hookArguments);
+    expect(afterSetSourceDataAtCellSpy).toHaveBeenCalledWith([[0, 'foo', 'bar', 'foo2']], 'caller-custom-source');
 
     afterSetSourceDataAtCellSpy.calls.reset();
 
     setSourceDataAtCell([[0, 'lorem', 'changed1'], [1, 'foo', 'changed2']]);
 
-    hookArguments = new Array(6).fill(void 0);
-    hookArguments[0] = [[0, 'lorem', 'ipsum', 'changed1'], [1, 'foo', 'lorem', 'changed2']];
-
-    expect(afterSetSourceDataAtCellSpy).toHaveBeenCalledWith(...hookArguments);
+    expect(afterSetSourceDataAtCellSpy).toHaveBeenCalledWith([
+      [0, 'lorem', 'ipsum', 'changed1'],
+      [1, 'foo', 'lorem', 'changed2']
+    ]);
   });
 });

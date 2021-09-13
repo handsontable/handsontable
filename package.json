@@ -10,7 +10,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "9.0.1",
+  "version": "9.0.2",
   "main": "index",
   "module": "index.mjs",
   "jsnext:main": "index.mjs",
@@ -156,7 +156,7 @@
     "on-build-webpack": "^0.1.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
     "progress-bar-webpack-plugin": "^1.10.0",
-    "puppeteer": "^2.1.1",
+    "puppeteer": "^10.2.0",
     "replace-in-file": "^6.1.0",
     "rimraf": "^2.5.4",
     "semver": "^5.7.1",
