@@ -174,7 +174,7 @@ const hot = new Handsontable(container, {
 
 For the most popular column hiding tasks, use the API methods below.
 
-To see your changes, re-render your Handsontable instance with the [`hot.render()`](@/api/core.md#render) method.
+To see your changes, re-render your Handsontable instance with the [`render()`](@/api/core.md#render) method.
 
 ### Accessing the `HiddenColumns` plugin instance
 
