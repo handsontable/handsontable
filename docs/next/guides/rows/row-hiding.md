@@ -29,7 +29,7 @@ const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: Handsontable.helper.createSpreadsheetData(12,5),
+  data: Handsontable.helper.createSpreadsheetData(12, 5),
   colHeaders: true,
   rowHeaders: true,
   // enable the `HiddenRows` plugin
@@ -56,7 +56,7 @@ const container = document.querySelector('#example2');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: Handsontable.helper.createSpreadsheetData(12,5),
+  data: Handsontable.helper.createSpreadsheetData(12, 5),
   colHeaders: true,
   rowHeaders: true,
   // enable the `HiddenRows` plugin
@@ -84,7 +84,7 @@ const container = document.querySelector('#example3');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: Handsontable.helper.createSpreadsheetData(12,5),
+  data: Handsontable.helper.createSpreadsheetData(12, 5),
   colHeaders: true,
   rowHeaders: true,
   hiddenRows: {
@@ -108,7 +108,7 @@ const container = document.querySelector('#example4');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: Handsontable.helper.createSpreadsheetData(12,5),
+  data: Handsontable.helper.createSpreadsheetData(12, 5),
   colHeaders: true,
   rowHeaders: true,
   // enable the context menu
@@ -131,7 +131,7 @@ const container = document.querySelector('#example5');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: Handsontable.helper.createSpreadsheetData(12,5),
+  data: Handsontable.helper.createSpreadsheetData(12, 5),
   colHeaders: true,
   rowHeaders: true,
   // individually add row hiding context menu items
@@ -156,7 +156,7 @@ const container = document.querySelector('#example6');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: Handsontable.helper.createSpreadsheetData(12,5),
+  data: Handsontable.helper.createSpreadsheetData(12, 5),
   colHeaders: true,
   rowHeaders: true,
   contextMenu: [`hidden_rows_show`, `hidden_rows_hide`],
@@ -174,7 +174,7 @@ const hot = new Handsontable(container, {
 
 For the most popular row hiding tasks, use the API methods below.
 
-To see your changes, re-render your Handsontable instance with the [`hot.render()`](@/api/core.md#render) method.
+To see your changes, re-render your Handsontable instance with the [`render()`](@/api/core.md#render) method.
 
 ### Accessing the `HiddenRows` plugin instance
 

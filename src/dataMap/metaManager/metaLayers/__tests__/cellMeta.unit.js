@@ -1,10 +1,9 @@
-import GlobalMeta from 'handsontable/dataMap/metaManager/metaLayers/globalMeta';
-import ColumnMeta from 'handsontable/dataMap/metaManager/metaLayers/columnMeta';
-import CellMeta from 'handsontable/dataMap/metaManager/metaLayers/cellMeta';
-import { registerCellType } from 'handsontable/cellTypes';
-import { CELL_TYPE, TextCellType } from 'handsontable/cellTypes/textType';
+import GlobalMeta from '../globalMeta';
+import ColumnMeta from '../columnMeta';
+import CellMeta from '../cellMeta';
+import { registerCellType, TextCellType } from '../../../../cellTypes';
 
-registerCellType(CELL_TYPE, TextCellType);
+registerCellType(TextCellType);
 
 describe('ColumnMeta', () => {
   it('should reflect the changes in the cell meta when the global meta properties were changed', () => {

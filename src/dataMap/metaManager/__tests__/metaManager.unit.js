@@ -1,8 +1,8 @@
-import MetaManager from 'handsontable/dataMap/metaManager';
-import GlobalMeta from 'handsontable/dataMap/metaManager/metaLayers/globalMeta';
-import TableMeta from 'handsontable/dataMap/metaManager/metaLayers/tableMeta';
-import ColumnMeta from 'handsontable/dataMap/metaManager/metaLayers/columnMeta';
-import CellMeta from 'handsontable/dataMap/metaManager/metaLayers/cellMeta';
+import MetaManager from '../';
+import GlobalMeta from '../metaLayers/globalMeta';
+import TableMeta from '../metaLayers/tableMeta';
+import ColumnMeta from '../metaLayers/columnMeta';
+import CellMeta from '../metaLayers/cellMeta';
 
 describe('MetaManager', () => {
   it('should instantiate the mod class with proper list of arguments', () => {

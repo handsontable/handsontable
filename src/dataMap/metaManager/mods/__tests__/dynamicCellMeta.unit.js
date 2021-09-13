@@ -1,7 +1,7 @@
-import { DynamicCellMetaMod } from 'handsontable/dataMap/metaManager/mods/dynamicCellMeta';
-import MetaManager from 'handsontable/dataMap/metaManager';
 import Handsontable from 'handsontable';
-import Hooks from 'handsontable/pluginHooks';
+import { DynamicCellMetaMod } from '../dynamicCellMeta';
+import MetaManager from '../../';
+import Hooks from '../../../../pluginHooks';
 
 jest.mock('handsontable');
 

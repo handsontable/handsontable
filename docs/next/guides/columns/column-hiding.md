@@ -56,7 +56,7 @@ const container = document.querySelector('#example2');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: Handsontable.helper.createSpreadsheetData(5,12),
+  data: Handsontable.helper.createSpreadsheetData(5, 12),
   colHeaders: true,
   rowHeaders: true,
   // enable the `HiddenColumns` plugin
@@ -84,7 +84,7 @@ const container = document.querySelector('#example3');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: Handsontable.helper.createSpreadsheetData(5,12),
+  data: Handsontable.helper.createSpreadsheetData(5, 12),
   colHeaders: true,
   rowHeaders: true,
   hiddenColumns: {
@@ -108,7 +108,7 @@ const container = document.querySelector('#example4');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: Handsontable.helper.createSpreadsheetData(5,12),
+  data: Handsontable.helper.createSpreadsheetData(5, 12),
   colHeaders: true,
   rowHeaders: true,
   // enable the context menu
@@ -131,7 +131,7 @@ const container = document.querySelector('#example5');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: Handsontable.helper.createSpreadsheetData(5,12),
+  data: Handsontable.helper.createSpreadsheetData(5, 12),
   colHeaders: true,
   rowHeaders: true,
   // individually add column hiding context menu items
@@ -156,7 +156,7 @@ const container = document.querySelector('#example6');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: Handsontable.helper.createSpreadsheetData(5,12),
+  data: Handsontable.helper.createSpreadsheetData(5, 12),
   colHeaders: true,
   rowHeaders: true,
   contextMenu: [`hidden_columns_show`, `hidden_columns_hide`],
