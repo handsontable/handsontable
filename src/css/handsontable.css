@@ -1,5 +1,13 @@
 .handsontable {
   touch-action: manipulation;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  color: #373737;
+}
+
+.handsontable a {
+  color: #104acc;
 }
 
 .handsontable.htAutoSize {
@@ -18,14 +26,16 @@
 }
 
 #hot-display-license-info {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
   font-size: 10px;
-  color: #323232 ;
+  font-weight: normal;
+  color: #373737;
   padding: 5px 0 3px 0;
-  font-family: Helvetica, Arial, sans-serif;
   text-align: left;
 }
 
 #hot-display-license-info a {
+  color: #104acc;
   font-size: 10px;
 }
 
@@ -366,7 +376,7 @@ TextRenderer placeholder value
   transform: translate(0% ,-50%);
   right: 5px;
   border: 1px solid #A6A6A6;
-  line-height: 10px;
+  line-height: 8px;
   color: #222;
   border-radius: 10px;
   font-size: 10px;

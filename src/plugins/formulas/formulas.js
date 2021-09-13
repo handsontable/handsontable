@@ -593,7 +593,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
+    // `column` is here as visual index because of inconsistencies related to hook execution in `DataMap`.
     const isFormulaCellType = this.isFormulaCellType(this.hot.toVisualRow(row), column);
 
     if (!isFormulaCellType) {
@@ -604,7 +604,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `src/dataMap`.
+    // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `DataMap`.
     const address = {
       row,
       col: this.toPhysicalColumnPosition(column),
@@ -640,7 +640,7 @@ export class Formulas extends BasePlugin {
 
     const visualColumn = this.hot.propToCol(columnOrProp);
 
-    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
+    // `column` is here as visual index because of inconsistencies related to hook execution in `DataMap`.
     const isFormulaCellType = this.isFormulaCellType(this.hot.toVisualRow(row), visualColumn);
 
     if (!isFormulaCellType) {
