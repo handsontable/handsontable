@@ -904,9 +904,10 @@ describe('Filters', () => {
       const disorderData = [
         { id: 4, name: '19 Jun 2020', },
         { id: 5, name: 'comments', },
-        { id: 5, name: 'N/A', },
-        { id: 6, name: '', },
-        { id: 7, name: '0002', },
+        { id: 6, name: '10', },
+        { id: 7, name: 'N/A', },
+        { id: 8, name: '', },
+        { id: 9, name: '0002', },
       ];
 
       handsontable({
@@ -921,7 +922,31 @@ describe('Filters', () => {
       const filterValueOptions = dropdownMenuRootElement().querySelectorAll('.htUIMultipleSelectHot tbody tr');
 
       expect(Array.from(filterValueOptions).map(tr => tr.textContent))
-        .toEqual(['N/A', '(Blank cells)', '0002', '19 Jun 2020', 'comments']);
+        .toEqual(['N/A', '(Blank cells)', '0002', '10', '19 Jun 2020', 'comments']);
+    });
+
+    it('should order number data type options', () => {
+      const disorderData = [
+        { id: 4, name: '19', },
+        { id: 5, name: '10', },
+        { id: 6, name: 9, },
+        { id: 7, name: '', },
+        { id: 8, name: 'N/A', },
+      ];
+
+      handsontable({
+        data: disorderData,
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+      dropdownMenu(1);
+      const filterValueOptions = dropdownMenuRootElement().querySelectorAll('.htUIMultipleSelectHot tbody tr');
+
+      expect(Array.from(filterValueOptions).map(tr => tr.textContent))
+        .toEqual(['N/A', '(Blank cells)', '9', '10', '19']);
     });
   });
 

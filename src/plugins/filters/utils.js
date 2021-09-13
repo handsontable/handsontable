@@ -85,6 +85,12 @@ const isString = function(target) {
   return Object.prototype.toString.call(target) === '[object String]';
 };
 
+// https://stackoverflow.com/a/175787/508236
+const isNumber = function(target) {
+  return Object.prototype.toString.call(target) === '[object Number]'
+    || (!isNaN(target) && !isNaN(parseFloat(target)));
+};
+
 const removeEmptyValue = function(values) {
   let result = false;
 
@@ -136,6 +142,12 @@ const sortStringElement = function(values) {
   });
 };
 
+const sortNumberElement = function(values) {
+  values.sort((a, b) => {
+    return parseFloat(a.value, 10) > parseFloat(b.value, 10) ? 1 : -1;
+  });
+};
+
 const defaultSortFn = function(values) {
   values.sort((a, b) => {
     if (typeof a === 'number' && typeof b === 'number') {
@@ -169,10 +181,13 @@ export function unifyColumnValues(values) {
   const hasEmptyValue = removeEmptyValue(unifiedValues);
   const hasPleaseSelectValue = removePleaseSelectValue(unifiedValues);
 
+  const everyElementIsNumberType = unifiedValues.every(item => isNumber(item));
   const everyElementIsDateType = unifiedValues.every(item => isDate(item));
   const everyElementIsStringType = unifiedValues.every(item => isString(item));
 
-  if (everyElementIsDateType) {
+  if (everyElementIsNumberType) {
+    sortNumberElement(unifiedValues);
+  } else if (everyElementIsDateType) {
     sortDateElement(unifiedValues);
   } else if (everyElementIsStringType) {
     sortStringElement(unifiedValues);
