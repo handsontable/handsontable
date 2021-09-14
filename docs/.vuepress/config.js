@@ -4,11 +4,15 @@ const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
-const { getLatestVersion } = require('./helpers');
+const { getBuildDocsVersion, isBuildLatestOrMultiVersion } = require('./helpers');
 
 const buildMode = process.env.BUILD_MODE;
-const version = process.env.DOCS_VERSION || '**';
-const base = version === '**' || version === getLatestVersion() ? '/docs/' : `/docs/${version}/`;
+const version = getBuildDocsVersion() || '**';
+const base = isBuildLatestOrMultiVersion() ? '/docs/' : `/docs/${version}/`;
+const redirectsPlugin = isBuildLatestOrMultiVersion() ?
+  [nginxRedirectsPlugin, {
+    outputFile: path.resolve(__dirname, '../docker/redirects.conf')
+  }] : [];
 
 const environmentHead = buildMode === 'production' ?
   [
@@ -97,9 +101,7 @@ module.exports = {
       },
     },
     assetsVersioningPlugin,
-    [nginxRedirectsPlugin, {
-      outputFile: path.resolve(__dirname, '../docker/redirects.conf')
-    }],
+    redirectsPlugin
   ],
   themeConfig: {
     nextLinks: true,

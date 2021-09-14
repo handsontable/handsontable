@@ -36,5 +36,15 @@ module.exports = {
 
   parseVersion(url) {
     return url.split('/')[1] || this.getLatestVersion();
+  },
+
+  getBuildDocsVersion() {
+    return process.env.DOCS_VERSION;
+  },
+
+  isBuildLatestOrMultiVersion() {
+    const version = this.getBuildDocsVersion();
+
+    return version === this.getLatestVersion() || !version;
   }
 };

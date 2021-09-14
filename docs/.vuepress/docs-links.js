@@ -1,8 +1,6 @@
 const { fs, path, parseFrontmatter } = require('@vuepress/shared-utils');
 const helpers = require('./helpers');
 
-const DOCS_VERSION = process.env.DOCS_VERSION || '**';
-
 module.exports = function(src) {
   const version = this.resourcePath.split('/docs/').pop().split('/')[0];
   const latest = helpers.getLatestVersion();
@@ -17,7 +15,7 @@ module.exports = function(src) {
       if (fm.data.permalink) {
         permalink = fm.data.permalink;
 
-        if (DOCS_VERSION !== '**' || latest === version) {
+        if (!helpers.getBuildDocsVersion() || latest === version) {
           permalink = permalink.replace(new RegExp(`^/${version}/`), '/');
         }
         permalink = permalink.endsWith('/') ? permalink : `${permalink}/`;
