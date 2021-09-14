@@ -14,7 +14,7 @@ tags:
 
 The search plugin provides an easy interface to search data across Handsontable.
 
-You should first enable the plugin by setting the `search` option to `true`. When enabled, `searchPlugin` exposes a new method `query(queryStr)`, where `queryStr` is a string to find within the table. By default, the search is case insensitive.
+You should first enable the plugin by setting the `search` option to `true`. When enabled, `Search` exposes a new method `query(queryStr)`, where `queryStr` is a string to find within the table. By default, the search is case insensitive.
 
 `query(queryStr, [callback], [queryMethod])` method does 2 things. First of all, it returns an array of search results. Every element is an objects containing 3 properties:
 
@@ -28,7 +28,7 @@ All you have to do now, is use the `query()` method inside search input listener
 
 ## Search result class
 
-By default the `searchPlugin` adds `htSearchResult` class to every cell which `isSearchResult` property is `true`. You can change this class using `searchResultClass` option.
+By default the `Search` adds `htSearchResult` class to every cell which `isSearchResult` property is `true`. You can change this class using `searchResultClass` option.
 
 If you wish to change the result class, you can use the `var searchPlugin = hot.getPlugin('search'); searchPlugin.setSearchResultClass(className);` method.
 
@@ -55,7 +55,7 @@ If you want to change the `queryMethod`, use `queryMethod` option. You can also 
 
 ## Custom result callback
 
-After calling `queryMethod` `searchPlugin` calls `callback(instance, rowIndex, colIndex, cellData, testResult)` for every cell.
+After calling `queryMethod` `Search` calls `callback(instance, rowIndex, colIndex, cellData, testResult)` for every cell.
 
 Just as the `queryMethod`, you can override this callback, using `var searchPlugin = hot.getPlugin('search'); searchPlugin.setCallback(myNewCallbackFunction);`, or pass the `callback` as the second argument of `query()` method.
 
@@ -68,6 +68,12 @@ const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
 ```
 
 ## Simplest use case
+
+The example below:
+- Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) [configuration option](@/guides/getting-started/setting-options.md) to `true`)
+- Adds a search input listener
+- Inside the search input listener, gets the [`Search`](@/api/search.md) plugin's instance
+- Uses the [`Search`](@/api/search.md) plugin's [`query()`](@/api/search.md#query) method
 
 ::: example #example1 --html 1 --js 2
 ```html
@@ -88,13 +94,17 @@ const data = [
 const hot = new Handsontable(container, {
   data,
   colHeaders: true,
+  // enable the `Search` plugin
   search: true,
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
 });
 
+// add a search input listener
 Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
+  // get the `Search` plugin's instance
   const search = hot.getPlugin('search');
+  // use the `Search` plugin's `query()` method
   const queryResult = search.query(this.value);
 
   console.log(queryResult);
@@ -106,9 +116,16 @@ Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
 
 ## Custom search result class
 
+You can style your search results with a custom CSS class, using the [`Search`](@/api/search.md) plugin's [`searchResultClass`](@/api/search.md) option.
+
+The example below highlights its search results in bold red. To do this, it:
+- Defines a custom CSS class called `my-custom-search-result-class`
+- Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) [configuration option](@/guides/getting-started/setting-options.md) to a configuration object)
+- Sets the [`Search`](@/api/search.md) plugin's [`searchResultClass`](@/api/search.md) option to `'my-custom-search-result-class'`
+
 ::: example #example2 --css 1 --html 2 --js 3
 ````css
-.search-result-custom{
+.my-custom-search-result-class{
   color: #ff0000;
   font-weight: 900;
 }
@@ -131,8 +148,10 @@ const data = [
 const hot = new Handsontable(container, {
   data,
   colHeaders: true,
+  // enable the `Search` plugin
   search: {
-    searchResultClass: 'search-result-custom'
+    // add your custom CSS class
+    searchResultClass: 'my-custom-search-result-class'
   },
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'
@@ -150,6 +169,13 @@ Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
 
 ## Custom query method
 
+You can add a custom query method, using the [`Search`](@/api/search.md) plugin's [`queryMethod`](@/api/search.md) option.
+
+The example below searches only for exact search query matches. To do this, it:
+- Defines a custom query method called `onlyExactMatch`
+- Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) [configuration option](@/guides/getting-started/setting-options.md) to a configuration object)
+- Sets the [`Search`](@/api/search.md) plugin's [`queryMethod`](@/api/search.md) option to `onlyExactMatch`
+
 ::: example #example3 --html 1 --js 2
 ```html
 <input id="search_field3" type="search" placeholder="Search"/>
@@ -166,6 +192,7 @@ const data = [
   ['Volvo', 2020, 'white', 'gray']
 ];
 
+// define your custom query method
 function onlyExactMatch(queryStr, value) {
   return queryStr.toString() === value.toString();
 };
@@ -173,7 +200,9 @@ function onlyExactMatch(queryStr, value) {
 const hot = new Handsontable(container, {
   data,
   colHeaders: true,
+  // enable the `Search` plugin
   search: {
+    // add your custom query method
     queryMethod: onlyExactMatch
   },
   height: 'auto',
@@ -182,6 +211,7 @@ const hot = new Handsontable(container, {
 
 Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
   const search = hot.getPlugin('search');
+  // use the `Search`'s `query()` method
   const queryResult = search.query(this.value);
 
   console.log(queryResult);
@@ -192,6 +222,13 @@ Handsontable.dom.addEvent(searchField, 'keyup', function(event) {
 :::
 
 ## Custom callback
+
+You can add a custom callback function, using the [`Search`](@/api/search.md) plugin's [`callback`](@/api/search.md) option.
+
+The example below displays the number of matching search results. To do this, it:
+- Defines a custom callback function called `searchResultCounter`
+- Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) [configuration option](@/guides/getting-started/setting-options.md) to a configuration object)
+- Sets the [`Search`](@/api/search.md) plugin's [`callback`](@/api/search.md) option to `searchResultCounter`
 
 ::: example #example4 --html 1 --js 2
 ```html
@@ -213,7 +250,7 @@ const data = [
   ['Volvo', 2020, 'white', 'gray']
 ];
 
-
+// define your custom callback function
 function searchResultCounter(instance, row, col, value, result) {
   const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
     instance.getCellMeta(row, col).isSearchResult = testResult;
@@ -229,7 +266,9 @@ function searchResultCounter(instance, row, col, value, result) {
 const hot4 = new Handsontable(container, {
   data,
   colHeaders: true,
+  // enable the `Search` plugin
   search: {
+    // add your custom callback function
     callback: searchResultCounter
   },
   height: 'auto',
