@@ -28,7 +28,7 @@ All you have to do now, is use the `query()` method inside search input listener
 
 ## Search result class
 
-By default the `Search` adds `htSearchResult` class to every cell which `isSearchResult` property is `true`. You can change this class using `searchResultClass` option.
+By default the `searchPlugin` adds `htSearchResult` class to every cell which `isSearchResult` property is `true`. You can change this class using `searchResultClass` option.
 
 If you wish to change the result class, you can use the `var searchPlugin = hot.getPlugin('search'); searchPlugin.setSearchResultClass(className);` method.
 
@@ -55,7 +55,7 @@ If you want to change the `queryMethod`, use `queryMethod` option. You can also 
 
 ## Custom result callback
 
-After calling `queryMethod` `Search` calls `callback(instance, rowIndex, colIndex, cellData, testResult)` for every cell.
+After calling `queryMethod` `searchPlugin` calls `callback(instance, rowIndex, colIndex, cellData, testResult)` for every cell.
 
 Just as the `queryMethod`, you can override this callback, using `var searchPlugin = hot.getPlugin('search'); searchPlugin.setCallback(myNewCallbackFunction);`, or pass the `callback` as the second argument of `query()` method.
 
