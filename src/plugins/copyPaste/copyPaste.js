@@ -590,7 +590,7 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Add copy, cut and paste options to the Context Menu.
+   * Add copy and cut options to the Context Menu.
    *
    * @private
    * @param {object} options Contains default added options of the Context Menu.
