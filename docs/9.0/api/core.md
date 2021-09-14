@@ -973,7 +973,9 @@ Returns an array of row headers' values (if they are enabled). If param `row` wa
 
 _core.getRowHeight(row) ⇒ number_
 
-Returns the row height.
+Returns values set by the [`rowHeights`](@/api/options.md#rowheights) [configuration option](@/guides/getting-started/setting-options.md).
+
+Mind that this method is different from the [AutoRowSize](@/api/auto-row-size.md) plugin's [`getRowHeight()`](@/api/auto-row-size.md#getrowheight) method.
 
 **Emits**: [`Hooks#event:modifyRowHeight`](@/api/pluginHooks.md#modifyrowheight)  
 

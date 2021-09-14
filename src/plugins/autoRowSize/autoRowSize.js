@@ -362,7 +362,9 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * Gets the calculated row height.
+   * Gets the calculated row height (returns the actual height in pixels).
+   *
+   * Mind that this method is different from the [Core](@/api/core.md)'s [`getRowHeight()`](@/api/core.md#getrowheight) method.
    *
    * @param {number} row Visual row index.
    * @param {number} [defaultHeight] Default row height. It will be picked up if no calculated height found.

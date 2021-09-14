@@ -262,7 +262,9 @@ Gets the last visible row.
 
 _autoRowSize.getRowHeight(row, [defaultHeight]) ⇒ number_
 
-Gets the calculated row height.
+Gets the calculated row height (returns the actual height in pixels).
+
+Mind that this method is different from the [Core](@/api/core.md)'s [`getRowHeight()`](@/api/core.md#getrowheight) method.
 
 
 | Param | Type | Description |
