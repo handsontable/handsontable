@@ -1,0 +1,7 @@
+{
+  "title": "Data won't be corrupted anymore when there are performed some alterations",
+  "type": "fixed",
+  "issue": 8614,
+  "breaking": false,
+  "framework": "none"
+}

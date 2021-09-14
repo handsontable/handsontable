@@ -942,36 +942,40 @@ export default () => {
     tabMoves: { row: 0, col: 1 },
 
     /**
-     * If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.
+     * If set to `true`: when you use keyboard navigation,
+     * and you cross the grid's left or right edge,
+     * cell selection jumps to the opposite edge.
      *
      * @memberof Options#
      * @type {boolean}
-     * @default true
+     * @default false
      * @category Core
      *
      * @example
      * ```js
-     * // stop TAB key navigation on the last column
-     * autoWrapRow: false,
+     * // enable jumping across the grid's vertical edges
+     * autoWrapRow: true,
      * ```
      */
-    autoWrapRow: true,
+    autoWrapRow: false,
 
     /**
-     * If `true`, pressing <kbd>ENTER</kbd> or down arrow in the last row will move to the first row in the next column.
+     * If set to `true`: when you use keyboard navigation,
+     * and you cross the grid's top or bottom edge,
+     * cell selection jumps to the grid's opposite edge.
      *
      * @memberof Options#
      * @type {boolean}
-     * @default true
+     * @default false
      * @category Core
      *
      * @example
      * ```js
-     * // stop ENTER key navigation on the last row
-     * autoWrapCol: false,
+     * // enable jumping across the grid's horizontal edges
+     * autoWrapCol: true,
      * ```
      */
-    autoWrapCol: true,
+    autoWrapCol: false,
 
     /**
      * @description
@@ -2780,22 +2784,39 @@ export default () => {
      * The {@link Formulas} plugin allows Handsontable to process formula expressions defined in the provided data.
      *
      * @memberof Options#
-     * @type {boolean|object}
+     * @type {object}
      * @default undefined
      * @category Formulas
      *
      * @example
      * ```js
-     * // enable formulas plugin
-     * formulas: true,
-     *
-     * // or as an object with custom variables to be used in formula expressions
+     * // in Handsontable's `formulas` configuration option, add the `HyperFormula` class
      * formulas: {
-     *   variables: {
-     *     FOO: 64,
-     *     BAR: 'baz',
-     *   }
-     * },
+     *   engine: HyperFormula,
+     *   // the `Formulas` plugin configuration
+     * }
+     *
+     * // or, add a HyperFormula instance
+     * const hyperformulaInstance = HyperFormula.buildEmpty({})
+     *
+     * formulas: {
+     *   engine: hyperformulaInstance,
+     *   // the `Formulas` plugin configuration
+     * }
+     *
+     * // use the same HyperFormula instance in multiple Handsontable instances
+     *
+     * // a Handsontable instance `hot1`
+     * formulas: {
+     *   engine: HyperFormula,
+     *   // the `Formulas` plugin configuration
+     * }
+     *
+     * // a Handsontable instance `hot2`
+     * formulas: {
+     *   engine: hot1.getPlugin('formulas').engine,
+     *   // the `Formulas` plugin configuration
+     * }
      * ```
      */
     formulas: void 0,

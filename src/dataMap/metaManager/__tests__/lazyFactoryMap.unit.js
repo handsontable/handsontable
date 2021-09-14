@@ -1,6 +1,6 @@
 /* eslint-disable no-sparse-arrays */
 /* eslint-disable comma-spacing */
-import LazyFactoryMap from 'handsontable/dataMap/metaManager/lazyFactoryMap';
+import LazyFactoryMap from '../lazyFactoryMap';
 
 function createLazyFactoryMap(valueFactory) {
   if (!valueFactory) {

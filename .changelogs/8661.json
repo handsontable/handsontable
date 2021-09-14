@@ -1,0 +1,7 @@
+{
+  "title": "Add default font size, color, and family. ",
+  "type": "changed",
+  "issue": 8661,
+  "breaking": true,
+  "framework": "none"
+}
