@@ -14,6 +14,8 @@
   } from "./helpers";
   import Handsontable from 'handsontable';
   import {LRUMap} from "./lib/lru/lru";
+  import * as packageJson from '../package.json';
+
 
   export const HotTable = {
     template:`
@@ -21,6 +23,40 @@
        <slot></slot>
       </div>
     `,
+    props: tablePropFactory(),
+    watch: {
+      mergedHotSettings(value) {
+        if (!this.hotInstance || value === void 0) {
+          return;
+        }
+
+        if (value.data) {
+          if (
+            this.hotInstance.isColumnModificationAllowed() ||
+            (
+              !this.hotInstance.isColumnModificationAllowed() &&
+              this.hotInstance.countSourceCols() === this.miscCache.currentSourceColumns
+            )
+          ) {
+            // If the dataset dimensions change, update the index mappers.
+            this.matchHotMappersSize();
+
+            // Data is automatically synchronized by reference.
+            delete value.data;
+          }
+        }
+
+        // If there are another options changed, update the HOT settings, render the table otherwise.
+        if (Object.keys(value).length) {
+          this.hotInstance.updateSettings(value);
+
+        } else {
+          this.hotInstance.render();
+        }
+
+        this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
+      }
+    },
     data() {
       const self: any = this;
       const rendererCache = new LRUMap(this.wrapperRendererCacheSize);
@@ -59,41 +95,9 @@
         }
       };
     },
-    props: tablePropFactory(),
-    mounted() { 
-      return this.hotInit();
-    },
-    watch: {
-      mergedHotSettings(value) {
-        if (!this.hotInstance || value === void 0) {
-          return;
-        }
-
-        if (value.data) {
-          if (
-            this.hotInstance.isColumnModificationAllowed() ||
-            (
-              !this.hotInstance.isColumnModificationAllowed() &&
-              this.hotInstance.countSourceCols() === this.miscCache.currentSourceColumns
-            )
-          ) {
-            // If the dataset dimensions change, update the index mappers.
-            this.matchHotMappersSize();
-
-            // Data is automatically synchronized by reference.
-            delete value.data;
-          }
-        }
-
-        // If there are another options changed, update the HOT settings, render the table otherwise.
-        if (Object.keys(value).length) {
-          this.hotInstance.updateSettings(value);
-
-        } else {
-          this.hotInstance.render();
-        }
-
-        this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
+    computed: {
+      mergedHotSettings(): Handsontable.GridSettings {
+        return prepareSettings(this.$props, this.hotInstance ? this.hotInstance.getSettings() : void 0);
       }
     },
     methods: {
@@ -160,11 +164,15 @@
       },
 
     },
-    computed: {
-      mergedHotSettings(): Handsontable.GridSettings {
-        return prepareSettings(this.$props, this.hotInstance ? this.hotInstance.getSettings() : void 0);
+    mounted() {
+      return this.hotInit();
+    },
+    beforeDestroy: function () {
+      if (this.hotInstance) {
+        this.hotInstance.destroy();
       }
     },
+    version: (packageJson as any).version
   };
   
 </script>
