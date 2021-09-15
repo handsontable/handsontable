@@ -3507,7 +3507,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns values set by the [`rowHeights`](@/api/options.md#rowheights) [configuration option](@/guides/getting-started/setting-options.md).
+   * Returns the row height.
    *
    * Mind that this method is different from the [AutoRowSize](@/api/autorowsize.md) plugin's [`getRowHeight()`](@/api/autorowsize.md#getrowheight) method.
    *
