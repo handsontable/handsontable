@@ -307,7 +307,7 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   // the `cells` options overwrite all other options
   // apply only to each cell of rows 1 and 4, as specified in the function's body
-  cells(row, column) {
+  cells(row) {
     if (row === 1 || row === 4) {
       return {
         readOnly: true,
