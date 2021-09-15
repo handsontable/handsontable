@@ -296,7 +296,7 @@ const hot = new Handsontable(container, {
     {
       sourceColumn: 0,
       type: 'sum',
-      // for this column summary, count row coordinates from the bottom up
+      // for this column summary, count row coordinates backward
       reversedRowCoords: true,
       // now, to always display this column summary in the bottom row,
       // set `destinationRow` to `0` (i.e. the last possible row)
@@ -306,7 +306,7 @@ const hot = new Handsontable(container, {
     {
       sourceColumn: 1,
       type: 'min',
-      // for this column summary, count row coordinates from the bottom up
+      // for this column summary, count row coordinates backward
       reversedRowCoords: true,
       // now, to always display this column summary in the bottom row,
       // set `destinationRow` to `0` (i.e. the last possible row)
@@ -317,11 +317,16 @@ const hot = new Handsontable(container, {
 });
 ```
 
-## Providing column summary configuration as a function
+## Setting up column summaries, using a function
 
 Instead of [setting up the column summary options manually](#setting-up-a-column-summary), you can provide the whole column summary configuration as a function that returns a required array of objects.
 
-For example:
+The example below sets up five different column summaries. To do this, it:
+- Defines a function named `generateData` which generates an array of arrays with dummy numeric data, and which lets you add an empty row at the bottom of the grid (to make room for displaying column summaries)
+- Sets Handsontable's [`columnSummary`](@/api/options.md#columnsummary) [configuration option](@/guides/getting-started/setting-options.md) to a function that:
+    - Iterates over visible columns
+    - For each visible column, adds a column summary with a configuration
+    - To display the column summaries in the empty row added by `generateData`, sets the [`reversedRowCoords`](@/api/columnsummary.md#options) option to `true`, and the [`destinationRow`](@/api/columnsummary.md#options) option to `0`
 
 ::: example #example7
 ```js
@@ -332,9 +337,9 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
   const array2d = [...new Array(rows)]
     .map(_ => [...new Array(columns)]
     .map(_ => counter++));
-
+  
+  // add an empty row at the bottom, to display column summaries
   if (additionalRows) {
-    array2d.push([]);
     array2d.push([]);
   }
 
@@ -344,21 +349,27 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 const container = document.querySelector('#example7');
 
 const hot = new Handsontable(container, {
-  data: generateData(5, 5, false),
+  licenseKey: 'non-commercial-and-evaluation',
+  // initialize a Handsontable instance with the generated data
+  data: generateData(5, 5, true),
   height: 'auto',
   rowHeaders: true,
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
-  licenseKey: 'non-commercial-and-evaluation',
+  // set the `columnSummary` configuration option to a function
   columnSummary() {
     const configArray = [];
     const summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
 
     for (let i = 0; i < this.hot.countCols(); i++) { // iterate over visible columns
+      // for each visible column, add a column summary with a configuration
       configArray.push({
         sourceColumn: i,
+        type: summaryTypes[i],
+        // count row coordinates backward
+        reversedRowCoords: true,
+        // display the column summary in the bottom row (because of the reversed row coordinates)
         destinationRow: 0,
         destinationColumn: i,
-        type: summaryTypes[i],
         forceNumeric: true
       });
     }
@@ -369,13 +380,14 @@ const hot = new Handsontable(container, {
 ```
 :::
 
-This lets you configure all sorts of more complex column summaries. For example, you can sum subtotals for nested groups:
+Using a function to provide a column summary configuration lets you set up all sorts of more complex column summaries. For example, you can sum subtotals for nested groups:
 
 ::: example #example8
 ```js
 const container = document.getElementById('example8');
 
 const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
   data: [
     {
       value: null,
@@ -399,7 +411,6 @@ const hot = new Handsontable(container, {
   nestedRows: true,
   rowHeaders: true,
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
-  licenseKey: 'non-commercial-and-evaluation',
   columnSummary() {
     const endpoints = [];
     const nestedRowsPlugin = this.hot.getPlugin('nestedRows');
