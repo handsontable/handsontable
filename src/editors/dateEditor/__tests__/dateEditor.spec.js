@@ -744,6 +744,50 @@ describe('DateEditor', () => {
     expect(editor.TEXTAREA.value).toEqual(cellValue);
   });
 
+  it('should use the default Pikaday\'s cofiguration if cell does not customize picker', async() => {
+    handsontable({
+      data: [['10/12/2020', '01/14/2017']],
+      columns: [
+        {
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY',
+          correctFormat: true,
+        },
+        {
+          type: 'date',
+          dateFormat: 'MM/DD/YYYY',
+          datePickerConfig: {
+            numberOfMonths: 3
+          }
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+    await sleep(200);
+
+    expect($('.pika-lendar').length).toEqual(1);
+
+    keyDownUp('enter');
+    await sleep(200);
+
+    selectCell(0, 1);
+    keyDownUp('enter');
+    await sleep(200);
+
+    expect($('.pika-lendar').length).toEqual(3);
+
+    keyDownUp('enter');
+    await sleep(200);
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+    await sleep(200);
+
+    expect($('.pika-lendar').length).toEqual(1);
+  });
+
   describe('IME support', () => {
     it('should focus editable element after selecting the cell', async() => {
       handsontable({
