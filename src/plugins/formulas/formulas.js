@@ -397,10 +397,17 @@ export class Formulas extends BasePlugin {
    * @returns {boolean}
    */
   isFormulaCellType(row, column, sheet = this.sheetId) {
+    const physicalRow = this.hot.toPhysicalRow(row);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
+
+    if (physicalRow === null || physicalColumn === null) {
+      return false;
+    }
+
     return this.engine.doesCellHaveFormula({
       sheet,
-      row: this.hot.toPhysicalRow(row) ?? Infinity,
-      col: this.hot.toPhysicalColumn(column) ?? Infinity
+      row: physicalRow,
+      col: physicalColumn
     });
   }
 
