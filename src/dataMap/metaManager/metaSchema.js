@@ -2855,10 +2855,14 @@ export default () => {
     hiddenColumns: void 0,
 
     /**
-     * The {@link HiddenRows} plugin allows hiding of certain rows. You can pass additional configuration with an
-     * object notation. Options that are then available are:
-     *  * `rows` - an array of rows that should be hidden on plugin initialization
-     *  * `indicators` - enables small ui markers to indicate where are hidden columns.
+     * The `hiddenRows` option enables and configures the {@link HiddenRows} plugin.
+     *
+     * To enable the `HiddenRows` plugin, set the `hiddenRows` option to `true`.
+     *
+     * To enable the `HiddenRows` plugin and configure its settings, set the `hiddenRows` option to an object with the following properties:
+     *  * `rows`: An array of indexes of rows that are hidden on plugin initialization.
+     *  * `copyPasteEnabled`: When set to `true`, takes hidden rows into account when copying or pasting data.
+     *  * `indicators`: When set to `true`, displays UI markers to indicate the presence of hidden rows.
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -2867,14 +2871,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable row hiding
+     * // enable the `HiddenRows` plugin
      * hiddenRows: true,
      *
-     * // or
+     * // or enable `HiddenRows` plugin, and configure its settings
      * hiddenRows: {
      *   // set rows that are hidden by default
      *   rows: [5, 10, 15],
-     *   // show where are hidden rows
+     *   // take hidden rows into account when copying or pasting
+     *   copyPasteEnabled: true,
+     *   // show where hidden rows are
      *   indicators: true
      * }
      * ```
