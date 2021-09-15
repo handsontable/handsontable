@@ -659,7 +659,7 @@ export class Formulas extends BasePlugin {
       }
     }
 
-    // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `src/dataMap`.
+    // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `DataMap`.
     const address = {
       row,
       col: this.toPhysicalColumnPosition(column),

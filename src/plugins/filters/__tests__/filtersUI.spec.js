@@ -3877,7 +3877,7 @@ describe('Filters UI', () => {
     });
   });
 
-  it('should inherit font family and size from body', () => {
+  it('should not inherit font family and size from body', () => {
     handsontable({
       data: getDataForFilters(),
       colHeaders: true,
@@ -3894,6 +3894,7 @@ describe('Filters UI', () => {
     bodyStyle.fontSize = '24px';
 
     dropdownMenu(0);
+
     const htItemWrapper = document.querySelector('.htItemWrapper');
     const compStyleHtItemWrapper = Handsontable.dom.getComputedStyle(htItemWrapper);
 
@@ -3903,14 +3904,9 @@ describe('Filters UI', () => {
     const htUISelectCaption = document.querySelector('.htUISelectCaption');
     const compStyleHtUISelectCaption = Handsontable.dom.getComputedStyle(htUISelectCaption);
 
-    expect(compStyleHtItemWrapper.fontFamily).toBe('Helvetica');
-    expect(compStyleHtItemWrapper.fontSize).toBe('24px');
-
-    expect(compStyleHtFiltersMenuLabel.fontFamily).toBe('Helvetica');
-    expect(compStyleHtFiltersMenuLabel.fontSize).toBe('18px');
-
-    expect(compStyleHtUISelectCaption.fontFamily).toBe('Helvetica');
-    expect(parseFloat(compStyleHtUISelectCaption.fontSize)).toBeCloseTo(16.8, 2);
+    expect(compStyleHtItemWrapper.fontFamily).not.toBe('Helvetica');
+    expect(compStyleHtFiltersMenuLabel.fontFamily).not.toBe('Helvetica');
+    expect(compStyleHtUISelectCaption.fontFamily).not.toBe('Helvetica');
 
     bodyStyle.fontFamily = fontFamily;
     bodyStyle.fontSize = fontSize;
