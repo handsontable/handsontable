@@ -495,7 +495,7 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * Update condition of ValueComponent basing on handled changes.
+   * Update the condition of ValueComponent, based on the handled changes.
    *
    * @private
    * @param {number} columnIndex Column index of handled ValueComponent condition.
@@ -574,7 +574,7 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * Get operation basing on number and type of arguments (where arguments are states of components).
+   * Get an operation, based on the number and types of arguments (where arguments are states of components).
    *
    * @param {string} suggestedOperation Operation which was chosen by user from UI.
    * @param {object} byConditionState1 State of first condition component.
@@ -689,7 +689,7 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * Updates visibility of the some of the components based on the state of the parent component.
+   * Updates visibility of some of the components, based on the state of the parent component.
    *
    * @private
    */
