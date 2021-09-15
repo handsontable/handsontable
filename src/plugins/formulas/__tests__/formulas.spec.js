@@ -2219,27 +2219,35 @@ describe('Formulas general', () => {
     });
   });
 
-  it('should work with a sheet name that contains a `-` (#8057)', () => {
-    handsontable({
-      data: [
-        [1, 2, 3, 4, 5],
-        [9, 8, 7, 6, '=myOwnCalc'],
-      ],
-      formulas: {
-        engine: HyperFormula,
-        sheetName: 'my-sheet',
-        namedExpressions: [
-          {
-            name: 'myOwnCalc',
-            expression: '=\'my-sheet\'!$A$1+100',
-          }
-        ],
-      }
-    });
+  it('should not crash when declaring a named expression with a sheet name that contains a `-` (#8057)', () => {
+    const errors = [];
 
+    try {
+      handsontable({
+        data: [
+          [1, 2, 3, 4, 5],
+          [9, 8, 7, 6, '=myOwnCalc'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'my-sheet',
+          namedExpressions: [
+            {
+              name: 'myOwnCalc',
+              expression: '=my-sheet!$A$1+100',
+            }
+          ],
+        }
+      });
+
+    } catch (e) {
+      errors.push(e);
+    }
+
+    expect(errors.length).withContext('Number of errors being thrown.').toEqual(0);
     expect(getData()).toEqual([
       [1, 2, 3, 4, 5],
-      [9, 8, 7, 6, 101],
+      [9, 8, 7, 6, '#NAME?'],
     ]);
   });
 });

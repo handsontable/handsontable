@@ -32,20 +32,6 @@ Hooks.getSingleton().register('afterSheetRenamed');
 Hooks.getSingleton().register('afterFormulasValuesUpdate');
 
 /**
- * Try-catch with an empty catch block as an expression.
- *
- * @param {Function} fn Function to surround with try-catch.
- * @returns {*}
- */
-const attempt = (fn) => {
-  try {
-    return fn();
-  } catch (_) {
-    // eslint-disable-next-line no-empty
-  }
-};
-
-/**
  * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
  * integration with our other product, [HyperFormula](https://github.com/handsontable/hyperformula/), which is a
  * powerful calculation engine with an extensive number of features.
@@ -197,7 +183,10 @@ export class Formulas extends BasePlugin {
    */
   disablePlugin() {
     this.#engineListeners.forEach(([eventName, listener]) => this.engine.off(eventName, listener));
+
     unregisterEngine(this.engine, this.hot);
+
+    this.engine = null;
 
     super.disablePlugin();
   }
@@ -241,9 +230,12 @@ export class Formulas extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.#engineListeners.forEach(([eventName, listener]) => attempt(() => this.engine?.off(eventName, listener)));
+    this.#engineListeners.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
     this.#engineListeners = null;
+
     unregisterEngine(this.engine, this.hot);
+
+    this.engine = null;
 
     super.destroy();
   }
@@ -380,11 +372,20 @@ export class Formulas extends BasePlugin {
    * @returns {string} Possible values: 'FORMULA' | 'VALUE' | 'ARRAYFORMULA' | 'EMPTY'.
    */
   getCellType(row, column, sheet = this.sheetId) {
-    return this.engine.getCellType({
-      sheet,
-      row: this.hot.toPhysicalRow(row) ?? Infinity,
-      col: this.hot.toPhysicalColumn(column) ?? Infinity
-    });
+    const physicalRow = this.hot.toPhysicalRow(row);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
+
+    if (physicalRow !== null && physicalColumn !== null) {
+      return this.engine.getCellType({
+        sheet,
+        row: physicalRow,
+        col: physicalColumn
+      });
+
+    } else {
+      // Should return `EMPTY` when out of bounds (according to the test cases).
+      return 'EMPTY';
+    }
   }
 
   /**
@@ -641,15 +642,21 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    const visualRow = this.hot.toVisualRow(row);
+
     // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
-    const isFormulaCellType = this.isFormulaCellType(this.hot.toVisualRow(row), column);
+    const isFormulaCellType = this.isFormulaCellType(visualRow, column);
 
     if (!isFormulaCellType) {
-      if (isEscapedFormulaExpression(valueHolder.value)) {
-        valueHolder.value = unescapeFormulaExpression(valueHolder.value);
-      }
+      const cellType = this.getCellType(visualRow, column);
 
-      return;
+      if (cellType !== 'ARRAY') {
+        if (isEscapedFormulaExpression(valueHolder.value)) {
+          valueHolder.value = unescapeFormulaExpression(valueHolder.value);
+        }
+
+        return;
+      }
     }
 
     // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `src/dataMap`.
@@ -686,13 +693,18 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    const visualRow = this.hot.toVisualRow(row);
     const visualColumn = this.hot.propToCol(columnOrProp);
 
     // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
-    const isFormulaCellType = this.isFormulaCellType(this.hot.toVisualRow(row), visualColumn);
+    const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
 
     if (!isFormulaCellType) {
-      return;
+      const cellType = this.getCellType(visualRow, visualColumn);
+
+      if (cellType !== 'ARRAY') {
+        return;
+      }
     }
 
     const dimensions = this.engine.getSheetDimensions(this.engine.getSheetId(this.sheetName));
@@ -810,11 +822,10 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeCreateRow(row, amount) {
-    // Using `attempt` because this.sheetId can be null or point to an non-existing sheet
     if (
-      !attempt(() =>
-        this.engine.isItPossibleToAddRows(this.sheetId, [this.toPhysicalRowPosition(row), amount])
-      )
+      this.sheetId === null ||
+      !this.engine.doesSheetExist(this.sheetName) ||
+      !this.engine.isItPossibleToAddRows(this.sheetId, [this.toPhysicalRowPosition(row), amount])
     ) {
       return false;
     }
@@ -829,11 +840,10 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeCreateCol(col, amount) {
-    // Using `attempt` because this.sheetId can be null or point to an non-existing sheet
     if (
-      !attempt(() =>
-        this.engine.isItPossibleToAddColumns(this.sheetId, [this.toPhysicalColumnPosition(col), amount])
-      )
+      this.sheetId === null ||
+      !this.engine.doesSheetExist(this.sheetName) ||
+      !this.engine.isItPossibleToAddColumns(this.sheetId, [this.toPhysicalColumnPosition(col), amount])
     ) {
       return false;
     }
