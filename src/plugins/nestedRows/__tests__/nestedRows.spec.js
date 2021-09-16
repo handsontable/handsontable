@@ -1117,6 +1117,29 @@ describe('NestedRows', () => {
     expect(rowHeaders).toEqual(['A', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S']);
   });
 
+  it('should not throw an error while inserting new row in specific case', () => {
+    const spy = spyOn(console, 'error');
+
+    handsontable({
+      data: getSimplerNestedData(),
+      nestedRows: true,
+      rowHeaders: true,
+      contextMenu: true,
+    });
+
+    selectCell(1, 0);
+    contextMenu();
+
+    $('.htContextMenu .ht_master .htCore')
+      .find('tbody td')
+      .not('.htSeparator')
+      .eq(2) // Insert row above
+      .simulate('mousedown')
+      .simulate('mouseup');
+
+    expect(spy).not.toHaveBeenCalled();
+  });
+
   describe('should work properly when some alters have been performed', () => {
     it('inserting and removing rows', () => {
       handsontable({
