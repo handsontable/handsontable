@@ -752,6 +752,35 @@ describe('NestedRows', () => {
       expect(collapsingUI.areChildrenCollapsed(12)).toBe(true);
     });
 
+    it('should not expand and parents, if they were collapsed at the time of inserting rows', () => {
+      const hot = handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        manualRowMove: true,
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      const collapsingUI = getPlugin('nestedRows').collapsingUI;
+
+      collapsingUI.collapseChildren(6);
+      collapsingUI.collapseChildren(12);
+
+      hot.selectCell(7, 0);
+
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore')
+        .find('tbody td')
+        .not('.htSeparator')
+        .eq(3) // Insert row below
+        .simulate('mousedown')
+        .simulate('mouseup');
+
+      expect(collapsingUI.areChildrenCollapsed(6)).toBe(true);
+      expect(collapsingUI.areChildrenCollapsed(12)).toBe(true);
+    });
+
     it('should select the collapsed parent after rows were moved inside of it', () => {
       const hot = handsontable({
         data: getSimplerNestedData(),
@@ -1086,6 +1115,29 @@ describe('NestedRows', () => {
     rowHeaders = $('.ht_clone_left').find('span.rowHeader').toArray().map(element => $(element).text());
 
     expect(rowHeaders).toEqual(['A', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S']);
+  });
+
+  it('should not throw an error while inserting new row in specific case', () => {
+    const spy = spyOn(console, 'error');
+
+    handsontable({
+      data: getSimplerNestedData(),
+      nestedRows: true,
+      rowHeaders: true,
+      contextMenu: true,
+    });
+
+    selectCell(1, 0);
+    contextMenu();
+
+    $('.htContextMenu .ht_master .htCore')
+      .find('tbody td')
+      .not('.htSeparator')
+      .eq(2) // Insert row above
+      .simulate('mousedown')
+      .simulate('mouseup');
+
+    expect(spy).not.toHaveBeenCalled();
   });
 
   describe('should work properly when some alters have been performed', () => {

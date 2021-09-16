@@ -24,9 +24,9 @@ describe('Formulas general', () => {
       const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
       hfInstance1.addSheet('Test Sheet');
-      hfInstance1.setSheetContent('Test Sheet', [[1, 2, 3], [4, 5, 6]]);
+      hfInstance1.setSheetContent(hfInstance1.getSheetId('Test Sheet'), [[1, 2, 3], [4, 5, 6]]);
       hfInstance1.addSheet('Test Sheet 2');
-      hfInstance1.setSheetContent('Test Sheet 2', [[12, 22, 32], [42, 52, 62]]);
+      hfInstance1.setSheetContent(hfInstance1.getSheetId('Test Sheet 2'), [[12, 22, 32], [42, 52, 62]]);
 
       handsontable({
         data: [['foo']],
@@ -54,9 +54,9 @@ describe('Formulas general', () => {
       const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
       hfInstance1.addSheet('Test Sheet');
-      hfInstance1.setSheetContent('Test Sheet', [[1, 2, 3], [4, 5, 6]]);
+      hfInstance1.setSheetContent(hfInstance1.getSheetId('Test Sheet'), [[1, 2, 3], [4, 5, 6]]);
       hfInstance1.addSheet('Test Sheet 2');
-      hfInstance1.setSheetContent('Test Sheet 2', [[12, 22, 32], [42, 52, 62]]);
+      hfInstance1.setSheetContent(hfInstance1.getSheetId('Test Sheet 2'), [[12, 22, 32], [42, 52, 62]]);
 
       handsontable({
         data: [['foo']],
@@ -80,7 +80,7 @@ describe('Formulas general', () => {
       const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
       hfInstance1.addSheet('Test Sheet');
-      hfInstance1.setSheetContent('Test Sheet', [[1, 2, 3], [4, 5, 6]]);
+      hfInstance1.setSheetContent(hfInstance1.getSheetId('Test Sheet'), [[1, 2, 3], [4, 5, 6]]);
 
       handsontable({
         data: [['foo']],
