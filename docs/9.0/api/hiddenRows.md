@@ -12,8 +12,8 @@ editLink: false
 
 ## Description
 
-Plugin allows to hide certain rows. The hiding is achieved by rendering the rows with height set as 0px.
-The plugin not modifies the source data and do not participate in data transformation (the shape of data returned
+Plugin allows to hide certain rows. Hidden rows are not rendered as DOM elements.
+The plugin doesn't modify the source data and doesn't participate in data transformation (the shape of data returned
 by `getData*` methods stays intact).
 
 Possible plugin settings:

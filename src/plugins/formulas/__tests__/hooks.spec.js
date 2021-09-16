@@ -99,7 +99,7 @@ describe('Formulas general', () => {
           licenseKey: 'non-commercial-and-evaluation'
         });
 
-        spec().hfInstance.removeSheet('Test Sheet');
+        spec().hfInstance.removeSheet(0);
 
         expect(afterSheetRemoved.calls.count()).toEqual(1);
         expect(afterSheetRemoved.calls.mostRecent().args[0]).toEqual('Test Sheet');
