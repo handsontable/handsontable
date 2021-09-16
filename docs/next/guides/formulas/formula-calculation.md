@@ -285,7 +285,6 @@ or
     engine: {
       hyperformula: HyperFormula, // or `engine: hyperformulaInstance`
       leapYear1900: false,
-      binarySearchThreshold: 15,
       // ...and more engine configuration options.
       // See https://handsontable.github.io/hyperformula/api/interfaces/configparams.html#number
     },
