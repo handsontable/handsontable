@@ -1222,6 +1222,46 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(1)).toEqual([2012, '=SUM(A1:A2)', 12, '=SUM(E5)']);
     });
 
+    it('should cooperate properly while doing cell used by some formula empty', () => {
+      handsontable({
+        data: [
+          [5, '=A1+1', '=B1+1'],
+        ],
+        contextMenu: true,
+        colHeaders: true,
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      setDataAtCell(0, 0, null);
+
+      expect(getSourceData()).toEqual([
+        [null, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [null, 1, 2],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [5, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [5, 6, 7],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        [null, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [null, 1, 2],
+      ]);
+    });
+
     it('should cooperate properly with `setDataAtCell` action for multiple cells', () => {
       handsontable({
         data: [
