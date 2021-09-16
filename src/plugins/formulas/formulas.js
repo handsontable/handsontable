@@ -142,7 +142,11 @@ export class Formulas extends BasePlugin {
 
     // Useful for disabling -> enabling the plugin using `updateSettings` or the API.
     if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
-      this.sheetName = this.addSheet(this.sheetName, this.hot.getSourceDataArray());
+      const newSheetName = this.addSheet(this.sheetName, this.hot.getSourceDataArray());
+
+      if (newSheetName !== false) {
+        this.sheetName = newSheetName;
+      }
     }
 
     this.addHook('beforeLoadData', (...args) => this.onBeforeLoadData(...args));
@@ -167,12 +171,14 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
-    this.addHook('beforeAutofill', (...args) => this.onBeforeAutofill(...args));
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', () => this.engine.undo());
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeRedo', () => this.engine.redo());
+
     this.addHook('afterDetachChild', (...args) => this.onAfterDetachChild(...args));
+
+    this.addHook('beforeAutofill', (...args) => this.onBeforeAutofill(...args));
 
     this.#engineListeners.forEach(([eventName, listener]) => this.engine.on(eventName, listener));
 
@@ -184,7 +190,10 @@ export class Formulas extends BasePlugin {
    */
   disablePlugin() {
     this.#engineListeners.forEach(([eventName, listener]) => this.engine.off(eventName, listener));
+
     unregisterEngine(this.engine, this.hot);
+
+    this.engine = null;
 
     super.disablePlugin();
   }
@@ -230,7 +239,10 @@ export class Formulas extends BasePlugin {
   destroy() {
     this.#engineListeners.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
     this.#engineListeners = null;
+
     unregisterEngine(this.engine, this.hot);
+
+    this.engine = null;
 
     super.destroy();
   }
@@ -324,7 +336,7 @@ export class Formulas extends BasePlugin {
       const actualSheetName = this.engine.addSheet(sheetName ?? void 0);
 
       if (sheetData) {
-        this.engine.setSheetContent(actualSheetName, sheetData);
+        this.engine.setSheetContent(this.engine.getSheetId(actualSheetName), sheetData);
       }
 
       return actualSheetName;
@@ -364,14 +376,23 @@ export class Formulas extends BasePlugin {
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @param {number} [sheet] The target sheet id, defaults to the current sheet.
-   * @returns {string} Possible values: 'FORMULA' | 'VALUE' | 'MATRIX' | 'EMPTY'.
+   * @returns {string} Possible values: 'FORMULA' | 'VALUE' | 'ARRAYFORMULA' | 'EMPTY'.
    */
   getCellType(row, column, sheet = this.sheetId) {
-    return this.engine.getCellType({
-      sheet,
-      row: this.hot.toPhysicalRow(row),
-      col: this.hot.toPhysicalColumn(column)
-    });
+    const physicalRow = this.hot.toPhysicalRow(row);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
+
+    if (physicalRow !== null && physicalColumn !== null) {
+      return this.engine.getCellType({
+        sheet,
+        row: physicalRow,
+        col: physicalColumn
+      });
+
+    } else {
+      // Should return `EMPTY` when out of bounds (according to the test cases).
+      return 'EMPTY';
+    }
   }
 
   /**
@@ -383,9 +404,18 @@ export class Formulas extends BasePlugin {
    * @returns {boolean}
    */
   isFormulaCellType(row, column, sheet = this.sheetId) {
-    const cellType = this.getCellType(row, column, sheet);
+    const physicalRow = this.hot.toPhysicalRow(row);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
 
-    return cellType === 'FORMULA' || cellType === 'MATRIX';
+    if (physicalRow === null || physicalColumn === null) {
+      return false;
+    }
+
+    return this.engine.doesCellHaveFormula({
+      sheet,
+      row: physicalRow,
+      col: physicalColumn
+    });
   }
 
   /**
@@ -524,6 +554,38 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * `onBeforeAutofill` hook callback.
+   *
+   * @private
+   * @param {Array[]} fillData The data that was used to fill the `targetRange`. If `beforeAutofill` was used
+   * and returned `[[]]`, this will be the same object that was returned from `beforeAutofill`.
+   * @param {CellRange} sourceRange The range values will be filled from.
+   * @param {CellRange} targetRange The range new values will be filled into.
+   * @returns {boolean|*}
+   */
+  onBeforeAutofill(fillData, sourceRange, targetRange) {
+    const withSheetId = range => ({ ...range, sheet: this.sheetId });
+
+    const engineSourceRange = {
+      start: withSheetId(sourceRange.getTopLeftCorner()),
+      end: withSheetId(sourceRange.getBottomRightCorner())
+    };
+
+    const engineTargetRange = {
+      start: withSheetId(targetRange.getTopLeftCorner()),
+      end: withSheetId(targetRange.getBottomRightCorner())
+    };
+
+    // Blocks the autofill operation if HyperFormula says that at least one of
+    // the underlying cell's contents cannot be set.
+    if (this.engine.isItPossibleToSetCellContents(engineTargetRange) === false) {
+      return false;
+    }
+
+    return this.engine.getFillRangeData(engineSourceRange, engineTargetRange);
+  }
+
+  /**
    * `beforeLoadData` hook callback.
    *
    * @param {Array} sourceData Array of arrays or array of objects containing data.
@@ -594,15 +656,21 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    // `column` is here as visual index because of inconsistencies related to hook execution in `DataMap`.
-    const isFormulaCellType = this.isFormulaCellType(this.hot.toVisualRow(row), column);
+    const visualRow = this.hot.toVisualRow(row);
+
+    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
+    const isFormulaCellType = this.isFormulaCellType(visualRow, column);
 
     if (!isFormulaCellType) {
-      if (isEscapedFormulaExpression(valueHolder.value)) {
-        valueHolder.value = unescapeFormulaExpression(valueHolder.value);
-      }
+      const cellType = this.getCellType(visualRow, column);
 
-      return;
+      if (cellType !== 'ARRAY') {
+        if (isEscapedFormulaExpression(valueHolder.value)) {
+          valueHolder.value = unescapeFormulaExpression(valueHolder.value);
+        }
+
+        return;
+      }
     }
 
     // `toPhysicalColumn` is here because of inconsistencies related to hook execution in `DataMap`.
@@ -639,13 +707,18 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    const visualRow = this.hot.toVisualRow(row);
     const visualColumn = this.hot.propToCol(columnOrProp);
 
-    // `column` is here as visual index because of inconsistencies related to hook execution in `DataMap`.
-    const isFormulaCellType = this.isFormulaCellType(this.hot.toVisualRow(row), visualColumn);
+    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
+    const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
 
     if (!isFormulaCellType) {
-      return;
+      const cellType = this.getCellType(visualRow, visualColumn);
+
+      if (cellType !== 'ARRAY') {
+        return;
+      }
     }
 
     const dimensions = this.engine.getSheetDimensions(this.engine.getSheetId(this.sheetName));
@@ -725,46 +798,6 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * `onBeforeAutofill` hook callback.
-   *
-   * @private
-   * @param {Array[]} fillData The data that was used to fill the `targetRange`. If `beforeAutofill` was used
-   * and returned `[[]]`, this will be the same object that was returned from `beforeAutofill`.
-   * @param {CellRange} sourceRange The range values will be filled from.
-   * @param {CellRange} targetRange The range new values will be filled into.
-   * @returns {boolean|*}
-   */
-  onBeforeAutofill(fillData, sourceRange, targetRange) {
-    const sourceLeftCorner = { ...sourceRange.from, sheet: this.sheetId };
-    const sourceWidth = sourceRange.getWidth();
-    const sourceHeight = sourceRange.getHeight();
-    const targetLeftCorner = { ...targetRange.from, sheet: this.sheetId };
-    const targetWidth = targetRange.getWidth();
-    const targetHeight = targetRange.getHeight();
-
-    // Blocks the autofill operation if at least one of the underlying's cell
-    // contents cannot be set, e.g. if there's a matrix underneath.
-    if (this.engine.isItPossibleToSetCellContents(targetLeftCorner, targetWidth, targetHeight) === false) {
-      return false;
-    }
-
-    const sourceEnd = {
-      row: sourceLeftCorner.row + sourceHeight - 1,
-      col: sourceLeftCorner.col + sourceWidth - 1,
-      sheet: sourceLeftCorner.sheet,
-    };
-    const source = { start: sourceLeftCorner, end: sourceEnd };
-    const targetEnd = {
-      row: targetLeftCorner.row + targetHeight - 1,
-      col: targetLeftCorner.col + targetWidth - 1,
-      sheet: targetLeftCorner.sheet,
-    };
-    const target = { start: targetLeftCorner, end: targetEnd };
-
-    return this.engine.getFillRangeData(source, target);
-  }
-
-  /**
    * `onAfterSetSourceDataAtCell` hook callback.
    *
    * @private
@@ -810,7 +843,11 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeCreateRow(row, amount) {
-    if (!this.engine.isItPossibleToAddRows(this.sheetId, [this.toPhysicalRowPosition(row), amount])) {
+    if (
+      this.sheetId === null ||
+      !this.engine.doesSheetExist(this.sheetName) ||
+      !this.engine.isItPossibleToAddRows(this.sheetId, [this.toPhysicalRowPosition(row), amount])
+    ) {
       return false;
     }
   }
@@ -824,7 +861,11 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeCreateCol(col, amount) {
-    if (!this.engine.isItPossibleToAddColumns(this.sheetId, [this.toPhysicalColumnPosition(col), amount])) {
+    if (
+      this.sheetId === null ||
+      !this.engine.doesSheetExist(this.sheetName) ||
+      !this.engine.isItPossibleToAddColumns(this.sheetId, [this.toPhysicalColumnPosition(col), amount])
+    ) {
       return false;
     }
   }

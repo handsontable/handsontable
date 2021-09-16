@@ -559,7 +559,6 @@ describe('AutoFill', () => {
     };
 
     const direction = 'down';
-    const hasFillDataChanged = false;
 
     expect(afterAutofill).toHaveBeenCalledWith(
       fillData,
@@ -574,7 +573,6 @@ describe('AutoFill', () => {
         new CellCoords(targetRange.to.row, targetRange.to.col),
       ),
       direction,
-      hasFillDataChanged,
     );
   });
 
@@ -633,7 +631,6 @@ describe('AutoFill', () => {
     };
 
     const direction = 'down';
-    const hasFillDataChanged = true;
 
     expect(afterAutofill).toHaveBeenCalledWith(
       fillData,
@@ -648,7 +645,6 @@ describe('AutoFill', () => {
         new CellCoords(targetRange.to.row, targetRange.to.col),
       ),
       direction,
-      hasFillDataChanged,
     );
   });
 
@@ -1553,7 +1549,7 @@ describe('AutoFill', () => {
   });
 
   describe('should works properly when two or more instances of Handsontable was initialized with ' +
-           'other settings (#3257)', () => {
+    'other settings (#3257)', () => {
     let getData;
     let $container1;
     let $container2;
