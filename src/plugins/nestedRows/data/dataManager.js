@@ -483,7 +483,7 @@ class DataManager {
    */
   addChildAtIndex(parent, index, element) {
     let childElement = element;
-    let flattenIndex;
+    let flattenedIndex;
 
     if (!childElement) {
       childElement = this.mockNode();
@@ -516,18 +516,18 @@ class DataManager {
 
       this.hot.runHooks('afterCreateRow', finalChildIndex, 1);
 
-      flattenIndex = finalChildIndex;
+      flattenedIndex = finalChildIndex;
 
     } else {
       this.plugin.disableCoreAPIModifiers();
       this.hot.alter('insert_row', index, 1, 'NestedRows.addChildAtIndex');
       this.plugin.enableCoreAPIModifiers();
 
-      flattenIndex = this.getRowIndex(this.data[index]);
+      flattenedIndex = this.getRowIndex(this.data[index]);
     }
 
     // Workaround for refreshing cache losing the reference to the mocked row.
-    childElement = this.getDataObject(flattenIndex);
+    childElement = this.getDataObject(flattenedIndex);
 
     this.hot.runHooks('afterAddChild', parent, childElement, index);
   }
