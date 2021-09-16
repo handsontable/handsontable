@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue of not resetting the date picker's configuration",
+  "type": "fixed",
+  "issue": 6636,
+  "breaking": false,
+  "framework": "none"
+}
