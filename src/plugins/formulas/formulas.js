@@ -31,6 +31,10 @@ Hooks.getSingleton().register('afterSheetRemoved');
 Hooks.getSingleton().register('afterSheetRenamed');
 Hooks.getSingleton().register('afterFormulasValuesUpdate');
 
+// This function will be used for detecting changes coming from the `UndoRedo` plugin. This kind of change won't be
+// handled by whole body of listeners and therefore won't change undo/redo stack inside engine provided by HyperFormula.
+// HyperFormula's `undo` and `redo` methods will do it instead. Please keep in mind that undo/redo stacks inside
+// instances of Handsontable and HyperFormula should be synced (number of actions should be the same).
 const isBlockedSource = source => source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
 
 /**
