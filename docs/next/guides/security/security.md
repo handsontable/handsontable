@@ -54,6 +54,8 @@ We hold a Security Certificate for a Security Audit carried out on November 30, 
 
 The security tests were carried out in accordance with industry-standard methodologies, including OWASP TOP10 and OWASP ASVS.
 
+Download the Security Certificate [here](https://github.com/handsontable/handsontable/files/6967577/Security_certificate.pdf).
+
 ## Code auditing
 
 We use [Snyk](https://snyk.io/test/github/handsontable/handsontable?targetFile=package.json) to audit our code. Snyk integrates seamlessly into development workflows, checking for vulnerabilities in our source code and any dependencies, including open source.  
