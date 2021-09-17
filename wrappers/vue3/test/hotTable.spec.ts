@@ -705,8 +705,6 @@ describe('Non-HOT based CRUD actions', () => {
           this.data.pop();
           this.data[0].pop();
           this.data[0].pop();
-          this.data[0].push('test2', 'test2');
-
         }
       }
     });
@@ -716,12 +714,13 @@ describe('Non-HOT based CRUD actions', () => {
     debugger; // next breakpoint will be reach in computed - what is correct 
     await testWrapper.rootVM.$nextTick();
 
+    // todo temporary added lines:
     testWrapper.componentVM.add();
     debugger; // next break point should be catched in computed - what never happens - it is incorrect.
     await testWrapper.rootVM.$nextTick();
     debugger
-
     //
+    
     // expect(hotInstance.countRows()).toEqual(6);
     // expect(hotInstance.countSourceRows()).toEqual(6);
     // expect(hotInstance.countCols()).toEqual(6);
