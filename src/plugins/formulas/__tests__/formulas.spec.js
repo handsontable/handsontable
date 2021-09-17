@@ -1222,7 +1222,7 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(1)).toEqual([2012, '=SUM(A1:A2)', 12, '=SUM(E5)']);
     });
 
-    it('should cooperate properly while doing cell used by some formula empty', () => {
+    it('should work properly while doing cell used by some formula empty', () => {
       handsontable({
         data: [
           [5, '=A1+1', '=B1+1'],
@@ -1299,6 +1299,65 @@ describe('Formulas general', () => {
       ]);
 
       undo();
+
+      expect(getSourceData()).toEqual([
+        [0, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [0, 1, 2],
+      ]);
+    });
+
+    it('should show proper values when doing undo/redo after changing sheet size', () => {
+      handsontable({
+        data: [
+          [0, '=A1+1', '=B1+1'],
+        ],
+        contextMenu: true,
+        colHeaders: true,
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      alter('insert_col', 0);
+      alter('remove_col', 0);
+
+      expect(getSourceData()).toEqual([
+        [0, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [0, 1, 2],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [null, 0, '=B1+1', '=C1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [null, 0, 1, 2],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [0, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [0, 1, 2],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        [null, 0, '=B1+1', '=C1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [null, 0, 1, 2],
+      ]);
+
+      redo();
 
       expect(getSourceData()).toEqual([
         [0, '=A1+1', '=B1+1'],

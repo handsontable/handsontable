@@ -226,7 +226,6 @@ UndoRedo.prototype.undo = function() {
     this.instance.runHooks('beforeUndoStackChange', doneActionsCopy);
 
     const action = this.doneActions.pop();
-    console.log(doneActionsCopy, action);
 
     this.instance.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
 
