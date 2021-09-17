@@ -226,6 +226,7 @@ UndoRedo.prototype.undo = function() {
     this.instance.runHooks('beforeUndoStackChange', doneActionsCopy);
 
     const action = this.doneActions.pop();
+    console.log(doneActionsCopy, action);
 
     this.instance.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
 
@@ -607,7 +608,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     });
   });
 
-  instance.setSourceDataAtCell(changes);
+  instance.setSourceDataAtCell(changes, void 0, void 0, 'UndoRedo.undo');
   instance.columnIndexMapper.insertIndexes(ascendingIndexes[0], ascendingIndexes.length);
 
   if (typeof this.headers !== 'undefined') {

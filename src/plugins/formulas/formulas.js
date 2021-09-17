@@ -802,8 +802,14 @@ export class Formulas extends BasePlugin {
    *
    * @private
    * @param {Array[]} changes An array of changes in format [[row, column, oldValue, value], ...].
+   * @param {string} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
-  onAfterSetSourceDataAtCell(changes) {
+  onAfterSetSourceDataAtCell(changes, source) {
+    if (isBlockedSource(source)) {
+      return;
+    }
+
     const dependentCells = [];
     const changedCells = [];
 
