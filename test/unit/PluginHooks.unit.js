@@ -202,9 +202,9 @@ describe('PluginHooks', () => {
 
     expect(result).toBe('Bar');
     expect(hooks.remove).toHaveBeenCalledWith('test', fn1, context);
-    expect(fn1).toHaveBeenCalledWith(1, 2, 'AB', void 0, void 0, void 0);
-    expect(fn2).toHaveBeenCalledWith('Foo', 2, 'AB', void 0, void 0, void 0);
-    expect(fn3).toHaveBeenCalledWith(1, 2, 'AB', void 0, void 0, void 0);
+    expect(fn1).toHaveBeenCalledWith(1, 2, 'AB');
+    expect(fn2).toHaveBeenCalledWith('Foo', 2, 'AB');
+    expect(fn3).toHaveBeenCalledWith(1, 2, 'AB');
   });
 
   it('should run hooks added as once', () => {

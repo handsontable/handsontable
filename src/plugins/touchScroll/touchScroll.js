@@ -68,7 +68,7 @@ export class TouchScroll extends BasePlugin {
       return;
     }
 
-    this.addHook('afterRender', () => this.onAfterRender());
+    this.addHook('afterViewRender', () => this.onAfterViewRender());
     this.registerEvents();
 
     super.enablePlugin();
@@ -101,11 +101,11 @@ export class TouchScroll extends BasePlugin {
   }
 
   /**
-   * After render listener.
+   * After view render listener.
    *
    * @private
    */
-  onAfterRender() {
+  onAfterViewRender() {
     if (this.lockedCollection) {
       return;
     }

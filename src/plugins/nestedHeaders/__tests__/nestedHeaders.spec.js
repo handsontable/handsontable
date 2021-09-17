@@ -584,6 +584,8 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="">BL1</th>
             <th class="" colspan="8">BM1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
           </tr>
           <tr>
             <th class="" colspan="4">T2</th>
@@ -632,6 +634,8 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="">BL2</th>
             <th class="" colspan="4">BM2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
           </tr>
           <tr>
             <th class="" colspan="2">T3</th>
@@ -680,6 +684,8 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="">BL3</th>
             <th class="" colspan="2">BM3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">BO3</th>
           </tr>
           <tr>
             <th class="">T4</th>
@@ -728,6 +734,8 @@ describe('NestedHeaders', () => {
             <th class="">BK4</th>
             <th class="">BL4</th>
             <th class="">BM4</th>
+            <th class="">BN4</th>
+            <th class="">BO4</th>
           </tr>
         </thead>
         <tbody>
@@ -778,6 +786,8 @@ describe('NestedHeaders', () => {
             <td class="">BK1</td>
             <td class="">BL1</td>
             <td class="">BM1</td>
+            <td class="">BN1</td>
+            <td class="">BO1</td>
           </tr>
         </tbody>
         `);
@@ -808,6 +818,31 @@ describe('NestedHeaders', () => {
       expect(afterOnCellMouseDown.calls.argsFor(0)[0]).toBeInstanceOf(MouseEvent);
       expect(afterOnCellMouseDown.calls.argsFor(0)[1]).toEqual(jasmine.objectContaining({ row: -4, col: -1 }));
       expect(afterOnCellMouseDown.calls.argsFor(0)[2]).toBe(corner);
+    });
+  });
+
+  describe('cooperation with drop-down menu element', () => {
+    it('should close drop-down menu after click on header which sorts a column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 11),
+        colHeaders: true,
+        rowHeaders: true,
+        columnSorting: true,
+        dropdownMenu: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+        ],
+      });
+
+      const $firstHeader = spec().$container.find('.ht_master table.htCore thead th span.columnSorting');
+
+      dropdownMenu(0);
+
+      $firstHeader.simulate('mousedown');
+      $firstHeader.simulate('mouseup');
+      $firstHeader.simulate('click');
+
+      expect(getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
     });
   });
 });

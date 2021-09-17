@@ -121,7 +121,7 @@ export class Search extends BasePlugin {
     const beforeRendererCallback = (...args) => this.onBeforeRenderer(...args);
 
     this.hot.addHook('beforeRenderer', beforeRendererCallback);
-    this.hot.addHookOnce('afterRender', () => {
+    this.hot.addHookOnce('afterViewRender', () => {
       this.hot.removeHook('beforeRenderer', beforeRendererCallback);
     });
 

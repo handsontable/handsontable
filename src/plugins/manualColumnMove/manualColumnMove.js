@@ -115,10 +115,8 @@ export class ManualColumnMove extends BasePlugin {
       return;
     }
 
-    this.addHook('beforeOnCellMouseDown',
-      (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
-    this.addHook('beforeOnCellMouseOver',
-      (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
+    this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
+    this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('afterScrollVertically', () => this.onAfterScrollVertically());
     this.addHook('afterLoadData', () => this.onAfterLoadData());
 
@@ -521,9 +519,10 @@ export class ManualColumnMove extends BasePlugin {
    * @param {MouseEvent} event `mousedown` event properties.
    * @param {CellCoords} coords Visual cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
-   * @param {object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
+  onBeforeOnCellMouseDown(event, coords, TD, controller) {
     const wtTable = this.hot.view.wt.wtTable;
     const isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
     const selection = this.hot.getSelectedRangeLast();
@@ -552,7 +551,7 @@ export class ManualColumnMove extends BasePlugin {
     const end = Math.max(from.col, to.col);
 
     if (coords.row < 0 && (coords.col >= start && coords.col <= end)) {
-      blockCalculations.column = true;
+      controller.column = true;
       priv.pressed = true;
       priv.target.eventPageX = event.pageX;
       priv.coords = coords.col;
@@ -621,9 +620,10 @@ export class ManualColumnMove extends BasePlugin {
    * @param {MouseEvent} event `mouseover` event properties.
    * @param {CellCoords} coords Visual cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
-   * @param {object} blockCalculations Object which contains information about blockCalculation for column, column or cells.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
+  onBeforeOnCellMouseOver(event, coords, TD, controller) {
     const selectedRange = this.hot.getSelectedRangeLast();
     const priv = privatePool.get(this);
 
@@ -638,9 +638,9 @@ export class ManualColumnMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_SHOW_UI);
     }
 
-    blockCalculations.row = true;
-    blockCalculations.column = true;
-    blockCalculations.cell = true;
+    controller.row = true;
+    controller.column = true;
+    controller.cell = true;
     priv.coords = coords.col;
     priv.target.TD = TD;
   }

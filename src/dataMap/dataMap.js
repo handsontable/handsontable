@@ -1,8 +1,8 @@
-import { stringify } from './3rdparty/SheetClip';
+import { stringify } from '../3rdparty/SheetClip';
 import {
   cellMethodLookupFactory,
   countFirstRowKeys
-} from './helpers/data';
+} from '../helpers/data';
 import {
   createObjectPropListener,
   deepClone,
@@ -12,10 +12,10 @@ import {
   hasOwnProperty,
   isObject,
   objectEach
-} from './helpers/object';
-import { extendArray, to2dArray } from './helpers/array';
-import { rangeEach } from './helpers/number';
-import { isDefined } from './helpers/mixed';
+} from '../helpers/object';
+import { extendArray, to2dArray } from '../helpers/array';
+import { rangeEach } from '../helpers/number';
+import { isDefined } from '../helpers/mixed';
 
 const copyableLookup = cellMethodLookupFactory('copyable', false);
 
@@ -428,15 +428,10 @@ class DataMap {
       return false;
     }
 
-    const data = this.dataSource;
     // List of removed indexes might be changed in the `beforeRemoveRow` hook. There may be new values.
     const numberOfRemovedIndexes = removedPhysicalIndexes.length;
-    const newData = this.filterData(rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes);
 
-    if (newData) {
-      data.length = 0;
-      Array.prototype.push.apply(data, newData);
-    }
+    this.filterData(rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes);
 
     // TODO: Function `removeRow` should validate fully, probably above.
     if (rowIndex < this.instance.countRows()) {
@@ -597,16 +592,18 @@ class DataMap {
    * @param {number} index Visual index of the element to remove.
    * @param {number} amount Number of rows to add/remove.
    * @param {number} physicalRows Physical row indexes.
-   * @returns {Array}
    */
   filterData(index, amount, physicalRows) {
-    const continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, physicalRows);
+    // Custom data filtering (run as a consequence of calling the below hook) provide an array containing new data.
+    let data = this.instance.runHooks('filterData', index, amount, physicalRows);
 
-    if (continueSplicing !== false) {
-      const newData = this.dataSource.filter((row, rowIndex) => physicalRows.indexOf(rowIndex) === -1);
-
-      return newData;
+    // Hooks by default returns first argument (when there is no callback changing execution result).
+    if (Array.isArray(data) === false) {
+      data = this.dataSource.filter((row, rowIndex) => physicalRows.indexOf(rowIndex) === -1);
     }
+
+    this.dataSource.length = 0;
+    Array.prototype.push.apply(this.dataSource, data);
   }
 
   /**

@@ -691,7 +691,7 @@ describe('TextEditor', () => {
 
   it('should render undefined in textarea', () => {
     handsontable();
-    setDataAtCell(2, 2, void 0);
+    setDataAtCell(2, 2);
     selectCell(2, 2);
 
     keyDown('enter');
@@ -1705,7 +1705,7 @@ describe('TextEditor', () => {
       .toBeLessThan(hot.view.wt.wtTable.holder.clientWidth);
   });
 
-  it('should resize editor to properly size after focus', (done) => {
+  it('should resize editor to properly size after focus', async() => {
     const data = [
       ['', '', '', '', '', '', '', '', '', '', ''],
       ['', '', '', '', '', '', '', '', '', '', ''],
@@ -1732,10 +1732,9 @@ describe('TextEditor', () => {
 
     const $editorInput = $('.handsontableInput');
 
-    setTimeout(() => {
-      expect([105, 119]).toEqual(jasmine.arrayContaining([$editorInput.height()]));
-      done();
-    }, 150);
+    await sleep(150);
+
+    expect($editorInput.height()).toBe(84);
   });
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality.
@@ -1881,7 +1880,7 @@ describe('TextEditor', () => {
 
       await sleep(100);
 
-      expect($(textarea).width()).toBe(175);
+      expect($(textarea).width()).toBe(143);
       expect($(textarea).height()).toBe(23);
     });
   });

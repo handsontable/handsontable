@@ -412,8 +412,6 @@ describe('AutoFill', () => {
           new CellCoords(targetRange.to.row, targetRange.to.col),
         ),
         direction,
-        undefined,
-        undefined
       );
     });
 
@@ -577,7 +575,6 @@ describe('AutoFill', () => {
       ),
       direction,
       hasFillDataChanged,
-      undefined
     );
   });
 
@@ -652,7 +649,6 @@ describe('AutoFill', () => {
       ),
       direction,
       hasFillDataChanged,
-      undefined
     );
   });
 
