@@ -2705,17 +2705,26 @@ export default () => {
 
     /**
      * @description
-     * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
+     * The `ColumnSummary` plugin lets you [easily summarize your columns](@/guides/columns/column-summary.md).
      *
-     * Possible types:
-     *  * `'sum'`
-     *  * `'min'`
-     *  * `'max'`
-     *  * `'count'`
-     *  * `'average'`
-     *  * `'custom'` - add `customFunction`.
+     * You can use the [built-in summary functions](@/guides/columns/column-summary.md#built-in-summary-functions),
+     * or implement a [custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function).
      *
-     * [See the demo for more information](@/guides/columns/column-summary.md).
+     * For each column summary, you can set the following configuration options:
+     *
+     * | Option | Required | Type | Default | Description |
+     * |---|---|---|---|---|
+     * | `sourceColumn` | No | Number | Same as `destinationColumn` | [Selects a column to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+     * | `ranges` | No | Array | - | [Selects ranges of rows to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+     * | `type` | Yes | String | - | [Sets a summary function](@/guides/columns/column-summary.md#step-3-calculate-your-summary) |
+     * | `destinationRow` | Yes | Number | - | [Sets the destination cell's row coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+     * | `destinationColumn` | Yes | Number | - | [Sets the destination cell's column coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+     * | `forceNumeric` | No | Boolean | `false` | [Forces the summary to treat non-numerics as numerics](@/guides/columns/column-summary.md#forcing-numeric-values) |
+     * | `reversedRowCoords` | No | Boolean | `false` | [Reverses row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell) |
+     * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary.md#throwing-data-type-errors) |
+     * | `readOnly` | No | Boolean | `true` | Makes summary cell read-only |
+     * | `roundFloat` | No | Number | - | [Rounds summary result](@/guides/columns/column-summary.md#rounding-a-column-summary-result) |
+     * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function) |
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -2726,6 +2735,11 @@ export default () => {
      * ```js
      * columnSummary: [
      *   {
+     *     sourceColumn: 0,
+     *     ranges: [
+     *       [0, 2], [4], [6, 8]
+     *     ],
+     *     type: 'custom',
      *     destinationRow: 4,
      *     destinationColumn: 1,
      *     forceNumeric: true,
@@ -2733,8 +2747,7 @@ export default () => {
      *     suppressDataTypeErrors: false,
      *     readOnly: true,
      *     roundFloat: false,
-     *     type: 'custom',
-     *     customFunction: function(endpoint) {
+     *     customFunction(endpoint) {
      *        return 100;
      *     }
      *   }
