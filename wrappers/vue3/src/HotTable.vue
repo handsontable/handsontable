@@ -97,6 +97,7 @@
     },
     computed: {
       mergedHotSettings(): Handsontable.GridSettings {
+        debugger; // should be catch each time when props changed.
         return prepareSettings(this.$props, this.hotInstance ? this.hotInstance.getSettings() : void 0);
       }
     },

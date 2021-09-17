@@ -183,7 +183,7 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
       newSettings[key] = additionalHotSettingsInProps[key];
     }
   }
-
+ debugger;
   return newSettings;
 }
 
