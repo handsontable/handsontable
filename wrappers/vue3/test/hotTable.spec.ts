@@ -197,28 +197,21 @@ describe('Updating the Handsontable settings', () => {
 
     await testWrapper.rootVM.$nextTick();
 
-    expect(testWrapper.componentVM.$refs.grid.hotInstance.getData()).toEqual([[1, 2, 3],
-      [null,null,null], //  todo         this.data.pop(); which is a vue3 proxy do not remove this element, instead it put array of nulls.
-    ]);
+    expect(testWrapper.componentVM.$refs.grid.hotInstance.getData()).toEqual([[1, 2, 3]]);
     expect(newHotSettings).toBe(null);
 
     testWrapper.componentVM.modifyFirstRow();
 
     await testWrapper.rootVM.$nextTick();
 
-    expect(testWrapper.componentVM.$refs.grid.hotInstance.getData()).toEqual([[22, 32, 42],
-      [null,null,null], //  todo         this.data.pop(); which is a vue3 proxy do not remove this element, instead it put array of nulls.
-    ]);
+    expect(testWrapper.componentVM.$refs.grid.hotInstance.getData()).toEqual([[22, 32, 42]]);
     expect(newHotSettings).toBe(null);
 
     testWrapper.componentVM.removeRow();
 
     await testWrapper.rootVM.$nextTick();
 
-    expect(testWrapper.componentVM.$refs.grid.hotInstance.getData()).toEqual([
-      [null,null,null], //  todo         this.data.pop(); which is a vue3 proxy do not remove this element, instead it put array of nulls.
-      [null,null,null], //  todo         this.data.pop(); which is a vue3 proxy do not remove this element, instead it put array of nulls.
-    ]);
+    expect(testWrapper.componentVM.$refs.grid.hotInstance.getData()).toEqual([]);
     expect(newHotSettings).toBe(null);
   });
 
@@ -267,9 +260,7 @@ describe('Updating the Handsontable settings', () => {
 
     await testWrapper.rootVM.$nextTick();
 
-    expect(testWrapper.componentVM.$refs.grid.hotInstance.getData()).toEqual([[1,
-      null,null,null], //  todo         this.data.pop(); which is a vue3 proxy do not remove this element, instead it put array of nulls.
-      ]);
+    expect(testWrapper.componentVM.$refs.grid.hotInstance.getData()).toEqual([[1]]);
     expect(JSON.stringify(newHotSettings)).toBe(JSON.stringify({
       data: [{a: 1}]
     }));
@@ -321,9 +312,7 @@ describe('Updating the Handsontable settings', () => {
 
     await testWrapper.rootVM.$nextTick();
 
-    expect(testWrapper.componentVM.$refs.grid.hotInstance.getData()).toEqual([[1, 2, 3], 
-        [null, null, null] // todo I don't know why this array of nulls is here. I tested this on codesandbox, and I didn't find same behavior.  
-    ]);
+    expect(testWrapper.componentVM.$refs.grid.hotInstance.getData()).toEqual([[1, 2, 3]]);
     expect(newHotSettings).toBe(null);
   });
 });
