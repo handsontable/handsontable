@@ -3,6 +3,7 @@ import { objectEach } from './helpers/object';
 import { substitute } from './helpers/string';
 import { warn } from './helpers/console';
 import { toSingleLine } from './helpers/templateLiteralTag';
+import { fastCall } from './helpers/function';
 
 /**
  * @description
@@ -419,15 +420,6 @@ const REGISTERED_HOOKS = [
   'afterRemoveRow',
 
   /**
-   * Fired after the Handsontable table is rendered.
-   *
-   * @event Hooks#afterRender
-   * @param {boolean} isForced Is `true` if rendering was triggered by a change of settings or data; or `false` if
-   *                           rendering was triggered by scrolling or moving selection.
-   */
-  'afterRender',
-
-  /**
    * Fired before starting rendering the cell.
    *
    * @event Hooks#beforeRenderer
@@ -807,8 +799,8 @@ const REGISTERED_HOOKS = [
    * @param {Event} event The `mousedown` event object.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
    * @param {HTMLTableCellElement} TD TD element.
-   * @param {object} controller An object with keys `row`, `column` and `cells` which contains boolean values. This
-   *                            object allows or disallows changing the selection for the particular axies.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   'beforeOnCellMouseDown',
 
@@ -840,8 +832,8 @@ const REGISTERED_HOOKS = [
    * @param {Event} event The `mouseover` event object.
    * @param {CellCoords} coords CellCoords object containing the visual coordinates of the clicked cell.
    * @param {HTMLTableCellElement} TD TD element.
-   * @param {object} controller An object with keys `row`, `column` and `cells` which contains boolean values. This
-   *                            object allows or disallows changing the selection for the particular axies.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   'beforeOnCellMouseOver',
 
@@ -882,14 +874,58 @@ const REGISTERED_HOOKS = [
   'beforeRemoveRow',
 
   /**
-   * Fired before the Handsontable table is rendered.
+   * Fired before Handsontable's view-rendering engine is rendered.
    *
-   * @event Hooks#beforeRender
-   * @param {boolean} isForced If `true` rendering was triggered by a change of settings or data; or `false` if
-   *                           rendering was triggered by scrolling or moving selection.
+   * __Note:__ In Handsontable 9.x and earlier, the `beforeViewRender` hook was named `beforeRender`.
+   *
+   * @event Hooks#beforeViewRender
+   * @since 10.0.0
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
    * @param {object} skipRender Object with `skipRender` property, if it is set to `true ` the next rendering cycle will be skipped.
    */
+  'beforeViewRender',
+
+  /**
+   * Fired after Handsontable's view-rendering engine is rendered,
+   * but before redrawing the selection borders and before scroll syncing.
+   *
+   * __Note:__ In Handsontable 9.x and earlier, the `afterViewRender` hook was named `afterRender`.
+   *
+   * @event Hooks#afterViewRender
+   * @since 10.0.0
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
+   */
+  'afterViewRender',
+
+  /* eslint-disable jsdoc/require-description-complete-sentence */
+  /**
+   * Fired before Handsontable's view-rendering engine updates the view.
+   *
+   * The `beforeRender` event is fired right after the Handsontable
+   * business logic is executed and right before the rendering engine starts calling
+   * the Core logic, renderers, cell meta objects etc. to update the view.
+   *
+   * @event Hooks#beforeRender
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
+   */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   'beforeRender',
+
+  /**
+   * Fired after Handsontable's view-rendering engine updates the view.
+   *
+   * @event Hooks#afterRender
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
+   */
+  'afterRender',
 
   /**
    * Fired before cell meta is changed.
@@ -1932,6 +1968,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#afterDetachChild
    * @param {object} parent An object representing the parent from which the element was detached.
    * @param {object} element The detached element.
+   * @param {number} finalElementPosition The final row index of the detached element.
    */
   'afterDetachChild',
 
@@ -2367,8 +2404,8 @@ class Hooks {
             /* eslint-disable no-continue */
             continue;
           }
-          // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-          const res = globalHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
+
+          const res = fastCall(globalHandlers[index], context, p1, p2, p3, p4, p5, p6);
 
           if (res !== void 0) {
             // eslint-disable-next-line no-param-reassign
@@ -2395,8 +2432,8 @@ class Hooks {
             /* eslint-disable no-continue */
             continue;
           }
-          // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-          const res = localHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
+
+          const res = fastCall(localHandlers[index], context, p1, p2, p3, p4, p5, p6);
 
           if (res !== void 0) {
             // eslint-disable-next-line no-param-reassign

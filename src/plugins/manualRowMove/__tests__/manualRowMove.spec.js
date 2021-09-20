@@ -258,7 +258,7 @@ describe('manualRowMove', () => {
 
           const result = hot.getPlugin('manualRowMove').moveRow(0, 1000);
 
-          expect(afterMoveRowCallback).toHaveBeenCalledWith([0], 1000, void 0, false, false, void 0);
+          expect(afterMoveRowCallback).toHaveBeenCalledWith([0], 1000, void 0, false, false);
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
           expect(result).toBeFalsy();
         });
@@ -276,7 +276,7 @@ describe('manualRowMove', () => {
 
           const result = hot.getPlugin('manualRowMove').moveRow(0, -1);
 
-          expect(afterMoveRowCallback).toHaveBeenCalledWith([0], -1, void 0, false, false, void 0);
+          expect(afterMoveRowCallback).toHaveBeenCalledWith([0], -1, void 0, false, false);
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
           expect(result).toBeFalsy();
         });
@@ -294,7 +294,7 @@ describe('manualRowMove', () => {
 
           const result = hot.getPlugin('manualRowMove').moveRow(1000, 1);
 
-          expect(afterMoveRowCallback).toHaveBeenCalledWith([1000], 1, void 0, false, false, void 0);
+          expect(afterMoveRowCallback).toHaveBeenCalledWith([1000], 1, void 0, false, false);
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
           expect(result).toBeFalsy();
         });
@@ -312,7 +312,7 @@ describe('manualRowMove', () => {
 
           const result = hot.getPlugin('manualRowMove').moveRow(-1, 1);
 
-          expect(afterMoveRowCallback).toHaveBeenCalledWith([-1], 1, void 0, false, false, void 0);
+          expect(afterMoveRowCallback).toHaveBeenCalledWith([-1], 1, void 0, false, false);
           expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
           expect(result).toBeFalsy();
         });
@@ -610,8 +610,8 @@ describe('manualRowMove', () => {
           hot.rowIndexMapper.setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
           const result = hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
 
-          expect(beforeRowMoveCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, void 0, void 0);
-          expect(afterMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, true, void 0);
+          expect(beforeRowMoveCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true);
+          expect(afterMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, true);
           expect(result).toBeTruthy();
         });
 

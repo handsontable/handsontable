@@ -338,7 +338,7 @@ describe('TrimRows', () => {
 
         getPlugin('trimRows').trimRow(2);
 
-        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([0], [0, 2], true, void 0, void 0, void 0);
+        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([0], [0, 2], true);
       });
 
       it('should fire the `beforeTrimRow` hook before hiding multiple rows by plugin API', () => {
@@ -352,7 +352,7 @@ describe('TrimRows', () => {
 
         getPlugin('trimRows').trimRows([2, 3, 4]);
 
-        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([0], [0, 2, 3, 4], true, void 0, void 0, void 0);
+        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([0], [0, 2, 3, 4], true);
       });
 
       it('should be possible to cancel the trimming action by returning `false` from the `beforeTrimRow` hook', () => {
@@ -381,7 +381,7 @@ describe('TrimRows', () => {
 
         plugin.trimRows([0, 5, 10, 15]);
 
-        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
+        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([], [], false);
         expect(plugin.isTrimmed(0)).toBeFalsy();
         expect(plugin.isTrimmed(5)).toBeFalsy();
         expect(plugin.isTrimmed(10)).toBeFalsy();
@@ -401,7 +401,7 @@ describe('TrimRows', () => {
 
         plugin.trimRows([0, 5, 1.1]);
 
-        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
+        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([], [], false);
         expect(plugin.isTrimmed(0)).toBeFalsy();
         expect(plugin.isTrimmed(5)).toBeFalsy();
       });
@@ -419,7 +419,7 @@ describe('TrimRows', () => {
 
         getPlugin('trimRows').trimRow(2);
 
-        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [2], true, true, void 0, void 0);
+        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [2], true, true);
       });
 
       it('should fire the `afterTrimRow` hook after trimming multiple rows by plugin API', () => {
@@ -433,7 +433,7 @@ describe('TrimRows', () => {
 
         getPlugin('trimRows').trimRows([2, 3, 4]);
 
-        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [2, 3, 4], true, true, void 0, void 0);
+        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [2, 3, 4], true, true);
       });
 
       it('it should NOT fire the `afterTrimRow` hook, if the `beforeTrimRow` hook returned false', () => {
@@ -464,7 +464,7 @@ describe('TrimRows', () => {
 
         plugin.trimRows([0, 5]);
 
-        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], true, false, void 0, void 0);
+        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], true, false);
       });
 
       it('should return `true` as the third and fourth parameter, if the trimming action changed the state of the trimRows plugin', () => {
@@ -480,7 +480,7 @@ describe('TrimRows', () => {
 
         plugin.trimRows([0, 5, 6]);
 
-        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5, 6], true, true, void 0, void 0);
+        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5, 6], true, true);
       });
 
       it('should not perform trimming and return `false` as the third and fourth parameter of the `afterTrimRow` hook' +
@@ -497,7 +497,7 @@ describe('TrimRows', () => {
 
         plugin.trimRows([0, 5, 10, 15]);
 
-        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
+        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [], false, false);
         expect(plugin.isTrimmed(0)).toBeFalsy();
         expect(plugin.isTrimmed(5)).toBeFalsy();
         expect(plugin.isTrimmed(10)).toBeFalsy();
@@ -517,7 +517,7 @@ describe('TrimRows', () => {
 
         plugin.trimRows([0, 5, 1.1]);
 
-        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
+        expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [], false, false);
         expect(plugin.isTrimmed(0)).toBeFalsy();
         expect(plugin.isTrimmed(5)).toBeFalsy();
       });
@@ -535,7 +535,7 @@ describe('TrimRows', () => {
 
         getPlugin('trimRows').untrimRow(2);
 
-        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 2], [0], true, void 0, void 0, void 0);
+        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 2], [0], true);
       });
 
       it('should fire the `beforeUntrimRow` hook before untrimming the multiple, previously trimmed rows ', () => {
@@ -549,7 +549,7 @@ describe('TrimRows', () => {
 
         getPlugin('trimRows').untrimRows([2, 3, 4]);
 
-        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 2, 3, 4], [0], true, void 0, void 0, void 0);
+        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 2, 3, 4], [0], true);
       });
 
       it('should be possible to cancel the untrimming action by returning `false` from the `beforeUntrimRow` hook', () => {
@@ -578,7 +578,7 @@ describe('TrimRows', () => {
 
         plugin.untrimRows([0, 5, 10, 15]);
 
-        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], false, void 0, void 0, void 0);
+        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], false);
         expect(plugin.isTrimmed(0)).toBeTruthy();
         expect(plugin.isTrimmed(5)).toBeTruthy();
       });
@@ -597,7 +597,7 @@ describe('TrimRows', () => {
 
         plugin.untrimRows([0, 5, 10, 15]);
 
-        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], false, void 0, void 0, void 0);
+        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], false);
         expect(plugin.isTrimmed(0)).toBeTruthy();
         expect(plugin.isTrimmed(5)).toBeTruthy();
       });
@@ -615,7 +615,7 @@ describe('TrimRows', () => {
 
         getPlugin('trimRows').untrimRow(2);
 
-        expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([2], [], true, true, void 0, void 0);
+        expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([2], [], true, true);
       });
 
       it('should fire the `afterUntrimRow` hook after untrimming a multiple, previously trimmed rows', () => {
@@ -629,7 +629,7 @@ describe('TrimRows', () => {
 
         getPlugin('trimRows').untrimRows([2, 3, 4]);
 
-        expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([2, 3, 4], [], true, true, void 0, void 0);
+        expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([2, 3, 4], [], true, true);
       });
 
       it('it should NOT fire the `afterUntrimRow` hook, if the `beforeUntrimRow` hook returned false', () => {
@@ -660,7 +660,7 @@ describe('TrimRows', () => {
 
         plugin.untrimRows([0, 5]);
 
-        expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([], [], true, false, void 0, void 0);
+        expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([], [], true, false);
       });
 
       it('should return `true` as the fourth parameter, if the untrimming action changed the state of the trimRows plugin', () => {
@@ -676,7 +676,7 @@ describe('TrimRows', () => {
 
         plugin.untrimRows([0, 5, 6]);
 
-        expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [], true, true, void 0, void 0);
+        expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [], true, true);
       });
 
       it('should not perform hiding and return `false` as the third and fourth parameter of the `afterUntrimRow` hook' +
@@ -693,7 +693,7 @@ describe('TrimRows', () => {
 
         plugin.untrimRows([0, 5, 1.1]);
 
-        expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], false, false, void 0, void 0);
+        expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], false, false);
         expect(plugin.isTrimmed(0)).toBeTruthy();
         expect(plugin.isTrimmed(5)).toBeTruthy();
       });
@@ -710,7 +710,7 @@ describe('TrimRows', () => {
 
       alter('insert_row', 1);
 
-      expect(onBeforeCreateRowCallback).toHaveBeenCalledWith(1, 1, ...new Array(4));
+      expect(onBeforeCreateRowCallback).toHaveBeenCalledWith(1, 1);
     });
   });
 

@@ -313,7 +313,7 @@ export class Comments extends BasePlugin {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
 
-    this.hot.setCellMeta(this.range.from.row, this.range.from.col, META_COMMENT, void 0);
+    this.hot.setCellMeta(this.range.from.row, this.range.from.col, META_COMMENT);
 
     if (forceRender) {
       this.hot.render();

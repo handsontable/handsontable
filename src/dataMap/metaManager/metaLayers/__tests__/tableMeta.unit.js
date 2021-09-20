@@ -1,31 +1,25 @@
-import GlobalMeta from 'handsontable/dataMap/metaManager/metaLayers/globalMeta';
-import { registerCellType } from 'handsontable/cellTypes';
-import { CELL_TYPE, TextCellType } from 'handsontable/cellTypes/textType';
+import GlobalMeta from '../globalMeta';
+import TableMeta from '../tableMeta';
+import { registerCellType, TextCellType } from '../../../../cellTypes';
 
-registerCellType(CELL_TYPE, TextCellType);
+registerCellType(TextCellType);
 
-describe('GlobalMeta', () => {
+describe('TableMeta', () => {
   it('should construct class with prepared meta object', () => {
-    const meta = new GlobalMeta();
+    const globalMeta = new GlobalMeta();
+    const meta = new TableMeta(globalMeta);
 
-    expect(meta.metaCtor).toBeFunction();
     // Check if the meta object has one of many props from meta schema
     expect(meta.meta).toHaveProperty('activeHeaderClassName', 'ht__active_highlight');
-    // Check if the meta object is a prototype
-    expect(meta.meta).toHaveProperty('constructor', meta.metaCtor);
-  });
-
-  describe('getMetaConstructor()', () => {
-    it('should returns meta constructor', () => {
-      const meta = new GlobalMeta();
-
-      expect(meta.getMetaConstructor()).toBe(meta.metaCtor);
-    });
+    /* eslint-disable no-prototype-builtins */
+    // Check if the meta object is a instance of the GlobalMeta
+    expect(globalMeta.meta.isPrototypeOf(meta.meta)).toBe(true);
   });
 
   describe('getMeta()', () => {
-    it('should returns meta object (prototype object)', () => {
-      const meta = new GlobalMeta();
+    it('should returns meta object (instance)', () => {
+      const globalMeta = new GlobalMeta();
+      const meta = new TableMeta(globalMeta);
 
       expect(meta.getMeta()).toBe(meta.meta);
     });
@@ -33,7 +27,8 @@ describe('GlobalMeta', () => {
 
   describe('updateMeta()', () => {
     it('should update meta with custom settings', () => {
-      const meta = new GlobalMeta();
+      const globalMeta = new GlobalMeta();
+      const meta = new TableMeta(globalMeta);
       const settings = {
         activeHeaderClassName: 'foo',
         hiddenColumns: true,
@@ -52,8 +47,9 @@ describe('GlobalMeta', () => {
       expect(meta.getMeta()).toHaveProperty('outsideClickDeselects', true);
     });
 
-    it('should expand "type" property as object to "editor", "renderer" and "validator" keys', () => {
-      const meta = new GlobalMeta();
+    it('should expand "type" property as an object to "editor", "renderer" and "validator" keys', () => {
+      const globalMeta = new GlobalMeta();
+      const meta = new TableMeta(globalMeta);
       const settings = {
         type: {
           _customKey: true,
@@ -75,7 +71,8 @@ describe('GlobalMeta', () => {
     });
 
     it('should expand "type" property as string to "editor", "renderer" and "validator" keys', () => {
-      const meta = new GlobalMeta();
+      const globalMeta = new GlobalMeta();
+      const meta = new TableMeta(globalMeta);
       const settings = {
         type: 'text',
       };
@@ -88,7 +85,8 @@ describe('GlobalMeta', () => {
     });
 
     it('should expand "type" property even when the property was already set', () => {
-      const meta = new GlobalMeta();
+      const globalMeta = new GlobalMeta();
+      const meta = new TableMeta(globalMeta);
       const settings = {
         type: {
           copyPaste: true,
@@ -111,5 +109,36 @@ describe('GlobalMeta', () => {
       expect(meta.getMeta()).toHaveProperty('copyPaste', false);
       expect(meta.getMeta()).toHaveProperty('_test', 'foo');
     });
+  });
+
+  it('should reflect the changes in table meta when the global meta properties were changed', () => {
+    const globalMeta = new GlobalMeta();
+    const meta = new TableMeta(globalMeta);
+
+    globalMeta.getMeta().copyable = false;
+    globalMeta.getMeta().renderer = () => {};
+    globalMeta.getMeta().rowHeights = [3, 4, 5];
+    globalMeta.getMeta()._myCustomKey = { foo: 'bar' };
+
+    expect(meta.getMeta()).toHaveProperty('copyable', false);
+    expect(meta.getMeta()).toHaveProperty('renderer', globalMeta.getMeta().renderer);
+    expect(meta.getMeta()).toHaveProperty('rowHeights.0', 3);
+    expect(meta.getMeta()).toHaveProperty('rowHeights.2', 5);
+    expect(meta.getMeta()).toHaveProperty('_myCustomKey.foo', 'bar');
+  });
+
+  it('should not reflect the changes in global meta when the table meta properties were changed', () => {
+    const globalMeta = new GlobalMeta();
+    const meta = new TableMeta(globalMeta);
+
+    meta.getMeta().copyable = false;
+    meta.getMeta().renderer = () => {};
+    meta.getMeta().rowHeights = [3, 4, 5];
+    meta.getMeta()._myCustomKey = { foo: 'bar' };
+
+    expect(globalMeta.getMeta()).toHaveProperty('copyable', true);
+    expect(globalMeta.getMeta()).toHaveProperty('renderer', void 0);
+    expect(globalMeta.getMeta()).toHaveProperty('rowHeights', void 0);
+    expect(globalMeta.getMeta()).toHaveProperty('_myCustomKey', void 0);
   });
 });

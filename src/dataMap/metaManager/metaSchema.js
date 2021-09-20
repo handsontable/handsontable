@@ -942,36 +942,40 @@ export default () => {
     tabMoves: { row: 0, col: 1 },
 
     /**
-     * If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.
+     * If set to `true`: when you use keyboard navigation,
+     * and you cross the grid's left or right edge,
+     * cell selection jumps to the opposite edge.
      *
      * @memberof Options#
      * @type {boolean}
-     * @default true
+     * @default false
      * @category Core
      *
      * @example
      * ```js
-     * // stop TAB key navigation on the last column
-     * autoWrapRow: false,
+     * // enable jumping across the grid's vertical edges
+     * autoWrapRow: true,
      * ```
      */
-    autoWrapRow: true,
+    autoWrapRow: false,
 
     /**
-     * If `true`, pressing <kbd>ENTER</kbd> or down arrow in the last row will move to the first row in the next column.
+     * If set to `true`: when you use keyboard navigation,
+     * and you cross the grid's top or bottom edge,
+     * cell selection jumps to the grid's opposite edge.
      *
      * @memberof Options#
      * @type {boolean}
-     * @default true
+     * @default false
      * @category Core
      *
      * @example
      * ```js
-     * // stop ENTER key navigation on the last row
-     * autoWrapCol: false,
+     * // enable jumping across the grid's horizontal edges
+     * autoWrapCol: true,
      * ```
      */
-    autoWrapCol: true,
+    autoWrapCol: false,
 
     /**
      * @description
@@ -1504,20 +1508,20 @@ export default () => {
 
     /**
      * @description
-     * Setting to `true` enables the {@link Search} plugin (see [demo](@/guides/accessories-and-menus/searching-values.md)).
+     * If set to `true`, enables the {@link Search} plugin with a default configuration.
+     * If set to an object, enables the {@link Search} plugin with a custom configuration.
+     * See the guide on [how to search values in Handsontable](@/guides/accessories-and-menus/searching-values.md).
      *
      * @memberof Options#
-     * @type {boolean}
+     * @type {boolean|object}
      * @default false
      * @category Search
      *
      * @example
      * ```js
-     * // enable search plugin
+     * // set to `true`, to enable the Search plugin with a default configuration
      * search: true,
-     *
-     * // or
-     * // as an object with detailed configuration
+     * // or set to an object, to enable the Search plugin with a custom configuration
      * search: {
      *   searchResultClass: 'customClass',
      *   queryMethod: function(queryStr, value) {
@@ -1527,6 +1531,9 @@ export default () => {
      *     ...
      *   }
      * }
+     *
+     * // set to `false, to disable the Search plugin
+     * search: false,
      * ```
      */
     search: false,
@@ -2373,7 +2380,7 @@ export default () => {
      * __Note__, this option only works for [select-typed](@/guides/cell-types/select-cell-type.md) cells.
      *
      * @memberof Options#
-     * @type {string[]}
+     * @type {string[]|object|Function}
      * @default undefined
      * @category Core
      *
@@ -2382,8 +2389,26 @@ export default () => {
      * columns: [
      *   {
      *     editor: 'select',
-     *     // add three select options to choose from
+     *     // as an array of strings: `option.value` and `option.textContent` use the same value
      *     selectOptions: ['A', 'B', 'C'],
+     *     // as an object: `option.value` appoints a key, and `option.textContent` contains a string assigned to the key
+     *     selectOptions: {
+     *       value1: 'Label 1',
+     *       value2: 'Label 2',
+     *       value3: 'Label 3',
+     *     },
+     *     // as a function that returns possible options as an array
+     *     selectOptions(visualRow, visualColumn, prop) {
+     *       return ['A', 'B', 'C'];
+     *     },
+     *     // as a function that returns possible options as an object
+     *     selectOptions(visualRow, visualColumn, prop) {
+     *       return {
+     *         value1: 'Label 1',
+     *         value2: 'Label 2',
+     *         value3: 'Label 3',
+     *       };
+     *     },
      *   }
      * ],
      * ```
@@ -2680,17 +2705,26 @@ export default () => {
 
     /**
      * @description
-     * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
+     * The `ColumnSummary` plugin lets you [easily summarize your columns](@/guides/columns/column-summary.md).
      *
-     * Possible types:
-     *  * `'sum'`
-     *  * `'min'`
-     *  * `'max'`
-     *  * `'count'`
-     *  * `'average'`
-     *  * `'custom'` - add `customFunction`.
+     * You can use the [built-in summary functions](@/guides/columns/column-summary.md#built-in-summary-functions),
+     * or implement a [custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function).
      *
-     * [See the demo for more information](@/guides/columns/column-summary.md).
+     * For each column summary, you can set the following configuration options:
+     *
+     * | Option | Required | Type | Default | Description |
+     * |---|---|---|---|---|
+     * | `sourceColumn` | No | Number | Same as `destinationColumn` | [Selects a column to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+     * | `ranges` | No | Array | - | [Selects ranges of rows to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+     * | `type` | Yes | String | - | [Sets a summary function](@/guides/columns/column-summary.md#step-3-calculate-your-summary) |
+     * | `destinationRow` | Yes | Number | - | [Sets the destination cell's row coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+     * | `destinationColumn` | Yes | Number | - | [Sets the destination cell's column coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+     * | `forceNumeric` | No | Boolean | `false` | [Forces the summary to treat non-numerics as numerics](@/guides/columns/column-summary.md#forcing-numeric-values) |
+     * | `reversedRowCoords` | No | Boolean | `false` | [Reverses row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell) |
+     * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary.md#throwing-data-type-errors) |
+     * | `readOnly` | No | Boolean | `true` | Makes summary cell read-only |
+     * | `roundFloat` | No | Number | - | [Rounds summary result](@/guides/columns/column-summary.md#rounding-a-column-summary-result) |
+     * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function) |
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -2701,6 +2735,11 @@ export default () => {
      * ```js
      * columnSummary: [
      *   {
+     *     sourceColumn: 0,
+     *     ranges: [
+     *       [0, 2], [4], [6, 8]
+     *     ],
+     *     type: 'custom',
      *     destinationRow: 4,
      *     destinationColumn: 1,
      *     forceNumeric: true,
@@ -2708,8 +2747,7 @@ export default () => {
      *     suppressDataTypeErrors: false,
      *     readOnly: true,
      *     roundFloat: false,
-     *     type: 'custom',
-     *     customFunction: function(endpoint) {
+     *     customFunction(endpoint) {
      *        return 100;
      *     }
      *   }
@@ -2759,22 +2797,39 @@ export default () => {
      * The {@link Formulas} plugin allows Handsontable to process formula expressions defined in the provided data.
      *
      * @memberof Options#
-     * @type {boolean|object}
+     * @type {object}
      * @default undefined
      * @category Formulas
      *
      * @example
      * ```js
-     * // enable formulas plugin
-     * formulas: true,
-     *
-     * // or as an object with custom variables to be used in formula expressions
+     * // in Handsontable's `formulas` configuration option, add the `HyperFormula` class
      * formulas: {
-     *   variables: {
-     *     FOO: 64,
-     *     BAR: 'baz',
-     *   }
-     * },
+     *   engine: HyperFormula,
+     *   // the `Formulas` plugin configuration
+     * }
+     *
+     * // or, add a HyperFormula instance
+     * const hyperformulaInstance = HyperFormula.buildEmpty({})
+     *
+     * formulas: {
+     *   engine: hyperformulaInstance,
+     *   // the `Formulas` plugin configuration
+     * }
+     *
+     * // use the same HyperFormula instance in multiple Handsontable instances
+     *
+     * // a Handsontable instance `hot1`
+     * formulas: {
+     *   engine: HyperFormula,
+     *   // the `Formulas` plugin configuration
+     * }
+     *
+     * // a Handsontable instance `hot2`
+     * formulas: {
+     *   engine: hot1.getPlugin('formulas').engine,
+     *   // the `Formulas` plugin configuration
+     * }
      * ```
      */
     formulas: void 0,
@@ -2813,10 +2868,14 @@ export default () => {
     hiddenColumns: void 0,
 
     /**
-     * The {@link HiddenRows} plugin allows hiding of certain rows. You can pass additional configuration with an
-     * object notation. Options that are then available are:
-     *  * `rows` - an array of rows that should be hidden on plugin initialization
-     *  * `indicators` - enables small ui markers to indicate where are hidden columns.
+     * The `hiddenRows` option enables and configures the {@link HiddenRows} plugin.
+     *
+     * To enable the `HiddenRows` plugin, set the `hiddenRows` option to `true`.
+     *
+     * To enable the `HiddenRows` plugin and configure its settings, set the `hiddenRows` option to an object with the following properties:
+     *  * `rows`: An array of indexes of rows that are hidden on plugin initialization.
+     *  * `copyPasteEnabled`: When set to `true`, takes hidden rows into account when copying or pasting data.
+     *  * `indicators`: When set to `true`, displays UI markers to indicate the presence of hidden rows.
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -2825,14 +2884,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable row hiding
+     * // enable the `HiddenRows` plugin
      * hiddenRows: true,
      *
-     * // or
+     * // or enable `HiddenRows` plugin, and configure its settings
      * hiddenRows: {
      *   // set rows that are hidden by default
      *   rows: [5, 10, 15],
-     *   // show where are hidden rows
+     *   // take hidden rows into account when copying or pasting
+     *   copyPasteEnabled: true,
+     *   // show where hidden rows are
      *   indicators: true
      * }
      * ```

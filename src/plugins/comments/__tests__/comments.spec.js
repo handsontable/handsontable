@@ -261,7 +261,7 @@ describe('Comments', () => {
 
       plugin.setCommentAtCell(1, 1, 'Added comment');
       expect(afterSetCellMetaCallback)
-        .toHaveBeenCalledWith(1, 1, 'comment', { value: 'Added comment' }, undefined, undefined);
+        .toHaveBeenCalledWith(1, 1, 'comment', { value: 'Added comment' });
     });
 
     it('should allow removing comments using the `removeCommentAtCell` method', () => {
@@ -314,7 +314,7 @@ describe('Comments', () => {
       const plugin = hot.getPlugin('comments');
 
       plugin.removeCommentAtCell(1, 1);
-      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', undefined, undefined, undefined);
+      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment');
     });
 
     it('should allow opening the comment editor using the `showAtCell` method', () => {
@@ -638,7 +638,7 @@ describe('Comments', () => {
 
       $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
 
-      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', undefined, undefined, undefined);
+      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment');
     });
 
     it('should not deleting comment by context menu if `beforeSetCellMeta` returned false', () => {
@@ -715,7 +715,7 @@ describe('Comments', () => {
       await sleep(1000);
 
       expect(afterSetCellMetaCallback)
-        .toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' }, undefined, undefined);
+        .toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' });
     });
 
     it('should not editing comment by context menu if `beforeSetCellMeta` returned false', async() => {

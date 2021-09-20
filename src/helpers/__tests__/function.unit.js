@@ -7,8 +7,9 @@ import {
   curry,
   curryRight,
   isFunction,
+  fastCall,
 } from 'handsontable/helpers/function';
-import { sleep } from '../../helpers/common';
+import { sleep } from '../../../test/helpers/common';
 
 describe('Function helper', () => {
   //
@@ -234,6 +235,82 @@ describe('Function helper', () => {
       expect(isFunction(toCheck[3])).toBeFalsy();
       expect(isFunction(toCheck[4])).toBeFalsy();
       expect(isFunction(toCheck[5])).toBeFalsy();
+    });
+  });
+
+  //
+  // Handsontable.helper.fastCall
+  //
+  describe('fastCall', () => {
+    it('should call the function with a proper context and number of arguments', () => {
+      const func = jasmine.createSpy('func');
+      const context = {};
+
+      fastCall(func);
+
+      expect(func).toHaveBeenCalledTimes(1);
+      expect(func.calls.first().object).toBeUndefined();
+      expect(func).toHaveBeenCalledWith();
+
+      func.calls.reset();
+      fastCall(func, context);
+
+      expect(func).toHaveBeenCalledTimes(1);
+      expect(func.calls.first().object).toBe(context);
+      expect(func).toHaveBeenCalledWith();
+
+      func.calls.reset();
+      fastCall(func, context, 'a');
+
+      expect(func).toHaveBeenCalledTimes(1);
+      expect(func.calls.first().object).toBe(context);
+      expect(func).toHaveBeenCalledWith('a');
+
+      func.calls.reset();
+      fastCall(func, context, 'a', 'b');
+
+      expect(func).toHaveBeenCalledTimes(1);
+      expect(func.calls.first().object).toBe(context);
+      expect(func).toHaveBeenCalledWith('a', 'b');
+
+      func.calls.reset();
+      fastCall(func, context, 'a', 'b', 'c');
+
+      expect(func).toHaveBeenCalledTimes(1);
+      expect(func.calls.first().object).toBe(context);
+      expect(func).toHaveBeenCalledWith('a', 'b', 'c');
+
+      func.calls.reset();
+      fastCall(func, context, 'a', 'b', 'c', 1);
+
+      expect(func).toHaveBeenCalledTimes(1);
+      expect(func.calls.first().object).toBe(context);
+      expect(func).toHaveBeenCalledWith('a', 'b', 'c', 1);
+
+      func.calls.reset();
+      fastCall(func, context, 'a', 'b', 'c', 1, 2);
+
+      expect(func).toHaveBeenCalledTimes(1);
+      expect(func.calls.first().object).toBe(context);
+      expect(func).toHaveBeenCalledWith('a', 'b', 'c', 1, 2);
+
+      func.calls.reset();
+      fastCall(func, context, 'a', 'b', 'c', 1, 2, 3);
+
+      expect(func).toHaveBeenCalledTimes(1);
+      expect(func.calls.first().object).toBe(context);
+      expect(func).toHaveBeenCalledWith('a', 'b', 'c', 1, 2, 3);
+    });
+
+    it('should call the function with all arguments even there are some "undefined" values in-between', () => {
+      const func = jasmine.createSpy('func');
+      const context = {};
+
+      fastCall(func, context, 'a', void 0, 'c', 1, void 0, 3);
+
+      expect(func).toHaveBeenCalledTimes(1);
+      expect(func.calls.first().object).toBe(context);
+      expect(func).toHaveBeenCalledWith('a', void 0, 'c', 1, void 0, 3);
     });
   });
 });

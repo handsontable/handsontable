@@ -29,6 +29,7 @@ export class DateEditor extends TextEditor {
     this.defaultDateFormat = 'DD/MM/YYYY';
     this.isCellEdited = false;
     this.parentDestroyed = false;
+    this.$datePicker = null;
   }
 
   init() {
@@ -62,14 +63,12 @@ export class DateEditor extends TextEditor {
     addClass(this.datePicker, 'htDatepickerHolder');
     this.hot.rootDocument.body.appendChild(this.datePicker);
 
-    this.$datePicker = new Pikaday(this.getDatePickerConfig());
     const eventManager = new EventManager(this);
 
     /**
      * Prevent recognizing clicking on datepicker as clicking outside of table.
      */
     eventManager.addEventListener(this.datePicker, 'mousedown', event => event.stopPropagation());
-    this.hideDatepicker();
   }
 
   /**
@@ -78,7 +77,9 @@ export class DateEditor extends TextEditor {
   destroyElements() {
     const datePickerParentElement = this.datePicker.parentNode;
 
-    this.$datePicker.destroy();
+    if (this.$datePicker) {
+      this.$datePicker.destroy();
+    }
 
     if (datePickerParentElement) {
       datePickerParentElement.removeChild(this.datePicker);
@@ -114,6 +115,7 @@ export class DateEditor extends TextEditor {
    */
   close() {
     this._opened = false;
+    this.$datePicker.destroy();
     this.instance._registerTimeout(() => {
       this.instance._refreshBorders();
     });
@@ -136,7 +138,7 @@ export class DateEditor extends TextEditor {
         this.setValue(value);
       }
     }
-    this.hideDatepicker();
+
     super.finishEditing(restoreOriginalValue, ctrlDown);
   }
 
@@ -146,11 +148,8 @@ export class DateEditor extends TextEditor {
    * @param {Event} event The event object.
    */
   showDatepicker(event) {
-    this.$datePicker.config(this.getDatePickerConfig());
-
     const offset = this.TD.getBoundingClientRect();
     const dateFormat = this.cellProperties.dateFormat || this.defaultDateFormat;
-    const datePickerConfig = this.$datePicker.config();
     const isMouseDown = this.instance.view.isMouseDown();
     const isMeta = event ? isFunctionKey(event.keyCode) : false;
     let dateStr;
@@ -158,8 +157,8 @@ export class DateEditor extends TextEditor {
     this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
     this.datePickerStyle.left = `${this.hot.rootWindow.pageXOffset + offset.left}px`;
 
+    this.$datePicker = new Pikaday(this.getDatePickerConfig());
     this.$datePicker._onInputFocus = function() {};
-    datePickerConfig.format = dateFormat;
 
     if (this.originalValue) {
       dateStr = this.originalValue;
@@ -180,8 +179,6 @@ export class DateEditor extends TextEditor {
     } else if (this.cellProperties.defaultDate) {
       dateStr = this.cellProperties.defaultDate;
 
-      datePickerConfig.defaultDate = dateStr;
-
       if (moment(dateStr, dateFormat, true).isValid()) {
         this.$datePicker.setMoment(moment(dateStr, dateFormat), true);
       }
@@ -196,7 +193,6 @@ export class DateEditor extends TextEditor {
     }
 
     this.datePickerStyle.display = 'block';
-    this.$datePicker.show();
   }
 
   /**

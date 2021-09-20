@@ -32,16 +32,33 @@ The [Formulas](@/api/formulas.md) plugin allows Handsontable to process formula 
 **Default**: <code>undefined</code>  
 **Example**  
 ```js
-// enable formulas plugin
-formulas: true,
-
-// or as an object with custom variables to be used in formula expressions
+// in Handsontable's `formulas` configuration option, add the `HyperFormula` class
 formulas: {
-  variables: {
-    FOO: 64,
-    BAR: 'baz',
-  }
-},
+  engine: HyperFormula,
+  // the `Formulas` plugin configuration
+}
+
+// or, add a HyperFormula instance
+const hyperformulaInstance = HyperFormula.buildEmpty({})
+
+formulas: {
+  engine: hyperformulaInstance,
+  // the `Formulas` plugin configuration
+}
+
+// use the same HyperFormula instance in multiple Handsontable instances
+
+// a Handsontable instance `hot1`
+formulas: {
+  engine: HyperFormula,
+  // the `Formulas` plugin configuration
+}
+
+// a Handsontable instance `hot2`
+formulas: {
+  engine: hot1.getPlugin('formulas').engine,
+  // the `Formulas` plugin configuration
+}
 ```
 
 ## Members

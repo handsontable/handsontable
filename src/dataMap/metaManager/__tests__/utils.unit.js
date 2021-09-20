@@ -3,28 +3,30 @@ import {
   columnFactory,
   isUnsignedNumber,
   assert,
-  isNullish
-} from 'handsontable/dataMap/metaManager/utils';
-import { registerCellType } from 'handsontable/cellTypes';
-import { CELL_TYPE as AUTOCOMPLETE, AutocompleteCellType } from 'handsontable/cellTypes/autocompleteType';
-import { CELL_TYPE as CHECKBOX, CheckboxCellType } from 'handsontable/cellTypes/checkboxType';
-import { CELL_TYPE as DATE, DateCellType } from 'handsontable/cellTypes/dateType';
-import { CELL_TYPE as DROPDOWN, DropdownCellType } from 'handsontable/cellTypes/dropdownType';
-import { CELL_TYPE as HANDSONTABLE, HandsontableCellType } from 'handsontable/cellTypes/handsontableType';
-import { CELL_TYPE as NUMERIC, NumericCellType } from 'handsontable/cellTypes/numericType';
-import { CELL_TYPE as PASSWORD, PasswordCellType } from 'handsontable/cellTypes/passwordType';
-import { CELL_TYPE as TEXT, TextCellType } from 'handsontable/cellTypes/textType';
-import { CELL_TYPE as TIME, TimeCellType } from 'handsontable/cellTypes/timeType';
+  isNullish,
+} from '../utils';
+import {
+  registerCellType,
+  AutocompleteCellType,
+  CheckboxCellType,
+  DateCellType,
+  DropdownCellType,
+  HandsontableCellType,
+  NumericCellType,
+  PasswordCellType,
+  TextCellType,
+  TimeCellType,
+} from '../../../cellTypes';
 
-registerCellType(AUTOCOMPLETE, AutocompleteCellType);
-registerCellType(CHECKBOX, CheckboxCellType);
-registerCellType(DATE, DateCellType);
-registerCellType(DROPDOWN, DropdownCellType);
-registerCellType(HANDSONTABLE, HandsontableCellType);
-registerCellType(NUMERIC, NumericCellType);
-registerCellType(PASSWORD, PasswordCellType);
-registerCellType(TEXT, TextCellType);
-registerCellType(TIME, TimeCellType);
+registerCellType(AutocompleteCellType);
+registerCellType(CheckboxCellType);
+registerCellType(DateCellType);
+registerCellType(DropdownCellType);
+registerCellType(HandsontableCellType);
+registerCellType(NumericCellType);
+registerCellType(PasswordCellType);
+registerCellType(TextCellType);
+registerCellType(TimeCellType);
 
 describe('MetaManager utils', () => {
   describe('expandMetaType', () => {

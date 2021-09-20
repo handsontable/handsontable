@@ -21,6 +21,16 @@ describe('Core.resumeRender', () => {
     spyOn(hot.view.wt, 'draw');
     spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
 
+    const beforeRender = jasmine.createSpy('beforeRender');
+    const afterRender = jasmine.createSpy('afterRender');
+    const beforeViewRender = jasmine.createSpy('beforeViewRender');
+    const afterViewRender = jasmine.createSpy('afterViewRender');
+
+    addHook('beforeRender', beforeRender);
+    addHook('afterRender', afterRender);
+    addHook('beforeViewRender', beforeViewRender);
+    addHook('afterViewRender', afterViewRender);
+
     hot.suspendRender();
     hot.render();
     hot.render();
@@ -28,8 +38,14 @@ describe('Core.resumeRender', () => {
     hot.resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
-    expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
+    expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(false); // slow redraw
     expect(hot.view.wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(0);
+    expect(beforeRender).toHaveBeenCalledTimes(1);
+    expect(afterRender).toHaveBeenCalledTimes(1);
+    // Walkontable calculators decide that the slow render path is not necessary,
+    // so the `beforeViewRender` and `afterViewRender` hooks are not triggered.
+    expect(beforeViewRender).toHaveBeenCalledTimes(0);
+    expect(afterViewRender).toHaveBeenCalledTimes(0);
   });
 
   it('should resume the table rendering process and render the table using fast redrawing ' +
@@ -41,6 +57,16 @@ describe('Core.resumeRender', () => {
     spyOn(hot.view.wt, 'draw');
     spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
 
+    const beforeRender = jasmine.createSpy('beforeRender');
+    const afterRender = jasmine.createSpy('afterRender');
+    const beforeViewRender = jasmine.createSpy('beforeViewRender');
+    const afterViewRender = jasmine.createSpy('afterViewRender');
+
+    addHook('beforeRender', beforeRender);
+    addHook('afterRender', afterRender);
+    addHook('beforeViewRender', beforeViewRender);
+    addHook('afterViewRender', afterViewRender);
+
     hot.suspendRender();
     hot.selectCell(0, 0);
     hot.selectCell(1, 1);
@@ -48,8 +74,13 @@ describe('Core.resumeRender', () => {
     hot.resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
-    expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw?
+    expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
     expect(hot.view.wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(0);
+    expect(beforeRender).toHaveBeenCalledTimes(1);
+    expect(afterRender).toHaveBeenCalledTimes(1);
+    // The view render hooks are not triggered when the fast render path is used.
+    expect(beforeViewRender).toHaveBeenCalledTimes(0);
+    expect(afterViewRender).toHaveBeenCalledTimes(0);
   });
 
   it('should resume the table rendering process and adjust the overlays\' sizes', () => {
@@ -67,7 +98,7 @@ describe('Core.resumeRender', () => {
     hot.resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
-    expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw?
+    expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
     expect(hot.view.wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
   });
 
@@ -104,7 +135,7 @@ describe('Core.resumeRender', () => {
     hot.resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
-    expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
+    expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(false); // slow redraw
     expect(hot.view.wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
   });
 });
