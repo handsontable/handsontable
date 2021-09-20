@@ -96,11 +96,11 @@ export class NestedRows extends BasePlugin {
     this.rowMoveController = new RowMoveController(this);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
-    this.addHook('beforeRender', (...args) => this.onBeforeRender(...args));
+    this.addHook('beforeViewRender', (...args) => this.onBeforeViewRender(...args));
     this.addHook('modifyRowData', (...args) => this.onModifyRowData(...args));
     this.addHook('modifySourceLength', (...args) => this.onModifySourceLength(...args));
     this.addHook('beforeDataSplice', (...args) => this.onBeforeDataSplice(...args));
-    this.addHook('beforeDataFilter', (...args) => this.onBeforeDataFilter(...args));
+    this.addHook('filterData', (...args) => this.onFilterData(...args));
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.onAfterContextMenuDefaultOptions(...args));
     this.addHook('afterGetRowHeader', (...args) => this.onAfterGetRowHeader(...args));
     this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
@@ -133,11 +133,13 @@ export class NestedRows extends BasePlugin {
   updatePlugin() {
     this.disablePlugin();
 
-    const vanillaSourceData = this.hot.getSourceData();
+    // We store a state of the data manager.
+    const currentSourceData = this.dataManager.getData();
 
     this.enablePlugin();
 
-    this.dataManager.updateWithData(vanillaSourceData);
+    // After enabling plugin previously stored data is restored.
+    this.dataManager.updateWithData(currentSourceData);
 
     super.updatePlugin();
   }
@@ -245,15 +247,15 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * Called before the source data filtering. Returning `false` stops the native filtering.
+   * Provide custom source data filtering. It's handled by core method and replaces the native filtering.
    *
    * @private
    * @param {number} index The index where the data filtering starts.
    * @param {number} amount An amount of rows which filtering applies to.
    * @param {number} physicalRows Physical row indexes.
-   * @returns {boolean}
+   * @returns {Array}
    */
-  onBeforeDataFilter(index, amount, physicalRows) {
+  onFilterData(index, amount, physicalRows) {
     const priv = privatePool.get(this);
 
     this.collapsingUI.collapsedRowsStash.stash();
@@ -263,7 +265,7 @@ export class NestedRows extends BasePlugin {
 
     priv.skipRender = true;
 
-    return false;
+    return this.dataManager.getData().slice(); // Data contains reference sometimes.
   }
 
   /**
@@ -394,9 +396,10 @@ export class NestedRows extends BasePlugin {
    * @private
    * @param {object} parent Parent element.
    * @param {object} element New child element.
+   * @param {number} finalElementRowIndex The final row index of the detached element.
    */
-  onAfterDetachChild(parent, element) {
-    this.collapsingUI.collapsedRowsStash.shiftStash(this.dataManager.getRowIndex(element), null, -1);
+  onAfterDetachChild(parent, element, finalElementRowIndex) {
+    this.collapsingUI.collapsedRowsStash.shiftStash(finalElementRowIndex, null, -1);
     this.collapsingUI.collapsedRowsStash.applyStash();
 
     this.headersUI.updateRowHeaderWidth();
@@ -406,16 +409,9 @@ export class NestedRows extends BasePlugin {
    * `afterCreateRow` hook callback.
    *
    * @private
-   * @param {number} index Represents the visual index of first newly created row in the data source array.
-   * @param {number} amount Number of newly created rows in the data source array.
-   * @param {string} source String that identifies source of hook call.
    */
-  onAfterCreateRow(index, amount, source) {
-    if (source === this.pluginName) {
-      return;
-    }
-
-    this.dataManager.updateWithData(this.dataManager.getRawSourceData());
+  onAfterCreateRow() {
+    this.dataManager.rewriteCache();
   }
 
   /**
@@ -432,13 +428,13 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * `beforeRender` hook callback.
+   * `beforeViewRender` hook callback.
    *
    * @param {boolean} force Indicates if the render call was trigered by a change of settings or data.
    * @param {object} skipRender An object, holder for skipRender functionality.
    * @private
    */
-  onBeforeRender(force, skipRender) {
+  onBeforeViewRender(force, skipRender) {
     const priv = privatePool.get(this);
 
     if (priv.skipRender) {

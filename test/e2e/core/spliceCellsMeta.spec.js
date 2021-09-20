@@ -13,7 +13,15 @@ describe('Core.spliceCellsMeta', () => {
   });
 
   it('should splice the cell meta array analogously to the native `splice` method', () => {
-    handsontable();
+    handsontable({
+      cell: [
+        { row: 0, col: 1, myId: 1 },
+        { row: 1, col: 1, myId: 2 },
+        { row: 2, col: 1, myId: 3 },
+        { row: 3, col: 1, myId: 4 },
+        { row: 4, col: 1, myId: 5 },
+      ]
+    });
 
     let allMeta = getCellsMeta();
 
@@ -22,15 +30,15 @@ describe('Core.spliceCellsMeta', () => {
     spliceCellsMeta(3, 1);
     allMeta = getCellsMeta();
 
-    expect(allMeta.length).toBe(20);
+    expect(allMeta.length).toBe(25);
 
     let metaAtRow = getCellMetaAtRow(2);
 
-    expect(metaAtRow[0].row).toEqual(2);
+    expect(metaAtRow[0].myId).toBe(3);
 
     metaAtRow = getCellMetaAtRow(3);
 
-    expect(metaAtRow[0].row).toEqual(4);
+    expect(metaAtRow[0].myId).toBe(5);
   });
 
   it('should remove cell meta objects from the collection', () => {

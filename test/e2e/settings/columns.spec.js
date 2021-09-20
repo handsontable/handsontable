@@ -221,7 +221,7 @@ describe('settings', () => {
           setDataAtCell(0, 0, '');
 
           setTimeout(() => {
-            expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date', undefined, undefined);
+            expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date');
             done();
           }, 100);
         });

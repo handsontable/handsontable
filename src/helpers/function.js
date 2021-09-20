@@ -1,4 +1,5 @@
 import { arrayReduce } from './array';
+import { isDefined } from './mixed';
 
 /**
  * Checks if given variable is function.
@@ -248,4 +249,43 @@ export function curryRight(func) {
   }
 
   return given([]);
+}
+
+/**
+ * Calls a function in the quickest way available.
+ *
+ * In contrast to the `apply()` method that passes arguments as an array,
+ * the `call()` method passes arguments directly, to avoid garbage collection costs.
+ *
+ * @param {Function} func The function to call.
+ * @param {*} context The value to use as `this` when calling the `func` function.
+ * @param {*} [arg1] An argument passed to the `func` function.
+ * @param {*} [arg2] An argument passed to `func` function.
+ * @param {*} [arg3] An argument passed to `func` function.
+ * @param {*} [arg4] An argument passed to `func` function.
+ * @param {*} [arg5] An argument passed to `func` function.
+ * @param {*} [arg6] An argument passed to `func` function.
+ * @returns {*}
+ */
+export function fastCall(func, context, arg1, arg2, arg3, arg4, arg5, arg6) {
+  if (isDefined(arg6)) {
+    return func.call(context, arg1, arg2, arg3, arg4, arg5, arg6);
+
+  } else if (isDefined(arg5)) {
+    return func.call(context, arg1, arg2, arg3, arg4, arg5);
+
+  } else if (isDefined(arg4)) {
+    return func.call(context, arg1, arg2, arg3, arg4);
+
+  } else if (isDefined(arg3)) {
+    return func.call(context, arg1, arg2, arg3);
+
+  } else if (isDefined(arg2)) {
+    return func.call(context, arg1, arg2);
+
+  } else if (isDefined(arg1)) {
+    return func.call(context, arg1);
+  }
+
+  return func.call(context);
 }

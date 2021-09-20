@@ -379,7 +379,7 @@ describe('manualColumnResize', () => {
 
       await sleep(1000);
 
-      expect($columnHeaders.eq(0).width()).toBe(28);
+      expect($columnHeaders.eq(0).width()).toBe(24);
       expect($columnHeaders.eq(1).width()).toBe(118);
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
@@ -397,8 +397,8 @@ describe('manualColumnResize', () => {
 
       await sleep(1000);
 
-      expect($columnHeaders.eq(0).width()).toBe(28);
-      expect($columnHeaders.eq(1).width()).toBeAroundValue(82, 1);
+      expect($columnHeaders.eq(0).width()).toBe(24);
+      expect($columnHeaders.eq(1).width()).toBe(69);
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
       expect($columnHeaders.eq(4).width()).toBe(79);
@@ -446,7 +446,7 @@ describe('manualColumnResize', () => {
 
     resizeColumn(0, 100);
 
-    expect(beforeColumnResizeCallback).toHaveBeenCalledWith(100, 0, false, void 0, void 0, void 0);
+    expect(beforeColumnResizeCallback).toHaveBeenCalledWith(100, 0, false);
     expect(colWidth(spec().$container, 0)).toEqual(100);
   });
 
@@ -492,7 +492,7 @@ describe('manualColumnResize', () => {
 
     resizeColumn(0, 100);
 
-    expect(afterColumnResizeCallback).toHaveBeenCalledWith(100, 0, false, void 0, void 0, void 0);
+    expect(afterColumnResizeCallback).toHaveBeenCalledWith(100, 0, false);
     expect(colWidth(spec().$container, 0)).toEqual(100);
   });
 
@@ -562,11 +562,9 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect(afterColumnResizeCallback.calls.count()).toEqual(1);
-    expect(afterColumnResizeCallback.calls.argsFor(0)[1]).toEqual(0);
-    // All modern browsers returns width = 25px, but IE8 seems to compute width differently and returns 24px
-    expect(afterColumnResizeCallback.calls.argsFor(0)[0]).toBeInArray([30, 31, 32, 24, 25]);
-    expect(colWidth(spec().$container, 0)).toBeInArray([30, 31, 32, 24, 25]);
+    expect(afterColumnResizeCallback).toHaveBeenCalledTimes(1);
+    expect(afterColumnResizeCallback).toHaveBeenCalledWith(26, 0, true);
+    expect(colWidth(spec().$container, 0)).toBe(26);
   });
 
   it('should autosize column after double click (when initial width is not defined)', async() => {
@@ -641,9 +639,9 @@ describe('manualColumnResize', () => {
 
     await sleep(600);
 
-    expect(colWidth(spec().$container, 1)).toBe(29);
-    expect(colWidth(spec().$container, 2)).toBe(29);
-    expect(colWidth(spec().$container, 3)).toBe(30);
+    expect(colWidth(spec().$container, 1)).toBe(26);
+    expect(colWidth(spec().$container, 2)).toBe(26);
+    expect(colWidth(spec().$container, 3)).toBe(26);
   });
 
   it('should adjust resize handles position after table size changed', () => {

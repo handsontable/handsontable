@@ -99,7 +99,7 @@ describe('Core.spliceCol', () => {
 
     hot.spliceCol(2, 1, 3, 'X1', 'X2', 'X3', 'X4');
 
-    expect(spyBefore).toHaveBeenCalledWith(5, 1, 'spliceCol', undefined, undefined, undefined);
-    expect(spyAfter).toHaveBeenCalledWith(5, 1, 'spliceCol', undefined, undefined, undefined);
+    expect(spyBefore).toHaveBeenCalledWith(5, 1, 'spliceCol');
+    expect(spyAfter).toHaveBeenCalledWith(5, 1, 'spliceCol');
   });
 });
