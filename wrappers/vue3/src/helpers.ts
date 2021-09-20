@@ -1,13 +1,16 @@
 import Handsontable from 'handsontable';
-import {HotTableProps, VueProps, EditorComponent, HotColumnProps} from './types';
+import { HotTableProps, VueProps, EditorComponent } from './types';
 
-const SYMBOL_UNSIGNED = Symbol('unassigned');
+type VNode = any;
+type Vue = any;
+
+const unassignedPropSymbol = Symbol('unassigned');
 let bulkComponentContainer = null;
 
 /**
  * Message for the warning thrown if the Handsontable instance has been destroyed.
  */
-export const WARNING_HOT_DESTROYED = 'The Handsontable instance bound to this component was destroyed and cannot be' +
+export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' +
   ' used properly.';
 
 /**
@@ -75,50 +78,44 @@ export function preventInternalEditWatch(component) {
 /**
  * Generate an object containing all the available Handsontable properties and plugin hooks.
  *
+ * @param {String} source Source for the factory (either 'HotTable' or 'HotColumn').
  * @returns {Object}
  */
-export function propFactory(): VueProps<HotColumnProps> {
+export function propFactory(source): VueProps<HotTableProps> {
   const registeredHooks: string[] = Handsontable.hooks.getRegistered();
 
-  let propSchema: VueProps<HotColumnProps> = {
-    ...Handsontable.DefaultSettings, 
-    settings: {
-      default: SYMBOL_UNSIGNED
-    }
-  };
+  let propSchema: VueProps<HotTableProps> = {} as any;
+  Object.assign(propSchema, Handsontable.DefaultSettings);
 
   for (let prop in propSchema) {
     propSchema[prop] = {
-      default: SYMBOL_UNSIGNED
+      default: unassignedPropSymbol
     };
   }
 
   for (let i = 0; i < registeredHooks.length; i++) {
     propSchema[registeredHooks[i]] = {
-      default: SYMBOL_UNSIGNED
+      default: unassignedPropSymbol
     };
   }
 
+  propSchema.settings = {
+    default: unassignedPropSymbol
+  };
 
-  return propSchema;
-}
-
-/**
- * Generate an object containing all the available Handsontable properties and plugin hooks.
- *
- * @returns {Object}
- */
-export function tablePropFactory(): VueProps<HotTableProps> {
-  return Object.assign(propFactory(), {
-    id: {
+  if (source === 'HotTable') {
+    propSchema.id = {
       type: String,
       default: 'hot-' + Math.random().toString(36).substring(5)
-    },
-    wrapperRendererCacheSize: {
+    };
+
+    propSchema.wrapperRendererCacheSize = {
       type: Number,
       default: 3000
-    },
-  });
+    };
+  }
+
+  return propSchema;
 }
 
 /**
@@ -128,19 +125,19 @@ export function tablePropFactory(): VueProps<HotTableProps> {
  * @returns {Object} Object containing only used props.
  */
 export function filterPassedProps(props) {
-  const filteredProps: VueProps<HotTableProps> = {};
+  const filteredProps: VueProps<HotTableProps> = {} as any;
   const columnSettingsProp = props['settings'];
 
-  if (columnSettingsProp !== SYMBOL_UNSIGNED) {
+  if (columnSettingsProp !== unassignedPropSymbol) {
     for (let propName in columnSettingsProp) {
-      if (columnSettingsProp.hasOwnProperty(propName) && columnSettingsProp[propName] !== SYMBOL_UNSIGNED) {
+      if (columnSettingsProp.hasOwnProperty(propName) && columnSettingsProp[propName] !== unassignedPropSymbol) {
         filteredProps[propName] = columnSettingsProp[propName];
       }
     }
   }
 
   for (let propName in props) {
-    if (props.hasOwnProperty(propName) && propName !== 'settings' && props[propName] !== SYMBOL_UNSIGNED) {
+    if (props.hasOwnProperty(propName) && propName !== 'settings' && props[propName] !== unassignedPropSymbol) {
       filteredProps[propName] = props[propName];
     }
   }
@@ -183,7 +180,7 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
       newSettings[key] = additionalHotSettingsInProps[key];
     }
   }
- debugger;
+
   return newSettings;
 }
 
@@ -194,11 +191,12 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
  * @param {String} type Type of the child component. Either `hot-renderer` or `hot-editor`.
  * @returns {Object|null} The VNode of the child component (or `null` when nothing's found).
  */
-export function findVNodeByType(componentSlots, type: string) {
-  let componentVNode = null;
+export function findVNodeByType(componentSlots: VNode[], type: string): VNode {
+  let componentVNode: VNode = null;
 
   componentSlots.every((slot, index) => {
-    if (slot.data && slot.data.attrs && slot.data.attrs[type] !== void 0) {
+    // console.log(slot)
+    if (slot.props && slot.props.attrs && slot.props.attrs[type] !== void 0) {
       componentVNode = slot;
       return false;
     }
@@ -216,7 +214,37 @@ export function findVNodeByType(componentSlots, type: string) {
  * @returns {Array} Array of `hot-column` instances.
  */
 export function getHotColumnComponents(children) {
-  return children.filter((child) => child.type.name === 'HotColumn');
+  return children.filter(child => child.type && child.type.name === 'HotColumn')
+  // return children.filter((child) => child.$options && child.$options.name === 'HotColumn');
+}
+
+/**
+ * Create an instance of the Vue Component based on the provided VNode.
+ *
+ * @param {Object} vNode VNode element to be turned into a component instance.
+ * @param {Object} parent Instance of the component to be marked as a parent of the newly created instance.
+ * @param {Object} props Props to be passed to the new instance.
+ * @param {Object} data Data to be passed to the new instance.
+ */
+export function createVueComponent(vNode: VNode, parent: Vue, props: object, data: object): EditorComponent {
+  const ownerDocument = parent.$el ? parent.$el.ownerDocument : document;
+  const settings: object = {
+    propsData: props,
+    parent,
+    data
+  };
+
+  if (!bulkComponentContainer) {
+    bulkComponentContainer = ownerDocument.createElement('DIV');
+    bulkComponentContainer.id = 'vueHotComponents';
+
+    ownerDocument.body.appendChild(bulkComponentContainer);
+  }
+
+  const componentContainer = ownerDocument.createElement('DIV');
+  bulkComponentContainer.appendChild(componentContainer);
+
+  return (new (vNode.componentOptions as any).Ctor(settings)).$mount(componentContainer);
 }
 
 /**

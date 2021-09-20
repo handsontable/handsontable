@@ -1,6 +1,8 @@
 import Handsontable from 'handsontable';
-import Vue, { VNode } from 'vue';
 import { ThisTypedComponentOptionsWithRecordProps } from 'vue/types/options';
+
+type VNode = any;
+type Vue = any;
 
 export interface HotTableData {
   __internalEdit: boolean,

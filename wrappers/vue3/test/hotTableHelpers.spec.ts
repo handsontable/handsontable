@@ -19,7 +19,7 @@ describe('rewriteSettings', () => {
     expect(fakeWatcherInstance.sampleProperty).toEqual(null);
     expect(fakeWatcherInstance.testedProperty).toEqual(null);
 
-    let cleanObject: any = rewriteSettings(fakeWatcherInstance);
+    let cleanObject = rewriteSettings(fakeWatcherInstance) as any;
 
     expect(typeof cleanObject.sampleMethod).toEqual('undefined');
     expect(typeof cleanObject.testedMethod).toEqual('function');
@@ -58,7 +58,7 @@ describe('prepareSettings', () => {
       }
     };
 
-    const preparedSettings = prepareSettings(propsMock);
+    const preparedSettings = prepareSettings(propsMock as any) as any;
 
     expect(preparedSettings.readOnly).toBe(true);
     expect(preparedSettings.colHeaders).toBe(true);

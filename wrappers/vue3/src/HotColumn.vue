@@ -1,53 +1,63 @@
 <script lang="ts">
+import { defineComponent } from 'vue';
+import {
+  propFactory,
+  findVNodeByType,
+  filterPassedProps
+} from './helpers';
+import {
+  HotTableProps,
+  HotColumnMethods,
+} from './types';
 
-  // const HotColumn: ThisTypedComponentOptionsWithRecordProps<Vue, {}, HotColumnMethods, {}, HotTableProps> = {
-  //   name: 'HotColumn',
-  //   props: propFactory('HotColumn'),
-  //   methods: {
-  //     /**
-  //      * Create the column settings based on the data provided to the `hot-column` component and it's child components.
-  //      */
-  //     createColumnSettings: function (): void {
-  //       const hotColumnSlots: VNode[] | any[] = this.$slots.default || [];
-  //       const rendererVNode: VNode | null = findVNodeByType(hotColumnSlots, 'hot-renderer');
-  //       const editorVNode: VNode | null = findVNodeByType(hotColumnSlots, 'hot-editor');
-  //       const assignedProps = filterPassedProps(this.$props);
-  //
-  //       if (rendererVNode && this.usesRendererComponent === void 0) {
-  //         this.usesRendererComponent = true;
-  //       }
-  //
-  //       this.columnSettings = {...assignedProps};
-  //
-  //       if (rendererVNode !== null) {
-  //         this.columnSettings.renderer = this.$parent.getRendererWrapper(rendererVNode, this);
-  //
-  //       } else if (assignedProps.renderer) {
-  //         this.columnSettings.renderer = assignedProps.renderer;
-  //       }
-  //
-  //       if (editorVNode !== null) {
-  //         this.columnSettings.editor = this.$parent.getEditorClass(editorVNode, this);
-  //
-  //       } else if (assignedProps.editor) {
-  //         this.columnSettings.editor = assignedProps.editor;
-  //       }
-  //     }
-  //   },
-  //   mounted: function () {
-  //     this.createColumnSettings();
-  //   },
-  //   render: function () {
-  //     return null;
-  //   }
-  // };
-  //
-  // export default HotColumn;
-  // export { HotColumn };
-  import {defineComponent} from "vue";
+type VNode = any
+type Vue = any
 
-  export const HotColumn = defineComponent({
+  const HotColumn = {
+    name: 'HotColumn',
+    props: propFactory('HotColumn'),
+    inject: ['columnsCache'],
+    methods: {
+      /**
+       * Create the column settings based on the data provided to the `hot-column` component and it's child components.
+       */
+      createColumnSettings: function (hotColumnSlots: any): void {
+        const rendererVNode: VNode | null = findVNodeByType(hotColumnSlots, 'hot-renderer');
+        const editorVNode: VNode | null = findVNodeByType(hotColumnSlots, 'hot-editor');
+        
+        let usesRendererComponent = false;
+        const assignedProps = filterPassedProps(this.$props);
+        if (rendererVNode && usesRendererComponent === false) {
+          usesRendererComponent = true;
+        }
+        let columnSettings = {...assignedProps, usesRendererComponent: false};
+        if (rendererVNode !== null) {
+          columnSettings.renderer = this.$parent.getRendererWrapper(rendererVNode, this);
+        } else if (assignedProps.renderer) {
+          columnSettings.renderer = assignedProps.renderer;
+        }
+        if (editorVNode !== null) {
+          columnSettings.editor = this.$parent.getEditorClass(editorVNode, this);
+        } else if (assignedProps.editor) {
+          columnSettings.editor = assignedProps.editor;
+        }
 
-  });
+        columnSettings.usesRendererComponent = usesRendererComponent;
+        
+        this.columnsCache.set(this, columnSettings)
+      }
+    },
+    mounted: function () {
+      this.createColumnSettings([]);
+    },
+    unmounted: function () {
+      this.columnsCache.delete(this)
+    },
+    render: function () {
+      return null;
+    }
+  };
 
+  export default HotColumn;
+  export { HotColumn };
 </script>

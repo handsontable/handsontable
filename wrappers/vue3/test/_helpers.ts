@@ -1,4 +1,4 @@
-export function wait(amount, body, resolveFunc) {
+export function wait (amount, body, resolveFunc) {
   if (!resolveFunc) {
     resolveFunc = body;
     body = () => {
@@ -12,23 +12,26 @@ export function wait(amount, body, resolveFunc) {
   }).then(resolveFunc);
 }
 
-export function createSampleData(rows, columns) {
+export function createSampleData (rows, columns) {
   const data = [];
+
   for (let i = 0; i < rows; i++) {
     data.push([]);
+
     for (let j = 0; j < columns; j++) {
       data[i][j] = `${i}-${j}`;
     }
   }
+
   return data;
 }
 
-export function mockClientDimensions(element, width, height) {
+export function mockClientDimensions (element, width, height) {
   Object.defineProperty(element, 'clientWidth', {
-    value: width
+    value: width,
   });
   Object.defineProperty(element, 'clientHeight', {
-    value: height
+    value: height,
   });
 }
 
@@ -37,7 +40,7 @@ export function mockClientDimensions(element, width, height) {
  * It should be replaced with the actual mounted component from `@vue/test-utils`, so there's no need to remove it
  * after the test case is finished.
  */
-export function createDomContainer() {
+export function createDomContainer () {
   const container = document.createElement('div');
 
   if (document.body) {
