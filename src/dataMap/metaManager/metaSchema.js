@@ -77,8 +77,9 @@ export default () => {
     /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * @description
-     * The `data` option sets the initial [data source](@/guides/getting-started/binding-to-data.md) of your Handsontable instance.
-     * Handsontable's data is bound to your original data __by reference__ (i.e. editing Handsontable's data edits your original data).
+     * The `data` option sets the initial [data](@/guides/getting-started/binding-to-data.md) of your Handsontable instance.
+     *
+     * Handsontable's data is bound to your source data __by reference__ (i.e. when you edit Handsontable's data, your source data alters as well).
      *
      * You can set the `data` option:
      * - Either to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
@@ -116,9 +117,10 @@ export default () => {
 
     /**
      * @description
-     * Defines the structure of a new row when data source is an array of objects.
+     * When the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
+     * (or is empty), the `dataSchema` option defines the structure of a new row.
      *
-     * See [data-schema](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema) for more options.
+     * For more information, see [this guide](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema).
      *
      * @memberof Options#
      * @type {object}
@@ -127,7 +129,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // with data schema we can start with an empty table
+     * // with `dataSchema`, you can start with an empty grid
      * data: null,
      * dataSchema: {id: null, name: {first: null, last: null}, address: null},
      * colHeaders: ['ID', 'First Name', 'Last Name', 'Address'],
