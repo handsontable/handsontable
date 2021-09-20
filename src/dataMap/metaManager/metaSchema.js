@@ -74,12 +74,17 @@ export default () => {
      */
     licenseKey: void 0,
 
+    /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * @description
-     * Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
-     * Can be declared as an array of arrays or an array of objects.
+     * The `data` option sets the initial [data source](@/guides/getting-started/binding-to-data.md) of your Handsontable instance.
+     * Handsontable's data is bound to your original data __by reference__ (i.e. editing Handsontable's data edits your original data).
      *
-     * See [Understanding binding as reference](@/guides/getting-started/binding-to-data.md#understand-binding-as-a-reference).
+     * You can set the `data` option:
+     * - Either to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
+     * - Or to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects).
+     *
+     * For more information, see [this guide](@/guides/getting-started/binding-to-data.md).
      *
      * @memberof Options#
      * @type {Array[]|object[]}
@@ -106,6 +111,8 @@ export default () => {
      * ```
      */
     data: void 0,
+
+    /* eslint-disable jsdoc/require-description-complete-sentence */
 
     /**
      * @description
