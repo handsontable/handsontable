@@ -12,13 +12,19 @@ tags:
 
 [[toc]]
 
-Customize Handsontable with configuration options.
+You can customize Handsontable with [configuration options](@/api/options.md).
 
 ## About configuration options
 
-You can heavily customize Handsontable's look and behavior with numerous [configuration options](@/api/options.md).
+[Configuration options](@/api/options.md) let you heavily customize your Handsontable instance. For example, you can:
 
-To apply configuration options, pass them as a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid), using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
+- Enable and disable built-in features
+- Enable and configure additional [plugins](@/guides/building-and-testing/plugins.md)
+- Personalize Handsontable's look
+- Adjust Handsontable's behavior
+- Implement your own custom features
+
+To apply [configuration options](@/api/options.md), pass them as a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid), using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
 
 ```js
 const container = document.getElementById('example');

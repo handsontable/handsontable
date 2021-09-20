@@ -7,71 +7,57 @@ import { isObjectEqual } from '../../helpers/object';
  * @class Options
  * @description
  *
- * Handsontable provides many options to choose from. They come either from the {@link Core} features or {@link Hooks}.
+ * [Configuration options](@/guides/getting-started/setting-options.md) let you heavily customize your Handsontable instance. For example, you can:
  *
- * You can pass options in an object iteral notation (a comma-separated list of name-value pairs wrapped in curly braces) as a second argument of the Handsontable constructor.
+ * - Enable and disable built-in features
+ * - Enable and configure additional [plugins](@/guides/building-and-testing/plugins.md)
+ * - Personalize Handsontable's look
+ * - Adjust Handsontable's behavior
+ * - Implement your own custom features
  *
- * In the further documentation, and in Guides, we prefer calling this object a `Settings` object or `configuration` object.
+ * To apply [configuration options](@/guides/getting-started/setting-options.md), pass them as
+ * a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid),
+ * using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
  *
  * ```js
  * const container = document.getElementById('example');
+ *
  * const hot = new Handsontable(container, {
- *   data: myArray,
+ *   // configuration options, in the object literal notation
+ *   licenseKey: "non-commercial-and-evaluation",
+ *   data: Handsontable.helper.createSpreadsheetData(5, 10),
  *   width: 400,
- *   height: 300
+ *   height: 300,
+ *   colHeaders: true,
+ *   rowHeaders: true,
+ *   customBorders: true,
+ *   dropdownMenu: true,
+ *   multiColumnSorting: true,
+ *   filters: true,
+ *   manualRowMove: true,
  * });
  * ```
  *
- * ## Applying options to different elements of the grid
+ * Depending on your needs, you can apply [configuration options](@/api/options.md) to different elements of your grid, such as:
+ * - [The entire grid](@/guides/getting-started/setting-options.md#setting-grid-options)
+ * - [Individual columns](@/guides/getting-started/setting-options.md#setting-column-options)
+ * - [Individual rows](@/guides/getting-started/setting-options.md#setting-row-options)
+ * - [Individual cells](@/guides/getting-started/setting-options.md#setting-cell-options)
+ * - [Individual grid elements, based on any logic you implement](@/guides/getting-started/setting-options.md#implementing-custom-logic)
  *
- * Options can set for many different parts of the data grid:
- *
- * - The entire grid
- * - A column or range of columns
- * - A row or range of rows
- * - A cell or range of cells
- *
- * Options use the cascading configuration to make that possible.
- *
- * Take a look at the following example:
- *
- * ```js
- * const container = document.getElementById('example');
- * const hot = new Handsontable(container, {
- *   readOnly: true,
- *   columns: [
- *     { readOnly: false },
- *     {},
- *     {},
- *   ],
- *   cells: function(row, col, prop) {
- *     var cellProperties = {};
- *
- *     if (row === 0 && col === 0) {
- *       cellProperties.readOnly = true;
- *     }
- *
- *     return cellProperties;
- *   }
- * });
- * ```
- *
- * In the above example we first set the `read-only` option for the entire grid. Then we make two exceptions of this rule:
- *
- * - We exclude the first column by passing `readOnly: false`, which in result makes it editable.
- * - We exclude the cell in the top left corner, just like we did it with the first column.
- *
- * To learn more about how to use cascading settings go to the [Setting Options](@/guides/getting-started/setting-options.md) page.
- *
- * ::: tip
- * In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
- * :::
+ * For more information, see the [configuration options' guide](@/guides/getting-started/setting-options.md).
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export default () => {
   return {
     /**
-     * License key for commercial version of Handsontable.
+     * The `licenseKey` option sets Handsontable's license key.
+     *
+     * For [commercial use](@/guides/technical-specification/software-license.md#commercial-use), set the `licenseKey` option to a string with your [commercial license key](@/guides/getting-started/license-key.md#commercial-license).
+     *
+     * For [non-commercial use](@/guides/technical-specification/software-license.md#non-commercial-use), set the `licenseKey` option to this string: `non-commercial-and-evaluation`.
+     *
+     * For more information, see [this guide](@/guides/getting-started/license-key.md).
      *
      * @memberof Options#
      * @type {string}
@@ -80,9 +66,10 @@ export default () => {
      *
      * @example
      * ```js
-     * licenseKey: '00000-00000-00000-00000-00000',
-     * // or
-     * licenseKey: 'non-commercial-and-evaluation',
+     * // commercial use
+     * licenseKey: 'xxxxx-xxxxx-xxxxx-xxxxx-xxxxx', // your commercial license key
+     * // non-commercial use
+     * licenseKey: 'non-commercial-and-evaluation'
      * ```
      */
     licenseKey: void 0,
