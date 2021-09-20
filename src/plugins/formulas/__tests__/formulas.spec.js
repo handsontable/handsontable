@@ -1308,6 +1308,52 @@ describe('Formulas general', () => {
       ]);
     });
 
+    it('should show proper values when doing undo/redo after moving rows', () => {
+      handsontable({
+        data: [
+          [5],
+          ['=A1+1'],
+          ['=A2+1'],
+        ],
+        contextMenu: true,
+        colHeaders: true,
+        rowHeaders: true,
+        formulas: {
+          engine: HyperFormula
+        },
+        manualRowMove: true,
+      });
+
+      getPlugin('manualRowMove').moveRow(0, 1);
+      render();
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [5],
+        ['=A1+1'],
+        ['=A2+1'],
+      ]);
+      expect(getData()).toEqual([
+        [5],
+        [6],
+        [7],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        [5],
+        ['=A1+1'],
+        ['=A2+1'],
+      ]);
+      expect(getData()).toEqual([
+        [6],
+        [5],
+        [7],
+      ]);
+    });
+
     it('should show proper values when doing undo/redo after changing sheet size', () => {
       handsontable({
         data: [

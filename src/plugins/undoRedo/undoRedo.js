@@ -789,6 +789,7 @@ UndoRedo.UnmergeCellsAction = UnmergeCellsAction;
 UndoRedo.RowMoveAction = function(rows, finalIndex) {
   this.rows = rows.slice();
   this.finalIndex = finalIndex;
+  this.actionType = 'row_move';
 };
 inherit(UndoRedo.RowMoveAction, UndoRedo.Action);
 

@@ -23,6 +23,7 @@ import Hooks from '../../pluginHooks';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
+const ROW_MOVE_UNDO_REDO_NAME = 'row_move';
 
 Hooks.getSingleton().register('afterNamedExpressionAdded');
 Hooks.getSingleton().register('afterNamedExpressionRemoved');
@@ -176,9 +177,24 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
-    this.addHook('beforeUndo', () => this.engine.undo());
+    this.addHook('beforeUndo', (action) => {
+      // TODO: Move action isn't handled by HyperFormula.
+      if (action?.actionType === ROW_MOVE_UNDO_REDO_NAME) {
+        return;
+      }
+
+      this.engine.undo();
+    });
+
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism
-    this.addHook('beforeRedo', () => this.engine.redo());
+    this.addHook('beforeRedo', (action) => {
+      // TODO: Move action isn't handled by HyperFormula.
+      if (action?.actionType === ROW_MOVE_UNDO_REDO_NAME) {
+        return;
+      }
+
+      this.engine.redo();
+    });
 
     this.addHook('afterDetachChild', (...args) => this.onAfterDetachChild(...args));
 
