@@ -66,10 +66,12 @@ jobs:
               - '.config/**'
               - 'src/**'
               - 'scripts/**'
+              - 'test/unit/**'
             test-handsontable-types:
               - '.config/**'
               - 'src/**'
               - 'scripts/**'
+              - 'test/types/**'
             test-handsontable-walkontable:
               - '.config/**'
               - 'src/**'
@@ -78,10 +80,12 @@ jobs:
               - '.config/**'
               - 'src/**'
               - 'scripts/**'
+              - 'test/e2e/**'
             test-handsontable-e2e-min:
               - '.config/**'
               - 'src/**'
               - 'scripts/**'
+              - 'test/e2e/**'
             test-angular:
               - '.config/**'
               - 'src/**'
