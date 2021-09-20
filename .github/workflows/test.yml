@@ -57,6 +57,8 @@ jobs:
               - '.config/**'
               - 'src/**'
               - 'scripts/**'
+              - 'test/e2e/**'
+              - 'test/scripts/**'
             build-handsontable-es-cjs:
               - '.config/**'
               - 'src/**'
