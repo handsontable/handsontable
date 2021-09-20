@@ -43,6 +43,8 @@ const isBlockedSource = source => source === 'UndoRedo.undo' || source === 'Undo
  * integration with our other product, [HyperFormula](https://github.com/handsontable/hyperformula/), which is a
  * powerful calculation engine with an extensive number of features.
  *
+ * To test out HyperFormula, see [this guide](@/guides/formulas/formula-calculation.md#available-functions).
+ *
  * @plugin Formulas
  * @class Formulas
  */
