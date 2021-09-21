@@ -67,7 +67,7 @@ describe('Interval', () => {
     }, 50);
 
     setTimeout(() => {
-      expect(spy.calls.count()).toBe(1);
+      expect(spy.calls.count()).toBe(10);
       i.stop();
     }, 150);
 
