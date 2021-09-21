@@ -18,7 +18,7 @@ tags:
 
 To run the basic configuration of the Context Menu, just set the `contextMenu` option to `true`.
 
-::: example #example1
+::: example #example4
 ```js
 const container = document.querySelector('#example1');
 
