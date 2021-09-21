@@ -13,6 +13,10 @@ module.exports = (options, context) => {
       context.themeConfig.sidebar = helpers.getSidebars(buildMode);
     },
 
+
+
+
+
     /**
      * Extends and updates a page with additional information for versioning.
      *
