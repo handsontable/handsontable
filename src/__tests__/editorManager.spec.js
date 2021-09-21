@@ -27,7 +27,7 @@ describe('editorManager', () => {
 
           keyDownUp(key.toLowerCase());
 
-          expect(activeEditor.isOpened()).toBe(true);
+          expect(activeEditor.isOpened()).toBe(false);
         });
       });
     });
