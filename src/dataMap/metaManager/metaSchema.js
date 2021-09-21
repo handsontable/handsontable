@@ -248,6 +248,8 @@ export default () => {
      * - To define your own row headers, set `rowHeaders` to an array (e.g. `['One', 'Two', 'Three', ...]`),
      * or to a function that returns such an array.
      *
+     * For more information, see [this guide](@/guides/rows/row-header.md).
+     *
      * @memberof Options#
      * @type {boolean|string[]|Function}
      * @default undefined
@@ -276,6 +278,8 @@ export default () => {
      * - To define your own column headers, set `colHeaders` to an array (e.g. `['One', 'Two', 'Three', ...]`),
      * or to a function that returns such an array.
      *
+     * For more information, see [this guide](@/guides/columns/column-header.md).
+     *
      * @memberof Options#
      * @type {boolean|string[]|Function}
      * @default null
@@ -298,15 +302,20 @@ export default () => {
     colHeaders: null,
 
     /**
-     * Defines column widths in pixels. Accepts number, string (that will be converted to a number), array of numbers
-     * (if you want to define column width separately for each column) or a function (if you want to set column width
-     * dynamically on each render).
+     * The `colWidths` option sets columns' widths, in pixels.
      *
-     * The default width for columns in the rendering process equals 50px.
+     * In the rendering process, the default column width is 50px. To change it,
+     * set the `colWidths` option to one of the following:
      *
-     * An `undefined` value is for detection in {@link Hooks#modifyColWidth} hook if plugin or setting changed the default size.
+     * | Value | Usage | Example |
+     * | --- | --- | ---|
+     * | A number | Sets the same width for every column | `100` |
+     * | A string | Sets the same width for every column | `'100px'` |
+     * | An array | Sets widths separately for each column | `[100, 120, undefined]` |
+     * | A function | Sets column widths dynamically,<br>on each render | `function(index) {return index * 10;}` |
+     * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `undefined` |
      *
-     * Note: This option will forcely disable {@link AutoColumnSize} plugin.
+     * Setting the `colWidths` option disables the {@link AutoColumnSize} plugin.
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -315,16 +324,19 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a number, for each column.
+     * // set every column's width to 100px
      * colWidths: 100,
      *
-     * // as a string, for each column.
+     * // set every column's width to 100px
      * colWidths: '100px',
      *
-     * // as an array, based on visual indexes. Unspecified columns have a default width.
-     * colWidths: [100, 120, undefined, 90],
+     * // set the first (by visual index) column's width to 100
+     * // set the second (by visual index) column's width to 120
+     * // set the third (by visual index) column's width to `undefined`
+     * // set any other column's width to the default 50px
+     * colWidths: [100, 120, undefined],
      *
-     * // as a function, based on visual indexes.
+     * // set each column's width individually, using a function
      * colWidths: function(index) {
      *   return index * 10;
      * },
@@ -333,17 +345,21 @@ export default () => {
     colWidths: void 0,
 
     /**
-     * Defines row heights in pixels. Accepts numbers, strings (that will be converted into a number), array of numbers
-     * (if you want to define row height separately for each row) or a function (if you want to set row height dynamically
-     * on each render).
+     * The `rowHeights` option sets rows' heights, in pixels.
      *
-     * If the {@link ManualRowResize} or {@link AutoRowSize} plugins are enabled, this is also the minimum height that can
-     * be set via either of those two plugins.
+     * In the rendering process, the default row height is 23px.
+     * You can change it to equal or greater than 23px, by setting the `rowHeights` option to one of the following:
      *
-     * The default height for rows in the rendering process equals 23px.
-     * Height should be equal or greater than 23px. Table is rendered incorrectly if height is less than 23px.
+     * | Value | Usage | Example |
+     * | --- | --- | ---|
+     * | A number | Sets the same height for every row | `100` |
+     * | A string | Sets the same height for every row | `'100px'` |
+     * | An array | Sets heights separately for each row | `[100, 120, undefined]` |
+     * | A function | Sets row heights dynamically,<br>on each render | `function(index) {return index * 10;}` |
+     * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes. | `undefined` |
      *
-     * An `undefined` value is for detection in {@link Hooks#modifyRowHeight} hook if plugin or setting changed the default size.
+     * The `rowHeights` option also sets the minimum row height that can be set
+     * via the {@link ManualRowResize} and {@link AutoRowSize} plugins (if they are enabled).
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -352,16 +368,19 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a number, the same for all rows
+     * // set every row's height to 100px
      * rowHeights: 100,
      *
-     * // as a string, the same for all row
+     * // set every row's height to 100px
      * rowHeights: '100px',
      *
-     * // as an array, based on visual indexes. The rest of the rows have a default height
-     * rowHeights: [100, 120, 90],
+     * // set the first (by visual index) row's height to 100
+     * // set the second (by visual index) row's height to 120
+     * // set the third (by visual index) row's height to `undefined`
+     * // set any other row's height to the default 23px
+     * rowHeights: [100, 120, undefined],
      *
-     * // as a function, based on visual indexes
+     * // set each row's height individually, using a function
      * rowHeights: function(index) {
      *   return index * 10;
      * },
