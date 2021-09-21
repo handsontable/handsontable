@@ -14,6 +14,9 @@ const pluginName = 'hot/generate-nginx-redirects';
 function dedupeSlashes(string) {
   return string.replace(/(\/)+/g, '$1');
 }
+function dedupeSlashes2(string) {
+  return string.replace(/(\/)+/g, '$1');
+}
 
 module.exports = (options, context) => {
   const outputFile = options.outputFile || path.resolve(context.sourceDir, 'redirects.conf');
