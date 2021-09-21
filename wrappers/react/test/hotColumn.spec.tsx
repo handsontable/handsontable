@@ -42,7 +42,7 @@ describe('Passing column settings using HotColumn', () => {
     expect(hotInstance.getCellMeta(0, 0).readOnly).toEqual(false);
 
     expect(hotInstance.getSettings().columns[1].title).toEqual(void 0);
-    expect(hotInstance.getCellMeta(0, 1).readOnly).toEqual(true);
+    expect(hotInstance.getCellMeta(0, 1).readOnly).toEqual(false);
 
     expect(hotInstance.getSettings().licenseKey).toEqual('non-commercial-and-evaluation');
 
