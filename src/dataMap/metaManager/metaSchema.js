@@ -146,7 +146,12 @@ export default () => {
     dataSchema: void 0,
 
     /**
-     * Width of the grid. Can be a value or a function that returns a value.
+     * The `width` option sets the width of your grid. You can set it to one of the following:
+     * - A number of pixels (e.g. `500`)
+     * - A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) (e.g. `'75vw'`)
+     * - A function that returns a valid number or string
+     *
+     * For more information, see [this guide](@/guides/getting-started/grid-size.md).
      *
      * @memberof Options#
      * @type {number|string|Function}
@@ -155,13 +160,13 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a number
+     * // set the grid's width to 500px
      * width: 500,
      *
-     * // as a string
+     * // set the grid's width to 75vw
      * width: '75vw',
      *
-     * // as a function
+     * // set the grid's width to 500px, using a function
      * width: function() {
      *   return 500;
      * },
@@ -170,7 +175,12 @@ export default () => {
     width: void 0,
 
     /**
-     * Height of the grid. Can be a number or a function that returns a number.
+     * The `height` option sets the height of your grid. You can set it to one of the following:
+     * - A number of pixels (e.g. `500`)
+     * - A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) (e.g. `'75vw'`)
+     * - A function that returns a valid number or string
+     *
+     * For more information, see [this guide](@/guides/getting-started/grid-size.md).
      *
      * @memberof Options#
      * @type {number|string|Function}
@@ -179,13 +189,13 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a number
+     * // set the grid's height to 500px
      * height: 500,
      *
-     * // as a string
+     * // set the grid's height to 75vh
      * height: '75vh',
      *
-     * // as a function
+     * // set the grid's height to 500px, using a function
      * height: function() {
      *   return 500;
      * },
@@ -195,9 +205,9 @@ export default () => {
 
     /**
      * @description
-     * Initial number of rows.
+     * If the [`data`](#data) option is not set, the `startRows` option sets the initial number of empty rows.
      *
-     * __Note:__ This option only has effect in Handsontable constructor and only if `data` option is not provided.
+     * The `startRows` option works only in Handsontable's constructor.
      *
      * @memberof Options#
      * @type {number}
@@ -214,9 +224,9 @@ export default () => {
 
     /**
      * @description
-     * Initial number of columns.
+     * If the [`data`](#data) option is not set, the `startCols` option sets the initial number of empty columns.
      *
-     * __Note:__ This option only has effect in Handsontable constructor and only if `data` option is not provided.
+     * The `startCols` option works only in Handsontable's constructor.
      *
      * @memberof Options#
      * @type {number}
@@ -232,9 +242,11 @@ export default () => {
     startCols: 5,
 
     /**
-     * Setting `true` or `false` will enable or disable the default row headers (1, 2, 3).
-     * You can also define an array `['One', 'Two', 'Three', ...]` or a function to define the headers.
-     * If a function is set the index of the row is passed as a parameter.
+     * The `rowHeaders` option configures your grid's row headers:
+     * - To enable the default row headers ("1", "2", "3", ...), set `rowHeaders` to `true`.
+     * - To disable row headers, set `rowHeaders` to `false`.
+     * - To define your own row headers, set `rowHeaders` to an array (e.g. `['One', 'Two', 'Three', ...]`),
+     * or to a function that returns such an array.
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
@@ -243,24 +255,26 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean
+     * // enable the default row headers
      * rowHeaders: true,
      *
-     * // as an array
-     * rowHeaders: ['1', '2', '3'],
+     * // set your own row headers
+     * rowHeaders: ['One', 'Two', 'Three'],
      *
-     * // as a function
-     * rowHeaders: function(index) {
-     *   return index + ': AB';
+     * // set your own row headers, using a function
+     * rowHeaders: function(rowIndex) {
+     *   return rowIndex + ': AB';
      * },
      * ```
      */
     rowHeaders: void 0,
 
     /**
-     * Setting `true` or `false` will enable or disable the default column headers (A, B, C).
-     * You can also define an array `['One', 'Two', 'Three', ...]` or a function to define the headers.
-     * If a function is set, then the index of the column is passed as a parameter.
+     * The `colHeaders` option configures your grid's column headers:
+     * - To enable the default column headers ("A", "B", "C", ...), set `colHeaders` to `true`.
+     * - To disable column headers, set `colHeaders` to `false`.
+     * - To define your own column headers, set `colHeaders` to an array (e.g. `['One', 'Two', 'Three', ...]`),
+     * or to a function that returns such an array.
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
@@ -269,15 +283,15 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean
+     * // enable the default column headers
      * colHeaders: true,
      *
-     * // as an array
-     * colHeaders: ['A', 'B', 'C'],
+     * // set your own column headers
+     * colHeaders: ['One', 'Two', 'Three'],
      *
-     * // as a function
-     * colHeaders: function(index) {
-     *   return index + ': AB';
+     * // set your own column headers, using a function
+     * colHeaders: function(columnIndex) {
+     *   return columnIndex + ': AB';
      * },
      * ```
      */
