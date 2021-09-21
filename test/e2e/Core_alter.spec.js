@@ -81,7 +81,7 @@ describe('Core_alter', () => {
         // Result: A1, A5, A7, A11, A14, A15
 
         expect(getDataAtCol(0)).toEqual(['A1', 'A5', 'A7', 'A11', 'A14', 'A15']);
-        expect(getData().length).toBe(6);
+        expect(getData().length).toBe(60);
       });
 
       it('should remove rows when index groups are passed as intersecting values', () => {
