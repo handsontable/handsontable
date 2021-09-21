@@ -15,7 +15,7 @@ describe('EventManager', () => {
     const test = function() {};
     const test2 = function() {};
 
-    eM0.addEventListener(window, 'click', test, true);
+    eM0.addEventListener(window, 'click', test, false);
     eM1.addEventListener(window, 'mousedown', test);
     eM2.addEventListener(window, 'mouseup', test, false);
     eM2.addEventListener(window, 'click', test2);
