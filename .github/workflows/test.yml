@@ -4,8 +4,6 @@ on:
   pull_request:
     types:
       - synchronize
-      - opened
-      - reopened
   push:
     branches:
       - '**'
@@ -188,7 +186,7 @@ jobs:
       - run: npm run test:unit
 
   test-handsontable-types:
-    name: "[TEST] Handsontable: types"
+    name: "[TEST] Handsontable: Types"
     runs-on: ubuntu-latest
     needs: [ check-scope, build-handsontable-es-cjs ]
     if: |
