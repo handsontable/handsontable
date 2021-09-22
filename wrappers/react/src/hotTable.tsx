@@ -171,8 +171,8 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * Setter for the property storing the Handsontable instance.
    * @param {Handsontable} hotInstance The Handsontable instance.
    */
-  set hotInstance(hotInstance) {
-    this.__hotInstance = hotInstance;
+  set hotInstance(hot) {
+    this.__hotInstance = hot;
   }
 
   /**
