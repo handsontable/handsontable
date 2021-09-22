@@ -25,7 +25,7 @@ describe('Core_countEmptyCols', () => {
   it('should count empty columns properly when using a simple data set', () => {
     handsontable({
       data: [
-        [null, null, 1,    null, null, null],
+        [null, null, 100,    null, null, null],
         [4,    null, null, null, null, null],
         [null, null, null, null, null, null],
         [3,    null, null, null, null, null],
