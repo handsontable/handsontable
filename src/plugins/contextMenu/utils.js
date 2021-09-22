@@ -1,5 +1,5 @@
-import { arrayEach, arrayMap } from './../../helpers/array';
-import { hasClass } from './../../helpers/dom/element';
+import { arrayEach, arrayMap } from '../../helpers/array';
+import { hasClass } from '../../helpers/dom/element';
 import { KEY as SEPARATOR } from './predefinedItems/separator';
 
 /**
@@ -224,6 +224,7 @@ function shiftSeparators(items, separator) {
       break;
     }
   }
+
   return result;
 }
 

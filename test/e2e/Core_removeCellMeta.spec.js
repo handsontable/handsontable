@@ -66,7 +66,7 @@ describe('Core_removeCellMeta', () => {
     setCellMeta(0, 0, 'key', 'value');
     removeCellMeta(0, 0, 'key');
 
-    expect(beforeRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', 'value', undefined, undefined);
+    expect(beforeRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', 'value');
   });
 
   it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 1 (removed `key` existed)', () => {
@@ -84,7 +84,7 @@ describe('Core_removeCellMeta', () => {
     setCellMeta(0, 0, 'key', 'value');
     removeCellMeta(0, 0, 'key');
 
-    expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', 'value', undefined, undefined);
+    expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', 'value');
   });
 
   it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 2  (removed `key` not existed)', () => {
@@ -101,7 +101,7 @@ describe('Core_removeCellMeta', () => {
 
     removeCellMeta(0, 0, 'key');
 
-    expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', undefined, undefined, undefined);
+    expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key');
   });
 
   it('should call `beforeRemoveCellMeta` plugin hook with visual indexes as parameters', () => {

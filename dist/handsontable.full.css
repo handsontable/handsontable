@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.0.0-beta.2
- * Release date: 15/07/2020 (built at 15/07/2020 12:43:54)
+ * Version: 9.0.2
+ * Release date: 28/07/2021 (built at 28/07/2021 09:16:46)
  */
 /**
  * Fix for bootstrap styles
@@ -78,7 +78,7 @@
 .handsontable .table > thead > tr > td,
 .handsontable .table > thead > tr > th {
   line-height: 21px;
-  padding: 0 4px;
+  padding: 0;
 }
 
 .col-lg-1.handsontable, .col-lg-10.handsontable, .col-lg-11.handsontable, .col-lg-12.handsontable,
@@ -182,8 +182,7 @@
   vertical-align: top;
   overflow: hidden;
   outline-width: 0;
-  white-space: pre-line;
-  /* preserve new line character in cell */
+  white-space: pre-wrap;
 }
 
 .handsontable th:last-child {
@@ -212,19 +211,14 @@
   border-right-width: 0;
 }
 
-/* Property controlled by top overlay */
-.ht_master:not(.innerBorderTop) thead tr:last-child th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr:last-child th,
-.ht_master:not(.innerBorderTop) thead tr.lastChild th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr.lastChild th {
-  border-bottom-width: 0;
-}
-
-/* Property controlled by bottom overlay */
-.ht_master:not(.innerBorderBottom) thead tr:last-child th,
-.ht_master:not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,
-.ht_master:not(.innerBorderBottom) thead tr.lastChild th,
-.ht_master:not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
+/*
+innerBorderTop - Property controlled by top overlay
+innerBorderBottom - Property controlled by bottom overlay
+ */
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr:last-child th,
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr.lastChild th,
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
   border-bottom-width: 0;
 }
 
@@ -357,6 +351,10 @@
 .ht_clone_left .wtHolder,
 .ht_clone_bottom .wtHolder {
   overflow: hidden;
+}
+
+.handsontable {
+  touch-action: manipulation;
 }
 
 .handsontable.htAutoSize {
@@ -584,6 +582,10 @@
   /*overwrite styles potentionally made by a framework*/
 }
 
+.handsontableInput:focus {
+  outline: none;
+}
+
 .handsontableInputHolder {
   position: absolute;
   top: 0;
@@ -594,6 +596,10 @@
   -webkit-appearance: menulist-button !important;
   position: absolute;
   width: auto;
+}
+
+.htSelectEditor:focus {
+  outline: none;
 }
 
 /*
@@ -651,44 +657,6 @@ TextRenderer placeholder value
 
 .handsontable .htPlaceholder {
   color: #999;
-}
-
-/*
-AutocompleteRenderer down arrow
-*/
-
-.handsontable .htAutocompleteArrow {
-  float: right;
-  font-size: 10px;
-  color: #EEE;
-  cursor: default;
-  width: 16px;
-  text-align: center;
-}
-
-.handsontable td .htAutocompleteArrow:hover {
-  color: #777;
-}
-
-.handsontable td.area .htAutocompleteArrow {
-  color: #d3d3d3;
-}
-
-/*
-CheckboxRenderer
-*/
-.handsontable .htCheckboxRendererInput {
-  display: inline-block;
-}
-.handsontable .htCheckboxRendererInput.noValue {
-  opacity: 0.5;
-}
-.handsontable .htCheckboxRendererLabel {
-  font-size: inherit;
-  vertical-align: middle;
-  cursor: pointer;
-  display: inline-block;
-  width: 100%;
 }
 
 /**
@@ -764,6 +732,7 @@ CheckboxRenderer
   -moz-box-shadow: 0 0 0 6px rgba(238,238,238,1);
   box-shadow: 0 0 0 6px rgba(238,238,238,1);
   background: #eee;
+  text-align: center;
 }
 
 /*
@@ -774,29 +743,21 @@ CheckboxRenderer
 
 .handsontable.mobile,
 .handsontable.mobile .wtHolder {
-  -webkit-touch-callout:none;
-  -webkit-user-select:none;
-  -khtml-user-select:none;
-  -moz-user-select:none;
-  -ms-user-select:none;
-  user-select:none;
-  -webkit-tap-highlight-color:rgba(0,0,0,0);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
   -webkit-overflow-scrolling: touch;
 }
 
-.htMobileEditorContainer {
-  display: none;
-  position: absolute;
-  top: 0;
-  width: 70%;
-  height: 54pt;
-  background: #f8f8f8;
-  border-radius: 20px;
-  border: 1px solid #ebebeb;
-  z-index: 999;
-  box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  -webkit-text-size-adjust: none;
+.handsontable.mobile .handsontableInput:focus {
+  -webkit-box-shadow: 0 0 0 2px #5292f7 inset;
+  -moz-box-shadow: 0 0 0 2px #5292f7 inset;
+  box-shadow: 0 0 0 2px #5292f7 inset;
+  -webkit-appearance: none;
 }
 
 .topLeftSelectionHandle:not(.ht_master .topLeftSelectionHandle),
@@ -811,161 +772,6 @@ CheckboxRenderer
 .bottomRightSelectionHandle-HitArea {
   left: -10000px;
   top: -10000px;
-}
-
-.htMobileEditorContainer.active {
-  display: block;
-}
-
-.htMobileEditorContainer .inputs {
-  position: absolute;
-  right: 210pt;
-  bottom: 10pt;
-  top: 10pt;
-  left: 14px;
-  height: 34pt;
-}
-
-.htMobileEditorContainer .inputs textarea {
-  font-size: 13pt;
-  border: 1px solid #a1a1a1;
-  -webkit-appearance: none;
-  -webkit-box-shadow: none;
-  -moz-box-shadow: none;
-  box-shadow: none;
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  top: 0;
-  bottom: 0;
-  padding: 7pt;
-}
-
-.htMobileEditorContainer .cellPointer {
-  position: absolute;
-  top: -13pt;
-  height: 0;
-  width: 0;
-  left: 30px;
-
-  border-left: 13pt solid transparent;
-  border-right: 13pt solid transparent;
-  border-bottom: 13pt solid #ebebeb;
-}
-
-.htMobileEditorContainer .cellPointer.hidden {
-  display: none;
-}
-
-.htMobileEditorContainer .cellPointer:before {
-  content: '';
-  display: block;
-  position: absolute;
-  top: 2px;
-  height: 0;
-  width: 0;
-  left: -13pt;
-
-  border-left: 13pt solid transparent;
-  border-right: 13pt solid transparent;
-  border-bottom: 13pt solid #f8f8f8;
-}
-
-.htMobileEditorContainer .moveHandle {
-  position: absolute;
-  top: 10pt;
-  left: 5px;
-  width: 30px;
-  bottom: 0px;
-  cursor: move;
-  z-index: 9999;
-}
-
-.htMobileEditorContainer .moveHandle:after {
-  content: "..\a..\a..\a..";
-  white-space: pre;
-  line-height: 10px;
-  font-size: 20pt;
-  display: inline-block;
-  margin-top: -8px;
-  color: #ebebeb;
-}
-
-.htMobileEditorContainer .positionControls {
-  width: 205pt;
-  position: absolute;
-  right: 5pt;
-  top: 0;
-  bottom: 0;
-}
-
-.htMobileEditorContainer .positionControls > div {
-  width: 50pt;
-  height: 100%;
-  float: left;
-}
-
-.htMobileEditorContainer .positionControls > div:after {
-  content: " ";
-  display: block;
-  width: 15pt;
-  height: 15pt;
-  text-align: center;
-  line-height: 50pt;
-}
-
-.htMobileEditorContainer .leftButton:after,
-.htMobileEditorContainer .rightButton:after,
-.htMobileEditorContainer .upButton:after,
-.htMobileEditorContainer .downButton:after {
-  transform-origin: 5pt 5pt;
-  -webkit-transform-origin: 5pt 5pt;
-  margin: 21pt 0 0 21pt;
-}
-
-.htMobileEditorContainer .leftButton:after {
-  border-top: 2px solid #288ffe;
-  border-left: 2px solid #288ffe;
-  -webkit-transform: rotate(-45deg);
-  /*margin-top: 17pt;*/
-  /*margin-left: 20pt;*/
-}
-.htMobileEditorContainer .leftButton:active:after {
-  border-color: #cfcfcf;
-}
-
-.htMobileEditorContainer .rightButton:after {
-  border-top: 2px solid #288ffe;
-  border-left: 2px solid #288ffe;
-  -webkit-transform: rotate(135deg);
-  /*margin-top: 17pt;*/
-  /*margin-left: 10pt;*/
-}
-.htMobileEditorContainer .rightButton:active:after {
-  border-color: #cfcfcf;
-}
-
-.htMobileEditorContainer .upButton:after {
-  /*border-top: 2px solid #cfcfcf;*/
-  border-top: 2px solid #288ffe;
-  border-left: 2px solid #288ffe;
-  -webkit-transform: rotate(45deg);
-  /*margin-top: 22pt;*/
-  /*margin-left: 15pt;*/
-}
-.htMobileEditorContainer .upButton:active:after {
-  border-color: #cfcfcf;
-}
-
-.htMobileEditorContainer .downButton:after {
-  border-top: 2px solid #288ffe;
-  border-left: 2px solid #288ffe;
-  -webkit-transform: rotate(225deg);
-  /*margin-top: 15pt;*/
-  /*margin-left: 15pt;*/
-}
-.htMobileEditorContainer .downButton:active:after {
-  border-color: #cfcfcf;
 }
 
 .handsontable.hide-tween {
@@ -1221,6 +1027,47 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     cursor: help;
 }
 
+
+/*
+AutocompleteRenderer down arrow
+*/
+
+.handsontable .htAutocompleteArrow {
+  float: right;
+  font-size: 10px;
+  color: #EEE;
+  cursor: default;
+  width: 16px;
+  text-align: center;
+}
+
+.handsontable td .htAutocompleteArrow:hover {
+  color: #777;
+}
+
+.handsontable td.area .htAutocompleteArrow {
+  color: #d3d3d3;
+}
+
+/*
+CheckboxRenderer
+*/
+.handsontable .htCheckboxRendererInput {
+  display: inline-block;
+}
+.handsontable .htCheckboxRendererInput.noValue {
+  opacity: 0.5;
+}
+.handsontable .htCheckboxRendererLabel {
+  font-size: inherit;
+  vertical-align: middle;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.handsontable .htCheckboxRendererLabel.fullWidth {
+  width: 100%;
+}
 
 .htCommentCell {
   position: relative;

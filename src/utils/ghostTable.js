@@ -69,6 +69,7 @@ class GhostTable {
       this.container = this.createContainer(this.hot.rootElement.className);
     }
     const rowObject = { row };
+
     this.rows.push(rowObject);
 
     this.samples = samples;
@@ -98,7 +99,9 @@ class GhostTable {
       this.table = this.createTable(this.hot.table.className);
 
       this.table.colGroup.appendChild(this.createColGroupsCol());
-      this.table.tHead.appendChild(this.createColumnHeadersRow());
+
+      this.appendColumnHeadersRow();
+
       this.container.container.appendChild(this.table.fragment);
 
       rowObject.table = this.table.table;
@@ -119,6 +122,7 @@ class GhostTable {
       this.container = this.createContainer(this.hot.rootElement.className);
     }
     const columnObject = { col: column };
+
     this.columns.push(columnObject);
 
     this.samples = samples;
@@ -206,6 +210,7 @@ class GhostTable {
     if (this.settings) {
       return this.settings[name];
     }
+
     return null;
 
   }
@@ -270,30 +275,40 @@ class GhostTable {
     return fragment;
   }
 
-  createColumnHeadersRow() {
+  /**
+   * Creates DOM elements for headers and appends them to the THEAD element of the table.
+   */
+  appendColumnHeadersRow() {
     const { rootDocument } = this.hot;
-    const fragment = rootDocument.createDocumentFragment();
+    const domFragment = rootDocument.createDocumentFragment();
+    const columnHeaders = [];
 
     if (this.hot.hasRowHeaders()) {
       const th = rootDocument.createElement('th');
-      this.hot.view.appendColHeader(-1, th);
-      fragment.appendChild(th);
+
+      columnHeaders.push([-1, th]);
+      domFragment.appendChild(th);
     }
 
     this.samples.forEach((sample) => {
       arrayEach(sample.strings, (string) => {
         const column = string.col;
-
         const th = rootDocument.createElement('th');
 
-        // Please keep in mind that the renderable column index equal to the visual columns index for the GhostTable.
-        // We render all columns.
-        this.hot.view.appendColHeader(column, th);
-        fragment.appendChild(th);
+        columnHeaders.push([column, th]);
+        domFragment.appendChild(th);
       });
     });
 
-    return fragment;
+    // Appending DOM elements for headers
+    this.table.tHead.appendChild(domFragment);
+
+    arrayEach(columnHeaders, (columnHeader) => {
+      const [column, th] = columnHeader;
+
+      // Using source method for filling a header with value.
+      this.hot.view.appendColHeader(column, th);
+    });
   }
 
   /**

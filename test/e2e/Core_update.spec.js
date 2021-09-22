@@ -636,7 +636,7 @@ describe('Core_updateSettings', () => {
     updateSettings(newSettings);
 
     expect(afterUpdateSettings)
-      .toHaveBeenCalledWith(newSettings, undefined, undefined, undefined, undefined, undefined);
+      .toHaveBeenCalledWith(newSettings);
   });
 
   it('should not extend parameter passed to `afterUpdateSettings` hook by another properties', () => {
@@ -688,5 +688,45 @@ describe('Core_updateSettings', () => {
 
     expect(rowCacheUpdatedCallback.calls.count()).toEqual(1);
     expect(columnCacheUpdatedCallback.calls.count()).toEqual(1);
+  });
+
+  it('should pass the `source` argument as "updateSettings" to the `beforeLoadData` and `afterLoadData` hooks', () => {
+    let correctSourceCount = 0;
+
+    handsontable({
+      data: [[]],
+      beforeLoadData: (data, firstRun, source) => {
+        if (source === 'updateSettings') {
+          correctSourceCount += 1;
+        }
+      },
+      afterLoadData: (data, firstRun, source) => {
+        if (source === 'updateSettings') {
+          correctSourceCount += 1;
+        }
+      }
+    });
+
+    updateSettings({});
+
+    expect(correctSourceCount).toEqual(2);
+  });
+
+  it('should adjust column header size if `columns` is included in `updateSettings`', () => {
+    handsontable({
+      colHeaders: true,
+      data: [{
+        brand: 'Mercedes'
+      }]
+    });
+
+    updateSettings({
+      columns: [{
+        data: 'brand'
+      }]
+    });
+
+    expect($('.ht_master .wtHider')[0].offsetWidth)
+      .toEqual($('.ht_master td')[0].offsetWidth);
   });
 });

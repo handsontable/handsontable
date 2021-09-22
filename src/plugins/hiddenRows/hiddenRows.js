@@ -1,10 +1,9 @@
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import { arrayEach, arrayMap } from '../../helpers/array';
+import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { isUndefined } from '../../helpers/mixed';
-import { registerPlugin } from '../../plugins';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import Hooks from '../../pluginHooks';
 import hideRowItem from './contextMenuItem/hideRow';
@@ -18,25 +17,36 @@ Hooks.getSingleton().register('afterHideRows');
 Hooks.getSingleton().register('beforeUnhideRows');
 Hooks.getSingleton().register('afterUnhideRows');
 
+export const PLUGIN_KEY = 'hiddenRows';
+export const PLUGIN_PRIORITY = 320;
+
 /**
  * @plugin HiddenRows
+ * @class HiddenRows
  *
  * @description
- * Plugin allows to hide certain rows. The hiding is achieved by rendering the rows with height set as 0px.
- * The plugin not modifies the source data and do not participate in data transformation (the shape of data returned
- * by `getData*` methods stays intact).
+ * The `HiddenRows` plugin lets you [hide specified rows](@/guides/rows/row-hiding.md).
  *
- * Possible plugin settings:
- *  * `copyPasteEnabled` as `Boolean` (default `true`)
- *  * `rows` as `Array`
- *  * `indicators` as `Boolean` (default `false`).
+ * "Hiding a row" means that the hidden row doesn't get rendered as a DOM element.
+ *
+ * The `HiddenRows` plugin doesn't modify the source data,
+ * and doesn't participate in data transformation
+ * (the shape of the data returned by the [`getData*()` methods](@/api/core.md#getdata) stays intact).
+ *
+ * You can set the following configuration options:
+ *
+ * | Option | Required | Type | Default | Description |
+ * |---|---|---|---|---|
+ * | `rows` | No | Array | - | [Hides specified rows by default](@/guides/rows/row-hiding.md#step-1-specify-rows-hidden-by-default) |
+ * | `indicators` | No | Boolean | `false` | [Shows UI indicators](@/guides/rows/row-hiding.md#step-2-show-ui-indicators) |
+ * | `copyPasteEnabled` | No | Boolean | `true` | [Sets up copy/paste behavior](@/guides/rows/row-hiding.md#step-4-set-up-copy-and-paste-behavior) |
  *
  * @example
  *
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
- *   date: getData(),
+ *   data: getData(),
  *   hiddenRows: {
  *     copyPasteEnabled: true,
  *     indicators: true,
@@ -44,32 +54,40 @@ Hooks.getSingleton().register('afterUnhideRows');
  *   }
  * });
  *
- * // access to hiddenRows plugin instance
+ * // access the `HiddenRows` plugin's instance
  * const hiddenRowsPlugin = hot.getPlugin('hiddenRows');
  *
- * // show single row
- * hiddenRowsPlugin.showRow(1);
- *
- * // show multiple rows
- * hiddenRowsPlugin.showRow(1, 2, 9);
- *
- * // or as an array
- * hiddenRowsPlugin.showRows([1, 2, 9]);
- *
- * // hide single row
+ * // hide a single row
  * hiddenRowsPlugin.hideRow(1);
  *
  * // hide multiple rows
  * hiddenRowsPlugin.hideRow(1, 2, 9);
  *
- * // or as an array
+ * // hide multiple rows as an array
  * hiddenRowsPlugin.hideRows([1, 2, 9]);
  *
- * // rerender the table to see all changes
+ * // unhide a single row
+ * hiddenRowsPlugin.showRow(1);
+ *
+ * // unhide multiple rows
+ * hiddenRowsPlugin.showRow(1, 2, 9);
+ *
+ * // unhide multiple rows as an array
+ * hiddenRowsPlugin.showRows([1, 2, 9]);
+ *
+ * // to see your changes, re-render your Handsontable instance
  * hot.render();
  * ```
  */
-class HiddenRows extends BasePlugin {
+export class HiddenRows extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   /**
    * Cached settings from Handsontable settings.
    *
@@ -92,7 +110,7 @@ class HiddenRows extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().hiddenRows;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -103,7 +121,7 @@ class HiddenRows extends BasePlugin {
       return;
     }
 
-    const pluginSettings = this.hot.getSettings().hiddenRows;
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
 
     if (isObject(pluginSettings)) {
       this.#settings = pluginSettings;
@@ -154,30 +172,42 @@ class HiddenRows extends BasePlugin {
    */
   showRows(rows) {
     const currentHideConfig = this.getHiddenRows();
-    const isConfigValid = this.isValidConfig(rows);
+    const isValidConfig = this.isValidConfig(rows);
     let destinationHideConfig = currentHideConfig;
+    const hidingMapValues = this.#hiddenRowsMap.getValues().slice();
+    const isAnyRowShowed = rows.length > 0;
 
-    if (isConfigValid) {
-      destinationHideConfig = currentHideConfig.filter(row => rows.includes(row) === false);
+    if (isValidConfig && isAnyRowShowed) {
+      const physicalRows = rows.map(visualRow => this.hot.toPhysicalRow(visualRow));
+
+      // Preparing new values for hiding map.
+      arrayEach(physicalRows, (physicalRow) => {
+        hidingMapValues[physicalRow] = false;
+      });
+
+      // Preparing new hiding config.
+      destinationHideConfig = arrayReduce(hidingMapValues, (hiddenIndexes, isHidden, physicalIndex) => {
+        if (isHidden) {
+          hiddenIndexes.push(this.hot.toVisualRow(physicalIndex));
+        }
+
+        return hiddenIndexes;
+      }, []);
     }
 
     const continueHiding = this.hot
-      .runHooks('beforeUnhideRows', currentHideConfig, destinationHideConfig, isConfigValid);
+      .runHooks('beforeUnhideRows', currentHideConfig, destinationHideConfig, isValidConfig && isAnyRowShowed);
 
     if (continueHiding === false) {
       return;
     }
 
-    if (isConfigValid) {
-      this.hot.batch(() => {
-        arrayEach(rows, (visualRow) => {
-          this.#hiddenRowsMap.setValueAtIndex(this.hot.toPhysicalRow(visualRow), false);
-        });
-      });
+    if (isValidConfig && isAnyRowShowed) {
+      this.#hiddenRowsMap.setValues(hidingMapValues);
     }
 
-    this.hot.runHooks('afterUnhideRows', currentHideConfig, destinationHideConfig, isConfigValid,
-      isConfigValid && destinationHideConfig.length < currentHideConfig.length);
+    this.hot.runHooks('afterUnhideRows', currentHideConfig, destinationHideConfig, isValidConfig && isAnyRowShowed,
+      isValidConfig && destinationHideConfig.length < currentHideConfig.length);
   }
 
   /**
@@ -210,11 +240,11 @@ class HiddenRows extends BasePlugin {
     }
 
     if (isConfigValid) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         arrayEach(rows, (visualRow) => {
           this.#hiddenRowsMap.setValueAtIndex(this.hot.toPhysicalRow(visualRow), true);
         });
-      });
+      }, true);
     }
 
     this.hot.runHooks('afterHideRows', currentHideConfig, destinationHideConfig, isConfigValid,
@@ -437,14 +467,9 @@ class HiddenRows extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     this.#settings = null;
     this.#hiddenRowsMap = null;
 
     super.destroy();
   }
 }
-
-registerPlugin('hiddenRows', HiddenRows);
-
-export default HiddenRows;

@@ -8,12 +8,19 @@ import {
   removeClass,
 } from './../../../../helpers/dom/element';
 import BottomOverlayTable from './../table/bottom';
-import Overlay from './_base';
+import { Overlay } from './_base';
+import {
+  CLONE_BOTTOM,
+} from './constants';
 
 /**
  * @class BottomOverlay
  */
-class BottomOverlay extends Overlay {
+export class BottomOverlay extends Overlay {
+  static get OVERLAY_NAME() {
+    return CLONE_BOTTOM;
+  }
+
   /**
    * Cached value which holds the previous value of the `fixedRowsBottom` option.
    * It is used as a comparison value that can be used to detect changes in that value.
@@ -27,7 +34,8 @@ class BottomOverlay extends Overlay {
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(Overlay.CLONE_BOTTOM);
+    this.clone = this.makeClone(CLONE_BOTTOM);
+    this.cachedFixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
   }
 
   /**
@@ -181,10 +189,6 @@ class BottomOverlay extends Overlay {
     if (this.needFullRender || force) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
-
-      if (!force) {
-        this.areElementSizesAdjusted = true;
-      }
     }
   }
 
@@ -240,9 +244,6 @@ class BottomOverlay extends Overlay {
   applyToDOM() {
     const total = this.wot.getSetting('totalRows');
 
-    if (!this.areElementSizesAdjusted) {
-      this.adjustElementsSize();
-    }
     if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
       this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
@@ -350,25 +351,8 @@ class BottomOverlay extends Overlay {
         removeClass(masterParent, 'innerBorderBottom');
         positionChanged = previousState;
       }
-
-      if (!previousState && position || previousState && !position) {
-        this.wot.wtOverlays.adjustElementsSize();
-      }
-    }
-
-    // nasty workaround for double border in the header, TODO: find a pure-css solution
-    if (this.wot.getSetting('rowHeaders').length === 0) {
-      const secondHeaderCell = this.clone.wtTable.THEAD.querySelector('th:nth-of-type(2)');
-
-      if (secondHeaderCell) {
-        secondHeaderCell.style['border-left-width'] = 0;
-      }
     }
 
     return positionChanged;
   }
 }
-
-Overlay.registerOverlay(Overlay.CLONE_BOTTOM, BottomOverlay);
-
-export default BottomOverlay;

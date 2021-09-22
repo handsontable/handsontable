@@ -48,7 +48,7 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
       }
 
       this.render();
-      this.view.wt.wtOverlays.adjustElementsSize(true);
+      this.view.adjustElementsSize(true);
     },
     disabled: false,
     hidden() {

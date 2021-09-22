@@ -152,6 +152,7 @@ class Endpoints {
   assignSetting(settings, endpoint, name, defaultValue) {
     if (name === 'ranges' && settings[name] === void 0) {
       endpoint[name] = defaultValue;
+
       return;
     } else if (name === 'ranges' && settings[name].length === 0) {
       return;
@@ -230,11 +231,14 @@ class Endpoints {
 
       // We need to run it on a next avaiable hook, because the TrimRows' `afterCreateRow` hook triggers after this one,
       // and it needs to be run to properly calculate the endpoint value.
-      const beforeRenderCallback = () => {
-        this.hot.removeHook('beforeRender', beforeRenderCallback);
+      const beforeViewRenderCallback = () => {
+        this.hot.removeHook('beforeViewRender', beforeViewRenderCallback);
+
         return this.refreshAllEndpoints();
       };
-      this.hot.addHookOnce('beforeRender', beforeRenderCallback);
+
+      this.hot.addHookOnce('beforeViewRender', beforeViewRenderCallback);
+
       return;
     }
 
@@ -330,6 +334,7 @@ class Endpoints {
 
     arrayEach(ranges, (range) => {
       const newRange = [];
+
       if (range[1]) {
         for (let i = range[0]; i <= range[1]; i++) {
           newRange.push(this.hot.toPhysicalRow(i));
@@ -343,6 +348,7 @@ class Endpoints {
 
     arrayEach(allIndexes, (range) => {
       let newRange = [];
+
       arrayEach(range, (coord, index) => {
         if (index === 0) {
           newRange.push(coord);
@@ -448,6 +454,7 @@ class Endpoints {
    */
   refreshChangedEndpoints(changes) {
     const needToRefresh = [];
+
     this.cellsToSetCache = [];
 
     arrayEach(changes, (value, key, changesObj) => {
@@ -497,10 +504,13 @@ class Endpoints {
       this.hot.toVisualColumn(endpoint.destinationColumn)
     ];
 
-    // Clear the meta on the "old" indexes
-    const cellMeta = this.hot.getCellMeta(visualRowIndex, visualColumnIndex);
-    cellMeta.readOnly = false;
-    cellMeta.className = '';
+    if (visualColumnIndex !== null && visualRowIndex !== null) {
+      // Clear the meta on the "old" indexes
+      const cellMeta = this.hot.getCellMeta(visualRowIndex, visualColumnIndex);
+
+      cellMeta.readOnly = false;
+      cellMeta.className = '';
+    }
 
     this.cellsToSetCache.push([
       this.hot.toVisualRow(endpoint.destinationRow + (useOffset ? alterRowOffset : 0)),
@@ -524,17 +534,22 @@ class Endpoints {
 
     if (endpoint.destinationRow >= this.hot.countRows() || endpoint.destinationColumn >= this.hot.countCols()) {
       this.throwOutOfBoundsWarning();
+
       return;
     }
 
-    const cellMeta = this.hot.getCellMeta(
-      this.hot.toVisualRow(endpoint.destinationRow + reverseRowOffset),
-      endpoint.destinationColumn + reverseColOffset
-    );
+    const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow + reverseRowOffset);
 
-    if (source === 'init' || cellMeta.readOnly !== endpoint.readOnly) {
-      cellMeta.readOnly = endpoint.readOnly;
-      cellMeta.className = 'columnSummaryResult';
+    if (destinationVisualRow !== null) {
+      const cellMeta = this.hot.getCellMeta(
+        destinationVisualRow,
+        endpoint.destinationColumn + reverseColOffset
+      );
+
+      if (source === 'init' || cellMeta.readOnly !== endpoint.readOnly) {
+        cellMeta.readOnly = endpoint.readOnly;
+        cellMeta.className = 'columnSummaryResult';
+      }
     }
 
     if (endpoint.roundFloat && !isNaN(endpoint.result)) {

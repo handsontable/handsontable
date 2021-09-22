@@ -14,6 +14,7 @@ import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
 import Walkontable, { CellCoords } from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
+import { isRootInstance } from './utils/rootInstance';
 
 const privatePool = new WeakMap();
 
@@ -72,6 +73,15 @@ class TableView {
      * @type {Walkontable}
      */
     this.activeWt = void 0;
+    /**
+     * The flag determines if the `adjustElementsSize` method call was made during
+     * the render suspending. If true, the method has to be triggered once after render
+     * resuming.
+     *
+     * @private
+     * @type {boolean}
+     */
+    this.postponedAdjustElementsSize = false;
 
     privatePool.set(this, {
       /**
@@ -116,9 +126,33 @@ class TableView {
    * Renders WalkontableUI.
    */
   render() {
-    this.wt.draw(!this.instance.forceFullRender);
-    this.instance.forceFullRender = false;
-    this.instance.renderCall = false;
+    if (!this.instance.isRenderSuspended()) {
+      this.instance.runHooks('beforeRender', this.instance.forceFullRender);
+
+      if (this.postponedAdjustElementsSize) {
+        this.postponedAdjustElementsSize = false;
+
+        this.adjustElementsSize(true);
+      }
+
+      this.wt.draw(!this.instance.forceFullRender);
+      this.instance.runHooks('afterRender', this.instance.forceFullRender);
+      this.instance.forceFullRender = false;
+      this.instance.renderCall = false;
+    }
+  }
+
+  /**
+   * Adjust overlays elements size and master table size.
+   *
+   * @param {boolean} [force=false] When `true`, it adjust the DOM nodes sizes for all overlays.
+   */
+  adjustElementsSize(force = false) {
+    if (this.instance.isRenderSuspended()) {
+      this.postponedAdjustElementsSize = true;
+    } else {
+      this.wt.wtOverlays.adjustElementsSize(force);
+    }
   }
 
   /**
@@ -225,6 +259,7 @@ class TableView {
 
       if (!this.isTextSelectionAllowed(event.target)) {
         const { rootWindow } = this.instance;
+
         clearTextSelection(rootWindow);
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
@@ -306,6 +341,7 @@ class TableView {
             if (event.isTargetWebComponent) {
               break;
             }
+
             // click on something that was a row but now is detached (possibly because your click triggered a rerender)
             return;
           }
@@ -376,12 +412,34 @@ class TableView {
   }
 
   /**
+   * Returns the number of renderable indexes.
+   *
+   * @private
+   * @param {IndexMapper} indexMapper The IndexMapper instance for specific axis.
+   * @param {number} maxElements Maximum number of elements (rows or columns).
+   *
+   * @returns {number|*}
+   */
+  countRenderableIndexes(indexMapper, maxElements) {
+    const consideredElements = Math.min(indexMapper.getNotTrimmedIndexesLength(), maxElements);
+    // Don't take hidden indexes into account. We are looking just for renderable indexes.
+    const firstNotHiddenIndex = indexMapper.getFirstNotHiddenIndex(consideredElements - 1, -1);
+
+    // There are no renderable indexes.
+    if (firstNotHiddenIndex === null) {
+      return 0;
+    }
+
+    return indexMapper.getRenderableFromVisualIndex(firstNotHiddenIndex) + 1;
+  }
+
+  /**
    * Returns the number of renderable columns.
    *
    * @returns {number}
    */
   countRenderableColumns() {
-    return Math.min(this.instance.columnIndexMapper.getRenderableIndexesLength(), this.settings.maxCols);
+    return this.countRenderableIndexes(this.instance.columnIndexMapper, this.settings.maxCols);
   }
 
   /**
@@ -390,7 +448,7 @@ class TableView {
    * @returns {number}
    */
   countRenderableRows() {
-    return Math.min(this.instance.rowIndexMapper.getRenderableIndexesLength(), this.settings.maxRows);
+    return this.countRenderableIndexes(this.instance.rowIndexMapper, this.settings.maxRows);
   }
 
   /**
@@ -464,6 +522,7 @@ class TableView {
       externalRowCalculator: this.instance.getPlugin('autoRowSize') &&
         this.instance.getPlugin('autoRowSize').isEnabled(),
       table: priv.table,
+      isDataViewInstance: () => isRootInstance(this.instance),
       preventOverflow: () => this.settings.preventOverflow,
       preventWheel: () => this.settings.preventWheel,
       stretchH: () => this.settings.stretchH,
@@ -560,9 +619,20 @@ class TableView {
       cellRenderer: (renderedRowIndex, renderedColumnIndex, TD) => {
         const [visualRowIndex, visualColumnIndex] = this
           .translateFromRenderableToVisualIndex(renderedRowIndex, renderedColumnIndex);
-        const cellProperties = this.instance.getCellMeta(visualRowIndex, visualColumnIndex);
-        const prop = this.instance.colToProp(visualColumnIndex);
-        let value = this.instance.getDataAtRowProp(visualRowIndex, prop);
+
+        // Coords may be modified. For example, by the `MergeCells` plugin. It should affect cell value and cell meta.
+        const modifiedCellCoords = this.instance.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex);
+
+        let visualRowToCheck = visualRowIndex;
+        let visualColumnToCheck = visualColumnIndex;
+
+        if (Array.isArray(modifiedCellCoords)) {
+          [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords;
+        }
+
+        const cellProperties = this.instance.getCellMeta(visualRowToCheck, visualColumnToCheck);
+        const prop = this.instance.colToProp(visualColumnToCheck);
+        let value = this.instance.getDataAtRowProp(visualRowToCheck, prop);
 
         if (this.instance.hasHook('beforeValueRender')) {
           value = this.instance.runHooks('beforeValueRender', value, cellProperties);
@@ -591,7 +661,7 @@ class TableView {
       },
       onCellMouseDown: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
-        const blockCalculations = {
+        const controller = {
           row: false,
           column: false,
           cell: false
@@ -602,7 +672,7 @@ class TableView {
         this.activeWt = wt;
         priv.mouseDown = true;
 
-        this.instance.runHooks('beforeOnCellMouseDown', event, visualCoords, TD, blockCalculations);
+        this.instance.runHooks('beforeOnCellMouseDown', event, visualCoords, TD, controller);
 
         if (isImmediatePropagationStopped(event)) {
           return;
@@ -611,7 +681,7 @@ class TableView {
         handleMouseEvent(event, {
           coords: visualCoords,
           selection: this.instance.selection,
-          controller: blockCalculations,
+          controller,
         });
 
         this.instance.runHooks('afterOnCellMouseDown', event, visualCoords, TD);
@@ -653,14 +723,14 @@ class TableView {
       onCellMouseOver: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
 
-        const blockCalculations = {
+        const controller = {
           row: false,
           column: false,
           cell: false
         };
 
         this.activeWt = wt;
-        this.instance.runHooks('beforeOnCellMouseOver', event, visualCoords, TD, blockCalculations);
+        this.instance.runHooks('beforeOnCellMouseOver', event, visualCoords, TD, controller);
 
         if (isImmediatePropagationStopped(event)) {
           return;
@@ -670,7 +740,7 @@ class TableView {
           handleMouseEvent(event, {
             coords: visualCoords,
             selection: this.instance.selection,
-            controller: blockCalculations,
+            controller,
           });
         }
 
@@ -683,7 +753,11 @@ class TableView {
         this.activeWt = wt;
         this.instance.runHooks('beforeOnCellMouseUp', event, visualCoords, TD);
 
-        if (isImmediatePropagationStopped(event)) {
+        // TODO: The second condition check is a workaround. Callback corresponding the method `updateSettings`
+        // disable plugin and enable it again. Disabling plugin closes the menu. Thus, calling the
+        // `updateSettings` in a body of any callback executed right after some context-menu action
+        // breaks the table (#7231).
+        if (isImmediatePropagationStopped(event) || this.instance.isDestroyed) {
           return;
         }
 
@@ -699,10 +773,28 @@ class TableView {
         this.instance.runHooks('afterOnCellCornerDblClick', event);
       },
       beforeDraw: (force, skipRender) => this.beforeRender(force, skipRender),
-      onDraw: force => this.onDraw(force),
+      onDraw: force => this.afterRender(force),
       onScrollVertically: () => this.instance.runHooks('afterScrollVertically'),
       onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
+      onBeforeHighlightingRowHeader: (renderableRow, headerLevel, highlightMeta) => {
+        const rowMapper = this.instance.rowIndexMapper;
+        const visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
+
+        const newVisualRow = this.instance
+          .runHooks('beforeHighlightingRowHeader', visualRow, headerLevel, highlightMeta);
+
+        return rowMapper.getRenderableFromVisualIndex(rowMapper.getFirstNotHiddenIndex(newVisualRow, 1));
+      },
+      onBeforeHighlightingColumnHeader: (renderableColumn, headerLevel, highlightMeta) => {
+        const columnMapper = this.instance.columnIndexMapper;
+        const visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
+
+        const newVisualColumn = this.instance
+          .runHooks('beforeHighlightingColumnHeader', visualColumn, headerLevel, highlightMeta);
+
+        return columnMapper.getRenderableFromVisualIndex(columnMapper.getFirstNotHiddenIndex(newVisualColumn, 1));
+      },
       onAfterDrawSelection: (currentRow, currentColumn, layerLevel) => {
         let cornersOfSelection;
         const [visualRowIndex, visualColumnIndex] =
@@ -779,18 +871,19 @@ class TableView {
         }
 
         if (viewportOffset > 0 || viewportOffset === 'auto') {
-          const rows = this.countRenderableRows();
+          const renderableRows = this.countRenderableRows();
+          const firstRenderedRow = calc.startRow;
+          const lastRenderedRow = calc.endRow;
 
           if (typeof viewportOffset === 'number') {
-            calc.startRow = Math.max(calc.startRow - viewportOffset, 0);
-            calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
+            calc.startRow = Math.max(firstRenderedRow - viewportOffset, 0);
+            calc.endRow = Math.min(lastRenderedRow + viewportOffset, renderableRows - 1);
 
           } else if (viewportOffset === 'auto') {
-            const center = calc.startRow + calc.endRow - calc.startRow;
-            const offset = Math.ceil(center / rows * 12);
+            const offset = Math.ceil(lastRenderedRow / renderableRows * 12);
 
-            calc.startRow = Math.max(calc.startRow - offset, 0);
-            calc.endRow = Math.min(calc.endRow + offset, rows - 1);
+            calc.startRow = Math.max(firstRenderedRow - offset, 0);
+            calc.endRow = Math.min(lastRenderedRow + offset, renderableRows - 1);
           }
         }
         this.instance.runHooks('afterViewportRowCalculatorOverride', calc);
@@ -803,18 +896,19 @@ class TableView {
         }
 
         if (viewportOffset > 0 || viewportOffset === 'auto') {
-          const cols = this.countRenderableColumns();
+          const renderableColumns = this.countRenderableColumns();
+          const firstRenderedColumn = calc.startColumn;
+          const lastRenderedColumn = calc.endColumn;
 
           if (typeof viewportOffset === 'number') {
-            calc.startColumn = Math.max(calc.startColumn - viewportOffset, 0);
-            calc.endColumn = Math.min(calc.endColumn + viewportOffset, cols - 1);
+            calc.startColumn = Math.max(firstRenderedColumn - viewportOffset, 0);
+            calc.endColumn = Math.min(lastRenderedColumn + viewportOffset, renderableColumns - 1);
           }
           if (viewportOffset === 'auto') {
-            const center = calc.startColumn + calc.endColumn - calc.startColumn;
-            const offset = Math.ceil(center / cols * 12);
+            const offset = Math.ceil(lastRenderedColumn / renderableColumns * 6);
 
-            calc.startRow = Math.max(calc.startColumn - offset, 0);
-            calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
+            calc.startColumn = Math.max(firstRenderedColumn - offset, 0);
+            calc.endColumn = Math.min(lastRenderedColumn + offset, renderableColumns - 1);
           }
         }
         this.instance.runHooks('afterViewportColumnCalculatorOverride', calc);
@@ -822,6 +916,7 @@ class TableView {
       rowHeaderWidth: () => this.settings.rowHeaderWidth,
       columnHeaderHeight: () => {
         const columnHeaderHeight = this.instance.runHooks('modifyColumnHeaderHeight');
+
         return this.settings.columnHeaderHeight || columnHeaderHeight;
       }
     };
@@ -925,26 +1020,27 @@ class TableView {
    * @private
    * @param {boolean} force If `true` rendering was triggered by a change of settings or data or `false` if
    *                        rendering was triggered by scrolling or moving selection.
-   * @param {boolean} skipRender Indicates whether the rendering is skipped.
+   * @param {object} skipRender Object with `skipRender` property, if it is set to `true ` the next rendering
+   *                            cycle will be skipped.
    */
   beforeRender(force, skipRender) {
     if (force) {
       // this.instance.forceFullRender = did Handsontable request full render?
-      this.instance.runHooks('beforeRender', this.instance.forceFullRender, skipRender);
+      this.instance.runHooks('beforeViewRender', this.instance.forceFullRender, skipRender);
     }
   }
 
   /**
-   * `onDraw` callback.
+   * `afterRender` callback.
    *
    * @private
    * @param {boolean} force If `true` rendering was triggered by a change of settings or data or `false` if
    *                        rendering was triggered by scrolling or moving selection.
    */
-  onDraw(force) {
+  afterRender(force) {
     if (force) {
       // this.instance.forceFullRender = did Handsontable request full render?
-      this.instance.runHooks('afterRender', this.instance.forceFullRender);
+      this.instance.runHooks('afterViewRender', this.instance.forceFullRender);
     }
   }
 

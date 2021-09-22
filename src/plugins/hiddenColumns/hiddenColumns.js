@@ -1,10 +1,9 @@
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import { arrayEach, arrayMap } from '../../helpers/array';
+import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { isUndefined } from '../../helpers/mixed';
-import { registerPlugin } from '../../plugins';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import Hooks from '../../pluginHooks';
 import hideColumnItem from './contextMenuItem/hideColumn';
@@ -18,24 +17,36 @@ Hooks.getSingleton().register('afterHideColumns');
 Hooks.getSingleton().register('beforeUnhideColumns');
 Hooks.getSingleton().register('afterUnhideColumns');
 
+export const PLUGIN_KEY = 'hiddenColumns';
+export const PLUGIN_PRIORITY = 310;
+
 /**
  * @plugin HiddenColumns
+ * @class HiddenColumns
  *
  * @description
- * Plugin allows to hide certain columns. The hiding is achieved by not rendering the columns. The plugin not modifies
- * the source data and do not participate in data transformation (the shape of data returned by `getData*` methods stays intact).
+ * The `HiddenColumns` plugin lets you [hide specified columns](@/guides/columns/column-hiding.md).
  *
- * Possible plugin settings:
- *  * `copyPasteEnabled` as `Boolean` (default `true`)
- *  * `columns` as `Array`
- *  * `indicators` as `Boolean` (default `false`).
+ * "Hiding a column" means that the hidden column doesn't get rendered as a DOM element.
+ *
+ * The `HiddenColumns` plugin doesn't modify the source data,
+ * and doesn't participate in data transformation
+ * (the shape of the data returned by the [`getData*()` methods](@/api/core.md#getdata) stays intact).
+ *
+ * You can set the following configuration options:
+ *
+ * | Option | Required | Type | Default | Description |
+ * |---|---|---|---|---|
+ * | `columns` | No | Array | - | [Hides specified columns by default](@/guides/columns/column-hiding.md#step-1-specify-columns-hidden-by-default) |
+ * | `indicators` | No | Boolean | `false` | [Shows UI indicators](@/guides/columns/column-hiding.md#step-2-show-ui-indicators) |
+ * | `copyPasteEnabled` | No | Boolean | `true` | [Sets up copy/paste behavior](@/guides/columns/column-hiding.md#step-4-set-up-copy-and-paste-behavior) |
  *
  * @example
  *
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
- *   date: getData(),
+ *   data: getData(),
  *   hiddenColumns: {
  *     copyPasteEnabled: true,
  *     indicators: true,
@@ -43,32 +54,40 @@ Hooks.getSingleton().register('afterUnhideColumns');
  *   }
  * });
  *
- * // access to hiddenColumns plugin instance:
+ * // access the `HiddenColumns` plugin's instance
  * const hiddenColumnsPlugin = hot.getPlugin('hiddenColumns');
  *
- * // show single row
- * hiddenColumnsPlugin.showColumn(1);
- *
- * // show multiple columns
- * hiddenColumnsPlugin.showColumn(1, 2, 9);
- *
- * // or as an array
- * hiddenColumnsPlugin.showColumns([1, 2, 9]);
- *
- * // hide single row
+ * // hide a single column
  * hiddenColumnsPlugin.hideColumn(1);
  *
  * // hide multiple columns
  * hiddenColumnsPlugin.hideColumn(1, 2, 9);
  *
- * // or as an array
+ * // hide multiple columns as an array
  * hiddenColumnsPlugin.hideColumns([1, 2, 9]);
  *
- * // rerender the table to see all changes
+ * // unhide a single column
+ * hiddenColumnsPlugin.showColumn(1);
+ *
+ * // unhide multiple columns
+ * hiddenColumnsPlugin.showColumn(1, 2, 9);
+ *
+ * // unhide multiple columns as an array
+ * hiddenColumnsPlugin.showColumns([1, 2, 9]);
+ *
+ * // to see your changes, re-render your Handsontable instance
  * hot.render();
  * ```
  */
-class HiddenColumns extends BasePlugin {
+export class HiddenColumns extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   /**
    * Cached plugin settings.
    *
@@ -91,7 +110,7 @@ class HiddenColumns extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().hiddenColumns;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -102,7 +121,7 @@ class HiddenColumns extends BasePlugin {
       return;
     }
 
-    const pluginSettings = this.hot.getSettings().hiddenColumns;
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
 
     if (isObject(pluginSettings)) {
       this.#settings = pluginSettings;
@@ -153,30 +172,45 @@ class HiddenColumns extends BasePlugin {
    */
   showColumns(columns) {
     const currentHideConfig = this.getHiddenColumns();
-    const isConfigValid = this.isValidConfig(columns);
+    const isValidConfig = this.isValidConfig(columns);
     let destinationHideConfig = currentHideConfig;
+    const hidingMapValues = this.#hiddenColumnsMap.getValues().slice();
+    const isAnyColumnShowed = columns.length > 0;
 
-    if (isConfigValid) {
-      destinationHideConfig = currentHideConfig.filter(column => columns.includes(column) === false);
+    if (isValidConfig && isAnyColumnShowed) {
+      const physicalColumns = columns.map(visualColumn => this.hot.toPhysicalColumn(visualColumn));
+
+      // Preparing new values for hiding map.
+      arrayEach(physicalColumns, (physicalColumn) => {
+        hidingMapValues[physicalColumn] = false;
+      });
+
+      // Preparing new hiding config.
+      destinationHideConfig = arrayReduce(hidingMapValues, (hiddenIndexes, isHidden, physicalIndex) => {
+        if (isHidden) {
+          hiddenIndexes.push(this.hot.toVisualColumn(physicalIndex));
+        }
+
+        return hiddenIndexes;
+      }, []);
     }
 
     const continueHiding = this.hot
-      .runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, isConfigValid);
+      .runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, isValidConfig && isAnyColumnShowed);
 
     if (continueHiding === false) {
       return;
     }
 
-    if (isConfigValid) {
-      this.hot.batch(() => {
-        arrayEach(columns, (visualColumn) => {
-          this.#hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), false);
-        });
-      });
+    if (isValidConfig && isAnyColumnShowed) {
+      this.#hiddenColumnsMap.setValues(hidingMapValues);
     }
 
-    this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig, isConfigValid,
-      isConfigValid && destinationHideConfig.length < currentHideConfig.length);
+    // @TODO Should call once per render cycle, currently fired separately in different plugins
+    this.hot.view.adjustElementsSize();
+
+    this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig,
+      isValidConfig && isAnyColumnShowed, isValidConfig && destinationHideConfig.length < currentHideConfig.length);
   }
 
   /**
@@ -210,11 +244,11 @@ class HiddenColumns extends BasePlugin {
     }
 
     if (isConfigValid) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         arrayEach(columns, (visualColumn) => {
           this.#hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), true);
         });
-      });
+      }, true);
     }
 
     this.hot.runHooks('afterHideColumns', currentHideConfig, destinationHideConfig, isConfigValid,
@@ -254,7 +288,7 @@ class HiddenColumns extends BasePlugin {
   /**
    * Get if trim config is valid. Check whether all of the provided column indexes are within the bounds of the table.
    *
-   * @param {Array} hiddenColumns List of hidden row indexes.
+   * @param {Array} hiddenColumns List of hidden column indexes.
    * @returns {boolean}
    */
   isValidConfig(hiddenColumns) {
@@ -444,14 +478,9 @@ class HiddenColumns extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
     this.#settings = null;
     this.#hiddenColumnsMap = null;
 
     super.destroy();
   }
 }
-
-registerPlugin('hiddenColumns', HiddenColumns);
-
-export default HiddenColumns;

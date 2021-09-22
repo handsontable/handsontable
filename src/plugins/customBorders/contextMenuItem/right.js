@@ -1,5 +1,5 @@
-import * as C from './../../../i18n/constants';
-import { checkSelectionBorders, markSelected } from './../utils';
+import * as C from '../../../i18n/constants';
+import { checkSelectionBorders, markSelected } from '../utils';
 
 /**
  * @param {CustomBorders} customBordersPlugin The plugin instance.
@@ -11,13 +11,16 @@ export default function right(customBordersPlugin) {
     name() {
       let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_RIGHT);
       const hasBorder = checkSelectionBorders(this, 'right');
+
       if (hasBorder) {
         label = markSelected(label);
       }
+
       return label;
     },
     callback(key, selected) {
       const hasBorder = checkSelectionBorders(this, 'right');
+
       customBordersPlugin.prepareBorder(selected, 'right', hasBorder);
     }
   };

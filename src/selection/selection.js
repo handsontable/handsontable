@@ -1,4 +1,9 @@
-import Highlight, { AREA_TYPE, HEADER_TYPE, CELL_TYPE } from './highlight/highlight';
+import Highlight from './highlight/highlight';
+import {
+  AREA_TYPE,
+  HEADER_TYPE,
+  CELL_TYPE,
+} from './highlight/constants';
 import SelectionRange from './range';
 import { CellCoords } from './../3rdparty/walkontable/src';
 import { isPressedCtrlKey } from './../utils/keyStateObserver';
@@ -76,7 +81,7 @@ class Selection {
       activeHeaderClassName: settings.activeHeaderClassName,
       rowClassName: settings.currentRowClassName,
       columnClassName: settings.currentColClassName,
-      disableHighlight: this.settings.disableVisualSelection,
+      disabledCellSelection: (row, column) => this.tableProps.isDisabledCellSelection(row, column),
       cellCornerVisible: (...args) => this.isCellCornerVisible(...args),
       areaCornerVisible: (...args) => this.isAreaCornerVisible(...args),
       visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
@@ -223,7 +228,7 @@ class Selection {
     // Set up current selection.
     this.highlight.getCell().clear();
 
-    if (this.highlight.isEnabledFor(CELL_TYPE)) {
+    if (this.highlight.isEnabledFor(CELL_TYPE, cellRange.highlight)) {
       this.highlight.getCell()
         .add(this.selectedRange.current().highlight)
         .commit()
@@ -250,7 +255,7 @@ class Selection {
     headerHighlight.clear();
     activeHeaderHighlight.clear();
 
-    if (this.highlight.isEnabledFor(AREA_TYPE) && (this.isMultiple() || layerLevel >= 1)) {
+    if (this.highlight.isEnabledFor(AREA_TYPE, cellRange.highlight) && (this.isMultiple() || layerLevel >= 1)) {
       areaHighlight
         .add(cellRange.from)
         .add(cellRange.to)
@@ -274,7 +279,7 @@ class Selection {
       }
     }
 
-    if (this.highlight.isEnabledFor(HEADER_TYPE)) {
+    if (this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight)) {
       // The header selection generally contains cell selection. In a case when all rows (or columns)
       // are hidden that visual coordinates are translated to renderable coordinates that do not exist.
       // Hence no header highlight is generated. In that case, to make a column (or a row) header
@@ -308,29 +313,29 @@ class Selection {
           .add(headerCellRange.to)
           .commit();
       }
-    }
 
-    if (this.isEntireRowSelected()) {
-      const isRowSelected = this.tableProps.countCols() === cellRange.getWidth();
+      if (this.isEntireRowSelected()) {
+        const isRowSelected = this.tableProps.countCols() === cellRange.getWidth();
 
-      // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
-      if (isRowSelected) {
-        activeHeaderHighlight
-          .add(new CellCoords(cellRange.from.row, -1))
-          .add(new CellCoords(cellRange.to.row, -1))
-          .commit();
+        // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
+        if (isRowSelected) {
+          activeHeaderHighlight
+            .add(new CellCoords(cellRange.from.row, -1))
+            .add(new CellCoords(cellRange.to.row, -1))
+            .commit();
+        }
       }
-    }
 
-    if (this.isEntireColumnSelected()) {
-      const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
+      if (this.isEntireColumnSelected()) {
+        const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
 
-      // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
-      if (isColumnSelected) {
-        activeHeaderHighlight
-          .add(new CellCoords(-1, cellRange.from.col))
-          .add(new CellCoords(-1, cellRange.to.col))
-          .commit();
+        // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
+        if (isColumnSelected) {
+          activeHeaderHighlight
+            .add(new CellCoords(-1, cellRange.from.col))
+            .add(new CellCoords(-1, cellRange.to.col))
+            .commit();
+        }
       }
     }
 
@@ -573,9 +578,9 @@ class Selection {
     const isValid = !selectionRanges.some((selection) => {
       const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
       const _isValid = isValidCoord(rowStart, nrOfRows) &&
-                      isValidCoord(columnStart, nrOfColumns) &&
-                      isValidCoord(rowEnd, nrOfRows) &&
-                      isValidCoord(columnEnd, nrOfColumns);
+        isValidCoord(columnStart, nrOfColumns) &&
+        isValidCoord(rowEnd, nrOfRows) &&
+        isValidCoord(columnEnd, nrOfColumns);
 
       return !_isValid;
     });
@@ -601,9 +606,12 @@ class Selection {
    *
    * @param {number|string} startColumn Visual column index or column property from which the selection starts.
    * @param {number|string} [endColumn] Visual column index or column property from to the selection finishes.
+   * @param {number} [headerLevel=-1] A row header index that triggers the column selection. The value can
+   *                                  take -1 to -N, where -1 means the header closest to the cells.
+   *
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
-  selectColumns(startColumn, endColumn = startColumn) {
+  selectColumns(startColumn, endColumn = startColumn, headerLevel = -1) {
     const start = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
     const end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
 
@@ -612,7 +620,7 @@ class Selection {
     const isValid = isValidCoord(start, nrOfColumns) && isValidCoord(end, nrOfColumns);
 
     if (isValid) {
-      this.setRangeStartOnly(new CellCoords(-1, start));
+      this.setRangeStartOnly(new CellCoords(headerLevel, start));
       this.setRangeEnd(new CellCoords(nrOfRows - 1, end));
       this.finish();
     }
@@ -625,15 +633,18 @@ class Selection {
    *
    * @param {number} startRow Visual row index from which the selection starts.
    * @param {number} [endRow] Visual row index from to the selection finishes.
+   * @param {number} [headerLevel=-1] A column header index that triggers the row selection.
+   *                                  The value can take -1 to -N, where -1 means the header
+   *                                  closest to the cells.
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
-  selectRows(startRow, endRow = startRow) {
+  selectRows(startRow, endRow = startRow, headerLevel = -1) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
     const isValid = isValidCoord(startRow, nrOfRows) && isValidCoord(endRow, nrOfRows);
 
     if (isValid) {
-      this.setRangeStartOnly(new CellCoords(startRow, -1));
+      this.setRangeStartOnly(new CellCoords(startRow, headerLevel));
       this.setRangeEnd(new CellCoords(endRow, nrOfColumns - 1));
       this.finish();
     }

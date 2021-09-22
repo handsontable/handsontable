@@ -1,6 +1,6 @@
-import { align, getAlignmentClasses, checkSelectionConsistency, markLabelAsSelected } from './../utils';
+import { align, getAlignmentClasses, checkSelectionConsistency, markLabelAsSelected } from '../utils';
 import { KEY as SEPARATOR } from './separator';
-import * as C from './../../../i18n/constants';
+import * as C from '../../../i18n/constants';
 
 export const KEY = 'alignment';
 
@@ -164,6 +164,7 @@ export default function alignmentItem() {
             if (hasClass) {
               label = markLabelAsSelected(label);
             }
+
             return label;
           },
           callback() {

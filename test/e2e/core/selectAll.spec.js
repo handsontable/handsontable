@@ -14,8 +14,8 @@ describe('Core.selectAll', () => {
     const scrollbarWidth = Handsontable.dom.getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(15, 20),
-      width: 185 + scrollbarWidth,
-      height: 85 + scrollbarWidth,
+      width: Math.min(200 - scrollbarWidth, 185),
+      height: Math.min(100 - scrollbarWidth, 85),
       selectionMode: 'multiple',
       colHeaders: true,
       rowHeaders: true,
@@ -29,18 +29,18 @@ describe('Core.selectAll', () => {
     selectAll();
 
     expect(`
-      |   ║ * : * : * : * : * : * |
-      |===:===:===:===:===:===:===|
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+    |   ║ * : * : * : * : * : * : * |
+    |===:===:===:===:===:===:===:===|
+    | * ║ A : 0 : 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
 
     // "Select all" shouldn't scroll te table.

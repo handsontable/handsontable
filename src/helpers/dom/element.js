@@ -5,6 +5,7 @@ import {
   isGetComputedStyleSupported,
 } from '../feature';
 import { isSafari, isIE9 } from '../browser';
+import { sanitize } from '../string';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -196,6 +197,7 @@ export function index(element) {
  */
 export function overlayContainsElement(overlayType, element, root) {
   const overlayElement = root.parentElement.querySelector(`.ht_clone_${overlayType}`);
+
   return overlayElement ? overlayElement.contains(element) : null;
 }
 
@@ -258,6 +260,7 @@ if (isClassListSupported()) {
   };
 
   _removeClass = function(element, classes) {
+    const rootDocument = element.ownerDocument;
     let className = classes;
 
     if (typeof className === 'string') {
@@ -267,7 +270,7 @@ if (isClassListSupported()) {
     className = filterEmptyClassNames(className);
 
     if (className.length > 0) {
-      if (isSupportMultipleClassesArg) {
+      if (isSupportMultipleClassesArg(rootDocument)) {
         element.classList.remove(...className);
 
       } else {
@@ -377,6 +380,7 @@ export function removeTextNodes(element) {
 
   } else if (['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'].indexOf(element.nodeName) > -1) {
     const childs = element.childNodes;
+
     for (let i = childs.length - 1; i >= 0; i--) {
       removeTextNodes(childs[i], element);
     }
@@ -393,6 +397,7 @@ export function removeTextNodes(element) {
  */
 export function empty(element) {
   let child;
+
   /* eslint-disable no-cond-assign */
   while (child = element.lastChild) {
     element.removeChild(child);
@@ -406,10 +411,11 @@ export const HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
+ * @param {boolean} [sanitizeContent=true] If `true`, the content will be sanitized before writing to the element.
  */
-export function fastInnerHTML(element, content) {
+export function fastInnerHTML(element, content, sanitizeContent = true) {
   if (HTML_CHARACTERS.test(content)) {
-    element.innerHTML = content;
+    element.innerHTML = sanitizeContent ? sanitize(content) : content;
   } else {
     fastInnerText(element, content);
   }
@@ -763,7 +769,7 @@ export function getComputedStyle(element, rootWindow = window) {
  * @returns {number} Element's outer width.
  */
 export function outerWidth(element) {
-  return element.offsetWidth;
+  return Math.ceil(element.getBoundingClientRect().width);
 }
 
 /**
@@ -913,6 +919,7 @@ export function getSelectionText(rootWindow = window) {
 // eslint-disable-next-line no-restricted-globals
 export function clearTextSelection(rootWindow = window) {
   const rootDocument = rootWindow.document;
+
   // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
   if (rootWindow.getSelection) {
     if (rootWindow.getSelection().empty) { // Chrome
@@ -945,6 +952,7 @@ export function setCaretPosition(element, pos, endPos) {
     } catch (err) {
       const elementParent = element.parentNode;
       const parentDisplayValue = elementParent.style.display;
+
       elementParent.style.display = 'block';
       element.setSelectionRange(pos, endPos);
       elementParent.style.display = parentDisplayValue;
@@ -965,10 +973,12 @@ let cachedScrollbarWidth;
 // eslint-disable-next-line no-restricted-globals
 function walkontableCalculateScrollbarWidth(rootDocument = document) {
   const inner = rootDocument.createElement('div');
+
   inner.style.height = '200px';
   inner.style.width = '100%';
 
   const outer = rootDocument.createElement('div');
+
   outer.style.boxSizing = 'content-box';
   outer.style.height = '150px';
   outer.style.left = '0px';
@@ -981,6 +991,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
 
   (rootDocument.body || rootDocument.documentElement).appendChild(outer);
   const w1 = inner.offsetWidth;
+
   outer.style.overflow = 'scroll';
   let w2 = inner.offsetWidth;
 
@@ -1110,4 +1121,14 @@ export function selectElementIfAllowed(element) {
   if (!isOutsideInput(activeElement)) {
     element.select();
   }
+}
+
+/**
+ * Check if the provided element is detached from DOM.
+ *
+ * @param {HTMLElement} element HTML element to be checked.
+ * @returns {boolean} `true` if the element is detached, `false` otherwise.
+ */
+export function isDetached(element) {
+  return !element.parentNode;
 }

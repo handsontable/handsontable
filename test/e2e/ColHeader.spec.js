@@ -64,6 +64,7 @@ describe('ColHeader', () => {
     });
 
     const ths = getHtCore().find('thead th');
+
     expect(ths.length).toEqual(startCols);
     expect($.trim(ths.eq(0).text())).toEqual('A');
     expect($.trim(ths.eq(1).text())).toEqual('B');
@@ -82,6 +83,7 @@ describe('ColHeader', () => {
     });
 
     const ths = getHtCore().find('thead th');
+
     expect(ths.length).toEqual(startCols);
     expect($.trim(ths.eq(0).text())).toEqual('A');
     expect($.trim(ths.eq(1).text())).toEqual('B');
@@ -102,6 +104,7 @@ describe('ColHeader', () => {
     });
 
     const ths = getHtCore().find('thead th');
+
     expect(ths.length).toEqual(startCols);
     expect($.trim(ths.eq(0).text())).toEqual('A');
     expect($.trim(ths.eq(1).text())).toEqual('B');
@@ -112,12 +115,14 @@ describe('ColHeader', () => {
 
   it('should show col headers with custom label', () => {
     const startCols = 5;
+
     handsontable({
       startCols,
       colHeaders: ['First', 'Second', 'Third']
     });
 
     const ths = getHtCore().find('thead th');
+
     expect(ths.length).toEqual(startCols);
     expect($.trim(ths.eq(0).text())).toEqual('First');
     expect($.trim(ths.eq(1).text())).toEqual('Second');
@@ -212,6 +217,7 @@ describe('ColHeader', () => {
     });
 
     const htCore = getHtCore();
+
     expect(htCore.find('thead th:eq(0)').text()).toEqual('A');
     expect(htCore.find('thead th:eq(1)').text()).toEqual('B');
     expect(htCore.find('thead th:eq(2)').text()).toEqual('C');
@@ -224,6 +230,30 @@ describe('ColHeader', () => {
     expect(htCore.find('thead th:eq(1)').text()).toEqual('Y');
     expect(htCore.find('thead th:eq(2)').text()).toEqual('Z');
 
+  });
+
+  it('should remove the column-headers-related css class from the Handsontable container after disabling the' +
+    ' `colHeaders` option using the updateSettings method and add the same css class after re-enabling the option in' +
+    ' the same way', () => {
+    handsontable({
+      startCols: 2,
+      startRows: 2,
+      colHeaders: true
+    });
+
+    expect(hot().rootElement.className).toContain('htColumnHeaders');
+
+    hot().updateSettings({
+      colHeaders: false
+    });
+
+    expect(hot().rootElement.className).not.toContain('htColumnHeaders');
+
+    hot().updateSettings({
+      colHeaders: true
+    });
+
+    expect(hot().rootElement.className).toContain('htColumnHeaders');
   });
 
   it('should be possible to define colHeaders with a function', () => {
@@ -385,6 +415,7 @@ describe('ColHeader', () => {
         return array;
       }
     });
+
     hot.render();
 
     expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(1) th:nth-child(1)').height()).toEqual(45);
@@ -425,5 +456,27 @@ describe('ColHeader', () => {
     expect(htCore.find('thead th:eq(1)').text()).toEqual('2');
     expect(htCore.find('thead th:eq(2)').text()).toEqual('1');
     expect(htCore.find('thead th:eq(3)').text()).toEqual('0');
+  });
+
+  it('should trigger `afterGetColHeader` hook for all displayed columns on init', () => {
+    const afterGetColHeader = jasmine.createSpy('afterGetColHeader');
+
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true,
+      afterGetColHeader,
+    });
+
+    expect(afterGetColHeader).toHaveBeenCalledWith(0,
+      spec().$container.find('.ht_clone_top thead tr th:eq(0)')[0]);
+    expect(afterGetColHeader).toHaveBeenCalledWith(1,
+      spec().$container.find('.ht_clone_top thead tr th:eq(1)')[0]);
+    expect(afterGetColHeader).toHaveBeenCalledWith(2,
+      spec().$container.find('.ht_clone_top thead tr th:eq(2)')[0]);
+    expect(afterGetColHeader).toHaveBeenCalledWith(3,
+      spec().$container.find('.ht_clone_top thead tr th:eq(3)')[0]);
+    expect(afterGetColHeader).toHaveBeenCalledWith(4,
+      spec().$container.find('.ht_clone_top thead tr th:eq(4)')[0]);
   });
 });

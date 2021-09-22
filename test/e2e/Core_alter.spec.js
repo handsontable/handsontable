@@ -282,7 +282,7 @@ describe('Core_alter', () => {
       });
       alter('remove_row', 2, 1, 'customSource');
 
-      expect(onBeforeRemoveRow).toHaveBeenCalledWith(countRows(), 1, [2], 'customSource', undefined, undefined);
+      expect(onBeforeRemoveRow).toHaveBeenCalledWith(countRows(), 1, [2], 'customSource');
     });
 
     it('should not remove row if removing has been canceled by beforeRemoveRow event handler', () => {
@@ -568,7 +568,7 @@ describe('Core_alter', () => {
       ]);
       expect(hookArgumentsBefore).toEqual([5, 2, [5, 6]]);
       expect(hookArgumentsAfter).toEqual([5, 2, [0, 1, 2, 3]]);
-      expect(afterRemoveRow).toHaveBeenCalledWith(5, 4, [0, 1, 2, 3], void 0, void 0, void 0);
+      expect(afterRemoveRow).toHaveBeenCalledWith(5, 4, [0, 1, 2, 3]);
     });
   });
 
@@ -702,6 +702,17 @@ describe('Core_alter', () => {
         expect($('.ht_master .htCore thead th').length).toBe(1);
         expect($('.ht_master .htCore .cornerHeader').length).toBe(1); // Corner visible.
       });
+
+      it('should remove all rows if removing all columns', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+        });
+
+        alter('remove_col', 0, 10);
+
+        expect(countCols()).toBe(0);
+        expect(countRows()).toBe(0);
+      });
     });
 
     it('should not remove column if amount is zero', () => {
@@ -790,7 +801,7 @@ describe('Core_alter', () => {
       });
       alter('remove_col');
 
-      expect(onBeforeRemoveCol).toHaveBeenCalledWith(countCols(), 1, [4], undefined, undefined, undefined);
+      expect(onBeforeRemoveCol).toHaveBeenCalledWith(countCols(), 1, [4]);
     });
 
     it('should not remove column if removing has been canceled by beforeRemoveCol event handler', () => {
@@ -986,7 +997,7 @@ describe('Core_alter', () => {
       });
       alter('insert_row', 2, 1, 'customSource');
 
-      expect(onBeforeCreateRow).toHaveBeenCalledWith(2, 1, 'customSource', void 0, void 0, void 0);
+      expect(onBeforeCreateRow).toHaveBeenCalledWith(2, 1, 'customSource');
     });
 
     it('should not create row if removing has been canceled by beforeCreateRow hook handler', () => {

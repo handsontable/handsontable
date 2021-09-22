@@ -1,16 +1,19 @@
-import BasePlugin from '../_base';
-import { registerPlugin } from '../../plugins';
+import { BasePlugin } from '../base';
 import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 
+export const PLUGIN_KEY = 'exportFile';
+export const PLUGIN_PRIORITY = 240;
+
 /**
  * @plugin ExportFile
+ * @class ExportFile
  *
  * @description
  * The plugin enables exporting table data to file. It allows to export data as a string, blob or a downloadable file in
  * CSV format.
  *
- * See [the export file demo](https://handsontable.com/docs/demo-export-file.html) for examples.
+ * See [the export file demo](@/guides/accessories-and-menus/export-to-csv.md) for examples.
  *
  * @example
  * ```js
@@ -42,7 +45,15 @@ import typeFactory, { EXPORT_TYPES } from './typeFactory';
  * });
  * ```
  */
-class ExportFile extends BasePlugin {
+export class ExportFile extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ExportFile#enablePlugin} method is called.
@@ -156,7 +167,3 @@ class ExportFile extends BasePlugin {
     return formatter;
   }
 }
-
-registerPlugin('exportFile', ExportFile);
-
-export default ExportFile;

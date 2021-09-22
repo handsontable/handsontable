@@ -1,0 +1,43 @@
+name: Documentation Deployment Production
+
+env:
+  GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:production
+  GHA_DOCKER_TAG_SHA: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:prod-${{ github.sha }}
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: ./docs/
+
+jobs:
+  docker:
+    name: Docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2
+
+      - name: Docker login into GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
+
+      - name: Docker build
+        run: |
+          npm run docs:docker:build:production
+
+      - name: Docker tags
+        run: |
+          docker tag docs-md:production $GHA_DOCKER_TAG
+          docker tag docs-md:production $GHA_DOCKER_TAG_SHA
+
+      - name: Docker push production into GHCR
+        run: |
+          docker push ${GHA_DOCKER_TAG}
+
+      - name: Docker push SHA tagged into GHCR
+        run: |
+          docker push ${GHA_DOCKER_TAG_SHA}

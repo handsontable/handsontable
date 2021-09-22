@@ -139,6 +139,7 @@ describe('settings', () => {
       expect(getBottomClone().find('tbody tr:eq(0) td:eq(0)').html()).toEqual('A20');
 
       const td = hot.getCell(19, 0, true);
+
       td.innerHTML = 'test';
 
       expect(getBottomClone().find('tbody tr:eq(0) td:eq(0)').html()).toEqual('test');
@@ -220,6 +221,30 @@ describe('settings', () => {
       expect(getLeftClone().height()).toBe(73);
       expect(getBottomClone().height()).toBe(47);
       expect(getBottomLeftClone().height()).toBe(47);
+    });
+
+    it('should not display double border when `window` is a scrollable container', () => {
+      handsontable({
+        startRows: 200,
+        colHeaders: true,
+        fixedRowsBottom: 1,
+        columns: [{}]
+      });
+
+      expect(getTopClone().height()).toBe(26);
+
+      updateSettings({ fixedRowsBottom: 0 });
+
+      expect(getTopClone().height()).toBe(26);
+
+      updateSettings({ fixedRowsBottom: 1 });
+
+      expect(getTopClone().height()).toBe(26);
+
+      updateSettings({ data: [] });
+
+      // The only header (when there is no cells - even when the `fixedRowsBottom` isn't defined) has such height.
+      expect(getTopClone().height()).toBe(27);
     });
   });
 });

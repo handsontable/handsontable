@@ -1,15 +1,25 @@
 import { arrayMap } from '../helpers/array';
-import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/indexesSequence';
-import IndexesSequence from './maps/indexesSequence';
-import TrimmingMap from './maps/trimmingMap';
-import HidingMap from './maps/hidingMap';
-import MapCollection from './mapCollection';
-import AggregatedCollection from './aggregatedCollection';
+import {
+  createIndexMap,
+  getListWithInsertedItems,
+  getListWithRemovedItems,
+  HidingMap,
+  IndexesSequence,
+  TrimmingMap,
+} from './maps';
+import {
+  AggregatedCollection,
+  MapCollection,
+} from './mapCollections';
 import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
+import { ChangesObservable } from './changesObservable/observable';
 
 /**
+ * @class IndexMapper
+ * @description
+ *
  * Index mapper stores, registers and manages the indexes on the basis of calculations collected from the subsidiary maps.
  * It should be seen as a single source of truth (regarding row and column indexes, for example, their sequence, information if they are skipped in the process of rendering (hidden or trimmed), values linked to them)
  * for any operation that considers CRUD actions such as **insertion**, **movement**, **removal** etc, and is used to properly calculate physical and visual indexes translations in both ways.
@@ -23,9 +33,9 @@ import { isDefined } from '../helpers/mixed';
  * There are different kinds of index maps which may be registered in the collections and can be used by a reference.
  * They also expose public API and trigger two local hooks such as `init` (on initialization) and `change` (on change).
  *
- * These are: {@link to IndexesSequence}, {@link to PhysicalIndexToValueMap}, {@link to HidingMap}, and {@link to TrimmingMap}.
+ * These are: {@link IndexesSequence}, {@link PhysicalIndexToValueMap}, {@link HidingMap}, and {@link TrimmingMap}.
  */
-class IndexMapper {
+export class IndexMapper {
   constructor() {
     /**
      * Map for storing the sequence of indexes.
@@ -61,6 +71,18 @@ class IndexMapper {
      * @type {MapCollection}
      */
     this.variousMapsCollection = new MapCollection();
+    /**
+     * The class instance collects row and column index changes that happen while the Handsontable
+     * is running. The object allows creating observers that you can subscribe. Each event represents
+     * the index change (e.g., insert, removing, change index value), which can be consumed by a
+     * developer to update its logic.
+     *
+     * @private
+     * @type {ChangesObservable}
+     */
+    this.hidingChangesObservable = new ChangesObservable({
+      initialIndexValue: false,
+    });
     /**
      * Cache for list of not trimmed indexes, respecting the indexes sequence (physical indexes).
      *
@@ -162,21 +184,49 @@ class IndexMapper {
   }
 
   /**
-   * Execute batch operations with updating cache when necessary. As effect, wrapped operations will be executed and
-   * cache will be updated at most once (cache is updated only when any cached index has been changed).
-   *
-   * @param {Function} wrappedOperations Batched operations wrapped in a function.
+   * Suspends the cache update for this map. The method is helpful to group multiple
+   * operations, which affects the cache. In this case, the cache will be updated once after
+   * calling the `resumeOperations` method.
    */
-  executeBatchOperations(wrappedOperations) {
-    const actualFlag = this.isBatched;
-
+  suspendOperations() {
     this.isBatched = true;
+  }
 
-    wrappedOperations();
-
-    this.isBatched = actualFlag;
-
+  /**
+   * Resumes the cache update for this map. It recalculates the cache and restores the
+   * default behavior where each map modification updates the cache.
+   */
+  resumeOperations() {
+    this.isBatched = false;
     this.updateCache();
+  }
+
+  /**
+   * It creates and returns the new instance of the ChangesObserver object. The object
+   * allows listening to the index changes that happen while the Handsontable is running.
+   *
+   * @param {string} indexMapType The index map type which we want to observe.
+   *                              Currently, only the 'hiding' index map types are observable.
+   * @returns {ChangesObserver}
+   */
+  createChangesObserver(indexMapType) {
+    if (indexMapType !== 'hiding') {
+      throw new Error(`Unsupported index map type "${indexMapType}".`);
+    }
+
+    return this.hidingChangesObservable.createObserver();
+  }
+
+  /**
+   * Creates and register the new IndexMap for specified IndexMapper instance.
+   *
+   * @param {string} indexName The uniq index name.
+   * @param {string} mapType The index map type (e.q. "hiding, "trimming", "physicalIndexToValue").
+   * @param {*} [initValueOrFn] The initial value for the index map.
+   * @returns {IndexMap}
+   */
+  createAndRegisterIndexMap(indexName, mapType, initValueOrFn) {
+    return this.registerMap(indexName, createIndexMap(mapType, initValueOrFn));
   }
 
   /**
@@ -204,6 +254,7 @@ class IndexMapper {
     }
 
     const numberOfIndexes = this.getNumberOfIndexes();
+
     /*
       We initialize map ony when we have full information about number of indexes and the dataset is not empty.
       Otherwise it's unnecessary. Initialization of empty array would not give any positive changes. After initializing
@@ -227,6 +278,15 @@ class IndexMapper {
     this.trimmingMapsCollection.unregister(name);
     this.hidingMapsCollection.unregister(name);
     this.variousMapsCollection.unregister(name);
+  }
+
+  /**
+   * Unregisters all collected index map instances from all map collection types.
+   */
+  unregisterAll() {
+    this.trimmingMapsCollection.unregisterAll();
+    this.hidingMapsCollection.unregisterAll();
+    this.variousMapsCollection.unregisterAll();
   }
 
   /**
@@ -361,18 +421,18 @@ class IndexMapper {
     this.notTrimmedIndexesCache = [...new Array(length).keys()];
     this.notHiddenIndexesCache = [...new Array(length).keys()];
 
-    this.executeBatchOperations(() => {
-      this.indexesSequence.init(length);
-      this.trimmingMapsCollection.initEvery(length);
-    });
+    this.suspendOperations();
+    this.indexesSequence.init(length);
+    this.trimmingMapsCollection.initEvery(length);
+    this.resumeOperations();
 
     // We move initialization of hidden collection to next batch for purpose of working on sequence of already trimmed indexes.
-    this.executeBatchOperations(() => {
-      this.hidingMapsCollection.initEvery(length);
+    this.suspendOperations();
+    this.hidingMapsCollection.initEvery(length);
 
-      // It shouldn't reset the cache.
-      this.variousMapsCollection.initEvery(length);
-    });
+    // It shouldn't reset the cache.
+    this.variousMapsCollection.initEvery(length);
+    this.resumeOperations();
 
     this.runLocalHooks('init');
   }
@@ -514,6 +574,7 @@ class IndexMapper {
     if (finalIndex + movedIndexesLength < notTrimmedIndexesLength) {
       // Physical index at final index position.
       const physicalIndex = listWithRemovedItems.filter(index => this.isTrimmed(index) === false)[finalIndex];
+
       destinationPosition = listWithRemovedItems.indexOf(physicalIndex);
     }
 
@@ -556,12 +617,12 @@ class IndexMapper {
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex),
       (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
-    this.executeBatchOperations(() => {
-      this.indexesSequence.insert(insertionIndex, insertedIndexes);
-      this.trimmingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
-      this.hidingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
-      this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
-    });
+    this.suspendOperations();
+    this.indexesSequence.insert(insertionIndex, insertedIndexes);
+    this.trimmingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
+    this.hidingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
+    this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
+    this.resumeOperations();
   }
 
   /**
@@ -571,12 +632,12 @@ class IndexMapper {
    * @param {Array} removedIndexes List of removed indexes.
    */
   removeIndexes(removedIndexes) {
-    this.executeBatchOperations(() => {
-      this.indexesSequence.remove(removedIndexes);
-      this.trimmingMapsCollection.removeFromEvery(removedIndexes);
-      this.hidingMapsCollection.removeFromEvery(removedIndexes);
-      this.variousMapsCollection.removeFromEvery(removedIndexes);
-    });
+    this.suspendOperations();
+    this.indexesSequence.remove(removedIndexes);
+    this.trimmingMapsCollection.removeFromEvery(removedIndexes);
+    this.hidingMapsCollection.removeFromEvery(removedIndexes);
+    this.variousMapsCollection.removeFromEvery(removedIndexes);
+    this.resumeOperations();
   }
 
   /**
@@ -599,12 +660,16 @@ class IndexMapper {
       this.cacheFromPhysicalToVisualIndexes();
       this.cacheFromVisualToRenderabIendexes();
 
-      this.runLocalHooks(
-        'cacheUpdated',
-        this.indexesSequenceChanged,
-        this.trimmedIndexesChanged,
-        this.hiddenIndexesChanged
-      );
+      // Currently there's support only for the "hiding" map type.
+      if (this.hiddenIndexesChanged) {
+        this.hidingChangesObservable.emit(this.hidingMapsCollection.getMergedValues());
+      }
+
+      this.runLocalHooks('cacheUpdated', {
+        indexesSequenceChanged: this.indexesSequenceChanged,
+        trimmedIndexesChanged: this.trimmedIndexesChanged,
+        hiddenIndexesChanged: this.hiddenIndexesChanged,
+      });
 
       this.indexesSequenceChanged = false;
       this.trimmedIndexesChanged = false;
@@ -652,5 +717,3 @@ class IndexMapper {
 }
 
 mixin(IndexMapper, localHooks);
-
-export default IndexMapper;

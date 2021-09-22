@@ -10,18 +10,25 @@ import {
   resetCssTransform,
 } from './../../../../helpers/dom/element';
 import LeftOverlayTable from './../table/left';
-import Overlay from './_base';
+import { Overlay } from './_base';
+import {
+  CLONE_LEFT,
+} from './constants';
 
 /**
  * @class LeftOverlay
  */
-class LeftOverlay extends Overlay {
+export class LeftOverlay extends Overlay {
+  static get OVERLAY_NAME() {
+    return CLONE_LEFT;
+  }
+
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(Overlay.CLONE_LEFT);
+    this.clone = this.makeClone(CLONE_LEFT);
   }
 
   /**
@@ -154,10 +161,6 @@ class LeftOverlay extends Overlay {
     if (this.needFullRender || force) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
-
-      if (!force) {
-        this.areElementSizesAdjusted = true;
-      }
     }
   }
 
@@ -213,9 +216,6 @@ class LeftOverlay extends Overlay {
   applyToDOM() {
     const total = this.wot.getSetting('totalColumns');
 
-    if (!this.areElementSizesAdjusted) {
-      this.adjustElementsSize();
-    }
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
       this.spreader.style.left = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
 
@@ -332,16 +332,8 @@ class LeftOverlay extends Overlay {
         removeClass(masterParent, 'innerBorderLeft');
         positionChanged = previousState;
       }
-
-      if (!previousState && position || previousState && !position) {
-        this.wot.wtOverlays.adjustElementsSize();
-      }
     }
 
     return positionChanged;
   }
 }
-
-Overlay.registerOverlay(Overlay.CLONE_LEFT, LeftOverlay);
-
-export default LeftOverlay;

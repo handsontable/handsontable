@@ -15,9 +15,16 @@ import CellCoords from './cell/coords';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 import { Renderer } from './renderer';
-import Overlay from './overlay/_base';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
+import { isOverlayTypeOf } from './overlay/registerer';
+import {
+  CLONE_TOP,
+  CLONE_BOTTOM,
+  CLONE_LEFT,
+  CLONE_TOP_LEFT_CORNER,
+  CLONE_BOTTOM_LEFT_CORNER,
+} from './overlay/constants';
 
 /**
  *
@@ -107,7 +114,7 @@ class Table {
    * @returns {boolean}
    */
   is(overlayTypeName) {
-    return Overlay.isOverlayTypeOf(this.wot.cloneOverlay, overlayTypeName);
+    return isOverlayTypeOf(this.wot.cloneOverlay, overlayTypeName);
   }
 
   /**
@@ -267,14 +274,17 @@ class Table {
       }
       const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
       const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
+
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
       this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
 
       let performRedraw = true;
+
       // Only master table rendering can be skipped
       if (this.isMaster) {
         this.alignOverlaysWithTrimmingContainer();
         const skipRender = {};
+
         this.wot.getSetting('beforeDraw', true, skipRender);
         performRedraw = skipRender.skipRender !== true;
       }
@@ -282,8 +292,8 @@ class Table {
       if (performRedraw) {
         this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
 
-        if (this.is(Overlay.CLONE_BOTTOM) ||
-            this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+        if (this.is(CLONE_BOTTOM) ||
+            this.is(CLONE_BOTTOM_LEFT_CORNER)) {
           // do NOT render headers on the bottom or bottom-left corner overlay
           this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
         }
@@ -305,7 +315,7 @@ class Table {
 
         this.adjustColumnHeaderHeights();
 
-        if (this.isMaster || this.is(Overlay.CLONE_BOTTOM)) {
+        if (this.isMaster || this.is(CLONE_BOTTOM)) {
           this.markOversizedRows();
         }
 
@@ -332,7 +342,7 @@ class Table {
 
           this.wot.getSetting('onDraw', true);
 
-        } else if (this.is(Overlay.CLONE_BOTTOM)) {
+        } else if (this.is(CLONE_BOTTOM)) {
           this.wot.cloneSource.wtOverlays.adjustElementsSize();
         }
       }
@@ -360,6 +370,7 @@ class Table {
         // remove `innerBorderTop` and `innerBorderLeft` CSS classes to the DOM element. This happens
         // when there is a switch between rendering from 0 to N rows/columns and vice versa).
         wtOverlays.refreshAll();
+        wtOverlays.adjustElementsSize();
       }
     }
 
@@ -444,7 +455,8 @@ class Table {
    */
   resetOversizedRows() {
     const { wot } = this;
-    if (!this.isMaster && !this.is(Overlay.CLONE_BOTTOM)) {
+
+    if (!this.isMaster && !this.is(CLONE_BOTTOM)) {
       return;
     }
 
@@ -613,26 +625,77 @@ class Table {
   getColumnHeader(col, level = 0) {
     const TR = this.THEAD.childNodes[level];
 
-    if (TR) {
-      return TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
-    }
+    return TR?.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
+  }
+
+  /**
+   * Gets all columns headers (TH elements) from the table.
+   *
+   * @param {number} column A source column index.
+   * @returns {HTMLTableCellElement[]}
+   */
+  getColumnHeaders(column) {
+    const THs = [];
+    const visibleColumn = this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column);
+
+    this.THEAD.childNodes.forEach((TR) => {
+      const TH = TR.childNodes[visibleColumn];
+
+      if (TH) {
+        THs.push(TH);
+      }
+    });
+
+    return THs;
   }
 
   /**
    * GetRowHeader.
    *
    * @param {number} row Row index.
+   * @param {number} [level=0] Header level (0 = most distant to the table).
    * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have row headers`.
    */
-  getRowHeader(row) {
+  getRowHeader(row, level = 0) {
     if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
-      return null;
+      return;
     }
+
+    const rowHeadersCount = this.wot.getSetting('rowHeaders').length;
+
+    if (level >= rowHeadersCount) {
+      return;
+    }
+
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
 
-    if (TR) {
-      return TR.childNodes[0];
+    return TR?.childNodes[level];
+  }
+
+  /**
+   * Gets all rows headers (TH elements) from the table.
+   *
+   * @param {number} row A source row index.
+   * @returns {HTMLTableCellElement[]}
+   */
+  getRowHeaders(row) {
+    if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
+      return [];
     }
+
+    const THs = [];
+    const rowHeadersCount = this.wot.getSetting('rowHeaders').length;
+
+    for (let renderedRowIndex = 0; renderedRowIndex < rowHeadersCount; renderedRowIndex++) {
+      const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+      const TH = TR?.childNodes[renderedRowIndex];
+
+      if (TH) {
+        THs.push(TH);
+      }
+    }
+
+    return THs;
   }
 
   /**
@@ -657,14 +720,14 @@ class Table {
     let row = index(TR);
     let col = cellElement.cellIndex;
 
-    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, cellElement, this.wtRootElement)
-      || overlayContainsElement(Overlay.CLONE_TOP, cellElement, this.wtRootElement)) {
+    if (overlayContainsElement(CLONE_TOP_LEFT_CORNER, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_TOP, cellElement, this.wtRootElement)) {
       if (CONTAINER.nodeName === 'THEAD') {
         row -= CONTAINER.childNodes.length;
       }
 
-    } else if (overlayContainsElement(Overlay.CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement)
-      || overlayContainsElement(Overlay.CLONE_BOTTOM, cellElement, this.wtRootElement)) {
+    } else if (overlayContainsElement(CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_BOTTOM, cellElement, this.wtRootElement)) {
       const totalRows = this.wot.getSetting('totalRows');
 
       row = totalRows - CONTAINER.childNodes.length + row;
@@ -676,9 +739,9 @@ class Table {
       row = this.rowFilter.renderedToSource(row);
     }
 
-    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, cellElement, this.wtRootElement)
-      || overlayContainsElement(Overlay.CLONE_LEFT, cellElement, this.wtRootElement)
-      || overlayContainsElement(Overlay.CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement)) {
+    if (overlayContainsElement(CLONE_TOP_LEFT_CORNER, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_LEFT, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement)) {
       col = this.columnFilter.offsettedTH(col);
 
     } else {
@@ -797,6 +860,8 @@ class Table {
    *                                                                │ FALSE
    *
    * @param {number} row The visual row index.
+   * @memberof Table#
+   * @function isRowBeforeRenderedRows
    * @returns {boolean}
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
@@ -840,6 +905,8 @@ class Table {
    *                                                                │ TRUE
    *
    * @param {number} row The visual row index.
+   * @memberof Table#
+   * @function isRowAfterRenderedRows
    * @returns {boolean}
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
@@ -871,6 +938,8 @@ class Table {
    *                           column           column
    *
    * @param {number} column The visual column index.
+   * @memberof Table#
+   * @function isColumnBeforeRenderedColumns
    * @returns {boolean}
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
@@ -913,6 +982,8 @@ class Table {
    *                           column           column
    *
    * @param {number} column The visual column index.
+   * @memberof Table#
+   * @function isColumnAfterRenderedColumns
    * @returns {boolean}
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */

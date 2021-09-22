@@ -19,6 +19,9 @@ class Settings {
     this.defaults = {
       table: void 0,
 
+      // Determines whether the Walkontable instance is used as dataset viewer. When its instance is used as
+      // a context menu, autocomplete list, etc, the returned value is `false`.
+      isDataViewInstance: true,
       // presentation mode
       externalRowCalculator: false,
       stretchH: 'none', // values: all, last, none
@@ -106,6 +109,8 @@ class Settings {
       onBeforeStretchingColumnWidth: width => width,
       onModifyRowHeaderWidth: null,
       onModifyGetCellCoords: null,
+      onBeforeHighlightingRowHeader: sourceRow => sourceRow,
+      onBeforeHighlightingColumnHeader: sourceCol => sourceCol,
 
       onWindowResize: null,
 
@@ -151,6 +156,7 @@ class Settings {
     } else { // if value is defined then settings is the key
       this.settings[settings] = value;
     }
+
     return this.wot;
   }
 

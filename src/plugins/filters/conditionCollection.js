@@ -1,37 +1,48 @@
-import { arrayEach, arrayMap, arrayFilter } from '../../helpers/array';
-import { objectEach, mixin } from '../../helpers/object';
+import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
+import { mixin } from '../../helpers/object';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import localHooks from '../../mixins/localHooks';
 import { getCondition } from './conditionRegisterer';
 import { OPERATION_ID as OPERATION_AND } from './logicalOperations/conjunction';
 import { operations, getOperationFunc } from './logicalOperationRegisterer';
+import { isUndefined } from '../../helpers/mixed';
+import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+
+const MAP_NAME = 'ConditionCollection.filteringStates';
 
 /**
  * @class ConditionCollection
  * @plugin Filters
  */
 class ConditionCollection {
-  constructor() {
+  constructor(hot, isMapRegistrable = true) {
     /**
-     * Conditions collection grouped by operation type and then column index.
+     * Handsontable instance.
      *
-     * @type {object}
+     * @type {Core}
      */
-    this.conditions = this.initConditionsCollection();
+    this.hot = hot;
+    /**
+     * Indicates whether the internal IndexMap should be registered or not. Generally,
+     * registered Maps responds to the index changes. Within that collection, sometimes
+     * this is not necessary.
+     *
+     * @type {boolean}
+     */
+    this.isMapRegistrable = isMapRegistrable;
+    /**
+     * Index map storing filtering states for every column. ConditionCollection write and read to/from this element.
+     *
+     * @type {LinkedPhysicalIndexToValueMap}
+     */
+    this.filteringStates = new IndexToValueMap();
 
-    /**
-     * Types of operations grouped by column index.
-     *
-     * @type {object}
-     */
-    this.columnTypes = {};
+    if (this.isMapRegistrable === true) {
+      this.hot.columnIndexMapper.registerMap(MAP_NAME, this.filteringStates);
 
-    /**
-     * Order of added condition filters.
-     *
-     * @type {Array}
-     */
-    this.orderStack = [];
+    } else {
+      this.filteringStates.init(this.hot.columnIndexMapper.getNumberOfIndexes());
+    }
   }
 
   /**
@@ -40,33 +51,22 @@ class ConditionCollection {
    * @returns {boolean}
    */
   isEmpty() {
-    return !this.orderStack.length;
+    return this.getFilteredColumns().length === 0;
   }
 
   /**
    * Check if value is matched to the criteria of conditions chain.
    *
    * @param {object} value Object with `value` and `meta` keys.
-   * @param {number} [column] Column index.
+   * @param {number} column The physical column index.
    * @returns {boolean}
    */
   isMatch(value, column) {
-    let result = true;
+    const stateForColumn = this.filteringStates.getValueAtIndex(column);
+    const conditions = stateForColumn?.conditions ?? [];
+    const operation = stateForColumn?.operation;
 
-    if (column === void 0) {
-      objectEach(this.columnTypes, (columnType, columnIndex) => {
-        result = this.isMatchInConditions(this.conditions[columnType][columnIndex], value, columnType);
-
-        return result;
-      });
-
-    } else {
-      const columnType = this.columnTypes[column];
-
-      result = this.isMatchInConditions(this.getConditions(column), value, columnType);
-    }
-
-    return result;
+    return this.isMatchInConditions(conditions, value, operation);
   }
 
   /**
@@ -78,40 +78,33 @@ class ConditionCollection {
    * @returns {boolean}
    */
   isMatchInConditions(conditions, value, operationType = OPERATION_AND) {
-    let result = false;
-
     if (conditions.length) {
-      result = getOperationFunc(operationType)(conditions, value);
-
-    } else {
-      result = true;
+      return getOperationFunc(operationType)(conditions, value);
     }
 
-    return result;
+    return true;
   }
 
   /**
    * Add condition to the collection.
    *
-   * @param {number} column Column index.
+   * @param {number} column The physical column index.
    * @param {object} conditionDefinition Object with keys:
    *  * `command` Object, Command object with condition name as `key` property.
    *  * `args` Array, Condition arguments.
    * @param {string} [operation='conjunction'] Type of conditions operation.
+   * @param {number} [position] Position to which condition will be added. When argument is undefined
+   * the condition will be processed as the last condition.
    * @fires ConditionCollection#beforeAdd
    * @fires ConditionCollection#afterAdd
    */
-  addCondition(column, conditionDefinition, operation = OPERATION_AND) {
+  addCondition(column, conditionDefinition, operation = OPERATION_AND, position) {
     const args = arrayMap(conditionDefinition.args, v => (typeof v === 'string' ? v.toLowerCase() : v));
     const name = conditionDefinition.name || conditionDefinition.command.key;
 
     this.runLocalHooks('beforeAdd', column);
 
-    if (this.orderStack.indexOf(column) === -1) {
-      this.orderStack.push(column);
-    }
-
-    const columnType = this.columnTypes[column];
+    const columnType = this.getOperation(column);
 
     if (columnType) {
       if (columnType !== operation) {
@@ -121,21 +114,32 @@ class ConditionCollection {
         use it consequently for a particular column).`);
       }
 
-    } else {
-      if (!this.conditions[operation]) {
-        throw new Error(toSingleLine`Unexpected operation named \`${operation}\`. Possible ones are\x20
-          \`disjunction\` and \`conjunction\`.`);
-      }
-
-      this.columnTypes[column] = operation;
+    } else if (isUndefined(operations[operation])) {
+      throw new Error(toSingleLine`Unexpected operation named \`${operation}\`. Possible ones are\x20
+        \`disjunction\` and \`conjunction\`.`);
     }
 
-    // Add condition
-    this.getConditions(column).push({
-      name,
-      args,
-      func: getCondition(name, args)
-    });
+    const conditionsForColumn = this.getConditions(column);
+
+    if (conditionsForColumn.length === 0) {
+      // Create first condition for particular column.
+      this.filteringStates.setValueAtIndex(column, {
+        operation,
+        conditions: [{
+          name,
+          args,
+          func: getCondition(name, args),
+        }]
+      }, position);
+
+    } else {
+      // Add next condition for particular column (by reference).
+      conditionsForColumn.push({
+        name,
+        args,
+        func: getCondition(name, args)
+      });
+    }
 
     this.runLocalHooks('afterAdd', column);
   }
@@ -143,21 +147,40 @@ class ConditionCollection {
   /**
    * Get all added conditions from the collection at specified column index.
    *
-   * @param {number} column Column index.
+   * @param {number} column The physical column index.
    * @returns {Array} Returns conditions collection as an array.
    */
   getConditions(column) {
-    const columnType = this.columnTypes[column];
+    return this.filteringStates.getValueAtIndex(column)?.conditions ?? [];
+  }
 
-    if (!columnType) {
-      return [];
-    }
+  /**
+   * Get operation for particular column.
+   *
+   * @param {number} column The physical column index.
+   * @returns {string|undefined}
+   */
+  getOperation(column) {
+    return this.filteringStates.getValueAtIndex(column)?.operation;
+  }
 
-    if (!this.conditions[columnType][column]) {
-      this.conditions[columnType][column] = [];
-    }
+  /**
+   * Get all filtered physical columns in the order in which actions are performed.
+   *
+   * @returns {Array}
+   */
+  getFilteredColumns() {
+    return this.filteringStates.getEntries().map(([physicalColumn]) => physicalColumn);
+  }
 
-    return this.conditions[columnType][column];
+  /**
+   * Gets position in the filtering states stack for the specific column.
+   *
+   * @param {number} column The physical column index.
+   * @returns {number} Returns -1 when the column doesn't exist in the stack.
+   */
+  getColumnStackPosition(column) {
+    return this.getFilteredColumns().indexOf(column);
   }
 
   /**
@@ -166,20 +189,15 @@ class ConditionCollection {
    * @returns {Array}
    */
   exportAllConditions() {
-    const result = [];
-
-    arrayEach(this.orderStack, (column) => {
-      const conditions = arrayMap(this.getConditions(column), ({ name, args }) => ({ name, args }));
-      const operation = this.columnTypes[column];
-
-      result.push({
+    return arrayReduce(this.filteringStates.getEntries(), (allConditions, [column, { operation, conditions }]) => {
+      allConditions.push({
         column,
         operation,
-        conditions
+        conditions: arrayMap(conditions, ({ name, args }) => ({ name, args })),
       });
-    });
 
-    return result;
+      return allConditions;
+    }, []);
   }
 
   /**
@@ -191,8 +209,6 @@ class ConditionCollection {
     this.clean();
 
     arrayEach(conditions, (stack) => {
-      this.orderStack.push(stack.column);
-
       arrayEach(stack.conditions, condition => this.addCondition(stack.column, condition));
     });
   }
@@ -200,59 +216,14 @@ class ConditionCollection {
   /**
    * Remove conditions at given column index.
    *
-   * @param {number} column Column index.
+   * @param {number} column The physical column index.
    * @fires ConditionCollection#beforeRemove
    * @fires ConditionCollection#afterRemove
    */
   removeConditions(column) {
     this.runLocalHooks('beforeRemove', column);
-
-    if (this.orderStack.indexOf(column) >= 0) {
-      this.orderStack.splice(this.orderStack.indexOf(column), 1);
-    }
-    this.clearConditions(column);
+    this.filteringStates.clearValue(column);
     this.runLocalHooks('afterRemove', column);
-  }
-
-  /**
-   * Clear conditions at specified column index but without clearing stack order.
-   *
-   * @param {number}column Column index.
-   * @fires ConditionCollection#beforeClear
-   * @fires ConditionCollection#afterClear
-   */
-  clearConditions(column) {
-    this.runLocalHooks('beforeClear', column);
-    this.getConditions(column).length = 0;
-    delete this.columnTypes[column];
-    this.runLocalHooks('afterClear', column);
-  }
-
-  /**
-   * Check if at least one condition was added at specified column index. And if second parameter is passed then additionally
-   * check if condition exists under its name.
-   *
-   * @param {number} column Column index.
-   * @param {string} [name] Condition name.
-   * @returns {boolean}
-   */
-  hasConditions(column, name) {
-    const columnType = this.columnTypes[column];
-    let result = false;
-
-    if (!columnType) {
-      return false;
-    }
-
-    const conditions = this.getConditions(column);
-
-    if (name) {
-      result = arrayFilter(conditions, condition => condition.name === name).length > 0;
-    } else {
-      result = conditions.length > 0;
-    }
-
-    return result;
   }
 
   /**
@@ -263,36 +234,38 @@ class ConditionCollection {
    */
   clean() {
     this.runLocalHooks('beforeClean');
-    this.columnTypes = Object.create(null);
-    this.orderStack.length = 0;
-    this.conditions = this.initConditionsCollection();
+    this.filteringStates.clear();
     this.runLocalHooks('afterClean');
+  }
+
+  /**
+   * Check if at least one condition was added at specified column index. And if second parameter is passed then additionally
+   * check if condition exists under its name.
+   *
+   * @param {number} column The physical column index.
+   * @param {string} [name] Condition name.
+   * @returns {boolean}
+   */
+  hasConditions(column, name) {
+    const conditions = this.getConditions(column);
+
+    if (name) {
+      return conditions.some(condition => condition.name === name);
+    }
+
+    return conditions.length > 0;
   }
 
   /**
    * Destroy object.
    */
   destroy() {
+    if (this.isMapRegistrable) {
+      this.hot.columnIndexMapper.unregisterMap(MAP_NAME);
+    }
+
+    this.filteringStates = null;
     this.clearLocalHooks();
-    this.conditions = null;
-    this.orderStack = null;
-    this.columnTypes = null;
-  }
-
-  /**
-   * Init conditions collection.
-   *
-   * @private
-   * @returns {object} Returns an initial bucket for conditions.
-   */
-  initConditionsCollection() {
-    const conditions = Object.create(null);
-
-    objectEach(operations, (_, operation) => {
-      conditions[operation] = Object.create(null);
-    });
-
-    return conditions;
   }
 }
 

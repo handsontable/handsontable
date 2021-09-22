@@ -19,10 +19,10 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
   const selectedRow = selection.isSelectedByRowHeader();
 
   if (isShiftKey && currentSelection) {
-    if (coords.row >= 0 && coords.col >= 0 && !controller.cells) {
+    if (coords.row >= 0 && coords.col >= 0 && !controller.cell) {
       selection.setRangeEnd(coords);
 
-    } else if ((selectedCorner || selectedRow) && coords.row >= 0 && coords.col >= 0 && !controller.cells) {
+    } else if ((selectedCorner || selectedRow) && coords.row >= 0 && coords.col >= 0 && !controller.cell) {
       selection.setRangeEnd(new CellCoords(coords.row, coords.col));
 
     } else if (selectedCorner && coords.row < 0 && !controller.column) {
@@ -33,11 +33,11 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
 
     } else if (((!selectedCorner && !selectedRow && coords.col < 0) ||
                (selectedCorner && coords.col < 0)) && !controller.row) {
-      selection.selectRows(Math.max(currentSelection.from.row, 0), coords.row);
+      selection.selectRows(Math.max(currentSelection.from.row, 0), coords.row, coords.col);
 
     } else if (((!selectedCorner && !selectedRow && coords.row < 0) ||
                (selectedRow && coords.row < 0)) && !controller.column) {
-      selection.selectColumns(Math.max(currentSelection.from.col, 0), coords.col);
+      selection.selectColumns(Math.max(currentSelection.from.col, 0), coords.col, coords.row);
     }
 
   } else {
@@ -47,16 +47,16 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
     // clicked row header and when some column was selected
     if (coords.row < 0 && coords.col >= 0 && !controller.column) {
       if (performSelection) {
-        selection.selectColumns(coords.col);
+        selection.selectColumns(coords.col, coords.col, coords.row);
       }
 
     // clicked column header and when some row was selected
     } else if (coords.col < 0 && coords.row >= 0 && !controller.row) {
       if (performSelection) {
-        selection.selectRows(coords.row);
+        selection.selectRows(coords.row, coords.row, coords.col);
       }
 
-    } else if (coords.col >= 0 && coords.row >= 0 && !controller.cells) {
+    } else if (coords.col >= 0 && coords.row >= 0 && !controller.cell) {
       if (performSelection) {
         selection.setRangeStart(coords);
       }

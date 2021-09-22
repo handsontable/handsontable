@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import HyperFormula from 'hyperformula';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
 declare function oneOf<T extends (string | number | boolean | undefined | null | object)[]>(...args: T): T[number];
@@ -45,6 +46,30 @@ const contextMenuDemo: Handsontable.contextMenu.Settings = {
   }
 }
 
+const legacyNumericFormat: Handsontable.NumericFormatOptions = {
+  pattern: '0.00',
+  culture: 'en-US',
+};
+const numericFormatOptions: Handsontable.NumericFormatOptions = {
+  pattern: {
+    prefix: 2,
+    postfix: 3,
+    characteristic: 5,
+    forceAverage: oneOf('trillion', 'billion', 'million', 'thousand'),
+    average: true,
+    mantissa: 5,
+    optionalMantissa: true,
+    trimMantissa: true,
+    thousandSeparated: true,
+    negative: oneOf('sign', 'parenthesis'),
+    forceSign: true,
+    totalLength: 10,
+    spaceSeparated: true,
+    output: oneOf('currency', 'percent', 'byte', 'time', 'ordinal', 'number'),
+  },
+  culture: 'en-US'
+};
+
 // Use `Required<GridSettings>` to ensure every defined setting is covered here.
 const allSettings: Required<Handsontable.GridSettings> = {
   activeHeaderClassName: 'foo',
@@ -85,7 +110,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     {row: -4, col: 1, collapsible: true},
     {row: -3, col: 5, collapsible: true}
   ]),
-  columnHeaderHeight: oneOf(35, [35, undefined, 55]),
+  columnHeaderHeight: oneOf(35, [35, void 0, 55]),
   columns: [
     { type: 'numeric', numericFormat: { pattern: '0,0.00 $' } },
     { type: 'text', readOnly: true }
@@ -117,7 +142,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
       }
     }
   ],
-  colWidths: oneOf(100, '100px', ((index: number) => oneOf('100px', 100))),
+  colWidths: oneOf(100, '100px', [100, '100px'], ((index: number) => oneOf('100px', 100, void 0))),
   commentedCellClassName: 'foo',
   comments: oneOf(true, { displayDelay: 123 }, [
     {
@@ -194,18 +219,27 @@ const allSettings: Required<Handsontable.GridSettings> = {
   fixedColumnsLeft: 123,
   fixedRowsBottom: 123,
   fixedRowsTop: 123,
-  formulas: oneOf(true, {
-    variables: {
-      FOO: 64,
-      BAR: 'baz',
-    }
-  }),
+  formulas: oneOf(
+    {
+      engine: HyperFormula,
+    },
+    {
+      engine: {
+        hyperformula: HyperFormula,
+        leapYear1900: true,
+      },
+    },
+    {
+      engine: HyperFormula.buildEmpty(),
+    },
+    {
+      engine: {
+        hyperformula: HyperFormula.buildEmpty(),
+        leapYear1900: true,
+      },
+    },
+  ),
   fragmentSelection: oneOf(true, 'cell'),
-  headerTooltips: oneOf(true, {
-    rows: false,
-    columns: true,
-    onlyTrimmed: true
-  }),
   height: oneOf(500, () => 500),
   hiddenColumns: oneOf(true, {
     columns: [5, 10, 15],
@@ -256,11 +290,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ],
   nestedRows: true,
   noWordWrapClassName: 'foo',
-  numericFormat: {
-    pattern: '0,00',
-    culture: 'en-US'
-  },
-  observeChanges: true,
+  numericFormat: oneOf(legacyNumericFormat, numericFormatOptions),
   observeDOMVisibility: true,
   outsideClickDeselects: oneOf(true, function(target: HTMLElement) {
     return false;
@@ -290,8 +320,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
     }
   }),
   selectionMode: oneOf('single', 'range', 'multiple'),
-  selectOptions: ['A', 'B', 'C'],
+  selectOptions: oneOf(
+    ['A', 'B', 'C'],
+    { a: 'A', b: 'B', c: 'C'},
+    (visualRow: number, visualColumn: number, prop: string | number) => ['A', 'B', 'C'],
+    (visualRow: number, visualColumn: number, prop: string | number) => ({ a: 'A', b: 'B', c: 'C'}),
+  ),
   skipColumnOnPaste: true,
+  skipRowOnPaste: true,
   sortByRelevance: true,
   source: oneOf(['A', 'B', 'C', 'D'], (query: string, callback: (item: string[]) => void) => callback(['A', 'B', 'C', 'D'])),
   startCols: 123,
@@ -347,6 +383,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterDropdownMenuHide: (instance) => {},
   afterDropdownMenuShow: (instance) => {},
   afterFilter: (conditionsStack) => conditionsStack[0].column,
+  afterFormulasValuesUpdate: (changes) => {},
   afterGetCellMeta: (row, col, cellProperties) => {},
   afterGetColHeader: (col, TH) => {},
   afterGetColumnHeaderRenderers: (array) => {},
@@ -357,11 +394,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterInit: () => {},
   afterLanguageChange: (languageCode) => {},
   afterListen: () => {},
-  afterLoadData: (sourceData, firstTime) => {},
+  afterLoadData: (sourceData, firstTime, source) => {},
   afterMergeCells: (cellRange, mergeParent, auto) => {},
+  modifySourceData: (row, col, valueHolder, ioMode) => {},
   afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {},
   afterModifyTransformStart: (coords, rowTransformDir, colTransformDir) => {},
   afterMomentumScroll: () => {},
+  afterNamedExpressionAdded: (namedExpressionName, changes) => {},
+  afterNamedExpressionRemoved: (namedExpressionName, changes) => {},
   afterOnCellContextMenu: (event, coords, TD) => {},
   afterOnCellCornerDblClick: (event) => {},
   afterOnCellCornerMouseDown: (event) => {},
@@ -372,13 +412,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterPaste: (data, coords) => {},
   afterPluginsInitialized: () => {},
   afterRedo: (action) => {},
+  afterRedoStackChange: (undoneActionsBefore, undoneActionsAfter) => {},
   afterRefreshDimensions: (previousDimensions, currentDimensions, stateChanged) => {},
   afterRemoveCellMeta: (row, column, key, value) => {},
   afterRemoveCol: (index, amount, physicalColumns = [1, 2, 3], source) => {},
   afterRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
   afterRender: (isForced) => {},
   afterRenderer: (TD, row, col, prop, value, cellProperties) => {},
-  afterRowMove: (rows, target) => rows.forEach(row => row.toFixed(1) === target.toFixed(1)),
+  afterRowMove: (movedRows, finalIndex, dropIndex, movePossible, orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
@@ -389,15 +430,21 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSetCellMeta: (row, col, key, value) => {},
   afterSetDataAtCell: (changes, source) => {},
   afterSetDataAtRowProp: (changes, source) => {},
+  afterSetSourceDataAtCell: (changes, source) => {},
+  afterSheetAdded: (addedSheetDisplayName) => {},
+  afterSheetRemoved: (removedSheetDisplayName, changes) => {},
+  afterSheetRenamed: (oldDisplayName, newDisplayName) => {},
   afterTrimRow: (rows) => {},
   afterUndo: (action) => {},
-  afterUnlisten: () => {},
+  afterUndoStackChange: (doneActionsBefore, doneActionsAfter) => {},
   afterUnhideColumns: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
   afterUnhideRows: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
+  afterUnlisten: () => {},
   afterUnmergeCells: (cellRange, auto) => {},
   afterUntrimRow: (rows) => {},
   afterUpdateSettings: () => {},
   afterValidate: () => {},
+  afterViewRender: (isForced) => {},
   afterViewportColumnCalculatorOverride: (calc) => {},
   afterViewportRowCalculatorOverride: (calc) => {},
   beforeAddChild: (parent, element, index) => {},
@@ -425,27 +472,30 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeGetCellMeta: (row, col, cellProperties) => {},
   beforeHideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeHideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
+  beforeHighlightingColumnHeader: (column, headerLevel, highlightMeta) => { return column; },
+  beforeHighlightingRowHeader: (row, headerLevel, highlightMeta) => { return row; },
   beforeInit: () => {},
   beforeInitWalkontable: (walkontableConfig) => {},
   beforeKeyDown: (event) => {},
   beforeLanguageChange: (languageCode) => {},
-  beforeLoadData: (sourceData, firstTime) => {},
+  beforeLoadData: (sourceData, firstTime, source) => {},
   beforeMergeCells: (cellRange, auto) => {},
   beforeOnCellContextMenu: (event, coords, TD) => {},
   beforeOnCellMouseDown: (event, coords, TD, controller) => {},
   beforeOnCellMouseOut: (event, coords, TD) => {},
   beforeOnCellMouseOver: (event, coords, TD, controller) => {},
-  beforeOnCellMouseUp: (event, coords, TD, controller) => {},
+  beforeOnCellMouseUp: (event, coords, TD) => {},
   beforePaste: (data, coords) => { data.splice(0, 1); return false; },
+  beforeRedo: (action) => {},
+  beforeRedoStackChange: (undoneActions) => {},
+  beforeRefreshDimensions: (previousDimensions, currentDimensions, actionPossible) => {},
   beforeRemoveCellClassNames: () => {},
   beforeRemoveCellMeta: (row, column, key, value) => {},
-  beforeRedo: (action) => {},
-  beforeRefreshDimensions: (previousDimensions, currentDimensions, actionPossible) => {},
   beforeRemoveCol: (index, amount, physicalColumns = [1, 2, 3], source) => {},
   beforeRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
-  beforeRender: (isForced, skipRender) => {},
+  beforeRender: (isForced) => {},
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
-  beforeRowMove: (rows, target) => {},
+  beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
   beforeRowResize: (newSize, row, isDoubleClick) => {},
   beforeSetCellMeta: (row, col, key, value) => {},
   beforeSetRangeEnd: (coords) => {},
@@ -455,16 +505,17 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeTouchScroll: () => {},
   beforeTrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible) => {},
   beforeUndo: (action) => {},
+  beforeUndoStackChange: (doneActions, source) => {},
   beforeUnhideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeUnhideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeUnmergeCells: (cellRange, auto) => {},
   beforeUntrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible) => {},
   beforeValidate: (value, row, prop, source) => {},
   beforeValueRender: (value) => {},
+  beforeViewRender: (isForced, skipRender) => {},
   construct: () => {},
-  hiddenColumn: (column) => {},
-  hiddenRow: (row) => {},
   init: () => {},
+  modifyAutoColumnSizeSeed: (seed, cellProperties, cellValue) => '1',
   modifyAutofillRange: (startArea, entireArea) => {},
   modifyColHeader: (column) => {},
   modifyColumnHeaderHeight: () => {},

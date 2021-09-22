@@ -1,16 +1,18 @@
-import BasePlugin from './../_base';
-import Hooks from './../../pluginHooks';
-import { offset, outerHeight, outerWidth } from './../../helpers/dom/element';
-import { arrayEach, arrayMap } from './../../helpers/array';
-import EventManager from './../../eventManager';
-import { registerPlugin } from './../../plugins';
-import { CellCoords } from './../../3rdparty/walkontable/src';
+import { BasePlugin } from '../base';
+import Hooks from '../../pluginHooks';
+import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
+import { arrayEach, arrayMap } from '../../helpers/array';
+import { isObjectEqual } from '../../helpers/object';
+import EventManager from '../../eventManager';
+import { CellCoords, CellRange } from '../../3rdparty/walkontable/src';
 import { getDeltas, getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
 
 Hooks.getSingleton().register('modifyAutofillRange');
 Hooks.getSingleton().register('beforeAutofill');
 Hooks.getSingleton().register('afterAutofill');
 
+export const PLUGIN_KEY = 'autofill';
+export const PLUGIN_PRIORITY = 20;
 const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
 const INTERVAL_FOR_ADDING_ROW = 200;
 
@@ -27,7 +29,15 @@ const INTERVAL_FOR_ADDING_ROW = 200;
  * @plugin Autofill
  */
 
-class Autofill extends BasePlugin {
+export class Autofill extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -102,7 +112,7 @@ class Autofill extends BasePlugin {
 
     this.addHook('afterOnCellCornerMouseDown', event => this.onAfterCellCornerMouseDown(event));
     this.addHook('afterOnCellCornerDblClick', event => this.onCellCornerDblClick(event));
-    this.addHook('beforeOnCellMouseOver', (event, coords) => this.onBeforeCellMouseOver(coords));
+    this.addHook('beforeOnCellMouseOver', (_, coords) => this.onBeforeCellMouseOver(coords));
 
     super.enablePlugin();
   }
@@ -195,12 +205,6 @@ class Autofill extends BasePlugin {
     const selectionRangeLast = this.hot.getSelectedRangeLast();
     const topLeftCorner = selectionRangeLast.getTopLeftCorner();
     const bottomRightCorner = selectionRangeLast.getBottomRightCorner();
-    let cornersOfSelectionAndDragAreas = [
-      Math.min(topLeftCorner.row, fillStartRow),
-      Math.min(topLeftCorner.col, fillStartColumn),
-      Math.max(bottomRightCorner.row, fillEndRow),
-      Math.max(bottomRightCorner.col, fillEndColumn),
-    ];
 
     this.resetSelectionOfDraggedArea();
 
@@ -211,8 +215,17 @@ class Autofill extends BasePlugin {
       bottomRightCorner.col,
     ];
 
-    cornersOfSelectionAndDragAreas = this.hot
-      .runHooks('modifyAutofillRange', cornersOfSelectionAndDragAreas, cornersOfSelectedCells);
+    const cornersOfSelectionAndDragAreas = this.hot
+      .runHooks(
+        'modifyAutofillRange',
+        [
+          Math.min(topLeftCorner.row, fillStartRow),
+          Math.min(topLeftCorner.col, fillStartColumn),
+          Math.max(bottomRightCorner.row, fillEndRow),
+          Math.max(bottomRightCorner.col, fillEndColumn),
+        ],
+        cornersOfSelectedCells
+      );
 
     const {
       directionOfDrag,
@@ -222,42 +235,67 @@ class Autofill extends BasePlugin {
 
     if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
       const selectionData = this.getSelectionData();
-      const beforeAutofillHook = this.hot.runHooks('beforeAutofill', startOfDragCoords, endOfDragCoords, selectionData);
 
-      if (beforeAutofillHook === false) {
+      const sourceRange = selectionRangeLast.clone();
+      const targetRange = new CellRange(startOfDragCoords, startOfDragCoords, endOfDragCoords);
+
+      const beforeAutofillHookResult = this.hot.runHooks(
+        'beforeAutofill',
+        selectionData,
+        sourceRange,
+        targetRange,
+        directionOfDrag
+      );
+
+      if (beforeAutofillHookResult === false) {
         this.hot.selection.highlight.getFill().clear();
         this.hot.render();
 
         return false;
       }
 
-      const deltas = getDeltas(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
-      let fillData = selectionData;
+      // TODO: The `hasFillDataChanged` hook argument allows skipping processing of the autofill
+      // handler when the user modifies the fillData in the `beforeAutofill` hook. The workaround
+      // is necessary for the Formulas plugin and can be removed after implementing the missing
+      // feature for the HF (such as `getFillRangeData` method). With that the last argument could
+      // be removed from the `afterAutofill` hook.
+      const {
+        from: sourceFrom,
+        to: sourceTo,
+      } = sourceRange;
 
-      if (['up', 'left'].indexOf(directionOfDrag) > -1) {
+      const refData = this.hot.getData(sourceFrom.row, sourceFrom.col, sourceTo.row, sourceTo.col);
+
+      const hasFillDataChanged = !isObjectEqual(refData, beforeAutofillHookResult);
+      const deltas = getDeltas(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
+
+      let fillData = beforeAutofillHookResult;
+      const res = beforeAutofillHookResult;
+
+      if (
+        ['up', 'left'].indexOf(directionOfDrag) > -1 &&
+        !(res.length === 1 && res[0].length === 0)
+      ) {
         fillData = [];
 
-        let dragLength = null;
-        let fillOffset = null;
-
         if (directionOfDrag === 'up') {
-          dragLength = endOfDragCoords.row - startOfDragCoords.row + 1;
-          fillOffset = dragLength % selectionData.length;
+          const dragLength = endOfDragCoords.row - startOfDragCoords.row + 1;
+          const fillOffset = dragLength % res.length;
 
           for (let i = 0; i < dragLength; i++) {
-            fillData.push(selectionData[(i + (selectionData.length - fillOffset)) % selectionData.length]);
+            fillData.push(res[(i + (res.length - fillOffset)) % res.length]);
           }
 
         } else {
-          dragLength = endOfDragCoords.col - startOfDragCoords.col + 1;
-          fillOffset = dragLength % selectionData[0].length;
+          const dragLength = endOfDragCoords.col - startOfDragCoords.col + 1;
+          const fillOffset = dragLength % res[0].length;
 
-          for (let i = 0; i < selectionData.length; i++) {
+          for (let i = 0; i < res.length; i++) {
             fillData.push([]);
 
             for (let j = 0; j < dragLength; j++) {
               fillData[i]
-                .push(selectionData[i][(j + (selectionData[i].length - fillOffset)) % selectionData[i].length]);
+                .push(res[i][(j + (res[i].length - fillOffset)) % res[i].length]);
             }
           }
         }
@@ -276,7 +314,8 @@ class Autofill extends BasePlugin {
       );
 
       this.setSelection(cornersOfSelectionAndDragAreas);
-      this.hot.runHooks('afterAutofill', startOfDragCoords, endOfDragCoords, selectionData);
+      this.hot.runHooks('afterAutofill', fillData, sourceRange, targetRange, directionOfDrag, hasFillDataChanged);
+      this.hot.render();
 
     } else {
       // reset to avoid some range bug
@@ -301,6 +340,7 @@ class Autofill extends BasePlugin {
     if (coords.col < 0) {
       coords.col = 0;
     }
+
     return coords;
   }
 
@@ -615,6 +655,7 @@ class Autofill extends BasePlugin {
    */
   mapSettings() {
     const mappedSettings = getMappedFillHandleSetting(this.hot.getSettings().fillHandle);
+
     this.directions = mappedSettings.directions;
     this.autoInsertRow = mappedSettings.autoInsertRow;
   }
@@ -626,7 +667,3 @@ class Autofill extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('autofill', Autofill);
-
-export default Autofill;

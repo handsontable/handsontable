@@ -1,9 +1,9 @@
 import { CellCoords } from './3rdparty/walkontable/src';
-import { KEY_CODES, isMetaKey, isCtrlMetaKey } from './helpers/unicode';
+import { KEY_CODES, isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
-import { getEditorInstance } from './editors';
+import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
-import { EditorState } from './editors/_baseEditor';
+import { EDITOR_STATE } from './editors/baseEditor';
 import { getParentWindow } from './helpers/dom/element';
 
 class EditorManager {
@@ -356,15 +356,18 @@ class EditorManager {
 
     this.instance.runHooks('beforeKeyDown', event);
 
+    const { keyCode } = event;
+
     // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is produced when unfinished
     // character is entering (using IME editor). It is fired mainly on linux (ubuntu) with installed ibus-pinyin package.
-    if (this.destroyed || event.keyCode === 229) {
+    if (this.destroyed || keyCode === 229) {
       return;
     }
     if (isImmediatePropagationStopped(event)) {
       return;
     }
-    this.lastKeyCode = event.keyCode;
+
+    this.lastKeyCode = keyCode;
 
     if (!this.selection.isSelected()) {
       return;
@@ -373,7 +376,7 @@ class EditorManager {
     const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;
 
     if (this.activeEditor && !this.activeEditor.isWaiting()) {
-      if (!isMetaKey(event.keyCode) && !isCtrlMetaKey(event.keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
+      if (!isFunctionKey(keyCode) && !isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
         this.openEditor('', event);
 
         return;
@@ -385,7 +388,7 @@ class EditorManager {
     const rangeModifier = isShiftPressed ? this.selection.setRangeEnd : this.selection.setRangeStart;
     let tabMoves;
 
-    switch (event.keyCode) {
+    switch (keyCode) {
       case KEY_CODES.A:
         if (!this.isEditorOpened() && isCtrlPressed) {
           this.instance.selectAll();
@@ -474,7 +477,7 @@ class EditorManager {
         /* return/enter */
         if (this.isEditorOpened()) {
 
-          if (this.activeEditor && this.activeEditor.state !== EditorState.WAITING) {
+          if (this.activeEditor && this.activeEditor.state !== EDITOR_STATE.WAITING) {
             this.closeEditorAndSaveChanges(isCtrlPressed);
           }
           this.moveSelectionAfterEnter(isShiftPressed);
@@ -506,9 +509,14 @@ class EditorManager {
 
       case KEY_CODES.HOME:
         if (event.ctrlKey || event.metaKey) {
-          rangeModifier.call(this.selection, new CellCoords(0, this.selection.selectedRange.current().from.col));
+          rangeModifier.call(this.selection,
+            new CellCoords(
+              this.instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
+              this.selection.selectedRange.current().from.col));
         } else {
-          rangeModifier.call(this.selection, new CellCoords(this.selection.selectedRange.current().from.row, 0));
+          rangeModifier.call(this.selection,
+            new CellCoords(this.selection.selectedRange.current().from.row,
+              this.instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1)));
         }
         event.preventDefault(); // don't scroll the window
         event.stopPropagation();
@@ -518,12 +526,14 @@ class EditorManager {
         if (event.ctrlKey || event.metaKey) {
           rangeModifier.call(
             this.selection,
-            new CellCoords(this.instance.countRows() - 1, this.selection.selectedRange.current().from.col)
+            new CellCoords(this.instance.rowIndexMapper.getFirstNotHiddenIndex(this.instance.countRows() - 1, -1),
+              this.selection.selectedRange.current().from.col)
           );
         } else {
           rangeModifier.call(
             this.selection,
-            new CellCoords(this.selection.selectedRange.current().from.row, this.instance.countCols() - 1)
+            new CellCoords(this.selection.selectedRange.current().from.row,
+              this.instance.columnIndexMapper.getFirstNotHiddenIndex(this.instance.countCols() - 1, -1))
           );
         }
         event.preventDefault(); // don't scroll the window

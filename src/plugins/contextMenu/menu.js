@@ -1,4 +1,18 @@
-import Core from './../../core';
+import Cursor from './cursor';
+import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
+import {
+  filterSeparators,
+  hasSubMenu,
+  isDisabled,
+  isItemHidden,
+  isSeparator,
+  isSelectionDisabled,
+  normalizeSelection
+} from './utils';
+import Core from '../../core';
+import EventManager from '../../eventManager';
+import { arrayEach, arrayFilter, arrayReduce } from '../../helpers/array';
+import { isWindowsOS, isMobileBrowser, isIpadOS } from '../../helpers/browser';
 import {
   addClass,
   empty,
@@ -9,27 +23,13 @@ import {
   removeClass,
   getParentWindow,
   hasClass,
-} from './../../helpers/dom/element';
-import { arrayEach, arrayFilter, arrayReduce } from './../../helpers/array';
-import Cursor from './cursor';
-import EventManager from './../../eventManager';
-import { mixin, hasOwnProperty } from './../../helpers/object';
-import { isUndefined, isDefined } from './../../helpers/mixed';
-import { debounce, isFunction } from './../../helpers/function';
-import {
-  filterSeparators,
-  hasSubMenu,
-  isDisabled,
-  isItemHidden,
-  isSeparator,
-  isSelectionDisabled,
-  normalizeSelection
-} from './utils';
-import { KEY_CODES } from './../../helpers/unicode';
-import localHooks from './../../mixins/localHooks';
-import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
-import { stopImmediatePropagation, isRightClick } from './../../helpers/dom/event';
-import { isWindowsOS } from './../../helpers/browser';
+} from '../../helpers/dom/element';
+import { stopImmediatePropagation, isRightClick } from '../../helpers/dom/event';
+import { debounce, isFunction } from '../../helpers/function';
+import { isUndefined, isDefined } from '../../helpers/mixed';
+import { mixin, hasOwnProperty } from '../../helpers/object';
+import { KEY_CODES } from '../../helpers/unicode';
+import localHooks from '../../mixins/localHooks';
 
 const MIN_WIDTH = 215;
 
@@ -202,6 +202,7 @@ class Menu {
       rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
+
         // On the Windows platform, the "contextmenu" is triggered after the "mouseup" so that's
         // why the closing menu is here. (#6507#issuecomment-582392301).
         if (isWindowsOS() && shouldAutoCloseMenu && this.hasSelectedItem()) {
@@ -219,7 +220,16 @@ class Menu {
         // after the "contextmenu". So then "mouseup" closes the menu. Otherwise, the closing
         // menu responsibility is forwarded to "afterOnCellContextMenu" callback (#6507#issuecomment-582392301).
         if ((!isWindowsOS() || !isRightClick(event)) && shouldAutoCloseMenu && this.hasSelectedItem()) {
-          this.close(true);
+          // The timeout is necessary only for mobile devices. For desktop, the click event that is fired
+          // right after the mouseup event gets the event element target the same as the mouseup event.
+          // For mobile devices, the click event is triggered with native delay (~300ms), so when the mouseup
+          // event hides the tapped element, the click event grabs the element below. As a result, the filter
+          // by condition menu is closed and immediately open on tapping the "None" item.
+          if (isMobileBrowser() || isIpadOS()) {
+            setTimeout(() => this.close(true), 325);
+          } else {
+            this.close(true);
+          }
         }
       },
       afterUnlisten: () => {
@@ -230,6 +240,7 @@ class Menu {
         }
       },
     };
+
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
     this.hotMenu = new Core(this.container, settings);
@@ -294,6 +305,7 @@ class Menu {
       keepInViewport: true,
       container: this.options.container,
     });
+
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();
     subMenu.setPosition(cell.getBoundingClientRect());
@@ -451,7 +463,7 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionBelowCursor(cursor) {
-    let top = this.offset.below + cursor.top;
+    let top = this.offset.below + cursor.top + 1;
 
     if (this.isSubMenu()) {
       top = cursor.top - 1;
@@ -705,6 +717,7 @@ class Menu {
 
     const selection = this.hotMenu.getSelectedLast();
     let stopEvent = false;
+
     this.keyEvent = true;
 
     switch (event.keyCode) {
@@ -826,9 +839,7 @@ class Menu {
       this.close(true);
 
     // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
-    } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) &&
-        (!isChildOf(event.target, '.htMenu') && (isChildOf(event.target, this.container.ownerDocument) ||
-        isChildOf(event.target, this.hot.rootDocument)))) {
+    } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) && !isChildOf(event.target, '.htMenu')) {
       this.close(true);
     }
   }

@@ -242,7 +242,7 @@ describe('Core_validate', () => {
     setDataAtCell(2, 0, 123);
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
       done();
     }, 200);
   });
@@ -277,7 +277,7 @@ describe('Core_validate', () => {
     setDataAtCell(2, 0, 123);
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
       done();
     }, 200);
   });
@@ -298,7 +298,7 @@ describe('Core_validate', () => {
     setDataAtCell(2, 0, 'test');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id');
       done();
     }, 200);
   });
@@ -328,7 +328,7 @@ describe('Core_validate', () => {
     setDataAtCell(2, 0, 'test');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id');
       done();
     }, 200);
   });
@@ -429,6 +429,7 @@ describe('Core_validate', () => {
       },
       afterValidate: onAfterValidate
     });
+
     expect(() => hot.validateRows()).toThrow();
     expect(() => hot.validateRows(0, () => {})).toThrow();
     expect(() => hot.validateRows({}, () => {})).toThrow();
@@ -445,6 +446,7 @@ describe('Core_validate', () => {
       },
       afterValidate: onAfterValidate
     });
+
     expect(() => hot.validateColumns()).toThrow();
     expect(() => hot.validateColumns(0, () => {})).toThrow();
     expect(() => hot.validateColumns({}, () => {})).toThrow();
@@ -1448,6 +1450,7 @@ describe('Core_validate', () => {
     await sleep(300);
 
     const $cell = $(getCell(0, 0));
+
     expect($cell.hasClass('htInvalid')).toEqual(false);
   });
 
@@ -1476,6 +1479,7 @@ describe('Core_validate', () => {
 
     setTimeout(() => {
       const $cell = $(getCell(0, 0));
+
       expect($cell.hasClass('htInvalid')).toEqual(false);
       done();
     }, 200);
@@ -2243,5 +2247,31 @@ describe('Core_validate', () => {
       expect(onValidate.calls.count()).toEqual(1);
       done();
     }, 200);
+  });
+
+  it('should call the callback in the `done` function using the renderable indexes (passing them to the renderer)', async() => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(1, 4),
+      hiddenColumns: {
+        columns: [1]
+      },
+      columns: [
+        { type: 'text' },
+        { type: 'text' },
+        { type: 'date' },
+        { type: 'text' },
+      ]
+    });
+
+    spyOn(hot.view.wt.wtSettings.settings, 'cellRenderer');
+
+    hot.validateCells();
+
+    await sleep(200);
+
+    const mostRecentRendererCallArgs = hot.view.wt.wtSettings.settings.cellRenderer.calls.mostRecent().args;
+
+    // The `date` column (the one that is being validated) should be described as the `1` (renderable) column.
+    expect(mostRecentRendererCallArgs[1]).toEqual(1);
   });
 });

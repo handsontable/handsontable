@@ -1,4 +1,3 @@
-import { matchesCSSRules } from './../helpers/dom/element';
 import { isEmpty } from './../helpers/mixed';
 
 const ESCAPED_HTML_CHARS = {
@@ -59,7 +58,7 @@ export function instanceToHTML(instance) {
 
       } else {
         const cellData = data[row][column];
-        const { hidden, rowspan, colspan } = instance.getCellMeta(row - rowModifier, column - columnModifier);
+        const { hidden, rowspan, colspan } = instance.getCellMeta(row - columnModifier, column - rowModifier);
 
         if (!hidden) {
           const attrs = [];
@@ -79,6 +78,7 @@ export function instanceToHTML(instance) {
               .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
               .replace(/\x20/gi, '&nbsp;')
               .replace(/\t/gi, '&#9;');
+
             cell = `<td ${attrs.join(' ')}>${value}</td>`;
           }
         }
@@ -159,6 +159,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
   const settingsObj = {};
   const fragment = rootDocument.createDocumentFragment();
   const tempElem = rootDocument.createElement('div');
+
   fragment.appendChild(tempElem);
 
   let checkElement = element;
@@ -181,21 +182,10 @@ export function htmlToGridSettings(element, rootDocument = document) {
     return;
   }
 
-  const styleElem = tempElem.querySelector('style');
-  let styleSheet = null;
-  let styleSheetArr = [];
-
-  if (styleElem) {
-    rootDocument.body.appendChild(styleElem);
-    styleElem.disabled = true;
-    styleSheet = styleElem.sheet;
-    styleSheetArr = styleSheet ? Array.from(styleSheet.cssRules) : [];
-    rootDocument.body.removeChild(styleElem);
-  }
-
   const generator = tempElem.querySelector('meta[name$="enerator"]');
   const hasRowHeaders = checkElement.querySelector('tbody th') !== null;
-  const countCols = Array.from(checkElement.querySelector('tr').cells)
+  const trElement = checkElement.querySelector('tr');
+  const countCols = !trElement ? 0 : Array.from(trElement.cells)
     .reduce((cols, cell) => cols + cell.colSpan, 0) - (hasRowHeaders ? 1 : 0);
   const fixedRowsBottom = checkElement.tFoot && Array.from(checkElement.tFoot.rows) || [];
   const fixedRowsTop = [];
@@ -263,7 +253,9 @@ export function htmlToGridSettings(element, rootDocument = document) {
   const dataRows = [
     ...fixedRowsTop,
     ...Array.from(checkElement.tBodies).reduce((sections, section) => {
-      sections.push(...Array.from(section.rows)); return sections;
+      sections.push(...Array.from(section.rows));
+
+      return sections;
     }, []),
     ...fixedRowsBottom];
 
@@ -311,24 +303,9 @@ export function htmlToGridSettings(element, rootDocument = document) {
           }
         }
 
-        const cellStyle = styleSheetArr.reduce((settings, cssRule) => {
-          if (matchesCSSRules(cell, cssRule)) {
-            const { whiteSpace } = cssRule.style;
-
-            if (whiteSpace) {
-              settings.whiteSpace = whiteSpace;
-            }
-          }
-
-          return settings;
-        }, {});
         let cellValue = '';
 
-        if (cellStyle.whiteSpace === 'nowrap') {
-          cellValue = innerHTML.replace(/[\r\n][\x20]{0,2}/gim, '\x20')
-            .replace(/<br(\s*|\/)>/gim, '\r\n');
-
-        } else if (generator && /excel/gi.test(generator.content)) {
+        if (generator && /excel/gi.test(generator.content)) {
           cellValue = innerHTML.replace(/[\r\n][\x20]{0,2}/g, '\x20')
             .replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,3}/gim, '\r\n');
 

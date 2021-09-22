@@ -1,4 +1,4 @@
-import * as C from './../../../i18n/constants';
+import * as C from '../../../i18n/constants';
 
 /**
  * @param {CopyPaste} copyPastePlugin The plugin instance.

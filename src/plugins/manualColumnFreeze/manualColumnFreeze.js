@@ -1,12 +1,18 @@
-import BasePlugin from './../_base';
-import { registerPlugin } from './../../plugins';
+import { BasePlugin } from '../base';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 
 import './manualColumnFreeze.css';
 
+export const PLUGIN_KEY = 'manualColumnFreeze';
+export const PLUGIN_PRIORITY = 110;
 const privatePool = new WeakMap();
+
 /**
+ * @plugin ManualColumnFreeze
+ * @class ManualColumnFreeze
+ *
+ * @description
  * This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu or using API.
  * You can turn it on by setting a {@link Options#manualColumnFreeze} property to `true`.
  *
@@ -15,10 +21,16 @@ const privatePool = new WeakMap();
  * // Enables the plugin
  * manualColumnFreeze: true,
  * ```
- *
- * @plugin ManualColumnFreeze
  */
-class ManualColumnFreeze extends BasePlugin {
+export class ManualColumnFreeze extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -34,7 +46,7 @@ class ManualColumnFreeze extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().manualColumnFreeze;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -73,7 +85,10 @@ class ManualColumnFreeze extends BasePlugin {
   }
 
   /**
-   * Freezes the given column (add it to fixed columns).
+   * Freezes the specified column (adds it to fixed columns).
+   *
+   * `freezeColumn()` doesn't re-render the table,
+   * so you need to call the `render()` method afterward.
    *
    * @param {number} column Visual column index.
    */
@@ -156,7 +171,3 @@ class ManualColumnFreeze extends BasePlugin {
     }
   }
 }
-
-registerPlugin('manualColumnFreeze', ManualColumnFreeze);
-
-export default ManualColumnFreeze;

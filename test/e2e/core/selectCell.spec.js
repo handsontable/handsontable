@@ -498,9 +498,9 @@ describe('Core.selectCell', () => {
     });
 
     selectCell(5, 15); // Scroll to the right of the table.
-    selectCell(5, 0);
+    selectCell(5, 5);
 
-    expect(getCell(5, 0)).toBeVisibleAtLeftOfViewport();
+    expect(getCell(5, 5)).toBeVisibleAtLeftOfViewport();
   });
 
   it('should by default scroll the viewport to the selected cell using column props (left of the viewport)', () => {
@@ -511,9 +511,9 @@ describe('Core.selectCell', () => {
     });
 
     selectCell(5, 15); // Scroll to the right of the table.
-    selectCell(5, 'prop0');
+    selectCell(5, 'prop5');
 
-    expect(getCell(5, 0)).toBeVisibleAtLeftOfViewport();
+    expect(getCell(5, 5)).toBeVisibleAtLeftOfViewport();
   });
 
   it('should by default scroll the viewport to the selected cell (top of the viewport)', () => {
@@ -666,10 +666,10 @@ describe('Core.selectCell', () => {
     expect(afterSelectionByProp.calls.argsFor(0)).toEqual([1, 'prop2', 1, 'prop2', jasmine.any(Object), 0]);
 
     expect(afterSelectionEnd.calls.count()).toBe(1);
-    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([1, 2, 1, 2, 0, void 0]);
+    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([1, 2, 1, 2, 0]);
 
     expect(afterSelectionEndByProp.calls.count()).toBe(1);
-    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([1, 'prop2', 1, 'prop2', 0, void 0]);
+    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([1, 'prop2', 1, 'prop2', 0]);
 
     expect(beforeSetRangeStart.calls.count()).toBe(0);
 
@@ -719,10 +719,10 @@ describe('Core.selectCell', () => {
     expect(afterSelectionByProp.calls.argsFor(0)).toEqual([1, 'prop2', 2, 'prop4', jasmine.any(Object), 0]);
 
     expect(afterSelectionEnd.calls.count()).toBe(1);
-    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([1, 2, 2, 4, 0, void 0]);
+    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([1, 2, 2, 4, 0]);
 
     expect(afterSelectionEndByProp.calls.count()).toBe(1);
-    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([1, 'prop2', 2, 'prop4', 0, void 0]);
+    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([1, 'prop2', 2, 'prop4', 0]);
 
     expect(beforeSetRangeStart.calls.count()).toBe(0);
 

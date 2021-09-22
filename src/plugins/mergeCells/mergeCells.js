@@ -1,8 +1,7 @@
-import BasePlugin from './../_base';
-import Hooks from './../../pluginHooks';
-import { registerPlugin } from './../../plugins';
-import { stopImmediatePropagation } from './../../helpers/dom/event';
-import { CellCoords, CellRange } from './../../3rdparty/walkontable/src';
+import { BasePlugin } from '../base';
+import Hooks from '../../pluginHooks';
+import { stopImmediatePropagation } from '../../helpers/dom/event';
+import { CellCoords, CellRange } from '../../3rdparty/walkontable/src';
 import MergedCellsCollection from './cellsCollection';
 import MergedCellCoords from './cellCoords';
 import AutofillCalculations from './calculations/autofill';
@@ -20,10 +19,13 @@ Hooks.getSingleton().register('afterMergeCells');
 Hooks.getSingleton().register('beforeUnmergeCells');
 Hooks.getSingleton().register('afterUnmergeCells');
 
+export const PLUGIN_KEY = 'mergeCells';
+export const PLUGIN_PRIORITY = 150;
 const privatePool = new WeakMap();
 
 /**
  * @plugin MergeCells
+ * @class MergeCells
  *
  * @description
  * Plugin, which allows merging cells in the table (using the initial configuration, API or context menu).
@@ -40,7 +42,15 @@ const privatePool = new WeakMap();
  *  ],
  * ```
  */
-class MergeCells extends BasePlugin {
+export class MergeCells extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -78,7 +88,7 @@ class MergeCells extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().mergeCells;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -119,6 +129,11 @@ class MergeCells extends BasePlugin {
     this.addHook('beforeDrawBorders', (...args) => this.onBeforeDrawAreaBorders(...args));
     this.addHook('afterDrawSelection', (...args) => this.onAfterDrawSelection(...args));
     this.addHook('beforeRemoveCellClassNames', (...args) => this.onBeforeRemoveCellClassNames(...args));
+    this.addHook('beforeUndoStackChange', (action, source) => {
+      if (source === 'MergeCells') {
+        return false;
+      }
+    });
 
     super.enablePlugin();
   }
@@ -136,7 +151,7 @@ class MergeCells extends BasePlugin {
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    const settings = this.hot.getSettings().mergeCells;
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
 
     this.disablePlugin();
     this.enablePlugin();
@@ -506,7 +521,7 @@ class MergeCells extends BasePlugin {
    * @private
    */
   onAfterInit() {
-    this.generateFromSettings(this.hot.getSettings().mergeCells);
+    this.generateFromSettings(this.hot.getSettings()[PLUGIN_KEY]);
     this.hot.render();
   }
 
@@ -773,6 +788,7 @@ class MergeCells extends BasePlugin {
    */
   onBeforeSetRangeEnd(coords) {
     const selRange = this.hot.getSelectedRangeLast();
+
     selRange.highlight = new CellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
     selRange.to = coords;
     let rangeExpanded = false;
@@ -1198,7 +1214,3 @@ class MergeCells extends BasePlugin {
     return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();
   }
 }
-
-registerPlugin('mergeCells', MergeCells);
-
-export default MergeCells;

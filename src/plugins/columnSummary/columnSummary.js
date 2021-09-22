@@ -1,15 +1,36 @@
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 import { objectEach } from '../../helpers/object';
-import { registerPlugin } from '../../plugins';
 import Endpoints from './endpoints';
-import { toSingleLine } from './../../helpers/templateLiteralTag';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+
+export const PLUGIN_KEY = 'columnSummary';
+export const PLUGIN_PRIORITY = 220;
 
 /**
  * @plugin ColumnSummary
+ * @class ColumnSummary
  *
  * @description
- * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
- * [See the demo for more information](https://handsontable.com/docs/demo-summary-calculations.html).
+ * The `ColumnSummary` plugin lets you [easily summarize your columns](@/guides/columns/column-summary.md).
+ *
+ * You can use the [built-in summary functions](@/guides/columns/column-summary.md#built-in-summary-functions),
+ * or implement a [custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function).
+ *
+ * For each column summary, you can set the following configuration options:
+ *
+ * | Option | Required | Type | Default | Description |
+ * |---|---|---|---|---|
+ * | `sourceColumn` | No | Number | Same as `destinationColumn` | [Selects a column to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+ * | `ranges` | No | Array | - | [Selects ranges of rows to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+ * | `type` | Yes | String | - | [Sets a summary function](@/guides/columns/column-summary.md#step-3-calculate-your-summary) |
+ * | `destinationRow` | Yes | Number | - | [Sets the destination cell's row coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+ * | `destinationColumn` | Yes | Number | - | [Sets the destination cell's column coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+ * | `forceNumeric` | No | Boolean | `false` | [Forces the summary to treat non-numerics as numerics](@/guides/columns/column-summary.md#forcing-numeric-values) |
+ * | `reversedRowCoords` | No | Boolean | `false` | [Reverses row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell) |
+ * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary.md#throwing-data-type-errors) |
+ * | `readOnly` | No | Boolean | `true` | Makes summary cell read-only |
+ * | `roundFloat` | No | Number | - | [Rounds summary result](@/guides/columns/column-summary.md#rounding-a-column-summary-result) |
+ * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function) |
  *
  * @example
  * const container = document.getElementById('example');
@@ -19,26 +40,34 @@ import { toSingleLine } from './../../helpers/templateLiteralTag';
  *   rowHeaders: true,
  *   columnSummary: [
  *     {
+ *       type: 'min',
  *       destinationRow: 4,
  *       destinationColumn: 1,
- *       type: 'min'
  *     },
  *     {
+ *       type: 'max',
  *       destinationRow: 0,
  *       destinationColumn: 3,
- *       reversedRowCoords: true,
- *       type: 'max'
+ *       reversedRowCoords: true
  *     },
  *     {
+ *       type: 'sum',
  *       destinationRow: 4,
  *       destinationColumn: 5,
- *       type: 'sum',
  *       forceNumeric: true
  *     }
  *   ]
  * });
  */
-class ColumnSummary extends BasePlugin {
+export class ColumnSummary extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -57,7 +86,7 @@ class ColumnSummary extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().columnSummary;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -68,7 +97,7 @@ class ColumnSummary extends BasePlugin {
       return;
     }
 
-    this.settings = this.hot.getSettings().columnSummary;
+    this.settings = this.hot.getSettings()[PLUGIN_KEY];
     this.endpoints = new Endpoints(this, this.settings);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
@@ -166,6 +195,7 @@ class ColumnSummary extends BasePlugin {
     do {
       cellValue = this.getCellValue(i, col) || 0;
       const decimalPlaces = (((`${cellValue}`).split('.')[1] || []).length) || 1;
+
       if (decimalPlaces > biggestDecimalPlacesCount) {
         biggestDecimalPlacesCount = decimalPlaces;
       }
@@ -384,14 +414,10 @@ class ColumnSummary extends BasePlugin {
    * @private
    * @param {Array} rows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md).
    */
   onAfterRowMove(rows, finalIndex) {
     this.endpoints.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length, rows, this.pluginName);
     this.endpoints.resetSetupAfterStructureAlteration('move_row', finalIndex, rows.length, rows, this.pluginName);
   }
 }
-
-registerPlugin('columnSummary', ColumnSummary);
-
-export default ColumnSummary;

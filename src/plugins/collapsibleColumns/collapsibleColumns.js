@@ -1,3 +1,4 @@
+import { BasePlugin } from '../base';
 import { arrayEach, arrayFilter, arrayUnique } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { warn } from '../../helpers/console';
@@ -7,10 +8,10 @@ import {
   fastInnerText
 } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
-import { registerPlugin } from '../../plugins';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
-import { HidingMap } from '../../translations';
-import BasePlugin from '../_base';
+
+export const PLUGIN_KEY = 'collapsibleColumns';
+export const PLUGIN_PRIORITY = 290;
 
 const actionDictionary = new Map([
   ['collapse', {
@@ -27,13 +28,14 @@ const actionDictionary = new Map([
 
 /**
  * @plugin CollapsibleColumns
+ * @class CollapsibleColumns
  *
  * @description
- * The {@link CollapsibleColumns} plugin allows collapsing of columns, covered by a header with the `colspan` property defined.
+ * The _CollapsibleColumns_ plugin allows collapsing of columns, covered by a header with the `colspan` property defined.
  *
  * Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
  *
- * Setting the {@link Options#collapsibleColumns} property to `true` will display a "collapse/expand" button in every header
+ * Setting the {@link Options#collapsiblecolumns} property to `true` will display a "collapse/expand" button in every header
  * with a defined `colspan` property.
  *
  * To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property as an array
@@ -65,7 +67,21 @@ const actionDictionary = new Map([
  * });
  * ```
  */
-class CollapsibleColumns extends BasePlugin {
+export class CollapsibleColumns extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
+  static get PLUGIN_DEPS() {
+    return [
+      'plugin:NestedHeaders',
+    ];
+  }
+
   /**
    * Cached reference to the NestedHeaders plugin.
    *
@@ -101,7 +117,7 @@ class CollapsibleColumns extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().collapsibleColumns;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -118,9 +134,7 @@ class CollapsibleColumns extends BasePlugin {
       warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
     }
 
-    this.#collapsedColumnsMap = new HidingMap();
-    this.hot.columnIndexMapper.registerMap(this.pluginName, this.#collapsedColumnsMap);
-
+    this.#collapsedColumnsMap = this.hot.columnIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding');
     this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders');
     this.headerStateManager = this.nestedHeadersPlugin.getStateManager();
 
@@ -292,7 +306,7 @@ class CollapsibleColumns extends BasePlugin {
     let isActionPossible = filteredCoords.length > 0;
 
     arrayEach(filteredCoords, ({ row, col: column }) => {
-      const { collapsible, isCollapsed } = this.headerStateManager.getHeaderSettings(row, column);
+      const { collapsible, isCollapsed } = this.headerStateManager.getHeaderSettings(row, column) ?? {};
 
       if (!collapsible || isCollapsed && action === 'collapse' || !isCollapsed && action === 'expand') {
         isActionPossible = false;
@@ -347,12 +361,12 @@ class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    this.hot.batch(() => {
+    this.hot.batchExecution(() => {
       arrayEach(affectedColumnsIndexes, (visualColumn) => {
         this.#collapsedColumnsMap
           .setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), actionTranslator.hideColumn);
       });
-    });
+    }, true);
 
     const isActionPerformed = this.getCollapsedColumns().length !== currentCollapsedColumns.length;
 
@@ -365,7 +379,7 @@ class CollapsibleColumns extends BasePlugin {
     );
 
     this.hot.render();
-    this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+    this.hot.view.adjustElementsSize(true);
   }
 
   /**
@@ -415,7 +429,7 @@ class CollapsibleColumns extends BasePlugin {
     const TR = TH.parentNode;
     const THEAD = TR.parentNode;
     const row = ((-1) * THEAD.childNodes.length) + Array.prototype.indexOf.call(THEAD.childNodes, TR);
-    const { collapsible, origColspan } = this.headerStateManager.getHeaderSettings(row, column);
+    const { collapsible, origColspan } = this.headerStateManager.getHeaderSettings(row, column) ?? {};
 
     if (collapsible && origColspan > 1 && column >= this.hot.getSettings().fixedColumnsLeft) {
       const button = this.generateIndicator(row, column);
@@ -475,12 +489,7 @@ class CollapsibleColumns extends BasePlugin {
    */
   destroy() {
     this.#collapsedColumnsMap = null;
-    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
 
     super.destroy();
   }
 }
-
-registerPlugin('collapsibleColumns', CollapsibleColumns);
-
-export default CollapsibleColumns;

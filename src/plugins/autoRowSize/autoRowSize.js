@@ -1,20 +1,22 @@
-import BasePlugin from './../_base';
-import { arrayEach, arrayFilter } from './../../helpers/array';
-import { cancelAnimationFrame, requestAnimationFrame } from './../../helpers/feature';
-import { isVisible } from './../../helpers/dom/element';
-import GhostTable from './../../utils/ghostTable';
-import { isObject, hasOwnProperty } from './../../helpers/object';
-import { valueAccordingPercent, rangeEach } from './../../helpers/number';
-import { registerPlugin } from './../../plugins';
-import SamplesGenerator from './../../utils/samplesGenerator';
-import { isPercentValue } from './../../helpers/string';
-import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
+import { BasePlugin } from '../base';
+import { arrayEach, arrayFilter } from '../../helpers/array';
+import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
+import { isVisible } from '../../helpers/dom/element';
+import GhostTable from '../../utils/ghostTable';
+import { isObject, hasOwnProperty } from '../../helpers/object';
+import { valueAccordingPercent, rangeEach } from '../../helpers/number';
+import SamplesGenerator from '../../utils/samplesGenerator';
+import { isPercentValue } from '../../helpers/string';
+import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
+export const PLUGIN_KEY = 'autoRowSize';
+export const PLUGIN_PRIORITY = 40;
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin AutoRowSize
- *
+ * @class AutoRowSize
  * @description
  * This plugin allows to set row heights based on their highest cells.
  *
@@ -27,9 +29,9 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
  * operations don't block the browser UI.
  *
- * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value to a config object:
+ * To configure the sync/async distribution, you can pass an absolute value (number of rows) or a percentage value to a config object:
  * ```js
- * // as a number (300 columns in sync, rest async)
+ * // as a number (300 rows in sync, rest async)
  * autoRowSize: {syncLimit: 300},.
  *
  * // as a string (percent)
@@ -37,7 +39,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  *
  * // allow sample duplication
  * autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},
- * ```.
+ * ```
  *
  * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
  * height. __Note__, that this might have a negative impact on performance.
@@ -48,7 +50,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  *
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
- *   date: getData(),
+ *   data: getData(),
  *   autoRowSize: true
  * });
  * // Access to plugin instance:
@@ -61,7 +63,16 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * }
  * ```
  */
-class AutoRowSize extends BasePlugin {
+/* eslint-enable jsdoc/require-description-complete-sentence */
+export class AutoRowSize extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   static get CALCULATION_STEP() {
     return 50;
   }
@@ -151,7 +162,9 @@ class AutoRowSize extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().autoRowSize === true || isObject(this.hot.getSettings().autoRowSize);
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
+
+    return settings === true || isObject(settings);
   }
 
   /**
@@ -167,7 +180,7 @@ class AutoRowSize extends BasePlugin {
     this.addHook('afterLoadData', () => this.onAfterLoadData());
     this.addHook('beforeChange', changes => this.onBeforeChange(changes));
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
-    this.addHook('beforeRender', force => this.onBeforeRender(force));
+    this.addHook('beforeViewRender', force => this.onBeforeViewRender(force));
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
     this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
 
@@ -215,7 +228,7 @@ class AutoRowSize extends BasePlugin {
     });
 
     if (this.ghostTable.rows.length) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         this.ghostTable.getHeights((row, height) => {
           if (row < 0) {
             this.headerHeight = height;
@@ -223,7 +236,7 @@ class AutoRowSize extends BasePlugin {
             this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), height);
           }
         });
-      });
+      }, true);
 
       this.measuredRows = rowsRange.to + 1;
 
@@ -265,7 +278,8 @@ class AutoRowSize extends BasePlugin {
         this.inProgress = false;
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
-        this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+        this.hot.view.adjustElementsSize(true);
+
         // tmp
         if (this.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
           this.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
@@ -286,7 +300,7 @@ class AutoRowSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
-      this.hot.view.wt.wtOverlays.adjustElementsSize(false);
+      this.hot.view.adjustElementsSize(false);
     }
   }
 
@@ -296,11 +310,11 @@ class AutoRowSize extends BasePlugin {
    * @private
    */
   setSamplingOptions() {
-    const setting = this.hot.getSettings().autoRowSize;
+    const setting = this.hot.getSettings()[PLUGIN_KEY];
     const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ?
-      this.hot.getSettings().autoRowSize.samplingRatio : void 0;
+      setting.samplingRatio : void 0;
     const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ?
-      this.hot.getSettings().autoRowSize.allowSampleDuplicates : void 0;
+      setting.allowSampleDuplicates : void 0;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
@@ -328,12 +342,13 @@ class AutoRowSize extends BasePlugin {
    * @returns {number}
    */
   getSyncCalculationLimit() {
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
     /* eslint-disable no-bitwise */
     let limit = AutoRowSize.SYNC_CALCULATION_LIMIT;
     const rowsLimit = this.hot.countRows() - 1;
 
-    if (isObject(this.hot.getSettings().autoRowSize)) {
-      limit = this.hot.getSettings().autoRowSize.syncLimit;
+    if (isObject(settings)) {
+      limit = settings.syncLimit;
 
       if (isPercentValue(limit)) {
         limit = valueAccordingPercent(rowsLimit, limit);
@@ -348,6 +363,8 @@ class AutoRowSize extends BasePlugin {
 
   /**
    * Gets the calculated row height.
+   *
+   * Mind that this method is different from the [Core](@/api/core.md)'s [`getRowHeight()`](@/api/core.md#getrowheight) method.
    *
    * @param {number} row Visual row index.
    * @param {number} [defaultHeight] Default row height. It will be picked up if no calculated height found.
@@ -425,11 +442,11 @@ class AutoRowSize extends BasePlugin {
   clearCacheByRange(range) {
     const { from, to } = typeof range === 'number' ? { from: range, to: range } : range;
 
-    this.hot.batch(() => {
+    this.hot.batchExecution(() => {
       rangeEach(Math.min(from, to), Math.max(from, to), (row) => {
         this.rowHeightsMap.setValueAtIndex(row, null);
       });
-    });
+    }, true);
   }
 
   /**
@@ -442,11 +459,11 @@ class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * On before render listener.
+   * On before view render listener.
    *
    * @private
    */
-  onBeforeRender() {
+  onBeforeViewRender() {
     const force = this.hot.renderCall;
     const fixedRowsBottom = this.hot.getSettings().fixedRowsBottom;
     const firstVisibleRow = this.getFirstVisibleRow();
@@ -461,6 +478,7 @@ class AutoRowSize extends BasePlugin {
     // Calculate rows height synchronously for bottom overlay
     if (fixedRowsBottom) {
       const totalRows = this.hot.countRows() - 1;
+
       this.calculateRowsHeight({ from: totalRows - fixedRowsBottom, to: totalRows });
     }
 
@@ -546,12 +564,7 @@ class AutoRowSize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.rowIndexMapper.unregisterMap(ROW_WIDTHS_MAP_NAME);
     this.ghostTable.clean();
     super.destroy();
   }
 }
-
-registerPlugin('autoRowSize', AutoRowSize);
-
-export default AutoRowSize;

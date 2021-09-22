@@ -125,6 +125,7 @@ describe('Handsontable.Dom', () => {
 
       const TD = $table.find('td')[0];
       const TR = TD.parentNode;
+
       expect(Handsontable.dom.isVisible(TD)).toBe(true);
       TR.parentNode.removeChild(TR);
       expect(Handsontable.dom.isVisible(TD)).toBe(false);
@@ -154,6 +155,37 @@ describe('Handsontable.Dom', () => {
       expect(Handsontable.dom.outerHeight($table[0])).toBe(68); // this is according to current stylesheet
 
       $table.remove();
+    });
+  });
+
+  describe('outerWidth', () => {
+    let element;
+
+    beforeEach(() => {
+      element = $('<div/>').appendTo('body');
+    });
+
+    afterEach(() => {
+      element.remove();
+      element = null;
+    });
+
+    it('should properly calculate element\'s width if it\'s an integer value', () => {
+      element.css({ width: '10px' });
+
+      expect(Handsontable.dom.outerWidth(element[0])).toBe(10);
+    });
+
+    it('should properly calculate element\'s width if it\'s a floating value (less than x.5)', () => {
+      element.css({ width: '10.25px' });
+
+      expect(Handsontable.dom.outerWidth(element[0])).toBe(11);
+    });
+
+    it('should properly calculate element\'s width if it\'s a floating value (equal or greater than x.5)', () => {
+      element.css({ width: '10.5px' });
+
+      expect(Handsontable.dom.outerWidth(element[0])).toBe(11);
     });
   });
 
@@ -211,6 +243,7 @@ describe('Handsontable.Dom', () => {
 
   it('should set the immediatePropagation properties properly for given event', () => {
     const event = document.createEvent('MouseEvents');
+
     event.initMouseEvent('mousedown', true, true, window, null, null, null, null, null,
       null, null, null, null, null, null);
 

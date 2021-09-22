@@ -10,12 +10,19 @@ import {
   resetCssTransform,
 } from './../../../../helpers/dom/element';
 import TopOverlayTable from './../table/top';
-import Overlay from './_base';
+import { Overlay } from './_base';
+import {
+  CLONE_TOP,
+} from './constants';
 
 /**
  * @class TopOverlay
  */
-class TopOverlay extends Overlay {
+export class TopOverlay extends Overlay {
+  static get OVERLAY_NAME() {
+    return CLONE_TOP;
+  }
+
   /**
    * Cached value which holds the previous value of the `fixedRowsTop` option.
    * It is used as a comparison value that can be used to detect changes in this value.
@@ -29,7 +36,8 @@ class TopOverlay extends Overlay {
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(Overlay.CLONE_TOP);
+    this.clone = this.makeClone(CLONE_TOP);
+    this.cachedFixedRowsTop = this.wot.getSetting('fixedRowsTop');
   }
 
   /**
@@ -64,21 +72,37 @@ class TopOverlay extends Overlay {
     }
 
     const overlayRoot = this.clone.wtTable.holder.parentNode;
-    let headerPosition = 0;
     const preventOverflow = this.wot.getSetting('preventOverflow');
+    let headerPosition = 0;
+    let skipInnerBorderAdjusting = false;
 
     if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const { wtTable } = this.wot;
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const top = Math.ceil(hiderRect.top);
       const bottom = Math.ceil(hiderRect.bottom);
+      const rootHeight = overlayRoot.offsetHeight;
+
+      // This checks if the overlay is going to an infinite loop caused by added (or removed)
+      // `innerBorderTop` class name. Toggling the class name shifts the viewport by 1px and
+      // triggers the `scroll` event. It causes the table to render. The new render cycle takes into,
+      // account the shift and toggles the class name again. This causes the next loops. This
+      // happens only on Chrome (#7256).
+      //
+      // When we detect that the table bottom position is the same as the overlay bottom,
+      // do not toggle the class name.
+      //
+      // This workaround will be able to be cleared after merging the SVG borders, which introduces
+      // frozen lines (no more `innerBorderTop` workaround).
+      skipInnerBorderAdjusting = bottom === rootHeight;
+
       let finalLeft;
       let finalTop;
 
       finalLeft = wtTable.hider.style.left;
       finalLeft = finalLeft === '' ? 0 : finalLeft;
 
-      if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
+      if (top < 0 && (bottom - rootHeight) > 0) {
         finalTop = -top;
       } else {
         finalTop = 0;
@@ -94,7 +118,7 @@ class TopOverlay extends Overlay {
       resetCssTransform(overlayRoot);
     }
 
-    const positionChanged = this.adjustHeaderBordersPosition(headerPosition);
+    const positionChanged = this.adjustHeaderBordersPosition(headerPosition, skipInnerBorderAdjusting);
 
     this.adjustElementsSize();
 
@@ -163,10 +187,6 @@ class TopOverlay extends Overlay {
     if (this.needFullRender || force) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
-
-      if (!force) {
-        this.areElementSizesAdjusted = true;
-      }
     }
   }
 
@@ -226,9 +246,6 @@ class TopOverlay extends Overlay {
   applyToDOM() {
     const total = this.wot.getSetting('totalRows');
 
-    if (!this.areElementSizesAdjusted) {
-      this.adjustElementsSize();
-    }
     if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
       this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
@@ -303,6 +320,7 @@ class TopOverlay extends Overlay {
       return this.wot.wtTable.holderOffset.top;
 
     }
+
     return 0;
 
   }
@@ -320,9 +338,10 @@ class TopOverlay extends Overlay {
    * Adds css classes to hide the header border's header (cell-selection border hiding issue).
    *
    * @param {number} position Header Y position if trimming container is window or scroll top if not.
+   * @param {boolean} [skipInnerBorderAdjusting=false] If `true` the inner border adjusting will be skipped.
    * @returns {boolean}
    */
-  adjustHeaderBordersPosition(position) {
+  adjustHeaderBordersPosition(position, skipInnerBorderAdjusting = false) {
     const masterParent = this.wot.wtTable.holder.parentNode;
     const totalColumns = this.wot.getSetting('totalColumns');
 
@@ -332,26 +351,25 @@ class TopOverlay extends Overlay {
       addClass(masterParent, 'emptyColumns');
     }
 
-    const fixedRowsTop = this.wot.getSetting('fixedRowsTop');
-    const areFixedRowsTopChanged = this.cachedFixedRowsTop !== fixedRowsTop;
-    const columnHeaders = this.wot.getSetting('columnHeaders');
     let positionChanged = false;
 
-    if ((areFixedRowsTopChanged || fixedRowsTop === 0) && columnHeaders.length > 0) {
-      const previousState = hasClass(masterParent, 'innerBorderTop');
+    if (!skipInnerBorderAdjusting) {
+      const fixedRowsTop = this.wot.getSetting('fixedRowsTop');
+      const areFixedRowsTopChanged = this.cachedFixedRowsTop !== fixedRowsTop;
+      const columnHeaders = this.wot.getSetting('columnHeaders');
 
-      this.cachedFixedRowsTop = this.wot.getSetting('fixedRowsTop');
+      if ((areFixedRowsTopChanged || fixedRowsTop === 0) && columnHeaders.length > 0) {
+        const previousState = hasClass(masterParent, 'innerBorderTop');
 
-      if (position || this.wot.getSetting('totalRows') === 0) {
-        addClass(masterParent, 'innerBorderTop');
-        positionChanged = !previousState;
-      } else {
-        removeClass(masterParent, 'innerBorderTop');
-        positionChanged = previousState;
-      }
+        this.cachedFixedRowsTop = this.wot.getSetting('fixedRowsTop');
 
-      if (!previousState && position || previousState && !position) {
-        this.wot.wtOverlays.adjustElementsSize();
+        if (position || this.wot.getSetting('totalRows') === 0) {
+          addClass(masterParent, 'innerBorderTop');
+          positionChanged = !previousState;
+        } else {
+          removeClass(masterParent, 'innerBorderTop');
+          positionChanged = previousState;
+        }
       }
     }
 
@@ -369,7 +387,3 @@ class TopOverlay extends Overlay {
     return positionChanged;
   }
 }
-
-Overlay.registerOverlay(Overlay.CLONE_TOP, TopOverlay);
-
-export default TopOverlay;

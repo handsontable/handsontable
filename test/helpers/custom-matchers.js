@@ -169,11 +169,10 @@ beforeEach(function() {
       return {
         compare(actual) {
           const viewport = hot().view.wt.wtTable.holder;
-          const horizontalPosition = viewport.scrollLeft - actual.offsetLeft;
 
           return {
-            pass: horizontalPosition === 0,
-            message: 'Expected the element to be scrolled to the top of the Handsontable viewport'
+            pass: viewport.getBoundingClientRect().x === actual.getBoundingClientRect().x,
+            message: 'Expected the element to be scrolled to the left of the Handsontable viewport'
           };
         }
       };
@@ -187,11 +186,11 @@ beforeEach(function() {
       return {
         compare(actual) {
           const viewport = hot().view.wt.wtTable.holder;
-          const horizontalPosition = viewport.scrollLeft - actual.offsetLeft + actual.clientWidth - scrollbarWidth + 1;
+          const rightBorderPosition = actual.getBoundingClientRect().x + actual.clientWidth + scrollbarWidth + 1;
 
           return {
-            pass: horizontalPosition === viewport.offsetWidth,
-            message: 'Expected the element to be scrolled to the top of the Handsontable viewport'
+            pass: rightBorderPosition === viewport.getBoundingClientRect().x + viewport.offsetWidth,
+            message: 'Expected the element to be scrolled to the right of the Handsontable viewport'
           };
         }
       };
@@ -275,6 +274,10 @@ list: ${redColor}${checkedArray.join(', ')}${resetColor} doesn't satisfy the con
      *       (which `current` class name). The letter `A` indicates the currently selected cell with
      *       a background of the first layer and `H` as the latest layer (most dark).
      * '#' - The hash symbol indicates the currently selected cell without changed background color.
+     *
+     * The meaning of the symbol used to describe headers:
+     * '*' - The asterisk symbol indicates selected header.
+     * '-' - The single hyphen symbol indicates highlighted header.
      *
      * The meaning of the symbol used to describe the table:
      * ':'   - Column separator (only for better visual looks).

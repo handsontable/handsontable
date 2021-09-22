@@ -297,6 +297,7 @@ class DataManager {
 
     arrayEach(parentNode.__children, (elem) => {
       rowCount += 1;
+
       if (elem.__children) {
         rowCount += this.countChildren(elem);
       }
@@ -308,7 +309,7 @@ class DataManager {
   /**
    * Get the parent of the row at the provided index.
    *
-   * @param {number|object} row Row index.
+   * @param {number|object} row Physical row index.
    * @returns {object}
    */
   getRowParent(row) {
@@ -394,6 +395,17 @@ class DataManager {
   }
 
   /**
+   * Get child at a provided index from the parent element.
+   *
+   * @param {object} parent The parent row object.
+   * @param {number} index Index of the child element to be retrieved.
+   * @returns {object|null} The child element or `null` if the child doesn't exist.
+   */
+  getChild(parent, index) {
+    return parent.__children?.[index] || null;
+  }
+
+  /**
    * Return `true` of the row at the provided index is located at the topmost level.
    *
    * @param {number} index Row index.
@@ -416,7 +428,7 @@ class DataManager {
       rowObj = this.getDataObject(rowObj);
     }
 
-    return !!rowObj.__children && rowObj.__children?.length !== 0;
+    return rowObj && (!!rowObj.__children && rowObj.__children?.length !== 0);
   }
 
   /**
@@ -427,9 +439,11 @@ class DataManager {
    */
   addChild(parent, element) {
     let childElement = element;
+
     this.hot.runHooks('beforeAddChild', parent, childElement);
 
     let parentIndex = null;
+
     if (parent) {
       parentIndex = this.getRowIndex(parent);
     }
@@ -469,6 +483,7 @@ class DataManager {
    */
   addChildAtIndex(parent, index, element) {
     let childElement = element;
+    let flattenedIndex;
 
     if (!childElement) {
       childElement = this.mockNode();
@@ -477,31 +492,42 @@ class DataManager {
     this.hot.runHooks('beforeAddChild', parent, childElement, index);
 
     if (parent) {
-      this.hot.runHooks('beforeCreateRow', index, 1);
+      const parentIndex = this.getRowIndex(parent);
+      const finalChildIndex = parentIndex + index + 1;
+
+      this.hot.runHooks('beforeCreateRow', finalChildIndex, 1);
 
       parent.__children.splice(index, null, childElement);
 
+      this.rewriteCache();
+
       this.plugin.disableCoreAPIModifiers();
+
       this.hot.setSourceDataAtCell(
         this.getRowIndexWithinParent(parent),
         '__children',
         parent.__children,
         'NestedRows.addChildAtIndex'
       );
+
+      this.hot.rowIndexMapper.insertIndexes(finalChildIndex, 1);
+
       this.plugin.enableCoreAPIModifiers();
 
-      this.hot.runHooks('afterCreateRow', index, 1);
+      this.hot.runHooks('afterCreateRow', finalChildIndex, 1);
+
+      flattenedIndex = finalChildIndex;
 
     } else {
       this.plugin.disableCoreAPIModifiers();
       this.hot.alter('insert_row', index, 1, 'NestedRows.addChildAtIndex');
       this.plugin.enableCoreAPIModifiers();
+
+      flattenedIndex = this.getRowIndex(this.data[index]);
     }
 
-    this.updateWithData(this.getRawSourceData());
-
     // Workaround for refreshing cache losing the reference to the mocked row.
-    childElement = this.getDataObject(index);
+    childElement = this.getDataObject(flattenedIndex);
 
     this.hot.runHooks('afterAddChild', parent, childElement, index);
   }
@@ -542,6 +568,7 @@ class DataManager {
     if (Array.isArray(elements)) {
       rangeEach(elements[0], elements[2], (i) => {
         const translatedIndex = this.translateTrimmedRow(i);
+
         rowObjects.push(this.getDataObject(translatedIndex));
       });
 
@@ -555,6 +582,7 @@ class DataManager {
     }
 
     const childRowIndex = this.getRowIndex(element);
+    const childCount = this.countChildren(element);
     const indexWithinParent = this.getRowIndexWithinParent(element);
     const parent = this.getRowParent(element);
     const grandparent = this.getRowParent(parent);
@@ -564,22 +592,43 @@ class DataManager {
     this.hot.runHooks('beforeDetachChild', parent, element);
 
     if (indexWithinParent !== null && indexWithinParent !== void 0) {
-      this.hot.runHooks('beforeRemoveRow', childRowIndex, 1, [childRowIndex], this.plugin.pluginName);
+      const removedRowIndexes = Array.from(
+        new Array(childRowIndex + childCount + 1).keys()
+      ).splice(-1 * (childCount + 1));
+
+      this.hot.runHooks(
+        'beforeRemoveRow',
+        childRowIndex,
+        childCount + 1,
+        removedRowIndexes,
+        this.plugin.pluginName
+      );
 
       parent.__children.splice(indexWithinParent, 1);
 
       this.rewriteCache();
 
-      this.hot.runHooks('afterRemoveRow', childRowIndex, 1, [childRowIndex], this.plugin.pluginName);
+      this.hot.runHooks(
+        'afterRemoveRow',
+        childRowIndex,
+        childCount + 1,
+        removedRowIndexes,
+        this.plugin.pluginName
+      );
 
       if (grandparent) {
         movedElementRowIndex = grandparentRowIndex + this.countChildren(grandparent);
-        this.hot.runHooks('beforeCreateRow', movedElementRowIndex, 1, this.plugin.pluginName);
+
+        const lastGrandparentChild = this.getChild(grandparent, this.countChildren(grandparent) - 1);
+        const lastGrandparentChildIndex = this.getRowIndex(lastGrandparentChild);
+
+        this.hot.runHooks('beforeCreateRow', lastGrandparentChildIndex + 1, childCount + 1, this.plugin.pluginName);
 
         grandparent.__children.push(element);
+
       } else {
         movedElementRowIndex = this.hot.countRows() + 1;
-        this.hot.runHooks('beforeCreateRow', movedElementRowIndex, 1, this.plugin.pluginName);
+        this.hot.runHooks('beforeCreateRow', movedElementRowIndex - 2, childCount + 1, this.plugin.pluginName);
 
         this.data.push(element);
       }
@@ -587,9 +636,9 @@ class DataManager {
 
     this.rewriteCache();
 
-    this.hot.runHooks('afterCreateRow', movedElementRowIndex, 1, this.plugin.pluginName);
+    this.hot.runHooks('afterCreateRow', movedElementRowIndex - 2, childCount + 1, this.plugin.pluginName);
 
-    this.hot.runHooks('afterDetachChild', parent, element);
+    this.hot.runHooks('afterDetachChild', parent, element, this.getRowIndex(element));
 
     if (forceRender) {
       this.hot.render();
@@ -693,7 +742,6 @@ class DataManager {
       '__children',
       upmostParent.__children,
       'NestedRows.syncRowWithRawSource',
-      true
     );
     this.plugin.enableCoreAPIModifiers();
   }
@@ -704,15 +752,18 @@ class DataManager {
    *
    * @param {number} fromIndex Index of the row to be moved.
    * @param {number} toIndex Index of the destination.
+   * @param {boolean} moveToCollapsed `true` if moving a row to a collapsed parent.
+   * @param {boolean} moveToLastChild `true` if moving a row to be a last child of the new parent.
    */
-  /* eslint-enable jsdoc/require-param */
-  moveRow(fromIndex, toIndex, silentMode = false) {
-    const targetIsParent = this.isParent(toIndex);
 
+  /* eslint-enable jsdoc/require-param */
+  moveRow(fromIndex, toIndex, moveToCollapsed, moveToLastChild) {
+    const moveToLastRow = toIndex === this.hot.countRows();
     const fromParent = this.getRowParent(fromIndex);
     const indexInFromParent = this.getRowIndexWithinParent(fromIndex);
-
-    let toParent = this.getRowParent(toIndex);
+    const elemToMove = fromParent.__children.slice(indexInFromParent, indexInFromParent + 1);
+    const movingUp = fromIndex > toIndex;
+    let toParent = moveToLastRow ? this.getRowParent(toIndex - 1) : this.getRowParent(toIndex);
 
     if (toParent === null || toParent === void 0) {
       toParent = this.getRowParent(toIndex - 1);
@@ -730,43 +781,23 @@ class DataManager {
       toParent.__children = [];
     }
 
-    const previousToTargetParent = this.getRowParent(toIndex - 1);
-    const indexInToParent = targetIsParent ?
-      this.countChildren(previousToTargetParent) : this.getRowIndexWithinParent(toIndex);
+    const indexInTargetParent = moveToLastRow || moveToCollapsed || moveToLastChild ?
+      toParent.__children.length : this.getRowIndexWithinParent(toIndex);
+    const sameParent = fromParent === toParent;
 
-    const elemToMove = fromParent.__children.slice(indexInFromParent, indexInFromParent + 1);
-
-    fromParent.__children.splice(indexInFromParent, 1);
-    toParent.__children.splice(indexInToParent, 0, elemToMove[0]);
+    toParent.__children.splice(indexInTargetParent, 0, elemToMove[0]);
+    fromParent.__children.splice(indexInFromParent + (movingUp && sameParent ? 1 : 0), 1);
 
     // Sync the changes in the cached data with the actual data stored in HOT.
     this.syncRowWithRawSource(fromParent);
 
-    if (fromParent !== toParent) {
+    if (!sameParent) {
       this.syncRowWithRawSource(toParent);
     }
-
-    if (!silentMode) {
-      this.hot.render();
-    }
   }
 
   /**
-   * Move the cell meta.
-   *
-   * @private
-   * @param {number} fromIndex Index of the starting row.
-   * @param {number} toIndex Index of the ending row.
-   */
-  moveCellMeta(fromIndex, toIndex) {
-    const rowOfMeta = this.hot.getCellMetaAtRow(fromIndex);
-
-    this.hot.spliceCellsMeta(fromIndex, 1);
-    this.hot.spliceCellsMeta(toIndex, 0, rowOfMeta);
-  }
-
-  /**
-   * Translate the row index according to the `TrimRows` plugin.
+   * Translate the visual row index to the physical index, taking into consideration the state of collapsed rows.
    *
    * @private
    * @param {number} row Row index.
@@ -775,6 +806,21 @@ class DataManager {
   translateTrimmedRow(row) {
     if (this.plugin.collapsingUI) {
       return this.plugin.collapsingUI.translateTrimmedRow(row);
+    }
+
+    return row;
+  }
+
+  /**
+   * Translate the physical row index to the visual index, taking into consideration the state of collapsed rows.
+   *
+   * @private
+   * @param {number} row Row index.
+   * @returns {number}
+   */
+  untranslateTrimmedRow(row) {
+    if (this.plugin.collapsingUI) {
+      return this.plugin.collapsingUI.untranslateTrimmedRow(row);
     }
 
     return row;

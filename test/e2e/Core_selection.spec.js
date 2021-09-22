@@ -977,34 +977,34 @@ describe('Core_selection', () => {
     await sleep(30);
 
     $(getCell(12, 11)).simulate('mousedown');
-    spec().$container.find('.ht_clone_top thead th:eq(2)').simulate('mouseover');
+    spec().$container.find('.ht_clone_top thead th:eq(6)').simulate('mouseover'); // Header `L`
 
     await sleep(30);
 
     expect(getSelected()).toEqual([[12, 11, 10, 11]]);
     expect(`
-    |   ║   : - :   :   :   :   :   :   :   :   |
-    |===:===:===:===:===:===:===:===:===:===:===|
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    | - ║   : 0 :   :   :   :   :   :   :   :   |
-    | - ║   : 0 :   :   :   :   :   :   :   :   |
-    | - ║   : A :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   : - :   :   :   :   :   |
+    |===:===:===:===:===:===:===:===:===:===:===:===|
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    | - ║   :   :   :   :   : 0 :   :   :   :   :   |
+    | - ║   :   :   :   :   : 0 :   :   :   :   :   |
+    | - ║   :   :   :   :   : A :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
   });
 
@@ -1048,28 +1048,28 @@ describe('Core_selection', () => {
 
     expect(getSelected()).toEqual([[12, 11, 12, 10]]);
     expect(`
-    |   ║ - : - :   :   :   :   :   :   :   :   |
-    |===:===:===:===:===:===:===:===:===:===:===|
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    | - ║ 0 : A :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
-    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   : - : - :   :   :   :   :   |
+    |===:===:===:===:===:===:===:===:===:===:===:===|
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    | - ║   :   :   :   : 0 : A :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
   });
 
@@ -1143,6 +1143,7 @@ describe('Core_selection', () => {
     expect(mainHolder.scrollLeft).toEqual(0);
 
     const lastVisibleColumn = hot.view.wt.wtTable.getLastVisibleColumn();
+
     selectCell(3, lastVisibleColumn);
     keyDownUp('arrow_right');
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 1);
@@ -1154,6 +1155,7 @@ describe('Core_selection', () => {
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 3);
 
     const lastVisibleRow = hot.view.wt.wtTable.getLastVisibleRow();
+
     selectCell(lastVisibleRow, 3);
     keyDownUp('arrow_down');
     expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 1);
@@ -1195,6 +1197,7 @@ describe('Core_selection', () => {
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 3);
 
     const scrollLeft = mainHolder.scrollLeft;
+
     expect(scrollLeft).toBeGreaterThan(0);
     expect(mainHolder.scrollTop).toBe(0);
 
@@ -1670,6 +1673,975 @@ describe('Core_selection', () => {
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(12);
   });
 
+  it('selection should move down throughout the table when the last row is hidden', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      autoWrapCol: true,
+      autoWrapRow: true,
+      hiddenRows: {
+        rows: [2]
+      }
+    });
+
+    selectCell(0, 0); // Select cell "A1"
+
+    keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN); // Move selection down to the end of the table
+    keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN); // Move selection to the next column, to the cell "B1"
+
+    expect(getSelected()).toEqual([[0, 1, 0, 1]]);
+  });
+
+  it('selection should move to the right throughout the table when the last column is hidden', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      autoWrapCol: true,
+      autoWrapRow: true,
+      hiddenColumns: {
+        columns: [2]
+      }
+    });
+
+    selectCell(0, 0); // Select cell "A1"
+
+    keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT); // Move selection to the right edge of the table
+    keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT); // Move selection to first column, to the cell "A2"
+
+    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
+  });
+
+  it('should keep viewport when removing last column', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(20, 2),
+      width: 300,
+      height: 200,
+      colHeaders: true,
+    });
+
+    hot.selectColumns(1);
+    const $masterHolder = spec().$container.find('.ht_master .wtHolder');
+    const scrollTopBefore = $masterHolder.scrollTop();
+
+    hot.alter('remove_col', 1); // remove last column
+    expect($masterHolder.scrollTop()).toEqual(scrollTopBefore);
+  });
+
+  it('should be able to select one column headers after select all headers and cells', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      colHeaders: true,
+    });
+
+    hot.selectAll();
+    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'), 'LMB'); // Header "B"
+
+    expect(getSelected()).toEqual([[-1, 1, 1, 1]]);
+  });
+
+  describe('cooperation with `disableVisualSelection` option', () => {
+    describe('is set globally', () => {
+      it('to value `true`', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 5,
+          startCols: 5,
+          disableVisualSelection: true
+        });
+
+        // Cell selection (header isn't selected?)
+        // TODO: Should it not select headers? Documentation says that value set to `true` disables any type of
+        // visual selection (current and area selection)
+        simulateClick($(getCell(1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Area selection (headers aren't selected).
+        $(getCell(1, 1)).simulate('mousedown');
+        $(getCell(4, 4)).simulate('mouseover');
+        $(getCell(4, 4)).simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Column header selection.
+        simulateClick($(getCell(-1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(-1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Row header selection.
+        simulateClick($(getCell(1, -1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, -1, 1, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(-1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('to value `current`', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 5,
+          startCols: 5,
+          disableVisualSelection: 'current'
+        });
+
+        // Cell selection (header is selected)
+        simulateClick($(getCell(1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   : - :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | - ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Area selection (headers and area is selected).
+        $(getCell(1, 1)).simulate('mousedown');
+        $(getCell(4, 4)).simulate('mouseover');
+        $(getCell(4, 4)).simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║   : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 |
+        | - ║   : 0 : 0 : 0 : 0 |
+        | - ║   : 0 : 0 : 0 : 0 |
+        | - ║   : 0 : 0 : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+
+        // Column header selection.
+        simulateClick($(getCell(-1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(-1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   : * :   :   :   |
+        |===:===:===:===:===:===|
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Row header selection.
+        simulateClick($(getCell(1, -1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, -1, 1, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(-1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('to value `area`', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 5,
+          startCols: 5,
+          disableVisualSelection: 'area'
+        });
+
+        // Cell selection (header is selected)
+        simulateClick($(getCell(1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   : - :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | - ║   : # :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Area selection (headers are selected).
+        $(getCell(1, 1)).simulate('mousedown');
+        $(getCell(4, 4)).simulate('mouseover');
+        $(getCell(4, 4)).simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║   : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | - ║   : # :   :   :   |
+        | - ║   :   :   :   :   |
+        | - ║   :   :   :   :   |
+        | - ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Column header selection.
+        simulateClick($(getCell(-1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(-1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   : * :   :   :   |
+        |===:===:===:===:===:===|
+        | - ║   : # :   :   :   |
+        | - ║   :   :   :   :   |
+        | - ║   :   :   :   :   |
+        | - ║   :   :   :   :   |
+        | - ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Row header selection.
+        simulateClick($(getCell(1, -1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, -1, 1, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(-1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | * ║ # :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('to value `header`', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 5,
+          startCols: 5,
+          disableVisualSelection: 'header'
+        });
+
+        // Cell selection
+        simulateClick($(getCell(1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   : # :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Area selection
+        $(getCell(1, 1)).simulate('mousedown');
+        $(getCell(4, 4)).simulate('mouseover');
+        $(getCell(4, 4)).simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   : A : 0 : 0 : 0 |
+        |   ║   : 0 : 0 : 0 : 0 |
+        |   ║   : 0 : 0 : 0 : 0 |
+        |   ║   : 0 : 0 : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+
+        // Column header selection.
+        // TODO: Should be column header selected?
+        simulateClick($(getCell(-1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(-1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   : A :   :   :   |
+        |   ║   : 0 :   :   :   |
+        |   ║   : 0 :   :   :   |
+        |   ║   : 0 :   :   :   |
+        |   ║   : 0 :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Row header selection.
+        // TODO: Sholdd be row header selected?
+        simulateClick($(getCell(1, -1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, -1, 1, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(-1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║ A : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+    });
+
+    describe('is set for single cell/column', () => {
+      it('to value `true`', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          cells(row) {
+            const cellProperties = {};
+
+            if (row === 1) {
+              cellProperties.disableVisualSelection = true;
+            }
+
+            return cellProperties;
+          },
+          columns: [
+            {},
+            { disableVisualSelection: true },
+            {},
+            {},
+            {},
+          ]
+        });
+
+        simulateClick($(getCell(1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Area selection (headers aren't selected).
+        $(getCell(1, 1)).simulate('mousedown');
+        $(getCell(4, 4)).simulate('mouseover');
+        $(getCell(4, 4)).simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Column header selection.
+        simulateClick($(getCell(-1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(-1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Row header selection.
+        simulateClick($(getCell(1, -1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, -1, 1, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(-1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('to value `false`', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          disableVisualSelection: true,
+          cells(row) {
+            const cellProperties = {};
+
+            if (row === 1) {
+              cellProperties.disableVisualSelection = false;
+            }
+
+            return cellProperties;
+          },
+          columns: [
+            {},
+            { disableVisualSelection: false },
+            {},
+            {},
+            {},
+          ]
+        });
+
+        // Cell selection
+        simulateClick($(getCell(1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   : - :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | - ║   : # :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Area selection (headers aren't selected).
+        $(getCell(1, 1)).simulate('mousedown');
+        $(getCell(4, 4)).simulate('mouseover');
+        $(getCell(4, 4)).simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║   : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | - ║   : A : 0 : 0 : 0 |
+        | - ║   : 0 : 0 : 0 : 0 |
+        | - ║   : 0 : 0 : 0 : 0 |
+        | - ║   : 0 : 0 : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+
+        // Column header selection.
+        simulateClick($(getCell(-1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(-1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   : * :   :   :   |
+        |===:===:===:===:===:===|
+        | - ║   : A :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Row header selection.
+        simulateClick($(getCell(1, -1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, -1, 1, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(-1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('to value `current`', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          cells(row) {
+            const cellProperties = {};
+
+            if (row === 1) {
+              cellProperties.disableVisualSelection = 'current';
+            }
+
+            return cellProperties;
+          },
+          columns: [
+            {},
+            { disableVisualSelection: 'current' },
+            {},
+            {},
+            {},
+          ]
+        });
+
+        // Cell selection (header is selected)
+        simulateClick($(getCell(1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   : - :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | - ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Area selection (headers and area is selected).
+        $(getCell(1, 1)).simulate('mousedown');
+        $(getCell(4, 4)).simulate('mouseover');
+        $(getCell(4, 4)).simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║   : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 |
+        | - ║   : 0 : 0 : 0 : 0 |
+        | - ║   : 0 : 0 : 0 : 0 |
+        | - ║   : 0 : 0 : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+
+        // Column header selection.
+        simulateClick($(getCell(-1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(-1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   : * :   :   :   |
+        |===:===:===:===:===:===|
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Row header selection.
+        simulateClick($(getCell(1, -1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, -1, 1, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(-1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('to value `area`', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          cells(row) {
+            const cellProperties = {};
+
+            if (row === 1) {
+              cellProperties.disableVisualSelection = 'area';
+            }
+
+            return cellProperties;
+          },
+          columns: [
+            {},
+            { disableVisualSelection: 'area' },
+            {},
+            {},
+            {},
+          ]
+        });
+
+        // Cell selection (header is selected)
+        simulateClick($(getCell(1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   : - :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | - ║   : # :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Area selection (headers are selected).
+        $(getCell(1, 1)).simulate('mousedown');
+        $(getCell(4, 4)).simulate('mouseover');
+        $(getCell(4, 4)).simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║   : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | - ║   : # :   :   :   |
+        | - ║   :   :   :   :   |
+        | - ║   :   :   :   :   |
+        | - ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Column header selection.
+        simulateClick($(getCell(-1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(-1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   : * :   :   :   |
+        |===:===:===:===:===:===|
+        | - ║   : # :   :   :   |
+        | - ║   :   :   :   :   |
+        | - ║   :   :   :   :   |
+        | - ║   :   :   :   :   |
+        | - ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Row header selection.
+        simulateClick($(getCell(1, -1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, -1, 1, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(-1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | * ║ # :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('to value `header`', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          cells(row) {
+            const cellProperties = {};
+
+            if (row === 1) {
+              cellProperties.disableVisualSelection = 'header';
+            }
+
+            return cellProperties;
+          },
+          columns: [
+            {},
+            { disableVisualSelection: 'header' },
+            {},
+            {},
+            {},
+          ]
+        });
+
+        // Cell selection
+        simulateClick($(getCell(1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   : # :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Area selection
+        $(getCell(1, 1)).simulate('mousedown');
+        $(getCell(4, 4)).simulate('mouseover');
+        $(getCell(4, 4)).simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   : A : 0 : 0 : 0 |
+        |   ║   : 0 : 0 : 0 : 0 |
+        |   ║   : 0 : 0 : 0 : 0 |
+        |   ║   : 0 : 0 : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+
+        // Column header selection.
+        // TODO: Should be column header selected?
+        simulateClick($(getCell(-1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(-1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   : A :   :   :   |
+        |   ║   : 0 :   :   :   |
+        |   ║   : 0 :   :   :   |
+        |   ║   : 0 :   :   :   |
+        |   ║   : 0 :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Row header selection.
+        // TODO: Sholdd be row header selected?
+        simulateClick($(getCell(1, -1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, -1, 1, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(-1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║ A : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+    });
+  });
+
   describe('multiple selection mode', () => {
     it('should select cells by using two layers when CTRL key is pressed (default mode of the selectionMode option)', () => {
       handsontable({
@@ -1946,6 +2918,7 @@ describe('Core_selection', () => {
 
     it('should call afterSelection and afterSelectionEnd hooks with proper arguments', () => {
       const hooks = jasmine.createSpyObj('hooks', ['afterSelection', 'afterSelectionEnd']);
+
       handsontable({
         startRows: 21,
         startCols: 30,
@@ -1962,7 +2935,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([0, 0, 0, 0, jasmine.any(Object), 0]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([0, 0, 20, 15, jasmine.any(Object), 0]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 0, 20, 15, 0, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 0, 20, 15, 0]);
 
       keyDown('ctrl');
       hooks.afterSelection.calls.reset();
@@ -1976,7 +2949,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([1, 1, 1, 1, jasmine.any(Object), 1]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([1, 1, 19, 16, jasmine.any(Object), 1]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([1, 1, 19, 16, 1, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([1, 1, 19, 16, 1]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -1989,7 +2962,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([2, 2, 2, 2, jasmine.any(Object), 2]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([2, 2, 18, 17, jasmine.any(Object), 2]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([2, 2, 18, 17, 2, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([2, 2, 18, 17, 2]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2002,7 +2975,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([3, 3, 3, 3, jasmine.any(Object), 3]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([3, 3, 17, 18, jasmine.any(Object), 3]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([3, 3, 17, 18, 3, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([3, 3, 17, 18, 3]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2015,7 +2988,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([4, 4, 4, 4, jasmine.any(Object), 4]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([4, 4, 16, 19, jasmine.any(Object), 4]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([4, 4, 16, 19, 4, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([4, 4, 16, 19, 4]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2028,7 +3001,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([5, 5, 5, 5, jasmine.any(Object), 5]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([5, 5, 15, 20, jasmine.any(Object), 5]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([5, 5, 15, 20, 5, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([5, 5, 15, 20, 5]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2041,7 +3014,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([6, 6, 6, 6, jasmine.any(Object), 6]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([6, 6, 14, 21, jasmine.any(Object), 6]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([6, 6, 14, 21, 6, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([6, 6, 14, 21, 6]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2054,7 +3027,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([7, 7, 7, 7, jasmine.any(Object), 7]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([7, 7, 13, 22, jasmine.any(Object), 7]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([7, 7, 13, 22, 7, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([7, 7, 13, 22, 7]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2067,7 +3040,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([8, 8, 8, 8, jasmine.any(Object), 8]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([8, 8, 12, 23, jasmine.any(Object), 8]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([8, 8, 12, 23, 8, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([8, 8, 12, 23, 8]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2080,7 +3053,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([9, 9, 9, 9, jasmine.any(Object), 9]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([9, 9, 11, 24, jasmine.any(Object), 9]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([9, 9, 11, 24, 9, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([9, 9, 11, 24, 9]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2093,11 +3066,12 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([10, 10, 10, 10, jasmine.any(Object), 10]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([10, 10, 10, 25, jasmine.any(Object), 10]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([10, 10, 10, 25, 10, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([10, 10, 10, 25, 10]);
     });
 
     it('should call afterSelectionByProp and afterSelectionEndByProp hooks with proper arguments', () => {
       const hooks = jasmine.createSpyObj('hooks', ['afterSelection', 'afterSelectionEnd']);
+
       handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(21, 30),
         selectionMode: 'multiple',
@@ -2113,7 +3087,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([0, 'prop0', 0, 'prop0', jasmine.any(Object), 0]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([0, 'prop0', 20, 'prop15', jasmine.any(Object), 0]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 'prop0', 20, 'prop15', 0, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 'prop0', 20, 'prop15', 0]);
 
       keyDown('ctrl');
       hooks.afterSelection.calls.reset();
@@ -2127,7 +3101,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([1, 'prop1', 1, 'prop1', jasmine.any(Object), 1]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([1, 'prop1', 19, 'prop16', jasmine.any(Object), 1]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([1, 'prop1', 19, 'prop16', 1, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([1, 'prop1', 19, 'prop16', 1]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2140,7 +3114,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([2, 'prop2', 2, 'prop2', jasmine.any(Object), 2]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([2, 'prop2', 18, 'prop17', jasmine.any(Object), 2]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([2, 'prop2', 18, 'prop17', 2, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([2, 'prop2', 18, 'prop17', 2]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2153,7 +3127,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([3, 'prop3', 3, 'prop3', jasmine.any(Object), 3]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([3, 'prop3', 17, 'prop18', jasmine.any(Object), 3]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([3, 'prop3', 17, 'prop18', 3, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([3, 'prop3', 17, 'prop18', 3]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2166,7 +3140,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([4, 'prop4', 4, 'prop4', jasmine.any(Object), 4]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([4, 'prop4', 16, 'prop19', jasmine.any(Object), 4]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([4, 'prop4', 16, 'prop19', 4, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([4, 'prop4', 16, 'prop19', 4]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2179,7 +3153,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([5, 'prop5', 5, 'prop5', jasmine.any(Object), 5]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([5, 'prop5', 15, 'prop20', jasmine.any(Object), 5]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([5, 'prop5', 15, 'prop20', 5, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([5, 'prop5', 15, 'prop20', 5]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2192,7 +3166,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([6, 'prop6', 6, 'prop6', jasmine.any(Object), 6]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([6, 'prop6', 14, 'prop21', jasmine.any(Object), 6]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([6, 'prop6', 14, 'prop21', 6, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([6, 'prop6', 14, 'prop21', 6]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2205,7 +3179,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([7, 'prop7', 7, 'prop7', jasmine.any(Object), 7]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([7, 'prop7', 13, 'prop22', jasmine.any(Object), 7]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([7, 'prop7', 13, 'prop22', 7, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([7, 'prop7', 13, 'prop22', 7]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2218,7 +3192,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([8, 'prop8', 8, 'prop8', jasmine.any(Object), 8]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([8, 'prop8', 12, 'prop23', jasmine.any(Object), 8]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([8, 'prop8', 12, 'prop23', 8, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([8, 'prop8', 12, 'prop23', 8]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2231,7 +3205,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([9, 'prop9', 9, 'prop9', jasmine.any(Object), 9]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([9, 'prop9', 11, 'prop24', jasmine.any(Object), 9]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([9, 'prop9', 11, 'prop24', 9, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([9, 'prop9', 11, 'prop24', 9]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2244,7 +3218,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([10, 'prop10', 10, 'prop10', jasmine.any(Object), 10]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([10, 'prop10', 10, 'prop25', jasmine.any(Object), 10]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([10, 'prop10', 10, 'prop25', 10, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([10, 'prop10', 10, 'prop25', 10]);
     });
   });
 

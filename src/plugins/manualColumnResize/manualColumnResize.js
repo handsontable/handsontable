@@ -1,16 +1,21 @@
-import BasePlugin from './../_base';
-import { addClass, hasClass, removeClass, outerHeight } from './../../helpers/dom/element';
-import EventManager from './../../eventManager';
-import { arrayEach } from './../../helpers/array';
-import { rangeEach } from './../../helpers/number';
-import { registerPlugin } from './../../plugins';
-import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
+import { BasePlugin } from '../base';
+import { addClass, closest, hasClass, removeClass, outerHeight, isDetached } from '../../helpers/dom/element';
+import EventManager from '../../eventManager';
+import { arrayEach } from '../../helpers/array';
+import { rangeEach } from '../../helpers/number';
+import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
+export const PLUGIN_KEY = 'manualColumnResize';
+export const PLUGIN_PRIORITY = 130;
 const PERSISTENT_STATE_KEY = 'manualColumnWidths';
 const privatePool = new WeakMap();
+
 /**
+ * @plugin ManualColumnResize
+ * @class ManualColumnResize
+ *
  * @description
  * This plugin allows to change columns width. To make columns width persistent the {@link Options#persistentState}
  * plugin should be enabled.
@@ -18,10 +23,16 @@ const privatePool = new WeakMap();
  * The plugin creates additional components to make resizing possibly using user interface:
  * - handle - the draggable element that sets the desired width of the column.
  * - guide - the helper guide that shows the desired width as a vertical guide.
- *
- * @plugin ManualColumnResize
  */
-class ManualColumnResize extends BasePlugin {
+export class ManualColumnResize extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -67,7 +78,7 @@ class ManualColumnResize extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().manualColumnResize;
+    return this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -172,31 +183,31 @@ class ManualColumnResize extends BasePlugin {
   onMapInit() {
     const priv = privatePool.get(this);
 
-    const initialSetting = this.hot.getSettings().manualColumnResize;
+    const initialSetting = this.hot.getSettings()[PLUGIN_KEY];
     const loadedManualColumnWidths = this.loadManualColumnWidths();
 
     if (typeof loadedManualColumnWidths !== 'undefined') {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         loadedManualColumnWidths.forEach((width, physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
-      });
+      }, true);
 
     } else if (Array.isArray(initialSetting)) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         initialSetting.forEach((width, physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
-      });
+      }, true);
 
       priv.config = initialSetting;
 
     } else if (initialSetting === true && Array.isArray(priv.config)) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         priv.config.forEach((width, physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
-      });
+      }, true);
     }
   }
 
@@ -248,25 +259,28 @@ class ManualColumnResize extends BasePlugin {
     this.currentCol = this.hot.columnIndexMapper.getVisualFromRenderableIndex(col);
     this.selectedCols = [];
 
-    if (this.hot.selection.isSelected() && this.hot.selection.isSelectedByColumnHeader()) {
-      const { from, to } = this.hot.getSelectedRangeLast();
-      let start = from.col;
-      let end = to.col;
+    const isFullColumnSelected = this.hot.selection.isSelectedByCorner() ||
+      this.hot.selection.isSelectedByColumnHeader();
 
-      if (start >= end) {
-        start = to.col;
-        end = from.col;
-      }
+    if (this.hot.selection.isSelected() && isFullColumnSelected) {
+      const selectionRanges = this.hot.getSelectedRange();
 
-      if (this.currentCol >= start && this.currentCol <= end) {
-        rangeEach(start, end, i => this.selectedCols.push(i));
+      arrayEach(selectionRanges, (selectionRange) => {
+        const fromColumn = selectionRange.getTopLeftCorner().col;
+        const toColumn = selectionRange.getBottomRightCorner().col;
 
-      } else {
-        this.selectedCols.push(this.currentCol);
-      }
+        // Add every selected column for resize action.
+        rangeEach(fromColumn, toColumn, (columnIndex) => {
+          if (!this.selectedCols.includes(columnIndex)) {
+            this.selectedCols.push(columnIndex);
+          }
+        });
+      });
+    }
 
-    } else {
-      this.selectedCols.push(this.currentCol);
+    // Resizing element beyond the current selection (also when there is no selection).
+    if (!this.selectedCols.includes(this.currentCol)) {
+      this.selectedCols = [this.currentCol];
     }
 
     this.startOffset = relativeHeaderPosition.left - 6;
@@ -334,17 +348,7 @@ class ManualColumnResize extends BasePlugin {
    * @returns {boolean}
    */
   checkIfColumnHeader(element) {
-    if (element !== this.hot.rootElement) {
-      const parent = element.parentNode;
-
-      if (parent.tagName === 'THEAD') {
-        return true;
-      }
-
-      return this.checkIfColumnHeader(parent);
-    }
-
-    return false;
+    return !!closest(element, ['THEAD'], this.hot.rootElement);
   }
 
   /**
@@ -354,13 +358,13 @@ class ManualColumnResize extends BasePlugin {
    * @param {HTMLElement} element HTML element.
    * @returns {HTMLElement}
    */
-  getTHFromTargetElement(element) {
+  getClosestTHParent(element) {
     if (element.tagName !== 'TABLE') {
       if (element.tagName === 'TH') {
         return element;
       }
 
-      return this.getTHFromTargetElement(element.parentNode);
+      return this.getClosestTHParent(element.parentNode);
     }
 
     return null;
@@ -373,8 +377,14 @@ class ManualColumnResize extends BasePlugin {
    * @param {MouseEvent} event The mouse event.
    */
   onMouseOver(event) {
+    // Workaround for #6926 - if the `event.target` is temporarily detached, we can skip this callback and wait for
+    // the next `onmouseover`.
+    if (isDetached(event.target)) {
+      return;
+    }
+
     if (this.checkIfColumnHeader(event.target)) {
-      const th = this.getTHFromTargetElement(event.target);
+      const th = this.getClosestTHParent(event.target);
 
       if (!th) {
         return;
@@ -401,7 +411,7 @@ class ManualColumnResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize(true);
     };
     const resize = (column, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeColumnResize', this.newSize, column, true);
@@ -451,6 +461,7 @@ class ManualColumnResize extends BasePlugin {
    */
   onMouseDown(event) {
     if (hasClass(event.target, 'manualColumnResizer')) {
+      this.setupHandlePosition(this.currentTH);
       this.setupGuidePosition();
       this.pressed = true;
 
@@ -497,7 +508,7 @@ class ManualColumnResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize(true);
     };
     const resize = (column, forceRender) => {
       this.hot.runHooks('beforeColumnResize', this.newSize, column, false);
@@ -563,7 +574,7 @@ class ManualColumnResize extends BasePlugin {
       const physicalColumn = this.hot.toPhysicalColumn(column);
       const columnWidth = this.columnWidthsMap.getValueAtIndex(physicalColumn);
 
-      if (this.hot.getSettings().manualColumnResize && columnWidth) {
+      if (this.hot.getSettings()[PLUGIN_KEY] && columnWidth) {
         newWidth = columnWidth;
       }
     }
@@ -603,12 +614,6 @@ class ManualColumnResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
-
     super.destroy();
   }
 }
-
-registerPlugin('manualColumnResize', ManualColumnResize);
-
-export default ManualColumnResize;

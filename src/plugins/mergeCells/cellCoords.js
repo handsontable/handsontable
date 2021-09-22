@@ -1,5 +1,5 @@
 import { CellCoords, CellRange } from '../../3rdparty/walkontable/src/index';
-import { toSingleLine } from './../../helpers/templateLiteralTag';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 /**
  * The `MergedCellCoords` class represents a single merged cell.
@@ -232,6 +232,7 @@ class MergedCellCoords {
       // removing the whole merge
       if (changeStart <= mergeStart && changeEnd >= mergeEnd) {
         this.removed = true;
+
         return false;
 
         // removing the merge partially, including the beginning
@@ -281,6 +282,7 @@ class MergedCellCoords {
     } else if (direction === 'left') {
       return mergedCell.col > this.col;
     }
+
     return null;
   }
 

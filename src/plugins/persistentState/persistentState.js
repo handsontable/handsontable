@@ -1,14 +1,17 @@
-import BasePlugin from './../_base';
-import { registerPlugin } from './../../plugins';
+import { BasePlugin } from '../base';
 import Storage from './storage';
-import Hooks from './../../pluginHooks';
+import Hooks from '../../pluginHooks';
 
 Hooks.getSingleton().register('persistentStateSave');
 Hooks.getSingleton().register('persistentStateLoad');
 Hooks.getSingleton().register('persistentStateReset');
 
+export const PLUGIN_KEY = 'persistentState';
+export const PLUGIN_PRIORITY = 0;
+
 /**
  * @plugin PersistentState
+ * @class PersistentState
  *
  * @description
  * Save the state of column sorting, column positions and column sizes in local storage to preserve table state
@@ -23,7 +26,15 @@ Hooks.getSingleton().register('persistentStateReset');
  * - {@link Hooks#persistentStateReset} - Clears the value saved under key. If no key is given, all values associated
  * with table will be cleared.
  */
-class PersistentState extends BasePlugin {
+export class PersistentState extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -42,7 +53,7 @@ class PersistentState extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().persistentState;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -124,7 +135,3 @@ class PersistentState extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('persistentState', PersistentState);
-
-export default PersistentState;

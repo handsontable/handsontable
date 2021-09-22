@@ -1,8 +1,8 @@
-import EventManager from './../../eventManager';
-import localHooks from './../../mixins/localHooks';
-import { mixin } from './../../helpers/object';
-import { isMobileBrowser } from './../../helpers/browser';
-import { selectElementIfAllowed } from './../../helpers/dom/element';
+import EventManager from '../../eventManager';
+import localHooks from '../../mixins/localHooks';
+import { mixin } from '../../helpers/object';
+import { isMobileBrowser } from '../../helpers/browser';
+import { selectElementIfAllowed } from '../../helpers/dom/element';
 
 /**
  * @class FocusableWrapper
@@ -102,6 +102,7 @@ function createElement(container) {
   const focusableWrapper = new FocusableWrapper(container);
 
   let counter = refCounter.get(container);
+
   counter = isNaN(counter) ? 0 : counter;
 
   refCounter.set(container, counter + 1);
@@ -179,6 +180,7 @@ function destroyElement(wrapper) {
   }
 
   let counter = refCounter.get(wrapper.container);
+
   counter = isNaN(counter) ? 0 : counter;
 
   if (counter > 0) {

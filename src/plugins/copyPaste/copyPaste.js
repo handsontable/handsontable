@@ -1,15 +1,15 @@
-import BasePlugin from './../_base';
-import Hooks from './../../pluginHooks';
-import SheetClip from './../../../lib/SheetClip/SheetClip';
-import { arrayEach } from './../../helpers/array';
-import { rangeEach } from './../../helpers/number';
-import { getSelectionText } from './../../helpers/dom/element';
-import { registerPlugin } from './../../plugins';
+import { BasePlugin } from '../base';
+import Hooks from '../../pluginHooks';
+import { stringify, parse } from '../../3rdparty/SheetClip';
+import { arrayEach } from '../../helpers/array';
+import { rangeEach } from '../../helpers/number';
+import { sanitize } from '../../helpers/string';
+import { getSelectionText } from '../../helpers/dom/element';
 import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
 import { createElement, destroyElement } from './focusableElement';
-import { _dataToHTML, htmlToGridSettings } from './../../utils/parseTable';
+import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
 
 import './copyPaste.css';
 
@@ -22,8 +22,10 @@ Hooks.getSingleton().register('afterPaste');
 Hooks.getSingleton().register('beforeCopy');
 Hooks.getSingleton().register('afterCopy');
 
-const ROWS_LIMIT = 1000;
-const COLUMNS_LIMIT = 1000;
+export const PLUGIN_KEY = 'copyPaste';
+export const PLUGIN_PRIORITY = 80;
+const ROWS_LIMIT = Infinity;
+const COLUMNS_LIMIT = Infinity;
 const privatePool = new WeakMap();
 const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
@@ -45,7 +47,7 @@ const META_HEAD = [
  * * `'pasteMode'` (see {@link CopyPaste#pasteMode})
  * * `'uiContainer'` (see {@link CopyPaste#uiContainer}).
  *
- * See [the copy/paste demo](https://handsontable.com/docs/demo-copy-paste.html) for examples.
+ * See [the copy/paste demo](@/guides/cell-features/clipboard.md) for examples.
  *
  * @example
  * ```js
@@ -63,14 +65,22 @@ const META_HEAD = [
  * @plugin CopyPaste
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
-class CopyPaste extends BasePlugin {
+export class CopyPaste extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
      * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
      * @type {number}
-     * @default 1000
+     * @default Infinity
      */
     this.columnsLimit = COLUMNS_LIMIT;
     /**
@@ -100,7 +110,7 @@ class CopyPaste extends BasePlugin {
      * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
      * @type {number}
-     * @default 1000
+     * @default Infinity
      */
     this.rowsLimit = ROWS_LIMIT;
 
@@ -126,7 +136,7 @@ class CopyPaste extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().copyPaste;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -136,7 +146,7 @@ class CopyPaste extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    const { copyPaste: settings, fragmentSelection } = this.hot.getSettings();
+    const { [PLUGIN_KEY]: settings, fragmentSelection } = this.hot.getSettings();
     const priv = privatePool.get(this);
 
     priv.isFragmentSelectionEnabled = !!fragmentSelection;
@@ -189,6 +199,7 @@ class CopyPaste extends BasePlugin {
    */
   copy() {
     const priv = privatePool.get(this);
+
     priv.isTriggeredByCopy = true;
 
     this.getOrCreateFocusableElement();
@@ -201,6 +212,7 @@ class CopyPaste extends BasePlugin {
    */
   cut() {
     const priv = privatePool.get(this);
+
     priv.isTriggeredByCut = true;
 
     this.getOrCreateFocusableElement();
@@ -243,7 +255,7 @@ class CopyPaste extends BasePlugin {
       dataSet.push(rowSet);
     });
 
-    return SheetClip.stringify(dataSet);
+    return stringify(dataSet);
   }
 
   /**
@@ -385,54 +397,59 @@ class CopyPaste extends BasePlugin {
       return;
     }
 
-    const newValuesMaxRow = inputArray.length - 1;
-    const newValuesMaxColumn = inputArray[0].length - 1;
-    const newValues = [];
+    const populatedRowsLength = inputArray.length;
+    const populatedColumnsLength = inputArray[0].length;
+    const newRows = [];
 
     const { row: startRow, col: startColumn } = selection.getTopLeftCorner();
-    let { row: endRow, col: endColumn } = selection.getBottomRightCorner();
+    const { row: endRowFromSelection, col: endColumnFromSelection } = selection.getBottomRightCorner();
 
-    endRow = Math.max(endRow, newValuesMaxRow + startRow);
-    endColumn = Math.max(endColumn, newValuesMaxColumn + startColumn);
+    let visualRowForPopulatedData = startRow;
+    let visualColumnForPopulatedData = startColumn;
+    let lastVisualRow = startRow;
+    let lastVisualColumn = startColumn;
 
-    let selectionEndColumn = endColumn;
-    let selectionEndRow = endRow;
+    // We try to populate just all copied data or repeat copied data within a selection. Please keep in mind that we
+    // don't know whether populated data is bigger than selection on start as there are some cells for which values
+    // should be not inserted (it's known right after getting cell meta).
+    while (newRows.length < populatedRowsLength || visualRowForPopulatedData <= endRowFromSelection) {
+      const { skipRowOnPaste, visualRow } = this.hot.getCellMeta(visualRowForPopulatedData, startColumn);
 
-    for (let row = startRow, maxRow = endRow, valuesRow = 0; row <= maxRow; row += 1) {
-      const { skipRowOnPaste } = this.hot.getCellMeta(row, startColumn);
+      visualRowForPopulatedData = visualRow + 1;
 
       if (skipRowOnPaste === true) {
-        maxRow += 1;
-        selectionEndRow = maxRow;
         /* eslint-disable no-continue */
         continue;
       }
 
-      const newRow = [];
+      lastVisualRow = visualRow;
+      visualColumnForPopulatedData = startColumn;
 
-      for (let column = startColumn, maxColumn = endColumn, valuesColumn = 0; column <= maxColumn; column += 1) {
-        const { skipColumnOnPaste } = this.hot.getCellMeta(row, column);
+      const newRow = [];
+      const insertedRow = newRows.length % populatedRowsLength;
+
+      while (newRow.length < populatedColumnsLength || visualColumnForPopulatedData <= endColumnFromSelection) {
+        const { skipColumnOnPaste, visualCol } = this.hot.getCellMeta(startRow, visualColumnForPopulatedData);
+
+        visualColumnForPopulatedData = visualCol + 1;
 
         if (skipColumnOnPaste === true) {
-          maxColumn += 1;
-          selectionEndColumn = maxColumn;
           /* eslint-disable no-continue */
           continue;
         }
 
-        newRow.push(inputArray[valuesRow][valuesColumn]);
+        lastVisualColumn = visualCol;
+        const insertedColumn = newRow.length % populatedColumnsLength;
 
-        valuesColumn = valuesColumn === newValuesMaxColumn ? 0 : valuesColumn += 1;
+        newRow.push(inputArray[insertedRow][insertedColumn]);
       }
 
-      newValues.push(newRow);
-
-      valuesRow = valuesRow === newValuesMaxRow ? 0 : valuesRow += 1;
+      newRows.push(newRow);
     }
 
-    this.hot.populateFromArray(startRow, startColumn, newValues, void 0, void 0, 'CopyPaste.paste', this.pasteMode);
+    this.hot.populateFromArray(startRow, startColumn, newRows, void 0, void 0, 'CopyPaste.paste', this.pasteMode);
 
-    return [startRow, startColumn, selectionEndRow, selectionEndColumn];
+    return [startRow, startColumn, lastVisualRow, lastVisualColumn];
   }
 
   /**
@@ -455,7 +472,7 @@ class CopyPaste extends BasePlugin {
     const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
 
     if (allowCopying) {
-      const textPlain = SheetClip.stringify(rangedData);
+      const textPlain = stringify(rangedData);
 
       if (event && event.clipboardData) {
         const textHTML = _dataToHTML(rangedData, this.hot.rootDocument);
@@ -493,7 +510,7 @@ class CopyPaste extends BasePlugin {
     const allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
 
     if (allowCuttingOut) {
-      const textPlain = SheetClip.stringify(rangedData);
+      const textPlain = stringify(rangedData);
 
       if (event && event.clipboardData) {
         const textHTML = _dataToHTML(rangedData, this.hot.rootDocument);
@@ -530,10 +547,15 @@ class CopyPaste extends BasePlugin {
     let pastedData;
 
     if (event && typeof event.clipboardData !== 'undefined') {
-      const textHTML = event.clipboardData.getData('text/html');
+      const textHTML = sanitize(event.clipboardData.getData('text/html'), {
+        ADD_TAGS: ['meta'],
+        ADD_ATTR: ['content'],
+        FORCE_BODY: true,
+      });
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
         const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);
+
         pastedData = parsedConfig.data;
       } else {
         pastedData = event.clipboardData.getData('text/plain');
@@ -544,7 +566,7 @@ class CopyPaste extends BasePlugin {
     }
 
     if (typeof pastedData === 'string') {
-      pastedData = SheetClip.parse(pastedData);
+      pastedData = parse(pastedData);
     }
 
     if (pastedData && pastedData.length === 0) {
@@ -568,7 +590,7 @@ class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Add copy, cut and paste options to the Context Menu.
+   * Add copy and cut options to the Context Menu.
    *
    * @private
    * @param {object} options Contains default added options of the Context Menu.
@@ -589,7 +611,9 @@ class CopyPaste extends BasePlugin {
    * @private
    */
   onAfterOnCellMouseUp() {
-    if (!this.hot.isListening() || this.isEditorOpened()) {
+    // Changing focused element will remove current selection. It's unnecessary in case when we give possibility
+    // for fragment selection
+    if (!this.hot.isListening() || this.isEditorOpened() || this.hot.getSettings().fragmentSelection) {
       return;
     }
 
@@ -653,7 +677,3 @@ class CopyPaste extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('CopyPaste', CopyPaste);
-
-export default CopyPaste;

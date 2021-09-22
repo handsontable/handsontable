@@ -1,10 +1,13 @@
-import BasePlugin from '../_base';
-import { registerPlugin } from '../../plugins';
+import { BasePlugin } from '../base';
 import { TrimmingMap } from '../../translations';
-import { arrayEach } from '../../helpers/array';
+import { arrayEach, arrayReduce } from '../../helpers/array';
+
+export const PLUGIN_KEY = 'trimRows';
+export const PLUGIN_PRIORITY = 330;
 
 /**
  * @plugin TrimRows
+ * @class TrimRows
  *
  * @description
  * The plugin allows to trim certain rows. The trimming is achieved by applying the transformation algorithm to the data
@@ -15,7 +18,7 @@ import { arrayEach } from '../../helpers/array';
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
- *   date: getData(),
+ *   data: getData(),
  *   // hide selected rows on table initialization
  *   trimRows: [1, 2, 5]
  * });
@@ -45,7 +48,15 @@ import { arrayEach } from '../../helpers/array';
  * hot.render();
  * ```
  */
-class TrimRows extends BasePlugin {
+export class TrimRows extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -63,7 +74,7 @@ class TrimRows extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().trimRows;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -84,16 +95,16 @@ class TrimRows extends BasePlugin {
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    const trimmedRows = this.hot.getSettings().trimRows;
+    const trimmedRows = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(trimmedRows)) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         this.trimmedRowsMap.clear();
 
         arrayEach(trimmedRows, (physicalRow) => {
           this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
         });
-      });
+      }, true);
     }
 
     super.updatePlugin();
@@ -141,11 +152,11 @@ class TrimRows extends BasePlugin {
     }
 
     if (isValidConfig) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         arrayEach(rows, (physicalRow) => {
           this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
         });
-      });
+      }, true);
     }
 
     this.hot.runHooks('afterTrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig,
@@ -172,27 +183,37 @@ class TrimRows extends BasePlugin {
     const currentTrimConfig = this.getTrimmedRows();
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
+    const trimmingMapValues = this.trimmedRowsMap.getValues().slice();
+    const isAnyRowUntrimmed = rows.length > 0;
 
-    if (isValidConfig) {
-      destinationTrimConfig = currentTrimConfig.filter(trimmedRow => rows.includes(trimmedRow) === false);
+    if (isValidConfig && isAnyRowUntrimmed) {
+      // Preparing new values for trimming map.
+      arrayEach(rows, (physicalRow) => {
+        trimmingMapValues[physicalRow] = false;
+      });
+
+      // Preparing new trimming config.
+      destinationTrimConfig = arrayReduce(trimmingMapValues, (trimmedIndexes, isTrimmed, physicalIndex) => {
+        if (isTrimmed) {
+          trimmedIndexes.push(physicalIndex);
+        }
+
+        return trimmedIndexes;
+      }, []);
     }
 
     const allowUntrimRow = this.hot
-      .runHooks('beforeUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig);
+      .runHooks('beforeUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig && isAnyRowUntrimmed);
 
     if (allowUntrimRow === false) {
       return;
     }
 
-    if (isValidConfig) {
-      this.hot.batch(() => {
-        arrayEach(rows, (physicalRow) => {
-          this.trimmedRowsMap.setValueAtIndex(physicalRow, false);
-        });
-      });
+    if (isValidConfig && isAnyRowUntrimmed) {
+      this.trimmedRowsMap.setValues(trimmingMapValues);
     }
 
-    this.hot.runHooks('afterUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig,
+    this.hot.runHooks('afterUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig && isAnyRowUntrimmed,
       isValidConfig && destinationTrimConfig.length < currentTrimConfig.length);
   }
 
@@ -241,14 +262,14 @@ class TrimRows extends BasePlugin {
    * @private
    */
   onMapInit() {
-    const trimmedRows = this.hot.getSettings().trimRows;
+    const trimmedRows = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(trimmedRows)) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         arrayEach(trimmedRows, (physicalRow) => {
           this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
         });
-      });
+      }, true);
     }
   }
 
@@ -256,12 +277,6 @@ class TrimRows extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.rowIndexMapper.unregisterMap('trimRows');
-
     super.destroy();
   }
 }
-
-registerPlugin('trimRows', TrimRows);
-
-export default TrimRows;
