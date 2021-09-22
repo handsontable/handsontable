@@ -748,12 +748,14 @@ export class Formulas extends BasePlugin {
     const changedCells = [];
 
     changes.forEach(([row, prop, , newValue]) => {
-      const column = this.hot.propToCol(prop);
+      const colFromProp = this.hot.propToCol(prop);
+      const column = colFromProp === null ? prop : colFromProp;
       const physicalRow = this.hot.toPhysicalRow(row);
       const physicalColumn = this.hot.toPhysicalColumn(column);
+
       const address = {
-        row: physicalRow,
-        col: physicalColumn,
+        row: physicalRow === null ? row : physicalRow,
+        col: physicalColumn === null ? column : physicalColumn,
         sheet: this.sheetId,
       };
 
