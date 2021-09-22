@@ -20,7 +20,7 @@ module.exports = function(src) {
       }
     } catch (e) {
       // eslint-disable-next-line
-      console.warn(`Can't find the "${full}" permalink. Does this file exist?`);
+      console.warn(`Can't find the "${full}" permalink.   Does this file exist?`);
     }
 
     return `(${permalink})`;
