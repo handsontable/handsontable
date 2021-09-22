@@ -15,7 +15,7 @@ function getDebugInfo() {
   let debug = "Handsontable:";
   debug += ` v${Handsontable.version}`;
   debug += ` (${Handsontable.buildDate})`;
-  debug += " Wrapper:";
+  debug += " Wrapperrr:";
   debug += ` v${HotTable.version}`;
   debug += " Vue:";
   debug += ` v${Vue.version}`;

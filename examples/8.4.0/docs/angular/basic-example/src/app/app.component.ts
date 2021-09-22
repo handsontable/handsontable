@@ -16,7 +16,7 @@ export class AppComponent {
         ['2020', 20, 11, 14, 13],
         ['2021', 30, 15, 12, 13]
     ],
-    colHeaders: true,
+    colHeaders: false,
     rowHeaders: true,
     width: '100%',
     height: '100%',
