@@ -65,7 +65,7 @@ describe('Core', () => {
 
     core.init();
 
-    expect(rowCacheUpdatedCallback.calls.count()).toEqual(1);
+    expect(rowCacheUpdatedCallback.calls.count()).toEqual(10);
     expect(columnCacheUpdatedCallback.calls.count()).toEqual(1);
   });
 
