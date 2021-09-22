@@ -1,4 +1,4 @@
-name: Test all packages
+name: Tests
 
 on:
   pull_request:
@@ -6,7 +6,13 @@ on:
       - synchronize
   push:
     branches:
-      - '**'
+      - 'master'
+      - 'develop'
+      - 'release/**'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: 15.9.0
 
 jobs:
   check-scope:
@@ -16,10 +22,6 @@ jobs:
           endsWith(github.ref, '/master') ||
           endsWith(github.ref, '/develop') ||
           contains(github.ref, '/release/')
-        }}
-      skip-all: ${{
-          (github.event_name == 'pull_request' || steps.has-pr.outputs.result == 'true') &&
-          github.event_name == 'push'
         }}
       build-handsontable-es-cjs: ${{ steps.path-filter.outputs.build-handsontable-es-cjs }}
       build-handsontable-umd: ${{ steps.path-filter.outputs.build-handsontable-umd }}
@@ -32,22 +34,9 @@ jobs:
       test-react: ${{ steps.path-filter.outputs.test-react }}
       test-vue: ${{ steps.path-filter.outputs.test-vue }}
     steps:
-      - uses: actions/github-script@a3e7071a34d7e1f219a8a4de9a5e0a34d1ee1293 # https://github.com/actions/github-script/releases/tag/v4.0.2
-        if: ${{ github.event_name != 'pull_request' }}
-        id: has-pr
-        with:
-          script: |
-            const pullR = await github.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              head: `${context.repo.owner}:${{ github.ref }}`
-            });
-
-            return !!pullR.data.length;
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
         if: ${{ github.event_name == 'push' }}
       - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # https://github.com/dorny/paths-filter/releases/tag/v2.10.2
-        if: ${{ !(steps.has-pr.outputs.result == 'true' && github.event_name == 'push') }}
         id: path-filter
         with:
           filters: |
@@ -62,6 +51,8 @@ jobs:
               - 'src/**'
               - 'scripts/**'
               - 'wrappers/**'
+              - 'test/types/**'
+              - 'test/unit/**'
             test-handsontable-unit:
               - '.config/**'
               - 'src/**'
@@ -74,9 +65,8 @@ jobs:
               - 'test/types/**'
             test-handsontable-walkontable:
               - '.config/**'
-              - 'src/**'
-              - 'scripts/**'
               - 'test/scripts/**'
+              - 'src/3rdparty/walkontable/**'
             test-handsontable-e2e:
               - '.config/**'
               - 'src/**'
@@ -111,14 +101,13 @@ jobs:
     needs: [ check-scope ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
-      (needs.check-scope.outputs.skip-all == 'false' &&
-      needs.check-scope.outputs.build-handsontable-umd == 'true')
+      needs.check-scope.outputs.build-handsontable-umd == 'true'
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
-          node-version: 15.9.0
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
       - run: |
@@ -138,14 +127,13 @@ jobs:
     needs: [ check-scope ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
-      (needs.check-scope.outputs.skip-all == 'false' &&
-      needs.check-scope.outputs.build-handsontable-es-cjs == 'true')
+      needs.check-scope.outputs.build-handsontable-es-cjs == 'true'
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
-          node-version: 15.9.0
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
       - run: |
@@ -166,14 +154,13 @@ jobs:
     needs: [ check-scope, build-handsontable-es-cjs ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
-      (needs.check-scope.outputs.skip-all == 'false' &&
-      needs.check-scope.outputs.test-handsontable-unit == 'true')
+      needs.check-scope.outputs.test-handsontable-unit == 'true'
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
-          node-version: 15.9.0
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
@@ -191,14 +178,13 @@ jobs:
     needs: [ check-scope, build-handsontable-es-cjs ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
-      (needs.check-scope.outputs.skip-all == 'false' &&
-      needs.check-scope.outputs.test-handsontable-types == 'true')
+      needs.check-scope.outputs.test-handsontable-types == 'true'
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
-          node-version: 15.9.0
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
@@ -216,14 +202,13 @@ jobs:
     needs: [ check-scope ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
-      (needs.check-scope.outputs.skip-all == 'false' &&
-      needs.check-scope.outputs.test-handsontable-walkontable == 'true')
+      needs.check-scope.outputs.test-handsontable-walkontable == 'true'
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
-          node-version: 15.9.0
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
       - run: npm run test:walkontable
@@ -234,14 +219,13 @@ jobs:
     needs: [ build-handsontable-umd ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
-      (needs.check-scope.outputs.skip-all == 'false' &&
-      needs.check-scope.outputs.test-handsontable-e2e == 'true')
+      needs.check-scope.outputs.test-handsontable-e2e == 'true'
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
-          node-version: 15.9.0
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
@@ -258,14 +242,13 @@ jobs:
     needs: [ build-handsontable-umd ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
-      (needs.check-scope.outputs.skip-all == 'false' &&
-      needs.check-scope.outputs.test-handsontable-e2e-min == 'true')
+      needs.check-scope.outputs.test-handsontable-e2e-min == 'true'
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
-          node-version: 15.9.0
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
@@ -282,14 +265,13 @@ jobs:
     needs: [ check-scope, build-handsontable-es-cjs ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
-      (needs.check-scope.outputs.skip-all == 'false' &&
-      needs.check-scope.outputs.test-angular == 'true')
+      needs.check-scope.outputs.test-angular == 'true'
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
-          node-version: 15.9.0
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
@@ -308,14 +290,13 @@ jobs:
     needs: [ check-scope, build-handsontable-es-cjs ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
-      (needs.check-scope.outputs.skip-all == 'false' &&
-      needs.check-scope.outputs.test-react == 'true')
+      needs.check-scope.outputs.test-react == 'true'
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
-          node-version: 15.9.0
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
@@ -334,14 +315,13 @@ jobs:
     needs: [ check-scope, build-handsontable-es-cjs ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
-      (needs.check-scope.outputs.skip-all == 'false' &&
-      needs.check-scope.outputs.test-vue == 'true')
+      needs.check-scope.outputs.test-vue == 'true'
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
-          node-version: 15.9.0
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
