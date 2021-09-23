@@ -526,7 +526,7 @@ export class CustomBorders extends BasePlugin {
    *
    * @private
    * @param {object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
-   * @returns {Array}
+   * @returns {number}
    */
   countHide(border) {
     const values = Object.values(border);
