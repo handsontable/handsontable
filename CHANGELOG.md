@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking change** Changed what the `beforeRender` and `afterRender` hooks are, and when they are triggered. Added two new hooks: `beforeViewRender` and `afterViewRender`. [#6303](https://github.com/handsontable/handsontable/issues/6303)
 - **Breaking change** Changed the optional HyperFormula dependency from 0.6.2 to ^1.1.0, which introduces breaking changes for the `Formulas` plugin users. [#8502](https://github.com/handsontable/handsontable/issues/8502)
 - **Breaking change** Changed the default values for the `rowsLimit` and `columnsLimit` options of the `CopyPaste` plugin. [#8660](https://github.com/handsontable/handsontable/issues/8660)
-- **Breaking change** Added a default font size, color, and family. [#8661](https://github.com/handsontable/handsontable/issues/8661)
+- **Breaking change** Added a default font family, size, weight and color.  [#8661](https://github.com/handsontable/handsontable/issues/8661)
 - **Breaking change** Changed the `autoWrapRow` and `autoWrapCol` options\` default values from `true` to `false`. [#8662](https://github.com/handsontable/handsontable/issues/8662)
 - Improved the performance of the `getCellMeta()` method. [#6303](https://github.com/handsontable/handsontable/issues/6303)
 - Improved the documentation and TypeScript definition of the `selectOptions` option. [#8488](https://github.com/handsontable/handsontable/issues/8488)
