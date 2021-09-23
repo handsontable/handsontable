@@ -42,59 +42,57 @@ jobs:
         id: path-filter
         with:
           filters: |
-            build-handsontable-umd:
+            config-files: &config-files
               - '.config/**'
+              - './package.json'
+              - './package-lock.json'
+            hot-definition-files: &hot-definition-files
+              - './base.d.ts'
+              - './handsontable.d.ts'
+            hot-source-and-scripts: &hot-source-and-scripts
               - 'src/**'
               - 'scripts/**'
+            hot-shared: &hot-shared
+              - *config-files
+              - *hot-source-and-scripts
+            hot-e2e-test-shared: &hot-e2e-test-shared
+              - 'test/e2e/**'
+              - 'test/scripts/**'
+
+            build-handsontable-umd:
+              - *hot-shared
               - 'test/e2e/**'
               - 'test/scripts/**'
             build-handsontable-es-cjs:
-              - '.config/**'
-              - 'src/**'
-              - 'scripts/**'
+              - *hot-shared
               - 'wrappers/**'
               - 'test/types/**'
               - 'test/unit/**'
             test-handsontable-unit:
-              - '.config/**'
-              - 'src/**'
-              - 'scripts/**'
+              - *hot-shared
               - 'test/unit/**'
             test-handsontable-types:
-              - '.config/**'
-              - 'src/**'
-              - 'scripts/**'
+              - *hot-shared
+              - *hot-definition-files
               - 'test/types/**'
             test-handsontable-walkontable:
               - '.config/**'
               - 'test/scripts/**'
               - 'src/3rdparty/walkontable/**'
             test-handsontable-e2e:
-              - '.config/**'
-              - 'src/**'
-              - 'scripts/**'
-              - 'test/e2e/**'
-              - 'test/scripts/**'
+              - *hot-shared
+              - *hot-e2e-test-shared
             test-handsontable-e2e-min:
-              - '.config/**'
-              - 'src/**'
-              - 'scripts/**'
-              - 'test/e2e/**'
-              - 'test/scripts/**'
+              - *hot-shared
+              - *hot-e2e-test-shared
             test-angular:
-              - '.config/**'
-              - 'src/**'
-              - 'scripts/**'
+              - *hot-shared
               - 'wrappers/angular/**'
             test-react:
-              - '.config/**'
-              - 'src/**'
-              - 'scripts/**'
+              - *hot-shared
               - 'wrappers/react/**'
             test-vue:
-              - '.config/**'
-              - 'src/**'
-              - 'scripts/**'
+              - *hot-shared
               - 'wrappers/vue/**'
 
   build-handsontable-umd:
@@ -177,7 +175,7 @@ jobs:
   test-handsontable-types:
     name: "[TEST] Handsontable: Types"
     runs-on: ubuntu-latest
-    needs: [ check-scope, build-handsontable-es-cjs ]
+    needs: [ check-scope ]
     if: |
       needs.check-scope.outputs.run-all == 'true' ||
       needs.check-scope.outputs.test-handsontable-types == 'true'
@@ -189,13 +187,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
-      - name: Download the Handsontable build artifact
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
-        with:
-          name: handsontable-build-es-cjs
-          path: ./
-      - run: tar -zxf tmp.tar.gz ./tmp && rm tmp.tar.gz
-      - run: npm run swap-package-links
       - run: npm run test:types
 
   test-handsontable-walkontable:
