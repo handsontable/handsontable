@@ -45,9 +45,8 @@ import { isObjectEqual } from '../../helpers/object';
  * - [Individual cells](@/guides/getting-started/setting-options.md#setting-cell-options)
  * - [Individual grid elements, based on any logic you implement](@/guides/getting-started/setting-options.md#implementing-custom-logic)
  *
- * For more information, see the [configuration options' guide](@/guides/getting-started/setting-options.md).
+ * [Configuration options &#8594;](@/guides/getting-started/setting-options.md)
  */
-/* eslint-enable jsdoc/require-description-complete-sentence */
 export default () => {
   return {
     /**
@@ -57,7 +56,7 @@ export default () => {
      *
      * For [non-commercial use](@/guides/technical-specification/software-license.md#non-commercial-use), set the `licenseKey` option to this string: `non-commercial-and-evaluation`.
      *
-     * For more information, see [this guide](@/guides/getting-started/license-key.md).
+     * [License key &#8594;](@/guides/getting-started/license-key.md)
      *
      * @memberof Options#
      * @type {string}
@@ -85,7 +84,7 @@ export default () => {
      * - Either to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
      * - Or to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects).
      *
-     * For more information, see [this guide](@/guides/getting-started/binding-to-data.md).
+     * [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
      *
      * @memberof Options#
      * @type {Array[]|object[]}
@@ -120,7 +119,7 @@ export default () => {
      * When the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
      * (or is empty), the `dataSchema` option defines the structure of a new row.
      *
-     * For more information, see [this guide](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema).
+     * [Binding to data: array of objects with custom data schema &#8594;](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema)
      *
      * @memberof Options#
      * @type {object}
@@ -151,7 +150,7 @@ export default () => {
      * - A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) (e.g. `'75vw'`)
      * - A function that returns a valid number or string
      *
-     * For more information, see [this guide](@/guides/getting-started/grid-size.md).
+     * [Grid size &#8594;](@/guides/getting-started/grid-size.md)
      *
      * @memberof Options#
      * @type {number|string|Function}
@@ -180,7 +179,7 @@ export default () => {
      * - A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) (e.g. `'75vw'`)
      * - A function that returns a valid number or string
      *
-     * For more information, see [this guide](@/guides/getting-started/grid-size.md).
+     * [Grid size &#8594;](@/guides/getting-started/grid-size.md)
      *
      * @memberof Options#
      * @type {number|string|Function}
@@ -248,7 +247,7 @@ export default () => {
      * - To define your own row headers, set `rowHeaders` to an array (e.g. `['One', 'Two', 'Three', ...]`),
      * or to a function that returns such an array.
      *
-     * For more information, see [this guide](@/guides/rows/row-header.md).
+     * [Row header &#8594;](@/guides/rows/row-header.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
@@ -278,7 +277,7 @@ export default () => {
      * - To define your own column headers, set `colHeaders` to an array (e.g. `['One', 'Two', 'Three', ...]`),
      * or to a function that returns such an array.
      *
-     * For more information, see [this guide](@/guides/columns/column-header.md).
+     * [Column header &#8594;](@/guides/columns/column-header.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
@@ -316,6 +315,8 @@ export default () => {
      * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `undefined` |
      *
      * Setting the `colWidths` option disables the {@link AutoColumnSize} plugin.
+     *
+     * [Column width &#8594;](@/guides/columns/column-width.md)
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -361,6 +362,8 @@ export default () => {
      * The `rowHeights` option also sets the minimum row height that can be set
      * via the {@link ManualRowResize} and {@link AutoRowSize} plugins (if they are enabled).
      *
+     * [Row height &#8594;](@/guides/row/row-height.md)
+     *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
@@ -390,11 +393,15 @@ export default () => {
 
     /**
      * @description
-     * Defines the cell properties and data binding for certain columns.
+     * The `columns` option lets you apply [configuration options](@/guides/getting-started/setting-options.md) to individual columns (or ranges of columns).
      *
-     * __Note:__ Using this option sets a fixed number of columns (options `startCols`, `minCols`, `maxCols` will be ignored).
+     * You can set the `columns` option to one of the following:
+     * - An array of objects (each object represents one column)
+     * - A function that returns an array of objects
      *
-     * See [documentation -> datasources.html](@/guides/getting-started/binding-to-data.md#array-of-objects-with-column-mapping) for examples.
+     * When you use the `columns` option, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) are ignored.
+     *
+     * [Settting column options &#8594;](@/guides/getting-started/setting-options.md#setting-column-options)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -403,24 +410,24 @@ export default () => {
      *
      * @example
      * ```js
-     * // as an array of objects
-     * // order of the objects in array is representation of physical indexes.
+     * // set the `columns` option to an array of objects
+     * // each object represents one column
      * columns: [
      *   {
-     *     // column options for the first column
+     *     // column options for the first (by physical index) column
      *     type: 'numeric',
      *     numericFormat: {
      *       pattern: '0,0.00 $'
      *     }
      *   },
      *   {
-     *     // column options for the second column
+     *     // column options for the second (by physical index) column
      *     type: 'text',
      *     readOnly: true
      *   }
      * ],
      *
-     * // or as a function, based on physical indexes
+     * // or set the `columns` option to a function, based on physical indexes
      * columns: function(index) {
      *   return {
      *     type: index > 0 ? 'numeric' : 'text',
