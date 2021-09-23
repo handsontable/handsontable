@@ -23,6 +23,7 @@
     "clean": "rimraf commonjs es coverage tmp",
     "lint": "npm run eslint && npm run stylelint",
     "lint:fix": "npm run eslint:fix && npm run stylelint:fix",
+    "lint2:fix": "npm run eslint:fix && npm run stylelint:fix",
     "stylelint": "stylelint \"src/**/*.css\" \"test/**/*.css\"",
     "stylelint:fix": "stylelint --fix \"src/**/*.css\" \"test/**/*.css\"",
     "eslint": "eslint src/ test/ .github/scripts/ .config/plugin bin/changelog scripts/",
