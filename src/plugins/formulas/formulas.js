@@ -23,6 +23,7 @@ import Hooks from '../../pluginHooks';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
+const ROW_MOVE_UNDO_REDO_NAME = 'row_move';
 
 Hooks.getSingleton().register('afterNamedExpressionAdded');
 Hooks.getSingleton().register('afterNamedExpressionRemoved');
@@ -30,6 +31,12 @@ Hooks.getSingleton().register('afterSheetAdded');
 Hooks.getSingleton().register('afterSheetRemoved');
 Hooks.getSingleton().register('afterSheetRenamed');
 Hooks.getSingleton().register('afterFormulasValuesUpdate');
+
+// This function will be used for detecting changes coming from the `UndoRedo` plugin. This kind of change won't be
+// handled by whole body of listeners and therefore won't change undo/redo stack inside engine provided by HyperFormula.
+// HyperFormula's `undo` and `redo` methods will do it instead. Please keep in mind that undo/redo stacks inside
+// instances of Handsontable and HyperFormula should be synced (number of actions should be the same).
+const isBlockedSource = source => source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
 
 /**
  * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
@@ -170,6 +177,26 @@ export class Formulas extends BasePlugin {
 
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
+
+    // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
+    this.addHook('beforeUndo', (action) => {
+      // TODO: Move action isn't handled by HyperFormula.
+      if (action?.actionType === ROW_MOVE_UNDO_REDO_NAME) {
+        return;
+      }
+
+      this.engine.undo();
+    });
+
+    // Handling redo actions on data just using HyperFormula's UndoRedo mechanism
+    this.addHook('beforeRedo', (action) => {
+      // TODO: Move action isn't handled by HyperFormula.
+      if (action?.actionType === ROW_MOVE_UNDO_REDO_NAME) {
+        return;
+      }
+
+      this.engine.redo();
+    });
 
     this.addHook('afterDetachChild', (...args) => this.onAfterDetachChild(...args));
 
@@ -741,42 +768,48 @@ export class Formulas extends BasePlugin {
    *
    * @private
    * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
+   * @param {string} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
-  onAfterSetDataAtCell(changes) {
-    const dependentCells = [];
+  onAfterSetDataAtCell(changes, source) {
+    if (isBlockedSource(source)) {
+      return;
+    }
+
     const outOfBoundsChanges = [];
     const changedCells = [];
 
-    changes.forEach(([row, prop, , newValue]) => {
-      const colFromProp = this.hot.propToCol(prop);
-      const column = colFromProp === null ? prop : colFromProp;
-      const physicalRow = this.hot.toPhysicalRow(row);
-      const physicalColumn = this.hot.toPhysicalColumn(column);
+    const dependentCells = this.engine.batch(() => {
+      changes.forEach(([row, prop, , newValue]) => {
+        const colFromProp = this.hot.propToCol(prop);
+        const column = colFromProp === null ? prop : colFromProp;
+        const physicalRow = this.hot.toPhysicalRow(row);
+        const physicalColumn = this.hot.toPhysicalColumn(column);
+        const address = {
+          row: physicalRow === null ? row : physicalRow,
+          col: physicalColumn === null ? column : physicalColumn,
+          sheet: this.sheetId,
+        };
 
-      const address = {
-        row: physicalRow === null ? row : physicalRow,
-        col: physicalColumn === null ? column : physicalColumn,
-        sheet: this.sheetId,
-      };
+        if (physicalRow !== null && physicalColumn !== null) {
+          this.syncChangeWithEngine(row, column, newValue);
 
-      if (physicalRow !== null && physicalColumn !== null) {
-        dependentCells.push(...this.syncChangeWithEngine(row, column, newValue));
+        } else {
+          outOfBoundsChanges.push([row, column, newValue]);
+        }
 
-      } else {
-        outOfBoundsChanges.push([row, column, newValue]);
-      }
-
-      changedCells.push({ address });
+        changedCells.push({ address });
+      });
     });
 
     if (outOfBoundsChanges.length) {
       // Workaround for rows/columns being created two times (by HOT and the engine).
       // (unfortunately, this requires an extra re-render)
       this.hot.addHookOnce('afterChange', () => {
-        const outOfBoundsDependentCells = [];
-
-        outOfBoundsChanges.forEach(([row, column, newValue]) => {
-          outOfBoundsDependentCells.push(...this.syncChangeWithEngine(row, column, newValue));
+        const outOfBoundsDependentCells = this.engine.batch(() => {
+          outOfBoundsChanges.forEach(([row, column, newValue]) => {
+            this.syncChangeWithEngine(row, column, newValue);
+          });
         });
 
         this.renderDependentSheets(outOfBoundsDependentCells, true);
@@ -792,8 +825,14 @@ export class Formulas extends BasePlugin {
    *
    * @private
    * @param {Array[]} changes An array of changes in format [[row, column, oldValue, value], ...].
+   * @param {string} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
-  onAfterSetSourceDataAtCell(changes) {
+  onAfterSetSourceDataAtCell(changes, source) {
+    if (isBlockedSource(source)) {
+      return;
+    }
+
     const dependentCells = [];
     const changedCells = [];
 
@@ -900,8 +939,14 @@ export class Formulas extends BasePlugin {
    * @private
    * @param {number} row Represents the visual index of first newly created row in the data source array.
    * @param {number} amount Number of newly created rows in the data source array.
+   * @param {string} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
-  onAfterCreateRow(row, amount) {
+  onAfterCreateRow(row, amount, source) {
+    if (isBlockedSource(source)) {
+      return;
+    }
+
     const changes = this.engine.addRows(this.sheetId, [this.toPhysicalRowPosition(row), amount]);
 
     this.renderDependentSheets(changes);
@@ -913,8 +958,14 @@ export class Formulas extends BasePlugin {
    * @private
    * @param {number} col Represents the visual index of first newly created column in the data source.
    * @param {number} amount Number of newly created columns in the data source.
+   * @param {string} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
-  onAfterCreateCol(col, amount) {
+  onAfterCreateCol(col, amount, source) {
+    if (isBlockedSource(source)) {
+      return;
+    }
+
     const changes = this.engine.addColumns(this.sheetId, [this.toPhysicalColumnPosition(col), amount]);
 
     this.renderDependentSheets(changes);
@@ -927,8 +978,14 @@ export class Formulas extends BasePlugin {
    * @param {number} row Visual index of starter row.
    * @param {number} amount An amount of removed rows.
    * @param {number[]} physicalRows An array of physical rows removed from the data source.
+   * @param {string} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
-  onAfterRemoveRow(row, amount, physicalRows) {
+  onAfterRemoveRow(row, amount, physicalRows, source) {
+    if (isBlockedSource(source)) {
+      return;
+    }
+
     const descendingPhysicalRows = physicalRows.sort().reverse();
 
     const changes = this.engine.batch(() => {
@@ -947,8 +1004,14 @@ export class Formulas extends BasePlugin {
    * @param {number} col Visual index of starter column.
    * @param {number} amount An amount of removed columns.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
+   * @param {string} [source] String that identifies source of hook call
+   *                          ([list of all available sources]{@link http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition}).
    */
-  onAfterRemoveCol(col, amount, physicalColumns) {
+  onAfterRemoveCol(col, amount, physicalColumns, source) {
+    if (isBlockedSource(source)) {
+      return;
+    }
+
     const descendingPhysicalColumns = physicalColumns.sort().reverse();
 
     const changes = this.engine.batch(() => {
