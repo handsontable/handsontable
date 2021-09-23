@@ -53,7 +53,7 @@ describe('AutoColumnSize', () => {
 
     await sleep(50);
 
-    expect(colWidth(spec().$container, 0)).toBe(129);
+    expect(colWidth(spec().$container, 0)).toBe(190);
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(173);
   });
