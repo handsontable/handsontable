@@ -1,5 +1,16 @@
 import HyperFormula from 'hyperformula';
 
+const fillHandleSelector = '.wtBorder.current.corner';
+
+const autofill = (endRow, endCol) => {
+  spec().$container.find(fillHandleSelector).simulate('mousedown');
+
+  spec().$container
+    .find(`tbody tr:eq(${endRow}) td:eq(${endCol})`)
+    .simulate('mouseover')
+    .simulate('mouseup');
+};
+
 describe('Formulas general', () => {
   const debug = false;
   const id = 'testContainer';
@@ -1210,20 +1221,479 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(0)).toEqual([2011, 4, 552, 6127]);
       expect(hot.getSourceDataAtRow(1)).toEqual([2012, '=SUM(A1:A2)', 12, '=SUM(E5)']);
     });
+
+    it('should work properly while doing cell used by some formula empty', () => {
+      handsontable({
+        data: [
+          [5, '=A1+1', '=B1+1'],
+        ],
+        contextMenu: true,
+        colHeaders: true,
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      setDataAtCell(0, 0, null);
+
+      expect(getSourceData()).toEqual([
+        [null, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [null, 1, 2],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [5, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [5, 6, 7],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        [null, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [null, 1, 2],
+      ]);
+    });
+
+    it('should cooperate properly with `setDataAtCell` action for multiple cells', () => {
+      handsontable({
+        data: [
+          [0, '=A1+1', '=B1+1'],
+        ],
+        contextMenu: true,
+        colHeaders: true,
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      setDataAtCell([
+        [0, 0, '=B1+2'],
+        [0, 1, '=C1+2'],
+        [0, 2, 10],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [0, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [0, 1, 2],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        ['=B1+2', '=C1+2', 10],
+      ]);
+      expect(getData()).toEqual([
+        [14, 12, 10],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [0, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [0, 1, 2],
+      ]);
+    });
+
+    it('should show proper values when doing undo/redo after moving rows', () => {
+      handsontable({
+        data: [
+          [5],
+          ['=A1+1'],
+          ['=A2+1'],
+        ],
+        contextMenu: true,
+        colHeaders: true,
+        rowHeaders: true,
+        formulas: {
+          engine: HyperFormula
+        },
+        manualRowMove: true,
+      });
+
+      getPlugin('manualRowMove').moveRow(0, 1);
+      render();
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [5],
+        ['=A1+1'],
+        ['=A2+1'],
+      ]);
+      expect(getData()).toEqual([
+        [5],
+        [6],
+        [7],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        [5],
+        ['=A1+1'],
+        ['=A2+1'],
+      ]);
+      expect(getData()).toEqual([
+        [6],
+        [5],
+        [7],
+      ]);
+    });
+
+    it('should show proper values when doing undo/redo after changing sheet size', () => {
+      handsontable({
+        data: [
+          [0, '=A1+1', '=B1+1'],
+        ],
+        contextMenu: true,
+        colHeaders: true,
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      alter('insert_col', 0);
+      alter('remove_col', 0);
+
+      expect(getSourceData()).toEqual([
+        [0, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [0, 1, 2],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [null, 0, '=B1+1', '=C1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [null, 0, 1, 2],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [0, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [0, 1, 2],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        [null, 0, '=B1+1', '=C1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [null, 0, 1, 2],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        [0, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [0, 1, 2],
+      ]);
+    });
+
+    describe('should show proper value when doing undo/redo after reducing sheet size', () => {
+      it('(removing cell with value used by some formula)', () => {
+        handsontable({
+          data: [
+            [2],
+            ['=A1*10']
+          ],
+          contextMenu: true,
+          colHeaders: true,
+          formulas: {
+            engine: HyperFormula
+          }
+        });
+
+        alter('remove_row', 0);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2],
+          ['=A1*10'],
+        ]);
+        expect(getData()).toEqual([
+          [2],
+          [20],
+        ]);
+
+        redo();
+
+        expect(getSourceData()).toEqual([
+          ['=#REF!*10'],
+        ]);
+        expect(getData()).toEqual([
+          ['#REF!'],
+        ]);
+      });
+
+      it('(removing formula using value from some cell)', () => {
+        handsontable({
+          data: [
+            [2],
+            ['=A1*10']
+          ],
+          contextMenu: true,
+          colHeaders: true,
+          formulas: {
+            engine: HyperFormula
+          }
+        });
+
+        alter('remove_row', 1);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2],
+          ['=A1*10'],
+        ]);
+        expect(getData()).toEqual([
+          [2],
+          [20],
+        ]);
+
+        redo();
+
+        expect(getSourceData()).toEqual([
+          [2],
+        ]);
+        expect(getData()).toEqual([
+          [2],
+        ]);
+      });
+    });
+
+    describe('should cooperate with the Autofill plugin properly', () => {
+      it('(overwriting formula)', async() => {
+        handsontable({
+          data: [
+            [2, 3, 4, 5],
+            ['=A1*10', null, '=A2*10', null],
+          ],
+          contextMenu: true,
+          colHeaders: true,
+          formulas: {
+            engine: HyperFormula
+          }
+        });
+
+        selectCell(0, 0);
+        // Overwritten formula
+        autofill(1, 0);
+
+        await sleep(100);
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, 20, null],
+        ]);
+
+        autofill(1, 1);
+
+        await sleep(100);
+
+        expect(getSourceData()).toEqual([
+          [2, 2, 4, 5],
+          [2, 2, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 2, 4, 5],
+          [2, 2, 20, null],
+        ]);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, 20, null],
+        ]);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          ['=A1*10', null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [20, null, 200, null],
+        ]);
+
+        redo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, 20, null],
+        ]);
+
+        redo();
+
+        expect(getSourceData()).toEqual([
+          [2, 2, 4, 5],
+          [2, 2, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 2, 4, 5],
+          [2, 2, 20, null],
+        ]);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, 20, null],
+        ]);
+      });
+
+      it('(populating formula)', async() => {
+        handsontable({
+          data: [
+            [2, 3, 4, 5],
+            ['=A1*10', null, '=A2*10', null],
+          ],
+          contextMenu: true,
+          colHeaders: true,
+          formulas: {
+            engine: HyperFormula
+          }
+        });
+
+        selectCell(1, 2);
+
+        autofill(1, 3);
+
+        await sleep(100);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          ['=A1*10', null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [20, null, 200, null],
+        ]);
+
+        redo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          ['=A1*10', null, '=A2*10', '=B2*10'],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [20, null, 200, 0],
+        ]);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          ['=A1*10', null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [20, null, 200, null],
+        ]);
+      });
+
+      it('(populating simple values)', async() => {
+        handsontable({
+          data: [
+            [2, 3, 4, 5],
+            ['=A1*10', null, '=A2*10', null],
+          ],
+          contextMenu: true,
+          colHeaders: true,
+          formulas: {
+            engine: HyperFormula
+          }
+        });
+
+        selectCell(0, 0);
+
+        autofill(0, 3);
+
+        await sleep(100);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          ['=A1*10', null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [20, null, 200, null],
+        ]);
+
+        redo();
+
+        expect(getSourceData()).toEqual([
+          [2, 2, 2, 2],
+          ['=A1*10', null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 2, 2, 2],
+          [20, null, 200, null],
+        ]);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          ['=A1*10', null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [20, null, 200, null],
+        ]);
+      });
+    });
   });
 
   describe('Autofill', () => {
-    const fillHandleSelector = '.wtBorder.current.corner';
-
-    const autofill = (endRow, endCol) => {
-      spec().$container.find(fillHandleSelector).simulate('mousedown');
-
-      spec().$container
-        .find(`tbody tr:eq(${endRow}) td:eq(${endCol})`)
-        .simulate('mouseover')
-        .simulate('mouseup');
-    };
-
     it('should not override result of simple autofill (populating one cell) #8050', async() => {
       handsontable({
         data: [
