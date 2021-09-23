@@ -24,7 +24,7 @@ declare namespace _Handsontable {
     clear(): void;
     clearUndo(): void;
     colOffset(): number;
-    colToProp(col: number): string | number;
+    colToProp(col: string): string | number;
     columnIndexMapper: Handsontable.RecordTranslation.IndexMapper;
     constructor(element: Element, options: Handsontable.GridSettings);
     container: HTMLElement;
