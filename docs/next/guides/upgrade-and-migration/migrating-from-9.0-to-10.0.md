@@ -16,10 +16,10 @@ To upgrade your Handsontable version from 9.0.x to 10.0.x, follow this guide.
 
 If you use the `beforeRender` or `afterRender` hooks, update their names in your app ([#8632](https://github.com/handsontable/handsontable/pull/8632)).
 
-| Before         | After                                                 |
-| -------------- | ----------------------------------------------------- |
-| `beforeRender` | [`beforeViewRender`](@/api/hooks.md#beforeviewrender) |
-| `afterRender`  | [`afterViewRender`](@/api/hooks.md#afterviewrender)   |
+| Before         | After              |
+| -------------- | ------------------ |
+| `beforeRender` | `beforeViewRender` |
+| `afterRender`  | `afterViewRender`  |
 
 There are still hooks that are named `beforeRender` and `afterRender`, but they do completely new things now. For more details, see the [Handsontable 10.0 API reference](@/api/hooks.md):
 - [`beforeRender`](@/api/hooks.md#beforerender)
@@ -29,7 +29,7 @@ There are still hooks that are named `beforeRender` and `afterRender`, but they 
 
 ## Step 2: Adapt to the HyperFormula dependency update
 
-In Handsontable 10.0.0, we updated the optional HyperFormula dependency from 0.6.2 to ^1.1.0 ([#8669](https://github.com/handsontable/handsontable/pull/8669)).
+In Handsontable 10.0.0, we updated the optional HyperFormula dependency from `0.6.2` to `^1.1.0` ([#8669](https://github.com/handsontable/handsontable/pull/8669)).
 
 For more details on the breaking changes between HyperFormula 0.6.x and HyperFormula 1.0.x, see the [migration guide](https://handsontable.github.io/hyperformula/guide/migration-from-0.6-to-1.0.html).
 
