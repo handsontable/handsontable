@@ -66,7 +66,7 @@ Released on 17th of June, 2021
 
 **Fixed**
 
-*   Fixed an issue where the validator function was called twice when the Formulas plugin was enabled. ([#8138](https://github.com/handsontable/handsontable/issues/8138))
+*   Fixed an issue where the validator function was called twice when the `Formulas` plugin was enabled. ([#8138](https://github.com/handsontable/handsontable/issues/8138))
 *   Introduced a new CSS style for cells of the `checkbox` type to restore previous behaviour. ([#8196](https://github.com/handsontable/handsontable/issues/8196))
 
 **Removed**
@@ -79,14 +79,14 @@ Released on 1st of June, 2021
 
 **Changed**
 
-*   **Breaking change** New Formulas plugin, with an entirely different API. See the migration guide for a full list of changes. Removed the required `hot-formula-parser` dependency for the sake of an optional one, `hyperformula`. ([#6466](https://github.com/handsontable/handsontable/issues/6466))
+*   **Breaking change** New `Formulas` plugin, with an entirely different API. See the migration guide for a full list of changes. Removed the required `hot-formula-parser` dependency for the sake of an optional one, `hyperformula`. ([#6466](https://github.com/handsontable/handsontable/issues/6466))
 *   **Breaking change** Changed the `afterAutofill` and `beforeAutofill` hooks' signatures. ([#7987](https://github.com/handsontable/handsontable/issues/7987))
 *   Upgraded `eslint` and eslint-related modules. ([#7531](https://github.com/handsontable/handsontable/issues/7531))
 *   Added `fit` & `fdescribe` to restricted globals in test files. ([#8088](https://github.com/handsontable/handsontable/issues/8088))
 
 **Fixed**
 
-*   Fixed a problem with the column indicator of the Collapsible Columns plugin not being displayed properly on styled headers. ([#7970](https://github.com/handsontable/handsontable/issues/7970))
+*   Fixed a problem with the column indicator of the `CollapsibleColumns` plugin not being displayed properly on styled headers. ([#7970](https://github.com/handsontable/handsontable/issues/7970))
 *   Fixed a problem with duplicated `afterCreateCol` hooks being triggered after undoing a removal of a column. ([#8076](https://github.com/handsontable/handsontable/issues/8076))
 *   Fixed a problem with formulas not being calculated in certain conditions. ([#4430](https://github.com/handsontable/handsontable/issues/4430))
 *   Fixed a bug with formulas displaying incorrect values after inserting new rows. ([#4654](https://github.com/handsontable/handsontable/issues/4654))
@@ -109,8 +109,8 @@ Released on 11th of May, 2021
 
 *   Introduced a `separated` attribute for the label options (the `label` DOM element may wrap `input` or be placed next to it). ([#3172](https://github.com/handsontable/handsontable/issues/3172))
 *   Introduced the `modifyAutoColumnSizeSeed` hook to let developers overwrite the default behaviour of the AutoColumnSize sampling. ([#3339](https://github.com/handsontable/handsontable/issues/3339))
-*   Added support for hiding columns for the NestedHeaders plugin. ([#6879](https://github.com/handsontable/handsontable/issues/6879))
-*   Added ability to skip stacking actions by the UndoRedo plugin and introduced new hooks. ([#6948](https://github.com/handsontable/handsontable/issues/6948))
+*   Added support for hiding columns for the `NestedHeaders` plugin. ([#6879](https://github.com/handsontable/handsontable/issues/6879))
+*   Added ability to skip stacking actions by the `UndoRedo` plugin and introduced new hooks. ([#6948](https://github.com/handsontable/handsontable/issues/6948))
 
 **Fixed**
 
@@ -129,8 +129,8 @@ Released on 11th of May, 2021
 *   Fixed the TypeScript definition for the suspended rendering feature. ([#7666](https://github.com/handsontable/handsontable/issues/7666))
 *   Fixed the `postbuild` and `examples:install` scripts on Windows. ([#7680](https://github.com/handsontable/handsontable/issues/7680))
 *   Fixed the contents of the production `package.json`. ([#7723](https://github.com/handsontable/handsontable/issues/7723))
-*   Fixed an issue, where the callbacks for the UndoRedo plugin were called twice. ([#7825](https://github.com/handsontable/handsontable/issues/7825))
-*   _Vue:_ Fixed a problem with displaying and removing rows in the Nested Rows plugin. ([#7548](https://github.com/handsontable/handsontable/issues/7548))
+*   Fixed an issue, where the callbacks for the `UndoRedo` plugin were called twice. ([#7825](https://github.com/handsontable/handsontable/issues/7825))
+*   _Vue:_ Fixed a problem with displaying and removing rows in the `NestedRows` plugin. ([#7548](https://github.com/handsontable/handsontable/issues/7548))
 *   _React:_ Fixed an incompatibility in the property type definitions for the HotColumn component. ([#7612](https://github.com/handsontable/handsontable/issues/7612))
 
 **Changed**
@@ -190,7 +190,7 @@ Released on 28th of January, 2021
 
 **Fixed**
 
-*   Fixed a bug with auto-execution of the first item in the ContextMenu plugin. ([#7364](https://github.com/handsontable/handsontable/issues/7364))
+*   Fixed a bug with auto-execution of the first item in the `ContextMenu` plugin. ([#7364](https://github.com/handsontable/handsontable/issues/7364))
 *   Fixed a bug where column sorting with multi column sorting crashed the table. ([#7415](https://github.com/handsontable/handsontable/issues/7415))
 *   Added a missing entry for the `skipRowOnPaste` option in the TypeScript definition file. ([#7394](https://github.com/handsontable/handsontable/issues/7394))
 *   Added missing tests to prevent issue #7377 from resurfacing. ([#7396](https://github.com/handsontable/handsontable/issues/7396))
@@ -200,7 +200,7 @@ Released on 28th of January, 2021
 
 **Changed**
 
-*   Corrected a typo in a helper method from the Column Sorting plugin. ([#7375](https://github.com/handsontable/handsontable/issues/7375))
+*   Corrected a typo in a helper method from the `ColumnSorting` plugin. ([#7375](https://github.com/handsontable/handsontable/issues/7375))
 *   Optimized the performance of rendering the table with numerous spare rows (for `minSpareRows`, `minSpareCols`, `minRows`, and `minCols` options). ([#7439](https://github.com/handsontable/handsontable/issues/7439))
 
 ## 8.2.0
@@ -271,17 +271,17 @@ The existing features were adapted to benefit from the new architecture. Apart f
 * Modifying the table's data by reference and calling `render()` will not work properly anymore. From this point onward, all the data-related operations need to be performed using the API methods, such as `populateFromArray` or `setDataAtCell`.
 * The `modifyRow`, `modifyCol`, `unmodifyRow`, `unmodifyCol` hooks are no longer needed and were removed. Their functionality can be achived by using API. [More information in the 8.0.0 migration guide](https://handsontable.com/docs/8.0.0/migration-guide.html).
 * `skipLengthCache` hook was removed, `indexMapper` is now responsible for the cache and length.
-* The `manualColumnFreeze` plugin doesn't use the `manualColumnMove` plugin anymore.
-* The `collapsibleColumns` plugin doesn't use the `hiddenColumns` plugin anymore.
-* The `nestedRows` and `filters` plugins don't use the `trimRows` plugin anymore.
-* The `minSpareRows` and `minRows` options will ensure that the number of visible rows corresponds to the value provided to them (for example, the `trimRows` plugin won't have an impact on the number of displayed rows).
+* The `ManualColumnFreeze` plugin doesn't use the `ManualColumnMove` plugin anymore.
+* The `CollapsibleColumns` plugin doesn't use the `HiddenColumns` plugin anymore.
+* The `NestedRows` and `Filters` plugins don't use the `TrimRows` plugin anymore.
+* The `minSpareRows` and `minRows` options will ensure that the number of visible rows corresponds to the value provided to them (for example, the `TrimRows` plugin won't have an impact on the number of displayed rows).
 * `toPhysicalRow` and `toVisualColumn` now return `null` for non-existant rows/columns. [#5945](https://github.com/handsontable/handsontable/pull/5945)).
 * The `afterLoadData` hook receives a different set of arguments. It used to be just the initialLoad flag, now the first argument is `sourceData`, followed by `initialLoad`.
-* The `manualColumnFreeze` plugin will now put the unfrozen columns right next to the last frozen one.
+* The `ManualColumnFreeze` plugin will now put the unfrozen columns right next to the last frozen one.
 * The `RecordTranslator` object and the `t` property available in the plugins were removed.
 * After-prefixed hooks (`afterLoadData`, `afterFilter`, etc.) are now called just before the `render` call.
 * Newly created rows and columns are now placed in the source data in the place calculated from its position in the visual context (they "stick" to their adjacent rows/columns). It also applies to moved rows and columns.
-* When the [`NestedRows`](@/api/nestedrows.md) plugin  is `enabled`, moving rows will be possible only using the UI or by calling the `dragRows` method of the `manualRowMove` plugin.
+* When the [`NestedRows`](@/api/nestedrows.md) plugin  is `enabled`, moving rows will be possible only using the UI or by calling the `dragRows` method of the `ManualRowMove` plugin.
 * The `beforeRowResize`, `afterRowResize`, `beforeColumnResize`, `afterColumnResize` hooks have the order of their arguments rearranged for the sake of consistency with other hooks and to fix an issue where multiple hooks didn't get the modified value in the pipeline: [#3328](https://github.com/handsontable/handsontable/issues/3328).
 * Changed the argument structure in `collapsibleColumns`' `toggleCollapsibleSection` method: [#6193](https://github.com/handsontable/handsontable/issues/6193).
 * The following sublist shows changes related to the refactor of `HiddenColumns` and `CollapsibleColumns`. They will be compatible with upcoming `IndexMappers` [#5945](https://github.com/handsontable/handsontable/pull/5945) along with other adjustments [#6547](https://github.com/handsontable/handsontable/pull/6547):
@@ -312,7 +312,7 @@ The existing features were adapted to benefit from the new architecture. Apart f
 
 **Depreciations**
 
-* The `observeChanges` plugin is no longer enabled by `columnSorting` and became deprecated. [#5945](https://github.com/handsontable/handsontable/pull/5945)
+* The `ObserveChanges` plugin is no longer enabled by `columnSorting` and became deprecated. [#5945](https://github.com/handsontable/handsontable/pull/5945)
 * `HeaderTooltips` plugin becomes deprecated and will be removed in the next major version. [#7023](https://github.com/handsontable/handsontable/issues/7023)
 * IE support is deprecated and will be removed by the end of the year. [#7026](https://github.com/handsontable/handsontable/issues/7026)
 
@@ -330,7 +330,7 @@ The existing features were adapted to benefit from the new architecture. Apart f
 * Added missing "hide" property in `CustomBorders` typings. [#6788](https://github.com/handsontable/handsontable/issues/6788)
 * Added `beforeSetCellMeta` hook with an ability to cancel the changes. [#5388](https://github.com/handsontable/handsontable/issues/5388)
 * Added additional test for autofill plugin. [#6756](https://github.com/handsontable/handsontable/issues/6756)
-* Changed how `manualRowMove` and `manualColumnMove` plugins work [#5945](https://github.com/handsontable/handsontable/pull/5945)
+* Changed how `ManualRowMove` and `ManualColumnMove` plugins work [#5945](https://github.com/handsontable/handsontable/pull/5945)
 * Click on a row header will select all cells (also hidden). [#2391](https://github.com/handsontable/handsontable/issues/2391)
 * Extracted Cell-Meta logic from Core to separate module. [#6254](https://github.com/handsontable/handsontable/pull/6254)
 * The `CellMeta` manager was refactored for future features and improvements. [#6233](https://github.com/handsontable/handsontable/issues/6233)
@@ -348,11 +348,11 @@ The existing features were adapted to benefit from the new architecture. Apart f
 * `CustomBorders` plugin was adapted to work with `HiddenColumns` properly, from now on hiding cells at the start or at the end of a range will also hide their borders. Also, hiding a single cell with borders will hide all of its borders. [#7083](https://github.com/handsontable/handsontable/pull/7083)
 * `CollapsibleColumns` will no longer use `HiddenColumns` plugin to work. [#6204](https://github.com/handsontable/handsontable/issue/6204)
 * Modifying the table's data by reference and calling \`render()\` will not work properly anymore. From this point onward, all the data-related operations need to be performed using the API methods, such as `populateFromArray` or `setDataAtCell`. [#5945](https://github.com/handsontable/handsontable/pull/5945)
-* Removed dependencies between plugins: the `manualColumnFreeze` plugin doesn't use the `manualColumnMove`, the `collapsibleColumns` plugin doesn't use the `hiddenColumns` plugin, `nestedRows` plugin doesn't use the `trimRows` plugin, `filters` plugin doesn't use the `trimRows` plugin anymore. [#5945](https://github.com/handsontable/handsontable/pull/5945) along with other adjustments [#6547](https:// github.com/handsontable/handsontable/pull/6547):
-* The `minSpareRows` and `minRows` options will ensure that the number of visible rows corresponds to the value provided to them (for example, the `trimRows` plugin won't have an impact on the number of displayed rows). [#5945](https://github.com/handsontable/handsontable/pull/5945)
+* Removed dependencies between plugins: the `ManualColumnFreeze` plugin doesn't use the `ManualColumnMove`, the `CollapsibleColumns` plugin doesn't use the `HiddenColumns` plugin, `NestedRows` plugin doesn't use the `TrimRows` plugin, `Filters` plugin doesn't use the `TrimRows` plugin anymore. [#5945](https://github.com/handsontable/handsontable/pull/5945) along with other adjustments [#6547](https:// github.com/handsontable/handsontable/pull/6547):
+* The `minSpareRows` and `minRows` options will ensure that the number of visible rows corresponds to the value provided to them (for example, the `TrimRows` plugin won't have an impact on the number of displayed rows). [#5945](https://github.com/handsontable/handsontable/pull/5945)
 * `toPhysicalRow` and `toVisualColumn` now return `null` for non-existant rows/columns. [#5945](https://github.com/handsontable/handsontable/pull/5945)
 * The `afterLoadData` hook receives a different set of arguments. It used to be just the initialLoad flag, now the first argument is `sourceData`, followed by `initialLoad`. [#5945](https://github.com/handsontable/handsontable/pull/5945)
-* The `manualColumnFreeze` plugin unfreezes the column just after the "line of freeze". [#5945](https://github.com/handsontable/handsontable/pull/5945)
+* The `ManualColumnFreeze` plugin unfreezes the column just after the "line of freeze". [#5945](https://github.com/handsontable/handsontable/pull/5945)
 * The `RecordTranslator` object and the `t` property available in the plugins were removed. [#5945](https://github.com/handsontable/handsontable/pull/5945)
 * After-prefixed hooks (`afterLoadData`, `afterFilter`, etc.) are now called just before the `render` call. [#5945](https://github.com/handsontable/handsontable/pull/5945)
 * Newly created rows and columns are now placed in the source data in the place calculated from its position in the visual context (they "stick" to their adjacent rows/columns). It also applies to moved rows and columns. [#5945](https://github.com/handsontable/handsontable/pull/5945)
@@ -374,16 +374,16 @@ The existing features were adapted to benefit from the new architecture. Apart f
 * Removed post-install warning from package.json file [#6608](https://github.com/handsontable/handsontable/pull/6608)
 * The `modifyRow`, `modifyCol`, `unmodifyRow`, `unmodifyCol` and `skipLengthCache` hooks are no longer needed and were removed. [#5945](https://github.com/handsontable/handsontable/pull/5945)
 * Fixed a problem with data not being added to the table properly with the `columnSorting` option enabled. [#2685](https://github.com/handsontable/handsontable/issues/2685)
-* Fixed a problem with `loadData` not resetting the row order changed by the `manualRowMove` plugin. [#3568](https://github.com/handsontable/handsontable/issues/3568)
+* Fixed a problem with `loadData` not resetting the row order changed by the `ManualRowMove` plugin. [#3568](https://github.com/handsontable/handsontable/issues/3568)
 * Fixed a bug, where using `alter`'s `insert_row` after using the `loadData` method and sorting the data would add unintentional additional rows to the table. [#3809](https://github.com/handsontable/handsontable/issues/3809)
 * Fixed a bug, where blank rows appeared in the middle of the table after using `loadData` along with the `minSpareRows` option. [#3937](https://github.com/handsontable/handsontable/issues/3937)
-* Fixed a problem with the `columnSummary` plugin not working properly after adding new rows using the Context Menu and sorting the data. [#3924](https://github.com/handsontable/handsontable/issues/3924)
+* Fixed a problem with the `ColumnSummary` plugin not working properly after adding new rows using the Context Menu and sorting the data. [#3924](https://github.com/handsontable/handsontable/issues/3924)
 * Fixed a bug, where calling `loadData` with an object-based data source would not work properly. [#4204](https://github.com/handsontable/handsontable/issues/4204)
 * Fixed a problem with the Hidden Columns settings being reset after calling `updateSettings`. [#4121](https://github.com/handsontable/handsontable/issues/4121)
-* Fixed a bug with the `filters` plugin using incorrect indexes after moving and/or sorting the table. [#4442](https://github.com/handsontable/handsontable/issues/4442)
+* Fixed a bug with the `Filters` plugin using incorrect indexes after moving and/or sorting the table. [#4442](https://github.com/handsontable/handsontable/issues/4442)
 * Fixed a bug that caused a column to contain improper data after moving it to index `0`. [#4470](https://github.com/handsontable/handsontable/issues/4470)
 * Fixed a bug with the `afterRowMove` hook receiving an improper `target` argument. [#4501](https://github.com/handsontable/handsontable/issues/4501)
-* Fixed a problem with the `manualColumnFreeze` plugin enabling `manualColumnMove`, even if it was declared as `false`. [#4553](https://github.com/handsontable/handsontable/issues/4553)
+* Fixed a problem with the `ManualColumnFreeze` plugin enabling `ManualColumnMove`, even if it was declared as `false`. [#4553](https://github.com/handsontable/handsontable/issues/4553)
 * Fixed a problem with plugins using `arrayMappers` not working properly after updating the dataset. [#4567](https://github.com/handsontable/handsontable/issues/4567)
 * Fixed a bug, where calling `loadData` with `minSpareRows` and `manualRowMove` enabled caused the table to improperly load the data. [#4576](https://github.com/handsontable/handsontable/issues/4576)
 * Fixed a bug, where enabling `columnSorting` caused the `manualColumnFreeze` to be unusable. [#4601](https://github.com/handsontable/handsontable/issues/4601)
@@ -396,13 +396,13 @@ The existing features were adapted to benefit from the new architecture. Apart f
 * Fixed a problem, where filtering data after moving rows would not work properly. [#5178](https://github.com/handsontable/handsontable/issues/5178)
 * Fixed a bug, where calling `loadData` made `NaN` appear in the column headers. [#5369](https://github.com/handsontable/handsontable/issues/5369)
 * Fixed a bug with the `skipColumnOnPaste` option not working properly when using `columnSorting` and `hiddenColumns`. [#5824](https://github.com/handsontable/handsontable/issues/5824)
-* Fixed a bug with the `trimRows` plugin did not work properly after moving rows. [#5860](https://github.com/handsontable/handsontable/issues/5860)
+* Fixed a bug with the `TrimRows` plugin did not work properly after moving rows. [#5860](https://github.com/handsontable/handsontable/issues/5860)
 * Fixed a problem with `minSpareRows` not working properly with the `trimRows` plugin being used. [#5862](https://github.com/handsontable/handsontable/issues/5862)
 * Fixed a problem, where it was impossible to filter the data declared in the [`NestedRows`](@/api/nestedrows.md) plugin . [#5889](https://github.com/handsontable/handsontable/issues/5889)
 * Fixed a bug, where filtering and sorting data would cause the `toVisualRow` method to return the wrong results. [#5890](https://github.com/handsontable/handsontable/issues/5890)
 * Fixed a bug with the `filters` and `trimRows` plugins not working properly alongside each other. [#5915](https://github.com/handsontable/handsontable/issues/5915)
 * Fixed a bug, where `manualColumnMove` would not work properly when the data object properties count would be lower than the table column count. [#5931](https://github.com/handsontable/handsontable/issues/5931)
-* Fixed a bug with the `trimRows` plugin did not work properly with the `startRows` option. [#5953](https://github.com/handsontable/handsontable/issues/5953)
+* Fixed a bug with the `TrimRows` plugin did not work properly with the `startRows` option. [#5953](https://github.com/handsontable/handsontable/issues/5953)
 * Fixed a problem, where using `loadData` after sorting would not work as expected. [#5956](https://github.com/handsontable/handsontable/issues/5953)
 * Fixed a problem with the `beforeColumnMove` and `afterColumnMove` hooks not containing information about their destination indexes. [#6005](https://github.com/handsontable/handsontable/issues/6005)
 * Fixed a problem where using `filters` and `minSpareRows` would make the table add an empty row at the beginning of the table. [#6278](https://github.com/handsontable/handsontable/issues/5953)
@@ -411,7 +411,7 @@ The existing features were adapted to benefit from the new architecture. Apart f
 * Fixed a problem, where calling `updateSettings` in the `afterColumnMove` hook callback would have no effect. [#4480](https://github.com/handsontable/handsontable/issues/4480)
 * Fixed a bug, where calling `loadData` would make the `filters` plugin to not behave as expected. [#5244](https://github.com/handsontable/handsontable/issues/5244)
 * Fixed a bug, where detaching a child from a parent in the [`NestedRows`](@/api/nestedrows.md) plugin  would cause a \`+/-\` button misalignment. [#5900](https://github.com/handsontable/handsontable/issues/5900)
-* Fixed a problem with the `columnSummary` plugin creating a doubled summary row. [#5794](https://github.com/handsontable/handsontable/issues/5794)
+* Fixed a problem with the `ColumnSummary` plugin creating a doubled summary row. [#5794](https://github.com/handsontable/handsontable/issues/5794)
 * Fixed a bug, where moving children between parents using the [`NestedRows`](@/api/nestedrows.md) plugin  would throw an error. [#6066](https://github.com/handsontable/handsontable/issues/6066)
 * Fixed a bug, where adding rows by modifying the data by reference while using the [`NestedRows`](@/api/nestedrows.md) plugin  would throw an error. [#3914](https://github.com/handsontable/handsontable/issues/3914)
 * Fixed a bug, where merging cells would conflict with the `columnSorting` plugin. [#6086](https://github.com/handsontable/handsontable/issues/6086)
@@ -421,9 +421,9 @@ The existing features were adapted to benefit from the new architecture. Apart f
 * Fixed an issue in which if the last column was a hidden column and `stretchH` was enabled, the last column was displayed. [#4370](https://github.com/handsontable/handsontable/issues/4370)
 * Fixed an issue where `updateSettings` performance was very low because of `hiddenColumns` being rendered. [#4381](https://github.com/handsontable/handsontable/issues/4381)
 * Fixed an issue where collapse was not working correctly with custom cell renderers. [#4716](https://github.com/handsontable/handsontable/issues/4716)
-* Fixed an incorrect header name when user defined more columns in the `nestedHeaders` plugin. [#4716](https://github.com/handsontable/handsontable/issues/4716)
-* Fixed an issue where `hiddenColumns` did not work properly with `columnSorting`. [#5571](https://github.com/handsontable/handsontable/issues/5571)
-* Fixed an issue where `manualColumnMove` should work with `hiddenColumns`. [#5598](https://github.com/handsontable/handsontable/issues/5598)
+* Fixed an incorrect header name when user defined more columns in the `NestedHeaders` plugin. [#4716](https://github.com/handsontable/handsontable/issues/4716)
+* Fixed an issue where `HiddenColumns` did not work properly with `ColumnSorting`. [#5571](https://github.com/handsontable/handsontable/issues/5571)
+* Fixed an issue where `ManualColumnMove` should work with `HiddenColumns`. [#5598](https://github.com/handsontable/handsontable/issues/5598)
 * Fixed an issue where `hiddenColumns` option interfered with the keyboard movement. [#5704](https://github.com/handsontable/handsontable/issues/5704)
 * Fixed an issue where after hiding the first two rows, the row headers became de-synchronized by 1px. [#5817](https://github.com/handsontable/handsontable/issues/5817)
 * Fixed an issue where hiding columns affected selection of hidden columns. [#5871](https://github.com/handsontable/handsontable/issues/5871)
@@ -431,7 +431,7 @@ The existing features were adapted to benefit from the new architecture. Apart f
 * Fixed an issue where `hiddenColumns` did not work properly with \`autoWrapRow/autoWrapCol\`. [#5877](https://github.com/handsontable/handsontable/issues/5877)
 * Fixed an issue on IE where hiding the first column caused a display of double border for top left corner. [#5881](https://github.com/handsontable/handsontable/issues/5881)
 * Fixed an issue where `nestedHeaders` duplicated a header name if more columns are added. [#5882](https://github.com/handsontable/handsontable/issues/5882)
-* Fixed an issue where `hiddenColumns` plugin unset cell's `renderer`. [#5883](https://github.com/handsontable/handsontable/issues/5883)
+* Fixed an issue where `HiddenColumns` plugin unset cell's `renderer`. [#5883](https://github.com/handsontable/handsontable/issues/5883)
 * Fixed an issue where `hiddenColumns` had stored visual indexes and should have used physical indexes. [#5909](https://github.com/handsontable/handsontable/issues/5909)
 * Fixed an issue where hidden columns should be unrecoverable. [#6113](https://github.com/handsontable/handsontable/issues/6113)
 * Fixed an issue where row selection ignored columns that are hidden at the end. [#6181](https://github.com/handsontable/handsontable/issues/6181)
@@ -442,7 +442,7 @@ The existing features were adapted to benefit from the new architecture. Apart f
 * Fixed an issue where with hiding columns after moved them manually. [#6668](https://github.com/handsontable/handsontable/issues/6668)
 * Fixed an issue where expanding a collapsed column caused expanding of a child columns except for the first one. [#5792](https://github.com/handsontable/handsontable/issues/5792)
 * Fixed an issue where setting `columnSorting` to `true` (on initialization or via `updateSettings`) made headers non-collapsible programmatically via `collapseAll` method. [#4999](https://github.com/handsontable/handsontable/issues/4999)
-* Fixed an issue where `customBorders` plugin was missing in the definition file. [#6477](https://github.com/handsontable/handsontable/issues/6477)
+* Fixed an issue where `CustomBorders` plugin was missing in the definition file. [#6477](https://github.com/handsontable/handsontable/issues/6477)
 * Fixed incorrect size of `wtHider`and `wtHolder` in overlays. [#3873](https://github.com/handsontable/handsontable/issues/3873)
 * Fixed an issue where `updateSettings` could not update `tableClassName`. [#6295](https://github.com/handsontable/handsontable/issues/6295)
 * Fixed an issue where JSON data with empty value was losing some double quotes when pasted into a cell. [#6167](https://github.com/handsontable/handsontable/issues/6167)
@@ -482,7 +482,7 @@ The existing features were adapted to benefit from the new architecture. Apart f
 * Fixed an issue with scrollbar and dimension calculation in Firefox for toggling column visibility with fixed columns and `stretchH`. [#6186](https://github.com/handsontable/handsontable/issues/6186)
 * Fixed an issue with undoing the nested row removal. [#6433](https://github.com/handsontable/handsontable/issues/6433)
 * Fixed an isse where `getSourceData` functions returned wrong data for nested rows. [#5771](https://github.com/handsontable/handsontable/issues/5771)
-* Fixed na issue where formulas plugin did not work with `nestedRows`. [#4154](https://github.com/handsontable/handsontable/issues/4154)
+* Fixed na issue where the `Formulas` plugin did not work with `nestedRows`. [#4154](https://github.com/handsontable/handsontable/issues/4154)
 * Fixed an issue where nested headers and hidden columns highlighted ad additional column when used together. [#6881](https://github.com/handsontable/handsontable/issues/6881)
 * Fixed an issue where `getByRange` for sourceData did not work properly with nested object data. [#6548](https://github.com/handsontable/handsontable/issues/6548)
 * Fixed an issue where \`window.frameElement\` threw errors in MSEdge, IE and Safari. [#6478](https://github.com/handsontable/handsontable/issues/6478)
@@ -530,11 +530,11 @@ The existing features were adapted to benefit from the new architecture. Apart f
 * Fixed an issue where the `manualColumnMove` operation affected the column order of data loaded by `loadData`. [#5591](https://github.com/handsontable/handsontable/issues/5591)
 * Fixed an issue where `nestedRows` did not allow to keep `rowHeaders` after collapsing. [#5874](https://github.com/handsontable/handsontable/issues/5874)
 * Fixed performance and CPU issue caused by using some handsontable properties. [#6058](https://github.com/handsontable/handsontable/issues/6058)
-* Fixed an error with columnSummary plugin when trying to create a row. [#6300](https://github.com/handsontable/handsontable/issues/6300)
+* Fixed an error with the `ColumnSummary` plugin when trying to create a row. [#6300](https://github.com/handsontable/handsontable/issues/6300)
 * Fixed an error where \`walkontable.css\` and \`handsontable.css\` stylesheets were out of sync. [#6381](https://github.com/handsontable/handsontable/issues/6381)
 * Fixed an issue where `colHeaders` order was not updated after manual move with empty object data source. [#6413](https://github.com/handsontable/handsontable/issues/6413)
 * Fixed "detach from parent" option. [#6432](https://github.com/handsontable/handsontable/issues/6432)
-* Fixed an issue where `PreventOverflow` feature did not work if `multiColumnSorting` plugin was enabled. [#6514](https://github.com/handsontable/handsontable/issues/6514)
+* Fixed an issue where `PreventOverflow` feature did not work if `MultiColumnSorting` plugin was enabled. [#6514](https://github.com/handsontable/handsontable/issues/6514)
 * Fixed an issue where old CSS classes were not removed after `updateSettings`. [#6575](https://github.com/handsontable/handsontable/issues/6575)
 * Fixed an issue where `columnSummary`, `Filters` and spare rows were causing 'RangeError: Maximum call stack size exceeded'. [#6695](https://github.com/handsontable/handsontable/issues/6695)
 * Fixed an issue where `afterSelectionEnd` returned incorrect data when clicking on a column when all rows were hidden. [#7045](https://github.com/handsontable/handsontable/issues/7045)
