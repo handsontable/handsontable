@@ -18,7 +18,7 @@ tags:
 Released on 29th of September, 2021
 
 **Changed**
-- **Breaking change** Unified the name and description of the fourth argument, `controller`, for selection manipulation in the [`beforeOnCellMouseDown`](@/api/hooks.md#beforeoncellmousedown) and [`beforeOnCellMouseOver`](@/api/hooks.md#beforeoncellmouseover) hooks. [#4996](https://github.com/handsontable/handsontable/issues/4996)
+- **Breaking change** Unified the naming and description of the fourth argument, `controller`, for selection manipulation in the [`beforeOnCellMouseDown`](@/api/hooks.md#beforeoncellmousedown) and [`beforeOnCellMouseOver`](@/api/hooks.md#beforeoncellmouseover) hooks. [#4996](https://github.com/handsontable/handsontable/issues/4996)
 - **Breaking change** Changed what the [`beforeRender`](@/api/hooks.md#beforerender) and [`afterRender`](@/api/hooks.md#afterrender) hooks are, and when they are triggered. Added two new hooks: `beforeViewRender` and `afterViewRender`. [#6303](https://github.com/handsontable/handsontable/issues/6303)
 - **Breaking change** Changed the optional [HyperFormula](https://github.com/handsontable/hyperformula) dependency from `0.6.2` to `^1.1.0`, which introduces breaking changes for the [`Formulas`](@/api/formulas.md) plugin users. [#8502](https://github.com/handsontable/handsontable/issues/8502)
 - **Breaking change** Changed the default values for the [`rowsLimit`](@/api/copypaste.md#rowslimit) and [`columnsLimit`](@/api/copypaste.md#columnslimit) options of the [`CopyPaste`](@/api/copypaste.md) plugin. [#8660](https://github.com/handsontable/handsontable/issues/8660)
