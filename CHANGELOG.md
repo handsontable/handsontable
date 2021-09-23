@@ -8,6 +8,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [10.0.0] - 2021-09-29
+
+### Changed
+- **Breaking change** Unifies fourth argument name and description, `controller`, for selection manipulation in `beforeOnCellMouseDown` and `beforeOnCellMouseOver` hooks. [#4996](https://github.com/handsontable/handsontable/issues/4996)
+- **Breaking change** Changed what the `beforeRender` and `afterRender` hooks are, and when they are triggered. Added two new hooks: `beforeViewRender` and `afterViewRender`. [#6303](https://github.com/handsontable/handsontable/issues/6303)
+- **Breaking change** Changed the optional HyperFormula dependency from 0.6.2 to ^1.1.0, which introduces breaking changes for the `Formulas` plugin users. [#8502](https://github.com/handsontable/handsontable/issues/8502)
+- **Breaking change** Changed the default values for `rowsLimit` and `columnsLimit` options of the _CopyPaste_ plugin. [#8660](https://github.com/handsontable/handsontable/issues/8660)
+- **Breaking change** Add default font size, color, and family.  [#8661](https://github.com/handsontable/handsontable/issues/8661)
+- **Breaking change** Changed the `autoWrapRow` and `autoWrapCol` options` default values from `true` to `false`. [#8662](https://github.com/handsontable/handsontable/issues/8662)
+- Improved the performance of the `getCellMeta()` method. [#6303](https://github.com/handsontable/handsontable/issues/6303)
+- Improved the documentation and TypeScript definition of the `selectOptions` option. [#8488](https://github.com/handsontable/handsontable/issues/8488)
+- Improved the arguments forwarding in the hooks [#8668](https://github.com/handsontable/handsontable/issues/8668)
+
+### Fixed
+- Fixed an issue of not resetting the date picker's configuration [#6636](https://github.com/handsontable/handsontable/issues/6636)
+- An error won't be thrown while inserting new row for nested rows in specific case [#7137](https://github.com/handsontable/handsontable/issues/7137)
+- Fixed some problems with Nested Rows, occuring with the Formulas plugin enabled. [#8048](https://github.com/handsontable/handsontable/issues/8048)
+- Fixed errors being thrown in the formulas plugin if a provided sheet name contained a dash character [#8057](https://github.com/handsontable/handsontable/issues/8057)
+- Fixed multiple bugs related to undo/redo actions while using the Formulas plugin [#8078](https://github.com/handsontable/handsontable/issues/8078)
+- Fixed an issue where autofill was not able to be blocked/changed with the `beforeChange` hook when the formulas plugin was enabled [#8107](https://github.com/handsontable/handsontable/issues/8107)
+- Data stored by the NestedRows plugin won't be corrupted by some actions [#8180](https://github.com/handsontable/handsontable/issues/8180)
+- Collapsed parents won't be expanded after inserting rows [#8181](https://github.com/handsontable/handsontable/issues/8181)
+- Fixed cooperation of drop-down menu and column sorting (closing menu on click) [#8232](https://github.com/handsontable/handsontable/issues/8232)
+- Data won't be corrupted anymore when there are performed some alterations [#8614](https://github.com/handsontable/handsontable/issues/8614)
+- Adjusted directories and files related to `dataMap` to prevent potential circular references. [#8704](https://github.com/handsontable/handsontable/issues/8704)
+
 ## [9.0.2] - 2021-07-28
 
 ### Fixed
