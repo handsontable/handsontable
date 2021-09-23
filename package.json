@@ -97,7 +97,7 @@
     "pikaday": "1.8.0"
   },
   "optionalDependencies": {
-    "hyperformula": "^1.1.0"
+    "hyperformula": "^1.2.0"
   },
   "devDependencies": {
     "@actions/core": "^1.2.6",
