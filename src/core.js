@@ -1108,10 +1108,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         const col = datamap.propToCol(prop);
         const cellProperties = instance.getCellMeta(row, col);
 
-        if (cellProperties.type === 'numeric' &&
-            typeof newValue === 'string' &&
-            newValue !== '' &&
-            isNumericLike(newValue)) {
+        if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericLike(newValue)) {
           changes[i][3] = getParsedNumber(newValue);
         }
 
