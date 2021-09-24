@@ -37,14 +37,14 @@ const entryDestination = name =>
 const fileExists = p => fs.access(p).then(() => true).catch(() => false);
 
 const stringifyChangelogEntryObject = ({ title, issue, framework, breaking }) => {
-  const breakingFragment = breaking ? '**Breaking change** ' : '';
+  const breakingFragment = breaking ? '(**Breaking change**)' : '';
 
   const frameworkFragment = framework === 'none' ? '' : `*${uppercaseFirstLetter(framework)}:* `;
 
   const issueLinkFragment =
     `[#${issue}](https://github.com/handsontable/handsontable/issues/${issue})`;
 
-  return `${breakingFragment}${frameworkFragment}${title} ${issueLinkFragment}`;
+  return `${frameworkFragment}${title} ${issueLinkFragment} ${breakingFragment}`;
 };
 
 const extractNumberFromString = (s) => {
