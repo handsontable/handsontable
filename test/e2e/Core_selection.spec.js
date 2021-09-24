@@ -1676,6 +1676,8 @@ describe('Core_selection', () => {
   it('selection should move down throughout the table when the last row is hidden', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
+      autoWrapCol: true,
+      autoWrapRow: true,
       hiddenRows: {
         rows: [2]
       }
@@ -1692,6 +1694,8 @@ describe('Core_selection', () => {
   it('selection should move to the right throughout the table when the last column is hidden', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
+      autoWrapCol: true,
+      autoWrapRow: true,
       hiddenColumns: {
         columns: [2]
       }
@@ -2931,7 +2935,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([0, 0, 0, 0, jasmine.any(Object), 0]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([0, 0, 20, 15, jasmine.any(Object), 0]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 0, 20, 15, 0, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 0, 20, 15, 0]);
 
       keyDown('ctrl');
       hooks.afterSelection.calls.reset();
@@ -2945,7 +2949,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([1, 1, 1, 1, jasmine.any(Object), 1]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([1, 1, 19, 16, jasmine.any(Object), 1]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([1, 1, 19, 16, 1, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([1, 1, 19, 16, 1]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2958,7 +2962,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([2, 2, 2, 2, jasmine.any(Object), 2]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([2, 2, 18, 17, jasmine.any(Object), 2]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([2, 2, 18, 17, 2, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([2, 2, 18, 17, 2]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2971,7 +2975,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([3, 3, 3, 3, jasmine.any(Object), 3]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([3, 3, 17, 18, jasmine.any(Object), 3]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([3, 3, 17, 18, 3, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([3, 3, 17, 18, 3]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2984,7 +2988,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([4, 4, 4, 4, jasmine.any(Object), 4]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([4, 4, 16, 19, jasmine.any(Object), 4]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([4, 4, 16, 19, 4, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([4, 4, 16, 19, 4]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -2997,7 +3001,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([5, 5, 5, 5, jasmine.any(Object), 5]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([5, 5, 15, 20, jasmine.any(Object), 5]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([5, 5, 15, 20, 5, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([5, 5, 15, 20, 5]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -3010,7 +3014,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([6, 6, 6, 6, jasmine.any(Object), 6]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([6, 6, 14, 21, jasmine.any(Object), 6]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([6, 6, 14, 21, 6, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([6, 6, 14, 21, 6]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -3023,7 +3027,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([7, 7, 7, 7, jasmine.any(Object), 7]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([7, 7, 13, 22, jasmine.any(Object), 7]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([7, 7, 13, 22, 7, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([7, 7, 13, 22, 7]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -3036,7 +3040,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([8, 8, 8, 8, jasmine.any(Object), 8]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([8, 8, 12, 23, jasmine.any(Object), 8]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([8, 8, 12, 23, 8, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([8, 8, 12, 23, 8]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -3049,7 +3053,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([9, 9, 9, 9, jasmine.any(Object), 9]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([9, 9, 11, 24, jasmine.any(Object), 9]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([9, 9, 11, 24, 9, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([9, 9, 11, 24, 9]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -3062,7 +3066,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([10, 10, 10, 10, jasmine.any(Object), 10]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([10, 10, 10, 25, jasmine.any(Object), 10]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([10, 10, 10, 25, 10, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([10, 10, 10, 25, 10]);
     });
 
     it('should call afterSelectionByProp and afterSelectionEndByProp hooks with proper arguments', () => {
@@ -3083,7 +3087,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([0, 'prop0', 0, 'prop0', jasmine.any(Object), 0]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([0, 'prop0', 20, 'prop15', jasmine.any(Object), 0]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 'prop0', 20, 'prop15', 0, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 'prop0', 20, 'prop15', 0]);
 
       keyDown('ctrl');
       hooks.afterSelection.calls.reset();
@@ -3097,7 +3101,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([1, 'prop1', 1, 'prop1', jasmine.any(Object), 1]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([1, 'prop1', 19, 'prop16', jasmine.any(Object), 1]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([1, 'prop1', 19, 'prop16', 1, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([1, 'prop1', 19, 'prop16', 1]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -3110,7 +3114,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([2, 'prop2', 2, 'prop2', jasmine.any(Object), 2]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([2, 'prop2', 18, 'prop17', jasmine.any(Object), 2]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([2, 'prop2', 18, 'prop17', 2, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([2, 'prop2', 18, 'prop17', 2]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -3123,7 +3127,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([3, 'prop3', 3, 'prop3', jasmine.any(Object), 3]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([3, 'prop3', 17, 'prop18', jasmine.any(Object), 3]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([3, 'prop3', 17, 'prop18', 3, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([3, 'prop3', 17, 'prop18', 3]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -3136,7 +3140,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([4, 'prop4', 4, 'prop4', jasmine.any(Object), 4]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([4, 'prop4', 16, 'prop19', jasmine.any(Object), 4]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([4, 'prop4', 16, 'prop19', 4, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([4, 'prop4', 16, 'prop19', 4]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -3149,7 +3153,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([5, 'prop5', 5, 'prop5', jasmine.any(Object), 5]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([5, 'prop5', 15, 'prop20', jasmine.any(Object), 5]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([5, 'prop5', 15, 'prop20', 5, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([5, 'prop5', 15, 'prop20', 5]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -3162,7 +3166,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([6, 'prop6', 6, 'prop6', jasmine.any(Object), 6]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([6, 'prop6', 14, 'prop21', jasmine.any(Object), 6]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([6, 'prop6', 14, 'prop21', 6, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([6, 'prop6', 14, 'prop21', 6]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -3175,7 +3179,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([7, 'prop7', 7, 'prop7', jasmine.any(Object), 7]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([7, 'prop7', 13, 'prop22', jasmine.any(Object), 7]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([7, 'prop7', 13, 'prop22', 7, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([7, 'prop7', 13, 'prop22', 7]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -3188,7 +3192,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([8, 'prop8', 8, 'prop8', jasmine.any(Object), 8]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([8, 'prop8', 12, 'prop23', jasmine.any(Object), 8]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([8, 'prop8', 12, 'prop23', 8, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([8, 'prop8', 12, 'prop23', 8]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -3201,7 +3205,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([9, 'prop9', 9, 'prop9', jasmine.any(Object), 9]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([9, 'prop9', 11, 'prop24', jasmine.any(Object), 9]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([9, 'prop9', 11, 'prop24', 9, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([9, 'prop9', 11, 'prop24', 9]);
 
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
@@ -3214,7 +3218,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([10, 'prop10', 10, 'prop10', jasmine.any(Object), 10]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([10, 'prop10', 10, 'prop25', jasmine.any(Object), 10]);
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
-      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([10, 'prop10', 10, 'prop25', 10, void 0]);
+      expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([10, 'prop10', 10, 'prop25', 10]);
     });
   });
 

@@ -29,6 +29,7 @@ const hot = new Handsontable(container, {
     { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
   ],
   colHeaders: ['Car model', 'Year of manufacture', 'Available'],
+  height: 'auto',
   columns: [
     {
       data: 'car'
@@ -64,6 +65,7 @@ const hot = new Handsontable(container, {
     { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
   ],
   colHeaders: ['Car model', 'Year of manufacture', 'Comes in black'],
+  height: 'auto',
   columns: [
     {
       data: 'car'
@@ -101,6 +103,7 @@ const hot = new Handsontable(container, {
     { car: 'BMW 320i Coupe', year: 2021, available: false, comesInBlack: 'no' }
   ],
   colHeaders: ['Car model', 'Accepted', 'Comes in black'],
+  height: 'auto',
   columns: [
     {
       data: 'car'

@@ -47,9 +47,9 @@ canonicalUrl: /third-party-licenses
     License: Open source (Apache 2.0)<br>
     [https://github.com/cure53/DOMPurify](https://github.com/cure53/DOMPurify)
 
-### Dependencies of the formula calculation plugin
+### Dependencies of the [`Formulas`](@/api/formulas.md) plugin
 
-The below dependencies apply only if you use the new formula calculation plugin.
+The dependencies below apply only if you use the [`Formulas`](@/api/formulas.md) [calculation plugin](@/guides/formulas/formula-calculation.md):
 
 - **bessel**<br>
     Author: SheetJS<br>

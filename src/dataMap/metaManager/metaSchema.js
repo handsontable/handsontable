@@ -7,7 +7,7 @@ import { isObjectEqual } from '../../helpers/object';
  * @class Options
  * @description
  *
- * Handsontable provides many options to choose from. They come either from the [Core](core) features or [plugins hooks](hooks).
+ * Handsontable provides many options to choose from. They come either from the {@link Core} features or {@link Hooks}.
  *
  * You can pass options in an object iteral notation (a comma-separated list of name-value pairs wrapped in curly braces) as a second argument of the Handsontable constructor.
  *
@@ -296,7 +296,7 @@ export default () => {
      *
      * An `undefined` value is for detection in {@link Hooks#modifyColWidth} hook if plugin or setting changed the default size.
      *
-     * Note: This option will forcely disable {@link auto-column-size AutoColumnSize} plugin.
+     * Note: This option will forcely disable {@link AutoColumnSize} plugin.
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -327,7 +327,7 @@ export default () => {
      * (if you want to define row height separately for each row) or a function (if you want to set row height dynamically
      * on each render).
      *
-     * If the {@link manual-row-resize ManualRowResize} or {@link auto-row-size AutoRowSize} plugins are enabled, this is also the minimum height that can
+     * If the {@link ManualRowResize} or {@link AutoRowSize} plugins are enabled, this is also the minimum height that can
      * be set via either of those two plugins.
      *
      * The default height for rows in the rendering process equals 23px.
@@ -461,7 +461,7 @@ export default () => {
 
     /**
      * @description
-     * If `true`, enables the {@link comments Comments} plugin, which enables an option to apply cell comments through the context menu
+     * If `true`, enables the {@link Comments} plugin, which enables an option to apply cell comments through the context menu
      * (configurable with context menu keys `commentsAddEdit`, `commentsRemove`).
      *
      * To initialize Handsontable with predefined comments, provide cell coordinates and comment text values in a form of
@@ -501,7 +501,7 @@ export default () => {
 
     /**
      * @description
-     * If `true`, enables the {@link custom-borders CustomBorders} plugin, which enables an option to apply custom borders through the context
+     * If `true`, enables the {@link CustomBorders} plugin, which enables an option to apply custom borders through the context
      * menu (configurable with context menu key `borders`). To initialize Handsontable with predefined custom borders,
      * provide cell coordinates and border styles in a form of an array.
      *
@@ -631,8 +631,14 @@ export default () => {
     maxCols: Infinity,
 
     /**
-     * When set to 1 (or more), Handsontable will add a new row at the end of grid if there are no more empty rows.
-     * (unless the number of rows exceeds the one set in the `maxRows` property).
+     * When set to an integer of more than `0`, appends the set number of empty rows
+     * to the bottom of your table.
+     *
+     * `minSpareRows` sets a minimum number of empty rows,
+     * so if there already are other empty rows at the bottom of your table,
+     * they are counted into the number set in `minSpareRows`.
+     *
+     * The total number of rows can't exceed the number set in `maxRows`.
      *
      * @memberof Options#
      * @type {number}
@@ -648,8 +654,17 @@ export default () => {
     minSpareRows: 0,
 
     /**
-     * When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns.
-     * (unless the number of rows exceeds the one set in the `maxCols` property).
+     * When set to an integer of more than `0`, appends the set number of empty columns
+     * to the right-hand end of your table.
+     *
+     * `minSpareCols` sets a minimum number of empty columns,
+     * so if there already are other empty columns at the right-hand end of your table,
+     * they are counted into the number set in `minSpareCols`.
+     *
+     * The total number of columns can't exceed the number set in `maxCols`.
+     *
+     * `minSpareCols` works only when your table data is an array of arrays
+     * (it doesn't work when your table data is an array of objects).
      *
      * @memberof Options#
      * @type {number}
@@ -927,36 +942,40 @@ export default () => {
     tabMoves: { row: 0, col: 1 },
 
     /**
-     * If `true`, pressing <kbd>TAB</kbd> or right arrow in the last column will move to first column in next row.
+     * If set to `true`: when you use keyboard navigation,
+     * and you cross the grid's left or right edge,
+     * cell selection jumps to the opposite edge.
      *
      * @memberof Options#
      * @type {boolean}
-     * @default true
+     * @default false
      * @category Core
      *
      * @example
      * ```js
-     * // stop TAB key navigation on the last column
-     * autoWrapRow: false,
+     * // enable jumping across the grid's vertical edges
+     * autoWrapRow: true,
      * ```
      */
-    autoWrapRow: true,
+    autoWrapRow: false,
 
     /**
-     * If `true`, pressing <kbd>ENTER</kbd> or down arrow in the last row will move to the first row in the next column.
+     * If set to `true`: when you use keyboard navigation,
+     * and you cross the grid's top or bottom edge,
+     * cell selection jumps to the grid's opposite edge.
      *
      * @memberof Options#
      * @type {boolean}
-     * @default true
+     * @default false
      * @category Core
      *
      * @example
      * ```js
-     * // stop ENTER key navigation on the last row
-     * autoWrapCol: false,
+     * // enable jumping across the grid's horizontal edges
+     * autoWrapCol: true,
      * ```
      */
-    autoWrapCol: true,
+    autoWrapCol: false,
 
     /**
      * @description
@@ -1489,20 +1508,20 @@ export default () => {
 
     /**
      * @description
-     * Setting to `true` enables the {@link search Search} plugin (see [demo](@/guides/accessories-and-menus/searching-values.md)).
+     * If set to `true`, enables the {@link Search} plugin with a default configuration.
+     * If set to an object, enables the {@link Search} plugin with a custom configuration.
+     * See the guide on [how to search values in Handsontable](@/guides/accessories-and-menus/searching-values.md).
      *
      * @memberof Options#
-     * @type {boolean}
+     * @type {boolean|object}
      * @default false
      * @category Search
      *
      * @example
      * ```js
-     * // enable search plugin
+     * // set to `true`, to enable the Search plugin with a default configuration
      * search: true,
-     *
-     * // or
-     * // as an object with detailed configuration
+     * // or set to an object, to enable the Search plugin with a custom configuration
      * search: {
      *   searchResultClass: 'customClass',
      *   queryMethod: function(queryStr, value) {
@@ -1512,6 +1531,9 @@ export default () => {
      *     ...
      *   }
      * }
+     *
+     * // set to `false, to disable the Search plugin
+     * search: false,
      * ```
      */
     search: false,
@@ -1827,7 +1849,7 @@ export default () => {
      * * `headerAction` - allow to click on the headers to sort
      *   * `true` = turn on possibility to click on the headers to sort
      *   * `false` = turn off possibility to click on the headers to sort
-     * * `sortEmptyCells` - how empty values ([more information here](options#allowempty)) should be handled
+     * * `sortEmptyCells` - how empty values should be handled, for more information see @{link Options#allowEmpty}
      *   * `true` = the table sorts empty cells
      *   * `false` = the table moves all empty cells to the end of the table
      * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
@@ -1988,7 +2010,7 @@ export default () => {
      * * `headerAction` - allow to click on the headers to sort
      *   * `true` = turn on possibility to click on the headers to sort
      *   * `false` = turn off possibility to click on the headers to sort
-     * * `sortEmptyCells` - how empty values ([more information here](options#allowempty)) should be handled
+     * * `sortEmptyCells` - how empty values should be handled, for more information see @{link Options#allowEmpty}
      *   * `true` = the table sorts empty cells
      *   * `false` = the table moves all empty cells to the end of the table
      * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
@@ -2143,7 +2165,7 @@ export default () => {
     disableVisualSelection: false,
 
     /**
-     * Disables or enables {@link manual-column-freeze ManualColumnFreeze} plugin.
+     * Disables or enables {@link ManualColumnFreeze} plugin.
      *
      * @memberof Options#
      * @type {boolean}
@@ -2358,7 +2380,7 @@ export default () => {
      * __Note__, this option only works for [select-typed](@/guides/cell-types/select-cell-type.md) cells.
      *
      * @memberof Options#
-     * @type {string[]}
+     * @type {string[]|object|Function}
      * @default undefined
      * @category Core
      *
@@ -2367,8 +2389,26 @@ export default () => {
      * columns: [
      *   {
      *     editor: 'select',
-     *     // add three select options to choose from
+     *     // as an array of strings: `option.value` and `option.textContent` use the same value
      *     selectOptions: ['A', 'B', 'C'],
+     *     // as an object: `option.value` appoints a key, and `option.textContent` contains a string assigned to the key
+     *     selectOptions: {
+     *       value1: 'Label 1',
+     *       value2: 'Label 2',
+     *       value3: 'Label 3',
+     *     },
+     *     // as a function that returns possible options as an array
+     *     selectOptions(visualRow, visualColumn, prop) {
+     *       return ['A', 'B', 'C'];
+     *     },
+     *     // as a function that returns possible options as an object
+     *     selectOptions(visualRow, visualColumn, prop) {
+     *       return {
+     *         value1: 'Label 1',
+     *         value2: 'Label 2',
+     *         value3: 'Label 3',
+     *       };
+     *     },
      *   }
      * ],
      * ```
@@ -2376,7 +2416,7 @@ export default () => {
     selectOptions: void 0,
 
     /**
-     * Enables or disables the {@link auto-column-size AutoColumnSize} plugin. Default value `undefined`
+     * Enables or disables the {@link AutoColumnSize} plugin. Default value `undefined`
      * is an equivalent of `true`, sets `syncLimit` to 50.
      * Disabling this plugin can increase performance, as no size-related calculations would be done.
      * To disable plugin it's necessary to set `false`.
@@ -2389,7 +2429,7 @@ export default () => {
      *
      * You can also use the `useHeaders` option to take the column headers width into calculation.
      *
-     * Note: Using {@link core#colwidths Core#colWidths} option will forcibly disable {@link auto-column-size AutoColumnSize}.
+     * Note: Using {@link Core#colWidths} option will forcibly disable {@link AutoColumnSize}.
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -2417,7 +2457,7 @@ export default () => {
     autoColumnSize: void 0,
 
     /**
-     * Enables or disables {@link auto-row-size AutoRowSize} plugin. Default value is `undefined`, which has the same effect as `false`
+     * Enables or disables {@link AutoRowSize} plugin. Default value is `undefined`, which has the same effect as `false`
      * (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
      *
      * __Note:__ the default `syncLimit` value is set to 500 when the plugin is manually enabled by declaring it as: `autoRowSize: true`.
@@ -2613,7 +2653,7 @@ export default () => {
 
     /**
      * @description
-     * Enables the functionality of the {@link bind-rows-with-headers BindRowsWithHeaders} plugin which allows binding the table rows with their headers.
+     * Enables the functionality of the {@link BindRowsWithHeaders} plugin which allows binding the table rows with their headers.
      * If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,
      * if at the initialization row 0 has a header titled "A", it will have it no matter what you do with the table.
      *
@@ -2632,7 +2672,7 @@ export default () => {
 
     /**
      * @description
-     * The {@link collapsible-columns CollapsibleColumns} plugin allows collapsing of columns, covered by a header with the `colspan` property
+     * The {@link CollapsibleColumns} plugin allows collapsing of columns, covered by a header with the `colspan` property
      * defined.
      *
      * Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
@@ -2665,17 +2705,26 @@ export default () => {
 
     /**
      * @description
-     * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
+     * The `ColumnSummary` plugin lets you [easily summarize your columns](@/guides/columns/column-summary.md).
      *
-     * Possible types:
-     *  * `'sum'`
-     *  * `'min'`
-     *  * `'max'`
-     *  * `'count'`
-     *  * `'average'`
-     *  * `'custom'` - add `customFunction`.
+     * You can use the [built-in summary functions](@/guides/columns/column-summary.md#built-in-summary-functions),
+     * or implement a [custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function).
      *
-     * [See the demo for more information](@/guides/columns/column-summary.md).
+     * For each column summary, you can set the following configuration options:
+     *
+     * | Option | Required | Type | Default | Description |
+     * |---|---|---|---|---|
+     * | `sourceColumn` | No | Number | Same as `destinationColumn` | [Selects a column to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+     * | `ranges` | No | Array | - | [Selects ranges of rows to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+     * | `type` | Yes | String | - | [Sets a summary function](@/guides/columns/column-summary.md#step-3-calculate-your-summary) |
+     * | `destinationRow` | Yes | Number | - | [Sets the destination cell's row coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+     * | `destinationColumn` | Yes | Number | - | [Sets the destination cell's column coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+     * | `forceNumeric` | No | Boolean | `false` | [Forces the summary to treat non-numerics as numerics](@/guides/columns/column-summary.md#forcing-numeric-values) |
+     * | `reversedRowCoords` | No | Boolean | `false` | [Reverses row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell) |
+     * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary.md#throwing-data-type-errors) |
+     * | `readOnly` | No | Boolean | `true` | Makes summary cell read-only |
+     * | `roundFloat` | No | Number | - | [Rounds summary result](@/guides/columns/column-summary.md#rounding-a-column-summary-result) |
+     * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function) |
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -2686,6 +2735,11 @@ export default () => {
      * ```js
      * columnSummary: [
      *   {
+     *     sourceColumn: 0,
+     *     ranges: [
+     *       [0, 2], [4], [6, 8]
+     *     ],
+     *     type: 'custom',
      *     destinationRow: 4,
      *     destinationColumn: 1,
      *     forceNumeric: true,
@@ -2693,8 +2747,7 @@ export default () => {
      *     suppressDataTypeErrors: false,
      *     readOnly: true,
      *     roundFloat: false,
-     *     type: 'custom',
-     *     customFunction: function(endpoint) {
+     *     customFunction(endpoint) {
      *        return 100;
      *     }
      *   }
@@ -2705,7 +2758,7 @@ export default () => {
 
     /**
      * This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
-     * the {@link options#contextmenu Options#contextMenu}, but is triggered by clicking the button in the header.
+     * the {@link Options#contextMenu}, but is triggered by clicking the button in the header.
      *
      * @memberof Options#
      * @type {boolean|object|string[]}
@@ -2725,7 +2778,7 @@ export default () => {
     dropdownMenu: void 0,
 
     /**
-     * The {@link filters Filters} plugin allows filtering the table data either by the built-in component or with the API.
+     * The {@link Filters} plugin allows filtering the table data either by the built-in component or with the API.
      *
      * @memberof Options#
      * @type {boolean}
@@ -2741,34 +2794,55 @@ export default () => {
     filters: void 0,
 
     /**
-     * The {@link formulas Formulas} plugin allows Handsontable to process formula expressions defined in the provided data.
+     * The {@link Formulas} plugin allows Handsontable to process formula expressions defined in the provided data.
      *
      * @memberof Options#
-     * @type {boolean|object}
+     * @type {object}
      * @default undefined
      * @category Formulas
      *
      * @example
      * ```js
-     * // enable formulas plugin
-     * formulas: true,
-     *
-     * // or as an object with custom variables to be used in formula expressions
+     * // in Handsontable's `formulas` configuration option, add the `HyperFormula` class
      * formulas: {
-     *   variables: {
-     *     FOO: 64,
-     *     BAR: 'baz',
-     *   }
-     * },
+     *   engine: HyperFormula,
+     *   // the `Formulas` plugin configuration
+     * }
+     *
+     * // or, add a HyperFormula instance
+     * const hyperformulaInstance = HyperFormula.buildEmpty({})
+     *
+     * formulas: {
+     *   engine: hyperformulaInstance,
+     *   // the `Formulas` plugin configuration
+     * }
+     *
+     * // use the same HyperFormula instance in multiple Handsontable instances
+     *
+     * // a Handsontable instance `hot1`
+     * formulas: {
+     *   engine: HyperFormula,
+     *   // the `Formulas` plugin configuration
+     * }
+     *
+     * // a Handsontable instance `hot2`
+     * formulas: {
+     *   engine: hot1.getPlugin('formulas').engine,
+     *   // the `Formulas` plugin configuration
+     * }
      * ```
      */
     formulas: void 0,
 
     /**
-     * The {@link hidden-columns HiddenColumns} plugin allows hiding of certain columns. You can pass additional configuration with an
-     * object notation. Options that are then available are:
-     *  * `columns` - an array of rows that should be hidden on plugin initialization
-     *  * `indicators` - enables small ui markers to indicate where are hidden columns.
+     * The `hiddenColumns` option enables and configures the {@link HiddenColumns} plugin.
+     *
+     * To enable the `HiddenColumns` plugin, set the `hiddenColumns` option to `true`.
+     *
+     * To enable the `HiddenColumns` plugin and configure its settings, set the `hiddenColumns` option to an object with the following properties:
+     *  * `columns`: An array of indexes of columns that are hidden on plugin initialization.
+     *  * `copyPasteEnabled`: When set to `true`, takes hidden columns into account when copying or pasting data.
+     *  * `indicators`: When set to `true`, displays UI markers to indicate the presence of hidden columns.
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -2777,14 +2851,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable column hiding
+     * // enable the `HiddenColumns` plugin
      * hiddenColumns: true,
      *
-     * // or
+     * // or enable `HiddenColumns` plugin, and configure its settings
      * hiddenColumns: {
      *   // set columns that are hidden by default
      *   columns: [5, 10, 15],
-     *   // show where are hidden columns
+     *   // take hidden columns into account when copying or pasting
+     *   copyPasteEnabled: true,
+     *   // show where hidden columns are
      *   indicators: true
      * }
      * ```
@@ -2792,10 +2868,14 @@ export default () => {
     hiddenColumns: void 0,
 
     /**
-     * The {@link hidden-rows HiddenRows} plugin allows hiding of certain rows. You can pass additional configuration with an
-     * object notation. Options that are then available are:
-     *  * `rows` - an array of rows that should be hidden on plugin initialization
-     *  * `indicators` - enables small ui markers to indicate where are hidden columns.
+     * The `hiddenRows` option enables and configures the {@link HiddenRows} plugin.
+     *
+     * To enable the `HiddenRows` plugin, set the `hiddenRows` option to `true`.
+     *
+     * To enable the `HiddenRows` plugin and configure its settings, set the `hiddenRows` option to an object with the following properties:
+     *  * `rows`: An array of indexes of rows that are hidden on plugin initialization.
+     *  * `copyPasteEnabled`: When set to `true`, takes hidden rows into account when copying or pasting data.
+     *  * `indicators`: When set to `true`, displays UI markers to indicate the presence of hidden rows.
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -2804,14 +2884,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable row hiding
+     * // enable the `HiddenRows` plugin
      * hiddenRows: true,
      *
-     * // or
+     * // or enable `HiddenRows` plugin, and configure its settings
      * hiddenRows: {
      *   // set rows that are hidden by default
      *   rows: [5, 10, 15],
-     *   // show where are hidden rows
+     *   // take hidden rows into account when copying or pasting
+     *   copyPasteEnabled: true,
+     *   // show where hidden rows are
      *   indicators: true
      * }
      * ```
@@ -2984,7 +3066,7 @@ export default () => {
 
     /**
      * @description
-     * Disables or enables the {@link drag-to-scroll drag to scroll} functionality.
+     * Disables or enables the {@link DragToScroll} functionality.
      * @memberof Options#
      * @type {boolean}
      * @default true

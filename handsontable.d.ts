@@ -168,6 +168,7 @@ declare namespace Handsontable {
    */
   type CellValue = any;
 
+
   /**
    * A cell change represented by `[row, column, prevValue, nextValue]`.
    */
@@ -178,6 +179,11 @@ declare namespace Handsontable {
    * Row objects can have any data assigned to them, not just column data, and can define a `__children` array for nested rows.
    */
   type RowObject = { [prop: string]: any };
+
+  /**
+   * An object containing possible options to use in SelectEditor.
+   */
+  type SelectOptionsObject = { [prop: string]: string };
 
   /**
    * A single row of source data, which can be represented as an array of values, or an object with key/value pairs.
@@ -1696,7 +1702,7 @@ declare namespace Handsontable {
     rowHeights?: number | string | number[] | string[] | undefined[] | (number | string | undefined)[] | ((index: number) => string | number | undefined);
     search?: boolean | search.Settings;
     selectionMode?: 'single' | 'range' | 'multiple';
-    selectOptions?: string[];
+    selectOptions?: string[] | SelectOptionsObject | ((visualRow: number, visualColumn: number, prop: string | number) => string[] | SelectOptionsObject);
     skipColumnOnPaste?: boolean;
     skipRowOnPaste?: boolean;
     sortByRelevance?: boolean;
@@ -1813,8 +1819,8 @@ declare namespace Handsontable {
       afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
       afterSetSourceDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
       afterSheetAdded?: (addedSheetDisplayName: string) => void;
-      afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
       afterSheetRemoved?: (removedSheetDisplayName: string, changes: object[]) => void;
+      afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
       afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUndo?: (action: plugins.UndoRedoAction) => void;
       afterUndoStackChange?: (doneActionsBefore: plugins.UndoRedoAction[], doneActionsAfter: plugins.UndoRedoAction[]) => void;
@@ -1827,6 +1833,7 @@ declare namespace Handsontable {
       afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number, source: ChangeSource) => void | boolean;
       afterViewportColumnCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
       afterViewportRowCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
+      afterViewRender?: (isForced: boolean) => void;
       beforeAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
       beforeAutofill?: (selectionData: CellValue[][], sourceRange: wot.CellRange, targetRange: wot.CellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | boolean | void;
       beforeAutofillInsidePopulate?: (index: wot.CellCoords, direction: 'up' | 'down' | 'left' | 'right', input: CellValue[][], deltas: any[]) => void;
@@ -1864,7 +1871,7 @@ declare namespace Handsontable {
       beforeOnCellMouseDown?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
       beforeOnCellMouseOut?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
       beforeOnCellMouseOver?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
-      beforeOnCellMouseUp?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
+      beforeOnCellMouseUp?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
       beforePaste?: (data: CellValue[][], coords: plugins.RangeType[]) => void | boolean;
       beforeRedo?: (action: plugins.UndoRedoAction) => void;
       beforeRedoStackChange?: (undoneActions: plugins.UndoRedoAction[]) => void;
@@ -1873,7 +1880,7 @@ declare namespace Handsontable {
       beforeRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
       beforeRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
       beforeRemoveRow?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
-      beforeRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
+      beforeRender?: (isForced: boolean) => void;
       beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
       beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | void, movePossible: boolean) => void;
       beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
@@ -1892,6 +1899,7 @@ declare namespace Handsontable {
       beforeUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void | boolean;
       beforeValidate?: (value: CellValue, row: number, prop: string | number, source?: ChangeSource) => void;
       beforeValueRender?: (value: CellValue, cellProperties: CellProperties) => void;
+      beforeViewRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
       construct?: () => void;
       init?: () => void;
       modifyAutoColumnSizeSeed?: (seed: string, cellProperties: CellProperties, cellValue: CellValue) => string | void;
@@ -1974,7 +1982,7 @@ declare namespace Handsontable {
   interface SelectionController {
     row: boolean;
     column: boolean;
-    cells: boolean;
+    cell: boolean;
   }
 
   namespace RecordTranslation {

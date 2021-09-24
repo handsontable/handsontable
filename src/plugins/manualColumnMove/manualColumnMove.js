@@ -25,7 +25,7 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
  * @class ManualColumnMove
  *
  * @description
- * This plugin allows to change columns order. To make columns order persistent the {@link options#persistentstate Options#persistentState}
+ * This plugin allows to change columns order. To make columns order persistent the {@link Options#persistentState}
  * plugin should be enabled.
  *
  * API:
@@ -98,8 +98,8 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link hooks#beforeInit Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link manual-column-move#enableplugin ManualColumnMove#enablePlugin} method is called.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ManualColumnMove#enablePlugin} method is called.
    *
    * @returns {boolean}
    */
@@ -115,10 +115,8 @@ export class ManualColumnMove extends BasePlugin {
       return;
     }
 
-    this.addHook('beforeOnCellMouseDown',
-      (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
-    this.addHook('beforeOnCellMouseOver',
-      (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
+    this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
+    this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('afterScrollVertically', () => this.onAfterScrollVertically());
     this.addHook('afterLoadData', () => this.onAfterLoadData());
 
@@ -132,7 +130,7 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link core#updatesettings Core#updateSettings} is invoked.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -355,7 +353,7 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Saves the manual column positions to the persistent state (the {@link options#persistentstate Options#persistentState} option has to be enabled).
+   * Saves the manual column positions to the persistent state (the {@link Options#persistentState} option has to be enabled).
    *
    * @private
    * @fires Hooks#persistentStateSave
@@ -365,7 +363,7 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Loads the manual column positions from the persistent state (the {@link options#persistentstate Options#persistentState} option has to be enabled).
+   * Loads the manual column positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
    *
    * @private
    * @fires Hooks#persistentStateLoad
@@ -521,9 +519,10 @@ export class ManualColumnMove extends BasePlugin {
    * @param {MouseEvent} event `mousedown` event properties.
    * @param {CellCoords} coords Visual cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
-   * @param {object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
+  onBeforeOnCellMouseDown(event, coords, TD, controller) {
     const wtTable = this.hot.view.wt.wtTable;
     const isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
     const selection = this.hot.getSelectedRangeLast();
@@ -552,7 +551,7 @@ export class ManualColumnMove extends BasePlugin {
     const end = Math.max(from.col, to.col);
 
     if (coords.row < 0 && (coords.col >= start && coords.col <= end)) {
-      blockCalculations.column = true;
+      controller.column = true;
       priv.pressed = true;
       priv.target.eventPageX = event.pageX;
       priv.coords = coords.col;
@@ -621,9 +620,10 @@ export class ManualColumnMove extends BasePlugin {
    * @param {MouseEvent} event `mouseover` event properties.
    * @param {CellCoords} coords Visual cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
-   * @param {object} blockCalculations Object which contains information about blockCalculation for column, column or cells.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
+  onBeforeOnCellMouseOver(event, coords, TD, controller) {
     const selectedRange = this.hot.getSelectedRangeLast();
     const priv = privatePool.get(this);
 
@@ -638,9 +638,9 @@ export class ManualColumnMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_SHOW_UI);
     }
 
-    blockCalculations.row = true;
-    blockCalculations.column = true;
-    blockCalculations.cell = true;
+    controller.row = true;
+    controller.column = true;
+    controller.cell = true;
     priv.coords = coords.col;
     priv.target.TD = TD;
   }

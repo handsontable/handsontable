@@ -412,8 +412,6 @@ describe('AutoFill', () => {
           new CellCoords(targetRange.to.row, targetRange.to.col),
         ),
         direction,
-        undefined,
-        undefined
       );
     });
 
@@ -561,7 +559,6 @@ describe('AutoFill', () => {
     };
 
     const direction = 'down';
-    const hasFillDataChanged = false;
 
     expect(afterAutofill).toHaveBeenCalledWith(
       fillData,
@@ -576,8 +573,6 @@ describe('AutoFill', () => {
         new CellCoords(targetRange.to.row, targetRange.to.col),
       ),
       direction,
-      hasFillDataChanged,
-      undefined
     );
   });
 
@@ -636,7 +631,6 @@ describe('AutoFill', () => {
     };
 
     const direction = 'down';
-    const hasFillDataChanged = true;
 
     expect(afterAutofill).toHaveBeenCalledWith(
       fillData,
@@ -651,8 +645,6 @@ describe('AutoFill', () => {
         new CellCoords(targetRange.to.row, targetRange.to.col),
       ),
       direction,
-      hasFillDataChanged,
-      undefined
     );
   });
 

@@ -161,7 +161,7 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[false], [true], [true]]);
     expect(afterChangeCallback.calls.count()).toEqual(1);
     expect(afterChangeCallback)
-      .toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
+      .toHaveBeenCalledWith([[0, 0, true, false]], 'edit');
   });
 
   it('should not check single box after hitting space, if cell is readOnly', () => {
@@ -301,7 +301,7 @@ describe('CheckboxRenderer', () => {
       [0, 0, true, false],
       [1, 0, false, true],
       [2, 0, true, false]
-    ], 'edit', undefined, undefined, undefined, undefined);
+    ], 'edit');
   });
 
   it('should reverse checkboxes state after hitting space, when multiple non-contiguous cells are selected', () => {
@@ -402,7 +402,7 @@ describe('CheckboxRenderer', () => {
       [0, 0, true, false],
       [1, 0, false, true],
       [2, 0, true, false]
-    ], 'edit', undefined, undefined, undefined, undefined);
+    ], 'edit');
   });
 
   it('should toggle checkbox even if cell value is in another datatype', () => {
@@ -478,7 +478,7 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[false], [true], [true]]);
     expect(afterChangeCallback.calls.count()).toEqual(1);
     expect(afterChangeCallback)
-      .toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
+      .toHaveBeenCalledWith([[0, 0, true, false]], 'edit');
   });
 
   it('should move down without changing checkbox state when enterBeginsEditing equals false', () => {
@@ -586,7 +586,7 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([['no'], ['yes'], ['no']]);
     expect(afterChangeCallback.calls.count()).toEqual(1);
     expect(afterChangeCallback)
-      .toHaveBeenCalledWith([[0, 0, 'yes', 'no']], 'edit', undefined, undefined, undefined, undefined);
+      .toHaveBeenCalledWith([[0, 0, 'yes', 'no']], 'edit');
   });
 
   it('should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates in numeric format', () => {
@@ -624,7 +624,7 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[0], [1], [0]]);
     expect(afterChangeCallback.calls.count()).toEqual(1);
     expect(afterChangeCallback)
-      .toHaveBeenCalledWith([[0, 0, 1, 0]], 'edit', undefined, undefined, undefined, undefined);
+      .toHaveBeenCalledWith([[0, 0, 1, 0]], 'edit');
   });
 
   it('should change checkbox state to unchecked after hitting DELETE', () => {
@@ -660,7 +660,7 @@ describe('CheckboxRenderer', () => {
 
     expect(afterChangeCallback.calls.count()).toEqual(2);
     expect(afterChangeCallback)
-      .toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
+      .toHaveBeenCalledWith([[0, 0, true, false]], 'edit');
   });
 
   it('should change checkbox notte to unchecked after hitting BACKSPACE', () => {
@@ -696,7 +696,7 @@ describe('CheckboxRenderer', () => {
 
     expect(afterChangeCallback.calls.count()).toEqual(2);
     expect(afterChangeCallback)
-      .toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
+      .toHaveBeenCalledWith([[0, 0, true, false]], 'edit');
   });
 
   it('should change  notkbox state to unchecked after hitting DELETE (from #bad-value# state)', () => {
@@ -725,7 +725,7 @@ describe('CheckboxRenderer', () => {
 
     expect(afterChangeCallback.calls.count()).toEqual(2);
     expect(afterChangeCallback)
-      .toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit', undefined, undefined, undefined, undefined);
+      .toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit');
   });
 
   it('should change checkbox  note to unchecked after hitting BACKSPACE (from #bad-value# state)', () => {
@@ -754,7 +754,7 @@ describe('CheckboxRenderer', () => {
 
     expect(afterChangeCallback.calls.count()).toEqual(2);
     expect(afterChangeCallback)
-      .toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit', undefined, undefined, undefined, undefined);
+      .toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit');
   });
 
   it('should not change checkbox state after hitting other keys then DELETE or BACKSPACE (from #bad-value# state)', () => {
@@ -863,11 +863,11 @@ describe('CheckboxRenderer', () => {
 
     // 2 x 4px padding + 1px border === 9px calculated by the `offsetWidth`
     expect(getCell(0, 0).querySelector('label').offsetWidth).not.toBe(getCell(0, 0).offsetWidth - 9);
-    expect(getCell(0, 1).querySelector('label').offsetWidth).not.toBe(getCell(0, 0).offsetWidth - 9);
-    expect(getCell(0, 2).querySelector('label').offsetWidth).toBe(getCell(0, 0).offsetWidth - 9);
-    expect(getCell(0, 3).querySelector('label').offsetWidth).toBe(getCell(0, 0).offsetWidth - 9);
-    expect(getCell(0, 4).querySelector('label').offsetWidth).toBe(getCell(0, 0).offsetWidth - 9);
-    expect(getCell(0, 5).querySelector('label').offsetWidth).toBe(getCell(0, 0).offsetWidth - 9);
+    expect(getCell(0, 1).querySelector('label').offsetWidth).not.toBe(getCell(0, 1).offsetWidth - 9);
+    expect(getCell(0, 2).querySelector('label').offsetWidth).toBe(getCell(0, 2).offsetWidth - 9);
+    expect(getCell(0, 3).querySelector('label').offsetWidth).toBe(getCell(0, 3).offsetWidth - 9);
+    expect(getCell(0, 4).querySelector('label').offsetWidth).toBe(getCell(0, 4).offsetWidth - 9);
+    expect(getCell(0, 5).querySelector('label').offsetWidth).toBe(getCell(0, 5).offsetWidth - 9);
   });
 
   it('should add label on the beginning of a checkbox element where checkbox and label are separated', () => {

@@ -230,7 +230,7 @@ describe('ContextMenu', () => {
       })[0];
 
       $(changeToReadOnlyButton).simulate('mousedown').simulate('mouseup');
-      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(2, 3, 'readOnly', true, undefined, undefined);
+      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(2, 3, 'readOnly', true);
     });
 
     it('should not change readOnly property to true after changing cell to read only by context menu, if `beforeSetCellMeta` returned false', () => {

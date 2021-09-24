@@ -25,7 +25,7 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * @class ManualRowMove
  *
  * @description
- * This plugin allows to change rows order. To make rows order persistent the {@link options#persistentstate Options#persistentState}
+ * This plugin allows to change rows order. To make rows order persistent the {@link Options#persistentState}
  * plugin should be enabled.
  *
  * API:
@@ -112,10 +112,8 @@ export class ManualRowMove extends BasePlugin {
       return;
     }
 
-    this.addHook('beforeOnCellMouseDown',
-      (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
-    this.addHook('beforeOnCellMouseOver',
-      (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
+    this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
+    this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('afterScrollHorizontally', () => this.onAfterScrollHorizontally());
     this.addHook('afterLoadData', () => this.onAfterLoadData());
 
@@ -357,7 +355,7 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Saves the manual row positions to the persistent state (the {@link options#persistentstate Options#persistentState} option has to be enabled).
+   * Saves the manual row positions to the persistent state (the {@link Options#persistentState} option has to be enabled).
    *
    * @private
    * @fires Hooks#persistentStateSave
@@ -368,7 +366,7 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Loads the manual row positions from the persistent state (the {@link options#persistentstate Options#persistentState} option has to be enabled).
+   * Loads the manual row positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
    *
    * @private
    * @fires Hooks#persistentStateLoad
@@ -519,9 +517,10 @@ export class ManualRowMove extends BasePlugin {
    * @param {MouseEvent} event `mousedown` event properties.
    * @param {CellCoords} coords Visual cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
-   * @param {object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
+  onBeforeOnCellMouseDown(event, coords, TD, controller) {
     const { wtTable, wtViewport } = this.hot.view.wt;
     const isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
     const selection = this.hot.getSelectedRangeLast();
@@ -548,7 +547,7 @@ export class ManualRowMove extends BasePlugin {
     const end = Math.max(from.row, to.row);
 
     if (coords.col < 0 && (coords.row >= start && coords.row <= end)) {
-      blockCalculations.row = true;
+      controller.row = true;
       priv.pressed = true;
       priv.target.eventPageY = event.pageY;
       priv.target.coords = coords;
@@ -607,9 +606,10 @@ export class ManualRowMove extends BasePlugin {
    * @param {MouseEvent} event `mouseover` event properties.
    * @param {CellCoords} coords Visual cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
-   * @param {object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
+  onBeforeOnCellMouseOver(event, coords, TD, controller) {
     const selectedRange = this.hot.getSelectedRangeLast();
     const priv = privatePool.get(this);
 
@@ -624,9 +624,9 @@ export class ManualRowMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_SHOW_UI);
     }
 
-    blockCalculations.row = true;
-    blockCalculations.column = true;
-    blockCalculations.cell = true;
+    controller.row = true;
+    controller.column = true;
+    controller.cell = true;
     priv.target.coords = coords;
     priv.target.TD = TD;
   }

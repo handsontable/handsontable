@@ -1516,7 +1516,7 @@ describe('Filters UI', () => {
     }, 100);
   });
 
-  it('should allow opening the filtering dropdown menu, when there are multiple Handsontable instances present', () => {
+  it('should open dropdown menu properly, when there are multiple Handsontable instances present', () => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -1541,10 +1541,20 @@ describe('Filters UI', () => {
     expect(document.querySelectorAll('.htDropdownMenu').length).toBe(2);
 
     dropdownMenu(1);
-    closeDropdownMenu();
 
     expect(getPlugin('dropdownMenu').menu.container.style.display).toBe('block');
     expect(getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
+    expect(hot2.getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
+    expect(hot2.getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
+
+    $(document.body).simulate('mousedown');
+    $(document.body).simulate('mouseup');
+    $(document.body).simulate('click');
+
+    expect(getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
+    expect(getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
+    expect(hot2.getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
+    expect(hot2.getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
 
     const th = hot2.view.wt.wtTable.getColumnHeader(1);
     const button = th.querySelector('.changeType');
@@ -1553,7 +1563,16 @@ describe('Filters UI', () => {
     $(button).simulate('mouseup');
     $(button).simulate('click');
 
+    expect(getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
+    expect(getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
     expect(hot2.getPlugin('dropdownMenu').menu.container.style.display).toBe('block');
+    expect(hot2.getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
+
+    dropdownMenu(1);
+
+    expect(getPlugin('dropdownMenu').menu.container.style.display).toBe('block');
+    expect(getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
+    expect(hot2.getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
     expect(hot2.getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
 
     hot2.destroy();
@@ -3858,7 +3877,7 @@ describe('Filters UI', () => {
     });
   });
 
-  it('should inherit font family and size from body', () => {
+  it('should not inherit font family and size from body', () => {
     handsontable({
       data: getDataForFilters(),
       colHeaders: true,
@@ -3875,6 +3894,7 @@ describe('Filters UI', () => {
     bodyStyle.fontSize = '24px';
 
     dropdownMenu(0);
+
     const htItemWrapper = document.querySelector('.htItemWrapper');
     const compStyleHtItemWrapper = Handsontable.dom.getComputedStyle(htItemWrapper);
 
@@ -3884,14 +3904,9 @@ describe('Filters UI', () => {
     const htUISelectCaption = document.querySelector('.htUISelectCaption');
     const compStyleHtUISelectCaption = Handsontable.dom.getComputedStyle(htUISelectCaption);
 
-    expect(compStyleHtItemWrapper.fontFamily).toBe('Helvetica');
-    expect(compStyleHtItemWrapper.fontSize).toBe('24px');
-
-    expect(compStyleHtFiltersMenuLabel.fontFamily).toBe('Helvetica');
-    expect(compStyleHtFiltersMenuLabel.fontSize).toBe('18px');
-
-    expect(compStyleHtUISelectCaption.fontFamily).toBe('Helvetica');
-    expect(parseFloat(compStyleHtUISelectCaption.fontSize)).toBeCloseTo(16.8, 2);
+    expect(compStyleHtItemWrapper.fontFamily).not.toBe('Helvetica');
+    expect(compStyleHtFiltersMenuLabel.fontFamily).not.toBe('Helvetica');
+    expect(compStyleHtUISelectCaption.fontFamily).not.toBe('Helvetica');
 
     bodyStyle.fontFamily = fontFamily;
     bodyStyle.fontSize = fontSize;

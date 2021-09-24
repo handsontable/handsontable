@@ -97,7 +97,7 @@ describe('Core_onKeyDown', () => {
       keyDownUp('arrow_right');
       keyDownUp('arrow_right');
       expect(getData()[1][1]).toEqual('Ted');
-      expect(getSelected()).toEqual([[2, 0, 2, 0]]);
+      expect(getSelected()).toEqual([[1, 4, 1, 4]]);
     });
 
     it('should finish editing and advance to left cell when left arrow is pressed', () => {
@@ -113,7 +113,7 @@ describe('Core_onKeyDown', () => {
       keyDownUp('arrow_left');
       keyDownUp('arrow_left');
       expect(getData()[1][1]).toEqual('Ted');
-      expect(getSelected()).toEqual([[0, 1, 0, 1]]);
+      expect(getSelected()).toEqual([[1, 0, 1, 0]]);
     });
 
     it('should finish editing and advance to lower cell when enter is pressed (with sync validator)', (done) => {
