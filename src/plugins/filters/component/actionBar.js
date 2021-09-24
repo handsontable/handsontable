@@ -17,9 +17,11 @@ class ActionBarComponent extends BaseComponent {
   }
 
   constructor(hotInstance, options) {
-    super(hotInstance);
+    super(hotInstance, {
+      id: options.id,
+      stateless: true,
+    });
 
-    this.id = options.id;
     this.name = options.name;
 
     this.elements.push(
@@ -55,7 +57,7 @@ class ActionBarComponent extends BaseComponent {
   /**
    * Get menu object descriptor.
    *
-   * @returns {Object}
+   * @returns {object}
    */
   getMenuItemDescriptor() {
     return {
@@ -94,7 +96,7 @@ class ActionBarComponent extends BaseComponent {
    * On button click listener.
    *
    * @private
-   * @param {Event} event DOM event
+   * @param {Event} event DOM event.
    * @param {InputUI} button InputUI object.
    */
   onButtonClick(event, button) {

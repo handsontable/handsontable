@@ -28,10 +28,12 @@ describe('settings', () => {
 
       it('should use renderer from predefined string', () => {
         const originalTextRenderer = Handsontable.renderers.TextRenderer;
+
         spyOn(Handsontable.renderers, 'TextRenderer');
         Handsontable.renderers.registerRenderer('text', Handsontable.renderers.TextRenderer);
 
         const originalCheckboxRenderer = Handsontable.renderers.CheckboxRenderer;
+
         spyOn(Handsontable.renderers, 'CheckboxRenderer');
         Handsontable.renderers.registerRenderer('checkbox', Handsontable.renderers.CheckboxRenderer);
 
@@ -56,6 +58,7 @@ describe('settings', () => {
         Handsontable.renderers.registerRenderer('text', Handsontable.renderers.TextRenderer);
 
         const originalCheckboxRenderer = Handsontable.renderers.CheckboxRenderer;
+
         spyOn(Handsontable.renderers, 'CheckboxRenderer');
         Handsontable.renderers.registerRenderer('checkbox', Handsontable.renderers.CheckboxRenderer);
 

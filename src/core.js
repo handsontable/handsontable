@@ -1,28 +1,24 @@
-import { addClass, empty, isChildOfWebComponentTable, removeClass } from './helpers/dom/element';
-import { columnFactory } from './helpers/setting';
+import { addClass, empty, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
-import { warn } from './helpers/console';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
-import { isMobileBrowser } from './helpers/browser';
-import DataMap from './dataMap';
+import { isMobileBrowser, isIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {
   deepClone,
   duckSchema,
-  extend, isObject,
   isObjectEqual,
   deepObjectSize,
   hasOwnProperty,
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import { arrayFlatten, arrayMap, arrayEach, arrayReduce } from './helpers/array';
+import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
-import { getPlugin } from './plugins';
-import { getRenderer } from './renderers';
-import { getValidator } from './validators';
-import { randomString } from './helpers/string';
+import { getPlugin, getPluginsNames } from './plugins/registry';
+import { getRenderer } from './renderers/registry';
+import { getValidator } from './validators/registry';
+import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
@@ -31,60 +27,59 @@ import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
-import DefaultSettings from './defaultSettings';
-import { getCellType } from './cellTypes';
-import { getTranslatedPhrase } from './i18n';
-import { hasLanguageDictionary } from './i18n/dictionariesManager';
-import { warnUserAboutLanguageRegistration, applyLanguageSetting, normalizeLanguageCode } from './i18n/utils';
-import { startObserving as keyStateStartObserving, stopObserving as keyStateStopObserving } from './utils/keyStateObserver';
+import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
+import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
+import {
+  startObserving as keyStateStartObserving,
+  stopObserving as keyStateStopObserving
+} from './utils/keyStateObserver';
 import { Selection } from './selection';
+import { MetaManager, DynamicCellMetaMod, DataMap } from './dataMap';
+import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 
 let activeGuid = null;
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
- * Handsontable constructor
+ * Handsontable constructor.
  *
  * @core
- * @constructor Core
+ * @class Core
  * @description
  *
- * After Handsontable is constructed, you can modify the grid behavior using the available public methods.
+ * The `Handsontable` class to which we refer as to `Core`, allows you to modify the grid's behavior by using one of the available public methods.
  *
- * ---
- * ## How to call methods
- *
- * These are 2 equal ways to call a Handsontable method:
+ * ## How to call a method
  *
  * ```js
- * // all following examples assume that you constructed Handsontable like this
- * const hot = new Handsontable(document.getElementById('example1'), options);
+ * // First, let's contruct Handsontable
+ * const hot = new Handsontable(document.getElementById('example'), options);
  *
- * // now, to use setDataAtCell method, you can either:
- * ht.setDataAtCell(0, 0, 'new value');
+ * // Then, let's use the setDataAtCell method
+ * hot.setDataAtCell(0, 0, 'new value');
  * ```
  *
- * Alternatively, you can call the method using jQuery wrapper (__obsolete__, requires initialization using our jQuery guide
- * ```js
- *   $('#example1').handsontable('setDataAtCell', 0, 0, 'new value');
- * ```
- * ---
+ * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
+ * @param {object} userSettings The user defined options.
+ * @param {boolean} [rootInstanceSymbol=false] Indicates if the instance is root of all later instances created.
  */
 export default function Core(rootElement, userSettings, rootInstanceSymbol = false) {
   let preventScrollingToCell = false;
   let instance = this;
-  let GridSettings = function() {};
+
   const eventManager = new EventManager(instance);
-  let priv;
   let datamap;
   let dataSource;
   let grid;
   let editorManager;
+  let firstRun = true;
 
-  extend(GridSettings.prototype, DefaultSettings.prototype); // create grid settings as a copy of default settings
-  extend(GridSettings.prototype, userSettings); // overwrite defaults with user settings
-  extend(GridSettings.prototype, expandType(userSettings));
+  userSettings.language = getValidLanguageCode(userSettings.language);
 
-  applyLanguageSetting(GridSettings.prototype, userSettings.language);
+  const metaManager = new MetaManager(instance, userSettings, [DynamicCellMetaMod]);
+  const tableMeta = metaManager.getTableMeta();
+  const globalMeta = metaManager.getGlobalMeta();
+  const pluginsRegistry = createUniqueMap();
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
@@ -98,6 +93,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {HTMLElement}
    */
   this.rootElement = rootElement;
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   /**
    * The nearest document over container.
    *
@@ -112,12 +108,37 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {Window}
    */
   this.rootWindow = this.rootDocument.defaultView;
+  /**
+   * A boolean to tell if the Handsontable has been fully destroyed. This is set to `true`
+   * after `afterDestroy` hook is called.
+   *
+   * @memberof Core#
+   * @member isDestroyed
+   * @type {boolean}
+   */
+  this.isDestroyed = false;
+  /**
+   * The counter determines how many times the render suspending was called. It allows
+   * tracking the nested suspending calls. For each render suspend resuming call the
+   * counter is decremented. The value equal to 0 means the render suspending feature
+   * is disabled.
+   *
+   * @private
+   * @type {number}
+   */
+  this.renderSuspendedCounter = 0;
+  /**
+   * The counter determines how many times the execution suspending was called. It allows
+   * tracking the nested suspending calls. For each execution suspend resuming call the
+   * counter is decremented. The value equal to 0 means the execution suspending feature
+   * is disabled.
+   *
+   * @private
+   * @type {number}
+   */
+  this.executionSuspendedCounter = 0;
 
   keyStateStartObserving(this.rootDocument);
-
-  this.isDestroyed = false;
-  this.isHotTableEnv = isChildOfWebComponentTable(this.rootElement);
-  EventManager.isHotTableEnv = this.isHotTableEnv;
 
   this.container = this.rootDocument.createElement('div');
   this.renderCall = false;
@@ -152,25 +173,50 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
     this.rootElement.id = this.guid; // if root element does not have an id, assign a random id
   }
-  priv = {
-    cellSettings: [],
-    columnSettings: [],
-    columnsSettingConflicts: ['data', 'width', 'language'],
-    settings: new GridSettings(), // current settings instance
-    selRange: null, // exposed by public method `getSelectedRange`
-    isPopulated: null,
-    scrollable: null,
-    firstRun: true
+
+  const visualToRenderableCoords = (coords) => {
+    const { row: visualRow, col: visualColumn } = coords;
+
+    return new CellCoords(
+      // We just store indexes for rows and columns without headers.
+      visualRow >= 0 ? instance.rowIndexMapper.getRenderableFromVisualIndex(visualRow) : visualRow,
+      visualColumn >= 0 ? instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumn) : visualColumn
+    );
   };
 
-  let selection = new Selection(priv.settings, {
+  const renderableToVisualCoords = (coords) => {
+    const { row: renderableRow, col: renderableColumn } = coords;
+
+    return new CellCoords(
+      // We just store indexes for rows and columns without headers.
+      renderableRow >= 0 ? instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow) : renderableRow,
+      renderableColumn >= 0 ? instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn) : renderableColumn // eslint-disable-line max-len
+    );
+  };
+
+  let selection = new Selection(tableMeta, {
     countCols: () => instance.countCols(),
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
+    countColsTranslated: () => this.view.countRenderableColumns(),
+    countRowsTranslated: () => this.view.countRenderableRows(),
+    visualToRenderableCoords,
+    renderableToVisualCoords,
+    isDisabledCellSelection: (visualRow, visualColumn) =>
+      instance.getCellMeta(visualRow, visualColumn).disableVisualSelection
   });
 
   this.selection = selection;
+
+  const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }) => {
+    if (hiddenIndexesChanged) {
+      this.selection.refresh();
+    }
+  };
+
+  this.columnIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
+  this.rowIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
 
   this.selection.addLocalHook('beforeSetRangeStart', (cellCoords) => {
     this.runHooks('beforeSetRangeStart', cellCoords);
@@ -200,7 +246,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('afterSelection',
       from.row, from.col, to.row, to.col, preventScrolling, selectionLayerLevel);
     this.runHooks('afterSelectionByProp',
-      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel);
+      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel); // eslint-disable-line max-len
 
     const isSelectedByAnyHeader = this.selection.isSelectedByAnyHeader();
     const currentSelectedRange = this.selection.selectedRange.current();
@@ -221,16 +267,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (scrollToCell !== false) {
       if (!isSelectedByAnyHeader) {
         if (currentSelectedRange && !this.selection.isMultiple()) {
-          this.view.scrollViewport(currentSelectedRange.from);
+          this.view.scrollViewport(visualToRenderableCoords(currentSelectedRange.from));
         } else {
-          this.view.scrollViewport(cellCoords);
+          this.view.scrollViewport(visualToRenderableCoords(cellCoords));
         }
 
       } else if (isSelectedByRowHeader) {
-        this.view.scrollViewportVertically(cellCoords.row);
+        this.view.scrollViewportVertically(instance.rowIndexMapper.getRenderableFromVisualIndex(cellCoords.row));
 
       } else if (isSelectedByColumnHeader) {
-        this.view.scrollViewportHorizontally(cellCoords.col);
+        this.view.scrollViewportHorizontally(instance.columnIndexMapper.getRenderableFromVisualIndex(cellCoords.col));
       }
     }
 
@@ -307,36 +353,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * @memberof Core#
      * @function alter
      * @private
-     * @param {String} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col".
-     * @param {Number|Array} index Row or column visual index which from the alter action will be triggered.
+     * @param {string} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col".
+     * @param {number|Array} index Row or column visual index which from the alter action will be triggered.
      *                             Alter actions such as "remove_row" and "remove_col" support array indexes in the
      *                             format `[[index, amount], [index, amount]...]` this can be used to remove
      *                             non-consecutive columns or rows in one call.
-     * @param {Number} [amount=1] Ammount rows or columns to remove.
-     * @param {String} [source] Optional. Source of hook runner.
-     * @param {Boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
+     * @param {number} [amount=1] Ammount rows or columns to remove.
+     * @param {string} [source] Optional. Source of hook runner.
+     * @param {boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
     alter(action, index, amount = 1, source, keepEmptyRows) {
       let delta;
-
-      function spliceWith(data, startIndex, count, toInject) {
-        const valueFactory = () => {
-          let result;
-
-          if (toInject === 'array') {
-            result = [];
-
-          } else if (toInject === 'object') {
-            result = {};
-          }
-
-          return result;
-        };
-        const spliceArgs = arrayMap(new Array(count), () => valueFactory());
-
-        spliceArgs.unshift(startIndex, 0);
-        data.splice(...spliceArgs);
-      }
 
       const normalizeIndexesGroup = (indexes) => {
         if (indexes.length === 0) {
@@ -380,19 +407,38 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
           const numberOfSourceRows = instance.countSourceRows();
 
-          if (instance.getSettings().maxRows === numberOfSourceRows) {
+          if (tableMeta.maxRows === numberOfSourceRows) {
             return;
           }
           // eslint-disable-next-line no-param-reassign
           index = (isDefined(index)) ? index : numberOfSourceRows;
-
           delta = datamap.createRow(index, amount, source);
-          spliceWith(priv.cellSettings, index, amount, 'array');
 
           if (delta) {
-            if (selection.isSelected() && selection.selectedRange.current().from.row >= index) {
-              selection.selectedRange.current().from.row += delta;
-              selection.transformEnd(delta, 0); // will call render() internally
+            metaManager.createRow(instance.toPhysicalRow(index), amount);
+
+            const currentSelectedRange = selection.selectedRange.current();
+            const currentFromRange = currentSelectedRange?.from;
+            const currentFromRow = currentFromRange?.row;
+
+            // Moving down the selection (when it exist). It should be present on the "old" row.
+            // TODO: The logic here should be handled by selection module.
+            if (isDefined(currentFromRow) && currentFromRow >= index) {
+              const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
+              let currentFromColumn = currentFromRange.col;
+
+              // Workaround: headers are not stored inside selection.
+              if (selection.isSelectedByRowHeader()) {
+                currentFromColumn = -1;
+              }
+
+              // Remove from the stack the last added selection as that selection below will be
+              // replaced by new transformed selection.
+              selection.getSelectedRange().pop();
+
+              // I can't use transforms as they don't work in negative indexes.
+              selection.setRangeStartOnly(new CellCoords(currentFromRow + delta, currentFromColumn), true);
+              selection.setRangeEnd(new CellCoords(currentToRow + delta, currentToColumn)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
             }
@@ -402,22 +448,38 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'insert_col':
           delta = datamap.createCol(index, amount, source);
 
-          for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
-            if (priv.cellSettings[row]) {
-              spliceWith(priv.cellSettings[row], index, amount);
-            }
-          }
-
           if (delta) {
-            if (Array.isArray(instance.getSettings().colHeaders)) {
+            metaManager.createColumn(instance.toPhysicalColumn(index), amount);
+
+            if (Array.isArray(tableMeta.colHeaders)) {
               const spliceArray = [index, 0];
+
               spliceArray.length += delta; // inserts empty (undefined) elements at the end of an array
-              Array.prototype.splice.apply(instance.getSettings().colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
+              Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
             }
 
-            if (selection.isSelected() && selection.selectedRange.current().from.col >= index) {
-              selection.selectedRange.current().from.col += delta;
-              selection.transformEnd(0, delta); // will call render() internally
+            const currentSelectedRange = selection.selectedRange.current();
+            const currentFromRange = currentSelectedRange?.from;
+            const currentFromColumn = currentFromRange?.col;
+
+            // Moving right the selection (when it exist). It should be present on the "old" row.
+            // TODO: The logic here should be handled by selection module.
+            if (isDefined(currentFromColumn) && currentFromColumn >= index) {
+              const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
+              let currentFromRow = currentFromRange.row;
+
+              // Workaround: headers are not stored inside selection.
+              if (selection.isSelectedByColumnHeader()) {
+                currentFromRow = -1;
+              }
+
+              // Remove from the stack the last added selection as that selection below will be
+              // replaced by new transformed selection.
+              selection.getSelectedRange().pop();
+
+              // I can't use transforms as they don't work in negative indexes.
+              selection.setRangeStartOnly(new CellCoords(currentFromRow, currentFromColumn + delta), true);
+              selection.setRangeEnd(new CellCoords(currentToRow, currentToColumn + delta)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
             }
@@ -442,20 +504,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeRow breaks the removing functionality.
-              datamap.removeRow(groupIndex, groupAmount, source);
-              priv.cellSettings.splice(calcIndex, amount);
+              const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source);
 
-              const totalRows = instance.countRows();
-              const fixedRowsTop = instance.getSettings().fixedRowsTop;
-
-              if (fixedRowsTop >= calcIndex + 1) {
-                instance.getSettings().fixedRowsTop -= Math.min(groupAmount, fixedRowsTop - calcIndex);
+              if (!wasRemoved) {
+                return;
               }
 
-              const fixedRowsBottom = instance.getSettings().fixedRowsBottom;
+              metaManager.removeRow(instance.toPhysicalRow(calcIndex), groupAmount);
+
+              const totalRows = instance.countRows();
+              const fixedRowsTop = tableMeta.fixedRowsTop;
+
+              if (fixedRowsTop >= calcIndex + 1) {
+                tableMeta.fixedRowsTop -= Math.min(groupAmount, fixedRowsTop - calcIndex);
+              }
+
+              const fixedRowsBottom = tableMeta.fixedRowsBottom;
 
               if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
-                instance.getSettings().fixedRowsBottom -= Math.min(groupAmount, fixedRowsBottom);
+                tableMeta.fixedRowsBottom -= Math.min(groupAmount, fixedRowsBottom);
               }
 
               offset += groupAmount;
@@ -480,7 +547,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             // Normalize the {index, amount} groups into bigger groups.
             arrayEach(indexes, ([groupIndex, groupAmount]) => {
               const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
-
               let physicalColumnIndex = instance.toPhysicalColumn(calcIndex);
 
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
@@ -492,24 +558,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeCol breaks the removing functionality.
-              datamap.removeCol(groupIndex, groupAmount, source);
+              const wasRemoved = datamap.removeCol(groupIndex, groupAmount, source);
 
-              for (let row = 0, len = instance.countSourceRows(); row < len; row++) {
-                if (priv.cellSettings[row]) { // if row hasn't been rendered it wouldn't have cellSettings
-                  priv.cellSettings[row].splice(physicalColumnIndex, groupAmount);
-                }
+              if (!wasRemoved) {
+                return;
               }
-              const fixedColumnsLeft = instance.getSettings().fixedColumnsLeft;
+
+              metaManager.removeColumn(physicalColumnIndex, groupAmount);
+
+              const fixedColumnsLeft = tableMeta.fixedColumnsLeft;
 
               if (fixedColumnsLeft >= calcIndex + 1) {
-                instance.getSettings().fixedColumnsLeft -= Math.min(groupAmount, fixedColumnsLeft - calcIndex);
+                tableMeta.fixedColumnsLeft -= Math.min(groupAmount, fixedColumnsLeft - calcIndex);
               }
 
-              if (Array.isArray(instance.getSettings().colHeaders)) {
+              if (Array.isArray(tableMeta.colHeaders)) {
                 if (typeof physicalColumnIndex === 'undefined') {
                   physicalColumnIndex = -1;
                 }
-                instance.getSettings().colHeaders.splice(physicalColumnIndex, groupAmount);
+                tableMeta.colHeaders.splice(physicalColumnIndex, groupAmount);
               }
 
               offset += groupAmount;
@@ -536,49 +603,67 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
 
     /**
-     * Makes sure there are empty rows at the bottom of the table
+     * Makes sure there are empty rows at the bottom of the table.
      */
     adjustRowsAndCols() {
-      if (priv.settings.minRows) {
-        // should I add empty rows to data source to meet minRows?
-        const rows = instance.countRows();
+      const minRows = tableMeta.minRows;
+      const minSpareRows = tableMeta.minSpareRows;
+      const minCols = tableMeta.minCols;
+      const minSpareCols = tableMeta.minSpareCols;
 
-        if (rows < priv.settings.minRows) {
-          for (let r = 0, minRows = priv.settings.minRows; r < minRows - rows; r++) {
-            datamap.createRow(instance.countRows(), 1, 'auto');
-          }
+      if (minRows) {
+        // should I add empty rows to data source to meet minRows?
+        const nrOfRows = instance.countRows();
+
+        if (nrOfRows < minRows) {
+          // The synchronization with cell meta is not desired here. For `minRows` option,
+          // we don't want to touch/shift cell meta objects.
+          datamap.createRow(nrOfRows, minRows - nrOfRows, 'auto');
         }
       }
-      if (priv.settings.minSpareRows) {
-        let emptyRows = instance.countEmptyRows(true);
+      if (minSpareRows) {
+        const emptyRows = instance.countEmptyRows(true);
 
         // should I add empty rows to meet minSpareRows?
-        if (emptyRows < priv.settings.minSpareRows) {
-          for (; emptyRows < priv.settings.minSpareRows && instance.countSourceRows() < priv.settings.maxRows; emptyRows++) {
-            datamap.createRow(instance.countRows(), 1, 'auto');
-          }
+        if (emptyRows < minSpareRows) {
+          const emptyRowsMissing = minSpareRows - emptyRows;
+          const rowsToCreate = Math.min(emptyRowsMissing, tableMeta.maxRows - instance.countSourceRows());
+
+          // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+          // we don't want to touch/shift cell meta objects.
+          datamap.createRow(instance.countRows(), rowsToCreate, 'auto');
         }
       }
       {
         let emptyCols;
 
         // count currently empty cols
-        if (priv.settings.minCols || priv.settings.minSpareCols) {
+        if (minCols || minSpareCols) {
           emptyCols = instance.countEmptyCols(true);
         }
 
+        let nrOfColumns = instance.countCols();
+
         // should I add empty cols to meet minCols?
-        if (priv.settings.minCols && !priv.settings.columns && instance.countCols() < priv.settings.minCols) {
-          for (; instance.countCols() < priv.settings.minCols; emptyCols++) {
-            datamap.createCol(instance.countCols(), 1, 'auto');
-          }
+        if (minCols && !tableMeta.columns && nrOfColumns < minCols) {
+          // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+          // we don't want to touch/shift cell meta objects.
+          const colsToCreate = minCols - nrOfColumns;
+
+          emptyCols += colsToCreate;
+
+          datamap.createCol(nrOfColumns, colsToCreate, 'auto');
         }
         // should I add empty cols to meet minSpareCols?
-        if (priv.settings.minSpareCols && !priv.settings.columns && instance.dataType === 'array' &&
-            emptyCols < priv.settings.minSpareCols) {
-          for (; emptyCols < priv.settings.minSpareCols && instance.countCols() < priv.settings.maxCols; emptyCols++) {
-            datamap.createCol(instance.countCols(), 1, 'auto');
-          }
+        if (minSpareCols && !tableMeta.columns && instance.dataType === 'array' &&
+          emptyCols < minSpareCols) {
+          nrOfColumns = instance.countCols();
+          const emptyColsMissing = minSpareCols - emptyCols;
+          const colsToCreate = Math.min(emptyColsMissing, tableMeta.maxCols - nrOfColumns);
+
+          // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+          // we don't want to touch/shift cell meta objects.
+          datamap.createCol(nrOfColumns, colsToCreate, 'auto');
         }
       }
       const rowCount = instance.countRows();
@@ -635,7 +720,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         });
       }
       if (instance.view) {
-        instance.view.wt.wtOverlays.adjustElementsSize();
+        instance.view.adjustElementsSize();
       }
     },
 
@@ -643,15 +728,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * Populate the data from the provided 2d array from the given cell coordinates.
      *
      * @private
-     * @param {Object} start Start selection position. Visual indexes.
+     * @param {object} start Start selection position. Visual indexes.
      * @param {Array} input 2d data array.
-     * @param {Object} [end] End selection position (only for drag-down mode). Visual indexes.
-     * @param {String} [source="populateFromArray"] Source information string.
-     * @param {String} [method="overwrite"] Populate method. Possible options: `shift_down`, `shift_right`, `overwrite`.
-     * @param {String} direction (left|right|up|down) String specifying the direction.
+     * @param {object} [end] End selection position (only for drag-down mode). Visual indexes.
+     * @param {string} [source="populateFromArray"] Source information string.
+     * @param {string} [method="overwrite"] Populate method. Possible options: `shift_down`, `shift_right`, `overwrite`.
+     * @param {string} direction (left|right|up|down) String specifying the direction.
      * @param {Array} deltas The deltas array. A difference between values of adjacent cells.
      *                       Useful **only** when the type of handled cells is `numeric`.
-     * @returns {Object|undefined} ending td in pasted area (only if any cell was changed).
+     * @returns {object|undefined} Ending td in pasted area (only if any cell was changed).
      */
     populateFromArray(start, input, end, source, method, direction, deltas) {
       // TODO: either remove or implement the `direction` argument. Currently it's not working at all.
@@ -681,6 +766,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           repeatRow = end ? end.row - start.row + 1 : 0;
           // eslint-disable-next-line no-param-reassign
           input = translateRowsToColumns(input);
+
           for (c = 0, clen = input.length, cmax = Math.max(clen, repeatCol); c < cmax; c++) {
             if (c < clen) {
               for (r = 0, rlen = input[c].length; r < repeatRow - rlen; r++) {
@@ -747,8 +833,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
           for (r = 0; r < rlen; r++) {
             if ((end && current.row > end.row && rowSelectionLength > rowInputLength) ||
-                (!priv.settings.allowInsertRow && current.row > instance.countRows() - 1) ||
-                (current.row >= priv.settings.maxRows)) {
+                (!tableMeta.allowInsertRow && current.row > instance.countRows() - 1) ||
+                (current.row >= tableMeta.maxRows)) {
               break;
             }
             const visualRow = r - skippedRow;
@@ -774,8 +860,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
             for (c = 0; c < clen; c++) {
               if ((end && current.col > end.col && colSelectionLength > colInputLength) ||
-                  (!priv.settings.allowInsertColumn && current.col > instance.countCols() - 1) ||
-                  (current.col >= priv.settings.maxCols)) {
+                  (!tableMeta.allowInsertColumn && current.col > instance.countCols() - 1) ||
+                  (current.col >= tableMeta.maxCols)) {
                 break;
               }
               cellMeta = instance.getCellMeta(current.row, current.col);
@@ -786,7 +872,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 clen += 1;
                 continue;
               }
-              if (cellMeta.readOnly) {
+              if (cellMeta.readOnly && source !== 'UndoRedo.undo') {
                 current.col += 1;
                 /* eslint-disable no-continue */
                 continue;
@@ -800,7 +886,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               };
 
               if (source === 'Autofill.fill') {
-                const result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
+                const result = instance
+                  .runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
 
                 if (result) {
                   value = isUndefined(result.value) ? value : result.value;
@@ -848,7 +935,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Internal function to set `language` key of settings.
    *
    * @private
-   * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'
+   * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
    * @fires Hooks#afterLanguageChange
    */
   function setLanguage(languageCode) {
@@ -857,7 +944,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (hasLanguageDictionary(normalizedLanguageCode)) {
       instance.runHooks('beforeLanguageChange', normalizedLanguageCode);
 
-      GridSettings.prototype.language = normalizedLanguageCode;
+      globalMeta.language = normalizedLanguageCode;
 
       instance.runHooks('afterLanguageChange', normalizedLanguageCode);
 
@@ -867,47 +954,75 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   /**
-   * Execute batch of operations with updating cache only when necessary. Function is responsible for renewing row index
-   * mapper's and column index mapper's cache at most once, even when there is more then one operation inside their
-   * internal maps. If there is no operation which would reset the cache, it is preserved. Every action on indexes
-   * sequence or skipped indexes by default reset cache, thus batching some index maps actions is recommended.
+   * Internal function to set `className` or `tableClassName`, depending on the key from the settings object.
    *
-   * @param {Function} wrappedOperations Batched operations wrapped in a function.
+   * @private
+   * @param {string} className `className` or `tableClassName` from the key in the settings object.
+   * @param {string|string[]} classSettings String or array of strings. Contains class name(s) from settings object.
    */
-  this.executeBatchOperations = function(wrappedOperations) {
-    this.columnIndexMapper.executeBatchOperations(() => {
-      this.rowIndexMapper.executeBatchOperations(() => {
-        wrappedOperations();
-      });
-    });
-  };
+  function setClassName(className, classSettings) {
+    const element = className === 'className' ? instance.rootElement : instance.table;
+
+    if (firstRun) {
+      addClass(element, classSettings);
+
+    } else {
+      let globalMetaSettingsArray = [];
+      let settingsArray = [];
+
+      if (globalMeta[className]) {
+        globalMetaSettingsArray = Array.isArray(globalMeta[className]) ?
+          globalMeta[className] : stringToArray(globalMeta[className]);
+      }
+
+      if (classSettings) {
+        settingsArray = Array.isArray(classSettings) ? classSettings : stringToArray(classSettings);
+      }
+
+      const classNameToRemove = getDifferenceOfArrays(globalMetaSettingsArray, settingsArray);
+      const classNameToAdd = getDifferenceOfArrays(settingsArray, globalMetaSettingsArray);
+
+      if (classNameToRemove.length) {
+        removeClass(element, classNameToRemove);
+      }
+
+      if (classNameToAdd.length) {
+        addClass(element, classNameToAdd);
+      }
+    }
+
+    globalMeta[className] = classSettings;
+  }
 
   this.init = function() {
-    dataSource.setData(priv.settings.data);
-
+    dataSource.setData(tableMeta.data);
     instance.runHooks('beforeInit');
 
-    if (isMobileBrowser()) {
+    if (isMobileBrowser() || isIpadOS()) {
       addClass(instance.rootElement, 'mobile');
     }
 
-    this.updateSettings(priv.settings, true);
+    this.updateSettings(tableMeta, true);
 
     this.view = new TableView(this);
-    editorManager = EditorManager.getInstance(instance, priv, selection, datamap);
-
-    this.forceFullRender = true; // used when data was changed
+    editorManager = EditorManager.getInstance(instance, tableMeta, selection);
 
     instance.runHooks('init');
+
+    this.forceFullRender = true; // used when data was changed
     this.view.render();
 
-    if (typeof priv.firstRun === 'object') {
-      instance.runHooks('afterChange', priv.firstRun[0], priv.firstRun[1]);
-      priv.firstRun = false;
+    if (typeof firstRun === 'object') {
+      instance.runHooks('afterChange', firstRun[0], firstRun[1]);
+      firstRun = false;
     }
     instance.runHooks('afterInit');
   };
 
+  /**
+   * @ignore
+   * @returns {object}
+   */
   function ValidatorsQueue() { // moved this one level up so it can be used in any function here. Probably this should be moved to a separate file
     let resolved = false;
 
@@ -936,8 +1051,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Get parsed number from numeric string.
    *
    * @private
-   * @param {String} numericData Float (separated by a dot or a comma) or integer.
-   * @returns {Number} Number if we get data in parsable format, not changed value otherwise.
+   * @param {string} numericData Float (separated by a dot or a comma) or integer.
+   * @returns {number} Number if we get data in parsable format, not changed value otherwise.
    */
   function getParsedNumber(numericData) {
     // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
@@ -951,6 +1066,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return numericData;
   }
 
+  /**
+   * @ignore
+   * @param {Array} changes The 2D array containing information about each of the edited cells.
+   * @param {string} source The string that identifies source of validation.
+   * @param {Function} callback The callback function fot async validation.
+   */
   function validateChanges(changes, source, callback) {
     if (!changes.length) {
       return;
@@ -960,10 +1081,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
     let shouldBeCanceled = true;
 
-    if (isFunction(beforeChangeResult)) {
-      warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
-
-    } else if (beforeChangeResult === false) {
+    if (beforeChangeResult === false) {
 
       if (activeEditor) {
         activeEditor.cancelChanges();
@@ -973,7 +1091,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     const waitingForValidator = new ValidatorsQueue();
-    const isNumericData = value => value.length > 0 && /^\s*[+-.]?\s*(?:(?:\d+(?:(\.|,)\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/.test(value);
+    const isNumericData = value => value.length > 0 &&
+      /^\s*[+-.]?\s*(?:(?:\d+(?:(\.|,)\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/.test(value);
 
     waitingForValidator.onQueueEmpty = (isValid) => {
       if (activeEditor && shouldBeCanceled) {
@@ -1012,7 +1131,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
 
                 if (cell !== null) {
-                  removeClass(cell, instance.getSettings().invalidCellClassName);
+                  removeClass(cell, tableMeta.invalidCellClassName);
                 }
                 // index -= 1;
               }
@@ -1026,11 +1145,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   /**
-   * Internal function to apply changes. Called after validateChanges
+   * Internal function to apply changes. Called after validateChanges.
    *
    * @private
-   * @param {Array} changes Array in form of [row, prop, oldValue, newValue]
-   * @param {String} source String that identifies how this change will be described in changes array (useful in onChange callback)
+   * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
+   * @param {string} source String that identifies how this change will be described in changes array (useful in onChange callback).
    * @fires Hooks#beforeChangeRender
    * @fires Hooks#afterChange
    */
@@ -1056,22 +1175,27 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         continue;
       }
 
-      if (priv.settings.allowInsertRow) {
+      if (tableMeta.allowInsertRow) {
         while (changes[i][0] > instance.countRows() - 1) {
           const numberOfCreatedRows = datamap.createRow(void 0, void 0, source);
 
-          if (numberOfCreatedRows === 0) {
+          if (numberOfCreatedRows >= 1) {
+            metaManager.createRow(null, numberOfCreatedRows);
+          } else {
             skipThisChange = true;
             break;
           }
         }
       }
 
-      if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
+      if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) &&
+          tableMeta.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           const numberOfCreatedColumns = datamap.createCol(void 0, void 0, source);
 
-          if (numberOfCreatedColumns === 0) {
+          if (numberOfCreatedColumns >= 1) {
+            metaManager.createColumn(null, numberOfCreatedColumns);
+          } else {
             skipThisChange = true;
             break;
           }
@@ -1092,7 +1216,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     editorManager.lockEditor();
     instance._refreshBorders(null);
     editorManager.unlockEditor();
-    instance.view.wt.wtOverlays.adjustElementsSize();
+    instance.view.adjustElementsSize();
     instance.runHooks('afterChange', changes, source || 'edit');
 
     const activeEditor = instance.getActiveEditor();
@@ -1105,19 +1229,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Validate a single cell.
    *
-   * @param {String|Number} value
-   * @param cellProperties
-   * @param callback
-   * @param source
+   * @param {string|number} value The value to validate.
+   * @param {object} cellProperties The cell meta which corresponds with the value.
+   * @param {Function} callback The callback function.
+   * @param {string} source The string that identifies source of the validation.
    */
   this.validateCell = function(value, cellProperties, callback, source) {
     let validator = instance.getCellValidator(cellProperties);
 
     // the `canBeValidated = false` argument suggests, that the cell passes validation by default.
+    /**
+     * @param {boolean} valid Indicates if the validation was successful.
+     * @param {boolean} [canBeValidated=true] Flag which controls the validation process.
+     * @private
+     */
     function done(valid, canBeValidated = true) {
       // Fixes GH#3903
       if (!canBeValidated || cellProperties.hidden === true) {
         callback(valid);
+
         return;
       }
 
@@ -1126,8 +1256,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       const td = instance.getCell(row, col, true);
 
       if (td && td.nodeName !== 'TH') {
-        instance.view.wt.wtSettings.settings.cellRenderer(row, col, td);
+        const renderableRow = instance.rowIndexMapper.getRenderableFromVisualIndex(row);
+        const renderableColumn = instance.columnIndexMapper.getRenderableFromVisualIndex(col);
+
+        instance.view.wt.wtSettings.settings.cellRenderer(renderableRow, renderableColumn, td);
       }
+
       callback(valid);
     }
 
@@ -1150,7 +1284,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             return;
           }
           // eslint-disable-next-line no-param-reassign
-          valid = instance.runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
+          valid = instance
+            .runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
           cellProperties.valid = valid;
 
           done(valid);
@@ -1167,13 +1302,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   };
 
+  /**
+   * @ignore
+   * @param {number} row The visual row index.
+   * @param {string|number} propOrCol The visual prop or column index.
+   * @param {*} value The cell value.
+   * @returns {Array}
+   */
   function setDataInputToArray(row, propOrCol, value) {
-    if (typeof row === 'object') { // is it an array of changes
+    if (Array.isArray(row)) { // it's an array of changes
       return row;
     }
-    return [
-      [row, propOrCol, value]
-    ];
+
+    return [[row, propOrCol, value]];
   }
 
   /**
@@ -1183,10 +1324,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function setDataAtCell
-   * @param {Number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
-   * @param {Number} [column] Visual column index.
-   * @param {String} [value] New value.
-   * @param {String} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback).
+   * @param {number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
+   * @param {number} [column] Visual column index.
+   * @param {string} [value] New value.
+   * @param {string} [source] String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty.
    */
   this.setDataAtCell = function(row, column, value, source) {
     const input = setDataInputToArray(row, column, value);
@@ -1201,7 +1342,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
       }
       if (typeof input[i][1] !== 'number') {
-        throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
+        throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`'); // eslint-disable-line max-len
       }
 
       if (input[i][1] >= this.countCols()) {
@@ -1237,10 +1378,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function setDataAtRowProp
-   * @param {Number|Array} row Visual row index or array of changes in format `[[row, prop, value], ...]`.
-   * @param {String} prop Property name or the source string (e.g. `'first.name'` or `'0'`).
-   * @param {String} value Value to be set.
-   * @param {String} [source] String that identifies how this change will be described in changes array (useful in onChange callback).
+   * @param {number|Array} row Visual row index or array of changes in format `[[row, prop, value], ...]`.
+   * @param {string} prop Property name or the source string (e.g. `'first.name'` or `'0'`).
+   * @param {string} value Value to be set.
+   * @param {string} [source] String that identifies how this change will be described in changes array (useful in onChange callback).
    */
   this.setDataAtRowProp = function(row, prop, value, source) {
     const input = setDataInputToArray(row, prop, value);
@@ -1275,23 +1416,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function listen
-   * @param {Boolean} [modifyDocumentFocus=true] If `true`, currently focused element will be blured (which returns focus
-   *                                             to the document.body). Otherwise the active element does not lose its focus.
    * @fires Hooks#afterListen
    */
-  this.listen = function(modifyDocumentFocus = true) {
-    const { rootDocument } = instance;
-    if (modifyDocumentFocus) {
-      const invalidActiveElement = !rootDocument.activeElement || (rootDocument.activeElement && rootDocument.activeElement.nodeName === void 0);
-
-      if (rootDocument.activeElement && rootDocument.activeElement !== rootDocument.body && !invalidActiveElement) {
-        rootDocument.activeElement.blur();
-
-      } else if (invalidActiveElement) { // IE
-        rootDocument.body.focus();
-      }
-    }
-
+  this.listen = function() {
     if (instance && !instance.isListening()) {
       activeGuid = instance.guid;
       instance.runHooks('afterListen');
@@ -1317,7 +1444,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function isListening
-   * @returns {Boolean} `true` if the instance is listening, `false` otherwise.
+   * @returns {boolean} `true` if the instance is listening, `false` otherwise.
    */
   this.isListening = function() {
     return activeGuid === instance.guid;
@@ -1328,8 +1455,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function destroyEditor
-   * @param {Boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
-   * @param {Boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
+   * @param {boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
+   * @param {boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
    */
   this.destroyEditor = function(revertOriginal = false, prepareEditorIfNeeded = true) {
     instance._refreshBorders(revertOriginal, prepareEditorIfNeeded);
@@ -1343,16 +1470,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function populateFromArray
-   * @param {Number} row Start visual row index.
-   * @param {Number} column Start visual column index.
-   * @param {Array} input 2d array
-   * @param {Number} [endRow] End visual row index (use when you want to cut input when certain row is reached).
-   * @param {Number} [endCol] End visual column index (use when you want to cut input when certain column is reached).
-   * @param {String} [source=populateFromArray] Used to identify this call in the resulting events (beforeChange, afterChange).
-   * @param {String} [method=overwrite] Populate method, possible values: `'shift_down'`, `'shift_right'`, `'overwrite'`.
-   * @param {String} direction Populate direction, possible values: `'left'`, `'right'`, `'up'`, `'down'`.
+   * @param {number} row Start visual row index.
+   * @param {number} column Start visual column index.
+   * @param {Array} input 2d array.
+   * @param {number} [endRow] End visual row index (use when you want to cut input when certain row is reached).
+   * @param {number} [endCol] End visual column index (use when you want to cut input when certain column is reached).
+   * @param {string} [source=populateFromArray] Used to identify this call in the resulting events (beforeChange, afterChange).
+   * @param {string} [method=overwrite] Populate method, possible values: `'shift_down'`, `'shift_right'`, `'overwrite'`.
+   * @param {string} direction Populate direction, possible values: `'left'`, `'right'`, `'up'`, `'down'`.
    * @param {Array} deltas The deltas array. A difference between values of adjacent cells.
    *                       Useful **only** when the type of handled cells is `numeric`.
+   * @returns {object|undefined} Ending td in pasted area (only if any cell was changed).
    */
   this.populateFromArray = function(row, column, input, endRow, endCol, source, method, direction, deltas) {
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
@@ -1365,28 +1493,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Adds/removes data from the column. This method works the same as Array.splice for arrays (see {@link DataMap#spliceCol}).
+   * Adds/removes data from the column. This method works the same as Array.splice for arrays.
    *
    * @memberof Core#
    * @function spliceCol
-   * @param {Number} column Index of the column in which do you want to do splice.
-   * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
-   * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
-   * @param {...Number} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
+   * @param {number} column Index of the column in which do you want to do splice.
+   * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
+   * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
+   * @param {...number} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
+   * @returns {Array} Returns removed portion of columns.
    */
   this.spliceCol = function(column, index, amount, ...elements) {
     return datamap.spliceCol(column, index, amount, ...elements);
   };
 
   /**
-   * Adds/removes data from the row. This method works the same as Array.splice for arrays (see {@link DataMap#spliceRow}).
+   * Adds/removes data from the row. This method works the same as Array.splice for arrays.
    *
    * @memberof Core#
    * @function spliceRow
-   * @param {Number} row Index of column in which do you want to do splice.
-   * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
-   * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
-   * @param {...Number} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
+   * @param {number} row Index of column in which do you want to do splice.
+   * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
+   * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
+   * @param {...number} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
+   * @returns {Array} Returns removed portion of rows.
    */
   this.spliceRow = function(row, index, amount, ...elements) {
     return datamap.spliceRow(row, index, amount, ...elements);
@@ -1448,12 +1578,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-  * Returns the last coordinates applied to the table as a CellRange object.
-  *
-  * @memberof Core#
-  * @function getSelectedRangeLast
-  * @since 0.36.0
-  * @returns {CellRange|undefined} Selected range object or undefined` if there is no selection.
+   * Returns the last coordinates applied to the table as a CellRange object.
+   *
+   * @memberof Core#
+   * @function getSelectedRangeLast
+   * @since 0.36.0
+   * @returns {CellRange|undefined} Selected range object or undefined` if there is no selection.
    */
   this.getSelectedRangeLast = function() {
     const selectedRange = this.getSelectedRange();
@@ -1471,13 +1601,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function emptySelectedCells
-   * @param {String} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback).
+   * @param {string} [source] String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty.
    * @since 0.36.0
    */
   this.emptySelectedCells = function(source) {
-    if (!selection.isSelected()) {
+    if (!selection.isSelected() || this.countRows() === 0 || this.countCols() === 0) {
       return;
     }
+
     const changes = [];
 
     arrayEach(selection.getSelectedRange(), (cellRange) => {
@@ -1499,6 +1630,94 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
+   * Checks if the table rendering process was suspended. See explanation in {@link Core#suspendRender}.
+   *
+   * @memberof Core#
+   * @function isRenderSuspended
+   * @since 8.3.0
+   * @returns {boolean}
+   */
+  this.isRenderSuspended = function() {
+    return this.renderSuspendedCounter > 0;
+  };
+
+  /**
+   * Suspends the rendering process. It's helpful to wrap the table render
+   * cycles triggered by API calls or UI actions (or both) and call the "render"
+   * once in the end. As a result, it improves the performance of wrapped operations.
+   * When the table is in the suspend state, most operations will have no visual
+   * effect until the rendering state is resumed. Resuming the state automatically
+   * invokes the table rendering. To make sure that after executing all operations,
+   * the table will be rendered, it's highly recommended to use the {@link Core#batchRender}
+   * method or {@link Core#batch}, which additionally aggregates the logic execution
+   * that happens behind the table.
+   *
+   * The method is intended to be used by advanced users. Suspending the rendering
+   * process could cause visual glitches when wrongly implemented.
+   *
+   * @memberof Core#
+   * @function suspendRender
+   * @since 8.3.0
+   * @example
+   * ```js
+   * hot.suspendRender();
+   * hot.alter('insert_row', 5, 45);
+   * hot.alter('insert_col', 10, 40);
+   * hot.setDataAtCell(1, 1, 'John');
+   * hot.setDataAtCell(2, 2, 'Mark');
+   * hot.setDataAtCell(3, 3, 'Ann');
+   * hot.setDataAtCell(4, 4, 'Sophia');
+   * hot.setDataAtCell(5, 5, 'Mia');
+   * hot.selectCell(0, 0);
+   * hot.resumeRender(); // It re-renders the table internally
+   * ```
+   */
+  this.suspendRender = function() {
+    this.renderSuspendedCounter += 1;
+  };
+
+  /**
+   * Resumes the rendering process. In combination with the {@link Core#suspendRender}
+   * method it allows aggregating the table render cycles triggered by API calls or UI
+   * actions (or both) and calls the "render" once in the end. When the table is in
+   * the suspend state, most operations will have no visual effect until the rendering
+   * state is resumed. Resuming the state automatically invokes the table rendering.
+   *
+   * The method is intended to be used by advanced users. Suspending the rendering
+   * process could cause visual glitches when wrongly implemented.
+   *
+   * @memberof Core#
+   * @function resumeRender
+   * @since 8.3.0
+   * @example
+   * ```js
+   * hot.suspendRender();
+   * hot.alter('insert_row', 5, 45);
+   * hot.alter('insert_col', 10, 40);
+   * hot.setDataAtCell(1, 1, 'John');
+   * hot.setDataAtCell(2, 2, 'Mark');
+   * hot.setDataAtCell(3, 3, 'Ann');
+   * hot.setDataAtCell(4, 4, 'Sophia');
+   * hot.setDataAtCell(5, 5, 'Mia');
+   * hot.selectCell(0, 0);
+   * hot.resumeRender(); // It re-renders the table internally
+   * ```
+   */
+  this.resumeRender = function() {
+    const nextValue = this.renderSuspendedCounter - 1;
+
+    this.renderSuspendedCounter = Math.max(nextValue, 0);
+
+    if (!this.isRenderSuspended() && nextValue === this.renderSuspendedCounter) {
+      if (this.renderCall) {
+        this.render();
+      } else {
+        this._refreshBorders(null);
+      }
+    }
+  };
+
+  /**
    * Rerender the table. Calling this method starts the process of recalculating, redrawing and applying the changes
    * to the DOM. While rendering the table all cell renderers are recalled.
    *
@@ -1509,15 +1728,222 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function render
    */
   this.render = function() {
-    if (instance.view) {
-      instance.renderCall = true;
-      instance.forceFullRender = true; // used when data was changed
-      editorManager.lockEditor();
-      instance._refreshBorders(null);
-      editorManager.unlockEditor();
+    if (this.view) {
+      this.renderCall = true;
+      this.forceFullRender = true; // used when data was changed
+
+      if (!this.isRenderSuspended()) {
+        editorManager.lockEditor();
+        this._refreshBorders(null);
+        editorManager.unlockEditor();
+      }
     }
   };
 
+  /**
+   * The method aggregates multi-line API calls into a callback and postpones the
+   * table rendering process. After the execution of the operations, the table is
+   * rendered once. As a result, it improves the performance of wrapped operations.
+   * Without batching, a similar case could trigger multiple table render calls.
+   *
+   * @memberof Core#
+   * @function batchRender
+   * @param {Function} wrappedOperations Batched operations wrapped in a function.
+   * @returns {*} Returns result from the wrappedOperations callback.
+   * @since 8.3.0
+   * @example
+   * ```js
+   * hot.batchRender(() => {
+   *   hot.alter('insert_row', 5, 45);
+   *   hot.alter('insert_col', 10, 40);
+   *   hot.setDataAtCell(1, 1, 'John');
+   *   hot.setDataAtCell(2, 2, 'Mark');
+   *   hot.setDataAtCell(3, 3, 'Ann');
+   *   hot.setDataAtCell(4, 4, 'Sophia');
+   *   hot.setDataAtCell(5, 5, 'Mia');
+   *   hot.selectCell(0, 0);
+   *   // The table will be rendered once after executing the callback
+   * });
+   * ```
+   */
+  this.batchRender = function(wrappedOperations) {
+    this.suspendRender();
+
+    const result = wrappedOperations();
+
+    this.resumeRender();
+
+    return result;
+  };
+
+  /**
+   * Checks if the table indexes recalculation process was suspended. See explanation
+   * in {@link Core#suspendExecution}.
+   *
+   * @memberof Core#
+   * @function isExecutionSuspended
+   * @since 8.3.0
+   * @returns {boolean}
+   */
+  this.isExecutionSuspended = function() {
+    return this.executionSuspendedCounter > 0;
+  };
+
+  /**
+   * Suspends the execution process. It's helpful to wrap the table logic changes
+   * such as index changes into one call after which the cache is updated. As a result,
+   * it improves the performance of wrapped operations.
+   *
+   * The method is intended to be used by advanced users. Suspending the execution
+   * process could cause visual glitches caused by not updated the internal table cache.
+   *
+   * @memberof Core#
+   * @function suspendExecution
+   * @since 8.3.0
+   * @example
+   * ```js
+   * hot.suspendExecution();
+   * const filters = hot.getPlugin('filters');
+   *
+   * filters.addCondition(2, 'contains', ['3']);
+   * filters.filter();
+   * hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+   * hot.resumeExecution(); // It updates the cache internally
+   * ```
+   */
+  this.suspendExecution = function() {
+    this.executionSuspendedCounter += 1;
+    this.columnIndexMapper.suspendOperations();
+    this.rowIndexMapper.suspendOperations();
+  };
+
+  /**
+   * Resumes the execution process. In combination with the {@link Core#suspendExecution}
+   * method it allows aggregating the table logic changes after which the cache is
+   * updated. Resuming the state automatically invokes the table cache updating process.
+   *
+   * The method is intended to be used by advanced users. Suspending the execution
+   * process could cause visual glitches caused by not updated the internal table cache.
+   *
+   * @memberof Core#
+   * @function resumeExecution
+   * @param {boolean} [forceFlushChanges=false] If `true`, the table internal data cache
+   * is recalculated after the execution of the batched operations. For nested
+   * {@link Core#batchExecution} calls, it can be desire to recalculate the table
+   * after each batch.
+   * @since 8.3.0
+   * @example
+   * ```js
+   * hot.suspendExecution();
+   * const filters = hot.getPlugin('filters');
+   *
+   * filters.addCondition(2, 'contains', ['3']);
+   * filters.filter();
+   * hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+   * hot.resumeExecution(); // It updates the cache internally
+   * ```
+   */
+  this.resumeExecution = function(forceFlushChanges = false) {
+    const nextValue = this.executionSuspendedCounter - 1;
+
+    this.executionSuspendedCounter = Math.max(nextValue, 0);
+
+    if ((!this.isExecutionSuspended() && nextValue === this.executionSuspendedCounter) || forceFlushChanges) {
+      this.columnIndexMapper.resumeOperations();
+      this.rowIndexMapper.resumeOperations();
+    }
+  };
+
+  /**
+   * The method aggregates multi-line API calls into a callback and postpones the
+   * table execution process. After the execution of the operations, the internal table
+   * cache is recalculated once. As a result, it improves the performance of wrapped
+   * operations. Without batching, a similar case could trigger multiple table cache rebuilds.
+   *
+   * @memberof Core#
+   * @function batchExecution
+   * @param {Function} wrappedOperations Batched operations wrapped in a function.
+   * @param {boolean} [forceFlushChanges=false] If `true`, the table internal data cache
+   * is recalculated after the execution of the batched operations. For nested calls,
+   * it can be a desire to recalculate the table after each batch.
+   * @returns {*} Returns result from the wrappedOperations callback.
+   * @since 8.3.0
+   * @example
+   * ```js
+   * hot.batchExecution(() => {
+   *   const filters = hot.getPlugin('filters');
+   *
+   *   filters.addCondition(2, 'contains', ['3']);
+   *   filters.filter();
+   *   hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+   *   // The table cache will be recalculated once after executing the callback
+   * });
+   * ```
+   */
+  this.batchExecution = function(wrappedOperations, forceFlushChanges = false) {
+    this.suspendExecution();
+
+    const result = wrappedOperations();
+
+    this.resumeExecution(forceFlushChanges);
+
+    return result;
+  };
+
+  /**
+   * It batches the rendering process and index recalculations. The method aggregates
+   * multi-line API calls into a callback and postpones the table rendering process
+   * as well aggregates the table logic changes such as index changes into one call
+   * after which the cache is updated. After the execution of the operations, the
+   * table is rendered, and the cache is updated once. As a result, it improves the
+   * performance of wrapped operations.
+   *
+   * @memberof Core#
+   * @function batch
+   * @param {Function} wrappedOperations Batched operations wrapped in a function.
+   * @returns {*} Returns result from the wrappedOperations callback.
+   * @since 8.3.0
+   * @example
+   * ```js
+   * hot.batch(() => {
+   *   hot.alter('insert_row', 5, 45);
+   *   hot.alter('insert_col', 10, 40);
+   *   hot.setDataAtCell(1, 1, 'x');
+   *   hot.setDataAtCell(2, 2, 'c');
+   *   hot.setDataAtCell(3, 3, 'v');
+   *   hot.setDataAtCell(4, 4, 'b');
+   *   hot.setDataAtCell(5, 5, 'n');
+   *   hot.selectCell(0, 0);
+   *
+   *   const filters = hot.getPlugin('filters');
+   *
+   *   filters.addCondition(2, 'contains', ['3']);
+   *   filters.filter();
+   *   hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+   *   // The table will be re-rendered and cache will be recalculated once after executing the callback
+   * });
+   * ```
+   */
+  this.batch = function(wrappedOperations) {
+    this.suspendRender();
+    this.suspendExecution();
+
+    const result = wrappedOperations();
+
+    this.resumeExecution();
+    this.resumeRender();
+
+    return result;
+  };
+
+  /**
+   * Updates dimensions of the table. The method compares previous dimensions with the current ones and updates accordingly.
+   *
+   * @memberof Core#
+   * @function refreshDimensions
+   * @fires Hooks#beforeRefreshDimensions
+   * @fires Hooks#afterRefreshDimensions
+   */
   this.refreshDimensions = function() {
     if (!instance.view) {
       return;
@@ -1526,7 +1952,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const { width: lastWidth, height: lastHeight } = instance.view.getLastSize();
     const { width, height } = instance.rootElement.getBoundingClientRect();
     const isSizeChanged = width !== lastWidth || height !== lastHeight;
-    const isResizeBlocked = instance.runHooks('beforeRefreshDimensions', { width: lastWidth, height: lastHeight }, { width, height }, isSizeChanged) === false;
+    const isResizeBlocked = instance.runHooks(
+      'beforeRefreshDimensions',
+      { width: lastWidth, height: lastHeight },
+      { width, height },
+      isSizeChanged
+    ) === false;
 
     if (isResizeBlocked) {
       return;
@@ -1537,23 +1968,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.render();
     }
 
-    instance.runHooks('afterRefreshDimensions', { width: lastWidth, height: lastHeight }, { width, height }, isSizeChanged);
+    instance.runHooks(
+      'afterRefreshDimensions',
+      { width: lastWidth, height: lastHeight },
+      { width, height },
+      isSizeChanged
+    );
   };
 
   /**
    * Loads new data to Handsontable. Loading new data resets the cell meta.
+   * Since 8.0.0 loading new data also resets states corresponding to rows and columns
+   * (for example, row/column sequence, column width, row height, frozen columns etc.).
    *
    * @memberof Core#
    * @function loadData
    * @param {Array} data Array of arrays or array of objects containing data.
+   * @param {string} [source] Source of the loadData call.
    * @fires Hooks#beforeLoadData
    * @fires Hooks#afterLoadData
    * @fires Hooks#afterChange
    */
-  this.loadData = function(data) {
-    if (Array.isArray(priv.settings.dataSchema)) {
+  this.loadData = function(data, source) {
+    if (Array.isArray(tableMeta.dataSchema)) {
       instance.dataType = 'array';
-    } else if (isFunction(priv.settings.dataSchema)) {
+    } else if (isFunction(tableMeta.dataSchema)) {
       instance.dataType = 'function';
     } else {
       instance.dataType = 'object';
@@ -1563,7 +2002,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       datamap.destroy();
     }
 
-    datamap = new DataMap(instance, data, priv, GridSettings);
+    data = instance.runHooks('beforeLoadData', data, firstRun, source);
+
+    datamap = new DataMap(instance, data, tableMeta);
 
     if (typeof data === 'object' && data !== null) {
       if (!(data.push && data.splice)) { // check if data is array. Must use duck-type check so Backbone Collections also pass it
@@ -1574,14 +2015,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     } else if (data === null) {
       const dataSchema = datamap.getSchema();
+
       // eslint-disable-next-line no-param-reassign
       data = [];
       let row;
       let r = 0;
       let rlen = 0;
 
-      for (r = 0, rlen = priv.settings.startRows; r < rlen; r++) {
-        if ((instance.dataType === 'object' || instance.dataType === 'function') && priv.settings.dataSchema) {
+      for (r = 0, rlen = tableMeta.startRows; r < rlen; r++) {
+        if ((instance.dataType === 'object' || instance.dataType === 'function') && tableMeta.dataSchema) {
           row = deepClone(dataSchema);
           data.push(row);
 
@@ -1592,7 +2034,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         } else {
           row = [];
 
-          for (let c = 0, clen = priv.settings.startCols; c < clen; c++) {
+          for (let c = 0, clen = tableMeta.startCols; c < clen; c++) {
             row.push(null);
           }
 
@@ -1604,70 +2046,92 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       throw new Error(`loadData only accepts array of objects or array of arrays (${typeof data} given)`);
     }
 
-    priv.isPopulated = false;
-    GridSettings.prototype.data = data;
-
     if (Array.isArray(data[0])) {
       instance.dataType = 'array';
     }
 
-    instance.runHooks('beforeLoadData', data, priv.firstRun);
+    tableMeta.data = data;
 
     datamap.dataSource = data;
     dataSource.data = data;
     dataSource.dataType = instance.dataType;
     dataSource.colToProp = datamap.colToProp.bind(datamap);
     dataSource.propToCol = datamap.propToCol.bind(datamap);
+    dataSource.countCachedColumns = datamap.countCachedColumns.bind(datamap);
 
-    clearCellSettingCache();
-
-    const columnsSettings = priv.settings.columns;
-    let nrOfColumnsFromSettings = 0;
-
-    // We will check number of columns only when the `columns` property was defined as an array.
-    if (Array.isArray(columnsSettings)) {
-      nrOfColumnsFromSettings = columnsSettings.length;
-    }
-
-    /**
-     * We need to use `Math.max`, because:
-     * - we need information about `columns` as `data` may contains functions, less columns than defined by the property or even be empty.
-     * - we need also information about dataSchema as `data` and `columns` properties may not provide information about number of columns
-     * (ie. `data` may be empty, `columns` may be a function).
-     */
-    this.columnIndexMapper.initToLength(Math.max(this.countSourceCols(), nrOfColumnsFromSettings, deepObjectSize(datamap.getSchema())));
-    this.rowIndexMapper.initToLength(this.countSourceRows());
+    metaManager.clearCellsCache();
+    instance.initIndexMappers();
 
     grid.adjustRowsAndCols();
 
-    instance.runHooks('afterLoadData', data, priv.firstRun);
+    instance.runHooks('afterLoadData', data, firstRun, source);
 
-    if (priv.firstRun) {
-      priv.firstRun = [null, 'loadData'];
+    if (firstRun) {
+      firstRun = [null, 'loadData'];
     } else {
       instance.runHooks('afterChange', null, 'loadData');
       instance.render();
     }
-    priv.isPopulated = true;
+  };
 
-    function clearCellSettingCache() {
-      priv.cellSettings.length = 0;
+  /**
+   * Init index mapper which manage indexes assigned to the data.
+   *
+   * @private
+   */
+  this.initIndexMappers = function() {
+    const columnsSettings = tableMeta.columns;
+    let finalNrOfColumns = 0;
+
+    // We will check number of columns when the `columns` property was defined as an array. Columns option may
+    // narrow down or expand displayed dataset in that case.
+    if (Array.isArray(columnsSettings)) {
+      finalNrOfColumns = columnsSettings.length;
+
+    } else if (isFunction(columnsSettings)) {
+      if (instance.dataType === 'array') {
+        const nrOfSourceColumns = this.countSourceCols();
+
+        for (let columnIndex = 0; columnIndex < nrOfSourceColumns; columnIndex += 1) {
+          if (columnsSettings(columnIndex)) {
+            finalNrOfColumns += 1;
+          }
+        }
+
+        // Extended dataset by the `columns` property? Moved code right from the refactored `countCols` method.
+      } else if (instance.dataType === 'object' || instance.dataType === 'function') {
+        finalNrOfColumns = datamap.colToPropCache.length;
+      }
+
+      // In some cases we need to check columns length from the schema, i.e. `data` may be empty.
+    } else if (isDefined(tableMeta.dataSchema)) {
+      const schema = datamap.getSchema();
+
+      // Schema may be defined as an array of objects. Each object will define column.
+      finalNrOfColumns = Array.isArray(schema) ? schema.length : deepObjectSize(schema);
+
+    } else {
+      // We init index mappers by length of source data to provide indexes also for skipped indexes.
+      finalNrOfColumns = this.countSourceCols();
     }
+
+    this.columnIndexMapper.initToLength(finalNrOfColumns);
+    this.rowIndexMapper.initToLength(this.countSourceRows());
   };
 
   /**
    * Returns the current data object (the same one that was passed by `data` configuration option or `loadData` method,
-   * unless some modifications have been applied (i.e. sequence of rows/columns was changed, some row/column was skipped).
+   * unless some modifications have been applied (i.e. Sequence of rows/columns was changed, some row/column was skipped).
    * If that's the case - use the {@link Core#getSourceData} method.).
    *
    * Optionally you can provide cell range by defining `row`, `column`, `row2`, `column2` to get only a fragment of table data.
    *
    * @memberof Core#
    * @function getData
-   * @param {Number} [row] From visual row index.
-   * @param {Number} [column] From visual column index.
-   * @param {Number} [row2] To visual row index.
-   * @param {Number} [column2] To visual column index.
+   * @param {number} [row] From visual row index.
+   * @param {number} [column] From visual column index.
+   * @param {number} [row2] To visual row index.
+   * @param {number} [column2] To visual column index.
    * @returns {Array[]} Array with the data.
    * @example
    * ```js
@@ -1689,28 +2153,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Returns a string value of the selected range. Each column is separated by tab, each row is separated by a new
-   * line character (see {@link DataMap#getCopyableText}).
+   * line character.
    *
    * @memberof Core#
    * @function getCopyableText
-   * @param {Number} startRow From visual row index.
-   * @param {Number} startCol From visual column index.
-   * @param {Number} endRow To visual row index.
-   * @param {Number} endCol To visual column index.
-   * @returns {String}
+   * @param {number} startRow From visual row index.
+   * @param {number} startCol From visual column index.
+   * @param {number} endRow To visual row index.
+   * @param {number} endCol To visual column index.
+   * @returns {string}
    */
   this.getCopyableText = function(startRow, startCol, endRow, endCol) {
     return datamap.getCopyableText(new CellCoords(startRow, startCol), new CellCoords(endRow, endCol));
   };
 
   /**
-   * Returns the data's copyable value at specified `row` and `column` index (see {@link DataMap#getCopyable}).
+   * Returns the data's copyable value at specified `row` and `column` index.
    *
    * @memberof Core#
    * @function getCopyableData
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @returns {String}
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {string}
    */
   this.getCopyableData = function(row, column) {
     return datamap.getCopyable(row, datamap.colToProp(column));
@@ -1722,7 +2186,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getSchema
-   * @returns {Object} Schema object.
+   * @returns {object} Schema object.
    */
   this.getSchema = function() {
     return datamap.getSchema();
@@ -1735,10 +2199,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * __Note__, that although the `updateSettings` method doesn't overwrite the previously declared settings, it might reset
    * the settings made post-initialization. (for example - ignore changes made using the columnResize feature).
    *
+   * Since 8.0.0 passing `columns` or `data` inside `settings` objects will result in resetting states corresponding to rows and columns
+   * (for example, row/column sequence, column width, row height, frozen columns etc.).
+   *
    * @memberof Core#
    * @function updateSettings
-   * @param {Object} settings New settings object (see {@link Options}).
-   * @param {Boolean} [init=false] Internally used for in initialization mode.
+   * @param {object} settings New settings object (see {@link Options}).
+   * @param {boolean} [init=false] Internally used for in initialization mode.
    * @example
    * ```js
    * hot.updateSettings({
@@ -1754,13 +2221,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let columnsAsFunc = false;
     let i;
     let j;
-    let clen;
 
     if (isDefined(settings.rows)) {
-      throw new Error('"rows" setting is no longer supported. do you mean startRows, minRows or maxRows?');
+      throw new Error('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?');
     }
     if (isDefined(settings.cols)) {
-      throw new Error('"cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
+      throw new Error('The "cols" setting is no longer supported. Do you mean startCols, minCols or maxCols?');
+    }
+    if (isDefined(settings.ganttChart)) {
+      throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
     // eslint-disable-next-line no-restricted-syntax
@@ -1775,69 +2244,61 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         /* eslint-disable-next-line no-continue */
         continue;
 
-      } else if (Hooks.getSingleton().getRegistered().indexOf(i) > -1) {
+      } else if (i === 'className') {
+        setClassName('className', settings.className);
+
+      } else if (i === 'tableClassName' && instance.table) {
+        setClassName('tableClassName', settings.tableClassName);
+
+        instance.view.wt.wtOverlays.syncOverlayTableClassNames();
+
+      } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
+
         if (isFunction(settings[i]) || Array.isArray(settings[i])) {
           settings[i].initialHook = true;
           instance.addHook(i, settings[i]);
         }
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
-        GridSettings.prototype[i] = settings[i];
+        globalMeta[i] = settings[i];
       }
     }
 
     // Load data or create data map
-    if (settings.data === void 0 && priv.settings.data === void 0) {
-      instance.loadData(null); // data source created just now
+    if (settings.data === void 0 && tableMeta.data === void 0) {
+      instance.loadData(null, 'updateSettings'); // data source created just now
 
     } else if (settings.data !== void 0) {
-      instance.loadData(settings.data); // data source given as option
+      instance.loadData(settings.data, 'updateSettings'); // data source given as option
 
     } else if (settings.columns !== void 0) {
       datamap.createMap();
+
+      // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
+      instance.initIndexMappers();
     }
 
-    clen = instance.countCols();
-
-    const columnSetting = settings.columns || GridSettings.prototype.columns;
+    const clen = instance.countCols();
+    const columnSetting = tableMeta.columns;
 
     // Init columns constructors configuration
     if (columnSetting && isFunction(columnSetting)) {
-      clen = instance.countSourceCols();
       columnsAsFunc = true;
     }
 
-    // Clear cellSettings cache
+    // Clear cell meta cache
     if (settings.cell !== void 0 || settings.cells !== void 0 || settings.columns !== void 0) {
-      priv.cellSettings.length = 0;
+      metaManager.clearCache();
     }
 
     if (clen > 0) {
-      let proto;
-      let column;
-
       for (i = 0, j = 0; i < clen; i++) {
-        if (columnsAsFunc && !columnSetting(i)) {
-          /* eslint-disable no-continue */
-          continue;
-        }
-        priv.columnSettings[j] = columnFactory(GridSettings, priv.columnsSettingConflicts);
-
-        // shortcut for prototype
-        proto = priv.columnSettings[j].prototype;
-
         // Use settings provided by user
         if (columnSetting) {
-          if (columnsAsFunc) {
-            column = columnSetting(i);
-
-          } else {
-            column = columnSetting[j];
-          }
+          const column = columnsAsFunc ? columnSetting(i) : columnSetting[j];
 
           if (column) {
-            extend(proto, column);
-            extend(proto, expandType(column));
+            metaManager.updateColumnMeta(j, column);
           }
         }
 
@@ -1853,21 +2314,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     instance.runHooks('afterCellMetaReset');
 
-    if (isDefined(settings.className)) {
-      if (GridSettings.prototype.className) {
-        removeClass(instance.rootElement, GridSettings.prototype.className);
-      }
-      if (settings.className) {
-        addClass(instance.rootElement, settings.className);
-      }
-    }
-
     let currentHeight = instance.rootElement.style.height;
+
     if (currentHeight !== '') {
       currentHeight = parseInt(instance.rootElement.style.height, 10);
     }
 
     let height = settings.height;
+
     if (isFunction(height)) {
       height = height();
     }
@@ -1909,20 +2363,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (!init) {
       if (instance.view) {
         instance.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
+        instance.view.wt.exportSettingsAsClassNames();
       }
 
       instance.runHooks('afterUpdateSettings', settings);
     }
 
     grid.adjustRowsAndCols();
-    if (instance.view && !priv.firstRun) {
+
+    if (instance.view && !firstRun) {
       instance.forceFullRender = true; // used when data was changed
       editorManager.lockEditor();
       instance._refreshBorders(null);
+      instance.view.wt.wtOverlays.adjustElementsSize();
       editorManager.unlockEditor();
     }
 
-    if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) && currentHeight !== height) {
+    if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) &&
+        currentHeight !== height) {
       instance.view.wt.wtOverlays.updateMainScrollableElements();
     }
   };
@@ -1937,52 +2395,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getValue = function() {
     const sel = instance.getSelectedLast();
 
-    if (GridSettings.prototype.getValue) {
-      if (isFunction(GridSettings.prototype.getValue)) {
-        return GridSettings.prototype.getValue.call(instance);
+    if (tableMeta.getValue) {
+      if (isFunction(tableMeta.getValue)) {
+        return tableMeta.getValue.call(instance);
       } else if (sel) {
-        return instance.getData()[sel[0][0]][GridSettings.prototype.getValue];
+        return instance.getData()[sel[0][0]][tableMeta.getValue];
       }
     } else if (sel) {
       return instance.getDataAtCell(sel[0], sel[1]);
     }
   };
 
-  function expandType(obj) {
-    if (!hasOwnProperty(obj, 'type')) {
-      // ignore obj.prototype.type
-      return;
-    }
-
-    const expandedType = {};
-    let type;
-
-    if (typeof obj.type === 'object') {
-      type = obj.type;
-    } else if (typeof obj.type === 'string') {
-      type = getCellType(obj.type);
-    }
-
-    // eslint-disable-next-line no-restricted-syntax
-    for (const i in type) {
-      if (hasOwnProperty(type, i) && !hasOwnProperty(obj, i)) {
-        expandedType[i] = type[i];
-      }
-    }
-
-    return expandedType;
-
-  }
-
   /**
    * Returns the object settings.
    *
    * @memberof Core#
    * @function getSettings
-   * @returns {Object} Object containing the current table settings.
+   * @returns {object} Object containing the current table settings.
    */
   this.getSettings = function() {
-    return priv.settings;
+    return tableMeta;
   };
 
   /**
@@ -1998,19 +2430,22 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Allows altering the table structure by either inserting/removing rows or columns.
+   * This method works with an array data structure only.
    *
    * @memberof Core#
    * @function alter
-   * @param {String} action Possible alter operations:
-   *  * `'insert_row'`
-   *  * `'insert_col'`
-   *  * `'remove_row'`
-   *  * `'remove_col'`
-   * @param {Number|Number[]} index Visual index of the row/column before which the new row/column will be
+   * @param {string} action Possible alter operations:
+   *  <ul>
+   *    <li> `'insert_row'` </li>
+   *    <li> `'insert_col'` </li>
+   *    <li> `'remove_row'` </li>
+   *    <li> `'remove_col'` </li>
+   * </ul>.
+   * @param {number|number[]} index Visual index of the row/column before which the new row/column will be
    *                                inserted/removed or an array of arrays in format `[[index, amount],...]`.
-   * @param {Number} [amount=1] Amount of rows/columns to be inserted or removed.
-   * @param {String} [source] Source indicator.
-   * @param {Boolean} [keepEmptyRows] Flag for preventing deletion of empty rows.
+   * @param {number} [amount=1] Amount of rows/columns to be inserted or removed.
+   * @param {string} [source] Source indicator.
+   * @param {boolean} [keepEmptyRows] Flag for preventing deletion of empty rows.
    * @example
    * ```js
    * // Insert new row above the row at given visual index.
@@ -2033,14 +2468,37 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getCell
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @param {Boolean} [topmost=false] If set to `true`, it returns the TD element from the topmost overlay. For example,
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {boolean} [topmost=false] If set to `true`, it returns the TD element from the topmost overlay. For example,
    * if the wanted cell is in the range of fixed rows, it will return a TD element from the `top` overlay.
    * @returns {HTMLTableCellElement|null} The cell's TD element.
    */
   this.getCell = function(row, column, topmost = false) {
-    return instance.view.getCellAtCoords(new CellCoords(row, column), topmost);
+    let renderableColumnIndex = column; // Handling also column headers.
+    let renderableRowIndex = row; // Handling also row headers.
+
+    if (column >= 0) {
+      if (this.columnIndexMapper.isHidden(this.toPhysicalColumn(column))) {
+        return null;
+      }
+
+      renderableColumnIndex = this.columnIndexMapper.getRenderableFromVisualIndex(column);
+    }
+
+    if (row >= 0) {
+      if (this.rowIndexMapper.isHidden(this.toPhysicalRow(row))) {
+        return null;
+      }
+
+      renderableRowIndex = this.rowIndexMapper.getRenderableFromVisualIndex(row);
+    }
+
+    if (renderableRowIndex === null || renderableColumnIndex === null) {
+      return null;
+    }
+
+    return instance.view.getCellAtCoords(new CellCoords(renderableRowIndex, renderableColumnIndex), topmost);
   };
 
   /**
@@ -2049,7 +2507,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function getCoords
    * @param {HTMLTableCellElement} element The HTML Element representing the cell.
-   * @returns {CellCoords} Visual coordinates object.
+   * @returns {CellCoords|null} Visual coordinates object.
    * @example
    * ```js
    * hot.getCoords(hot.getCell(1, 1));
@@ -2057,29 +2515,48 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    */
   this.getCoords = function(element) {
-    return this.view.wt.wtTable.getCoords.call(this.view.wt.wtTable, element);
+    const renderableCoords = this.view.wt.wtTable.getCoords(element);
+
+    if (renderableCoords === null) {
+      return null;
+    }
+
+    const { row: renderableRow, col: renderableColumn } = renderableCoords;
+
+    let visualRow = renderableRow;
+    let visualColumn = renderableColumn;
+
+    if (renderableRow >= 0) {
+      visualRow = this.rowIndexMapper.getVisualFromRenderableIndex(renderableRow);
+    }
+
+    if (renderableColumn >= 0) {
+      visualColumn = this.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn);
+    }
+
+    return new CellCoords(visualRow, visualColumn);
   };
 
   /**
-   * Returns the property name that corresponds with the given column index (see {@link DataMap#colToProp}).
+   * Returns the property name that corresponds with the given column index.
    * If the data source is an array of arrays, it returns the columns index.
    *
    * @memberof Core#
    * @function colToProp
-   * @param {Number} column Visual column index.
-   * @returns {String|Number} Column property or physical column index.
+   * @param {number} column Visual column index.
+   * @returns {string|number} Column property or physical column index.
    */
   this.colToProp = function(column) {
     return datamap.colToProp(column);
   };
 
   /**
-   * Returns column index that corresponds with the given property (see {@link DataMap#propToCol}).
+   * Returns column index that corresponds with the given property.
    *
    * @memberof Core#
    * @function propToCol
-   * @param {String|Number} prop Property name or physical column index.
-   * @returns {Number} Visual column index.
+   * @param {string|number} prop Property name or physical column index.
+   * @returns {number} Visual column index.
    */
   this.propToCol = function(prop) {
     return datamap.propToCol(prop);
@@ -2089,27 +2566,27 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Translate physical row index into visual.
    *
    * This method is useful when you want to retrieve visual row index which can be reordered, moved or trimmed
-   * based on a physical index
+   * based on a physical index.
    *
    * @memberof Core#
    * @function toVisualRow
-   * @param {Number} row Physical row index.
-   * @returns {Number} Returns visual row index.
+   * @param {number} row Physical row index.
+   * @returns {number} Returns visual row index.
    */
-  this.toVisualRow = row => this.rowIndexMapper.getVisualIndex(row);
+  this.toVisualRow = row => this.rowIndexMapper.getVisualFromPhysicalIndex(row);
 
   /**
    * Translate physical column index into visual.
    *
    * This method is useful when you want to retrieve visual column index which can be reordered, moved or trimmed
-   * based on a physical index
+   * based on a physical index.
    *
    * @memberof Core#
    * @function toVisualColumn
-   * @param {Number} column Physical column index.
-   * @returns {Number} Returns visual column index.
+   * @param {number} column Physical column index.
+   * @returns {number} Returns visual column index.
    */
-  this.toVisualColumn = column => this.columnIndexMapper.getVisualIndex(column);
+  this.toVisualColumn = column => this.columnIndexMapper.getVisualFromPhysicalIndex(column);
 
   /**
    * Translate visual row index into physical.
@@ -2119,10 +2596,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function toPhysicalRow
-   * @param {Number} row Visual row index.
-   * @returns {Number} Returns physical row index.
+   * @param {number} row Visual row index.
+   * @returns {number} Returns physical row index.
    */
-  this.toPhysicalRow = row => this.rowIndexMapper.getPhysicalIndex(row);
+  this.toPhysicalRow = row => this.rowIndexMapper.getPhysicalFromVisualIndex(row);
 
   /**
    * Translate visual column index into physical.
@@ -2132,10 +2609,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function toPhysicalColumn
-   * @param {Number} column Visual column index.
-   * @returns {Number} Returns physical column index.
+   * @param {number} column Visual column index.
+   * @returns {number} Returns physical column index.
    */
-  this.toPhysicalColumn = column => this.columnIndexMapper.getPhysicalIndex(column);
+  this.toPhysicalColumn = column => this.columnIndexMapper.getPhysicalFromVisualIndex(column);
 
   /**
    * @description
@@ -2145,8 +2622,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getDataAtCell
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
    * @returns {*} Data at cell.
    */
   this.getDataAtCell = function(row, column) {
@@ -2154,14 +2631,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns value at visual `row` and `prop` indexes (see {@link DataMap#get}).
+   * Returns value at visual `row` and `prop` indexes.
    *
    * __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.
    *
    * @memberof Core#
    * @function getDataAtRowProp
-   * @param {Number} row Visual row index.
-   * @param {String} prop Property name.
+   * @param {number} row Visual row index.
+   * @param {string} prop Property name.
    * @returns {*} Cell value.
    */
   this.getDataAtRowProp = function(row, prop) {
@@ -2176,11 +2653,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getDataAtCol
-   * @param {Number} column Visual column index.
+   * @param {number} column Visual column index.
    * @returns {Array} Array of cell values.
    */
   this.getDataAtCol = function(column) {
-    return [].concat(...datamap.getRange(new CellCoords(0, column), new CellCoords(priv.settings.data.length - 1, column), datamap.DESTINATION_RENDERER));
+    return [].concat(...datamap.getRange(
+      new CellCoords(0, column),
+      new CellCoords(tableMeta.data.length - 1, column),
+      datamap.DESTINATION_RENDERER
+    ));
   };
 
   /**
@@ -2189,21 +2670,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getDataAtProp
-   * @param {String|Number} prop Property name or physical column index.
+   * @param {string|number} prop Property name or physical column index.
    * @returns {Array} Array of cell values.
    */
   // TODO: Getting data from `datamap` should work on visual indexes.
   this.getDataAtProp = function(prop) {
     const range = datamap.getRange(
       new CellCoords(0, datamap.propToCol(prop)),
-      new CellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)),
+      new CellCoords(tableMeta.data.length - 1, datamap.propToCol(prop)),
       datamap.DESTINATION_RENDERER);
 
     return [].concat(...range);
   };
 
   /**
-   * Returns the source data object (the same that was passed by `data` configuration option or `loadData` method).
+   * Returns a clone of the source data object.
    * Optionally you can provide a cell range by using the `row`, `column`, `row2`, `column2` arguments, to get only a
    * fragment of the table data.
    *
@@ -2212,11 +2693,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getSourceData
-   * @param {Number} [row] From physical row index.
-   * @param {Number} [column] From physical column index (or visual index, if data type is an array of objects).
-   * @param {Number} [row2] To physical row index.
-   * @param {Number} [column2] To physical column index (or visual index, if data type is an array of objects).
-   * @returns {Array[]|Object[]} The table data.
+   * @param {number} [row] From physical row index.
+   * @param {number} [column] From physical column index (or visual index, if data type is an array of objects).
+   * @param {number} [row2] To physical row index.
+   * @param {number} [column2] To physical column index (or visual index, if data type is an array of objects).
+   * @returns {Array[]|object[]} The table data.
    */
   this.getSourceData = function(row, column, row2, column2) {
     let data;
@@ -2240,10 +2721,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getSourceDataArray
-   * @param {Number} [row] From physical row index.
-   * @param {Number} [column] From physical column index (or visual index, if data type is an array of objects).
-   * @param {Number} [row2] To physical row index.
-   * @param {Number} [column2] To physical column index (or visual index, if data type is an array of objects).
+   * @param {number} [row] From physical row index.
+   * @param {number} [column] From physical column index (or visual index, if data type is an array of objects).
+   * @param {number} [row2] To physical row index.
+   * @param {number} [column2] To physical column index (or visual index, if data type is an array of objects).
    * @returns {Array} An array of arrays.
    */
   this.getSourceDataArray = function(row, column, row2, column2) {
@@ -2263,12 +2744,57 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getSourceDataAtCol
-   * @param {Number} column Visual column index.
+   * @param {number} column Visual column index.
    * @returns {Array} Array of the column's cell values.
    */
   // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCol = function(column) {
     return dataSource.getAtColumn(column);
+  };
+
+  /* eslint-disable jsdoc/require-param */
+  /**
+   * Set the provided value in the source data set at the provided coordinates.
+   *
+   * @memberof Core#
+   * @function setSourceDataAtCell
+   * @param {number|Array} row Physical row index or array of changes in format `[[row, prop, value], ...]`.
+   * @param {number|string} column Physical column index / prop name.
+   * @param {*} value The value to be set at the provided coordinates.
+   * @param {string} [source] Source of the change as a string.
+   */
+  /* eslint-enable jsdoc/require-param */
+  this.setSourceDataAtCell = function(row, column, value, source) {
+    const input = setDataInputToArray(row, column, value);
+    const isThereAnySetSourceListener = this.hasHook('afterSetSourceDataAtCell');
+    const changesForHook = [];
+
+    if (isThereAnySetSourceListener) {
+      arrayEach(input, ([changeRow, changeProp, changeValue]) => {
+        changesForHook.push([
+          changeRow,
+          changeProp,
+          dataSource.getAtCell(changeRow, changeProp), // The previous value.
+          changeValue,
+        ]);
+      });
+    }
+
+    arrayEach(input, ([changeRow, changeProp, changeValue]) => {
+      dataSource.setAtCell(changeRow, changeProp, changeValue);
+    });
+
+    if (isThereAnySetSourceListener) {
+      this.runHooks('afterSetSourceDataAtCell', changesForHook, source);
+    }
+
+    this.render();
+
+    const activeEditor = instance.getActiveEditor();
+
+    if (activeEditor && isDefined(activeEditor.refreshValue)) {
+      activeEditor.refreshValue();
+    }
   };
 
   /**
@@ -2279,8 +2805,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getSourceDataAtRow
-   * @param {Number} row Physical row index.
-   * @returns {Array|Object} Single row of data.
+   * @param {number} row Physical row index.
+   * @returns {Array|object} Single row of data.
    */
   this.getSourceDataAtRow = function(row) {
     return dataSource.getAtRow(row);
@@ -2291,8 +2817,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getSourceDataAtCell
-   * @param {Number} row Physical row index.
-   * @param {Number} column Visual column index.
+   * @param {number} row Physical row index.
+   * @param {number} column Visual column index.
    * @returns {*} Cell data.
    */
   // TODO: Getting data from `sourceData` should work always on physical indexes.
@@ -2308,32 +2834,37 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getDataAtRow
-   * @param {Number} row Visual row index.
+   * @param {number} row Visual row index.
    * @returns {Array} Array of row's cell data.
    */
   this.getDataAtRow = function(row) {
-    const data = datamap.getRange(new CellCoords(row, 0), new CellCoords(row, this.countCols() - 1), datamap.DESTINATION_RENDERER);
+    const data = datamap.getRange(
+      new CellCoords(row, 0),
+      new CellCoords(row, this.countCols() - 1),
+      datamap.DESTINATION_RENDERER
+    );
 
     return data[0] || [];
   };
 
   /**
    * @description
-   * Returns a data type defined in the Handsontable settings under the `type` key ([Options#type](https://handsontable.com/docs/Options.html#type)).
+   * Returns a data type defined in the Handsontable settings under the `type` key ({@link Options#type}).
    * If there are cells with different types in the selected range, it returns `'mixed'`.
    *
    * __Note__: If data is reordered, sorted or trimmed, the currently visible order will be used.
    *
    * @memberof Core#
    * @function getDataType
-   * @param {Number} rowFrom From visual row index.
-   * @param {Number} columnFrom From visual column index.
-   * @param {Number} rowTo To visual row index.
-   * @param {Number} columnTo To visual column index.
-   * @returns {String} Cell type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).
+   * @param {number} rowFrom From visual row index.
+   * @param {number} columnFrom From visual column index.
+   * @param {number} rowTo To visual row index.
+   * @param {number} columnTo To visual column index.
+   * @returns {string} Cell type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).
    */
   this.getDataType = function(rowFrom, columnFrom, rowTo, columnTo) {
-    const coords = rowFrom === void 0 ? [0, 0, this.countRows(), this.countCols()] : [rowFrom, columnFrom, rowTo, columnTo];
+    const coords = rowFrom === void 0 ?
+      [0, 0, this.countRows(), this.countCols()] : [rowFrom, columnFrom, rowTo, columnTo];
     const [rowStart, columnStart] = coords;
     let [,, rowEnd, columnEnd] = coords;
     let previousType = null;
@@ -2347,10 +2878,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     let type = 'mixed';
 
-    rangeEach(Math.min(rowStart, rowEnd), Math.max(rowStart, rowEnd), (row) => {
+    rangeEach(Math.max(Math.min(rowStart, rowEnd), 0), Math.max(rowStart, rowEnd), (row) => {
       let isTypeEqual = true;
 
-      rangeEach(Math.min(columnStart, columnEnd), Math.max(columnStart, columnEnd), (column) => {
+      rangeEach(Math.max(Math.min(columnStart, columnEnd), 0), Math.max(columnStart, columnEnd), (column) => {
         const cellType = this.getCellMeta(row, column);
 
         currentType = cellType.type;
@@ -2376,20 +2907,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function removeCellMeta
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @param {String} key Property name.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} key Property name.
    * @fires Hooks#beforeRemoveCellMeta
    * @fires Hooks#afterRemoveCellMeta
    */
   this.removeCellMeta = function(row, column, key) {
     const [physicalRow, physicalColumn] = [this.toPhysicalRow(row), this.toPhysicalColumn(column)];
-    let cachedValue = priv.cellSettings[physicalRow][physicalColumn][key];
+    let cachedValue = metaManager.getCellMetaKeyValue(physicalRow, physicalColumn, key);
 
     const hookResult = instance.runHooks('beforeRemoveCellMeta', row, column, key, cachedValue);
 
     if (hookResult !== false) {
-      delete priv.cellSettings[physicalRow][physicalColumn][key];
+      metaManager.removeCellMeta(physicalRow, physicalColumn, key);
 
       instance.runHooks('afterRemoveCellMeta', row, column, key, cachedValue);
     }
@@ -2398,15 +2929,33 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Remove one or more rows from the cell meta object.
+   * Removes or adds one or more rows of the cell meta objects to the cell meta collections.
    *
    * @since 0.30.0
-   * @param {Number} index An integer that specifies at what position to add/remove items, Use negative values to specify the position from the end of the array.
-   * @param {Number} deleteAmount The number of items to be removed. If set to 0, no items will be removed.
-   * @param {Array} items The new items to be added to the array.
+   * @memberof Core#
+   * @function spliceCellsMeta
+   * @param {number} visualIndex A visual index that specifies at what position to add/remove items.
+   * @param {number} [deleteAmount=0] The number of items to be removed. If set to 0, no cell meta objects will be removed.
+   * @param {...object} [cellMetaRows] The new cell meta row objects to be added to the cell meta collection.
    */
-  this.spliceCellsMeta = function(index, deleteAmount, ...items) {
-    priv.cellSettings.splice(index, deleteAmount, ...items);
+  this.spliceCellsMeta = function(visualIndex, deleteAmount = 0, ...cellMetaRows) {
+    if (cellMetaRows.length > 0 && !Array.isArray(cellMetaRows[0])) {
+      throw new Error('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
+    }
+
+    if (deleteAmount > 0) {
+      metaManager.removeRow(this.toPhysicalRow(visualIndex), deleteAmount);
+    }
+
+    if (cellMetaRows.length > 0) {
+      arrayEach(cellMetaRows.reverse(), (cellMetaRow) => {
+        metaManager.createRow(this.toPhysicalRow(visualIndex));
+
+        arrayEach(cellMetaRow, (cellMeta, columnIndex) => this.setCellMetaObject(visualIndex, columnIndex, cellMeta));
+      });
+    }
+
+    instance.render();
   };
 
   /**
@@ -2414,9 +2963,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function setCellMetaObject
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @param {Object} prop Meta object.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {object} prop Meta object.
    */
   this.setCellMetaObject = function(row, column, prop) {
     if (typeof prop === 'object') {
@@ -2431,13 +2980,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function setCellMeta
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @param {String} key Property name.
-   * @param {String} value Property value.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} key Property name.
+   * @param {string} value Property value.
+   * @fires Hooks#beforeSetCellMeta
    * @fires Hooks#afterSetCellMeta
    */
   this.setCellMeta = function(row, column, key, value) {
+    const allowSetCellMeta = instance.runHooks('beforeSetCellMeta', row, column, key, value);
+
+    if (allowSetCellMeta === false) {
+      return;
+    }
+
     let physicalRow = row;
     let physicalColumn = column;
 
@@ -2449,17 +3005,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       physicalColumn = this.toPhysicalColumn(column);
     }
 
-    if (!priv.columnSettings[physicalColumn]) {
-      priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);
-    }
+    metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
 
-    if (!priv.cellSettings[physicalRow]) {
-      priv.cellSettings[physicalRow] = [];
-    }
-    if (!priv.cellSettings[physicalRow][physicalColumn]) {
-      priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
-    }
-    priv.cellSettings[physicalRow][physicalColumn][key] = value;
     instance.runHooks('afterSetCellMeta', row, column, key, value);
   };
 
@@ -2471,7 +3018,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array} Returns an array of ColumnSettings object instances.
    */
   this.getCellsMeta = function() {
-    return arrayFlatten(priv.cellSettings);
+    return metaManager.getCellsMeta();
   };
 
   /**
@@ -2479,9 +3026,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getCellMeta
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @returns {Object} The cell properties object.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {object} The cell properties object.
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
    */
@@ -2497,55 +3044,22 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       physicalColumn = column;
     }
 
-    const prop = datamap.colToProp(column);
-
-    if (!priv.columnSettings[physicalColumn]) {
-      priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);
-    }
-
-    if (!priv.cellSettings[physicalRow]) {
-      priv.cellSettings[physicalRow] = [];
-    }
-    if (!priv.cellSettings[physicalRow][physicalColumn]) {
-      priv.cellSettings[physicalRow][physicalColumn] = new priv.columnSettings[physicalColumn]();
-    }
-
-    const cellProperties = priv.cellSettings[physicalRow][physicalColumn]; // retrieve cellProperties from cache
-
-    cellProperties.row = physicalRow;
-    cellProperties.col = physicalColumn;
-    cellProperties.visualRow = row;
-    cellProperties.visualCol = column;
-    cellProperties.prop = prop;
-    cellProperties.instance = instance;
-
-    instance.runHooks('beforeGetCellMeta', row, column, cellProperties);
-    extend(cellProperties, expandType(cellProperties)); // for `type` added in beforeGetCellMeta
-
-    if (cellProperties.cells) {
-      const settings = cellProperties.cells.call(cellProperties, physicalRow, physicalColumn, prop);
-
-      if (settings) {
-        extend(cellProperties, settings);
-        extend(cellProperties, expandType(settings)); // for `type` added in cells
-      }
-    }
-
-    instance.runHooks('afterGetCellMeta', row, column, cellProperties);
-
-    return cellProperties;
+    return metaManager.getCellMeta(physicalRow, physicalColumn, {
+      visualRow: row,
+      visualColumn: column,
+    });
   };
 
   /**
-   * Returns an array of cell meta objects for specyfied physical row index.
+   * Returns an array of cell meta objects for specified physical row index.
    *
    * @memberof Core#
    * @function getCellMetaAtRow
-   * @param {Number} row Physical row index.
+   * @param {number} row Physical row index.
    * @returns {Array}
    */
   this.getCellMetaAtRow = function(row) {
-    return priv.cellSettings[row];
+    return metaManager.getCellsMetaAtRow(row);
   };
 
   /**
@@ -2553,10 +3067,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function isColumnModificationAllowed
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   this.isColumnModificationAllowed = function() {
-    return !(instance.dataType === 'object' || instance.getSettings().columns);
+    return !(instance.dataType === 'object' || tableMeta.columns);
   };
 
   const rendererLookup = cellMethodLookupFactory('renderer');
@@ -2566,8 +3080,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getCellRenderer
-   * @param {Number|Object} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
-   * @param {Number} column Visual column index.
+   * @param {number|object} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
+   * @param {number} column Visual column index.
    * @returns {Function} The renderer function.
    * @example
    * ```js
@@ -2586,8 +3100,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getCellEditor
-   * @param {Number} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
-   * @param {Number} column Visual column index.
+   * @param {number} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
+   * @param {number} column Visual column index.
    * @returns {Function} The editor class.
    * @example
    * ```js
@@ -2606,8 +3120,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getCellValidator
-   * @param {Number|Object} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
-   * @param {Number} column Visual column index.
+   * @param {number|object} row Visual row index or cell meta object (see {@link Core#getCellMeta}).
+   * @param {number} column Visual column index.
    * @returns {Function|RegExp|undefined} The validator function.
    * @example
    * ```js
@@ -2760,17 +3274,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getRowHeader
-   * @param {Number} [row] Visual row index.
+   * @param {number} [row] Visual row index.
    * @fires Hooks#modifyRowHeader
-   * @returns {Array|String|Number} Array of header values / single header value.
+   * @returns {Array|string|number} Array of header values / single header value.
    */
   this.getRowHeader = function(row) {
-    let rowHeader = priv.settings.rowHeaders;
+    let rowHeader = tableMeta.rowHeaders;
     let physicalRow = row;
 
     if (physicalRow !== void 0) {
       physicalRow = instance.runHooks('modifyRowHeader', physicalRow);
     }
+
     if (physicalRow === void 0) {
       rowHeader = [];
       rangeEach(instance.countRows() - 1, (i) => {
@@ -2795,10 +3310,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function hasRowHeaders
-   * @returns {Boolean} `true` if the instance has the row headers enabled, `false` otherwise.
+   * @returns {boolean} `true` if the instance has the row headers enabled, `false` otherwise.
    */
   this.hasRowHeaders = function() {
-    return !!priv.settings.rowHeaders;
+    return !!tableMeta.rowHeaders;
   };
 
   /**
@@ -2806,11 +3321,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function hasColHeaders
-   * @returns {Boolean} `true` if the instance has the column headers enabled, `false` otherwise.
+   * @returns {boolean} `true` if the instance has the column headers enabled, `false` otherwise.
    */
   this.hasColHeaders = function() {
-    if (priv.settings.colHeaders !== void 0 && priv.settings.colHeaders !== null) { // Polymer has empty value = null
-      return !!priv.settings.colHeaders;
+    if (tableMeta.colHeaders !== void 0 && tableMeta.colHeaders !== null) { // Polymer has empty value = null
+      return !!tableMeta.colHeaders;
     }
     for (let i = 0, ilen = instance.countCols(); i < ilen; i++) {
       if (instance.getColHeader(i)) {
@@ -2827,18 +3342,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getColHeader
-   * @param {Number} [column] Visual column index.
+   * @param {number} [column] Visual column index.
    * @fires Hooks#modifyColHeader
-   * @returns {Array|String|Number} The column header(s).
+   * @returns {Array|string|number} The column header(s).
    */
   this.getColHeader = function(column) {
-    const columnsAsFunc = priv.settings.columns && isFunction(priv.settings.columns);
     const columnIndex = instance.runHooks('modifyColHeader', column);
-    let result = priv.settings.colHeaders;
+    let result = tableMeta.colHeaders;
 
     if (columnIndex === void 0) {
       const out = [];
-      const ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
+      const ilen = instance.countCols();
 
       for (let i = 0; i < ilen; i++) {
         out.push(instance.getColHeader(i));
@@ -2849,11 +3363,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     } else {
       const translateVisualIndexToColumns = function(visualColumnIndex) {
         const arr = [];
-        const columnsLen = instance.countSourceCols();
+        const columnsLen = instance.countCols();
         let index = 0;
 
         for (; index < columnsLen; index++) {
-          if (isFunction(instance.getSettings().columns) && instance.getSettings().columns(index)) {
+          if (isFunction(tableMeta.columns) && tableMeta.columns(index)) {
             arr.push(index);
           }
         }
@@ -2864,22 +3378,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       const physicalColumn = instance.toPhysicalColumn(columnIndex);
       const prop = translateVisualIndexToColumns(physicalColumn);
 
-      if (priv.settings.colHeaders === false) {
+      if (tableMeta.colHeaders === false) {
         result = null;
 
-      } else if (priv.settings.columns && isFunction(priv.settings.columns) && priv.settings.columns(prop) && priv.settings.columns(prop).title) {
-        result = priv.settings.columns(prop).title;
+      } else if (tableMeta.columns && isFunction(tableMeta.columns) && tableMeta.columns(prop) &&
+                 tableMeta.columns(prop).title) {
+        result = tableMeta.columns(prop).title;
 
-      } else if (priv.settings.columns && priv.settings.columns[physicalColumn] && priv.settings.columns[physicalColumn].title) {
-        result = priv.settings.columns[physicalColumn].title;
+      } else if (tableMeta.columns && tableMeta.columns[physicalColumn] &&
+                 tableMeta.columns[physicalColumn].title) {
+        result = tableMeta.columns[physicalColumn].title;
 
-      } else if (Array.isArray(priv.settings.colHeaders) && priv.settings.colHeaders[physicalColumn] !== void 0) {
-        result = priv.settings.colHeaders[physicalColumn];
+      } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== void 0) {
+        result = tableMeta.colHeaders[physicalColumn];
 
-      } else if (isFunction(priv.settings.colHeaders)) {
-        result = priv.settings.colHeaders(physicalColumn);
+      } else if (isFunction(tableMeta.colHeaders)) {
+        result = tableMeta.colHeaders(physicalColumn);
 
-      } else if (priv.settings.colHeaders && typeof priv.settings.colHeaders !== 'string' && typeof priv.settings.colHeaders !== 'number') {
+      } else if (tableMeta.colHeaders && typeof tableMeta.colHeaders !== 'string' &&
+                 typeof tableMeta.colHeaders !== 'number') {
         result = spreadsheetColumnLabel(columnIndex); // see #1458
       }
     }
@@ -2893,16 +3410,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @private
    * @memberof Core#
    * @function _getColWidthFromSettings
-   * @param {Number} col Visual col index.
-   * @returns {Number}
+   * @param {number} col Visual col index.
+   * @returns {number}
    */
   this._getColWidthFromSettings = function(col) {
-    const cellProperties = instance.getCellMeta(0, col);
-    let width = cellProperties.width;
+    let width;
 
-    if (width === void 0 || width === priv.settings.width) {
-      width = cellProperties.colWidths;
+    // We currently don't support cell meta objects for headers (negative values)
+    if (col >= 0) {
+      const cellProperties = instance.getCellMeta(0, col);
+
+      width = cellProperties.width;
     }
+
+    if (width === void 0 || width === tableMeta.width) {
+      width = tableMeta.colWidths;
+    }
+
     if (width !== void 0 && width !== null) {
       switch (typeof width) {
         case 'object': // array
@@ -2928,8 +3452,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getColWidth
-   * @param {Number} column Visual column index.
-   * @returns {Number} Column width.
+   * @param {number} column Visual column index.
+   * @returns {number} Column width.
    * @fires Hooks#modifyColWidth
    */
   this.getColWidth = function(column) {
@@ -2950,17 +3474,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @private
    * @memberof Core#
    * @function _getRowHeightFromSettings
-   * @param {Number} row Visual row index.
-   * @returns {Number}
+   * @param {number} row Visual row index.
+   * @returns {number}
    */
   this._getRowHeightFromSettings = function(row) {
     // let cellProperties = instance.getCellMeta(row, 0);
     // let height = cellProperties.height;
     //
-    // if (height === void 0 || height === priv.settings.height) {
+    // if (height === void 0 || height === tableMeta.height) {
     //  height = cellProperties.rowHeights;
     // }
-    let height = priv.settings.rowHeights;
+    let height = tableMeta.rowHeights;
 
     if (height !== void 0 && height !== null) {
       switch (typeof height) {
@@ -2985,10 +3509,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Returns the row height.
    *
+   * Mind that this method is different from the [AutoRowSize](@/api/autorowsize.md) plugin's [`getRowHeight()`](@/api/autorowsize.md#getrowheight) method.
+   *
    * @memberof Core#
    * @function getRowHeight
-   * @param {Number} row Visual row index.
-   * @returns {Number} The given row's height.
+   * @param {number} row Visual row index.
+   * @returns {number} The given row's height.
    * @fires Hooks#modifyRowHeight
    */
   this.getRowHeight = function(row) {
@@ -3004,11 +3530,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function countSourceRows
-   * @returns {Number} Total number of rows.
+   * @returns {number} Total number of rows.
    */
   this.countSourceRows = function() {
-    const sourceLength = instance.runHooks('modifySourceLength');
-    return sourceLength || (instance.getSourceData() ? instance.getSourceData().length : 0);
+    return dataSource.countRows();
   };
 
   /**
@@ -3016,20 +3541,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function countSourceCols
-   * @returns {Number} Total number of columns.
+   * @returns {number} Total number of columns.
    */
   this.countSourceCols = function() {
-    let len = 0;
-    const obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
-
-    if (isObject(obj)) {
-      len = deepObjectSize(obj);
-
-    } else {
-      len = obj.length || 0;
-    }
-
-    return len;
+    return dataSource.countFirstRowKeys();
   };
 
   /**
@@ -3037,7 +3552,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function countRows
-   * @returns {Number} Total number of rows.
+   * @returns {number} Total number of rows.
    */
   this.countRows = function() {
     return datamap.getLength();
@@ -3048,63 +3563,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function countCols
-   * @returns {Number} Total number of columns.
+   * @returns {number} Total number of columns.
    */
   this.countCols = function() {
-    const maxCols = this.getSettings().maxCols;
-    let dataLen = this.columnIndexMapper.getNotSkippedIndexesLength();
-
-    if (priv.settings.columns) {
-      const columnsIsFunction = isFunction(priv.settings.columns);
-
-      if (columnsIsFunction) {
-        if (instance.dataType === 'array') {
-          let columnLen = 0;
-
-          for (let i = 0; i < dataLen; i++) {
-            if (priv.settings.columns(i)) {
-              columnLen += 1;
-            }
-          }
-
-          dataLen = columnLen;
-        } else if (instance.dataType === 'object' || instance.dataType === 'function') {
-          dataLen = datamap.colToPropCache.length;
-        }
-
-      } else {
-        dataLen = priv.settings.columns.length;
-      }
-
-    } else if (instance.dataType === 'object' || instance.dataType === 'function') {
-      dataLen = datamap.colToPropCache.length;
-    }
+    const maxCols = tableMeta.maxCols;
+    const dataLen = this.columnIndexMapper.getNotTrimmedIndexesLength();
 
     return Math.min(maxCols, dataLen);
-  };
-
-  /**
-   * Returns an visual index of the first rendered row.
-   * Returns -1 if no row is rendered.
-   *
-   * @memberof Core#
-   * @function rowOffset
-   * @returns {Number} Visual index of first rendered row.
-   */
-  this.rowOffset = function() {
-    return instance.view.wt.wtTable.getFirstRenderedRow();
-  };
-
-  /**
-   * Returns the visual index of the first rendered column.
-   * Returns -1 if no column is rendered.
-   *
-   * @memberof Core#
-   * @function colOffset
-   * @returns {Number} Visual index of the first visible column.
-   */
-  this.colOffset = function() {
-    return instance.view.wt.wtTable.getFirstRenderedColumn();
   };
 
   /**
@@ -3112,7 +3577,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function countRenderedRows
-   * @returns {Number} Returns -1 if table is not visible.
+   * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedRows = function() {
     return instance.view.wt.drawn ? instance.view.wt.wtTable.getRenderedRowsCount() : -1;
@@ -3123,7 +3588,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function countVisibleRows
-   * @returns {Number} Number of visible rows or -1.
+   * @returns {number} Number of visible rows or -1.
    */
   this.countVisibleRows = function() {
     return instance.view.wt.drawn ? instance.view.wt.wtTable.getVisibleRowsCount() : -1;
@@ -3134,18 +3599,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function countRenderedCols
-   * @returns {Number} Returns -1 if table is not visible.
+   * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedCols = function() {
     return instance.view.wt.drawn ? instance.view.wt.wtTable.getRenderedColumnsCount() : -1;
   };
 
   /**
-   * Returns the number of visible columns. Returns -1 if table is not visible
+   * Returns the number of visible columns. Returns -1 if table is not visible.
    *
    * @memberof Core#
    * @function countVisibleCols
-   * @return {Number} Number of visible columns or -1.
+   * @returns {number} Number of visible columns or -1.
    */
   this.countVisibleCols = function() {
     return instance.view.wt.drawn ? instance.view.wt.wtTable.getVisibleColumnsCount() : -1;
@@ -3157,8 +3622,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function countEmptyRows
-   * @param {Boolean} [ending=false] If `true`, will only count empty rows at the end of the data source.
-   * @returns {Number} Count empty rows.
+   * @param {boolean} [ending=false] If `true`, will only count empty rows at the end of the data source.
+   * @returns {number} Count empty rows.
    */
   this.countEmptyRows = function(ending = false) {
     let emptyRows = 0;
@@ -3181,8 +3646,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function countEmptyCols
-   * @param {Boolean} [ending=false] If `true`, will only count empty columns at the end of the data source row.
-   * @returns {Number} Count empty cols.
+   * @param {boolean} [ending=false] If `true`, will only count empty columns at the end of the data source row.
+   * @returns {number} Count empty cols.
    */
   this.countEmptyCols = function(ending = false) {
     if (instance.countRows() < 1) {
@@ -3208,11 +3673,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function isEmptyRow
-   * @param {Number} row Visual row index.
-   * @returns {Boolean} `true` if the row at the given `row` is empty, `false` otherwise.
+   * @param {number} row Visual row index.
+   * @returns {boolean} `true` if the row at the given `row` is empty, `false` otherwise.
    */
   this.isEmptyRow = function(row) {
-    return priv.settings.isEmptyRow.call(instance, row);
+    return tableMeta.isEmptyRow.call(instance, row);
   };
 
   /**
@@ -3220,11 +3685,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function isEmptyCol
-   * @param {Number} column Column index.
-   * @returns {Boolean} `true` if the column at the given `col` is empty, `false` otherwise.
+   * @param {number} column Column index.
+   * @returns {boolean} `true` if the column at the given `col` is empty, `false` otherwise.
    */
   this.isEmptyCol = function(column) {
-    return priv.settings.isEmptyCol.call(instance, column);
+    return tableMeta.isEmptyCol.call(instance, column);
   };
 
   /**
@@ -3250,13 +3715,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function selectCell
-   * @param {Number} row Visual row index.
-   * @param {Number|String} column Visual column index or column property.
-   * @param {Number} [endRow] Visual end row index (if selecting a range).
-   * @param {Number|String} [endColumn] Visual end column index or column property (if selecting a range).
-   * @param {Boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
-   * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
-   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
+   * @param {number} row Visual row index.
+   * @param {number|string} column Visual column index or column property.
+   * @param {number} [endRow] Visual end row index (if selecting a range).
+   * @param {number|string} [endColumn] Visual end column index or column property (if selecting a range).
+   * @param {boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
+   * @param {boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
+   * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectCell = function(row, column, endRow, endColumn, scrollToCell = true, changeListener = true) {
     if (isUndefined(row) || isUndefined(column)) {
@@ -3295,9 +3760,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Array[]|CellRange[]} coords Visual coords passed as an array of array (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)
    *                                     the same format as `getSelected` method returns or as an CellRange objects
    *                                     which is the same format what `getSelectedRange` method returns.
-   * @param {Boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
-   * @param {Boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
-   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
+   * @param {boolean} [scrollToCell=true] If `true`, the viewport will be scrolled to the selection.
+   * @param {boolean} [changeListener=true] If `false`, Handsontable will not change keyboard events listener to himself.
+   * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectCells = function(coords = [[]], scrollToCell = true, changeListener = true) {
     if (scrollToCell === false) {
@@ -3332,10 +3797,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @since 0.38.0
    * @function selectColumns
-   * @param {Number} startColumn The visual column index from which the selection starts.
-   * @param {Number} [endColumn=startColumn] The visual column index to which the selection finishes. If `endColumn`
+   * @param {number} startColumn The visual column index from which the selection starts.
+   * @param {number} [endColumn=startColumn] The visual column index to which the selection finishes. If `endColumn`
    *                                         is not defined the column defined by `startColumn` will be selected.
-   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
+   * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectColumns = function(startColumn, endColumn = startColumn) {
     return selection.selectColumns(startColumn, endColumn);
@@ -3355,10 +3820,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @since 0.38.0
    * @function selectRows
-   * @param {Number} startRow The visual row index from which the selection starts.
-   * @param {Number} [endRow=startRow] The visual row index to which the selection finishes. If `endRow`
+   * @param {number} startRow The visual row index from which the selection starts.
+   * @param {number} [endRow=startRow] The visual row index to which the selection finishes. If `endRow`
    *                                   is not defined the row defined by `startRow` will be selected.
-   * @returns {Boolean} `true` if selection was successful, `false` otherwise.
+   * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectRows = function(startRow, endRow = startRow) {
     return selection.selectRows(startRow, endRow);
@@ -3380,11 +3845,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @since 0.38.2
    * @memberof Core#
    * @function selectAll
+   * @param {boolean} [includeHeaders=true] `true` If the selection should include the row, column and corner headers,
+   * `false` otherwise.
    */
-  this.selectAll = function() {
+  this.selectAll = function(includeHeaders = true) {
+    const includeRowHeaders = includeHeaders && this.hasRowHeaders();
+    const includeColumnHeaders = includeHeaders && this.hasColHeaders();
+
     preventScrollingToCell = true;
-    selection.selectAll();
+    selection.selectAll(includeRowHeaders, includeColumnHeaders);
     preventScrollingToCell = false;
+  };
+
+  const getIndexToScroll = (indexMapper, visualIndex) => {
+    // Looking for a visual index on the right and then (when not found) on the left.
+    return indexMapper.getFirstNotHiddenIndex(visualIndex, 1, true);
   };
 
   /**
@@ -3392,28 +3867,62 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function scrollViewportTo
-   * @param {Number} [row] Visual row index.
-   * @param {Number} [column] Visual column index.
-   * @param {Boolean} [snapToBottom = false] If `true`, viewport is scrolled to show the cell on the bottom of the table.
-   * @param {Boolean} [snapToRight = false] If `true`, viewport is scrolled to show the cell on the right side of the table.
-   * @returns {Boolean} `true` if scroll was successful, `false` otherwise.
+   * @param {number} [row] Row index. If the last argument isn't defined we treat the index as a visual row index. Otherwise,
+   * we are using the index for numbering only this rows which may be rendered (we don't consider hidden rows).
+   * @param {number} [column] Column index. If the last argument isn't defined we treat the index as a visual column index.
+   * Otherwise, we are using the index for numbering only this columns which may be rendered (we don't consider hidden columns).
+   * @param {boolean} [snapToBottom=false] If `true`, viewport is scrolled to show the cell on the bottom of the table.
+   * @param {boolean} [snapToRight=false] If `true`, viewport is scrolled to show the cell on the right side of the table.
+   * @param {boolean} [considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
+   * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
+   * @returns {boolean} `true` if scroll was successful, `false` otherwise.
    */
-  this.scrollViewportTo = function(row, column, snapToBottom = false, snapToRight = false) {
+  this.scrollViewportTo = function(row, column, snapToBottom = false,
+                                   snapToRight = false, considerHiddenIndexes = true) {
     const snapToTop = !snapToBottom;
     const snapToLeft = !snapToRight;
-    let result = false;
+    let renderableRow = row;
+    let renderableColumn = column;
 
-    if (row !== void 0 && column !== void 0) {
-      result = instance.view.scrollViewport(new CellCoords(row, column), snapToTop, snapToRight, snapToBottom, snapToLeft);
-    }
-    if (typeof row === 'number' && typeof column !== 'number') {
-      result = instance.view.scrollViewportVertically(row, snapToTop, snapToBottom);
-    }
-    if (typeof column === 'number' && typeof row !== 'number') {
-      result = instance.view.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+    if (considerHiddenIndexes) {
+      const isRowInteger = Number.isInteger(row);
+      const isColumnInteger = Number.isInteger(column);
+
+      const visualRowToScroll = isRowInteger ? getIndexToScroll(this.rowIndexMapper, row) : void 0;
+      const visualColumnToScroll = isColumnInteger ? getIndexToScroll(this.columnIndexMapper, column) : void 0;
+
+      if (visualRowToScroll === null || visualColumnToScroll === null) {
+        return false;
+      }
+
+      renderableRow = isRowInteger ?
+        instance.rowIndexMapper.getRenderableFromVisualIndex(visualRowToScroll) : void 0;
+      renderableColumn = isColumnInteger ?
+        instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll) : void 0;
     }
 
-    return result;
+    const isRowInteger = Number.isInteger(renderableRow);
+    const isColumnInteger = Number.isInteger(renderableColumn);
+
+    if (isRowInteger && isColumnInteger) {
+      return instance.view.scrollViewport(
+        new CellCoords(renderableRow, renderableColumn),
+        snapToTop,
+        snapToRight,
+        snapToBottom,
+        snapToLeft
+      );
+    }
+
+    if (isRowInteger && isColumnInteger === false) {
+      return instance.view.scrollViewportVertically(renderableRow, snapToTop, snapToBottom);
+    }
+
+    if (isColumnInteger && isRowInteger === false) {
+      return instance.view.scrollViewportHorizontally(renderableColumn, snapToRight, snapToLeft);
+    }
+
+    return false;
   };
 
   /**
@@ -3435,6 +3944,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     dataSource = null;
 
+    metaManager.clearCache();
+
     keyStateStopObserving();
 
     if (isRootInstance(instance)) {
@@ -3451,10 +3962,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.destroy();
     }
 
-    instance.executeBatchOperations(() => {
-      // The plugin's `destroy` method is called as a consequence and it should handle unregistration of plugin's maps. Some unregistered maps reset the cache.
+    // The plugin's `destroy` method is called as a consequence and it should handle
+    // unregistration of plugin's maps. Some unregistered maps reset the cache.
+    instance.batchExecution(() => {
+      instance.rowIndexMapper.unregisterAll();
+      instance.columnIndexMapper.unregisterAll();
+
+      pluginsRegistry
+        .getItems()
+        .forEach(([, plugin]) => {
+          plugin.destroy();
+        });
+      pluginsRegistry.clear();
       instance.runHooks('afterDestroy');
-    });
+    }, true);
 
     Hooks.getSingleton().destroy(instance);
 
@@ -3480,19 +4001,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     instance.rowIndexMapper = null;
     instance.columnIndexMapper = null;
+
     datamap = null;
-    priv = null;
     grid = null;
     selection = null;
     editorManager = null;
     instance = null;
-    GridSettings = null;
   };
 
   /**
-   * Replacement for all methods after Handsotnable was destroyed.
+   * Replacement for all methods after the Handsontable was destroyed.
    *
    * @private
+   * @param {string} method The method name.
+   * @returns {Function}
    */
   function postMortem(method) {
     return () => {
@@ -3516,11 +4038,35 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getPlugin
-   * @param {String} pluginName The plugin name.
-   * @returns {BasePlugin} The plugin instance.
+   * @param {string} pluginName The plugin name.
+   * @returns {BasePlugin|undefined} The plugin instance or undefined if there is no plugin.
    */
   this.getPlugin = function(pluginName) {
-    return getPlugin(this, pluginName);
+    const unifiedPluginName = toUpperCaseFirst(pluginName);
+
+    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
+    if (unifiedPluginName === 'UndoRedo') {
+      return this.undoRedo;
+    }
+
+    return pluginsRegistry.getItem(unifiedPluginName);
+  };
+
+  /**
+   * Returns name of the passed plugin.
+   *
+   * @private
+   * @memberof Core#
+   * @param {BasePlugin} plugin The plugin instance.
+   * @returns {string}
+   */
+  this.getPluginName = function(plugin) {
+    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
+    if (plugin === this.undoRedo) {
+      return this.undoRedo.constructor.PLUGIN_KEY;
+    }
+
+    return pluginsRegistry.getId(plugin);
   };
 
   /**
@@ -3540,7 +4086,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function addHook
    * @see Hooks#add
-   * @param {String} key Hook name (see {@link Hooks}).
+   * @param {string} key Hook name (see {@link Hooks}).
    * @param {Function|Array} callback Function or array of functions.
    * @example
    * ```js
@@ -3558,8 +4104,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function hasHook
    * @see Hooks#has
-   * @param {String} key Hook name
-   * @return {Boolean}
+   * @param {string} key Hook name.
+   * @returns {boolean}
    *
    * @example
    * ```js
@@ -3577,7 +4123,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function addHookOnce
    * @see Hooks#once
-   * @param {String} key Hook name (see {@link Hooks}).
+   * @param {string} key Hook name (see {@link Hooks}).
    * @param {Function|Array} callback Function or array of functions.
    * @example
    * ```js
@@ -3594,7 +4140,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function removeHook
    * @see Hooks#remove
-   * @param {String} key Hook name.
+   * @param {string} key Hook name.
    * @param {Function} callback Reference to the function which has been registered using {@link Core#addHook}.
    *
    * @example
@@ -3612,7 +4158,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function runHooks
    * @see Hooks#run
-   * @param {String} key Hook name.
+   * @param {string} key Hook name.
    * @param {*} [p1] Argument passed to the callback.
    * @param {*} [p2] Argument passed to the callback.
    * @param {*} [p3] Argument passed to the callback.
@@ -3639,12 +4185,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function getTranslatedPhrase
    * @since 0.35.0
-   * @param {String} dictionaryKey Constant which is dictionary key.
+   * @param {string} dictionaryKey Constant which is dictionary key.
    * @param {*} extraArguments Arguments which will be handled by formatters.
-   * @returns {String}
+   * @returns {string}
    */
   this.getTranslatedPhrase = function(dictionaryKey, extraArguments) {
-    return getTranslatedPhrase(priv.settings.language, dictionaryKey, extraArguments);
+    return getTranslatedPhrase(tableMeta.language, dictionaryKey, extraArguments);
   };
 
   /**
@@ -3653,7 +4199,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function toHTML
    * @since 7.1.0
-   * @returns {String}
+   * @returns {string}
    */
   this.toHTML = () => instanceToHTML(this);
 
@@ -3667,6 +4213,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.toTableElement = () => {
     const tempElement = this.rootDocument.createElement('div');
+
     tempElement.insertAdjacentHTML('afterbegin', instanceToHTML(this));
 
     return tempElement.firstElementChild;
@@ -3677,9 +4224,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called.
    *
-   * @param {Number|Function} handle Handler returned from setTimeout or function to execute (it will be automatically wraped
+   * @param {number|Function} handle Handler returned from setTimeout or function to execute (it will be automatically wraped
    *                                 by setTimeout function).
-   * @param {Number} [delay=0] If first argument is passed as a function this argument set delay of the execution of that function.
+   * @param {number} [delay=0] If first argument is passed as a function this argument set delay of the execution of that function.
    * @private
    */
   this._registerTimeout = function(handle, delay = 0) {
@@ -3730,8 +4277,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Refresh selection borders. This is temporary method relic after selection rewrite.
    *
    * @private
-   * @param {Boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
-   * @param {Boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
+   * @param {boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
+   * @param {boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
    */
   this._refreshBorders = function(revertOriginal = false, prepareEditorIfNeeded = true) {
     editorManager.destroyEditor(revertOriginal);
@@ -3741,6 +4288,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.prepareEditor();
     }
   };
+
+  getPluginsNames().forEach((pluginName) => {
+    const PluginClass = getPlugin(pluginName);
+
+    pluginsRegistry.addItem(pluginName, new PluginClass(this));
+  });
 
   Hooks.getSingleton().run(instance, 'construct');
 }

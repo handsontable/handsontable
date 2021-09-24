@@ -3,7 +3,6 @@
  */
 const path = require('path');
 const configFactory = require('./languages-development');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const OUTPUT_LANGUAGES_DIRECTORY = 'dist/languages';
 
 module.exports.create = function create() {
@@ -15,21 +14,7 @@ module.exports.create = function create() {
     config.output.filename = '[name].min.js';
     config.mode = 'production';
     config.optimization = {
-      minimizer: [
-        new UglifyJsPlugin({
-          parallel: true,
-          uglifyOptions: {
-            compressor: {
-              pure_getters: true,
-              warnings: false,
-            },
-            mangle: {},
-            output: {
-              comments: /^!|@preserve|@license|@cc_on/i,
-            },
-          }
-        }),
-      ]
+      minimize: true,
     };
   });
 

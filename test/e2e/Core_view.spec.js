@@ -91,7 +91,10 @@ describe('Core_view', () => {
     });
 
     const scrollbarSize = hot.view.wt.wtOverlays.scrollbarSize;
-    const { scrollWidth: masterScrollWidth, scrollHeight: masterScrollHeight } = spec().$container.find('.ht_master')[0];
+    const {
+      scrollWidth: masterScrollWidth,
+      scrollHeight: masterScrollHeight
+    } = spec().$container.find('.ht_master')[0];
     const topScrollWidth = spec().$container.find('.ht_clone_top')[0].scrollWidth;
     const leftScrollHeight = spec().$container.find('.ht_clone_left')[0].scrollHeight;
 
@@ -153,11 +156,190 @@ describe('Core_view', () => {
       colHeaders: true
     });
 
-    await sleep(500);
+    await sleep(700);
     hot.scrollViewportTo(119, 199);
-    await sleep(500);
+    await sleep(700);
     expect(hot.view.wt.wtScroll.getLastVisibleColumn()).toEqual(199);
     expect(hot.view.wt.wtScroll.getLastVisibleRow()).toEqual(119);
+  });
+
+  it('should scroll viewport properly when there are hidden columns ' +
+    '(row argument for the `scrollViewportTo` is defined)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2]
+      }
+    });
+
+    hot.scrollViewportTo(0, 15);
+    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(15 - 3); // 3 hidden, not rendered elements.
+  });
+
+  it('should scroll viewport properly when there are hidden columns ' +
+    '(row argument for the `scrollViewportTo` is not defined)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2]
+      }
+    });
+
+    hot.scrollViewportTo(void 0, 15);
+    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(15 - 3); // 3 hidden, not rendered elements before.
+  });
+
+  it('should scroll viewport to the right site of the destination index when the column is hidden (basing on visual indexes)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2, 7, 15]
+      }
+    });
+
+    const scrollResult1 = hot.scrollViewportTo(0, 7);
+
+    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+
+    expect(scrollResult1).toBe(true);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
+
+    const scrollResult2 = hot.scrollViewportTo(0, 15);
+
+    hot.render();
+
+    expect(scrollResult2).toBe(true);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(16 - 5); // 5 hidden, not rendered elements before.
+
+    const scrollResult3 = hot.scrollViewportTo(0, 7);
+
+    hot.render();
+
+    expect(scrollResult3).toBe(true);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
+
+    const scrollResult4 = hot.scrollViewportTo(0, 0);
+
+    hot.render();
+
+    expect(scrollResult4).toBe(true);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(3 - 3); // 3 hidden, not rendered elements before.
+  });
+
+  it('should scroll viewport to the left site of the destination index when the column is hidden and there are ' +
+    'no visible indexes on the right (basing on visual indexes)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2, 7, 15, 16, 17, 18, 19]
+      }
+    });
+
+    const scrollResult1 = hot.scrollViewportTo(0, 15);
+
+    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+
+    expect(scrollResult1).toBe(true);
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
+
+    hot.scrollViewportTo(0, 19);
+    hot.render();
+
+    const scrollResult2 = hot.scrollViewportTo(0, 17);
+
+    hot.render();
+
+    expect(scrollResult2).toBe(true);
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
+
+    const scrollResult3 = hot.scrollViewportTo(0, 19);
+
+    hot.render();
+
+    expect(scrollResult3).toBe(true);
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
+  });
+
+  it('should scroll viewport to the the destination index when there are some hidden indexes (handling renderable indexes)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2, 7, 15]
+      }
+    });
+
+    const scrollResult1 = hot.scrollViewportTo(0, 2, false, false, false);
+
+    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+
+    expect(scrollResult1).toBe(true);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(2);
+
+    const scrollResult2 = hot.scrollViewportTo(0, 14, false, false, false);
+
+    hot.render();
+
+    expect(scrollResult2).toBe(true);
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(14);
+
+    const scrollResult3 = hot.scrollViewportTo(0, 2, false, false, false);
+
+    hot.render();
+
+    expect(scrollResult3).toBe(true);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(2);
+
+    const scrollResult4 = hot.scrollViewportTo(0, 0, false, false, false);
+
+    hot.render();
+
+    expect(scrollResult4).toBe(true);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(0);
+  });
+
+  it('should not scroll viewport when all columns are hidden (basing on visual indexes)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 10,
+      startCols: 10,
+      hiddenColumns: {
+        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+      }
+    });
+
+    const scrollResult1 = hot.scrollViewportTo(0, 0);
+
+    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+
+    expect(scrollResult1).toBe(false);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(-1);
+
+    const scrollResult2 = hot.scrollViewportTo(0, 5);
+
+    hot.render();
+
+    expect(scrollResult2).toBe(false);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(-1);
   });
 
   it('should not throw error while scrolling viewport to 0, 0 (empty data)', () => {
@@ -442,7 +624,7 @@ describe('Core_view', () => {
     expect(spec().$container.width()).toBeAroundValue(parentWidth * 0.5, 0.5);
   });
 
-  it('should fire beforeRender event after table has been scrolled', async() => {
+  it('should fire beforeViewRender event after table has been scrolled', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
@@ -453,7 +635,7 @@ describe('Core_view', () => {
 
     const beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
 
-    hot.addHook('beforeRender', beforeRenderCallback);
+    hot.addHook('beforeViewRender', beforeRenderCallback);
     spec().$container.find('.ht_master .wtHolder').scrollTop(1000);
 
     await sleep(200);
@@ -461,7 +643,7 @@ describe('Core_view', () => {
     expect(beforeRenderCallback.calls.count()).toBe(1);
   });
 
-  it('should fire afterRender event after table has been scrolled', async() => {
+  it('should fire afterViewRender event after table has been scrolled', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
@@ -471,7 +653,8 @@ describe('Core_view', () => {
     });
 
     const afterRenderCallback = jasmine.createSpy('afterRenderCallback');
-    hot.addHook('afterRender', afterRenderCallback);
+
+    hot.addHook('afterViewRender', afterRenderCallback);
     spec().$container.find('.ht_master .wtHolder').first().scrollTop(1000);
 
     await sleep(200);
@@ -479,7 +662,7 @@ describe('Core_view', () => {
     expect(afterRenderCallback.calls.count()).toBe(1);
   });
 
-  it('should fire afterRender event after table physically rendered', async() => {
+  it('should fire afterViewRender event after table physically rendered', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
@@ -488,14 +671,14 @@ describe('Core_view', () => {
       data: Handsontable.helper.createSpreadsheetData(20, 3)
     });
 
-    hot.addHook('afterRender', () => {
+    hot.addHook('afterViewRender', () => {
       hot.view.wt.wtTable.holder.style.overflow = 'scroll';
       hot.view.wt.wtTable.holder.style.width = '220px';
     });
     spec().$container.find('.ht_master .wtHolder').first().scrollTop(1000);
 
     await sleep(100);
-    // after afterRender hook triggered element style shouldn't changed
+    // after afterViewRender hook triggered element style shouldn't changed
     expect(hot.view.wt.wtTable.holder.style.overflow).toBe('scroll');
     expect(hot.view.wt.wtTable.holder.style.width).toBe('220px');
   });
@@ -518,6 +701,7 @@ describe('Core_view', () => {
 
       const eventManager = new Handsontable.EventManager(hot);
       const spy = jasmine.createSpy();
+
       eventManager.addEventListener(window, 'wheel', spy);
 
       const wheelEvt = new WheelEvent('wheel', {
@@ -764,6 +948,7 @@ describe('Core_view', () => {
 
     it('should be the same as the row heights in the main table (after scroll)', () => {
       const myData = Handsontable.helper.createSpreadsheetData(20, 4);
+
       myData[1][3] = 'very\nlong\ntext';
       myData[5][3] = 'very\nlong\ntext';
       myData[10][3] = 'very\nlong\ntext';
@@ -792,6 +977,7 @@ describe('Core_view', () => {
 
     it('should be the same as the row heights in the main table (after scroll, in corner)', () => {
       const myData = Handsontable.helper.createSpreadsheetData(20, 4);
+
       myData[1][3] = 'very\nlong\ntext';
       myData[5][3] = 'very\nlong\ntext';
       myData[10][3] = 'very\nlong\ntext';
@@ -810,12 +996,14 @@ describe('Core_view', () => {
       const rowHeight = hot.getCell(1, 3).clientHeight;
       const mainHolder = hot.view.wt.wtTable.holder;
 
-      expect(spec().$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
+      expect(spec().$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
+        .toEqual(rowHeight);
 
       $(mainHolder).scrollTop(200);
       hot.render();
 
-      expect(spec().$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
+      expect(spec().$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
+        .toEqual(rowHeight);
     });
   });
 
@@ -929,6 +1117,7 @@ describe('Core_view', () => {
         stretchH: 'all'
       });
       const rowHeaderWidth = hot.view.wt.wtViewport.getRowHeaderWidth();
+
       expect(hot.view.wt.wtOverlays.leftOverlay.getScrollPosition()).toEqual(0);
 
       let expectedCellWidth = (parseInt(spec().$container[0].style.width, 10) - rowHeaderWidth) / 5;

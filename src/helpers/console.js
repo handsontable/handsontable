@@ -3,9 +3,9 @@
 
 /**
  * "In Internet Explorer 9 (and 8), the console object is only exposed when the developer tools are opened
- * for a particular tab."
+ * for a particular tab.".
  *
- * Source: https://stackoverflow.com/a/5473193
+ * Source: https://stackoverflow.com/a/5473193.
  */
 
 import { isDefined } from './mixed';

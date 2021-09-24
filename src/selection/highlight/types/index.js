@@ -1,6 +1,13 @@
-/* eslint-disable import/prefer-default-export */
 import staticRegister from './../../../utils/staticRegister';
 
+import {
+  ACTIVE_HEADER_TYPE,
+  AREA_TYPE,
+  CELL_TYPE,
+  CUSTOM_SELECTION_TYPE,
+  FILL_TYPE,
+  HEADER_TYPE,
+} from '../constants';
 import activeHeaderHighlight from './activeHeader';
 import areaHighlight from './area';
 import cellHighlight from './cell';
@@ -13,15 +20,23 @@ const {
   getItem,
 } = staticRegister('highlight/types');
 
-register('active-header', activeHeaderHighlight);
-register('area', areaHighlight);
-register('cell', cellHighlight);
-register('custom-selection', customSelection);
-register('fill', fillHighlight);
-register('header', headerHighlight);
+register(ACTIVE_HEADER_TYPE, activeHeaderHighlight);
+register(AREA_TYPE, areaHighlight);
+register(CELL_TYPE, cellHighlight);
+register(CUSTOM_SELECTION_TYPE, customSelection);
+register(FILL_TYPE, fillHighlight);
+register(HEADER_TYPE, headerHighlight);
 
+/**
+ * @param {string} highlightType The selection type.
+ * @param {object} options The selection options.
+ * @returns {Selection}
+ */
 function createHighlight(highlightType, options) {
-  return getItem(highlightType)(options);
+  return getItem(highlightType)({
+    type: highlightType,
+    ...options
+  });
 }
 
 export {

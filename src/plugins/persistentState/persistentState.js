@@ -1,14 +1,17 @@
-import BasePlugin from './../_base';
-import { registerPlugin } from './../../plugins';
+import { BasePlugin } from '../base';
 import Storage from './storage';
-import Hooks from './../../pluginHooks';
+import Hooks from '../../pluginHooks';
 
 Hooks.getSingleton().register('persistentStateSave');
 Hooks.getSingleton().register('persistentStateLoad');
 Hooks.getSingleton().register('persistentStateReset');
 
+export const PLUGIN_KEY = 'persistentState';
+export const PLUGIN_PRIORITY = 0;
+
 /**
  * @plugin PersistentState
+ * @class PersistentState
  *
  * @description
  * Save the state of column sorting, column positions and column sizes in local storage to preserve table state
@@ -23,7 +26,15 @@ Hooks.getSingleton().register('persistentStateReset');
  * - {@link Hooks#persistentStateReset} - Clears the value saved under key. If no key is given, all values associated
  * with table will be cleared.
  */
-class PersistentState extends BasePlugin {
+export class PersistentState extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -39,10 +50,10 @@ class PersistentState extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link PersistentState#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().persistentState;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -86,8 +97,8 @@ class PersistentState extends BasePlugin {
   /**
    * Loads the value from local storage.
    *
-   * @param {String} key Storage key.
-   * @param {Object} saveTo Saved value from local storage.
+   * @param {string} key Storage key.
+   * @param {object} saveTo Saved value from local storage.
    */
   loadValue(key, saveTo) {
     saveTo.value = this.storage.loadValue(key);
@@ -96,7 +107,7 @@ class PersistentState extends BasePlugin {
   /**
    * Saves the data to local storage.
    *
-   * @param {String} key Storage key.
+   * @param {string} key Storage key.
    * @param {Mixed} value Value to save.
    */
   saveValue(key, value) {
@@ -106,7 +117,7 @@ class PersistentState extends BasePlugin {
   /**
    * Resets the data or all data from local storage.
    *
-   * @param {String} key [optional] Storage key.
+   * @param {string} key [optional] Storage key.
    */
   resetValue(key) {
     if (typeof key === 'undefined') {
@@ -124,7 +135,3 @@ class PersistentState extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('persistentState', PersistentState);
-
-export default PersistentState;

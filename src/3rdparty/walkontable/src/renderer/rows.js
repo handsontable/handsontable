@@ -13,7 +13,7 @@ let performanceWarningAppeared = false;
  *     ├ <tr>    \
  *     ├ <tr>     - RowsRenderer
  *     ├ <tr>    /
- *     └ <tr>   /
+ *     └ <tr>   /.
  *
  * @class {RowsRenderer}
  */
@@ -35,8 +35,8 @@ export default class RowsRenderer extends BaseRenderer {
   /**
    * Returns currently rendered node.
    *
-   * @param {String} visualIndex Visual index of the rendered node (it always goeas from 0 to N).
-   * @return {HTMLTableRowElement}
+   * @param {string} visualIndex Visual index of the rendered node (it always goeas from 0 to N).
+   * @returns {HTMLTableRowElement}
    */
   getRenderedNode(visualIndex) {
     return this.orderView.getNode(visualIndex);
@@ -50,8 +50,8 @@ export default class RowsRenderer extends BaseRenderer {
 
     if (!performanceWarningAppeared && rowsToRender > 1000) {
       performanceWarningAppeared = true;
-      warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number\x20
-        of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
+      warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting\x20
+        the number of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
     }
 
     this.orderView

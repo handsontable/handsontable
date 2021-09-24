@@ -8,30 +8,35 @@ const MIXIN_NAME = 'stickyRowsBottom';
  * This mixin is meant to be applied in the subclasses of `Table`
  * that use sticky rendering of the bottom rows in the vertical axis.
  *
- * @type {Object}
+ * @type {object}
  */
 const stickyRowsBottom = {
   /**
-   * Get the source index of the first rendered row. If no rows are rendered, returns an error code: -1
+   * Get the source index of the first rendered row. If no rows are rendered, returns an error code: -1.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getFirstRenderedRow() {
     const totalRows = this.wot.getSetting('totalRows');
     const fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
     const index = totalRows - fixedRowsBottom;
 
-    if (index < 0) {
+    if (totalRows === 0 || fixedRowsBottom === 0) {
       return -1;
     }
+
+    if (index < 0) {
+      return 0;
+    }
+
     return index;
   },
 
   /**
-   * Get the source index of the first row fully visible in the viewport. If no rows are fully visible, returns an error code: -1
+   * Get the source index of the first row fully visible in the viewport. If no rows are fully visible, returns an error code: -1.
    * Assumes that all rendered rows are fully visible.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getFirstVisibleRow() {
     return this.getFirstRenderedRow();
@@ -40,7 +45,7 @@ const stickyRowsBottom = {
   /**
    * Get the source index of the last rendered row. If no rows are rendered, returns an error code: -1.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getLastRenderedRow() {
     return this.wot.getSetting('totalRows') - 1;
@@ -50,7 +55,7 @@ const stickyRowsBottom = {
    * Get the source index of the last row fully visible in the viewport. If no rows are fully visible, returns an error code: -1.
    * Assumes that all rendered rows are fully visible.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getLastVisibleRow() {
     return this.getLastRenderedRow();
@@ -59,7 +64,7 @@ const stickyRowsBottom = {
   /**
    * Get the number of rendered rows.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getRenderedRowsCount() {
     const totalRows = this.wot.getSetting('totalRows');
@@ -71,7 +76,7 @@ const stickyRowsBottom = {
    * Get the number of fully visible rows in the viewport.
    * Assumes that all rendered rows are fully visible.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getVisibleRowsCount() {
     return this.getRenderedRowsCount();

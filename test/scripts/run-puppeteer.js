@@ -5,9 +5,12 @@ const JasmineReporter = require('jasmine-terminal-reporter');
 
 const PORT = 8086;
 const DEFAULT_INACTIVITY_TIMEOUT = 10000;
+const IS_CI = process.env.CI;
+const CI_DOTS_PER_LINE = 120;
 
 const [,, originalPath, flags] = process.argv;
 let path = originalPath;
+let verboseReporting = false;
 
 if (!originalPath) {
   /* eslint-disable no-console */
@@ -20,6 +23,8 @@ if (flags) {
   const seed = flags.match(/(--seed=)\d{1,}/g);
   const random = flags.includes('random');
   const params = [];
+
+  verboseReporting = flags.includes('verbose');
 
   if (seed) {
     params.push(`seed=${seed[0].replace('--seed=', '')}`);
@@ -54,8 +59,8 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
 
   page.setCacheEnabled(false);
   page.setViewport({
-    width: 1200,
-    height: 1000,
+    width: 1280,
+    height: 720,
   });
 
   const server = http.createServer(ecstatic({
@@ -73,7 +78,7 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
     verbosity: 4,
     listStyle: 'flat',
     activity: true,
-    isVerbose: false,
+    isVerbose: verboseReporting,
     includeStackTrace: true,
   });
   let errorCount = 0;
@@ -93,6 +98,15 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
       errorCount += result.failedExpectations.length;
     }
     reporter.specDone(result);
+
+    // Break the "dots" output into same-lenghed lines if on CI.
+    if (IS_CI) {
+      const dotIndex = parseInt(result.id.replace('spec', ''), 10);
+
+      if (dotIndex > 0 && (dotIndex + 1) % CI_DOTS_PER_LINE === 0) {
+        process.stdout.write('\n');
+      }
+    }
   });
   await page.exposeFunction('jasmineDone', async() => {
     reporter.jasmineDone();

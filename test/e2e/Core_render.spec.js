@@ -36,6 +36,7 @@ describe('Core_render', () => {
     });
 
     const $tds = spec().$container.find('.htCore tbody td');
+
     $tds.each(function() {
       expect(this.style.backgroundColor).toEqual('green');
     });
@@ -60,23 +61,22 @@ describe('Core_render', () => {
     render();
 
     const $td = spec().$container.find('.htCore tbody tr:eq(1) td:eq(1)');
+
     expect(spec().$container.find('.wtBorder.current').width()).toBeGreaterThan($td.width());
   });
 
   it('should not render table twice', () => {
-    let counter = 0;
+    const afterRender = jasmine.createSpy('afterRender');
 
     handsontable({
       data: [
         ['Joe Red']
       ],
-      afterRender() {
-        counter += 1;
-      }
+      afterRender,
     });
     populateFromArray(0, 0, [['t', 'e', 's', 't']]);
 
-    expect(counter).toEqual(2); // 1 from load and 1 from populateFromArray
+    expect(afterRender).toHaveBeenCalledTimes(2); // 1 from load and 1 from populateFromArray
   });
 
   it('should run afterRenderer hook', () => {

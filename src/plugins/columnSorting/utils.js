@@ -1,4 +1,3 @@
-import { isUndefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
 import { isRightClick } from '../../helpers/dom/event';
 
@@ -9,11 +8,11 @@ export const HEADER_SPAN_CLASS = 'colHeader';
 /**
  * Get if column state is valid.
  *
- * @param {Number} columnState Particular column state.
- * @returns {Boolean}
+ * @param {number} columnState Particular column state.
+ * @returns {boolean}
  */
 function isValidColumnState(columnState) {
-  if (isUndefined(columnState)) {
+  if (isObject(columnState) === false) {
     return false;
   }
 
@@ -25,25 +24,25 @@ function isValidColumnState(columnState) {
 /**
  * Get if all sorted columns states are valid.
  *
- * @param {Array} sortStates
- * @returns {Boolean}
+ * @param {Array} sortStates The sort state collection.
+ * @returns {boolean}
  */
 export function areValidSortStates(sortStates) {
-  if (Array.isArray(sortStates) === false || sortStates.every(columnState => isObject(columnState)) === false) {
+  if (sortStates.some(columnState => isValidColumnState(columnState) === false)) {
     return false;
   }
 
   const sortedColumns = sortStates.map(({ column }) => column);
-  const indexOccursOnlyOnce = new Set(sortedColumns).size === sortedColumns.length;
 
-  return indexOccursOnlyOnce && sortStates.every(isValidColumnState);
+  // Indexes occurs only once.
+  return new Set(sortedColumns).size === sortedColumns.length;
 }
 
 /**
- * Get next sort order for particular column. The order sequence looks as follows: 'asc' -> 'desc' -> undefined -> 'asc'
+ * Get next sort order for particular column. The order sequence looks as follows: 'asc' -> 'desc' -> undefined -> 'asc'.
  *
- * @param {String|undefined} sortOrder sort order (`asc` for ascending, `desc` for descending and undefined for not sorted).
- * @returns {String|undefined} Next sort order (`asc` for ascending, `desc` for descending and undefined for not sorted).
+ * @param {string|undefined} sortOrder Sort order (`asc` for ascending, `desc` for descending and undefined for not sorted).
+ * @returns {string|undefined} Next sort order (`asc` for ascending, `desc` for descending and undefined for not sorted).
  */
 export function getNextSortOrder(sortOrder) {
   if (sortOrder === DESC_SORT_STATE) {
@@ -59,7 +58,7 @@ export function getNextSortOrder(sortOrder) {
 /**
  * Get `span` DOM element inside `th` DOM element.
  *
- * @param {Element} TH th HTML element.
+ * @param {Element} TH Th HTML element.
  * @returns {Element | null}
  */
 export function getHeaderSpanElement(TH) {
@@ -72,9 +71,9 @@ export function getHeaderSpanElement(TH) {
  *
  * Get if handled header is first level column header.
  *
- * @param {Number} column Visual column index.
- * @param {Element} TH th HTML element.
- * @returns {Boolean}
+ * @param {number} column Visual column index.
+ * @param {Element} TH Th HTML element.
+ * @returns {boolean}
  */
 export function isFirstLevelColumnHeader(column, TH) {
   if (column < 0 || !TH.parentNode) {
@@ -94,10 +93,10 @@ export function isFirstLevelColumnHeader(column, TH) {
 /**
  *  Get if header was clicked properly. Click on column header and NOT done by right click return `true`.
  *
- * @param {Number} row Visual row index.
- * @param {Number} column Visual column index.
+ * @param {number} row Visual row index.
+ * @param {number} column Visual column index.
  * @param {Event} clickEvent Click event.
- * @returns {Boolean}
+ * @returns {boolean}
  */
 export function wasHeaderClickedProperly(row, column, clickEvent) {
   return row === -1 && column >= 0 && isRightClick(clickEvent) === false;

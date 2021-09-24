@@ -1,0 +1,30 @@
+{
+  "name": "vanilla-basic-example",
+  "private": true,
+  "version": "0.0.0",
+  "main": "index.html",
+  "homepage": "https://handsontable.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/handsontable/handsontable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/handsontable/handsontable/issues"
+  },
+  "author": "Handsoncode <hello@handsontable.com>",
+  "scripts": {
+    "start": "parcel index.html --port 8080",
+    "build": "parcel build index.html --public-url '.'",
+    "test": "node spec/support/jasmine.config.js"
+  },
+  "dependencies": {
+    "handsontable": "latest"
+  },
+  "devDependencies": {
+    "jasmine": "3.7.0",
+    "jasmine-console-reporter": "3.1.0",
+    "parcel-bundler": "1.12.3",
+    "puppeteer": "7.1.0"
+  },
+  "license": "SEE LICENSE IN LICENSE.txt"
+}

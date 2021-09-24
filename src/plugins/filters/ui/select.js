@@ -136,7 +136,7 @@ class SelectUI extends BaseUI {
       this.menu.open();
       this.menu.setPosition({
         left: rect.left - 5,
-        top: rect.top,
+        top: rect.top - 1,
         width: rect.width,
         height: rect.height
       });
@@ -156,12 +156,11 @@ class SelectUI extends BaseUI {
    * On menu selected listener.
    *
    * @private
-   * @param {Object} command Selected item
+   * @param {object} command Selected item.
    */
   onMenuSelect(command) {
     if (command.name !== SEPARATOR) {
       this.options.value = command;
-      this.closeOptions();
       this.update();
       this.runLocalHooks('select', this.options.value);
     }

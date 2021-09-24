@@ -282,7 +282,7 @@ describe('Core_alter', () => {
       });
       alter('remove_row', 2, 1, 'customSource');
 
-      expect(onBeforeRemoveRow).toHaveBeenCalledWith(countRows(), 1, [2], 'customSource', undefined, undefined);
+      expect(onBeforeRemoveRow).toHaveBeenCalledWith(countRows(), 1, [2], 'customSource');
     });
 
     it('should not remove row if removing has been canceled by beforeRemoveRow event handler', () => {
@@ -304,6 +304,22 @@ describe('Core_alter', () => {
       alter('remove_row');
 
       expect(countRows()).toEqual(3);
+    });
+
+    it('should not remove cell meta objects if removing has been canceled by beforeRemoveRow event handler', () => {
+      handsontable({
+        beforeRemoveRow: () => false,
+      });
+
+      setCellMeta(2, 0, '_test', 'foo');
+
+      alter('remove_row', 1, 1);
+
+      expect(getCellMeta(0, 0)._test).toBeUndefined();
+      expect(getCellMeta(1, 0)._test).toBeUndefined();
+      expect(getCellMeta(2, 0)._test).toBe('foo');
+      expect(getCellMeta(3, 0)._test).toBeUndefined();
+      expect(getCellMeta(4, 0)._test).toBeUndefined();
     });
 
     it('should not remove rows below minRows', () => {
@@ -521,6 +537,39 @@ describe('Core_alter', () => {
 
       expect(getCellMeta(0, 1).className).toEqual('test');
     });
+
+    it('should cooperate with the `beforeRemoveRow` changing list of the removed rows properly', () => {
+      const afterRemoveRow = jasmine.createSpy('afterRemoveRow');
+      let hookArgumentsBefore;
+      let hookArgumentsAfter;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 5),
+        beforeRemoveRow(index, amount, physicalRows) {
+          hookArgumentsBefore = [index, amount, [...physicalRows]];
+
+          physicalRows.length = 0;
+          physicalRows.push(0, 1, 2, 3);
+
+          hookArgumentsAfter = [index, amount, [...physicalRows]];
+        },
+        afterRemoveRow
+      });
+
+      alter('remove_row', 5, 2);
+
+      expect(getData()).toEqual([
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
+        ['A6', 'B6', 'C6', 'D6', 'E6'],
+        ['A7', 'B7', 'C7', 'D7', 'E7'],
+        ['A8', 'B8', 'C8', 'D8', 'E8'],
+        ['A9', 'B9', 'C9', 'D9', 'E9'],
+        ['A10', 'B10', 'C10', 'D10', 'E10'],
+      ]);
+      expect(hookArgumentsBefore).toEqual([5, 2, [5, 6]]);
+      expect(hookArgumentsAfter).toEqual([5, 2, [0, 1, 2, 3]]);
+      expect(afterRemoveRow).toHaveBeenCalledWith(5, 4, [0, 1, 2, 3]);
+    });
   });
 
   describe('remove column', () => {
@@ -653,6 +702,17 @@ describe('Core_alter', () => {
         expect($('.ht_master .htCore thead th').length).toBe(1);
         expect($('.ht_master .htCore .cornerHeader').length).toBe(1); // Corner visible.
       });
+
+      it('should remove all rows if removing all columns', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+        });
+
+        alter('remove_col', 0, 10);
+
+        expect(countCols()).toBe(0);
+        expect(countRows()).toBe(0);
+      });
     });
 
     it('should not remove column if amount is zero', () => {
@@ -741,7 +801,7 @@ describe('Core_alter', () => {
       });
       alter('remove_col');
 
-      expect(onBeforeRemoveCol).toHaveBeenCalledWith(countCols(), 1, [4], undefined, undefined, undefined);
+      expect(onBeforeRemoveCol).toHaveBeenCalledWith(countCols(), 1, [4]);
     });
 
     it('should not remove column if removing has been canceled by beforeRemoveCol event handler', () => {
@@ -758,6 +818,22 @@ describe('Core_alter', () => {
       alter('remove_col');
 
       expect(countCols()).toEqual(5);
+    });
+
+    it('should not remove cell meta objects if removing has been canceled by beforeRemoveCol event handler', () => {
+      handsontable({
+        beforeRemoveCol: () => false,
+      });
+
+      setCellMeta(0, 2, '_test', 'foo');
+
+      alter('remove_col', 1, 1);
+
+      expect(getCellMeta(0, 0)._test).toBeUndefined();
+      expect(getCellMeta(0, 1)._test).toBeUndefined();
+      expect(getCellMeta(0, 2)._test).toBe('foo');
+      expect(getCellMeta(0, 3)._test).toBeUndefined();
+      expect(getCellMeta(0, 4)._test).toBeUndefined();
     });
 
     it('should fire callback on remove col', () => {
@@ -836,7 +912,6 @@ describe('Core_alter', () => {
     });
 
     it('should remove column header together with the column, if headers were specified explicitly', () => {
-
       handsontable({
         startCols: 3,
         startRows: 2,
@@ -852,7 +927,6 @@ describe('Core_alter', () => {
       expect(countCols()).toEqual(2);
 
       expect(getColHeader()).toEqual(['Header0', 'Header2']);
-
     });
 
     it('should decrement the number of fixed columns, if a fix column is removed', () => {
@@ -923,7 +997,7 @@ describe('Core_alter', () => {
       });
       alter('insert_row', 2, 1, 'customSource');
 
-      expect(onBeforeCreateRow).toHaveBeenCalledWith(2, 1, 'customSource', void 0, void 0, void 0);
+      expect(onBeforeCreateRow).toHaveBeenCalledWith(2, 1, 'customSource');
     });
 
     it('should not create row if removing has been canceled by beforeCreateRow hook handler', () => {
@@ -945,6 +1019,21 @@ describe('Core_alter', () => {
       alter('insert_row');
 
       expect(countRows()).toEqual(3);
+    });
+
+    it('should not create/shift cell meta objects if creating has been canceled by beforeCreateRow hook handler', () => {
+      handsontable({
+        beforeCreateRow: () => false,
+      });
+
+      setCellMeta(2, 0, '_test', 'foo');
+
+      alter('insert_row', 1, 1);
+
+      expect(getCellMeta(0, 0)._test).toBeUndefined();
+      expect(getCellMeta(1, 0)._test).toBeUndefined();
+      expect(getCellMeta(2, 0)._test).toBe('foo');
+      expect(getCellMeta(3, 0)._test).toBeUndefined();
     });
 
     it('should insert row at the end if index is not given', () => {
@@ -1136,6 +1225,14 @@ describe('Core_alter', () => {
       expect(selected[0][0]).toBe(3);
       expect(selected[0][2]).toBe(3);
       expect(selected.length).toBe(1);
+      expect(`
+      |   :   :   :   :   :   :   :   |
+      |   :   :   :   :   :   :   :   |
+      |   :   :   :   :   :   :   :   |
+      |   :   : # :   :   :   :   :   |
+      |   :   :   :   :   :   :   :   |
+      |   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should shift the cell meta according to the new row layout', () => {
@@ -1306,8 +1403,23 @@ describe('Core_alter', () => {
       expect(countCols()).toBe(countedColumns);
     });
 
-    it('should not create column header together with the column, if headers were NOT specified explicitly', () => {
+    it('should not create/shift cell meta objects if creating has been canceled by beforeCreateCol hook handler', () => {
+      handsontable({
+        beforeCreateCol: () => false,
+      });
 
+      setCellMeta(2, 0, '_test', 'foo');
+
+      alter('insert_col', 1, 1);
+
+      expect(getCellMeta(0, 0)._test).toBeUndefined();
+      expect(getCellMeta(1, 0)._test).toBeUndefined();
+      expect(getCellMeta(2, 0)._test).toBe('foo');
+      expect(getCellMeta(3, 0)._test).toBeUndefined();
+      expect(getCellMeta(4, 0)._test).toBeUndefined();
+    });
+
+    it('should not create column header together with the column, if headers were NOT specified explicitly', () => {
       handsontable({
         startCols: 3,
         startRows: 2,
@@ -1327,7 +1439,6 @@ describe('Core_alter', () => {
     });
 
     it('should create column header together with the column, if headers were specified explicitly', () => {
-
       handsontable({
         startCols: 3,
         startRows: 2,
@@ -1343,7 +1454,6 @@ describe('Core_alter', () => {
       expect(countCols()).toEqual(4);
 
       expect(getColHeader()).toEqual(['Header0', 'B', 'Header1', 'Header2']);
-
     });
 
     it('should stretch the table after adding another column (if stretching is set to \'all\')', () => {

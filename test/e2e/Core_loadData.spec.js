@@ -269,7 +269,7 @@ describe('Core_loadData', () => {
       cells: cellsSpy,
     });
 
-    expect(cellsSpy.calls.count()).toEqual(43);
+    expect(cellsSpy.calls.count()).toBe(12);
   });
 
   it('should not invoke the cells callback multiple times with the same row/col (with overlays)', () => {
@@ -284,7 +284,7 @@ describe('Core_loadData', () => {
       cells: cellsSpy
     });
 
-    expect(cellsSpy.calls.count()).toEqual(56);
+    expect(cellsSpy.calls.count()).toBe(12);
   });
 
   it('should remove grid rows if new data source has less of them', () => {
@@ -683,5 +683,27 @@ describe('Core_loadData', () => {
 
     expect(getSourceData()).toEqual(arrayOfArrays());
     expect(getData()).toEqual(arrayOfArrays());
+  });
+
+  it('should pass the `source` argument to the `beforeLoadData` and `afterLoadData` hooks', () => {
+    let correctSourceCount = 0;
+
+    handsontable({
+      data: arrayOfObjects(),
+      beforeLoadData: (data, firstRun, source) => {
+        if (source === 'testSource') {
+          correctSourceCount += 1;
+        }
+      },
+      afterLoadData: (data, firstRun, source) => {
+        if (source === 'testSource') {
+          correctSourceCount += 1;
+        }
+      }
+    });
+
+    loadData(arrayOfArrays(), 'testSource');
+
+    expect(correctSourceCount).toEqual(2);
   });
 });

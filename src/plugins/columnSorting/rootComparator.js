@@ -1,11 +1,9 @@
-/* eslint-disable import/prefer-default-export */
-
 import { getCompareFunctionFactory } from './sortService';
 
 /**
  * Sort comparator handled by conventional sort algorithm.
  *
- * @param {Array} sortOrders Sort orders (`asc` for ascending, `desc` for descending).
+ * @param {Array} sortingOrders Sort orders (`asc` for ascending, `desc` for descending).
  * @param {Array} columnMetas Column meta objects.
  * @returns {Function}
  */
@@ -22,7 +20,8 @@ export function rootComparator(sortingOrders, columnMetas) {
       const value = values[column];
       const nextValue = nextValues[column];
       const pluginSettings = columnMeta.columnSorting;
-      const compareFunctionFactory = pluginSettings.compareFunctionFactory ? pluginSettings.compareFunctionFactory : getCompareFunctionFactory(columnMeta.type);
+      const compareFunctionFactory = pluginSettings.compareFunctionFactory ?
+        pluginSettings.compareFunctionFactory : getCompareFunctionFactory(columnMeta.type);
       const compareResult = compareFunctionFactory(sortingOrder, columnMeta, pluginSettings)(value, nextValue);
 
       // DIFF - MultiColumnSorting & ColumnSorting: removed iteration through next sorted columns.

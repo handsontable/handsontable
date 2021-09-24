@@ -1,12 +1,11 @@
-var util = require('util');
-var path = require('path');
-var fs = require('fs');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-var jasmineCore = require('jasmine-core');
+/* eslint-disable jsdoc/require-jsdoc */
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const jasmineCore = require('jasmine-core');
 
-var jasmineFiles = jasmineCore.files;
-var jasminePath = toRelativePath(jasmineFiles.path);
-var jasmineBootDir = toRelativePath(jasmineFiles.bootDir);
+const jasmineFiles = jasmineCore.files;
+const jasminePath = toRelativePath(jasmineFiles.path);
+const jasmineBootDir = toRelativePath(jasmineFiles.bootDir);
 
 function JasmineWebpackPlugin(options) {
   options = options || {};
@@ -16,7 +15,8 @@ function JasmineWebpackPlugin(options) {
     filename: options.filename || 'SpecRunner.html',
     template: path.join(__dirname, 'template.ejs'),
     baseJasminePath: options.baseJasminePath || '',
-    jasmineJsFiles: toRelativeFiles(jasminePath, jasmineFiles.jsFiles).concat(toRelativeFiles(jasmineBootDir, jasmineFiles.bootFiles)),
+    jasmineJsFiles: toRelativeFiles(jasminePath, jasmineFiles.jsFiles)
+      .concat(toRelativeFiles(jasmineBootDir, jasmineFiles.bootFiles)),
     jasmineCssFiles: toRelativeFiles(jasminePath, jasmineFiles.cssFiles),
     externalJsFiles: options.externalJsFiles || [],
     externalCssFiles: options.externalCssFiles || [],
@@ -29,9 +29,7 @@ function toRelativePath(dirname) {
 }
 
 function toRelativeFiles(dirname, files) {
-  return files.map(function(file) {
-    return path.join(dirname, file);
-  });
+  return files.map(file => path.join(dirname, file));
 }
 
 module.exports = JasmineWebpackPlugin;

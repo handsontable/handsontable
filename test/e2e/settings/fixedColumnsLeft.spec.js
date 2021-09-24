@@ -130,5 +130,56 @@ describe('settings', () => {
         expect(getLeftClone().find('.wtHolder').scrollTop()).toBe(getMaster().find('.wtHolder').scrollTop());
       });
     });
+
+    it('should limit fixed columns to dataset columns length', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        fixedColumnsLeft: 3
+      });
+
+      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(3);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(3, 2),
+      });
+
+      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(2);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(3, 1),
+      });
+
+      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(1);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(3, 0),
+      });
+
+      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(0);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(3, 1),
+      });
+
+      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(1);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(3, 2),
+      });
+
+      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(2);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+      });
+
+      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(3);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(3, 4),
+      });
+
+      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(3);
+    });
   });
 });

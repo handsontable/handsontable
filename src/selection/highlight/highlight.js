@@ -1,12 +1,13 @@
 import { createHighlight } from './types';
+import {
+  ACTIVE_HEADER_TYPE,
+  AREA_TYPE,
+  CELL_TYPE,
+  CUSTOM_SELECTION_TYPE,
+  FILL_TYPE,
+  HEADER_TYPE,
+} from './constants';
 import { arrayEach } from './../../helpers/array';
-
-export const ACTIVE_HEADER_TYPE = 'active-header';
-export const AREA_TYPE = 'area';
-export const CELL_TYPE = 'cell';
-export const FILL_TYPE = 'fill';
-export const HEADER_TYPE = 'header';
-export const CUSTOM_SELECTION = 'custom-selection';
 
 /**
  * Highlight class responsible for managing Walkontable Selection classes.
@@ -28,7 +29,7 @@ class Highlight {
     /**
      * Options consumed by Highlight class and Walkontable Selection classes.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.options = options;
     /**
@@ -38,7 +39,7 @@ class Highlight {
      *
      * An order of the layers is the same as the order of added new non-consecutive selections.
      *
-     * @type {Number}
+     * @type {number}
      * @default 0
      */
     this.layerLevel = 0;
@@ -87,15 +88,21 @@ class Highlight {
   }
 
   /**
-   * Check if highlight cell rendering is disabled for specyfied highlight type.
+   * Check if highlight cell rendering is disabled for specified highlight type.
    *
-   * @param {String} highlightType Highlight type. Possible values are: `cell`, `area`, `fill` or `header`.
-   * @return {Boolean}
+   * @param {string} highlightType Highlight type. Possible values are: `cell`, `area`, `fill` or `header`.
+   * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
+   * @returns {boolean}
    */
-  isEnabledFor(highlightType) {
+  isEnabledFor(highlightType, coords) {
+    let type = highlightType;
+
     // Legacy compatibility.
-    const type = highlightType === 'current' ? CELL_TYPE : highlightType;
-    let disableHighlight = this.options.disableHighlight;
+    if (highlightType === CELL_TYPE) {
+      type = 'current'; // One from settings for `disableVisualSelection` up to Handsontable 0.36/Handsontable Pro 1.16.0.
+    }
+
+    let disableHighlight = this.options.disabledCellSelection(coords.row, coords.col);
 
     if (typeof disableHighlight === 'string') {
       disableHighlight = [disableHighlight];
@@ -107,7 +114,7 @@ class Highlight {
   /**
    * Set a new layer level to make access to the desire `area` and `header` highlights.
    *
-   * @param {Number} [level=0] Layer level to use.
+   * @param {number} [level=0] Layer level to use.
    * @returns {Highlight}
    */
   useLayerLevel(level = 0) {
@@ -119,7 +126,7 @@ class Highlight {
   /**
    * Get Walkontable Selection instance created for controlling highlight of the currently selected/edited cell.
    *
-   * @return {Selection}
+   * @returns {Selection}
    */
   getCell() {
     return this.cell;
@@ -128,7 +135,7 @@ class Highlight {
   /**
    * Get Walkontable Selection instance created for controlling highlight of the autofill functionality.
    *
-   * @return {Selection}
+   * @returns {Selection}
    */
   getFill() {
     return this.fill;
@@ -138,7 +145,7 @@ class Highlight {
    * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
    * of the multiple selected cells.
    *
-   * @return {Selection}
+   * @returns {Selection}
    */
   createOrGetArea() {
     const layerLevel = this.layerLevel;
@@ -158,7 +165,7 @@ class Highlight {
   /**
    * Get all Walkontable Selection instances which describes the state of the visual highlight of the cells.
    *
-   * @return {Selection[]}
+   * @returns {Selection[]}
    */
   getAreas() {
     return [...this.areas.values()];
@@ -168,7 +175,7 @@ class Highlight {
    * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
    * of the multiple selected header cells.
    *
-   * @return {Selection}
+   * @returns {Selection}
    */
   createOrGetHeader() {
     const layerLevel = this.layerLevel;
@@ -188,7 +195,7 @@ class Highlight {
   /**
    * Get all Walkontable Selection instances which describes the state of the visual highlight of the headers.
    *
-   * @return {Selection[]}
+   * @returns {Selection[]}
    */
   getHeaders() {
     return [...this.headers.values()];
@@ -198,7 +205,7 @@ class Highlight {
    * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
    * of the multiple selected active header cells.
    *
-   * @return {Selection}
+   * @returns {Selection}
    */
   createOrGetActiveHeader() {
     const layerLevel = this.layerLevel;
@@ -218,7 +225,7 @@ class Highlight {
   /**
    * Get all Walkontable Selection instances which describes the state of the visual highlight of the active headers.
    *
-   * @return {Selection[]}
+   * @returns {Selection[]}
    */
   getActiveHeaders() {
     return [...this.activeHeaders.values()];
@@ -227,7 +234,7 @@ class Highlight {
   /**
    * Get Walkontable Selection instance created for controlling highlight of the custom selection functionality.
    *
-   * @return {Selection}
+   * @returns {Selection}
    */
   getCustomSelections() {
     return [...this.customSelections.values()];
@@ -236,10 +243,10 @@ class Highlight {
   /**
    * Add selection to the custom selection instance. The new selection are added to the end of the selection collection.
    *
-   * @param {Object} options
+   * @param {object} selectionInstance The selection instance.
    */
-  addCustomSelection(options) {
-    this.customSelections.push(createHighlight(CUSTOM_SELECTION, { ...options }));
+  addCustomSelection(selectionInstance) {
+    this.customSelections.push(createHighlight(CUSTOM_SELECTION_TYPE, { ...this.options, ...selectionInstance }));
   }
 
   /**
@@ -256,6 +263,8 @@ class Highlight {
 
   /**
    * This object can be iterate over using `for of` syntax or using internal `arrayEach` helper.
+   *
+   * @returns {Selection[]}
    */
   [Symbol.iterator]() {
     return [

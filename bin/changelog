@@ -1,0 +1,318 @@
+#!/usr/bin/env node
+
+/* eslint-disable no-restricted-globals, no-console */
+
+const path = require('path');
+const { promises: fs } = require('fs');
+const util = require('util');
+
+const chalk = require('chalk');
+const execa = require('execa');
+const inquirer = require('inquirer');
+const lodash = require('lodash');
+const glob = util.promisify(require('glob'));
+const moment = require('moment');
+const yargs = require('yargs/yargs');
+const { hideBin } = require('yargs/helpers');
+
+const hotConfig = require('../hot.config');
+
+const isTTY = process.stdin.isTTY;
+
+const changelogMarkDownMark = '<!-- UNVERSIONED -->';
+const changelogPath = path.join(__dirname, '../CHANGELOG.md');
+const changelogsDirectoryName = '.changelogs';
+
+const changelogEntryTypes = ['added', 'changed', 'deprecated', 'removed', 'fixed'];
+const changelogFrameworkTypes = ['none', 'react', 'vue', 'angular'];
+
+const uppercaseFirstLetter = s => s.slice(0, 1).toUpperCase() + s.slice(1);
+
+const entryDestination = name =>
+  path.relative(
+    process.cwd(),
+    path.join(__dirname, `../${changelogsDirectoryName}/${name}.json`)
+  );
+
+const fileExists = p => fs.access(p).then(() => true).catch(() => false);
+
+const stringifyChangelogEntryObject = ({ title, issue, framework, breaking }) => {
+  const breakingFragment = breaking ? '**Breaking change** ' : '';
+
+  const frameworkFragment = framework === 'none' ? '' : `*${uppercaseFirstLetter(framework)}:* `;
+
+  const issueLinkFragment =
+    `[#${issue}](https://github.com/handsontable/handsontable/issues/${issue})`;
+
+  return `${breakingFragment}${frameworkFragment}${title} ${issueLinkFragment}`;
+};
+
+const extractNumberFromString = (s) => {
+  const result = /\d+/.exec(s);
+
+  if (result === null) {
+    return undefined;
+  }
+
+  return Number(result[0]);
+};
+
+const askToProceedOrExit = async(message = 'Proceed?') => {
+  const { shouldProceed } = isTTY ? await inquirer.prompt({
+    name: 'shouldProceed',
+    type: 'confirm',
+    message,
+    default: true
+  }) : true;
+
+  if (shouldProceed === false) {
+    process.exit(1);
+  }
+};
+
+/**
+ * Checks if the changelog entry has all the necessary properties. Returns a
+ * new object with only the changelog entry properties that can be safely
+ * stringified and put into a file. If the input object is missing properties
+ * or they're in invalid format, throws an error.
+ *
+ * @param {object} input A valid changelog entry object.
+ * @returns {object} The `input` object but only with valid changelog entry properties.
+ */
+const assertChangelogEntryFormat = (input) => {
+  if (typeof input !== 'object' || input === null) {
+    throw new TypeError(`input must be an object and not be null (got: ${input})`);
+  }
+
+  if (typeof input.title !== 'string' || input.title.length === 0) {
+    throw new TypeError(`input.title must be a non-empty string (got: ${input.title})`);
+  }
+
+  if (typeof input.type !== 'string' || !changelogEntryTypes.includes(input.type)) {
+    throw new TypeError(`input.type must be one of: ${changelogEntryTypes} (got: ${input.type})`);
+  }
+
+  if (typeof input.issue !== 'number' || Number.isNaN(input.issue)) {
+    throw new TypeError(`input.issue must be a non-NaN number (got: ${input.issue})`);
+  }
+
+  if (typeof input.breaking !== 'boolean') {
+    throw new TypeError(`input.breaking must be a boolean (got: ${typeof input.breaking})`);
+  }
+
+  if (typeof input.framework !== 'string' || !changelogFrameworkTypes.includes(input.framework)) {
+    throw new TypeError(`input.framework must be one of: ${changelogFrameworkTypes} (got: ${input.framework})`);
+  }
+
+  return {
+    title: input.title,
+    type: input.type,
+    issue: input.issue,
+    breaking: input.breaking,
+    framework: input.framework
+  };
+};
+
+const createEntryCommand = async(args) => {
+  // https://stackoverflow.com/a/11958481
+  const gitBranchName = (await execa('git', ['rev-parse', '--symbolic-full-name', '--abbrev-ref', 'HEAD'])).stdout;
+  const maybeExtractedNumber = extractNumberFromString(gitBranchName);
+
+  const argTitle = args.title ? args.title.join(' ') : undefined;
+  const answers = isTTY ? await inquirer.prompt([
+    {
+      name: 'title',
+      type: 'input',
+      message: 'Title of the entry (e.g. "Fixed an issue with...")',
+      validate: s => s.length > 0,
+      default: argTitle,
+      when: typeof argTitle === 'undefined'
+    },
+    {
+      name: 'issue',
+      type: 'input',
+      message: '# of the related issue/PR (e.g. 512)',
+      default: maybeExtractedNumber,
+      validate: s => (Number.isInteger(s) ? true : 'The provided input is not a number'),
+      filter: s => (Number.isNaN(parseInt(s, 10)) ? '' : parseInt(s, 10)),
+      when: typeof args.issue === 'undefined'
+    },
+    {
+      name: 'breaking',
+      type: 'confirm',
+      message: 'Is this a breaking change?',
+      default: false,
+      when: typeof args.breaking === 'undefined'
+    },
+    {
+      name: 'type',
+      type: 'list',
+      message: 'Type of the change',
+      choices: changelogEntryTypes,
+
+      default: ({ title }) =>
+        // Attempts to find a suitable default choice based on the title.
+        // e.g. the title "Fixed every bug" would return the type "fixed",
+        // and "Added 10 features" would return "added".
+        changelogEntryTypes.find(
+          type => (title || argTitle).toLowerCase().includes(type)
+        ) || 'changed',
+
+      when: typeof args.framework === 'undefined'
+    },
+    {
+      name: 'framework',
+      type: 'list',
+      message: 'Framework',
+      choices: changelogFrameworkTypes,
+      default: 'none',
+      when: typeof args.framework === 'undefined'
+    }
+  ]) : {};
+
+  const changelogEntry = assertChangelogEntryFormat({ ...args, title: argTitle, ...answers });
+
+  const filename = changelogEntry.issue.toString();
+  const destination = entryDestination(filename);
+
+  console.log(`
+${chalk.dim(
+    `Your entry will be saved in ${chalk.reset.blue.underline(destination)}.
+This is how it will look like compiled to markdown in ${chalk.reset.blue.underline('CHANGELOG.md')}:`
+  )}
+
+${chalk.yellow.italic(`### ${uppercaseFirstLetter(changelogEntry.type)}
+- ${stringifyChangelogEntryObject(changelogEntry)}`)}
+`);
+
+  await askToProceedOrExit();
+
+  if (await fileExists(destination)) {
+    console.log(`The file \`${destination}\` already exists.`);
+
+    await askToProceedOrExit('Overwrite?');
+  }
+
+  await fs.writeFile(destination, `${JSON.stringify(changelogEntry, null, 2)}\n`);
+
+  console.log();
+  console.log(`Entry created! Run ${chalk.blackBright(`\`rm ${destination}\``)} to undo.`);
+};
+
+const consumeCommand = async(args) => {
+  const { dryRun } = args;
+
+  const formattedDefault = args.date === undefined
+    ? moment(hotConfig.HOT_RELEASE_DATE, 'DD/MM/YYYY').format('YYYY-MM-DD')
+    : args.date;
+
+  const { date } = isTTY ? await inquirer.prompt([
+    {
+      name: 'date',
+      type: 'input',
+      message: 'When should the version be released?',
+      default: formattedDefault
+    }
+  ]) : { date: formattedDefault };
+
+  const existingChangelogContents = await fs.readFile(changelogPath, 'utf8');
+
+  if (!existingChangelogContents.includes(changelogMarkDownMark)) {
+    throw new Error(
+      `The existing changelog file (${
+        changelogPath
+      }) does not include the mark (\`${
+        changelogMarkDownMark
+      }\`) to put new contents into.`
+    );
+  }
+
+  const changelogEntryFiles =
+    await glob('*.json', {
+      absolute: true,
+      cwd: path.join(__dirname, '..', changelogsDirectoryName)
+    });
+
+  const ungroupedEntries = (await Promise.all(changelogEntryFiles.map(p => fs.readFile(p, 'utf8'))))
+    .map(contents => assertChangelogEntryFormat(JSON.parse(contents)));
+
+  const groupedEntries = lodash.groupBy(ungroupedEntries, 'type');
+
+  const compiledEntries = lodash.toPairs(groupedEntries)
+    .map(([type, entries]) =>
+      `${`### ${uppercaseFirstLetter(type)}\n`}${
+        lodash.chain(entries)
+          .partition('breaking')
+          .map(
+            x => lodash.sortBy(x, ({ framework }) => (framework === 'none' ? 0 : framework.length))
+          )
+          .flatten()
+          .map(entry => `- ${stringifyChangelogEntryObject(entry)}`)
+          .join('\n')
+          .value()
+      }`
+    )
+    .join('\n\n');
+
+  const compiled = `
+## [${hotConfig.HOT_VERSION}] - ${date}
+
+${compiledEntries}
+`.trim();
+
+  console.log(`
+${chalk.dim(
+    'You are about to update the changelog file, that will include the following text in the appropriate place:'
+  )}
+
+${chalk.yellow.italic(compiled)}
+`);
+
+  if (dryRun) {
+    console.log('Dry run, skipping write.');
+
+    process.exit(0);
+  }
+
+  await askToProceedOrExit(`Write the new ${path.basename(changelogPath)} and delete the changelog entry .json files?`);
+
+  const newChangelogContents =
+    existingChangelogContents.replace(
+      changelogMarkDownMark,
+      `${changelogMarkDownMark}\n\n${compiled}`
+    );
+
+  console.log();
+  console.log(chalk.dim('Writing the new changelog...'));
+  await fs.writeFile(changelogPath, newChangelogContents);
+
+  console.log(chalk.dim('Deleting changelog entries...'));
+  await Promise.all(changelogEntryFiles.map(p => fs.unlink(p)));
+
+  console.log();
+  console.log(`Changelog updated! Run ${
+    chalk.blackBright(`\`git checkout ${path.relative(process.cwd(), changelogPath)
+    } ${path.relative(
+      process.cwd(),
+      path.join(__dirname, '..', changelogsDirectoryName))}\``)
+  } to undo.`);
+};
+
+// eslint-disable-next-line no-unused-expressions
+yargs(hideBin(process.argv))
+  .command('entry [title..]', 'create a new changelog entry', (y) => {
+    return y
+      .option('type', { choices: changelogEntryTypes })
+      .option('issue', { type: 'number' })
+      .option('breaking', { type: 'boolean' })
+      .option('framework', { choices: changelogFrameworkTypes });
+  }, argv => createEntryCommand(argv))
+  .command('consume', `compile all \`${changelogsDirectoryName}/*.json\` files into changelog.md`, (y) => {
+    return y
+      .option('date', { type: 'string' })
+      .option('dry-run', { type: 'boolean' });
+  }, argv => consumeCommand(argv))
+  .help()
+  .demandCommand()
+  .version(false)
+  .argv;

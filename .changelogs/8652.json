@@ -1,0 +1,7 @@
+{
+  "title": "Add a Github Actions workflow covering the testing of Handsontable and all of the wrappers.",
+  "type": "added",
+  "issue": 8652,
+  "breaking": false,
+  "framework": "none"
+}

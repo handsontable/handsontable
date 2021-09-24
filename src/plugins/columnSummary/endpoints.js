@@ -16,7 +16,7 @@ class Endpoints {
     /**
      * Handsontable instance.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.hot = this.plugin.hot;
     /**
@@ -29,7 +29,7 @@ class Endpoints {
     /**
      * The plugin settings, taken from Handsontable configuration.
      *
-     * @type {Object|Function}
+     * @type {object|Function}
      * @default null
      */
     this.settings = settings;
@@ -43,7 +43,7 @@ class Endpoints {
     /**
      * The current endpoint (calculation destination point) in question.
      *
-     * @type {Object}
+     * @type {object}
      * @default null
      */
     this.currentEndpoint = null;
@@ -60,8 +60,8 @@ class Endpoints {
   /**
    * Get a single endpoint object.
    *
-   * @param {Number} index Index of the endpoint.
-   * @returns {Object}
+   * @param {number} index Index of the endpoint.
+   * @returns {object}
    */
   getEndpoint(index) {
     if (this.settingsType === 'function') {
@@ -99,6 +99,7 @@ class Endpoints {
    * Parse plugin's settings.
    *
    * @param {Array} settings The settings array.
+   * @returns {object[]}
    */
   parseSettings(settings) {
     const endpointsArray = [];
@@ -143,14 +144,15 @@ class Endpoints {
   /**
    * Setter for the internal setting objects.
    *
-   * @param {Object} settings Object with the settings.
-   * @param {Object} endpoint Contains information about the endpoint for the the calculation.
-   * @param {String} name Settings name.
-   * @param defaultValue Default value for the settings.
+   * @param {object} settings Object with the settings.
+   * @param {object} endpoint Contains information about the endpoint for the the calculation.
+   * @param {string} name Settings name.
+   * @param {object} defaultValue Default value for the settings.
    */
   assignSetting(settings, endpoint, name, defaultValue) {
     if (name === 'ranges' && settings[name] === void 0) {
       endpoint[name] = defaultValue;
+
       return;
     } else if (name === 'ranges' && settings[name].length === 0) {
       return;
@@ -179,9 +181,9 @@ class Endpoints {
    * Resets the endpoint setup before the structure alteration (like inserting or removing rows/columns). Used for settings provided as a function.
    *
    * @private
-   * @param {String} action Type of the action performed.
-   * @param {Number} index Row/column index.
-   * @param {Number} number Number of rows/columns added/removed.
+   * @param {string} action Type of the action performed.
+   * @param {number} index Row/column index.
+   * @param {number} number Number of rows/columns added/removed.
    */
   resetSetupBeforeStructureAlteration(action, index, number) {
     if (this.settingsType !== 'function') {
@@ -213,27 +215,30 @@ class Endpoints {
   }
 
   /**
-   * afterCreateRow/afterCreateRow/afterRemoveRow/afterRemoveCol hook callback. Reset and reenables the summary functionality
+   * AfterCreateRow/afterCreateRow/afterRemoveRow/afterRemoveCol hook callback. Reset and reenables the summary functionality
    * after changing the table structure.
    *
    * @private
-   * @param {String} action Type of the action performed.
-   * @param {Number} index Row/column index.
-   * @param {Number} number Number of rows/columns added/removed.
+   * @param {string} action Type of the action performed.
+   * @param {number} index Row/column index.
+   * @param {number} number Number of rows/columns added/removed.
    * @param {Array} [logicRows] Array of the logical indexes.
-   * @param {String} [source] Source of change.
-   * @param {Boolean} [forceRefresh] `true` of the endpoints should refresh after completing the function.
+   * @param {string} [source] Source of change.
+   * @param {boolean} [forceRefresh] `true` of the endpoints should refresh after completing the function.
    */
   resetSetupAfterStructureAlteration(action, index, number, logicRows, source, forceRefresh = true) {
     if (this.settingsType === 'function') {
 
       // We need to run it on a next avaiable hook, because the TrimRows' `afterCreateRow` hook triggers after this one,
       // and it needs to be run to properly calculate the endpoint value.
-      const beforeRenderCallback = () => {
-        this.hot.removeHook('beforeRender', beforeRenderCallback);
+      const beforeViewRenderCallback = () => {
+        this.hot.removeHook('beforeViewRender', beforeViewRenderCallback);
+
         return this.refreshAllEndpoints();
       };
-      this.hot.addHookOnce('beforeRender', beforeRenderCallback);
+
+      this.hot.addHookOnce('beforeViewRender', beforeViewRenderCallback);
+
       return;
     }
 
@@ -277,7 +282,7 @@ class Endpoints {
    * Clear the offset information from the endpoint object.
    *
    * @private
-   * @param {Object} endpoint And endpoint object.
+   * @param {object} endpoint And endpoint object.
    */
   clearOffsetInformation(endpoint) {
     endpoint.alterRowOffset = void 0;
@@ -288,10 +293,10 @@ class Endpoints {
    * Extend the row ranges for the provided endpoint.
    *
    * @private
-   * @param {Object} endpoint The endpoint object.
-   * @param {Number} placeOfAlteration Index of the row where the alteration takes place.
-   * @param {Number} previousPosition Previous endpoint result position.
-   * @param {Number} offset Offset generated by the alteration.
+   * @param {object} endpoint The endpoint object.
+   * @param {number} placeOfAlteration Index of the row where the alteration takes place.
+   * @param {number} previousPosition Previous endpoint result position.
+   * @param {number} offset Offset generated by the alteration.
    */
   extendEndpointRanges(endpoint, placeOfAlteration, previousPosition, offset) {
     arrayEach(endpoint.ranges, (range) => {
@@ -320,7 +325,7 @@ class Endpoints {
    * Recreate the physical ranges for the provided endpoint. Used (for example) when a row gets moved and extends an existing range.
    *
    * @private
-   * @param {Object} endpoint An endpoint object.
+   * @param {object} endpoint An endpoint object.
    */
   recreatePhysicalRanges(endpoint) {
     const ranges = endpoint.ranges;
@@ -329,6 +334,7 @@ class Endpoints {
 
     arrayEach(ranges, (range) => {
       const newRange = [];
+
       if (range[1]) {
         for (let i = range[0]; i <= range[1]; i++) {
           newRange.push(this.hot.toPhysicalRow(i));
@@ -342,6 +348,7 @@ class Endpoints {
 
     arrayEach(allIndexes, (range) => {
       let newRange = [];
+
       arrayEach(range, (coord, index) => {
         if (index === 0) {
           newRange.push(coord);
@@ -367,8 +374,8 @@ class Endpoints {
    * Shifts the endpoint coordinates by the defined offset.
    *
    * @private
-   * @param {Object} endpoint Endpoint object.
-   * @param {Number} offsetStartIndex Index of the performed change (if the change is located after the endpoint, nothing about the endpoint has to be changed.
+   * @param {object} endpoint Endpoint object.
+   * @param {number} offsetStartIndex Index of the performed change (if the change is located after the endpoint, nothing about the endpoint has to be changed.
    */
   shiftEndpointCoordinates(endpoint, offsetStartIndex) {
     if (endpoint.alterRowOffset && endpoint.alterRowOffset !== 0) {
@@ -392,14 +399,15 @@ class Endpoints {
    * Resets (removes) the endpoints from the table.
    *
    * @param {Array} [endpoints] Array containing the endpoints.
-   * @param {Boolean} [useOffset=true] Use the cell offset value.
+   * @param {boolean} [useOffset=true] Use the cell offset value.
    */
   resetAllEndpoints(endpoints = this.getAllEndpoints(), useOffset = true) {
     const anyEndpointOutOfRange = endpoints.some((endpoint) => {
       const alterRowOffset = endpoint.alterRowOffset || 0;
       const alterColOffset = endpoint.alterColumnOffset || 0;
 
-      if (endpoint.destinationRow + alterRowOffset >= this.hot.countRows() || endpoint.destinationColumn + alterColOffset >= this.hot.countCols()) {
+      if (endpoint.destinationRow + alterRowOffset >= this.hot.countRows() ||
+          endpoint.destinationColumn + alterColOffset >= this.hot.countCols()) {
         return true;
       }
 
@@ -446,6 +454,7 @@ class Endpoints {
    */
   refreshChangedEndpoints(changes) {
     const needToRefresh = [];
+
     this.cellsToSetCache = [];
 
     arrayEach(changes, (value, key, changesObj) => {
@@ -472,7 +481,7 @@ class Endpoints {
   /**
    * Calculate and refresh a single endpoint.
    *
-   * @param {Object} endpoint Contains the endpoint information.
+   * @param {object} endpoint Contains the endpoint information.
    */
   refreshEndpoint(endpoint) {
     this.currentEndpoint = endpoint;
@@ -484,8 +493,8 @@ class Endpoints {
   /**
    * Reset the endpoint value.
    *
-   * @param {Object} endpoint Contains the endpoint information.
-   * @param {Boolean} [useOffset=true] Use the cell offset value.
+   * @param {object} endpoint Contains the endpoint information.
+   * @param {boolean} [useOffset=true] Use the cell offset value.
    */
   resetEndpointValue(endpoint, useOffset = true) {
     const alterRowOffset = endpoint.alterRowOffset || 0;
@@ -495,10 +504,13 @@ class Endpoints {
       this.hot.toVisualColumn(endpoint.destinationColumn)
     ];
 
-    // Clear the meta on the "old" indexes
-    const cellMeta = this.hot.getCellMeta(visualRowIndex, visualColumnIndex);
-    cellMeta.readOnly = false;
-    cellMeta.className = '';
+    if (visualColumnIndex !== null && visualRowIndex !== null) {
+      // Clear the meta on the "old" indexes
+      const cellMeta = this.hot.getCellMeta(visualRowIndex, visualColumnIndex);
+
+      cellMeta.readOnly = false;
+      cellMeta.className = '';
+    }
 
     this.cellsToSetCache.push([
       this.hot.toVisualRow(endpoint.destinationRow + (useOffset ? alterRowOffset : 0)),
@@ -510,25 +522,34 @@ class Endpoints {
   /**
    * Set the endpoint value.
    *
-   * @param {Object} endpoint Contains the endpoint information.
-   * @param {String} [source] Source of the call information.
-   * @param {Boolean} [render=false] `true` if it needs to render the table afterwards.
+   * @param {object} endpoint Contains the endpoint information.
+   * @param {string} [source] Source of the call information.
+   * @param {boolean} [render=false] `true` if it needs to render the table afterwards.
    */
   setEndpointValue(endpoint, source, render = false) {
     // We'll need the reversed offset values, because cellMeta will be shifted AGAIN afterwards.
     const reverseRowOffset = (-1) * endpoint.alterRowOffset || 0;
     const reverseColOffset = (-1) * endpoint.alterColumnOffset || 0;
     const visualEndpointRowIndex = this.hot.toVisualRow(endpoint.destinationRow);
-    const cellMeta = this.hot.getCellMeta(this.hot.toVisualRow(endpoint.destinationRow + reverseRowOffset), endpoint.destinationColumn + reverseColOffset);
 
     if (endpoint.destinationRow >= this.hot.countRows() || endpoint.destinationColumn >= this.hot.countCols()) {
       this.throwOutOfBoundsWarning();
+
       return;
     }
 
-    if (source === 'init' || cellMeta.readOnly !== endpoint.readOnly) {
-      cellMeta.readOnly = endpoint.readOnly;
-      cellMeta.className = 'columnSummaryResult';
+    const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow + reverseRowOffset);
+
+    if (destinationVisualRow !== null) {
+      const cellMeta = this.hot.getCellMeta(
+        destinationVisualRow,
+        endpoint.destinationColumn + reverseColOffset
+      );
+
+      if (source === 'init' || cellMeta.readOnly !== endpoint.readOnly) {
+        cellMeta.readOnly = endpoint.readOnly;
+        cellMeta.className = 'columnSummaryResult';
+      }
     }
 
     if (endpoint.roundFloat && !isNaN(endpoint.result)) {

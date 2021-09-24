@@ -1,4 +1,5 @@
 const env = process.env.NODE_ENV;
+// eslint-disable-next-line import/no-dynamic-require
 const configFactory = require(`./.config/${env}`);
 
 // In some cases, npm env variables become rewritten to lower case names. To prevent this it is rewritten to the

@@ -1,10 +1,9 @@
-import BasePlugin from './../_base';
-import Hooks from './../../pluginHooks';
-import { arrayReduce } from './../../helpers/array';
-import { addClass, removeClass, offset } from './../../helpers/dom/element';
-import { rangeEach } from './../../helpers/number';
-import EventManager from './../../eventManager';
-import { registerPlugin } from './../../plugins';
+import { BasePlugin } from '../base';
+import Hooks from '../../pluginHooks';
+import { arrayReduce } from '../../helpers/array';
+import { addClass, removeClass, offset } from '../../helpers/dom/element';
+import { rangeEach } from '../../helpers/number';
+import EventManager from '../../eventManager';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
@@ -13,6 +12,8 @@ import './manualRowMove.css';
 Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
 
+export const PLUGIN_KEY = 'manualRowMove';
+export const PLUGIN_PRIORITY = 140;
 const privatePool = new WeakMap();
 const CSS_PLUGIN = 'ht__manualRowMove';
 const CSS_SHOW_UI = 'show-ui';
@@ -21,6 +22,7 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
 
 /**
  * @plugin ManualRowMove
+ * @class ManualRowMove
  *
  * @description
  * This plugin allows to change rows order. To make rows order persistent the {@link Options#persistentState}
@@ -32,7 +34,7 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * - `dragRow` - drag single row to the new position.
  * - `dragRows` - drag many rows (as an array of indexes) to the new position.
  *
- * [Documentation](/demo-moving.html#manualRowMove) explain differences between drag and move actions. Please keep in mind that if you want apply visual changes,
+ * [Documentation](@/guides/rows/row-moving.md) explain differences between drag and move actions. Please keep in mind that if you want apply visual changes,
  * you have to call manually the `render` method on the instance of Handsontable.
  *
  * The plugin creates additional components to make moving possibly using user interface:
@@ -42,12 +44,20 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * @class ManualRowMove
  * @plugin ManualRowMove
  */
-class ManualRowMove extends BasePlugin {
+export class ManualRowMove extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
     /**
-     * Set up WeakMap of plugin to sharing private parameters;
+     * Set up WeakMap of plugin to sharing private parameters;.
      */
     privatePool.set(this, {
       rowsToMove: [],
@@ -65,21 +75,21 @@ class ManualRowMove extends BasePlugin {
      * Event Manager object.
      *
      * @private
-     * @type {Object}
+     * @type {object}
      */
     this.eventManager = new EventManager(this);
     /**
      * Backlight UI object.
      *
      * @private
-     * @type {Object}
+     * @type {object}
      */
     this.backlight = new BacklightUI(hotInstance);
     /**
      * Guideline UI object.
      *
      * @private
-     * @type {Object}
+     * @type {object}
      */
     this.guideline = new GuidelineUI(hotInstance);
   }
@@ -88,10 +98,10 @@ class ManualRowMove extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ManualRowMove#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().manualRowMove;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -102,8 +112,8 @@ class ManualRowMove extends BasePlugin {
       return;
     }
 
-    this.addHook('beforeOnCellMouseDown', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
-    this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
+    this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
+    this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('afterScrollHorizontally', () => this.onAfterScrollHorizontally());
     this.addHook('afterLoadData', () => this.onAfterLoadData());
 
@@ -144,12 +154,12 @@ class ManualRowMove extends BasePlugin {
   /**
    * Moves a single row.
    *
-   * @param {Number} row Visual row index to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {number} row Visual row index to be moved.
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   moveRow(row, finalIndex) {
     return this.moveRows([row], finalIndex);
@@ -159,11 +169,11 @@ class ManualRowMove extends BasePlugin {
    * Moves a multiple rows.
    *
    * @param {Array} rows Array of visual row indexes to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   moveRows(rows, finalIndex) {
     const priv = privatePool.get(this);
@@ -191,12 +201,12 @@ class ManualRowMove extends BasePlugin {
   /**
    * Drag a single row to drop index position.
    *
-   * @param {Number} row Visual row index to be dragged.
-   * @param {Number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
-   * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {number} row Visual row index to be dragged.
+   * @param {number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
+   * To check visualization of drop index please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   dragRow(row, dropIndex) {
     return this.dragRows([row], dropIndex);
@@ -206,11 +216,11 @@ class ManualRowMove extends BasePlugin {
    * Drag multiple rows to drop index position.
    *
    * @param {Array} rows Array of visual row indexes to be dragged.
-   * @param {Number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
-   * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
+   * To check visualization of drop index please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   dragRows(rows, dropIndex) {
     const finalIndex = this.countFinalIndex(rows, dropIndex);
@@ -222,15 +232,15 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Indicates if it's possible to move rows to the desired position. Some of the actions aren't possible, i.e. you can’t move more than one element to the last position.
+   * Indicates if it's possible to move rows to the desired position. Some of the actions aren't possible, i.e. You can’t move more than one element to the last position.
    *
    * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
-   * @returns {Boolean}
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin).
+   * @returns {boolean}
    */
   isMovePossible(movedRows, finalIndex) {
-    const length = this.hot.rowIndexMapper.getNotSkippedIndexesLength();
+    const length = this.hot.rowIndexMapper.getNotTrimmedIndexesLength();
 
     // An attempt to transfer more rows to start destination than is possible (only when moving from the top to the bottom).
     const tooHighDestinationIndex = movedRows.length + finalIndex > length;
@@ -251,9 +261,9 @@ class ManualRowMove extends BasePlugin {
    *
    * @private
    * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
-   * @returns {Boolean}
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md#drag-and-move-actions-of-manualrowmove-plugin).
+   * @returns {boolean}
    */
   isRowOrderChanged(movedRows, finalIndex) {
     return movedRows.some((row, nrOfMovedElement) => row - nrOfMovedElement !== finalIndex);
@@ -264,8 +274,8 @@ class ManualRowMove extends BasePlugin {
    *
    * @private
    * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {Number} dropIndex Visual row index, being a drop index for the moved rows.
-   * @returns {Number} Visual row index, being a start index for the moved rows.
+   * @param {number} dropIndex Visual row index, being a drop index for the moved rows.
+   * @returns {number} Visual row index, being a start index for the moved rows.
    */
   countFinalIndex(movedRows, dropIndex) {
     const numberOfRowsLowerThanDropIndex = arrayReduce(movedRows, (numberOfRows, currentRowIndex) => {
@@ -283,20 +293,23 @@ class ManualRowMove extends BasePlugin {
    * Gets the sum of the heights of rows in the provided range.
    *
    * @private
-   * @param {Number} from Visual row index.
-   * @param {Number} to Visual row index.
-   * @returns {Number}
+   * @param {number} fromRow Visual row index.
+   * @param {number} toRow Visual row index.
+   * @returns {number}
    */
-  getRowsHeight(from, to) {
-    let height = 0;
+  getRowsHeight(fromRow, toRow) {
+    const rowMapper = this.hot.rowIndexMapper;
+    let rowsHeight = 0;
 
-    for (let i = from; i < to; i++) {
-      const rowHeight = this.hot.view.wt.wtTable.getRowHeight(i) || 23;
+    for (let visualRowIndex = fromRow; visualRowIndex <= toRow; visualRowIndex++) {
+      const renderableIndex = rowMapper.getRenderableFromVisualIndex(visualRowIndex);
 
-      height += rowHeight;
+      if (renderableIndex !== null) {
+        rowsHeight += this.hot.view.wt.wtTable.getRowHeight(renderableIndex) || 23;
+      }
     }
 
-    return height;
+    return rowsHeight;
   }
 
   /**
@@ -305,7 +318,7 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   moveBySettingsOrLoad() {
-    const pluginSettings = this.hot.getSettings().manualRowMove;
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(pluginSettings)) {
       this.moveRows(pluginSettings, 0);
@@ -323,8 +336,8 @@ class ManualRowMove extends BasePlugin {
    * Checks if the provided row is in the fixedRowsTop section.
    *
    * @private
-   * @param {Number} row Visual row index to check.
-   * @returns {Boolean}
+   * @param {number} row Visual row index to check.
+   * @returns {boolean}
    */
   isFixedRowTop(row) {
     return row < this.hot.getSettings().fixedRowsTop;
@@ -334,8 +347,8 @@ class ManualRowMove extends BasePlugin {
    * Checks if the provided row is in the fixedRowsBottom section.
    *
    * @private
-   * @param {Number} row Visual row index to check.
-   * @returns {Boolean}
+   * @param {number} row Visual row index to check.
+   * @returns {boolean}
    */
   isFixedRowBottom(row) {
     return row > this.hot.getSettings().fixedRowsBottom;
@@ -348,7 +361,8 @@ class ManualRowMove extends BasePlugin {
    * @fires Hooks#persistentStateSave
    */
   persistentStateSave() {
-    this.hot.runHooks('persistentStateSave', 'manualRowMove', this.hot.rowIndexMapper.getIndexesSequence()); // The `PersistentState` plugin should be refactored.
+    // The `PersistentState` plugin should be refactored.
+    this.hot.runHooks('persistentStateSave', 'manualRowMove', this.hot.rowIndexMapper.getIndexesSequence());
   }
 
   /**
@@ -414,7 +428,7 @@ class ManualRowMove extends BasePlugin {
     const wtTable = this.hot.view.wt.wtTable;
     const TD = priv.target.TD;
     const rootElementOffset = offset(this.hot.rootElement);
-    let tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row);
+    let tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row - 1);
     const mouseOffsetTop = priv.target.eventPageY - rootElementOffset.top + wtTable.holder.scrollTop;
     const hiderHeight = wtTable.hider.offsetHeight;
     const tbodyOffsetTop = wtTable.TBODY.offsetTop;
@@ -462,6 +476,7 @@ class ManualRowMove extends BasePlugin {
     }
 
     let topOverlayHeight = 0;
+
     if (this.hot.view.wt.wtOverlays.topOverlay) {
       topOverlayHeight = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.TABLE.offsetHeight;
     }
@@ -502,9 +517,10 @@ class ManualRowMove extends BasePlugin {
    * @param {MouseEvent} event `mousedown` event properties.
    * @param {CellCoords} coords Visual cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
-   * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
+  onBeforeOnCellMouseDown(event, coords, TD, controller) {
     const { wtTable, wtViewport } = this.hot.view.wt;
     const isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
     const selection = this.hot.getSelectedRangeLast();
@@ -514,6 +530,7 @@ class ManualRowMove extends BasePlugin {
       priv.pressed = false;
       priv.rowsToMove.length = 0;
       removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
+
       return;
     }
 
@@ -530,7 +547,7 @@ class ManualRowMove extends BasePlugin {
     const end = Math.max(from.row, to.row);
 
     if (coords.col < 0 && (coords.row >= start && coords.row <= end)) {
-      blockCalculations.row = true;
+      controller.row = true;
       priv.pressed = true;
       priv.target.eventPageY = event.pageY;
       priv.target.coords = coords;
@@ -540,8 +557,8 @@ class ManualRowMove extends BasePlugin {
       const leftPos = wtTable.holder.scrollLeft + wtViewport.getRowHeaderWidth();
 
       this.backlight.setPosition(null, leftPos);
-      this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end + 1));
-      this.backlight.setOffset((this.getRowsHeight(start, coords.row) + event.layerY) * -1, null);
+      this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end));
+      this.backlight.setOffset((this.getRowsHeight(start, coords.row - 1) + event.offsetY) * -1, null);
 
       addClass(this.hot.rootElement, CSS_ON_MOVING);
 
@@ -568,8 +585,9 @@ class ManualRowMove extends BasePlugin {
     }
 
     // callback for browser which doesn't supports CSS pointer-event: none
-    if (event.realTarget === this.backlight.element) {
+    if (event.target === this.backlight.element) {
       const height = this.backlight.getSize().height;
+
       this.backlight.setSize(null, 0);
 
       setTimeout(function() {
@@ -588,9 +606,10 @@ class ManualRowMove extends BasePlugin {
    * @param {MouseEvent} event `mouseover` event properties.
    * @param {CellCoords} coords Visual cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
-   * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
+  onBeforeOnCellMouseOver(event, coords, TD, controller) {
     const selectedRange = this.hot.getSelectedRangeLast();
     const priv = privatePool.get(this);
 
@@ -605,9 +624,9 @@ class ManualRowMove extends BasePlugin {
       addClass(this.hot.rootElement, CSS_SHOW_UI);
     }
 
-    blockCalculations.row = true;
-    blockCalculations.column = true;
-    blockCalculations.cell = true;
+    controller.row = true;
+    controller.column = true;
+    controller.cell = true;
     priv.target.coords = coords;
     priv.target.TD = TD;
   }
@@ -644,7 +663,7 @@ class ManualRowMove extends BasePlugin {
     if (movePerformed === true) {
       this.persistentStateSave();
       this.hot.render();
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize(true);
 
       const selectionStart = this.hot.toVisualRow(firstMovedPhysicalRow);
       const selectionEnd = selectionStart + rowsLen - 1;
@@ -697,7 +716,3 @@ class ManualRowMove extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('ManualRowMove', ManualRowMove);
-
-export default ManualRowMove;

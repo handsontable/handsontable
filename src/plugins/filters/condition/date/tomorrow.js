@@ -4,6 +4,10 @@ import { registerCondition } from '../../conditionRegisterer';
 
 export const CONDITION_NAME = 'date_tomorrow';
 
+/**
+ * @param {object} dataRow The object which holds and describes the single cell value.
+ * @returns {boolean}
+ */
 export function condition(dataRow) {
   const date = moment(dataRow.value, dataRow.meta.dateFormat);
 

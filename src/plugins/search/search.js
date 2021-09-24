@@ -1,9 +1,10 @@
-import BasePlugin from './../_base';
-import { registerPlugin } from './../../plugins';
-import { isObject } from './../../helpers/object';
-import { rangeEach } from './../../helpers/number';
-import { isUndefined } from './../../helpers/mixed';
+import { BasePlugin } from '../base';
+import { isObject } from '../../helpers/object';
+import { rangeEach } from '../../helpers/number';
+import { isUndefined } from '../../helpers/mixed';
 
+export const PLUGIN_KEY = 'search';
+export const PLUGIN_PRIORITY = 190;
 const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
 
 const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
@@ -23,6 +24,7 @@ const DEFAULT_QUERY_METHOD = function(query, value) {
 
 /**
  * @plugin Search
+ * @class Search
  *
  * @description
  * The search plugin provides an easy interface to search data across Handsontable.
@@ -51,7 +53,15 @@ const DEFAULT_QUERY_METHOD = function(query, value) {
  * searchPlugin.setSearchResultClass(customClass);
  * ```
  */
-class Search extends BasePlugin {
+export class Search extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -72,7 +82,7 @@ class Search extends BasePlugin {
      * Class name added to each cell that belongs to the searched query.
      *
      * @private
-     * @type {String}
+     * @type {string}
      */
     this.searchResultClass = DEFAULT_SEARCH_RESULT_CLASS;
   }
@@ -81,10 +91,10 @@ class Search extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link AutoRowSize#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().search;
+    return this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -95,7 +105,8 @@ class Search extends BasePlugin {
       return;
     }
 
-    const searchSettings = this.hot.getSettings().search;
+    const searchSettings = this.hot.getSettings()[PLUGIN_KEY];
+
     this.updatePluginSettings(searchSettings);
 
     this.addHook('beforeRenderer', (...args) => this.onBeforeRenderer(...args));
@@ -110,7 +121,7 @@ class Search extends BasePlugin {
     const beforeRendererCallback = (...args) => this.onBeforeRenderer(...args);
 
     this.hot.addHook('beforeRenderer', beforeRendererCallback);
-    this.hot.addHookOnce('afterRender', () => {
+    this.hot.addHookOnce('afterViewRender', () => {
       this.hot.removeHook('beforeRenderer', beforeRendererCallback);
     });
 
@@ -130,10 +141,10 @@ class Search extends BasePlugin {
   /**
    * Makes the query.
    *
-   * @param {String} queryStr Value to be search.
+   * @param {string} queryStr Value to be search.
    * @param {Function} [callback] Callback function performed on cells with values which matches to the searched query.
    * @param {Function} [queryMethod] Query function responsible for determining whether a query matches the value stored in a cell.
-   * @returns {Object[]} Return an array of objects with `row`, `col`, `data` properties or empty array.
+   * @returns {object[]} Return an array of objects with `row`, `col`, `data` properties or empty array.
    */
   query(queryStr, callback = this.getCallback(), queryMethod = this.getQueryMethod()) {
     const rowCount = this.hot.countRows();
@@ -180,7 +191,7 @@ class Search extends BasePlugin {
   /**
    * Sets the callback function. This function will be called during querying for each cell.
    *
-   * @param {Function} newCallback
+   * @param {Function} newCallback A callback function.
    */
   setCallback(newCallback) {
     this.callback = newCallback;
@@ -198,7 +209,7 @@ class Search extends BasePlugin {
   /**
    * Sets the query method function. The function is responsible for determining whether a query matches the value stored in a cell.
    *
-   * @param {Function} newQueryMethod
+   * @param {Function} newQueryMethod A function with specific match logic.
    */
   setQueryMethod(newQueryMethod) {
     this.queryMethod = newQueryMethod;
@@ -207,7 +218,7 @@ class Search extends BasePlugin {
   /**
    * Gets search result cells class name.
    *
-   * @returns {String} Return the cell class name.
+   * @returns {string} Return the cell class name.
    */
   getSearchResultClass() {
     return this.searchResultClass;
@@ -216,7 +227,7 @@ class Search extends BasePlugin {
   /**
    * Sets search result cells class name. This class name will be added to each cell that belongs to the searched query.
    *
-   * @param {String} newElementClass
+   * @param {string} newElementClass CSS class name.
    */
   setSearchResultClass(newElementClass) {
     this.searchResultClass = newElementClass;
@@ -225,7 +236,7 @@ class Search extends BasePlugin {
   /**
    * Updates the settings of the plugin.
    *
-   * @param {Object} searchSettings The plugin settings, taken from Handsontable configuration.
+   * @param {object} searchSettings The plugin settings, taken from Handsontable configuration.
    * @private
    */
   updatePluginSettings(searchSettings) {
@@ -244,16 +255,16 @@ class Search extends BasePlugin {
     }
   }
 
-  /** *
+  /**
    * The `beforeRenderer` hook callback.
    *
    * @private
    * @param {HTMLTableCellElement} TD The rendered `TD` element.
-   * @param {Number} row Visual row index.
-   * @param {Number} col Visual column index.
-   * @param {String | Number} prop Column property name or a column index, if datasource is an array of arrays.
-   * @param {String} value Value of the rendered cell.
-   * @param {Object} cellProperties Object containing the cell's properties.
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   * @param {string|number} prop Column property name or a column index, if datasource is an array of arrays.
+   * @param {string} value Value of the rendered cell.
+   * @param {object} cellProperties Object containing the cell's properties.
    */
   onBeforeRenderer(TD, row, col, prop, value, cellProperties) {
     // TODO: #4972
@@ -286,7 +297,3 @@ class Search extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('search', Search);
-
-export default Search;
