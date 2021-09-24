@@ -68,8 +68,6 @@ jobs:
             build-handsontable-es-cjs:
               - *hot-shared
               - 'wrappers/**'
-              - 'test/types/**'
-              - 'test/unit/**'
             test-handsontable-unit:
               - *hot-shared
               - 'test/unit/**'
