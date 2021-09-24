@@ -16,6 +16,7 @@ const allowedE2EModules = [
   './asciiTable',
   './MemoryLeakTest',
   '../MemoryLeakTest',
+  '../MemoryLeakTest2',
 ];
 
 const babelPresetConfig = () => ({
