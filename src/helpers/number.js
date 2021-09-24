@@ -16,6 +16,14 @@ export function isNumeric(value) {
       t == 'object' ? !!value && typeof value.valueOf() == 'number' && !(value instanceof Date) : false;
 }
 
+export function isNumericLike(value) {
+  if (isNumeric(value)) {
+    return true;
+  }
+
+  return /^\s*[+-.]?\s*(?:(?:\d+(?:(\.|,)\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/.test(value);
+}
+
 /**
  * A specialized version of `.forEach` defined by ranges.
  *

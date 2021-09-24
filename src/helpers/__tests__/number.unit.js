@@ -1,6 +1,7 @@
 import {
   rangeEach,
   rangeEachReverse,
+  isNumeric,
 } from 'handsontable/helpers/number';
 
 describe('Number helper', () => {
@@ -107,6 +108,52 @@ describe('Number helper', () => {
       rangeEachReverse(1, 5, spy);
 
       expect(spy.calls.count()).toBe(0);
+    });
+  });
+
+  //
+  // Handsontable.helper.isNumeric
+  //
+  describe('isNumeric', () => {
+    it('should return `false` for non-numeric values', () => {
+      expect(isNumeric()).toBeFalsy();
+      expect(isNumeric(null)).toBeFalsy();
+      expect(isNumeric('')).toBeFalsy();
+      expect(isNumeric(' ')).toBeFalsy();
+      expect(isNumeric('abcd')).toBeFalsy();
+      expect(isNumeric('a1.22')).toBeFalsy();
+      expect(isNumeric('1.22a')).toBeFalsy();
+      expect(isNumeric('1,22')).toBeFalsy();
+      expect(isNumeric('10.0,00')).toBeFalsy();
+      expect(isNumeric('10,0.00')).toBeFalsy();
+      expect(isNumeric('e+22')).toBeFalsy();
+      expect(isNumeric([1])).toBeFalsy();
+      expect(isNumeric({})).toBeFalsy();
+      expect(isNumeric(new Date())).toBeFalsy();
+    });
+
+    it('should return `true` for numeric values (number type)', () => {
+      expect(isNumeric(-10000)).toBeTruthy();
+      expect(isNumeric(10000)).toBeTruthy();
+      expect(isNumeric(-10.000)).toBeTruthy();
+      expect(isNumeric(10.000)).toBeTruthy();
+      expect(isNumeric(1e+26)).toBeTruthy();
+    });
+
+    it('should return `true` for numeric values (string type)', () => {
+      expect(isNumeric('-10000')).toBeTruthy();
+      expect(isNumeric('10000')).toBeTruthy();
+      expect(isNumeric('-10.000')).toBeTruthy();
+      expect(isNumeric('10.000')).toBeTruthy();
+      expect(isNumeric('1e+26')).toBeTruthy();
+    });
+
+    it('should return `true` for numeric values with whitespaces (string type)', () => {
+      expect(isNumeric('   -   10000   ')).toBeTruthy();
+      expect(isNumeric('   10000   ')).toBeTruthy();
+      expect(isNumeric('   -   10.000   ')).toBeTruthy();
+      expect(isNumeric('   10.000   ')).toBeTruthy();
+      expect(isNumeric('   1e+26   ')).toBeTruthy();
     });
   });
 });
