@@ -23,7 +23,6 @@ declare namespace _Handsontable {
     batchRender<R>(wrappedOperations: () => R): R;
     clear(): void;
     clearUndo(): void;
-    clearUndo2(): void;
     colOffset(): number;
     colToProp(col: number): string | number;
     columnIndexMapper: Handsontable.RecordTranslation.IndexMapper;
