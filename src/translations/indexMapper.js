@@ -13,7 +13,7 @@ import {
 } from './mapCollections';
 import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
-import { isDefined } from '../helpers/mixed';
+import { isDefined, isUndefined } from '../helpers/mixed';
 import { ChangesObservable } from './changesObservable/observable';
 
 /**
@@ -561,28 +561,22 @@ export class IndexMapper {
     }
 
     const physicalMovedIndexes = arrayMap(movedIndexes, visualIndex => this.getPhysicalFromVisualIndex(visualIndex));
-    const notTrimmedIndexesLength = this.getNotTrimmedIndexesLength();
     const movedIndexesLength = movedIndexes.length;
-    let adaptedFinalIndex = finalIndex;
-
-    // When item(s) are moved after the last visible item we assign the last possible index.
-    if (finalIndex + movedIndexesLength > notTrimmedIndexesLength) {
-      adaptedFinalIndex = notTrimmedIndexesLength - movedIndexesLength; // Last possible, not skipped, final index.
-    }
 
     // Removing indexes without re-indexing.
     const listWithRemovedItems = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
     const listOfNotSkippedItems = listWithRemovedItems.filter(index => this.isTrimmed(index) === false);
 
     // We find proper index for inserted item(s). Physical index at final index position.
-    const physicalIndex = listOfNotSkippedItems[adaptedFinalIndex];
+    const physicalIndex = listOfNotSkippedItems[finalIndex];
     let destinationPosition; // Position for the list with removed items.
 
-    if (isDefined(physicalIndex)) {
-      destinationPosition = listWithRemovedItems.indexOf(physicalIndex);
+    // When item(s) are moved after the last visible item we assign the last possible index.
+    if (isUndefined(physicalIndex)) {
+      destinationPosition = this.getNumberOfIndexes() - movedIndexesLength; // Last possible, final index.
 
     } else {
-      destinationPosition = notTrimmedIndexesLength - movedIndexesLength; // Last possible, not skipped, final index.
+      destinationPosition = listWithRemovedItems.indexOf(physicalIndex);
     }
 
     // Adding indexes without re-indexing.
