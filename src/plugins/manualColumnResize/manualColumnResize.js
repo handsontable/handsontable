@@ -392,7 +392,7 @@ export class ManualColumnResize extends BasePlugin {
 
       const colspan = th.getAttribute('colspan');
 
-      if (th && (colspan === null || colspan === 1)) {
+      if (th && (colspan === null || colspan === '1')) {
         if (!this.pressed) {
           this.setupHandlePosition(th);
         }

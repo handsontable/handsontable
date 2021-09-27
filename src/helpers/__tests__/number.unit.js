@@ -1,6 +1,8 @@
 import {
   rangeEach,
   rangeEachReverse,
+  isNumeric,
+  isNumericLike,
 } from 'handsontable/helpers/number';
 
 describe('Number helper', () => {
@@ -107,6 +109,174 @@ describe('Number helper', () => {
       rangeEachReverse(1, 5, spy);
 
       expect(spy.calls.count()).toBe(0);
+    });
+  });
+
+  //
+  // Handsontable.helper.isNumeric
+  //
+  describe('isNumeric', () => {
+    it('should return `false` for non-numeric values', () => {
+      expect(isNumeric()).toBeFalsy();
+      expect(isNumeric(null)).toBeFalsy();
+      expect(isNumeric('')).toBeFalsy();
+      expect(isNumeric(' ')).toBeFalsy();
+      expect(isNumeric('a')).toBeFalsy();
+      expect(isNumeric('abcd')).toBeFalsy();
+      expect(isNumeric('a1.22')).toBeFalsy();
+      expect(isNumeric('1.22a')).toBeFalsy();
+      expect(isNumeric('1,22')).toBeFalsy();
+      expect(isNumeric('10.0,00')).toBeFalsy();
+      expect(isNumeric('10,0.00')).toBeFalsy();
+      expect(isNumeric('e+22')).toBeFalsy();
+      expect(isNumeric([1])).toBeFalsy();
+      expect(isNumeric({})).toBeFalsy();
+      expect(isNumeric(new Date())).toBeFalsy();
+    });
+
+    it('should return `true` for numeric values (number type)', () => {
+      expect(isNumeric(0.001)).toBeTruthy();
+      expect(isNumeric(0)).toBeTruthy();
+      expect(isNumeric(1)).toBeTruthy();
+      expect(isNumeric(-10000)).toBeTruthy();
+      expect(isNumeric(10000)).toBeTruthy();
+      expect(isNumeric(-10.000)).toBeTruthy();
+      expect(isNumeric(10.000)).toBeTruthy();
+      expect(isNumeric(1e+26)).toBeTruthy();
+    });
+
+    it('should return `true` for numeric values (string type)', () => {
+      expect(isNumeric('.001')).toBeTruthy();
+      expect(isNumeric('0.001')).toBeTruthy();
+      expect(isNumeric('0')).toBeTruthy();
+      expect(isNumeric('1')).toBeTruthy();
+      expect(isNumeric('-10000')).toBeTruthy();
+      expect(isNumeric('10000')).toBeTruthy();
+      expect(isNumeric('-10.000')).toBeTruthy();
+      expect(isNumeric('10.000')).toBeTruthy();
+      expect(isNumeric('1e+26')).toBeTruthy();
+      expect(isNumeric('0.45e+26')).toBeTruthy();
+      expect(isNumeric('.45e+26')).toBeTruthy();
+    });
+
+    it('should detect hexadecimal values correctly', () => {
+      expect(isNumeric('0xA')).toBeTruthy();
+      expect(isNumeric('0x1')).toBeTruthy();
+      expect(isNumeric('0xabcdef')).toBeTruthy();
+      expect(isNumeric('0xABCDEF')).toBeTruthy();
+      expect(isNumeric('0xabc123')).toBeTruthy();
+      expect(isNumeric('0xABC123')).toBeTruthy();
+
+      expect(isNumeric('0xabcdefghi')).toBeFalsy();
+      expect(isNumeric('0xqwerty')).toBeFalsy();
+      expect(isNumeric('0x12AH')).toBeFalsy();
+      expect(isNumeric('0xABCG')).toBeFalsy();
+      expect(isNumeric('0xG')).toBeFalsy();
+    });
+
+    it('should return `true` for numeric values with whitespaces (string type)', () => {
+      expect(isNumeric('   .020   ')).toBeTruthy();
+      expect(isNumeric('   0.020   ')).toBeTruthy();
+      expect(isNumeric('   0   ')).toBeTruthy();
+      expect(isNumeric('   1   ')).toBeTruthy();
+      expect(isNumeric('   -   10000   ')).toBeTruthy();
+      expect(isNumeric('   10000   ')).toBeTruthy();
+      expect(isNumeric('   -   10.000   ')).toBeTruthy();
+      expect(isNumeric('   10.000   ')).toBeTruthy();
+      expect(isNumeric('   1e+26   ')).toBeTruthy();
+      expect(isNumeric('   1e+26   ')).toBeTruthy();
+      expect(isNumeric('   0.2e+26   ')).toBeTruthy();
+      expect(isNumeric('   .2e+26   ')).toBeTruthy();
+    });
+  });
+
+  //
+  // Handsontable.helper.isNumericLike
+  //
+  describe('isNumericLike', () => {
+    it('should return `false` for non-numeric values', () => {
+      expect(isNumericLike()).toBeFalsy();
+      expect(isNumericLike(null)).toBeFalsy();
+      expect(isNumericLike('')).toBeFalsy();
+      expect(isNumericLike(' ')).toBeFalsy();
+      expect(isNumericLike('a')).toBeFalsy();
+      expect(isNumericLike('abcd')).toBeFalsy();
+      expect(isNumericLike('a1.22')).toBeFalsy();
+      expect(isNumericLike('1.22a')).toBeFalsy();
+      expect(isNumericLike('1,22a')).toBeFalsy();
+      expect(isNumericLike('10.0,00')).toBeFalsy();
+      expect(isNumericLike('10,0.00')).toBeFalsy();
+      expect(isNumericLike('e+22')).toBeFalsy();
+      expect(isNumericLike([1])).toBeFalsy();
+      expect(isNumericLike({})).toBeFalsy();
+      expect(isNumericLike(new Date())).toBeFalsy();
+    });
+
+    it('should return `true` for numeric values (number type)', () => {
+      expect(isNumericLike(0.001)).toBeTruthy();
+      expect(isNumericLike(0)).toBeTruthy();
+      expect(isNumericLike(1)).toBeTruthy();
+      expect(isNumericLike(-10000)).toBeTruthy();
+      expect(isNumericLike(10000)).toBeTruthy();
+      expect(isNumericLike(-10.000)).toBeTruthy();
+      expect(isNumericLike(10.000)).toBeTruthy();
+      expect(isNumericLike(1e+26)).toBeTruthy();
+    });
+
+    it('should return `true` for numeric values (string type)', () => {
+      expect(isNumericLike('.001')).toBeTruthy();
+      expect(isNumericLike(',001')).toBeTruthy();
+      expect(isNumericLike('0.001')).toBeTruthy();
+      expect(isNumericLike('0,001')).toBeTruthy();
+      expect(isNumericLike('0')).toBeTruthy();
+      expect(isNumericLike('1')).toBeTruthy();
+      expect(isNumericLike('-10000')).toBeTruthy();
+      expect(isNumericLike('10000')).toBeTruthy();
+      expect(isNumericLike('-10.000')).toBeTruthy();
+      expect(isNumericLike('10.000')).toBeTruthy();
+      expect(isNumericLike('-10,000')).toBeTruthy();
+      expect(isNumericLike('10,000')).toBeTruthy();
+      expect(isNumericLike('1e+26')).toBeTruthy();
+      expect(isNumericLike('0.45e+26')).toBeTruthy();
+      expect(isNumericLike('.45e+26')).toBeTruthy();
+      expect(isNumericLike('0,45e+26')).toBeTruthy();
+      expect(isNumericLike(',45e+26')).toBeTruthy();
+    });
+
+    it('should detect hexadecimal values correctly', () => {
+      expect(isNumericLike('0xA')).toBeTruthy();
+      expect(isNumericLike('0x1')).toBeTruthy();
+      expect(isNumericLike('0xabcdef')).toBeTruthy();
+      expect(isNumericLike('0xABCDEF')).toBeTruthy();
+      expect(isNumericLike('0xabc123')).toBeTruthy();
+      expect(isNumericLike('0xABC123')).toBeTruthy();
+
+      expect(isNumericLike('0xabcdefghi')).toBeFalsy();
+      expect(isNumericLike('0xqwerty')).toBeFalsy();
+      expect(isNumericLike('0x12AH')).toBeFalsy();
+      expect(isNumericLike('0xABCG')).toBeFalsy();
+      expect(isNumericLike('0xG')).toBeFalsy();
+    });
+
+    it('should return `true` for numeric values with whitespaces (string type)', () => {
+      expect(isNumericLike('   .020   ')).toBeTruthy();
+      expect(isNumericLike('   ,020   ')).toBeTruthy();
+      expect(isNumericLike('   0.020   ')).toBeTruthy();
+      expect(isNumericLike('   0,020   ')).toBeTruthy();
+      expect(isNumericLike('   0   ')).toBeTruthy();
+      expect(isNumericLike('   1   ')).toBeTruthy();
+      expect(isNumericLike('   -   10000   ')).toBeTruthy();
+      expect(isNumericLike('   10000   ')).toBeTruthy();
+      expect(isNumericLike('   -   10.000   ')).toBeTruthy();
+      expect(isNumericLike('   10.000   ')).toBeTruthy();
+      expect(isNumericLike('   -   10,000   ')).toBeTruthy();
+      expect(isNumericLike('   10,000   ')).toBeTruthy();
+      expect(isNumericLike('   1e+26   ')).toBeTruthy();
+      expect(isNumericLike('   1e+26   ')).toBeTruthy();
+      expect(isNumericLike('   0.2e+26   ')).toBeTruthy();
+      expect(isNumericLike('   .2e+26   ')).toBeTruthy();
+      expect(isNumericLike('   0,2e+26   ')).toBeTruthy();
+      expect(isNumericLike('   ,2e+26   ')).toBeTruthy();
     });
   });
 });
