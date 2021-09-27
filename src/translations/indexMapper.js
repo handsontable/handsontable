@@ -572,7 +572,7 @@ export class IndexMapper {
 
     // Removing indexes without re-indexing.
     const listWithRemovedItems = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
-    const listOfNotSkippedItems = listWithRemovedItems.filter(index => this.isSkipped(index) === false);
+    const listOfNotSkippedItems = listWithRemovedItems.filter(index => this.isTrimmed(index) === false);
 
     // We find proper index for inserted item(s). Physical index at final index position.
     const physicalIndex = listOfNotSkippedItems[adaptedFinalIndex];
