@@ -1,6 +1,10 @@
 import * as C from '../../../i18n/constants';
 import MergedCellCoords from '../cellCoords';
 
+/**
+ * @param {*} plugin The plugin instance.
+ * @returns {object}
+ */
 export default function toggleMergeItem(plugin) {
   return {
     key: 'mergeCells',
@@ -10,7 +14,8 @@ export default function toggleMergeItem(plugin) {
       if (sel) {
         const info = plugin.mergedCellsCollection.get(sel[0], sel[1]);
 
-        if (info.row === sel[0] && info.col === sel[1] && info.row + info.rowspan - 1 === sel[2] && info.col + info.colspan - 1 === sel[3]) {
+        if (info.row === sel[0] && info.col === sel[1] &&
+            info.row + info.rowspan - 1 === sel[2] && info.col + info.colspan - 1 === sel[3]) {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNMERGE_CELLS);
         }
       }

@@ -43,35 +43,82 @@ module.exports.create = function create(envArgs) {
 
     if (isFullBuild) {
       c.plugins.push(
-        new CopyWebpackPlugin([
-          { // hot-formula-parser
-            from: {glob: 'node_modules/hot-formula-parser/LICENSE'}, to: 'hot-formula-parser', flatten: true
-          },
-          {
-            from: {glob: 'node_modules/hot-formula-parser/dist/formula-parser.js'}, to: 'hot-formula-parser', flatten: true
-          },
-          { // moment
-            from: {glob: 'node_modules/moment/@(moment.js|LICENSE)'}, to: 'moment', flatten: true
-          },
-          {
-            from: {glob: 'node_modules/moment/locale/*.js'}, to: 'moment/locale', flatten: true
-          },
-          { // numbro
-            from: {glob: 'node_modules/numbro/@(LICENSE-Numeraljs|LICENSE)'}, to: 'numbro', flatten: true
-          },
-          {
-            from: {glob: 'node_modules/numbro/dist/@(numbro.js|languages.min.js)'}, to: 'numbro', flatten: true
-          },
-          {
-            from: {glob: 'node_modules/numbro/dist/languages/*.js'}, to: 'numbro/languages', flatten: true
-          },
-          { // pikaday
-            from: {glob: 'node_modules/pikaday/@(LICENSE|pikaday.js)'}, to: 'pikaday', flatten: true
-          },
-          {
-            from: {glob: 'node_modules/pikaday/css/pikaday.css'}, to: 'pikaday', flatten: true
-          },
-        ])
+        new CopyWebpackPlugin({
+          patterns: [
+            { // moment
+              from: 'node_modules/moment/@(moment.js|LICENSE)',
+              to: 'moment',
+              flatten: true,
+              force: true,
+            },
+            {
+              from: 'node_modules/moment/locale/*.js',
+              to: 'moment/locale',
+              flatten: true,
+              force: true,
+            },
+            { // numbro
+              from: 'node_modules/numbro/@(LICENSE-Numeraljs|LICENSE)',
+              to: 'numbro',
+              flatten: true,
+              force: true,
+            },
+            {
+              from: 'node_modules/numbro/dist/@(numbro.js|languages.min.js)',
+              to: 'numbro',
+              flatten: true,
+              force: true,
+            },
+            {
+              from: 'node_modules/numbro/dist/languages/*.js',
+              to: 'numbro/languages',
+              flatten: true,
+              force: true,
+            },
+            { // pikaday
+              from: 'node_modules/pikaday/@(LICENSE|pikaday.js)',
+              to: 'pikaday',
+              flatten: true,
+              force: true,
+            },
+            {
+              from: 'node_modules/pikaday/css/pikaday.css',
+              to: 'pikaday',
+              flatten: true,
+              force: true,
+            },
+            { // dompurify
+              from: 'node_modules/dompurify/@(LICENSE)',
+              to: 'dompurify',
+              flatten: true,
+              force: true,
+            },
+            {
+              from: 'node_modules/dompurify/dist/@(purify.js|purify.js.map)',
+              to: 'dompurify',
+              flatten: true,
+              force: true,
+            },
+            {
+              from: 'node_modules/hyperformula/dist/hyperformula.full.min.js',
+              to: 'hyperformula',
+              flatten: true,
+              force: true,
+            },
+            {
+              from: 'node_modules/hyperformula/dist/languages/*.js',
+              to: 'hyperformula/languages',
+              flatten: true,
+              force: true,
+            },
+            {
+              from: 'node_modules/hyperformula/LICENSE.txt',
+              to: 'hyperformula',
+              flatten: true,
+              force: true,
+            },
+          ]
+        })
       );
     }
   });

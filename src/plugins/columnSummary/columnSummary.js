@@ -1,15 +1,37 @@
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 import { objectEach } from '../../helpers/object';
-import { registerPlugin } from '../../plugins';
 import Endpoints from './endpoints';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+
+export const PLUGIN_KEY = 'columnSummary';
+export const PLUGIN_PRIORITY = 220;
 
 /**
  * @plugin ColumnSummary
+ * @class ColumnSummary
  *
  * @description
- * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
- * [See the demo for more information](https://handsontable.com/docs/demo-summary-calculations.html).
- *s
+ * The `ColumnSummary` plugin lets you [easily summarize your columns](@/guides/columns/column-summary.md).
+ *
+ * You can use the [built-in summary functions](@/guides/columns/column-summary.md#built-in-summary-functions),
+ * or implement a [custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function).
+ *
+ * For each column summary, you can set the following configuration options:
+ *
+ * | Option | Required | Type | Default | Description |
+ * |---|---|---|---|---|
+ * | `sourceColumn` | No | Number | Same as `destinationColumn` | [Selects a column to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+ * | `ranges` | No | Array | - | [Selects ranges of rows to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
+ * | `type` | Yes | String | - | [Sets a summary function](@/guides/columns/column-summary.md#step-3-calculate-your-summary) |
+ * | `destinationRow` | Yes | Number | - | [Sets the destination cell's row coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+ * | `destinationColumn` | Yes | Number | - | [Sets the destination cell's column coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+ * | `forceNumeric` | No | Boolean | `false` | [Forces the summary to treat non-numerics as numerics](@/guides/columns/column-summary.md#forcing-numeric-values) |
+ * | `reversedRowCoords` | No | Boolean | `false` | [Reverses row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell) |
+ * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary.md#throwing-data-type-errors) |
+ * | `readOnly` | No | Boolean | `true` | Makes summary cell read-only |
+ * | `roundFloat` | No | Number | - | [Rounds summary result](@/guides/columns/column-summary.md#rounding-a-column-summary-result) |
+ * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function) |
+ *
  * @example
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -18,26 +40,34 @@ import Endpoints from './endpoints';
  *   rowHeaders: true,
  *   columnSummary: [
  *     {
+ *       type: 'min',
  *       destinationRow: 4,
  *       destinationColumn: 1,
- *       type: 'min'
  *     },
  *     {
+ *       type: 'max',
  *       destinationRow: 0,
  *       destinationColumn: 3,
- *       reversedRowCoords: true,
- *       type: 'max'
+ *       reversedRowCoords: true
  *     },
  *     {
+ *       type: 'sum',
  *       destinationRow: 4,
  *       destinationColumn: 5,
- *       type: 'sum',
  *       forceNumeric: true
  *     }
  *   ]
  * });
  */
-class ColumnSummary extends BasePlugin {
+export class ColumnSummary extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -53,10 +83,10 @@ class ColumnSummary extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ColumnSummary#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().columnSummary;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -67,21 +97,25 @@ class ColumnSummary extends BasePlugin {
       return;
     }
 
-    this.settings = this.hot.getSettings().columnSummary;
+    this.settings = this.hot.getSettings()[PLUGIN_KEY];
     this.endpoints = new Endpoints(this, this.settings);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
     this.addHook('afterChange', (...args) => this.onAfterChange(...args));
 
-    this.addHook('beforeCreateRow', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_row', index, amount, null, source));
-    this.addHook('beforeCreateCol', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_col', index, amount, null, source));
-    this.addHook('beforeRemoveRow', (...args) => this.endpoints.resetSetupBeforeStructureAlteration('remove_row', ...args));
-    this.addHook('beforeRemoveCol', (...args) => this.endpoints.resetSetupBeforeStructureAlteration('remove_col', ...args));
+    this.addHook('beforeCreateRow', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_row', index, amount, null, source)); // eslint-disable-line max-len
+    this.addHook('beforeCreateCol', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_col', index, amount, null, source)); // eslint-disable-line max-len
+    this.addHook('beforeRemoveRow',
+      (...args) => this.endpoints.resetSetupBeforeStructureAlteration('remove_row', ...args));
+    this.addHook('beforeRemoveCol',
+      (...args) => this.endpoints.resetSetupBeforeStructureAlteration('remove_col', ...args));
 
-    this.addHook('afterCreateRow', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_row', index, amount, null, source));
-    this.addHook('afterCreateCol', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_col', index, amount, null, source));
-    this.addHook('afterRemoveRow', (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_row', ...args));
-    this.addHook('afterRemoveCol', (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_col', ...args));
+    this.addHook('afterCreateRow', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_row', index, amount, null, source)); // eslint-disable-line max-len
+    this.addHook('afterCreateCol', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_col', index, amount, null, source)); // eslint-disable-line max-len
+    this.addHook('afterRemoveRow',
+      (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_row', ...args));
+    this.addHook('afterRemoveCol',
+      (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_col', ...args));
     this.addHook('afterRowMove', (...args) => this.onAfterRowMove(...args));
 
     super.enablePlugin();
@@ -100,7 +134,7 @@ class ColumnSummary extends BasePlugin {
    * Calculates math for a single endpoint.
    *
    * @private
-   * @param {Object} endpoint Contains information about the endpoint.
+   * @param {object} endpoint Contains information about the endpoint.
    */
   calculate(endpoint) {
     switch (endpoint.type.toLowerCase()) {
@@ -131,8 +165,8 @@ class ColumnSummary extends BasePlugin {
    * Calculates sum of the values contained in ranges provided in the plugin config.
    *
    * @private
-   * @param {Object} endpoint Contains the endpoint information.
-   * @returns {Number} Sum for the selected range
+   * @param {object} endpoint Contains the endpoint information.
+   * @returns {number} Sum for the selected range.
    */
   calculateSum(endpoint) {
     let sum = 0;
@@ -145,12 +179,12 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Returns partial sum of values from a single row range
+   * Returns partial sum of values from a single row range.
    *
    * @private
    * @param {Array} rowRange Range for the sum.
-   * @param {Number} col Column index.
-   * @returns {Number} The partial sum.
+   * @param {number} col Column index.
+   * @returns {number} The partial sum.
    */
   getPartialSum(rowRange, col) {
     let sum = 0;
@@ -161,6 +195,7 @@ class ColumnSummary extends BasePlugin {
     do {
       cellValue = this.getCellValue(i, col) || 0;
       const decimalPlaces = (((`${cellValue}`).split('.')[1] || []).length) || 1;
+
       if (decimalPlaces > biggestDecimalPlacesCount) {
         biggestDecimalPlacesCount = decimalPlaces;
       }
@@ -174,12 +209,12 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Calculates the minimal value for the selected ranges
+   * Calculates the minimal value for the selected ranges.
    *
    * @private
-   * @param {Object} endpoint Contains the endpoint information.
-   * @param {String} type `'min'` or `'max'`.
-   * @returns {Number} Min or Max value.
+   * @param {object} endpoint Contains the endpoint information.
+   * @param {string} type `'min'` or `'max'`.
+   * @returns {number} Min or Max value.
    */
   calculateMinMax(endpoint, type) {
     let result = null;
@@ -209,13 +244,13 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Returns a local minimum of the provided sub-range
+   * Returns a local minimum of the provided sub-range.
    *
    * @private
    * @param {Array} rowRange Range for the calculation.
-   * @param {Number} col Column index.
-   * @param {String} type `'min'` or `'max'`
-   * @returns {Number} Min or max value.
+   * @param {number} col Column index.
+   * @param {string} type `'min'` or `'max'`.
+   * @returns {number} Min or max value.
    */
   getPartialMinMax(rowRange, col, type) {
     let result = null;
@@ -252,8 +287,8 @@ class ColumnSummary extends BasePlugin {
    *
    * @private
    * @param {Array} rowRange Row range for the calculation.
-   * @param {Number} col Column index.
-   * @returns {Number} Empty cells count.
+   * @param {number} col Column index.
+   * @returns {number} Empty cells count.
    */
   countEmpty(rowRange, col) {
     let cellValue;
@@ -277,8 +312,8 @@ class ColumnSummary extends BasePlugin {
    * Counts non-empty cells in the provided row range.
    *
    * @private
-   * @param {Object} endpoint Contains the endpoint information.
-   * @returns {Number} Entry count.
+   * @param {object} endpoint Contains the endpoint information.
+   * @returns {number} Entry count.
    */
   countEntries(endpoint) {
     let result = 0;
@@ -299,8 +334,8 @@ class ColumnSummary extends BasePlugin {
    * Calculates the average value from the cells in the range.
    *
    * @private
-   * @param {Object} endpoint Contains the endpoint information.
-   * @returns {Number} Avarage value.
+   * @param {object} endpoint Contains the endpoint information.
+   * @returns {number} Avarage value.
    */
   calculateAverage(endpoint) {
     const sum = this.calculateSum(endpoint);
@@ -313,16 +348,20 @@ class ColumnSummary extends BasePlugin {
    * Returns a cell value, taking into consideration a basic validation.
    *
    * @private
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
-   * @returns {String} The cell value.
+   * @param {number} row Row index.
+   * @param {number} col Column index.
+   * @returns {string} The cell value.
    */
   getCellValue(row, col) {
     const visualRowIndex = this.hot.toVisualRow(row);
     const visualColumnIndex = this.hot.toVisualColumn(col);
 
     let cellValue = this.hot.getSourceDataAtCell(row, col);
-    const cellClassName = this.hot.getCellMeta(visualRowIndex, visualColumnIndex).className || '';
+    let cellClassName = '';
+
+    if (visualRowIndex !== null && visualColumnIndex !== null) {
+      cellClassName = this.hot.getCellMeta(visualRowIndex, visualColumnIndex).className || '';
+    }
 
     if (cellClassName.indexOf('columnSummaryResult') > -1) {
       return null;
@@ -338,7 +377,8 @@ class ColumnSummary extends BasePlugin {
 
     if (isNaN(cellValue)) {
       if (!this.endpoints.currentEndpoint.suppressDataTypeErrors) {
-        throw new Error(`ColumnSummary plugin: cell at (${row}, ${col}) is not in a numeric format. Cannot do the calculation.`);
+        throw new Error(toSingleLine`ColumnSummary plugin: cell at (${row}, ${col}) is not in a\x20
+          numeric format. Cannot do the calculation.`);
       }
     }
 
@@ -359,8 +399,8 @@ class ColumnSummary extends BasePlugin {
    * `afterChange` hook callback.
    *
    * @private
-   * @param {Array} changes
-   * @param {String} source
+   * @param {Array} changes 2D array containing information about each of the edited cells.
+   * @param {string} source The string that identifies source of changes.
    */
   onAfterChange(changes, source) {
     if (changes && source !== 'ColumnSummary.reset' && source !== 'ColumnSummary.set' && source !== 'loadData') {
@@ -373,15 +413,11 @@ class ColumnSummary extends BasePlugin {
    *
    * @private
    * @param {Array} rows Array of visual row indexes to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving.md).
    */
   onAfterRowMove(rows, finalIndex) {
     this.endpoints.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length, rows, this.pluginName);
     this.endpoints.resetSetupAfterStructureAlteration('move_row', finalIndex, rows.length, rows, this.pluginName);
   }
 }
-
-registerPlugin('columnSummary', ColumnSummary);
-
-export default ColumnSummary;

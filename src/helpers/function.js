@@ -1,10 +1,11 @@
 import { arrayReduce } from './array';
+import { isDefined } from './mixed';
 
 /**
  * Checks if given variable is function.
  *
  * @param {*} func Variable to check.
- * @returns {Boolean}
+ * @returns {boolean}
  */
 export function isFunction(func) {
   return typeof func === 'function';
@@ -14,7 +15,7 @@ export function isFunction(func) {
  * Creates throttle function that enforces a maximum number of times a function (`func`) can be called over time (`wait`).
  *
  * @param {Function} func Function to invoke.
- * @param {Number} wait Delay in miliseconds.
+ * @param {number} wait Delay in miliseconds.
  * @returns {Function}
  */
 export function throttle(func, wait = 200) {
@@ -24,6 +25,10 @@ export function throttle(func, wait = 200) {
   };
   let lastTimer = null;
 
+  /**
+   * @param {...*} args The list of arguments passed during the function invocation.
+   * @returns {object}
+   */
   function _throttle(...args) {
     const stamp = Date.now();
     let needCall = false;
@@ -62,17 +67,24 @@ export function throttle(func, wait = 200) {
  * time (`wait`) after specified hits.
  *
  * @param {Function} func Function to invoke.
- * @param {Number} wait Delay in miliseconds.
- * @param {Number} hits Number of hits after throttling will be applied.
+ * @param {number} wait Delay in miliseconds.
+ * @param {number} hits Number of hits after throttling will be applied.
  * @returns {Function}
  */
 export function throttleAfterHits(func, wait = 200, hits = 10) {
   const funcThrottle = throttle(func, wait);
   let remainHits = hits;
 
+  /**
+   *
+   */
   function _clearHits() {
     remainHits = hits;
   }
+  /**
+   * @param {*} args The list of arguments passed during the function invocation.
+   * @returns {*}
+   */
   function _throttleAfterHits(...args) {
     if (remainHits) {
       remainHits -= 1;
@@ -92,13 +104,17 @@ export function throttleAfterHits(func, wait = 200, hits = 10) {
  * has passed without it being called.
  *
  * @param {Function} func Function to invoke.
- * @param {Number} wait Delay in milliseconds.
+ * @param {number} wait Delay in milliseconds.
  * @returns {Function}
  */
 export function debounce(func, wait = 200) {
   let lastTimer = null;
   let result;
 
+  /**
+   * @param {*} args The list of arguments passed during the function invocation.
+   * @returns {*}
+   */
   function _debounce(...args) {
     if (lastTimer) {
       clearTimeout(lastTimer);
@@ -166,6 +182,10 @@ export function partial(func, ...params) {
 export function curry(func) {
   const argsLength = func.length;
 
+  /**
+   * @param {*} argsSoFar The list of arguments passed during the function invocation.
+   * @returns {Function}
+   */
   function given(argsSoFar) {
     return function _curry(...params) {
       const passedArgsSoFar = argsSoFar.concat(params);
@@ -209,6 +229,10 @@ export function curry(func) {
 export function curryRight(func) {
   const argsLength = func.length;
 
+  /**
+   * @param {*} argsSoFar The list of arguments passed during the function invocation.
+   * @returns {Function}
+   */
   function given(argsSoFar) {
     return function _curry(...params) {
       const passedArgsSoFar = argsSoFar.concat(params.reverse());
@@ -225,4 +249,43 @@ export function curryRight(func) {
   }
 
   return given([]);
+}
+
+/**
+ * Calls a function in the quickest way available.
+ *
+ * In contrast to the `apply()` method that passes arguments as an array,
+ * the `call()` method passes arguments directly, to avoid garbage collection costs.
+ *
+ * @param {Function} func The function to call.
+ * @param {*} context The value to use as `this` when calling the `func` function.
+ * @param {*} [arg1] An argument passed to the `func` function.
+ * @param {*} [arg2] An argument passed to `func` function.
+ * @param {*} [arg3] An argument passed to `func` function.
+ * @param {*} [arg4] An argument passed to `func` function.
+ * @param {*} [arg5] An argument passed to `func` function.
+ * @param {*} [arg6] An argument passed to `func` function.
+ * @returns {*}
+ */
+export function fastCall(func, context, arg1, arg2, arg3, arg4, arg5, arg6) {
+  if (isDefined(arg6)) {
+    return func.call(context, arg1, arg2, arg3, arg4, arg5, arg6);
+
+  } else if (isDefined(arg5)) {
+    return func.call(context, arg1, arg2, arg3, arg4, arg5);
+
+  } else if (isDefined(arg4)) {
+    return func.call(context, arg1, arg2, arg3, arg4);
+
+  } else if (isDefined(arg3)) {
+    return func.call(context, arg1, arg2, arg3);
+
+  } else if (isDefined(arg2)) {
+    return func.call(context, arg1, arg2);
+
+  } else if (isDefined(arg1)) {
+    return func.call(context, arg1);
+  }
+
+  return func.call(context);
 }

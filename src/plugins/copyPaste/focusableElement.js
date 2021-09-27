@@ -1,8 +1,8 @@
-import EventManager from './../../eventManager';
-import localHooks from './../../mixins/localHooks';
-import { mixin } from './../../helpers/object';
-import { isMobileBrowser } from './../../helpers/browser';
-import { selectElementIfAllowed } from './../../helpers/dom/element';
+import EventManager from '../../eventManager';
+import localHooks from '../../mixins/localHooks';
+import { mixin } from '../../helpers/object';
+import { isMobileBrowser } from '../../helpers/browser';
+import { selectElementIfAllowed } from '../../helpers/dom/element';
 
 /**
  * @class FocusableWrapper
@@ -55,7 +55,7 @@ class FocusableWrapper {
   /**
    * Switch to the main focusable element.
    *
-   * @param {HTMLElement} element
+   * @param {HTMLElement} element The DOM element.
    */
   setFocusableElement(element) {
     if (!this.listenersCount.has(element)) {
@@ -95,13 +95,14 @@ const refCounter = new WeakMap();
 /**
  * Create and return the FocusableWrapper instance.
  *
- * @param {HTMLElement} container
+ * @param {HTMLElement} container The container element, holder for focusable elements.
  * @returns {FocusableWrapper}
  */
 function createElement(container) {
   const focusableWrapper = new FocusableWrapper(container);
 
   let counter = refCounter.get(container);
+
   counter = isNaN(counter) ? 0 : counter;
 
   refCounter.set(container, counter + 1);
@@ -112,7 +113,7 @@ function createElement(container) {
 /**
  * Deactivate the FocusableWrapper instance.
  *
- * @param {FocusableWrapper} wrapper
+ * @param {FocusableWrapper} wrapper The instance of the FocusableWrapper class.
  */
 function deactivateElement(wrapper) {
   wrapper.eventManager.clear();
@@ -123,8 +124,9 @@ const runLocalHooks = (eventName, subject) => event => subject.runLocalHooks(eve
 /**
  * Register copy/cut/paste events and forward their actions to the subject local hooks system.
  *
- * @param {HTMLElement} element
- * @param {FocusableWrapper} subject
+ * @param {EventManager} eventManager The instance of the EventManager class.
+ * @param {HTMLElement} element The element on which the listeners are mounted.
+ * @param {FocusableWrapper} subject The subject object for local hooks.
  */
 function forwardEventsToLocalHooks(eventManager, element, subject) {
   eventManager.addEventListener(element, 'copy', runLocalHooks('copy', subject));
@@ -137,7 +139,7 @@ const secondaryElements = new WeakMap();
 /**
  * Create and attach newly created focusable element to the DOM.
  *
- * @param {HTMLElement} container
+ * @param {HTMLElement} container The container element, holder for focusable elements.
  * @returns {HTMLElement}
  */
 function createOrGetSecondaryElement(container) {
@@ -155,6 +157,7 @@ function createOrGetSecondaryElement(container) {
   const element = doc.createElement('textarea');
 
   secondaryElements.set(container, element);
+  element.setAttribute('data-hot-input', ''); // Makes the element recognizable by Hot as its own component's element.
   element.className = 'HandsontableCopyPaste';
   element.tabIndex = -1;
   element.autocomplete = 'off';
@@ -169,7 +172,7 @@ function createOrGetSecondaryElement(container) {
 /**
  * Destroy the FocusableWrapper instance.
  *
- * @param {FocusableWrapper} wrapper
+ * @param {FocusableWrapper} wrapper The instance of the FocusableWrapper class.
  */
 function destroyElement(wrapper) {
   if (!(wrapper instanceof FocusableWrapper)) {
@@ -177,6 +180,7 @@ function destroyElement(wrapper) {
   }
 
   let counter = refCounter.get(wrapper.container);
+
   counter = isNaN(counter) ? 0 : counter;
 
   if (counter > 0) {

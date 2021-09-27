@@ -5,6 +5,7 @@ describe('Walkontable.CellRange', () => {
       const to = new Walkontable.CellCoords(3, 3);
       const range = new Walkontable.CellRange(from, from, to);
       const all = range.getAll();
+
       expect(all.length).toBe(9);
       expect(all[0].row).toBe(from.row);
       expect(all[0].col).toBe(from.col);
@@ -19,6 +20,7 @@ describe('Walkontable.CellRange', () => {
       const to = new Walkontable.CellCoords(1, 1);
       const range = new Walkontable.CellRange(from, from, to);
       const all = range.getAll();
+
       expect(all.length).toBe(9);
       expect(all[0].row).toBe(to.row);
       expect(all[0].col).toBe(to.col);
@@ -35,6 +37,7 @@ describe('Walkontable.CellRange', () => {
       const to = new Walkontable.CellCoords(3, 3);
       const range = new Walkontable.CellRange(from, from, to);
       const inner = range.getInner();
+
       expect(inner.length).toBe(7);
       expect(inner[1].row).toBe(1);
       expect(inner[1].col).toBe(3);
@@ -45,6 +48,7 @@ describe('Walkontable.CellRange', () => {
       const to = new Walkontable.CellCoords(1, 1);
       const range = new Walkontable.CellRange(from, from, to);
       const inner = range.getInner();
+
       expect(inner.length).toBe(7);
       expect(inner[1].row).toBe(1);
       expect(inner[1].col).toBe(3);
@@ -56,6 +60,7 @@ describe('Walkontable.CellRange', () => {
       const from = new Walkontable.CellCoords(0, 0);
       const to = new Walkontable.CellCoords(0, 0);
       const range = new Walkontable.CellRange(from, from, to);
+
       expect(range.includes(new Walkontable.CellCoords(0, 0))).toBe(true);
     });
 
@@ -63,6 +68,7 @@ describe('Walkontable.CellRange', () => {
       const from = new Walkontable.CellCoords(1, 1);
       const to = new Walkontable.CellCoords(3, 3);
       const range = new Walkontable.CellRange(from, from, to);
+
       expect(range.includes(new Walkontable.CellCoords(1, 1))).toBe(true);
       expect(range.includes(new Walkontable.CellCoords(3, 1))).toBe(true);
       expect(range.includes(new Walkontable.CellCoords(3, 3))).toBe(true);
@@ -76,6 +82,7 @@ describe('Walkontable.CellRange', () => {
       const from = new Walkontable.CellCoords(1, 1);
       const to = new Walkontable.CellCoords(3, 3);
       const range = new Walkontable.CellRange(from, from, to);
+
       expect(range.includes(new Walkontable.CellCoords(0, 0))).toBe(false);
       expect(range.includes(new Walkontable.CellCoords(4, 4))).toBe(false);
       expect(range.includes(new Walkontable.CellCoords(1, 4))).toBe(false);
@@ -432,9 +439,11 @@ describe('Walkontable.CellRange', () => {
 
       const expander = new Walkontable.CellCoords(3, 1);
       const res = range.expand(expander);
+
       expect(res).toBe(false);
       const topLeft2 = range.getTopLeftCorner();
       const bottomRight2 = range.getBottomRightCorner();
+
       expect(topLeft2).toEqual(topLeft);
       expect(bottomRight2).toEqual(bottomRight);
     });
@@ -448,9 +457,11 @@ describe('Walkontable.CellRange', () => {
 
       const expander = new Walkontable.CellCoords(4, 4);
       const res = range.expand(expander);
+
       expect(res).toBe(true);
       const topLeft2 = range.getTopLeftCorner();
       const bottomRight2 = range.getBottomRightCorner();
+
       expect(topLeft2).toEqual(topLeft);
       expect(bottomRight2).toEqual(expander);
     });
@@ -464,9 +475,11 @@ describe('Walkontable.CellRange', () => {
 
       const expander = new Walkontable.CellCoords(4, 4);
       const res = range.expand(expander);
+
       expect(res).toBe(true);
       const topLeft2 = range.getTopLeftCorner();
       const bottomRight2 = range.getBottomRightCorner();
+
       expect(topLeft2).toEqual(topLeft);
       expect(bottomRight2).toEqual(expander);
     });
@@ -478,9 +491,11 @@ describe('Walkontable.CellRange', () => {
 
       const expander = new Walkontable.CellCoords(3, 0);
       const res = range.expand(expander);
+
       expect(res).toBe(true);
       const topLeft2 = range.getTopLeftCorner();
       const bottomRight2 = range.getBottomRightCorner();
+
       expect(topLeft2).toEqual(new Walkontable.CellCoords(1, 0));
       expect(bottomRight2).toEqual(new Walkontable.CellCoords(3, 3));
     });
@@ -492,9 +507,11 @@ describe('Walkontable.CellRange', () => {
 
       const expander = new Walkontable.CellCoords(1, 1);
       const res = range.expand(expander);
+
       expect(res).toBe(true);
       const topLeft2 = range.getTopLeftCorner();
       const bottomRight2 = range.getBottomRightCorner();
+
       expect(topLeft2).toEqual(new Walkontable.CellCoords(1, 0));
       expect(bottomRight2).toEqual(new Walkontable.CellCoords(2, 1));
     });
@@ -506,9 +523,11 @@ describe('Walkontable.CellRange', () => {
 
       const expander = new Walkontable.CellCoords(3, 0);
       const res = range.expand(expander);
+
       expect(res).toBe(true);
       const topLeft2 = range.getTopLeftCorner();
       const bottomRight2 = range.getBottomRightCorner();
+
       expect(topLeft2).toEqual(new Walkontable.CellCoords(1, 0));
       expect(bottomRight2).toEqual(new Walkontable.CellCoords(3, 1));
     });
@@ -1214,6 +1233,7 @@ describe('Walkontable.CellRange', () => {
       const to = new Walkontable.CellCoords(3, 3);
       const range = new Walkontable.CellRange(from, from, to);
       const forAllCallback = jasmine.createSpy('beforeColumnSortHandler');
+
       range.forAll(forAllCallback);
 
       expect(forAllCallback.calls.count()).toBe(9);
@@ -1225,6 +1245,7 @@ describe('Walkontable.CellRange', () => {
       const range = new Walkontable.CellRange(from, from, to);
       const rows = [];
       const cols = [];
+
       range.forAll((row, col) => {
         rows.push(row);
         cols.push(col);
@@ -1238,8 +1259,10 @@ describe('Walkontable.CellRange', () => {
       const to = new Walkontable.CellCoords(2, 2);
       const range = new Walkontable.CellRange(from, from, to);
       let callCount = 0;
+
       range.forAll(() => {
         callCount += 1;
+
         if (callCount === 2) {
           return false;
         }

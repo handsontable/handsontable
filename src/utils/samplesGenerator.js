@@ -10,7 +10,7 @@ class SamplesGenerator {
   /**
    * Number of samples to take of each value length.
    *
-   * @type {Number}
+   * @type {number}
    */
   static get SAMPLE_COUNT() {
     return 3;
@@ -33,14 +33,14 @@ class SamplesGenerator {
     /**
      * Custom number of samples to take of each value length.
      *
-     * @type {Number}
+     * @type {number}
      * @default {null}
      */
     this.customSampleCount = null;
     /**
      * `true` if duplicate samples collection should be allowed, `false` otherwise.
      *
-     * @type {Boolean}
+     * @type {boolean}
      * @default {false}
      */
     this.allowDuplicates = false;
@@ -49,19 +49,20 @@ class SamplesGenerator {
   /**
    * Get the sample count for this instance.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getSampleCount() {
     if (this.customSampleCount) {
       return this.customSampleCount;
     }
+
     return SamplesGenerator.SAMPLE_COUNT;
   }
 
   /**
    * Set the sample count.
    *
-   * @param {Number} sampleCount Number of samples to be collected.
+   * @param {number} sampleCount Number of samples to be collected.
    */
   setSampleCount(sampleCount) {
     this.customSampleCount = sampleCount;
@@ -70,7 +71,7 @@ class SamplesGenerator {
   /**
    * Set if the generator should accept duplicate values.
    *
-   * @param {Boolean} allowDuplicates `true` to allow duplicate values.
+   * @param {boolean} allowDuplicates `true` to allow duplicate values.
    */
   setAllowDuplicates(allowDuplicates) {
     this.allowDuplicates = allowDuplicates;
@@ -79,9 +80,9 @@ class SamplesGenerator {
   /**
    * Generate samples for row. You can control which area should be sampled by passing `rowRange` object and `colRange` object.
    *
-   * @param {Object|Number} rowRange
-   * @param {Object} colRange
-   * @returns {Object}
+   * @param {object|number} rowRange The rows range to generate the samples.
+   * @param {object} colRange The column range to generate the samples.
+   * @returns {object}
    */
   generateRowSamples(rowRange, colRange) {
     return this.generateSamples('row', colRange, rowRange);
@@ -90,9 +91,9 @@ class SamplesGenerator {
   /**
    * Generate samples for column. You can control which area should be sampled by passing `colRange` object and `rowRange` object.
    *
-   * @param {Object} colRange Column index.
-   * @param {Object} rowRange Column index.
-   * @returns {Object}
+   * @param {object} colRange Column index.
+   * @param {object} rowRange Column index.
+   * @returns {object}
    */
   generateColumnSamples(colRange, rowRange) {
     return this.generateSamples('col', rowRange, colRange);
@@ -101,14 +102,15 @@ class SamplesGenerator {
   /**
    * Generate collection of samples.
    *
-   * @param {String} type Type to generate. Can be `col` or `row`.
-   * @param {Object} range
-   * @param {Object|Number} specifierRange
+   * @param {string} type Type to generate. Can be `col` or `row`.
+   * @param {object} range The range to generate the samples.
+   * @param {object|number} specifierRange The range to generate the samples.
    * @returns {Map}
    */
   generateSamples(type, range, specifierRange) {
     const samples = new Map();
-    const { from, to } = typeof specifierRange === 'number' ? { from: specifierRange, to: specifierRange } : specifierRange;
+    const { from, to } = typeof specifierRange === 'number' ?
+      { from: specifierRange, to: specifierRange } : specifierRange;
 
     rangeEach(from, to, (index) => {
       const sample = this.generateSample(type, range, index);
@@ -122,9 +124,9 @@ class SamplesGenerator {
   /**
    * Generate sample for specified type (`row` or `col`).
    *
-   * @param {String} type Samples type `row` or `col`.
-   * @param {Object} range
-   * @param {Number} specifierValue
+   * @param {string} type Samples type `row` or `col`.
+   * @param {object} range The range to generate the samples.
+   * @param {number} specifierValue The range to generate the samples.
    * @returns {Map}
    */
   generateSample(type, range, specifierValue) {
@@ -137,31 +139,31 @@ class SamplesGenerator {
     const sampledValues = [];
 
     rangeEach(range.from, range.to, (index) => {
-      const { value, bundleCountSeed } = type === 'row' ? this.dataFactory(specifierValue, index) : this.dataFactory(index, specifierValue);
-      const hasCustomBundleSeed = bundleCountSeed > 0;
-      let length;
-
-      if (isObject(value)) {
-        length = Object.keys(value).length;
-
-      } else if (Array.isArray(value)) {
-        length = value.length;
-
-      } else {
-        length = stringify(value).length;
-      }
+      const { value, bundleSeed } = type === 'row' ?
+        this.dataFactory(specifierValue, index) : this.dataFactory(index, specifierValue);
+      const hasCustomBundleSeed = typeof bundleSeed === 'string' && bundleSeed.length > 0;
+      let seed;
 
       if (hasCustomBundleSeed) {
-        length += bundleCountSeed;
+        seed = bundleSeed;
+
+      } else if (isObject(value)) {
+        seed = `${Object.keys(value).length}`;
+
+      } else if (Array.isArray(value)) {
+        seed = `${value.length}`;
+
+      } else {
+        seed = `${stringify(value).length}`;
       }
 
-      if (!samples.has(length)) {
-        samples.set(length, {
+      if (!samples.has(seed)) {
+        samples.set(seed, {
           needed: this.getSampleCount(),
           strings: [],
         });
       }
-      const sample = samples.get(length);
+      const sample = samples.get(seed);
 
       if (sample.needed) {
         const duplicate = sampledValues.indexOf(value) > -1;

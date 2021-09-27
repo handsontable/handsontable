@@ -28,25 +28,23 @@ class DataFilter {
   filter() {
     let filteredData = [];
 
-    if (!this.conditionCollection.isEmpty()) {
-      arrayEach(this.conditionCollection.orderStack, (column, index) => {
-        let columnData = this.columnDataFactory(column);
+    arrayEach(this.conditionCollection.getFilteredColumns(), (physicalColumn, index) => {
+      let columnData = this.columnDataFactory(physicalColumn);
 
-        if (index) {
-          columnData = this._getIntersectData(columnData, filteredData);
-        }
+      if (index) {
+        columnData = this._getIntersectData(columnData, filteredData);
+      }
 
-        filteredData = this.filterByColumn(column, columnData);
-      });
-    }
+      filteredData = this.filterByColumn(physicalColumn, columnData);
+    });
 
     return filteredData;
   }
 
   /**
-   * Filter data based on specified column index.
+   * Filter data based on specified physical column index.
    *
-   * @param {Number} column Column index.
+   * @param {number} column The physical column index.
    * @param {Array} [dataSource] Data source as array of objects with `value` and `meta` keys (e.g. `{value: 'foo', meta: {}}`).
    * @returns {Array} Returns filtered data.
    */
@@ -66,8 +64,8 @@ class DataFilter {
    * Intersect data.
    *
    * @private
-   * @param {Array} data
-   * @param {Array} needles
+   * @param {Array} data The data to intersect.
+   * @param {Array} needles The collection intersected rows with the data.
    * @returns {Array}
    */
   _getIntersectData(data, needles) {

@@ -1,6 +1,8 @@
 /* eslint-disable import/no-unresolved */
 import window from 'window';
 import './../bootstrap';
+import * as mouseEvents from './mouseEvents';
+import * as keyboardEvents from './keyboardEvents';
 import * as common from './common';
 
 const exportToWindow = (helpersHolder) => {
@@ -18,6 +20,8 @@ const exportToWindow = (helpersHolder) => {
 };
 
 // Export all helpers to the window.
+exportToWindow(mouseEvents);
+exportToWindow(keyboardEvents);
 exportToWindow(common);
 
 // Include all js files within the "helper/" folder for all plugins. That files can export some additional

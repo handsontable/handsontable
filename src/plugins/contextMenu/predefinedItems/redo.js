@@ -1,7 +1,10 @@
-import * as C from './../../../i18n/constants';
+import * as C from '../../../i18n/constants';
 
 export const KEY = 'redo';
 
+/**
+ * @returns {object}
+ */
 export default function redoItem() {
   return {
     key: KEY,
@@ -11,8 +14,13 @@ export default function redoItem() {
     callback() {
       this.redo();
     },
+    hidden() {
+      const undoRedo = this.getPlugin('undoRedo');
+
+      return !undoRedo || !undoRedo.isEnabled();
+    },
     disabled() {
-      return this.undoRedo && !this.undoRedo.isRedoAvailable();
+      return !this.getPlugin('undoRedo').isRedoAvailable();
     }
   };
 }

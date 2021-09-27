@@ -22,7 +22,7 @@ class GhostTable {
     /**
      * Flag which determine is table was injected to DOM.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.injected = false;
     /**
@@ -47,7 +47,7 @@ class GhostTable {
     /**
      * Ghost table settings.
      *
-     * @type {Object}
+     * @type {object}
      * @default {Object}
      */
     this.settings = {
@@ -58,7 +58,7 @@ class GhostTable {
   /**
    * Add row.
    *
-   * @param {Number} row Row index.
+   * @param {number} row Row index.
    * @param {Map} samples Samples Map object.
    */
   addRow(row, samples) {
@@ -69,6 +69,7 @@ class GhostTable {
       this.container = this.createContainer(this.hot.rootElement.className);
     }
     const rowObject = { row };
+
     this.rows.push(rowObject);
 
     this.samples = samples;
@@ -82,6 +83,8 @@ class GhostTable {
 
   /**
    * Add a row consisting of the column headers.
+   *
+   * @param {Map} samples A map with sampled table values.
    */
   addColumnHeadersRow(samples) {
     const colHeader = this.hot.getColHeader(0);
@@ -96,7 +99,9 @@ class GhostTable {
       this.table = this.createTable(this.hot.table.className);
 
       this.table.colGroup.appendChild(this.createColGroupsCol());
-      this.table.tHead.appendChild(this.createColumnHeadersRow());
+
+      this.appendColumnHeadersRow();
+
       this.container.container.appendChild(this.table.fragment);
 
       rowObject.table = this.table.table;
@@ -106,8 +111,8 @@ class GhostTable {
   /**
    * Add column.
    *
-   * @param {Number} column Column index.
-   * @param {Map} samples Samples Map object.
+   * @param {number} column Column index.
+   * @param {Map} samples A map with sampled table values.
    */
   addColumn(column, samples) {
     if (this.rows.length) {
@@ -117,12 +122,15 @@ class GhostTable {
       this.container = this.createContainer(this.hot.rootElement.className);
     }
     const columnObject = { col: column };
+
     this.columns.push(columnObject);
 
     this.samples = samples;
     this.table = this.createTable(this.hot.table.className);
 
     if (this.getSetting('useHeaders') && this.hot.getColHeader(column) !== null) {
+      // Please keep in mind that the renderable column index equal to the visual columns index for the GhostTable.
+      // We render all columns.
       this.hot.view.appendColHeader(column, this.table.th);
     }
     this.table.tBody.appendChild(this.createCol(column));
@@ -163,7 +171,7 @@ class GhostTable {
   /**
    * Set the Ghost Table settings to the provided object.
    *
-   * @param {Object} settings New Ghost Table Settings
+   * @param {object} settings New Ghost Table Settings.
    */
   setSettings(settings) {
     this.settings = settings;
@@ -172,7 +180,7 @@ class GhostTable {
   /**
    * Set a single setting of the Ghost Table.
    *
-   * @param {String} name Setting name.
+   * @param {string} name Setting name.
    * @param {*} value Setting value.
    */
   setSetting(name, value) {
@@ -186,7 +194,7 @@ class GhostTable {
   /**
    * Get the Ghost Table settings.
    *
-   * @returns {Object|null}
+   * @returns {object|null}
    */
   getSettings() {
     return this.settings;
@@ -195,13 +203,14 @@ class GhostTable {
   /**
    * Get a single Ghost Table setting.
    *
-   * @param {String} name
-   * @returns {Boolean|null}
+   * @param {string} name The setting name to get.
+   * @returns {boolean|null}
    */
   getSetting(name) {
     if (this.settings) {
       return this.settings[name];
     }
+
     return null;
 
   }
@@ -230,7 +239,7 @@ class GhostTable {
   /**
    * Create table row element.
    *
-   * @param {Number} row Row index.
+   * @param {number} row Row index.
    * @returns {DocumentFragment} Returns created table row elements.
    */
   createRow(row) {
@@ -266,34 +275,46 @@ class GhostTable {
     return fragment;
   }
 
-  createColumnHeadersRow() {
+  /**
+   * Creates DOM elements for headers and appends them to the THEAD element of the table.
+   */
+  appendColumnHeadersRow() {
     const { rootDocument } = this.hot;
-    const fragment = rootDocument.createDocumentFragment();
+    const domFragment = rootDocument.createDocumentFragment();
+    const columnHeaders = [];
 
     if (this.hot.hasRowHeaders()) {
       const th = rootDocument.createElement('th');
-      this.hot.view.appendColHeader(-1, th);
-      fragment.appendChild(th);
+
+      columnHeaders.push([-1, th]);
+      domFragment.appendChild(th);
     }
 
     this.samples.forEach((sample) => {
       arrayEach(sample.strings, (string) => {
         const column = string.col;
-
         const th = rootDocument.createElement('th');
 
-        this.hot.view.appendColHeader(column, th);
-        fragment.appendChild(th);
+        columnHeaders.push([column, th]);
+        domFragment.appendChild(th);
       });
     });
 
-    return fragment;
+    // Appending DOM elements for headers
+    this.table.tHead.appendChild(domFragment);
+
+    arrayEach(columnHeaders, (columnHeader) => {
+      const [column, th] = columnHeader;
+
+      // Using source method for filling a header with value.
+      this.hot.view.appendColHeader(column, th);
+    });
   }
 
   /**
    * Create table column elements.
    *
-   * @param {Number} column Column index.
+   * @param {number} column Column index.
    * @returns {DocumentFragment} Returns created column table column elements.
    */
   createCol(column) {
@@ -342,7 +363,7 @@ class GhostTable {
   /**
    * Inject generated table into document.
    *
-   * @param {HTMLElement} [parent=null]
+   * @param {HTMLElement} [parent=null] The element to which the ghost table is injected.
    */
   injectTable(parent = null) {
     if (!this.injected) {
@@ -365,7 +386,7 @@ class GhostTable {
   /**
    * Create col element.
    *
-   * @param {Number} column Column index.
+   * @param {number} column Column index.
    * @returns {HTMLElement}
    */
   createColElement(column) {
@@ -379,8 +400,8 @@ class GhostTable {
   /**
    * Create table element.
    *
-   * @param {String} className
-   * @returns {Object}
+   * @param {string} className The CSS classes to add.
+   * @returns {object}
    */
   createTable(className = '') {
     const { rootDocument } = this.hot;
@@ -416,8 +437,8 @@ class GhostTable {
   /**
    * Create container for tables.
    *
-   * @param {String} className
-   * @returns {Object}
+   * @param {string} className The CSS classes to add.
+   * @returns {object}
    */
   createContainer(className = '') {
     const { rootDocument } = this.hot;
@@ -434,7 +455,7 @@ class GhostTable {
   /**
    * Checks if table is raised vertically (checking rows).
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isVertical() {
     return !!(this.rows.length && !this.columns.length);
@@ -443,7 +464,7 @@ class GhostTable {
   /**
    * Checks if table is raised horizontally (checking columns).
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isHorizontal() {
     return !!(this.columns.length && !this.rows.length);

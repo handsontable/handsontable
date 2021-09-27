@@ -1,10 +1,10 @@
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("../../handsontable"));
+		module.exports = factory(require("handsontable"));
 	else if(typeof define === 'function' && define.amd)
-		define(["../../handsontable"], factory);
+		define(["handsontable"], factory);
 	else {
-		var a = typeof exports === 'object' ? factory(require("../../handsontable")) : factory(root["Handsontable"]);
+		var a = typeof exports === 'object' ? factory(require("handsontable")) : factory(root["Handsontable"]);
 		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
 	}
 })(typeof self !== 'undefined' ? self : this, function(__WEBPACK_EXTERNAL_MODULE__3__) {
@@ -133,6 +133,7 @@ function _interopRequireDefault(obj) {
 }
 
 module.exports = _interopRequireDefault;
+module.exports["default"] = module.exports, module.exports.__esModule = true;
 
 /***/ }),
 /* 2 */
@@ -154,6 +155,7 @@ function _defineProperty(obj, key, value) {
 }
 
 module.exports = _defineProperty;
+module.exports["default"] = module.exports, module.exports.__esModule = true;
 
 /***/ }),
 /* 3 */

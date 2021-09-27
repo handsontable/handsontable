@@ -1,15 +1,27 @@
 import { getDecreasedIndexes, getIncreasedIndexes } from './actionsOnIndexes';
-import { getListWithInsertedItems as visualStrategyInsert, getListWithRemovedItems as visualStrategyRemove } from './visuallyIndexed';
-import { getListWithInsertedItems as physicalStrategyInsert, getListWithRemovedItems as physicalStrategyRemove } from './physicallyIndexed';
+import {
+  getListWithInsertedItems as sequenceStrategyInsert,
+  getListWithRemovedItems as sequenceStrategyRemove
+} from './indexesSequence';
+import {
+  getListWithInsertedItems as physicalStrategyInsert,
+  getListWithRemovedItems as physicalStrategyRemove
+} from './physicallyIndexed';
 
 const alterStrategies = new Map([
-  ['visually', { getListWithInsertedItems: visualStrategyInsert, getListWithRemovedItems: visualStrategyRemove }],
-  ['physically', { getListWithInsertedItems: physicalStrategyInsert, getListWithRemovedItems: physicalStrategyRemove }],
+  ['indexesSequence', {
+    getListWithInsertedItems: sequenceStrategyInsert,
+    getListWithRemovedItems: sequenceStrategyRemove
+  }],
+  ['physicallyIndexed', {
+    getListWithInsertedItems: physicalStrategyInsert,
+    getListWithRemovedItems: physicalStrategyRemove
+  }],
 ]);
 
 const alterUtilsFactory = (indexationStrategy) => {
   if (alterStrategies.has(indexationStrategy) === false) {
-    throw new Error(`Alter strategy for '${indexationStrategy}' indexed map does not exist.`);
+    throw new Error(`Alter strategy with ID '${indexationStrategy}' does not exist.`);
   }
 
   return alterStrategies.get(indexationStrategy);

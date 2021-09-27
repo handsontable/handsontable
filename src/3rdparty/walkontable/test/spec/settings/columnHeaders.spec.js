@@ -27,6 +27,7 @@ describe('columnHeaders option', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
+
     wt.draw();
 
     expect(spec().$wrapper.hasClass('htColumnHeaders')).toBe(false);
@@ -41,6 +42,7 @@ describe('columnHeaders option', () => {
         TH.innerHTML = col + 1;
       }]
     });
+
     wt.draw();
 
     expect(spec().$wrapper.hasClass('htColumnHeaders')).toBe(true);
@@ -55,6 +57,7 @@ describe('columnHeaders option', () => {
         TH.innerHTML = col + 1;
       }]
     });
+
     wt.draw();
 
     expect(spec().$wrapper.find('.ht_clone_left colgroup col').length).toBe(0);
@@ -79,6 +82,7 @@ describe('columnHeaders option', () => {
       }],
       columnWidth: 80
     });
+
     wt.draw();
 
     expect(spec().$wrapper.find('.ht_clone_top thead tr').height()).toBe(43);
@@ -95,6 +99,7 @@ describe('columnHeaders option', () => {
       }],
       columnWidth: 80
     });
+
     wt.draw();
 
     expect(spec().$wrapper.find('.ht_clone_top thead tr').height()).toBe(23);
@@ -110,6 +115,7 @@ describe('columnHeaders option', () => {
         TH.innerHTML = headers[column];
       }]
     });
+
     wt.draw();
 
     const visibleHeaders = headers.slice(0, wt.wtTable.getLastRenderedColumn() + 1); // headers for rendered columns only

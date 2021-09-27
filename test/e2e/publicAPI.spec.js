@@ -23,18 +23,37 @@ describe('Public API', () => {
 
     it('should expose all registered plugin classes', () => {
       expect(Handsontable.plugins.AutoColumnSize).toBeFunction();
+      expect(Handsontable.plugins.Autofill).toBeFunction();
       expect(Handsontable.plugins.AutoRowSize).toBeFunction();
+      expect(Handsontable.plugins.BindRowsWithHeaders).toBeFunction();
+      expect(Handsontable.plugins.CollapsibleColumns).toBeFunction();
       expect(Handsontable.plugins.ColumnSorting).toBeFunction();
+      expect(Handsontable.plugins.ColumnSummary).toBeFunction();
       expect(Handsontable.plugins.Comments).toBeFunction();
       expect(Handsontable.plugins.ContextMenu).toBeFunction();
       expect(Handsontable.plugins.CopyPaste).toBeFunction();
       expect(Handsontable.plugins.CustomBorders).toBeFunction();
       expect(Handsontable.plugins.DragToScroll).toBeFunction();
+      expect(Handsontable.plugins.DropdownMenu).toBeFunction();
+      expect(Handsontable.plugins.ExportFile).toBeFunction();
+      expect(Handsontable.plugins.Filters).toBeFunction();
+      expect(Handsontable.plugins.Formulas).toBeFunction();
+      expect(Handsontable.plugins.HiddenColumns).toBeFunction();
+      expect(Handsontable.plugins.HiddenRows).toBeFunction();
       expect(Handsontable.plugins.ManualColumnFreeze).toBeFunction();
+      expect(Handsontable.plugins.ManualColumnMove).toBeFunction();
       expect(Handsontable.plugins.ManualColumnResize).toBeFunction();
+      expect(Handsontable.plugins.ManualRowMove).toBeFunction();
       expect(Handsontable.plugins.ManualRowResize).toBeFunction();
+      expect(Handsontable.plugins.MergeCells).toBeFunction();
+      expect(Handsontable.plugins.MultiColumnSorting).toBeFunction();
       expect(Handsontable.plugins.MultipleSelectionHandles).toBeFunction();
+      expect(Handsontable.plugins.NestedHeaders).toBeFunction();
+      expect(Handsontable.plugins.NestedRows).toBeFunction();
+      expect(Handsontable.plugins.PersistentState).toBeFunction();
+      expect(Handsontable.plugins.Search).toBeFunction();
       expect(Handsontable.plugins.TouchScroll).toBeFunction();
+      expect(Handsontable.plugins.TrimRows).toBeFunction();
       expect(Handsontable.plugins.UndoRedo).toBeFunction();
     });
   });
@@ -183,7 +202,6 @@ describe('Public API', () => {
       expect(Handsontable.dom.innerHeight).toBeFunction();
       expect(Handsontable.dom.innerWidth).toBeFunction();
       expect(Handsontable.dom.isChildOf).toBeFunction();
-      expect(Handsontable.dom.isChildOfWebComponentTable).toBeFunction();
       expect(Handsontable.dom.isImmediatePropagationStopped).toBeFunction();
       expect(Handsontable.dom.isInput).toBeFunction();
       expect(Handsontable.dom.isLeftClick).toBeFunction();
@@ -193,10 +211,6 @@ describe('Public API', () => {
       expect(Handsontable.dom.outerHeight).toBeFunction();
       expect(Handsontable.dom.outerWidth).toBeFunction();
       expect(Handsontable.dom.overlayContainsElement).toBeFunction();
-      expect(Handsontable.dom.pageX).toBeFunction();
-      expect(Handsontable.dom.pageY).toBeFunction();
-      expect(Handsontable.dom.polymerUnwrap).toBeFunction();
-      expect(Handsontable.dom.polymerWrap).toBeFunction();
       expect(Handsontable.dom.removeClass).toBeFunction();
       expect(Handsontable.dom.removeEvent).toBeFunction();
       expect(Handsontable.dom.removeTextNodes).toBeFunction();
@@ -204,7 +218,6 @@ describe('Public API', () => {
       expect(Handsontable.dom.setCaretPosition).toBeFunction();
       expect(Handsontable.dom.setOverlayPosition).toBeFunction();
       expect(Handsontable.dom.stopImmediatePropagation).toBeFunction();
-      expect(Handsontable.dom.stopPropagation).toBeFunction();
     });
   });
 });

@@ -16,6 +16,7 @@ describe('Performance', () => {
 
   it('should call renderer once for one cell (fixed column width)', () => {
     let count = 0;
+
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       colWidths: 100,
@@ -31,6 +32,7 @@ describe('Performance', () => {
 
   it('should call renderer twice for one cell (auto column width)', () => {
     let count = 0;
+
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       rowHeights: 23,
@@ -45,6 +47,7 @@ describe('Performance', () => {
 
   it('should call renderer twice for one cell (auto row height)', () => {
     let count = 0;
+
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       colWidths: 50,
@@ -59,6 +62,7 @@ describe('Performance', () => {
 
   it('should call renderer triple times for one cell (auto row height, auto column width)', () => {
     let count = 0;
+
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 1),
       autoRowSize: true,
@@ -83,7 +87,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toEqual(8);
+    expect(count).toBe(1);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, without overlays)', () => {
@@ -97,7 +101,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toEqual(5);
+    expect(count).toBe(1);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with left overlay)', () => {
@@ -112,7 +116,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toEqual(9);
+    expect(count).toBe(1);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, with left overlay)', () => {
@@ -127,7 +131,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toEqual(6);
+    expect(count).toBe(1);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with top overlay)', () => {
@@ -142,7 +146,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toEqual(8);
+    expect(count).toBe(1);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, with top overlay)', () => {
@@ -157,7 +161,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toEqual(5);
+    expect(count).toBe(1);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto column width, with all overlays)', () => {
@@ -173,7 +177,7 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toEqual(9);
+    expect(count).toBe(1);
   });
 
   it('should call getCellMeta minimum number of times for one cell (auto row height, with all overlays)', () => {
@@ -189,11 +193,12 @@ describe('Performance', () => {
       }
     });
 
-    expect(count).toEqual(6);
+    expect(count).toBe(1);
   });
 
   it('should call renderer twice for each cell (auto column width)', () => {
     let count = 0;
+
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       rowHeights: 23,
@@ -209,6 +214,7 @@ describe('Performance', () => {
 
   it('should call renderer twice for each cell (auto row height)', () => {
     let count = 0;
+
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       colWidths: 50,
@@ -224,6 +230,7 @@ describe('Performance', () => {
 
   it('should call renderer twice for each cell (auto row height, auto column width)', () => {
     let count = 0;
+
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       autoRowSize: true,

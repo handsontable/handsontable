@@ -16,9 +16,11 @@ const SELECTED_AT_START_ELEMENT_INDEX = 0;
  */
 class OperatorsComponent extends BaseComponent {
   constructor(hotInstance, options) {
-    super(hotInstance);
+    super(hotInstance, {
+      id: options.id,
+      stateless: false,
+    });
 
-    this.id = options.id;
     this.name = options.name;
 
     this.buildOperatorsElement();
@@ -27,7 +29,7 @@ class OperatorsComponent extends BaseComponent {
   /**
    * Get menu object descriptor.
    *
-   * @returns {Object}
+   * @returns {object}
    */
   getMenuItemDescriptor() {
     return {
@@ -49,7 +51,7 @@ class OperatorsComponent extends BaseComponent {
   }
 
   /**
-   * Add RadioInputUI elements to component
+   * Add RadioInputUI elements to component.
    *
    * @private
    */
@@ -76,7 +78,7 @@ class OperatorsComponent extends BaseComponent {
   /**
    * Set state of operators component to check radio input at specific `index`.
    *
-   * @param searchedIndex Index of radio input to check.
+   * @param {number} searchedIndex Index of radio input to check.
    */
   setChecked(searchedIndex) {
     if (this.elements.length < searchedIndex) {
@@ -89,9 +91,9 @@ class OperatorsComponent extends BaseComponent {
   }
 
   /**
-   * Get `id` of active operator
+   * Get `id` of active operator.
    *
-   * @returns {String}
+   * @returns {string}
    */
   getActiveOperationId() {
     const operationElement = this.elements.find(element => element instanceof RadioInputUI && element.isChecked());
@@ -106,7 +108,7 @@ class OperatorsComponent extends BaseComponent {
   /**
    * Export state of the component (get selected operator).
    *
-   * @returns {String} Returns `id` of selected operator.
+   * @returns {string} Returns `id` of selected operator.
    */
   getState() {
     return this.getActiveOperationId();
@@ -115,7 +117,7 @@ class OperatorsComponent extends BaseComponent {
   /**
    * Set state of the component.
    *
-   * @param {Object} value State to restore.
+   * @param {object} value State to restore.
    */
   setState(value) {
     this.reset();
@@ -129,8 +131,9 @@ class OperatorsComponent extends BaseComponent {
 
   /**
    * Update state of component.
-   * @param [operationId='conjunction'] Id of selected operation.
-   * @param column Physical column index.
+   *
+   * @param {string} [operationId='conjunction'] Id of selected operation.
+   * @param {number} column Physical column index.
    */
   updateState(operationId = OPERATION_AND, column) {
     let selectedOperationId = operationId;
@@ -139,7 +142,7 @@ class OperatorsComponent extends BaseComponent {
       selectedOperationId = OPERATION_OR;
     }
 
-    this.setCachedState(column, selectedOperationId);
+    this.state.setValueAtIndex(column, selectedOperationId);
   }
 
   /**
@@ -153,10 +156,10 @@ class OperatorsComponent extends BaseComponent {
    * OnChange listener.
    *
    * @private
-   * @param {Event} event DOM event
+   * @param {Event} event The DOM event object.
    */
   onRadioInputChange(event) {
-    this.setState(event.realTarget.value);
+    this.setState(event.target.value);
   }
 }
 
