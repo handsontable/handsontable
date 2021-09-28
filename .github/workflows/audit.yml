@@ -16,4 +16,4 @@ jobs:
 
       - name: NPM audit
         run: |
-          npm audit
+          npm audit --production
