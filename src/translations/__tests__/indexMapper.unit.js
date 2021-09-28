@@ -2064,7 +2064,7 @@ describe('IndexMapper', () => {
 
         indexMapper.moveIndexes([0, 1], 5); // Elements will be moved at 5th and 6th position.
 
-        expect(indexMapper.getIndexesSequence()).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 0, 1]);
+        expect(indexMapper.getIndexesSequence()).toEqual([2, 3, 4, 5, 6, 0, 1, 7, 8, 9]);
         expect(indexMapper.getNotTrimmedIndexes()).toEqual([2, 3, 4, 5, 6, 0, 1]);
       });
 
@@ -2079,7 +2079,7 @@ describe('IndexMapper', () => {
         // Elements can't be moved at 6th and 7th position, they will be placed at 5th and 6th position.
         indexMapper.moveIndexes([0, 1], 6);
 
-        expect(indexMapper.getIndexesSequence()).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 0, 1]);
+        expect(indexMapper.getIndexesSequence()).toEqual([2, 3, 4, 5, 6, 0, 1, 7, 8, 9]);
         expect(indexMapper.getNotTrimmedIndexes()).toEqual([2, 3, 4, 5, 6, 0, 1]);
       });
     });
