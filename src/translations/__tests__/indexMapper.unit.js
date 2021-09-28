@@ -2012,6 +2012,20 @@ describe('IndexMapper', () => {
         expect(indexMapper.getNotTrimmedIndexes()).toEqual([1, 2, 3, 0, 5, 6, 7, 8, 9]);
       });
 
+      it('from the top down to the last position', () => {
+        const indexMapper = new IndexMapper();
+        const trimmingMap = new TrimmingMap();
+
+        indexMapper.registerMap('trimmingMap', trimmingMap);
+        indexMapper.initToLength(10);
+        trimmingMap.setValues([false, false, false, false, false, false, false, true, true, false]);
+
+        indexMapper.moveIndexes([0], 7);
+
+        expect(indexMapper.getIndexesSequence()).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
+        expect(indexMapper.getNotTrimmedIndexes()).toEqual([1, 2, 3, 4, 5, 6, 9, 0]);
+      });
+
       it('from the bottom up to element before trimmed index', () => {
         const indexMapper = new IndexMapper();
         const trimmingMap = new TrimmingMap();
@@ -2040,7 +2054,7 @@ describe('IndexMapper', () => {
         expect(indexMapper.getNotTrimmedIndexes()).toEqual([5, 6, 3, 4, 7, 8, 9]);
       });
 
-      it('when few last indexes are trimmed #1', () => {
+      it('when few last indexes are trimmed (final index at the last position)', () => {
         const indexMapper = new IndexMapper();
         const trimmingMap = new TrimmingMap();
 
@@ -2050,10 +2064,11 @@ describe('IndexMapper', () => {
 
         indexMapper.moveIndexes([0, 1], 5); // Elements will be moved at 5th and 6th position.
 
-        expect(indexMapper.getIndexesSequence()).toEqual([2, 3, 4, 5, 6, 0, 1, 7, 8, 9]);
+        expect(indexMapper.getIndexesSequence()).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 0, 1]);
+        expect(indexMapper.getNotTrimmedIndexes()).toEqual([2, 3, 4, 5, 6, 0, 1]);
       });
 
-      it('when few last indexes are trimmed #2', () => {
+      it('when few last indexes are trimmed (final index out of the range of visible elements - fallback)', () => {
         const indexMapper = new IndexMapper();
         const trimmingMap = new TrimmingMap();
 
@@ -2061,9 +2076,11 @@ describe('IndexMapper', () => {
         indexMapper.initToLength(10);
         trimmingMap.setValues([false, false, false, false, false, false, false, true, true, true]);
 
-        indexMapper.moveIndexes([0, 1], 6); // Elements can't be moved at 6th and 7th position, they will be placed at 5th and 6th position.
+        // Elements can't be moved at 6th and 7th position, they will be placed at 5th and 6th position.
+        indexMapper.moveIndexes([0, 1], 6);
 
-        expect(indexMapper.getIndexesSequence()).toEqual([2, 3, 4, 5, 6, 0, 1, 7, 8, 9]);
+        expect(indexMapper.getIndexesSequence()).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 0, 1]);
+        expect(indexMapper.getNotTrimmedIndexes()).toEqual([2, 3, 4, 5, 6, 0, 1]);
       });
     });
 
