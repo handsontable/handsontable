@@ -1,12 +1,16 @@
-import { Selection } from './../../../3rdparty/walkontable/src';
+import { AREA_TYPE } from '../constants';
+import VisualSelection from '../visualSelection';
 
 /**
  * Creates the new instance of Selection responsible for highlighting area of the selected multiple cells.
  *
- * @return {Selection}
+ * @param {object} highlightParams A configuration object to create a highlight.
+ * @param {number} highlightParams.layerLevel Layer level.
+ * @param {object} highlightParams.areaCornerVisible Function to determine if area's corner should be visible.
+ * @returns {Selection}
  */
-function createHighlight({ layerLevel, areaCornerVisible }) {
-  const s = new Selection({
+function createHighlight({ layerLevel, areaCornerVisible, ...restOptions }) {
+  const s = new VisualSelection({
     className: 'area',
     markIntersections: true,
     layerLevel: Math.min(layerLevel, 7),
@@ -15,6 +19,8 @@ function createHighlight({ layerLevel, areaCornerVisible }) {
       color: '#4b89ff',
       cornerVisible: areaCornerVisible,
     },
+    ...restOptions,
+    selectionType: AREA_TYPE,
   });
 
   return s;

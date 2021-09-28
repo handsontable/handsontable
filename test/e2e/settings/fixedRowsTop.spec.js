@@ -130,5 +130,81 @@ describe('settings', () => {
         expect(getTopClone().find('.wtHolder').scrollLeft()).toBe(getMaster().find('.wtHolder').scrollLeft());
       });
     });
+
+    it('should limit fixed rows to dataset rows length', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        fixedRowsTop: 3
+      });
+
+      expect(getTopClone().find('tbody tr').length).toBe(3);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(2, 3),
+      });
+
+      expect(getTopClone().find('tbody tr').length).toBe(2);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(1, 3),
+      });
+
+      expect(getTopClone().find('tbody tr').length).toBe(1);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(0, 3),
+      });
+
+      expect(getTopClone().find('tbody tr').length).toBe(0);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(1, 3),
+      });
+
+      expect(getTopClone().find('tbody tr').length).toBe(1);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(2, 3),
+      });
+
+      expect(getTopClone().find('tbody tr').length).toBe(2);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+      });
+
+      expect(getTopClone().find('tbody tr').length).toBe(3);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(4, 3),
+      });
+
+      expect(getTopClone().find('tbody tr').length).toBe(3);
+    });
+
+    it('should not render column header with doubled border after inserting a new row (#7065)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(0, 0),
+        colHeaders: true,
+        rowHeaders: true,
+        fixedRowsTop: 3,
+      });
+
+      alter('insert_row', 0);
+
+      expect(getMaster().height()).toBe(50); // 25px corner + 25px added row
+      expect(getTopClone().height()).toBe(50);
+      expect(getTopLeftClone().height()).toBe(50);
+      expect(getLeftClone().height()).toBe(50);
+      expect(getBottomClone().height()).toBe(0);
+
+      alter('insert_row', 0);
+
+      expect(getMaster().height()).toBe(73);
+      expect(getTopClone().height()).toBe(73);
+      expect(getTopLeftClone().height()).toBe(73);
+      expect(getLeftClone().height()).toBe(73);
+      expect(getBottomClone().height()).toBe(0);
+    });
   });
 });

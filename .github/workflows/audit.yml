@@ -1,0 +1,19 @@
+name: Security
+
+on: [push]
+
+jobs:
+  build:
+    name: NPM audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+
+      - name: Use Node.js 15
+        uses: actions/setup-node@56899e050abffc08c2b3b61f3ec6a79a9dc3223d # https://github.com/actions/setup-node/releases/tag/v1.4.4
+        with:
+          node-version: '15.x'
+
+      - name: NPM audit
+        run: |
+          npm audit --production

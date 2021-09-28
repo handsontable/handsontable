@@ -1,15 +1,25 @@
-import { addClass, removeClass } from './../../helpers/dom/element';
-import { arrayEach } from './../../helpers/array';
-import BasePlugin from './../_base';
-import { registerPlugin } from './../../plugins';
-import { isTouchSupported } from './../../helpers/feature';
+import { addClass, removeClass } from '../../helpers/dom/element';
+import { arrayEach } from '../../helpers/array';
+import { BasePlugin } from '../base';
+import { isTouchSupported } from '../../helpers/feature';
+
+export const PLUGIN_KEY = 'touchScroll';
+export const PLUGIN_PRIORITY = 200;
 
 /**
  * @private
  * @plugin TouchScroll
  * @class TouchScroll
  */
-class TouchScroll extends BasePlugin {
+export class TouchScroll extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -28,14 +38,14 @@ class TouchScroll extends BasePlugin {
     /**
      * Flag which determines if collection of overlays should be refilled on every table render.
      *
-     * @type {Boolean}
+     * @type {boolean}
      * @default false
      */
     this.lockedCollection = false;
     /**
      * Flag which determines if walkontable should freeze overlays while scrolling.
      *
-     * @type {Boolean}
+     * @type {boolean}
      * @default false
      */
     this.freezeOverlays = false;
@@ -44,7 +54,7 @@ class TouchScroll extends BasePlugin {
   /**
    * Check if plugin is enabled.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return isTouchSupported();
@@ -58,7 +68,7 @@ class TouchScroll extends BasePlugin {
       return;
     }
 
-    this.addHook('afterRender', () => this.onAfterRender());
+    this.addHook('afterViewRender', () => this.onAfterViewRender());
     this.registerEvents();
 
     super.enablePlugin();
@@ -91,16 +101,22 @@ class TouchScroll extends BasePlugin {
   }
 
   /**
-   * After render listener.
+   * After view render listener.
    *
    * @private
    */
-  onAfterRender() {
+  onAfterViewRender() {
     if (this.lockedCollection) {
       return;
     }
 
-    const { topOverlay, bottomOverlay, leftOverlay, topLeftCornerOverlay, bottomLeftCornerOverlay } = this.hot.view.wt.wtOverlays;
+    const {
+      topOverlay,
+      bottomOverlay,
+      leftOverlay,
+      topLeftCornerOverlay,
+      bottomLeftCornerOverlay
+    } = this.hot.view.wt.wtOverlays;
 
     this.lockedCollection = true;
     this.scrollbars.length = 0;
@@ -177,7 +193,3 @@ class TouchScroll extends BasePlugin {
     this.hot.view.wt.wtOverlays.syncScrollWithMaster();
   }
 }
-
-registerPlugin('touchScroll', TouchScroll);
-
-export default TouchScroll;

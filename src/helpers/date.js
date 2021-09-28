@@ -1,11 +1,9 @@
-/* eslint-disable import/prefer-default-export */
-
 /**
  * Get normalized Date object for the ISO formatted date strings.
  * Natively, the date object parsed from a ISO 8601 string will be offsetted by the timezone difference, which may result in returning a wrong date.
  * See: Github issue #3338.
  *
- * @param {String} dateString String representing the date.
+ * @param {string} dateString String representing the date.
  * @returns {Date} The proper Date object.
  */
 export function getNormalizedDate(dateString) {

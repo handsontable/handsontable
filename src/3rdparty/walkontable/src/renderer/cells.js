@@ -13,7 +13,7 @@ import BaseRenderer from './_base';
  *     ├ <td>    \
  *     ├ <td>     - CellsRenderer
  *     ├ <td>    /
- *     └ <td>   /
+ *     └ <td>   /.
  *
  * @class {CellsRenderer}
  */
@@ -29,7 +29,7 @@ export default class CellsRenderer extends BaseRenderer {
     /**
      * Row index which specifies the row position of the processed cell.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.sourceRowIndex = 0;
   }

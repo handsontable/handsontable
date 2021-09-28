@@ -38,6 +38,7 @@ describe('Core_setDataAtCell', () => {
     // https://github.com/handsontable/handsontable/issues/147
     handsontable();
     const td = setDataAtCell(0, 0, htmlText);
+
     selectCell(0, 0);
 
     $(td).simulate('dblclick');
@@ -46,18 +47,17 @@ describe('Core_setDataAtCell', () => {
     expect(getDataAtCell(0, 0)).toEqual(htmlText);
   });
 
-  it('should correctly paste string that contains "quotes"', (done) => {
+  it('should correctly paste string that contains "quotes"', async() => {
     // https://github.com/handsontable/handsontable/issues/205
     handsontable({});
     selectCell(0, 0);
     triggerPaste('1\nThis is a "test" and a test\n2');
 
-    setTimeout(() => {
-      expect(getDataAtCell(0, 0)).toEqual('1');
-      expect(getDataAtCell(1, 0)).toEqual('This is a "test" and a test');
-      expect(getDataAtCell(2, 0)).toEqual('2');
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(getDataAtCell(0, 0)).toEqual('1');
+    expect(getDataAtCell(1, 0)).toEqual('This is a "test" and a test');
+    expect(getDataAtCell(2, 0)).toEqual('2');
   });
 
   it('should correctly paste string when dataSchema is used', (done) => {
@@ -362,6 +362,16 @@ describe('Core_setDataAtCell', () => {
 
       setDataAtCell([[1, 0, 'new row']], 'customSource');
       expect(countRows()).toBe(countedRows);
+    });
+
+    it('should work also when the `editor` option is set to `false`', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 1),
+        editor: false,
+      });
+
+      setDataAtCell(0, 0, 'aaa');
+      expect(getData()).toEqual([['aaa']]);
     });
   });
 });

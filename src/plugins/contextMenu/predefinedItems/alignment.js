@@ -1,9 +1,12 @@
-import { align, getAlignmentClasses, checkSelectionConsistency, markLabelAsSelected } from './../utils';
+import { align, getAlignmentClasses, checkSelectionConsistency, markLabelAsSelected } from '../utils';
 import { KEY as SEPARATOR } from './separator';
-import * as C from './../../../i18n/constants';
+import * as C from '../../../i18n/constants';
 
 export const KEY = 'alignment';
 
+/**
+ * @returns {object}
+ */
 export default function alignmentItem() {
   return {
     key: KEY,
@@ -11,6 +14,10 @@ export default function alignmentItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT);
     },
     disabled() {
+      if (this.countRows() === 0 || this.countCols() === 0) {
+        return true;
+      }
+
       return !(this.getSelectedRange() && !this.selection.isSelectedByCorner());
     },
     submenu: {
@@ -157,6 +164,7 @@ export default function alignmentItem() {
             if (hasClass) {
               label = markLabelAsSelected(label);
             }
+
             return label;
           },
           callback() {

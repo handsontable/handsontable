@@ -1,4 +1,3 @@
-import { matchesCSSRules } from './../helpers/dom/element';
 import { isEmpty } from './../helpers/mixed';
 
 const ESCAPED_HTML_CHARS = {
@@ -13,7 +12,7 @@ const regEscapedChars = new RegExp(Object.keys(ESCAPED_HTML_CHARS).map(key => `(
  * Verifies if node is an HTMLTable element.
  *
  * @param {Node} element Node to verify if it's an HTMLTable.
- * @returns {Boolean}
+ * @returns {boolean}
  */
 function isHTMLTable(element) {
   return (element && element.nodeName || '') === 'TABLE';
@@ -22,8 +21,8 @@ function isHTMLTable(element) {
 /**
  * Converts Handsontable into HTMLTableElement.
  *
- * @param {Core} instance
- * @returns {String} outerHTML of the HTMLTableElement
+ * @param {Core} instance The Handsontable instance.
+ * @returns {string} OuterHTML of the HTMLTableElement.
  */
 export function instanceToHTML(instance) {
   const hasColumnHeaders = instance.hasColHeaders();
@@ -59,7 +58,7 @@ export function instanceToHTML(instance) {
 
       } else {
         const cellData = data[row][column];
-        const { hidden, rowspan, colspan } = instance.getCellMeta(row - rowModifier, column - columnModifier);
+        const { hidden, rowspan, colspan } = instance.getCellMeta(row - columnModifier, column - rowModifier);
 
         if (!hidden) {
           const attrs = [];
@@ -79,6 +78,7 @@ export function instanceToHTML(instance) {
               .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
               .replace(/\x20/gi, '&nbsp;')
               .replace(/\t/gi, '&#9;');
+
             cell = `<td ${attrs.join(' ')}>${value}</td>`;
           }
         }
@@ -104,8 +104,8 @@ export function instanceToHTML(instance) {
 /**
  * Converts 2D array into HTMLTableElement.
  *
- * @param {Array} input Input array which will be converted to HTMLTable
- * @returns {String} outerHTML of the HTMLTableElement
+ * @param {Array} input Input array which will be converted to HTMLTable.
+ * @returns {string} OuterHTML of the HTMLTableElement.
  */
 // eslint-disable-next-line no-restricted-globals
 export function _dataToHTML(input) {
@@ -150,15 +150,16 @@ export function _dataToHTML(input) {
 /**
  * Converts HTMLTable or string into Handsontable configuration object.
  *
- * @param {Element|String} element Node element which should contain `<table>...</table>`.
- * @param {Document} [rootDocument]
- * @returns {Object} Return configuration object. Contains keys as DefaultSettings.
+ * @param {Element|string} element Node element which should contain `<table>...</table>`.
+ * @param {Document} [rootDocument] The document window owner.
+ * @returns {object} Return configuration object. Contains keys as DefaultSettings.
  */
 // eslint-disable-next-line no-restricted-globals
 export function htmlToGridSettings(element, rootDocument = document) {
   const settingsObj = {};
   const fragment = rootDocument.createDocumentFragment();
   const tempElem = rootDocument.createElement('div');
+
   fragment.appendChild(tempElem);
 
   let checkElement = element;
@@ -166,7 +167,8 @@ export function htmlToGridSettings(element, rootDocument = document) {
   if (typeof checkElement === 'string') {
     const escapedAdjacentHTML = checkElement.replace(/<td\b[^>]*?>([\s\S]*?)<\/\s*td>/g, (cellFragment) => {
       const openingTag = cellFragment.match(/<td\b[^>]*?>/g)[0];
-      const cellValue = cellFragment.substring(openingTag.length, cellFragment.lastIndexOf('<')).replace(/(<(?!br)([^>]+)>)/gi, '');
+      const cellValue = cellFragment
+        .substring(openingTag.length, cellFragment.lastIndexOf('<')).replace(/(<(?!br)([^>]+)>)/gi, '');
       const closingTag = '</td>';
 
       return `${openingTag}${cellValue}${closingTag}`;
@@ -180,21 +182,11 @@ export function htmlToGridSettings(element, rootDocument = document) {
     return;
   }
 
-  const styleElem = tempElem.querySelector('style');
-  let styleSheet = null;
-  let styleSheetArr = [];
-
-  if (styleElem) {
-    rootDocument.body.appendChild(styleElem);
-    styleElem.disabled = true;
-    styleSheet = styleElem.sheet;
-    styleSheetArr = styleSheet ? Array.from(styleSheet.cssRules) : [];
-    rootDocument.body.removeChild(styleElem);
-  }
-
   const generator = tempElem.querySelector('meta[name$="enerator"]');
   const hasRowHeaders = checkElement.querySelector('tbody th') !== null;
-  const countCols = Array.from(checkElement.querySelector('tr').cells).reduce((cols, cell) => cols + cell.colSpan, 0) - (hasRowHeaders ? 1 : 0);
+  const trElement = checkElement.querySelector('tr');
+  const countCols = !trElement ? 0 : Array.from(trElement.cells)
+    .reduce((cols, cell) => cols + cell.colSpan, 0) - (hasRowHeaders ? 1 : 0);
   const fixedRowsBottom = checkElement.tFoot && Array.from(checkElement.tFoot.rows) || [];
   const fixedRowsTop = [];
   let hasColHeaders = false;
@@ -261,7 +253,9 @@ export function htmlToGridSettings(element, rootDocument = document) {
   const dataRows = [
     ...fixedRowsTop,
     ...Array.from(checkElement.tBodies).reduce((sections, section) => {
-      sections.push(...Array.from(section.rows)); return sections;
+      sections.push(...Array.from(section.rows));
+
+      return sections;
     }, []),
     ...fixedRowsBottom];
 
@@ -309,24 +303,11 @@ export function htmlToGridSettings(element, rootDocument = document) {
           }
         }
 
-        const cellStyle = styleSheetArr.reduce((settings, cssRule) => {
-          if (matchesCSSRules(cell, cssRule)) {
-            const { whiteSpace } = cssRule.style;
-
-            if (whiteSpace) {
-              settings.whiteSpace = whiteSpace;
-            }
-          }
-
-          return settings;
-        }, {});
         let cellValue = '';
 
-        if (cellStyle.whiteSpace === 'nowrap') {
-          cellValue = innerHTML.replace(/[\r\n][\x20]{0,2}/gim, '\x20').replace(/<br(\s*|\/)>/gim, '\r\n');
-
-        } else if (generator && /excel/gi.test(generator.content)) {
-          cellValue = innerHTML.replace(/[\r\n][\x20]{0,2}/g, '\x20').replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,3}/gim, '\r\n');
+        if (generator && /excel/gi.test(generator.content)) {
+          cellValue = innerHTML.replace(/[\r\n][\x20]{0,2}/g, '\x20')
+            .replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,3}/gim, '\r\n');
 
         } else {
           cellValue = innerHTML.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n');

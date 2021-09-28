@@ -1,24 +1,24 @@
-import ColumnSorting from '../columnSorting/columnSorting';
+import { ColumnSorting } from '../columnSorting';
 import { registerRootComparator } from '../columnSorting/sortService';
 import { wasHeaderClickedProperly } from '../columnSorting/utils';
-import { registerPlugin } from '../../plugins';
 import { isPressedCtrlKey } from '../../utils/keyStateObserver';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { rootComparator } from './rootComparator';
 import { warnAboutPluginsConflict } from './utils';
-import { getClassesToAdd, getClassedToRemove } from './domHelpers';
+import { getClassesToAdd, getClassesToRemove } from './domHelpers';
 
 import './multiColumnSorting.css';
 
+export const PLUGIN_KEY = 'multiColumnSorting';
+export const PLUGIN_PRIORITY = 170;
 const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
-const PLUGIN_KEY = 'multiColumnSorting';
 const CONFLICTED_PLUGIN_KEY = 'columnSorting';
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
 
 /**
  * @plugin MultiColumnSorting
- * @dependencies ColumnSorting
+ * @class MultiColumnSorting
  *
  * @description
  * This plugin sorts the view by columns (but does not sort the data source!). To enable the plugin, set the
@@ -53,7 +53,7 @@ registerRootComparator(PLUGIN_KEY, rootComparator);
  * }
  *
  * // as an object passed to the `column` property, allows specifying a custom options for the desired column.
- * // please take a look at documentation of `column` property: https://handsontable.com/docs/Options.html#columns
+ * // please take a look at documentation of `column` property: {@link Options#columns}
  * columns: [{
  *   multiColumnSorting: {
  *     indicator: false, // disable indicator for the first column,
@@ -65,18 +65,25 @@ registerRootComparator(PLUGIN_KEY, rootComparator);
  *       }
  *     }
  *   }
- * }]```
- *
- * @dependencies ObserveChanges
+ * }]
+ * ```
  */
-class MultiColumnSorting extends ColumnSorting {
+export class MultiColumnSorting extends ColumnSorting {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
      * Main settings key designed for the plugin.
      *
      * @private
-     * @type {String}
+     * @type {string}
      */
     this.pluginKey = PLUGIN_KEY;
   }
@@ -85,7 +92,7 @@ class MultiColumnSorting extends ColumnSorting {
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link MultiColumnSorting#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return super.isEnabled();
@@ -99,20 +106,20 @@ class MultiColumnSorting extends ColumnSorting {
       warnAboutPluginsConflict();
     }
 
-    return super.enablePlugin();
+    super.enablePlugin();
   }
 
   /**
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    return super.disablePlugin();
+    super.disablePlugin();
   }
 
   /**
    * Sorts the table by chosen columns and orders.
    *
-   * @param {undefined|Object|Array} sortConfig Single column sort configuration or full sort configuration (for all sorted columns).
+   * @param {undefined|object|Array} sortConfig Single column sort configuration or full sort configuration (for all sorted columns).
    * The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains
    * sort order (`asc` for ascending, `desc` for descending).
    *
@@ -135,20 +142,20 @@ class MultiColumnSorting extends ColumnSorting {
    * @fires Hooks#afterColumnSort
    */
   sort(sortConfig) {
-    return super.sort(sortConfig);
+    super.sort(sortConfig);
   }
 
   /**
    * Clear the sort performed on the table.
    */
   clearSort() {
-    return super.clearSort();
+    super.clearSort();
   }
 
   /**
    * Checks if the table is sorted (any column have to be sorted).
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isSorted() {
     return super.isSorted();
@@ -159,8 +166,8 @@ class MultiColumnSorting extends ColumnSorting {
    *
    * **Note**: Please keep in mind that returned objects expose **visual** column index under the `column` key. They are handled by the `sort` function.
    *
-   * @param {Number} [column] Visual column index.
-   * @returns {undefined|Object|Array}
+   * @param {number} [column] Visual column index.
+   * @returns {undefined|object|Array}
    */
   getSortConfig(column) {
     return super.getSortConfig(column);
@@ -183,21 +190,22 @@ class MultiColumnSorting extends ColumnSorting {
    *   this.loadData(newData); // Load new data set and re-render the table.
    *
    *   return false; // The blockade for the default sort action.
-   * }```
+   * }
+   * ```
    *
-   * @param {undefined|Object|Array} sortConfig Single column sort configuration or full sort configuration (for all sorted columns).
+   * @param {undefined|object|Array} sortConfig Single column sort configuration or full sort configuration (for all sorted columns).
    * The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains
    * sort order (`asc` for ascending, `desc` for descending).
    */
   setSortConfig(sortConfig) {
-    return super.setSortConfig(sortConfig);
+    super.setSortConfig(sortConfig);
   }
 
   /**
    * Get normalized sort configs.
    *
    * @private
-   * @param {Object|Array} [sortConfig=[]] Single column sort configuration or full sort configuration (for all sorted columns).
+   * @param {object|Array} [sortConfig=[]] Single column sort configuration or full sort configuration (for all sorted columns).
    * The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains
    * sort order (`asc` for ascending, `desc` for descending).
    * @returns {Array}
@@ -220,7 +228,7 @@ class MultiColumnSorting extends ColumnSorting {
   updateHeaderClasses(headerSpanElement, ...args) {
     super.updateHeaderClasses(headerSpanElement, ...args);
 
-    removeClass(headerSpanElement, getClassedToRemove(headerSpanElement));
+    removeClass(headerSpanElement, getClassesToRemove(headerSpanElement));
 
     if (this.enabled !== false) {
       addClass(headerSpanElement, getClassesToAdd(...args));
@@ -232,14 +240,14 @@ class MultiColumnSorting extends ColumnSorting {
    * for `updateSettings` in specific situations.
    *
    * @private
-   * @param {Object} newSettings New settings object.
+   * @param {object} newSettings New settings object.
    */
   onUpdateSettings(newSettings) {
     if (this.hot.getSettings()[this.pluginKey] && this.hot.getSettings()[CONFLICTED_PLUGIN_KEY]) {
       warnAboutPluginsConflict();
     }
 
-    return super.onUpdateSettings(newSettings);
+    super.onUpdateSettings(newSettings);
   }
 
   /**
@@ -267,7 +275,3 @@ class MultiColumnSorting extends ColumnSorting {
     }
   }
 }
-
-registerPlugin(PLUGIN_KEY, MultiColumnSorting);
-
-export default MultiColumnSorting;

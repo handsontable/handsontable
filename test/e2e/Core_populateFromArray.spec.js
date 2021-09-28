@@ -46,7 +46,12 @@ describe('Core_populateFromArray', () => {
     });
     populateFromArray(0, 0, [['test']], 3, 0);
 
-    expect(output).toEqual([[0, 0, '', 'test'], [1, 0, '2008', 'test'], [2, 0, '2009', 'test'], [3, 0, '2010', 'test']]);
+    expect(output).toEqual([
+      [0, 0, '', 'test'],
+      [1, 0, '2008', 'test'],
+      [2, 0, '2009', 'test'],
+      [3, 0, '2010', 'test']
+    ]);
   });
 
   it('should populate value for whole selection only if populated data isn\'t an array', () => {
@@ -95,6 +100,7 @@ describe('Core_populateFromArray', () => {
     // Resolving issue #5675: https://github.com/handsontable/handsontable/issues/5675
     let output = null;
     const dataArray = arrayOfArrays();
+
     dataArray[0][0] = ['2011'];
 
     handsontable({

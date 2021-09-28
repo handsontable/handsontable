@@ -1,19 +1,26 @@
-import IndexMap from './indexMap';
+import { IndexMap } from './indexMap';
 import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physicallyIndexed';
 
 /**
  * Map for storing mappings from an physical index to a value.
+ *
+ * Does not update stored values on remove/add row or column action.
  */
-class PhysicalIndexToValueMap extends IndexMap {
+export class PhysicalIndexToValueMap extends IndexMap {
   /**
    * Add values to list and reorganize.
    *
    * @private
-   * @param {Number} insertionIndex Position inside the list.
+   * @param {number} insertionIndex Position inside the list.
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {
-    this.indexedValues = getListWithInsertedItems(this.indexedValues, insertionIndex, insertedIndexes, this.initValueOrFn);
+    this.indexedValues = getListWithInsertedItems(
+      this.indexedValues,
+      insertionIndex,
+      insertedIndexes,
+      this.initValueOrFn
+    );
 
     super.insert(insertionIndex, insertedIndexes);
   }
@@ -30,5 +37,3 @@ class PhysicalIndexToValueMap extends IndexMap {
     super.remove(removedIndexes);
   }
 }
-
-export default PhysicalIndexToValueMap;

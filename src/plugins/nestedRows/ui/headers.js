@@ -7,14 +7,15 @@ import BaseUI from './_base';
  * Class responsible for the UI in the Nested Rows' row headers.
  *
  * @class HeadersUI
+ * @private
  * @util
- * @extends BaseUI
+ * @augments BaseUI
  */
 class HeadersUI extends BaseUI {
   /**
    * CSS classes used in the row headers.
    *
-   * @type {Object}
+   * @type {object}
    */
   static get CSS_CLASSES() {
     return {
@@ -51,7 +52,7 @@ class HeadersUI extends BaseUI {
     /**
      * Cache for the row headers width.
      *
-     * @type {null|Number}
+     * @type {null|number}
      */
     this.rowHeaderWidthCache = null;
   }
@@ -60,7 +61,7 @@ class HeadersUI extends BaseUI {
    * Append nesting indicators and buttons to the row headers.
    *
    * @private
-   * @param {Number} row Row index.
+   * @param {number} row Row index.
    * @param {HTMLElement} TH TH 3element.
    */
   appendLevelIndicators(row, TH) {
@@ -82,10 +83,12 @@ class HeadersUI extends BaseUI {
     if (rowLevel) {
       const { rootDocument } = this.hot;
       const initialContent = innerSpan.cloneNode(true);
+
       innerDiv.innerHTML = '';
 
       rangeEach(0, rowLevel - 1, () => {
         const levelIndicator = rootDocument.createElement('SPAN');
+
         addClass(levelIndicator, HeadersUI.CSS_CLASSES.emptyIndicator);
         innerDiv.appendChild(levelIndicator);
       });
@@ -95,6 +98,7 @@ class HeadersUI extends BaseUI {
 
     if (this.dataManager.hasChildren(rowObject)) {
       const buttonsContainer = this.hot.rootDocument.createElement('DIV');
+
       addClass(TH, HeadersUI.CSS_CLASSES.parent);
 
       if (this.collapsingUI.areChildrenCollapsed(rowIndex)) {
@@ -112,7 +116,7 @@ class HeadersUI extends BaseUI {
    * Update the row header width according to number of levels in the dataset.
    *
    * @private
-   * @param {Number} deepestLevel Cached deepest level of nesting.
+   * @param {number} deepestLevel Cached deepest level of nesting.
    */
   updateRowHeaderWidth(deepestLevel) {
     let deepestLevelIndex = deepestLevel;

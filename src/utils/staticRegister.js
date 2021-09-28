@@ -1,5 +1,9 @@
 export const collection = new Map();
 
+/**
+ * @param {string} namespace The namespace for the storage.
+ * @returns {object}
+ */
 export default function staticRegister(namespace = 'common') {
   if (!collection.has(namespace)) {
     collection.set(namespace, new Map());
@@ -9,7 +13,7 @@ export default function staticRegister(namespace = 'common') {
   /**
    * Register an item to the collection. If the item under the same was exist earlier then this item will be replaced with new one.
    *
-   * @param {String} name Identification of the item.
+   * @param {string} name Identification of the item.
    * @param {*} item Item to save in the collection.
    */
   function register(name, item) {
@@ -19,7 +23,7 @@ export default function staticRegister(namespace = 'common') {
   /**
    * Retrieve the item from the collection.
    *
-   * @param {String} name Identification of the item.
+   * @param {string} name Identification of the item.
    * @returns {*} Returns item which was saved in the collection.
    */
   function getItem(name) {
@@ -27,10 +31,10 @@ export default function staticRegister(namespace = 'common') {
   }
 
   /**
-   * Check if item under specyfied name is exists.
+   * Check if item under specified name is exists.
    *
-   * @param {String} name Identification of the item.
-   * @returns {Boolean} Returns `true` or `false` depends on if element exists in the collection.
+   * @param {string} name Identification of the item.
+   * @returns {boolean} Returns `true` or `false` depends on if element exists in the collection.
    */
   function hasItem(name) {
     return subCollection.has(name);

@@ -1,4 +1,18 @@
-import Core from './../../core';
+import Cursor from './cursor';
+import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
+import {
+  filterSeparators,
+  hasSubMenu,
+  isDisabled,
+  isItemHidden,
+  isSeparator,
+  isSelectionDisabled,
+  normalizeSelection
+} from './utils';
+import Core from '../../core';
+import EventManager from '../../eventManager';
+import { arrayEach, arrayFilter, arrayReduce } from '../../helpers/array';
+import { isWindowsOS, isMobileBrowser, isIpadOS } from '../../helpers/browser';
 import {
   addClass,
   empty,
@@ -8,18 +22,14 @@ import {
   isInput,
   removeClass,
   getParentWindow,
-} from './../../helpers/dom/element';
-import { arrayEach, arrayFilter, arrayReduce } from './../../helpers/array';
-import Cursor from './cursor';
-import EventManager from './../../eventManager';
-import { mixin, hasOwnProperty } from './../../helpers/object';
-import { isUndefined, isDefined } from './../../helpers/mixed';
-import { debounce, isFunction } from './../../helpers/function';
-import { filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection } from './utils';
-import { KEY_CODES } from './../../helpers/unicode';
-import localHooks from './../../mixins/localHooks';
-import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
-import { stopImmediatePropagation } from './../../helpers/dom/event';
+  hasClass,
+} from '../../helpers/dom/element';
+import { stopImmediatePropagation, isRightClick } from '../../helpers/dom/event';
+import { debounce, isFunction } from '../../helpers/function';
+import { isUndefined, isDefined } from '../../helpers/mixed';
+import { mixin, hasOwnProperty } from '../../helpers/object';
+import { KEY_CODES } from '../../helpers/unicode';
+import localHooks from '../../mixins/localHooks';
 
 const MIN_WIDTH = 215;
 
@@ -69,6 +79,7 @@ class Menu {
 
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
+      this.eventManager.addEventListener(frame.document, 'contextmenu', event => this.onDocumentContextMenu(event));
 
       frame = getParentWindow(frame);
     }
@@ -86,7 +97,7 @@ class Menu {
   /**
    * Returns currently selected menu item. Returns `null` if no item was selected.
    *
-   * @returns {Object|null}
+   * @returns {object|null}
    */
   getSelectedItem() {
     return this.hasSelectedItem() ? this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelectedLast()[0]) : null;
@@ -95,7 +106,7 @@ class Menu {
   /**
    * Checks if the menu has selected (highlighted) any item from the menu list.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   hasSelectedItem() {
     return Array.isArray(this.hotMenu.getSelectedLast());
@@ -104,8 +115,8 @@ class Menu {
   /**
    * Set offset menu position for specified area (`above`, `below`, `left` or `right`).
    *
-   * @param {String} area Specified area name (`above`, `below`, `left` or `right`).
-   * @param {Number} offset Offset value.
+   * @param {string} area Specified area name (`above`, `below`, `left` or `right`).
+   * @param {number} offset Offset value.
    */
   setOffset(area, offset = 0) {
     this.offset[area] = offset;
@@ -114,7 +125,7 @@ class Menu {
   /**
    * Check if menu is using as sub-menu.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isSubMenu() {
     return this.parentMenu !== null;
@@ -171,6 +182,7 @@ class Menu {
       readOnly: true,
       editor: false,
       copyPaste: false,
+      maxCols: 1,
       columns: [{
         data: 'name',
         renderer: (hot, TD, row, col, prop, value) => this.menuItemRenderer(hot, TD, row, col, prop, value)
@@ -191,12 +203,10 @@ class Menu {
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
 
-        if (this.hasSelectedItem()) {
-          this.executeCommand(event);
-
-          if (!this.isCommandPassive(this.getSelectedItem())) {
-            this.close(true);
-          }
+        // On the Windows platform, the "contextmenu" is triggered after the "mouseup" so that's
+        // why the closing menu is here. (#6507#issuecomment-582392301).
+        if (isWindowsOS() && shouldAutoCloseMenu && this.hasSelectedItem()) {
+          this.close(true);
         }
       },
       beforeOnCellMouseUp: (event) => {
@@ -205,19 +215,32 @@ class Menu {
           this.executeCommand(event);
         }
       },
-      afterOnCellMouseUp: () => {
-        if (shouldAutoCloseMenu && this.hasSelectedItem()) {
-          this.close(true);
+      afterOnCellMouseUp: (event) => {
+        // If the code runs on the other platform than Windows, the "mouseup" is triggered
+        // after the "contextmenu". So then "mouseup" closes the menu. Otherwise, the closing
+        // menu responsibility is forwarded to "afterOnCellContextMenu" callback (#6507#issuecomment-582392301).
+        if ((!isWindowsOS() || !isRightClick(event)) && shouldAutoCloseMenu && this.hasSelectedItem()) {
+          // The timeout is necessary only for mobile devices. For desktop, the click event that is fired
+          // right after the mouseup event gets the event element target the same as the mouseup event.
+          // For mobile devices, the click event is triggered with native delay (~300ms), so when the mouseup
+          // event hides the tapped element, the click event grabs the element below. As a result, the filter
+          // by condition menu is closed and immediately open on tapping the "None" item.
+          if (isMobileBrowser() || isIpadOS()) {
+            setTimeout(() => this.close(true), 325);
+          } else {
+            this.close(true);
+          }
         }
       },
       afterUnlisten: () => {
         // Restore menu focus, fix for `this.instance.unlisten();` call in the tableView.js@260 file.
         // This prevents losing table responsiveness for keyboard events when filter select menu is closed (#6497).
         if (!this.hasSelectedItem() && this.isOpened()) {
-          this.hotMenu.listen(false);
+          this.hotMenu.listen();
         }
       },
     };
+
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
     this.hotMenu = new Core(this.container, settings);
@@ -225,6 +248,7 @@ class Menu {
     this.hotMenu.addHook('afterSelection', (...args) => this.onAfterSelection(...args));
     this.hotMenu.init();
     this.hotMenu.listen();
+
     this.blockMainTableCallbacks();
     this.runLocalHooks('afterOpen');
   }
@@ -232,7 +256,7 @@ class Menu {
   /**
    * Close menu.
    *
-   * @param {Boolean} [closeParent=false] if `true` try to close parent menu if exists.
+   * @param {boolean} [closeParent=false] If `true` try to close parent menu if exists.
    */
   close(closeParent = false) {
     if (!this.isOpened()) {
@@ -259,8 +283,8 @@ class Menu {
   /**
    * Open sub menu at the provided row index.
    *
-   * @param {Number} row Row index.
-   * @returns {Menu|Boolean} Returns created menu or `false` if no one menu was created.
+   * @param {number} row Row index.
+   * @returns {Menu|boolean} Returns created menu or `false` if no one menu was created.
    */
   openSubMenu(row) {
     if (!this.hotMenu) {
@@ -281,6 +305,7 @@ class Menu {
       keepInViewport: true,
       container: this.options.container,
     });
+
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();
     subMenu.setPosition(cell.getBoundingClientRect());
@@ -292,7 +317,7 @@ class Menu {
   /**
    * Close sub menu at row index.
    *
-   * @param {Number} row Row index.
+   * @param {number} row Row index.
    */
   closeSubMenu(row) {
     const dataItem = this.hotMenu.getSourceDataAtRow(row);
@@ -314,7 +339,7 @@ class Menu {
   /**
    * Checks if all created and opened sub menus are closed.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isAllSubMenusClosed() {
     return Object.keys(this.hotSubMenus).length === 0;
@@ -339,7 +364,7 @@ class Menu {
   /**
    * Checks if menu was opened.
    *
-   * @returns {Boolean} Returns `true` if menu was opened.
+   * @returns {boolean} Returns `true` if menu was opened.
    */
   isOpened() {
     return this.hotMenu !== null;
@@ -348,7 +373,7 @@ class Menu {
   /**
    * Execute menu command.
    *
-   * @param {Event} [event]
+   * @param {Event} [event] The mouse event object.
    */
   executeCommand(event) {
     if (!this.isOpened() || !this.hasSelectedItem()) {
@@ -378,8 +403,8 @@ class Menu {
    * is a separator, or the item is recognized as submenu. For passive items the menu is not
    * closed automatically after the user trigger the command through the UI.
    *
-   * @param {Object} commandDescriptor Selected menu item from the menu data source.
-   * @returns {Boolean}
+   * @param {object} commandDescriptor Selected menu item from the menu data source.
+   * @returns {boolean}
    */
   isCommandPassive(commandDescriptor) {
     const { isCommand, name: commandName, disabled, submenu } = commandDescriptor;
@@ -392,7 +417,7 @@ class Menu {
   /**
    * Set menu position based on dom event or based on literal object.
    *
-   * @param {Event|Object} coords Event or literal Object with coordinates.
+   * @param {Event|object} coords Event or literal Object with coordinates.
    */
   setPosition(coords) {
     const cursor = new Cursor(coords, this.container.ownerDocument.defaultView);
@@ -438,7 +463,7 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionBelowCursor(cursor) {
-    let top = this.offset.below + cursor.top;
+    let top = this.offset.below + cursor.top + 1;
 
     if (this.isSubMenu()) {
       top = cursor.top - 1;
@@ -469,7 +494,8 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
-    const left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth(this.hot.rootDocument) + 4;
+    const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
+    const left = this.offset.left + cursor.left - this.container.offsetWidth + scrollbarWidth + 4;
 
     this.container.style.left = `${left}px`;
   }
@@ -504,8 +530,8 @@ class Menu {
   /**
    * Select next cell in opened menu.
    *
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {number} row Row index.
+   * @param {number} col Column index.
    */
   selectNextCell(row, col) {
     const nextRow = row + 1;
@@ -524,8 +550,8 @@ class Menu {
   /**
    * Select previous cell in opened menu.
    *
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {number} row Row index.
+   * @param {number} col Column index.
    */
   selectPrevCell(row, col) {
     const prevRow = row - 1;
@@ -545,6 +571,12 @@ class Menu {
    * Menu item renderer.
    *
    * @private
+   * @param {Core} hot The Handsontable instance.
+   * @param {HTMLCellElement} TD The rendered cell element.
+   * @param {number} row The visual index.
+   * @param {number} col The visual index.
+   * @param {string} prop The column property if used.
+   * @param {string} value The cell value.
    */
   menuItemRenderer(hot, TD, row, col, prop, value) {
     const item = hot.getSourceDataAtRow(row);
@@ -552,7 +584,8 @@ class Menu {
 
     const isSubMenu = itemToTest => hasOwnProperty(itemToTest, 'submenu');
     const itemIsSeparator = itemToTest => new RegExp(SEPARATOR, 'i').test(itemToTest.name);
-    const itemIsDisabled = itemToTest => itemToTest.disabled === true || (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(this.hot) === true);
+    const itemIsDisabled = itemToTest => itemToTest.disabled === true ||
+      (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(this.hot) === true);
     const itemIsSelectionDisabled = itemToTest => itemToTest.disableSelection;
     let itemValue = value;
 
@@ -587,7 +620,8 @@ class Menu {
       if (itemIsSelectionDisabled(item)) {
         this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
       } else {
-        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
+        this.eventManager
+          .addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
       }
     } else {
       removeClass(TD, ['htSubmenu', 'htDisabled']);
@@ -595,7 +629,8 @@ class Menu {
       if (itemIsSelectionDisabled(item)) {
         this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
       } else {
-        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
+        this.eventManager
+          .addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
       }
     }
   }
@@ -604,7 +639,7 @@ class Menu {
    * Create container/wrapper for handsontable.
    *
    * @private
-   * @param {String} [name] Class name.
+   * @param {string} [name] Class name.
    * @returns {HTMLElement}
    */
   createContainer(name = null) {
@@ -669,7 +704,7 @@ class Menu {
    * On before key down listener.
    *
    * @private
-   * @param {Event} event
+   * @param {Event} event The keyaboard event object.
    */
   onBeforeKeyDown(event) {
     // For input elements, prevent event propagation. It allows entering text into an input
@@ -682,6 +717,7 @@ class Menu {
 
     const selection = this.hotMenu.getSelectedLast();
     let stopEvent = false;
+
     this.keyEvent = true;
 
     switch (event.keyCode) {
@@ -775,12 +811,11 @@ class Menu {
   /**
    * On after selection listener.
    *
-   * @param {Number} r Selection start row index.
-   * @param {Number} c Selection start column index.
-   * @param {Number} r2 Selection end row index.
-   * @param {Number} c2 Selection end column index.
-   * @param {Object} preventScrolling Object with `value` property where its value change will be observed.
-   * @param {Number} selectionLayerLevel The number which indicates what selection layer is currently modified.
+   * @param {number} r Selection start row index.
+   * @param {number} c Selection start column index.
+   * @param {number} r2 Selection end row index.
+   * @param {number} c2 Selection end column index.
+   * @param {object} preventScrolling Object with `value` property where its value change will be observed.
    */
   onAfterSelection(r, c, r2, c2, preventScrolling) {
     if (this.keyEvent === false) {
@@ -792,7 +827,7 @@ class Menu {
    * Document mouse down listener.
    *
    * @private
-   * @param {Event} event
+   * @param {Event} event The mouse event object.
    */
   onDocumentMouseDown(event) {
     if (!this.isOpened()) {
@@ -804,9 +839,24 @@ class Menu {
       this.close(true);
 
     // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
-    } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) &&
-        (!isChildOf(event.target, '.htMenu') && (isChildOf(event.target, this.container.ownerDocument) || isChildOf(event.target, this.hot.rootDocument)))) {
+    } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) && !isChildOf(event.target, '.htMenu')) {
       this.close(true);
+    }
+  }
+
+  /**
+   * Document's contextmenu listener.
+   *
+   * @private
+   * @param {MouseEvent} event The mouse event object.
+   */
+  onDocumentContextMenu(event) {
+    if (!this.isOpened()) {
+      return;
+    }
+
+    if (hasClass(event.target, 'htCore') && isChildOf(event.target, this.hotMenu.rootElement)) {
+      event.preventDefault();
     }
   }
 }

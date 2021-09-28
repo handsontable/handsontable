@@ -42,7 +42,7 @@ class Queue {
   /**
    * Check if the queue is empty.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEmpty() {
     return !this.size();
@@ -51,7 +51,7 @@ class Queue {
   /**
    * Return number of elements in the queue.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   size() {
     return this.items.length;

@@ -1,0 +1,13 @@
+{
+  "buildCommand": "build",
+  "packages": [
+    "tmp"
+  ],
+  "publishDirectory": {
+    "handsontable": "tmp"
+  },
+  "sandboxes": [
+    "github/handsontable/examples/tree/master/vanilla/pull-request"
+  ],
+  "node": "14"
+}

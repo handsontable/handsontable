@@ -1,11 +1,16 @@
-import { Selection } from './../../../3rdparty/walkontable/src';
+import { ACTIVE_HEADER_TYPE } from '../constants';
+import VisualSelection from '../visualSelection';
 
 /**
- * @return {Selection}
+ * @param {object} highlightParams A configuration object to create a highlight.
+ * @param {string} highlightParams.activeHeaderClassName Highlighted headers' class name.
+ * @returns {Selection}
  */
-function createHighlight({ activeHeaderClassName }) {
-  const s = new Selection({
+function createHighlight({ activeHeaderClassName, ...restOptions }) {
+  const s = new VisualSelection({
     highlightHeaderClassName: activeHeaderClassName,
+    ...restOptions,
+    selectionType: ACTIVE_HEADER_TYPE,
   });
 
   return s;

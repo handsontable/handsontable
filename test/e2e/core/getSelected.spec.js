@@ -63,6 +63,7 @@ describe('Core.getSelected', () => {
     await sleep(100);
 
     const bottomClone = getBottomClone();
+
     bottomClone.find('tbody tr:eq(1) td:last-child').simulate('mousedown');
     bottomClone.find('tbody tr:eq(1) td:last-child').simulate('mouseup');
     hot.render(true);

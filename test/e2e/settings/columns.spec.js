@@ -212,6 +212,7 @@ describe('settings', () => {
                 { data: 'name' },
                 { data: 'lastName' }
               ];
+
               return [0, 1, 2].indexOf(column) > -1 ? settings[column] : null;
             },
             afterValidate: onAfterValidate
@@ -220,7 +221,7 @@ describe('settings', () => {
           setDataAtCell(0, 0, '');
 
           setTimeout(() => {
-            expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date', undefined, undefined);
+            expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date');
             done();
           }, 100);
         });

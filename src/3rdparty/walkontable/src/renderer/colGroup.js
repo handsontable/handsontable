@@ -9,7 +9,7 @@ import { addClass } from './../../../../helpers/dom/element';
  *     ├ <col>    \
  *     ├ <col>     - ColGroupRenderer
  *     ├ <col>    /
- *     └ <col>   /
+ *     └ <col>   /.
  *
  * @class {ColGroupRenderer}
  */

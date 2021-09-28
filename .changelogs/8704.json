@@ -1,0 +1,7 @@
+{
+  "title": "Adjusted directories and files related to `dataMap` to prevent potential circular references.",
+  "type": "fixed",
+  "issue": 8704,
+  "breaking": false,
+  "framework": "none"
+}

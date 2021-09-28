@@ -6,8 +6,9 @@ import {
 } from './../../../helpers/dom/element';
 import { partial } from './../../../helpers/function';
 import { isTouchSupported } from './../../../helpers/feature';
-import { isMobileBrowser } from './../../../helpers/browser';
+import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
+import { isDefined } from '../../../helpers/mixed';
 
 const privatePool = new WeakMap();
 
@@ -99,8 +100,8 @@ class Event {
    * Checks if an element is already selected.
    *
    * @private
-   * @param {Element} touchTarget
-   * @returns {Boolean}
+   * @param {Element} touchTarget An element to check.
+   * @returns {boolean}
    */
   selectedCellWasTouched(touchTarget) {
     const priv = privatePool.get(this);
@@ -121,8 +122,8 @@ class Event {
    * Gets closest TD or TH element.
    *
    * @private
-   * @param {Element} elem
-   * @returns {Object} Contains coordinates and reference to TD or TH if it exists. Otherwise it's empty object.
+   * @param {Element} elem An element from the traversing starts.
+   * @returns {object} Contains coordinates and reference to TD or TH if it exists. Otherwise it's empty object.
    */
   parentCell(elem) {
     const cell = {};
@@ -148,16 +149,16 @@ class Event {
   }
 
   /**
-   * onMouseDown callback.
+   * OnMouseDown callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseDown(event) {
     const priv = privatePool.get(this);
     const activeElement = this.instance.rootDocument.activeElement;
-    const getParentNode = partial(getParent, event.realTarget);
-    const realTarget = event.realTarget;
+    const getParentNode = partial(getParent, event.target);
+    const realTarget = event.target;
 
     // ignore focusable element from mouse down processing (https://github.com/handsontable/handsontable/issues/3555)
     if (realTarget === activeElement ||
@@ -174,7 +175,8 @@ class Event {
       this.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, this.instance);
     }
 
-    if (event.button !== 2 && cell.TD) { // if not right mouse button
+    // doubleclick reacts only for left mouse button or from touch events
+    if ((event.button === 0 || this.instance.touchApplied) && cell.TD) {
       priv.dblClickOrigin[0] = cell.TD;
 
       clearTimeout(priv.dblClickTimeout[0]);
@@ -186,14 +188,14 @@ class Event {
   }
 
   /**
-   * onContextMenu callback.
+   * OnContextMenu callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onContextMenu(event) {
     if (this.instance.hasSetting('onCellContextMenu')) {
-      const cell = this.parentCell(event.realTarget);
+      const cell = this.parentCell(event.target);
 
       if (cell.TD) {
         this.instance.getSetting('onCellContextMenu', event, cell.coords, cell.TD, this.instance);
@@ -202,10 +204,10 @@ class Event {
   }
 
   /**
-   * onMouseOver callback.
+   * OnMouseOver callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseOver(event) {
     if (!this.instance.hasSetting('onCellMouseOver')) {
@@ -213,7 +215,7 @@ class Event {
     }
 
     const table = this.instance.wtTable.TABLE;
-    const td = closestDown(event.realTarget, ['TD', 'TH'], table);
+    const td = closestDown(event.target, ['TD', 'TH'], table);
     const mainWOT = this.instance.cloneSource || this.instance;
 
     if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
@@ -224,10 +226,10 @@ class Event {
   }
 
   /**
-   * onMouseOut callback.
+   * OnMouseOut callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseOut(event) {
     if (!this.instance.hasSetting('onCellMouseOut')) {
@@ -235,7 +237,7 @@ class Event {
     }
 
     const table = this.instance.wtTable.TABLE;
-    const lastTD = closestDown(event.realTarget, ['TD', 'TH'], table);
+    const lastTD = closestDown(event.target, ['TD', 'TH'], table);
     const nextTD = closestDown(event.relatedTarget, ['TD', 'TH'], table);
 
     if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
@@ -244,26 +246,26 @@ class Event {
   }
 
   /**
-   * onMouseUp callback.
+   * OnMouseUp callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseUp(event) {
-    if (event.button === 2) {
-      return;
-    }
-
-    // if not right mouse button
     const priv = privatePool.get(this);
-    const cell = this.parentCell(event.realTarget);
+    const cell = this.parentCell(event.target);
 
     if (cell.TD && this.instance.hasSetting('onCellMouseUp')) {
       this.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, this.instance);
     }
 
+    // if not left mouse button, and the origin event is not comes from touch
+    if (event.button !== 0 && !this.instance.touchApplied) {
+      return;
+    }
+
     if (cell.TD === priv.dblClickOrigin[0] && cell.TD === priv.dblClickOrigin[1]) {
-      if (hasClass(event.realTarget, 'corner')) {
+      if (hasClass(event.target, 'corner')) {
         this.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD, this.instance);
       } else {
         this.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, this.instance);
@@ -284,10 +286,10 @@ class Event {
   }
 
   /**
-   * onTouchStart callback. Simulates mousedown event.
+   * OnTouchStart callback. Simulates mousedown event.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onTouchStart(event) {
     const priv = privatePool.get(this);
@@ -299,25 +301,45 @@ class Event {
   }
 
   /**
-   * onTouchEnd callback. Simulates mouseup event.
+   * OnTouchEnd callback. Simulates mouseup event.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onTouchEnd(event) {
-    const excludeTags = ['A', 'BUTTON', 'INPUT'];
     const target = event.target;
+    const parentCellCoords = this.parentCell(target)?.coords;
+    const isCellsRange = isDefined(parentCellCoords) && (parentCellCoords.row >= 0 && parentCellCoords.col >= 0);
+    const isEventCancelable = event.cancelable && isCellsRange && this.instance.getSetting('isDataViewInstance');
 
-    this.instance.touchApplied = false;
+    // To prevent accidental redirects or other actions that the interactive elements (e.q "A" link) do
+    // while the cell is highlighted, all touch events that are triggered on different cells are
+    // "preventDefault"'ed. The user can interact with the element (e.q. click on the link that opens
+    // a new page) only when the same cell was previously selected (see related PR #7980).
+    if (isEventCancelable) {
+      const interactiveElements = ['A', 'BUTTON', 'INPUT'];
 
-    // When the standard event was performed on the link element (a cell which contains HTML `a` element) then here
-    // we check if it should be canceled. Click is blocked in a situation when the element is rendered outside
-    // selected cells. This prevents accidentally page reloads while selecting adjacent cells.
-    if (this.selectedCellWasTouched(target) === false && excludeTags.includes(target.tagName)) {
-      event.preventDefault();
+      // For browsers that use the WebKit as an engine (excluding Safari), there is a bug. The prevent
+      // default has to be called all the time. Otherwise, the second tap won't be triggered (probably
+      // caused by the native ~300ms delay - https://webkit.org/blog/5610/more-responsive-tapping-on-ios/).
+      // To make the interactive elements work, the event target element has to be check. If the element
+      // matches the allow-list, the event is not prevented.
+      if (isIOS() &&
+          (isChromeWebKit() || isFirefoxWebKit()) &&
+          this.selectedCellWasTouched(target) &&
+          !interactiveElements.includes(target.tagName)) {
+        event.preventDefault();
+
+      } else if (!this.selectedCellWasTouched(target)) {
+        // For other browsers, prevent default is fired only for the first tap and only when the previous
+        // highlighted cell was different.
+        event.preventDefault();
+      }
     }
 
     this.onMouseUp(event);
+
+    this.instance.touchApplied = false;
   }
 
   /**

@@ -17,6 +17,7 @@ describe('Core_count', () => {
         height: 100,
         width: 600
       });
+
       expect(instance.countVisibleRows()).toEqual(4);
     });
 
@@ -26,6 +27,7 @@ describe('Core_count', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         width: 100
       });
+
       expect(instance.countVisibleRows()).toEqual(-1);
     });
   });
@@ -37,6 +39,7 @@ describe('Core_count', () => {
         height: 100,
         viewportRowRenderingOffset: 0
       });
+
       expect(instance.countRenderedRows()).toEqual(5);
     });
 
@@ -46,6 +49,7 @@ describe('Core_count', () => {
         height: 100,
         viewportRowRenderingOffset: 20
       });
+
       expect(instance.countRenderedRows()).toEqual(25);
     });
 
@@ -55,6 +59,7 @@ describe('Core_count', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         width: 100
       });
+
       expect(instance.countRenderedRows()).toEqual(-1);
     });
   });
@@ -65,6 +70,7 @@ describe('Core_count', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         width: 100
       });
+
       expect(instance.countVisibleCols()).toEqual(10);
     });
 

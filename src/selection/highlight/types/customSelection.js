@@ -1,13 +1,21 @@
-import { Selection } from './../../../3rdparty/walkontable/src';
+import { CUSTOM_SELECTION_TYPE } from '../constants';
+import VisualSelection from '../visualSelection';
 
 /**
  * Creates the new instance of Selection responsible for highlighting currently selected cell. This type of selection
  * can present on the table only one at the time.
  *
- * @return {Selection}
+ * @param {object} highlightParams A configuration object to create a highlight.
+ * @param {object} highlightParams.border Border configuration.
+ * @param {object} highlightParams.visualCellRange Function to translate visual to renderable coords.
+ * @returns {Selection}
  */
-function createHighlight({ border, cellRange }) {
-  const s = new Selection(border, cellRange);
+function createHighlight({ border, visualCellRange, ...restOptions }) {
+  const s = new VisualSelection({
+    ...border,
+    ...restOptions,
+    selectionType: CUSTOM_SELECTION_TYPE,
+  }, visualCellRange);
 
   return s;
 }

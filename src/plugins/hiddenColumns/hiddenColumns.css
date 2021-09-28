@@ -25,8 +25,3 @@
   left: 1px;
   content: '\25B6';
 }
-
-.handsontable td.firstVisibleColumn,
-.handsontable th.firstVisibleColumn {
-  border-left: 1px solid #CCC;
-}
