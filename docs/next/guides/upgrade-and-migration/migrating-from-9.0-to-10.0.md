@@ -66,6 +66,7 @@ In both cases, the renamed `controller` object now has a `cell` property, instea
 
 This change affects the following plugins:
 - [`ColumnSorting`](@/api/columnsorting.md)
+- [`MultiColumnSorting`](@/api/multicolumnsorting.md)
 - [`ManualColumnMove`](@/api/manualcolumnmove.md)
 - [`ManualRowMove`](@/api/manualrowmove.md)
 - [`NestedHeaders`](@/api/nestedheaders.md)
