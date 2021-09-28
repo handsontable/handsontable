@@ -53,9 +53,16 @@ We also changed the default values for the [`rowsLimit`](@/api/copypaste.md#rows
 
 In Handsontable 10.0, we unified the naming of an argument used by the [`beforeOnCellMouseDown`](@/api/hooks.md#beforeoncellmousedown) and [`beforeOnCellMouseOver`](@/api/hooks.md#beforeoncellmouseover) hooks ([#8591](https://github.com/handsontable/handsontable/pull/8591)):
 
-| Before              | After        |
-| ------------------- | ------------ |
-| `blockCalculations` | `controller` |
+| Hook                                                            | Before              | After        |
+| --------------------------------------------------------------- | ------------------- | ------------ |
+| [`beforeOnCellMouseDown`](@/api/hooks.md#beforeoncellmousedown) | `blockCalculations` | `controller` |
+| [`beforeOnCellMouseOver`](@/api/hooks.md#beforeoncellmouseover) | `blockCalculations` | `controller` |
+
+In both cases, the renamed `controller` object now has a `cell` property, instead of a `cells` property:
+
+| `blockCalculations` (before) | `controller` (after)        |
+| ---------------------------- | --------------------------- |
+| `row`<br>`column`<br>`cells` | `row`<br>`column`<br>`cell` |
 
 This change affects the following plugins:
 - [`ColumnSorting`](@/api/columnsorting.md)
