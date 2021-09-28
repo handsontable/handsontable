@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved the performance of the `getCellMeta()` method. [#6303](https://github.com/handsontable/handsontable/issues/6303)
 - Improved the documentation and TypeScript definition of the `selectOptions` option. [#8488](https://github.com/handsontable/handsontable/issues/8488)
 - Improved the arguments forwarding in the hooks [#8668](https://github.com/handsontable/handsontable/issues/8668)
+- Added a Github Actions workflow covering the testing of Handsontable and all of the wrappers. [#8652](https://github.com/handsontable/handsontable/issues/8652)
 
 ### Fixed
 - Fixed an issue of not resetting the date picker's configuration [#6636](https://github.com/handsontable/handsontable/issues/6636)
@@ -33,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the cooperation of the dropdown menu and column sorting (menu closing on click) [#8232](https://github.com/handsontable/handsontable/issues/8232)
 - Data won't be corrupted anymore when some alterations are performed [#8614](https://github.com/handsontable/handsontable/issues/8614)
 - Adjusted directories and files related to `dataMap`, to prevent potential circular references. [#8704](https://github.com/handsontable/handsontable/issues/8704)
+- Improved the performance of the regular expression used to detect numeric values, and fixed major code smells.[#8752](https://github.com/handsontable/handsontable/issues/8752)
 
 ## [9.0.2] - 2021-07-28
 
