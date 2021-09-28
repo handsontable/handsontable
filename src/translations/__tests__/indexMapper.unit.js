@@ -1998,7 +1998,7 @@ describe('IndexMapper', () => {
     });
 
     describe('should move indexes properly when there are trimmed indexes', () => {
-      it('from the top down to element before trimmed index', () => {
+      it('from the top down to position of trimmed index', () => {
         const indexMapper = new IndexMapper();
         const trimmingMap = new TrimmingMap();
 
@@ -2026,18 +2026,18 @@ describe('IndexMapper', () => {
         expect(indexMapper.getNotTrimmedIndexes()).toEqual([1, 2, 3, 4, 5, 6, 9, 0]);
       });
 
-      it('from the bottom up to element before trimmed index', () => {
+      it('from the bottom up to position of trimmed index', () => {
         const indexMapper = new IndexMapper();
         const trimmingMap = new TrimmingMap();
 
         indexMapper.registerMap('trimmingMap', trimmingMap);
         indexMapper.initToLength(10);
-        trimmingMap.setValues([false, false, false, false, true, false, false, false, false, false]);
+        trimmingMap.setValues([false, false, false, false, true, true, false, false, false, false]);
 
-        indexMapper.moveIndexes([5], 3); // physical index 6, there is one trimmed index before the element.
+        indexMapper.moveIndexes([5], 4); // physical index 7, there are two trimmed index before the element.
 
-        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 6, 3, 4, 5, 7, 8, 9]);
-        expect(indexMapper.getNotTrimmedIndexes()).toEqual([0, 1, 2, 6, 3, 5, 7, 8, 9]);
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 7, 6, 8, 9]);
+        expect(indexMapper.getNotTrimmedIndexes()).toEqual([0, 1, 2, 3, 7, 6, 8, 9]);
       });
 
       it('when first few starting indexes are trimmed', () => {
