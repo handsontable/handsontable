@@ -14,7 +14,7 @@ editLink: false
 
 ### build
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/radioInput.js#L29
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/radioInput.js#L29
 
 :::
 
@@ -26,7 +26,7 @@ Build DOM structure.
 
 ### focus
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/radioInput.js#L82
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/radioInput.js#L82
 
 :::
 
@@ -38,7 +38,7 @@ Focus element.
 
 ### isChecked
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/radioInput.js#L65
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/radioInput.js#L65
 
 :::
 
@@ -50,7 +50,7 @@ Check if radio button is checked.
 
 ### setChecked
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/radioInput.js#L74
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/radioInput.js#L74
 
 :::
 
@@ -67,7 +67,7 @@ Set input checked attribute.
 
 ### update
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/radioInput.js#L49
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/radioInput.js#L49
 
 :::
 

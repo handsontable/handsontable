@@ -14,7 +14,7 @@ editLink: false
 
 ### undoRedo
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/undoRedo/undoRedo.js#L846
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/undoRedo/undoRedo.js#L846
 
 :::
 
@@ -27,7 +27,7 @@ Instance of Handsontable.UndoRedo Plugin [Handsontable.UndoRedo](@/api/handsonta
 
 ### clearUndo
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/undoRedo/undoRedo.js#L965
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/undoRedo/undoRedo.js#L965
 
 :::
 
@@ -39,7 +39,7 @@ _handsontable.[Core](@/api/core.md).clearUndo() ⇒ boolean_
 
 ### isRedoAvailable
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/undoRedo/undoRedo.js#L954
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/undoRedo/undoRedo.js#L954
 
 :::
 
@@ -51,7 +51,7 @@ _handsontable.[Core](@/api/core.md).isRedoAvailable() ⇒ boolean_
 
 ### isUndoAvailable
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/undoRedo/undoRedo.js#L943
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/undoRedo/undoRedo.js#L943
 
 :::
 
@@ -63,7 +63,7 @@ _handsontable.[Core](@/api/core.md).isUndoAvailable() ⇒ boolean_
 
 ### redo
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/undoRedo/undoRedo.js#L932
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/undoRedo/undoRedo.js#L932
 
 :::
 
@@ -75,7 +75,7 @@ _handsontable.[Core](@/api/core.md).redo() ⇒ boolean_
 
 ### undo
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/undoRedo/undoRedo.js#L921
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/undoRedo/undoRedo.js#L921
 
 :::
 

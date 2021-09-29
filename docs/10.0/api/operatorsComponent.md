@@ -14,7 +14,7 @@ editLink: false
 
 ### filters
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/metaSchema.js#L2794
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/metaSchema.js#L2794
 
 :::
 
@@ -33,7 +33,7 @@ filters: true,
 
 ### getActiveOperationId
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/component/operators.js#L98
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/component/operators.js#L98
 
 :::
 
@@ -45,7 +45,7 @@ Get `id` of active operator.
 
 ### getMenuItemDescriptor
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/component/operators.js#L34
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/component/operators.js#L34
 
 :::
 
@@ -57,7 +57,7 @@ Get menu object descriptor.
 
 ### getState
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/component/operators.js#L113
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/component/operators.js#L113
 
 :::
 
@@ -70,7 +70,7 @@ Export state of the component (get selected operator).
 
 ### reset
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/component/operators.js#L151
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/component/operators.js#L151
 
 :::
 
@@ -82,7 +82,7 @@ Reset elements to their initial state.
 
 ### setChecked
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/component/operators.js#L83
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/component/operators.js#L83
 
 :::
 
@@ -99,7 +99,7 @@ Set state of operators component to check radio input at specific `index`.
 
 ### setState
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/component/operators.js#L122
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/component/operators.js#L122
 
 :::
 
@@ -116,7 +116,7 @@ Set state of the component.
 
 ### updateState
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/component/operators.js#L138
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/component/operators.js#L138
 
 :::
 

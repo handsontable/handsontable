@@ -23,7 +23,7 @@ Object fires `update` hook for every column conditions change.
 
 ### changes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionUpdateObserver.js#L44
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionUpdateObserver.js#L44
 
 :::
 
@@ -36,7 +36,7 @@ Collected changes when grouping is enabled.
 
 ### columnDataFactory
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionUpdateObserver.js#L37
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionUpdateObserver.js#L37
 
 :::
 
@@ -48,7 +48,7 @@ Function which provide source data factory for specified column.
 
 ### conditionCollection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionUpdateObserver.js#L31
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionUpdateObserver.js#L31
 
 :::
 
@@ -60,7 +60,7 @@ Reference to the instance of [ConditionCollection](@/api/conditionCollection.md)
 
 ### grouping
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionUpdateObserver.js#L50
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionUpdateObserver.js#L50
 
 :::
 
@@ -72,7 +72,7 @@ Flag which determines if grouping events is enabled.
 
 ### hot
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionUpdateObserver.js#L25
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionUpdateObserver.js#L25
 
 :::
 
@@ -84,7 +84,7 @@ Handsontable instance.
 
 ### latestEditedColumnPosition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionUpdateObserver.js#L57
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionUpdateObserver.js#L57
 
 :::
 
@@ -97,7 +97,7 @@ The latest known position of edited conditions at specified column index.
 
 ### latestOrderStack
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionUpdateObserver.js#L63
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionUpdateObserver.js#L63
 
 :::
 
@@ -110,7 +110,7 @@ The latest known order of conditions stack.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionUpdateObserver.js#L198
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionUpdateObserver.js#L198
 
 :::
 
@@ -122,7 +122,7 @@ Destroy instance.
 
 ### flush
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionUpdateObserver.js#L84
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionUpdateObserver.js#L84
 
 :::
 
@@ -134,7 +134,7 @@ Flush all collected changes. This trigger `update` hook for every previously col
 
 ### groupChanges
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionUpdateObserver.js#L77
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionUpdateObserver.js#L77
 
 :::
 
@@ -148,7 +148,7 @@ it once.
 
 ### updateStatesAtColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionUpdateObserver.js#L111
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionUpdateObserver.js#L111
 
 :::
 

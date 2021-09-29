@@ -14,7 +14,7 @@ editLink: false
 
 ### TopOverlay
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L37
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L37
 
 :::
 
@@ -24,7 +24,7 @@ _topOverlay.[TopOverlay](@/api/topOverlay.md)_
 
 ### cachedFixedRowsTop
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L32
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L32
 
 :::
 
@@ -38,7 +38,7 @@ It is used as a comparison value that can be used to detect changes in this valu
 
 ### adjustElementsSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L184
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L184
 
 :::
 
@@ -55,7 +55,7 @@ Adjust overlay root element, childs and master table element sizes (width, heigh
 
 ### adjustHeaderBordersPosition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L344
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L344
 
 :::
 
@@ -73,7 +73,7 @@ Adds css classes to hide the header border's header (cell-selection border hidin
 
 ### adjustRootChildrenSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L231
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L231
 
 :::
 
@@ -85,7 +85,7 @@ Adjust overlay root childs size.
 
 ### adjustRootElementSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L196
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L196
 
 :::
 
@@ -97,7 +97,7 @@ Adjust overlay root element size (width and height).
 
 ### applyToDOM
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L246
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L246
 
 :::
 
@@ -109,7 +109,7 @@ Adjust the overlay dimensions and position.
 
 ### createTable
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L50
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L50
 
 :::
 
@@ -127,7 +127,7 @@ Factory method to create a subclass of `Table` that is relevant to this overlay.
 
 ### getScrollPosition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L333
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L333
 
 :::
 
@@ -140,7 +140,7 @@ Gets the main overlay's vertical scroll position.
 
 ### getTableParentOffset
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L318
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L318
 
 :::
 
@@ -152,7 +152,7 @@ Gets table parent top position.
 
 ### onScroll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L153
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L153
 
 :::
 
@@ -164,7 +164,7 @@ Triggers onScroll hook callback.
 
 ### resetFixedPosition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L68
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L68
 
 :::
 
@@ -176,7 +176,7 @@ Updates the top overlay position.
 
 ### scrollTo
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L285
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L285
 
 :::
 
@@ -194,7 +194,7 @@ Scrolls vertically to a row.
 
 ### setScrollPosition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L134
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L134
 
 :::
 
@@ -211,7 +211,7 @@ Sets the main overlay's vertical scroll position.
 
 ### shouldBeRendered
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L59
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L59
 
 :::
 
@@ -223,7 +223,7 @@ Checks if overlay should be fully rendered.
 
 ### sumCellSizes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L164
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L164
 
 :::
 
@@ -242,7 +242,7 @@ Calculates total sum cells height.
 
 ### syncOverlayOffset
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/top.js#L269
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/top.js#L269
 
 :::
 

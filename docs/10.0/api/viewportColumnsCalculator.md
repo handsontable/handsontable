@@ -22,7 +22,7 @@ To redo the calculation, you need to create a new calculator.
 
 ### count
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L57
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L57
 
 :::
 
@@ -34,7 +34,7 @@ Number of rendered/visible columns.
 
 ### DEFAULT_WIDTH
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L17
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L17
 
 :::
 
@@ -46,7 +46,7 @@ Default column width.
 
 ### endColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L71
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L71
 
 :::
 
@@ -58,7 +58,7 @@ Index of the last rendered/visible column (can be overwritten using overrideFn).
 
 ### startColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L64
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L64
 
 :::
 
@@ -70,7 +70,7 @@ Index of the first rendered/visible column (can be overwritten using overrideFn)
 
 ### startPosition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L78
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L78
 
 :::
 
@@ -83,7 +83,7 @@ Position of the first rendered/visible column (in px).
 
 ### calculate
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L93
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L93
 
 :::
 
@@ -95,7 +95,7 @@ Calculates viewport.
 
 ### getStretchedColumnWidth
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L217
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L217
 
 :::
 
@@ -113,7 +113,7 @@ Get stretched column width based on stretchH (all or last) setting passed in han
 
 ### refreshStretching
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L173
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L173
 
 :::
 
@@ -139,7 +139,7 @@ To redo the calculation, you need to create a new calculator.
 
 ### count
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L57
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L57
 
 :::
 
@@ -151,7 +151,7 @@ Number of rendered/visible columns.
 
 ### DEFAULT_WIDTH
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L17
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L17
 
 :::
 
@@ -163,7 +163,7 @@ Default column width.
 
 ### endColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L71
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L71
 
 :::
 
@@ -175,7 +175,7 @@ Index of the last rendered/visible column (can be overwritten using overrideFn).
 
 ### startColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L64
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L64
 
 :::
 
@@ -187,7 +187,7 @@ Index of the first rendered/visible column (can be overwritten using overrideFn)
 
 ### startPosition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L78
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L78
 
 :::
 
@@ -200,7 +200,7 @@ Position of the first rendered/visible column (in px).
 
 ### calculate
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L93
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L93
 
 :::
 
@@ -212,7 +212,7 @@ Calculates viewport.
 
 ### getStretchedColumnWidth
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L217
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L217
 
 :::
 
@@ -230,7 +230,7 @@ Get stretched column width based on stretchH (all or last) setting passed in han
 
 ### refreshStretching
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportColumns.js#L173
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportColumns.js#L173
 
 :::
 

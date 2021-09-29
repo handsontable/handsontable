@@ -20,7 +20,7 @@ Defines a container object for the merged cells.
 
 ### hot
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/cellsCollection.js#L34
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/cellsCollection.js#L34
 
 :::
 
@@ -32,7 +32,7 @@ The Handsontable instance.
 
 ### mergedCells
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/cellsCollection.js#L28
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/cellsCollection.js#L28
 
 :::
 
@@ -44,7 +44,7 @@ Array of merged cells.
 
 ### plugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/cellsCollection.js#L22
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/cellsCollection.js#L22
 
 :::
 
@@ -57,7 +57,7 @@ Reference to the Merge Cells plugin.
 
 ### add
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/cellsCollection.js#L145
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/cellsCollection.js#L145
 
 :::
 
@@ -75,7 +75,7 @@ Add a merged cell to the container.
 
 ### clear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/cellsCollection.js#L195
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/cellsCollection.js#L195
 
 :::
 
@@ -87,7 +87,7 @@ Clear all the merged cells.
 
 ### get
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/cellsCollection.js#L57
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/cellsCollection.js#L57
 
 :::
 
@@ -107,7 +107,7 @@ of a merged cell, or any coordinates from the body of the merged cell.
 
 ### getByRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/cellsCollection.js#L81
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/cellsCollection.js#L81
 
 :::
 
@@ -124,7 +124,7 @@ Get a merged cell containing the provided range.
 
 ### getFirstRenderableCoords
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/cellsCollection.js#L290
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/cellsCollection.js#L290
 
 :::
 
@@ -144,7 +144,7 @@ Get the first renderable coords of the merged cell at the provided coordinates.
 
 ### getWithinRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/cellsCollection.js#L106
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/cellsCollection.js#L106
 
 :::
 
@@ -163,7 +163,7 @@ Get a merged cell contained in the provided range.
 
 ### IS_OVERLAPPING_WARNING
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/cellsCollection.js#L43
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/cellsCollection.js#L43
 
 :::
 
@@ -180,7 +180,7 @@ Get a warning message for when the declared merged cell data overlaps already ex
 
 ### isFirstRenderableMergedCell
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/cellsCollection.js#L274
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/cellsCollection.js#L274
 
 :::
 
@@ -198,7 +198,7 @@ Check whether the provided row/col coordinates direct to a first not hidden cell
 
 ### isOverlapping
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/cellsCollection.js#L241
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/cellsCollection.js#L241
 
 :::
 
@@ -216,7 +216,7 @@ Check if the provided merged cell overlaps with the others in the container.
 
 ### remove
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/cellsCollection.js#L178
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/cellsCollection.js#L178
 
 :::
 
@@ -236,7 +236,7 @@ of a merged cell, or any coordinates from the body of the merged cell.
 
 ### shiftCollections
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/cellsCollection.js#L310
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/cellsCollection.js#L310
 
 :::
 

@@ -14,7 +14,7 @@ editLink: false
 
 ### addItem
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/priorityMap.js#L38
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/priorityMap.js#L38
 
 :::
 
@@ -32,7 +32,7 @@ Adds items to priority map. Throws an error if `priority` is not a number or if 
 
 ### getItems
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/priorityMap.js#L55
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/priorityMap.js#L55
 
 :::
 

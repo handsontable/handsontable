@@ -14,7 +14,7 @@ editLink: false
 
 ### getItem
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/staticRegister.js#L29
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/staticRegister.js#L29
 
 :::
 
@@ -32,7 +32,7 @@ Retrieve the item from the collection.
 
 ### getNames
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/staticRegister.js#L48
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/staticRegister.js#L48
 
 :::
 
@@ -45,7 +45,7 @@ Retrieve list of names registered from the collection.
 
 ### getValues
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/staticRegister.js#L57
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/staticRegister.js#L57
 
 :::
 
@@ -58,7 +58,7 @@ Retrieve all registered values from the collection.
 
 ### hasItem
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/staticRegister.js#L39
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/staticRegister.js#L39
 
 :::
 
@@ -76,7 +76,7 @@ Check if item under specified name is exists.
 
 ### register
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/staticRegister.js#L19
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/staticRegister.js#L19
 
 :::
 

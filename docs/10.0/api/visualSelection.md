@@ -14,7 +14,7 @@ editLink: false
 
 ### visualCellRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/visualSelection.js#L11
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/visualSelection.js#L11
 
 :::
 
@@ -27,7 +27,7 @@ Range of selection visually. Visual representation may have representation in a 
 
 ### add
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/visualSelection.js#L21
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/visualSelection.js#L21
 
 :::
 
@@ -44,7 +44,7 @@ Adds a cell coords to the selection.
 
 ### adjustCoordinates
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/visualSelection.js#L267
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/visualSelection.js#L267
 
 :::
 
@@ -62,7 +62,7 @@ and the broader cell range when needed (current selection can't be presented vis
 
 ### clear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/visualSelection.js#L37
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/visualSelection.js#L37
 
 :::
 
@@ -74,7 +74,7 @@ Clears visual and renderable selection.
 
 ### commit
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/visualSelection.js#L201
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/visualSelection.js#L201
 
 :::
 
@@ -87,7 +87,7 @@ at the end of process of adding visual selection coordinates.
 
 ### createRenderableCellRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/visualSelection.js#L354
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/visualSelection.js#L354
 
 :::
 
@@ -106,7 +106,7 @@ translated to renderable indexes.
 
 ### getCorners
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/visualSelection.js#L305
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/visualSelection.js#L305
 
 :::
 
@@ -122,7 +122,7 @@ complete coordinates (`null` values for example, `row: null`, `col: 2`).
 
 ### getVisualCorners
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/visualSelection.js#L332
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/visualSelection.js#L332
 
 :::
 

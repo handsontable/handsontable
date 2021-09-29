@@ -20,7 +20,7 @@ Content renderer.
 
 ### renderer
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/index.js#L20
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/index.js#L20
 
 :::
 
@@ -33,7 +33,7 @@ General renderer class used to render Walkontable content on screen.
 
 ### adjust
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/index.js#L74
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/index.js#L74
 
 :::
 
@@ -45,7 +45,7 @@ Adjusts the table (preparing for render).
 
 ### render
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/index.js#L81
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/index.js#L81
 
 :::
 
@@ -57,7 +57,7 @@ Renders the table.
 
 ### setFilters
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/index.js#L39
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/index.js#L39
 
 :::
 
@@ -76,7 +76,7 @@ indexes (0 to N) to source indexes provided by Handsontable.
 
 ### setHeaderContentRenderers
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/index.js#L65
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/index.js#L65
 
 :::
 
@@ -94,7 +94,7 @@ Sets row and column header functions.
 
 ### setViewportSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/index.js#L52
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/index.js#L52
 
 :::
 

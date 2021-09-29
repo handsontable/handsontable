@@ -14,7 +14,7 @@ editLink: false
 
 ### cellMeta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/index.js#L57
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/index.js#L57
 
 :::
 
@@ -24,7 +24,7 @@ _module.[exports](@/api/exports.md).cellMeta : CellMeta_
 
 ### cellRenderer
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L154
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L154
 
 :::
 
@@ -36,7 +36,7 @@ Cell renderer used to render cells content.
 
 ### cells
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L88
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L88
 
 :::
 
@@ -48,7 +48,7 @@ Renderer class responsible for rendering cells.
 
 ### childNodeType
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/utils/orderView/view.js#L37
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/utils/orderView/view.js#L37
 
 :::
 
@@ -60,7 +60,7 @@ Node type which the order view will manage while rendering the DOM elements.
 
 ### childs
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/tree.js#L120
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/tree.js#L120
 
 :::
 
@@ -72,7 +72,7 @@ A tree leaves.
 
 ### colGroup
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L76
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L76
 
 :::
 
@@ -84,7 +84,7 @@ Renderer class responsible for rendering col in colgroup.
 
 ### collapsingUI
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/nestedRows/utils/rowMoveController.js#L38
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/nestedRows/utils/rowMoveController.js#L38
 
 :::
 
@@ -96,7 +96,7 @@ Reference to the Collapsing UI class instance.
 
 ### collectedNodes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/utils/orderView/view.js#L49
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/utils/orderView/view.js#L49
 
 :::
 
@@ -108,7 +108,7 @@ The list of DOM elements which are rendered for this render cycle.
 
 ### columnFilter
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L100
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L100
 
 :::
 
@@ -120,7 +120,7 @@ Column filter which contains all necessary information about column index transf
 
 ### columnHeaderFunctions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L142
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L142
 
 :::
 
@@ -132,7 +132,7 @@ An array of functions to be used as a content factory to column headers.
 
 ### columnHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L70
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L70
 
 :::
 
@@ -144,7 +144,7 @@ Renderer class responsible for rendering column headers.
 
 ### columnHeadersCount
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L148
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L148
 
 :::
 
@@ -156,7 +156,7 @@ Count of the function used to render column headers.
 
 ### columnMeta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/index.js#L53
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/index.js#L53
 
 :::
 
@@ -166,7 +166,7 @@ _module.[exports](@/api/exports.md).columnMeta : ColumnMeta_
 
 ### columnMeta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/metaLayers/cellMeta.js#L43
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/metaLayers/cellMeta.js#L43
 
 :::
 
@@ -179,7 +179,7 @@ inherit properties from the ColumnMeta layer.
 
 ### columnsToRender
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L124
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L124
 
 :::
 
@@ -191,7 +191,7 @@ Indicates how much columns should be rendered to fill whole table viewport.
 
 ### columnUtils
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L112
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L112
 
 :::
 
@@ -203,7 +203,7 @@ Column utils class which contains all necessary information about sizes of the c
 
 ### currentOffset
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/utils/orderView/viewSize.js#L25
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/utils/orderView/viewSize.js#L25
 
 :::
 
@@ -215,7 +215,7 @@ Current offset.
 
 ### currentSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/utils/orderView/viewSize.js#L13
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/utils/orderView/viewSize.js#L13
 
 :::
 
@@ -227,7 +227,7 @@ Current size of the rendered DOM elements.
 
 ### data
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/lazyFactoryMap.js#L134
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/lazyFactoryMap.js#L134
 
 :::
 
@@ -239,7 +239,7 @@ An array which contains data.
 
 ### data
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/tree.js#L108
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/tree.js#L108
 
 :::
 
@@ -251,7 +251,7 @@ A tree data.
 
 ### dataManager
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/nestedRows/utils/rowMoveController.js#L32
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/nestedRows/utils/rowMoveController.js#L32
 
 :::
 
@@ -263,7 +263,7 @@ Reference to the Data Manager class instance.
 
 ### globalMeta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/index.js#L44
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/index.js#L44
 
 :::
 
@@ -273,7 +273,7 @@ _module.[exports](@/api/exports.md).globalMeta : GlobalMeta_
 
 ### globalMeta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/metaLayers/columnMeta.js#L47
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/metaLayers/columnMeta.js#L47
 
 :::
 
@@ -286,7 +286,7 @@ inherit properties from the GlobalMeta layer.
 
 ### holes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/lazyFactoryMap.js#L151
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/lazyFactoryMap.js#L151
 
 :::
 
@@ -302,7 +302,7 @@ items from the collection.
 
 ### hot
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/index.js#L40
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/index.js#L40
 
 :::
 
@@ -312,7 +312,7 @@ _module.[exports](@/api/exports.md).hot : [Handsontable](@/api/core.md)_
 
 ### hot
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/nestedRows/utils/rowMoveController.js#L26
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/nestedRows/utils/rowMoveController.js#L26
 
 :::
 
@@ -324,7 +324,7 @@ Reference to the Handsontable instance.
 
 ### index
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/lazyFactoryMap.js#L141
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/lazyFactoryMap.js#L141
 
 :::
 
@@ -337,7 +337,7 @@ specific position of the data array.
 
 ### meta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/metaLayers/globalMeta.js#L49
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/metaLayers/globalMeta.js#L49
 
 :::
 
@@ -349,7 +349,7 @@ Main object (prototype of the internal TableMeta class), holder for all default 
 
 ### meta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/metaLayers/tableMeta.js#L38
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/metaLayers/tableMeta.js#L38
 
 :::
 
@@ -361,7 +361,7 @@ Main object (instance of the internal TableMeta class from GlobalMeta), holder f
 
 ### metaCtor
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/metaLayers/globalMeta.js#L43
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/metaLayers/globalMeta.js#L43
 
 :::
 
@@ -373,7 +373,7 @@ An alias for the constructor. Necessary for inheritance for creating new layers.
 
 ### metas
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/metaLayers/cellMeta.js#L51
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/metaLayers/cellMeta.js#L51
 
 :::
 
@@ -387,7 +387,7 @@ row index and then by accessing the second LazyFactory Map under the physical co
 
 ### metas
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/metaLayers/columnMeta.js#L54
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/metaLayers/columnMeta.js#L54
 
 :::
 
@@ -400,7 +400,7 @@ stored under the physical column index.
 
 ### nextOffset
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/utils/orderView/viewSize.js#L31
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/utils/orderView/viewSize.js#L31
 
 :::
 
@@ -412,7 +412,7 @@ Next ofset.
 
 ### nextSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/utils/orderView/viewSize.js#L19
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/utils/orderView/viewSize.js#L19
 
 :::
 
@@ -424,7 +424,7 @@ Next size of the rendered DOM elements which should be fulfilled.
 
 ### nodesPool
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/utils/orderView/view.js#L25
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/utils/orderView/view.js#L25
 
 :::
 
@@ -436,7 +436,7 @@ Factory for newly created DOM elements.
 
 ### nodeType
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/utils/nodesPool.js#L13
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/utils/nodesPool.js#L13
 
 :::
 
@@ -448,7 +448,7 @@ Node type to generate (ew 'th', 'td').
 
 ### orderView
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/rows.js#L28
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/rows.js#L28
 
 :::
 
@@ -460,7 +460,7 @@ Cache for OrderView classes connected to specified node.
 
 ### orderViews
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/cells.js#L28
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/cells.js#L28
 
 :::
 
@@ -472,7 +472,7 @@ Cache for OrderView classes connected to specified node.
 
 ### orderViews
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/rowHeaders.js#L25
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/rowHeaders.js#L25
 
 :::
 
@@ -484,7 +484,7 @@ Cache for OrderView classes connected to specified node.
 
 ### parent
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/tree.js#L114
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/tree.js#L114
 
 :::
 
@@ -496,7 +496,7 @@ A parent node.
 
 ### plugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/nestedRows/utils/rowMoveController.js#L20
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/nestedRows/utils/rowMoveController.js#L20
 
 :::
 
@@ -508,7 +508,7 @@ Reference to the Nested Rows plugin instance.
 
 ### rootDocument
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L58
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L58
 
 :::
 
@@ -520,7 +520,7 @@ Document owner of the root node.
 
 ### rootNode
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L52
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L52
 
 :::
 
@@ -532,7 +532,7 @@ Table element which will be used to render the children element.
 
 ### rootNode
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/utils/orderView/view.js#L19
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/utils/orderView/view.js#L19
 
 :::
 
@@ -544,7 +544,7 @@ The root node to manage with.
 
 ### rowFilter
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L94
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L94
 
 :::
 
@@ -556,7 +556,7 @@ Row filter which contains all necessary information about row index transformati
 
 ### rowHeaderFunctions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L130
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L130
 
 :::
 
@@ -568,7 +568,7 @@ An array of functions to be used as a content factory to row headers.
 
 ### rowHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L64
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L64
 
 :::
 
@@ -580,7 +580,7 @@ Renderer class responsible for rendering row headers.
 
 ### rowHeadersCount
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L136
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L136
 
 :::
 
@@ -592,7 +592,7 @@ Count of the function used to render row headers.
 
 ### rows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L82
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L82
 
 :::
 
@@ -604,7 +604,7 @@ Renderer class responsible for rendering rows in tbody.
 
 ### rowsToRender
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L118
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L118
 
 :::
 
@@ -616,7 +616,7 @@ Indicates how much rows should be rendered to fill whole table viewport.
 
 ### rowUtils
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/table.js#L106
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/table.js#L106
 
 :::
 
@@ -628,7 +628,7 @@ Row utils class which contains all necessary information about sizes of the rows
 
 ### sharedSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/utils/orderView/viewSizeSet.js#L40
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/utils/orderView/viewSizeSet.js#L40
 
 :::
 
@@ -640,7 +640,7 @@ Shared Size instance.
 
 ### size
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/utils/orderView/viewSizeSet.js#L27
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/utils/orderView/viewSizeSet.js#L27
 
 :::
 
@@ -652,7 +652,7 @@ Holder for current and next view size and offset.
 
 ### sizeSet
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/utils/orderView/view.js#L31
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/utils/orderView/view.js#L31
 
 :::
 
@@ -664,7 +664,7 @@ Holder for sizing and positioning of the view.
 
 ### sourceRowIndex
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/cells.js#L34
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/cells.js#L34
 
 :::
 
@@ -676,7 +676,7 @@ Row index which specifies the row position of the processed cell.
 
 ### sourceRowIndex
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/renderer/rowHeaders.js#L31
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/renderer/rowHeaders.js#L31
 
 :::
 
@@ -688,7 +688,7 @@ Row index which specifies the row position of the processed row header.
 
 ### tableMeta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/index.js#L49
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/index.js#L49
 
 :::
 
@@ -698,7 +698,7 @@ _module.[exports](@/api/exports.md).tableMeta : TableMeta_
 
 ### visualIndex
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/utils/orderView/view.js#L43
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/utils/orderView/view.js#L43
 
 :::
 
@@ -710,7 +710,7 @@ The visual index of currently processed row.
 
 ### workingSpace
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/utils/orderView/viewSizeSet.js#L34
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/utils/orderView/viewSizeSet.js#L34
 
 :::
 

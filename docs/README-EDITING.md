@@ -91,6 +91,7 @@ To create a new version of the Handsontable documentation:
 
 1. From the `handsontable/docs` directory, run:
     ```bash
+    npm run docs:api
     npm run docs:version
     ```
 2. Confirm that you want to generate a new documentation version.

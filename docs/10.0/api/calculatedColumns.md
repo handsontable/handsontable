@@ -14,7 +14,7 @@ editLink: false
 
 ### getFirstRenderedColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/calculatedColumns.js#L19
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/calculatedColumns.js#L19
 
 :::
 
@@ -26,7 +26,7 @@ Get the source index of the first rendered column. If no columns are rendered, r
 
 ### getFirstVisibleColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/calculatedColumns.js#L34
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/calculatedColumns.js#L34
 
 :::
 
@@ -38,7 +38,7 @@ Get the source index of the first column fully visible in the viewport. If no co
 
 ### getLastRenderedColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/calculatedColumns.js#L49
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/calculatedColumns.js#L49
 
 :::
 
@@ -50,7 +50,7 @@ Get the source index of the last rendered column. If no columns are rendered, re
 
 ### getLastVisibleColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/calculatedColumns.js#L64
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/calculatedColumns.js#L64
 
 :::
 
@@ -62,7 +62,7 @@ Get the source index of the last column fully visible in the viewport. If no col
 
 ### getRenderedColumnsCount
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/calculatedColumns.js#L79
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/calculatedColumns.js#L79
 
 :::
 
@@ -74,7 +74,7 @@ Get the number of rendered columns.
 
 ### getVisibleColumnsCount
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/calculatedColumns.js#L88
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/calculatedColumns.js#L88
 
 :::
 

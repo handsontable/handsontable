@@ -20,7 +20,7 @@ Class responsible for all of the Autofill-related operations on merged cells.
 
 ### mergedCellsCollection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/calculations/autofill.js#L25
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/calculations/autofill.js#L25
 
 :::
 
@@ -32,7 +32,7 @@ Reference to the MergedCellsCollection class instance.
 
 ### plugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/calculations/autofill.js#L19
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/calculations/autofill.js#L19
 
 :::
 
@@ -45,7 +45,7 @@ Reference to the Merge Cells plugin.
 
 ### correctSelectionAreaSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/calculations/autofill.js#L40
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/calculations/autofill.js#L40
 
 :::
 
@@ -62,7 +62,7 @@ Correct the provided selection area, so it's not selecting only a part of a merg
 
 ### dragAreaOverlapsCollections
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/calculations/autofill.js#L426
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/calculations/autofill.js#L426
 
 :::
 
@@ -81,7 +81,7 @@ Check if the drag area contains any merged cells.
 
 ### getDirection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/calculations/autofill.js#L58
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/calculations/autofill.js#L58
 
 :::
 
@@ -100,7 +100,7 @@ Get the direction of the autofill process.
 
 ### recreateAfterDataPopulation
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/calculations/autofill.js#L289
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/calculations/autofill.js#L289
 
 :::
 
@@ -117,7 +117,7 @@ Recreate the merged cells after the autofill process.
 
 ### snapDragArea
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/calculations/autofill.js#L88
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/calculations/autofill.js#L88
 
 :::
 

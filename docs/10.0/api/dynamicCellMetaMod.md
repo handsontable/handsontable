@@ -14,7 +14,7 @@ editLink: false
 
 ### metaManager
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/mods/dynamicCellMeta.js#L25
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/mods/dynamicCellMeta.js#L25
 
 :::
 
@@ -24,7 +24,7 @@ _dynamicCellMetaMod.metaManager : MetaManager_
 
 ### metaSyncMemo
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/mods/dynamicCellMeta.js#L29
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/mods/dynamicCellMeta.js#L29
 
 :::
 
@@ -35,7 +35,7 @@ _dynamicCellMetaMod.metaSyncMemo : Map_
 
 ### extendCellMeta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/mods/dynamicCellMeta.js#L51
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/mods/dynamicCellMeta.js#L51
 
 :::
 

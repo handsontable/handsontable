@@ -14,7 +14,7 @@ editLink: false
 
 ### clearAllUI
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/multipleSelect.js#L55
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/multipleSelect.js#L55
 
 :::
 
@@ -26,7 +26,7 @@ _multipleSelectUI.clearAllUI : BaseUI_
 
 ### items
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/multipleSelect.js#L64
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/multipleSelect.js#L64
 
 :::
 
@@ -38,7 +38,7 @@ List of available select options.
 
 ### itemsBox
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/multipleSelect.js#L70
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/multipleSelect.js#L70
 
 :::
 
@@ -50,7 +50,7 @@ Handsontable instance used as items list element.
 
 ### searchInput
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/multipleSelect.js#L37
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/multipleSelect.js#L37
 
 :::
 
@@ -62,7 +62,7 @@ Input element.
 
 ### selectAllUI
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/multipleSelect.js#L46
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/multipleSelect.js#L46
 
 :::
 
@@ -75,7 +75,7 @@ _multipleSelectUI.selectAllUI : BaseUI_
 
 ### build
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/multipleSelect.js#L128
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/multipleSelect.js#L128
 
 :::
 
@@ -87,7 +87,7 @@ Build DOM structure.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/multipleSelect.js#L203
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/multipleSelect.js#L203
 
 :::
 
@@ -99,7 +99,7 @@ Destroy instance.
 
 ### getItems
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/multipleSelect.js#L103
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/multipleSelect.js#L103
 
 :::
 
@@ -111,7 +111,7 @@ Get all available options.
 
 ### getValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/multipleSelect.js#L112
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/multipleSelect.js#L112
 
 :::
 
@@ -124,7 +124,7 @@ Get element value.
 
 ### isSelectedAllValues
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/multipleSelect.js#L121
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/multipleSelect.js#L121
 
 :::
 
@@ -136,7 +136,7 @@ Check if all values listed in element are selected.
 
 ### registerHooks
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/multipleSelect.js#L78
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/multipleSelect.js#L78
 
 :::
 
@@ -148,7 +148,7 @@ Register all necessary hooks.
 
 ### reset
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/multipleSelect.js#L182
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/multipleSelect.js#L182
 
 :::
 
@@ -160,7 +160,7 @@ Reset DOM structure.
 
 ### setItems
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/multipleSelect.js#L90
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/multipleSelect.js#L90
 
 :::
 
@@ -177,7 +177,7 @@ Set available options.
 
 ### update
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/multipleSelect.js#L191
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/multipleSelect.js#L191
 
 :::
 
