@@ -6,6 +6,7 @@ import { getVersions } from '../helpers.js';
 
 const { logger, spawnProcess } = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const buildMode = process.env.BUILD_MODE;
 
 const cleanUp = () => {
   logger.info('Clean up dist');
@@ -48,8 +49,11 @@ const buildApp = async() => {
   const startedAt = new Date().toString();
 
   logger.info('Build started at', startedAt);
+  if(buildMode){
+    logger.info('buildMode: ', buildMode);
+  }
   cleanUp();
-  moveNext(getVersions()) // next shouldn't be at the first position.
+  moveNext(getVersions(buildMode)) // next shouldn't be at the first position.
     .map(buildVersion)
     .forEach(concatenate);
   logger.log('Build has started at', startedAt);
