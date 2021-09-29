@@ -29,7 +29,10 @@ const environmentHead = buildMode === 'production' ?
   : [];
 
 module.exports = {
-  patterns: [`${versionPartialPath}/*.md`, `${versionPartialPath}/**/*.md`, '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'], // to enable vue pages add: '**/*.vue'.
+  patterns: [
+    `${versionPartialPath}/*.md`, `${versionPartialPath}/**/*.md`,
+    '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'
+  ],
   description: 'Handsontable',
   base,
   head: [
