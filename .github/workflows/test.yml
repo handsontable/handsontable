@@ -1,0 +1,321 @@
+name: Tests
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+  push:
+    branches:
+      - 'master'
+      - 'develop'
+      - 'release/**'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: 15.x
+
+jobs:
+  check-scope:
+    runs-on: ubuntu-latest
+    outputs:
+      run-all: ${{
+          endsWith(github.ref, '/master') ||
+          endsWith(github.ref, '/develop') ||
+          contains(github.ref, '/release/')
+        }}
+      build-handsontable-es-cjs: ${{ steps.path-filter.outputs.build-handsontable-es-cjs }}
+      build-handsontable-umd: ${{ steps.path-filter.outputs.build-handsontable-umd }}
+      test-handsontable-unit: ${{ steps.path-filter.outputs.test-handsontable-unit }}
+      test-handsontable-types: ${{ steps.path-filter.outputs.test-handsontable-types }}
+      test-handsontable-walkontable: ${{ steps.path-filter.outputs.test-handsontable-walkontable }}
+      test-handsontable-e2e: ${{ steps.path-filter.outputs.test-handsontable-e2e }}
+      test-handsontable-e2e-min: ${{ steps.path-filter.outputs.test-handsontable-e2e-min }}
+      test-angular: ${{ steps.path-filter.outputs.test-angular }}
+      test-react: ${{ steps.path-filter.outputs.test-react }}
+      test-vue: ${{ steps.path-filter.outputs.test-vue }}
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+        if: ${{ github.event_name == 'push' }}
+      - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # https://github.com/dorny/paths-filter/releases/tag/v2.10.2
+        id: path-filter
+        with:
+          filters: |
+            config-files: &config-files
+              - '.config/**'
+              - './package.json'
+              - './package-lock.json'
+              - './hot.config.js'
+              - './babel.config.js'
+            hot-definition-files: &hot-definition-files
+              - './base.d.ts'
+              - './handsontable.d.ts'
+            hot-source-and-scripts: &hot-source-and-scripts
+              - 'src/**'
+              - 'scripts/**'
+            hot-shared: &hot-shared
+              - *config-files
+              - *hot-source-and-scripts
+            hot-e2e-test-shared: &hot-e2e-test-shared
+              - 'test/e2e/**'
+              - 'test/scripts/**'
+
+            build-handsontable-umd:
+              - *hot-shared
+              - 'test/e2e/**'
+              - 'test/scripts/**'
+            build-handsontable-es-cjs:
+              - *hot-shared
+              - 'wrappers/**'
+            test-handsontable-unit:
+              - *hot-shared
+              - 'test/unit/**'
+            test-handsontable-types:
+              - *hot-shared
+              - *hot-definition-files
+              - 'test/types/**'
+            test-handsontable-walkontable:
+              - '.config/**'
+              - 'test/scripts/**'
+              - 'src/3rdparty/walkontable/**'
+            test-handsontable-e2e:
+              - *hot-shared
+              - *hot-e2e-test-shared
+            test-handsontable-e2e-min:
+              - *hot-shared
+              - *hot-e2e-test-shared
+            test-angular:
+              - *hot-shared
+              - 'wrappers/angular/**'
+            test-react:
+              - *hot-shared
+              - 'wrappers/react/**'
+            test-vue:
+              - *hot-shared
+              - 'wrappers/vue/**'
+
+  build-handsontable-umd:
+    name: "[BUILD] Handsontable: UMD"
+    runs-on: ubuntu-latest
+    needs: [ check-scope ]
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.build-handsontable-umd == 'true'
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+      - run: |
+          npm run build:umd && npm run build:languages
+          npm run build:umd.min && npm run build:languages.min
+      - run: tar -zcf dist.tar.gz ./dist
+      - name: Upload the Handsontable UMD build artifact.
+        uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
+        with:
+          name: handsontable-build-umd
+          path: |
+            dist.tar.gz
+
+  build-handsontable-es-cjs:
+    name: "[BUILD] Handsontable: ES + CJS"
+    runs-on: ubuntu-latest
+    needs: [ check-scope ]
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.build-handsontable-es-cjs == 'true'
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+      - run: |
+          npm run build:es && npm run build:languages.es
+          npm run build:commonjs
+          npm run postbuild
+      - run: tar -zcf tmp.tar.gz ./tmp
+      - name: Upload the Handsontable ES + CJS build artifact.
+        uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
+        with:
+          name: handsontable-build-es-cjs
+          path: |
+            tmp.tar.gz
+
+  test-handsontable-unit:
+    name: "[TEST] Handsontable: Unit"
+    runs-on: ubuntu-latest
+    needs: [ check-scope ]
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.test-handsontable-unit == 'true'
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+      - run: npm run test:unit
+
+  test-handsontable-types:
+    name: "[TEST] Handsontable: Types"
+    runs-on: ubuntu-latest
+    needs: [ check-scope ]
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.test-handsontable-types == 'true'
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+      - run: npm run test:types
+
+  test-handsontable-walkontable:
+    name: "[TEST] Walkontable"
+    runs-on: ubuntu-latest
+    needs: [ check-scope ]
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.test-handsontable-walkontable == 'true'
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+      - run: npm run test:walkontable
+
+  test-handsontable-e2e:
+    name: "[TEST] Handsontable: UMD"
+    runs-on: ubuntu-latest
+    needs: [ build-handsontable-umd ]
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.test-handsontable-e2e == 'true'
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: handsontable-build-umd
+          path: ./
+      - run: tar -zxf dist.tar.gz ./dist && rm dist.tar.gz
+      - run: npm run test:e2e.dump && npm run test:e2e.puppeteer
+
+  test-handsontable-e2e-min:
+    name: "[TEST] Handsontable: UMD.min"
+    runs-on: ubuntu-latest
+    needs: [ build-handsontable-umd ]
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.test-handsontable-e2e-min == 'true'
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: handsontable-build-umd
+          path: ./
+      - run: tar -zxf dist.tar.gz ./dist && rm dist.tar.gz
+      - run: npm run test:production.dump && npm run test:e2e.puppeteer
+
+  test-angular:
+    name: "[TEST] Wrapper: Angular"
+    runs-on: ubuntu-latest
+    needs: [ check-scope, build-handsontable-es-cjs ]
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.test-angular == 'true'
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: handsontable-build-es-cjs
+          path: ./
+      - run: tar -zxf tmp.tar.gz ./tmp && rm tmp.tar.gz
+      - run: npm run swap-package-links
+      - run: npm run in angular build
+      - run: npm run in angular test:ci
+
+  test-react:
+    name: "[TEST] Wrapper: React"
+    runs-on: ubuntu-latest
+    needs: [ check-scope, build-handsontable-es-cjs ]
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.test-react == 'true'
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: handsontable-build-es-cjs
+          path: ./
+      - run: tar -zxf tmp.tar.gz ./tmp && rm tmp.tar.gz
+      - run: npm run swap-package-links
+      - run: npm run in react build
+      - run: npm run in react test
+
+  test-vue:
+    name: "[TEST] Wrapper: Vue"
+    runs-on: ubuntu-latest
+    needs: [ check-scope, build-handsontable-es-cjs ]
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.test-vue == 'true'
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: handsontable-build-es-cjs
+          path: ./
+      - run: tar -zxf tmp.tar.gz ./tmp && rm tmp.tar.gz
+      - run: npm run swap-package-links
+      - run: npm run in vue build
+      - run: npm run in vue test

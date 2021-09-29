@@ -1,0 +1,7 @@
+{
+  "title": "Improved the performance of the regular expression used to detect numeric values and fixed major code smells",
+  "type": "fixed",
+  "issue": 8752,
+  "breaking": false,
+  "framework": "none"
+}
