@@ -18,15 +18,16 @@ tags:
 Released on 29th of September, 2021
 
 **Changed**
-- **Breaking change** Unified the naming and description of the fourth argument, `controller`, for selection manipulation in the [`beforeOnCellMouseDown`](@/api/hooks.md#beforeoncellmousedown) and [`beforeOnCellMouseOver`](@/api/hooks.md#beforeoncellmouseover) hooks. [#4996](https://github.com/handsontable/handsontable/issues/4996)
-- **Breaking change** Changed what the [`beforeRender`](@/api/hooks.md#beforerender) and [`afterRender`](@/api/hooks.md#afterrender) hooks are, and when they are triggered. Added two new hooks: [`beforeViewRender`](@/api/hooks.md#beforeviewrender) and [`afterViewRender`](@/api/hooks.md#afterviewrender). [#6303](https://github.com/handsontable/handsontable/issues/6303)
-- **Breaking change** Changed the optional [HyperFormula](https://github.com/handsontable/hyperformula) dependency from `0.6.2` to `^1.1.0`, which introduces breaking changes for the [`Formulas`](@/api/formulas.md) plugin users. [#8502](https://github.com/handsontable/handsontable/issues/8502)
-- **Breaking change** Changed the default values for the [`rowsLimit`](@/api/copypaste.md#rowslimit) and [`columnsLimit`](@/api/copypaste.md#columnslimit) options of the [`CopyPaste`](@/api/copypaste.md) plugin. [#8660](https://github.com/handsontable/handsontable/issues/8660)
-- **Breaking change** Added a default font family, size, weight and color. [#8661](https://github.com/handsontable/handsontable/issues/8661)
-- **Breaking change** Changed the [`autoWrapRow`](@/api/options.md#autowraprow) and [`autoWrapCol`](@/api/options.md#autowrapcol) options\` default values from `true` to `false`. [#8662](https://github.com/handsontable/handsontable/issues/8662)
+- Unified the naming and description of the fourth argument, `controller`, for selection manipulation in the [`beforeOnCellMouseDown`](@/api/hooks.md#beforeoncellmousedown) and [`beforeOnCellMouseOver`](@/api/hooks.md#beforeoncellmouseover) hooks. [#4996](https://github.com/handsontable/handsontable/issues/4996) **[breaking change]**
+- Changed what the [`beforeRender`](@/api/hooks.md#beforerender) and [`afterRender`](@/api/hooks.md#afterrender) hooks are, and when they are triggered. Added two new hooks: [`beforeViewRender`](@/api/hooks.md#beforeviewrender) and [`afterViewRender`](@/api/hooks.md#afterviewrender). [#6303](https://github.com/handsontable/handsontable/issues/6303) **[breaking change]**
+- Changed the optional [HyperFormula](https://github.com/handsontable/hyperformula) dependency from `0.6.2` to `^1.1.0`, which introduces breaking changes for the [`Formulas`](@/api/formulas.md) plugin users. [#8502](https://github.com/handsontable/handsontable/issues/8502) **[breaking change]**
+- Changed the default values for the [`rowsLimit`](@/api/copypaste.md#rowslimit) and [`columnsLimit`](@/api/copypaste.md#columnslimit) options of the [`CopyPaste`](@/api/copypaste.md) plugin. [#8660](https://github.com/handsontable/handsontable/issues/8660) **[breaking change]**
+- Added a default font family, size, weight and color. [#8661](https://github.com/handsontable/handsontable/issues/8661) **[breaking change]**
+- Changed the [`autoWrapRow`](@/api/options.md#autowraprow) and [`autoWrapCol`](@/api/options.md#autowrapcol) options\` default values from `true` to `false`. [#8662](https://github.com/handsontable/handsontable/issues/8662) **[breaking change]**
 - Improved the performance of the [`getCellMeta()`](@/api/core.md#getcellmeta) method. [#6303](https://github.com/handsontable/handsontable/issues/6303)
 - Improved the documentation and TypeScript definition of the [`selectOptions`](@/api/options.md#selectoptions) option. [#8488](https://github.com/handsontable/handsontable/issues/8488)
 - Improved the arguments forwarding in the hooks [#8668](https://github.com/handsontable/handsontable/issues/8668)
+- Added a Github Actions workflow covering the testing of Handsontable and all of the wrappers. [#8652](https://github.com/handsontable/handsontable/issues/8652)
 
 **Fixed**
 - Fixed an issue of not resetting the date picker's configuration [#6636](https://github.com/handsontable/handsontable/issues/6636)
@@ -40,6 +41,7 @@ Released on 29th of September, 2021
 - Fixed the cooperation of the dropdown menu and column sorting (menu closing on click) [#8232](https://github.com/handsontable/handsontable/issues/8232)
 - Data won't be corrupted anymore when some alterations are performed [#8614](https://github.com/handsontable/handsontable/issues/8614)
 - Adjusted directories and files related to [`dataMap`](https://github.com/handsontable/handsontable/tree/master/src/dataMap), to prevent potential circular references. [#8704](https://github.com/handsontable/handsontable/issues/8704)
+- Improved the performance of the regular expression used to detect numeric values, and fixed major code smells. [#8752](https://github.com/handsontable/handsontable/issues/8752)
 
 ## 9.0.2
 
