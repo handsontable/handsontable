@@ -18,7 +18,7 @@ editLink: false
 
 ### appear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/border.js#L359
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/border.js#L359
 
 :::
 
@@ -35,7 +35,7 @@ Show border around one or many cells.
 
 ### createBorders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/border.js#L157
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/border.js#L157
 
 :::
 
@@ -52,7 +52,7 @@ Create border elements.
 
 ### createMultipleSelectorHandles
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/border.js#L229
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/border.js#L229
 
 :::
 
@@ -64,7 +64,7 @@ Create multiple selector handler for mobile devices.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/border.js#L730
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/border.js#L730
 
 :::
 
@@ -76,7 +76,7 @@ Cleans up all the DOM state related to a Border instance. Call this prior to del
 
 ### disappear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/border.js#L714
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/border.js#L714
 
 :::
 
@@ -88,7 +88,7 @@ Hide border.
 
 ### isPartRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/border.js#L290
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/border.js#L290
 
 :::
 
@@ -104,7 +104,7 @@ _border.isPartRange(row, col) ⇒ boolean_
 
 ### registerListeners
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/border.js#L67
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/border.js#L67
 
 :::
 
@@ -116,7 +116,7 @@ Register all necessary events.
 
 ### updateMultipleSelectionHandlesPosition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/border.js#L310
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/border.js#L310
 
 :::
 

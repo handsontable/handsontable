@@ -14,7 +14,7 @@ editLink: false
 
 ### filters
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/metaSchema.js#L2794
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/metaSchema.js#L2794
 
 :::
 
@@ -33,7 +33,7 @@ filters: true,
 
 ### getInputElement
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/component/condition.js#L139
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/component/condition.js#L139
 
 :::
 
@@ -50,7 +50,7 @@ Get input element.
 
 ### getInputElements
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/component/condition.js#L148
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/component/condition.js#L148
 
 :::
 
@@ -62,7 +62,7 @@ Get input elements.
 
 ### getMenuItemDescriptor
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/component/condition.js#L157
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/component/condition.js#L157
 
 :::
 
@@ -74,7 +74,7 @@ Get menu object descriptor.
 
 ### getSelectElement
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/component/condition.js#L129
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/component/condition.js#L129
 
 :::
 
@@ -86,7 +86,7 @@ Get select element.
 
 ### getState
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/component/condition.js#L87
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/component/condition.js#L87
 
 :::
 
@@ -99,7 +99,7 @@ Export state of the component (get selected filter and filter arguments).
 
 ### reset
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/component/condition.js#L191
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/component/condition.js#L191
 
 :::
 
@@ -111,7 +111,7 @@ Reset elements to their initial state.
 
 ### setState
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/component/condition.js#L52
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/component/condition.js#L52
 
 :::
 
@@ -128,7 +128,7 @@ Set state of the component.
 
 ### updateState
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/component/condition.js#L111
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/component/condition.js#L111
 
 :::
 

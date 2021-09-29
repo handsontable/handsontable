@@ -18,7 +18,7 @@ editLink: false
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L262
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L262
 
 :::
 
@@ -30,7 +30,7 @@ Destroy instance.
 
 ### draw
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L76
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L76
 
 :::
 
@@ -47,7 +47,7 @@ Force rerender of Walkontable.
 
 ### exportSettingsAsClassNames
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L216
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L216
 
 :::
 
@@ -59,7 +59,7 @@ Export settings as class names added to the parent element of the table.
 
 ### getCell
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L99
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L99
 
 :::
 
@@ -78,7 +78,7 @@ if not set or set to false, returns TD from the master table.
 
 ### getOverlayName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L209
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L209
 
 :::
 
@@ -90,7 +90,7 @@ Get overlay name.
 
 ### getSetting
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L244
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L244
 
 :::
 
@@ -111,7 +111,7 @@ Get/Set Walkontable instance setting.
 
 ### getViewport
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L195
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L195
 
 :::
 
@@ -121,7 +121,7 @@ _walkontable.getViewport() ⇒ Array_
 
 ### hasSetting
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L255
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L255
 
 :::
 
@@ -138,7 +138,7 @@ Checks if setting exists.
 
 ### scrollViewport
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L152
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L152
 
 :::
 
@@ -159,7 +159,7 @@ Scrolls the viewport to a cell (rerenders if needed).
 
 ### scrollViewportHorizontally
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L168
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L168
 
 :::
 
@@ -178,7 +178,7 @@ Scrolls the viewport to a column (rerenders if needed).
 
 ### scrollViewportVertically
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L184
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L184
 
 :::
 
@@ -197,7 +197,7 @@ Scrolls the viewport to a row (rerenders if needed).
 
 ### update
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L138
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L138
 
 :::
 
@@ -218,7 +218,7 @@ _walkontable.update(settings, value) ⇒ [Walkontable](@/api/walkontable.md)_
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L262
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L262
 
 :::
 
@@ -230,7 +230,7 @@ Destroy instance.
 
 ### draw
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L76
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L76
 
 :::
 
@@ -247,7 +247,7 @@ Force rerender of Walkontable.
 
 ### exportSettingsAsClassNames
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L216
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L216
 
 :::
 
@@ -259,7 +259,7 @@ Export settings as class names added to the parent element of the table.
 
 ### getCell
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L99
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L99
 
 :::
 
@@ -278,7 +278,7 @@ if not set or set to false, returns TD from the master table.
 
 ### getOverlayName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L209
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L209
 
 :::
 
@@ -290,7 +290,7 @@ Get overlay name.
 
 ### getSetting
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L244
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L244
 
 :::
 
@@ -311,7 +311,7 @@ Get/Set Walkontable instance setting.
 
 ### getViewport
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L195
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L195
 
 :::
 
@@ -321,7 +321,7 @@ _walkontable.getViewport() ⇒ Array_
 
 ### hasSetting
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L255
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L255
 
 :::
 
@@ -338,7 +338,7 @@ Checks if setting exists.
 
 ### scrollViewport
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L152
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L152
 
 :::
 
@@ -359,7 +359,7 @@ Scrolls the viewport to a cell (rerenders if needed).
 
 ### scrollViewportHorizontally
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L168
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L168
 
 :::
 
@@ -378,7 +378,7 @@ Scrolls the viewport to a column (rerenders if needed).
 
 ### scrollViewportVertically
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L184
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L184
 
 :::
 
@@ -397,7 +397,7 @@ Scrolls the viewport to a row (rerenders if needed).
 
 ### update
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/core.js#L138
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/core.js#L138
 
 :::
 

@@ -14,7 +14,7 @@ editLink: false
 
 ### TopLeftCornerOverlay
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L24
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L24
 
 :::
 
@@ -25,7 +25,7 @@ _topLeftCornerOverlay.[TopLeftCornerOverlay](@/api/topLeftCornerOverlay.md)_
 
 ### createTable
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L36
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L36
 
 :::
 
@@ -43,7 +43,7 @@ Factory method to create a subclass of `Table` that is relevant to this overlay.
 
 ### resetFixedPosition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L56
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L56
 
 :::
 
@@ -55,7 +55,7 @@ Updates the corner overlay position.
 
 ### shouldBeRendered
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L45
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L45
 
 :::
 
@@ -68,7 +68,7 @@ Checks if overlay should be fully rendered.
 
 ### TopLeftCornerOverlay
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L24
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L24
 
 :::
 
@@ -79,7 +79,7 @@ _topLeftCornerOverlay.[TopLeftCornerOverlay](@/api/topLeftCornerOverlay.md)_
 
 ### createTable
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L36
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L36
 
 :::
 
@@ -97,7 +97,7 @@ Factory method to create a subclass of `Table` that is relevant to this overlay.
 
 ### resetFixedPosition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L56
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L56
 
 :::
 
@@ -109,7 +109,7 @@ Updates the corner overlay position.
 
 ### shouldBeRendered
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L45
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlay/topLeftCorner.js#L45
 
 :::
 

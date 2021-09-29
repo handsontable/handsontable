@@ -23,7 +23,7 @@ Transformation is always applied relative to the current selection.
 
 ### options
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/transformation.js#L28
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/transformation.js#L28
 
 :::
 
@@ -36,7 +36,7 @@ give the possibility to translate indexes.
 
 ### range
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/transformation.js#L21
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/transformation.js#L21
 
 :::
 
@@ -49,7 +49,7 @@ Instance of the SelectionRange, holder for visual coordinates applied to the tab
 
 ### transformEnd
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/transformation.js#L125
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/transformation.js#L125
 
 :::
 
@@ -68,7 +68,7 @@ Sets selection end cell relative to current selection end cell (if possible).
 
 ### transformStart
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/transformation.js#L40
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/transformation.js#L40
 
 :::
 

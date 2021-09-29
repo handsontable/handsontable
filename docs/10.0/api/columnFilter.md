@@ -18,7 +18,7 @@ editLink: false
 
 ### offsetted
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L20
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L20
 
 :::
 
@@ -33,7 +33,7 @@ _columnFilter.offsetted(index) ⇒ number_
 
 ### offsettedTH
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L52
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L52
 
 :::
 
@@ -48,7 +48,7 @@ _columnFilter.offsettedTH(index) ⇒ number_
 
 ### renderedToSource
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L36
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L36
 
 :::
 
@@ -63,7 +63,7 @@ _columnFilter.renderedToSource(index) ⇒ number_
 
 ### sourceColumnToVisibleRowHeadedColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L76
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L76
 
 :::
 
@@ -78,7 +78,7 @@ _columnFilter.sourceColumnToVisibleRowHeadedColumn(index) ⇒ number_
 
 ### sourceToRendered
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L44
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L44
 
 :::
 
@@ -93,7 +93,7 @@ _columnFilter.sourceToRendered(index) ⇒ number_
 
 ### unOffsetted
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L28
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L28
 
 :::
 
@@ -108,7 +108,7 @@ _columnFilter.unOffsetted(index) ⇒ number_
 
 ### unOffsettedTH
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L60
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L60
 
 :::
 
@@ -123,7 +123,7 @@ _columnFilter.unOffsettedTH(index) ⇒ number_
 
 ### visibleRowHeadedColumnToSourceColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L68
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L68
 
 :::
 
@@ -143,7 +143,7 @@ _columnFilter.visibleRowHeadedColumnToSourceColumn(index) ⇒ number_
 
 ### offsetted
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L20
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L20
 
 :::
 
@@ -158,7 +158,7 @@ _columnFilter.offsetted(index) ⇒ number_
 
 ### offsettedTH
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L52
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L52
 
 :::
 
@@ -173,7 +173,7 @@ _columnFilter.offsettedTH(index) ⇒ number_
 
 ### renderedToSource
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L36
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L36
 
 :::
 
@@ -188,7 +188,7 @@ _columnFilter.renderedToSource(index) ⇒ number_
 
 ### sourceColumnToVisibleRowHeadedColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L76
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L76
 
 :::
 
@@ -203,7 +203,7 @@ _columnFilter.sourceColumnToVisibleRowHeadedColumn(index) ⇒ number_
 
 ### sourceToRendered
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L44
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L44
 
 :::
 
@@ -218,7 +218,7 @@ _columnFilter.sourceToRendered(index) ⇒ number_
 
 ### unOffsetted
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L28
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L28
 
 :::
 
@@ -233,7 +233,7 @@ _columnFilter.unOffsetted(index) ⇒ number_
 
 ### unOffsettedTH
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L60
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L60
 
 :::
 
@@ -248,7 +248,7 @@ _columnFilter.unOffsettedTH(index) ⇒ number_
 
 ### visibleRowHeadedColumnToSourceColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/filter/column.js#L68
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/filter/column.js#L68
 
 :::
 

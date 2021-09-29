@@ -20,7 +20,7 @@ Comment editor for the Comments plugin.
 
 ### createEditor
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/commentEditor.js#L150
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/commentEditor.js#L150
 
 :::
 
@@ -32,7 +32,7 @@ Create the `textarea` to be used as a comments editor.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/commentEditor.js#L179
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/commentEditor.js#L179
 
 :::
 
@@ -44,7 +44,7 @@ Destroy the comments editor.
 
 ### focus
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/commentEditor.js#L141
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/commentEditor.js#L141
 
 :::
 
@@ -56,7 +56,7 @@ Focus the comments input element.
 
 ### getInputElement
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/commentEditor.js#L172
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/commentEditor.js#L172
 
 :::
 
@@ -68,7 +68,7 @@ Get the input element.
 
 ### getValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/commentEditor.js#L125
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/commentEditor.js#L125
 
 :::
 
@@ -80,7 +80,7 @@ Get the comment value.
 
 ### hide
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/commentEditor.js#L95
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/commentEditor.js#L95
 
 :::
 
@@ -92,7 +92,7 @@ Hide the comments editor.
 
 ### isFocused
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/commentEditor.js#L134
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/commentEditor.js#L134
 
 :::
 
@@ -104,7 +104,7 @@ Checks if the comment input element is focused.
 
 ### isVisible
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/commentEditor.js#L105
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/commentEditor.js#L105
 
 :::
 
@@ -116,7 +116,7 @@ Checks if the editor is visible.
 
 ### resetSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/commentEditor.js#L66
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/commentEditor.js#L66
 
 :::
 
@@ -128,7 +128,7 @@ Reset the editor size to its initial state.
 
 ### setPosition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/commentEditor.js#L43
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/commentEditor.js#L43
 
 :::
 
@@ -146,7 +146,7 @@ Set position of the comments editor according to the  provided x and y coordinat
 
 ### setReadOnlyState
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/commentEditor.js#L78
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/commentEditor.js#L78
 
 :::
 
@@ -163,7 +163,7 @@ Set the read-only state for the comments editor.
 
 ### setSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/commentEditor.js#L54
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/commentEditor.js#L54
 
 :::
 
@@ -181,7 +181,7 @@ Set the editor size according to the provided arguments.
 
 ### setValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/commentEditor.js#L114
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/commentEditor.js#L114
 
 :::
 
@@ -198,7 +198,7 @@ Set the comment value.
 
 ### show
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/commentEditor.js#L87
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/commentEditor.js#L87
 
 :::
 

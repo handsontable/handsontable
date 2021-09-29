@@ -14,7 +14,7 @@ editLink: false
 
 ### items
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/stack.js#L12
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/stack.js#L12
 
 :::
 
@@ -27,7 +27,7 @@ Items collection.
 
 ### isEmpty
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/stack.js#L47
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/stack.js#L47
 
 :::
 
@@ -39,7 +39,7 @@ Check if the stack is empty.
 
 ### peek
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/stack.js#L38
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/stack.js#L38
 
 :::
 
@@ -51,7 +51,7 @@ Return the last element from the stack (without modification stack).
 
 ### pop
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/stack.js#L29
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/stack.js#L29
 
 :::
 
@@ -63,7 +63,7 @@ Remove the last element from the stack and returns it.
 
 ### push
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/stack.js#L20
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/stack.js#L20
 
 :::
 
@@ -80,7 +80,7 @@ Add new item or items at the back of the stack.
 
 ### size
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/stack.js#L56
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/stack.js#L56
 
 :::
 

@@ -14,7 +14,7 @@ editLink: false
 
 ### filters
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/metaSchema.js#L2794
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/metaSchema.js#L2794
 
 :::
 
@@ -34,7 +34,7 @@ filters: true,
 
 ### filteringStates
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L38
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L38
 
 :::
 
@@ -46,7 +46,7 @@ Index map storing filtering states for every column. ConditionCollection write a
 
 ### hot
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L24
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L24
 
 :::
 
@@ -58,7 +58,7 @@ Handsontable instance.
 
 ### isMapRegistrable
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L32
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L32
 
 :::
 
@@ -73,7 +73,7 @@ this is not necessary.
 
 ### addCondition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L101
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L101
 
 :::
 
@@ -94,7 +94,7 @@ Add condition to the collection.
 
 ### clean
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L235
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L235
 
 :::
 
@@ -107,7 +107,7 @@ Clean all conditions collection and reset order stack.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L262
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L262
 
 :::
 
@@ -119,7 +119,7 @@ Destroy object.
 
 ### exportAllConditions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L191
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L191
 
 :::
 
@@ -131,7 +131,7 @@ Export all previously added conditions.
 
 ### getColumnStackPosition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L182
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L182
 
 :::
 
@@ -149,7 +149,7 @@ Gets position in the filtering states stack for the specific column.
 
 ### getConditions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L153
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L153
 
 :::
 
@@ -167,7 +167,7 @@ Get all added conditions from the collection at specified column index.
 
 ### getFilteredColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L172
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L172
 
 :::
 
@@ -179,7 +179,7 @@ Get all filtered physical columns in the order in which actions are performed.
 
 ### getOperation
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L163
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L163
 
 :::
 
@@ -196,7 +196,7 @@ Get operation for particular column.
 
 ### hasConditions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L249
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L249
 
 :::
 
@@ -215,7 +215,7 @@ check if condition exists under its name.
 
 ### importAllConditions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L208
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L208
 
 :::
 
@@ -232,7 +232,7 @@ Import conditions to the collection.
 
 ### isEmpty
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L53
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L53
 
 :::
 
@@ -244,7 +244,7 @@ Check if condition collection is empty (so no needed to filter data).
 
 ### isMatch
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L64
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L64
 
 :::
 
@@ -262,7 +262,7 @@ Check if value is matched to the criteria of conditions chain.
 
 ### isMatchInConditions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L80
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L80
 
 :::
 
@@ -281,7 +281,7 @@ Check if the value is matches the conditions.
 
 ### removeConditions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/conditionCollection.js#L223
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/conditionCollection.js#L223
 
 :::
 

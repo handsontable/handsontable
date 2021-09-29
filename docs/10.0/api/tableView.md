@@ -15,7 +15,7 @@ editLink: false
 
 ### TBODY
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L62
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L62
 
 :::
 
@@ -27,7 +27,7 @@ Main <TBODY> element.
 
 ### THEAD
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L56
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L56
 
 :::
 
@@ -39,7 +39,7 @@ Main <THEAD> element.
 
 ### wt
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L68
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L68
 
 :::
 
@@ -52,7 +52,7 @@ Main Walkontable instance.
 
 ### adjustElementsSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L150
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L150
 
 :::
 
@@ -69,7 +69,7 @@ Adjust overlays elements size and master table size.
 
 ### countNotHiddenColumnIndexes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L475
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L475
 
 :::
 
@@ -88,7 +88,7 @@ The counting direction can be controlled by `incrementBy` argument.
 
 ### countNotHiddenIndexes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L490
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L490
 
 :::
 
@@ -109,7 +109,7 @@ The counting direction can be controlled by `incrementBy` argument.
 
 ### countNotHiddenRowIndexes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L462
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L462
 
 :::
 
@@ -128,7 +128,7 @@ The counting direction can be controlled by `incrementBy` argument.
 
 ### countRenderableColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L441
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L441
 
 :::
 
@@ -140,7 +140,7 @@ Returns the number of renderable columns.
 
 ### countRenderableRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L450
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L450
 
 :::
 
@@ -152,7 +152,7 @@ Returns the number of renderable rows.
 
 ### getCellAtCoords
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L165
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L165
 
 :::
 
@@ -170,7 +170,7 @@ Returns td object given coordinates.
 
 ### getLastSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L1197
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L1197
 
 :::
 
@@ -182,7 +182,7 @@ Returns cached dimensions.
 
 ### render
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L128
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L128
 
 :::
 
@@ -194,7 +194,7 @@ Renders WalkontableUI.
 
 ### scrollViewport
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L185
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L185
 
 :::
 
@@ -215,7 +215,7 @@ Scroll viewport to a cell.
 
 ### scrollViewportHorizontally
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L197
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L197
 
 :::
 
@@ -234,7 +234,7 @@ Scroll viewport to a column.
 
 ### scrollViewportVertically
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L209
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L209
 
 :::
 
@@ -253,7 +253,7 @@ Scroll viewport to a row.
 
 ### setLastSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L1186
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L1186
 
 :::
 
@@ -271,7 +271,7 @@ Sets new dimensions of the container.
 
 ### translateFromRenderableToVisualCoords
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L384
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L384
 
 :::
 
@@ -288,7 +288,7 @@ Translate renderable cell coordinates to visual coordinates.
 
 ### translateFromRenderableToVisualIndex
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L396
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L396
 
 :::
 
@@ -306,7 +306,7 @@ Translate renderable row and column indexes to visual row and column indexes.
 
 ### updateCellHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/tableView.js#L1126
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/tableView.js#L1126
 
 :::
 

@@ -20,7 +20,7 @@ Command executor for ContextMenu.
 
 ### execute
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/commandExecutor.js#L43
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/commandExecutor.js#L43
 
 :::
 
@@ -38,7 +38,7 @@ Execute command by its name.
 
 ### registerCommand
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/commandExecutor.js#L24
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/commandExecutor.js#L24
 
 :::
 
@@ -56,7 +56,7 @@ Register command.
 
 ### setCommonCallback
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/commandExecutor.js#L33
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/commandExecutor.js#L33
 
 :::
 

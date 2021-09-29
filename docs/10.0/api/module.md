@@ -14,7 +14,7 @@ editLink: false
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/helpers/wrappers/jquery.js#L4
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/helpers/wrappers/jquery.js#L4
 
 :::
 
@@ -29,7 +29,7 @@ _module.[exports](@/api/exports.md)([Handsontable](@/api/core.md))_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/i18n/phraseFormatters/pluralize.js#L9
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/i18n/phraseFormatters/pluralize.js#L9
 
 :::
 
@@ -48,7 +48,7 @@ Try to choose plural form from available phrase propositions.
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/i18n/phraseFormatters/substituteVariables.js#L11
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/i18n/phraseFormatters/substituteVariables.js#L11
 
 :::
 
@@ -67,7 +67,7 @@ Try to substitute variable inside phrase propositions.
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/predefinedItems/alignment.js#L10
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/predefinedItems/alignment.js#L10
 
 :::
 
@@ -77,7 +77,7 @@ _module.[exports](@/api/exports.md)() ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/predefinedItems/clearColumn.js#L9
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/predefinedItems/clearColumn.js#L9
 
 :::
 
@@ -87,7 +87,7 @@ _module.[exports](@/api/exports.md)() ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/predefinedItems/columnLeft.js#L9
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/predefinedItems/columnLeft.js#L9
 
 :::
 
@@ -97,7 +97,7 @@ _module.[exports](@/api/exports.md)() ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/predefinedItems/columnRight.js#L10
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/predefinedItems/columnRight.js#L10
 
 :::
 
@@ -107,7 +107,7 @@ _module.[exports](@/api/exports.md)() ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/predefinedItems/noItems.js#L8
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/predefinedItems/noItems.js#L8
 
 :::
 
@@ -117,7 +117,7 @@ _module.[exports](@/api/exports.md)() ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/predefinedItems/readOnly.js#L10
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/predefinedItems/readOnly.js#L10
 
 :::
 
@@ -127,7 +127,7 @@ _module.[exports](@/api/exports.md)() ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/predefinedItems/redo.js#L8
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/predefinedItems/redo.js#L8
 
 :::
 
@@ -137,7 +137,7 @@ _module.[exports](@/api/exports.md)() ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/predefinedItems/removeColumn.js#L10
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/predefinedItems/removeColumn.js#L10
 
 :::
 
@@ -147,7 +147,7 @@ _module.[exports](@/api/exports.md)() ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/predefinedItems/removeRow.js#L10
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/predefinedItems/removeRow.js#L10
 
 :::
 
@@ -157,7 +157,7 @@ _module.[exports](@/api/exports.md)() ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/predefinedItems/rowAbove.js#L9
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/predefinedItems/rowAbove.js#L9
 
 :::
 
@@ -167,7 +167,7 @@ _module.[exports](@/api/exports.md)() ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/predefinedItems/rowBelow.js#L10
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/predefinedItems/rowBelow.js#L10
 
 :::
 
@@ -177,7 +177,7 @@ _module.[exports](@/api/exports.md)() ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/predefinedItems/separator.js#L6
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/predefinedItems/separator.js#L6
 
 :::
 
@@ -187,7 +187,7 @@ _module.[exports](@/api/exports.md)() ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/predefinedItems/undo.js#L8
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/predefinedItems/undo.js#L8
 
 :::
 
@@ -197,7 +197,7 @@ _module.[exports](@/api/exports.md)() ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/copyPaste/contextMenuItem/copy.js#L7
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/copyPaste/contextMenuItem/copy.js#L7
 
 :::
 
@@ -212,7 +212,7 @@ _module.[exports](@/api/exports.md)(copyPastePlugin) ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/copyPaste/contextMenuItem/cut.js#L7
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/copyPaste/contextMenuItem/cut.js#L7
 
 :::
 
@@ -227,7 +227,7 @@ _module.[exports](@/api/exports.md)(copyPastePlugin) ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/customBorders/contextMenuItem/bottom.js#L8
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/customBorders/contextMenuItem/bottom.js#L8
 
 :::
 
@@ -242,7 +242,7 @@ _module.[exports](@/api/exports.md)(customBordersPlugin) ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/customBorders/contextMenuItem/left.js#L8
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/customBorders/contextMenuItem/left.js#L8
 
 :::
 
@@ -257,7 +257,7 @@ _module.[exports](@/api/exports.md)(customBordersPlugin) ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/customBorders/contextMenuItem/noBorders.js#L8
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/customBorders/contextMenuItem/noBorders.js#L8
 
 :::
 
@@ -272,7 +272,7 @@ _module.[exports](@/api/exports.md)(customBordersPlugin) ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/customBorders/contextMenuItem/right.js#L8
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/customBorders/contextMenuItem/right.js#L8
 
 :::
 
@@ -287,7 +287,7 @@ _module.[exports](@/api/exports.md)(customBordersPlugin) ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/customBorders/contextMenuItem/top.js#L8
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/customBorders/contextMenuItem/top.js#L8
 
 :::
 
@@ -302,7 +302,7 @@ _module.[exports](@/api/exports.md)(customBordersPlugin) ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/exportFile/typeFactory.js#L17
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/exportFile/typeFactory.js#L17
 
 :::
 
@@ -319,7 +319,7 @@ _module.[exports](@/api/exports.md)(type, dataProvider, options) ⇒ BaseType | 
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/constants.js#L128
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/constants.js#L128
 
 :::
 
@@ -336,7 +336,7 @@ Get options list for conditional filter by data type (e.q: `'text'`, `'numeric'`
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/hiddenColumns/contextMenuItem/hideColumn.js#L7
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/hiddenColumns/contextMenuItem/hideColumn.js#L7
 
 :::
 
@@ -351,7 +351,7 @@ _module.[exports](@/api/exports.md)(hiddenColumnsPlugin) ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/hiddenColumns/contextMenuItem/showColumn.js#L8
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/hiddenColumns/contextMenuItem/showColumn.js#L8
 
 :::
 
@@ -366,7 +366,7 @@ _module.[exports](@/api/exports.md)(hiddenColumnsPlugin) ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/hiddenRows/contextMenuItem/hideRow.js#L7
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/hiddenRows/contextMenuItem/hideRow.js#L7
 
 :::
 
@@ -381,7 +381,7 @@ _module.[exports](@/api/exports.md)(hiddenRowsPlugin) ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/hiddenRows/contextMenuItem/showRow.js#L8
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/hiddenRows/contextMenuItem/showRow.js#L8
 
 :::
 
@@ -396,7 +396,7 @@ _module.[exports](@/api/exports.md)(hiddenRowsPlugin) ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/manualColumnFreeze/contextMenuItem/freezeColumn.js#L7
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/manualColumnFreeze/contextMenuItem/freezeColumn.js#L7
 
 :::
 
@@ -411,7 +411,7 @@ _module.[exports](@/api/exports.md)(manualColumnFreezePlugin) ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/manualColumnFreeze/contextMenuItem/unfreezeColumn.js#L7
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/manualColumnFreeze/contextMenuItem/unfreezeColumn.js#L7
 
 :::
 
@@ -426,7 +426,7 @@ _module.[exports](@/api/exports.md)(manualColumnFreezePlugin) ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/contextMenuItem/toggleMerge.js#L8
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/contextMenuItem/toggleMerge.js#L8
 
 :::
 
@@ -441,7 +441,7 @@ _module.[exports](@/api/exports.md)(plugin) ⇒ object_
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/sortingAlgorithms/mergeSort.js#L45
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/sortingAlgorithms/mergeSort.js#L45
 
 :::
 
@@ -462,7 +462,7 @@ Mergesort method which is recursively called for sorting the input array.
 
 ### exports
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/staticRegister.js#L7
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/staticRegister.js#L7
 
 :::
 

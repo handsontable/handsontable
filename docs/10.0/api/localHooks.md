@@ -14,7 +14,7 @@ editLink: false
 
 ### _localHooks
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/mixins/localHooks.js#L15
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/mixins/localHooks.js#L15
 
 :::
 
@@ -27,7 +27,7 @@ Internal hooks storage.
 
 ### addLocalHook
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/mixins/localHooks.js#L24
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/mixins/localHooks.js#L24
 
 :::
 
@@ -45,7 +45,7 @@ Add hook to the collection.
 
 ### clearLocalHooks
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/mixins/localHooks.js#L62
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/mixins/localHooks.js#L62
 
 :::
 
@@ -57,7 +57,7 @@ Clear all added hooks.
 
 ### runLocalHooks
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/mixins/localHooks.js#L44
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/mixins/localHooks.js#L44
 
 :::
 

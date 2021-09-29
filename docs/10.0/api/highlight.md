@@ -29,7 +29,7 @@ With Highlight object you can manipulate four different highlight types:
 
 ### activeHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L81
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L81
 
 :::
 
@@ -43,7 +43,7 @@ a row will be marked as `active-header`.
 
 ### areas
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L66
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L66
 
 :::
 
@@ -56,7 +56,7 @@ the multiple selected cells. It can occur multiple times on the table.
 
 ### cell
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L52
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L52
 
 :::
 
@@ -69,7 +69,7 @@ It can only occur only once on the table.
 
 ### customSelections
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L87
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L87
 
 :::
 
@@ -81,7 +81,7 @@ Collection of the `custom-selection`, holder for example borders added through C
 
 ### fill
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L59
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L59
 
 :::
 
@@ -94,7 +94,7 @@ It can only occur only once on the table.
 
 ### headers
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L73
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L73
 
 :::
 
@@ -107,7 +107,7 @@ the multiple selected rows and columns in the table header. It can occur multipl
 
 ### layerLevel
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L45
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L45
 
 :::
 
@@ -124,7 +124,7 @@ An order of the layers is the same as the order of added new non-consecutive sel
 
 ### options
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L34
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L34
 
 :::
 
@@ -137,7 +137,7 @@ Options consumed by Highlight class and Walkontable Selection classes.
 
 ### addCustomSelection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L248
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L248
 
 :::
 
@@ -154,7 +154,7 @@ Add selection to the custom selection instance. The new selection are added to t
 
 ### clear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L255
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L255
 
 :::
 
@@ -166,7 +166,7 @@ Perform cleaning visual highlights for the whole table.
 
 ### createOrGetActiveHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L210
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L210
 
 :::
 
@@ -179,7 +179,7 @@ of the multiple selected active header cells.
 
 ### createOrGetArea
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L150
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L150
 
 :::
 
@@ -192,7 +192,7 @@ of the multiple selected cells.
 
 ### createOrGetHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L180
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L180
 
 :::
 
@@ -205,7 +205,7 @@ of the multiple selected header cells.
 
 ### getActiveHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L230
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L230
 
 :::
 
@@ -217,7 +217,7 @@ Get all Walkontable Selection instances which describes the state of the visual 
 
 ### getAreas
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L170
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L170
 
 :::
 
@@ -229,7 +229,7 @@ Get all Walkontable Selection instances which describes the state of the visual 
 
 ### getCell
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L131
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L131
 
 :::
 
@@ -241,7 +241,7 @@ Get Walkontable Selection instance created for controlling highlight of the curr
 
 ### getCustomSelections
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L239
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L239
 
 :::
 
@@ -253,7 +253,7 @@ Get Walkontable Selection instance created for controlling highlight of the cust
 
 ### getFill
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L140
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L140
 
 :::
 
@@ -265,7 +265,7 @@ Get Walkontable Selection instance created for controlling highlight of the auto
 
 ### getHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L200
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L200
 
 :::
 
@@ -277,7 +277,7 @@ Get all Walkontable Selection instances which describes the state of the visual 
 
 ### isEnabledFor
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L97
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L97
 
 :::
 
@@ -295,7 +295,7 @@ Check if highlight cell rendering is disabled for specified highlight type.
 
 ### useLayerLevel
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/highlight/highlight.js#L120
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/highlight/highlight.js#L120
 
 :::
 

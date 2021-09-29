@@ -21,7 +21,7 @@ consecutive and non-consecutive selections.
 
 ### ranges
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/range.js#L17
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/range.js#L17
 
 :::
 
@@ -34,7 +34,7 @@ List of all CellRanges added to the class instance.
 
 ### add
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/range.js#L49
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/range.js#L49
 
 :::
 
@@ -51,7 +51,7 @@ Add coordinates to the class instance. The new coordinates are added to the end 
 
 ### clear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/range.js#L100
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/range.js#L100
 
 :::
 
@@ -63,7 +63,7 @@ Clear collection.
 
 ### current
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/range.js#L71
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/range.js#L71
 
 :::
 
@@ -75,7 +75,7 @@ Get last added coordinates from ranges, it returns a CellRange instance.
 
 ### includes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/range.js#L91
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/range.js#L91
 
 :::
 
@@ -93,7 +93,7 @@ the coords object is within selection range.
 
 ### isEmpty
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/range.js#L25
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/range.js#L25
 
 :::
 
@@ -105,7 +105,7 @@ Check if selected range is empty.
 
 ### peekByIndex
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/range.js#L121
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/range.js#L121
 
 :::
 
@@ -122,7 +122,7 @@ Peek the coordinates based on the offset where that coordinate resides in the co
 
 ### pop
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/range.js#L60
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/range.js#L60
 
 :::
 
@@ -134,7 +134,7 @@ Removes from the stack the last added coordinates.
 
 ### previous
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/range.js#L80
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/range.js#L80
 
 :::
 
@@ -146,7 +146,7 @@ Get previously added coordinates from ranges, it returns a CellRange instance.
 
 ### set
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/range.js#L36
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/range.js#L36
 
 :::
 
@@ -164,7 +164,7 @@ to the collection.
 
 ### size
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/range.js#L111
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/range.js#L111
 
 :::
 

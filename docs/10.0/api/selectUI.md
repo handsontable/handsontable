@@ -14,7 +14,7 @@ editLink: false
 
 ### items
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/select.js#L37
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/select.js#L37
 
 :::
 
@@ -26,7 +26,7 @@ List of available select options.
 
 ### menu
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/select.js#L31
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/select.js#L31
 
 :::
 
@@ -39,7 +39,7 @@ Instance of [Menu](@/api/menu.md).
 
 ### build
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/select.js#L79
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/select.js#L79
 
 :::
 
@@ -51,7 +51,7 @@ Build DOM structure.
 
 ### closeOptions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/select.js#L149
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/select.js#L149
 
 :::
 
@@ -63,7 +63,7 @@ Close select dropdown menu.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/select.js#L190
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/select.js#L190
 
 :::
 
@@ -75,7 +75,7 @@ Destroy instance.
 
 ### openOptions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/select.js#L132
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/select.js#L132
 
 :::
 
@@ -87,7 +87,7 @@ Open select dropdown menu with available options.
 
 ### registerHooks
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/select.js#L45
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/select.js#L45
 
 :::
 
@@ -99,7 +99,7 @@ Register all necessary hooks.
 
 ### setItems
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/select.js#L54
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/select.js#L54
 
 :::
 
@@ -116,7 +116,7 @@ Set options which can be selected in the list.
 
 ### translateNames
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/select.js#L68
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/select.js#L68
 
 :::
 
@@ -134,7 +134,7 @@ Translate names of menu items.
 
 ### update
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/select.js#L111
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/select.js#L111
 
 :::
 

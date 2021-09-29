@@ -15,7 +15,7 @@ editLink: false
 
 ### cellProperties
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/editorManager.js#L70
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/editorManager.js#L70
 
 :::
 
@@ -27,7 +27,7 @@ Keeps a reference to the cell's properties object.
 
 ### lastKeyCode
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/editorManager.js#L76
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/editorManager.js#L76
 
 :::
 
@@ -40,7 +40,7 @@ Keeps last keyCode pressed from the keydown event.
 
 ### closeEditor
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/editorManager.js#L234
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/editorManager.js#L234
 
 :::
 
@@ -59,7 +59,7 @@ Close editor, finish editing cell.
 
 ### closeEditorAndRestoreOriginalValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/editorManager.js#L257
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/editorManager.js#L257
 
 :::
 
@@ -76,7 +76,7 @@ Close editor and restore original value.
 
 ### closeEditorAndSaveChanges
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/editorManager.js#L248
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/editorManager.js#L248
 
 :::
 
@@ -93,7 +93,7 @@ Close editor and save changes.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/editorManager.js#L581
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/editorManager.js#L581
 
 :::
 
@@ -105,7 +105,7 @@ Destroy the instance.
 
 ### destroyEditor
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/editorManager.js#L124
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/editorManager.js#L124
 
 :::
 
@@ -122,7 +122,7 @@ Destroy current editor, if exists.
 
 ### getActiveEditor
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/editorManager.js#L135
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/editorManager.js#L135
 
 :::
 
@@ -134,7 +134,7 @@ Get active editor.
 
 ### getInstance
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/editorManager.js#L595
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/editorManager.js#L595
 
 :::
 
@@ -151,7 +151,7 @@ _EditorManager.getInstance(hotInstance, tableMeta, selection) ⇒ [EditorManager
 
 ### isEditorOpened
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/editorManager.js#L209
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/editorManager.js#L209
 
 :::
 
@@ -163,7 +163,7 @@ Check is editor is opened/showed.
 
 ### lockEditor
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/editorManager.js#L106
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/editorManager.js#L106
 
 :::
 
@@ -176,7 +176,7 @@ reinitialized after selecting the new cell. This feature is necessary for a mobi
 
 ### openEditor
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/editorManager.js#L219
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/editorManager.js#L219
 
 :::
 
@@ -194,7 +194,7 @@ Open editor with initial value.
 
 ### prepareEditor
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/editorManager.js#L142
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/editorManager.js#L142
 
 :::
 
@@ -206,7 +206,7 @@ Prepare text input to be displayed at given grid cell.
 
 ### unlockEditor
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/editorManager.js#L114
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/editorManager.js#L114
 
 :::
 

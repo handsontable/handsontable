@@ -15,7 +15,7 @@ editLink: false
 
 ### highlight
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L79
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L79
 
 :::
 
@@ -27,7 +27,7 @@ Visualization layer.
 
 ### inProgress
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L47
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L47
 
 :::
 
@@ -39,7 +39,7 @@ The flag which determines if the selection is in progress.
 
 ### selectedByColumnHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L67
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L67
 
 :::
 
@@ -52,7 +52,7 @@ the corner header.
 
 ### selectedByCorner
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L53
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L53
 
 :::
 
@@ -64,7 +64,7 @@ The flag indicates that selection was performed by clicking the corner overlay.
 
 ### selectedByRowHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L60
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L60
 
 :::
 
@@ -77,7 +77,7 @@ the corner header.
 
 ### selectedRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L73
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L73
 
 :::
 
@@ -89,7 +89,7 @@ Selection data layer (handle visual coordinates).
 
 ### settings
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L35
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L35
 
 :::
 
@@ -101,7 +101,7 @@ Handsontable settings instance.
 
 ### tableProps
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L41
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L41
 
 :::
 
@@ -113,7 +113,7 @@ An additional object with dynamically defined properties which describes table s
 
 ### transformation
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L95
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L95
 
 :::
 
@@ -126,7 +126,7 @@ The module for modifying coordinates.
 
 ### add
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L52
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L52
 
 :::
 
@@ -143,7 +143,7 @@ Adds a cell coords to the selection.
 
 ### addClassAtCoords
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L127
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L127
 
 :::
 
@@ -164,7 +164,7 @@ Adds class name to cell element at given coords.
 
 ### begin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L133
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L133
 
 :::
 
@@ -176,7 +176,7 @@ Indicate that selection process began. It sets internaly `.inProgress` property 
 
 ### clear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L93
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L93
 
 :::
 
@@ -188,7 +188,7 @@ Clears selection.
 
 ### clear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L503
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L503
 
 :::
 
@@ -200,7 +200,7 @@ Clear the selection by resetting the collected ranges and highlights.
 
 ### deselect
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L512
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L512
 
 :::
 
@@ -212,7 +212,7 @@ Deselects all selected cells.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L348
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L348
 
 :::
 
@@ -224,7 +224,7 @@ Cleans up all the DOM state related to a Selection instance. Call this prior to 
 
 ### draw
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L187
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L187
 
 :::
 
@@ -239,7 +239,7 @@ _selection.draw(wotInstance)_
 
 ### finish
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L140
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L140
 
 :::
 
@@ -251,7 +251,7 @@ Indicate that selection process finished. It sets internaly `.inProgress` proper
 
 ### getBorder
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L29
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L29
 
 :::
 
@@ -269,7 +269,7 @@ borders per instance.
 
 ### getCorners
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L104
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L104
 
 :::
 
@@ -282,7 +282,7 @@ Returns the top left (TL) and bottom right (BR) selection coordinates.
 
 ### getLayerLevel
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L386
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L386
 
 :::
 
@@ -295,7 +295,7 @@ Returns currently used layer level.
 
 ### getSelectedRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L126
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L126
 
 :::
 
@@ -307,7 +307,7 @@ Get data layer for current selection.
 
 ### inInSelection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L472
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L472
 
 :::
 
@@ -325,7 +325,7 @@ the coords object is within selection range.
 
 ### isAreaCornerVisible
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L492
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L492
 
 :::
 
@@ -343,7 +343,7 @@ Returns `true` if the area corner should be visible.
 
 ### isEmpty
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L42
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L42
 
 :::
 
@@ -355,7 +355,7 @@ Checks if selection is empty.
 
 ### isEntireColumnSelected
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L441
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L441
 
 :::
 
@@ -373,7 +373,7 @@ argument is passed then only that layer will be checked. Otherwise, it checks th
 
 ### isEntireRowSelected
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L418
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L418
 
 :::
 
@@ -391,7 +391,7 @@ argument is passed then only that layer will be checked. Otherwise, it checks th
 
 ### isInProgress
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L150
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L150
 
 :::
 
@@ -403,7 +403,7 @@ Check if the process of selecting the cell/cells is in progress.
 
 ### isMultiple
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L351
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L351
 
 :::
 
@@ -416,7 +416,7 @@ the selection.
 
 ### isSelected
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L395
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L395
 
 :::
 
@@ -428,7 +428,7 @@ Returns `true` if currently there is a selection on the screen, `false` otherwis
 
 ### isSelectedByAnyHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L450
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L450
 
 :::
 
@@ -440,7 +440,7 @@ Returns `true` if the selection was applied by clicking on the row or column hea
 
 ### isSelectedByColumnHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L430
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L430
 
 :::
 
@@ -459,7 +459,7 @@ was clicked on any selection layer level.
 
 ### isSelectedByCorner
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L461
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L461
 
 :::
 
@@ -471,7 +471,7 @@ Returns `true` if the selection was applied by clicking on the left-top corner o
 
 ### isSelectedByRowHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L407
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L407
 
 :::
 
@@ -490,7 +490,7 @@ was clicked on any selection layer level.
 
 ### linearClassNameGenerator
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L157
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L157
 
 :::
 
@@ -511,7 +511,7 @@ the element doesn't have any classNames than the base className will be returned
 
 ### refresh
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L658
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L658
 
 :::
 
@@ -523,7 +523,7 @@ Rewrite the rendered state of the selection as visual selection may have a new r
 
 ### replace
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L71
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L71
 
 :::
 
@@ -542,7 +542,7 @@ information about success.
 
 ### selectAll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L530
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L530
 
 :::
 
@@ -560,7 +560,7 @@ Select all cells.
 
 ### selectCells
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L558
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L558
 
 :::
 
@@ -581,7 +581,7 @@ If the passed ranges have another format the exception will be thrown.
 
 ### selectColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L614
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L614
 
 :::
 
@@ -602,7 +602,7 @@ Select column specified by `startColumn` visual index or column property or a ra
 
 ### selectRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L641
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L641
 
 :::
 
@@ -622,7 +622,7 @@ Select row specified by `startRow` visual index or a range of rows finishing at 
 
 ### setRangeEnd
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L214
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L214
 
 :::
 
@@ -639,7 +639,7 @@ Ends selection range on given coordinate object.
 
 ### setRangeStart
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L164
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L164
 
 :::
 
@@ -658,7 +658,7 @@ Starts selection range on given coordinate object.
 
 ### setRangeStartOnly
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L205
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L205
 
 :::
 
@@ -676,7 +676,7 @@ Starts selection range on given coordinate object.
 
 ### transformEnd
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L377
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L377
 
 :::
 
@@ -694,7 +694,7 @@ Sets selection end cell relative to the current selection end cell (if possible)
 
 ### transformStart
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L367
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L367
 
 :::
 
@@ -715,7 +715,7 @@ Selects cell relative to the current cell (if possible).
 
 ### highlight
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L79
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L79
 
 :::
 
@@ -727,7 +727,7 @@ Visualization layer.
 
 ### inProgress
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L47
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L47
 
 :::
 
@@ -739,7 +739,7 @@ The flag which determines if the selection is in progress.
 
 ### selectedByColumnHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L67
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L67
 
 :::
 
@@ -752,7 +752,7 @@ the corner header.
 
 ### selectedByCorner
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L53
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L53
 
 :::
 
@@ -764,7 +764,7 @@ The flag indicates that selection was performed by clicking the corner overlay.
 
 ### selectedByRowHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L60
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L60
 
 :::
 
@@ -777,7 +777,7 @@ the corner header.
 
 ### selectedRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L73
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L73
 
 :::
 
@@ -789,7 +789,7 @@ Selection data layer (handle visual coordinates).
 
 ### settings
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L35
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L35
 
 :::
 
@@ -801,7 +801,7 @@ Handsontable settings instance.
 
 ### tableProps
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L41
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L41
 
 :::
 
@@ -813,7 +813,7 @@ An additional object with dynamically defined properties which describes table s
 
 ### transformation
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L95
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L95
 
 :::
 
@@ -826,7 +826,7 @@ The module for modifying coordinates.
 
 ### add
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L52
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L52
 
 :::
 
@@ -843,7 +843,7 @@ Adds a cell coords to the selection.
 
 ### addClassAtCoords
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L127
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L127
 
 :::
 
@@ -864,7 +864,7 @@ Adds class name to cell element at given coords.
 
 ### begin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L133
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L133
 
 :::
 
@@ -876,7 +876,7 @@ Indicate that selection process began. It sets internaly `.inProgress` property 
 
 ### clear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L93
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L93
 
 :::
 
@@ -888,7 +888,7 @@ Clears selection.
 
 ### clear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L503
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L503
 
 :::
 
@@ -900,7 +900,7 @@ Clear the selection by resetting the collected ranges and highlights.
 
 ### deselect
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L512
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L512
 
 :::
 
@@ -912,7 +912,7 @@ Deselects all selected cells.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L348
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L348
 
 :::
 
@@ -924,7 +924,7 @@ Cleans up all the DOM state related to a Selection instance. Call this prior to 
 
 ### draw
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L187
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L187
 
 :::
 
@@ -939,7 +939,7 @@ _selection.draw(wotInstance)_
 
 ### finish
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L140
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L140
 
 :::
 
@@ -951,7 +951,7 @@ Indicate that selection process finished. It sets internaly `.inProgress` proper
 
 ### getBorder
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L29
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L29
 
 :::
 
@@ -969,7 +969,7 @@ borders per instance.
 
 ### getCorners
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L104
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L104
 
 :::
 
@@ -982,7 +982,7 @@ Returns the top left (TL) and bottom right (BR) selection coordinates.
 
 ### getLayerLevel
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L386
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L386
 
 :::
 
@@ -995,7 +995,7 @@ Returns currently used layer level.
 
 ### getSelectedRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L126
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L126
 
 :::
 
@@ -1007,7 +1007,7 @@ Get data layer for current selection.
 
 ### inInSelection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L472
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L472
 
 :::
 
@@ -1025,7 +1025,7 @@ the coords object is within selection range.
 
 ### isAreaCornerVisible
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L492
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L492
 
 :::
 
@@ -1043,7 +1043,7 @@ Returns `true` if the area corner should be visible.
 
 ### isEmpty
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L42
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L42
 
 :::
 
@@ -1055,7 +1055,7 @@ Checks if selection is empty.
 
 ### isEntireColumnSelected
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L441
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L441
 
 :::
 
@@ -1073,7 +1073,7 @@ argument is passed then only that layer will be checked. Otherwise, it checks th
 
 ### isEntireRowSelected
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L418
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L418
 
 :::
 
@@ -1091,7 +1091,7 @@ argument is passed then only that layer will be checked. Otherwise, it checks th
 
 ### isInProgress
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L150
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L150
 
 :::
 
@@ -1103,7 +1103,7 @@ Check if the process of selecting the cell/cells is in progress.
 
 ### isMultiple
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L351
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L351
 
 :::
 
@@ -1116,7 +1116,7 @@ the selection.
 
 ### isSelected
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L395
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L395
 
 :::
 
@@ -1128,7 +1128,7 @@ Returns `true` if currently there is a selection on the screen, `false` otherwis
 
 ### isSelectedByAnyHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L450
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L450
 
 :::
 
@@ -1140,7 +1140,7 @@ Returns `true` if the selection was applied by clicking on the row or column hea
 
 ### isSelectedByColumnHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L430
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L430
 
 :::
 
@@ -1159,7 +1159,7 @@ was clicked on any selection layer level.
 
 ### isSelectedByCorner
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L461
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L461
 
 :::
 
@@ -1171,7 +1171,7 @@ Returns `true` if the selection was applied by clicking on the left-top corner o
 
 ### isSelectedByRowHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L407
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L407
 
 :::
 
@@ -1190,7 +1190,7 @@ was clicked on any selection layer level.
 
 ### linearClassNameGenerator
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L157
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L157
 
 :::
 
@@ -1211,7 +1211,7 @@ the element doesn't have any classNames than the base className will be returned
 
 ### refresh
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L658
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L658
 
 :::
 
@@ -1223,7 +1223,7 @@ Rewrite the rendered state of the selection as visual selection may have a new r
 
 ### replace
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L71
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L71
 
 :::
 
@@ -1242,7 +1242,7 @@ information about success.
 
 ### selectAll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L530
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L530
 
 :::
 
@@ -1260,7 +1260,7 @@ Select all cells.
 
 ### selectCells
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L558
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L558
 
 :::
 
@@ -1281,7 +1281,7 @@ If the passed ranges have another format the exception will be thrown.
 
 ### selectColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L614
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L614
 
 :::
 
@@ -1302,7 +1302,7 @@ Select column specified by `startColumn` visual index or column property or a ra
 
 ### selectRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L641
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L641
 
 :::
 
@@ -1322,7 +1322,7 @@ Select row specified by `startRow` visual index or a range of rows finishing at 
 
 ### setRangeEnd
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L214
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L214
 
 :::
 
@@ -1339,7 +1339,7 @@ Ends selection range on given coordinate object.
 
 ### setRangeStart
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L164
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L164
 
 :::
 
@@ -1358,7 +1358,7 @@ Starts selection range on given coordinate object.
 
 ### setRangeStartOnly
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L205
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L205
 
 :::
 
@@ -1376,7 +1376,7 @@ Starts selection range on given coordinate object.
 
 ### transformEnd
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L377
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L377
 
 :::
 
@@ -1394,7 +1394,7 @@ Sets selection end cell relative to the current selection end cell (if possible)
 
 ### transformStart
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L367
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L367
 
 :::
 
@@ -1415,7 +1415,7 @@ Selects cell relative to the current cell (if possible).
 
 ### highlight
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L79
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L79
 
 :::
 
@@ -1427,7 +1427,7 @@ Visualization layer.
 
 ### inProgress
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L47
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L47
 
 :::
 
@@ -1439,7 +1439,7 @@ The flag which determines if the selection is in progress.
 
 ### selectedByColumnHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L67
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L67
 
 :::
 
@@ -1452,7 +1452,7 @@ the corner header.
 
 ### selectedByCorner
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L53
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L53
 
 :::
 
@@ -1464,7 +1464,7 @@ The flag indicates that selection was performed by clicking the corner overlay.
 
 ### selectedByRowHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L60
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L60
 
 :::
 
@@ -1477,7 +1477,7 @@ the corner header.
 
 ### selectedRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L73
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L73
 
 :::
 
@@ -1489,7 +1489,7 @@ Selection data layer (handle visual coordinates).
 
 ### settings
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L35
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L35
 
 :::
 
@@ -1501,7 +1501,7 @@ Handsontable settings instance.
 
 ### tableProps
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L41
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L41
 
 :::
 
@@ -1513,7 +1513,7 @@ An additional object with dynamically defined properties which describes table s
 
 ### transformation
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L95
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L95
 
 :::
 
@@ -1526,7 +1526,7 @@ The module for modifying coordinates.
 
 ### add
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L52
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L52
 
 :::
 
@@ -1543,7 +1543,7 @@ Adds a cell coords to the selection.
 
 ### addClassAtCoords
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L127
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L127
 
 :::
 
@@ -1564,7 +1564,7 @@ Adds class name to cell element at given coords.
 
 ### begin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L133
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L133
 
 :::
 
@@ -1576,7 +1576,7 @@ Indicate that selection process began. It sets internaly `.inProgress` property 
 
 ### clear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L93
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L93
 
 :::
 
@@ -1588,7 +1588,7 @@ Clears selection.
 
 ### clear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L503
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L503
 
 :::
 
@@ -1600,7 +1600,7 @@ Clear the selection by resetting the collected ranges and highlights.
 
 ### deselect
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L512
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L512
 
 :::
 
@@ -1612,7 +1612,7 @@ Deselects all selected cells.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L348
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L348
 
 :::
 
@@ -1624,7 +1624,7 @@ Cleans up all the DOM state related to a Selection instance. Call this prior to 
 
 ### draw
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L187
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L187
 
 :::
 
@@ -1639,7 +1639,7 @@ _selection.draw(wotInstance)_
 
 ### finish
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L140
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L140
 
 :::
 
@@ -1651,7 +1651,7 @@ Indicate that selection process finished. It sets internaly `.inProgress` proper
 
 ### getBorder
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L29
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L29
 
 :::
 
@@ -1669,7 +1669,7 @@ borders per instance.
 
 ### getCorners
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L104
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L104
 
 :::
 
@@ -1682,7 +1682,7 @@ Returns the top left (TL) and bottom right (BR) selection coordinates.
 
 ### getLayerLevel
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L386
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L386
 
 :::
 
@@ -1695,7 +1695,7 @@ Returns currently used layer level.
 
 ### getSelectedRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L126
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L126
 
 :::
 
@@ -1707,7 +1707,7 @@ Get data layer for current selection.
 
 ### inInSelection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L472
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L472
 
 :::
 
@@ -1725,7 +1725,7 @@ the coords object is within selection range.
 
 ### isAreaCornerVisible
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L492
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L492
 
 :::
 
@@ -1743,7 +1743,7 @@ Returns `true` if the area corner should be visible.
 
 ### isEmpty
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L42
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L42
 
 :::
 
@@ -1755,7 +1755,7 @@ Checks if selection is empty.
 
 ### isEntireColumnSelected
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L441
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L441
 
 :::
 
@@ -1773,7 +1773,7 @@ argument is passed then only that layer will be checked. Otherwise, it checks th
 
 ### isEntireRowSelected
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L418
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L418
 
 :::
 
@@ -1791,7 +1791,7 @@ argument is passed then only that layer will be checked. Otherwise, it checks th
 
 ### isInProgress
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L150
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L150
 
 :::
 
@@ -1803,7 +1803,7 @@ Check if the process of selecting the cell/cells is in progress.
 
 ### isMultiple
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L351
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L351
 
 :::
 
@@ -1816,7 +1816,7 @@ the selection.
 
 ### isSelected
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L395
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L395
 
 :::
 
@@ -1828,7 +1828,7 @@ Returns `true` if currently there is a selection on the screen, `false` otherwis
 
 ### isSelectedByAnyHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L450
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L450
 
 :::
 
@@ -1840,7 +1840,7 @@ Returns `true` if the selection was applied by clicking on the row or column hea
 
 ### isSelectedByColumnHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L430
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L430
 
 :::
 
@@ -1859,7 +1859,7 @@ was clicked on any selection layer level.
 
 ### isSelectedByCorner
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L461
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L461
 
 :::
 
@@ -1871,7 +1871,7 @@ Returns `true` if the selection was applied by clicking on the left-top corner o
 
 ### isSelectedByRowHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L407
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L407
 
 :::
 
@@ -1890,7 +1890,7 @@ was clicked on any selection layer level.
 
 ### linearClassNameGenerator
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L157
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L157
 
 :::
 
@@ -1911,7 +1911,7 @@ the element doesn't have any classNames than the base className will be returned
 
 ### refresh
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L658
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L658
 
 :::
 
@@ -1923,7 +1923,7 @@ Rewrite the rendered state of the selection as visual selection may have a new r
 
 ### replace
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/selection.js#L71
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/selection.js#L71
 
 :::
 
@@ -1942,7 +1942,7 @@ information about success.
 
 ### selectAll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L530
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L530
 
 :::
 
@@ -1960,7 +1960,7 @@ Select all cells.
 
 ### selectCells
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L558
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L558
 
 :::
 
@@ -1981,7 +1981,7 @@ If the passed ranges have another format the exception will be thrown.
 
 ### selectColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L614
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L614
 
 :::
 
@@ -2002,7 +2002,7 @@ Select column specified by `startColumn` visual index or column property or a ra
 
 ### selectRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L641
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L641
 
 :::
 
@@ -2022,7 +2022,7 @@ Select row specified by `startRow` visual index or a range of rows finishing at 
 
 ### setRangeEnd
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L214
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L214
 
 :::
 
@@ -2039,7 +2039,7 @@ Ends selection range on given coordinate object.
 
 ### setRangeStart
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L164
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L164
 
 :::
 
@@ -2058,7 +2058,7 @@ Starts selection range on given coordinate object.
 
 ### setRangeStartOnly
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L205
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L205
 
 :::
 
@@ -2076,7 +2076,7 @@ Starts selection range on given coordinate object.
 
 ### transformEnd
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L377
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L377
 
 :::
 
@@ -2094,7 +2094,7 @@ Sets selection end cell relative to the current selection end cell (if possible)
 
 ### transformStart
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/selection/selection.js#L367
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/selection/selection.js#L367
 
 :::
 

@@ -20,7 +20,7 @@ Class used to make all endpoint-related operations.
 
 ### currentEndpoint
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L49
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L49
 
 :::
 
@@ -33,7 +33,7 @@ The current endpoint (calculation destination point) in question.
 
 ### endpoints
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L28
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L28
 
 :::
 
@@ -46,7 +46,7 @@ Array of declared plugin endpoints (calculation destination points).
 
 ### hot
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L21
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L21
 
 :::
 
@@ -58,7 +58,7 @@ Handsontable instance.
 
 ### plugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L15
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L15
 
 :::
 
@@ -70,7 +70,7 @@ The main plugin instance.
 
 ### settings
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L35
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L35
 
 :::
 
@@ -83,7 +83,7 @@ The plugin settings, taken from Handsontable configuration.
 
 ### settingsType
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L42
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L42
 
 :::
 
@@ -97,7 +97,7 @@ Settings type. Can be either 'array' or 'function.
 
 ### assignSetting
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L152
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L152
 
 :::
 
@@ -117,7 +117,7 @@ Setter for the internal setting objects.
 
 ### getAllEndpoints
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L79
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L79
 
 :::
 
@@ -129,7 +129,7 @@ Get an array with all the endpoints.
 
 ### getEndpoint
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L66
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L66
 
 :::
 
@@ -146,7 +146,7 @@ Get a single endpoint object.
 
 ### parseSettings
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L104
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L104
 
 :::
 
@@ -163,7 +163,7 @@ Parse plugin's settings.
 
 ### refreshAllEndpoints
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L435
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L435
 
 :::
 
@@ -175,7 +175,7 @@ Calculate and refresh all defined endpoints.
 
 ### refreshChangedEndpoints
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L455
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L455
 
 :::
 
@@ -192,7 +192,7 @@ Calculate and refresh endpoints only in the changed columns.
 
 ### refreshEndpoint
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L486
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L486
 
 :::
 
@@ -209,7 +209,7 @@ Calculate and refresh a single endpoint.
 
 ### resetAllEndpoints
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L404
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L404
 
 :::
 
@@ -227,7 +227,7 @@ Resets (removes) the endpoints from the table.
 
 ### resetEndpointValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L499
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L499
 
 :::
 
@@ -245,7 +245,7 @@ Reset the endpoint value.
 
 ### setEndpointValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSummary/endpoints.js#L529
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSummary/endpoints.js#L529
 
 :::
 

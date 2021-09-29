@@ -20,7 +20,7 @@ Class responsible for all of the Selection-related operations on merged cells.
 
 ### fullySelectedMergedCellClassName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/calculations/selection.js#L23
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/calculations/selection.js#L23
 
 :::
 
@@ -32,7 +32,7 @@ Class name used for fully selected merged cells.
 
 ### plugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/calculations/selection.js#L17
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/calculations/selection.js#L17
 
 :::
 
@@ -45,7 +45,7 @@ Reference to the Merge Cells plugin.
 
 ### getSelectedMergedCellClassName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/calculations/selection.js#L116
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/calculations/selection.js#L116
 
 :::
 
@@ -66,7 +66,7 @@ Generate an additional class name for the entirely-selected merged cells.
 
 ### getSelectedMergedCellClassNameToRemove
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/calculations/selection.js#L194
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/calculations/selection.js#L194
 
 :::
 
@@ -79,7 +79,7 @@ Generate an array of the entirely-selected merged cells' class names.
 
 ### getUpdatedSelectionRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/calculations/selection.js#L99
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/calculations/selection.js#L99
 
 :::
 
@@ -98,7 +98,7 @@ Get a selection range with `to` property incremented by the provided delta.
 
 ### isMergeCellFullySelected
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/calculations/selection.js#L161
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/calculations/selection.js#L161
 
 :::
 
@@ -116,7 +116,7 @@ Check if the provided merged cell is fully selected (by one or many layers of se
 
 ### snapDelta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/mergeCells/calculations/selection.js#L35
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/mergeCells/calculations/selection.js#L35
 
 :::
 

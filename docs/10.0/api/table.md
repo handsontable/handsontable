@@ -15,7 +15,7 @@ editLink: false
 
 ### hasTableHeight
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L59
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L59
 
 :::
 
@@ -27,7 +27,7 @@ Indicates if the table has height bigger than 0px.
 
 ### hasTableWidth
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L65
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L65
 
 :::
 
@@ -39,7 +39,7 @@ Indicates if the table has width bigger than 0px.
 
 ### isMaster
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L43
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L43
 
 :::
 
@@ -51,7 +51,7 @@ Indicates if this instance is of type `MasterTable` (i.e. It is NOT an overlay).
 
 ### isTableVisible
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L72
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L72
 
 :::
 
@@ -65,7 +65,7 @@ element has CSS 'display' property different than 'none'.
 
 ### adjustColumnHeaderHeights
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L436
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L436
 
 :::
 
@@ -75,7 +75,7 @@ _table.adjustColumnHeaderHeights()_
 
 ### createHider
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L177
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L177
 
 :::
 
@@ -90,7 +90,7 @@ _table.createHider(spreader) ⇒ HTMLElement_
 
 ### createHolder
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L200
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L200
 
 :::
 
@@ -105,7 +105,7 @@ _table.createHolder(hider) ⇒ HTMLElement_
 
 ### createSpreader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L154
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L154
 
 :::
 
@@ -120,7 +120,7 @@ _table.createSpreader(table) ⇒ HTMLElement_
 
 ### draw
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L229
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L229
 
 :::
 
@@ -137,7 +137,7 @@ Redraws the table.
 
 ### fixTableDomTree
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L123
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L123
 
 :::
 
@@ -147,7 +147,7 @@ _table.fixTableDomTree()_
 
 ### getCell
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L571
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L571
 
 :::
 
@@ -178,7 +178,7 @@ the method returns the error code for the row.
 
 ### getColumnHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L625
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L625
 
 :::
 
@@ -197,7 +197,7 @@ GetColumnHeader.
 
 ### getColumnHeaderHeight
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L1036
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L1036
 
 :::
 
@@ -212,7 +212,7 @@ _table.getColumnHeaderHeight(level) ⇒ number_
 
 ### getColumnHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L637
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L637
 
 :::
 
@@ -229,7 +229,7 @@ Gets all columns headers (TH elements) from the table.
 
 ### getColumnWidth
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L1044
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L1044
 
 :::
 
@@ -244,7 +244,7 @@ _table.getColumnWidth(sourceColumn) ⇒ number_
 
 ### getCoords
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L707
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L707
 
 :::
 
@@ -262,7 +262,7 @@ Returns cell coords object for a given TD (or a child element of a TD element).
 
 ### getRowHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L659
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L659
 
 :::
 
@@ -281,7 +281,7 @@ GetRowHeader.
 
 ### getRowHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L681
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L681
 
 :::
 
@@ -298,7 +298,7 @@ Gets all rows headers (TH elements) from the table.
 
 ### getRowHeight
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L1028
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L1028
 
 :::
 
@@ -315,7 +315,7 @@ Checks if any of the row's cells content exceeds its initial height, and if so, 
 
 ### getStretchedColumnWidth
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L1052
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L1052
 
 :::
 
@@ -330,7 +330,7 @@ _table.getStretchedColumnWidth(sourceColumn) ⇒ number_
 
 ### getTrForRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L800
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L800
 
 :::
 
@@ -345,7 +345,7 @@ _table.getTrForRow(row) ⇒ HTMLTableElement_
 
 ### hasDefinedSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L1062
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L1062
 
 :::
 
@@ -358,7 +358,7 @@ set bigger than `0px`.
 
 ### is
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L116
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L116
 
 :::
 
@@ -376,7 +376,7 @@ For MasterTable, it returns false.
 
 ### isColumnAfterRenderedColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L959
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L959
 
 :::
 
@@ -415,7 +415,7 @@ lower than -1.
 
 ### isColumnBeforeRenderedColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L918
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L918
 
 :::
 
@@ -451,7 +451,7 @@ Negative column index is used to check the rows' headers.
 
 ### isColumnHeaderRendered
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L810
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L810
 
 :::
 
@@ -468,7 +468,7 @@ Checks if the column index (negative value from -1 to N) is rendered.
 
 ### isRowAfterRenderedRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L881
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L881
 
 :::
 
@@ -508,7 +508,7 @@ lower than -1.
 
 ### isRowBeforeRenderedRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L839
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L839
 
 :::
 
@@ -545,7 +545,7 @@ Negative row index is used to check the columns' headers.
 
 ### isRowHeaderRendered
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L827
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L827
 
 :::
 
@@ -562,7 +562,7 @@ Checks if the row index (negative value from -1 to N) is rendered.
 
 ### isVisible
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L1072
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L1072
 
 :::
 
@@ -575,7 +575,7 @@ has CSS 'display' property different than 'none'.
 
 ### markIfOversizedColumnHeader
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L391
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L391
 
 :::
 
@@ -590,7 +590,7 @@ _table.markIfOversizedColumnHeader(col)_
 
 ### markOversizedRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L757
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L757
 
 :::
 
@@ -602,7 +602,7 @@ Check if any of the rendered rows is higher than expected, and if so, cache them
 
 ### refreshSelections
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L493
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L493
 
 :::
 
@@ -619,7 +619,7 @@ Refresh the table selection by re-rendering Selection instances connected with t
 
 ### removeClassFromCells
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L480
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L480
 
 :::
 
@@ -634,7 +634,7 @@ _table.removeClassFromCells(className)_
 
 ### resetOversizedRows
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table.js#L456
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table.js#L456
 
 :::
 

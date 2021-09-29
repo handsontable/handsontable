@@ -14,7 +14,7 @@ editLink: false
 
 ### delay
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/interval.js#L28
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/interval.js#L28
 
 :::
 
@@ -26,7 +26,7 @@ Number of milliseconds that function should wait before next call.
 
 ### func
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/interval.js#L24
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/interval.js#L24
 
 :::
 
@@ -38,7 +38,7 @@ Function to invoke repeatedly.
 
 ### stopped
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/interval.js#L35
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/interval.js#L35
 
 :::
 
@@ -51,7 +51,7 @@ Flag which indicates if interval object was stopped.
 
 ### timer
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/interval.js#L18
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/interval.js#L18
 
 :::
 
@@ -64,7 +64,7 @@ Animation frame request id.
 
 ### start
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/interval.js#L57
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/interval.js#L57
 
 :::
 
@@ -76,7 +76,7 @@ Start loop.
 
 ### stop
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/interval.js#L72
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/interval.js#L72
 
 :::
 
