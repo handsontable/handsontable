@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const DOCS_VERSION = process.env.DOCS_VERSION || '**';
 
 const apiHighLevelPages = [
   'introduction',
@@ -27,7 +28,7 @@ const { getLatestVersion } = require('../../.vuepress/helpers');
 const getUrlVersionPart = () => {
   const version = path.resolve(__dirname, '../').split('/').pop();
 
-  return getLatestVersion() === version ? '' : `/${version}`;
+  return getLatestVersion() === version || DOCS_VERSION !== '**' ? '' : `/${version}`;
 };
 
 module.exports = {
