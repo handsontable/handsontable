@@ -20,7 +20,7 @@ Store and manages states of sorted columns.
 
 ### compareFunctionFactory
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L52
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L52
 
 :::
 
@@ -32,7 +32,7 @@ Determines compare function factory. Method get as parameters `sortOder` and `co
 
 ### headerAction
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L48
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L48
 
 :::
 
@@ -44,7 +44,7 @@ Determines whether click on the header perform sorting.
 
 ### hot
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L24
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L24
 
 :::
 
@@ -56,7 +56,7 @@ Handsontable instance.
 
 ### indicator
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L42
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L42
 
 :::
 
@@ -68,7 +68,7 @@ Determines whether indicator should be visible (for sorted columns).
 
 ### mapName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L58
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L58
 
 :::
 
@@ -82,7 +82,7 @@ Objects are destroyed in strange order as the updateSettings doesn't work well.
 
 ### sortEmptyCells
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L36
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L36
 
 :::
 
@@ -94,7 +94,7 @@ Determines whether we should sort empty cells.
 
 ### sortingStates
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L30
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L30
 
 :::
 
@@ -107,7 +107,7 @@ Index map storing sorting states for every column. ColumnStatesManager write and
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L206
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L206
 
 :::
 
@@ -119,7 +119,7 @@ Destroy the state manager.
 
 ### getAllColumnsProperties
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L87
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L87
 
 :::
 
@@ -131,7 +131,7 @@ Get all column properties which affect the sorting result.
 
 ### getColumnSortState
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L177
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L177
 
 :::
 
@@ -150,7 +150,7 @@ Get sort state for particular column. Object contains `column` and `sortOrder` p
 
 ### getIndexOfColumnInSortQueue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L117
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L117
 
 :::
 
@@ -167,7 +167,7 @@ Get order of particular column in the states queue.
 
 ### getNumberOfSortedColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L128
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L128
 
 :::
 
@@ -179,7 +179,7 @@ Get number of sorted columns.
 
 ### getSortOrderOfColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L107
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L107
 
 :::
 
@@ -197,7 +197,7 @@ Get sort order of column.
 
 ### getSortStates
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L158
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L158
 
 :::
 
@@ -211,7 +211,7 @@ Queue of sort states containing sorted columns and their orders (Array of object
 
 ### isColumnSorted
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L147
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L147
 
 :::
 
@@ -228,7 +228,7 @@ Get if particular column is sorted.
 
 ### isListOfSortedColumnsEmpty
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L137
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L137
 
 :::
 
@@ -240,7 +240,7 @@ Get if list of sorted columns is empty.
 
 ### setSortStates
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L193
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L193
 
 :::
 
@@ -257,7 +257,7 @@ Set all column states.
 
 ### updateAllColumnsProperties
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/columnSorting/columnStatesManager.js#L70
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/columnSorting/columnStatesManager.js#L70
 
 :::
 

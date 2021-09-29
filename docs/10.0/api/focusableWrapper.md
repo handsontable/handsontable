@@ -14,7 +14,7 @@ editLink: false
 
 ### copyPaste
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/metaSchema.js#L1818
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/metaSchema.js#L1818
 
 :::
 
@@ -42,7 +42,7 @@ copyPaste: {
 
 ### container
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/copyPaste/focusableElement.js#L38
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/copyPaste/focusableElement.js#L38
 
 :::
 
@@ -54,7 +54,7 @@ Parent for an focusable element.
 
 ### eventManager
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/copyPaste/focusableElement.js#L26
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/copyPaste/focusableElement.js#L26
 
 :::
 
@@ -66,7 +66,7 @@ Instance of EventManager.
 
 ### listenersCount
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/copyPaste/focusableElement.js#L32
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/copyPaste/focusableElement.js#L32
 
 :::
 
@@ -78,7 +78,7 @@ An object for tracking information about event listeners attached to the focusab
 
 ### mainElement
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/copyPaste/focusableElement.js#L20
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/copyPaste/focusableElement.js#L20
 
 :::
 
@@ -91,7 +91,7 @@ The main/operational focusable element.
 
 ### focus
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/copyPaste/focusableElement.js#L81
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/copyPaste/focusableElement.js#L81
 
 :::
 
@@ -103,7 +103,7 @@ Set focus to the focusable element.
 
 ### getFocusableElement
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/copyPaste/focusableElement.js#L74
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/copyPaste/focusableElement.js#L74
 
 :::
 
@@ -115,7 +115,7 @@ Get currently set focusable element.
 
 ### setFocusableElement
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/copyPaste/focusableElement.js#L60
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/copyPaste/focusableElement.js#L60
 
 :::
 
@@ -132,7 +132,7 @@ Switch to the main focusable element.
 
 ### useSecondaryElement
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/copyPaste/focusableElement.js#L44
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/copyPaste/focusableElement.js#L44
 
 :::
 

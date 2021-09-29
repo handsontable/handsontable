@@ -14,7 +14,7 @@ editLink: false
 
 ### persistentState
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/metaManager/metaSchema.js#L1020
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/dataMap/metaManager/metaSchema.js#L1020
 
 :::
 
@@ -59,7 +59,7 @@ persistentState: true,
 
 ### prefix
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/persistentState/storage.js#L21
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/persistentState/storage.js#L21
 
 :::
 
@@ -71,7 +71,7 @@ Prefix for key (id element).
 
 ### rootWindow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/persistentState/storage.js#L15
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/persistentState/storage.js#L15
 
 :::
 
@@ -83,7 +83,7 @@ Reference to proper window.
 
 ### savedKeys
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/persistentState/storage.js#L28
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/persistentState/storage.js#L28
 
 :::
 
@@ -96,7 +96,7 @@ Saved keys.
 
 ### loadValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/persistentState/storage.js#L55
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/persistentState/storage.js#L55
 
 :::
 
@@ -114,7 +114,7 @@ Load data from localStorage.
 
 ### reset
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/persistentState/storage.js#L67
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/persistentState/storage.js#L67
 
 :::
 
@@ -131,7 +131,7 @@ Reset given data from localStorage.
 
 ### resetAll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/persistentState/storage.js#L75
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/persistentState/storage.js#L75
 
 :::
 
@@ -143,7 +143,7 @@ Reset all data from localStorage.
 
 ### saveValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/persistentState/storage.js#L38
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/persistentState/storage.js#L38
 
 :::
 

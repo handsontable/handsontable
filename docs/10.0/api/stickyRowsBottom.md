@@ -14,7 +14,7 @@ editLink: false
 
 ### getFirstRenderedRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/stickyRowsBottom.js#L19
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/stickyRowsBottom.js#L19
 
 :::
 
@@ -26,7 +26,7 @@ Get the source index of the first rendered row. If no rows are rendered, returns
 
 ### getFirstVisibleRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/stickyRowsBottom.js#L41
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/stickyRowsBottom.js#L41
 
 :::
 
@@ -39,7 +39,7 @@ Assumes that all rendered rows are fully visible.
 
 ### getLastRenderedRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/stickyRowsBottom.js#L50
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/stickyRowsBottom.js#L50
 
 :::
 
@@ -51,7 +51,7 @@ Get the source index of the last rendered row. If no rows are rendered, returns 
 
 ### getLastVisibleRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/stickyRowsBottom.js#L60
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/stickyRowsBottom.js#L60
 
 :::
 
@@ -64,7 +64,7 @@ Assumes that all rendered rows are fully visible.
 
 ### getRenderedRowsCount
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/stickyRowsBottom.js#L69
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/stickyRowsBottom.js#L69
 
 :::
 
@@ -76,7 +76,7 @@ Get the number of rendered rows.
 
 ### getVisibleRowsCount
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/stickyRowsBottom.js#L81
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/stickyRowsBottom.js#L81
 
 :::
 

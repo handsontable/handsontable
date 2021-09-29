@@ -31,7 +31,7 @@ The `Handsontable` class controls the essential aspects of the data grid.
 
 Hooks are two-directional events that fire whenever a specific action occurs within the instance of Handsontable.
 
-### [Options](@/api/metaSchema.md)
+### [Options](@/api/options.md)
 
 These are the settings available to be registered for the `Core` features, in addition to those provided by plugins.
 

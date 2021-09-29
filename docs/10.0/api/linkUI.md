@@ -14,7 +14,7 @@ editLink: false
 
 ### build
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/link.js#L27
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/link.js#L27
 
 :::
 
@@ -26,7 +26,7 @@ Build DOM structure.
 
 ### update
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/filters/ui/link.js#L38
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/filters/ui/link.js#L38
 
 :::
 

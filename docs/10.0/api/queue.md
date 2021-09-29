@@ -14,7 +14,7 @@ editLink: false
 
 ### items
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/queue.js#L12
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/queue.js#L12
 
 :::
 
@@ -27,7 +27,7 @@ Items collection.
 
 ### dequeue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/queue.js#L29
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/queue.js#L29
 
 :::
 
@@ -39,7 +39,7 @@ Remove the first element from the queue and returns it.
 
 ### enqueue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/queue.js#L20
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/queue.js#L20
 
 :::
 
@@ -56,7 +56,7 @@ Add new item or items at the back of the queue.
 
 ### isEmpty
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/queue.js#L47
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/queue.js#L47
 
 :::
 
@@ -68,7 +68,7 @@ Check if the queue is empty.
 
 ### peek
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/queue.js#L38
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/queue.js#L38
 
 :::
 
@@ -80,7 +80,7 @@ Return the first element from the queue (without modification queue stack).
 
 ### size
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/queue.js#L56
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/queue.js#L56
 
 :::
 

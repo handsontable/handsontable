@@ -18,7 +18,7 @@ editLink: false
 
 ### adjustElementsSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L526
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L526
 
 :::
 
@@ -35,7 +35,7 @@ Adjust overlays elements size and master table size.
 
 ### applyToDOM
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L565
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L565
 
 :::
 
@@ -45,7 +45,7 @@ _overlays.applyToDOM()_
 
 ### deregisterListeners
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L256
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L256
 
 :::
 
@@ -57,7 +57,7 @@ Deregister all previously registered listeners.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L469
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L469
 
 :::
 
@@ -67,7 +67,7 @@ _overlays.destroy()_
 
 ### getParentOverlay
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L587
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L587
 
 :::
 
@@ -84,7 +84,7 @@ Get the parent overlay of the provided element.
 
 ### onCloneWheel
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L291
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L291
 
 :::
 
@@ -102,7 +102,7 @@ Wheel listener for cloned overlays.
 
 ### onKeyDown
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L324
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L324
 
 :::
 
@@ -119,7 +119,7 @@ Key down listener.
 
 ### onKeyUp
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L331
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L331
 
 :::
 
@@ -131,7 +131,7 @@ Key up listener.
 
 ### onTableScroll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L265
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L265
 
 :::
 
@@ -148,7 +148,7 @@ Scroll listener.
 
 ### prepareOverlays
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L101
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L101
 
 :::
 
@@ -161,7 +161,7 @@ Prepare overlays based on user settings.
 
 ### refresh
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L494
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L494
 
 :::
 
@@ -176,7 +176,7 @@ _overlays.refresh([fastDraw])_
 
 ### refreshAll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L157
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L157
 
 :::
 
@@ -188,7 +188,7 @@ Refresh and redraw table.
 
 ### registerListeners
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L184
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L184
 
 :::
 
@@ -200,7 +200,7 @@ Register all necessary event listeners.
 
 ### scrollHorizontally
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L379
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L379
 
 :::
 
@@ -217,7 +217,7 @@ Scrolls main scrollable element horizontally.
 
 ### scrollVertically
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L365
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L365
 
 :::
 
@@ -234,7 +234,7 @@ Scrolls main scrollable element horizontally.
 
 ### syncOverlayTableClassNames
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L618
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L618
 
 :::
 
@@ -246,7 +246,7 @@ Synchronize the class names between the main overlay table and the tables on the
 
 ### syncScrollWithMaster
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L428
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L428
 
 :::
 
@@ -258,7 +258,7 @@ Synchronize overlay scrollbars with the master scrollbar.
 
 ### updateMainScrollableElements
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L446
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L446
 
 :::
 
@@ -275,7 +275,7 @@ Update the main scrollable elements for all the overlays.
 
 ### adjustElementsSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L526
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L526
 
 :::
 
@@ -292,7 +292,7 @@ Adjust overlays elements size and master table size.
 
 ### applyToDOM
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L565
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L565
 
 :::
 
@@ -302,7 +302,7 @@ _overlays.applyToDOM()_
 
 ### deregisterListeners
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L256
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L256
 
 :::
 
@@ -314,7 +314,7 @@ Deregister all previously registered listeners.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L469
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L469
 
 :::
 
@@ -324,7 +324,7 @@ _overlays.destroy()_
 
 ### getParentOverlay
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L587
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L587
 
 :::
 
@@ -341,7 +341,7 @@ Get the parent overlay of the provided element.
 
 ### onCloneWheel
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L291
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L291
 
 :::
 
@@ -359,7 +359,7 @@ Wheel listener for cloned overlays.
 
 ### onKeyDown
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L324
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L324
 
 :::
 
@@ -376,7 +376,7 @@ Key down listener.
 
 ### onKeyUp
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L331
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L331
 
 :::
 
@@ -388,7 +388,7 @@ Key up listener.
 
 ### onTableScroll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L265
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L265
 
 :::
 
@@ -405,7 +405,7 @@ Scroll listener.
 
 ### prepareOverlays
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L101
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L101
 
 :::
 
@@ -418,7 +418,7 @@ Prepare overlays based on user settings.
 
 ### refresh
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L494
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L494
 
 :::
 
@@ -433,7 +433,7 @@ _overlays.refresh([fastDraw])_
 
 ### refreshAll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L157
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L157
 
 :::
 
@@ -445,7 +445,7 @@ Refresh and redraw table.
 
 ### registerListeners
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L184
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L184
 
 :::
 
@@ -457,7 +457,7 @@ Register all necessary event listeners.
 
 ### scrollHorizontally
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L379
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L379
 
 :::
 
@@ -474,7 +474,7 @@ Scrolls main scrollable element horizontally.
 
 ### scrollVertically
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L365
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L365
 
 :::
 
@@ -491,7 +491,7 @@ Scrolls main scrollable element horizontally.
 
 ### syncOverlayTableClassNames
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L618
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L618
 
 :::
 
@@ -503,7 +503,7 @@ Synchronize the class names between the main overlay table and the tables on the
 
 ### syncScrollWithMaster
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L428
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L428
 
 :::
 
@@ -515,7 +515,7 @@ Synchronize overlay scrollbars with the master scrollbar.
 
 ### updateMainScrollableElements
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/overlays.js#L446
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/overlays.js#L446
 
 :::
 

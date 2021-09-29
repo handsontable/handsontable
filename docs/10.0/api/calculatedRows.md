@@ -14,7 +14,7 @@ editLink: false
 
 ### getFirstRenderedRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/calculatedRows.js#L19
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/calculatedRows.js#L19
 
 :::
 
@@ -26,7 +26,7 @@ Get the source index of the first rendered row. If no rows are rendered, returns
 
 ### getFirstVisibleRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/calculatedRows.js#L34
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/calculatedRows.js#L34
 
 :::
 
@@ -38,7 +38,7 @@ Get the source index of the first row fully visible in the viewport. If no rows 
 
 ### getLastRenderedRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/calculatedRows.js#L49
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/calculatedRows.js#L49
 
 :::
 
@@ -50,7 +50,7 @@ Get the source index of the last rendered row. If no rows are rendered, returns 
 
 ### getLastVisibleRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/calculatedRows.js#L64
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/calculatedRows.js#L64
 
 :::
 
@@ -62,7 +62,7 @@ Get the source index of the last row fully visible in the viewport. If no rows a
 
 ### getRenderedRowsCount
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/calculatedRows.js#L79
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/calculatedRows.js#L79
 
 :::
 
@@ -74,7 +74,7 @@ Get the number of rendered rows.
 
 ### getVisibleRowsCount
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/table/mixin/calculatedRows.js#L88
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/table/mixin/calculatedRows.js#L88
 
 :::
 

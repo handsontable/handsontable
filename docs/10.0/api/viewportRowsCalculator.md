@@ -22,7 +22,7 @@ To redo the calculation, you need to create a new calculator.
 
 ### count
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportRows.js#L55
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportRows.js#L55
 
 :::
 
@@ -34,7 +34,7 @@ Number of rendered/visible rows.
 
 ### DEFAULT_HEIGHT
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportRows.js#L17
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportRows.js#L17
 
 :::
 
@@ -46,7 +46,7 @@ Default row height.
 
 ### endRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportRows.js#L69
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportRows.js#L69
 
 :::
 
@@ -58,7 +58,7 @@ Index of the last rendered/visible row (can be overwritten using overrideFn).
 
 ### startPosition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportRows.js#L76
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportRows.js#L76
 
 :::
 
@@ -70,7 +70,7 @@ Position of the first rendered/visible row (in px).
 
 ### startRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportRows.js#L62
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportRows.js#L62
 
 :::
 
@@ -83,7 +83,7 @@ Index of the first rendered/visible row (can be overwritten using overrideFn).
 
 ### calculate
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportRows.js#L84
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportRows.js#L84
 
 :::
 
@@ -104,7 +104,7 @@ To redo the calculation, you need to create a new calculator.
 
 ### count
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportRows.js#L55
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportRows.js#L55
 
 :::
 
@@ -116,7 +116,7 @@ Number of rendered/visible rows.
 
 ### DEFAULT_HEIGHT
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportRows.js#L17
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportRows.js#L17
 
 :::
 
@@ -128,7 +128,7 @@ Default row height.
 
 ### endRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportRows.js#L69
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportRows.js#L69
 
 :::
 
@@ -140,7 +140,7 @@ Index of the last rendered/visible row (can be overwritten using overrideFn).
 
 ### startPosition
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportRows.js#L76
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportRows.js#L76
 
 :::
 
@@ -152,7 +152,7 @@ Position of the first rendered/visible row (in px).
 
 ### startRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportRows.js#L62
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportRows.js#L62
 
 :::
 
@@ -165,7 +165,7 @@ Index of the first rendered/visible row (can be overwritten using overrideFn).
 
 ### calculate
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/3rdparty/walkontable/src/calculator/viewportRows.js#L84
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/3rdparty/walkontable/src/calculator/viewportRows.js#L84
 
 :::
 

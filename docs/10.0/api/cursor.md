@@ -20,7 +20,7 @@ Helper class for checking if element will fit at the desired side of cursor.
 
 ### fitsAbove
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/cursor.js#L74
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/cursor.js#L74
 
 :::
 
@@ -37,7 +37,7 @@ Checks if element can be placed above the cursor.
 
 ### fitsBelow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/cursor.js#L85
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/cursor.js#L85
 
 :::
 
@@ -55,7 +55,7 @@ Checks if element can be placed below the cursor.
 
 ### fitsOnLeft
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/cursor.js#L106
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/cursor.js#L106
 
 :::
 
@@ -72,7 +72,7 @@ Checks if element can be placed on the left on the cursor.
 
 ### fitsOnRight
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/cursor.js#L96
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/cursor.js#L96
 
 :::
 
@@ -90,7 +90,7 @@ Checks if element can be placed on the right of the cursor.
 
 ### getSourceType
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/contextMenu/cursor.js#L58
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/contextMenu/cursor.js#L58
 
 :::
 

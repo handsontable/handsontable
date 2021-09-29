@@ -20,7 +20,7 @@ Display switch for the Comments plugin. Manages the time of delayed displaying /
 
 ### hidingTimer
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/displaySwitch.js#L34
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/displaySwitch.js#L34
 
 :::
 
@@ -32,7 +32,7 @@ Reference to timer, run by `setTimeout`, which is hiding comment.
 
 ### showDebounced
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/displaySwitch.js#L28
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/displaySwitch.js#L28
 
 :::
 
@@ -44,7 +44,7 @@ Show comment after predefined delay. It keeps reference to immutable `debounce` 
 
 ### wasLastActionShow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/displaySwitch.js#L22
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/displaySwitch.js#L22
 
 :::
 
@@ -58,7 +58,7 @@ was an attempt to show comment element. State `false` mean that it was attempt t
 
 ### cancelHiding
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/displaySwitch.js#L65
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/displaySwitch.js#L65
 
 :::
 
@@ -70,7 +70,7 @@ Cancel hiding comment.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/displaySwitch.js#L88
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/displaySwitch.js#L88
 
 :::
 
@@ -82,7 +82,7 @@ Destroy the switcher.
 
 ### hide
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/displaySwitch.js#L42
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/displaySwitch.js#L42
 
 :::
 
@@ -94,7 +94,7 @@ Responsible for hiding comment after proper delay.
 
 ### show
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/displaySwitch.js#L57
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/displaySwitch.js#L57
 
 :::
 
@@ -111,7 +111,7 @@ Responsible for showing comment after proper delay.
 
 ### updateDelay
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/plugins/comments/displaySwitch.js#L77
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/comments/displaySwitch.js#L77
 
 :::
 

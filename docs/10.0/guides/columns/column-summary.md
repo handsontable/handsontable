@@ -107,7 +107,7 @@ To set up a column summary, follow the steps below.
 
 ### Step 1: Enable the `ColumnSummary` plugin
 
-To enable the [`ColumnSummary`](@/api/columnSummary.md) plugin, set the [`columnSummary`](@/api/metaSchema.md#columnsummary) [configuration option](@/guides/getting-started/setting-options.md) to an array of objects.
+To enable the [`ColumnSummary`](@/api/columnSummary.md) plugin, set the [`columnSummary`](@/api/options.md#columnsummary) [configuration option](@/guides/getting-started/setting-options.md) to an array of objects.
 
 Each object represents a single column summary.
 
@@ -130,7 +130,7 @@ const hot = new Handsontable(container, {
 ```
 
 ::: tip
-You can also set the [`columnSummary`](@/api/metaSchema.md#columnsummary) option [to a function](#providing-column-summary-configuration-as-a-function).
+You can also set the [`columnSummary`](@/api/options.md#columnsummary) option [to a function](#providing-column-summary-configuration-as-a-function).
 :::
 
 ### Step 2: Select cells that you want to summarize

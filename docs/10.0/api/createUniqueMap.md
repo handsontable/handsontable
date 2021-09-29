@@ -14,7 +14,7 @@ editLink: false
 
 ### addItem
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/uniqueMap.js#L32
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/uniqueMap.js#L32
 
 :::
 
@@ -32,7 +32,7 @@ Adds a new item to the unique map. Throws error if `id` is already added.
 
 ### clear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/uniqueMap.js#L43
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/uniqueMap.js#L43
 
 :::
 
@@ -44,7 +44,7 @@ Clears the map.
 
 ### getId
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/uniqueMap.js#L53
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/uniqueMap.js#L53
 
 :::
 
@@ -61,7 +61,7 @@ Returns ID for the passed item.
 
 ### getItem
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/uniqueMap.js#L71
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/uniqueMap.js#L71
 
 :::
 
@@ -78,7 +78,7 @@ Returns item from the passed ID.
 
 ### getItems
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/uniqueMap.js#L80
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/uniqueMap.js#L80
 
 :::
 
@@ -90,7 +90,7 @@ Gets all items from the map.
 
 ### hasItem
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/utils/dataStructures/uniqueMap.js#L90
+::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/utils/dataStructures/uniqueMap.js#L90
 
 :::
 
