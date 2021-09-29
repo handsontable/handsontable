@@ -49,7 +49,8 @@ const buildApp = async() => {
   const startedAt = new Date().toString();
 
   logger.info('Build started at', startedAt);
-  if(buildMode){
+
+  if (buildMode) {
     logger.info('buildMode: ', buildMode);
   }
   cleanUp();
