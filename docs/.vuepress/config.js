@@ -7,13 +7,13 @@ const assetsVersioningPlugin = require('./plugins/assets-versioning');
 const { getBuildDocsVersion, getLatestVersion } = require('./helpers');
 
 const buildMode = process.env.BUILD_MODE;
-const version = getBuildDocsVersion() || '**';
+const versionPartialPath = getBuildDocsVersion() || '**';
 const isLatestOrMultiVersion = getBuildDocsVersion() === getLatestVersion() || !getBuildDocsVersion();
-const base = isLatestOrMultiVersion ? '/docs/' : `/docs/${version}/`;
+const base = isLatestOrMultiVersion ? '/docs/' : `/docs/${versionPartialPath}/`;
 const redirectsPlugin = isLatestOrMultiVersion ?
   [nginxRedirectsPlugin, {
     outputFile: path.resolve(__dirname, '../docker/redirects.conf')
-  }] : [];
+  }] : {};
 
 const environmentHead = buildMode === 'production' ?
   [
@@ -29,7 +29,7 @@ const environmentHead = buildMode === 'production' ?
   : [];
 
 module.exports = {
-  patterns: [`${version}/*.md`, `${version}/**/*.md`, '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'], // to enable vue pages add: '**/*.vue'.
+  patterns: [`${versionPartialPath}/*.md`, `${versionPartialPath}/**/*.md`, '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'], // to enable vue pages add: '**/*.vue'.
   description: 'Handsontable',
   base,
   head: [
