@@ -24,28 +24,6 @@ Sometimes `line-height` might be set to 'normal'. In that case, a default `font-
 Https://developer.mozilla.org/pl/docs/Web/CSS/line-height#Values.
 
 
-
-### value
-  
-::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/dataMap/dataMap.js#L662
-
-:::
-
-_&lt;[anonymous](@/api/anonymous.md)&gt;~value_
-
-Allows for interacting with complex structures, for example
- d3/jQuery getter/setter properties:
-
-   {columns: [{
-     data: function(row, value){
-       if(arguments.length === 1){
-         return row.property();
-       }
-       row.property(value);
-     }
-   }]}.
-
-
 ## Methods
 
 ### callbackProxy

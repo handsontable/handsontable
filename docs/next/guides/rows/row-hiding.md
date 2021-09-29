@@ -21,7 +21,7 @@ When you're hiding a row:
 
 ## Enabling row hiding
 
-To simply enable row hiding (without further configuration), set the [`hiddenRows`](@/api/metaSchema.md#hiddenrows) [configuration option](@/guides/getting-started/setting-options.md) to `true`:
+To simply enable row hiding (without further configuration), set the [`hiddenRows`](@/api/options.md#hiddenrows) [configuration option](@/guides/getting-started/setting-options.md) to `true`:
 
 ::: example #example1
 ```js
@@ -44,7 +44,7 @@ To set up your row hiding configuration, follow the steps below.
 
 ### Step 1: Specify rows hidden by default
 
-To both enable row hiding and specify rows hidden by default, set the [`hiddenRows`](@/api/metaSchema.md#hiddenrows) [configuration option](@/guides/getting-started/setting-options.md)  to an object.
+To both enable row hiding and specify rows hidden by default, set the [`hiddenRows`](@/api/options.md#hiddenrows) [configuration option](@/guides/getting-started/setting-options.md)  to an object.
 
 In the object, add a `rows` property, and set it to an array of row indexes.
 
@@ -75,7 +75,7 @@ To easily see which rows are currently hidden, display UI indicators.
 To enable the UI indicators, in the `hiddenRows` object, set the `indicators` property to `true`:
 
 ::: tip
-If you use both the [`NestedHeaders`](@/api/nestedheaders.md) plugin and the [`HiddenRows`](@/api/hiddenRows.md) plugin, you also need to set the `colHeaders` property to `true`. Otherwise, `indicators` won't work.
+If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the [`HiddenRows`](@/api/hiddenRows.md) plugin, you also need to set the `colHeaders` property to `true`. Otherwise, `indicators` won't work.
 :::
 
 ::: example #example3
@@ -186,7 +186,7 @@ const plugin = hot.getPlugin('hiddenRows');
 
 ### Hiding a single row
 
-To hide a single row, use the [`hideRow()`](@/api/hiddenrows.md#hiderow) method:
+To hide a single row, use the [`hideRow()`](@/api/hiddenRows.md#hiderow) method:
 
 ```js
 const plugin = hot.getPlugin('hiddenRows');

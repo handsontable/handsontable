@@ -3479,7 +3479,7 @@ Fired by [PersistentState](@/api/persistentState.md) plugin, after saving value 
 
 :::
 
-_hooks.add(key, callback, [context]) ⇒ [Hooks](@/api/hooks.md)_
+_hooks.add(key, callback, [context]) ⇒ [Hooks](@/api/options.md)_
 
 Adds a listener (globally or locally) to a specified hook name.
 If the `context` parameter is provided, the hook will be added only to the instance it references.
