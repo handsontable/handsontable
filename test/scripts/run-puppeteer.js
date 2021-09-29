@@ -5,6 +5,8 @@ const JasmineReporter = require('jasmine-terminal-reporter');
 
 const PORT = 8086;
 const DEFAULT_INACTIVITY_TIMEOUT = 10000;
+const IS_CI = process.env.CI;
+const CI_DOTS_PER_LINE = 120;
 
 const [,, originalPath, flags] = process.argv;
 let path = originalPath;
@@ -96,6 +98,15 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
       errorCount += result.failedExpectations.length;
     }
     reporter.specDone(result);
+
+    // Break the "dots" output into same-lenghed lines if on CI.
+    if (IS_CI) {
+      const dotIndex = parseInt(result.id.replace('spec', ''), 10);
+
+      if (dotIndex > 0 && (dotIndex + 1) % CI_DOTS_PER_LINE === 0) {
+        process.stdout.write('\n');
+      }
+    }
   });
   await page.exposeFunction('jasmineDone', async() => {
     reporter.jasmineDone();
