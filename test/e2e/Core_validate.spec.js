@@ -242,7 +242,7 @@ describe('Core_validate', () => {
     setDataAtCell(2, 0, 123);
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
       done();
     }, 200);
   });
@@ -277,7 +277,7 @@ describe('Core_validate', () => {
     setDataAtCell(2, 0, 123);
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
       done();
     }, 200);
   });
@@ -298,7 +298,7 @@ describe('Core_validate', () => {
     setDataAtCell(2, 0, 'test');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id');
       done();
     }, 200);
   });
@@ -328,7 +328,7 @@ describe('Core_validate', () => {
     setDataAtCell(2, 0, 'test');
 
     setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id', undefined, undefined);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id');
       done();
     }, 200);
   });

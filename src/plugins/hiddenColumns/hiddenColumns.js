@@ -25,13 +25,21 @@ export const PLUGIN_PRIORITY = 310;
  * @class HiddenColumns
  *
  * @description
- * Plugin allows to hide certain columns. The hiding is achieved by not rendering the columns. The plugin not modifies
- * the source data and do not participate in data transformation (the shape of data returned by `getData*` methods stays intact).
+ * The `HiddenColumns` plugin lets you [hide specified columns](@/guides/columns/column-hiding.md).
  *
- * Possible plugin settings:
- *  * `copyPasteEnabled` as `Boolean` (default `true`)
- *  * `columns` as `Array`
- *  * `indicators` as `Boolean` (default `false`).
+ * "Hiding a column" means that the hidden column doesn't get rendered as a DOM element.
+ *
+ * The `HiddenColumns` plugin doesn't modify the source data,
+ * and doesn't participate in data transformation
+ * (the shape of the data returned by the [`getData*()` methods](@/api/core.md#getdata) stays intact).
+ *
+ * You can set the following configuration options:
+ *
+ * | Option | Required | Type | Default | Description |
+ * |---|---|---|---|---|
+ * | `columns` | No | Array | - | [Hides specified columns by default](@/guides/columns/column-hiding.md#step-1-specify-columns-hidden-by-default) |
+ * | `indicators` | No | Boolean | `false` | [Shows UI indicators](@/guides/columns/column-hiding.md#step-2-show-ui-indicators) |
+ * | `copyPasteEnabled` | No | Boolean | `true` | [Sets up copy/paste behavior](@/guides/columns/column-hiding.md#step-4-set-up-copy-and-paste-behavior) |
  *
  * @example
  *
@@ -46,28 +54,28 @@ export const PLUGIN_PRIORITY = 310;
  *   }
  * });
  *
- * // access to hiddenColumns plugin instance:
+ * // access the `HiddenColumns` plugin's instance
  * const hiddenColumnsPlugin = hot.getPlugin('hiddenColumns');
  *
- * // show single column
- * hiddenColumnsPlugin.showColumn(1);
- *
- * // show multiple columns
- * hiddenColumnsPlugin.showColumn(1, 2, 9);
- *
- * // or as an array
- * hiddenColumnsPlugin.showColumns([1, 2, 9]);
- *
- * // hide single column
+ * // hide a single column
  * hiddenColumnsPlugin.hideColumn(1);
  *
  * // hide multiple columns
  * hiddenColumnsPlugin.hideColumn(1, 2, 9);
  *
- * // or as an array
+ * // hide multiple columns as an array
  * hiddenColumnsPlugin.hideColumns([1, 2, 9]);
  *
- * // rerender the table to see all changes
+ * // unhide a single column
+ * hiddenColumnsPlugin.showColumn(1);
+ *
+ * // unhide multiple columns
+ * hiddenColumnsPlugin.showColumn(1, 2, 9);
+ *
+ * // unhide multiple columns as an array
+ * hiddenColumnsPlugin.showColumns([1, 2, 9]);
+ *
+ * // to see your changes, re-render your Handsontable instance
  * hot.render();
  * ```
  */

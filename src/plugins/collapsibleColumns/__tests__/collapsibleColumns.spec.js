@@ -1730,6 +1730,7 @@ describe('CollapsibleColumns', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
+            <th class=""></th>
           </tr>
           <tr>
             <th class="collapsibleIndicator expanded" colspan="2">N</th>
@@ -1740,6 +1741,7 @@ describe('CollapsibleColumns', () => {
             <th class="">S</th>
             <th class="collapsibleIndicator expanded" colspan="2">T</th>
             <th class="hiddenHeader"></th>
+            <th class=""></th>
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
@@ -1770,6 +1772,7 @@ describe('CollapsibleColumns', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
+            <th class=""></th>
           </tr>
         </thead>
         <tbody>
@@ -1792,6 +1795,7 @@ describe('CollapsibleColumns', () => {
             <td class="">AC1</td>
             <td class="">AD1</td>
             <td class="">AE1</td>
+            <td class="">AF1</td>
           </tr>
         </tbody>
         `);
@@ -2793,7 +2797,7 @@ describe('CollapsibleColumns', () => {
     it('should collapse all headers (complicated nested headers settings)', () => {
       const $wrapper = $('<div></div>').css({
         width: 400,
-        height: 200,
+        height: 300,
         overflow: 'hidden',
       });
 
@@ -2825,6 +2829,7 @@ describe('CollapsibleColumns', () => {
             <th class="">AT1</th>
             <th class="collapsibleIndicator collapsed">AU1</th>
             <th class="">BC1</th>
+            <th class="collapsibleIndicator collapsed">BD1</th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -2840,6 +2845,7 @@ describe('CollapsibleColumns', () => {
             <th class="">AT2</th>
             <th class="collapsibleIndicator collapsed">AU2</th>
             <th class="">BC2</th>
+            <th class="collapsibleIndicator collapsed">BD2</th>
           </tr>
           <tr>
             <th class="">A3</th>
@@ -2855,6 +2861,7 @@ describe('CollapsibleColumns', () => {
             <th class="">AT3</th>
             <th class="collapsibleIndicator collapsed">AU3</th>
             <th class="">BC3</th>
+            <th class="collapsibleIndicator collapsed">BD3</th>
           </tr>
           <tr>
             <th class="">A4</th>
@@ -2870,6 +2877,7 @@ describe('CollapsibleColumns', () => {
             <th class="">AT4</th>
             <th class="">AU4</th>
             <th class="">BC4</th>
+            <th class="">BD4</th>
           </tr>
           <tr>
             <th class="">A5</th>
@@ -2885,6 +2893,7 @@ describe('CollapsibleColumns', () => {
             <th class="">AT5</th>
             <th class="">AU5</th>
             <th class="">BC5</th>
+            <th class="">BD5</th>
           </tr>
         </thead>
         <tbody>
@@ -2902,6 +2911,7 @@ describe('CollapsibleColumns', () => {
             <td class="">AT1</td>
             <td class="">AU1</td>
             <td class="">BC1</td>
+            <td class="">BD1</td>
           </tr>
         </tbody>
         `);
@@ -3414,22 +3424,22 @@ describe('CollapsibleColumns', () => {
         // not collapsible header
         collapsibleColumnsPlugin.toggleCollapsibleSection([{ row: -1, col: 1 }], 'collapse');
       }).not.toThrow();
-      expect(beforeColumnCollapse).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
-      expect(afterColumnCollapse).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
+      expect(beforeColumnCollapse).toHaveBeenCalledWith([], [], false);
+      expect(afterColumnCollapse).toHaveBeenCalledWith([], [], false, false);
 
       expect(() => {
         // row out of range
         collapsibleColumnsPlugin.toggleCollapsibleSection([{ row: 0, col: 1 }], 'collapse');
       }).not.toThrow();
-      expect(beforeColumnCollapse).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
-      expect(afterColumnCollapse).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
+      expect(beforeColumnCollapse).toHaveBeenCalledWith([], [], false);
+      expect(afterColumnCollapse).toHaveBeenCalledWith([], [], false, false);
 
       expect(() => {
         // column out of range
         collapsibleColumnsPlugin.toggleCollapsibleSection([{ row: -1, col: 200 }], 'collapse');
       }).not.toThrow();
-      expect(beforeColumnCollapse).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
-      expect(afterColumnCollapse).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
+      expect(beforeColumnCollapse).toHaveBeenCalledWith([], [], false);
+      expect(afterColumnCollapse).toHaveBeenCalledWith([], [], false, false);
     });
 
     it('should trigger "beforeColumnCollapse" and "afterColumnCollapse" hooks', () => {
@@ -3451,18 +3461,18 @@ describe('CollapsibleColumns', () => {
 
       plugin.toggleCollapsibleSection([{ row: -2, col: 1 }], 'collapse'); // header "B1"
 
-      expect(beforeColumnCollapse).toHaveBeenCalledWith([], [3, 4], true, void 0, void 0, void 0);
-      expect(afterColumnCollapse).toHaveBeenCalledWith([], [3, 4], true, true, void 0, void 0);
+      expect(beforeColumnCollapse).toHaveBeenCalledWith([], [3, 4], true);
+      expect(afterColumnCollapse).toHaveBeenCalledWith([], [3, 4], true, true);
 
       plugin.toggleCollapsibleSection([{ row: -1, col: 1 }], 'collapse'); // header "B2"
 
-      expect(beforeColumnCollapse).toHaveBeenCalledWith([3, 4], [3, 4, 2], true, void 0, void 0, void 0);
-      expect(afterColumnCollapse).toHaveBeenCalledWith([3, 4], [3, 4, 2], true, true, void 0, void 0);
+      expect(beforeColumnCollapse).toHaveBeenCalledWith([3, 4], [3, 4, 2], true);
+      expect(afterColumnCollapse).toHaveBeenCalledWith([3, 4], [3, 4, 2], true, true);
 
       plugin.toggleCollapsibleSection([{ row: -1, col: 1 }], 'collapse'); // header "B2"
 
-      expect(beforeColumnCollapse).toHaveBeenCalledWith([2, 3, 4], [2, 3, 4], false, void 0, void 0, void 0);
-      expect(afterColumnCollapse).toHaveBeenCalledWith([2, 3, 4], [2, 3, 4], false, false, void 0, void 0);
+      expect(beforeColumnCollapse).toHaveBeenCalledWith([2, 3, 4], [2, 3, 4], false);
+      expect(afterColumnCollapse).toHaveBeenCalledWith([2, 3, 4], [2, 3, 4], false, false);
     });
 
     it('should trigger "beforeColumnExpand" and "afterColumnExpand" hooks', () => {
@@ -3486,18 +3496,18 @@ describe('CollapsibleColumns', () => {
 
       plugin.toggleCollapsibleSection([{ row: -1, col: 1 }], 'expand'); // header "B2"
 
-      expect(beforeColumnExpand).toHaveBeenCalledWith([2, 3, 4], [3, 4], true, void 0, void 0, void 0);
-      expect(afterColumnExpand).toHaveBeenCalledWith([2, 3, 4], [3, 4], true, true, void 0, void 0);
+      expect(beforeColumnExpand).toHaveBeenCalledWith([2, 3, 4], [3, 4], true);
+      expect(afterColumnExpand).toHaveBeenCalledWith([2, 3, 4], [3, 4], true, true);
 
       plugin.toggleCollapsibleSection([{ row: -2, col: 1 }], 'expand'); // header "B1"
 
-      expect(beforeColumnExpand).toHaveBeenCalledWith([3, 4], [], true, void 0, void 0, void 0);
-      expect(afterColumnExpand).toHaveBeenCalledWith([3, 4], [], true, true, void 0, void 0);
+      expect(beforeColumnExpand).toHaveBeenCalledWith([3, 4], [], true);
+      expect(afterColumnExpand).toHaveBeenCalledWith([3, 4], [], true, true);
 
       plugin.toggleCollapsibleSection([{ row: -2, col: 1 }], 'expand'); // header "B1"
 
-      expect(beforeColumnExpand).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
-      expect(afterColumnExpand).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
+      expect(beforeColumnExpand).toHaveBeenCalledWith([], [], false);
+      expect(afterColumnExpand).toHaveBeenCalledWith([], [], false, false);
     });
   });
 
@@ -3519,11 +3529,11 @@ describe('CollapsibleColumns', () => {
 
       plugin.collapseSection({ row: -2, col: 1 });
 
-      expect(afterColumnCollapse).toHaveBeenCalledWith([], [3, 4], true, true, void 0, void 0);
+      expect(afterColumnCollapse).toHaveBeenCalledWith([], [3, 4], true, true);
 
       plugin.collapseSection({ row: -2, col: 1 });
 
-      expect(afterColumnCollapse).toHaveBeenCalledWith([3, 4], [3, 4], false, false, void 0, void 0);
+      expect(afterColumnCollapse).toHaveBeenCalledWith([3, 4], [3, 4], false, false);
     });
 
     it('should set "successfullyExpanded" argument of "afterColumnExpand" hook as `false` after trying expanding already expanded column', () => {
@@ -3545,11 +3555,11 @@ describe('CollapsibleColumns', () => {
 
       plugin.expandSection({ row: -2, col: 1 }); // header "B1"
 
-      expect(afterColumnExpand).toHaveBeenCalledWith([2, 3, 4], [2], true, true, void 0, void 0);
+      expect(afterColumnExpand).toHaveBeenCalledWith([2, 3, 4], [2], true, true);
 
       plugin.expandSection({ row: -2, col: 1 }); // header "B1"
 
-      expect(afterColumnExpand).toHaveBeenCalledWith([2], [2], false, false, void 0, void 0);
+      expect(afterColumnExpand).toHaveBeenCalledWith([2], [2], false, false);
     });
 
     it('should set "successfullyCollapsed" and "collapsePossible" arguments in hooks as `false` when trying colapse headers ' +
@@ -3580,8 +3590,8 @@ describe('CollapsibleColumns', () => {
 
       plugin.collapseSection({ row: -1, col: 1 });
 
-      expect(beforeColumnCollapse).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
-      expect(afterColumnCollapse).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
+      expect(beforeColumnCollapse).toHaveBeenCalledWith([], [], false);
+      expect(afterColumnCollapse).toHaveBeenCalledWith([], [], false, false);
     });
 
     it('should set "successfullyExpanded" and "expandPossible" arguments in hooks as `false` when trying expand headers ' +
@@ -3613,8 +3623,8 @@ describe('CollapsibleColumns', () => {
 
       plugin.expandSection({ row: -4, col: 1 }); // header "B"
 
-      expect(beforeColumnExpand).toHaveBeenCalledWith([2, 3, 4], [2, 3, 4], false, void 0, void 0, void 0);
-      expect(afterColumnExpand).toHaveBeenCalledWith([2, 3, 4], [2, 3, 4], false, false, void 0, void 0);
+      expect(beforeColumnExpand).toHaveBeenCalledWith([2, 3, 4], [2, 3, 4], false);
+      expect(afterColumnExpand).toHaveBeenCalledWith([2, 3, 4], [2, 3, 4], false, false);
     });
 
     it('should not trigger "afterColumnCollapse" hook when "beforeColumnCollapse" returns `false`', () => {

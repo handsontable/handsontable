@@ -34,7 +34,7 @@ function createTableMetaEmptyClass() {
  *                    +-------------+.
  */
 export default class GlobalMeta {
-  constructor() {
+  constructor(hot) {
     /**
      * An alias for the constructor. Necessary for inheritance for creating new layers.
      *
@@ -49,6 +49,8 @@ export default class GlobalMeta {
     this.meta = this.metaCtor.prototype;
 
     extend(this.meta, metaSchemaFactory());
+
+    this.meta.instance = hot;
   }
 
   /**

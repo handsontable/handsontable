@@ -150,4 +150,101 @@ describe('Integration with other features', () => {
       ]);
     });
   });
+
+  describe('Integration with Nested Rows', () => {
+    it('should allow adding and removing rows, while retaining the formulas functionality', () => {
+      const hot = handsontable({
+        data: [
+          {
+            col1: 'parent1',
+            __children: [
+              {
+                col1: '=A1 & "-"',
+                __children: [
+                  {
+                    col1: 'p1.c1.c1',
+                  }, {
+                    col1: 'p1.c1.c2',
+                    __children: [
+                      {
+                        col1: '=UPPER(A1)',
+                      }
+                    ]
+                  }
+                ]
+              }],
+          }],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        nestedRows: true,
+        rowHeaders: true,
+        colHeaders: true
+      });
+
+      expect(hot.getDataAtCell(1, 0)).toEqual('parent1-');
+      expect(hot.getDataAtCell(4, 0)).toEqual('PARENT1');
+
+      hot.alter('insert_row', 1, 1);
+      hot.alter('insert_row', 3, 1);
+      hot.alter('insert_row', 7, 1);
+
+      expect(hot.getDataAtCell(2, 0)).toEqual('parent1-');
+      expect(hot.getDataAtCell(6, 0)).toEqual('PARENT1');
+    });
+
+    it('should allow detaching row children, while retaining the formulas functionality', () => {
+      const hot = handsontable({
+        data: [
+          {
+            col1: 'parent1',
+            __children: [
+              {
+                col1: '=A1 & "-"',
+                __children: [
+                  {
+                    col1: 'p1.c1.c1',
+                  }, {
+                    col1: 'p1.c1.c2',
+                    __children: [
+                      {
+                        col1: '=UPPER(A1)',
+                      }
+                    ]
+                  },
+                  {
+                    col1: 'p1.c1.c3',
+                  }
+                ]
+              }],
+          },
+          {
+            col1: 'parent2',
+          }],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        nestedRows: true,
+        rowHeaders: true,
+        colHeaders: true
+      });
+      const nestedRowsPlugin = hot.getPlugin('nestedRows');
+      const nestedRowsDataManager = nestedRowsPlugin.dataManager;
+
+      let rowToBeDetached = nestedRowsDataManager.getDataObject(1);
+
+      nestedRowsDataManager.detachFromParent(rowToBeDetached);
+
+      expect(hot.getDataAtCell(2, 0)).toEqual('parent1-');
+      expect(hot.getDataAtCell(5, 0)).toEqual('PARENT1');
+
+      rowToBeDetached = nestedRowsDataManager.getDataObject(5);
+
+      nestedRowsDataManager.detachFromParent(rowToBeDetached);
+
+      expect(hot.getDataAtCell(6, 0)).toEqual('PARENT1');
+    });
+  });
 });

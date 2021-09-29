@@ -15,7 +15,7 @@ describe('MemoryLeakTest', () => {
   it('should not leave any any DOM containers, except for those created by Jasmine', () => {
     let leftoverNodesCount = 0;
 
-    document.body.children.forEach((child) => {
+    Array.from(document.body.children).forEach((child) => {
       if (child.nodeName !== 'SCRIPT' && !child.className.includes('jasmine')) {
         leftoverNodesCount += 1;
       }

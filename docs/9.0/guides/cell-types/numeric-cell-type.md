@@ -45,6 +45,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: ['Car', 'Year', 'Price ($)', 'Price (€)'],
   columnSorting : true,
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   columns: [
     {

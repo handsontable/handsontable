@@ -1,5 +1,16 @@
 import HyperFormula from 'hyperformula';
 
+const fillHandleSelector = '.wtBorder.current.corner';
+
+const autofill = (endRow, endCol) => {
+  spec().$container.find(fillHandleSelector).simulate('mousedown');
+
+  spec().$container
+    .find(`tbody tr:eq(${endRow}) td:eq(${endCol})`)
+    .simulate('mouseover')
+    .simulate('mouseup');
+};
+
 describe('Formulas general', () => {
   const debug = false;
   const id = 'testContainer';
@@ -309,7 +320,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 100.45, 12, '=SUM(E5)']);
-    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, 20]], 'edit', void 0, void 0, void 0, void 0]);
+    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, 20]], 'edit']);
   });
 
   it('should recalculate table after changing source cell value (setSourceDataAtCell)', () => {
@@ -350,7 +361,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 0.333167495854063, 12, '=SUM(E5)']);
-    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '=Sum(a2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '=Sum(a2:A4)']], 'edit']);
   });
 
   it('should prevent recalculate table after changing cell value into escaped formula expression', () => {
@@ -373,7 +384,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#VALUE!', 12, '=SUM(E5)']);
     expect(afterChange.calls.argsFor(1))
-      .toEqual([[[1, 1, 0, '\'=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+      .toEqual([[[1, 1, 0, '\'=SUM(A2:A4)']], 'edit']);
   });
 
   it('should recalculate table after changing cell value from escaped formula expression into valid formula expression',
@@ -397,7 +408,7 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, 12]);
       expect(afterChange.calls.argsFor(1))
-        .toEqual([[[4, 5, '\'=SUM(E5)', '=SUM(E5)']], 'edit', void 0, void 0, void 0, void 0]);
+        .toEqual([[[4, 5, '\'=SUM(E5)', '=SUM(E5)']], 'edit']);
     });
 
   it('should recalculate table after changing cell value from primitive value into formula expression', () => {
@@ -419,7 +430,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 0.333167495854063, 12, '=SUM(E5)']);
-    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '=SUM(A2:A4)']], 'edit']);
   });
 
   it('should recalculate table after changing cell value from formula expression into primitive value', () => {
@@ -442,7 +453,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 15, 2031, '#DIV/0!', 12, '=SUM(E5)']);
     expect(afterChange.calls.argsFor(1))
-      .toEqual([[[4, 1, '=SUM(A2:A5)', 15]], 'edit', void 0, void 0, void 0, void 0]);
+      .toEqual([[[4, 1, '=SUM(A2:A5)', 15]], 'edit']);
   });
 
   it('should recalculate table after changing cell value from formula expression into another formula expression',
@@ -466,7 +477,7 @@ describe('Formulas general', () => {
       expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getDataAtRow(4)).toEqual([2012, 6030, 8046, '#DIV/0!', 12, '=SUM(E5)']);
       expect(afterChange.calls.argsFor(1))
-        .toEqual([[[4, 1, '=SUM(A2:A5)', '=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+        .toEqual([[[4, 1, '=SUM(A2:A5)', '=SUM(A2:A4)']], 'edit']);
     });
 
   it('should correctly recalculate formulas when precedents cells are located out of table viewport', () => {
@@ -1210,20 +1221,479 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(0)).toEqual([2011, 4, 552, 6127]);
       expect(hot.getSourceDataAtRow(1)).toEqual([2012, '=SUM(A1:A2)', 12, '=SUM(E5)']);
     });
+
+    it('should work properly while doing cell used by some formula empty', () => {
+      handsontable({
+        data: [
+          [5, '=A1+1', '=B1+1'],
+        ],
+        contextMenu: true,
+        colHeaders: true,
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      setDataAtCell(0, 0, null);
+
+      expect(getSourceData()).toEqual([
+        [null, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [null, 1, 2],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [5, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [5, 6, 7],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        [null, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [null, 1, 2],
+      ]);
+    });
+
+    it('should cooperate properly with `setDataAtCell` action for multiple cells', () => {
+      handsontable({
+        data: [
+          [0, '=A1+1', '=B1+1'],
+        ],
+        contextMenu: true,
+        colHeaders: true,
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      setDataAtCell([
+        [0, 0, '=B1+2'],
+        [0, 1, '=C1+2'],
+        [0, 2, 10],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [0, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [0, 1, 2],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        ['=B1+2', '=C1+2', 10],
+      ]);
+      expect(getData()).toEqual([
+        [14, 12, 10],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [0, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [0, 1, 2],
+      ]);
+    });
+
+    it('should show proper values when doing undo/redo after moving rows', () => {
+      handsontable({
+        data: [
+          [5],
+          ['=A1+1'],
+          ['=A2+1'],
+        ],
+        contextMenu: true,
+        colHeaders: true,
+        rowHeaders: true,
+        formulas: {
+          engine: HyperFormula
+        },
+        manualRowMove: true,
+      });
+
+      getPlugin('manualRowMove').moveRow(0, 1);
+      render();
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [5],
+        ['=A1+1'],
+        ['=A2+1'],
+      ]);
+      expect(getData()).toEqual([
+        [5],
+        [6],
+        [7],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        [5],
+        ['=A1+1'],
+        ['=A2+1'],
+      ]);
+      expect(getData()).toEqual([
+        [6],
+        [5],
+        [7],
+      ]);
+    });
+
+    it('should show proper values when doing undo/redo after changing sheet size', () => {
+      handsontable({
+        data: [
+          [0, '=A1+1', '=B1+1'],
+        ],
+        contextMenu: true,
+        colHeaders: true,
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      alter('insert_col', 0);
+      alter('remove_col', 0);
+
+      expect(getSourceData()).toEqual([
+        [0, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [0, 1, 2],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [null, 0, '=B1+1', '=C1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [null, 0, 1, 2],
+      ]);
+
+      undo();
+
+      expect(getSourceData()).toEqual([
+        [0, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [0, 1, 2],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        [null, 0, '=B1+1', '=C1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [null, 0, 1, 2],
+      ]);
+
+      redo();
+
+      expect(getSourceData()).toEqual([
+        [0, '=A1+1', '=B1+1'],
+      ]);
+      expect(getData()).toEqual([
+        [0, 1, 2],
+      ]);
+    });
+
+    describe('should show proper value when doing undo/redo after reducing sheet size', () => {
+      it('(removing cell with value used by some formula)', () => {
+        handsontable({
+          data: [
+            [2],
+            ['=A1*10']
+          ],
+          contextMenu: true,
+          colHeaders: true,
+          formulas: {
+            engine: HyperFormula
+          }
+        });
+
+        alter('remove_row', 0);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2],
+          ['=A1*10'],
+        ]);
+        expect(getData()).toEqual([
+          [2],
+          [20],
+        ]);
+
+        redo();
+
+        expect(getSourceData()).toEqual([
+          ['=#REF!*10'],
+        ]);
+        expect(getData()).toEqual([
+          ['#REF!'],
+        ]);
+      });
+
+      it('(removing formula using value from some cell)', () => {
+        handsontable({
+          data: [
+            [2],
+            ['=A1*10']
+          ],
+          contextMenu: true,
+          colHeaders: true,
+          formulas: {
+            engine: HyperFormula
+          }
+        });
+
+        alter('remove_row', 1);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2],
+          ['=A1*10'],
+        ]);
+        expect(getData()).toEqual([
+          [2],
+          [20],
+        ]);
+
+        redo();
+
+        expect(getSourceData()).toEqual([
+          [2],
+        ]);
+        expect(getData()).toEqual([
+          [2],
+        ]);
+      });
+    });
+
+    describe('should cooperate with the Autofill plugin properly', () => {
+      it('(overwriting formula)', async() => {
+        handsontable({
+          data: [
+            [2, 3, 4, 5],
+            ['=A1*10', null, '=A2*10', null],
+          ],
+          contextMenu: true,
+          colHeaders: true,
+          formulas: {
+            engine: HyperFormula
+          }
+        });
+
+        selectCell(0, 0);
+        // Overwritten formula
+        autofill(1, 0);
+
+        await sleep(100);
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, 20, null],
+        ]);
+
+        autofill(1, 1);
+
+        await sleep(100);
+
+        expect(getSourceData()).toEqual([
+          [2, 2, 4, 5],
+          [2, 2, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 2, 4, 5],
+          [2, 2, 20, null],
+        ]);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, 20, null],
+        ]);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          ['=A1*10', null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [20, null, 200, null],
+        ]);
+
+        redo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, 20, null],
+        ]);
+
+        redo();
+
+        expect(getSourceData()).toEqual([
+          [2, 2, 4, 5],
+          [2, 2, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 2, 4, 5],
+          [2, 2, 20, null],
+        ]);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [2, null, 20, null],
+        ]);
+      });
+
+      it('(populating formula)', async() => {
+        handsontable({
+          data: [
+            [2, 3, 4, 5],
+            ['=A1*10', null, '=A2*10', null],
+          ],
+          contextMenu: true,
+          colHeaders: true,
+          formulas: {
+            engine: HyperFormula
+          }
+        });
+
+        selectCell(1, 2);
+
+        autofill(1, 3);
+
+        await sleep(100);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          ['=A1*10', null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [20, null, 200, null],
+        ]);
+
+        redo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          ['=A1*10', null, '=A2*10', '=B2*10'],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [20, null, 200, 0],
+        ]);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          ['=A1*10', null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [20, null, 200, null],
+        ]);
+      });
+
+      it('(populating simple values)', async() => {
+        handsontable({
+          data: [
+            [2, 3, 4, 5],
+            ['=A1*10', null, '=A2*10', null],
+          ],
+          contextMenu: true,
+          colHeaders: true,
+          formulas: {
+            engine: HyperFormula
+          }
+        });
+
+        selectCell(0, 0);
+
+        autofill(0, 3);
+
+        await sleep(100);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          ['=A1*10', null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [20, null, 200, null],
+        ]);
+
+        redo();
+
+        expect(getSourceData()).toEqual([
+          [2, 2, 2, 2],
+          ['=A1*10', null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 2, 2, 2],
+          [20, null, 200, null],
+        ]);
+
+        undo();
+
+        expect(getSourceData()).toEqual([
+          [2, 3, 4, 5],
+          ['=A1*10', null, '=A2*10', null],
+        ]);
+        expect(getData()).toEqual([
+          [2, 3, 4, 5],
+          [20, null, 200, null],
+        ]);
+      });
+    });
   });
 
   describe('Autofill', () => {
-    const fillHandleSelector = '.wtBorder.current.corner';
-
-    const autofill = (endRow, endCol) => {
-      spec().$container.find(fillHandleSelector).simulate('mousedown');
-
-      spec().$container
-        .find(`tbody tr:eq(${endRow}) td:eq(${endCol})`)
-        .simulate('mouseover')
-        .simulate('mouseup');
-    };
-
     it('should not override result of simple autofill (populating one cell) #8050', async() => {
       handsontable({
         data: [
@@ -1278,7 +1748,7 @@ describe('Formulas general', () => {
         },
       });
 
-      selectColumns(0, 1);
+      selectCell(0, 0, 6, 1);
       autofill(6, 4);
 
       expect(getData()).toEqual([
@@ -1324,34 +1794,6 @@ describe('Formulas general', () => {
       autofill(0, 2);
 
       expect(hot.getSourceData()).toEqual([['=A1', 'a', 'a']]);
-    });
-
-    it('should not autofill if there\'s a matrix in the way', () => {
-      const hot = handsontable({
-        data: [
-          [1, 2],
-          [3, 4],
-          ['', '=A1'],
-          ['', ''],
-          ['', ''],
-        ],
-        formulas: {
-          engine: HyperFormula
-        }
-      });
-
-      hot.setDataAtCell(3, 0, '{=TRANSPOSE(A1:B2)}');
-
-      selectCell(2, 1);
-      autofill(4, 1);
-
-      expect(hot.getData()).toEqual([
-        [1, 2],
-        [3, 4],
-        ['', 1],
-        [1, 3],
-        [2, 4],
-      ]);
     });
 
     it('should autofill an array of objects correctly', () => {
@@ -1663,6 +2105,24 @@ describe('Formulas general', () => {
         ['y'], ['=A3'], ['=A6'], ['=A5'], ['=A8'], ['=A7'], ['=A10'], ['=A9'], ['=A12']
       ]);
     });
+
+    it('should allow for mutating autofill results when using formulas (#8107)', () => {
+      handsontable({
+        data: [
+          ['2016', 1, 1, 2, 3],
+        ],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      addHook('beforeChange', (changes) => { changes[0] = null; });
+
+      selectCell(0, 0);
+      autofill(0, 2);
+
+      expect(getData()).toEqual([['2016', 1, '2016', 2, 3]]);
+    });
   });
 
   describe('Formulas#getCellType', () => {
@@ -1688,7 +2148,7 @@ describe('Formulas general', () => {
       expect(hot.getPlugin('formulas').getCellType(0, 0)).toEqual('VALUE');
     });
 
-    it('should return `MATRIX', () => {
+    it('should return `ARRAYFORMULA`', () => {
       const hot = handsontable({
         data: [
           ['1', '2'],
@@ -1701,9 +2161,9 @@ describe('Formulas general', () => {
         }
       });
 
-      hot.setDataAtCell(2, 0, '{=TRANSPOSE(A1:B2)}');
+      hot.setDataAtCell(2, 0, '=ARRAYFORMULA(TRANSPOSE(A1:B2))');
 
-      expect(hot.getPlugin('formulas').getCellType(3, 1)).toEqual('MATRIX');
+      expect(hot.getPlugin('formulas').getCellType(2, 0)).toEqual('ARRAYFORMULA');
     });
 
     it('should return `EMPTY` when out of bounds', () => {
@@ -1768,65 +2228,27 @@ describe('Formulas general', () => {
 
       expect(hot.countCols()).toEqual(0);
     });
-
-    it('should block removing rows if there\'s a matrix underneath', () => {
-      const hot = handsontable({
-        data: [
-          ['1', '2'],
-          ['3', '4'],
-          ['x', ''],
-          ['', ''],
-        ],
-        formulas: {
-          engine: HyperFormula
-        }
-      });
-
-      hot.setDataAtCell(2, 0, '{=TRANSPOSE(A1:B2)}');
-
-      hot.alter('remove_row', 3, 1);
-
-      expect(hot.getData().length).toEqual(4);
-    });
-
-    it('should block removing columns if there\'s a matrix underneath', () => {
-      const hot = handsontable({
-        data: [
-          ['1', '2', 'x', ''],
-          ['3', '4'],
-        ],
-        formulas: {
-          engine: HyperFormula
-        }
-      });
-
-      hot.setDataAtCell(0, 2, '{=TRANSPOSE(A1:B2)}');
-
-      hot.alter('remove_col', 3, 1);
-
-      expect(hot.getData().map(row => row.length)).toEqual([4, 4]);
-    });
   });
 
   it('should not render multiple times when updating many cells', () => {
-    const afterRender = jasmine.createSpy();
+    const afterViewRender = jasmine.createSpy();
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 10),
       formulas: {
         engine: HyperFormula
       },
-      afterRender
+      afterViewRender
     });
 
-    expect(afterRender).toHaveBeenCalledTimes(1);
+    expect(afterViewRender).toHaveBeenCalledTimes(1);
 
     selectCell(1, 1, 5, 5);
 
     spec().$container.find('textarea.handsontableInput').simulate('keydown', { keyCode: 46 });
     spec().$container.find('textarea.handsontableInput').simulate('keyup', { keyCode: 46 });
 
-    expect(afterRender).toHaveBeenCalledTimes(2);
+    expect(afterViewRender).toHaveBeenCalledTimes(2);
   });
 
   it('should freeze correct columns with ManualColumnFreeze', () => {
@@ -2167,96 +2589,6 @@ describe('Formulas general', () => {
   });
 
   describe('should perform CRUD operations in HyperFormula based on physical indexes', () => {
-    describe('action blocking', () => {
-      it('should block removing rows based on physical indexes', () => {
-        const hot = handsontable({
-          data: [
-            ['trimmed', 'row', '', ''],
-            ['trimmed', 'row', '', ''],
-            ['trimmed', 'row', '', ''],
-            ['trimmed', 'row', '', ''],
-            ['1', '2'],
-            ['3', '4'],
-            ['x', ''],
-            ['', ''],
-          ],
-          formulas: {
-            engine: HyperFormula
-          },
-          trimRows: [0, 1, 2, 3]
-        });
-
-        hot.setDataAtCell(2, 0, '{=TRANSPOSE(A1:B2)}');
-
-        hot.alter('remove_row', 3, 1);
-
-        expect(hot.countRows()).toBe(4);
-      });
-
-      it('should block removing columns based on physical indexes', () => {
-        const hot = handsontable({
-          data: [
-            ['moved', 'moved', 'moved', 'moved', '1', '2', 'x', ''],
-            ['moved', 'moved', 'moved', 'moved', '3', '4'],
-          ],
-          formulas: {
-            engine: HyperFormula
-          },
-          manualColumnMove: [4, 5, 6, 7, 0, 1, 2, 3]
-        });
-
-        hot.setDataAtCell(0, 2, '{=TRANSPOSE(A1:B2)}');
-
-        hot.alter('remove_col', 3, 1);
-
-        expect(hot.countCols()).toBe(8);
-      });
-
-      it('should block adding rows based on physical indexes', () => {
-        const hot = handsontable({
-          data: [
-            ['trimmed', 'row', '', ''],
-            ['trimmed', 'row', '', ''],
-            ['trimmed', 'row', '', ''],
-            ['trimmed', 'row', '', ''],
-            ['1', '2'],
-            ['3', '4'],
-            ['x', ''],
-            ['', ''],
-          ],
-          formulas: {
-            engine: HyperFormula
-          },
-          trimRows: [0, 1, 2, 3]
-        });
-
-        hot.setDataAtCell(2, 0, '{=TRANSPOSE(A1:B2)}');
-
-        hot.alter('insert_row', 3, 1);
-
-        expect(hot.countRows()).toBe(4);
-      });
-
-      it('should block adding columns based on physical indexes', () => {
-        const hot = handsontable({
-          data: [
-            ['moved', 'moved', 'moved', 'moved', '1', '2', 'x', ''],
-            ['moved', 'moved', 'moved', 'moved', '3', '4'],
-          ],
-          formulas: {
-            engine: HyperFormula
-          },
-          manualColumnMove: [4, 5, 6, 7, 0, 1, 2, 3]
-        });
-
-        hot.setDataAtCell(0, 2, '{=TRANSPOSE(A1:B2)}');
-
-        hot.alter('insert_col', 3, 1);
-
-        expect(hot.countCols()).toBe(8);
-      });
-    });
-
     describe('performing CRUD actions', () => {
       it('should remove rows in the right place', () => {
         const hot = handsontable({
@@ -2355,5 +2687,37 @@ describe('Formulas general', () => {
         ]);
       });
     });
+  });
+
+  it('should not crash when declaring a named expression with a sheet name that contains a `-` (#8057)', () => {
+    const errors = [];
+
+    try {
+      handsontable({
+        data: [
+          [1, 2, 3, 4, 5],
+          [9, 8, 7, 6, '=myOwnCalc'],
+        ],
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'my-sheet',
+          namedExpressions: [
+            {
+              name: 'myOwnCalc',
+              expression: '=my-sheet!$A$1+100',
+            }
+          ],
+        }
+      });
+
+    } catch (e) {
+      errors.push(e);
+    }
+
+    expect(errors.length).withContext('Number of errors being thrown.').toEqual(0);
+    expect(getData()).toEqual([
+      [1, 2, 3, 4, 5],
+      [9, 8, 7, 6, '#NAME?'],
+    ]);
   });
 });

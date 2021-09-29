@@ -3,6 +3,7 @@ import { objectEach } from './helpers/object';
 import { substitute } from './helpers/string';
 import { warn } from './helpers/console';
 import { toSingleLine } from './helpers/templateLiteralTag';
+import { fastCall } from './helpers/function';
 
 /**
  * @description
@@ -54,7 +55,7 @@ import { toSingleLine } from './helpers/templateLiteralTag';
 // @TODO: Move plugin description hooks to plugin?
 const REGISTERED_HOOKS = [
   /**
-   * Fired after resetting a cell's meta. This happens when the {@link core#updatesettings Core#updateSettings} method is called.
+   * Fired after resetting a cell's meta. This happens when the {@link Core#updateSettings} method is called.
    *
    * @event Hooks#afterCellMetaReset
    */
@@ -83,8 +84,8 @@ const REGISTERED_HOOKS = [
   'afterChange',
 
   /**
-   * Fired each time user opens {@link context-menu ContextMenu} and after setting up the Context Menu's default options. These options are a collection
-   * which user can select by setting an array of keys or an array of objects in {@link options#contextmenu Options#contextMenu} option.
+   * Fired each time user opens {@link ContextMenu} and after setting up the Context Menu's default options. These options are a collection
+   * which user can select by setting an array of keys or an array of objects in {@link Options#contextMenu} option.
    *
    * @event Hooks#afterContextMenuDefaultOptions
    * @param {Array} predefinedItems An array of objects containing information about the pre-defined Context Menu items.
@@ -92,7 +93,7 @@ const REGISTERED_HOOKS = [
   'afterContextMenuDefaultOptions',
 
   /**
-   * Fired each time user opens {@link context-menu ContextMenu} plugin before setting up the Context Menu's items but after filtering these options by
+   * Fired each time user opens {@link ContextMenu} plugin before setting up the Context Menu's items but after filtering these options by
    * user (`contextMenu` option). This hook can by helpful to determine if user use specified menu item or to set up
    * one of the menu item to by always visible.
    *
@@ -102,8 +103,8 @@ const REGISTERED_HOOKS = [
   'beforeContextMenuSetItems',
 
   /**
-   * Fired by {@link dropdown-menu DropdownMenu} plugin after setting up the Dropdown Menu's default options. These options are a
-   * collection which user can select by setting an array of keys or an array of objects in {@link options#dropdownmenu Options#dropdownMenu}
+   * Fired by {@link DropdownMenu} plugin after setting up the Dropdown Menu's default options. These options are a
+   * collection which user can select by setting an array of keys or an array of objects in {@link Options#dropdownMenu}
    * option.
    *
    * @event Hooks#afterDropdownMenuDefaultOptions
@@ -112,7 +113,7 @@ const REGISTERED_HOOKS = [
   'afterDropdownMenuDefaultOptions',
 
   /**
-   * Fired by {@link dropdown-menu DropdownMenu} plugin before setting up the Dropdown Menu's items but after filtering these options
+   * Fired by {@link DropdownMenu} plugin before setting up the Dropdown Menu's items but after filtering these options
    * by user (`dropdownMenu` option). This hook can by helpful to determine if user use specified menu item or to set
    * up one of the menu item to by always visible.
    *
@@ -122,7 +123,7 @@ const REGISTERED_HOOKS = [
   'beforeDropdownMenuSetItems',
 
   /**
-   * Fired by {@link context-menu ContextMenu} plugin after hiding the Context Menu. This hook is fired when {@link options#contextmenu Options#contextMenu}
+   * Fired by {@link ContextMenu} plugin after hiding the Context Menu. This hook is fired when {@link Options#contextMenu}
    * option is enabled.
    *
    * @event Hooks#afterContextMenuHide
@@ -131,7 +132,7 @@ const REGISTERED_HOOKS = [
   'afterContextMenuHide',
 
   /**
-   * Fired by {@link context-menu ContextMenu} plugin before opening the Context Menu. This hook is fired when {@link options#context-menu Options#contextMenu}
+   * Fired by {@link ContextMenu} plugin before opening the Context Menu. This hook is fired when {@link Options#contextMenu}
    * option is enabled.
    *
    * @event Hooks#beforeContextMenuShow
@@ -140,7 +141,7 @@ const REGISTERED_HOOKS = [
   'beforeContextMenuShow',
 
   /**
-   * Fired by {@link context-menu ContextMenu} plugin after opening the Context Menu. This hook is fired when {@link options#contextmenu Options#contextMenu}
+   * Fired by {@link ContextMenu} plugin after opening the Context Menu. This hook is fired when {@link Options#contextMenu}
    * option is enabled.
    *
    * @event Hooks#afterContextMenuShow
@@ -149,8 +150,8 @@ const REGISTERED_HOOKS = [
   'afterContextMenuShow',
 
   /**
-   * Fired by {@link copy-paste CopyPaste} plugin after reaching the copy limit while copying data. This hook is fired when
-   * {@link options#copypaste Options#copyPaste} option is enabled.
+   * Fired by {@link CopyPaste} plugin after reaching the copy limit while copying data. This hook is fired when
+   * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterCopyLimit
    * @param {number} selectedRows Count of selected copyable rows.
@@ -419,15 +420,6 @@ const REGISTERED_HOOKS = [
   'afterRemoveRow',
 
   /**
-   * Fired after the Handsontable table is rendered.
-   *
-   * @event Hooks#afterRender
-   * @param {boolean} isForced Is `true` if rendering was triggered by a change of settings or data; or `false` if
-   *                           rendering was triggered by scrolling or moving selection.
-   */
-  'afterRender',
-
-  /**
    * Fired before starting rendering the cell.
    *
    * @event Hooks#beforeRenderer
@@ -637,8 +629,8 @@ const REGISTERED_HOOKS = [
   'afterLanguageChange',
 
   /**
-   * Fired by {@link autofill Autofill} plugin before populating the data in the autofill feature. This hook is fired when
-   * {@link options#fillhandle Options#fillHandle} option is enabled.
+   * Fired by {@link Autofill} plugin before populating the data in the autofill feature. This hook is fired when
+   * {@link Options#fillHandle} option is enabled.
    *
    * @event Hooks#beforeAutofill
    * @param {Array[]} selectionData Data the autofill operation will start from.
@@ -653,8 +645,8 @@ const REGISTERED_HOOKS = [
   'beforeAutofill',
 
   /**
-   * Fired by {@link autofill Autofill} plugin after populating the data in the autofill feature. This hook is fired when
-   * {@link options#fillhandle Options#fillHandle} option is enabled.
+   * Fired by {@link Autofill} plugin after populating the data in the autofill feature. This hook is fired when
+   * {@link Options#fillHandle} option is enabled.
    *
    * @event Hooks#afterAutofill
    * @since 8.0.0
@@ -807,8 +799,8 @@ const REGISTERED_HOOKS = [
    * @param {Event} event The `mousedown` event object.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
    * @param {HTMLTableCellElement} TD TD element.
-   * @param {object} controller An object with keys `row`, `column` and `cells` which contains boolean values. This
-   *                            object allows or disallows changing the selection for the particular axies.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   'beforeOnCellMouseDown',
 
@@ -840,8 +832,8 @@ const REGISTERED_HOOKS = [
    * @param {Event} event The `mouseover` event object.
    * @param {CellCoords} coords CellCoords object containing the visual coordinates of the clicked cell.
    * @param {HTMLTableCellElement} TD TD element.
-   * @param {object} controller An object with keys `row`, `column` and `cells` which contains boolean values. This
-   *                            object allows or disallows changing the selection for the particular axies.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   'beforeOnCellMouseOver',
 
@@ -882,14 +874,58 @@ const REGISTERED_HOOKS = [
   'beforeRemoveRow',
 
   /**
-   * Fired before the Handsontable table is rendered.
+   * Fired before Handsontable's view-rendering engine is rendered.
    *
-   * @event Hooks#beforeRender
-   * @param {boolean} isForced If `true` rendering was triggered by a change of settings or data; or `false` if
-   *                           rendering was triggered by scrolling or moving selection.
+   * __Note:__ In Handsontable 9.x and earlier, the `beforeViewRender` hook was named `beforeRender`.
+   *
+   * @event Hooks#beforeViewRender
+   * @since 10.0.0
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
    * @param {object} skipRender Object with `skipRender` property, if it is set to `true ` the next rendering cycle will be skipped.
    */
+  'beforeViewRender',
+
+  /**
+   * Fired after Handsontable's view-rendering engine is rendered,
+   * but before redrawing the selection borders and before scroll syncing.
+   *
+   * __Note:__ In Handsontable 9.x and earlier, the `afterViewRender` hook was named `afterRender`.
+   *
+   * @event Hooks#afterViewRender
+   * @since 10.0.0
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
+   */
+  'afterViewRender',
+
+  /* eslint-disable jsdoc/require-description-complete-sentence */
+  /**
+   * Fired before Handsontable's view-rendering engine updates the view.
+   *
+   * The `beforeRender` event is fired right after the Handsontable
+   * business logic is executed and right before the rendering engine starts calling
+   * the Core logic, renderers, cell meta objects etc. to update the view.
+   *
+   * @event Hooks#beforeRender
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
+   */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   'beforeRender',
+
+  /**
+   * Fired after Handsontable's view-rendering engine updates the view.
+   *
+   * @event Hooks#afterRender
+   * @param {boolean} isForced If set to `true`, the rendering gets triggered by a change of settings, a change of
+   *                           data, or a logic that needs a full Handsontable render cycle.
+   *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
+   */
+  'afterRender',
 
   /**
    * Fired before cell meta is changed.
@@ -1084,8 +1120,8 @@ const REGISTERED_HOOKS = [
   'beforeHighlightingColumnHeader',
 
   /**
-   * Fired by {@link persistent-state PersistentState} plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
-   * {@link options#persistentstate Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
+   * {@link Options#persistentState} option is enabled.
    *
    * @event Hooks#persistentStateLoad
    * @param {string} key Key.
@@ -1094,8 +1130,8 @@ const REGISTERED_HOOKS = [
   'persistentStateLoad',
 
   /**
-   * Fired by {@link persistent-state PersistentState} plugin after resetting data from local storage. If no key is given, all values associated with table will be cleared.
-   * This hook is fired when {@link options#persistentstate Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin after resetting data from local storage. If no key is given, all values associated with table will be cleared.
+   * This hook is fired when {@link Options#persistentState} option is enabled.
    *
    * @event Hooks#persistentStateReset
    * @param {string} [key] Key.
@@ -1103,8 +1139,8 @@ const REGISTERED_HOOKS = [
   'persistentStateReset',
 
   /**
-   * Fired by {@link persistent-state PersistentState} plugin, after saving value under given key in browser local storage. This hook is fired when
-   * {@link options#persistentstate Options#persistentState} option is enabled.
+   * Fired by {@link PersistentState} plugin, after saving value under given key in browser local storage. This hook is fired when
+   * {@link Options#persistentState} option is enabled.
    *
    * @event Hooks#persistentStateSave
    * @param {string} key Key.
@@ -1113,10 +1149,10 @@ const REGISTERED_HOOKS = [
   'persistentStateSave',
 
   /**
-   * Fired by {@link column-sorting ColumnSorting} and {@link multi-column-sorting MultiColumnSorting} plugins before sorting the column. If you return `false` value inside callback for hook, then sorting
+   * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugins before sorting the column. If you return `false` value inside callback for hook, then sorting
    * will be not applied by the Handsontable (useful for server-side sorting).
    *
-   * This hook is fired when {@link options#columnsorting Options#columnSorting} or {@link options#multicolumnsorting Options#multiColumnSorting} option is enabled.
+   * This hook is fired when {@link Options#columnSorting} or {@link Options#multiColumnSorting} option is enabled.
    *
    * @event Hooks#beforeColumnSort
    * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
@@ -1126,8 +1162,8 @@ const REGISTERED_HOOKS = [
   'beforeColumnSort',
 
   /**
-   * Fired by {@link column-sorting ColumnSorting} and {@link multi-column-sorting MultiColumnSorting} plugins after sorting the column. This hook is fired when {@link options#columnsorting Options#columnSorting}
-   * or {@link options#multicolumnsorting Options#multiColumnSorting} option is enabled.
+   * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugins after sorting the column. This hook is fired when {@link Options#columnSorting}
+   * or {@link Options#multiColumnSorting} option is enabled.
    *
    * @event Hooks#afterColumnSort
    * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
@@ -1136,7 +1172,7 @@ const REGISTERED_HOOKS = [
   'afterColumnSort',
 
   /**
-   * Fired by {@link autofill Autofill} plugin after setting range of autofill. This hook is fired when {@link options#fillhandle Options#fillHandle}
+   * Fired by {@link Autofill} plugin after setting range of autofill. This hook is fired when {@link Options#fillHandle}
    * option is enabled.
    *
    * @event Hooks#modifyAutofillRange
@@ -1154,8 +1190,8 @@ const REGISTERED_HOOKS = [
   'modifyCopyableRange',
 
   /**
-   * Fired by {@link copy-paste CopyPaste} plugin before copying the values into clipboard and before clearing values of
-   * the selected cells. This hook is fired when {@link options#copypaste Options#copyPaste} option is enabled.
+   * Fired by {@link CopyPaste} plugin before copying the values into clipboard and before clearing values of
+   * the selected cells. This hook is fired when {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#beforeCut
    * @param {Array[]} data An array of arrays which contains data to cut.
@@ -1184,8 +1220,8 @@ const REGISTERED_HOOKS = [
   'beforeCut',
 
   /**
-   * Fired by {@link copy-paste CopyPaste} plugin after data was cut out from the table. This hook is fired when
-   * {@link options#copypaste Options#copyPaste} option is enabled.
+   * Fired by {@link CopyPaste} plugin after data was cut out from the table. This hook is fired when
+   * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterCut
    * @param {Array[]} data An array of arrays which contains the cutted out data.
@@ -1230,7 +1266,7 @@ const REGISTERED_HOOKS = [
   'beforeCopy',
 
   /**
-   * Fired by {@link copy-paste CopyPaste} plugin after data are pasted into table. This hook is fired when {@link options#copypaste Options#copyPaste}
+   * Fired by {@link CopyPaste} plugin after data are pasted into table. This hook is fired when {@link Options#copyPaste}
    * option is enabled.
    *
    * @event Hooks#afterCopy
@@ -1241,8 +1277,8 @@ const REGISTERED_HOOKS = [
   'afterCopy',
 
   /**
-   * Fired by {@link copy-paste CopyPaste} plugin before values are pasted into table. This hook is fired when
-   * {@link options#copypaste Options#copyPaste} option is enabled.
+   * Fired by {@link CopyPaste} plugin before values are pasted into table. This hook is fired when
+   * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#beforePaste
    * @param {Array[]} data An array of arrays which contains data to paste.
@@ -1271,8 +1307,8 @@ const REGISTERED_HOOKS = [
   'beforePaste',
 
   /**
-   * Fired by {@link copy-paste CopyPaste} plugin after values are pasted into table. This hook is fired when
-   * {@link options#copypaste Options#copyPaste} option is enabled.
+   * Fired by {@link CopyPaste} plugin after values are pasted into table. This hook is fired when
+   * {@link Options#copyPaste} option is enabled.
    *
    * @event Hooks#afterPaste
    * @param {Array[]} data An array of arrays which contains the pasted data.
@@ -1282,8 +1318,8 @@ const REGISTERED_HOOKS = [
   'afterPaste',
 
   /**
-   * Fired by {@link manual-column-move ManualColumnMove} plugin before change order of the visual indexes. This hook is fired when
-   * {@link options#manualcolumnmove Options#manualColumnMove} option is enabled.
+   * Fired by {@link ManualColumnMove} plugin before change order of the visual indexes. This hook is fired when
+   * {@link Options#manualColumnMove} option is enabled.
    *
    * @event Hooks#beforeColumnMove
    * @param {Array} movedColumns Array of visual column indexes to be moved.
@@ -1302,8 +1338,8 @@ const REGISTERED_HOOKS = [
   'beforeColumnMove',
 
   /**
-   * Fired by {@link manual-column-move ManualColumnMove} plugin after changing order of the visual indexes.
-   * This hook is fired when {@link options#manualcolumnmove Options#manualColumnMove} option is enabled.
+   * Fired by {@link ManualColumnMove} plugin after changing order of the visual indexes.
+   * This hook is fired when {@link Options#manualColumnMove} option is enabled.
    *
    * @event Hooks#afterColumnMove
    * @param {Array} movedColumns Array of visual column indexes to be moved.
@@ -1322,8 +1358,8 @@ const REGISTERED_HOOKS = [
   'afterColumnMove',
 
   /**
-   * Fired by {@link manual-row-move ManualRowMove} plugin before changing the order of the visual indexes. This hook is fired when
-   * {@link options#manualrowmove Options#manualRowMove} option is enabled.
+   * Fired by {@link ManualRowMove} plugin before changing the order of the visual indexes. This hook is fired when
+   * {@link Options#manualRowMove} option is enabled.
    *
    * @event Hooks#beforeRowMove
    * @param {Array} movedRows Array of visual row indexes to be moved.
@@ -1342,8 +1378,8 @@ const REGISTERED_HOOKS = [
   'beforeRowMove',
 
   /**
-   * Fired by {@link manual-row-move ManualRowMove} plugin after changing the order of the visual indexes.
-   * This hook is fired when {@link options#manualrowmove Options#manualRowMove} option is enabled.
+   * Fired by {@link ManualRowMove} plugin after changing the order of the visual indexes.
+   * This hook is fired when {@link Options#manualRowMove} option is enabled.
    *
    * @event Hooks#afterRowMove
    * @param {Array} movedRows Array of visual row indexes to be moved.
@@ -1362,8 +1398,8 @@ const REGISTERED_HOOKS = [
   'afterRowMove',
 
   /**
-   * Fired by {@link manual-column-resize ManualColumnResize} plugin before rendering the table with modified column sizes. This hook is
-   * fired when {@link options#manualcolumnresize Options#manualColumnResize} option is enabled.
+   * Fired by {@link ManualColumnResize} plugin before rendering the table with modified column sizes. This hook is
+   * fired when {@link Options#manualColumnResize} option is enabled.
    *
    * @event Hooks#beforeColumnResize
    * @param {number} newSize Calculated new column width.
@@ -1374,8 +1410,8 @@ const REGISTERED_HOOKS = [
   'beforeColumnResize',
 
   /**
-   * Fired by {@link manual-column-resize ManualColumnResize} plugin after rendering the table with modified column sizes. This hook is
-   * fired when {@link options#manualcolumnresize Options#manualColumnResize} option is enabled.
+   * Fired by {@link ManualColumnResize} plugin after rendering the table with modified column sizes. This hook is
+   * fired when {@link Options#manualColumnResize} option is enabled.
    *
    * @event Hooks#afterColumnResize
    * @param {number} newSize Calculated new column width.
@@ -1385,8 +1421,8 @@ const REGISTERED_HOOKS = [
   'afterColumnResize',
 
   /**
-   * Fired by {@link manual-row-resize ManualRowResize} plugin before rendering the table with modified row sizes. This hook is
-   * fired when {@link options#manualrowresize Options#manualRowResize} option is enabled.
+   * Fired by {@link ManualRowResize} plugin before rendering the table with modified row sizes. This hook is
+   * fired when {@link Options#manualRowResize} option is enabled.
    *
    * @event Hooks#beforeRowResize
    * @param {number} newSize Calculated new row height.
@@ -1397,8 +1433,8 @@ const REGISTERED_HOOKS = [
   'beforeRowResize',
 
   /**
-   * Fired by {@link manual-row-resize ManualRowResize} plugin after rendering the table with modified row sizes. This hook is
-   * fired when {@link options#manualrowresize Options#manualRowResize} option is enabled.
+   * Fired by {@link ManualRowResize} plugin after rendering the table with modified row sizes. This hook is
+   * fired when {@link Options#manualRowResize} option is enabled.
    *
    * @event Hooks#afterRowResize
    * @param {number} newSize Calculated new row height.
@@ -1435,8 +1471,8 @@ const REGISTERED_HOOKS = [
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
-   * Fired by {@link filters Filters} plugin before applying [filtering](@/guides/columns/column-filter.md).
-   * This hook is fired when {@link options#filters Options#filters} option is enabled.
+   * Fired by {@link Filters} plugin before applying [filtering](@/guides/columns/column-filter.md).
+   * This hook is fired when {@link Options#filters} option is enabled.
    *
    * @event Hooks#beforeFilter
    * @param {object[]} conditionsStack An array of objects with added formulas.
@@ -1467,8 +1503,8 @@ const REGISTERED_HOOKS = [
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
-   * Fired by {@link filters Filters} plugin after applying [filtering](@/guides/columns/column-filter.md).
-   * This hook is fired when {@link options#filters Options#filters} option is enabled.
+   * Fired by {@link Filters} plugin after applying [filtering](@/guides/columns/column-filter.md).
+   * This hook is fired when {@link Options#filters} option is enabled.
    *
    * @event Hooks#afterFilter
    * @param {object[]} conditionsStack An array of objects with added conditions.
@@ -1561,8 +1597,8 @@ const REGISTERED_HOOKS = [
   'modifyColumnHeaderHeight',
 
   /**
-   * Fired by {@link undo-redo UndoRedo} plugin before the undo action. Contains information about the action that is being undone.
-   * This hook is fired when {@link options#undo Options#undo} option is enabled.
+   * Fired by {@link UndoRedo} plugin before the undo action. Contains information about the action that is being undone.
+   * This hook is fired when {@link Options#undo} option is enabled.
    *
    * @event Hooks#beforeUndo
    * @param {object} action The action object. Contains information about the action being undone. The `actionType`
@@ -1572,7 +1608,7 @@ const REGISTERED_HOOKS = [
   'beforeUndo',
 
   /**
-   * Fired by {@link undo-redo UndoRedo} plugin before changing undo stack.
+   * Fired by {@link UndoRedo} plugin before changing undo stack.
    *
    * @event Hooks#beforeUndoStackChange
    * @since 8.4.0
@@ -1584,8 +1620,8 @@ const REGISTERED_HOOKS = [
   'beforeUndoStackChange',
 
   /**
-   * Fired by {@link undo-redo UndoRedo} plugin after the undo action. Contains information about the action that is being undone.
-   * This hook is fired when {@link options#undo Options#undo} option is enabled.
+   * Fired by {@link UndoRedo} plugin after the undo action. Contains information about the action that is being undone.
+   * This hook is fired when {@link Options#undo} option is enabled.
    *
    * @event Hooks#afterUndo
    * @param {object} action The action object. Contains information about the action being undone. The `actionType`
@@ -1594,7 +1630,7 @@ const REGISTERED_HOOKS = [
   'afterUndo',
 
   /**
-   * Fired by {@link undo-redo UndoRedo} plugin after changing undo stack.
+   * Fired by {@link UndoRedo} plugin after changing undo stack.
    *
    * @event Hooks#afterUndoStackChange
    * @since 8.4.0
@@ -1604,8 +1640,8 @@ const REGISTERED_HOOKS = [
   'afterUndoStackChange',
 
   /**
-   * Fired by {@link undo-redo UndoRedo} plugin before the redo action. Contains information about the action that is being redone.
-   * This hook is fired when {@link options#undo Options#undo} option is enabled.
+   * Fired by {@link UndoRedo} plugin before the redo action. Contains information about the action that is being redone.
+   * This hook is fired when {@link Options#undo} option is enabled.
    *
    * @event Hooks#beforeRedo
    * @param {object} action The action object. Contains information about the action being redone. The `actionType`
@@ -1615,7 +1651,7 @@ const REGISTERED_HOOKS = [
   'beforeRedo',
 
   /**
-   * Fired by {@link undo-redo UndoRedo} plugin before changing redo stack.
+   * Fired by {@link UndoRedo} plugin before changing redo stack.
    *
    * @event Hooks#beforeRedoStackChange
    * @since 8.4.0
@@ -1624,8 +1660,8 @@ const REGISTERED_HOOKS = [
   'beforeRedoStackChange',
 
   /**
-   * Fired by {@link undo-redo UndoRedo} plugin after the redo action. Contains information about the action that is being redone.
-   * This hook is fired when {@link options#undo Options#undo} option is enabled.
+   * Fired by {@link UndoRedo} plugin after the redo action. Contains information about the action that is being redone.
+   * This hook is fired when {@link Options#undo} option is enabled.
    *
    * @event Hooks#afterRedo
    * @param {object} action The action object. Contains information about the action being redone. The `actionType`
@@ -1634,7 +1670,7 @@ const REGISTERED_HOOKS = [
   'afterRedo',
 
   /**
-   * Fired by {@link undo-redo UndoRedo} plugin after changing redo stack.
+   * Fired by {@link UndoRedo} plugin after changing redo stack.
    *
    * @event Hooks#afterRedoStackChange
    * @since 8.4.0
@@ -1729,7 +1765,7 @@ const REGISTERED_HOOKS = [
   'afterPluginsInitialized',
 
   /**
-   * Fired by {@link hidden-rows HiddenRows} plugin before marking the rows as hidden. Fired only if the {@link options#hiddenrows Options#hiddenRows} option is enabled.
+   * Fired by {@link HiddenRows} plugin before marking the rows as hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    * Returning `false` in the callback will prevent the hiding action from completing.
    *
    * @event Hooks#beforeHideRows
@@ -1741,7 +1777,7 @@ const REGISTERED_HOOKS = [
   'beforeHideRows',
 
   /**
-   * Fired by {@link hidden-rows HiddenRows} plugin after marking the rows as hidden. Fired only if the {@link options#hiddenrows Options#hiddenRows} option is enabled.
+   * Fired by {@link HiddenRows} plugin after marking the rows as hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    *
    * @event Hooks#afterHideRows
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical row indexes.
@@ -1752,7 +1788,7 @@ const REGISTERED_HOOKS = [
   'afterHideRows',
 
   /**
-   * Fired by {@link hidden-rows HiddenRows} plugin before marking the rows as not hidden. Fired only if the {@link options#hiddenrows Options#hiddenRows} option is enabled.
+   * Fired by {@link HiddenRows} plugin before marking the rows as not hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    * Returning `false` in the callback will prevent the row revealing action from completing.
    *
    * @event Hooks#beforeUnhideRows
@@ -1764,7 +1800,7 @@ const REGISTERED_HOOKS = [
   'beforeUnhideRows',
 
   /**
-   * Fired by {@link hidden-rows HiddenRows} plugin after marking the rows as not hidden. Fired only if the {@link options#hiddenrows Options#hiddenRows} option is enabled.
+   * Fired by {@link HiddenRows} plugin after marking the rows as not hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    *
    * @event Hooks#afterUnhideRows
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical row indexes.
@@ -1775,7 +1811,7 @@ const REGISTERED_HOOKS = [
   'afterUnhideRows',
 
   /**
-   * Fired by {@link hidden-columns HiddenColumns} plugin before marking the columns as hidden. Fired only if the {@link options#hiddencolumns Options#hiddenColumns} option is enabled.
+   * Fired by {@link HiddenColumns} plugin before marking the columns as hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
    * Returning `false` in the callback will prevent the hiding action from completing.
    *
    * @event Hooks#beforeHideColumns
@@ -1787,7 +1823,7 @@ const REGISTERED_HOOKS = [
   'beforeHideColumns',
 
   /**
-   * Fired by {@link hidden-columns HiddenColumns} plugin after marking the columns as hidden. Fired only if the {@link options#hiddencolumns Options#hiddenColumns} option is enabled.
+   * Fired by {@link HiddenColumns} plugin after marking the columns as hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
    *
    * @event Hooks#afterHideColumns
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical column indexes.
@@ -1798,7 +1834,7 @@ const REGISTERED_HOOKS = [
   'afterHideColumns',
 
   /**
-   * Fired by {@link hidden-columns HiddenColumns} plugin before marking the columns as not hidden. Fired only if the {@link options#hiddencolumns Options#hiddenColumns} option is enabled.
+   * Fired by {@link HiddenColumns} plugin before marking the columns as not hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
    * Returning `false` in the callback will prevent the column revealing action from completing.
    *
    * @event Hooks#beforeUnhideColumns
@@ -1810,7 +1846,7 @@ const REGISTERED_HOOKS = [
   'beforeUnhideColumns',
 
   /**
-   * Fired by {@link hidden-columns HiddenColumns} plugin after marking the columns as not hidden. Fired only if the {@link options#hiddencolumns Options#hiddenColumns} option is enabled.
+   * Fired by {@link HiddenColumns} plugin after marking the columns as not hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
    *
    * @event Hooks#afterUnhideColumns
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical column indexes.
@@ -1821,7 +1857,7 @@ const REGISTERED_HOOKS = [
   'afterUnhideColumns',
 
   /**
-   * Fired by {@link trim-rows TrimRows} plugin before trimming rows. This hook is fired when {@link options#trimrows Options#trimRows} option is enabled.
+   * Fired by {@link TrimRows} plugin before trimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
    *
    * @event Hooks#beforeTrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
@@ -1832,7 +1868,7 @@ const REGISTERED_HOOKS = [
   'beforeTrimRow',
 
   /**
-   * Fired by {@link trim-rows TrimRows} plugin after trimming rows. This hook is fired when {@link options#trimrows Options#trimRows} option is enabled.
+   * Fired by {@link TrimRows} plugin after trimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
    *
    * @event Hooks#afterTrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
@@ -1844,7 +1880,7 @@ const REGISTERED_HOOKS = [
   'afterTrimRow',
 
   /**
-   * Fired by {@link trim-rows TrimRows} plugin before untrimming rows. This hook is fired when {@link options#trimrows Options#trimRows} option is enabled.
+   * Fired by {@link TrimRows} plugin before untrimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
    *
    * @event Hooks#beforeUntrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
@@ -1855,7 +1891,7 @@ const REGISTERED_HOOKS = [
   'beforeUntrimRow',
 
   /**
-   * Fired by {@link trim-rows TrimRows} plugin after untrimming rows. This hook is fired when {@link options#trimrows Options#trimRows} option is enabled.
+   * Fired by {@link TrimRows} plugin after untrimming rows. This hook is fired when {@link Options#trimRows} option is enabled.
    *
    * @event Hooks#afterUntrimRow
    * @param {Array} currentTrimConfig Current trim configuration - a list of trimmed physical row indexes.
@@ -1867,7 +1903,7 @@ const REGISTERED_HOOKS = [
   'afterUntrimRow',
 
   /**
-   * Fired by {@link dropdown-menu DropdownMenu} plugin before opening the dropdown menu. This hook is fired when {@link options#dropdownmenu Options#dropdownMenu}
+   * Fired by {@link DropdownMenu} plugin before opening the dropdown menu. This hook is fired when {@link Options#dropdownMenu}
    * option is enabled.
    *
    * @event Hooks#beforeDropdownMenuShow
@@ -1876,7 +1912,7 @@ const REGISTERED_HOOKS = [
   'beforeDropdownMenuShow',
 
   /**
-   * Fired by {@link dropdown-menu DropdownMenu} plugin after opening the Dropdown Menu. This hook is fired when {@link options#dropdownmenu Options#dropdownMenu}
+   * Fired by {@link DropdownMenu} plugin after opening the Dropdown Menu. This hook is fired when {@link Options#dropdownMenu}
    * option is enabled.
    *
    * @event Hooks#afterDropdownMenuShow
@@ -1885,7 +1921,7 @@ const REGISTERED_HOOKS = [
   'afterDropdownMenuShow',
 
   /**
-   * Fired by {@link dropdown-menu DropdownMenu} plugin after hiding the Dropdown Menu. This hook is fired when {@link options#dropdownmenu Options#dropdownMenu}
+   * Fired by {@link DropdownMenu} plugin after hiding the Dropdown Menu. This hook is fired when {@link Options#dropdownMenu}
    * option is enabled.
    *
    * @event Hooks#afterDropdownMenuHide
@@ -1894,8 +1930,8 @@ const REGISTERED_HOOKS = [
   'afterDropdownMenuHide',
 
   /**
-   * Fired by {@link nested-rows NestedRows} plugin before adding a children to the NestedRows structure. This hook is fired when
-   * {@link options#nestedrows Options#nestedRows} option is enabled.
+   * Fired by {@link NestedRows} plugin before adding a children to the NestedRows structure. This hook is fired when
+   * {@link Options#nestedRows} option is enabled.
    *
    * @event Hooks#beforeAddChild
    * @param {object} parent The parent object.
@@ -1905,8 +1941,8 @@ const REGISTERED_HOOKS = [
   'beforeAddChild',
 
   /**
-   * Fired by {@link nested-rows NestedRows} plugin after adding a children to the NestedRows structure. This hook is fired when
-   * {@link options#nestedrows Options#nestedRows} option is enabled.
+   * Fired by {@link NestedRows} plugin after adding a children to the NestedRows structure. This hook is fired when
+   * {@link Options#nestedRows} option is enabled.
    *
    * @event Hooks#afterAddChild
    * @param {object} parent The parent object.
@@ -1916,8 +1952,8 @@ const REGISTERED_HOOKS = [
   'afterAddChild',
 
   /**
-   * Fired by {@link nested-rows NestedRows} plugin before detaching a child from its parent. This hook is fired when
-   * {@link options#nestedrows Options#nestedRows} option is enabled.
+   * Fired by {@link NestedRows} plugin before detaching a child from its parent. This hook is fired when
+   * {@link Options#nestedRows} option is enabled.
    *
    * @event Hooks#beforeDetachChild
    * @param {object} parent An object representing the parent from which the element is to be detached.
@@ -1926,12 +1962,13 @@ const REGISTERED_HOOKS = [
   'beforeDetachChild',
 
   /**
-   * Fired by {@link nested-rows NestedRows} plugin after detaching a child from its parent. This hook is fired when
-   * {@link options#nestedrows Options#nestedRows} option is enabled.
+   * Fired by {@link NestedRows} plugin after detaching a child from its parent. This hook is fired when
+   * {@link Options#nestedRows} option is enabled.
    *
    * @event Hooks#afterDetachChild
    * @param {object} parent An object representing the parent from which the element was detached.
    * @param {object} element The detached element.
+   * @param {number} finalElementPosition The final row index of the detached element.
    */
   'afterDetachChild',
 
@@ -1945,7 +1982,7 @@ const REGISTERED_HOOKS = [
   'afterBeginEditing',
 
   /**
-   * Fired by {@link merge-cells MergeCells} plugin before cell merging. This hook is fired when {@link options#mergecells Options#mergeCells}
+   * Fired by {@link MergeCells} plugin before cell merging. This hook is fired when {@link Options#mergeCells}
    * option is enabled.
    *
    * @event Hooks#beforeMergeCells
@@ -1955,7 +1992,7 @@ const REGISTERED_HOOKS = [
   'beforeMergeCells',
 
   /**
-   * Fired by {@link merge-cells MergeCells} plugin after cell merging. This hook is fired when {@link options#mergecells Options#mergeCells}
+   * Fired by {@link MergeCells} plugin after cell merging. This hook is fired when {@link Options#mergeCells}
    * option is enabled.
    *
    * @event Hooks#afterMergeCells
@@ -1966,7 +2003,7 @@ const REGISTERED_HOOKS = [
   'afterMergeCells',
 
   /**
-   * Fired by {@link merge-cells MergeCells} plugin before unmerging the cells. This hook is fired when {@link options#mergecells Options#mergeCells}
+   * Fired by {@link MergeCells} plugin before unmerging the cells. This hook is fired when {@link Options#mergeCells}
    * option is enabled.
    *
    * @event Hooks#beforeUnmergeCells
@@ -1976,7 +2013,7 @@ const REGISTERED_HOOKS = [
   'beforeUnmergeCells',
 
   /**
-   * Fired by {@link merge-cells MergeCells} plugin after unmerging the cells. This hook is fired when {@link options#mergecells Options#mergeCells}
+   * Fired by {@link MergeCells} plugin after unmerging the cells. This hook is fired when {@link Options#mergeCells}
    * option is enabled.
    *
    * @event Hooks#afterUnmergeCells
@@ -2023,7 +2060,7 @@ const REGISTERED_HOOKS = [
   'beforeRefreshDimensions',
 
   /**
-   * Fired by {@link collapsible-columns CollapsibleColumns} plugin before columns collapse. This hook is fired when {@link options#collapsiblecolumns Options#collapsibleColumns} option is enabled.
+   * Fired by {@link CollapsibleColumns} plugin before columns collapse. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#beforeColumnCollapse
    * @since 8.0.0
@@ -2035,7 +2072,7 @@ const REGISTERED_HOOKS = [
   'beforeColumnCollapse',
 
   /**
-   * Fired by {@link collapsible-columns CollapsibleColumns} plugin before columns collapse. This hook is fired when {@link options#collapsiblecolumns Options#collapsibleColumns} option is enabled.
+   * Fired by {@link CollapsibleColumns} plugin before columns collapse. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#afterColumnCollapse
    * @since 8.0.0
@@ -2047,7 +2084,7 @@ const REGISTERED_HOOKS = [
   'afterColumnCollapse',
 
   /**
-   * Fired by {@link collapsible-columns CollapsibleColumns} plugin before columns expand. This hook is fired when {@link options#collapsiblecolumns Options#collapsibleColumns} option is enabled.
+   * Fired by {@link CollapsibleColumns} plugin before columns expand. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#beforeColumnExpand
    * @since 8.0.0
@@ -2059,7 +2096,7 @@ const REGISTERED_HOOKS = [
   'beforeColumnExpand',
 
   /**
-   * Fired by {@link collapsible-columns CollapsibleColumns} plugin before columns expand. This hook is fired when {@link options#collapsiblecolumns Options#collapsibleColumns} option is enabled.
+   * Fired by {@link CollapsibleColumns} plugin before columns expand. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#afterColumnExpand
    * @since 8.0.0
@@ -2071,7 +2108,7 @@ const REGISTERED_HOOKS = [
   'afterColumnExpand',
 
   /**
-   * Fired by {@link auto-column-size AutoColumnSize} plugin within SampleGenerator utility.
+   * Fired by {@link AutoColumnSize} plugin within SampleGenerator utility.
    *
    * @event Hooks#modifyAutoColumnSizeSeed
    * @since 8.4.0
@@ -2367,8 +2404,8 @@ class Hooks {
             /* eslint-disable no-continue */
             continue;
           }
-          // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-          const res = globalHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
+
+          const res = fastCall(globalHandlers[index], context, p1, p2, p3, p4, p5, p6);
 
           if (res !== void 0) {
             // eslint-disable-next-line no-param-reassign
@@ -2395,8 +2432,8 @@ class Hooks {
             /* eslint-disable no-continue */
             continue;
           }
-          // performance considerations - http://jsperf.com/call-vs-apply-for-a-plugin-architecture
-          const res = localHandlers[index].call(context, p1, p2, p3, p4, p5, p6);
+
+          const res = fastCall(localHandlers[index], context, p1, p2, p3, p4, p5, p6);
 
           if (res !== void 0) {
             // eslint-disable-next-line no-param-reassign

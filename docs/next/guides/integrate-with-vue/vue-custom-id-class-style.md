@@ -34,12 +34,11 @@ new Vue({
         startCols: 5,
         colHeaders: true,
         stretchH: 'all',
-        height: 'auto',
         licenseKey: 'non-commercial-and-evaluation'
       },
       id: 'my-custom-id',
       className: 'my-custom-classname',
-      style: 'width: 300px; height: 142px; overflow: hidden; border: 1px solid red;'
+      style: 'height: 142px; overflow: hidden; border: 1px solid red;'
     }
   },
   components: {
