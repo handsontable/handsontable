@@ -9,7 +9,10 @@ export const buildParser = ({ logger, parseJsdoc }) => function* () {
   const groupMember = (map, member) => map.set(getName(member), [...map.get(getName(member)) || [], member]);
 
   logger.info('Parsing jsdoc comments...');
-  const data = parseJsdoc('**/*.js');
+  const data = parseJsdoc([
+    '!(*.spec|*.unit|*.entry).js',
+    '**/!(dist)/!(*.spec|*.unit|*.entry).js',
+  ]);
 
   logger.success('Jsdoc comments parsed successfully.');
 
