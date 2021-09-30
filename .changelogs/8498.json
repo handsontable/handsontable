@@ -1,5 +1,5 @@
 {
-  "title": "Fixed an issue with triggering wrong coords by `afterOnCellMouseDown` and `afterOnCellMouseDown` hooks ",
+  "title": "Fixed an issue with triggering wrong coords by `afterOnCellMouseDown` and `afterOnCellMouseDown` hooks",
   "type": "fixed",
   "issue": 8498,
   "breaking": false,
