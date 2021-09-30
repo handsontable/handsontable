@@ -27,11 +27,7 @@ jobs:
 
       - name: Dependencies
         run: |
-          npm ci 
-
-      - name: Generate API references
-        run: |
-          npm run docs:api
+          npm ci
 
       - name: Docker build
         run: |
