@@ -6,8 +6,8 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const buildJsdocToMarkdownIntegrator = ({ source }) => {
-  const parseJsdoc = file => jsdoc2md.getTemplateDataSync({
-    files: source(file),
+  const parseJsdoc = files => jsdoc2md.getTemplateDataSync({
+    files: source(files),
     'no-cache': true,
   });
 
