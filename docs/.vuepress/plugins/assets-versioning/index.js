@@ -37,7 +37,7 @@ module.exports = (options, context) => {
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
       $page.frontmatter.canonicalUrl = `https://handsontable.com/docs/${$page.frontmatter.canonicalUrl}`;
 
-      if ((!DOCS_VERSION || $page.currentVersion === $page.latestVersion) && $page.frontmatter.permalink) {
+      if ((DOCS_VERSION || $page.currentVersion === $page.latestVersion) && $page.frontmatter.permalink) {
         $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
       }
 
