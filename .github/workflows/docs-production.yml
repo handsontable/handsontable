@@ -1,4 +1,4 @@
-name: Documentation Production Deployment
+name: Docs Production Deployment
 
 env:
   GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:production
