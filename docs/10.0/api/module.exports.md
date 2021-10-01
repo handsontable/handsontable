@@ -88,7 +88,7 @@ Renderer class responsible for rendering col in colgroup.
 
 :::
 
-_module.[exports](@/api/exports.md).collapsingUI : [CollapsingUI](@/api/collapsingui.md)_
+_module.[exports](@/api/exports.md).collapsingUI : [CollapsingUI](@/api/collapsingUI.md)_
 
 Reference to the Collapsing UI class instance.
 
