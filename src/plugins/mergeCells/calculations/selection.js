@@ -3,9 +3,8 @@ import { CellCoords, CellRange } from '../../../3rdparty/walkontable/src';
 /**
  * Class responsible for all of the Selection-related operations on merged cells.
  *
+ * @private
  * @class SelectionCalculations
- * @plugin MergeCells
- * @util
  */
 class SelectionCalculations {
   constructor(plugin) {

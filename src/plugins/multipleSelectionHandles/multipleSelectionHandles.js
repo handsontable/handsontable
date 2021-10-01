@@ -75,6 +75,7 @@ export class MultipleSelectionHandles extends BasePlugin {
     const { rootElement } = this.hot;
 
     /**
+     * @private
      * @param {string} query Query for the position.
      * @returns {boolean}
      */

@@ -5,6 +5,7 @@
  * Each object contains information about the differences in the indexes of the arrays.
  * The changes also contain data about the new and previous array values.
  *
+ * @private
  * @param {Array} baseArray The base array to diff from.
  * @param {Array} newArray The new array to compare with.
  * @returns {Array}

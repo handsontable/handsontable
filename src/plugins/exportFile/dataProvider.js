@@ -1,10 +1,6 @@
 import { rangeEach } from '../../helpers/number';
 
-// Waiting for jshint >=2.9.0 where they added support for destructing
-// jshint ignore: start
-
 /**
- * @plugin ExportFile
  * @private
  */
 class DataProvider {

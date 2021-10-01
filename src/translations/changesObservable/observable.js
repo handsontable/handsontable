@@ -6,6 +6,7 @@ import { arrayDiff } from './utils';
  * the ability to observe the changes that happened in the index map indexes during
  * the code running.
  *
+ * @private
  * @class ChangesObservable
  */
 export class ChangesObservable {

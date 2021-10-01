@@ -14,8 +14,8 @@ export const HEADER_CONFIGURABLE_PROPS = ['label', 'collapsible'];
  * into the nested headers plugin. The SourceSettings class is a
  * source of truth for tree builder (HeaderTree) module.
  *
+ * @private
  * @class SourceSettings
- * @plugin NestedHeaders
  */
 export default class SourceSettings {
   /**

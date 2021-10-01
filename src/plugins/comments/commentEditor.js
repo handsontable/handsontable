@@ -3,8 +3,8 @@ import { addClass } from '../../helpers/dom/element';
 /**
  * Comment editor for the Comments plugin.
  *
+ * @private
  * @class CommentEditor
- * @plugin Comments
  */
 class CommentEditor {
   static get CLASS_EDITOR_CONTAINER() {

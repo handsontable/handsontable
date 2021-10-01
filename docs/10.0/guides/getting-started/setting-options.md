@@ -246,7 +246,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
       height: 300,
       // the `cells` option
       cells() {
-        
+
       };
     });
     ```
@@ -524,7 +524,7 @@ The [`cells`](@/api/options.md#cells) option overwrites all other options.
 The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
 :::
 
-1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`cells`](@/api/cells.md#cells), and set it to a function.
+1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`cells`](@/api/options.md#cells), and set it to a function.
     ```js
     const hot = new Handsontable(container, {
       // top-level grid options that apply to the entire grid
@@ -532,7 +532,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
       height: 300,
       // the `cells` option
       cells() {
-        
+
       };
     });
     ```
