@@ -10,7 +10,7 @@ import { outputCleaners } from './postProcessors/outputCleaners.mjs';
 import { buildTypesLinkingFixers } from './postProcessors/typesLinkingFixers.mjs';
 import { unescapeRedundant } from './postProcessors/unescapeRedundant.mjs';
 import { jsdocLinksFixer } from './postProcessors/jsdocLinksFixer.mjs';
-import { isJsdocPlugin, isJsdocIgnore } from './predictors.mjs';
+import { isJsdocPlugin } from './predictors.mjs';
 import { buildHeaderWriter } from './seo.mjs';
 
 export const buildRenderer = ({ dist, generateMarkdown, configuration, logger }) =>

@@ -7,13 +7,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const buildJsdocToMarkdownIntegrator = ({ source }) => {
   const parseJsdoc = (files) => {
-
-console.log('files', source(files));
-
     return jsdoc2md.getTemplateDataSync({
       files: source(files),
       'no-cache': true,
-    })
+    });
   };
 
   const generateMarkdown = data => dmd(data, {

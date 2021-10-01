@@ -15,7 +15,3 @@ export const isJsdocOptions = data => data[0]?.meta.filename === 'metaSchema.js'
 export const isJsdocPlugin = (data) => {
   return data[0]?.customTags?.filter(tag => tag.tag === 'plugin' && tag.value).length > 0 ?? false;
 };
-
-export const isJsdocIgnore = (data) => {
-  return data[0]?.members?.filter(tag => tag.tag === 'plugin' && tag.value).length > 0 ?? false;
-};

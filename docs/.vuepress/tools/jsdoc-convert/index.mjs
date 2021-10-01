@@ -24,8 +24,6 @@ for (const data of parse()) { // eslint-disable-line no-restricted-syntax
   const { type, members, metaData: { parsedTypes } } = data;
   const fileName = `${type}.md`;
 
-  // console.log('data', data);
-
   logger.log(`Generating \`${type}\` into:`, dist(fileName));
   try {
     render(fileName, members, parsedTypes);
