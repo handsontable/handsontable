@@ -1,3 +1,9 @@
+import rimraf from 'rimraf';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 /// shared dependencies
 import utils from '../utils.js';
 
@@ -10,6 +16,17 @@ import { buildParser } from './parser/index.mjs';
 
 /// extract commonjs module
 const { logger } = utils;
+
+const filesToRemoveGlob = path.resolve(`${__dirname}/${configuration.pathToDist}/!(introduction|plugins).md`);
+
+logger.log('Clearing old markdown files:', path.resolve(`${__dirname}/${configuration.pathToDist}`));
+
+rimraf.sync(filesToRemoveGlob, {
+  glob: true,
+  silent: false,
+});
+
+logger.success('Cleared old markdown files successfully.');
 
 /// build services
 const { source, dist } = buildPathsDeterminants(configuration);
