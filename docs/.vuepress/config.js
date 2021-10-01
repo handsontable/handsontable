@@ -29,6 +29,9 @@ const environmentHead = buildMode === 'production' ?
   : [];
 
 module.exports = {
+  define: {
+    GA_ID: 'UA-33932793-7',
+  },
   patterns: [
     `${versionPartialPath}/*.md`, `${versionPartialPath}/**/*.md`,
     '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'
