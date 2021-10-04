@@ -1,3 +1,4 @@
+/* global GA_ID, ga */
 const { applyToWindow, instanceRegister } = require('./handsontable-manager');
 const { themeLoader } = require('./themeLoader');
 
@@ -37,6 +38,17 @@ const buildActiveHeaderLinkHandler = () => {
 export default ({ router, isServer }) => {
   if (!isServer) {
     themeLoader();
+
+    if (typeof window.ga === 'function') {
+      router.afterEach((to) => {
+        ga.getAll().forEach((tracker) => {
+          if (tracker.get('trackingId') === GA_ID) {
+            tracker.set('page', router.app.$withBase(to.fullPath));
+            tracker.send('pageview');
+          }
+        });
+      });
+    }
 
     router.afterEach(buildRegisterCleaner(instanceRegister));
     router.afterEach(buildActiveHeaderLinkHandler());
