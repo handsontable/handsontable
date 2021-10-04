@@ -26877,7 +26877,7 @@ function Core(rootElement, userSettings) {
   /**
    * Returns the row height.
    *
-   * Mind that this method is different from the [AutoRowSize](@/api/autoRowSize.md) plugin's [`getRowHeight()`](@/api/autoRowSize.md#getrowheight) method.
+   * Mind that this method is different from the [AutoRowSize](@/api/autorowsize.md) plugin's [`getRowHeight()`](@/api/autoRowSize.md#getrowheight) method.
    *
    * @memberof Core#
    * @function getRowHeight
