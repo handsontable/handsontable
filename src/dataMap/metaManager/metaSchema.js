@@ -45,7 +45,8 @@ import { isObjectEqual } from '../../helpers/object';
  * - [Individual cells](@/guides/getting-started/setting-options.md#setting-cell-options)
  * - [Individual grid elements, based on any logic you implement](@/guides/getting-started/setting-options.md#implementing-custom-logic)
  *
- * Read more: [Configuration options &#8594;](@/guides/getting-started/setting-options.md)
+ * Read more:
+ * - [Configuration options &#8594;](@/guides/getting-started/setting-options.md)
  */
 export default () => {
   return {
@@ -56,7 +57,8 @@ export default () => {
      *
      * For [non-commercial use](@/guides/technical-specification/software-license.md#non-commercial-use), set the `licenseKey` option to this string: `non-commercial-and-evaluation`.
      *
-     * Read more: [License key &#8594;](@/guides/getting-started/license-key.md)
+     * Read more:
+     * - [License key &#8594;](@/guides/getting-started/license-key.md)
      *
      * @memberof Options#
      * @type {string}
@@ -84,7 +86,8 @@ export default () => {
      * - Either to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
      * - Or to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects).
      *
-     * Read more: [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
+     * Read more:
+     * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
      *
      * @memberof Options#
      * @type {Array[]|object[]}
@@ -119,7 +122,8 @@ export default () => {
      * When the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
      * (or is empty), the `dataSchema` option defines the structure of a new row.
      *
-     * Read more: [Binding to data: array of objects with custom data schema &#8594;](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema)
+     * Read more:
+     * - [Binding to data: array of objects with custom data schema &#8594;](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema)
      *
      * @memberof Options#
      * @type {object}
@@ -150,7 +154,8 @@ export default () => {
      * - A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) (e.g. `'75vw'`)
      * - A function that returns a valid number or string
      *
-     * Read more: [Grid size &#8594;](@/guides/getting-started/grid-size.md)
+     * Read more:
+     * - [Grid size &#8594;](@/guides/getting-started/grid-size.md)
      *
      * @memberof Options#
      * @type {number|string|Function}
@@ -179,7 +184,8 @@ export default () => {
      * - A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) (e.g. `'75vw'`)
      * - A function that returns a valid number or string
      *
-     * Read more: [Grid size &#8594;](@/guides/getting-started/grid-size.md)
+     * Read more:
+     * - [Grid size &#8594;](@/guides/getting-started/grid-size.md)
      *
      * @memberof Options#
      * @type {number|string|Function}
@@ -247,7 +253,8 @@ export default () => {
      * - To define your own row headers, set `rowHeaders` to an array (e.g. `['One', 'Two', 'Three', ...]`),
      * or to a function that returns such an array.
      *
-     * Read more: [Row header &#8594;](@/guides/rows/row-header.md)
+     * Read more:
+     * - [Row header &#8594;](@/guides/rows/row-header.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
@@ -277,7 +284,8 @@ export default () => {
      * - To define your own column headers, set `colHeaders` to an array (e.g. `['One', 'Two', 'Three', ...]`),
      * or to a function that returns such an array.
      *
-     * Read more: [Column header &#8594;](@/guides/columns/column-header.md)
+     * Read more:
+     * - [Column header &#8594;](@/guides/columns/column-header.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
@@ -316,7 +324,8 @@ export default () => {
      *
      * Setting the `colWidths` option disables the {@link AutoColumnSize} plugin.
      *
-     * Read more: [Column width &#8594;](@/guides/columns/column-width.md)
+     * Read more:
+     * - [Column width &#8594;](@/guides/columns/column-width.md)
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -362,7 +371,8 @@ export default () => {
      * The `rowHeights` option also sets the minimum row height that can be set
      * via the {@link ManualRowResize} and {@link AutoRowSize} plugins (if they are enabled).
      *
-     * Read more: [Row height &#8594;](@/guides/row/row-height.md)
+     * Read more:
+     * - [Row height &#8594;](@/guides/row/row-height.md)
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -399,9 +409,12 @@ export default () => {
      * - An array of objects (each object represents one column)
      * - A function that returns an array of objects
      *
+     * The `columns` option overwrites the [top-level grid options](@/guides/getting-started/setting-options.md#setting-grid-options).
+     *
      * When you use the `columns` option, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) are ignored.
      *
-     * Read more: [Configuration options: Setting column options &#8594;](@/guides/getting-started/setting-options.md#setting-column-options)
+     * Read more:
+     * - [Configuration options: Setting column options &#8594;](@/guides/getting-started/setting-options.md#setting-column-options)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -479,8 +492,13 @@ export default () => {
     cells: void 0,
 
     /**
-     * Any constructor or column option may be overwritten for a particular cell (row/column combination), using `cell`
-     * array passed to the Handsontable constructor.
+     * The `cell` option lets you apply [configuration options](@/guides/getting-started/setting-options.md) to individual cells.
+     *
+     * The `cell` option overwrites the [top-level grid options](@/guides/getting-started/setting-options.md#setting-grid-options),
+     * and the [`columns`](#columns) options.
+     *
+     * Read more:
+     * - [Configuration options: Setting cell options &#8594;](@/guides/getting-started/setting-options.md#setting-cell-options)
      *
      * @memberof Options#
      * @type {Array[]}
@@ -489,8 +507,9 @@ export default () => {
      *
      * @example
      * ```js
-     * // make cell with coordinates (0, 0) read only
+     * // set the `cell` option to an array of objects
      * cell: [
+     *   // make the cell with coordinates (0, 0) read-only
      *   {
      *     row: 0,
      *     col: 0,
@@ -503,13 +522,35 @@ export default () => {
 
     /**
      * @description
-     * If `true`, enables the {@link Comments} plugin, which enables an option to apply cell comments through the context menu
-     * (configurable with context menu keys `commentsAddEdit`, `commentsRemove`).
+     * The `comments` option enables and configures the [`Comments`](@/api/comments.md) plugin.
      *
-     * To initialize Handsontable with predefined comments, provide cell coordinates and comment text values in a form of
-     * an array.
+     * To enable the [`Comments`](@/api/comments.md) plugin
+     * (and add its menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md)),
+     * set the `comments` option to `true`.
      *
-     * See [Comments](@/guides/cell-features/comments.md) demo for examples.
+     * To enable the [`Comments`](@/api/comments.md) plugin,
+     * and configure default settings for all comments,
+     * set the `comments` option to an object with the following properties:
+     *
+     * | Property | Required | Type | Default | Description |
+     * |---|---|---|---|---|
+     * | `displayDelay` | No | Number | `250` | Displays all comments after a delay (in milliseconds). |
+     * | `readOnly` | No | Boolean | `false` | If set to `true`, makes all comments read-only by default. |
+     * | `style` | No | Object | - | Sets all comment boxes' `width` and `height` (in pixels). |
+     *
+     * To enable the [`Comments`](@/api/comments.md) plugin,
+     * and add predefined comments (with individual settings for each comment)
+     * set the `comments` option to an array with the following properties:
+     *
+     * | Property | Required | Type | Default | Description |
+     * |---|---|---|---|---|
+     * | `value` | No | String | - | The comment's text. |
+     * | `displayDelay` | No | Number | `250` | Displays the comment after a delay (in milliseconds). |
+     * | `readOnly` | No | Boolean | `false` | If set to `true`, makes the comment read-only by default. |
+     * | `style` | No | Object | - | Sets the comment box's `width` and `height` (in pixels). |
+     *
+     * Read more:
+     * - [Comments &#8594;](@/guides/cell-features/comments.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -518,22 +559,32 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable comments plugin
+     * // enable the `Comments` plugin
      * comments: true,
      *
-     * // or an object with extra predefined plugin config:
-     *
+     * // or enable the `Comments` plugin
+     * // and configure its settings
      * comments: {
-     *   displayDelay: 1000
+     *   // display all comments with a 1-second delay
+     *   displayDelay: 1000,
+     *   // make all comments read-only
+     *   readOnly: true,
+     *   // set the default size of all comment boxes
+     *   style: {
+     *     width: 300,
+     *     height: 100
+     *   }
      * }
      *
-     * // or
-     * // enable comments plugin and add predefined comments
+     * // or enable the `Comments` plugin with predefined comments
+     * // and configure each predefined comment individually
      * const hot = new Handsontable(document.getElementById('example'), {
-     *   data: getData(),
+     *   // enable the `Comments` plugin
      *   comments: true,
      *   cell: [
-     *     { row: 1, col: 1, comment: { value: 'Foo' } },
+     *     // in cell (1,1), add a predefined comment saying 'Foo'
+     *     { row: 1, col: 1, comment: { value: 'Foo', readOnly: true } },
+     *     // in cell (2,2), add a predefined read-only comment saying 'Bar'
      *     { row: 2, col: 2, comment: { value: 'Bar' } }
      *   ]
      * });
