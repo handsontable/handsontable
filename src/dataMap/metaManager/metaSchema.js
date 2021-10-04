@@ -45,7 +45,7 @@ import { isObjectEqual } from '../../helpers/object';
  * - [Individual cells](@/guides/getting-started/setting-options.md#setting-cell-options)
  * - [Individual grid elements, based on any logic you implement](@/guides/getting-started/setting-options.md#implementing-custom-logic)
  *
- * [Configuration options &#8594;](@/guides/getting-started/setting-options.md)
+ * Read more: [Configuration options &#8594;](@/guides/getting-started/setting-options.md)
  */
 export default () => {
   return {
@@ -56,7 +56,7 @@ export default () => {
      *
      * For [non-commercial use](@/guides/technical-specification/software-license.md#non-commercial-use), set the `licenseKey` option to this string: `non-commercial-and-evaluation`.
      *
-     * [License key &#8594;](@/guides/getting-started/license-key.md)
+     * Read more: [License key &#8594;](@/guides/getting-started/license-key.md)
      *
      * @memberof Options#
      * @type {string}
@@ -84,7 +84,7 @@ export default () => {
      * - Either to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
      * - Or to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects).
      *
-     * [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
+     * Read more: [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
      *
      * @memberof Options#
      * @type {Array[]|object[]}
@@ -119,7 +119,7 @@ export default () => {
      * When the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
      * (or is empty), the `dataSchema` option defines the structure of a new row.
      *
-     * [Binding to data: array of objects with custom data schema &#8594;](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema)
+     * Read more: [Binding to data: array of objects with custom data schema &#8594;](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema)
      *
      * @memberof Options#
      * @type {object}
@@ -150,7 +150,7 @@ export default () => {
      * - A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) (e.g. `'75vw'`)
      * - A function that returns a valid number or string
      *
-     * [Grid size &#8594;](@/guides/getting-started/grid-size.md)
+     * Read more: [Grid size &#8594;](@/guides/getting-started/grid-size.md)
      *
      * @memberof Options#
      * @type {number|string|Function}
@@ -179,7 +179,7 @@ export default () => {
      * - A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) (e.g. `'75vw'`)
      * - A function that returns a valid number or string
      *
-     * [Grid size &#8594;](@/guides/getting-started/grid-size.md)
+     * Read more: [Grid size &#8594;](@/guides/getting-started/grid-size.md)
      *
      * @memberof Options#
      * @type {number|string|Function}
@@ -247,7 +247,7 @@ export default () => {
      * - To define your own row headers, set `rowHeaders` to an array (e.g. `['One', 'Two', 'Three', ...]`),
      * or to a function that returns such an array.
      *
-     * [Row header &#8594;](@/guides/rows/row-header.md)
+     * Read more: [Row header &#8594;](@/guides/rows/row-header.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
@@ -277,7 +277,7 @@ export default () => {
      * - To define your own column headers, set `colHeaders` to an array (e.g. `['One', 'Two', 'Three', ...]`),
      * or to a function that returns such an array.
      *
-     * [Column header &#8594;](@/guides/columns/column-header.md)
+     * Read more: [Column header &#8594;](@/guides/columns/column-header.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
@@ -316,7 +316,7 @@ export default () => {
      *
      * Setting the `colWidths` option disables the {@link AutoColumnSize} plugin.
      *
-     * [Column width &#8594;](@/guides/columns/column-width.md)
+     * Read more: [Column width &#8594;](@/guides/columns/column-width.md)
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -362,7 +362,7 @@ export default () => {
      * The `rowHeights` option also sets the minimum row height that can be set
      * via the {@link ManualRowResize} and {@link AutoRowSize} plugins (if they are enabled).
      *
-     * [Row height &#8594;](@/guides/row/row-height.md)
+     * Read more: [Row height &#8594;](@/guides/row/row-height.md)
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -401,7 +401,7 @@ export default () => {
      *
      * When you use the `columns` option, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) are ignored.
      *
-     * [Settting column options &#8594;](@/guides/getting-started/setting-options.md#setting-column-options)
+     * Read more: [Configuration options: Setting column options &#8594;](@/guides/getting-started/setting-options.md#setting-column-options)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -440,15 +440,20 @@ export default () => {
 
     /**
      * @description
-     * Defines the cell properties for given `row`, `col`, `prop` coordinates. Any constructor or column option may be
-     * overwritten for a particular cell (row/column combination) using the `cells` property in the Handsontable constructor.
+     * The `cells` option lets you apply [configuration options](@/guides/getting-started/setting-options.md) to
+     * individual grid elements (columns, rows, cells), based on any logic you implement.
      *
-     * __Note:__ Parameters `row` and `col` always represent __physical indexes__. Example below show how to execute
-     * operations based on the __visual__ representation of Handsontable.
+     * The `cells` option overwrites all other options (including options set by [`columns`](#columns) and [`cell`](#cell)). It takes the following parameters:
      *
-     * Possible values of `prop`:
-     * - property name for column's data source object, when dataset is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
-     * - the same number as `col`, when dataset is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
+     * | Parameter | Required | Type | Description |
+     * |---|---|---|---|---|
+     * | `row` | Yes | Number | A physical row index |
+     * | `column` | Yes | Number | A physical column index |
+     * | `prop` | No | String \| Number | If [`data`](#data) is set to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same number as `column`.<br><br>If [`data`](#data) is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for the column's data object. |
+     *
+     * Read more:
+     * - [Configuration options: Implementing custom logic &#8594;](@/guides/getting-started/setting-options.md#implementing-custom-logic)
+     * - [Configuration options: Setting row options &#8594;](@/guides/getting-started/setting-options.md#setting-row-options)
      *
      * @memberof Options#
      * @type {Function}
@@ -457,6 +462,7 @@ export default () => {
      *
      * @example
      * ```js
+     * // set the `cells` option to your custom function
      * cells: function(row, column, prop) {
      *   const cellProperties = { readOnly: false };
      *   const visualRowIndex = this.instance.toVisualRow(row);
