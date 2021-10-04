@@ -426,7 +426,7 @@ hot.getCellMeta(0, 1).readOnly;
 ```
 :::
 
-### Checking cell options
+### Reading cell options
 
 When Handsontable is running, you can check a cell's current options, using the [`getCellMeta()`](@/api/core.md#getcellmeta) method.
 

@@ -6,7 +6,7 @@ canonicalUrl: /migration-from-8.4-to-9.0
 pageClass: migration-guide
 ---
 
-# Migrating from 8 to 9
+# Migrating from 8.4 to 9.0
 
 [[toc]]
 

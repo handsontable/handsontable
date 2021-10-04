@@ -1,5 +1,4 @@
 <template>
-
   <RouterLink
     v-else
     class="nav-link"
@@ -28,7 +27,7 @@ export default {
       return ensureExt(this.item.link);
     },
     versionedLink() {
-      if (this.$page.currentVersion === this.$page.latestVersion) {
+      if (this.$page.currentVersion === this.$page.latestVersion || this.$page.DOCS_VERSION) {
         return ensureExt(this.item.link);
       } else {
         return ensureExt(`/${this.$page.currentVersion}${this.item.link}`);

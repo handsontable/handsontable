@@ -25,6 +25,10 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
 
+      - name: Dependencies
+        run: |
+          npm ci
+
       - name: Docker build
         run: |
           npm run docs:docker:build:production
