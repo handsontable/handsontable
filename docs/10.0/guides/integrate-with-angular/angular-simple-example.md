@@ -37,6 +37,8 @@ import * as Handsontable from 'handsontable';
     </hot-table>
   </div>
   `,
+  styleUrls: ['./app.component.scss', './node_modules/handsontable/dist/handsontable.full.css'],
+  encapsulation: ViewEncapsulation.None
 })
 class AppComponent {
   dataset: any[] = [
