@@ -40,7 +40,7 @@ const buildActiveHeaderLinkHandler = () => {
  * For the first page load, the GA automatically registers pageview. For other
  * route changes, the event is triggered manually.
  */
-let isFirstPageLoad = true;
+let isFirstPageLoaded = true;
 
 export default ({ router, isServer }) => {
   if (!isServer) {
@@ -48,7 +48,7 @@ export default ({ router, isServer }) => {
 
     if (typeof window.ga === 'function') {
       router.afterEach((to) => {
-        if (!isFirstPageLoad) {
+        if (!isFirstPageLoaded) {
           ga.getAll().forEach((tracker) => {
             if (tracker.get('trackingId') === GA_ID) {
               tracker.set('page', router.app.$withBase(to.fullPath));
@@ -57,7 +57,7 @@ export default ({ router, isServer }) => {
           });
         }
 
-        isFirstPageLoad = false;
+        isFirstPageLoaded = false;
       });
     }
 
