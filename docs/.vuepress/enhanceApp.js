@@ -35,18 +35,29 @@ const buildActiveHeaderLinkHandler = () => {
   };
 };
 
+/**
+ * The variable prevents collect double page views for the initial page load.
+ * For the first page load, the GA automatically registers pageview. For other
+ * route changes, the event is triggered manually.
+ */
+let isFirstPageLoaded = true;
+
 export default ({ router, isServer }) => {
   if (!isServer) {
     themeLoader();
 
     if (typeof window.ga === 'function') {
       router.afterEach((to) => {
-        ga.getAll().forEach((tracker) => {
-          if (tracker.get('trackingId') === GA_ID) {
-            tracker.set('page', router.app.$withBase(to.fullPath));
-            tracker.send('pageview');
-          }
-        });
+        if (!isFirstPageLoaded) {
+          ga.getAll().forEach((tracker) => {
+            if (tracker.get('trackingId') === GA_ID) {
+              tracker.set('page', router.app.$withBase(to.fullPath));
+              tracker.send('pageview');
+            }
+          });
+        }
+
+        isFirstPageLoaded = false;
       });
     }
 
