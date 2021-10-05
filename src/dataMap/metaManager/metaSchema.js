@@ -538,17 +538,6 @@ export default () => {
      * | `readOnly` | No | Boolean | `false` | If set to `true`, makes all comments read-only by default. |
      * | `style` | No | Object | - | Sets all comment boxes' `width` and `height` (in pixels). |
      *
-     * To enable the [`Comments`](@/api/comments.md) plugin
-     * and add predefined comments (with individual settings for each comment)
-     * set the `comments` option to an array with the following properties:
-     *
-     * | Property | Required | Type | Default | Description |
-     * |---|---|---|---|---|
-     * | `value` | No | String | - | The comment's text. |
-     * | `displayDelay` | No | Number | `250` | Displays the comment after a delay (in milliseconds). |
-     * | `readOnly` | No | Boolean | `false` | If set to `true`, makes the comment read-only by default. |
-     * | `style` | No | Object | - | Sets the comment box's `width` and `height` (in pixels). |
-     *
      * Read more:
      * - [Comments &#8594;](@/guides/cell-features/comments.md)
      *
@@ -575,19 +564,6 @@ export default () => {
      *     height: 100
      *   }
      * }
-     *
-     * // or enable the `Comments` plugin with predefined comments
-     * // and configure each predefined comment individually
-     * const hot = new Handsontable(document.getElementById('example'), {
-     *   // enable the `Comments` plugin
-     *   comments: true,
-     *   cell: [
-     *     // in cell (1,1), add a predefined comment saying 'Foo'
-     *     { row: 1, col: 1, comment: { value: 'Foo', readOnly: true } },
-     *     // in cell (2,2), add a predefined read-only comment saying 'Bar'
-     *     { row: 2, col: 2, comment: { value: 'Bar' } }
-     *   ]
-     * });
      * ```
      */
     comments: false,
@@ -601,17 +577,31 @@ export default () => {
      * set the `customBorders` option to `true`.
      *
      * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
-     * and add predefined custom borders,
+     * and add a predefined border around a particular cell,
      * set the `customBorders` option to an array of objects.
-     * Each object represents a single custom border configuration, and can have the following properties:
+     * Each object represents a border configuration for one cell, and has the following properties:
      *
      * | Property | Sub-properties | Types | Description |
      * |---|---|---|---|
-     * | `range` | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | `from` sets the border's top-left corner.<br>`to` sets the border's bottom-right corner.|
+     * | `row` | - | `row`: Number | The cell's row coordinate. |
+     * | `col` | - | `col`: Number | The cell's column coordinate. |
      * | `left` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the left border's width (`width`)<br> and color (`color`). |
      * | `right` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the right border's width (`width`)<br> and color (`color`). |
      * | `top` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the top border's width (`width`)<br> and color (`color`). |
      * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the bottom border's width (`width`)<br> and color (`color`). |
+     *
+     * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
+     * and add a predefined border around a range of cells,
+     * set the `customBorders` option to an array of objects.
+     * Each object represents a border configuration for a single range of cells, and has the following properties:
+     *
+     * | Property | Sub-properties | Types | Description |
+     * |---|---|---|---|
+     * | `range` | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | `from` selects the range's top-left corner.<br>`to` selects the range's bottom-right corner. |
+     * | `left` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the left border's `width` and `color`. |
+     * | `right` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the right border's `width` and `color`. |
+     * | `top` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the top border's `width` and `color`. |
+     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the bottom border's `width` and `color`. |
      *
      * Read more:
      * - [Formatting cells: Custom cell borders &#8594;](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
@@ -623,48 +613,64 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable custom borders
+     * // enable the `CustomBorders` plugin
      * customBorders: true,
      *
-     * // or
-     * // enable custom borders and start with predefined left border
+     * // or enable the `CustomBorders` plugin
+     * // and add a predefined border for a particular cell
      * customBorders: [
+     *   // add an object with a border configuration for one cell
      *   {
+     *     // set the cell's row coordinate
+     *     row: 2,
+     *     // set the cell's column coordinate
+     *     col: 2,
+     *     // set the left border's width and color
+     *     left: {
+     *       width: 2,
+     *       color: 'red'
+     *     },
+     *     // set the right border's width and color
+     *     right: {
+     *       width: 1,
+     *       color: 'green'
+     *     },
+     *     // set the top border's width and color
+     *     top: '',
+     *     // set the bottom border's width and color
+     *     bottom: ''
+     *   }
+     * ],
+     *
+     * // or enable the `CustomBorders` plugin
+     * // and add a predefined border for a range of cells
+     * customBorders: [
+     *   // add an object with a border configuration for one range of cells
+     *   {
+     *     // select a range of cells
      *     range: {
+     *       // set the range's top-left corner
      *       from: {
      *         row: 1,
      *         col: 1
      *       },
+     *       // set the range's bottom-right corner
      *       to: {
      *         row: 3,
      *         col: 4
      *       }
      *     },
+     *     // set the left border's width and color
      *     left: {
      *       width: 2,
      *       color: 'red'
      *     },
+     *     // set the right border's width and color
      *     right: {},
+     *     // set the top border's width and color
      *     top: {},
+     *     // set the bottom border's width and color
      *     bottom: {}
-     *   }
-     * ],
-     *
-     * // or
-     * customBorders: [
-     *   {
-     *     row: 2,
-     *     col: 2,
-     *     left: {
-     *       width: 2,
-     *       color: 'red'
-     *     },
-     *     right: {
-     *       width: 1,
-     *       color: 'green'
-     *     },
-     *     top: '',
-     *     bottom: ''
      *   }
      * ],
      * ```
