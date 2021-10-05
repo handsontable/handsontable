@@ -47,7 +47,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
  * @todo Refactor arguments of methods getRange, getText to be numbers (not objects).
  * @todo Remove priv, GridSettings from object constructor.
  *
- * @util
  * @class DataMap
  * @private
  */

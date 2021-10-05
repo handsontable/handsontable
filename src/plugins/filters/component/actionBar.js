@@ -5,8 +5,8 @@ import BaseComponent from './_base';
 import InputUI from '../ui/input';
 
 /**
+ * @private
  * @class ActionBarComponent
- * @plugin Filters
  */
 class ActionBarComponent extends BaseComponent {
   static get BUTTON_OK() {

@@ -11,8 +11,8 @@ import SelectUI from '../ui/select';
 import { getConditionDescriptor } from '../conditionRegisterer';
 
 /**
+ * @private
  * @class ConditionComponent
- * @plugin Filters
  */
 class ConditionComponent extends BaseComponent {
   constructor(hotInstance, options) {

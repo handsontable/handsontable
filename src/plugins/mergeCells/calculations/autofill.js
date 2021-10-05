@@ -5,9 +5,8 @@ import { arrayEach } from '../../../helpers/array';
 /**
  * Class responsible for all of the Autofill-related operations on merged cells.
  *
+ * @private
  * @class AutofillCalculations
- * @plugin MergeCells
- * @util
  */
 class AutofillCalculations {
   constructor(plugin) {

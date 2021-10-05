@@ -6,9 +6,8 @@ import BaseUI from './_base';
 /**
  * Class responsible for the UI in the Nested Rows' row headers.
  *
- * @class HeadersUI
  * @private
- * @util
+ * @class HeadersUI
  * @augments BaseUI
  */
 class HeadersUI extends BaseUI {

@@ -14,8 +14,8 @@ import { createArrayAssertion } from '../utils';
 const privatePool = new WeakMap();
 
 /**
+ * @private
  * @class MultipleSelectUI
- * @util
  */
 class MultipleSelectUI extends BaseUI {
   static get DEFAULTS() {
