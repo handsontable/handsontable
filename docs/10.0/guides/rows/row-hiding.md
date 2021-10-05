@@ -75,7 +75,7 @@ To easily see which rows are currently hidden, display UI indicators.
 To enable the UI indicators, in the `hiddenRows` object, set the `indicators` property to `true`:
 
 ::: tip
-If you use both the [`NestedHeaders`](@/api/nestedheaders.md) plugin and the [`HiddenRows`](@/api/hiddenRows.md) plugin, you also need to set the `colHeaders` property to `true`. Otherwise, `indicators` won't work.
+If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the [`HiddenRows`](@/api/hiddenRows.md) plugin, you also need to set the `colHeaders` property to `true`. Otherwise, `indicators` won't work.
 :::
 
 ::: example #example3
@@ -186,7 +186,7 @@ const plugin = hot.getPlugin('hiddenRows');
 
 ### Hiding a single row
 
-To hide a single row, use the [`hideRow()`](@/api/hiddenrows.md#hiderow) method:
+To hide a single row, use the [`hideRow()`](@/api/hiddenRows.md#hiderow) method:
 
 ```js
 const plugin = hot.getPlugin('hiddenRows');

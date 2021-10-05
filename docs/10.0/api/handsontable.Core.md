@@ -20,7 +20,7 @@ editLink: false
 
 _handsontable.[Core](@/api/core.md).undoRedo : [UndoRedo](@/api/undoRedo.md)_
 
-Instance of Handsontable.UndoRedo Plugin [Handsontable.UndoRedo](@/api/handsontable.UndoRedo.md).
+Instance of Handsontable.UndoRedo Plugin [Handsontable.UndoRedo](@/api/handsontable.undoRedo.md).
 
 
 ## Methods
