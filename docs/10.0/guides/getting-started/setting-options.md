@@ -246,7 +246,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
       height: 300,
       // the `cells` option
       cells() {
-        
+
       };
     });
     ```
@@ -532,7 +532,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
       height: 300,
       // the `cells` option
       cells() {
-        
+
       };
     });
     ```

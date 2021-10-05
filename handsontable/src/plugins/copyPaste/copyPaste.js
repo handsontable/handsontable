@@ -93,6 +93,7 @@ export class CopyPaste extends BasePlugin {
     /**
      * Provides focusable element to support IME and copy/paste/cut actions.
      *
+     * @private
      * @type {FocusableWrapper}
      */
     this.focusableElement = void 0;

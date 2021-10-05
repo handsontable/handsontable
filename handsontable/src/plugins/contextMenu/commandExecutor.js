@@ -4,8 +4,8 @@ import { hasOwnProperty } from '../../helpers/object';
 /**
  * Command executor for ContextMenu.
  *
+ * @private
  * @class CommandExecutor
- * @plugin ContextMenu
  */
 class CommandExecutor {
   constructor(hotInstance) {

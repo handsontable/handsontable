@@ -10,8 +10,8 @@ import { CONDITION_BY_VALUE, CONDITION_NONE } from '../constants';
 import { getConditionDescriptor } from '../conditionRegisterer';
 
 /**
+ * @private
  * @class ValueComponent
- * @plugin Filters
  */
 class ValueComponent extends BaseComponent {
   constructor(hotInstance, options) {

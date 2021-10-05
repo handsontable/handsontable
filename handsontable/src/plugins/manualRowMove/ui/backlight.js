@@ -4,8 +4,8 @@ import { addClass } from '../../../helpers/dom/element';
 const CSS_CLASSNAME = 'ht__manualRowMove--backlight';
 
 /**
+ * @private
  * @class BacklightUI
- * @util
  */
 class BacklightUI extends BaseUI {
   /**

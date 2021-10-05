@@ -4,8 +4,8 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
 /**
  * The `MergedCellCoords` class represents a single merged cell.
  *
+ * @private
  * @class MergedCellCoords
- * @plugin MergeCells
  */
 class MergedCellCoords {
   constructor(row, column, rowspan, colspan) {

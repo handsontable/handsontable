@@ -1,4 +1,4 @@
-name: Documentation Deployment
+name: Docs Staging Deployment
 
 env:
   GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation
@@ -17,7 +17,7 @@ defaults:
 
 jobs:
   docker:
-    name: Docker
+    name: Build and push Docker image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2
@@ -28,8 +28,8 @@ jobs:
 
       - name: Dependencies
         run: |
-          npm ci 
-      
+          npm ci
+
       - name: Generate API references
         run: |
           npm run docs:api

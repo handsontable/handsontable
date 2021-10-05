@@ -49,6 +49,7 @@
     "inquirer": "^8.1.1",
     "jsdoc-to-markdown": "^7.0.1",
     "replace-in-files": "^3.0.0",
+    "rimraf": "^3.0.2",
     "semver": "^5.7.1",
     "vue-eslint-parser": "^7.6.0",
     "vue-router": "^3.5.1",

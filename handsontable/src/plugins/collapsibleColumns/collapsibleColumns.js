@@ -99,6 +99,7 @@ export class CollapsibleColumns extends BasePlugin {
   /**
    * The NestedHeaders plugin StateManager instance.
    *
+   * @private
    * @type {StateManager}
    */
   headerStateManager = null;
