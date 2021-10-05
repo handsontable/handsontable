@@ -528,7 +528,7 @@ export default () => {
      * (and add its menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md)),
      * set the `comments` option to `true`.
      *
-     * To enable the [`Comments`](@/api/comments.md) plugin,
+     * To enable the [`Comments`](@/api/comments.md) plugin
      * and configure default settings for all comments,
      * set the `comments` option to an object with the following properties:
      *
@@ -538,7 +538,7 @@ export default () => {
      * | `readOnly` | No | Boolean | `false` | If set to `true`, makes all comments read-only by default. |
      * | `style` | No | Object | - | Sets all comment boxes' `width` and `height` (in pixels). |
      *
-     * To enable the [`Comments`](@/api/comments.md) plugin,
+     * To enable the [`Comments`](@/api/comments.md) plugin
      * and add predefined comments (with individual settings for each comment)
      * set the `comments` option to an array with the following properties:
      *
@@ -594,11 +594,27 @@ export default () => {
 
     /**
      * @description
-     * If `true`, enables the {@link CustomBorders} plugin, which enables an option to apply custom borders through the context
-     * menu (configurable with context menu key `borders`). To initialize Handsontable with predefined custom borders,
-     * provide cell coordinates and border styles in a form of an array.
+     * The `customBorders` option enables and configures the [`CustomBorders`](@/api/customBorders.md) plugin.
      *
-     * See [Custom Borders](@/guides/cell-features/formatting-cells.md#custom-cell-borders) demo for examples.
+     * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
+     * (and add its menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md)),
+     * set the `customBorders` option to `true`.
+     *
+     * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
+     * and add predefined custom borders,
+     * set the `customBorders` option to an array of objects.
+     * Each object represents a single custom border configuration, and can have the following properties:
+     *
+     * | Property | Sub-properties | Types | Description |
+     * |---|---|---|---|
+     * | `range` | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | `from` sets the border's top-left corner.<br>`to` sets the border's bottom-right corner.|
+     * | `left` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the left border's width (`width`)<br> and color (`color`). |
+     * | `right` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the right border's width (`width`)<br> and color (`color`). |
+     * | `top` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the top border's width (`width`)<br> and color (`color`). |
+     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the bottom border's width (`width`)<br> and color (`color`). |
+     *
+     * Read more:
+     * - [Formatting cells: Custom cell borders &#8594;](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
      *
      * @memberof Options#
      * @type {boolean|object[]}
