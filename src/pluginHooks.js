@@ -475,13 +475,19 @@ const REGISTERED_HOOKS = [
    * @param {number} column Selection start visual column index.
    * @param {number} row2 Selection end visual row index.
    * @param {number} column2 Selection end visual column index.
+   * @param {object} preventScrolling A reference to the observable object with the `value` property.
+   *                                  Property `preventScrolling.value` expects a boolean value that
+   *                                  Handsontable uses to control scroll behavior after selection.
    * @param {object} preventScrolling Object with `value` property where its value change will be observed.
    * @param {number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    * @example
    * ```js
    * new Handsontable(element, {
    *   afterSelection: (row, column, row2, column2, preventScrolling, selectionLayerLevel) => {
-   *     // setting if prevent scrolling after selection
+   *     // By default, `value` is set as `false`, which means Handsontable will scroll viewport
+   *     // to the end corner of the cell selection if it's out of view.
+   *     // If set as `true`, it prevents scrolling to the end corner of the cell selection
+   *     // even if it lies out of the viewport.
    *     preventScrolling.value = true;
    *   }
    * })
