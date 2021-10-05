@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "es6",
+      "dom"
+    ],
+    "module": "commonjs",
+    "noEmit": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "",
+    "paths": {
+      "handsontable": [ "../../" ],
+      "handsontable/base": [ "../../" ]
+    }
+  },
+  "include": [
+    "**/*.types.ts",
+    "../../src/**/__tests__/*.types.ts"
+  ]
+}

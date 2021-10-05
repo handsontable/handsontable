@@ -1,1 +1,0 @@
-export { autoResize } from './autoResize';

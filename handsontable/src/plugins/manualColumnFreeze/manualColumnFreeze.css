@@ -1,0 +1,4 @@
+.htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_top_left_corner th:nth-child(2),
+.htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_left td:first-of-type {
+  border-left: 0 none;
+}

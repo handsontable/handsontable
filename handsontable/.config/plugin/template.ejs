@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Jasmine Spec Runner</title>
+  <% for (var i = 0; i < htmlWebpackPlugin.options.jasmineCssFiles.length; i++) { %>
+    <link rel="stylesheet" href="<%= htmlWebpackPlugin.options.baseJasminePath %><%= htmlWebpackPlugin.options.jasmineCssFiles[i] %>">
+  <% } %>
+  <% for (var i = 0; i < htmlWebpackPlugin.options.externalCssFiles.length; i++) { %>
+    <link rel="stylesheet" href="<%= htmlWebpackPlugin.options.externalCssFiles[i] %>">
+  <% } %>
+  <% for (var i = 0; i < htmlWebpackPlugin.options.jasmineJsFiles.length; i++) { %>
+    <script src="<%= htmlWebpackPlugin.options.baseJasminePath %><%= htmlWebpackPlugin.options.jasmineJsFiles[i] %>"></script>
+  <% } %>
+  <% for (var i = 0; i < htmlWebpackPlugin.options.externalJsFiles.length; i++) { %>
+    <script src="<%= htmlWebpackPlugin.options.externalJsFiles[i] %>"></script>
+  <% } %>
+
+  <script>
+    if (window.location.search.indexOf('random=true') === -1) {
+      jasmine.getEnv().configure({random: false});
+    }
+  </script>
+</head>
+<body>
+
+</body>
+</html>

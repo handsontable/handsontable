@@ -1,0 +1,39 @@
+.htCommentCell {
+  position: relative;
+}
+
+.htCommentCell:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-left: 6px solid transparent;
+  border-top: 6px solid black;
+}
+
+.htComments {
+  display: none;
+  z-index: 1059;
+  position: absolute;
+}
+
+.htCommentTextArea {
+  box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  border: none;
+  border-left: 3px solid #ccc;
+  background-color: #fff;
+  width: 215px;
+  height: 90px;
+  font-size: 12px;
+  padding: 5px;
+  outline: 0px !important;
+  -webkit-appearance: none;
+}
+
+.htCommentTextArea:focus {
+  box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px, inset 0 0 0 1px #5292f7;
+  border-left: 3px solid #5292f7;
+}

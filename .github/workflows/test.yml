@@ -43,42 +43,42 @@ jobs:
         with:
           filters: |
             config-files: &config-files
-              - '.config/**'
-              - './package.json'
+              - './handsontable/.config/**'
+              - './handsontable/package.json'
               - './package-lock.json'
-              - './hot.config.js'
-              - './babel.config.js'
+              - './handsontable/hot.config.js'
+              - './handsontable/babel.config.js'
             hot-definition-files: &hot-definition-files
-              - './base.d.ts'
-              - './handsontable.d.ts'
+              - './handsontable/base.d.ts'
+              - './handsontable/handsontable.d.ts'
             hot-source-and-scripts: &hot-source-and-scripts
-              - 'src/**'
-              - 'scripts/**'
+              - './handsontable/src/**'
+              - './handsontable/scripts/**'
             hot-shared: &hot-shared
               - *config-files
               - *hot-source-and-scripts
             hot-e2e-test-shared: &hot-e2e-test-shared
-              - 'test/e2e/**'
-              - 'test/scripts/**'
+              - './handsontable/test/e2e/**'
+              - './handsontable/test/scripts/**'
 
             build-handsontable-umd:
               - *hot-shared
-              - 'test/e2e/**'
-              - 'test/scripts/**'
+              - './handsontable/test/e2e/**'
+              - './handsontable/test/scripts/**'
             build-handsontable-es-cjs:
               - *hot-shared
               - 'wrappers/**'
             test-handsontable-unit:
               - *hot-shared
-              - 'test/unit/**'
+              - './handsontable/test/unit/**'
             test-handsontable-types:
               - *hot-shared
               - *hot-definition-files
-              - 'test/types/**'
+              - './handsontable/test/types/**'
             test-handsontable-walkontable:
-              - '.config/**'
-              - 'test/scripts/**'
-              - 'src/3rdparty/walkontable/**'
+              - './handsontable/.config/**'
+              - './handsontable/test/scripts/**'
+              - './handsontable/src/3rdparty/walkontable/**'
             test-handsontable-e2e:
               - *hot-shared
               - *hot-e2e-test-shared

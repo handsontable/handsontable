@@ -7,7 +7,7 @@ import glob from 'glob';
 import {
   spawnProcess,
   displayErrorMessage
-} from '../../scripts/utils/index.mjs';
+} from '../../handsontable/scripts/utils/index.mjs';
 
 const [version] = process.argv.slice(2);
 

@@ -1,0 +1,27 @@
+/*
+ * Handsontable HiddenColumns
+ */
+.handsontable th.beforeHiddenColumn {
+  position: relative;
+}
+
+.handsontable th.beforeHiddenColumn::after,
+.handsontable th.afterHiddenColumn::before {
+  color: #bbb;
+  position: absolute;
+  top: 50%;
+  font-size: 5pt;
+  transform: translateY(-50%);
+}
+
+.handsontable th.afterHiddenColumn {
+  position: relative;
+}
+.handsontable th.beforeHiddenColumn::after {
+  right: 1px;
+  content: '\25C0';
+}
+.handsontable th.afterHiddenColumn::before {
+  left: 1px;
+  content: '\25B6';
+}

@@ -11,7 +11,7 @@ import {
   displayConfirmationMessage,
   displayErrorMessage,
   displayWarningMessage
-} from '../../scripts/utils/index.mjs';
+} from '../../handsontable/scripts/utils/index.mjs';
 import examplesPackageJson from '../package.json';
 import hotPackageJson from '../../package.json';
 

@@ -7,7 +7,7 @@ const { logger } = utils;
 
 const docsBasePath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
-const SOURCE_PATH = path.resolve('../dist/');
+const SOURCE_PATH = path.resolve('../handsontable/dist/');
 const TARGET_PATH = path.resolve('./.vuepress/public/handsontable/');
 
 const relativeFrom = path.relative(docsBasePath, SOURCE_PATH);
