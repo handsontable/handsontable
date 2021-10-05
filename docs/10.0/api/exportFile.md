@@ -52,7 +52,7 @@ exportPlugin.exportAsString('csv', {
 
 ### ExportOptions
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/exportFile/exportFile.js#L67
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/exportFile/exportFile.js#L67
 
 :::
 
@@ -74,7 +74,7 @@ _ExportFile.ExportOptions : object_
 
 ### downloadFile
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/exportFile/exportFile.js#L107
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/exportFile/exportFile.js#L107
 
 :::
 
@@ -92,7 +92,7 @@ Exports table data as a downloadable file.
 
 ### exportAsBlob
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/exportFile/exportFile.js#L97
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/exportFile/exportFile.js#L97
 
 :::
 
@@ -110,7 +110,7 @@ Exports table data as a blob object.
 
 ### exportAsString
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/exportFile/exportFile.js#L86
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/exportFile/exportFile.js#L86
 
 :::
 
@@ -128,7 +128,7 @@ Exports table data as a string.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/e3ab2b987c81046a05e53f3b61a300fffb9830fc/src/plugins/exportFile/exportFile.js#L63
+::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/plugins/exportFile/exportFile.js#L63
 
 :::
 
