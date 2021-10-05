@@ -75,7 +75,7 @@ To easily see which columns are currently hidden, display UI indicators.
 To enable the UI indicators, in the `hiddenColumns` object, set the `indicators` property to `true`:
 
 ::: tip
-If you use both the [`NestedHeaders`](@/api/nestedheaders.md) plugin and the [`HiddenColumns`](@/api/hiddenColumns.md) plugin, you also need to set the `colHeaders` property to `true`. Otherwise, `indicators` won't work.
+If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the [`HiddenColumns`](@/api/hiddenColumns.md) plugin, you also need to set the `colHeaders` property to `true`. Otherwise, `indicators` won't work.
 :::
 
 ::: example #example3
@@ -186,7 +186,7 @@ const plugin = hot.getPlugin('hiddenColumns');
 
 ### Hiding a single column
 
-To hide a single column, use the [`hideColumn()`](@/api/hiddencolumns.md#hidecolumn) method:
+To hide a single column, use the [`hideColumn()`](@/api/hiddenColumns.md#hidecolumn) method:
 
 ```js
 const plugin = hot.getPlugin('hiddenColumns');
