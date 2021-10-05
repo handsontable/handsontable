@@ -2,7 +2,6 @@ import { extend, clone } from '../../../helpers/object';
 import { substitute } from '../../../helpers/string';
 
 /**
- * @plugin ExportFile
  * @private
  */
 class BaseType {

@@ -1,9 +1,8 @@
 /**
  * Base class for the Nested Rows' UI sub-classes.
  *
- * @class
- * @util
  * @private
+ * @class
  */
 class BaseUI {
   constructor(pluginInstance, hotInstance) {

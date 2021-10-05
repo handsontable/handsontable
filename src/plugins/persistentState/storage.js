@@ -1,8 +1,8 @@
 import { arrayEach } from '../../helpers/array';
 
 /**
+ * @private
  * @class Storage
- * @plugin PersistentState
  */
 class Storage {
   // eslint-disable-next-line no-restricted-globals

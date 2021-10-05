@@ -18,7 +18,7 @@ export const buildRenderer = ({ dist, generateMarkdown, configuration, logger })
     const header = buildHeaderWriter(configuration);
 
     const write = (file, output) => {
-      if (output.endsWith('[[toc]]\n')) {
+      if (output.trimRight().endsWith('[[toc]]')) {
         logger.info(`Empty output detected, file omitted: ${file}`);
 
         return;
