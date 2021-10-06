@@ -120,10 +120,10 @@ export default () => {
     /**
      * @description
      * When the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
-     * (or is empty), the `dataSchema` option defines the structure of a new row.
+     * (or is empty), the `dataSchema` option defines the structure of new rows.
      *
      * Read more:
-     * - [Binding to data: array of objects with custom data schema &#8594;](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema)
+     * - [Binding to data: Array of objects with custom data schema &#8594;](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema)
      *
      * @memberof Options#
      * @type {object}
@@ -678,7 +678,9 @@ export default () => {
     customBorders: false,
 
     /**
-     * Minimum number of rows. At least that number of rows will be created during initialization.
+     * The `minRows` option sets a minimum number of rows that Handsontable has to create at initialization.
+     *
+     * If the `minRows` value is higher than the initial number of rows, Handsontable adds empty rows at the bottom.
      *
      * @memberof Options#
      * @type {number}
@@ -687,16 +689,23 @@ export default () => {
      *
      * @example
      * ```js
-     * // set minimum table size to 10 rows
+     * // at Handsontable's initialization, create at least 10 rows
      * minRows: 10,
      * ```
      */
     minRows: 0,
 
     /**
-     * Minimum number of columns. At least that number of columns will be created during initialization.
-     * Works only with an array data source. When data source in an object, you can only have as many columns
-     * as defined in the first data row, data schema, or the `columns` setting.
+     * The `minCols` option sets a minimum number of columns that Handsontable has to create at initialization.
+     *
+     * If the `minCols` value is higher than the initial number of columns, Handsontable adds empty columns to the right.
+     *
+     * The `minCols` option works only when your [`data`](#data) is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
+     * When your [`data`](#data) is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects),
+     * you can only have as many columns as defined in:
+     * - The first data row
+     * - The [`dataSchema`](#dataschema) option
+     * - The [`columns`](#columns) option
      *
      * @memberof Options#
      * @type {number}
@@ -705,15 +714,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // set minimum table size to 10 columns
+     * // at Handsontable's initialization, create at least 10 columns
      * minCols: 10,
      * ```
      */
     minCols: 0,
 
     /**
-     * Maximum number of rows. If set to a value lower than the initial row count, the data will be trimmed to the provided
-     * value as the number of rows.
+     * The `maxRows` option sets a maximum number of rows that Handsontable can create at initialization.
+     *
+     * If the `maxRows` value is lower than the initial number of rows, Handsontable trims rows from the bottom.
      *
      * @memberof Options#
      * @type {number}
@@ -722,15 +732,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // limit table size to maximum 300 rows
+     * // at Handsontable's initialization, create no more than 300 rows
      * maxRows: 300,
      * ```
      */
     maxRows: Infinity,
 
     /**
-     * Maximum number of cols. If set to a value lower than the initial col count, the data will be trimmed to the provided
-     * value as the number of cols.
+     * The `maxCols` option sets a maximum number of columns that Handsontable can create at initialization.
+     *
+     * If the `maxCols` value is lower than the initial number of columns, Handsontable trims rows from the right.
      *
      * @memberof Options#
      * @type {number}
@@ -739,7 +750,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // limit table size to maximum 300 columns
+     * // at Handsontable's initialization, create no more than 300 columns
      * maxCols: 300,
      * ```
      */
