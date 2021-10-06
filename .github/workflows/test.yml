@@ -37,7 +37,7 @@ jobs:
       test-vue: ${{ steps.path-filter.outputs.test-vue }}
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
       - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # https://github.com/dorny/paths-filter/releases/tag/v2.10.2
         id: path-filter
         with:
