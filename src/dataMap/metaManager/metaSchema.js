@@ -1089,6 +1089,27 @@ export default () => {
     dateFormat: 'DD/MM/YYYY',
 
     /**
+     * Date picker's configuration object. If the `datePickerConfig` object is not defined,
+     * editor sets the following options to our predefined values:
+     * * `format` as `'DD/MM/YYYY'`,
+     * * `reposition` as `false`.
+     *
+     * The date editor always overwrites the following options to provide stable behavior:
+     * * `bound`,
+     * * `container`,
+     * * `field`,
+     * * `trigger`.
+     *
+     * Available options you can find in [Pikaday's README file](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration).
+     *
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @category Core
+     */
+    datePickerConfig: void 0,
+
+    /**
      * Definition of default value which will fill the empty cells.
      *
      * __Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md) cells.
