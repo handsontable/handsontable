@@ -879,13 +879,17 @@ export default () => {
 
     /**
      * @description
-     * Defines how the table selection reacts. The selection support three different behaviors defined as:
-     *  * `'single'` Only a single cell can be selected.
-     *  * `'range'` Multiple cells within a single range can be selected.
-     *  * `'multiple'` Multiple ranges of cells can be selected.
+     * The `selectionMode` option configures the way of selecting cells.
      *
-     * To see how to interact with selection by getting selected data or change styles of the selected cells go to
-     * [Selecting Ranges](@/guides/cell-features/selection.md).
+     * You can set the `selectionMode` option to one of the following strings:
+     * | String | Behavior |
+     * | --- | --- |
+     * | `'single'` | You can only select one cell at a time. |
+     * | `'range'` | You can select one range of cells at a time. |
+     * | `'multiple'` | You can select multiple ranges of cells at a time. |
+     *
+     * Read more:
+     * - [Selection: Selecting ranges &#8594;](@/guides/cell-features/selection.md#selecting-ranges)
      *
      * @memberof Options#
      * @type {string}
@@ -894,8 +898,14 @@ export default () => {
      *
      * @example
      * ```js
-     * // only one cell can be selected at a time
+     * // you can only select one cell at at a time
      * selectionMode: 'single',
+     *
+     * // you can select one range of cells at a time
+     * selectionMode: 'range',
+     *
+     * // you can select multiple ranges of cells at a time
+     * selectionMode: 'multiple',
      * ```
      */
     selectionMode: 'multiple',
