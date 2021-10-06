@@ -10,7 +10,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "9.0.2",
+  "version": "10.0.0",
   "main": "index",
   "module": "index.mjs",
   "jsnext:main": "index.mjs",
@@ -84,7 +84,7 @@
     "pikaday": "1.8.0"
   },
   "optionalDependencies": {
-    "hyperformula": "^1.1.0"
+    "hyperformula": "^1.2.0"
   },
   "devDependencies": {
     "@actions/core": "^1.2.6",
@@ -118,7 +118,7 @@
     "env-cmd": "^9.0.3",
     "eslint": "^7.25.0",
     "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-handsontable": "file:./.config/plugin/eslint",
+    "eslint-plugin-handsontable": "file:.config/plugin/eslint",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsdoc": "^32.3.3",
     "execa": "^5.0.0",
