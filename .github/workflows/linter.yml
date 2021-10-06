@@ -20,8 +20,8 @@ jobs:
 
       - name: JavaScript lint
         run: |
-          npm run all lint
+          npm run lint
 
       - name: CSS lint
         run: |
-          npm run stylelint
+          npm run in handsontable stylelint
