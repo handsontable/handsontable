@@ -11,8 +11,8 @@ const HEADER_ACTION_DEFAULT = true;
 /**
  * Store and manages states of sorted columns.
  *
+ * @private
  * @class ColumnStatesManager
- * @plugin ColumnSorting
  */
 export class ColumnStatesManager {
   constructor(hot, mapName) {

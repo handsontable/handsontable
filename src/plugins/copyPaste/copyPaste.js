@@ -24,8 +24,8 @@ Hooks.getSingleton().register('afterCopy');
 
 export const PLUGIN_KEY = 'copyPaste';
 export const PLUGIN_PRIORITY = 80;
-const ROWS_LIMIT = 1000;
-const COLUMNS_LIMIT = 1000;
+const ROWS_LIMIT = Infinity;
+const COLUMNS_LIMIT = Infinity;
 const privatePool = new WeakMap();
 const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
@@ -80,7 +80,7 @@ export class CopyPaste extends BasePlugin {
      * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
      * @type {number}
-     * @default 1000
+     * @default Infinity
      */
     this.columnsLimit = COLUMNS_LIMIT;
     /**
@@ -93,6 +93,7 @@ export class CopyPaste extends BasePlugin {
     /**
      * Provides focusable element to support IME and copy/paste/cut actions.
      *
+     * @private
      * @type {FocusableWrapper}
      */
     this.focusableElement = void 0;
@@ -110,7 +111,7 @@ export class CopyPaste extends BasePlugin {
      * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
      * @type {number}
-     * @default 1000
+     * @default Infinity
      */
     this.rowsLimit = ROWS_LIMIT;
 
@@ -590,7 +591,7 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Add copy, cut and paste options to the Context Menu.
+   * Add copy and cut options to the Context Menu.
    *
    * @private
    * @param {object} options Contains default added options of the Context Menu.

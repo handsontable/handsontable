@@ -284,7 +284,7 @@ describe('manualColumnMove', () => {
 
           const result = hot.getPlugin('manualColumnMove').moveColumn(0, 1000);
 
-          expect(afterMoveColumnCallback).toHaveBeenCalledWith([0], 1000, void 0, false, false, void 0);
+          expect(afterMoveColumnCallback).toHaveBeenCalledWith([0], 1000, void 0, false, false);
           expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
           expect(result).toBeFalsy();
         });
@@ -302,7 +302,7 @@ describe('manualColumnMove', () => {
 
           const result = hot.getPlugin('manualColumnMove').moveColumn(0, -1);
 
-          expect(afterMoveColumnCallback).toHaveBeenCalledWith([0], -1, void 0, false, false, void 0);
+          expect(afterMoveColumnCallback).toHaveBeenCalledWith([0], -1, void 0, false, false);
           expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
           expect(result).toBeFalsy();
         });
@@ -320,7 +320,7 @@ describe('manualColumnMove', () => {
 
           const result = hot.getPlugin('manualColumnMove').moveColumn(1000, 1);
 
-          expect(afterMoveColumnCallback).toHaveBeenCalledWith([1000], 1, void 0, false, false, void 0);
+          expect(afterMoveColumnCallback).toHaveBeenCalledWith([1000], 1, void 0, false, false);
           expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
           expect(result).toBeFalsy();
         });
@@ -338,7 +338,7 @@ describe('manualColumnMove', () => {
 
           const result = hot.getPlugin('manualColumnMove').moveColumn(-1, 1);
 
-          expect(afterMoveColumnCallback).toHaveBeenCalledWith([-1], 1, void 0, false, false, void 0);
+          expect(afterMoveColumnCallback).toHaveBeenCalledWith([-1], 1, void 0, false, false);
           expect(result).toBeFalsy();
           expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
           expect(result).toBeFalsy();
@@ -675,8 +675,8 @@ describe('manualColumnMove', () => {
           hot.columnIndexMapper.setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
           const result = hot.getPlugin('manualColumnMove').moveColumns([8, 9, 7], 0);
 
-          expect(beforeColumnMoveCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, void 0, void 0);
-          expect(afterMoveColumnCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, true, void 0);
+          expect(beforeColumnMoveCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true);
+          expect(afterMoveColumnCallback).toHaveBeenCalledWith([8, 9, 7], 0, void 0, true, true);
           expect(result).toBeTruthy();
         });
 

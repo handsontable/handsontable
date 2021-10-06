@@ -19,7 +19,7 @@ import { getPlugin, getPluginsNames } from './plugins/registry';
 import { getRenderer } from './renderers/registry';
 import { getValidator } from './validators/registry';
 import { randomString, toUpperCaseFirst } from './helpers/string';
-import { rangeEach, rangeEachReverse } from './helpers/number';
+import { rangeEach, rangeEachReverse, isNumericLike } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
 import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
@@ -34,7 +34,7 @@ import {
   stopObserving as keyStateStopObserving
 } from './utils/keyStateObserver';
 import { Selection } from './selection';
-import { MetaManager, DataMap } from './dataMap/index';
+import { MetaManager, DynamicCellMetaMod, DataMap } from './dataMap';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 
 let activeGuid = null;
@@ -76,7 +76,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   userSettings.language = getValidLanguageCode(userSettings.language);
 
-  const metaManager = new MetaManager(userSettings);
+  const metaManager = new MetaManager(instance, userSettings, [DynamicCellMetaMod]);
   const tableMeta = metaManager.getTableMeta();
   const globalMeta = metaManager.getGlobalMeta();
   const pluginsRegistry = createUniqueMap();
@@ -350,8 +350,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     /**
      * Inserts or removes rows and columns.
      *
-     * @memberof Core#
-     * @function alter
      * @private
      * @param {string} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col".
      * @param {number|Array} index Row or column visual index which from the alter action will be triggered.
@@ -604,6 +602,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     /**
      * Makes sure there are empty rows at the bottom of the table.
+     *
+     * @private
      */
     adjustRowsAndCols() {
       const minRows = tableMeta.minRows;
@@ -996,7 +996,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.init = function() {
     dataSource.setData(tableMeta.data);
-
     instance.runHooks('beforeInit');
 
     if (isMobileBrowser() || isIpadOS()) {
@@ -1092,8 +1091,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     const waitingForValidator = new ValidatorsQueue();
-    const isNumericData = value => value.length > 0 &&
-      /^\s*[+-.]?\s*(?:(?:\d+(?:(\.|,)\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/.test(value);
 
     waitingForValidator.onQueueEmpty = (isValid) => {
       if (activeEditor && shouldBeCanceled) {
@@ -1111,7 +1108,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         const col = datamap.propToCol(prop);
         const cellProperties = instance.getCellMeta(row, col);
 
-        if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericData(newValue)) {
+        if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericLike(newValue)) {
           changes[i][3] = getParsedNumber(newValue);
         }
 
@@ -1240,9 +1237,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     // the `canBeValidated = false` argument suggests, that the cell passes validation by default.
     /**
+     * @private
+     * @function done
      * @param {boolean} valid Indicates if the validation was successful.
      * @param {boolean} [canBeValidated=true] Flag which controls the validation process.
-     * @private
      */
     function done(valid, canBeValidated = true) {
       // Fixes GH#3903
@@ -2916,7 +2914,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.removeCellMeta = function(row, column, key) {
     const [physicalRow, physicalColumn] = [this.toPhysicalRow(row), this.toPhysicalColumn(column)];
-    let cachedValue = metaManager.getCellMeta(physicalRow, physicalColumn, key);
+    let cachedValue = metaManager.getCellMetaKeyValue(physicalRow, physicalColumn, key);
 
     const hookResult = instance.runHooks('beforeRemoveCellMeta', row, column, key, cachedValue);
 
@@ -2955,6 +2953,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         arrayEach(cellMetaRow, (cellMeta, columnIndex) => this.setCellMetaObject(visualIndex, columnIndex, cellMeta));
       });
     }
+
+    instance.render();
   };
 
   /**
@@ -3043,37 +3043,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       physicalColumn = column;
     }
 
-    const prop = datamap.colToProp(column);
-    const cellProperties = metaManager.getCellMeta(physicalRow, physicalColumn);
-
-    // TODO(perf): Add assigning this props and executing below code only once per table render cycle.
-    cellProperties.row = physicalRow;
-    cellProperties.col = physicalColumn;
-    cellProperties.visualRow = row;
-    cellProperties.visualCol = column;
-    cellProperties.prop = prop;
-    cellProperties.instance = instance;
-
-    instance.runHooks('beforeGetCellMeta', row, column, cellProperties);
-
-    // for `type` added or changed in beforeGetCellMeta
-    if (instance.hasHook('beforeGetCellMeta') && hasOwnProperty(cellProperties, 'type')) {
-      metaManager.updateCellMeta(physicalRow, physicalColumn, {
-        type: cellProperties.type,
-      });
-    }
-
-    if (cellProperties.cells) {
-      const settings = cellProperties.cells(physicalRow, physicalColumn, prop);
-
-      if (settings) {
-        metaManager.updateCellMeta(physicalRow, physicalColumn, settings);
-      }
-    }
-
-    instance.runHooks('afterGetCellMeta', row, column, cellProperties);
-
-    return cellProperties;
+    return metaManager.getCellMeta(physicalRow, physicalColumn, {
+      visualRow: row,
+      visualColumn: column,
+    });
   };
 
   /**
@@ -3534,6 +3507,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Returns the row height.
+   *
+   * Mind that this method is different from the [AutoRowSize](@/api/autoRowSize.md) plugin's [`getRowHeight()`](@/api/autoRowSize.md#getrowheight) method.
    *
    * @memberof Core#
    * @function getRowHeight

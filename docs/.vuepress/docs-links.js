@@ -14,13 +14,16 @@ module.exports = function(src) {
 
       if (fm.data.permalink) {
         permalink = fm.data.permalink;
-        permalink = permalink.replace(new RegExp(`^/${latest}/`), '/');
+
+        if (helpers.getBuildDocsVersion() || latest === version) {
+          permalink = permalink.replace(new RegExp(`^/${version}/`), '/');
+        }
         permalink = permalink.endsWith('/') ? permalink : `${permalink}/`;
         permalink = hash ? permalink + hash : permalink;
       }
     } catch (e) {
       // eslint-disable-next-line
-      console.warn(`Error occurs when trying to find "${full}" permalink. Is this file exists?`);
+      console.warn(`Can't find the "${full}" permalink. Does this file exist?`);
     }
 
     return `(${permalink})`;

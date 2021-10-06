@@ -10,7 +10,6 @@ const STATE_BUILDING = 'building';
 const EVENTS_TO_REGISTER = ['click', 'input', 'keydown', 'keypress', 'keyup', 'focus', 'blur', 'change'];
 
 /**
- * @class
  * @private
  */
 class BaseUI {
@@ -53,9 +52,9 @@ class BaseUI {
     /**
      * Flag which determines build state of element.
      *
-     * @type {boolean}
+     * @type {string}
      */
-    this.buildState = false;
+    this.buildState = null;
   }
 
   /**

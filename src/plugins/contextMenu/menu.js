@@ -34,8 +34,8 @@ import localHooks from '../../mixins/localHooks';
 const MIN_WIDTH = 215;
 
 /**
+ * @private
  * @class Menu
- * @plugin ContextMenu
  */
 class Menu {
   constructor(hotInstance, options) {
@@ -839,9 +839,7 @@ class Menu {
       this.close(true);
 
     // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
-    } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) &&
-        (!isChildOf(event.target, '.htMenu') && (isChildOf(event.target, this.container.ownerDocument) ||
-        isChildOf(event.target, this.hot.rootDocument)))) {
+    } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) && !isChildOf(event.target, '.htMenu')) {
       this.close(true);
     }
   }

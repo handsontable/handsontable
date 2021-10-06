@@ -9,8 +9,8 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
 /**
  * Defines a container object for the merged cells.
  *
+ * @private
  * @class MergedCellsCollection
- * @plugin MergeCells
  */
 class MergedCellsCollection {
   constructor(plugin) {
@@ -178,9 +178,9 @@ class MergedCellsCollection {
   remove(row, column) {
     const mergedCells = this.mergedCells;
     const wantedCollection = this.get(row, column);
-    const wantedCollectionIndex = wantedCollection ? this.mergedCells.indexOf(wantedCollection) : null;
+    const wantedCollectionIndex = wantedCollection ? this.mergedCells.indexOf(wantedCollection) : -1;
 
-    if (wantedCollection && wantedCollectionIndex !== false) {
+    if (wantedCollection && wantedCollectionIndex !== -1) {
       mergedCells.splice(wantedCollectionIndex, 1);
 
       return wantedCollection;

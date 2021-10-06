@@ -522,7 +522,7 @@ UndoRedo.RemoveRowAction.prototype.undo = function(instance, undoneCallback) {
   settings.fixedRowsTop = this.fixedRowsTop;
 
   instance.alter('insert_row', this.index, this.data.length, 'UndoRedo.undo');
-  instance.addHookOnce('afterRender', undoneCallback);
+  instance.addHookOnce('afterViewRender', undoneCallback);
   instance.populateFromArray(this.index, 0, this.data, void 0, void 0, 'UndoRedo.undo');
 };
 UndoRedo.RemoveRowAction.prototype.redo = function(instance, redoneCallback) {
@@ -607,7 +607,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     });
   });
 
-  instance.setSourceDataAtCell(changes);
+  instance.setSourceDataAtCell(changes, void 0, void 0, 'UndoRedo.undo');
   instance.columnIndexMapper.insertIndexes(ascendingIndexes[0], ascendingIndexes.length);
 
   if (typeof this.headers !== 'undefined') {
@@ -623,7 +623,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     instance.columnIndexMapper.setIndexesSequence(this.columnPositions);
   }, true);
 
-  instance.addHookOnce('afterRender', undoneCallback);
+  instance.addHookOnce('afterViewRender', undoneCallback);
 
   instance.render();
 };
@@ -658,14 +658,14 @@ UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback)
     });
   });
 
-  instance.addHookOnce('afterRender', undoneCallback);
+  instance.addHookOnce('afterViewRender', undoneCallback);
   instance.render();
 };
 UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback) {
   align(this.range, this.type, this.alignment, (row, col) => instance.getCellMeta(row, col),
     (row, col, key, value) => instance.setCellMeta(row, col, key, value));
 
-  instance.addHookOnce('afterRender', undoneCallback);
+  instance.addHookOnce('afterViewRender', undoneCallback);
   instance.render();
 };
 
@@ -684,7 +684,7 @@ inherit(UndoRedo.FiltersAction, UndoRedo.Action);
 UndoRedo.FiltersAction.prototype.undo = function(instance, undoneCallback) {
   const filters = instance.getPlugin('filters');
 
-  instance.addHookOnce('afterRender', undoneCallback);
+  instance.addHookOnce('afterViewRender', undoneCallback);
 
   filters.conditionCollection.importAllConditions(this.conditionsStack.slice(0, this.conditionsStack.length - 1));
   filters.filter();
@@ -692,7 +692,7 @@ UndoRedo.FiltersAction.prototype.undo = function(instance, undoneCallback) {
 UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
   const filters = instance.getPlugin('filters');
 
-  instance.addHookOnce('afterRender', redoneCallback);
+  instance.addHookOnce('afterViewRender', redoneCallback);
 
   filters.conditionCollection.importAllConditions(this.conditionsStack);
   filters.filter();
@@ -722,7 +722,7 @@ class MergeCellsAction extends UndoRedo.Action {
   undo(instance, undoneCallback) {
     const mergeCellsPlugin = instance.getPlugin('mergeCells');
 
-    instance.addHookOnce('afterRender', undoneCallback);
+    instance.addHookOnce('afterViewRender', undoneCallback);
 
     mergeCellsPlugin.unmergeRange(this.cellRange, true);
 
@@ -741,7 +741,7 @@ class MergeCellsAction extends UndoRedo.Action {
   redo(instance, redoneCallback) {
     const mergeCellsPlugin = instance.getPlugin('mergeCells');
 
-    instance.addHookOnce('afterRender', redoneCallback);
+    instance.addHookOnce('afterViewRender', redoneCallback);
 
     mergeCellsPlugin.mergeRange(this.cellRange);
   }
@@ -762,7 +762,7 @@ class UnmergeCellsAction extends UndoRedo.Action {
   undo(instance, undoneCallback) {
     const mergeCellsPlugin = instance.getPlugin('mergeCells');
 
-    instance.addHookOnce('afterRender', undoneCallback);
+    instance.addHookOnce('afterViewRender', undoneCallback);
 
     mergeCellsPlugin.mergeRange(this.cellRange, true);
   }
@@ -770,7 +770,7 @@ class UnmergeCellsAction extends UndoRedo.Action {
   redo(instance, redoneCallback) {
     const mergeCellsPlugin = instance.getPlugin('mergeCells');
 
-    instance.addHookOnce('afterRender', redoneCallback);
+    instance.addHookOnce('afterViewRender', redoneCallback);
 
     mergeCellsPlugin.unmergeRange(this.cellRange, true);
     instance.render();
@@ -789,6 +789,7 @@ UndoRedo.UnmergeCellsAction = UnmergeCellsAction;
 UndoRedo.RowMoveAction = function(rows, finalIndex) {
   this.rows = rows.slice();
   this.finalIndex = finalIndex;
+  this.actionType = 'row_move';
 };
 inherit(UndoRedo.RowMoveAction, UndoRedo.Action);
 
@@ -799,7 +800,7 @@ UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
   const rowsMovedDown = copyOfRows.filter(a => a <= this.finalIndex);
   const allMovedRows = rowsMovedUp.sort((a, b) => b - a).concat(rowsMovedDown.sort((a, b) => a - b));
 
-  instance.addHookOnce('afterRender', undoneCallback);
+  instance.addHookOnce('afterViewRender', undoneCallback);
 
   // Moving rows from those with higher indexes to those with lower indexes when action was performed from bottom to top
   // Moving rows from those with lower indexes to those with higher indexes when action was performed from top to bottom
@@ -817,7 +818,7 @@ UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
 UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
   const manualRowMove = instance.getPlugin('manualRowMove');
 
-  instance.addHookOnce('afterRender', redoneCallback);
+  instance.addHookOnce('afterViewRender', redoneCallback);
   manualRowMove.moveRows(this.rows.slice(), this.finalIndex);
   instance.render();
 
@@ -835,13 +836,6 @@ UndoRedo.prototype.init = function() {
   const pluginEnabled = typeof settings === 'undefined' || settings;
 
   if (!this.instance.undoRedo) {
-    /**
-     * Instance of Handsontable.UndoRedo Plugin {@link Handsontable.UndoRedo}.
-     *
-     * @alias undoRedo
-     * @memberof! Handsontable.Core#
-     * @type {UndoRedo}
-     */
     this.instance.undoRedo = this;
   }
 
@@ -914,7 +908,7 @@ function exposeUndoRedoMethods(instance) {
    * {@link UndoRedo#undo}.
    *
    * @alias undo
-   * @memberof! Handsontable.Core#
+   * @memberof! Core#
    * @returns {boolean}
    */
   instance.undo = function() {
@@ -925,7 +919,7 @@ function exposeUndoRedoMethods(instance) {
    * {@link UndoRedo#redo}.
    *
    * @alias redo
-   * @memberof! Handsontable.Core#
+   * @memberof! Core#
    * @returns {boolean}
    */
   instance.redo = function() {
@@ -936,7 +930,7 @@ function exposeUndoRedoMethods(instance) {
    * {@link UndoRedo#isUndoAvailable}.
    *
    * @alias isUndoAvailable
-   * @memberof! Handsontable.Core#
+   * @memberof! Core#
    * @returns {boolean}
    */
   instance.isUndoAvailable = function() {
@@ -947,7 +941,7 @@ function exposeUndoRedoMethods(instance) {
    * {@link UndoRedo#isRedoAvailable}.
    *
    * @alias isRedoAvailable
-   * @memberof! Handsontable.Core#
+   * @memberof! Core#
    * @returns {boolean}
    */
   instance.isRedoAvailable = function() {
@@ -958,7 +952,7 @@ function exposeUndoRedoMethods(instance) {
    * {@link UndoRedo#clear}.
    *
    * @alias clearUndo
-   * @memberof! Handsontable.Core#
+   * @memberof! Core#
    * @returns {boolean}
    */
   instance.clearUndo = function() {
@@ -980,7 +974,7 @@ function removeExposedUndoRedoMethods(instance) {
 const hook = Hooks.getSingleton();
 
 hook.add('afterUpdateSettings', function() {
-  this.getPlugin('undoRedo').init();
+  this.getPlugin('undoRedo')?.init();
 });
 
 hook.register('beforeUndo');

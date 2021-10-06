@@ -19,7 +19,7 @@ Rather than display "Hello, World!", the demo contains 100 rows and 13 columns p
 - [Sorting](@/guides/rows/row-sorting.md)
 - And way more than that!
 
-Want to play with the code yourself? Select "Open Sandbox" in the frame's bottom right corner.
+Want to play with the code yourself? Select the button in the frame's bottom right corner.
 
 <HelloWorld :demos="[
   {

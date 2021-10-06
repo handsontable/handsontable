@@ -19,15 +19,15 @@ Tests are run in [BrowserStack](https://www.browserstack.com/) as well as on a l
 
 ## List of browsers
 
-| Desktop Browsers | Mobile Browsers |
-| :--- | :--- |
-| Chrome | Chrome |
-| Firefox | Firefox for Android |
-| Safari | Firefox for iOS |
-| Edge Chromium | Safari iOS |
-| Edge | Samsung Internet |
-| Opera | Opera |
-| QQ browser |  |
-| Internet Explorer 11* |  |
+| Desktop Browsers      | Mobile Browsers     |
+| :-------------------- | :------------------ |
+| Chrome                | Chrome              |
+| Firefox               | Firefox for Android |
+| Safari                | Firefox for iOS     |
+| Edge Chromium         | Safari iOS          |
+| Edge                  | Samsung Internet    |
+| Opera                 | Opera               |
+| QQ browser            |                     |
+| Internet Explorer 11* |                     |
 
 *We plan to drop the support for Internet Explorer 11 in the future.

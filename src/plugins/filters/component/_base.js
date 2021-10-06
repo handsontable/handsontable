@@ -4,7 +4,7 @@ import localHooks from '../../../mixins/localHooks';
 import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../../translations';
 
 /**
- * @plugin Filters
+ * @private
  * @class BaseComponent
  */
 class BaseComponent {

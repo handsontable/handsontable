@@ -265,14 +265,14 @@ describe('RowHeader', () => {
     });
 
     expect(afterGetRowHeader).toHaveBeenCalledWith(0,
-      spec().$container.find('.ht_clone_left tbody tr:nth-child(1) th')[0], void 0, void 0, void 0, void 0);
+      spec().$container.find('.ht_clone_left tbody tr:nth-child(1) th')[0]);
     expect(afterGetRowHeader).toHaveBeenCalledWith(1,
-      spec().$container.find('.ht_clone_left tbody tr:nth-child(2) th')[0], void 0, void 0, void 0, void 0);
+      spec().$container.find('.ht_clone_left tbody tr:nth-child(2) th')[0]);
     expect(afterGetRowHeader).toHaveBeenCalledWith(2,
-      spec().$container.find('.ht_clone_left tbody tr:nth-child(3) th')[0], void 0, void 0, void 0, void 0);
+      spec().$container.find('.ht_clone_left tbody tr:nth-child(3) th')[0]);
     expect(afterGetRowHeader).toHaveBeenCalledWith(3,
-      spec().$container.find('.ht_clone_left tbody tr:nth-child(4) th')[0], void 0, void 0, void 0, void 0);
+      spec().$container.find('.ht_clone_left tbody tr:nth-child(4) th')[0]);
     expect(afterGetRowHeader).toHaveBeenCalledWith(4,
-      spec().$container.find('.ht_clone_left tbody tr:nth-child(5) th')[0], void 0, void 0, void 0, void 0);
+      spec().$container.find('.ht_clone_left tbody tr:nth-child(5) th')[0]);
   });
 });

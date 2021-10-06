@@ -12,7 +12,6 @@ export const EDITOR_STATE = Object.freeze({
 });
 
 /**
- * @util
  * @class BaseEditor
  */
 export class BaseEditor {
