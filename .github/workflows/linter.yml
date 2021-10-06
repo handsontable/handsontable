@@ -16,7 +16,7 @@ jobs:
           cache: 'npm'
 
       - name: Update npm
-        run: npm install -g npm@7.20.x
+        run: npm install -g npm@7.20.x --no-audit
 
       - name: Install dependencies
         run: |
