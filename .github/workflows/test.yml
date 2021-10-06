@@ -111,6 +111,7 @@ jobs:
           cache: 'npm'
       - run: npm ci --no-audit
       - run: |
+          cd handsontable
           npm run build:umd && npm run build:languages
           npm run build:umd.min && npm run build:languages.min
       - run: tar -zcf dist.tar.gz ./dist
@@ -137,6 +138,7 @@ jobs:
           cache: 'npm'
       - run: npm ci --no-audit
       - run: |
+          cd handsontable
           npm run build:es && npm run build:languages.es
           npm run build:commonjs
           npm run postbuild
@@ -163,7 +165,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
-      - run: npm run test:unit
+      - run: |
+          cd handsontable
+          npm run test:unit
 
   test-handsontable-types:
     name: "[TEST] Handsontable: Types"
@@ -180,7 +184,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
-      - run: npm run test:types
+      - run: |
+          cd handsontable
+          npm run test:types
 
   test-handsontable-walkontable:
     name: "[TEST] Walkontable"
@@ -197,7 +203,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
-      - run: npm run test:walkontable
+      - run: |
+          cd handsontable
+          npm run test:walkontable
 
   test-handsontable-e2e:
     name: "[TEST] Handsontable: UMD"
@@ -219,8 +227,10 @@ jobs:
         with:
           name: handsontable-build-umd
           path: ./
-      - run: tar -zxf dist.tar.gz ./dist && rm dist.tar.gz
-      - run: npm run test:e2e.dump && npm run test:e2e.puppeteer
+      - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
+      - run: |
+          cd handsontable
+          npm run test:e2e.dump && npm run test:e2e.puppeteer
 
   test-handsontable-e2e-min:
     name: "[TEST] Handsontable: UMD.min"
@@ -242,8 +252,10 @@ jobs:
         with:
           name: handsontable-build-umd
           path: ./
-      - run: tar -zxf dist.tar.gz ./dist && rm dist.tar.gz
-      - run: npm run test:production.dump && npm run test:e2e.puppeteer
+      - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
+      - run: |
+          cd handsontable
+          npm run test:production.dump && npm run test:e2e.puppeteer
 
   test-angular:
     name: "[TEST] Wrapper: Angular"
@@ -265,7 +277,8 @@ jobs:
         with:
           name: handsontable-build-es-cjs
           path: ./
-      - run: tar -zxf tmp.tar.gz ./tmp && rm tmp.tar.gz
+      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+      - run: cd handsontable
       - run: npm run swap-package-links
       - run: npm run in angular build
       - run: npm run in angular test:ci
@@ -290,7 +303,8 @@ jobs:
         with:
           name: handsontable-build-es-cjs
           path: ./
-      - run: tar -zxf tmp.tar.gz ./tmp && rm tmp.tar.gz
+      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+      - run: cd handsontable
       - run: npm run swap-package-links
       - run: npm run in react build
       - run: npm run in react test
@@ -315,7 +329,8 @@ jobs:
         with:
           name: handsontable-build-es-cjs
           path: ./
-      - run: tar -zxf tmp.tar.gz ./tmp && rm tmp.tar.gz
+      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+      - run: cd handsontable
       - run: npm run swap-package-links
       - run: npm run in vue build
       - run: npm run in vue test
