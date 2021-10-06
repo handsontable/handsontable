@@ -704,7 +704,7 @@ export default () => {
      * When your [`data`](#data) is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects),
      * you can only have as many columns as defined in:
      * - The first data row
-     * - The [`dataSchema`](#dataschema) option
+     * - The [`dataSchema`](#dataSchema) option
      * - The [`columns`](#columns) option
      *
      * @memberof Options#
@@ -757,14 +757,13 @@ export default () => {
     maxCols: Infinity,
 
     /**
-     * When set to an integer of more than `0`, appends the set number of empty rows
-     * to the bottom of your table.
+     * The `minSpareRows` option sets a minimum number of empty rows
+     * at the bottom of the grid.
      *
-     * `minSpareRows` sets a minimum number of empty rows,
-     * so if there already are other empty rows at the bottom of your table,
-     * they are counted into the number set in `minSpareRows`.
+     * If there already are other empty rows at the bottom,
+     * they are counted into the `minSpareRows` value.
      *
-     * The total number of rows can't exceed the number set in `maxRows`.
+     * The total number of rows can't exceed the [`maxRows`](#maxRows) value.
      *
      * @memberof Options#
      * @type {number}
@@ -773,24 +772,27 @@ export default () => {
      *
      * @example
      * ```js
-     * // always add 3 empty rows at the table end
+     * // at Handsontable's initialization, add at least 3 empty rows at the bottom
      * minSpareRows: 3,
      * ```
      */
     minSpareRows: 0,
 
     /**
-     * When set to an integer of more than `0`, appends the set number of empty columns
-     * to the right-hand end of your table.
+     * The `minSpareCols` option sets a minimum number of empty columns
+     * at the grid's right-hand end.
      *
-     * `minSpareCols` sets a minimum number of empty columns,
-     * so if there already are other empty columns at the right-hand end of your table,
-     * they are counted into the number set in `minSpareCols`.
+     * If there already are other empty columns at the grid's right-hand end,
+     * they are counted into the `minSpareCols` value.
      *
-     * The total number of columns can't exceed the number set in `maxCols`.
+     * The total number of columns can't exceed the [`maxCols`](#maxCols) value.
      *
-     * `minSpareCols` works only when your table data is an array of arrays
-     * (it doesn't work when your table data is an array of objects).
+     * The `minSpareCols` option works only when your [`data`](#data) is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
+     * When your [`data`](#data) is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects),
+     * you can only have as many columns as defined in:
+     * - The first data row
+     * - The [`dataSchema`](#dataSchema) option
+     * - The [`columns`](#columns) option
      *
      * @memberof Options#
      * @type {number}
@@ -799,7 +801,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // always add 3 empty columns at the table end
+     * // at Handsontable's initialization, add at least 3 empty columns on the right
      * minSpareCols: 3,
      * ```
      */
