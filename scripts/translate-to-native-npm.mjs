@@ -3,8 +3,10 @@
  */
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { spawnProcess } from './utils/processes.mjs';
-import { displayErrorMessage } from './utils/console.mjs';
+import {
+  displayErrorMessage,
+  spawnProcess
+} from './utils/index.mjs';
 
 const argv = yargs(hideBin(process.argv))
   .array('if-present')

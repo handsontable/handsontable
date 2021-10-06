@@ -4,7 +4,7 @@ import glob from 'glob';
 import {
   displayConfirmationMessage,
   displayErrorMessage
-} from '../../scripts/utils/console.mjs';
+} from '../../scripts/utils/index.mjs';
 
 // TODO: The bundle verification script was moved to a separate file because of a problem with React and Node 15
 //  (https://github.com/facebook/react/issues/20756). Having this script in a separate file, allows killing its

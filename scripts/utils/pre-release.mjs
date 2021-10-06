@@ -7,9 +7,9 @@ import semver from 'semver';
 import {
   displayErrorMessage,
   displayConfirmationMessage
-} from '../../../scripts/utils/index.mjs';
+} from './index.mjs';
 
-import hotPackageJson from '../../package.json';
+import hotPackageJson from '../../handsontable/package.json';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

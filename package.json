@@ -24,13 +24,12 @@
     "eslint": "eslint .github/scripts/ bin/changelog scripts/",
     "test": "npm run all test",
     "build": "npm run all build",
-    "freeze": "node --experimental-json-modules handsontable/scripts/freeze.mjs",
-    "release": "node --experimental-json-modules handsontable/scripts/release.mjs",
+    "freeze": "node --experimental-json-modules scripts/freeze.mjs",
+    "release": "node --experimental-json-modules scripts/release.mjs",
     "changelog": "bin/changelog",
     "publish-all": "npm run all publish-package",
     "prein": "npm run swap-package-links",
     "preall": "npm run swap-package-links",
-    "postbuild": "node handsontable/scripts/prepare-package-for-publish.mjs && npm run swap-package-links",
     "swap-package-links": "node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable",
     "examples:version": "node examples/scripts/code-examples.mjs version",
     "examples:install": "node examples/scripts/code-examples.mjs install",
@@ -54,7 +53,13 @@
     "data-spreadsheet"
   ],
   "devDependencies": {
-
+    "chalk": "^4.1.0",
+    "execa": "^5.0.0",
+    "fs-extra": "^4.0.2",
+    "inquirer": "^7.3.3",
+    "semver": "^5.7.1",
+    "rimraf": "^2.5.4",
+    "yargs": "^16.2.0"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
   "resolutions": {

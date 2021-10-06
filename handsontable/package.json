@@ -127,7 +127,6 @@
     "html-parse-stringify": "^2.0.3",
     "html-webpack-plugin": "^3.2.0",
     "http-server": "^0.12.3",
-    "inquirer": "^7.3.3",
     "jasmine-co": "^1.2.2",
     "jasmine-console-reporter": "^3.1.0",
     "jasmine-core": "^3.4.0",
@@ -146,7 +145,6 @@
     "puppeteer": "^10.2.0",
     "replace-in-file": "^6.1.0",
     "rimraf": "^2.5.4",
-    "semver": "^5.7.1",
     "spawn-command": "0.0.2",
     "string-replace-webpack-plugin": "^0.1.3",
     "style-loader": "^0.18.2",
@@ -155,8 +153,7 @@
     "tree-kill": "^1.2.2",
     "typescript": "3.8.2",
     "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.0",
-    "yargs": "^16.2.0"
+    "webpack-cli": "^3.3.0"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
   "resolutions": {

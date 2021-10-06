@@ -9,13 +9,13 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import inquirer from 'inquirer';
 import semver from 'semver';
-import { scheduleRelease } from './utils/index.mjs';
 import {
   cleanNodeModules,
+  scheduleRelease,
   spawnProcess,
   displayErrorMessage,
   displaySeparator
-} from '../../scripts/utils/index.mjs';
+} from './utils/index.mjs';
 
 const argv = yargs(hideBin(process.argv))
   .boolean('commit')

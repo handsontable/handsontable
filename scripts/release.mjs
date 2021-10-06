@@ -11,7 +11,7 @@ import {
   displayErrorMessage,
   displaySeparator,
   spawnProcess,
-} from '../../scripts/utils/index.mjs';
+} from './utils/index.mjs';
 
 const argv = yargs(hideBin(process.argv))
   .boolean('push')
