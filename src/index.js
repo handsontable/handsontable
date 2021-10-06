@@ -1,4 +1,5 @@
 import Handsontable from './base';
+import { registerAllModules } from './registry';
 import EventManager, { getListenersCounter } from './eventManager';
 import { getRegisteredMapsCounter } from './translations';
 import Hooks from './pluginHooks';
@@ -22,173 +23,35 @@ import * as unicodeHelpers from './helpers/unicode';
 import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
 
-/* eslint-disable handsontable/restricted-module-imports */
-// Since the Handsontable was modularized, importing some submodules is restricted.
-// Importing the main entry of the submodule can make the "dead" code elimination
-// process more difficult. The "handsontable/restricted-module-imports" rule is on
-// guard. For the index.js file, the rule has to be disabled. This file exports the
-// full version of the Handsontable with build-in all available components, so that's
-// why the rule is disabled here (see more #7506).
 import {
   getRegisteredEditorNames,
   getEditor,
   registerEditor,
-  AutocompleteEditor,
-  BaseEditor,
-  CheckboxEditor,
-  DateEditor,
-  DropdownEditor,
-  HandsontableEditor,
-  NumericEditor,
-  PasswordEditor,
-  SelectEditor,
-  TextEditor,
-} from './editors';
+} from './editors/registry';
 import {
   getRegisteredRendererNames,
   getRenderer,
   registerRenderer,
-  baseRenderer,
-  autocompleteRenderer,
-  checkboxRenderer,
-  htmlRenderer,
-  numericRenderer,
-  passwordRenderer,
-  textRenderer,
-} from './renderers';
+} from './renderers/registry';
 import {
   getRegisteredValidatorNames,
   getValidator,
   registerValidator,
-  autocompleteValidator,
-  dateValidator,
-  numericValidator,
-  timeValidator,
-} from './validators';
+} from './validators/registry';
 import {
   getRegisteredCellTypeNames,
   getCellType,
   registerCellType,
-  AutocompleteCellType,
-  CheckboxCellType,
-  DateCellType,
-  DropdownCellType,
-  HandsontableCellType,
-  NumericCellType,
-  PasswordCellType,
-  TextCellType,
-  TimeCellType,
-} from './cellTypes';
+} from './cellTypes/registry';
 import {
-  AutoColumnSize,
-  AutoRowSize,
-  Autofill,
-  BasePlugin,
-  BindRowsWithHeaders,
-  CollapsibleColumns,
-  ColumnSorting,
-  ColumnSummary,
-  Comments,
-  ContextMenu,
-  CopyPaste,
-  CustomBorders,
-  DragToScroll,
-  DropdownMenu,
-  ExportFile,
-  Filters,
-  Formulas,
-  HiddenColumns,
-  HiddenRows,
-  ManualColumnFreeze,
-  ManualColumnMove,
-  ManualColumnResize,
-  ManualRowMove,
-  ManualRowResize,
-  MergeCells,
-  MultiColumnSorting,
-  MultipleSelectionHandles,
-  NestedHeaders,
-  NestedRows,
-  PersistentState,
-  Search,
-  TouchScroll,
-  TrimRows,
-  UndoRedo,
-  getPlugin,
   getPluginsNames,
+  getPlugin,
   registerPlugin,
-} from './plugins';
-/* eslint-enable handsontable/restricted-module-imports */
+} from './plugins/registry';
+import { BasePlugin } from './plugins/base';
 
-registerEditor(BaseEditor);
-registerEditor(AutocompleteEditor);
-registerEditor(CheckboxEditor);
-registerEditor(DateEditor);
-registerEditor(DropdownEditor);
-registerEditor(HandsontableEditor);
-registerEditor(NumericEditor);
-registerEditor(PasswordEditor);
-registerEditor(SelectEditor);
-registerEditor(TextEditor);
-
-registerRenderer(baseRenderer);
-registerRenderer(autocompleteRenderer);
-registerRenderer(checkboxRenderer);
-registerRenderer(htmlRenderer);
-registerRenderer(numericRenderer);
-registerRenderer(passwordRenderer);
-registerRenderer(textRenderer);
-
-registerValidator(autocompleteValidator);
-registerValidator(dateValidator);
-registerValidator(numericValidator);
-registerValidator(timeValidator);
-
-registerCellType(AutocompleteCellType);
-registerCellType(CheckboxCellType);
-registerCellType(DateCellType);
-registerCellType(DropdownCellType);
-registerCellType(HandsontableCellType);
-registerCellType(NumericCellType);
-registerCellType(PasswordCellType);
-registerCellType(TimeCellType);
-registerCellType(TextCellType);
-
+registerAllModules();
 jQueryWrapper(Handsontable);
-
-registerPlugin(AutoColumnSize);
-registerPlugin(Autofill);
-registerPlugin(AutoRowSize);
-registerPlugin(BindRowsWithHeaders);
-registerPlugin(CollapsibleColumns);
-registerPlugin(ColumnSorting);
-registerPlugin(ColumnSummary);
-registerPlugin(Comments);
-registerPlugin(ContextMenu);
-registerPlugin(CopyPaste);
-registerPlugin(CustomBorders);
-registerPlugin(DragToScroll);
-registerPlugin(DropdownMenu);
-registerPlugin(ExportFile);
-registerPlugin(Filters);
-registerPlugin(Formulas);
-registerPlugin(HiddenColumns);
-registerPlugin(HiddenRows);
-registerPlugin(ManualColumnFreeze);
-registerPlugin(ManualColumnMove);
-registerPlugin(ManualColumnResize);
-registerPlugin(ManualRowMove);
-registerPlugin(ManualRowResize);
-registerPlugin(MergeCells);
-registerPlugin(MultiColumnSorting);
-registerPlugin(MultipleSelectionHandles);
-registerPlugin(NestedHeaders);
-registerPlugin(NestedRows);
-registerPlugin(PersistentState);
-registerPlugin(Search);
-registerPlugin(TouchScroll);
-registerPlugin(TrimRows);
-registerPlugin(UndoRedo);
 
 // TODO: Remove this exports after rewrite tests about this module
 Handsontable.__GhostTable = GhostTable;
