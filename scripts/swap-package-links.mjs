@@ -7,7 +7,7 @@ import path from 'path';
 import {
   displayConfirmationMessage,
   displayWarningMessage
-} from './utils/index.mjs';
+} from './utils/console.mjs';
 
 const [pkgName] = process.argv.slice(2);
 const PACKAGE_LOCATIONS = new Map([

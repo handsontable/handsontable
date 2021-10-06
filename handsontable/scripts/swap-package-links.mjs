@@ -2,7 +2,7 @@ import path from 'path';
 import execa from 'execa';
 import {
   displayErrorMessage
-} from '../../scripts/utils/index.mjs';
+} from '../../scripts/utils/console.mjs';
 
 ((async function() {
   try {

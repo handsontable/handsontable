@@ -7,6 +7,13 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 const configFactory = require('./test-e2e');
 const JasmineHtml = require('./plugin/jasmine-html');
+const fsExtra = require('fs-extra');
+
+const getClosest = (dir) => {
+  const pathRelativeToTestHtml = dir.replace('../', './');
+
+  return fsExtra.pathExistsSync(pathRelativeToTestHtml) ? dir : `../${dir}`;
+}
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
@@ -20,7 +27,9 @@ module.exports.create = function create(envArgs) {
     c.plugins.push(
       new JasmineHtml({
         filename: path.resolve(__dirname, '../test/E2ERunner.html'),
-        baseJasminePath: '../',
+        baseJasminePath: `${
+          fsExtra.pathExistsSync('./node_modules/jasmine-core') ? '../' : '../../'
+        }`,
         externalCssFiles: [
           'lib/normalize.css',
           '../dist/handsontable.full.min.css',
@@ -31,7 +40,7 @@ module.exports.create = function create(envArgs) {
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
           '../dist/handsontable.full.min.js',
-          '../node_modules/numbro/dist/languages.min.js',
+          `${getClosest('../node_modules/numbro')}/dist/languages.min.js`,
           '../dist/languages/all.min.js',
         ],
       })

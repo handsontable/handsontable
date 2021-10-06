@@ -23,7 +23,7 @@ if (argv._.length === 0) {
   switch (modifier) {
     case 'in': {
       const prependWithScope = (packageName) => {
-        if (packageName !== 'handsontable') {
+        if (packageName !== 'handsontable' && packageName !== 'examples') {
           return `@handsontable/${packageName}`;
         }
 
@@ -32,7 +32,7 @@ if (argv._.length === 0) {
       const [project, command] = argv._;
 
       await spawnProcess(
-        `npm run ${command} --workspace=${prependWithScope(project)} ${argv.ifPresent ? '--if-present' : ''}`
+        `npm run ${command} --workspace=${prependWithScope(project)}${argv.ifPresent ? ' --if-present' : ''}`
       );
 
       break;
@@ -40,7 +40,7 @@ if (argv._.length === 0) {
     case 'all': {
       const [command] = argv._;
 
-      await spawnProcess(`npm run ${command} --workspaces ${argv.ifPresent ? '--if-present' : ''}`);
+      await spawnProcess(`npm run ${command} --workspaces${argv.ifPresent ? ' --if-present' : ''}`);
 
       break;
     }
