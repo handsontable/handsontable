@@ -808,7 +808,9 @@ export default () => {
     minSpareCols: 0,
 
     /**
-     * If set to `false`, there won't be an option to insert new rows in the Context Menu.
+     * If set to `true`, the `allowInsertRow` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md):
+     * - **Insert row above**
+     * - **Insert row below**
      *
      * @memberof Options#
      * @type {boolean}
@@ -817,14 +819,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // hide "Insert row above" and "Insert row below" options from the Context Menu
+     * // hide the "Insert row above" and "Insert row below" menu items from the context menu
      * allowInsertRow: false,
      * ```
      */
     allowInsertRow: true,
 
     /**
-     * If set to `false`, there won't be an option to insert new columns in the Context Menu.
+     * If set to `true`, the `allowInsertColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md):
+     * - **Insert column left**
+     * - **Insert column right**
      *
      * @memberof Options#
      * @type {boolean}
@@ -833,14 +837,15 @@ export default () => {
      *
      * @example
      * ```js
-     * // hide "Insert column left" and "Insert column right" options from the Context Menu
+     * // hide the "Insert column left" and "Insert column right" menu items from the context menu
      * allowInsertColumn: false,
      * ```
      */
     allowInsertColumn: true,
 
     /**
-     * If set to `false`, there won't be an option to remove rows in the Context Menu.
+     * If set to `true`, the `allowRemoveRow` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md):
+     * - **Remove row**
      *
      * @memberof Options#
      * @type {boolean}
@@ -849,14 +854,15 @@ export default () => {
      *
      * @example
      * ```js
-     * // hide "Remove row" option from the Context Menu
+     * // hide the "Remove row" menu item from the context menu
      * allowRemoveRow: false,
      * ```
      */
     allowRemoveRow: true,
 
     /**
-     * If set to `false`, there won't be an option to remove columns in the Context Menu.
+     * If set to `true`, the `allowRemoveColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md):
+     * - **Remove column**
      *
      * @memberof Options#
      * @type {boolean}
@@ -865,7 +871,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // hide "Remove column" option from the Context Menu
+     * // hide the "Remove column" menu item from the context menu
      * allowRemoveColumn: false,
      * ```
      */
