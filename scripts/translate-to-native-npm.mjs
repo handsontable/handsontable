@@ -40,7 +40,7 @@ if (argv._.length === 0) {
     case 'all': {
       const [command] = argv._;
 
-      await spawnProcess(`npm run ${command} --workspaces`);
+      await spawnProcess(`npm run ${command} --workspaces ${argv.ifPresent ? '--if-present' : ''}`);
 
       break;
     }

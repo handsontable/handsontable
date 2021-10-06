@@ -17,10 +17,10 @@
   "jsdelivr": "dist/handsontable.full.min.js",
   "unpkg": "dist/handsontable.full.min.js",
   "scripts": {
-    "in": "cross-env-shell COMMAND_ENV=in node scripts/translate-to-native-npm.mjs",
-    "all": "cross-env-shell COMMAND_ENV=all node scripts/translate-to-native-npm.mjs",
+    "in": "cross-env-shell COMMAND_ENV=in node --experimental-json-modules scripts/translate-to-native-npm.mjs",
+    "all": "cross-env-shell COMMAND_ENV=all node --experimental-json-modules scripts/translate-to-native-npm.mjs",
     "clean:node_modules": "node --experimental-json-modules ./scripts/clean-node-modules.mjs",
-    "lint": "npm run eslint && npm run all eslint",
+    "lint": "npm run eslint && npm run all eslint -- --if-present",
     "eslint": "eslint .github/scripts/ bin/changelog scripts/",
     "test": "npm run all test",
     "build": "npm run all build",
