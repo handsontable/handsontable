@@ -1,10 +1,10 @@
 {
-  "buildCommand": "build-hot",
+  "buildCommand": "build",
   "packages": [
     "tmp"
   ],
   "publishDirectory": {
-    "handsontable": "handsontable/tmp"
+    "handsontable": "tmp"
   },
   "sandboxes": [
     "github/handsontable/examples/tree/master/vanilla/pull-request"
