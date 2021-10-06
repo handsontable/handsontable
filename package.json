@@ -24,6 +24,7 @@
     "eslint": "eslint .github/scripts/ bin/changelog scripts/",
     "test": "npm run all test",
     "build": "npm run all build",
+    "build-hot": "cd handsontable && npm run build",
     "freeze": "node --experimental-json-modules scripts/freeze.mjs",
     "release": "node --experimental-json-modules scripts/release.mjs",
     "changelog": "bin/changelog",

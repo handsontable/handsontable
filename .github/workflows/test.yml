@@ -114,7 +114,7 @@ jobs:
           cd handsontable
           npm run build:umd && npm run build:languages
           npm run build:umd.min && npm run build:languages.min
-      - run: tar -zcf dist.tar.gz ./dist
+      - run: tar -zcf dist.tar.gz ./handsontable/dist
       - name: Upload the Handsontable UMD build artifact.
         uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
         with:
@@ -142,7 +142,7 @@ jobs:
           npm run build:es && npm run build:languages.es
           npm run build:commonjs
           npm run postbuild
-      - run: tar -zcf tmp.tar.gz ./tmp
+      - run: tar -zcf tmp.tar.gz ./handsontable/tmp
       - name: Upload the Handsontable ES + CJS build artifact.
         uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
         with:
