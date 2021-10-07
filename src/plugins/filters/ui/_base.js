@@ -10,7 +10,6 @@ const STATE_BUILDING = 'building';
 const EVENTS_TO_REGISTER = ['click', 'input', 'keydown', 'keypress', 'keyup', 'focus', 'blur', 'change'];
 
 /**
- * @class
  * @private
  */
 class BaseUI {

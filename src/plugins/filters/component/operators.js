@@ -11,8 +11,8 @@ import RadioInputUI from '../ui/radioInput';
 const SELECTED_AT_START_ELEMENT_INDEX = 0;
 
 /**
+ * @private
  * @class OperatorsComponent
- * @plugin Filters
  */
 class OperatorsComponent extends BaseComponent {
   constructor(hotInstance, options) {

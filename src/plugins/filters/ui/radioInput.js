@@ -4,8 +4,8 @@ import BaseUI from './_base';
 const privatePool = new WeakMap();
 
 /**
+ * @private
  * @class RadioInputUI
- * @util
  */
 class RadioInputUI extends BaseUI {
   static get DEFAULTS() {

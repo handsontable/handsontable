@@ -8,9 +8,8 @@ const privatePool = new WeakMap();
 /**
  * Class responsible for the Context Menu entries for the Nested Rows plugin.
  *
- * @class ContextMenuUI
- * @util
  * @private
+ * @class ContextMenuUI
  * @augments BaseUI
  */
 class ContextMenuUI extends BaseUI {

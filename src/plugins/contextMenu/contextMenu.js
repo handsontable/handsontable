@@ -326,6 +326,7 @@ export class ContextMenu extends BasePlugin {
     const showColHeaders = settings.colHeaders;
 
     /**
+     * @private
      * @param {HTMLElement} element The element to validate.
      * @returns {boolean}
      */

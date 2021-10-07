@@ -3,8 +3,8 @@ import { getWindowScrollLeft, getWindowScrollTop } from '../../helpers/dom/eleme
 /**
  * Helper class for checking if element will fit at the desired side of cursor.
  *
+ * @private
  * @class Cursor
- * @plugin ContextMenu
  */
 class Cursor {
   constructor(object, rootWindow) {

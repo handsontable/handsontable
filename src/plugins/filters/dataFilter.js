@@ -1,8 +1,8 @@
 import { arrayEach } from '../../helpers/array';
 
 /**
+ * @private
  * @class DataFilter
- * @plugin Filters
  */
 class DataFilter {
   constructor(conditionCollection, columnDataFactory = () => []) {

@@ -9,8 +9,8 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
 /**
  * Defines a container object for the merged cells.
  *
+ * @private
  * @class MergedCellsCollection
- * @plugin MergeCells
  */
 class MergedCellsCollection {
   constructor(plugin) {

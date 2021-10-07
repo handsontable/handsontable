@@ -5,8 +5,8 @@ import BaseUI from './_base';
 const privatePool = new WeakMap();
 
 /**
+ * @private
  * @class InputUI
- * @util
  */
 class InputUI extends BaseUI {
   static get DEFAULTS() {

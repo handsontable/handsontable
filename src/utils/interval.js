@@ -2,7 +2,6 @@ import { requestAnimationFrame, cancelAnimationFrame } from './../helpers/featur
 
 /**
  * @class Interval
- * @util
  */
 class Interval {
   static create(func, delay) {

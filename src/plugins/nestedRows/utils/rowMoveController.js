@@ -6,9 +6,8 @@ import { CellCoords } from '../../../3rdparty/walkontable/src';
 /**
  * Helper class for the row-move-related operations.
  *
- * @class RowMoveController
- * @plugin NestedRows
  * @private
+ * @class RowMoveController
  */
 export default class RowMoveController {
   constructor(plugin) {

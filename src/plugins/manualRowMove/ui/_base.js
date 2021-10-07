@@ -4,7 +4,6 @@ const STATE_APPENDED = 2;
 const UNIT = 'px';
 
 /**
- * @class
  * @private
  */
 class BaseUI {

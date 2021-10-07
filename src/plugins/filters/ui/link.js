@@ -4,8 +4,8 @@ import BaseUI from './_base';
 const privatePool = new WeakMap();
 
 /**
+ * @private
  * @class LinkUI
- * @util
  */
 class LinkUI extends BaseUI {
   static get DEFAULTS() {

@@ -4,8 +4,8 @@ import { addClass } from '../../../helpers/dom/element';
 const CSS_CLASSNAME = 'ht__manualRowMove--guideline';
 
 /**
+ * @private
  * @class GuidelineUI
- * @util
  */
 class GuidelineUI extends BaseUI {
   /**

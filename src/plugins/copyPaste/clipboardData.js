@@ -1,3 +1,6 @@
+/**
+ * @private
+ */
 export default class ClipboardData {
   constructor() {
     this.data = {};

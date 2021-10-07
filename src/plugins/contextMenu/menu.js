@@ -34,8 +34,8 @@ import localHooks from '../../mixins/localHooks';
 const MIN_WIDTH = 215;
 
 /**
+ * @private
  * @class Menu
- * @plugin ContextMenu
  */
 class Menu {
   constructor(hotInstance, options) {

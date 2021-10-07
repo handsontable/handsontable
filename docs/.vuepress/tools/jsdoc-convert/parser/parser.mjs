@@ -10,8 +10,17 @@ export const buildParser = ({ logger, parseJsdoc }) => function* () {
 
   logger.info('Parsing jsdoc comments...');
   const data = parseJsdoc([
-    '!(*.spec|*.unit|*.entry).js',
-    '**/!(dist)/!(*.spec|*.unit|*.entry).js',
+    '3rdparty/walkontable/src/cell/coords.js',
+    '3rdparty/walkontable/src/cell/range.js',
+    'dataMap/metaManager/metaSchema.js',
+    'dataMap/dataMap.js',
+    'utils/ghostTable.js',
+    'utils/samplesGenerator.js',
+    'pluginHooks.js',
+    'core.js',
+    'editors/!(__tests__)/!(index).js',
+    'plugins/!(__tests__)/!(index).js',
+    'translations/!(__tests__)/!(index).js',
   ]);
 
   logger.success('Jsdoc comments parsed successfully.');

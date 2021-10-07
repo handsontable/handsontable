@@ -8,9 +8,8 @@ import HeadersUI from './headers';
 /**
  * Class responsible for the UI for collapsing and expanding groups.
  *
- * @class
- * @util
  * @private
+ * @class
  * @augments BaseUI
  */
 class CollapsingUI extends BaseUI {

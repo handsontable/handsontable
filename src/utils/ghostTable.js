@@ -3,7 +3,6 @@ import { arrayEach } from './../helpers/array';
 
 /**
  * @class GhostTable
- * @util
  */
 class GhostTable {
   constructor(hotInstance) {

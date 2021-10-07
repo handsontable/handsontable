@@ -4,7 +4,6 @@ import { stringify } from './../helpers/mixed';
 
 /**
  * @class SamplesGenerator
- * @util
  */
 class SamplesGenerator {
   /**

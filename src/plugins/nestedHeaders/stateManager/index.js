@@ -31,7 +31,6 @@ import { generateMatrix } from './matrixGenerator';
  *                            CSS classes, etc) for a specific column and layer level.
  *
  * @class StateManager
- * @plugin NestedHeaders
  */
 export default class StateManager {
   /**

@@ -122,6 +122,7 @@ export const TYPES = {
 /**
  * Get options list for conditional filter by data type (e.q: `'text'`, `'numeric'`, `'date'`).
  *
+ * @private
  * @param {string} type The data type.
  * @returns {object}
  */

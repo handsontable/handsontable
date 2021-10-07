@@ -9,8 +9,8 @@ import {
 /**
  * Predefined items class factory for menu items.
  *
+ * @private
  * @class ItemsFactory
- * @plugin ContextMenu
  */
 class ItemsFactory {
   constructor(hotInstance, orderPattern = null) {

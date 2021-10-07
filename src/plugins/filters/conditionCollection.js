@@ -11,8 +11,8 @@ import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../translat
 const MAP_NAME = 'ConditionCollection.filteringStates';
 
 /**
+ * @private
  * @class ConditionCollection
- * @plugin Filters
  */
 class ConditionCollection {
   constructor(hot, isMapRegistrable = true) {

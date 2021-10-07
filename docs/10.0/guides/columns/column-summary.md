@@ -99,7 +99,7 @@ To decide how a column summary is calculated, you can use one of the following s
 
 You can customize each of your column summaries with configuration options.
 
-For the full list of available options, see the [API reference](@/api/columnsummary.md#options).
+For the full list of available options, see the [API reference](@/api/columnSummary.md#options).
 
 ## Setting up a column summary
 
@@ -326,7 +326,7 @@ The example below sets up five different column summaries. To do this, it:
 - Sets Handsontable's [`columnSummary`](@/api/options.md#columnsummary) [configuration option](@/guides/getting-started/setting-options.md) to a function that:
     - Iterates over visible columns
     - For each visible column, adds a column summary with a configuration
-    - To display the column summaries in the empty row added by `generateData`, sets the [`reversedRowCoords`](@/api/columnsummary.md#options) option to `true`, and the [`destinationRow`](@/api/columnsummary.md#options) option to `0`
+    - To display the column summaries in the empty row added by `generateData`, sets the [`reversedRowCoords`](@/api/columnSummary.md#options) option to `true`, and the [`destinationRow`](@/api/columnSummary.md#options) option to `0`
 
 ::: example #example7
 ```js

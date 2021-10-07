@@ -350,8 +350,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     /**
      * Inserts or removes rows and columns.
      *
-     * @memberof Core#
-     * @function alter
      * @private
      * @param {string} action Possible values: "insert_row", "insert_col", "remove_row", "remove_col".
      * @param {number|Array} index Row or column visual index which from the alter action will be triggered.
@@ -604,6 +602,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     /**
      * Makes sure there are empty rows at the bottom of the table.
+     *
+     * @private
      */
     adjustRowsAndCols() {
       const minRows = tableMeta.minRows;
@@ -1237,9 +1237,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     // the `canBeValidated = false` argument suggests, that the cell passes validation by default.
     /**
+     * @private
+     * @function done
      * @param {boolean} valid Indicates if the validation was successful.
      * @param {boolean} [canBeValidated=true] Flag which controls the validation process.
-     * @private
      */
     function done(valid, canBeValidated = true) {
       // Fixes GH#3903
@@ -3507,7 +3508,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Returns the row height.
    *
-   * Mind that this method is different from the [AutoRowSize](@/api/autorowsize.md) plugin's [`getRowHeight()`](@/api/autorowsize.md#getrowheight) method.
+   * Mind that this method is different from the [AutoRowSize](@/api/autoRowSize.md) plugin's [`getRowHeight()`](@/api/autoRowSize.md#getrowheight) method.
    *
    * @memberof Core#
    * @function getRowHeight

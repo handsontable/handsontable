@@ -51,11 +51,14 @@ import { isObjectEqual } from '../../helpers/object';
 export default () => {
   return {
     /**
-     * The `licenseKey` option sets Handsontable's license key.
+     * The `licenseKey` option sets your Handsontable license key.
      *
-     * For [commercial use](@/guides/technical-specification/software-license.md#commercial-use), set the `licenseKey` option to a string with your [commercial license key](@/guides/getting-started/license-key.md#commercial-license).
+     * You can set the `licenseKey` option to one of the following:
      *
-     * For [non-commercial use](@/guides/technical-specification/software-license.md#non-commercial-use), set the `licenseKey` option to this string: `non-commercial-and-evaluation`.
+     * | Setting | Description |
+     * |---|---|
+     * | A string with your [commercial license key](@/guides/getting-started/license-key.md#commercial-license) | For [commercial use](@/guides/technical-specification/software-license.md#commercial-use) |
+     * | `'non-commercial-and-evaluation'` | For [non-commercial use](@/guides/technical-specification/software-license.md#non-commercial-use) |
      *
      * Read more:
      * - [License key &#8594;](@/guides/getting-started/license-key.md)
@@ -67,10 +70,11 @@ export default () => {
      *
      * @example
      * ```js
-     * // commercial use
+     * // for commercial use
      * licenseKey: 'xxxxx-xxxxx-xxxxx-xxxxx-xxxxx', // your commercial license key
-     * // non-commercial use
-     * licenseKey: 'non-commercial-and-evaluation'
+     *
+     * // for non-commercial use
+     * licenseKey: 'non-commercial-and-evaluation',
      * ```
      */
     licenseKey: void 0,
@@ -149,10 +153,15 @@ export default () => {
     dataSchema: void 0,
 
     /**
-     * The `width` option sets the width of your grid. You can set it to one of the following:
-     * - A number of pixels (e.g. `500`)
-     * - A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) (e.g. `'75vw'`)
-     * - A function that returns a valid number or string
+     * The `width` option configures the width of your grid.
+     *
+     * You can set the `width` option to one of the following:
+     *
+     * | Setting | Example |
+     * |---|---|
+     * | A number of pixels | `width: 500` |
+     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `width: '75vw'` |
+     * | A function that returns a valid number or string | `width: function() {`<br>&nbsp;&nbsp;`return 500;`<br>`}` |
      *
      * Read more:
      * - [Grid size &#8594;](@/guides/getting-started/grid-size.md)
@@ -179,10 +188,13 @@ export default () => {
     width: void 0,
 
     /**
-     * The `height` option sets the height of your grid. You can set it to one of the following:
-     * - A number of pixels (e.g. `500`)
-     * - A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) (e.g. `'75vw'`)
-     * - A function that returns a valid number or string
+     * The `height` option configures the height of your grid.
+     *
+     * | Setting | Example |
+     * |---|---|
+     * | A number of pixels | `height: 500` |
+     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `height: '75vw'` |
+     * | A function that returns a valid number or string | `height: function() {`<br>&nbsp;&nbsp;`return 500;`<br>`}` |
      *
      * Read more:
      * - [Grid size &#8594;](@/guides/getting-started/grid-size.md)
@@ -247,11 +259,15 @@ export default () => {
     startCols: 5,
 
     /**
-     * The `rowHeaders` option configures your grid's row headers:
-     * - To enable the default row headers ("1", "2", "3", ...), set `rowHeaders` to `true`.
-     * - To disable row headers, set `rowHeaders` to `false`.
-     * - To define your own row headers, set `rowHeaders` to an array (e.g. `['One', 'Two', 'Three', ...]`),
-     * or to a function that returns such an array.
+     * The `rowHeaders` option configures your grid's row headers.
+     *
+     * You can set the rowHeaders` option to one of the following:
+     *
+     * | Setting | Description |
+     * |---|---|
+     * | `true` | Enable the default row headers ("1", "2", "3", ...) |
+     * | `false` | Disable row headers |
+     * | An array | Define your own row headers (e.g. `['One', 'Two', 'Three', ...]`) |
      *
      * Read more:
      * - [Row header &#8594;](@/guides/rows/row-header.md)
@@ -913,9 +929,9 @@ export default () => {
     /**
      * The `fillHandle` option enables and configures the [Autofill](@/api/autofill.md) plugin.
      *
-     * You can set the `fillHandle` option to one the following values:
+     * You can set the `fillHandle` option to one the following:
      *
-     * | Value | Description |
+     * | Setting | Description |
      * |---|---|
      * | `true` | - Enable autofill in all directions<br>- Add the fill handle |
      * | `false` | Disable autofill |

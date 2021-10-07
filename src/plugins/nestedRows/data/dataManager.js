@@ -5,7 +5,6 @@ import { arrayEach } from '../../../helpers/array';
 /**
  * Class responsible for making data operations.
  *
- * @class
  * @private
  */
 class DataManager {

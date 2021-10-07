@@ -5,9 +5,8 @@ import { isMobileBrowser } from '../../helpers/browser';
 import { selectElementIfAllowed } from '../../helpers/dom/element';
 
 /**
+ * @private
  * @class FocusableWrapper
- *
- * @plugin CopyPaste
  */
 class FocusableWrapper {
   constructor(container) {

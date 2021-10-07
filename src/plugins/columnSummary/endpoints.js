@@ -4,8 +4,8 @@ import { warn } from '../../helpers/console';
 /**
  * Class used to make all endpoint-related operations.
  *
+ * @private
  * @class Endpoints
- * @plugin ColumnSummary
  */
 class Endpoints {
   constructor(plugin, settings) {

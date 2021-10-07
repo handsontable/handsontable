@@ -836,13 +836,6 @@ UndoRedo.prototype.init = function() {
   const pluginEnabled = typeof settings === 'undefined' || settings;
 
   if (!this.instance.undoRedo) {
-    /**
-     * Instance of Handsontable.UndoRedo Plugin {@link Handsontable.UndoRedo}.
-     *
-     * @alias undoRedo
-     * @memberof! Handsontable.Core#
-     * @type {UndoRedo}
-     */
     this.instance.undoRedo = this;
   }
 
@@ -915,7 +908,7 @@ function exposeUndoRedoMethods(instance) {
    * {@link UndoRedo#undo}.
    *
    * @alias undo
-   * @memberof! Handsontable.Core#
+   * @memberof! Core#
    * @returns {boolean}
    */
   instance.undo = function() {
@@ -926,7 +919,7 @@ function exposeUndoRedoMethods(instance) {
    * {@link UndoRedo#redo}.
    *
    * @alias redo
-   * @memberof! Handsontable.Core#
+   * @memberof! Core#
    * @returns {boolean}
    */
   instance.redo = function() {
@@ -937,7 +930,7 @@ function exposeUndoRedoMethods(instance) {
    * {@link UndoRedo#isUndoAvailable}.
    *
    * @alias isUndoAvailable
-   * @memberof! Handsontable.Core#
+   * @memberof! Core#
    * @returns {boolean}
    */
   instance.isUndoAvailable = function() {
@@ -948,7 +941,7 @@ function exposeUndoRedoMethods(instance) {
    * {@link UndoRedo#isRedoAvailable}.
    *
    * @alias isRedoAvailable
-   * @memberof! Handsontable.Core#
+   * @memberof! Core#
    * @returns {boolean}
    */
   instance.isRedoAvailable = function() {
@@ -959,7 +952,7 @@ function exposeUndoRedoMethods(instance) {
    * {@link UndoRedo#clear}.
    *
    * @alias clearUndo
-   * @memberof! Handsontable.Core#
+   * @memberof! Core#
    * @returns {boolean}
    */
   instance.clearUndo = function() {
@@ -981,7 +974,7 @@ function removeExposedUndoRedoMethods(instance) {
 const hook = Hooks.getSingleton();
 
 hook.add('afterUpdateSettings', function() {
-  this.getPlugin('undoRedo').init();
+  this.getPlugin('undoRedo')?.init();
 });
 
 hook.register('beforeUndo');

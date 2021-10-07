@@ -9,6 +9,7 @@ export const EXPORT_TYPES = {
 };
 
 /**
+ * @private
  * @param {string} type The exporter type.
  * @param {DataProvider} dataProvider The data provider.
  * @param {object} options Constructor options for exporter class.

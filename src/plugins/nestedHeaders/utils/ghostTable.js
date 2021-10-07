@@ -1,6 +1,9 @@
 import { fastInnerHTML } from '../../../helpers/dom/element';
 import { clone } from '../../../helpers/object';
 
+/**
+ * @private
+ */
 class GhostTable {
   constructor(plugin) {
     /**

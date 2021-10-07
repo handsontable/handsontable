@@ -5,6 +5,7 @@ import localHooks from '../../mixins/localHooks';
  * The ChangesObserver module is an object that represents a disposable resource
  * provided by the ChangesObservable module.
  *
+ * @private
  * @class ChangesObserver
  */
 export class ChangesObserver {

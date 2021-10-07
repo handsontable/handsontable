@@ -1,4 +1,4 @@
-name: Documentation Linter
+name: Docs Linter
 
 on:
   push:

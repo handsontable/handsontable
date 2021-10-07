@@ -12,8 +12,8 @@ import { createArrayAssertion } from './utils';
  *
  * Object fires `update` hook for every column conditions change.
  *
+ * @private
  * @class ConditionUpdateObserver
- * @plugin Filters
  */
 class ConditionUpdateObserver {
   constructor(hot, conditionCollection, columnDataFactory = () => []) {
