@@ -64,7 +64,8 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
     height: 720,
   });
 
-  const rootPath = `${__dirname}/../../..`;
+  const rootPath = path.resolve(`${__dirname}`, '../../..');
+
   const server = http.createServer(ecstatic({
     root: rootPath,
     showDir: true,
@@ -122,7 +123,7 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
     await cleanup(1);
   });
 
-  const packagePath = path.relative(path.resolve(process.cwd(), '../..'), rootPath);
+  const packagePath = path.relative(rootPath, process.cwd());
 
   try {
     await page.goto(`http://localhost:${PORT}/${packagePath}/${htmlPath}`);
