@@ -190,6 +190,8 @@ export default () => {
     /**
      * The `height` option configures the height of your grid.
      *
+     * You can set `height` option to one of the following:
+     *
      * | Setting | Example |
      * |---|---|
      * | A number of pixels | `height: 500` |
@@ -261,7 +263,7 @@ export default () => {
     /**
      * The `rowHeaders` option configures your grid's row headers.
      *
-     * You can set the rowHeaders` option to one of the following:
+     * You can set the `rowHeaders` option to one of the following:
      *
      * | Setting | Description |
      * |---|---|
@@ -294,11 +296,15 @@ export default () => {
     rowHeaders: void 0,
 
     /**
-     * The `colHeaders` option configures your grid's column headers:
-     * - To enable the default column headers ("A", "B", "C", ...), set `colHeaders` to `true`.
-     * - To disable column headers, set `colHeaders` to `false`.
-     * - To define your own column headers, set `colHeaders` to an array (e.g. `['One', 'Two', 'Three', ...]`),
-     * or to a function that returns such an array.
+     * The `colHeaders` option configures your grid's column headers.
+     *
+     * You can set the `colHeaders` option to one of the following:
+     *
+     * | Setting | Description |
+     * |---|---|
+     * | `true` | Enable the default column headers ("A", "B", "C", ...) |
+     * | `false` | Disable column headers |
+     * | An array | Define your own column headers (e.g. `['One', 'Two', 'Three', ...]`) |
      *
      * Read more:
      * - [Column header &#8594;](@/guides/columns/column-header.md)
@@ -330,13 +336,13 @@ export default () => {
      * In the rendering process, the default column width is 50px. To change it,
      * set the `colWidths` option to one of the following:
      *
-     * | Value | Usage | Example |
+     * | Setting | Description | Example |
      * | --- | --- | ---|
-     * | A number | Sets the same width for every column | `100` |
-     * | A string | Sets the same width for every column | `'100px'` |
-     * | An array | Sets widths separately for each column | `[100, 120, undefined]` |
-     * | A function | Sets column widths dynamically,<br>on each render | `function(index) {return index * 10;}` |
-     * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `undefined` |
+     * | A number | Set the same width for every column | `colWidths: 100` |
+     * | A string | Set the same width for every column | `colWidths: '100px'` |
+     * | An array | Set widths separately for each column | `colWidths: [100, 120, undefined]` |
+     * | A function | Set column widths dynamically,<br>on each render | `colWidths: function(index) {`<br>`return index * 10;`<br>`}` |
+     * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined` |
      *
      * Setting the `colWidths` option disables the {@link AutoColumnSize} plugin.
      *
@@ -376,13 +382,13 @@ export default () => {
      * In the rendering process, the default row height is 23px.
      * You can change it to equal or greater than 23px, by setting the `rowHeights` option to one of the following:
      *
-     * | Value | Usage | Example |
+     * | Setting | Description | Example |
      * | --- | --- | ---|
-     * | A number | Sets the same height for every row | `100` |
-     * | A string | Sets the same height for every row | `'100px'` |
-     * | An array | Sets heights separately for each row | `[100, 120, undefined]` |
-     * | A function | Sets row heights dynamically,<br>on each render | `function(index) {return index * 10;}` |
-     * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes. | `undefined` |
+     * | A number | Set the same height for every row | `rowHeights: 100` |
+     * | A string | Set the same height for every row | `rowHeights: '100px'` |
+     * | An array | Set heights separately for each row | `rowHeights: [100, 120, undefined]` |
+     * | A function | Set row heights dynamically,<br>on each render | `rowHeights: function(index) {`<br>&nbsp;&nbsp;`return index * 10;`<br>`}` |
+     * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes | `rowHeights: undefined` |
      *
      * The `rowHeights` option also sets the minimum row height that can be set
      * via the {@link ManualRowResize} and {@link AutoRowSize} plugins (if they are enabled).
@@ -472,7 +478,8 @@ export default () => {
      * The `cells` option lets you apply [configuration options](@/guides/getting-started/setting-options.md) to
      * individual grid elements (columns, rows, cells), based on any logic you implement.
      *
-     * The `cells` option overwrites all other options (including options set by [`columns`](#columns) and [`cell`](#cell)). It takes the following parameters:
+     * The `cells` option overwrites all other options (including options set by [`columns`](#columns) and [`cell`](#cell)).
+     * It takes the following parameters:
      *
      * | Parameter | Required | Type | Description |
      * |---|---|---|---|---|
@@ -540,19 +547,21 @@ export default () => {
      * @description
      * The `comments` option enables and configures the [`Comments`](@/api/comments.md) plugin.
      *
-     * To enable the [`Comments`](@/api/comments.md) plugin
-     * (and add its menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md)),
-     * set the `comments` option to `true`.
+     * You can set the `comments` option to one of the following:
      *
-     * To enable the [`Comments`](@/api/comments.md) plugin
-     * and configure default settings for all comments,
-     * set the `comments` option to an object with the following properties:
+     * | Setting | Description |
+     * | --- | --- |
+     * | `true` | - Enable the [`Comments`](@/api/comments.md) plugin<br>- Add comment menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md) |
+     * | `false` | Disable the [`Comments`](@/api/comments.md) plugin |
+     * | An object | - Enable the [`Comments`](@/api/comments.md) plugin<br>- Add comment menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md)<br>- Configure comment settings |
      *
-     * | Property | Required | Type | Default | Description |
-     * |---|---|---|---|---|
-     * | `displayDelay` | No | Number | `250` | Displays all comments after a delay (in milliseconds). |
-     * | `readOnly` | No | Boolean | `false` | If set to `true`, makes all comments read-only by default. |
-     * | `style` | No | Object | - | Sets all comment boxes' `width` and `height` (in pixels). |
+     * If you set the `comments` option to an object, you can configure the following comment options:
+     *
+     * | Option | Possible settings | Description |
+     * |---|---|---|
+     * | `displayDelay` | A number (default: `250`) | Display comments after a delay (in milliseconds) |
+     * | `readOnly` | `true` \| `false` (default) | `true`: Make comments read-only |
+     * | `style` | An object | Set comment boxes' `width` and `height` (in pixels) |
      *
      * Read more:
      * - [Comments &#8594;](@/guides/cell-features/comments.md)
@@ -897,12 +906,13 @@ export default () => {
      * @description
      * The `selectionMode` option configures how cell selection works.
      *
-     * You can set the `selectionMode` option to one of the following strings:
-     * | String | Behavior |
+     * You can set the `selectionMode` option to one of the following:
+     *
+     * | Setting | Description |
      * | --- | --- |
-     * | `'single'` | You can only select one cell at a time. |
-     * | `'range'` | You can select one range of cells at a time. |
-     * | `'multiple'` | You can select multiple ranges of cells at a time. |
+     * | `'single'` | Allow the user to select only one cell at a time. |
+     * | `'range'` | Allow the user to select one range of cells at a time. |
+     * | `'multiple'` | Allow the user to select multiple ranges of cells at a time. |
      *
      * Read more:
      * - [Selection: Selecting ranges &#8594;](@/guides/cell-features/selection.md#selecting-ranges)
@@ -937,13 +947,13 @@ export default () => {
      * | `false` | Disable autofill |
      * | `'vertical'` | - Enable vertical autofill<br>- Add the fill handle |
      * | `'horizontal'` | - Enable horizontal autofill<br>- Add the fill handle |
-     * | Object | - Enable autofill<br>- Add the fill handle<br>- Configure autofill options |
+     * | An object | - Enable autofill<br>- Add the fill handle<br>- Configure autofill options |
      *
-     * If you set the `fillHandle` option to an object, you can set the following autofill options:
+     * If you set the `fillHandle` option to an object, you can configure the following autofill options:
      *
-     * | Autofill option | Possible values | Description |
+     * | Option | Possible settings | Description |
      * |---|---|---|
-     * | `autoInsertRow` | `true` (default) \| `false` | `true`: When you reach the grid's bottom, add new rows.<br>`false`: When you reach the grid's bottom, stop. |
+     * | `autoInsertRow` | `true` (default) \| `false` | `true`: When you reach the grid's bottom, add new rows<br>`false`: When you reach the grid's bottom, stop |
      * | `direction` | `'vertical'` \| `'horizontal'` | `'vertical'`: Enable vertical autofill<br>`'horizontal'`: Enable horizontal autofill |
      *
      * Read more:
