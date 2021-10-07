@@ -233,6 +233,12 @@
         }
       },
       {
+        "./registry": {
+          "import": "./registry.mjs",
+          "require": "./registry.js"
+        }
+      },
+      {
         "./languages/all": {
           "import": "./languages/index.mjs",
           "require": "./languages/all.js"

@@ -19,8 +19,6 @@ import {
 import { registerCellType } from './cellTypes/registry';
 import { TextCellType } from './cellTypes/textType';
 
-export * from './registry';
-
 // register default mandatory cell type for the Base package
 registerCellType(TextCellType);
 
