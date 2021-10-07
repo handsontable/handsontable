@@ -3,10 +3,10 @@ import {
   mount,
   ReactWrapper
 } from 'enzyme';
-import Handsontable from 'handsontable';
 import { HotTable } from '../src/hotTable';
 import { HotColumn } from '../src/hotColumn';
 import {
+  createSpreadsheetData,
   RendererComponent,
   mockElementDimensions,
   sleep,
@@ -80,7 +80,7 @@ describe('Renderer configuration using React components', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(100, 2)}
+                data={createSpreadsheetData(100, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -123,7 +123,7 @@ describe('Editor configuration using React components', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -198,7 +198,7 @@ describe('Dynamic HotColumn configuration changes', () => {
       render() {
         return (
           <HotTable licenseKey="non-commercial-and-evaluation" id="test-hot"
-                    data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                    data={createSpreadsheetData(3, 2)}
                     width={300}
                     height={300}
                     rowHeights={23}

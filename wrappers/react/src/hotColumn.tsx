@@ -6,7 +6,7 @@ import {
   getExtendedEditorElement
 } from './helpers';
 import { SettingsMapper } from './settingsMapper';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 
 class HotColumn extends React.Component<HotColumnProps, {}> {
   internalProps: string[];

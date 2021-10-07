@@ -7,10 +7,10 @@ import {
   HotTable
 } from '../src/hotTable';
 import {
+  createSpreadsheetData,
   mockElementDimensions,
   sleep,
 } from './_helpers';
-import Handsontable from 'handsontable';
 
 beforeEach(() => {
   let container = document.createElement('DIV');
@@ -37,7 +37,7 @@ describe('React.memo', () => {
     const wrapper: ReactWrapper<{}, {}, any> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(1, 1)}
+                data={createSpreadsheetData(1, 1)}
                 width={300}
                 height={300}
                 rowHeights={23}

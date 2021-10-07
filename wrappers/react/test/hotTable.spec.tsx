@@ -7,6 +7,7 @@ import {
   HotTable
 } from '../src/hotTable';
 import {
+  createSpreadsheetData,
   IndividualPropsWrapper,
   mockElementDimensions,
   RendererComponent,
@@ -16,7 +17,6 @@ import {
   simulateKeyboardEvent,
   simulateMouseEvent
 } from './_helpers';
-import Handsontable from 'handsontable';
 
 beforeEach(() => {
   let container = document.createElement('DIV');
@@ -62,7 +62,7 @@ describe('Handsontable initialization', () => {
     await sleep(300);
     let hotInstance = wrapper.instance().hotInstance;
 
-    expect(hotInstance.getPlugin('contextMenu').enabled).toBe(true);
+    expect(hotInstance.getSettings().contextMenu).toBe(true);
     expect(hotInstance.getSettings().rowHeaders).toBe(true);
     expect(hotInstance.getSettings().colHeaders).toBe(true);
     expect(JSON.stringify(hotInstance.getData())).toEqual('[[2]]');
@@ -171,7 +171,7 @@ describe('Renderer configuration using React components', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(100, 100)}
+                data={createSpreadsheetData(100, 100)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -215,7 +215,7 @@ describe('Editor configuration using React components', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 rowHeights={23}
