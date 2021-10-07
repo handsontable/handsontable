@@ -879,7 +879,7 @@ export default () => {
 
     /**
      * @description
-     * The `selectionMode` option configures the way of selecting cells.
+     * The `selectionMode` option configures how cell selection works.
      *
      * You can set the `selectionMode` option to one of the following strings:
      * | String | Behavior |
@@ -911,15 +911,27 @@ export default () => {
     selectionMode: 'multiple',
 
     /**
-     * Enables the fill handle (drag-down and copy-down) functionality, which shows a small rectangle in bottom
-     * right corner of the selected area, that let's you expand values to the adjacent cells.
+     * The `fillHandle` option enables and configures the [Autofill](@/api/autofill.md) plugin.
      *
-     * Setting to `true` enables the fillHandle plugin. Possible values: `true` (to enable in all directions),
-     * `'vertical'` or `'horizontal'` (to enable in one direction), `false` (to disable completely), an object with
-     * options: `autoInsertRow`, `direction`.
+     * You can set the `fillHandle` option to one the following values:
      *
-     * If `autoInsertRow` option is `true`, fill-handler will create new rows till it reaches the last row.
-     * It is enabled by default.
+     * | Value | Description |
+     * |---|---|
+     * | `true` | - Enable autofill in all directions<br>- Add the fill handle |
+     * | `false` | Disable autofill |
+     * | `'vertical'` | - Enable vertical autofill<br>- Add the fill handle |
+     * | `'horizontal'` | - Enable horizontal autofill<br>- Add the fill handle |
+     * | Object | - Enable autofill<br>- Add the fill handle<br>- Configure autofill options |
+     *
+     * If you set the `fillHandle` option to an object, you can set the following autofill options:
+     *
+     * | Autofill option | Possible values | Description |
+     * |---|---|---|
+     * | `autoInsertRow` | `true` (default) \| `false` | `true`: When you reach the grid's bottom, add new rows.<br>`false`: When you reach the grid's bottom, stop. |
+     * | `direction` | `'vertical'` \| `'horizontal'` | `'vertical'`: Enable vertical autofill<br>`'horizontal'`: Enable horizontal autofill |
+     *
+     * Read more:
+     * - [AutoFill values &#8594;](@/guides/cell-features/autofill-values.md)
      *
      * @memberof Options#
      * @type {boolean|string|object}
@@ -928,22 +940,27 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable plugin in all directions and with autoInsertRow as true
+     * // enable autofill in all directions
+     * // with `autoInsertRow` enabled
      * fillHandle: true,
      *
-     * // or
-     * // enable plugin in vertical direction and with autoInsertRow as true
+     * // or enable vertical autofill
+     * // with `autoInsertRow` enabled
      * fillHandle: 'vertical',
      *
-     * // or
+     * // or enable horizontal autofill
+     * // with `autoInsertRow` enabled
+     * fillHandle: 'horizontal',
+     *
+     * // or enable autofill in all directions
+     * // with `autoInsertRow` disabled
      * fillHandle: {
-     *   // enable plugin in both directions and with autoInsertRow as false
      *   autoInsertRow: false,
      * },
      *
-     * // or
+     * // or enable vertical autofill
+     * // with `autoInsertRow` disabled
      * fillHandle: {
-     *   // enable plugin in vertical direction and with autoInsertRow as false
      *   autoInsertRow: false,
      *   direction: 'vertical'
      * },
