@@ -44,7 +44,7 @@ module.exports.create = function create(envArgs) {
       new webpack.optimize.OccurrenceOrderPlugin(),
       new JasmineHtml({
         filename: path.resolve(wotPath, 'test/SpecRunner.html'),
-        baseJasminePath: '../../../../',
+        baseJasminePath: '../../../../../',
         externalCssFiles: [
           '../css/walkontable.css',
           '../css/walkontable.test.css',

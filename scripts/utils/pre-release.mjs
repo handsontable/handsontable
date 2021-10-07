@@ -9,11 +9,11 @@ import {
   displayConfirmationMessage
 } from './index.mjs';
 
-import hotPackageJson from '../../package.json';
+import hotPackageJson from '../../handsontable/package.json';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const workspacePackages = hotPackageJson.workspaces.packages;
+const workspacePackages = hotPackageJson.workspaces;
 
 /**
  * Check if the provided version number is a valid semver version number.

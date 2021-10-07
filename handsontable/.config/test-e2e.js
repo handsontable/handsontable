@@ -7,6 +7,13 @@ const path = require('path');
 const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
 const webpack = require('webpack');
+const fsExtra = require('fs-extra');
+
+const getClosest = (dir) => {
+  const pathRelativeToTestHtml = dir.replace('../', '');
+
+  return fsExtra.pathExistsSync(pathRelativeToTestHtml) ? dir : `../${dir}`;
+}
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
@@ -39,7 +46,9 @@ module.exports.create = function create(envArgs) {
     c.plugins.push(
       new JasmineHtml({
         filename: path.resolve(__dirname, '../test/E2ERunner.html'),
-        baseJasminePath: '../',
+        baseJasminePath: `${
+          fsExtra.pathExistsSync('./node_modules/jasmine-core') ? '../' : '../../'
+        }`,
         externalCssFiles: [
           'lib/normalize.css',
           '../dist/handsontable.css',
@@ -49,13 +58,13 @@ module.exports.create = function create(envArgs) {
           'helpers/jasmine-bridge-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
-          '../node_modules/numbro/dist/numbro.js',
-          '../node_modules/numbro/dist/languages.min.js',
-          '../node_modules/moment/moment.js',
-          '../node_modules/pikaday/pikaday.js',
-          '../node_modules/dompurify/dist/purify.js',
-          '../dist/handsontable.js',
-          '../dist/languages/all.js',
+          `${getClosest('../node_modules/numbro')}/dist/numbro.js`,
+          `${getClosest('../node_modules/numbro')}/dist/languages.min.js`,
+          `${getClosest('../node_modules/moment')}/moment.js`,
+          `${getClosest('../node_modules/pikaday')}/pikaday.js`,
+          `${getClosest('../node_modules/dompurify')}/dist/purify.js`,
+          `../dist/handsontable.js`,
+          `../dist/languages/all.js`,
         ],
       })
     );

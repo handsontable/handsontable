@@ -10,8 +10,8 @@ test/dist/
 src/3rdparty/walkontable/test/SpecRunner.html
 src/3rdparty/walkontable/test/dist/
 src/3rdparty/walkontable/dist/
-dev*.html
-dev*.js
+./dev*.html
+./dev*.js
 npm-debug.log
 
 !dist/README.md

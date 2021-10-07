@@ -11,10 +11,10 @@ import inquirer from 'inquirer';
 import semver from 'semver';
 import {
   cleanNodeModules,
-  displayErrorMessage,
-  displaySeparator,
   scheduleRelease,
-  spawnProcess
+  spawnProcess,
+  displayErrorMessage,
+  displaySeparator
 } from './utils/index.mjs';
 
 const argv = yargs(hideBin(process.argv))

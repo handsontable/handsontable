@@ -17,16 +17,13 @@
   "jsdelivr": "dist/handsontable.full.min.js",
   "unpkg": "dist/handsontable.full.min.js",
   "scripts": {
-    "in": "node --experimental-json-modules scripts/delegate-command.mjs",
-    "all": "node --experimental-json-modules scripts/run-all.mjs",
-    "clean:node_modules": "node --experimental-json-modules scripts/clean-node-modules.mjs",
     "clean": "rimraf commonjs es coverage tmp",
     "lint": "npm run eslint && npm run stylelint",
     "lint:fix": "npm run eslint:fix && npm run stylelint:fix",
     "stylelint": "stylelint \"src/**/*.css\" \"test/**/*.css\"",
     "stylelint:fix": "stylelint --fix \"src/**/*.css\" \"test/**/*.css\"",
-    "eslint": "eslint src/ test/ .github/scripts/ .config/plugin bin/changelog scripts/",
-    "eslint:fix": "eslint --fix src/ test/ .github/scripts/ .config/plugin bin/changelog scripts/",
+    "eslint": "eslint src/ test/ .config/plugin scripts/",
+    "eslint:fix": "eslint --fix src/ test/ .config/plugin scripts/",
     "test": "npm run lint && npm run test:unit && npm run test:types && npm run test:walkontable && npm run test:e2e && npm run test:production",
     "test.random": "npm run lint && npm run test:unit && npm run test:types && npm run test:walkontable.random && npm run test:e2e.random && npm run test:production.random",
     "test:walkontable": "npm run build:walkontable && npm run test:walkontable.dump && npm run test:walkontable.puppeteer",
@@ -47,8 +44,6 @@
     "test:unit.watch": "cross-env-shell BABEL_ENV=commonjs env-cmd -f ./hot.config.js jest --testPathPattern=$npm_config_testPathPattern --watch",
     "test:mobile.dump": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-mobile env-cmd --no-override -f ./hot.config.js webpack --hide-modules helpers=./test/helpers/index.js mobile=./test/e2e/mobile/index.js",
     "test:types": "tsc -p ./test/types -t es2015",
-    "test:ci": "node --experimental-json-modules scripts/run-targeted-tests.mjs",
-    "test:all": "npm run in handsontable build && npm run all test",
     "watch": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=watch env-cmd -f ./hot.config.js webpack --hide-modules --watch src/index.js",
     "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:umd.min && npm run build:languages && npm run build:languages.es && npm run build:languages.min",
     "build:commonjs": "cross-env-shell BABEL_ENV=commonjs_dist env-cmd -f ./hot.config.js babel src --out-dir tmp",
@@ -59,20 +54,11 @@
     "build:languages": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd -f ./hot.config.js webpack",
     "build:languages.es": "cross-env-shell BABEL_ENV=es_languages babel src/i18n/languages --out-file-extension .mjs --out-dir languages",
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ./hot.config.js webpack",
-    "freeze": "node --experimental-json-modules scripts/freeze.mjs",
-    "release": "node --experimental-json-modules scripts/release.mjs",
-    "changelog": "bin/changelog",
     "publish-package": "cd tmp && npm publish",
-    "publish-all": "npm run all publish-package",
     "prein": "npm run swap-package-links",
     "preall": "npm run swap-package-links",
     "postbuild": "node ./scripts/prepare-package-for-publish.mjs && npm run swap-package-links",
-    "swap-package-links": "node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable",
-    "examples:version": "node examples/scripts/code-examples.mjs version",
-    "examples:install": "node examples/scripts/code-examples.mjs install",
-    "examples:build": "node examples/scripts/code-examples.mjs build",
-    "examples:test": "node examples/scripts/code-examples.mjs test",
-    "examples:start": "http-server ./examples/tmp"
+    "swap-package-links": "node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable"
   },
   "keywords": [
     "data",
@@ -141,7 +127,6 @@
     "html-parse-stringify": "^2.0.3",
     "html-webpack-plugin": "^3.2.0",
     "http-server": "^0.12.3",
-    "inquirer": "^7.3.3",
     "jasmine-co": "^1.2.2",
     "jasmine-console-reporter": "^3.1.0",
     "jasmine-core": "^3.4.0",
@@ -160,7 +145,6 @@
     "puppeteer": "^10.2.0",
     "replace-in-file": "^6.1.0",
     "rimraf": "^2.5.4",
-    "semver": "^5.7.1",
     "spawn-command": "0.0.2",
     "string-replace-webpack-plugin": "^0.1.3",
     "style-loader": "^0.18.2",
@@ -169,19 +153,11 @@
     "tree-kill": "^1.2.2",
     "typescript": "3.8.2",
     "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.0",
-    "yargs": "^16.2.0"
+    "webpack-cli": "^3.3.0"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
   "resolutions": {
     "babel-core": "7.0.0-bridge.0"
-  },
-  "workspaces": {
-    "packages": [
-      ".",
-      "examples",
-      "wrappers/*"
-    ]
   },
   "typings": "./handsontable.d.ts",
   "handsontable": {
@@ -198,7 +174,7 @@
       "dist/README.md",
       "languages",
       "base.d.ts",
-      "CHANGELOG.md",
+      "../CHANGELOG.md",
       "handsontable-general-terms.pdf",
       "handsontable-non-commercial-license.pdf",
       "handsontable.d.ts",

@@ -10,11 +10,13 @@ const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
 const configFactory = require('./development');
+const fsExtra  = require('fs-extra');
 
 const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
+  const getClosest = dir => fsExtra.pathExistsSync(dir) ? dir : `../${dir}`;
 
   // Add uglifyJs plugin for each configuration
   config.forEach(function(c) {
@@ -46,73 +48,73 @@ module.exports.create = function create(envArgs) {
         new CopyWebpackPlugin({
           patterns: [
             { // moment
-              from: 'node_modules/moment/@(moment.js|LICENSE)',
+              from: `${getClosest('node_modules/moment/')}@(moment.js|LICENSE)`,
               to: 'moment',
               flatten: true,
               force: true,
             },
             {
-              from: 'node_modules/moment/locale/*.js',
+              from: `${getClosest('node_modules/moment/')}locale/*.js`,
               to: 'moment/locale',
               flatten: true,
               force: true,
             },
             { // numbro
-              from: 'node_modules/numbro/@(LICENSE-Numeraljs|LICENSE)',
+              from: `${getClosest('node_modules/numbro/')}@(LICENSE-Numeraljs|LICENSE)`,
               to: 'numbro',
               flatten: true,
               force: true,
             },
             {
-              from: 'node_modules/numbro/dist/@(numbro.js|languages.min.js)',
+              from: `${getClosest('node_modules/numbro/')}dist/@(numbro.js|languages.min.js)`,
               to: 'numbro',
               flatten: true,
               force: true,
             },
             {
-              from: 'node_modules/numbro/dist/languages/*.js',
+              from: `${getClosest('node_modules/numbro/')}dist/languages/*.js`,
               to: 'numbro/languages',
               flatten: true,
               force: true,
             },
             { // pikaday
-              from: 'node_modules/pikaday/@(LICENSE|pikaday.js)',
+              from: `${getClosest('node_modules/pikaday/')}@(LICENSE|pikaday.js)`,
               to: 'pikaday',
               flatten: true,
               force: true,
             },
             {
-              from: 'node_modules/pikaday/css/pikaday.css',
+              from: `${getClosest('node_modules/pikaday/')}css/pikaday.css`,
               to: 'pikaday',
               flatten: true,
               force: true,
             },
             { // dompurify
-              from: 'node_modules/dompurify/@(LICENSE)',
+              from: `${getClosest('node_modules/dompurify/')}@(LICENSE)`,
               to: 'dompurify',
               flatten: true,
               force: true,
             },
             {
-              from: 'node_modules/dompurify/dist/@(purify.js|purify.js.map)',
+              from: `${getClosest('node_modules/dompurify/')}dist/@(purify.js|purify.js.map)`,
               to: 'dompurify',
               flatten: true,
               force: true,
             },
             {
-              from: 'node_modules/hyperformula/dist/hyperformula.full.min.js',
+              from: `${getClosest('node_modules/hyperformula/')}dist/hyperformula.full.min.js`,
               to: 'hyperformula',
               flatten: true,
               force: true,
             },
             {
-              from: 'node_modules/hyperformula/dist/languages/*.js',
+              from: `${getClosest('node_modules/hyperformula/')}dist/languages/*.js`,
               to: 'hyperformula/languages',
               flatten: true,
               force: true,
             },
             {
-              from: 'node_modules/hyperformula/LICENSE.txt',
+              from: `${getClosest('node_modules/hyperformula/')}LICENSE.txt`,
               to: 'hyperformula',
               flatten: true,
               force: true,
