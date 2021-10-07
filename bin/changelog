@@ -15,7 +15,7 @@ const moment = require('moment');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 
-const hotConfig = require('../handsontable/hot.config');
+const hotConfig = require('../hot.config');
 
 const isTTY = process.stdin.isTTY;
 

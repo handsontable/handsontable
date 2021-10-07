@@ -1,5 +1,5 @@
 const moment = require('moment');
-const packageBody = require('./package.json');
+const packageBody = require('./handsontable/package.json');
 
 module.exports = {
   HOT_FILENAME: 'handsontable',
