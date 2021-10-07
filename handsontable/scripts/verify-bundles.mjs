@@ -35,26 +35,26 @@ async function verifyBundles() {
       className: 'HotTable'
     }
   };
-  const { default: hotPackageJson } = await import('../../package.json');
-  const workspacePackages = hotPackageJson.workspaces;
+  const { default: mainPackageJson } = await import('../../package.json');
+  const workspacePackages = mainPackageJson.workspaces;
   const mismatchedVersions = [];
 
   JSDOMGlobal();
 
-  console.log(`\nMain package.json version:\n${chalk.green(hotPackageJson.version)}\n`);
+  console.log(`\nMain package.json version:\n${chalk.green(mainPackageJson.version)}\n`);
 
   for (const packagesLocation of workspacePackages) {
     const subdirs = glob.sync(packagesLocation);
 
     for (const subdir of subdirs) {
-      const packageJsonLocation = `../${subdir}/package.json`;
+      const packageJsonLocation = `../../${subdir}/package.json`;
       const { default: packageJson } = await import(packageJsonLocation);
       const packageName = packageJson.name;
 
       if (packagesInfo[packageName]) {
         const defaultPackage = await import(
           packagesInfo[packageName].entryFile ?
-            `../${subdir}/${packagesInfo[packageName].entryFile}` :
+            `../../${subdir}/${packagesInfo[packageName].entryFile}` :
             packageName
         );
         let defaultPackageVersion = null;
@@ -64,7 +64,7 @@ async function verifyBundles() {
         if (packagesInfo[packageName].umd || packageJson.jsdelivr) {
           umdPackage = await import(
             packagesInfo[packageName].entryFile ?
-              `../${subdir}/${packagesInfo[packageName].umd}` :
+              `../../${subdir}/${packagesInfo[packageName].umd}` :
               `${packageName}/${packageJson.jsdelivr}`
           );
           umdPackage = umdPackage.default;
@@ -81,11 +81,11 @@ async function verifyBundles() {
           }
         }
 
-        if (hotPackageJson.version !== defaultPackageVersion) {
+        if (mainPackageJson.version !== defaultPackageVersion) {
           mismatchedVersions.push(`${packageName} (default) - ${defaultPackageVersion}`);
         }
 
-        if (umdPackageVersion && (hotPackageJson.version !== umdPackageVersion)) {
+        if (umdPackageVersion && (mainPackageJson.version !== umdPackageVersion)) {
           mismatchedVersions.push(`${packageName} (UMD) - ${umdPackageVersion}`);
         }
       }
