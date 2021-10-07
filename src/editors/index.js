@@ -39,7 +39,7 @@ export {
   PasswordEditor, PASSWORD_EDITOR,
   SelectEditor, SELECT_EDITOR,
   TextEditor, TEXT_EDITOR,
-}
+};
 
 export {
   RegisteredEditor,

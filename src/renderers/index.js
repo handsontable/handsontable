@@ -30,7 +30,7 @@ export {
   numericRenderer, NUMERIC_RENDERER,
   passwordRenderer, PASSWORD_RENDERER,
   textRenderer, TEXT_RENDERER,
-}
+};
 
 export {
   getRegisteredRendererNames,

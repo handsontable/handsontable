@@ -21,7 +21,7 @@ export {
   dateValidator, DATE_VALIDATOR,
   numericValidator, NUMERIC_VALIDATOR,
   timeValidator, TIME_VALIDATOR,
-}
+};
 
 export {
   getRegisteredValidatorNames,

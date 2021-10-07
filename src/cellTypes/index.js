@@ -36,7 +36,7 @@ export {
   PasswordCellType, PASSWORD_TYPE,
   TextCellType, TEXT_TYPE,
   TimeCellType, TIME_TYPE,
-}
+};
 
 export {
   getCellType,

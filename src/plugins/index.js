@@ -110,7 +110,7 @@ export {
   TouchScroll,
   TrimRows,
   UndoRedo,
-}
+};
 
 export {
   getPlugin,
