@@ -9,11 +9,11 @@ import {
   displayConfirmationMessage
 } from './index.mjs';
 
-import hotPackageJson from '../../handsontable/package.json';
+import mainPackageJson from '../../package.json';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const workspacePackages = hotPackageJson.workspaces;
+const workspacePackages = mainPackageJson.workspaces;
 
 /**
  * Check if the provided version number is a valid semver version number.
@@ -60,6 +60,9 @@ export function validateReleaseDate(date) {
  */
 export function setVersion(version, packages = workspacePackages) {
   let versionReplaced = true;
+
+  // Add the root for versioning.
+  packages.push('.');
 
   packages.forEach((packagesLocation) => {
     const replacementStatus = replace.sync({
@@ -108,7 +111,7 @@ export function setVersion(version, packages = workspacePackages) {
  * @param {string} date The release date in a format of 'DD/MM/YYYY'.
  */
 export function setReleaseDate(date) {
-  const hotConfigPath = path.resolve(__dirname, '../../../hot.config.js');
+  const hotConfigPath = path.resolve(__dirname, '../../hot.config.js');
   const replacementStatus = replace.sync({
     files: hotConfigPath,
     from: /HOT_RELEASE_DATE: '(.*)'/,
@@ -160,7 +163,7 @@ export function getVersionFromReleaseType(type, currentVersion) {
  * @returns {object}
  */
 export async function scheduleRelease(version, releaseDate) {
-  const currentVersion = hotPackageJson.version;
+  const currentVersion = mainPackageJson.version;
   const questions = [
     {
       type: 'list',
