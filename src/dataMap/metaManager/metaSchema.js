@@ -997,7 +997,10 @@ export default () => {
     },
 
     /**
-     * Allows to specify the number of fixed (or *frozen*) rows at the top of the table.
+     * The `fixedRowsTop` option sets the number of [frozen rows](@/guides/rows/row-freezing.md) at the top of the grid.
+     *
+     * Read more:
+     * - [Row freezing &#8594;](@/guides/rows/row-freezing.md)
      *
      * @memberof Options#
      * @type {number}
@@ -1006,14 +1009,18 @@ export default () => {
      *
      * @example
      * ```js
-     * // freeze the first 3 rows of the table.
+     * // freeze the top 3 rows
      * fixedRowsTop: 3,
      * ```
      */
     fixedRowsTop: 0,
 
     /**
-     * Allows to specify the number of fixed (or *frozen*) rows at the bottom of the table.
+     * The `fixedRowsBottom` option sets the number of [frozen rows](@/guides/rows/row-freezing.md)
+     * at the bottom of the grid.
+     *
+     * Read more:
+     * - [Row freezing &#8594;](@/guides/rows/row-freezing.md)
      *
      * @memberof Options#
      * @type {number}
@@ -1022,14 +1029,18 @@ export default () => {
      *
      * @example
      * ```js
-     * // freeze the last 3 rows of the table.
+     * // freeze the bottom 3 rows
      * fixedRowsBottom: 3,
      * ```
      */
     fixedRowsBottom: 0,
 
     /**
-     * Allows to specify the number of fixed (or *frozen*) columns on the left of the table.
+     * The `fixedColumnsLeft` option sets the number of [frozen columns](@/guides/columns/column-freezing.md)
+     * at the left-hand side of the grid.
+     *
+     * Read more:
+     * - [Column freezing &#8594;](@/guides/columns/column-freezing.md)
      *
      * @memberof Options#
      * @type {number}
@@ -1038,7 +1049,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // freeze first 3 columns of the table.
+     * // freeze the first 3 columns from the left
      * fixedColumnsLeft: 3,
      * ```
      */
