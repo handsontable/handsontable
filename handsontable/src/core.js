@@ -8,6 +8,7 @@ import {
   deepClone,
   duckSchema,
   isObjectEqual,
+  isObject,
   deepObjectSize,
   hasOwnProperty,
   createObjectPropListener,
@@ -746,6 +747,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       let clen;
       const setData = [];
       const current = {};
+      const newData = [];
 
       rlen = input.length;
 
@@ -755,30 +757,53 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       let repeatCol;
       let repeatRow;
-      let cmax;
       let rmax;
 
       /* eslint-disable no-case-declarations */
       // insert data with specified pasteMode method
       switch (method) {
-        case 'shift_down' :
-          repeatCol = end ? end.col - start.col + 1 : 0;
-          repeatRow = end ? end.row - start.row + 1 : 0;
-          // eslint-disable-next-line no-param-reassign
-          input = translateRowsToColumns(input);
+        case 'shift_down':
+          let columnsEnd = 0;
+          let rowsEnd = 0;
+          const startRow = start.row;
+          const startColumn = start.col;
 
-          for (c = 0, clen = input.length, cmax = Math.max(clen, repeatCol); c < cmax; c++) {
-            if (c < clen) {
-              for (r = 0, rlen = input[c].length; r < repeatRow - rlen; r++) {
-                input[c].push(input[c][r % rlen]);
+          if (isObject(end)) {
+            columnsEnd = end.col - startColumn + 1;
+            rowsEnd = end.row - startRow + 1;
+          }
+
+          // Translate data from list of rows to list of columns.
+          const populatedDataByColumns = translateRowsToColumns(input);
+          const numberOfColumns = populatedDataByColumns.length;
+          // Method's argument may extend the range of data population (data would be repeated).
+          const numberOfColumnsToPopulate = Math.max(numberOfColumns, columnsEnd);
+          const pushedDownData = instance.getData().slice(startRow);
+
+          // Translate data from list of rows to list of columns.
+          const pushedDownDataByColumns = translateRowsToColumns(pushedDownData)
+            .slice(startColumn, startColumn + numberOfColumnsToPopulate);
+
+          for (c = 0; c < numberOfColumnsToPopulate; c += 1) {
+            if (c < numberOfColumns) {
+              for (r = 0, rlen = populatedDataByColumns[c].length; r < rowsEnd - rlen; r += 1) {
+                populatedDataByColumns[c].push(populatedDataByColumns[c][r % rlen]);
               }
-              input[c].unshift(start.col + c, start.row, 0);
-              instance.spliceCol(...input[c]);
+
+              if (c < pushedDownDataByColumns.length) {
+                newData.push([...populatedDataByColumns[c], ...pushedDownDataByColumns[c]]);
+
+              } else {
+                newData.push([...populatedDataByColumns[c], null]);
+              }
+
             } else {
-              input[c % clen][0] = start.col + c;
-              instance.spliceCol(...input[c % clen]);
+              newData.push([...populatedDataByColumns[c % numberOfColumns], ...pushedDownDataByColumns[c]]);
             }
           }
+
+          instance.populateFromArray(startRow, startColumn, translateRowsToColumns(newData));
+
           break;
 
         case 'shift_right':
