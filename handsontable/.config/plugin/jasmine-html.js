@@ -25,7 +25,7 @@ function JasmineWebpackPlugin(options) {
 }
 
 function toRelativePath(dirname) {
-  return dirname.replace(path.resolve(process.cwd(), '..'), '').replace(/^\//, '');
+  return dirname.replace(process.cwd(), '').replace(/^\//, '');
 }
 
 function toRelativeFiles(dirname, files) {
