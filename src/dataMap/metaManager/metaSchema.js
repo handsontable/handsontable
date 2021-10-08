@@ -55,10 +55,10 @@ export default () => {
      *
      * You can set the `licenseKey` option to one of the following:
      *
-     * | Setting | Description |
-     * |---|---|
-     * | A string with your [commercial license key](@/guides/getting-started/license-key.md#commercial-license) | For [commercial use](@/guides/technical-specification/software-license.md#commercial-use) |
-     * | `'non-commercial-and-evaluation'` | For [non-commercial use](@/guides/technical-specification/software-license.md#non-commercial-use) |
+     * | Setting                                                                                                 | Description                                                                                       |
+     * | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+     * | A string with your [commercial license key](@/guides/getting-started/license-key.md#commercial-license) | For [commercial use](@/guides/technical-specification/software-license.md#commercial-use)         |
+     * | `'non-commercial-and-evaluation'`                                                                       | For [non-commercial use](@/guides/technical-specification/software-license.md#non-commercial-use) |
      *
      * Read more:
      * - [License key &#8594;](@/guides/getting-started/license-key.md)
@@ -157,11 +157,11 @@ export default () => {
      *
      * You can set the `width` option to one of the following:
      *
-     * | Setting | Example |
-     * |---|---|
-     * | A number of pixels | `width: 500` |
-     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `width: '75vw'` |
-     * | A function that returns a valid number or string | `width: function() {`<br>&nbsp;&nbsp;`return 500;`<br>`}` |
+     * | Setting                                                                    | Example                                                   |
+     * | -------------------------------------------------------------------------- | --------------------------------------------------------- |
+     * | A number of pixels                                                         | `width: 500`                                              |
+     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `width: '75vw'`                                           |
+     * | A function that returns a valid number or string                           | `width: function() {`<br>&nbsp;&nbsp;`return 500;`<br>`}` |
      *
      * Read more:
      * - [Grid size &#8594;](@/guides/getting-started/grid-size.md)
@@ -192,11 +192,11 @@ export default () => {
      *
      * You can set `height` option to one of the following:
      *
-     * | Setting | Example |
-     * |---|---|
-     * | A number of pixels | `height: 500` |
-     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `height: '75vw'` |
-     * | A function that returns a valid number or string | `height: function() {`<br>&nbsp;&nbsp;`return 500;`<br>`}` |
+     * | Setting                                                                    | Example                                                    |
+     * | -------------------------------------------------------------------------- | ---------------------------------------------------------- |
+     * | A number of pixels                                                         | `height: 500`                                              |
+     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `height: '75vw'`                                           |
+     * | A function that returns a valid number or string                           | `height: function() {`<br>&nbsp;&nbsp;`return 500;`<br>`}` |
      *
      * Read more:
      * - [Grid size &#8594;](@/guides/getting-started/grid-size.md)
@@ -265,10 +265,10 @@ export default () => {
      *
      * You can set the `rowHeaders` option to one of the following:
      *
-     * | Setting | Description |
-     * |---|---|
-     * | `true` | Enable the default row headers ("1", "2", "3", ...) |
-     * | `false` | Disable row headers |
+     * | Setting  | Description                                                       |
+     * | -------- | ----------------------------------------------------------------- |
+     * | `true`   | Enable the default row headers ("1", "2", "3", ...)               |
+     * | `false`  | Disable row headers                                               |
      * | An array | Define your own row headers (e.g. `['One', 'Two', 'Three', ...]`) |
      *
      * Read more:
@@ -300,10 +300,10 @@ export default () => {
      *
      * You can set the `colHeaders` option to one of the following:
      *
-     * | Setting | Description |
-     * |---|---|
-     * | `true` | Enable the default column headers ("A", "B", "C", ...) |
-     * | `false` | Disable column headers |
+     * | Setting  | Description                                                          |
+     * | -------- | -------------------------------------------------------------------- |
+     * | `true`   | Enable the default column headers ("A", "B", "C", ...)               |
+     * | `false`  | Disable column headers                                               |
      * | An array | Define your own column headers (e.g. `['One', 'Two', 'Three', ...]`) |
      *
      * Read more:
@@ -336,13 +336,13 @@ export default () => {
      * In the rendering process, the default column width is 50px. To change it,
      * set the `colWidths` option to one of the following:
      *
-     * | Setting | Description | Example |
-     * | --- | --- | ---|
-     * | A number | Set the same width for every column | `colWidths: 100` |
-     * | A string | Set the same width for every column | `colWidths: '100px'` |
-     * | An array | Set widths separately for each column | `colWidths: [100, 120, undefined]` |
-     * | A function | Set column widths dynamically,<br>on each render | `colWidths: function(index) {`<br>`return index * 10;`<br>`}` |
-     * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined` |
+     * | Setting     | Description                                                                                          | Example                                                       |
+     * | ----------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+     * | A number    | Set the same width for every column                                                                  | `colWidths: 100`                                              |
+     * | A string    | Set the same width for every column                                                                  | `colWidths: '100px'`                                          |
+     * | An array    | Set widths separately for each column                                                                | `colWidths: [100, 120, undefined]`                            |
+     * | A function  | Set column widths dynamically,<br>on each render                                                     | `colWidths: function(index) {`<br>`return index * 10;`<br>`}` |
+     * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined`                                        |
      *
      * Setting the `colWidths` option disables the {@link AutoColumnSize} plugin.
      *
@@ -382,13 +382,13 @@ export default () => {
      * In the rendering process, the default row height is 23px.
      * You can change it to equal or greater than 23px, by setting the `rowHeights` option to one of the following:
      *
-     * | Setting | Description | Example |
-     * | --- | --- | ---|
-     * | A number | Set the same height for every row | `rowHeights: 100` |
-     * | A string | Set the same height for every row | `rowHeights: '100px'` |
-     * | An array | Set heights separately for each row | `rowHeights: [100, 120, undefined]` |
-     * | A function | Set row heights dynamically,<br>on each render | `rowHeights: function(index) {`<br>&nbsp;&nbsp;`return index * 10;`<br>`}` |
-     * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes | `rowHeights: undefined` |
+     * | Setting     | Description                                                                                         | Example                                                                    |
+     * | ----------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+     * | A number    | Set the same height for every row                                                                   | `rowHeights: 100`                                                          |
+     * | A string    | Set the same height for every row                                                                   | `rowHeights: '100px'`                                                      |
+     * | An array    | Set heights separately for each row                                                                 | `rowHeights: [100, 120, undefined]`                                        |
+     * | A function  | Set row heights dynamically,<br>on each render                                                      | `rowHeights: function(index) {`<br>&nbsp;&nbsp;`return index * 10;`<br>`}` |
+     * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes | `rowHeights: undefined`                                                    |
      *
      * The `rowHeights` option also sets the minimum row height that can be set
      * via the {@link ManualRowResize} and {@link AutoRowSize} plugins (if they are enabled).
@@ -481,11 +481,11 @@ export default () => {
      * The `cells` option overwrites all other options (including options set by [`columns`](#columns) and [`cell`](#cell)).
      * It takes the following parameters:
      *
-     * | Parameter | Required | Type | Description |
-     * |---|---|---|---|---|
-     * | `row` | Yes | Number | A physical row index |
-     * | `column` | Yes | Number | A physical column index |
-     * | `prop` | No | String \| Number | If [`data`](#data) is set to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same number as `column`.<br><br>If [`data`](#data) is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for the column's data object. |
+     * | Parameter | Required | Type             | Description                                                                                                                                                                                                                                                                                                                             |
+     * | --------- | -------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |  |
+     * | `row`     | Yes      | Number           | A physical row index                                                                                                                                                                                                                                                                                                                    |
+     * | `column`  | Yes      | Number           | A physical column index                                                                                                                                                                                                                                                                                                                 |
+     * | `prop`    | No       | String \| Number | If [`data`](#data) is set to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same number as `column`.<br><br>If [`data`](#data) is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for the column's data object. |
      *
      * Read more:
      * - [Configuration options: Implementing custom logic &#8594;](@/guides/getting-started/setting-options.md#implementing-custom-logic)
@@ -549,19 +549,19 @@ export default () => {
      *
      * You can set the `comments` option to one of the following:
      *
-     * | Setting | Description |
-     * | --- | --- |
-     * | `true` | - Enable the [`Comments`](@/api/comments.md) plugin<br>- Add comment menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md) |
-     * | `false` | Disable the [`Comments`](@/api/comments.md) plugin |
+     * | Setting   | Description                                                                                                                                                                           |
+     * | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true`    | - Enable the [`Comments`](@/api/comments.md) plugin<br>- Add comment menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md)                                 |
+     * | `false`   | Disable the [`Comments`](@/api/comments.md) plugin                                                                                                                                    |
      * | An object | - Enable the [`Comments`](@/api/comments.md) plugin<br>- Add comment menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md)<br>- Configure comment settings |
      *
      * If you set the `comments` option to an object, you can configure the following comment options:
      *
-     * | Option | Possible settings | Description |
-     * |---|---|---|
-     * | `displayDelay` | A number (default: `250`) | Display comments after a delay (in milliseconds) |
-     * | `readOnly` | `true` \| `false` (default) | `true`: Make comments read-only |
-     * | `style` | An object | Set comment boxes' `width` and `height` (in pixels) |
+     * | Option         | Possible settings           | Description                                         |
+     * | -------------- | --------------------------- | --------------------------------------------------- |
+     * | `displayDelay` | A number (default: `250`)   | Display comments after a delay (in milliseconds)    |
+     * | `readOnly`     | `true` \| `false` (default) | `true`: Make comments read-only                     |
+     * | `style`        | An object                   | Set comment boxes' `width` and `height` (in pixels) |
      *
      * Read more:
      * - [Comments &#8594;](@/guides/cell-features/comments.md)
@@ -606,13 +606,13 @@ export default () => {
      * set the `customBorders` option to an array of objects.
      * Each object represents a border configuration for one cell, and has the following properties:
      *
-     * | Property | Sub-properties | Types | Description |
-     * |---|---|---|---|
-     * | `row` | - | `row`: Number | The cell's row coordinate. |
-     * | `col` | - | `col`: Number | The cell's column coordinate. |
-     * | `left` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the left border's width (`width`)<br> and color (`color`). |
-     * | `right` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the right border's width (`width`)<br> and color (`color`). |
-     * | `top` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the top border's width (`width`)<br> and color (`color`). |
+     * | Property | Sub-properties     | Types                              | Description                                                       |
+     * | -------- | ------------------ | ---------------------------------- | ----------------------------------------------------------------- |
+     * | `row`    | -                  | `row`: Number                      | The cell's row coordinate.                                        |
+     * | `col`    | -                  | `col`: Number                      | The cell's column coordinate.                                     |
+     * | `left`   | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the left border's width (`width`)<br> and color (`color`).   |
+     * | `right`  | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the right border's width (`width`)<br> and color (`color`).  |
+     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the top border's width (`width`)<br> and color (`color`).    |
      * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the bottom border's width (`width`)<br> and color (`color`). |
      *
      * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
@@ -620,13 +620,13 @@ export default () => {
      * set the `customBorders` option to an array of objects.
      * Each object represents a border configuration for a single range of cells, and has the following properties:
      *
-     * | Property | Sub-properties | Types | Description |
-     * |---|---|---|---|
-     * | `range` | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | `from` selects the range's top-left corner.<br>`to` selects the range's bottom-right corner. |
-     * | `left` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the left border's `width` and `color`. |
-     * | `right` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the right border's `width` and `color`. |
-     * | `top` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the top border's `width` and `color`. |
-     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the bottom border's `width` and `color`. |
+     * | Property | Sub-properties                               | Types                                                            | Description                                                                                  |
+     * | -------- | -------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+     * | `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | `from` selects the range's top-left corner.<br>`to` selects the range's bottom-right corner. |
+     * | `left`   | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the left border's `width` and `color`.                                                  |
+     * | `right`  | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the right border's `width` and `color`.                                                 |
+     * | `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the top border's `width` and `color`.                                                   |
+     * | `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the bottom border's `width` and `color`.                                                |
      *
      * Read more:
      * - [Formatting cells: Custom cell borders &#8594;](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
@@ -908,10 +908,10 @@ export default () => {
      *
      * You can set the `selectionMode` option to one of the following:
      *
-     * | Setting | Description |
-     * | --- | --- |
-     * | `'single'` | Allow the user to select only one cell at a time. |
-     * | `'range'` | Allow the user to select one range of cells at a time. |
+     * | Setting      | Description                                                  |
+     * | ------------ | ------------------------------------------------------------ |
+     * | `'single'`   | Allow the user to select only one cell at a time.            |
+     * | `'range'`    | Allow the user to select one range of cells at a time.       |
      * | `'multiple'` | Allow the user to select multiple ranges of cells at a time. |
      *
      * Read more:
@@ -941,20 +941,20 @@ export default () => {
      *
      * You can set the `fillHandle` option to one the following:
      *
-     * | Setting | Description |
-     * |---|---|
-     * | `true` | - Enable autofill in all directions<br>- Add the fill handle |
-     * | `false` | Disable autofill |
-     * | `'vertical'` | - Enable vertical autofill<br>- Add the fill handle |
-     * | `'horizontal'` | - Enable horizontal autofill<br>- Add the fill handle |
-     * | An object | - Enable autofill<br>- Add the fill handle<br>- Configure autofill options |
+     * | Setting        | Description                                                                |
+     * | -------------- | -------------------------------------------------------------------------- |
+     * | `true`         | - Enable autofill in all directions<br>- Add the fill handle               |
+     * | `false`        | Disable autofill                                                           |
+     * | `'vertical'`   | - Enable vertical autofill<br>- Add the fill handle                        |
+     * | `'horizontal'` | - Enable horizontal autofill<br>- Add the fill handle                      |
+     * | An object      | - Enable autofill<br>- Add the fill handle<br>- Configure autofill options |
      *
      * If you set the `fillHandle` option to an object, you can configure the following autofill options:
      *
-     * | Option | Possible settings | Description |
-     * |---|---|---|
-     * | `autoInsertRow` | `true` (default) \| `false` | `true`: When you reach the grid's bottom, add new rows<br>`false`: When you reach the grid's bottom, stop |
-     * | `direction` | `'vertical'` \| `'horizontal'` | `'vertical'`: Enable vertical autofill<br>`'horizontal'`: Enable horizontal autofill |
+     * | Option          | Possible settings              | Description                                                                                               |
+     * | --------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------- |
+     * | `autoInsertRow` | `true` (default) \| `false`    | `true`: When you reach the grid's bottom, add new rows<br>`false`: When you reach the grid's bottom, stop |
+     * | `direction`     | `'vertical'` \| `'horizontal'` | `'vertical'`: Enable vertical autofill<br>`'horizontal'`: Enable horizontal autofill                      |
      *
      * Read more:
      * - [AutoFill values &#8594;](@/guides/cell-features/autofill-values.md)
