@@ -476,10 +476,10 @@ const REGISTERED_HOOKS = [
    * ```js
    * new Handsontable(element, {
    *   afterSelection: (row, column, row2, column2, preventScrolling, selectionLayerLevel) => {
-   *     // By default, `value` is set as `false`, which means Handsontable will scroll viewport
-   *     // to the end corner of the cell selection if it's out of view.
-   *     // If set as `true`, it prevents scrolling to the end corner of the cell selection
-   *     // even if it lies out of the viewport.
+   *     // If set to `false` (default): when cell selection is outside the viewport,
+   *     // Handsontable scrolls the viewport to cell selection's end corner.
+   *     // If set to `true`: when cell selection is outside the viewport,
+   *     // Handsontable doesn't scroll to cell selection's end corner.
    *     preventScrolling.value = true;
    *   }
    * })
