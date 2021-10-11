@@ -18,9 +18,15 @@ import {
 /* eslint-enable import/named */
 import { registerCellType } from './cellTypes/registry';
 import { TextCellType } from './cellTypes/textType';
+import { BaseEditor } from './editors/baseEditor';
 
 // register default mandatory cell type for the Base package
 registerCellType(TextCellType);
+
+// Export Base editor to the Handsontable global namespace.
+Handsontable.editors = {
+  BaseEditor
+};
 
 /**
  * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.

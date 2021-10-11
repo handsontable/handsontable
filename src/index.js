@@ -107,7 +107,7 @@ arrayHelpers.arrayEach(DOM, (helper) => {
 });
 
 // Export cell types.
-Handsontable.cellTypes = {};
+Handsontable.cellTypes = Handsontable.cellTypes ?? {};
 
 arrayHelpers.arrayEach(getRegisteredCellTypeNames(), (cellTypeName) => {
   Handsontable.cellTypes[cellTypeName] = getCellType(cellTypeName);
@@ -117,7 +117,7 @@ Handsontable.cellTypes.registerCellType = registerCellType;
 Handsontable.cellTypes.getCellType = getCellType;
 
 // Export all registered editors from the Handsontable.
-Handsontable.editors = {};
+Handsontable.editors = Handsontable.editors ?? {};
 
 arrayHelpers.arrayEach(getRegisteredEditorNames(), (editorName) => {
   Handsontable.editors[`${stringHelpers.toUpperCaseFirst(editorName)}Editor`] = getEditor(editorName);
@@ -127,7 +127,7 @@ Handsontable.editors.registerEditor = registerEditor;
 Handsontable.editors.getEditor = getEditor;
 
 // Export all registered renderers from the Handsontable.
-Handsontable.renderers = {};
+Handsontable.renderers = Handsontable.renderers ?? {};
 
 arrayHelpers.arrayEach(getRegisteredRendererNames(), (rendererName) => {
   const renderer = getRenderer(rendererName);
@@ -142,7 +142,7 @@ Handsontable.renderers.registerRenderer = registerRenderer;
 Handsontable.renderers.getRenderer = getRenderer;
 
 // Export all registered validators from the Handsontable.
-Handsontable.validators = {};
+Handsontable.validators = Handsontable.validators ?? {};
 
 arrayHelpers.arrayEach(getRegisteredValidatorNames(), (validatorName) => {
   Handsontable.validators[`${stringHelpers.toUpperCaseFirst(validatorName)}Validator`] = getValidator(validatorName);
@@ -158,7 +158,7 @@ Handsontable.validators.getValidator = getValidator;
 // by the `./config/plugin/babel/add-import-extension` babel plugin. Thus, the distribution
 // files will be broken. The reason is not known right now (probably it's caused by bug in
 // the Babel or missing something in the plugin).
-Handsontable.plugins = {};
+Handsontable.plugins = Handsontable.plugins ?? {};
 
 arrayHelpers.arrayEach(getPluginsNames(), (pluginName) => {
   Handsontable.plugins[pluginName] = getPlugin(pluginName);
