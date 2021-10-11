@@ -19,7 +19,7 @@ beforeEach(() => {
 });
 
 describe('React.lazy', () => {
-  it('should be possible to lazy-load components and utilize Suspend', async (done) => {
+  it('should be possible to lazy-load components and utilize Suspend', async () => {
     function RendererComponent2(props) {
       return (
         <>
@@ -79,7 +79,5 @@ describe('React.lazy', () => {
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>lazy value: A1</div>');
 
     wrapper.detach();
-
-    done();
   });
 });

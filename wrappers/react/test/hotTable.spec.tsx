@@ -25,7 +25,7 @@ beforeEach(() => {
 });
 
 describe('Handsontable initialization', () => {
-  it('should render Handsontable when using the HotTable component', async (done) => {
+  it('should render Handsontable when using the HotTable component', async () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable
         id="test-hot"
@@ -36,7 +36,7 @@ describe('Handsontable initialization', () => {
 
     await sleep(300);
 
-    let hotInstance = wrapper.instance().hotInstance;
+    const hotInstance = wrapper.instance().hotInstance;
 
     expect(hotInstance).not.toBe(null);
     expect(hotInstance).not.toBe(void 0);
@@ -44,11 +44,9 @@ describe('Handsontable initialization', () => {
     expect(hotInstance.rootElement.id).toEqual('test-hot');
 
     wrapper.detach();
-
-    done();
   });
 
-  it('should pass the provided properties to the Handsontable instance', async (done) => {
+  it('should pass the provided properties to the Handsontable instance', async () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable
         id="test-hot"
@@ -60,20 +58,19 @@ describe('Handsontable initialization', () => {
     );
 
     await sleep(300);
-    let hotInstance = wrapper.instance().hotInstance;
+    const hotInstance = wrapper.instance().hotInstance;
 
     expect(hotInstance.getSettings().contextMenu).toBe(true);
     expect(hotInstance.getSettings().rowHeaders).toBe(true);
     expect(hotInstance.getSettings().colHeaders).toBe(true);
     expect(JSON.stringify(hotInstance.getData())).toEqual('[[2]]');
-    wrapper.detach();
 
-    done();
+    wrapper.detach();
   });
 });
 
 describe('Updating the Handsontable settings', () => {
-  it('should call the updateSettings method of Handsontable, when the component properties get updated (when providing properties individually)', async (done) => {
+  it('should call the updateSettings method of Handsontable, when the component properties get updated (when providing properties individually)', async () => {
     const wrapper: ReactWrapper<{}, {}, typeof IndividualPropsWrapper> = mount(
       <IndividualPropsWrapper/>, {attachTo: document.body.querySelector('#hotContainer')}
     );
@@ -92,10 +89,9 @@ describe('Updating the Handsontable settings', () => {
 
     expect(updateSettingsCount).toEqual(1);
     wrapper.detach();
-    done();
   });
 
-  it('should call the updateSettings method of Handsontable, when the component properties get updated (when providing properties as a single settings object)', async (done) => {
+  it('should call the updateSettings method of Handsontable, when the component properties get updated (when providing properties as a single settings object)', async () => {
     const wrapper: ReactWrapper<{}, {}, typeof SingleObjectWrapper> = mount(
       <SingleObjectWrapper/>, {attachTo: document.body.querySelector('#hotContainer')}
     );
@@ -113,11 +109,11 @@ describe('Updating the Handsontable settings', () => {
     wrapper.instance().setState({hotSettings: {data: [[2]], contextMenu: true, readOnly: true}});
 
     expect(updateSettingsCount).toEqual(1);
+
     wrapper.detach();
-    done();
   });
 
-  it('should update the Handsontable options, when the component properties get updated (when providing properties individually)', async (done) => {
+  it('should update the Handsontable options, when the component properties get updated (when providing properties individually)', async () => {
     const wrapper: ReactWrapper<{}, {}, typeof IndividualPropsWrapper> = mount(
       <IndividualPropsWrapper/>, {attachTo: document.body.querySelector('#hotContainer')}
     );
@@ -135,13 +131,11 @@ describe('Updating the Handsontable settings', () => {
     expect(hotInstance.getSettings().contextMenu).toBe(true);
     expect(hotInstance.getSettings().readOnly).toBe(true);
     expect(JSON.stringify(hotInstance.getSettings().data)).toEqual('[[2]]');
+
     wrapper.detach();
-
-    done();
-
   });
 
-  it('should update the Handsontable options, when the component properties get updated (when providing properties as a single settings object)', async (done) => {
+  it('should update the Handsontable options, when the component properties get updated (when providing properties as a single settings object)', async () => {
     const wrapper: ReactWrapper<{}, {}, typeof SingleObjectWrapper> = mount(
       <SingleObjectWrapper/>, {attachTo: document.body.querySelector('#hotContainer')}
     );
@@ -160,14 +154,13 @@ describe('Updating the Handsontable settings', () => {
     expect(hotInstance.getSettings().contextMenu).toBe(true);
     expect(hotInstance.getSettings().readOnly).toBe(true);
     expect(JSON.stringify(hotInstance.getSettings().data)).toEqual('[[2]]');
-    wrapper.detach();
 
-    done();
+    wrapper.detach();
   });
 });
 
 describe('Renderer configuration using React components', () => {
-  it('should use the renderer component as Handsontable renderer, when it\'s nested under HotTable and assigned the \'hot-renderer\' attribute', async (done) => {
+  it('should use the renderer component as Handsontable renderer, when it\'s nested under HotTable and assigned the \'hot-renderer\' attribute', async () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
@@ -205,13 +198,11 @@ describe('Renderer configuration using React components', () => {
     expect(hotInstance.getCell(99, 99).innerHTML).toEqual('<div>value: CV100</div>');
 
     wrapper.detach();
-
-    done();
   });
 });
 
 describe('Editor configuration using React components', () => {
-  it('should use the editor component as Handsontable editor, when it\'s nested under HotTable and assigned the \'hot-editor\' attribute', async (done) => {
+  it('should use the editor component as Handsontable editor, when it\'s nested under HotTable and assigned the \'hot-editor\' attribute', async () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
@@ -247,7 +238,5 @@ describe('Editor configuration using React components', () => {
     hotInstance.getActiveEditor().close();
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
-
-    done();
   });
 });

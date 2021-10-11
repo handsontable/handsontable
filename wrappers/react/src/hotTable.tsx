@@ -1,6 +1,5 @@
 import React from 'react';
 import Handsontable from 'handsontable/base';
-import { BaseEditor } from 'handsontable/editors/baseEditor';
 import { SettingsMapper } from './settingsMapper';
 import { PortalManager } from './portalManager';
 import { HotColumn } from './hotColumn';
@@ -319,7 +318,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * @returns {Function} A class to be passed to the Handsontable editor settings.
    */
   makeEditorClass(editorComponent: React.Component): typeof Handsontable.editors.BaseEditor {
-    const customEditorClass = class CustomEditor extends BaseEditor implements Handsontable._editors.Base {
+    const customEditorClass = class CustomEditor extends Handsontable.editors.BaseEditor implements Handsontable._editors.Base {
       editorComponent: React.Component;
 
       constructor(hotInstance, row, col, prop, TD, cellProperties) {
@@ -347,7 +346,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
     } as any;
 
     // Fill with the rest of the BaseEditor methods
-    Object.getOwnPropertyNames(BaseEditor.prototype).forEach(propName => {
+    Object.getOwnPropertyNames(Handsontable.editors.BaseEditor.prototype).forEach(propName => {
       if (propName === 'constructor') {
         return;
       }
@@ -436,7 +435,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
         this.hotInstance.getPlugin('autoRowSize')?.enabled ||
         this.hotInstance.getPlugin('autoColumnSize')?.enabled
       )
-    ){
+    ) {
       if (this.componentRendererColumns.size > 0) {
         warn(AUTOSIZE_WARNING);
       }
