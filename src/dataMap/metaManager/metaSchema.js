@@ -482,7 +482,7 @@ export default () => {
      * It takes the following parameters:
      *
      * | Parameter | Required | Type             | Description                                                                                                                                                                                                                                                                                                                             |
-     * | --------- | -------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |  |
+     * | --------- | -------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
      * | `row`     | Yes      | Number           | A physical row index                                                                                                                                                                                                                                                                                                                    |
      * | `column`  | Yes      | Number           | A physical column index                                                                                                                                                                                                                                                                                                                 |
      * | `prop`    | No       | String \| Number | If [`data`](#data) is set to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same number as `column`.<br><br>If [`data`](#data) is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for the column's data object. |
@@ -1056,8 +1056,16 @@ export default () => {
     fixedColumnsLeft: 0,
 
     /**
-     * If `true`, mouse click outside the grid will deselect the current selection. Can be a function that takes the
-     * click event target and returns a boolean.
+     * The `outsideClickDeselects` option determines what happens to the current cell selection
+     * when you click outside of the grid.
+     *
+     * You can set the `outsideClickDeselects` option to one of the following:
+     *
+     * | Setting          | Description                                                              |
+     * | ---------------- | ------------------------------------------------------------------------ |
+     * | `true` (default) | On a mouse click outside of the grid, clear the current cell selection   |
+     * | `false`          | On a mouse click outside of the grid, keep the current cell selection    |
+     * | A function       | A function that takes the click event target and returns a boolean       |
      *
      * @memberof Options#
      * @type {boolean|Function}
@@ -1066,10 +1074,18 @@ export default () => {
      *
      * @example
      * ```js
-     * // don't clear current selection when mouse click was outside the grid
+     * // on a mouse click outside of the grid, clear the current cell selection
+     * outsideClickDeselects: true,
+     *
+     * // on a mouse click outside of the grid, keep the current cell selection
      * outsideClickDeselects: false,
      *
-     * // or
+     * // take the click event target and return `false`
+     * outsideClickDeselects: function(event) {
+     *   return false;
+     * }
+     *
+     * // take the click event target and return `true`
      * outsideClickDeselects: function(event) {
      *   return false;
      * }
@@ -1078,8 +1094,14 @@ export default () => {
     outsideClickDeselects: true,
 
     /**
-     * If `true`, <kbd>ENTER</kbd> begins editing mode (like in Google Docs). If `false`, <kbd>ENTER</kbd> moves to next
-     * row (like Excel) and adds a new row if necessary. <kbd>TAB</kbd> adds new column if necessary.
+     * The `enterBeginsEditing` option configures the action of the <kbd>Enter</kbd> key.
+     *
+     * You can set the `enterBeginsEditing` option to one of the following:
+     *
+     * | Setting          | Description                                                                                                                                                                                               |
+     * | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | - On pressing <kbd>Enter</kbd> once, start editing the currently-selected cell<br>- On pressing <kbd>Enter</kbd> twice, move to another cell,<br>as configured by the [`enterMoves`](#enterMoves) setting |
+     * | `false`          | - On pressing <kbd>Enter</kbd> once, move to another cell,<br>as configured by the [`enterMoves`](#enterMoves) setting                                                                                    |
      *
      * @memberof Options#
      * @type {boolean}
@@ -1088,16 +1110,32 @@ export default () => {
      *
      * @example
      * ```js
+     * // press Enter once to start editing
+     * // press Enter twice to move to another cell
+     * enterBeginsEditing: true,
+     *
+     * // press Enter once to move to another cell
      * enterBeginsEditing: false,
      * ```
      */
     enterBeginsEditing: true,
 
     /**
-     * Defines the cursor movement after <kbd>ENTER</kbd> was pressed (<kbd>SHIFT</kbd> + <kbd>ENTER</kbd> uses a negative vector). Can
-     * be an object or a function that returns an object. The event argument passed to the function is a DOM Event object
-     * received after the <kbd>ENTER</kbd> key has been pressed. This event object can be used to check whether user pressed
-     * <kbd>ENTER</kbd> or <kbd>SHIFT</kbd> + <kbd>ENTER</kbd>.
+     * The `enterMoves` option configures the action of the <kbd>Enter</kbd> key.
+     *
+     * When the [`enterBeginsEditing`](#enterBeginsEditing) option is set to `true`,
+     * the `enterMoves` setting applies to the **second** pressing of the <kbd>Enter</kbd> key.
+     *
+     * When the [`enterBeginsEditing`](#enterBeginsEditing) option is set to `false`,
+     * the `enterMoves` setting applies to the **first** pressing of the <kbd>Enter</kbd> key.
+     *
+     * You can set the `enterMoves` option to an object with the following properties
+     * (or to a function that returns such an object):
+     *
+     * | Property | Type   | Description                                                                                                                                                        |
+     * | -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `col`    | Number | - On pressing <kbd>Enter</kbd>, move cell selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move cell selection `col` columns left |
+     * | `row`    | Number | - On pressing <kbd>Enter</kbd>, move cell selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move cell selection `col` columns up       |
      *
      * @memberof Options#
      * @type {object|Function}
@@ -1106,9 +1144,11 @@ export default () => {
      *
      * @example
      * ```js
-     * // move selection diagonal by 1 cell in x and y axis
+     * // on pressing Enter, move cell selection 1 column right and 1 row down
+     * // on pressing Shift+Enter, move cell selection 1 column left and 1 row up
      * enterMoves: {col: 1, row: 1},
-     * // or as a function
+     *
+     * // the same setting, as a function
      * enterMoves: function(event) {
      *   return {col: 1, row: 1};
      * },
