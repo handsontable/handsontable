@@ -1042,8 +1042,8 @@ export function hasHorizontalScrollbar(element) {
  * Sets overlay position depending on it's type and used browser.
  *
  * @param {HTMLElement} overlayElem An element to process.
- * @param {number} left The left position of the overlay.
- * @param {number} top The top position of the overlay.
+ * @param {number|string} left The left position of the overlay.
+ * @param {number|string} top The top position of the overlay.
  */
 export function setOverlayPosition(overlayElem, left, top) {
   if (isIE9()) {
