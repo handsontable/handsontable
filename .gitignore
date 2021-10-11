@@ -3,8 +3,8 @@
 .idea
 .vscode
 .cache
-./dev*.html
-./dev*.js
+dev*.html
+dev*.js
 npm-debug.log
 
 node_modules/
