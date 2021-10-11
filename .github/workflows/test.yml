@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: 15.x
+  NODE_VERSION: 16.x
   NPM_VERSION: 7.20.x
 
 jobs:
@@ -110,10 +110,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - name: Update npm
-        run: npm install -g npm@${{ env.NPM_VERSION }} --no-audit
       - run: npm ci --no-audit
-      - run: |
+      - name: Build
+        run: |
           cd handsontable
           npm run build:umd && npm run build:languages
           npm run build:umd.min && npm run build:languages.min
@@ -139,10 +138,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - name: Update npm
-        run: npm install -g npm@${{ env.NPM_VERSION }} --no-audit
       - run: npm ci --no-audit
-      - run: |
+      - name: Build
+        run: |
           cd handsontable
           npm run build:es && npm run build:languages.es
           npm run build:commonjs
@@ -169,10 +167,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - name: Update npm
-        run: npm install -g npm@${{ env.NPM_VERSION }} --no-audit
       - run: npm ci --no-audit
-      - run: |
+      - name: Test
+        run: |
           cd handsontable
           npm run test:unit
 
@@ -190,10 +187,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - name: Update npm
-        run: npm install -g npm@${{ env.NPM_VERSION }} --no-audit
       - run: npm ci --no-audit
-      - run: |
+      - name: Test
+        run: |
           cd handsontable
           npm run test:types
 
@@ -211,10 +207,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - name: Update npm
-        run: npm install -g npm@${{ env.NPM_VERSION }} --no-audit
       - run: npm ci --no-audit
-      - run: |
+      - name: Test
+        run: |
           cd handsontable
           npm run test:walkontable
 
@@ -232,8 +227,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - name: Update npm
-        run: npm install -g npm@${{ env.NPM_VERSION }} --no-audit
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
@@ -241,7 +234,8 @@ jobs:
           name: handsontable-build-umd
           path: ./
       - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
-      - run: |
+      - name: Test
+        run: |
           cd handsontable
           npm run test:e2e.dump && npm run test:e2e.puppeteer
 
@@ -259,8 +253,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - name: Update npm
-        run: npm install -g npm@${{ env.NPM_VERSION }} --no-audit
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
@@ -268,7 +260,8 @@ jobs:
           name: handsontable-build-umd
           path: ./
       - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
-      - run: |
+      - name: Test
+        run: |
           cd handsontable
           npm run test:production.dump && npm run test:e2e.puppeteer
 
@@ -286,8 +279,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - name: Update npm
-        run: npm install -g npm@${{ env.NPM_VERSION }} --no-audit
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
@@ -314,8 +305,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - name: Update npm
-        run: npm install -g npm@${{ env.NPM_VERSION }} --no-audit
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
@@ -342,8 +331,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - name: Update npm
-        run: npm install -g npm@${{ env.NPM_VERSION }} --no-audit
       - run: npm ci --no-audit
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
