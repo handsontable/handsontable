@@ -14,7 +14,7 @@ import {
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray } from './helpers/array';
+import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray, pivot } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin, getPluginsNames } from './plugins/registry';
 import { getRenderer } from './renderers/registry';
@@ -23,7 +23,7 @@ import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse, isNumericLike } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
-import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
+import { cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
@@ -747,7 +747,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       let clen;
       const setData = [];
       const current = {};
-      const newData = [];
+      const newDataByColumns = [];
 
       rlen = input.length;
 
@@ -759,50 +759,55 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       let repeatRow;
       let rmax;
 
-      /* eslint-disable no-case-declarations */
       // insert data with specified pasteMode method
       switch (method) {
         case 'shift_down':
-          let columnsEnd = 0;
-          let rowsEnd = 0;
+          let columnsPopulationEnd = 0;
+          let rowsPopulationEnd = 0;
           const startRow = start.row;
           const startColumn = start.col;
 
           if (isObject(end)) {
-            columnsEnd = end.col - startColumn + 1;
-            rowsEnd = end.row - startRow + 1;
+            columnsPopulationEnd = end.col - startColumn + 1;
+            rowsPopulationEnd = end.row - startRow + 1;
           }
 
           // Translate data from list of rows to list of columns.
-          const populatedDataByColumns = translateRowsToColumns(input);
-          const numberOfColumns = populatedDataByColumns.length;
+          const populatedDataByColumns = pivot(input);
+          const numberOfDataColumns = populatedDataByColumns.length;
           // Method's argument may extend the range of data population (data would be repeated).
-          const numberOfColumnsToPopulate = Math.max(numberOfColumns, columnsEnd);
-          const pushedDownData = instance.getData().slice(startRow);
+          const numberOfColumnsToPopulate = Math.max(numberOfDataColumns, columnsPopulationEnd);
+          const pushedDownDataByRows = instance.getData().slice(startRow);
 
           // Translate data from list of rows to list of columns.
-          const pushedDownDataByColumns = translateRowsToColumns(pushedDownData)
+          const pushedDownDataByColumns = pivot(pushedDownDataByRows)
             .slice(startColumn, startColumn + numberOfColumnsToPopulate);
 
           for (c = 0; c < numberOfColumnsToPopulate; c += 1) {
-            if (c < numberOfColumns) {
-              for (r = 0, rlen = populatedDataByColumns[c].length; r < rowsEnd - rlen; r += 1) {
+            if (c < numberOfDataColumns) {
+              for (r = 0, rlen = populatedDataByColumns[c].length; r < rowsPopulationEnd - rlen; r += 1) {
+                // Repeating data for rows.
                 populatedDataByColumns[c].push(populatedDataByColumns[c][r % rlen]);
               }
 
               if (c < pushedDownDataByColumns.length) {
-                newData.push([...populatedDataByColumns[c], ...pushedDownDataByColumns[c]]);
+                newDataByColumns.push([...populatedDataByColumns[c], ...pushedDownDataByColumns[c]]);
 
               } else {
-                newData.push([...populatedDataByColumns[c], null]);
+                // There were no data for the column before population. We fill existing cells for particular rows
+                // with `null` values.
+                newDataByColumns.push([...populatedDataByColumns[c],
+                  ...new Array(pushedDownDataByRows.length).fill(null)]);
               }
 
             } else {
-              newData.push([...populatedDataByColumns[c % numberOfColumns], ...pushedDownDataByColumns[c]]);
+              // Repeating data for columns.
+              newDataByColumns.push([...populatedDataByColumns[c % numberOfDataColumns],
+                ...pushedDownDataByColumns[c]]);
             }
           }
 
-          instance.populateFromArray(startRow, startColumn, translateRowsToColumns(newData));
+          instance.populateFromArray(startRow, startColumn, pivot(newDataByColumns));
 
           break;
 
