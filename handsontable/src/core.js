@@ -810,21 +810,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         case 'shift_right':
           const numberOfDataRows = input.length;
           const numberOfRowsToPopulate = Math.max(numberOfDataRows, rowsPopulationEnd);
+          const pushedRightDataByRows = instance.getData().slice(startRow).map(rowData => rowData.slice(startColumn));
 
           for (r = 0; r < numberOfRowsToPopulate; r += 1) {
             if (r < numberOfDataRows) {
               for (c = 0, clen = input[r].length; c < columnsPopulationEnd - clen; c += 1) {
+                // Repeating data for rows.
                 input[r].push(input[r][c % clen]);
               }
 
-              input[r].unshift(startRow + r, startColumn, 0);
-              instance.spliceRow(...input[r]);
+              input[r].push(...pushedRightDataByRows[r]);
 
             } else {
-              input[r % rlen][0] = startRow + r;
-              instance.spliceRow(...input[r % rlen]);
+              // Repeating data for columns.
+              input.push([...input[r % rlen].slice(0, numberOfRowsToPopulate), ...pushedRightDataByRows[r]]);
             }
           }
+
+          instance.populateFromArray(startRow, startColumn, input);
+
           break;
 
         case 'overwrite':
