@@ -1258,7 +1258,8 @@ export default () => {
     persistentState: void 0,
 
     /**
-     * Class name for all visible rows in the current selection.
+     * The `currentRowClassName` option lets you add a CSS class name
+     * to every cell of the currently-visible, currently-selected rows.
      *
      * @memberof Options#
      * @type {string}
@@ -1267,14 +1268,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // This will add a 'currentRow' class name to appropriate table cells.
-     * currentRowClassName: 'currentRow',
+     * // add a `your-class-name` CSS class name
+     * // to every cell of the currently-visible, currently-selected rows
+     * currentRowClassName: 'your-class-name',
      * ```
      */
     currentRowClassName: void 0,
 
     /**
-     * Class name for all visible columns in the current selection.
+     * The `currentColClassName` option lets you add a CSS class name
+     * to every cell of the currently-visible, currently-selected columns.
      *
      * @memberof Options#
      * @type {string}
@@ -1283,14 +1286,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // This will add a 'currentColumn' class name to appropriate table cells.
-     * currentColClassName: 'currentColumn',
+     * // add a `your-class-name` CSS class name
+     * // to every cell of the currently-visible, currently-selected columns
+     * currentColClassName: 'your-class-name',
      * ```
      */
     currentColClassName: void 0,
 
     /**
-     * Class name for all visible headers in current selection.
+     * The `currentHeaderClassName` option lets you add a CSS class name
+     * to every currently-visible, currently-selected header.
      *
      * @memberof Options#
      * @type {string}
@@ -1299,15 +1304,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // This will add a 'ht__highlight' class name to appropriate table headers.
+     * // add an `ht__highlight` CSS class name
+     * // to every currently-visible, currently-selected header
      * currentHeaderClassName: 'ht__highlight',
      * ```
      */
     currentHeaderClassName: 'ht__highlight',
 
     /**
-     * Class name for all active headers in selections. The header will be marked with this class name
-     * only when a whole column or row will be selected.
+     * The `activeHeaderClassName` option lets you add a CSS class name
+     * to every currently-active, currently-selected header (when a whole column or row is selected).
      *
      * @memberof Options#
      * @type {string}
@@ -1317,17 +1323,27 @@ export default () => {
      *
      * @example
      * ```js
-     * // this will add a 'ht__active_highlight' class name to appropriate table headers.
+     * // add an `ht__active_highlight` CSS class name
+     * // to every currently-active, currently-selected header
      * activeHeaderClassName: 'ht__active_highlight',
      * ```
      */
     activeHeaderClassName: 'ht__active_highlight',
 
     /**
-     * Class name for the current element.
-     * The interpretation depends on the level on which this option is provided in the [cascading configuration](@/guides/getting-started/setting-options.md).
-     * If `className` is provided on the first (constructor) level, it is the applied to the Handsontable container.
-     * If `className` is provided on the second (`column`) or the third (`cell` or `cells`) level, it is applied to the table cell.
+     * The `className` option lets you add CSS class names to every currently-selected element.
+     *
+     * You can set the `className` option to one of the following:
+     *
+     * | Setting             | Description                                                      |
+     * | ------------------- | ---------------------------------------------------------------- |
+     * | A string            | Add a single CSS class name to every currently-selected element  |
+     * | An array of strings | Add multiple CSS class names to every currently-selected element |
+     *
+     * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/getting-started/setting-options.md#cascading-configuration).
+     *
+     * Read more:
+     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @type {string|string[]}
@@ -1336,17 +1352,27 @@ export default () => {
      *
      * @example
      * ```js
-     * // can be set as a string
-     * className: 'your__class--name',
+     * // add a `your-class-name` CSS class name
+     * // to every currently-selected element
+     * className: 'your-class-name',
      *
-     * // or as an array of strings
+     * // add `first-class-name` and `second-class-name` CSS class names
+     * // to every currently-selected element
      * className: ['first-class-name', 'second-class-name'],
      * ```
      */
     className: void 0,
 
     /**
-     * Class name for all tables inside container element.
+     * The `tableClassName` option lets you add CSS class names
+     * to every Handsontable instance inside the `container` element.
+     *
+     * You can set the `tableClassName` option to one of the following:
+     *
+     * | Setting             | Description                                                                                |
+     * | ------------------- | ------------------------------------------------------------------------------------------ |
+     * | A string            | Add a single CSS class name to every Handsontable instance inside the `container` element  |
+     * | An array of strings | Add multiple CSS class names to every Handsontable instance inside the `container` element |
      *
      * @memberof Options#
      * @type {string|string[]}
@@ -1355,10 +1381,12 @@ export default () => {
      *
      * @example
      * ```js
-     * // set custom class for table element
-     * tableClassName: 'your__class--name',
+     * // add a `your-class-name` CSS class name
+     * // to every Handsontable instance inside the `container` element
+     * tableClassName: 'your-class-name',
      *
-     * // or
+     * // add `first-class-name` and `second-class-name` CSS class names
+     * // to every Handsontable instance inside the `container` element
      * tableClassName: ['first-class-name', 'second-class-name'],
      * ```
      */
