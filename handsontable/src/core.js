@@ -748,6 +748,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       const setData = [];
       const current = {};
       const newDataByColumns = [];
+      const startRow = start.row;
+      const startColumn = start.col;
 
       rlen = input.length;
 
@@ -755,23 +757,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         return false;
       }
 
-      let repeatCol;
-      let repeatRow;
-      let rmax;
+      let columnsPopulationEnd = 0;
+      let rowsPopulationEnd = 0;
+
+      if (isObject(end)) {
+        columnsPopulationEnd = end.col - startColumn + 1;
+        rowsPopulationEnd = end.row - startRow + 1;
+      }
 
       // insert data with specified pasteMode method
       switch (method) {
         case 'shift_down':
-          let columnsPopulationEnd = 0;
-          let rowsPopulationEnd = 0;
-          const startRow = start.row;
-          const startColumn = start.col;
-
-          if (isObject(end)) {
-            columnsPopulationEnd = end.col - startColumn + 1;
-            rowsPopulationEnd = end.row - startRow + 1;
-          }
-
           // Translate data from list of rows to list of columns.
           const populatedDataByColumns = pivot(input);
           const numberOfDataColumns = populatedDataByColumns.length;
@@ -794,8 +790,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 newDataByColumns.push([...populatedDataByColumns[c], ...pushedDownDataByColumns[c]]);
 
               } else {
-                // There were no data for the column before population. We fill existing cells for particular rows
-                // with `null` values.
+                // There were no data for the column (it hasn't existed) before population. We fill newly created cells
+                // for particular rows with `null` values.
                 newDataByColumns.push([...populatedDataByColumns[c],
                   ...new Array(pushedDownDataByRows.length).fill(null)]);
               }
@@ -812,18 +808,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           break;
 
         case 'shift_right':
-          repeatCol = end ? end.col - start.col + 1 : 0;
-          repeatRow = end ? end.row - start.row + 1 : 0;
+          const numberOfDataRows = input.length;
+          const numberOfRowsToPopulate = Math.max(numberOfDataRows, rowsPopulationEnd);
 
-          for (r = 0, rlen = input.length, rmax = Math.max(rlen, repeatRow); r < rmax; r++) {
-            if (r < rlen) {
-              for (c = 0, clen = input[r].length; c < repeatCol - clen; c++) {
+          for (r = 0; r < numberOfRowsToPopulate; r += 1) {
+            if (r < numberOfDataRows) {
+              for (c = 0, clen = input[r].length; c < columnsPopulationEnd - clen; c += 1) {
                 input[r].push(input[r][c % clen]);
               }
-              input[r].unshift(start.row + r, start.col, 0);
+
+              input[r].unshift(startRow + r, startColumn, 0);
               instance.spliceRow(...input[r]);
+
             } else {
-              input[r % rlen][0] = start.row + r;
+              input[r % rlen][0] = startRow + r;
               instance.spliceRow(...input[r % rlen]);
             }
           }

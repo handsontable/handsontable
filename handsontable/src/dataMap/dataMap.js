@@ -576,7 +576,7 @@ class DataMap {
    * @returns {Array} Returns removed portion of rows.
    */
   spliceRow(row, index, amount, ...elements) {
-    const rowData = this.instance.getSourceDataAtRow(row);
+    const rowData = this.instance.getDataAtRow(row);
     const removed = rowData.slice(index, index + amount);
     const after = rowData.slice(index + amount);
 
