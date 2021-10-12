@@ -1,0 +1,7 @@
+{
+  "title": "Added support for modularize Vue wrapper",
+  "type": "added",
+  "issue": 8820,
+  "breaking": true,
+  "framework": "vue"
+}
