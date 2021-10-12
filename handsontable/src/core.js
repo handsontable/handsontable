@@ -809,6 +809,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         case 'shift_right':
           const numberOfDataRows = input.length;
+          // Method's argument may extend the range of data population (data would be repeated).
           const numberOfRowsToPopulate = Math.max(numberOfDataRows, rowsPopulationEnd);
           const pushedRightDataByRows = instance.getData().slice(startRow).map(rowData => rowData.slice(startColumn));
 
