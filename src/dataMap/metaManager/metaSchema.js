@@ -1394,11 +1394,19 @@ export default () => {
 
     /**
      * @description
-     * Defines how the columns react, when the declared table width is different than the calculated sum of all column widths.
-     * [See more](@/guides/columns/column-width.md#column-stretching) mode. Possible values:
-     *  * `'none'` Disable stretching
-     *  * `'last'` Stretch only the last column
-     *  * `'all'` Stretch all the columns evenly.
+     * The `stretchH` option sets the behavior of columns when the declared grid width
+     * is different from the calculated sum of all column widths.
+     *
+     * You can set the `stretchH` option to one of the following:
+     *
+     * | Setting            | Description                                                       |
+     * | ------------------ | ----------------------------------------------------------------- |
+     * | `'none'` (default) | Don't fit the grid to the container (disable column stretching    |
+     * | `'last'`           | Fit the grid to the container, by stretching only the last column |
+     * | `'all'`            | Fit the grid to the container, by stretching all columns evenly   |
+     *
+     * Read more:
+     * - [Column width: Column stretching &#8594;](@/guides/columns/column-width.md#column-stretching)
      *
      * @memberof Options#
      * @type {string}
@@ -1407,14 +1415,18 @@ export default () => {
      *
      * @example
      * ```js
-     * // fit table to the container
+     * // fit the grid to the container
+     * // by stretching all columns evenly
      * stretchH: 'all',
      * ```
      */
     stretchH: 'none',
 
     /**
-     * Overwrites the default `isEmptyRow` method, which checks if row at the provided index is empty.
+     * The `isEmptyRow` option lets you define your own custom method
+     * for checking if a row at a given index is empty.
+     *
+     * The `isEmptyRow` setting overwrites the built-in [`isEmptyRow`](@/api/core.md#isEmptyRow) method.
      *
      * @memberof Options#
      * @type {Function}
@@ -1424,8 +1436,9 @@ export default () => {
      *
      * @example
      * ```js
-     * // define custom checks for empty row
+     * // overwrite the built-in `isEmptyRow` method
      * isEmptyRow: function(row) {
+     *    // your custom method
      *    ...
      * },
      * ```
@@ -1454,7 +1467,10 @@ export default () => {
     },
 
     /**
-     * Overwrites the default `isEmptyCol` method, which checks if column at the provided index is empty.
+     * The `isEmptyCol` option lets you define your own custom method
+     * for checking if a column at a given index is empty.
+     *
+     * The `isEmptyCol` setting overwrites the built-in [`isEmptyCol`](@/api/core.md#isEmptyCol) method.
      *
      * @memberof Options#
      * @type {Function}
@@ -1464,9 +1480,10 @@ export default () => {
      *
      * @example
      * ```js
-     * // define custom checks for empty column
+     * // overwrite the built-in `isEmptyCol` method
      * isEmptyCol: function(column) {
-     *    return false;
+     *    // your custom method
+     *    ...
      * },
      * ```
      */
@@ -1487,7 +1504,8 @@ export default () => {
     },
 
     /**
-     * When set to `true`, the table is re-rendered when it is detected that it was made visible in DOM.
+     * When the `observeDOMVisibility` option is set to `true`,
+     * Handsontable rerenders once it detects that the grid was made visible in the DOM.
      *
      * @memberof Options#
      * @type {boolean}
@@ -1496,7 +1514,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // don't rerender the table on visibility changes
+     * // don't rerender the grid on visibility changes
      * observeDOMVisibility: false,
      * ```
      */
