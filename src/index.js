@@ -2,8 +2,6 @@ import Handsontable from './base';
 import { registerAllModules } from './registry';
 import EventManager, { getListenersCounter } from './eventManager';
 import { getRegisteredMapsCounter } from './translations';
-import Hooks from './pluginHooks';
-import { metaSchemaFactory } from './dataMap';
 
 import jQueryWrapper from './helpers/wrappers/jquery';
 
@@ -58,12 +56,7 @@ Handsontable.__GhostTable = GhostTable;
 
 Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
 Handsontable._getRegisteredMapsCounter = getRegisteredMapsCounter; // For MemoryLeak tests
-
-Handsontable.DefaultSettings = metaSchemaFactory();
 Handsontable.EventManager = EventManager;
-
-// Export Hooks singleton
-Handsontable.hooks = Hooks.getSingleton();
 
 // Export all helpers to the Handsontable object
 const HELPERS = [

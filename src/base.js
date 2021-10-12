@@ -5,6 +5,8 @@ import './css/mobile.handsontable.css';
 
 import Core from './core';
 import { rootInstanceSymbol } from './utils/rootInstance';
+import { metaSchemaFactory } from './dataMap';
+import Hooks from './pluginHooks';
 
 // FIXME: Bug in eslint-plugin-import: https://github.com/benmosher/eslint-plugin-import/issues/1883
 /* eslint-disable import/named */
@@ -44,6 +46,9 @@ function Handsontable(rootElement, userSettings) {
 Handsontable.Core = function(rootElement, userSettings = {}) {
   return new Core(rootElement, userSettings, rootInstanceSymbol);
 };
+
+Handsontable.DefaultSettings = metaSchemaFactory();
+Handsontable.hooks = Hooks.getSingleton();
 
 Handsontable.packageName = 'handsontable';
 Handsontable.buildDate = process.env.HOT_BUILD_DATE;
