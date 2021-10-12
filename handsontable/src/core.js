@@ -819,7 +819,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 input[r].push(input[r][c % clen]);
               }
 
-              input[r].push(...pushedRightDataByRows[r]);
+              input[r].push(pushedRightDataByRows[r]);
 
             } else {
               // Repeating data for columns.
