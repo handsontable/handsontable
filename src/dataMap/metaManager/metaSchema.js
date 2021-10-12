@@ -1135,7 +1135,7 @@ export default () => {
      * | Property | Type   | Description                                                                                                                                                        |
      * | -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
      * | `col`    | Number | - On pressing <kbd>Enter</kbd>, move cell selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move cell selection `col` columns left |
-     * | `row`    | Number | - On pressing <kbd>Enter</kbd>, move cell selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move cell selection `col` columns up       |
+     * | `row`    | Number | - On pressing <kbd>Enter</kbd>, move cell selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move cell selection `row` rows up          |
      *
      * @memberof Options#
      * @type {object|Function}
@@ -1149,6 +1149,8 @@ export default () => {
      * enterMoves: {col: 1, row: 1},
      *
      * // the same setting, as a function
+     * // `event` is a DOM Event object received on pressing Enter
+     * // you can use it to check whether the user pressed Enter or Shift+Enter
      * enterMoves: function(event) {
      *   return {col: 1, row: 1};
      * },
@@ -1157,10 +1159,15 @@ export default () => {
     enterMoves: { col: 0, row: 1 },
 
     /**
-     * Defines the cursor movement after <kbd>TAB</kbd> is pressed (<kbd>SHIFT</kbd> + <kbd>TAB</kbd> uses a negative vector). Can
-     * be an object or a function that returns an object. The event argument passed to the function is a DOM Event object
-     * received after the <kbd>TAB</kbd> key has been pressed. This event object can be used to check whether user pressed
-     * <kbd>TAB</kbd> or <kbd>SHIFT</kbd> + <kbd>TAB</kbd>.
+     * The `tabMoves` option configures the action of the <kbd>Tab</kbd> key.
+     *
+     * You can set the `tabMoves` option to an object with the following properties
+     * (or to a function that returns such an object):
+     *
+     * | Property | Type   | Description                                                                                                                                                        |
+     * | -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `row`    | Number | - On pressing <kbd>Tab</kbd>, move cell selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move cell selection `row` rows up              |
+     * | `col`    | Number | - On pressing <kbd>Tab</kbd>, move cell selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move cell selection `col` columns left     |
      *
      * @memberof Options#
      * @type {object|Function}
@@ -1169,9 +1176,13 @@ export default () => {
      *
      * @example
      * ```js
-     * // move selection 2 cells away after TAB pressed.
+     * // on pressing Tab, move cell selection 2 rows down and 2 columns right
+     * // on pressing Shift+Tab, move cell selection 2 rows up and 2 columns left
      * tabMoves: {row: 2, col: 2},
-     * // or as a function
+     *
+     * // the same setting, as a function
+     * // `event` is a DOM Event object received on pressing Tab
+     * // you can use it to check whether the user pressed Tab or Shift+Tab
      * tabMoves: function(event) {
      *   return {row: 2, col: 2};
      * },
@@ -1180,9 +1191,14 @@ export default () => {
     tabMoves: { row: 0, col: 1 },
 
     /**
-     * If set to `true`: when you use keyboard navigation,
-     * and you cross the grid's left or right edge,
-     * cell selection jumps to the opposite edge.
+     * The `autoWrapRow` option determines what happens when you reach the grid's left or right edge, using keyboard navigation.
+     *
+     * You can set the `autoWrapRow` option to one of the following:
+     *
+     * | Setting           | Description                                                          |
+     * | ----------------- | -------------------------------------------------------------------- |
+     * | `true`            | On reaching the grid's left or right edge, jump to the opposite edge |
+     * | `false` (default) | On reaching the grid's left or right edge, stop                      |
      *
      * @memberof Options#
      * @type {boolean}
@@ -1191,16 +1207,21 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable jumping across the grid's vertical edges
+     * // on reaching the grid's left or right edge, jump to the opposite edge
      * autoWrapRow: true,
      * ```
      */
     autoWrapRow: false,
 
     /**
-     * If set to `true`: when you use keyboard navigation,
-     * and you cross the grid's top or bottom edge,
-     * cell selection jumps to the grid's opposite edge.
+     * The `autoWrapCol` option determines what happens when you reach the grid's top or bottom edge, using keyboard navigation.
+     *
+     * You can set the `autoWrapCol` option to one of the following:
+     *
+     * | Setting           | Description                                                          |
+     * | ----------------- | -------------------------------------------------------------------- |
+     * | `true`            | On reaching the grid's top or bottom edge, jump to the opposite edge |
+     * | `false` (default) | On reaching the grid's top or bottom edge, stop                      |
      *
      * @memberof Options#
      * @type {boolean}
@@ -1209,7 +1230,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable jumping across the grid's horizontal edges
+     * // on reaching the grid's top or bottom edge, jump to the opposite edge
      * autoWrapCol: true,
      * ```
      */
@@ -1217,32 +1238,11 @@ export default () => {
 
     /**
      * @description
-     * Turns on saving the state of column sorting, column positions and column sizes in local storage.
+     * If set to `true`, the `persistentState` option enables the [`PersistentState`](@/api/persistentState.md) plugin.
      *
-     * You can save any sort of data in local storage to preserve table state between page reloads.  In order to enable
-     * data storage mechanism, `persistentState` option must be set to `true` (you can set it either during Handsontable
-     * initialization or using the `updateSettings` method). When `persistentState` is enabled it exposes 3 hooks:
-     *
-     * __persistentStateSave__ (key: String, value: Mixed).
-     *
-     *   * Saves value under given key in browser local storage.
-     *
-     * __persistentStateLoad__ (key: String, valuePlaceholder: Object).
-     *
-     *   * Loads `value`, saved under given key, form browser local storage. The loaded `value` will be saved in
-     *   `valuePlaceholder.value` (this is due to specific behaviour of `Hooks.run()` method). If no value have
-     *   been saved under key `valuePlaceholder.value` will be `undefined`.
-     *
-     * __persistentStateReset__ (key: String).
-     *
-     *   * Clears the value saved under `key`. If no `key` is given, all values associated with table will be cleared.
-     *
-     * __Note:__ The main reason behind using `persistentState` hooks rather than regular LocalStorage API is that it
-     * ensures separation of data stored by multiple Handsontable instances. In other words, if you have two (or more)
-     * instances of Handsontable on one page, data saved by one instance won't be accessible by the second instance.
-     * Those two instances can store data under the same key and no data would be overwritten.
-     *
-     * __Important:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
+     * Read more:
+     * - [`PersistentState` &#8594;](@/api/persistentState.md)
+     * - [Saving data: Saving data locally](@/guides/getting-started/saving-data.md#saving-data-locally)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1251,7 +1251,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable the persistent state plugin
+     * // enable the `PersistentState` plugin
      * persistentState: true,
      * ```
      */
