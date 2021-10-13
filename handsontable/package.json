@@ -55,8 +55,6 @@
     "build:languages.es": "cross-env-shell BABEL_ENV=es_languages babel src/i18n/languages --out-file-extension .mjs --out-dir languages",
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ../hot.config.js webpack",
     "publish-package": "cd tmp && npm publish",
-    "prein": "npm run swap-package-links",
-    "preall": "npm run swap-package-links",
     "postbuild": "node ./scripts/prepare-package-for-publish.mjs && npm run swap-package-links",
     "swap-package-links": "node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable"
   },

@@ -8,12 +8,7 @@ const path = require('path');
 const configFactory = require('./test-e2e');
 const JasmineHtml = require('./plugin/jasmine-html');
 const fsExtra = require('fs-extra');
-
-const getClosest = (dir) => {
-  const pathRelativeToTestHtml = dir.replace('../', './');
-
-  return fsExtra.pathExistsSync(pathRelativeToTestHtml) ? dir : `../${dir}`;
-}
+const { getClosest }  = require('./helper/path');
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
@@ -40,7 +35,7 @@ module.exports.create = function create(envArgs) {
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
           '../dist/handsontable.full.min.js',
-          `${getClosest('../node_modules/numbro')}/dist/languages.min.js`,
+          `${getClosest('../node_modules/numbro', true)}/dist/languages.min.js`,
           '../dist/languages/all.min.js',
         ],
       })

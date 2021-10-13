@@ -1,5 +1,6 @@
 {
   "name": "handsontable",
+  "private": true,
   "description": "Handsontable is a JavaScript Spreadsheet Component available for React, Angular and Vue.",
   "homepage": "https://handsontable.com/",
   "repository": {
@@ -11,11 +12,6 @@
   },
   "author": "Handsoncode <hello@handsontable.com>",
   "version": "10.0.0",
-  "main": "index",
-  "module": "index.mjs",
-  "jsnext:main": "index.mjs",
-  "jsdelivr": "dist/handsontable.full.min.js",
-  "unpkg": "dist/handsontable.full.min.js",
   "scripts": {
     "in": "cross-env-shell COMMAND_ENV=in node --experimental-json-modules scripts/translate-to-native-npm.mjs",
     "all": "cross-env-shell COMMAND_ENV=all node --experimental-json-modules scripts/translate-to-native-npm.mjs",
@@ -38,21 +34,6 @@
     "examples:test": "node examples/scripts/code-examples.mjs test",
     "examples:start": "http-server ./examples/tmp"
   },
-  "keywords": [
-    "data",
-    "grid",
-    "table",
-    "editor",
-    "grid-editor",
-    "data-grid",
-    "data-table",
-    "spreadsheet",
-    "excel",
-    "tabular-data",
-    "edit-cell",
-    "editable-table",
-    "data-spreadsheet"
-  ],
   "devDependencies": {
     "@actions/core": "^1.2.6",
     "@actions/github": "^4.0.0",

@@ -6,14 +6,8 @@
 const path = require('path');
 const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
-const webpack = require('webpack');
 const fsExtra = require('fs-extra');
-
-const getClosest = (dir) => {
-  const pathRelativeToTestHtml = dir.replace('../', '');
-
-  return fsExtra.pathExistsSync(pathRelativeToTestHtml) ? dir : `../${dir}`;
-}
+const { getClosest }  = require('./helper/path');
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
@@ -58,11 +52,11 @@ module.exports.create = function create(envArgs) {
           'helpers/jasmine-bridge-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
-          `${getClosest('../node_modules/numbro')}/dist/numbro.js`,
-          `${getClosest('../node_modules/numbro')}/dist/languages.min.js`,
-          `${getClosest('../node_modules/moment')}/moment.js`,
-          `${getClosest('../node_modules/pikaday')}/pikaday.js`,
-          `${getClosest('../node_modules/dompurify')}/dist/purify.js`,
+          `${getClosest('../node_modules/numbro', true)}/dist/numbro.js`,
+          `${getClosest('../node_modules/numbro', true)}/dist/languages.min.js`,
+          `${getClosest('../node_modules/moment', true)}/moment.js`,
+          `${getClosest('../node_modules/pikaday', true)}/pikaday.js`,
+          `${getClosest('../node_modules/dompurify', true)}/dist/purify.js`,
           `../dist/handsontable.js`,
           `../dist/languages/all.js`,
         ],

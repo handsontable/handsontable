@@ -1,8 +1,3 @@
-.DS_Store
-.grunt
-.idea
-.vscode
-.cache
 test/E2ERunner.html
 test/UnitRunner.html
 test/MobileRunner.html

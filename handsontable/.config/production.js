@@ -8,15 +8,13 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const webpack = require('webpack');
 const configFactory = require('./development');
-const fsExtra  = require('fs-extra');
+const { getClosest }  = require('./helper/path');
 
 const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
-  const getClosest = dir => fsExtra.pathExistsSync(dir) ? dir : `../${dir}`;
 
   // Add uglifyJs plugin for each configuration
   config.forEach(function(c) {

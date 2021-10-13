@@ -18,10 +18,8 @@ import codesandboxConfig from '../.codesandbox/ci.json';
  * script and calling `npm i` in the root directory should bring it back to normal.
  */
 (async() => {
-  let spawnOptions = {};
-
   for (const packagePath of codesandboxConfig.packages) {
-    spawnOptions = {
+    const spawnOptions = {
       cwd: packagePath
     };
 

@@ -15,7 +15,6 @@ on:
 
 env:
   NODE_VERSION: 16.x
-  NPM_VERSION: 7.20.x
 
 jobs:
   check-scope:
