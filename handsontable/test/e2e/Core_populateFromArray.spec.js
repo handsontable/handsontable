@@ -131,38 +131,178 @@ describe('Core_populateFromArray', () => {
     expect(output).toEqual([[0, 0, undefined, ['2011']]]);
   });
 
-  it('should shift values down', () => {
-    handsontable({
-      data: arrayOfArrays(),
-      minSpareRows: 1
-    });
-    populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_down');
+  describe('should shift values down', () => {
+    it('populating from the start of the table', () => {
+      const hot = handsontable({
+        data: [
+          ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+          ['2008', 10, 11, 12, 13],
+          ['2009', 20, 11, 14, 13],
+          ['2010', 30, 15, 12, 13]
+        ],
+        minSpareRows: 1,
+        minSpareCols: 1,
+      });
 
-    expect(getData()).toEqual([
-      ['test', 'test2', 'test', 'Toyota', 'Honda', 'Mix'],
-      ['test3', 'test4', 'test3', 12, 13, { a: 1, b: 2 }],
-      ['test', 'test2', 'test', 14, 13, { a: 1, b: 2 }],
-      ['', 'Kia', 'Nissan', 12, 13, { a: 1, b: 2 }],
-      ['2008', 10, 11, null, null, null],
-      ['2009', 20, 11, null, null, null],
-      ['2010', 30, 15, null, null, null],
-      [null, null, null, null, null, null]
-    ]);
+      const afterChange = jasmine.createSpy('afterChange');
+
+      hot.addHook('afterChange', afterChange);
+
+      populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_down');
+
+      expect(getData()).toEqual([
+        ['test', 'test2', 'test', 'Toyota', 'Honda', null],
+        ['test3', 'test4', 'test3', 12, 13, null],
+        ['test', 'test2', 'test', 14, 13, null],
+        ['', 'Kia', 'Nissan', 12, 13, null],
+        ['2008', 10, 11, null, null, null],
+        ['2009', 20, 11, null, null, null],
+        ['2010', 30, 15, null, null, null],
+        [null, null, null, null, null, null],
+      ]);
+
+      expect(onCellMouseUp).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        [0, 0, '', 'test'], [0, 1, 'Kia', 'test2'], [0, 2, 'Nissan', 'test'],
+        [1, 0, '2008', 'test3'], [1, 1, 10, 'test4'], [1, 2, 11, 'test3'],
+        [2, 0, '2009', 'test'], [2, 1, 20, 'test2'], [2, 2, 11, 'test'],
+        [3, 0, '2010', ''], [3, 1, 30, 'Kia'], [3, 2, 15, 'Nissan'],
+        [4, 0, null, '2008'], [4, 1, null, 10], [4, 2, null, 11],
+        [5, 0, null, '2009'], [5, 1, null, 20], [5, 2, null, 11],
+        [6, 0, null, '2010'], [6, 1, null, 30], [6, 2, null, 15],
+        [7, 0, null, null], [7, 1, null, null], [7, 2, null, null],
+      ], 'populateFromArray');
+    });
+
+    it('populating from the end of the table', () => {
+      const hot = handsontable({
+        data: [
+          ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+          ['2008', 10, 11, 12, 13],
+          ['2009', 20, 11, 14, 13],
+          ['2010', 30, 15, 12, 13],
+        ],
+        minSpareRows: 1,
+        minSpareCols: 1,
+      });
+
+      const afterChange = jasmine.createSpy('afterChange');
+
+      hot.addHook('afterChange', afterChange);
+
+      populateFromArray(1, 3, [
+        ['test', 'test2', 'test3'],
+        ['test4', 'test5', 'test6']
+      ], null, null, null, 'shift_down');
+
+      expect(getData()).toEqual([
+        ['', 'Kia', 'Nissan', 'Toyota', 'Honda', null, null],
+        ['2008', 10, 11, 'test', 'test2', 'test3', null],
+        ['2009', 20, 11, 'test4', 'test5', 'test6', null],
+        ['2010', 30, 15, 12, 13, null, null],
+        [null, null, null, 14, 13, null, null],
+        [null, null, null, 12, 13, null, null],
+        [null, null, null, null, null, null, null],
+      ]);
+
+      expect(onCellMouseUp).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        [1, 3, 12, 'test'], [1, 4, 13, 'test2'], [1, 5, null, 'test3'],
+        [2, 3, 14, 'test4'], [2, 4, 13, 'test5'], [2, 5, null, 'test6'],
+        [3, 3, 12, 12], [3, 4, 13, 13], [3, 5, null, null],
+        [4, 3, null, 14], [4, 4, null, 13], [4, 5, null, null],
+        [5, 3, null, 12], [5, 4, null, 13], [5, 5, null, null],
+        [6, 3, null, null], [6, 4, null, null], [6, 5, null, null],
+      ], 'populateFromArray');
+    });
+
+    it('populating full data of current table', () => {
+      const hot = handsontable({
+        data: [
+          ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+          ['2008', 10, 11, 12, 13],
+          ['2009', 20, 11, 14, 13],
+          ['2010', 30, 15, 12, 13]
+        ],
+        minSpareRows: 1,
+        minSpareCols: 1,
+      });
+
+      const afterChange = jasmine.createSpy('afterChange');
+
+      hot.addHook('afterChange', afterChange);
+
+      const data = getData();
+
+      populateFromArray(0, 0, data, null, null, null, 'shift_down');
+
+      expect(getData()).toEqual(data.concat(data));
+
+      expect(onCellMouseUp).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        // eslint-disable-next-line max-len
+        [0, 0, '', ''], [0, 1, 'Kia', 'Kia'], [0, 2, 'Nissan', 'Nissan'], [0, 3, 'Toyota', 'Toyota'], [0, 4, 'Honda', 'Honda'], [0, 5, null, null],
+        [1, 0, '2008', '2008'], [1, 1, 10, 10], [1, 2, 11, 11], [1, 3, 12, 12], [1, 4, 13, 13], [1, 5, null, null],
+        [2, 0, '2009', '2009'], [2, 1, 20, 20], [2, 2, 11, 11], [2, 3, 14, 14], [2, 4, 13, 13], [2, 5, null, null],
+        [3, 0, '2010', '2010'], [3, 1, 30, 30], [3, 2, 15, 15], [3, 3, 12, 12], [3, 4, 13, 13], [3, 5, null, null],
+        // eslint-disable-next-line max-len
+        [4, 0, null, null], [4, 1, null, null], [4, 2, null, null], [4, 3, null, null], [4, 4, null, null], [4, 5, null, null],
+
+        // eslint-disable-next-line max-len
+        [5, 0, null, ''], [5, 1, null, 'Kia'], [5, 2, null, 'Nissan'], [5, 3, null, 'Toyota'], [5, 4, null, 'Honda'], [5, 5, null, null],
+        // eslint-disable-next-line max-len
+        [6, 0, null, '2008'], [6, 1, null, 10], [6, 2, null, 11], [6, 3, null, 12], [6, 4, null, 13], [6, 5, null, null],
+        // eslint-disable-next-line max-len
+        [7, 0, null, '2009'], [7, 1, null, 20], [7, 2, null, 11], [7, 3, null, 14], [7, 4, null, 13], [7, 5, null, null],
+        // eslint-disable-next-line max-len
+        [8, 0, null, '2010'], [8, 1, null, 30], [8, 2, null, 15], [8, 3, null, 12], [8, 4, null, 13], [8, 5, null, null],
+        // eslint-disable-next-line max-len
+        [9, 0, null, null], [9, 1, null, null], [9, 2, null, null], [9, 3, null, null], [9, 4, null, null], [9, 5, null, null],
+      ], 'populateFromArray');
+    });
   });
 
-  it('should shift values right', () => {
-    handsontable({
-      data: arrayOfArrays(),
-      minSpareCols: 1
-    });
-    populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_right');
+  describe('should shift values right', () => {
+    it('populating from the start of the table', () => {
+      const hot = handsontable({
+        data: [
+          ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+          ['2008', 10, 11, 12, 13],
+          ['2009', 20, 11, 14, 13],
+          ['2010', 30, 15, 12, 13]
+        ],
+        minSpareRows: 1,
+        minSpareCols: 1,
+      });
 
-    expect(getData()).toEqual([
-      ['test', 'test2', 'test', '', 'Kia', 'Nissan', 'Toyota', 'Honda', 'Mix', null],
-      ['test3', 'test4', 'test3', '2008', 10, { a: 1, b: 2 }, 12, 13, null, null],
-      ['test', 'test2', 'test', '2009', 20, { a: 1, b: 2 }, 14, 13, null, null],
-      ['2010', 30, 15, 12, 13, { a: 1, b: 2 }, null, null, null, null]
-    ]);
+      const afterChange = jasmine.createSpy('afterChange');
+
+      hot.addHook('afterChange', afterChange);
+
+      populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_right');
+
+      expect(getData()).toEqual([
+        ['test', 'test2', 'test', '', 'Kia', 'Nissan', 'Toyota', 'Honda', null],
+        ['test3', 'test4', 'test3', '2008', 10, 11, 12, 13, null],
+        ['test', 'test2', 'test', '2009', 20, 11, 14, 13, null],
+        ['2010', 30, 15, 12, 13, null, null, null, null],
+        [null, null, null, null, null, null, null, null, null]
+      ]);
+
+      expect(afterChange).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        // eslint-disable-next-line max-len
+        [0, 0, '', 'test'], [0, 1, 'Kia', 'test2'], [0, 2, 'Nissan', 'test'], [0, 3, 'Toyota', ''], [0, 4, 'Honda', 'Kia'],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [0, 5, null, 'Nissan'], [0, 6, undefined, 'Toyota'], [0, 7, undefined, 'Honda'], [0, 8, undefined, null],
+        [1, 0, '2008', 'test3'], [1, 1, 10, 'test4'], [1, 2, 11, 'test3'], [1, 3, 12, '2008'],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [1, 4, 13, 10], [1, 5, null, 11], [1, 6, undefined, 12], [1, 7, undefined, 13], [1, 8, undefined, null],
+        [2, 0, '2009', 'test'], [2, 1, 20, 'test2'], [2, 2, 11, 'test'], [2, 3, 14, '2009'], [2, 4, 13, 20],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [2, 5, null, 11], [2, 6, undefined, 14], [2, 7, undefined, 13], [2, 8, undefined, null],
+      ], 'populateFromArray');
+    });
   });
 
   it('should run beforeAutofillInsidePopulate hook for each inserted value', () => {
