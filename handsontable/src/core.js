@@ -787,19 +787,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               }
 
               if (c < pushedDownDataByColumns.length) {
-                newDataByColumns.push([...populatedDataByColumns[c], ...pushedDownDataByColumns[c]]);
+                newDataByColumns.push(populatedDataByColumns[c].concat(pushedDownDataByColumns[c]));
 
               } else {
                 // There were no data for the column (it hasn't existed) before population. We fill newly created cells
                 // for particular rows with `null` values.
-                newDataByColumns.push([...populatedDataByColumns[c],
-                  ...new Array(pushedDownDataByRows.length).fill(null)]);
+                newDataByColumns.push(populatedDataByColumns[c].concat(
+                  new Array(pushedDownDataByRows.length).fill(null)));
               }
 
             } else {
               // Repeating data for columns.
-              newDataByColumns.push([...populatedDataByColumns[c % numberOfDataColumns],
-                ...pushedDownDataByColumns[c]]);
+              newDataByColumns.push(populatedDataByColumns[c % numberOfDataColumns].concat(pushedDownDataByColumns[c]));
             }
           }
 
@@ -820,11 +819,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 input[r].push(input[r][c % clen]);
               }
 
-              input[r].push(pushedRightDataByRows[r]);
+              for (let i = 0; i < pushedRightDataByRows[r].length; i += 1) {
+                input[r].push(pushedRightDataByRows[r][i]);
+              }
 
             } else {
               // Repeating data for columns.
-              input.push([...input[r % rlen].slice(0, numberOfRowsToPopulate), ...pushedRightDataByRows[r]]);
+              input.push(input[r % rlen].slice(0, numberOfRowsToPopulate).concat(pushedRightDataByRows[r]));
             }
           }
 
