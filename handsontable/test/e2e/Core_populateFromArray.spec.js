@@ -161,7 +161,7 @@ describe('Core_populateFromArray', () => {
         [null, null, null, null, null, null],
       ]);
 
-      expect(onCellMouseUp).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledTimes(1);
       expect(afterChange).toHaveBeenCalledWith([
         [0, 0, '', 'test'], [0, 1, 'Kia', 'test2'], [0, 2, 'Nissan', 'test'],
         [1, 0, '2008', 'test3'], [1, 1, 10, 'test4'], [1, 2, 11, 'test3'],
@@ -205,7 +205,7 @@ describe('Core_populateFromArray', () => {
         [null, null, null, null, null, null, null],
       ]);
 
-      expect(onCellMouseUp).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledTimes(1);
       expect(afterChange).toHaveBeenCalledWith([
         [1, 3, 12, 'test'], [1, 4, 13, 'test2'], [1, 5, null, 'test3'],
         [2, 3, 14, 'test4'], [2, 4, 13, 'test5'], [2, 5, null, 'test6'],
@@ -238,7 +238,7 @@ describe('Core_populateFromArray', () => {
 
       expect(getData()).toEqual(data.concat(data));
 
-      expect(onCellMouseUp).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledTimes(1);
       expect(afterChange).toHaveBeenCalledWith([
         // eslint-disable-next-line max-len
         [0, 0, '', ''], [0, 1, 'Kia', 'Kia'], [0, 2, 'Nissan', 'Nissan'], [0, 3, 'Toyota', 'Toyota'], [0, 4, 'Honda', 'Honda'], [0, 5, null, null],
