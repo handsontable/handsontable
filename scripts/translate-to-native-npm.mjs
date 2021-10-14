@@ -51,7 +51,7 @@ if (argv._.length === 0) {
           const packageArgument = `-w ${packageNameWithScope}`;
 
           if (workspacesCommandList.includes(packageArgument)) {
-            workspacesCommandList = workspacesCommandList.replace(packageArgument, '');
+            workspacesCommandList = workspacesCommandList.replace(packageArgument, '').trim();
           }
         });
       }
