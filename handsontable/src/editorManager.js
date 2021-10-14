@@ -5,6 +5,7 @@ import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
 import { EDITOR_STATE } from './editors/baseEditor';
 import { getParentWindow } from './helpers/dom/element';
+import { getDirectionFactor } from './helpers/direction';
 
 class EditorManager {
   /**
@@ -323,9 +324,9 @@ class EditorManager {
    */
   moveSelectionRight(isShiftPressed) {
     if (isShiftPressed) {
-      this.selection.transformEnd(0, 1);
+      this.selection.transformEnd(0, getDirectionFactor(this.instance));
     } else {
-      this.selection.transformStart(0, 1);
+      this.selection.transformStart(0, getDirectionFactor(this.instance), false);
     }
   }
 
@@ -337,9 +338,9 @@ class EditorManager {
    */
   moveSelectionLeft(isShiftPressed) {
     if (isShiftPressed) {
-      this.selection.transformEnd(0, -1);
+      this.selection.transformEnd(0, -1*getDirectionFactor(this.instance));
     } else {
-      this.selection.transformStart(0, -1);
+      this.selection.transformStart(0, -1*getDirectionFactor(this.instance), false);
     }
   }
 
