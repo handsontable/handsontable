@@ -9,7 +9,9 @@ import {
 } from './utils/index.mjs';
 
 const argv = yargs(hideBin(process.argv))
-  .array('if-present')
+  .boolean('if-present')
+  .array('exclude')
+  .alias('exclude', 'e')
   .argv;
 const modifier = process.env.COMMAND_ENV;
 
@@ -19,16 +21,17 @@ if (argv._.length === 0) {
   process.exit(1);
 }
 
-(async() => {
+(async () => {
+  const prependWithScope = (packageName) => {
+    if (packageName !== 'handsontable' && packageName !== 'examples') {
+      return `@handsontable/${packageName}`;
+    }
+
+    return packageName;
+  };
+
   switch (modifier) {
     case 'in': {
-      const prependWithScope = (packageName) => {
-        if (packageName !== 'handsontable' && packageName !== 'examples') {
-          return `@handsontable/${packageName}`;
-        }
-
-        return packageName;
-      };
       const [project, command] = argv._;
 
       await spawnProcess(
@@ -39,8 +42,23 @@ if (argv._.length === 0) {
     }
     case 'all': {
       const [command] = argv._;
+      let workspacesCommandList = '-w handsontable -w @handsontable/angular -w @handsontable/react -w' +
+        ' @handsontable/vue -w examples';
 
-      await spawnProcess(`npm run ${command} --workspaces${argv.ifPresent ? ' --if-present' : ''}`);
+      if (argv.exclude) {
+        argv.exclude.forEach((packageName) => {
+          const packageNameWithScope = prependWithScope(packageName);
+          const packageArgument = `-w ${packageNameWithScope}`;
+
+          if (workspacesCommandList.includes(packageArgument)) {
+            workspacesCommandList = workspacesCommandList.replace(packageArgument, '');
+          }
+        });
+      }
+
+      await spawnProcess(
+        `npm run ${command} ${workspacesCommandList}${argv.ifPresent ? ' --if-present' : ''}`
+      );
 
       break;
     }
