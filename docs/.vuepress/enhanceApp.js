@@ -1,4 +1,4 @@
-/* global GA_ID, ga, location, document */
+/* global GA_ID, ga */
 const { applyToWindow, instanceRegister } = require('./handsontable-manager');
 const { themeLoader } = require('./themeLoader');
 
