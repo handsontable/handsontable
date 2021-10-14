@@ -1731,10 +1731,12 @@ export default () => {
      */
     renderer: void 0,
 
-    /* eslint-enable jsdoc/require-description-complete-sentence */
-
     /**
-     * CSS class name added to the commented cells.
+     * The `commentedCellClassName` option lets you add a CSS class name to cells
+     * that have comments.
+     *
+     * Read more:
+     * - [Comments &#8594;](@/guides/cell-features/comments.md)
      *
      * @memberof Options#
      * @type {string}
@@ -1743,16 +1745,25 @@ export default () => {
      *
      * @example
      * ```js
-     * // set custom class for commented cells
+     * // add a `has-comment` CSS class name
+     * // to every cell that has a comment
      * commentedCellClassName: 'has-comment',
      * ```
      */
     commentedCellClassName: 'htCommentCell',
 
+    /* eslint-enable jsdoc/require-description-complete-sentence */
+
     /**
-     * If set to `true`, it enables the browser's native selection of a fragment of the text within a single cell, between
-     * adjacent cells or in a whole table. If set to `'cell'`, it enables the possibility of selecting a fragment of the
-     * text within a single cell's body.
+     * The `fragmentSelection` option configures text selection settings.
+     *
+     * You can set the `fragmentSelection` option to one of the following:
+     *
+     * | Setting           | Decription                                        |
+     * | ----------------- | ------------------------------------------------- |
+     * | `false` (default) | Disable text selection                            |
+     * | `true`            | Enable text selection in multiple cells at a time |
+     * | `'cell'`          | Enable text selection in one cell at a time       |
      *
      * @memberof Options#
      * @type {boolean|string}
@@ -1761,11 +1772,10 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable text selection within table
+     * // enable text selection in multiple cells at a time
      * fragmentSelection: true,
      *
-     * // or
-     * // enable text selection within cells only
+     * // enable text selection in one cell a time
      * fragmentSelection: 'cell',
      * ```
      */
@@ -1773,7 +1783,17 @@ export default () => {
 
     /**
      * @description
-     * Makes cell, column or comment [read only](@/guides/cell-features/disabled-cells.md#read-only-columns).
+     * The `readOnly` option determines whether a cell, column or comment is editable or not.
+     *
+     * You can set the `readOnly` option to one of the following:
+     *
+     * | Setting           | Decription                                                                                                                |
+     * | ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Set as editable                                                                                                           |
+     * | `true`            | - Set as read-only<br>- Add the [`readOnlyCellClassName`](#readOnlyCellClassName) CSS class name (by default: `htDimmed`) |
+     *
+     * Read more:
+     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1782,7 +1802,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // set as read only
+     * // set as read-only
      * readOnly: true,
      * ```
      */
