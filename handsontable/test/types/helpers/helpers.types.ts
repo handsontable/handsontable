@@ -91,5 +91,4 @@ const testTableToSettings2: Handsontable.GridSettings = Handsontable.helper.html
 Handsontable.helper.throttle(() => {}, 1);
 Handsontable.helper.throttleAfterHits(() => {}, 0, 1);
 Handsontable.helper.toUpperCaseFirst('foo');
-Handsontable.helper.translateRowsToColumns([1, 'foo', true]);
 Handsontable.helper.valueAccordingPercent(1, 90);

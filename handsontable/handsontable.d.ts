@@ -2251,7 +2251,6 @@ declare namespace Handsontable {
     throttle(func: () => void, wait?: number): () => void,
     throttleAfterHits(func: () => void, wait?: number, hits?: number): () => void,
     toUpperCaseFirst(string: string): string,
-    translateRowsToColumns(input: any[]): any[],
     valueAccordingPercent(value: number, percent: string | number): number
   }
 
