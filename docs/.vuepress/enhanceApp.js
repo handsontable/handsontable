@@ -1,4 +1,4 @@
-/* global GA_ID, ga */
+/* global GA_ID, ga, location, document */
 const { applyToWindow, instanceRegister } = require('./handsontable-manager');
 const { themeLoader } = require('./themeLoader');
 
@@ -51,8 +51,13 @@ export default ({ router, isServer }) => {
         if (!isFirstPageLoaded) {
           ga.getAll().forEach((tracker) => {
             if (tracker.get('trackingId') === GA_ID) {
-              tracker.set('page', router.app.$withBase(to.fullPath));
-              tracker.send('pageview');
+              // Collect the page view in the next browser event loop cycle to make sure
+              // that the VuePress finished render new page completly (change the URL address
+              // and document title).
+              setTimeout(() => {
+                tracker.set('page', router.app.$withBase(to.fullPath));
+                tracker.send('pageview');
+              });
             }
           });
         }
