@@ -454,29 +454,6 @@ Saves single value to the data array.
 | prop | `number` | The column property. |
 | value | `string` | The value to set. |
 
-
-
-### spliceCol
-  
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/dataMap.js#L535
-
-:::
-
-_dataMap.spliceCol(col, index, amount, [...elements]) ⇒ Array_
-
-Add/Removes data from the column.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| col | `number` | Physical index of column in which do you want to do splice. |
-| index | `number` | Index at which to start changing the array. If negative, will begin that many elements from the end. |
-| amount | `number` | An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed. |
-| [...elements] | `Array` | `optional` The new columns to add. |
-
-
-**Returns**: `Array` - Returns removed portion of columns.  
-
 ### spliceData
   
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/dataMap.js#L586
@@ -493,29 +470,6 @@ Add/remove row(s) to/from the data source.
 | index | `number` | Physical index of the element to add/remove. |
 | amount | `number` | Number of rows to add/remove. |
 | ...elements | `object` | Row elements to be added. |
-
-
-
-### spliceRow
-  
-::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/dataMap.js#L562
-
-:::
-
-_dataMap.spliceRow(row, index, amount, [...elements]) ⇒ Array_
-
-Add/Removes data from the row.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| row | `number` | Physical index of row in which do you want to do splice. |
-| index | `number` | Index at which to start changing the array. If negative, will begin that many elements from the end. |
-| amount | `number` | An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed. |
-| [...elements] | `Array` | `optional` The new rows to add. |
-
-
-**Returns**: `Array` - Returns removed portion of rows.  
 
 ### visualColumnsToPhysical
   
