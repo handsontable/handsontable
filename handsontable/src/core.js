@@ -819,8 +819,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 input[r].push(input[r][c % clen]);
               }
 
-              for (let i = 0; i < pushedRightDataByRows[r].length; i += 1) {
-                input[r].push(pushedRightDataByRows[r][i]);
+              if (r < pushedRightDataByRows.length) {
+                for (let i = 0; i < pushedRightDataByRows[r].length; i += 1) {
+                  input[r].push(pushedRightDataByRows[r][i]);
+                }
+
+              } else {
+                // There were no data for the row (it hasn't existed) before population. We fill newly created cells
+                // for particular columns with `null` values.
+                input[r].push(...new Array(pushedRightDataByRows[0].length).fill(null));
               }
 
             } else {

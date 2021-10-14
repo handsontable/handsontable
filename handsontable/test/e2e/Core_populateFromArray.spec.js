@@ -303,6 +303,103 @@ describe('Core_populateFromArray', () => {
         [2, 5, null, 11], [2, 6, undefined, 14], [2, 7, undefined, 13], [2, 8, undefined, null],
       ], 'populateFromArray');
     });
+
+    it('populating from the end of the table', () => {
+      const hot = handsontable({
+        data: [
+          ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+          ['2008', 10, 11, 12, 13],
+          ['2009', 20, 11, 14, 13],
+          ['2010', 30, 15, 12, 13]
+        ],
+        minSpareRows: 1,
+        minSpareCols: 1,
+      });
+
+      const afterChange = jasmine.createSpy('afterChange');
+
+      hot.addHook('afterChange', afterChange);
+
+      populateFromArray(4, 2, [['test', 'test2'], ['test3', 'test4']], null, null, null, 'shift_right');
+
+      expect(getData()).toEqual([
+        ['', 'Kia', 'Nissan', 'Toyota', 'Honda', null], // TODO: Should be ['', 'Kia', 'Nissan', 'Toyota', 'Honda', null, null, null]
+        ['2008', 10, 11, 12, 13, null], // TODO: Should be ['2008', 10, 11, 12, 13, null, null, null]
+        ['2009', 20, 11, 14, 13, null], // TODO: Should be ['2009', 20, 11, 14, 13, null, null, null]
+        ['2010', 30, 15, 12, 13, null], // TODO: Should be ['2010', 30, 15, 12, 13, null, null, null],
+        [null, null, 'test', 'test2', null, null], // TODO: Should be [null, null, 'test', 'test2', null, null, null, null],
+        [null, null, 'test3', 'test4', null, null], // TODO: Should be [null, null, 'test3', 'test4', null, null, null, null],
+        [null, null, null, null, null, null], // TODO: Should be [null, null, null, null, null, null, null, null],
+      ]);
+
+      expect(afterChange).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        [4, 2, null, 'test'], [4, 3, null, 'test2'], [4, 4, null, null], [4, 5, null, null],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [4, 6, undefined, null],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [4, 7, undefined, null],
+        [5, 2, null, 'test3'], [5, 3, null, 'test4'], [5, 4, null, null], [5, 5, null, null], [5, 6, null, null],
+        [5, 7, null, null],
+      ], 'populateFromArray');
+    });
+
+    it('populating full data of current table', () => {
+      const hot = handsontable({
+        data: [
+          ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+          ['2008', 10, 11, 12, 13],
+          ['2009', 20, 11, 14, 13],
+          ['2010', 30, 15, 12, 13]
+        ],
+        minSpareRows: 1,
+        minSpareCols: 1,
+      });
+
+      const afterChange = jasmine.createSpy('afterChange');
+
+      hot.addHook('afterChange', afterChange);
+
+      const data = getData();
+
+      populateFromArray(0, 0, data, null, null, null, 'shift_right');
+
+      expect(getData()).toEqual([
+        ['', 'Kia', 'Nissan', 'Toyota', 'Honda', null, '', 'Kia', 'Nissan', 'Toyota', 'Honda', null],
+        ['2008', 10, 11, 12, 13, null, '2008', 10, 11, 12, 13, null],
+        ['2009', 20, 11, 14, 13, null, '2009', 20, 11, 14, 13, null],
+        ['2010', 30, 15, 12, 13, null, '2010', 30, 15, 12, 13, null],
+        [null, null, null, null, null, null, null, null, null, null, null, null],
+      ]);
+
+      expect(afterChange).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        [0, 0, '', ''], [0, 1, 'Kia', 'Kia'], [0, 2, 'Nissan', 'Nissan'], [0, 3, 'Toyota', 'Toyota'],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [0, 4, 'Honda', 'Honda'], [0, 5, null, null], [0, 6, undefined, ''], [0, 7, undefined, 'Kia'],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [0, 8, undefined, 'Nissan'], [0, 9, undefined, 'Toyota'], [0, 10, undefined, 'Honda'], [0, 11, undefined, null],
+        [1, 0, '2008', '2008'], [1, 1, 10, 10], [1, 2, 11, 11], [1, 3, 12, 12], [1, 4, 13, 13], [1, 5, null, null],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [1, 6, undefined, '2008'], [1, 7, undefined, 10], [1, 8, undefined, 11], [1, 9, undefined, 12],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [1, 10, undefined, 13], [1, 11, undefined, null], [2, 0, '2009', '2009'], [2, 1, 20, 20], [2, 2, 11, 11],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [2, 3, 14, 14], [2, 4, 13, 13], [2, 5, null, null], [2, 6, undefined, '2009'], [2, 7, undefined, 20],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [2, 8, undefined, 11], [2, 9, undefined, 14], [2, 10, undefined, 13], [2, 11, undefined, null],
+        [3, 0, '2010', '2010'], [3, 1, 30, 30], [3, 2, 15, 15], [3, 3, 12, 12], [3, 4, 13, 13], [3, 5, null, null],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [3, 6, undefined, '2010'], [3, 7, undefined, 30], [3, 8, undefined, 15], [3, 9, undefined, 12],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [3, 10, undefined, 13], [3, 11, undefined, null],
+        [4, 0, null, null], [4, 1, null, null], [4, 2, null, null], [4, 3, null, null], [4, 4, null, null],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [4, 5, null, null], [4, 6, undefined, null], [4, 7, undefined, null], [4, 8, undefined, null],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [4, 9, undefined, null], [4, 10, undefined, null], [4, 11, undefined, null],
+      ], 'populateFromArray');
+    });
   });
 
   it('should run beforeAutofillInsidePopulate hook for each inserted value', () => {
