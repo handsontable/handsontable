@@ -1929,25 +1929,32 @@ export default () => {
      */
     search: false,
 
-    /* eslint-enable jsdoc/require-description-complete-sentence */
-
     /**
      * @description
-     * Shortcut to define the combination of the cell renderer, editor and validator for the column, cell or whole table.
+     * The `type` option lets you set the [`renderer`](#renderer), [`editor`](#editor), and [`validator`](#validator)
+     * options all at once, by selecting a [cell type](@/guides/cell-types/cell-type.md).
      *
-     * Possible values:
-     *  * [autocomplete](@/guides/cell-types/autocomplete-cell-type.md)
-     *  * [checkbox](@/guides/cell-types/checkbox-cell-type.md)
-     *  * [date](@/guides/cell-types/date-cell-type.md)
-     *  * [dropdown](@/guides/cell-types/dropdown-cell-type.md)
-     *  * [handsontable](@/guides/cell-types/handsontable-cell-type.md)
-     *  * [numeric](@/guides/cell-types/numeric-cell-type.md)
-     *  * [password](@/guides/cell-types/password-cell-type.md)
-     *  * text
-     *  * [time](@/guides/cell-types/time-cell-type.md).
+     * You can set the `type` option to one of the following:
      *
-     * Or you can register the custom cell type under specified name and use
-     * its name as an alias in your configuration.
+     * | Cell type                                                         | Renderer, editor & validator                                                                                                                                                                                                                       |
+     * | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | A [custom cell type](@/guides/cell-types/cell-type.md)            | Renderer: your [custom cell renderer](@/guides/cell-functions/cell-renderer.md)<br>Editor: your [custom cell editor](@/guides/cell-functions/cell-editor.md)<br>Validator: your [custom cell validator](@/guides/cell-functions/cell-validator.md) |
+     * | [`'autocomplete'`](@/guides/cell-types/autocomplete-cell-type.md) | Renderer: `Handsontable.renderers.AutocompleteRenderer`<br>Editor: `Handsontable.editors.AutocompleteEditor`<br>Validator: `Handsontable.validators.AutocompleteValidator`                                                                         |
+     * | [`'checkbox'`](@/guides/cell-types/checkbox-cell-type.md)         | Renderer: `Handsontable.renderers.CheckboxRenderer`<br>Editor: `Handsontable.editors.CheckboxEditor`<br>Validator: -                                                                                                                               |
+     * | [`'date'`](@/guides/cell-types/date-cell-type.md)                 | Renderer: `Handsontable.renderers.DateRenderer`<br>Editor: `Handsontable.editors.DateEditor`<br>Validator: `Handsontable.validators.DateValidator`                                                                                                 |
+     * | [`'dropdown'`](@/guides/cell-types/dropdown-cell-type.md)         | Renderer: `Handsontable.renderers.DropdownRenderer`<br>Editor: `Handsontable.editors.DropdownEditor`<br>Validator: `Handsontable.validators.DropdownValidator`                                                                                     |
+     * | [`'handsontable'`](@/guides/cell-types/handsontable-cell-type.md) | Renderer: `Handsontable.renderers.AutocompleteRenderer`<br>Editor: `Handsontable.editors.HandsontableEditor`<br>Validator: -                                                                                                                       |
+     * | [`'numeric'`](@/guides/cell-types/numeric-cell-type.md)           | Renderer: `Handsontable.renderers.NumericRenderer`<br>Editor: `Handsontable.editors.NumericEditor`<br>Validator: `Handsontable.validators.NumericValidator`                                                                                        |
+     * | [`'password'`](@/guides/cell-types/password-cell-type.md)         | Renderer: `Handsontable.renderers.PasswordRenderer`<br>Editor: `Handsontable.editors.PasswordEditor`<br>Validator: -                                                                                                                               |
+     * | `'text'`                                                          | Renderer: `Handsontable.renderers.TextRenderer`<br>Editor: `Handsontable.editors.TextEditor`<br>Validator: -                                                                                                                                       |
+     * | [`'time`'](@/guides/cell-types/time-cell-type.md)                 | Renderer: `Handsontable.renderers.TimeRenderer`<br>Editor: `Handsontable.editors.TimeEditor`<br>Validator: `Handsontable.validators.TimeValidator`                                                                                                 |
+     *
+     * Read more:
+     * - [Cell type &#8594;](@/guides/cell-types/cell-type.md)
+     * - [Cell renderer &#8594;](@/guides/cell-functions/cell-renderer.md)
+     * - [Cell editor &#8594;](@/guides/cell-functions/cell-editor.md)
+     * - [Cell validator &#8594;](@/guides/cell-functions/cell-validator.md)
+     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @type {string}
@@ -1956,33 +1963,25 @@ export default () => {
      *
      * @example
      * ```js
-     * // register custom cell type:
-     * Handsontable.cellTypes.registerCellType('my.type', {
-     *   editor: MyEditorClass,
-     *   renderer: function(hot, td, row, col, prop, value, cellProperties) {
-     *     td.innerHTML = value;
-     *   },
-     *   validator: function(value, callback) {
-     *     callback(value === 'foo' ? true : false);
-     *   }
-     * });
+     * // use the `numeric` cell type for every cell of the entire grid
+     * type: `'numeric'`,
      *
-     * // use it in column settings:
+     * // apply the `type` option to individual columns
      * columns: [
      *   {
-     *     type: 'text'
+     *     // use the `autocomplete` cell type for every cell of this column
+     *     type: 'autocomplete'
      *   },
      *   {
-     *     // an alias to custom type
-     *     type: 'my.type'
-     *   },
-     *   {
-     *     type: 'checkbox'
+     *     // use the `myCustomCellType` cell type for every cell of this column
+     *     type: 'myCustomCellType'
      *   }
-     * ],
+     * ]
      * ```
      */
     type: 'text',
+
+    /* eslint-enable jsdoc/require-description-complete-sentence */
 
     /**
      * @description
