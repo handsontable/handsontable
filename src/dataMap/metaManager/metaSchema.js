@@ -1752,8 +1752,6 @@ export default () => {
      */
     commentedCellClassName: 'htCommentCell',
 
-    /* eslint-enable jsdoc/require-description-complete-sentence */
-
     /**
      * The `fragmentSelection` option configures text selection settings.
      *
@@ -1807,6 +1805,8 @@ export default () => {
      * ```
      */
     readOnly: false,
+
+    /* eslint-enable jsdoc/require-description-complete-sentence */
 
     /**
      * @description
