@@ -1,0 +1,7 @@
+{
+  "title": "Changed a way how the `populatedFromArray` works (with `shift_down` and `shift_right` method)",
+  "type": "changed",
+  "issue": 888,
+  "breaking": true,
+  "framework": "none"
+}
