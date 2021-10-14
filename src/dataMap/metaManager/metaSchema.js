@@ -1401,7 +1401,7 @@ export default () => {
      *
      * | Setting            | Description                                                       |
      * | ------------------ | ----------------------------------------------------------------- |
-     * | `'none'` (default) | Don't fit the grid to the container (disable column stretching    |
+     * | `'none'` (default) | Don't fit the grid to the container (disable column stretching)    |
      * | `'last'`           | Fit the grid to the container, by stretching only the last column |
      * | `'all'`            | Fit the grid to the container, by stretching all columns evenly   |
      *
