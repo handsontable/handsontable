@@ -13,7 +13,6 @@ import {
   isObject,
   objectEach
 } from '../helpers/object';
-import { extendArray, to2dArray } from '../helpers/array';
 import { rangeEach } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
 
@@ -537,59 +536,6 @@ class DataMap {
     this.instance.forceFullRender = true; // used when data was changed
 
     return true;
-  }
-
-  /**
-   * Add/Removes data from the column.
-   *
-   * @param {number} col Physical index of column in which do you want to do splice.
-   * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
-   * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
-   * @param {Array} [elements] The new columns to add.
-   * @returns {Array} Returns removed portion of columns.
-   */
-  spliceCol(col, index, amount, ...elements) {
-    const colData = this.instance.getDataAtCol(col);
-    const removed = colData.slice(index, index + amount);
-    const after = colData.slice(index + amount);
-
-    extendArray(elements, after);
-    let i = 0;
-
-    while (i < amount) {
-      elements.push(null); // add null in place of removed elements
-      i += 1;
-    }
-    to2dArray(elements);
-    this.instance.populateFromArray(index, col, elements, null, null, 'spliceCol');
-
-    return removed;
-  }
-
-  /**
-   * Add/Removes data from the row.
-   *
-   * @param {number} row Physical index of row in which do you want to do splice.
-   * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
-   * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
-   * @param {Array} [elements] The new rows to add.
-   * @returns {Array} Returns removed portion of rows.
-   */
-  spliceRow(row, index, amount, ...elements) {
-    const rowData = this.instance.getDataAtRow(row);
-    const removed = rowData.slice(index, index + amount);
-    const after = rowData.slice(index + amount);
-
-    extendArray(elements, after);
-    let i = 0;
-
-    while (i < amount) {
-      elements.push(null); // add null in place of removed elements
-      i += 1;
-    }
-    this.instance.populateFromArray(row, index, [elements], null, null, 'spliceRow');
-
-    return removed;
   }
 
   /**

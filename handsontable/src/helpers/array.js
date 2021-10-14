@@ -1,31 +1,4 @@
 /**
- * @param {Array} arr An array to process.
- */
-export function to2dArray(arr) {
-  const ilen = arr.length;
-  let i = 0;
-
-  while (i < ilen) {
-    arr[i] = [arr[i]];
-    i += 1;
-  }
-}
-
-/**
- * @param {Array} arr An array to extend.
- * @param {Array} extension The data to extend from.
- */
-export function extendArray(arr, extension) {
-  const ilen = extension.length;
-  let i = 0;
-
-  while (i < ilen) {
-    arr.push(extension[i]);
-    i += 1;
-  }
-}
-
-/**
  * @param {Array} arr An array to pivot.
  * @returns {Array}
  */
