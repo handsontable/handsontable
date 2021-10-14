@@ -21,7 +21,7 @@ if (argv._.length === 0) {
   process.exit(1);
 }
 
-(async () => {
+(async() => {
   const prependWithScope = (packageName) => {
     if (packageName !== 'handsontable' && packageName !== 'examples') {
       return `@handsontable/${packageName}`;
