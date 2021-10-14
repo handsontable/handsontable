@@ -1806,11 +1806,21 @@ export default () => {
      */
     readOnly: false,
 
-    /* eslint-enable jsdoc/require-description-complete-sentence */
-
     /**
      * @description
-     * When added to a `column` property, it skips the column on paste and pastes the data on the next column to the right.
+     * The `skipColumnOnPaste` option determines whether you can paste data into a given column.
+     *
+     * You can only apply the `skipColumnOnPaste` option to an entire column, using the [`columns`](#columns) option.
+     *
+     * You can set the `skipColumnOnPaste` option to one of the following:
+     *
+     * | Setting           | Description                                                                                           |
+     * | ----------------- | ----------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Enable pasting data into this column                                                                  |
+     * | `true`            | - Disable pasting data into this column<br>- On pasting, paste data into the next column to the right |
+     *
+     * Read more:
+     * - [Configuration options: Setting column options &#8594;](@/guides/getting-started/setting-options.md#setting-column-options)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1821,7 +1831,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // don't paste data to this column
+     *     // disable pasting data into this column
      *     skipColumnOnPaste: true
      *   }
      * ],
@@ -1831,7 +1841,20 @@ export default () => {
 
     /**
      * @description
-     * When added to a cell property, it skips the row on paste and pastes the data on the following row.
+     *
+     * The `skipRowOnPaste` option determines whether you can paste data into a given row.
+     *
+     * You can only apply the `skipRowOnPaste` option to an entire row, using the [`cells`](#cells) option.
+     *
+     * You can set the `skipRowOnPaste` option to one of the following:
+     *
+     * | Setting           | Description                                                                         |
+     * | ----------------- | ----------------------------------------------------------------------------------- |
+     * | `false` (default) | Enable pasting data into this row                                                   |
+     * | `true`            | - Disable pasting data into this row<br>- On pasting, paste data into the row below |
+     *
+     * Read more:
+     * - [Configuration options: Setting row options &#8594;](@/guides/getting-started/setting-options.md#setting-row-options)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1843,7 +1866,7 @@ export default () => {
      * cells: function(row, column) {
      *  const cellProperties = {};
      *
-     *  // don't paste data to the second row
+     *  // disable pasting data into row 1
      *  if (row === 1) {
      *    cellProperties.skipRowOnPaste = true;
      *  }
@@ -1856,9 +1879,28 @@ export default () => {
 
     /**
      * @description
-     * If set to `true`, enables the {@link Search} plugin with a default configuration.
-     * If set to an object, enables the {@link Search} plugin with a custom configuration.
-     * See the guide on [how to search values in Handsontable](@/guides/accessories-and-menus/searching-values.md).
+     * The `search` option enables and configures the [`Search`](@/api/search.md) plugin.
+     *
+     * You can set the `search` option to one of the following:
+     *
+     * | Setting           | Description                                                                          |
+     * | ----------------- | ------------------------------------------------------------------------------------ |
+     * | `false` (default) | Disable the [`Search`](@/api/search.md) plugin                                       |
+     * | `true`            | Enable the [`Search`](@/api/search.md) plugin with the default configuration         |
+     * | An object         | - Enable the [`Search`](@/api/search.md) plugin<br>- Apply your custom configuration |
+     *
+     * If you set the `search` option to an object, you can configure the following search options:
+     *
+     * | Option              | Possible settings | Description                                                                                          |
+     * | ------------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
+     * | `searchResultClass` | A string          | Add a custom CSS class name to search results                                                        |
+     * | `queryMethod`       | A function        | Add a [custom query method](@/guides/accessories-and-menus/searching-values.md#custom-query-method)  |
+     * | `callback`          | A function        | Add a [custom callback function](@/guides/accessories-and-menus/searching-values.md#custom-callback) |
+     *
+     * Read more:
+     * - [Searching values &#8594;](@/guides/accessories-and-menus/searching-values.md)
+     * - [Searching values: Custom query method &#8594;](@/guides/accessories-and-menus/searching-values.md#custom-query-method)
+     * - [Searching values: Custom callback &#8594;](@/guides/accessories-and-menus/searching-values.md#custom-callback)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -1867,24 +1909,27 @@ export default () => {
      *
      * @example
      * ```js
-     * // set to `true`, to enable the Search plugin with a default configuration
+     * // enable the `Search` plugin with the default configuration
      * search: true,
-     * // or set to an object, to enable the Search plugin with a custom configuration
+     *
+     * // enable the `Search` plugin with a custom configuration
      * search: {
+     *   // add a `customClass` CSS class name to search results
      *   searchResultClass: 'customClass',
+     *   // add a custom query method
      *   queryMethod: function(queryStr, value) {
      *     ...
      *   },
+     *   // add a custom callback function
      *   callback: function(instance, row, column, value, result) {
      *     ...
      *   }
      * }
-     *
-     * // set to `false, to disable the Search plugin
-     * search: false,
      * ```
      */
     search: false,
+
+    /* eslint-enable jsdoc/require-description-complete-sentence */
 
     /**
      * @description
