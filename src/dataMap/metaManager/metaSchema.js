@@ -123,7 +123,7 @@ export default () => {
 
     /**
      * @description
-     * When the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
+     * If the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
      * (or is empty), the `dataSchema` option defines the structure of new rows.
      *
      * Read more:
@@ -1123,10 +1123,10 @@ export default () => {
     /**
      * The `enterMoves` option configures the action of the <kbd>Enter</kbd> key.
      *
-     * When the [`enterBeginsEditing`](#enterBeginsEditing) option is set to `true`,
+     * If the [`enterBeginsEditing`](#enterBeginsEditing) option is set to `true`,
      * the `enterMoves` setting applies to the **second** pressing of the <kbd>Enter</kbd> key.
      *
-     * When the [`enterBeginsEditing`](#enterBeginsEditing) option is set to `false`,
+     * If the [`enterBeginsEditing`](#enterBeginsEditing) option is set to `false`,
      * the `enterMoves` setting applies to the **first** pressing of the <kbd>Enter</kbd> key.
      *
      * You can set the `enterMoves` option to an object with the following properties
@@ -1394,14 +1394,14 @@ export default () => {
 
     /**
      * @description
-     * The `stretchH` option sets the behavior of columns when the declared grid width
+     * The `stretchH` option determines what happens when the declared grid width
      * is different from the calculated sum of all column widths.
      *
      * You can set the `stretchH` option to one of the following:
      *
      * | Setting            | Description                                                       |
      * | ------------------ | ----------------------------------------------------------------- |
-     * | `'none'` (default) | Don't fit the grid to the container (disable column stretching)    |
+     * | `'none'` (default) | Don't fit the grid to the container (disable column stretching)   |
      * | `'last'`           | Fit the grid to the container, by stretching only the last column |
      * | `'all'`            | Fit the grid to the container, by stretching all columns evenly   |
      *
@@ -1504,8 +1504,8 @@ export default () => {
     },
 
     /**
-     * When the `observeDOMVisibility` option is set to `true`,
-     * Handsontable rerenders once it detects that the grid was made visible in the DOM.
+     * If the `observeDOMVisibility` option is set to `true`,
+     * Handsontable rerenders every time it detects that the grid was made visible in the DOM.
      *
      * @memberof Options#
      * @type {boolean}
@@ -1521,10 +1521,22 @@ export default () => {
     observeDOMVisibility: true,
 
     /**
-     * If set to `true`, Handsontable will accept values that were marked as invalid by the cell `validator`. It will
-     * result with *invalid* cells being treated as *valid* (will save the *invalid* value into the Handsontable data source).
-     * If set to `false`, Handsontable will *not* accept the invalid values and won't allow the user to close the editor.
-     * This option will be particularly useful when used with the Autocomplete's `strict` mode.
+     * The `allowInvalid` option determines whether Handsontable accepts values
+     * that were marked as `invalid` by the [cell validator](@/guides/cell-functions/cell-validator.md).
+     *
+     * You can set the `allowInvalid` option to one of the following:
+     *
+     * | Setting          | Description                                                                                                                                                                        |
+     * | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | - Accept `invalid` values<br>- Allow the user to close the [cell editor](@/guides/cell-functions/cell-editor.md)<br>- Save `invalid` values into the data source                   |
+     * | `false`          | - Don't accept `invalid` values<br>- Don't allow the user to close the [cell editor](@/guides/cell-functions/cell-editor.md)<br>- Don't save `invalid` values into the data source |
+     *
+     * Setting the `allowInvalid` option to `false` can be useful when used with the [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode).
+     *
+     * Read more:
+     * - [Cell validator &#8594;](@/guides/cell-functions/cell-validator.md)
+     * - [Cell editor &#8594;](@/guides/cell-functions/cell-editor.md)
+     * - [Autocomplete strict mode &#8594;](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1533,15 +1545,26 @@ export default () => {
      *
      * @example
      * ```js
-     * // don't save the invalid values
+     * // don't accept `invalid` values
+     * // don't allow the user to close the cell editor
+     * // don't save `invalid` values into the data source
      * allowInvalid: false,
      * ```
      */
     allowInvalid: true,
 
     /**
-     * If set to `true`, Handsontable will accept values that are empty (`null`, `undefined` or `''`). If set
-     * to `false`, Handsontable will *not* accept the empty values and mark cell as invalid.
+     * The `allowEmpty` option determines whether Handsontable accepts the following values:
+     * - `null`
+     * - `undefined`
+     * - `''`
+     *
+     * You can set the `allowEmpty` option to one of the following:
+     *
+     * | Setting          | Description                                                                                                                           |
+     * | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | - Accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` and `''` values as `valid`              |
+     * | `false`          | - Don't accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` and `''` values with as `invalid` |
      *
      * @memberof Options#
      * @type {boolean}
@@ -1550,7 +1573,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // allow empty values for all cells (whole table)
+     * // allow empty values in every cell of the entire grid
      * allowEmpty: true,
      *
      * // or
@@ -1558,7 +1581,7 @@ export default () => {
      *   {
      *     data: 'date',
      *     dateFormat: 'DD/MM/YYYY',
-     *     // allow empty values only for the 'date' column
+     *     // allow empty values in every cell of the 'date' column
      *     allowEmpty: true
      *   }
      * ],
@@ -1567,7 +1590,11 @@ export default () => {
     allowEmpty: true,
 
     /**
-     * CSS class name for cells that did not pass validation.
+     * The `invalidCellClassName` option lets you add a CSS class name to cells
+     * that were marked as `invalid` by the [cell validator](@/guides/cell-functions/cell-validator.md).
+     *
+     * Read more:
+     * - [Cell validator &#8594;](@/guides/cell-functions/cell-validator.md)
      *
      * @memberof Options#
      * @type {string}
@@ -1576,15 +1603,22 @@ export default () => {
      *
      * @example
      * ```js
-     * // set custom validation error class
-     * invalidCellClassName: 'highlight--error',
+     * // add a `highlight-error` CSS class name
+     * // to every `invalid` cell`
+     * invalidCellClassName: 'highlight-error',
      * ```
      */
     invalidCellClassName: 'htInvalid',
 
     /**
-     * When set to an non-empty string, displayed as the cell content for empty cells. If a value of a different type is provided,
-     * it will be stringified and applied as a string.
+     * The `placeholder` option lets you display placeholder text in every empty cell.
+     *
+     * You can set the `placeholder` option to one of the following:
+     *
+     * | Setting            | Example        | Description                                                           |
+     * | ------------------ | -------------- | --------------------------------------------------------------------- |
+     * | A non-empty string | `'Empty cell'` | Display `Empty cell` text in empty cells                              |
+     * | A non-string value | `000`          | Display `000` text in empty cells (non-string values get stringified) |
      *
      * @memberof Options#
      * @type {string}
@@ -1593,14 +1627,27 @@ export default () => {
      *
      * @example
      * ```js
-     * // add custom placeholder content to empty cells
-     * placeholder: 'Empty Cell',
+     * // display 'Empty cell' text
+     * // in every empty cell of the entire grid
+     * placeholder: 'Empty cell',
+     *
+     * // or
+     * columns: [
+     *   {
+     *     data: 'date',
+     *     dateFormat: 'DD/MM/YYYY',
+     *     // display 'Empty date cell' text
+     *     // in every empty cell of the `date` column
+     *     placeholder: 'Empty date cell'
+     *   }
+     * ],
      * ```
      */
     placeholder: void 0,
 
     /**
-     * CSS class name for cells that have a placeholder in use.
+     * The `placeholderCellClassName` option lets you add a CSS class name to cells
+     * that contain [`placeholder`](#placeholder) text.
      *
      * @memberof Options#
      * @type {string}
@@ -1609,14 +1656,15 @@ export default () => {
      *
      * @example
      * ```js
-     * // set custom placeholder class
+     * // add a `has-placeholder` CSS class name
+     * // to every cell that contains `placeholder` text
      * placeholderCellClassName: 'has-placeholder',
      * ```
      */
     placeholderCellClassName: 'htPlaceholder',
 
     /**
-     * CSS class name for read-only cells.
+     * The `readOnlyCellClassName` option lets you add a CSS class name to [read-only](#readOnly) cells.
      *
      * @memberof Options#
      * @type {string}
@@ -1625,7 +1673,8 @@ export default () => {
      *
      * @example
      * ```js
-     * // set custom read-only class
+     * // add a `is-readOnly` CSS class name
+     * // to every read-only cell
      * readOnlyCellClassName: 'is-readOnly',
      * ```
      */
@@ -1634,23 +1683,28 @@ export default () => {
     /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * @description
-     * If a string is provided, it may be one of the following predefined values:
-     * * `autocomplete`,
-     * * `checkbox`,
-     * * `html`,
-     * * `numeric`,
-     * * `password`.
-     * * `text`.
+     * The `renderer` option sets a [cell renderer](@/guides/cell-functions/cell-renderer.md) function for your cells.
      *
-     * Or you can [register](@/guides/cell-functions/cell-renderer.md) the custom renderer under specified name and use its name as an alias in your
-     * configuration.
+     * You can set the `renderer` option to one of the following [cell renderer aliases](@/guides/cell-functions/cell-renderer.md):
      *
-     * If a function is provided, it will receive the following arguments:
-     * ```js
-     * function(instance, TD, row, col, prop, value, cellProperties) {}
-     * ```
+     * | Alias               | Cell renderer function                                                         |
+     * | ------------------- | ------------------------------------------------------------------------------ |
+     * | A custom alias      | Your [custom cell renderer](@/guides/cell-functions/cell-renderer.md) function |
+     * | `'autocomplete'`    | `Handsontable.renderers.AutocompleteRenderer`                                  |
+     * | `'base'`            | `Handsontable.renderers.BaseRenderer`                                          |
+     * | `'checkbox'`        | `Handsontable.renderers.CheckboxRenderer`                                      |
+     * | `'date'`            | `Handsontable.renderers.DateRenderer`                                          |
+     * | `'dropdown'`        | `Handsontable.renderers.DropdownRenderer`                                      |
+     * | `'html'`            | `Handsontable.renderers.HtmlRenderer`                                          |
+     * | `'numeric'`         | `Handsontable.renderers.NumericRenderer`                                       |
+     * | `'password'`        | `Handsontable.renderers.PasswordRenderer`                                      |
+     * | `'text'`            | `Handsontable.renderers.TextRenderer`                                          |
+     * | `'time'`            | `Handsontable.renderers.TimeRenderer`                                          |
      *
-     * You can read more about custom renderes [in the documentation](@/guides/cell-functions/cell-renderer.md).
+     * Read more:
+     * - [Cell renderer &#8594;](@/guides/cell-functions/cell-renderer.md)
+     * - [Cell type &#8594;](@/guides/cell-types/cell-type.md)
+     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @type {string|Function}
@@ -1659,30 +1713,20 @@ export default () => {
      *
      * @example
      * ```js
-     * // register custom renderer
-     * Handsontable.renderers.registerRenderer('my.renderer', function(instance, TD, row, col, prop, value, cellProperties) {
-     *   TD.innerHTML = value;
-     * });
+     * // use the `numeric` renderer for every cell of the entire grid
+     * renderer: `'numeric'`,
      *
-     * // use it for selected column:
+     * // apply the `renderer` option to individual columns
      * columns: [
      *   {
-     *     // as a string with the name of build in renderer
-     *     renderer: 'autocomplete',
-     *     editor: 'select'
+     *     // use the `autocomplete` renderer for every cell of this column
+     *     renderer: 'autocomplete'
      *   },
      *   {
-     *     // as an alias to custom renderer registered above
-     *     renderer: 'my.renderer'
-     *   },
-     *   {
-     *     // renderer as custom function
-     *     renderer: function(hotInstance, TD, row, col, prop, value, cellProperties) {
-     *       TD.style.color = 'blue';
-     *       TD.innerHTML = value;
-     *     }
+     *     // use the `myCustomRenderer` renderer for every cell of this column
+     *     renderer: 'myCustomRenderer'
      *   }
-     * ],
+     * ]
      * ```
      */
     renderer: void 0,
