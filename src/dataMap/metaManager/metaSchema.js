@@ -2049,7 +2049,7 @@ export default () => {
      * | `'dropdown'`        | `Handsontable.editors.DropdownEditor`                                      |
      * | `'handsontable'`    | `Handsontable.editors.HandsontableEditor`                                  |
      * | `'numeric'`         | `Handsontable.editors.NumericEditor`                                       |
-     * | `'password'`        | `Handsontable.renderers.PasswordEditor`                                  |
+     * | `'password'`        | `Handsontable.renderers.PasswordEditor`                                    |
      * | `'select'`          | `Handsontable.editors.SelectEditor`                                        |
      * | `'text'`            | `Handsontable.editors.TextEditor`                                          |
      *
@@ -2123,11 +2123,20 @@ export default () => {
      */
     visibleRows: 10,
 
-    /* eslint-enable jsdoc/require-description-complete-sentence */
-
     /**
-     * Makes autocomplete or dropdown width the same as the edited cell width. If `false` then editor will be scaled
-     * according to its content.
+     * The `trimDropdown` option configures the width of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
+     * and [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) lists.
+     *
+     * You can set the `trimDropdown` option to one of the following:
+     *
+     * | Setting          | Description                                                                     |
+     * | ---------------- | ------------------------------------------------------------------------------- |
+     * | `true` (default) | Make the dropdown/autocomplete list's width the same as the edited cell's width |
+     * | `false`          | Scale the dropdown/autocomplete list's width to the list's content              |
+     *
+     * Read more:
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2139,7 +2148,14 @@ export default () => {
      * columns: [
      *   {
      *     type: 'autocomplete',
-     *     // don't trim dropdown width with column width
+     *     // for every cell of this column
+     *     // make the `autocomplete` list's width the same as the edited cell's width
+     *     trimDropdown: true,
+     *   },
+     *   {
+     *     type: 'dropdown',
+     *     // for every cell of this column
+     *     // scale the `dropdown` list's width to the list's content
      *     trimDropdown: false,
      *   }
      * ],
@@ -2148,7 +2164,16 @@ export default () => {
     trimDropdown: true,
 
     /**
-     * When set to `true`, the text of the cell content is wrapped if it does not fit in the fixed column width.
+     * The `wordWrap` option configures whether content that exceeds a column's width is wrapped or not.
+     *
+     * You can set the `wordWrap` option to one of the following:
+     *
+     * | Setting          | Description                                             |
+     * | ---------------- | ------------------------------------------------------- |
+     * | `true` (default) | If content exceeds the column's width, wrap the content |
+     * | `false`          | Don't wrap content                                      |
+     *
+     * To style cells that don't wrap content, use the [`noWordWrapClassName`](#noWordWrapClassName) option.
      *
      * @memberof Options#
      * @type {boolean}
@@ -2157,11 +2182,17 @@ export default () => {
      *
      * @example
      * ```js
+     * // set column width for every column of the entire grid
      * colWidths: 100,
+     *
      * columns: [
      *   {
-     *     // fixed column width is set but don't wrap the content
+     *     // don't wrap content in this column
      *     wordWrap: false,
+     *   },
+     *   {
+     *     // if content exceeds this column's width, wrap the content
+     *     wordWrap: true,
      *   }
      * ],
      * ```
@@ -2169,7 +2200,8 @@ export default () => {
     wordWrap: true,
 
     /**
-     * CSS class name added to cells with cell meta `wordWrap: false`.
+     * The `noWordWrapClassName` option lets you add a CSS class name
+     * to every cell that has the [`wordWrap`](#wordWrap) option set to `false`.
      *
      * @memberof Options#
      * @type {string}
@@ -2178,7 +2210,8 @@ export default () => {
      *
      * @example
      * ```js
-     * // set custom class for cells which content won't be wrapped
+     * // add an `is-noWrapCell` CSS class name
+     * // to every cell that doesn't wrap content
      * noWordWrapClassName: 'is-noWrapCell',
      * ```
      */
@@ -2186,19 +2219,19 @@ export default () => {
 
     /**
      * @description
-     * Defines if the right-click context menu should be enabled. Context menu allows to create new row or column at any
-     * place in the grid among [other features](@/guides/accessories-and-menus/context-menu.md).
-     * Possible values:
-     * * `true` (to enable default options),
-     * * `false` (to disable completely)
-     * * an array of [predefined options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options),
-     * * an object [with defined structure](@/guides/accessories-and-menus/context-menu.md#context-menu-with-fully-custom-configuration).
+     * The `contextMenu` option enables and configures the [`ContextMenu`](@/api/contextMenu.md) plugin.
      *
-     * If the value is an object, you can also customize the options with:
-     * * `disableSelection` - a `boolean`, if set to true it prevents mouseover from highlighting the item for selection
-     * * `isCommand` - a `boolean`, if set to false it prevents clicks from executing the command and closing the menu.
+     * You can set the `contextMenu` option to one of the following:
      *
-     * See [the context menu demo](@/guides/accessories-and-menus/context-menu.md) for examples.
+     * | Setting   | Description                                                                                                                                                                                             |
+     * | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`ContextMenu`](@/api/contextMenu.md) plugin                                                                                                                                                |
+     * | `true`    | - Enable the [`ContextMenu`](@/api/contextMenu.md) plugin<br>- Use the [default context menu options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-default-options)                 |
+     * | An array  | - Enable the [`ContextMenu`](@/api/contextMenu.md) plugin<br>- Modify [individual context menu options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options)              |
+     * | An object | - Enable the [`ContextMenu`](@/api/contextMenu.md) plugin<br>- Apply a [custom context menu configuration](@/guides/accessories-and-menus/context-menu.md#context-menu-with-fully-custom-configuration) |
+     *
+     * Read more:
+     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|object}
@@ -2207,13 +2240,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean
+     * // enable the `ContextMenu` plugin
+     * // use the default context menu options
      * contextMenu: true,
      *
-     * // as an array
+     * // enable the `ContextMenu` plugin
+     * // modify individual context menu options
      * contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo'],
      *
-     * // as an object (`name` attribute is required in the custom keys)
+     * // enable the `ContextMenu` plugin
+     * // apply a custom context menu configuration
      * contextMenu: {
      *   items: {
      *     "option1": {
@@ -3460,6 +3496,8 @@ export default () => {
      * ```
      */
     sortByRelevance: true,
+
+    /* eslint-enable jsdoc/require-description-complete-sentence */
 
     /**
      * If defined as `true`, when the user types into the input area the Autocomplete's suggestion list is updated to only
