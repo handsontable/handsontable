@@ -394,7 +394,7 @@ export default () => {
      * via the {@link ManualRowResize} and {@link AutoRowSize} plugins (if they are enabled).
      *
      * Read more:
-     * - [Row height &#8594;](@/guides/row/row-height.md)
+     * - [Row height &#8594;](@/guides/rows/row-height.md)
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -1992,8 +1992,8 @@ export default () => {
      *
      * | Setting                                                                                                        | Description                                                                                                                        |
      * | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true` (default) | - Enable copying for this cell<br>- On pressing <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>C</kbd>, add the cell's value to the clipboard |
-     * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))      | - Disable copying for this cell                                                                                                    |
+     * | `true` (default)                                                                                               | - Enable copying for this cell<br>- On pressing <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>C</kbd>, add the cell's value to the clipboard |
+     * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))        | - Disable copying for this cell                                                                                                    |
      *
      * Read more:
      * - [Clipboard &#8594;](@/guides/cell-features/clipboard.md)
@@ -2338,7 +2338,7 @@ export default () => {
      * set the `undo` option to `false`.
      *
      * Read more:
-     * - [Undo and redo &#8594;](@/guides/accessories-and-menus/undo-and-redo.md)
+     * - [Undo and redo &#8594;](@/guides/accessories-and-menus/undo-redo.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2452,19 +2452,32 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable the `ColumnMoving` plugin
+     * // enable the `ManualColumnMove` plugin
      * manualColumnMove: true,
      *
-     * // as a array with initial order
-     * // (move column index at 0 to 1 and move column index at 1 to 4)
-     * manualColumnMove: [1, 4],
+     * // enable the `ManualColumnMove` plugin
+     * // at initialization, move column 0 to 1
+     * // at initialization, move column 1 to 4
+     * // at initialization, move column 2 to 6
+     * manualColumnMove: [1, 4, 6],
      * ```
      */
     manualColumnMove: void 0,
 
     /**
      * @description
-     * Turns on [Manual column resize](@/guides/columns/column-width.md#column-stretching), if set to a boolean or define initial column resized widths (an an array of widths).
+     * The `manualColumnResize` option configures the [`ManualColumnResize`](@/api/manualColumnResize.md) plugin.
+     *
+     * You can set the `manualColumnResize` option to one of the following:
+     *
+     * | Setting  | Description                                                                                                           |
+     * | -------- | --------------------------------------------------------------------------------------------------------------------- |
+     * | `true`   | Enable the [`ManualColumnResize`](@/api/manualColumnResize.md) plugin                                                 |
+     * | `false`  | Disable the [`ManualColumnResize`](@/api/manualColumnResize.md) plugin                                                |
+     * | An array | - Enable the [`ManualColumnResize`](@/api/manualColumnResize.md) plugin<br>- Set initial widths of individual columns |
+     *
+     * Read more:
+     * - [Column width: Column stretching &#8594;](@/guides/columns/column-width.md#column-stretching)
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -2473,19 +2486,32 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean to enable column resize
+     * // enable the `manualColumnResize` plugin
      * manualColumnResize: true,
      *
-     * // as a array with initial widths
-     * // (column at 0 index has 40px and column at 1 index has 50px)
-     * manualColumnResize: [40, 50],
+     * // enable the `manualColumnResize` plugin
+     * // set the initial width of column 0 to 40 pixels
+     * // set the initial width of column 1 to 50 pixels
+     * // set the initial width of column 2 to 60 pixels
+     * manualColumnResize: [40, 50, 60],
      * ```
      */
     manualColumnResize: void 0,
 
     /**
      * @description
-     * Turns on [Manual row move](@/guides/columns/column-moving.md), if set to a boolean or define initial row order (as an array of row indexes).
+     * The `manualRowMove` option configures the [`ManualRowMove`](@/api/manualRowMove.md) plugin.
+     *
+     * You can set the `manualRowMove` option to one of the following:
+     *
+     * | Setting  | Description                                                                                               |
+     * | -------- | --------------------------------------------------------------------------------------------------------- |
+     * | `true`   | Enable the [`ManualRowMove`](@/api/manualRowMove.md) plugin                                               |
+     * | `false`  | Disable the [`ManualRowMove`](@/api/manualRowMove.md) plugin                                              |
+     * | An array | - Enable the [`ManualRowMove`](@/api/manualRowMove.md) plugin<br>- Move individual rows at initialization |
+     *
+     * Read more:
+     * - [Row moving &#8594;](@/guides/rows/row-moving.md)
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -2494,19 +2520,32 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean
+     * // enable the `ManualRowMove` plugin
      * manualRowMove: true,
      *
-     * // as a array with initial order
-     * // (move row index at 0 to 1 and move row index at 1 to 4)
-     * manualRowMove: [1, 4],
+     * // enable the `ManualRowMove` plugin
+     * // at initialization, move row 0 to 1
+     * // at initialization, move row 1 to 4
+     * // at initialization, move row 2 to 6
+     * manualColumnMove: [1, 4, 6],
      * ```
      */
     manualRowMove: void 0,
 
     /**
      * @description
-     * Turns on [Manual row resize](@/guides/columns/column-width.md#column-stretching), if set to a boolean or define initial row resized heights (as an array of heights).
+     * The `manualRowResize` option configures the [`ManualRowResize`](@/api/manualRowResize.md) plugin.
+     *
+     * You can set the `manualRowResize` option to one of the following:
+     *
+     * | Setting  | Description                                                                                                           |
+     * | -------- | --------------------------------------------------------------------------------------------------------------------- |
+     * | `true`   | Enable the [`ManualRowResize`](@/api/manualRowResize.md) plugin                                                 |
+     * | `false`  | Disable the [`ManualRowResize`](@/api/manualRowResize.md) plugin                                                |
+     * | An array | - Enable the [`ManualRowResize`](@/api/manualRowResize.md) plugin<br>- Set initial heights of individual rows |
+     *
+     * Read more:
+     * - [Row height: Adjust the row height manually &#8594;](@/guides/rows/row-height.md#adjust-the-row-height-manually)
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -2515,12 +2554,14 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean to enable row resize
-     * manualRowResize: true,
+     * // enable the `ManualRowResize` plugin
+     * manualColumnResize: true,
      *
-     * // as an array to set initial heights
-     * // (row at 0 index has 40px and row at 1 index has 50px)
-     * manualRowResize: [40, 50],
+     * // enable the `ManualRowResize` plugin
+     * // set the initial height of row 0 to 40 pixels
+     * // set the initial height of row 1 to 50 pixels
+     * // set the initial height of row 2 to 60 pixels
+     * manualColumnResize: [40, 50, 60],
      * ```
      */
     manualRowResize: void 0,
