@@ -2373,7 +2373,7 @@ export default () => {
      * | `indicator`              | `true`: Display an arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
      * | `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
      * | `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
-     * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/row-sorting.md#custom-compare-function)                                                                |
+     * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/row-sorting.md#custom-compare-functions)                                                                |
      *
      * If you set the `columnSorting` option to an object,
      * you can also sort individual columns at Handsontable's initialization.
@@ -2617,22 +2617,38 @@ export default () => {
 
     /**
      * @description
-     * Turns on [Multi-column sorting](@/guides/rows/row-sorting.md). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
-     * * `initialConfig` - Array containing objects, every with predefined keys:
-     *   * `column` - sorted column
-     *   * `sortOrder` - order in which column will be sorted
-     *     * `'asc'` = ascending
-     *     * `'desc'` = descending
-     * * `indicator` - display status for sorting order indicator (an arrow icon in the column header, specifying the sorting order).
-     *   * `true` = show sort indicator for sorted columns
-     *   * `false` = don't show sort indicator for sorted columns
-     * * `headerAction` - allow to click on the headers to sort
-     *   * `true` = turn on possibility to click on the headers to sort
-     *   * `false` = turn off possibility to click on the headers to sort
-     * * `sortEmptyCells` - how empty values should be handled, for more information see @{link Options#allowEmpty}
-     *   * `true` = the table sorts empty cells
-     *   * `false` = the table moves all empty cells to the end of the table
-     * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
+     * The `multiColumnSorting` option configures the [`MultiColumnSorting`](@/api/columnSorting.md) plugin.
+     *
+     * You can set the `multiColumnSorting` option to one of the following:
+     *
+     * | Setting    | Description                                                                                                                                                |
+     * | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true`     | Enable the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin with the default configuration                                                       |
+     * | `false`    | Disable the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin                                                                                     |
+     * | An object  | - Enable the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin<br>- Modify the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin options |
+     *
+     * If you set the `multiColumnSorting` option to an object,
+     * you can set the following [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin options:
+     *
+     * | Option                   | Possible settings                                                                                                                                |
+     * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `indicator`              | `true`: Display an arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
+     * | `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
+     * | `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
+     * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/row-sorting.md#custom-compare-functions)                                                                |
+     *
+     * If you set the `multiColumnSorting` option to an object,
+     * you can also sort individual columns at Handsontable's initialization.
+     * In the `multiColumnSorting` object, add an object named `initialConfig`,
+     * with the following properties:
+     *
+     * | Option      | Possible settings   | Description                                                      |
+     * | ----------- | ------------------- | ---------------------------------------------------------------- |
+     * | `column`    | A number            | The index of the column that you want to sort at initialization  |
+     * | `sortOrder` | `'asc'` \| `'desc'` | The sorting order:<br>`'asc'`: ascending<br>`'desc'`: descending |
+     *
+     * Read more:
+     * - [Row sorting &#8594;](@/guides/rows/row-sorting.md)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -2641,34 +2657,42 @@ export default () => {
      *
      * @example
      * ```js
-     * // as boolean
+     * // enable the `MultiColumnSorting` plugin
      * multiColumnSorting: true
      *
-     * // as an object with initial sort config (sort ascending for column at index 1 and then sort descending for column at index 0)
+     * // enable the `MultiColumnSorting` plugin with custom configuration
      * multiColumnSorting: {
-     *   initialConfig: [{
-     *     column: 1,
-     *     sortOrder: 'asc'
-     *   }, {
-     *     column: 0,
-     *     sortOrder: 'desc'
-     *   }]
-     * }
-     *
-     * // as an object which define specific sorting options for all columns
-     * multiColumnSorting: {
-     *   sortEmptyCells: true, // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
-     *   indicator: true, // true = shows indicator for all columns, false = don't show indicator for columns
-     *   headerAction: false, // true = allow to click on the headers to sort, false = turn off possibility to click on the headers to sort
+     *   // sort empty cells as well
+     *   sortEmptyCells: true,
+     *   // display an arrow icon in the column header
+     *   indicator: true,
+     *   // disable clicking on the column header to sort the column
+     *   headerAction: false,
+     *   // add a custom compare function
      *   compareFunctionFactory: function(sortOrder, columnMeta) {
      *     return function(value, nextValue) {
-     *       // Some value comparisons which will return -1, 0 or 1...
+     *       // some value comparisons which will return -1, 0 or 1...
      *     }
+     *   }
+     * }
+     *
+     * // enable the `MultiColumnSorting` plugin
+     * multiColumnSorting: {
+     *   // at initialization, sort column 1 in ascending order
+     *   initialConfig: {
+     *     column: 1,
+     *     sortOrder: 'asc'
+     *   },
+     *   // at initialization, sort column 2 in descending order
+     *   initialConfig: {
+     *     column: 2,
+     *     sortOrder: 'desc'
      *   }
      * }
      * ```
      */
     multiColumnSorting: void 0,
+
     /**
      * @description
      * Number of rows to be rendered outside of the visible part of the table. By default, it's set to `'auto'`, which
