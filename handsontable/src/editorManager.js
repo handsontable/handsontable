@@ -338,9 +338,9 @@ class EditorManager {
    */
   moveSelectionLeft(isShiftPressed) {
     if (isShiftPressed) {
-      this.selection.transformEnd(0, -1*getDirectionFactor(this.instance));
+      this.selection.transformEnd(0, -1 * getDirectionFactor(this.instance));
     } else {
-      this.selection.transformStart(0, -1*getDirectionFactor(this.instance), false);
+      this.selection.transformStart(0, -1 * getDirectionFactor(this.instance), false);
     }
   }
 
