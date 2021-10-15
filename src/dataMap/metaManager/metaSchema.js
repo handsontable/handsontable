@@ -2538,10 +2538,10 @@ export default () => {
      *
      * You can set the `manualRowResize` option to one of the following:
      *
-     * | Setting  | Description                                                                                                           |
-     * | -------- | --------------------------------------------------------------------------------------------------------------------- |
-     * | `true`   | Enable the [`ManualRowResize`](@/api/manualRowResize.md) plugin                                                 |
-     * | `false`  | Disable the [`ManualRowResize`](@/api/manualRowResize.md) plugin                                                |
+     * | Setting  | Description                                                                                                   |
+     * | -------- | ------------------------------------------------------------------------------------------------------------- |
+     * | `true`   | Enable the [`ManualRowResize`](@/api/manualRowResize.md) plugin                                               |
+     * | `false`  | Disable the [`ManualRowResize`](@/api/manualRowResize.md) plugin                                              |
      * | An array | - Enable the [`ManualRowResize`](@/api/manualRowResize.md) plugin<br>- Set initial heights of individual rows |
      *
      * Read more:
@@ -2568,8 +2568,28 @@ export default () => {
 
     /**
      * @description
-     * If set to `true`, it enables a possibility to merge cells. If set to an array of objects, it merges the cells provided
-     * in the objects (see the example below). More information on [the demo page](@/guides/cell-features/merge-cells.md).
+     * The `mergeCells` option configures the [`MergeCells`](@/api/mergeCells.md) plugin.
+     *
+     * You can set the `mergeCells` option to one of the following:
+     *
+     * | Setting             | Description                                                                                         |
+     * | ------------------- | --------------------------------------------------------------------------------------------------- |
+     * | `true`              | Enable the [`MergeCells`](@/api/mergeCells.md) plugin                                               |
+     * | `false`             | Disable the [`MergeCells`](@/api/mergeCells.md) plugin                                              |
+     * | An array of objects | - Enable the [`MergeCells`](@/api/mergeCells.md) plugin<br>- Merge specific cells at initialization |
+     *
+     * To merge specific cells at Handsontable's initialization,
+     * set the `mergeCells` option to an array of objects, with the following properties:
+     *
+     * | Property  | Description                                                |
+     * | --------- | ---------------------------------------------------------- |
+     * | `row`     | The row index of the merged section's beginning            |
+     * | `col`     | The column index of the merged section's beginning         |
+     * | `rowspan` | The width (as a number of rows) of the merged section      |
+     * | `colspan` | The height (as a number of columns ) of the merged section |
+     *
+     * Read more:
+     * - [Merge cells &#8594;](@/guides/cell-features/merge-cells.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -2578,14 +2598,17 @@ export default () => {
      *
      * @example
      * ```js
-     * // enables the mergeCells plugin
+     * // enable the `MergeCells` plugin
      * margeCells: true,
      *
-     * // declares a list of merged sections
+     * // enable the `MergeCells` plugin
+     * // and merge specific cells at initialization
      * mergeCells: [
-     *   // rowspan and colspan properties declare the width and height of a merged section in cells
+     *   // merge cells from cell (1,1) to cell (3,3)
      *   {row: 1, col: 1, rowspan: 3, colspan: 3},
+     *   // merge cells from cell (3,4) to cell (2,2)
      *   {row: 3, col: 4, rowspan: 2, colspan: 2},
+     *   // merge cells from cell (5,6) to cell (3,3)
      *   {row: 5, col: 6, rowspan: 3, colspan: 3}
      * ],
      * ```
