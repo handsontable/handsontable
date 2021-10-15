@@ -25,7 +25,7 @@ Function which do aggregation on the values for particular index.
 
 
 ### fallbackValue
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/translations/mapCollections/aggregatedCollection.js#L25
 
 :::
@@ -37,7 +37,7 @@ Fallback value when there is no calculated value for particular index.
 
 
 ### mergedValuesCache
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/translations/mapCollections/aggregatedCollection.js#L17
 
 :::
@@ -50,7 +50,7 @@ List of merged values. Value for each index is calculated using values inside re
 ## Methods
 
 ### getMergedValueAtIndex
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/translations/mapCollections/aggregatedCollection.js#L92
 
 :::
@@ -62,13 +62,13 @@ Get merged value for particular index.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| index | `number` |  | Index for which we calculate single result. |
+| index | `number` || Index for which we calculate single result. |
 | [readFromCache] | `boolean` | <code>true</code> | `optional` Determine if read results from the cache. |
 
 
 
 ### getMergedValues
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/translations/mapCollections/aggregatedCollection.js#L34
 
 :::
@@ -85,7 +85,7 @@ Get merged values for all indexes.
 
 
 ### updateCache
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/8ad9e39bea09f559dc24962196541af30811a8c3/../src/translations/mapCollections/aggregatedCollection.js#L101
 
 :::
