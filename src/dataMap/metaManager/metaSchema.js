@@ -576,7 +576,7 @@ export default () => {
      * // enable the `Comments` plugin
      * comments: true,
      *
-     * // or enable the `Comments` plugin
+     * // enable the `Comments` plugin
      * // and configure its settings
      * comments: {
      *   // display all comments with a 1-second delay
@@ -641,7 +641,7 @@ export default () => {
      * // enable the `CustomBorders` plugin
      * customBorders: true,
      *
-     * // or enable the `CustomBorders` plugin
+     * // enable the `CustomBorders` plugin
      * // and add a predefined border for a particular cell
      * customBorders: [
      *   // add an object with a border configuration for one cell
@@ -667,7 +667,7 @@ export default () => {
      *   }
      * ],
      *
-     * // or enable the `CustomBorders` plugin
+     * // enable the `CustomBorders` plugin
      * // and add a predefined border for a range of cells
      * customBorders: [
      *   // add an object with a border configuration for one range of cells
@@ -970,21 +970,21 @@ export default () => {
      * // with `autoInsertRow` enabled
      * fillHandle: true,
      *
-     * // or enable vertical autofill
+     * // enable vertical autofill
      * // with `autoInsertRow` enabled
      * fillHandle: 'vertical',
      *
-     * // or enable horizontal autofill
+     * // enable horizontal autofill
      * // with `autoInsertRow` enabled
      * fillHandle: 'horizontal',
      *
-     * // or enable autofill in all directions
+     * // enable autofill in all directions
      * // with `autoInsertRow` disabled
      * fillHandle: {
      *   autoInsertRow: false,
      * },
      *
-     * // or enable vertical autofill
+     * // enable vertical autofill
      * // with `autoInsertRow` disabled
      * fillHandle: {
      *   autoInsertRow: false,
@@ -2245,11 +2245,11 @@ export default () => {
      * contextMenu: true,
      *
      * // enable the `ContextMenu` plugin
-     * // modify individual context menu options
+     * // and modify individual context menu options
      * contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo'],
      *
      * // enable the `ContextMenu` plugin
-     * // apply a custom context menu configuration
+     * // and apply a custom context menu configuration
      * contextMenu: {
      *   items: {
      *     "option1": {
@@ -2277,7 +2277,24 @@ export default () => {
     contextMenu: void 0,
 
     /**
-     * Disables or enables the copy/paste functionality.
+     * The `copyPaste` option enables and configures the [`CopyPaste`](@/api/copyPaste.md) plugin.
+     *
+     * You can set the `copyPaste` option to one of the following:
+     *
+     * | Setting           | Description                                                                                                            |
+     * | ----------------- | ---------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default)  | Enable the [`CopyPaste`](@/api/copyPaste.md) plugin with the default configuration                                     |
+     * | `false`           | Disable the [`CopyPaste`](@/api/copyPaste.md) plugin                                                                   |
+     * | An object         | - Enable the [`CopyPaste`](@/api/copyPaste.md) plugin<br>- Modify the [`CopyPaste`](@/api/copyPaste.md) plugin options |
+     *
+     * If you set the `copyPaste` option to an object, you can set the following `CopyPaste` plugin options:
+     *
+     * | Option         | Possible settings                                  | Description                                                                                                                                                                             |
+     * | -------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `columnsLimit` | A number (default: `Infinity`)                       | A maximum number of columns that can be copied                                                                                                                                        |
+     * | `rowsLimit`    | A number (default: `Infinity`)                       | A maximum number of columns that can be copied                                                                                                                                        |
+     * | `pasteMode`    | `'overwrite'` \| `'shift_down'` \| `'shift_right'` | When pasting:<br>`'overwrite'`: overwrite currently-selected cells<br>`'shift_down'`: move currently-selected cells down<br>`'shift_right'`: move currently-selected cells to the right |
+     * | `uiContainer`  | An HTML element                                    | A UI container for the secondary focusable element                                                                                                                                      |
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -2286,14 +2303,19 @@ export default () => {
      *
      * @example
      * ```js
-     * // disable copy and paste
+     * // disable the `CopyPaste` plugin
      * copyPaste: false,
      *
-     * // enable copy and paste with custom configuration
+     * // enable the `CopyPaste` plugin
+     * // and modify the `CopyPaste` plugin options
      * copyPaste: {
+     *   // set the maximum number of columns that can be copied
      *   columnsLimit: 25,
+     *   // set the maximum number of rows that can be copied
      *   rowsLimit: 50,
+     *   // set the paste behavior
      *   pasteMode: 'shift_down',
+     *   // set the UI container
      *   uiContainer: document.body,
      * },
      * ```
@@ -3337,7 +3359,7 @@ export default () => {
      * // enable the `HiddenColumns` plugin
      * hiddenColumns: true,
      *
-     * // or enable `HiddenColumns` plugin, and configure its settings
+     * // enable `HiddenColumns` plugin, and configure its settings
      * hiddenColumns: {
      *   // set columns that are hidden by default
      *   columns: [5, 10, 15],
@@ -3370,7 +3392,7 @@ export default () => {
      * // enable the `HiddenRows` plugin
      * hiddenRows: true,
      *
-     * // or enable `HiddenRows` plugin, and configure its settings
+     * // enable `HiddenRows` plugin, and configure its settings
      * hiddenRows: {
      *   // set rows that are hidden by default
      *   rows: [5, 10, 15],
