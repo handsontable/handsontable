@@ -62,7 +62,7 @@ Get merged value for particular index.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| index | `number` | | Index for which we calculate single result. |
+| index | `number` |  | Index for which we calculate single result. |
 | [readFromCache] | `boolean` | <code>true</code> | `optional` Determine if read results from the cache. |
 
 
