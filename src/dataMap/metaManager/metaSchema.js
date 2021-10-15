@@ -1683,7 +1683,7 @@ export default () => {
     /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * @description
-     * The `renderer` option sets a [cell renderer](@/guides/cell-functions/cell-renderer.md) function for your cells.
+     * The `renderer` option sets a [cell renderer](@/guides/cell-functions/cell-renderer.md) for a cell.
      *
      * You can set the `renderer` option to one of the following [cell renderer aliases](@/guides/cell-functions/cell-renderer.md):
      *
@@ -1700,6 +1700,9 @@ export default () => {
      * | `'password'`        | `Handsontable.renderers.PasswordRenderer`                                      |
      * | `'text'`            | `Handsontable.renderers.TextRenderer`                                          |
      * | `'time'`            | `Handsontable.renderers.TimeRenderer`                                          |
+     *
+     * To set the [`renderer`](#renderer), [`editor`](#editor), and [`validator`](#validator)
+     * options all at once, use the [`type`](#type) option.
      *
      * Read more:
      * - [Cell renderer &#8594;](@/guides/cell-functions/cell-renderer.md)
@@ -2031,26 +2034,34 @@ export default () => {
      */
     copyable: true,
 
-    /* eslint-enable jsdoc/require-description-complete-sentence */
-
     /**
-     * Defines the editor for the table/column/cell.
+     * The `editor` option sets a [cell editor](@/guides/cell-functions/cell-editor.md) for a cell.
      *
-     * If a string is provided, it may be one of the following predefined values:
-     *  * [autocomplete](@/guides/cell-types/autocomplete-cell-type.md)
-     *  * [checkbox](@/guides/cell-types/checkbox-cell-type.md)
-     *  * [date](@/guides/cell-types/date-cell-type.md)
-     *  * [dropdown](@/guides/cell-types/dropdown-cell-type.md)
-     *  * [handsontable](@/guides/cell-types/handsontable-cell-type.md)
-     *  * mobile
-     *  * [password](@/guides/cell-types/password-cell-type.md)
-     *  * [select](@/guides/cell-types/select-cell-type.md)
-     *  * text.
+     * You can set the `editor` option to one of the following [cell editor aliases](@/guides/cell-functions/cell-editor.md):
      *
-     * Or you can [register](@/guides/cell-functions/cell-editor.md#registering-an-editor) the custom editor under specified name and use its name as an alias in your
-     * configuration.
+     * | Alias               | Cell editor function                                                       |
+     * | ------------------- | -------------------------------------------------------------------------- |
+     * | A custom alias      | Your [custom cell editor](@/guides/cell-functions/cell-editor.md) function |
+     * | `'autocomplete'`    | `Handsontable.editors.AutocompleteEditor`                                  |
+     * | `'base        '`    | `Handsontable.editors.BaseEditor`                                          |
+     * | `'checkbox'`        | `Handsontable.editors.CheckboxEditor`                                      |
+     * | `'date'`            | `Handsontable.editors.DateEditor`                                          |
+     * | `'dropdown'`        | `Handsontable.editors.DropdownEditor`                                      |
+     * | `'handsontable'`    | `Handsontable.editors.HandsontableEditor`                                  |
+     * | `'numeric'`         | `Handsontable.editors.NumericEditor`                                       |
+     * | `'password'`        | `Handsontable.renderers.PasswordEditor`                                  |
+     * | `'select'`          | `Handsontable.editors.SelectEditor`                                        |
+     * | `'text'`            | `Handsontable.editors.TextEditor`                                          |
      *
-     * To disable cell editing completely set `editor` property to `false`.
+     * To disable cell editing, set the `editor` option to `false`.
+     *
+     * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
+     * options all at once, use the [`type`](#type) option.
+     *
+     * Read more:
+     * - [Cell editor &#8594;](@/guides/cell-functions/cell-editor.md)
+     * - [Cell type &#8594;](@/guides/cell-types/cell-type.md)
+     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @type {string|Function|boolean}
@@ -2059,23 +2070,33 @@ export default () => {
      *
      * @example
      * ```js
+     * // use the `numeric` editor for every cell of the entire grid
+     * editor: `'numeric'`,
+     *
+     * // apply the `editor` option to individual columns
      * columns: [
      *   {
-     *     // set editor for the first column
-     *     editor: 'select'
+     *     // use the `autocomplete` editor for every cell of this column
+     *     editor: 'autocomplete'
      *   },
      *   {
-     *     // disable editor for the second column
+     *     // disable cell editing for every cell of this column
      *     editor: false
      *   }
-     * ],
+     * ]
      * ```
      */
     editor: void 0,
 
     /**
-     * Control number of choices for the autocomplete (or dropdown) typed cells. After exceeding it, a scrollbar for the
-     * dropdown list of choices will appear.
+     * The `visibleRows` option sets the height of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
+     * and [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) lists.
+     *
+     * When the number of list options exceeds the `visibleRows` number, a scrollbar appears.
+     *
+     * Read more:
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
      *
      * @memberof Options#
      * @type {number}
@@ -2087,13 +2108,22 @@ export default () => {
      * columns: [
      *   {
      *     type: 'autocomplete',
-     *     // set autocomplete options list height
+     *     // set the `autocomplete` list's height to 15 options
+     *     // for every cell of this column
      *     visibleRows: 15,
+     *   },
+     *   {
+     *     type: 'dropdown',
+     *     // set the `dropdown` list's height to 5 options
+     *     // for every cell of this column
+     *     visibleRows: 5,
      *   }
      * ],
      * ```
      */
     visibleRows: 10,
+
+    /* eslint-enable jsdoc/require-description-complete-sentence */
 
     /**
      * Makes autocomplete or dropdown width the same as the edited cell width. If `false` then editor will be scaled
