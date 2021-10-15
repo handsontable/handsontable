@@ -545,7 +545,7 @@ export default () => {
 
     /**
      * @description
-     * The `comments` option enables and configures the [`Comments`](@/api/comments.md) plugin.
+     * The `comments` option configures the [`Comments`](@/api/comments.md) plugin.
      *
      * You can set the `comments` option to one of the following:
      *
@@ -595,7 +595,7 @@ export default () => {
 
     /**
      * @description
-     * The `customBorders` option enables and configures the [`CustomBorders`](@/api/customBorders.md) plugin.
+     * The `customBorders` option configures the [`CustomBorders`](@/api/customBorders.md) plugin.
      *
      * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
      * (and add its menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md)),
@@ -937,7 +937,7 @@ export default () => {
     selectionMode: 'multiple',
 
     /**
-     * The `fillHandle` option enables and configures the [Autofill](@/api/autofill.md) plugin.
+     * The `fillHandle` option configures the [Autofill](@/api/autofill.md) plugin.
      *
      * You can set the `fillHandle` option to one the following:
      *
@@ -1882,7 +1882,7 @@ export default () => {
 
     /**
      * @description
-     * The `search` option enables and configures the [`Search`](@/api/search.md) plugin.
+     * The `search` option configures the [`Search`](@/api/search.md) plugin.
      *
      * You can set the `search` option to one of the following:
      *
@@ -2219,7 +2219,7 @@ export default () => {
 
     /**
      * @description
-     * The `contextMenu` option enables and configures the [`ContextMenu`](@/api/contextMenu.md) plugin.
+     * The `contextMenu` option configures the [`ContextMenu`](@/api/contextMenu.md) plugin.
      *
      * You can set the `contextMenu` option to one of the following:
      *
@@ -2277,7 +2277,7 @@ export default () => {
     contextMenu: void 0,
 
     /**
-     * The `copyPaste` option enables and configures the [`CopyPaste`](@/api/copyPaste.md) plugin.
+     * The `copyPaste` option configures the [`CopyPaste`](@/api/copyPaste.md) plugin.
      *
      * You can set the `copyPaste` option to one of the following:
      *
@@ -2323,9 +2323,22 @@ export default () => {
     copyPaste: true,
 
     /**
-     * If `true`, undo/redo functionality is enabled.
-     * Note: `undefined` by default but it acts as enabled.
-     * You need to switch it to `false` to disable it completely.
+     * The `undo` option configures the [`UndoRedo`](@/api/undoRedo.md) plugin.
+     *
+     * You can set the `undo` option to one of the following:
+     *
+     * | Setting | Description                                        |
+     * | ------- | -------------------------------------------------- |
+     * | `true`  | Enable the [`UndoRedo`](@/api/undoRedo.md) plugin  |
+     * | `false` | Disable the [`UndoRedo`](@/api/undoRedo.md) plugin |
+     *
+     * By default, the `undo` option is set to `undefined`,
+     * but the [`UndoRedo`](@/api/undoRedo.md) plugin acts as enabled.
+     * To disable the [`UndoRedo`](@/api/undoRedo.md) plugin completely,
+     * set the `undo` option to `false`.
+     *
+     * Read more:
+     * - [Undo and redo &#8594;](@/guides/accessories-and-menus/undo-and-redo.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2334,7 +2347,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable undo and redo
+     * // enable the `UndoRedo` plugin
      * undo: true,
      * ```
      */
@@ -2342,22 +2355,38 @@ export default () => {
 
     /**
      * @description
-     * Turns on [Column sorting](@/guides/rows/row-sorting.md). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
-     * * `initialConfig` - Object with predefined keys:
-     *   * `column` - sorted column
-     *   * `sortOrder` - order in which column will be sorted
-     *     * `'asc'` = ascending
-     *     * `'desc'` = descending
-     * * `indicator` - display status for sorting order indicator (an arrow icon in the column header, specifying the sorting order).
-     *   * `true` = show sort indicator for sorted columns
-     *   * `false` = don't show sort indicator for sorted columns
-     * * `headerAction` - allow to click on the headers to sort
-     *   * `true` = turn on possibility to click on the headers to sort
-     *   * `false` = turn off possibility to click on the headers to sort
-     * * `sortEmptyCells` - how empty values should be handled, for more information see @{link Options#allowEmpty}
-     *   * `true` = the table sorts empty cells
-     *   * `false` = the table moves all empty cells to the end of the table
-     * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
+     * The `columnSorting` option configures the [`ColumnSorting`](@/api/columnSorting.md) plugin.
+     *
+     * You can set the `columnSorting` option to one of the following:
+     *
+     * | Setting    | Description                                                                                                                            |
+     * | ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true`     | Enable the [`ColumnSorting`](@/api/columnSorting.md) plugin with the default configuration                                             |
+     * | `false`    | Disable the [`ColumnSorting`](@/api/columnSorting.md) plugin                                                                           |
+     * | An object  | - Enable the [`ColumnSorting`](@/api/columnSorting.md) plugin<br>- Modify the [`ColumnSorting`](@/api/columnSorting.md) plugin options |
+     *
+     * If you set the `columnSorting` option to an object,
+     * you can set the following [`ColumnSorting`](@/api/columnSorting.md) plugin options:
+     *
+     * | Option                   | Possible settings                                                                                                                                |
+     * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `indicator`              | `true`: Display an arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
+     * | `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
+     * | `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
+     * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/row-sorting.md#custom-compare-function)                                                                |
+     *
+     * If you set the `columnSorting` option to an object,
+     * you can also sort individual columns at Handsontable's initialization.
+     * In the `columnSorting` object, add an object named `initialConfig`,
+     * with the following properties:
+     *
+     * | Option      | Possible settings   | Description                                                      |
+     * | ----------- | ------------------- | ---------------------------------------------------------------- |
+     * | `column`    | A number            | The index of the column that you want to sort at initialization  |
+     * | `sortOrder` | `'asc'` \| `'desc'` | The sorting order:<br>`'asc'`: ascending<br>`'desc'`: descending |
+     *
+     * Read more:
+     * - [Row sorting &#8594;](@/guides/rows/row-sorting.md)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -2366,26 +2395,36 @@ export default () => {
      *
      * @example
      * ```js
-     * // as boolean
+     * // enable the `ColumnSorting` plugin
      * columnSorting: true
      *
-     * // as an object with initial sort config (sort ascending for column at index 1)
+     * // enable the `ColumnSorting` plugin with custom configuration
      * columnSorting: {
-     *   initialConfig: {
-     *     column: 1,
-     *     sortOrder: 'asc'
+     *   // sort empty cells as well
+     *   sortEmptyCells: true,
+     *   // display an arrow icon in the column header
+     *   indicator: true,
+     *   // disable clicking on the column header to sort the column
+     *   headerAction: false,
+     *   // add a custom compare function
+     *   compareFunctionFactory: function(sortOrder, columnMeta) {
+     *     return function(value, nextValue) {
+     *       // some value comparisons which will return -1, 0 or 1...
+     *     }
      *   }
      * }
      *
-     * // as an object which define specific sorting options for all columns
+     * // enable the `ColumnSorting` plugin
      * columnSorting: {
-     *   sortEmptyCells: true, // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
-     *   indicator: true, // true = shows indicator for all columns, false = don't show indicator for columns
-     *   headerAction: false, // true = allow to click on the headers to sort, false = turn off possibility to click on the headers to sort
-     *   compareFunctionFactory: function(sortOrder, columnMeta) {
-     *     return function(value, nextValue) {
-     *       // Some value comparisons which will return -1, 0 or 1...
-     *     }
+     *   // at initialization, sort column 1 in ascending order
+     *   initialConfig: {
+     *     column: 1,
+     *     sortOrder: 'asc'
+     *   },
+     *   // at initialization, sort column 2 in descending order
+     *   initialConfig: {
+     *     column: 2,
+     *     sortOrder: 'desc'
      *   }
      * }
      * ```
@@ -2393,7 +2432,18 @@ export default () => {
     columnSorting: void 0,
 
     /**
-     * Turns on [Manual column move](@/guides/columns/column-moving.md), if set to a boolean or define initial column order (as an array of column indexes).
+     * The `manualColumnMove` option configures the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin.
+     *
+     * You can set the `manualColumnMove` option to one of the following:
+     *
+     * | Setting  | Description                                                                                                        |
+     * | -------- | ------------------------------------------------------------------------------------------------------------------ |
+     * | `true`   | Enable the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin                                                  |
+     * | `false`  | Disable the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin                                                 |
+     * | An array | - Enable the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin<br>- Move individual columns at initialization |
+     *
+     * Read more:
+     * - [Column moving &#8594;](@/guides/columns/column-moving.md)
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -2402,7 +2452,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean to enable column move
+     * // enable the `ColumnMoving` plugin
      * manualColumnMove: true,
      *
      * // as a array with initial order
@@ -3340,7 +3390,7 @@ export default () => {
     formulas: void 0,
 
     /**
-     * The `hiddenColumns` option enables and configures the {@link HiddenColumns} plugin.
+     * The `hiddenColumns` option configures the {@link HiddenColumns} plugin.
      *
      * To enable the `HiddenColumns` plugin, set the `hiddenColumns` option to `true`.
      *
@@ -3373,7 +3423,7 @@ export default () => {
     hiddenColumns: void 0,
 
     /**
-     * The `hiddenRows` option enables and configures the {@link HiddenRows} plugin.
+     * The `hiddenRows` option configures the {@link HiddenRows} plugin.
      *
      * To enable the `HiddenRows` plugin, set the `hiddenRows` option to `true`.
      *
