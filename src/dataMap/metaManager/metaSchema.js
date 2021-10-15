@@ -2695,10 +2695,18 @@ export default () => {
 
     /**
      * @description
-     * Number of rows to be rendered outside of the visible part of the table. By default, it's set to `'auto'`, which
-     * makes Handsontable to attempt to calculate the best offset performance-wise.
+     * The `viewportRowRenderingOffset` option configures the number of rows
+     * to be rendered outside of the visible part of the grid.
      *
-     * You may test out different values to find the best one that works for your specific implementation.
+     * You can set the `viewportRowRenderingOffset` option to one of the following:
+     *
+     * | Setting            | Description                                             |
+     * | ------------------ | ------------------------------------------------------- |
+     * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
+     * | A number           | Set the offset manually                                 |
+     *
+     * Read more:
+     * - [Performance: Define the number of pre-rendered rows and columns &#8594;](@/guides/advanced-topics/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      *
      * @memberof Options#
      * @type {number|string}
@@ -2707,6 +2715,7 @@ export default () => {
      *
      * @example
      * ```js
+     * // render 70 rows outside of the visible part of the grid
      * viewportRowRenderingOffset: 70,
      * ```
      */
@@ -2714,10 +2723,18 @@ export default () => {
 
     /**
      * @description
-     * Number of columns to be rendered outside of the visible part of the table. By default, it's set to `'auto'`, which
-     * makes Handsontable try calculating the best offset performance-wise.
+     * The `viewportColumnRenderingOffset` option configures the number of columns
+     * to be rendered outside of the visible part of the grid.
      *
-     * You may experiment with the value to find the one that works best for your specific implementation.
+     * You can set the `viewportColumnRenderingOffset` option to one of the following:
+     *
+     * | Setting            | Description                                             |
+     * | ------------------ | ------------------------------------------------------- |
+     * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
+     * | A number           | Set the offset manually                                 |
+     *
+     * Read more:
+     * - [Performance: Define the number of pre-rendered rows and columns &#8594;](@/guides/advanced-topics/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      *
      * @memberof Options#
      * @type {number|string}
@@ -2726,6 +2743,7 @@ export default () => {
      *
      * @example
      * ```js
+     * // render 70 columns outside of the visible part of the grid
      * viewportColumnRenderingOffset: 70,
      * ```
      */
@@ -2733,22 +2751,35 @@ export default () => {
 
     /**
      * @description
-     * A function, regular expression or a string, which will be used in the process of cell validation. If a function is
-     * used, be sure to execute the callback argument with either `true` (`callback(true)`) if the validation passed
-     * or with `false` (`callback(false)`), if the validation failed.
+     * The `validator` option sets a [cell validator](@/guides/cell-functions/cell-validator.md) for a cell.
      *
-     * __Note__, that `this` in the function points to the `cellProperties` object.
+     * You can set the `validator` option to one of the following:
      *
-     * If a string is provided, it may be one of the following predefined values:
-     * * `autocomplete`,
-     * * `date`,
-     * * `numeric`,
-     * * `time`.
+     * | Setting              | Description                                                                      |
+     * | -------------------- | -------------------------------------------------------------------------------- |
+     * | A string             | A [cell validator alias](@/guides/cell-functions/cell-validator.md)              |
+     * | A function           | Your [custom cell validator function](@/guides/cell-functions/cell-validator.md) |
+     * | A regular expression | A regular expression used for cell validation                                    |
      *
-     * Or you can [register](@/guides/cell-functions/cell-validator.md) the validator function under specified name and use its name as an alias in your
-     * configuration.
+     * By setting the `validator` option to a string,
+     * you can use one of the following [cell validator aliases](@/guides/cell-functions/cell-validator.md):
      *
-     * See more [in the demo](@/guides/cell-functions/cell-validator.md).
+     * | Alias               | Cell validator function                                                 |
+     * | ------------------- | ----------------------------------------------------------------------- |
+     * | A custom alias      | Your [custom cell validator](@/guides/cell-functions/cell-validator.md) |
+     * | `'autocomplete'`    | `Handsontable.validators.AutocompleteValidator`                         |
+     * | `'date'`            | `Handsontable.validators.DateValidator`                                 |
+     * | `'dropdown'`        | `Handsontable.validators.DropdownValidator`                             |
+     * | `'numeric'`         | `Handsontable.validators.NumericValidator`                              |
+     * | `'time'`            | `Handsontable.validators.TimeValidator`                                 |
+     *
+     * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
+     * options all at once, use the [`type`](#type) option.
+     *
+     * Read more:
+     * - [Cell validator &#8594;](@/guides/cell-functions/cell-validator.md)
+     * - [Cell type &#8594;](@/guides/cell-types/cell-type.md)
+     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @type {Function|RegExp|string}
@@ -2759,19 +2790,19 @@ export default () => {
      * ```js
      * columns: [
      *    {
-     *      // as a function
+     *      // use a built-in `numeric` cell validator
+     *      validator: 'numeric'
+     *    },
+     *    {
+     *      // validate against a regular expression
+     *      validator: /^[0-9]$/
+     *    },
+     *    {
+     *      // add a custom cell validator function
      *      validator: function(value, callback) {
      *          ...
      *      }
      *    },
-     *    {
-     *      // regular expression
-     *      validator: /^[0-9]$/
-     *    },
-     *    {
-     *      // as a string
-     *      validator: 'numeric'
-     *    }
      * ],
      * ```
      */
