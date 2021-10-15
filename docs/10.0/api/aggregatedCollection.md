@@ -13,7 +13,7 @@ editLink: false
 ## Members
 
 ### aggregationFunction
-  
+
 ::: source-code-link https://github.com/handsontable/handsontable/blob/8fefd4e3b0aa3b030c1cc59eabc183d8e1049360/src/translations/mapCollections/aggregatedCollection.js#L21
 
 :::
