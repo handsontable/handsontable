@@ -1981,13 +1981,20 @@ export default () => {
      */
     type: 'text',
 
-    /* eslint-enable jsdoc/require-description-complete-sentence */
-
     /**
      * @description
-     * Makes a cell copyable (pressing <kbd>CTRL</kbd> + <kbd>C</kbd> on your keyboard moves its value to system clipboard).
+     * The `copyable` option determines whether a cell's value can be copied to the clipboard or not.
      *
-     * __Note:__ this setting is `false` by default for cells with type `password`.
+     * You can set the `copyable` option to one of the following:
+     *
+     * | Setting                                                                                                        | Description                                                                                                                        |
+     * | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | - Enable copying for this cell<br>- On pressing <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>C</kbd>, add the cell's value to the clipboard |
+     * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))      | - Disable copying for this cell                                                                                                    |
+     *
+     * Read more:
+     * - [Clipboard &#8594;](@/guides/cell-features/clipboard.md)
+     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1996,17 +2003,35 @@ export default () => {
      *
      * @example
      * ```js
+     * // enable copying for every cell of the entire grid
+     * copyable: true,
+     *
+     * // enable copying for individual columns
+     * columns: [
+     *   {
+     *     // enable copying for every cell of this column
+     *     copyable: true
+     *   },
+     *   {
+     *     // disable copying for every cell of this column
+     *     copyable: false
+     *   }
+     * ]
+     *
+     * // enable copying for specific cells
      * cells: [
      *   {
      *     cell: 0,
      *     row: 0,
-     *     // cell with coordinates (0, 0) can't be copied
+     *     // disable copying for cell (0, 0)
      *     copyable: false,
      *   }
      * ],
      * ```
      */
     copyable: true,
+
+    /* eslint-enable jsdoc/require-description-complete-sentence */
 
     /**
      * Defines the editor for the table/column/cell.
