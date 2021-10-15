@@ -60,9 +60,9 @@ _aggregatedCollection.getMergedValueAtIndex(index, [readFromCache]) ⇒ \*_
 Get merged value for particular index.
 
 
-| Param           | Type      | Default           | Description                                          |
-| --------------- | --------- | ----------------- | ---------------------------------------------------- |
-| index           | `number`  |                   | Index for which we calculate single result.          |
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| index | `number` |  | Index for which we calculate single result. |
 | [readFromCache] | `boolean` | <code>true</code> | `optional` Determine if read results from the cache. |
 
 
@@ -78,8 +78,8 @@ _aggregatedCollection.getMergedValues([readFromCache]) ⇒ Array_
 Get merged values for all indexes.
 
 
-| Param           | Type      | Default           | Description                                          |
-| --------------- | --------- | ----------------- | ---------------------------------------------------- |
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
 | [readFromCache] | `boolean` | <code>true</code> | `optional` Determine if read results from the cache. |
 
 
