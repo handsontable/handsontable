@@ -3074,19 +3074,19 @@ export default () => {
 
     /**
      * @description
-     * Object which describes if renderer should create checkbox element with label element as a parent.
+     * The `label` option configures [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cells` labels.
      *
-     * __Note__, this option only works for [checkbox-typed](@/guides/cell-types/checkbox-cell-type.md) cells.
+     * You can set the `label` option to an object with the following properties:
      *
-     * By default the [checkbox](@/guides/cell-types/checkbox-cell-type.md) renderer renders the checkbox without a label.
+     * | Property    | Possible values                   | Description                                                                                                                                                                                                           |
+     * | ----------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `position`  | `'after'` (default) \| `'before'` | `'after'`: place the label to the right of the checkbox<br>`'before'`: place the label to the left of the checkbox                                                                                                    |
+     * | `value`     | A string \| A function            | The label's text                                                                                                                                                                                                      |
+     * | `separated` | `false` (default) \| `true`       | `false`: don't separate the label from the checkbox<br>`true`: separate the label from the checkbox                                                                                                                   |
+     * | `property`  | A string                          | - A [`data`](#data) object property name that's used as the label's text <br>- Works only when the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects) |
      *
-     * Possible object properties:
-     *  * `property` - Defines the property name of the data object, which will to be used as a label.
-     *  (eg. `label: {property: 'name.last'}`). This option works only if data was passed as an array of objects.
-     *  * `position` - String which describes where to place the label text (before or after checkbox element).
-     * Valid values are `'before'` and '`after`' (defaults to `'after'`).
-     *  * `value` - String or a Function which will be used as label text.
-     *  * `separated` - Boolean which describes that checkbox & label elements are separated or not. Default value is `false`.
+     * Read more:
+     * - [Checkbox cell type: Checkbox labels &#8594;](@/guides/cell-types/checkbox-cell-type.md#checkbox-labels)
      *
      * @memberof Options#
      * @type {object}
