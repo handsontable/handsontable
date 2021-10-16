@@ -2853,7 +2853,17 @@ export default () => {
     disableVisualSelection: false,
 
     /**
-     * Disables or enables {@link ManualColumnFreeze} plugin.
+     * The `manualColumnFreeze` option configures the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin.
+     *
+     * You can set the `manualColumnFreeze` option to one of the following:
+     *
+     * | Setting  | Description                                                            |
+     * | -------- | ---------------------------------------------------------------------- |
+     * | `true`   | Enable the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin  |
+     * | `false`  | Disable the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin |
+     *
+     * Read more:
+     * - [Column freezing &#8594;](@/guides/columns/column-freezing.md#user-triggered-freeze)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2862,7 +2872,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable fixed columns
+     * // enable the `ManualColumnFreeze` plugin
      * manualColumnFreeze: true,
      * ```
      */
