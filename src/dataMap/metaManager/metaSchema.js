@@ -1238,7 +1238,14 @@ export default () => {
 
     /**
      * @description
-     * If set to `true`, the `persistentState` option enables the [`PersistentState`](@/api/persistentState.md) plugin.
+     * The `persistentState` option configures the [`PersistentState`](@/api/persistentState.md) plugin.
+     *
+     * You can set the `persistentState` to one of the following:
+     *
+     * | Setting           | Description                                                      |
+     * | ----------------- | ---------------------------------------------------------------- |
+     * | `false` (default) | Disable the [`PersistentState`](@/api/persistentState.md) plugin |
+     * | `true`            | Enable the [`PersistentState`](@/api/persistentState.md) plugin  |
      *
      * Read more:
      * - [`PersistentState` &#8594;](@/api/persistentState.md)
@@ -2879,9 +2886,16 @@ export default () => {
     manualColumnFreeze: void 0,
 
     /**
-     * Defines whether Handsontable should trim the whitespace at the beginning and the end of the cell contents.
+     * The `trimWhitespace` option configures automatic whitespace removal.
      *
-     * @memberof Options#
+     * You can set the `trimWhitespace` option to one of the following:
+     *
+     * | Setting          | Description                                                     |
+     * | ---------------- | --------------------------------------------------------------- |
+     * | `true` (default) | Remove whitespace at the beginning and at the end of every cell |
+     * | `false`          | Don't remove whitespace                                         |
+     *
+     * @memberof Options#tr
      * @type {boolean}
      * @default true
      * @category Core
@@ -2891,6 +2905,7 @@ export default () => {
      * columns: [
      *   {
      *     // don't remove whitespace
+     *     // from any cell of this column
      *     trimWhitespace: false
      *   }
      * ]
@@ -2899,7 +2914,16 @@ export default () => {
     trimWhitespace: true,
 
     /**
-     * Defines data source for Autocomplete or Dropdown cell types.
+     * The `source` option sets a data source for [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) and [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) cells.
+     *
+     * You can set the `source` option to one of the following:
+     *
+     * - An array
+     * - A function
+     *
+     * Read more:
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
      *
      * @memberof Options#
      * @type {Array|Function}
@@ -2908,15 +2932,19 @@ export default () => {
      *
      * @example
      * ```js
-     * // source as a array
+     * // set data source to an array
      * columns: [{
+     *   // set the type of every cell in this column to `autocomplete`
      *   type: 'autocomplete',
+     *   // set the data source for every `autocomplete` cell in this column
      *   source: ['A', 'B', 'C', 'D']
      * }],
      *
-     * // source as a function
+     * // set data source to a function
      * columns: [{
+     *   // set the type of every cell in this column to `autocomplete`
      *   type: 'autocomplete',
+     *   // for every `autocomplete` cell in this column, fetch data from an external source
      *   source: function(query, callback) {
      *     fetch('https://example.com/query?q=' + query, function(response) {
      *       callback(response.items);
@@ -2929,7 +2957,13 @@ export default () => {
 
     /**
      * @description
-     * Defines the column header name.
+     * The `title` option configures [column header](@/guides/columns/column-header.md) names.
+     *
+     * You can set the `title` option to a string.
+     *
+     * Read more:
+     * - [Column header &#8594;](@/guides/columns/column-header.md)
+     * - [`columns` &#8594;](#columns)
      *
      * @memberof Options#
      * @type {string}
@@ -2938,13 +2972,14 @@ export default () => {
      *
      * @example
      * ```js
-     * // set header names for every column
      * columns: [
      *   {
+     *     // set the first column header name to `First name`
      *     title: 'First name',
      *     type: 'text',
      *   },
      *   {
+     *     // set the second column header name to `Last name`
      *     title: 'Last name',
      *     type: 'text',
      *   }
@@ -2954,7 +2989,19 @@ export default () => {
     title: void 0,
 
     /**
-     * Data template for `'checkbox'` type when checkbox is checked.
+     * The `checkedTemplate` option lets you configure what value
+     * a checked [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell has.
+     *
+     * You can set the `checkedTemplate` option to one of the following:
+     *
+     * | Setting          | Description                                                                                                                                                                              |
+     * | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell is checked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns `true`                  |
+     * | A string         | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell is checked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns a string of your choice |
+     *
+     * Read more:
+     * - [Checkbox cell type: Checkbox template &#8594;](@/guides/cell-types/checkbox-cell-type.md#checkbox-template)
+     * - [`uncheckedTemplate` &#8594;](#uncheckedTemplate)
      *
      * @memberof Options#
      * @type {boolean|string|number}
@@ -2963,16 +3010,40 @@ export default () => {
      *
      * @example
      * ```js
-     * checkedTemplate: 'good'
-     *
-     * // if a checkbox-typed cell is checked, then getDataAtCell(x, y),
-     * // where x and y are the coordinates of the cell will return 'good'.
+     * columns: [
+     *   {
+     *     // set the type of every cell in this column to `checkbox`
+     *     // when checked, the cell's value is `true`
+     *     // when unchecked, the cell's value is `false`
+     *     type: 'checkbox',
+     *   },
+     *   {
+     *     // set the type of every cell in this column to `checkbox`
+     *     // when checked, the cell's value is `'Yes'`
+     *     // when unchecked, the cell's value is `'No'`
+     *     type: 'checkbox',
+     *     checkedTemplate: 'Yes',
+     *     uncheckedTemplate: 'No'
+     *  }
+     * ],
      * ```
      */
     checkedTemplate: void 0,
 
     /**
-     * Data template for `'checkbox'` type when checkbox is unchecked.
+     * The `uncheckedTemplate` option lets you configure what value
+     * an unchecked [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell has.
+     *
+     * You can set the `uncheckedTemplate` option to one of the following:
+     *
+     * | Setting           | Description                                                                                                                                                                                |
+     * | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `false` (default) | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell is unchecked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns `false`                 |
+     * | A string          | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell is unchecked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns a string of your choice |
+     *
+     * Read more:
+     * - [Checkbox cell type: Checkbox template &#8594;](@/guides/cell-types/checkbox-cell-type.md#checkbox-template)
+     * - [`checkedTemplate` &#8594;](#checkedTemplate)
      *
      * @memberof Options#
      * @type {boolean|string|number}
@@ -2981,10 +3052,22 @@ export default () => {
      *
      * @example
      * ```js
-     * uncheckedTemplate: 'bad'
-     *
-     * // if a checkbox-typed cell is not checked, then getDataAtCell(x,y),
-     * // where x and y are the coordinates of the cell will return 'bad'.
+     * columns: [
+     *   {
+     *     // set the type of every cell in this column to `checkbox`
+     *     // when unchecked, the cell's value is `false`
+     *     // when checked, the cell's value is `true`
+     *     type: 'checkbox',
+     *   },
+     *   {
+     *     // set the type of every cell in this column to `checkbox`
+     *     // when unchecked, the cell's value is `'No'`
+     *     // when checked, the cell's value is `'Yes'`
+     *     type: 'checkbox',
+     *     uncheckedTemplate: 'No'
+     *     checkedTemplate: 'Yes',
+     *  }
+     * ],
      * ```
      */
     uncheckedTemplate: void 0,
