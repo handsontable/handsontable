@@ -904,7 +904,7 @@ export default () => {
 
     /**
      * @description
-     * The `selectionMode` option configures how cell selection works.
+     * The `selectionMode` option configures how [selection](@/guides/cell-features/selection.md) works.
      *
      * You can set the `selectionMode` option to one of the following:
      *
@@ -1056,16 +1056,16 @@ export default () => {
     fixedColumnsLeft: 0,
 
     /**
-     * The `outsideClickDeselects` option determines what happens to the current cell selection
+     * The `outsideClickDeselects` option determines what happens to the current [selection](@/guides/cell-features/selection.md)
      * when you click outside of the grid.
      *
      * You can set the `outsideClickDeselects` option to one of the following:
      *
-     * | Setting          | Description                                                              |
-     * | ---------------- | ------------------------------------------------------------------------ |
-     * | `true` (default) | On a mouse click outside of the grid, clear the current cell selection   |
-     * | `false`          | On a mouse click outside of the grid, keep the current cell selection    |
-     * | A function       | A function that takes the click event target and returns a boolean       |
+     * | Setting          | Description                                                                                              |
+     * | ---------------- | -------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | On a mouse click outside of the grid, clear the current [selection](@/guides/cell-features/selection.md) |
+     * | `false`          | On a mouse click outside of the grid, keep the current [selection](@/guides/cell-features/selection.md)  |
+     * | A function       | A function that takes the click event target and returns a boolean                                       |
      *
      * @memberof Options#
      * @type {boolean|Function}
@@ -1074,10 +1074,10 @@ export default () => {
      *
      * @example
      * ```js
-     * // on a mouse click outside of the grid, clear the current cell selection
+     * // on a mouse click outside of the grid, clear the current selection
      * outsideClickDeselects: true,
      *
-     * // on a mouse click outside of the grid, keep the current cell selection
+     * // on a mouse click outside of the grid, keep the current selection
      * outsideClickDeselects: false,
      *
      * // take the click event target and return `false`
@@ -1132,10 +1132,10 @@ export default () => {
      * You can set the `enterMoves` option to an object with the following properties
      * (or to a function that returns such an object):
      *
-     * | Property | Type   | Description                                                                                                                                                        |
-     * | -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-     * | `col`    | Number | - On pressing <kbd>Enter</kbd>, move cell selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move cell selection `col` columns left |
-     * | `row`    | Number | - On pressing <kbd>Enter</kbd>, move cell selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move cell selection `row` rows up          |
+     * | Property | Type   | Description                                                                                                                                              |
+     * | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `col`    | Number | - On pressing <kbd>Enter</kbd>, move selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move selection `col` columns left |
+     * | `row`    | Number | - On pressing <kbd>Enter</kbd>, move selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move selection `row` rows up          |
      *
      * @memberof Options#
      * @type {object|Function}
@@ -1144,8 +1144,8 @@ export default () => {
      *
      * @example
      * ```js
-     * // on pressing Enter, move cell selection 1 column right and 1 row down
-     * // on pressing Shift+Enter, move cell selection 1 column left and 1 row up
+     * // on pressing Enter, move selection 1 column right and 1 row down
+     * // on pressing Shift+Enter, move selection 1 column left and 1 row up
      * enterMoves: {col: 1, row: 1},
      *
      * // the same setting, as a function
@@ -1164,10 +1164,10 @@ export default () => {
      * You can set the `tabMoves` option to an object with the following properties
      * (or to a function that returns such an object):
      *
-     * | Property | Type   | Description                                                                                                                                                        |
-     * | -------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-     * | `row`    | Number | - On pressing <kbd>Tab</kbd>, move cell selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move cell selection `row` rows up              |
-     * | `col`    | Number | - On pressing <kbd>Tab</kbd>, move cell selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move cell selection `col` columns left     |
+     * | Property | Type   | Description                                                                                                                                              |
+     * | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `row`    | Number | - On pressing <kbd>Tab</kbd>, move selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move selection `row` rows up              |
+     * | `col`    | Number | - On pressing <kbd>Tab</kbd>, move selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move selection `col` columns left     |
      *
      * @memberof Options#
      * @type {object|Function}
@@ -1176,8 +1176,8 @@ export default () => {
      *
      * @example
      * ```js
-     * // on pressing Tab, move cell selection 2 rows down and 2 columns right
-     * // on pressing Shift+Tab, move cell selection 2 rows up and 2 columns left
+     * // on pressing Tab, move selection 2 rows down and 2 columns right
+     * // on pressing Shift+Tab, move selection 2 rows up and 2 columns left
      * tabMoves: {row: 2, col: 2},
      *
      * // the same setting, as a function
@@ -2810,14 +2810,22 @@ export default () => {
 
     /**
      * @description
-     * Disables visual cells selection.
+     * The `disableVisualSelection` option configures how
+     * [selection](@/guides/cell-features/selection.md) is shown.
      *
-     * Possible values:
-     *  * `true` - Disables any type of visual selection (current, header and area selection),
-     *  * `false` - Enables any type of visual selection. This is default value.
-     *  * `'current'` - Disables the selection of a currently selected cell, the area selection is still present.
-     *  * `'area'` - Disables the area selection, the currently selected cell selection is still present.
-     *  * `'header'` - Disables the headers selection, the currently selected cell selection is still present.
+     * You can set the `disableVisualSelection` option to one of the following:
+     *
+     * | Setting           | Description                                                                                         |
+     * | ----------------- | --------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | - Show single-cell selection<br>- Show range selection<br>- Show header selection                   |
+     * | `true`            | - Don't show single-cell selection<br>- Don't show range selection<br>- Don't show header selection |
+     * | `'current'`       | - Don't show single-cell selection<br>- Show range selection<br>- Show header selection             |
+     * | `'area'`          | - Show single-cell selection<br>- Don't show range selection<br>- Show header selection             |
+     * | `'header'`        | - Show single-cell selection<br>- Show range selection<br>- Don't show header selection             |
+     * | An array          | A combination of `'current'`, `'area'`, and/or `'header'`                                           |
+     *
+     * Read more:
+     * - [Selection &#8594;](@/guides/cell-features/selection.md)
      *
      * @memberof Options#
      * @type {boolean|string|string[]}
@@ -2826,13 +2834,19 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean
+     * // don't show single-cell selection
+     * // don't show range selection
+     * // don't show header selection
      * disableVisualSelection: true,
      *
-     * // as a string ('current', 'area' or 'header')
+     * // don't show single-cell selection
+     * // show range selection
+     * // show header selection
      * disableVisualSelection: 'current',
      *
-     * // as an array
+     * // don't show single-cell selection
+     * // don't show range selection
+     * // show header selection
      * disableVisualSelection: ['current', 'area'],
      * ```
      */
