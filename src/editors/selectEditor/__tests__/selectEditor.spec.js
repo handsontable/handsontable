@@ -303,6 +303,29 @@ describe('SelectEditor', () => {
     expect(window.getComputedStyle(editor, 'focus').getPropertyValue('outline-style')).toBe('none');
   });
 
+  it('should render proper value after cell coords manipulation', () => {
+    const hot = handsontable({
+      data: [
+        ['0, 0', '0, 1', '0, 2'],
+        ['1, 0', '1, 1', '1, 3']
+      ],
+      editor: 'select',
+      selectOptions: [
+        '0, 0', '0, 1', '0, 2',
+        '1, 0', '1, 1', '1, 3'
+      ]
+    });
+
+    hot.rowIndexMapper.setIndexesSequence([1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([2, 1, 0]);
+
+    selectCell(0, 0);
+    getActiveEditor().beginEditing();
+    getActiveEditor().refreshValue();
+
+    expect(getActiveEditor().originalValue).toEqual('1, 3');
+  });
+
   it('should populate select with given options (array)', () => {
     const options = [
       'Misubishi', 'Chevrolet', 'Lamborgini'

@@ -246,7 +246,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('afterSelection',
       from.row, from.col, to.row, to.col, preventScrolling, selectionLayerLevel);
     this.runHooks('afterSelectionByProp',
-      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel); // eslint-disable-line max-len
+      from.row,
+      from.col >= 0 ? instance.colToProp(from.col) : from.col, // We may start from the header
+      to.row,
+      instance.colToProp(to.col),
+      preventScrolling,
+      selectionLayerLevel
+    );
 
     const isSelectedByAnyHeader = this.selection.isSelectedByAnyHeader();
     const currentSelectedRange = this.selection.selectedRange.current();
@@ -308,7 +314,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('afterSelectionEnd',
       from.row, from.col, to.row, to.col, selectionLayerLevel);
     this.runHooks('afterSelectionEndByProp',
-      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
+      from.row,
+      from.col >= 0 ? instance.colToProp(from.col) : from.col, // We may start from the header
+      to.row,
+      instance.colToProp(to.col),
+      selectionLayerLevel
+    );
   });
 
   this.selection.addLocalHook('afterIsMultipleSelection', (isMultiple) => {
@@ -1105,7 +1116,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         changes.splice(i, 1);
       } else {
         const [row, prop, , newValue] = changes[i];
-        const col = datamap.propToCol(prop);
+        const propToColResult = datamap.propToCol(prop);
+        // Populated data may contain indexes beyond current table boundaries.
+        const col = propToColResult !== null ? propToColResult : prop;
         const cellProperties = instance.getCellMeta(row, col);
 
         if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericLike(newValue)) {
@@ -1188,7 +1201,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) &&
           tableMeta.allowInsertColumn) {
-        while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
+        const prop = changes[i][1];
+        const propToColResult = datamap.propToCol(prop);
+        // Populated data may contain indexes beyond current table boundaries.
+        const column = propToColResult !== null ? propToColResult : prop;
+
+        while (column > instance.countCols() - 1) {
           const numberOfCreatedColumns = datamap.createCol(void 0, void 0, source);
 
           if (numberOfCreatedColumns >= 1) {
@@ -3035,10 +3053,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let physicalRow = this.toPhysicalRow(row);
     let physicalColumn = this.toPhysicalColumn(column);
 
+    // We can also get cell meta for indexes beyond current table boundaries.
     if (physicalRow === null) {
       physicalRow = row;
     }
 
+    // We can also get cell meta for indexes beyond current table boundaries.
     if (physicalColumn === null) {
       physicalColumn = column;
     }

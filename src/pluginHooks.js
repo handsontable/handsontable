@@ -986,7 +986,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeValidate
    * @param {*} value Value of the cell.
    * @param {number} row Visual row index.
-   * @param {string|number} prop Property name / column index.
+   * @param {string|number} prop Property name / physical column index.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks.md#definition-for-source-argument)).
    */

@@ -147,9 +147,10 @@ class DataSource {
         const rangeEnd = this.countFirstRowKeys() - 1;
 
         rangeEach(rangeStart, rangeEnd, (column) => {
+          // It will return `null` for index beyond table boundaries.
           const prop = this.colToProp(column);
 
-          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && !Number.isInteger(prop)) {
+          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && prop !== null) {
             const cellValue = this.getAtPhysicalCell(row, prop, dataRow);
 
             if (toArray) {
@@ -187,6 +188,7 @@ class DataSource {
     if (this.hot.hasHook('modifySourceData')) {
       const valueHolder = createObjectPropListener(value);
 
+      // TODO: The `modifySourceData` for the `get` option handle property, while the same hook for `set` option handle physical column index.
       this.hot.runHooks('modifySourceData', row, this.propToCol(column), valueHolder, 'set');
 
       if (valueHolder.isTouched()) {
@@ -230,7 +232,8 @@ class DataSource {
     if (this.hot.hasHook('modifySourceData')) {
       const valueHolder = createObjectPropListener(result);
 
-      this.hot.runHooks('modifySourceData', row, this.colToProp(column), valueHolder, 'get');
+      // TODO: The `modifySourceData` for the `get` option handle property, while the same hook for `set` option handle physical column index.
+      this.hot.runHooks('modifySourceData', row, this.colToProp(this.propToCol(column)), valueHolder, 'get');
 
       if (valueHolder.isTouched()) {
         result = valueHolder.value;

@@ -63,7 +63,8 @@ export class DynamicCellMetaMod {
       visualCol,
     } = cellMeta;
     const hot = this.metaManager.hot;
-    const prop = hot.colToProp(visualCol);
+    const colFromProp = hot.colToProp(visualCol);
+    const prop = colFromProp === null ? visualCol : colFromProp;
 
     cellMeta.prop = prop;
 

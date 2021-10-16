@@ -187,7 +187,7 @@ describe('Core_modifySourceData', () => {
         ];
 
         handsontable({
-          dataSchema: [{ x: 0, y: 0, z: 0 }],
+          dataSchema: { x: 0, y: 0, z: 0 },
           startRows: 2,
           columns: [
             { data: 'x' },
