@@ -24,6 +24,7 @@ import Selection from './selection';
 import Settings from './settings';
 import * as Renderer from './renderer';
 import { OrderView, SharedOrderView } from './utils/orderView';
+import NodesPool from './utils/nodesPool';
 import Viewport from './viewport';
 import { getListenersCounter } from './../../../eventManager';
 
@@ -56,6 +57,7 @@ export {
   Renderer,
   OrderView,
   SharedOrderView,
+  NodesPool,
   Viewport,
 
   getListenersCounter
