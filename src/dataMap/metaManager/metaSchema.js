@@ -3710,10 +3710,20 @@ export default () => {
     columnSummary: void 0,
 
     /**
-     * 
+     * The `dropdownMenu` option configures the [`DropdownMenu`](@/api/dropdownMenu.md) plugin.
      *
-     * This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
-     * the {@link Options#contextMenu}, but is triggered by clicking the button in the header.
+     * You can set the `dropdownMenu` option to one of the following:
+     *
+     * | Setting   | Description                                                                                                                                                                                  |
+     * | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin                                                                                                                                   |
+     * | `true`    | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Use the [default context menu options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-default-options)    |
+     * | An array  | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Modify [individual context menu options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options) |
+     * | An object | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Apply a custom dropdown menu configuration                                                                                  |
+     *
+     * Read more:
+     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+     * - [`DropdownMenu` &#8594;](@/api/dropdownMenu.md)
      *
      * @memberof Options#
      * @type {boolean|object|string[]}
@@ -3722,12 +3732,38 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable dropdown menu
+     * // enable the `DropdownMenu` plugin
+     * // use the default context menu options
      * dropdownMenu: true,
      *
-     * // or
-     * // enable and configure dropdown menu options
-     * dropdownMenu: ['remove_col', '---------', 'make_read_only', 'alignment']
+     * // enable the `DropdownMenu` plugin
+     * // and modify individual context menu options
+     * dropdownMenu: ['row_above', 'row_below', '---------', 'undo', 'redo'],
+     *
+     * // enable the `DropdownMenu` plugin
+     * // and apply a custom dropdown menu configuration
+     * dropdownMenu: {
+     *   items: {
+     *     "option1": {
+     *       name: "option1"
+     *     },
+     *     "option2": {
+     *       name: "option2",
+     *       submenu: {
+     *         items: [
+     *           {
+     *             key: "option2:suboption1",
+     *             name: "option2:suboption1",
+     *             callback: function(key, options) {
+     *               ...
+     *             }
+     *           },
+     *           ...
+     *         ]
+     *       }
+     *     }
+     *   }
+     * },
      * ```
      */
     dropdownMenu: void 0,
