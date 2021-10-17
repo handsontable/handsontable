@@ -3152,7 +3152,30 @@ export default () => {
     numericFormat: void 0,
 
     /**
-     * Language for Handsontable translation. Possible language codes are [listed here](@/guides/internationalization/internationalization-i18n.md#list-of-available-languages).
+     * The `language` option configures Handsontable's language.
+     *
+     * You can set the `language` option to one of the following:
+     *
+     * | Setting             | Description                 |
+     * | ------------------- | --------------------------- |
+     * | `'en-US'` (default) | English - United States     |
+     * | `'de-DE'`           | German - Germany            |
+     * | `'es-MX'`           | Spanish - Mexico            |
+     * | `'fr-FR'`           | French - France             |
+     * | `'it-IT'`           | Italian - Italy             |
+     * | `'ja-JP'`           | Japanese - Japan            |
+     * | `'ko-KR'`           | Korean - Korea              |
+     * | `'lv-LV'`           | Latvian - Latvia            |
+     * | `'nb-NO'`           | Norwegian (Bokmål) - Norway |
+     * | `'nl-NL'`           | Dutch - Netherlands         |
+     * | `'pl-PL'`           | Polish - Poland             |
+     * | `'pt-BR'`           | Portuguese - Brazil         |
+     * | `'ru-RU'`           | Russian - Russia            |
+     * | `'zh-CN'`           | Chinese - China             |
+     * | `'zh-TW'`           | Chinese - Taiwan            |
+     *
+     * Read more:
+     * - [Internationalization (i18n) &#8594;](@/guides/internationalization/internationalization-i18n.md)
      *
      * @memberof Options#
      * @type {string}
@@ -3161,7 +3184,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // set Polish language
+     * // set Handsontable's language to Polish
      * language: 'pl-PL',
      * ```
      */
