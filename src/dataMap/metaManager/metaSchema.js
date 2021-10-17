@@ -2714,6 +2714,7 @@ export default () => {
      *
      * Read more:
      * - [Performance: Define the number of pre-rendered rows and columns &#8594;](@/guides/advanced-topics/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+     * - [Column virtualization &#8594;](@/guides/columns/column-virtualization.md)
      *
      * @memberof Options#
      * @type {number|string}
@@ -2926,6 +2927,7 @@ export default () => {
      * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
      * - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
      * - [`strict`](#strict)
+     * - [`allowHtml`](#allowHtml)
      *
      * @memberof Options#
      * @type {Array|Function}
@@ -3476,11 +3478,23 @@ export default () => {
     strict: void 0,
 
     /**
-     * If set to `true`, data defined in `source` of the autocomplete or dropdown cell will be treated as HTML.
+     * The `allowHtml` option configures whether [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
+     * and [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) cells' [`source`](#source) data
+     * is treated as HTML.
      *
-     * __Warning:__ Enabling this option can cause serious XSS vulnerabilities.
+     * You can set the `allowHtml` option to one of the following:
      *
-     * __Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
+     * | Setting           | Description                                         |
+     * | ----------------- | --------------------------------------------------- |
+     * | `false` (default) | The [`source`](#source) data is not treated as HTML |
+     * | `true`            | The [`source`](#source) data is treated as HTML     |
+     *
+     * __Warning:__ Setting the `allowHtml` option to `true` can cause serious XSS vulnerabilities.
+     *
+     * Read more:
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
+     * - [`source`](#source)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3489,18 +3503,32 @@ export default () => {
      *
      * @example
      * ```js
-     * columns: [{
+     * columns: [
+     *   {
+     *   // set the `type` of every cell in this column to `autocomplete`
      *   type: 'autocomplete',
-     *   // use HTML in the source list
-     *   allowHtml: true,
+     *   // set options available in every `autocomplete` cell of this column
      *   source: ['<strong>foo</strong>', '<strong>bar</strong>']
-     * }],
+     *   // use HTML in the `source` list
+     *   allowHtml: true,
+     *   },
+     * ],
      * ```
      */
     allowHtml: false,
 
     /**
-     * If typed `true` then virtual rendering mechanism for handsontable will be disabled.
+     * The `renderAllRows` option configures Handsontable's [row virtualization](@/guides/rows/row-virtualization).
+     *
+     * You can set the `renderAllRows` option to one of the following:
+     *
+     * | Setting           | Description                                                                                        |
+     * | ----------------- | -------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Enable [row virtualization](@/guides/rows/row-virtualization.md)                                   |
+     * | `true`            | Disable [row virtualization](@/guides/rows/row-virtualization.md)<br>(render all rows of the grid) |
+     *
+     * Read more:
+     * - [Row virtualization &#8594;](@/guides/rows/row-virtualization.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3509,20 +3537,23 @@ export default () => {
      *
      * @example
      * ```js
-     * // disable virtual rows rendering
+     * // disable row virtualization
      * renderAllRows: true,
      * ```
      */
     renderAllRows: void 0,
 
     /**
-     * Prevents table to overlap outside the parent element. If `'horizontal'` option is chosen then table will show
-     * a horizontal scrollbar if parent's width is narrower then table's width.
+     * The `preventOverflow` option configures preventing Handsontable
+     * from overflowing outside of its parent element.
      *
-     * Possible values:
-     *  * `false` - Disables functionality.
-     *  * `horizontal` - Prevents horizontal overflow table.
-     *  * `vertical` - Prevents vertical overflow table.
+     * You can set the `preventOverflow` option to one of the following:
+     *
+     * | Setting           | Description                      |
+     * | ----------------- | -------------------------------- |
+     * | `false` (default) | Don't prevent overflowing        |
+     * | `'horizontal'`      | Prevent horizontal overflowing |
+     * | `'vertical'`        | Prevent vertical overflowing   |
      *
      * @memberof Options#
      * @type {string|boolean}
@@ -3531,13 +3562,22 @@ export default () => {
      *
      * @example
      * ```js
+     * // prevent horizontal overflowing
      * preventOverflow: 'horizontal',
      * ```
      */
     preventOverflow: false,
 
     /**
-     * Prevents wheel event on overlays for doing default action.
+     * The `preventWheel` option configures preventing the `wheel` event's default action
+     * on overlays.
+     *
+     * You can set the `preventOverflow` option to one of the following:
+     *
+     * | Setting           | Description                                      |
+     * | ----------------- | ------------------------------------------------ |
+     * | `false` (default) | Don't prevent the `wheel` event's default action |
+     * | `true`            | Prevent the `wheel` event's default action       |
      *
      * @memberof Options#
      * @private
@@ -3547,6 +3587,7 @@ export default () => {
      *
      * @example
      * ```js
+     * // don't prevent the `wheel` event's default action
      * preventWheel: false,
      * ```
      */
@@ -3554,9 +3595,17 @@ export default () => {
 
     /**
      * @description
-     * Enables the functionality of the {@link BindRowsWithHeaders} plugin which allows binding the table rows with their headers.
-     * If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,
-     * if at the initialization row 0 has a header titled "A", it will have it no matter what you do with the table.
+     * The `bindRowsWithHeaders` option configures the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin.
+     *
+     * You can set the `bindRowsWithHeaders` option to one of the following:
+     *
+     * | Setting | Description                                                                  |
+     * | ------- | ---------------------------------------------------------------------------- |
+     * | `false` | Disable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin |
+     * | `true`  | Enable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin  |
+     *
+     * Read more:
+     * - [`BindRowsWithHeaders` &#8594;](@/api/bindRowsWithHeaders.md)
      *
      * @memberof Options#
      * @type {boolean|string}
@@ -3565,7 +3614,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // keep row data and row headers in sync
+     * // enable the `BindRowsWithHeaders` plugin
      * bindRowsWithHeaders: true
      * ```
      */
@@ -3573,16 +3622,18 @@ export default () => {
 
     /**
      * @description
-     * The {@link CollapsibleColumns} plugin allows collapsing of columns, covered by a header with the `colspan` property
-     * defined.
+     * The `collapsibleColumns` option configures the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin.
      *
-     * Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
+     * You can set the `collapsibleColumns` option to one of the following:
      *
-     * Setting the `collapsibleColumns` property to `true` will display a "collapse/expand" button in every
-     * header with a defined colspan` property.
+     * | Setting              | Description                                                                                       |
+     * | -------------------- | ------------------------------------------------------------------------------------------------- |
+     * | `false`              | Disable the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin                            |
+     * | `true`               | Enable the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin                             |
+     * | An array of objects  | Enable the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin for selected column headers |
      *
-     * To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property
-     * as an array of objects, as in the example below.
+     * Read more:
+     * - [`CollapsibleColumns` &#8594;](@/api/collapsibleColumns.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -3591,11 +3642,10 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable collapsing for all headers
+     * // enable column collapsing for all headers
      * collapsibleColumns: true,
      *
-     * // or
-     * // enable collapsing for selected headers
+     * // enable column collapsing for selected headers
      * collapsibleColumns: [
      *   {row: -4, col: 1, collapsible: true},
      *   {row: -3, col: 5, collapsible: true}
@@ -3606,26 +3656,28 @@ export default () => {
 
     /**
      * @description
-     * The `ColumnSummary` plugin lets you [easily summarize your columns](@/guides/columns/column-summary.md).
+     * The `columnSummary` option configures the [`ColumnSummary`](@/api/columnSummary.md) plugin.
      *
-     * You can use the [built-in summary functions](@/guides/columns/column-summary.md#built-in-summary-functions),
-     * or implement a [custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function).
+     * You can set the `columnSummary` option to an array of objects.
+     * Each object configures a single column summary, using the following properties:
      *
-     * For each column summary, you can set the following configuration options:
+     * | Property                 | Possible values                                                         | Description                                                                                                                  |
+     * | ------------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+     * | `sourceColumn`           | A number                                                                | [Column to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize)                     |
+     * | `ranges`                 | An array                                                                | [Ranges of rows to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize)             |
+     * | `type`                   | `'sum'` \| `'min'` \| `'max'` \| `'count'` \| `'average'` \| `'custom'` | [Summary function](@/guides/columns/column-summary.md#step-3-calculate-your-summary)                                         |
+     * | `destinationRow`         | A number                                                                | [Destination cell's row coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates)    |
+     * | `destinationColumn`      | A number                                                                | [Destination cell's column coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+     * | `forceNumeric`           | `true`  \| `false`                                                      | [Treat non-numerics as numerics](@/guides/columns/column-summary.md#forcing-numeric-values)                                  |
+     * | `reversedRowCoords`      | `true`  \| `false`                                                      | [Reverse row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell)                      |
+     * | `suppressDataTypeErrors` | `true`  \| `false`                                                      | [Suppress data type errors](@/guides/columns/column-summary.md#throwing-data-type-errors)                                    |
+     * | `readOnly`               | `true`  \| `false`                                                      | Make summary cell read-only                                                                                                  |
+     * | `roundFloat`             | `true`  \| `false`                                                      | [Round summary result](@/guides/columns/column-summary.md#rounding-a-column-summary-result)                                  |
+     * | `customFunction`         | A function                                                              | [Custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function)                         |
      *
-     * | Option | Required | Type | Default | Description |
-     * |---|---|---|---|---|
-     * | `sourceColumn` | No | Number | Same as `destinationColumn` | [Selects a column to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
-     * | `ranges` | No | Array | - | [Selects ranges of rows to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
-     * | `type` | Yes | String | - | [Sets a summary function](@/guides/columns/column-summary.md#step-3-calculate-your-summary) |
-     * | `destinationRow` | Yes | Number | - | [Sets the destination cell's row coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
-     * | `destinationColumn` | Yes | Number | - | [Sets the destination cell's column coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
-     * | `forceNumeric` | No | Boolean | `false` | [Forces the summary to treat non-numerics as numerics](@/guides/columns/column-summary.md#forcing-numeric-values) |
-     * | `reversedRowCoords` | No | Boolean | `false` | [Reverses row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell) |
-     * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary.md#throwing-data-type-errors) |
-     * | `readOnly` | No | Boolean | `true` | Makes summary cell read-only |
-     * | `roundFloat` | No | Number | - | [Rounds summary result](@/guides/columns/column-summary.md#rounding-a-column-summary-result) |
-     * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function) |
+     * Read more:
+     * - [Column summary &#8594;](@/guides/columns/column-summary.md)
+     * - [`ColumnSummary` &#8594;](@/api/columnSummary.md)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -3658,6 +3710,8 @@ export default () => {
     columnSummary: void 0,
 
     /**
+     * 
+     *
      * This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
      * the {@link Options#contextMenu}, but is triggered by clicking the button in the header.
      *
