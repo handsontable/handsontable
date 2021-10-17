@@ -2914,7 +2914,8 @@ export default () => {
     trimWhitespace: true,
 
     /**
-     * The `source` option sets a data source for [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) and [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) cells.
+     * The `source` option sets options available in [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
+     * and [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) cells.
      *
      * You can set the `source` option to one of the following:
      *
@@ -2924,6 +2925,7 @@ export default () => {
      * Read more:
      * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
      * - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
+     * - [`strict`](#strict)
      *
      * @memberof Options#
      * @type {Array|Function}
@@ -2932,15 +2934,15 @@ export default () => {
      *
      * @example
      * ```js
-     * // set data source to an array
+     * // set `source` to an array
      * columns: [{
      *   // set the `type` of every cell in this column to `autocomplete`
      *   type: 'autocomplete',
-     *   // set the data source for every `autocomplete` cell in this column
+     *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C', 'D']
      * }],
      *
-     * // set data source to a function
+     * // set `source` to a function
      * columns: [{
      *   // set the `type` of every cell in this column to `autocomplete`
      *   type: 'autocomplete',
@@ -3191,9 +3193,18 @@ export default () => {
     language: 'en-US',
 
     /**
-     * Data source for [select-typed](@/guides/cell-types/select-cell-type.md) cells.
+     * The `selectOptions` option configures options that the end user can choose from in [`select`](@/guides/cell-types/select-cell-type.md) cells.
      *
-     * __Note__, this option only works for [select-typed](@/guides/cell-types/select-cell-type.md) cells.
+     * You can set the `selectOptions` option to one of the following:
+     *
+     * | Setting                         | Description                                                                   |
+     * | ------------------------------- | ----------------------------------------------------------------------------- |
+     * | An array of strings             | Each string is one option's value and label                                   |
+     * | An object with key-string pairs | - Each key is one option's value<br>- The key's string is that option's label |
+     * | A function                      | A function that returns an object with key-string pairs                       |
+     *
+     * Read more:
+     * - [Select cell type &#8594;](@/guides/cell-types/select-cell-type.md)
      *
      * @memberof Options#
      * @type {string[]|object|Function}
@@ -3204,48 +3215,70 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     editor: 'select',
-     *     // as an array of strings: `option.value` and `option.textContent` use the same value
+     *     // set the `type` of every cell in this column to `select`
+     *     type: 'select',
+     *     // set the first option's value and label to `A`
+     *     // set the second option's value and label to `B`
+     *     // set the third option's value and label to `C`
      *     selectOptions: ['A', 'B', 'C'],
-     *     // as an object: `option.value` appoints a key, and `option.textContent` contains a string assigned to the key
+     *   },
+     *   {
+     *     // set the `type` of every cell in this column to `select`
+     *     type: 'select',
      *     selectOptions: {
+     *       // set the first option's value to `value1` and label to `Label 1`
      *       value1: 'Label 1',
+     *       // set the second option's value to `value2` and label to `Label 2`
      *       value2: 'Label 2',
+     *       // set the third option's value to `value3` and label to `Label 3`
      *       value3: 'Label 3',
      *     },
-     *     // as a function that returns possible options as an array
-     *     selectOptions(visualRow, visualColumn, prop) {
-     *       return ['A', 'B', 'C'];
-     *     },
-     *     // as a function that returns possible options as an object
+     *   },
+     *   {
+     *     // set the `type` of every cell in this column to `select`
+     *     type: 'select',
+     *     // set `selectOption` to a function that returns available options as an object
      *     selectOptions(visualRow, visualColumn, prop) {
      *       return {
      *         value1: 'Label 1',
      *         value2: 'Label 2',
      *         value3: 'Label 3',
      *       };
-     *     },
-     *   }
+     *   },
      * ],
      * ```
      */
     selectOptions: void 0,
 
     /**
-     * Enables or disables the {@link AutoColumnSize} plugin. Default value `undefined`
-     * is an equivalent of `true`, sets `syncLimit` to 50.
-     * Disabling this plugin can increase performance, as no size-related calculations would be done.
-     * To disable plugin it's necessary to set `false`.
+     * The `autoColumnSize` option configures the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
-     * Column width calculations are divided into sync and async part. Each of those parts has their own advantages and
-     * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
-     * operations don't block the browser UI.
+     * You can set the `autoColumnSize` option to one of the following:
      *
-     * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value.
+     * | Setting   | Description                                                                                  |
+     * | --------- | -------------------------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin                               |
+     * | `true`    | Enable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin with the default configuration |
+     * | An object | Enable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin and modify the plugin options  |
      *
-     * You can also use the `useHeaders` option to take the column headers width into calculation.
+     * By default, the `autoColumnSize` option is set to `undefined`,
+     * but the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin acts as enabled.
+     * To disable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin completely,
+     * set the `autoColumnSize` option to `false`.
      *
-     * Note: Using {@link Core#colWidths} option will forcibly disable {@link AutoColumnSize}.
+     * If you set the `autoColumnSize` option to an object, you can set the following [`AutoColumnSize`](@/api/autoColumnSize.md) plugin options:
+     *
+     * | Property                | Possible values                 | Description                                                                                                    |
+     * | ----------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+     * | `syncLimit`             | A number \| A percentage string | The number/percentage of columns to keep in sync<br>(default: `50`)                                            |
+     * | `useHeaders`            | `true` \| `false`               | When calculating column widths:<br>`true`: use column headers<br>`false`: don't use column headers          |
+     * | `samplingRatio`         | A number                        | The number of samples of the same length to be used in column width calculations                               |
+     * | `allowSampleDuplicates` | `true` \| `false`               | When calculating column widths:<br>`true`: Allow duplicate samples<br>`false`: Don't allow duplicate samples |
+     *
+     * Using the [`colWidths`](#colWidths) option forcibly disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
+     *
+     * Read more:
+     * - [`AutoColumnSize` &#8594;](@/api/autoColumnSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -3254,35 +3287,46 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a number (300 columns in sync, rest async)
-     * autoColumnSize: { syncLimit: 300 },
-     *
-     * // as a string (percent)
-     * autoColumnSize: { syncLimit: '40%' },
-     *
-     * // use headers width while calculating the column width
-     * autoColumnSize: { useHeaders: true },
-     *
-     * // defines how many samples for the same length will be caught to calculations
-     * autoColumnSize: { samplingRatio: 10 },
-     *
-     * // defines if duplicated samples are allowed in calculations
-     * autoColumnSize: { allowSampleDuplicates: true },
+     * autoColumnSize: {
+     *   // keep 40% of columns in sync (the rest of columns: async)
+     *   syncLimit: '40%',
+     *   // when calculating column widths, use column headers
+     *   useHeaders: true,
+     *   // when calculating column widths, use 10 samples of the same length
+     *   samplingRatio: 10,
+     *   // when calculating column widths, allow duplicate samples
+     *   allowSampleDuplicates: true
+     * },
      * ```
      */
     autoColumnSize: void 0,
 
     /**
-     * Enables or disables {@link AutoRowSize} plugin. Default value is `undefined`, which has the same effect as `false`
-     * (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
+     * The `autoRowSize` option configures the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
      *
-     * __Note:__ the default `syncLimit` value is set to 500 when the plugin is manually enabled by declaring it as: `autoRowSize: true`.
+     * You can set the `autoRowSize` option to one of the following:
      *
-     * Row height calculations are divided into sync and async stages. Each of these stages has their own advantages and
-     * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
-     * operations don't block the browser UI.
+     * | Setting   | Description                                                                            |
+     * | --------- | -------------------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`AutoRowSize`](@/api/autoRowSize.md) plugin                               |
+     * | `true`    | Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin with the default configuration |
+     * | An object | Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin and modify the plugin options  |
      *
-     * To configure the sync/async distribution, you can pass an absolute value (number of rows) or a percentage value.
+     * By default, the `autoRowSize` option is set to `undefined`,
+     * but the [`AutoRowSize`](@/api/autoRowSize.md) plugin acts as enabled.
+     * To disable the [`AutoRowSize`](@/api/autoRowSize.md) plugin completely,
+     * set the `autoRowSize` option to `false`.
+     *
+     * If you set the `autoRowSize` option to an object, you can set the following [`AutoRowSize`](@/api/autoRowSize.md) plugin options:
+     *
+     * | Property    | Possible values                 | Description                                                       |
+     * | ----------- | ------------------------------- | ----------------------------------------------------------------- |
+     * | `syncLimit` | A number \| A percentage string | The number/percentage of rows to keep in sync<br>(default: `500`) |
+     *
+     * Using the [`rowHeights`](#rowHeights) option forcibly disables the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
+     *
+     * Read more:
+     * - [`AutoRowSize` &#8594;](@/api/autoRowSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -3291,19 +3335,26 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a number (300 rows in sync, rest async)
-     * autoRowSize: {syncLimit: 300},
-     *
-     * // as a string (percent)
-     * autoRowSize: {syncLimit: '40%'},
+     * autoRowSize: {
+     *   // keep 40% of rows in sync (the rest of rows: async)
+     *   syncLimit: '40%'
+     * },
      * ```
      */
     autoRowSize: void 0,
 
     /**
-     * Date validation format.
+     * The `dateFormat` option configures [`date`](@/guides/cell-types/date-cell-type.md) cells' date format.
      *
-     * __Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md) cells.
+     * You can set the `dateFormat` option to a date format string. The default value is: `'DD/MM/YYYY'`.
+     *
+     * To enforce the date format set by the `dateFormat` option,
+     * use the [`correctFormat`](#correctFormat) option.
+     *
+     * Read more:
+     * - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
+     * - [`correctFormat`](#correctFormat)
+     * - [`defaultDate`](#defaultDate)
      *
      * @memberof Options#
      * @type {string}
@@ -3312,19 +3363,31 @@ export default () => {
      *
      * @example
      * ```js
-     * columns: [{
+     * columns: [
+     *   {
+     *   // set the `type` of every cell in this column to `date`
      *   type: 'date',
-     *   // localise date format
-     *   dateFormat: 'MM/DD/YYYY'
-     * }],
+     *   // for every `date` cell of this column, set the date format to `YYYY-MM-DD`
+     *   dateFormat: 'YYYY-MM-DD',
+     *   },
+     * ],
      * ```
      */
     dateFormat: 'DD/MM/YYYY',
 
     /**
-     * If `true` then dates will be automatically formatted to match the desired format.
+     * The `correctFormat` option configures [`date`](@/guides/cell-types/date-cell-type.md) cells' automatic date format correction.
      *
-     * __Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md) cells.
+     * You can set the `correctFormat` option to one of the following
+     *
+     * | Setting           | Description                                                           |
+     * | ----------------- | --------------------------------------------------------------------- |
+     * | `false` (default) | Don't correct dates                                                   |
+     * | `true`            | Enforce the date format set by the [`dateFormat`](#dateFormat) option |
+     *
+     * Read more:
+     * - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
+     * - [`dateFormat`](#dateFormat)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3333,20 +3396,29 @@ export default () => {
      *
      * @example
      * ```js
-     * columns: [{
+     * columns: [
+     *   {
+     *   // set the `type` of every cell in this column to `date`
      *   type: 'date',
+     *   // for every `date` cell of this column, set the date format to `YYYY-MM-DD`
      *   dateFormat: 'YYYY-MM-DD',
-     *   // force selected date format
+     *   // enforce the `YYYY-MM-DD` date format
      *   correctFormat: true
-     * }],
+     *   },
+     * ],
      * ```
      */
     correctFormat: false,
 
     /**
-     * Definition of default value which will fill the empty cells.
+     * The `defaultDate` option configures the date displayed
+     * in empty [`date`](@/guides/cell-types/date-cell-type.md) cells.
      *
-     * __Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md) cells.
+     * You can set the `defaultDate` option to a string.
+     *
+     * Read more:
+     * - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
+     * - [`dateFormat`](#dateFormat)
      *
      * @memberof Options#
      * @type {string}
@@ -3357,8 +3429,9 @@ export default () => {
      * ```js
      * columns: [
      *   {
+     *     // set the `type` of every cell in this column to `date`
      *     type: 'date',
-     *     // always set this date for empty cells
+     *     // in every empty `date` cell of this column, display `2015-02-02`
      *     defaultDate: '2015-02-02'
      *   }
      * ],
@@ -3367,11 +3440,19 @@ export default () => {
     defaultDate: void 0,
 
     /**
-     * If set to `true`, the value entered into the cell must match (case-sensitive) the autocomplete source.
-     * Otherwise, cell won't pass the validation. When filtering the autocomplete source list, the editor will
-     * be working in case-insensitive mode.
+     * The `strict` option configures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
+     * cells' strict/lazy mode.
      *
-     * __Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
+     * You can set the `strict` option to one of the following:
+     *
+     * | Setting | Mode                                                                                  | Description                                                                                                                                       |
+     * | ------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true`  | [Strict mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode) | The value entered must match an autocomplete option (case-sensitive)                                                                              |
+     * | `false` | [Lazy mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-lazy-mode)     | The value entered doesn't have to match an autocomplete option.<br>The end user can:<br>- Choose from suggested options<br>- Enter a custom value |
+     *
+     * Read more:
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [`source`](#source)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3380,12 +3461,16 @@ export default () => {
      *
      * @example
      * ```js
-     * columns: [{
+     * columns: [
+     *   {
+     *   // set the `type` of every cell in this column to `autocomplete`
      *   type: 'autocomplete',
+     *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C'],
-     *   // force selected value to match the source list
+     *   // values entered must match `A`, `B`, or `C`
      *   strict: true
-     * }],
+     *   },
+     * ],
      * ```
      */
     strict: void 0,
