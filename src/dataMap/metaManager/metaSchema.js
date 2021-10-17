@@ -2934,7 +2934,7 @@ export default () => {
      * ```js
      * // set data source to an array
      * columns: [{
-     *   // set the type of every cell in this column to `autocomplete`
+     *   // set the `type` of every cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set the data source for every `autocomplete` cell in this column
      *   source: ['A', 'B', 'C', 'D']
@@ -2942,7 +2942,7 @@ export default () => {
      *
      * // set data source to a function
      * columns: [{
-     *   // set the type of every cell in this column to `autocomplete`
+     *   // set the `type` of every cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // for every `autocomplete` cell in this column, fetch data from an external source
      *   source: function(query, callback) {
@@ -3012,13 +3012,13 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the type of every cell in this column to `checkbox`
+     *     // set the `type` of every cell in this column to `checkbox`
      *     // when checked, the cell's value is `true`
      *     // when unchecked, the cell's value is `false`
      *     type: 'checkbox',
      *   },
      *   {
-     *     // set the type of every cell in this column to `checkbox`
+     *     // set the `type` of every cell in this column to `checkbox`
      *     // when checked, the cell's value is `'Yes'`
      *     // when unchecked, the cell's value is `'No'`
      *     type: 'checkbox',
@@ -3054,13 +3054,13 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // set the type of every cell in this column to `checkbox`
+     *     // set the `type` of every cell in this column to `checkbox`
      *     // when unchecked, the cell's value is `false`
      *     // when checked, the cell's value is `true`
      *     type: 'checkbox',
      *   },
      *   {
-     *     // set the type of every cell in this column to `checkbox`
+     *     // set the `type` of every cell in this column to `checkbox`
      *     // when unchecked, the cell's value is `'No'`
      *     // when checked, the cell's value is `'Yes'`
      *     type: 'checkbox',
@@ -3078,11 +3078,11 @@ export default () => {
      *
      * You can set the `label` option to an object with the following properties:
      *
-     * | Property    | Possible values                   | Description                                                                                                                                                                                                           |
-     * | ----------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `position`  | `'after'` (default) \| `'before'` | `'after'`: place the label to the right of the checkbox<br>`'before'`: place the label to the left of the checkbox                                                                                                    |
-     * | `value`     | A string \| A function            | The label's text                                                                                                                                                                                                      |
-     * | `separated` | `false` (default) \| `true`       | `false`: don't separate the label from the checkbox<br>`true`: separate the label from the checkbox                                                                                                                   |
+     * | Property    | Possible values                   | Description                                                                                                                                                                                                             |
+     * | ----------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `position`  | `'after'` (default) \| `'before'` | `'after'`: place the label to the right of the checkbox<br>`'before'`: place the label to the left of the checkbox                                                                                                      |
+     * | `value`     | A string \| A function            | The label's text                                                                                                                                                                                                        |
+     * | `separated` | `false` (default) \| `true`       | `false`: don't separate the label from the checkbox<br>`true`: separate the label from the checkbox                                                                                                                     |
      * | `property`  | A string                          | - A [`data`](#data) object property name that's used as the label's text <br>- Works only when the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects) |
      *
      * Read more:
@@ -3105,17 +3105,26 @@ export default () => {
     label: void 0,
 
     /**
-     * Display format for numeric typed renderers.
+     * The `numericFormat` option configures the number format and the currency format
+     * of [`numeric`](@/guides/cell-types/numeric-cell-type.md) cells` displayed output.
      *
-     * __Note__, this option only works for [numeric-typed](@/guides/cell-types/numeric-cell-type.md) cells.
+     * You can set the `numericFormat` option to an object with the following properties:
      *
-     * Format is described by two properties:
-     * * `pattern` - Handled by `numbro` for purpose of formatting numbers to desired pattern. List of supported patterns can be found [here](https://numbrojs.com/format.html#numbers).
-     * * `culture` - Handled by `numbro` for purpose of formatting currencies. Examples showing how it works can be found [here](https://numbrojs.com/format.html#currency). List of supported cultures can be found [here](https://numbrojs.com/languages.html#supported-languages).
+     * | Property    | Possible values                                                               | Description     |
+     * | ----------- | ----------------------------------------------------------------------------- | --------------- |
+     * | `pattern`   | All [`numbro.js` number formats](https://numbrojs.com/format.html#numbers)    | Number format   |
+     * | `culture`   | All [`numbro.js` currency formats](https://numbrojs.com/format.html#currency) | Currency format |
      *
-     * __Note:__ Please keep in mind that this option is used only to format the displayed output! It has no effect on the input data provided for the cell. The numeric data can be entered to the table only as floats (separated by a dot or a comma) or integers, and are stored in the source dataset as JavaScript numbers.
+     * The `numericFormat` option as no effect on cells' input data.
+     * To enter numeric data into Handsontable, use:
+     * - Either floats (separated by a dot, or a comma)
+     * - Or integers
      *
-     * Handsontable uses [numbro](https://numbrojs.com/) as a main library for numbers formatting.
+     * In the source data, numeric data is stored as JavaScript numbers.
+     *
+     * Read more:
+     * - [Numeric cell type &#8594;](@/guides/cell-types/numeric-cell-type.md)
+     * - [Third-party licenses &#8594;](@/guides/technical-specification/third-party-licenses.md)
      *
      * @memberof Options#
      * @since 0.35.0
@@ -3127,10 +3136,13 @@ export default () => {
      * ```js
      * columns: [
      *   {
+     *     // set the `type` of every cell in this column to `numeric`
      *     type: 'numeric',
-     *     // set desired format pattern and
+     *     // set the `numericFormat` option for every `numeric` cell of this column
      *     numericFormat: {
+     *       // set the number format
      *       pattern: '0,00',
+     *       // set the currency format
      *       culture: 'en-US'
      *     }
      *   }
