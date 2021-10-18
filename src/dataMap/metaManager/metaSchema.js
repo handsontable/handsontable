@@ -3776,7 +3776,7 @@ export default () => {
      * | Setting | Description                                      |
      * | ------- | ------------------------------------------------ |
      * | `false` | Disable the [`Filters`](@/api/filters.md) plugin |
-     * | `true   | Enable the [`Filters`](@/api/filters.md) plugin  |
+     * | `true`  | Enable the [`Filters`](@/api/filters.md) plugin  |
      *
      * Read more:
      * - [Column filter &#8594;](@/guides/columns/column-filter.md)
@@ -3873,14 +3873,27 @@ export default () => {
     formulas: void 0,
 
     /**
-     * The `hiddenColumns` option configures the {@link HiddenColumns} plugin.
+     * The `hiddenColumns` option configures the [`HiddenColumns`](@/api/hiddenColumns.md) plugin.
      *
-     * To enable the `HiddenColumns` plugin, set the `hiddenColumns` option to `true`.
+     * You can set the `hiddenColumns` option to one of the following:
      *
-     * To enable the `HiddenColumns` plugin and configure its settings, set the `hiddenColumns` option to an object with the following properties:
-     *  * `columns`: An array of indexes of columns that are hidden on plugin initialization.
-     *  * `copyPasteEnabled`: When set to `true`, takes hidden columns into account when copying or pasting data.
-     *  * `indicators`: When set to `true`, displays UI markers to indicate the presence of hidden columns.
+     * | Setting   | Description                                                                                  |
+     * | --------- | -------------------------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`HiddenColumns`](@/api/hiddenColumns.md) plugin                                 |
+     * | `true`    | Enable the [`HiddenColumns`](@/api/hiddenColumns.md) plugin with the default plugin options  |
+     * | An object | - Enable the [`HiddenColumns`](@/api/hiddenColumns.md) plugin<br>- Modify the plugin options |
+     *
+     * If you set the `hiddenColumns` to an object, you can set the following [`HiddenColumns`](@/api/hiddenColumns.md) plugin options:
+     *
+     * | Property           | Possible values     | Description                                                                                                                                             |
+     * | ------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `columns`          | An array of indexes | An array of indexes of columns that are hidden at initialization                                                                                        |
+     * | `copyPasteEnabled` | `true` \| `false`   | `true`: when copying or pasting data, take hidden columns into account<br>`false`: when copying or pasting data, don't take hidden columns into account |
+     * | `indicators`       | `true` \| `false`   | `true`: display UI markers to indicate the presence of hidden columns<br>`false`: display UI markers                                                    |
+     *
+     * Read more:
+     * - [`HiddenColumns` &#8594;](@/api/hiddenColumns.md)
+     * - [Column hiding &#8594;](@/guides/columns/column-hiding.md)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -3892,11 +3905,11 @@ export default () => {
      * // enable the `HiddenColumns` plugin
      * hiddenColumns: true,
      *
-     * // enable `HiddenColumns` plugin, and configure its settings
+     * // enable `HiddenColumns` plugin, and modify the plugin options
      * hiddenColumns: {
      *   // set columns that are hidden by default
      *   columns: [5, 10, 15],
-     *   // take hidden columns into account when copying or pasting
+     *   // when copying or pasting data, take hidden columns into account
      *   copyPasteEnabled: true,
      *   // show where hidden columns are
      *   indicators: true
@@ -3906,14 +3919,27 @@ export default () => {
     hiddenColumns: void 0,
 
     /**
-     * The `hiddenRows` option configures the {@link HiddenRows} plugin.
+     * The `hiddenRows` option configures the [`HiddenRows`](@/api/hiddenRows.md) plugin.
      *
-     * To enable the `HiddenRows` plugin, set the `hiddenRows` option to `true`.
+     * You can set the `hiddenRows` option to one of the following:
      *
-     * To enable the `HiddenRows` plugin and configure its settings, set the `hiddenRows` option to an object with the following properties:
-     *  * `rows`: An array of indexes of rows that are hidden on plugin initialization.
-     *  * `copyPasteEnabled`: When set to `true`, takes hidden rows into account when copying or pasting data.
-     *  * `indicators`: When set to `true`, displays UI markers to indicate the presence of hidden rows.
+     * | Setting   | Description                                                                            |
+     * | --------- | -------------------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`HiddenRows`](@/api/hiddenRows.md) plugin                                 |
+     * | `true`    | Enable the [`HiddenRows`](@/api/hiddenRows.md) plugin with the default plugin options  |
+     * | An object | - Enable the [`HiddenRows`](@/api/hiddenRows.md) plugin<br>- Modify the plugin options |
+     *
+     * If you set the `hiddenRows` to an object, you can set the following [`HiddenRows`](@/api/hiddenRows.md) plugin options:
+     *
+     * | Property           | Possible values     | Description                                                                                                                                       |
+     * | ------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `rows   `          | An array of indexes | An array of indexes of rows that are hidden at initialization                                                                                     |
+     * | `copyPasteEnabled` | `true` \| `false`   | `true`: when copying or pasting data, take hidden rows into account<br>`false`: when copying or pasting data, don't take hidden rows into account |
+     * | `indicators`       | `true` \| `false`   | `true`: display UI markers to indicate the presence of hidden rows<br>`false`: display UI markers                                                 |
+     *
+     * Read more:
+     * - [`HiddenRows` &#8594;](@/api/hiddenRows.md)
+     * - [Row hiding &#8594;](@/guides/rows/row-hiding.md)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -3925,11 +3951,11 @@ export default () => {
      * // enable the `HiddenRows` plugin
      * hiddenRows: true,
      *
-     * // enable `HiddenRows` plugin, and configure its settings
+     * // enable `HiddenRows` plugin, and modify the plugin options
      * hiddenRows: {
      *   // set rows that are hidden by default
      *   rows: [5, 10, 15],
-     *   // take hidden rows into account when copying or pasting
+     *   // when copying or pasting data, take hidden rows into account
      *   copyPasteEnabled: true,
      *   // show where hidden rows are
      *   indicators: true
@@ -3940,7 +3966,20 @@ export default () => {
 
     /**
      * @description
-     * Allows creating a nested header structure, using the HTML's colspan attribute.
+     * The `nestedHeaders` option configures the [`NestedHeaders`](@/api/nestedHeaders.md) plugin.
+     *
+     * You can set the `nestedHeaders` option to an array of arrays:
+     * - Each array configures one set of nested headers.
+     * - Each array element configures one header, and can be one of the following:
+     *
+     * | Array element | Description                                                                                  |
+     * | ------------- | -------------------------------------------------------------------------------------------- |
+     * | A string      | The header's label                                                                           |
+     * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): the column width |
+     *
+     * Read more:
+     * - [`NestedHeaders` &#8594;](@/api/nestedHeaders.md)
+     * - [Column groups: Nested headers &#8594;](@/guides/columns/column-groups.md#nested-headers)
      *
      * @memberof Options#
      * @type {Array[]}
@@ -3960,7 +3999,19 @@ export default () => {
 
     /**
      * @description
-     * Plugin allowing hiding of certain rows.
+     * The `trimRows` option configures the [`TrimRows`](@/api/trimRows.md) plugin.
+     *
+     * You can set the `trimRows` option to one of the following:
+     *
+     * | Setting  | Description                                                                                   |
+     * | -------- | --------------------------------------------------------------------------------------------- |
+     * | `false`  | Disable the [`TrimRows`](@/api/trimRows.md) plugin                                            |
+     * | `true`   | Enable the [`TrimRows`](@/api/trimRows.md) plugin                                             |
+     * | An array | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
+     *
+     * Read more:
+     * - [`TrimRows` &#8594;](@/api/trimRows.md)
+     * - [Row trimming &#8594;](@/guides/rows/row-trimming.md)
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -3969,11 +4020,11 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable plugin
+     * // enable the `TrimRows` plugin
      * trimRows: true,
      *
-     * // or
-     * // trim selected rows on table initialization
+     * // enable the `TrimRows` plugin
+     * // trim rows 5, 10, and 15 at Handsontable's initialization
      * trimRows: [5, 10, 15],
      * ```
      */
