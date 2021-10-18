@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "noEmit": true,
+    "paths": {
+      "handsontable": ["."],
+      "handsontable/base": ["."]
+    }
+  },
+  "include": ["test/types"],
+}

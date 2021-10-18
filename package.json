@@ -183,7 +183,7 @@
       "wrappers/*"
     ]
   },
-  "typings": "./handsontable.d.ts",
+  "typings": "./types/index.d.ts",
   "handsontable": {
     "copy": [
       "dist/handsontable.css",

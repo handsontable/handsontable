@@ -139,6 +139,12 @@ const testToHTMLTableElement: HTMLTableElement = hot.toTableElement();
 const testToHTML: string = hot.toHTML();
 
 const autoColumnSize: Handsontable.plugins.AutoColumnSize = hot.getPlugin('autoColumnSize');
+
+autoColumnSize.inProgress;
+
+autoColumnSize.calculateVisibleColumnsWidth();
+autoColumnSize.isEnabled();
+
 const autoRowSize: Handsontable.plugins.AutoRowSize = hot.getPlugin('autoRowSize');
 const autofill: Handsontable.plugins.Autofill = hot.getPlugin('autofill');
 const bindeRowsWithHeaders: Handsontable.plugins.BindRowsWithHeaders = hot.getPlugin('bindRowsWithHeaders');
@@ -168,5 +174,3 @@ const search: Handsontable.plugins.Search = hot.getPlugin('search');
 const trimeRows: Handsontable.plugins.TrimRows = hot.getPlugin('trimRows');
 const formulas: Handsontable.plugins.Formulas = hot.getPlugin('formulas');
 const nestedRows: Handsontable.plugins.NestedRows = hot.getPlugin('nestedRows');
-
-autoColumnSize.samplesGenerator.setSampleCount(5);
