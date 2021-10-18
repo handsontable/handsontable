@@ -1905,6 +1905,50 @@ Removes or adds one or more rows of the cell meta objects to the cell meta colle
 | [deleteAmount] | `number` | <code>0</code> | `optional` The number of items to be removed. If set to 0, no cell meta objects will be removed. |
 | [...cellMetaRows] | `object` |  | `optional` The new cell meta row objects to be added to the cell meta collection. |
 
+
+
+### spliceCol
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1496
+
+:::
+
+_core.spliceCol(column, index, amount, [...elements]) ⇒ Array_
+
+Adds/removes data from the column. This method works the same as Array.splice for arrays.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| column | `number` | Index of the column in which do you want to do splice. |
+| index | `number` | Index at which to start changing the array. If negative, will begin that many elements from the end. |
+| amount | `number` | An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed. |
+| [...elements] | `number` | `optional` The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array. |
+
+
+**Returns**: `Array` - Returns removed portion of columns.  
+
+### spliceRow
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1511
+
+:::
+
+_core.spliceRow(row, index, amount, [...elements]) ⇒ Array_
+
+Adds/removes data from the row. This method works the same as Array.splice for arrays.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| row | `number` | Index of column in which do you want to do splice. |
+| index | `number` | Index at which to start changing the array. If negative, will begin that many elements from the end. |
+| amount | `number` | An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed. |
+| [...elements] | `number` | `optional` The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array. |
+
+
+**Returns**: `Array` - Returns removed portion of rows.  
+
 ### suspendExecution
   
 ::: source-code-link https://github.com/handsontable/handsontable/blob/4d56e68f9cb6412b841663278b2e0eb3ad181233/src/core.js#L1793
