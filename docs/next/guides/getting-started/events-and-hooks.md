@@ -222,6 +222,8 @@ It's worth mentioning that some hooks are triggered from the Handsontable core a
 | `edit` | Action triggered by Handsontable after the data has been changed, e.g., after an edit or using `setData*` methods.|
 | `loadData` | Action triggered by Handsontable after the `loadData` or `updateSettings({data: myData})` with the `data` property method has been called.|
 | `populateFromArray` | Action triggered by Handsontable after requesting for populating data.|
+| `spliceCol` |Action triggered by Handsontable after the column data splicing has been done.|
+| `spliceRow` | Action triggered by Handsontable after the row data splicing has been done.|
 | `timeValidate` | Action triggered by Handsontable after the time validator has been called, e.g., after an edit.|
 | `dateValidate` | Action triggered by Handsontable after the date validator has been called, e.g., after an edit.|
 | `validateCells` | Action triggered by Handsontable after the validation process has been triggered.|

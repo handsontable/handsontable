@@ -39,6 +39,7 @@ Handsontable.helper.duckSchema({});
 Handsontable.helper.endsWith('foo', 'bar');
 Handsontable.helper.equalsIgnoreCase('foo', 'bar');
 Handsontable.helper.extend({key: 'foo'}, {key2: 'foo'});
+Handsontable.helper.extendArray([1, 'foo'], [true]);
 Handsontable.helper.getComparisonFunction('en', {});
 Handsontable.helper.getDifferenceOfArrays([1, 2, 3], [2, 3, 4]);
 Handsontable.helper.getIntersectionOfArrays([1, 2, 3], [2, 3, 4]);
@@ -90,5 +91,6 @@ const testTableToSettings: Handsontable.GridSettings = Handsontable.helper.htmlT
 const testTableToSettings2: Handsontable.GridSettings = Handsontable.helper.htmlToGridSettings(document.createElement('table'));
 Handsontable.helper.throttle(() => {}, 1);
 Handsontable.helper.throttleAfterHits(() => {}, 0, 1);
+Handsontable.helper.to2dArray([1, 'foo', true]);
 Handsontable.helper.toUpperCaseFirst('foo');
 Handsontable.helper.valueAccordingPercent(1, 90);

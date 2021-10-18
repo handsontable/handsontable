@@ -1533,6 +1533,36 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
+   * Adds/removes data from the column. This method works the same as Array.splice for arrays.
+   *
+   * @memberof Core#
+   * @function spliceCol
+   * @param {number} column Index of the column in which do you want to do splice.
+   * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
+   * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
+   * @param {...number} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
+   * @returns {Array} Returns removed portion of columns.
+   */
+  this.spliceCol = function(column, index, amount, ...elements) {
+    return datamap.spliceCol(column, index, amount, ...elements);
+  };
+
+  /**
+   * Adds/removes data from the row. This method works the same as Array.splice for arrays.
+   *
+   * @memberof Core#
+   * @function spliceRow
+   * @param {number} row Index of column in which do you want to do splice.
+   * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
+   * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
+   * @param {...number} [elements] The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array.
+   * @returns {Array} Returns removed portion of rows.
+   */
+  this.spliceRow = function(row, index, amount, ...elements) {
+    return datamap.spliceRow(row, index, amount, ...elements);
+  };
+
+  /**
    * Returns indexes of the currently selected cells as an array of arrays `[[startRow, startCol, endRow, endCol],...]`.
    *
    * Start row and start column are the coordinates of the active cell (where the selection was started).

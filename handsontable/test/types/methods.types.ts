@@ -118,6 +118,8 @@ hot.setDataAtRowProp(123, 'foo', 'foo', 'foo');
 hot.setSourceDataAtCell([[1, 'foo', 'foo']]);
 hot.setSourceDataAtCell(123, 123, 'foo', 'sourceString');
 hot.setSourceDataAtCell(123, 123, 'foo');
+hot.spliceCol(123, 123, 123, 'foo');
+hot.spliceRow(123, 123, 123, 'foo');
 hot.suspendExecution();
 hot.suspendRender();
 hot.toPhysicalColumn(123) == 123;

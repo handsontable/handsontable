@@ -135,6 +135,8 @@ declare namespace _Handsontable {
     setDataAtRowProp(row: number, prop: string, value: Handsontable.CellValue, source?: string): void;
     setSourceDataAtCell(changes: [number, string | number, Handsontable.CellValue][]): void;
     setSourceDataAtCell(row: number, column: number | string, value: Handsontable.CellValue, source?: string): void;
+    spliceCol(col: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
+    spliceRow(row: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
     suspendExecution(): void;
     suspendRender(): void;
     table: HTMLTableElement;
@@ -191,7 +193,7 @@ declare namespace Handsontable {
   /**
    * The default sources for which the table triggers hooks.
    */
-  type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'timeValidate' | 'dateValidate' | 'validateCells' | 'Autofill.fill' | 'ContextMenu.clearColumns' | 'ContextMenu.columnLeft' | 'ContextMenu.columnRight' | 'ContextMenu.removeColumn' | 'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' | 'CopyPaste.paste' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' | 'ColumnSummary.reset';
+  type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'spliceCol' | 'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' | 'Autofill.fill' | 'ContextMenu.clearColumns' | 'ContextMenu.columnLeft' | 'ContextMenu.columnRight' | 'ContextMenu.removeColumn' | 'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' | 'CopyPaste.paste' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' | 'ColumnSummary.reset';
   /**
    * The default cell type aliases the table has built-in.
    */
@@ -2196,6 +2198,7 @@ declare namespace Handsontable {
     endsWith(string: string, needle: string): boolean,
     equalsIgnoreCase(...string: string[]): boolean,
     extend(target: object, extension: object): void,
+    extendArray(arr: any[], extension: any[]): void,
     getComparisonFunction(language: string, options?: object): any | void,
     getDifferenceOfArrays(...arrays: (string | number)[][]): string[] | number[],
     getIntersectionOfArrays(...arrays: (string | number)[][]): string[] | number[],
@@ -2250,6 +2253,7 @@ declare namespace Handsontable {
     substitute(template: string, variables?: object): string,
     throttle(func: () => void, wait?: number): () => void,
     throttleAfterHits(func: () => void, wait?: number, hits?: number): () => void,
+    to2dArray(arr: any[]): void,
     toUpperCaseFirst(string: string): string,
     valueAccordingPercent(value: number, percent: string | number): number
   }
