@@ -2703,7 +2703,7 @@ export default () => {
     /**
      * @description
      * The `viewportRowRenderingOffset` option configures the number of rows
-     * to be rendered outside of the visible part of the grid.
+     * to be rendered outside of the grid's viewport.
      *
      * You can set the `viewportRowRenderingOffset` option to one of the following:
      *
@@ -2723,7 +2723,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // render 70 rows outside of the visible part of the grid
+     * // render 70 rows outside of the grid's viewport
      * viewportRowRenderingOffset: 70,
      * ```
      */
@@ -2732,7 +2732,7 @@ export default () => {
     /**
      * @description
      * The `viewportColumnRenderingOffset` option configures the number of columns
-     * to be rendered outside of the visible part of the grid.
+     * to be rendered outside of the grid's viewport.
      *
      * You can set the `viewportColumnRenderingOffset` option to one of the following:
      *
@@ -2751,7 +2751,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // render 70 columns outside of the visible part of the grid
+     * // render 70 columns outside of the grid's viewport
      * viewportColumnRenderingOffset: 70,
      * ```
      */
@@ -2928,6 +2928,8 @@ export default () => {
      * - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
      * - [`strict`](#strict)
      * - [`allowHtml`](#allowHtml)
+     * - [`filter`](#filter)
+     * - [`sortByRelevance`](#sortByRelevance)
      *
      * @memberof Options#
      * @type {Array|Function}
@@ -4032,8 +4034,14 @@ export default () => {
 
     /**
      * @description
-     * Allows setting a custom width of the row headers. You can provide a number or an array of widths, if many row
-     * header levels are defined.
+     * The `rowHeaderWidth` option configures the width of row headers.
+     *
+     * You can set the `rowHeaderWidth` option to one of the following:
+     *
+     * | Setting  | Description                                     |
+     * | -------- | ----------------------------------------------- |
+     * | A number | Set the same width for every row header         |
+     * | An array | Set different widths for individual row headers |
      *
      * @memberof Options#
      * @type {number|number[]}
@@ -4042,11 +4050,10 @@ export default () => {
      *
      * @example
      * ```js
-     * // set width for all row headers
+     * // set the same width for every row header
      * rowHeaderWidth: 25,
      *
-     * // or
-     * // set width for selected headers only
+     * // set different widths for individual row headers
      * rowHeaderWidth: [25, 30, 55],
      * ```
      */
@@ -4054,8 +4061,14 @@ export default () => {
 
     /**
      * @description
-     * Allows setting a custom height of the column headers. You can provide a number or an array of heights, if many
-     * column header levels are defined.
+     * The `columnHeaderHeight` option configures the height of column headers.
+     *
+     * You can set the `columnHeaderHeight` option to one of the following:
+     *
+     * | Setting  | Description                                         |
+     * | -------- | --------------------------------------------------- |
+     * | A number | Set the same height for every column header         |
+     * | An array | Set different heights for individual column headers |
      *
      * @memberof Options#
      * @type {number|number[]}
@@ -4064,25 +4077,29 @@ export default () => {
      *
      * @example
      * ```js
-     * // set shared height for all headers
-     * columnHeaderHeight: 35,
+     * // set the same height for every column header
+     * columnHeaderHeight: 25,
      *
-     * // or
-     * // set height for each header individually
-     * columnHeaderHeight: [35, 20, 55],
-     *
-     * // or
-     * // skipped headers will fallback to default value
-     * columnHeaderHeight: [35, undefined, 55],
+     * // set different heights for individual column headers
+     * columnHeaderHeight: [25, 30, 55],
      * ```
      */
     columnHeaderHeight: void 0,
 
     /**
-     * If defined as `true`, the Autocomplete's suggestion list would be sorted by relevance (the closer to the left the
-     * match is, the higher the suggestion).
+     * The `sortByRelevance` option configures whether [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) cells'
+     * lists are sorted in the same order as provided in the [`source`](#source) option.
      *
-     * __Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
+     * You can set the `sortByRelevance` option to one of the following:
+     *
+     * | Setting          | Description                                                                  |
+     * | ---------------- | ---------------------------------------------------------------------------- |
+     * | `true` (default) | Sort options in the same order as provided in the [`source`](#source) option |
+     * | `false`          | Sort options alphabetically                                                  |
+     *
+     * Read more:
+     * - [`source`](#source)
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -4091,26 +4108,33 @@ export default () => {
      *
      * @example
      * ```js
-     * columns: [
-     *   {
-     *     type: 'autocomplete',
-     *     source: [ ... ],
-     *     // keep options order as they were defined
-     *     sortByRelevance: false
-     *   }
-     * ],
+     * columns: [{
+     *   // set the `type` of every cell in this column to `autocomplete`
+     *   type: 'autocomplete',
+     *   // set options available in every `autocomplete` cell of this column
+     *   source: ['D', 'C', 'B', 'A'],
+     *   // sort the `autocomplete` option in this order: D, C, B, A
+     *   sortByRelevance: true
+     * }],
      * ```
      */
     sortByRelevance: true,
 
-    /* eslint-enable jsdoc/require-description-complete-sentence */
-
     /**
-     * If defined as `true`, when the user types into the input area the Autocomplete's suggestion list is updated to only
-     * include those choices starting with what has been typed; if defined as `false` all suggestions remain shown, with
-     * those matching what has been typed marked in bold.
+     * The `filter` option configures whether [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) cells'
+     * lists are updated by the end user's input.
      *
-     * __Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
+     * You can set the `filter` option to one of the following:
+     *
+     * | Setting          | Description                                                                                                           |
+     * | ---------------- | --------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | When the end user types into the input area, only options matching the input are displayed                            |
+     * | `false`          | When the end user types into the input area, all options are displayed<br>(options matching the input are put in bold |
+     *
+     * Read more:
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [`source`](#source)
+     * - [`filteringCaseSensitive`](#filteringCaseSensitive)
      *
      * @memberof Options#
      * @type {boolean}
@@ -4119,22 +4143,35 @@ export default () => {
      *
      * @example
      * ```js
-     * columns: [
-     *   {
-     *     type: 'autocomplete',
-     *     source: [ ... ],
-     *     // don't hide options that don't match search query
-     *     filter: false
-     *   }
-     * ],
+     * columns: [{
+     *   // set the `type` of every cell in this column to `autocomplete`
+     *   type: 'autocomplete',
+     *   // set options available in every `autocomplete` cell of this column
+     *   source: ['A', 'B', 'C'],
+     *   // when the end user types in `A`, display only the A option
+     *   // when the end user types in `B`, display only the B option
+     *   // when the end user types in `C`, display only the C option
+     *   filter: true
+     * }],
      * ```
      */
     filter: true,
 
     /**
-     * If defined as `true`, filtering in the Autocomplete Editor will be case-sensitive.
+     * The `filteringCaseSensitive` option configures whether [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) cells'
+     * input is case-sensitive.
      *
-     * __Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
+     * You can set the `filteringCaseSensitive` option to one of the following:
+     *
+     * | Setting           | Description                                                                                        |
+     * | ----------------- | -------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) cells' input is not case-sensitive |
+     * | `true`            | [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) cells' input is case-sensitive     |
+     *
+     * Read more:
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [`source`](#source)
+     * - [`filter`](#filter)
      *
      * @memberof Options#
      * @type {boolean}
@@ -4157,7 +4194,18 @@ export default () => {
 
     /**
      * @description
-     * Disables or enables the {@link DragToScroll} functionality.
+     * The `dragToScroll` option configures the [`DragToScroll`](@/api/dragToScroll.md) plugin.
+     *
+     * You can set the `dragToScroll` option to one of the following:
+     *
+     * | Setting          | Description                                                                 |
+     * | ---------------- | --------------------------------------------------------------------------- |
+     * | `true` (default) | When selection reaches the edge of the grid's viewport, scroll the viewport |
+     * | `false`          | Don't scroll the viewport                                                   |
+     *
+     * Read more:
+     * - [`DragToScroll`](@/api/dragToScroll.md)
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -4165,19 +4213,29 @@ export default () => {
      *
      * @example
      * ```js
-     * // don't scroll the viewport when selection gets to the viewport edge
-     * dragToScroll: false,
+     * // when selection reaches the edge of the grid's viewport, scroll the viewport
+     * dragToScroll: true,
      * ```
      */
     dragToScroll: true,
 
     /**
      * @description
-     * Disable or enable the nested rows functionality - displaying nested structures in a two-dimensional data table.
+     * The `nestedRows` option configures the [`NestedRows`](@/api/nestedRows.md) plugin.
      *
-     * See [quick setup of the Nested rows](@/guides/rows/row-parent-child.md).
+     * You can set the `nestedRows` option to one of the following:
+     *
+     * | Setting           | Description                                            |
+     * | ----------------- | ------------------------------------------------------ |
+     * | `false` (default) | Disable the [`NestedRows`](@/api/nestedRows.md) plugin |
+     * | `true`            | Enable the [`NestedRows`](@/api/nestedRows.md) plugin  |
+     *
+     * Read more:
+     * - [`NestedRows`](@/api/nestedRows.md)
+     *
      * @example
      * ```js
+     * // enable the `NestedRows` plugin
      * nestedRows: true,
      * ```
      *
@@ -4187,5 +4245,8 @@ export default () => {
      * @category NestedRows
      */
     nestedRows: void 0,
+
+    /* eslint-enable jsdoc/require-description-complete-sentence */
+
   };
 };
