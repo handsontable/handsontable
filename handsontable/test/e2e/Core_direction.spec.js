@@ -29,10 +29,10 @@ describe('Core_alter', () => {
       expect(instance.isRtl()).toBe(false);
       expect(instance.getDirectionFactor()).toBe(1);
     });
-    
+
     it('When direction attr is `rtl`, helpers returns isLtr(): false, isRtl(): true, directionFactor(): -1 ', () => {
-      $('html').attr('dir','rtl');
-      
+      $('html').attr('dir', 'rtl');
+
       const instance = handsontable();
 
       expect(instance.isLtr()).toBe(false);
