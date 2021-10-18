@@ -364,7 +364,7 @@ class Selection {
    * @param {boolean} [force] If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
    *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    */
-  transformStart(rowDelta, colDelta, force= false) {
+  transformStart(rowDelta, colDelta, force = false) {
     this.setRangeStart(this.transformation.transformStart(rowDelta, colDelta, force));
   }
 

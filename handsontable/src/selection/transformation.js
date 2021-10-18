@@ -37,7 +37,7 @@ class Transformation {
    *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    * @returns {CellCoords} Visual coordinates after transformation.
    */
-  transformStart(rowDelta, colDelta, force= false) {
+  transformStart(rowDelta, colDelta, force = false) {
     const delta = new CellCoords(rowDelta, colDelta);
     const highlightCoords = this.range.current().highlight;
     const { row: renderableRow, col: renderableColumn } = this.options.visualToRenderableCoords(highlightCoords);
