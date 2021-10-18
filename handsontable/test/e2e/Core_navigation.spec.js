@@ -314,7 +314,7 @@ describe('Core_navigation RTL', () => {
       destroy();
       this.$container.remove();
     }
-    $('html').attr('dir', 'ltr');
+    $('html').removeAttr('dir');
   });
 
   it('should move to the next cell', () => {

@@ -4288,6 +4288,36 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   };
 
+  /**
+   * Check if currently it is RTL direction.
+   *
+   * @internal
+   * @returns {boolean} True if RTL.
+   */
+  this.isRtl = function() {
+    return instance.rootWindow.getComputedStyle(instance.rootElement).direction === 'rtl';
+  }
+
+  /**
+   * Check if currently it is LTR direction.
+   *
+   * @internal
+   * @returns {boolean} True if LTR.
+   */
+  this.isLtr = function() {
+    return !instance.isRtl();
+  }
+
+  /**
+   * Returns 1 for LTR; -1 for RTL. Useful for calculations.
+   * 
+   * @internal
+   * @returns {number} Returns 1 for LTR; -1 for RTL.
+   */
+  this.getDirectionFactor = function () {
+    return instance.isLtr() ? 1 : -1;
+  }
+
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);
 
