@@ -92,6 +92,7 @@ export default () => {
      *
      * Read more:
      * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
+     * - [`dataSchema`](#dataSchema)
      *
      * @memberof Options#
      * @type {Array[]|object[]}
@@ -630,6 +631,7 @@ export default () => {
      *
      * Read more:
      * - [Formatting cells: Custom cell borders &#8594;](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
+     * - [`CustomBorders`](@/api/customBorders.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -1248,8 +1250,8 @@ export default () => {
      * | `true`            | Enable the [`PersistentState`](@/api/persistentState.md) plugin  |
      *
      * Read more:
-     * - [`PersistentState` &#8594;](@/api/persistentState.md)
-     * - [Saving data: Saving data locally](@/guides/getting-started/saving-data.md#saving-data-locally)
+     * - [`PersistentState`](@/api/persistentState.md)
+     * - [Saving data: Saving data locally &#8594;](@/guides/getting-started/saving-data.md#saving-data-locally)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1535,8 +1537,8 @@ export default () => {
      *
      * | Setting          | Description                                                                                                                                                                        |
      * | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `true` (default) | - Accept `invalid` values<br>- Allow the user to close the [cell editor](@/guides/cell-functions/cell-editor.md)<br>- Save `invalid` values into the data source                   |
-     * | `false`          | - Don't accept `invalid` values<br>- Don't allow the user to close the [cell editor](@/guides/cell-functions/cell-editor.md)<br>- Don't save `invalid` values into the data source |
+     * | `true` (default) | - Accept `invalid` values<br>- Allow the user to close the [cell editor](@/guides/cell-functions/cell-editor.md) with `invalid` values<br>- Save `invalid` values into the data source                   |
+     * | `false`          | - Don't accept `invalid` values<br>- Don't allow the user to close the [cell editor](@/guides/cell-functions/cell-editor.md) with `invalid` values<br>- Don't save `invalid` values into the data source |
      *
      * Setting the `allowInvalid` option to `false` can be useful when used with the [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode).
      *
@@ -1715,6 +1717,7 @@ export default () => {
      * - [Cell renderer &#8594;](@/guides/cell-functions/cell-renderer.md)
      * - [Cell type &#8594;](@/guides/cell-types/cell-type.md)
      * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [`type`](#type)
      *
      * @memberof Options#
      * @type {string|Function}
@@ -1965,6 +1968,9 @@ export default () => {
      * - [Cell editor &#8594;](@/guides/cell-functions/cell-editor.md)
      * - [Cell validator &#8594;](@/guides/cell-functions/cell-validator.md)
      * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [`renderer`](#renderer)
+     * - [`editor`](#editor)
+     * - [`validator`](#validator)
      *
      * @memberof Options#
      * @type {string}
@@ -2069,6 +2075,7 @@ export default () => {
      * - [Cell editor &#8594;](@/guides/cell-functions/cell-editor.md)
      * - [Cell type &#8594;](@/guides/cell-types/cell-type.md)
      * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [`type`](#type)
      *
      * @memberof Options#
      * @type {string|Function|boolean}
@@ -2182,6 +2189,9 @@ export default () => {
      *
      * To style cells that don't wrap content, use the [`noWordWrapClassName`](#noWordWrapClassName) option.
      *
+     * Read more:
+     * - [`noWordWrapClassName`](#noWordWrapClassName)
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -2209,6 +2219,9 @@ export default () => {
     /**
      * The `noWordWrapClassName` option lets you add a CSS class name
      * to every cell that has the [`wordWrap`](#wordWrap) option set to `false`.
+     *
+     * Read more:
+     * - [`wordWrap`](#wordWrap)
      *
      * @memberof Options#
      * @type {string}
@@ -2302,6 +2315,9 @@ export default () => {
      * | `rowsLimit`    | A number (default: `Infinity`)                       | A maximum number of columns that can be copied                                                                                                                                        |
      * | `pasteMode`    | `'overwrite'` \| `'shift_down'` \| `'shift_right'` | When pasting:<br>`'overwrite'`: overwrite currently-selected cells<br>`'shift_down'`: move currently-selected cells down<br>`'shift_right'`: move currently-selected cells to the right |
      * | `uiContainer`  | An HTML element                                    | A UI container for the secondary focusable element                                                                                                                                      |
+     *
+     * Read more:
+     * - [`CopyPaste`](@/api/copyPaste.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -2788,6 +2804,7 @@ export default () => {
      * - [Cell validator &#8594;](@/guides/cell-functions/cell-validator.md)
      * - [Cell type &#8594;](@/guides/cell-types/cell-type.md)
      * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [`type`](#type)
      *
      * @memberof Options#
      * @type {Function|RegExp|string}
@@ -2969,7 +2986,7 @@ export default () => {
      *
      * Read more:
      * - [Column header &#8594;](@/guides/columns/column-header.md)
-     * - [`columns` &#8594;](#columns)
+     * - [`columns`](#columns)
      *
      * @memberof Options#
      * @type {string}
@@ -3007,7 +3024,7 @@ export default () => {
      *
      * Read more:
      * - [Checkbox cell type: Checkbox template &#8594;](@/guides/cell-types/checkbox-cell-type.md#checkbox-template)
-     * - [`uncheckedTemplate` &#8594;](#uncheckedTemplate)
+     * - [`uncheckedTemplate`](#uncheckedTemplate)
      *
      * @memberof Options#
      * @type {boolean|string|number}
@@ -3025,10 +3042,10 @@ export default () => {
      *   },
      *   {
      *     // set the `type` of every cell in this column to `checkbox`
-     *     // when checked, the cell's value is `'Yes'`
-     *     // when unchecked, the cell's value is `'No'`
      *     type: 'checkbox',
+     *     // when checked, the cell's value is `'Yes'`
      *     checkedTemplate: 'Yes',
+     *     // when unchecked, the cell's value is `'No'`
      *     uncheckedTemplate: 'No'
      *  }
      * ],
@@ -3049,7 +3066,7 @@ export default () => {
      *
      * Read more:
      * - [Checkbox cell type: Checkbox template &#8594;](@/guides/cell-types/checkbox-cell-type.md#checkbox-template)
-     * - [`checkedTemplate` &#8594;](#checkedTemplate)
+     * - [`checkedTemplate`](#checkedTemplate)
      *
      * @memberof Options#
      * @type {boolean|string|number}
@@ -3282,7 +3299,7 @@ export default () => {
      * Using the [`colWidths`](#colWidths) option forcibly disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
      * Read more:
-     * - [`AutoColumnSize` &#8594;](@/api/autoColumnSize.md)
+     * - [`AutoColumnSize`](@/api/autoColumnSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -3330,7 +3347,7 @@ export default () => {
      * Using the [`rowHeights`](#rowHeights) option forcibly disables the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
      *
      * Read more:
-     * - [`AutoRowSize` &#8594;](@/api/autoRowSize.md)
+     * - [`AutoRowSize`](@/api/autoRowSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -3380,7 +3397,7 @@ export default () => {
     dateFormat: 'DD/MM/YYYY',
 
     /**
-     * The `correctFormat` option configures [`date`](@/guides/cell-types/date-cell-type.md) cells' automatic date format correction.
+     * The `correctFormat` option configures [`date`](@/guides/cell-types/date-cell-type.md) cells' date format correction.
      *
      * You can set the `correctFormat` option to one of the following
      *
@@ -3607,7 +3624,7 @@ export default () => {
      * | `true`  | Enable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin  |
      *
      * Read more:
-     * - [`BindRowsWithHeaders` &#8594;](@/api/bindRowsWithHeaders.md)
+     * - [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
      *
      * @memberof Options#
      * @type {boolean|string}
@@ -3635,7 +3652,7 @@ export default () => {
      * | An array of objects  | Enable the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin for selected column headers |
      *
      * Read more:
-     * - [`CollapsibleColumns` &#8594;](@/api/collapsibleColumns.md)
+     * - [`CollapsibleColumns`](@/api/collapsibleColumns.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -3679,7 +3696,7 @@ export default () => {
      *
      * Read more:
      * - [Column summary &#8594;](@/guides/columns/column-summary.md)
-     * - [`ColumnSummary` &#8594;](@/api/columnSummary.md)
+     * - [`ColumnSummary`](@/api/columnSummary.md)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -3725,7 +3742,7 @@ export default () => {
      *
      * Read more:
      * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
-     * - [`DropdownMenu` &#8594;](@/api/dropdownMenu.md)
+     * - [`DropdownMenu`](@/api/dropdownMenu.md)
      *
      * @memberof Options#
      * @type {boolean|object|string[]}
@@ -3782,7 +3799,7 @@ export default () => {
      *
      * Read more:
      * - [Column filter &#8594;](@/guides/columns/column-filter.md)
-     * - [`Filters` &#8594;](@/api/filters.md)
+     * - [`Filters`](@/api/filters.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3813,7 +3830,7 @@ export default () => {
      * | `sheetName` | A string                                                                                                                                                                                                               |
      *
      * Read more:
-     * - [`Formulas` &#8594;](@/api/formulas.md)
+     * - [`Formulas`](@/api/formulas.md)
      * - [Formula calculation &#8594;](@/guides/formulas/formula-calculation.md)
      * - [HyperFormula documentation: Client-side installation](https://handsontable.github.io/hyperformula/guide/client-side-installation)
      * - [HyperFormula documentation: Configuration options](https://handsontable.github.io/hyperformula/api/interfaces/configparams.html)
@@ -3894,7 +3911,7 @@ export default () => {
      * | `indicators`       | `true` \| `false`   | `true`: display UI markers to indicate the presence of hidden columns<br>`false`: display UI markers                                                    |
      *
      * Read more:
-     * - [`HiddenColumns` &#8594;](@/api/hiddenColumns.md)
+     * - [`HiddenColumns`](@/api/hiddenColumns.md)
      * - [Column hiding &#8594;](@/guides/columns/column-hiding.md)
      *
      * @memberof Options#
@@ -3940,7 +3957,7 @@ export default () => {
      * | `indicators`       | `true` \| `false`   | `true`: display UI markers to indicate the presence of hidden rows<br>`false`: display UI markers                                                 |
      *
      * Read more:
-     * - [`HiddenRows` &#8594;](@/api/hiddenRows.md)
+     * - [`HiddenRows`](@/api/hiddenRows.md)
      * - [Row hiding &#8594;](@/guides/rows/row-hiding.md)
      *
      * @memberof Options#
@@ -3980,7 +3997,7 @@ export default () => {
      * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): the column width |
      *
      * Read more:
-     * - [`NestedHeaders` &#8594;](@/api/nestedHeaders.md)
+     * - [`NestedHeaders`](@/api/nestedHeaders.md)
      * - [Column groups: Nested headers &#8594;](@/guides/columns/column-groups.md#nested-headers)
      *
      * @memberof Options#
@@ -4012,7 +4029,7 @@ export default () => {
      * | An array | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
      *
      * Read more:
-     * - [`TrimRows` &#8594;](@/api/trimRows.md)
+     * - [`TrimRows`](@/api/trimRows.md)
      * - [Row trimming &#8594;](@/guides/rows/row-trimming.md)
      *
      * @memberof Options#
