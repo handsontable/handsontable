@@ -1,0 +1,7 @@
+{
+  "title": "Add TypeScript definition files for modularized version of the Handsontable.",
+  "type": "added",
+  "issue": 7489,
+  "breaking": false,
+  "framework": "none"
+}
