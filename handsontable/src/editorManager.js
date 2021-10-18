@@ -326,7 +326,7 @@ class EditorManager {
     if (isShiftPressed) {
       this.selection.transformEnd(0, getDirectionFactor(this.instance));
     } else {
-      this.selection.transformStart(0, getDirectionFactor(this.instance), false);
+      this.selection.transformStart(0, getDirectionFactor(this.instance));
     }
   }
 
@@ -340,7 +340,7 @@ class EditorManager {
     if (isShiftPressed) {
       this.selection.transformEnd(0, -1 * getDirectionFactor(this.instance));
     } else {
-      this.selection.transformStart(0, -1 * getDirectionFactor(this.instance), false);
+      this.selection.transformStart(0, -1 * getDirectionFactor(this.instance));
     }
   }
 
