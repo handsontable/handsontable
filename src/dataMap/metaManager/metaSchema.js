@@ -3769,7 +3769,18 @@ export default () => {
     dropdownMenu: void 0,
 
     /**
-     * The {@link Filters} plugin allows filtering the table data either by the built-in component or with the API.
+     * The `filters` option configures the [`Filters`](@/api/filters.md) plugin.
+     *
+     * You can set the `filters` option to one of the following:
+     *
+     * | Setting | Description                                      |
+     * | ------- | ------------------------------------------------ |
+     * | `false` | Disable the [`Filters`](@/api/filters.md) plugin |
+     * | `true   | Enable the [`Filters`](@/api/filters.md) plugin  |
+     *
+     * Read more:
+     * - [Column filter &#8594;](@/guides/columns/column-filter.md)
+     * - [`Filters` &#8594;](@/api/filters.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3778,14 +3789,32 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable filters
+     * // enable the `Filters` plugin
      * filters: true,
      * ```
      */
     filters: void 0,
 
     /**
-     * The {@link Formulas} plugin allows Handsontable to process formula expressions defined in the provided data.
+     * The `formulas` option configures the [`Formulas`](@/api/formulas.md) plugin.
+     *
+     * The [`Formulas`](@/api/formulas.md) plugin uses the [HyperFormula](https://handsontable.github.io/hyperformula/) calculation engine.
+     * To install [HyperFormula](https://handsontable.github.io/hyperformula/), read the following:
+     * - [Formula calculation: Initialization methods &#8594;](@/guides/formulas/formula-calculation.md#initialization-methods)
+     *
+     * You can set the `formulas` option to an object with the following properties:
+     *
+     * | Property    | Possible values                                                                                                                                                                                                        |
+     * | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `engine`    | `HyperFormula` \|<br>A [HyperFormula](https://handsontable.github.io/hyperformula/) instance \|<br>A [HyperFormula configuration](https://handsontable.github.io/hyperformula/api/interfaces/configparams.html) object |
+     * | `sheetId`   | A number                                                                                                                                                                                                               |
+     * | `sheetName` | A string                                                                                                                                                                                                               |
+     *
+     * Read more:
+     * - [`Formulas` &#8594;](@/api/formulas.md)
+     * - [Formula calculation &#8594;](@/guides/formulas/formula-calculation.md)
+     * - [HyperFormula documentation: Client-side installation](https://handsontable.github.io/hyperformula/guide/client-side-installation)
+     * - [HyperFormula documentation: Configuration options](https://handsontable.github.io/hyperformula/api/interfaces/configparams.html)
      *
      * @memberof Options#
      * @type {object}
@@ -3794,18 +3823,34 @@ export default () => {
      *
      * @example
      * ```js
-     * // in Handsontable's `formulas` configuration option, add the `HyperFormula` class
+     * // either add the `HyperFormula` class
      * formulas: {
+     *   // set engine to `HyperFormula`
      *   engine: HyperFormula,
-     *   // the `Formulas` plugin configuration
+     *   sheetId: 1,
+     *   sheetName: 'Sheet 1'
      * }
      *
      * // or, add a HyperFormula instance
-     * const hyperformulaInstance = HyperFormula.buildEmpty({})
+     * const hyperFormulaInstance = HyperFormula.buildEmpty({})
      *
      * formulas: {
-     *   engine: hyperformulaInstance,
-     *   // the `Formulas` plugin configuration
+     *   // set `engine` to a HyperFormula instance
+     *   engine: hyperFormulaInstance,
+     *   sheetId: 1,
+     *   sheetName: 'Sheet 1'
+     * }
+     *
+     * // or, add a HyperFormula configuration object
+     * formulas: {
+     *   // set `engine` to a HyperFormula configuration object
+     *   engine: {
+     *     hyperformula: HyperFormula // or `engine: hyperFormulaInstance`
+     *     leapYear1900: false,       // this option comes from HyperFormula
+     *     // add more HyperFormula configuration options
+     *   },
+     *   sheetId: 1,
+     *   sheetName: 'Sheet 1'
      * }
      *
      * // use the same HyperFormula instance in multiple Handsontable instances
@@ -3813,13 +3858,15 @@ export default () => {
      * // a Handsontable instance `hot1`
      * formulas: {
      *   engine: HyperFormula,
-     *   // the `Formulas` plugin configuration
+     *   sheetId: 1,
+     *   sheetName: 'Sheet 1'
      * }
      *
      * // a Handsontable instance `hot2`
      * formulas: {
      *   engine: hot1.getPlugin('formulas').engine,
-     *   // the `Formulas` plugin configuration
+     *   sheetId: 1,
+     *   sheetName: 'Sheet 1'
      * }
      * ```
      */
