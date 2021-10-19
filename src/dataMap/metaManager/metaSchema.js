@@ -1210,10 +1210,10 @@ export default () => {
      *
      * You can set the `autoWrapRow` option to one of the following:
      *
-     * | Setting           | Description                                                          |
-     * | ----------------- | -------------------------------------------------------------------- |
-     * | `true`            | On reaching the grid's left or right edge, jump to the opposite edge |
-     * | `false` (default) | On reaching the grid's left or right edge, stop                      |
+     * | Setting           | Description                                                                                                                  |
+     * | ----------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+     * | `true`            | On reaching the grid's left or right edge:<br>- Jump to the grid's opposite edge<br>- Select a cell in the previous/next row |
+     * | `false` (default) | On reaching the grid's left or right edge, stop                                                                              |
      *
      * @memberof Options#
      * @type {boolean}
@@ -1233,10 +1233,10 @@ export default () => {
      *
      * You can set the `autoWrapCol` option to one of the following:
      *
-     * | Setting           | Description                                                          |
-     * | ----------------- | -------------------------------------------------------------------- |
-     * | `true`            | On reaching the grid's top or bottom edge, jump to the opposite edge |
-     * | `false` (default) | On reaching the grid's top or bottom edge, stop                      |
+     * | Setting           | Description                                                                                                             |
+     * | ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
+     * | `true`            | On reaching the grid's top or bottom edge<br>- Jump to the opposite edge<br>- Select a cell in the previous/next column |
+     * | `false` (default) | On reaching the grid's top or bottom edge, stop                                                                         |
      *
      * @memberof Options#
      * @type {boolean}
