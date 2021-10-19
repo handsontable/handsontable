@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: 15.x
+  NODE_VERSION: 16.x
 
 jobs:
   check-scope:
@@ -37,48 +37,48 @@ jobs:
       test-vue: ${{ steps.path-filter.outputs.test-vue }}
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
       - uses: dorny/paths-filter@b2feaf19c27470162a626bd6fa8438ae5b263721 # https://github.com/dorny/paths-filter/releases/tag/v2.10.2
         id: path-filter
         with:
           filters: |
             config-files: &config-files
-              - '.config/**'
-              - './package.json'
+              - './handsontable/.config/**'
+              - './handsontable/package.json'
               - './package-lock.json'
-              - './hot.config.js'
-              - './babel.config.js'
+              - './handsontable/hot.config.js'
+              - './handsontable/babel.config.js'
             hot-definition-files: &hot-definition-files
-              - './base.d.ts'
-              - './handsontable.d.ts'
+              - './handsontable/base.d.ts'
+              - './handsontable/handsontable.d.ts'
             hot-source-and-scripts: &hot-source-and-scripts
-              - 'src/**'
-              - 'scripts/**'
+              - './handsontable/src/**'
+              - './handsontable/scripts/**'
             hot-shared: &hot-shared
               - *config-files
               - *hot-source-and-scripts
             hot-e2e-test-shared: &hot-e2e-test-shared
-              - 'test/e2e/**'
-              - 'test/scripts/**'
+              - './handsontable/test/e2e/**'
+              - './handsontable/test/scripts/**'
 
             build-handsontable-umd:
               - *hot-shared
-              - 'test/e2e/**'
-              - 'test/scripts/**'
+              - './handsontable/test/e2e/**'
+              - './handsontable/test/scripts/**'
             build-handsontable-es-cjs:
               - *hot-shared
               - 'wrappers/**'
             test-handsontable-unit:
               - *hot-shared
-              - 'test/unit/**'
+              - './handsontable/test/unit/**'
             test-handsontable-types:
               - *hot-shared
               - *hot-definition-files
-              - 'test/types/**'
+              - './handsontable/test/types/**'
             test-handsontable-walkontable:
-              - '.config/**'
-              - 'test/scripts/**'
-              - 'src/3rdparty/walkontable/**'
+              - './handsontable/.config/**'
+              - './handsontable/test/scripts/**'
+              - './handsontable/src/3rdparty/walkontable/**'
             test-handsontable-e2e:
               - *hot-shared
               - *hot-e2e-test-shared
@@ -110,10 +110,12 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
-      - run: |
+      - name: Build
+        run: |
+          cd handsontable
           npm run build:umd && npm run build:languages
           npm run build:umd.min && npm run build:languages.min
-      - run: tar -zcf dist.tar.gz ./dist
+      - run: tar -zcf dist.tar.gz ./handsontable/dist
       - name: Upload the Handsontable UMD build artifact.
         uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
         with:
@@ -136,11 +138,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
-      - run: |
+      - name: Build
+        run: |
+          cd handsontable
           npm run build:es && npm run build:languages.es
           npm run build:commonjs
           npm run postbuild
-      - run: tar -zcf tmp.tar.gz ./tmp
+      - run: tar -zcf tmp.tar.gz ./handsontable/tmp
       - name: Upload the Handsontable ES + CJS build artifact.
         uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
         with:
@@ -163,7 +167,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
-      - run: npm run test:unit
+      - name: Test
+        run: |
+          cd handsontable
+          npm run test:unit
 
   test-handsontable-types:
     name: "[TEST] Handsontable: Types"
@@ -180,7 +187,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
-      - run: npm run test:types
+      - name: Test
+        run: |
+          cd handsontable
+          npm run test:types
 
   test-handsontable-walkontable:
     name: "[TEST] Walkontable"
@@ -197,7 +207,10 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
-      - run: npm run test:walkontable
+      - name: Test
+        run: |
+          cd handsontable
+          npm run test:walkontable
 
   test-handsontable-e2e:
     name: "[TEST] Handsontable: UMD"
@@ -219,8 +232,11 @@ jobs:
         with:
           name: handsontable-build-umd
           path: ./
-      - run: tar -zxf dist.tar.gz ./dist && rm dist.tar.gz
-      - run: npm run test:e2e.dump && npm run test:e2e.puppeteer
+      - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
+      - name: Test
+        run: |
+          cd handsontable
+          npm run test:e2e.dump && npm run test:e2e.puppeteer
 
   test-handsontable-e2e-min:
     name: "[TEST] Handsontable: UMD.min"
@@ -242,8 +258,11 @@ jobs:
         with:
           name: handsontable-build-umd
           path: ./
-      - run: tar -zxf dist.tar.gz ./dist && rm dist.tar.gz
-      - run: npm run test:production.dump && npm run test:e2e.puppeteer
+      - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
+      - name: Test
+        run: |
+          cd handsontable
+          npm run test:production.dump && npm run test:e2e.puppeteer
 
   test-angular:
     name: "[TEST] Wrapper: Angular"
@@ -265,7 +284,8 @@ jobs:
         with:
           name: handsontable-build-es-cjs
           path: ./
-      - run: tar -zxf tmp.tar.gz ./tmp && rm tmp.tar.gz
+      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+      - run: cd handsontable
       - run: npm run swap-package-links
       - run: npm run in angular build
       - run: npm run in angular test:ci
@@ -290,7 +310,8 @@ jobs:
         with:
           name: handsontable-build-es-cjs
           path: ./
-      - run: tar -zxf tmp.tar.gz ./tmp && rm tmp.tar.gz
+      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+      - run: cd handsontable
       - run: npm run swap-package-links
       - run: npm run in react build
       - run: npm run in react test
@@ -315,7 +336,8 @@ jobs:
         with:
           name: handsontable-build-es-cjs
           path: ./
-      - run: tar -zxf tmp.tar.gz ./tmp && rm tmp.tar.gz
+      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+      - run: cd handsontable
       - run: npm run swap-package-links
       - run: npm run in vue build
       - run: npm run in vue test

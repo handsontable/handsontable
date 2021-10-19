@@ -5,6 +5,7 @@
  */
 const path = require('path');
 const webpack = require('webpack');
+const fsExtra = require('fs-extra');
 const JasmineHtml = require('./plugin/jasmine-html');
 
 const wotPath = path.resolve(__dirname, '../src/3rdparty/walkontable');
@@ -44,7 +45,11 @@ module.exports.create = function create(envArgs) {
       new webpack.optimize.OccurrenceOrderPlugin(),
       new JasmineHtml({
         filename: path.resolve(wotPath, 'test/SpecRunner.html'),
-        baseJasminePath: '../../../../',
+        baseJasminePath: `${
+          fsExtra.pathExistsSync(
+            path.resolve(__dirname, '../node_modules/jasmine-core')
+          ) ? '../../../../' : '../../../../../'
+        }`,
         externalCssFiles: [
           '../css/walkontable.css',
           '../css/walkontable.test.css',

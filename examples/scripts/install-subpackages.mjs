@@ -4,12 +4,19 @@
 import execa from 'execa';
 import thisPackageJson from '../package.json';
 import glob from 'glob';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
 import {
   spawnProcess,
   displayErrorMessage
 } from '../../scripts/utils/index.mjs';
 
-const [version] = process.argv.slice(2);
+const argv = yargs(hideBin(process.argv))
+  .boolean('skip-clean')
+  .default('skip-clean', false)
+  .argv;
+
+const [version] = argv._;
 
 if (!version) {
   displayErrorMessage('Version for the examples was not provided.');
@@ -18,11 +25,13 @@ if (!version) {
 }
 
 (async() => {
-  // Clean node_modules, package-lock and /dist/ for the versioned subpackages.
-  await spawnProcess(`node ./scripts/clean-subpackages.mjs ${version}`);
+  if (!argv.skipClean) {
+    // Clean node_modules, package-lock and /dist/ for the versioned subpackages.
+    await spawnProcess(`node ./scripts/clean-subpackages.mjs ${version}`);
+  }
 
   // Run `npm i` for all the examples in the versioned directory.
-  for (const frameworkPackage of thisPackageJson.workspaces.packages) {
+  for (const frameworkPackage of thisPackageJson.workspaces) {
     const frameworkUrls = glob.sync(`${frameworkPackage}`);
 
     for (const frameworkUrl of frameworkUrls) {

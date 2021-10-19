@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer');
 const http = require('http');
+const path = require('path');
 const ecstatic = require('ecstatic');
 const JasmineReporter = require('jasmine-terminal-reporter');
 
@@ -9,7 +10,7 @@ const IS_CI = process.env.CI;
 const CI_DOTS_PER_LINE = 120;
 
 const [,, originalPath, flags] = process.argv;
-let path = originalPath;
+let htmlPath = originalPath;
 let verboseReporting = false;
 
 if (!originalPath) {
@@ -33,7 +34,7 @@ if (flags) {
     params.push('random=true');
   }
 
-  path = `${path}?${params.join('&')}`;
+  htmlPath = `${htmlPath}?${params.join('&')}`;
 }
 
 const cleanupFactory = (browser, server) => async(exitCode) => {
@@ -63,8 +64,10 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
     height: 720,
   });
 
+  const rootPath = path.resolve(`${__dirname}`, '../../..');
+
   const server = http.createServer(ecstatic({
-    root: `${__dirname}/../..`,
+    root: rootPath,
     showDir: true,
     autoIndex: true,
   }));
@@ -120,8 +123,10 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
     await cleanup(1);
   });
 
+  const packagePath = path.relative(rootPath, process.cwd());
+
   try {
-    await page.goto(`http://localhost:${PORT}/${path}`);
+    await page.goto(`http://localhost:${PORT}/${packagePath}/${htmlPath}`);
   } catch (error) {
     /* eslint-disable no-console */
     console.log(error);
