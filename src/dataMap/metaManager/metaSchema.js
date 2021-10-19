@@ -291,7 +291,7 @@ export default () => {
      *
      * // set your own row headers, using a function
      * rowHeaders: function(visualRowIndex) {
-     *   return visualRowIndex + ': AB';
+     *   return `${visualRowIndex}: AB`;
      * },
      * ```
      */
