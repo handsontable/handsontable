@@ -307,7 +307,7 @@ export default () => {
      * | `true`   | Enable the default column headers ("A", "B", "C", ...)               |
      * | `false`  | Disable column headers                                               |
      * | An array | Define your own column headers (e.g. `['One', 'Two', 'Three', ...]`) |
-     * | A function | Define your own row headers, using a function                     |
+     * | A function | Define your own column headers, using a function                     |
      *
      * Read more:
      * - [Column header &#8594;](@/guides/columns/column-header.md)
