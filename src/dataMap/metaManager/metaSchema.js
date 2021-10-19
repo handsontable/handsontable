@@ -1096,7 +1096,7 @@ export default () => {
      * outsideClickDeselects: false,
      *
      * // take the click event target and return `false`
-     * outsideClickDeselects: function(event) {
+     * outsideClickDeselects(event) {
      *   return false;
      * }
      *
