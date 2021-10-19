@@ -37,7 +37,7 @@ module.exports = {
     commonjs_dist: {
       plugins: [
         ['@babel/plugin-transform-modules-commonjs', { loose: true }],
-        ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }]
+        ['babel-plugin-transform-require-ignore', { extensions: ['.css','.scss','.sass'] }]
       ],
       ignore: [
         '**/__tests__/**',
@@ -48,7 +48,7 @@ module.exports = {
     // Environment for transpiling files to be compatible with ES Modules.
     es: {
       plugins: [
-        ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }],
+        ['babel-plugin-transform-require-ignore', { extensions: ['.css','.scss','.sass'] }],
         ['./.config/plugin/babel/add-import-extension.js', { extension: 'mjs' }]
       ],
       ignore: [
@@ -63,7 +63,7 @@ module.exports = {
     // the Handsontable.
     es_languages: {
       plugins: [
-        ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }],
+        ['babel-plugin-transform-require-ignore', { extensions: ['.css','.scss','.sass'] }],
         ['./.config/plugin/babel/add-import-extension.js', { extension: 'mjs' }],
         ['./.config/plugin/babel/add-language-registration.js'],
       ],
