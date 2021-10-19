@@ -1712,16 +1712,16 @@ export default () => {
      * | Alias               | Cell renderer function                                                         |
      * | ------------------- | ------------------------------------------------------------------------------ |
      * | A custom alias      | Your [custom cell renderer](@/guides/cell-functions/cell-renderer.md) function |
-     * | `'autocomplete'`    | `Handsontable.renderers.AutocompleteRenderer`                                  |
-     * | `'base'`            | `Handsontable.renderers.BaseRenderer`                                          |
-     * | `'checkbox'`        | `Handsontable.renderers.CheckboxRenderer`                                      |
-     * | `'date'`            | `Handsontable.renderers.DateRenderer`                                          |
-     * | `'dropdown'`        | `Handsontable.renderers.DropdownRenderer`                                      |
-     * | `'html'`            | `Handsontable.renderers.HtmlRenderer`                                          |
-     * | `'numeric'`         | `Handsontable.renderers.NumericRenderer`                                       |
-     * | `'password'`        | `Handsontable.renderers.PasswordRenderer`                                      |
-     * | `'text'`            | `Handsontable.renderers.TextRenderer`                                          |
-     * | `'time'`            | `Handsontable.renderers.TimeRenderer`                                          |
+     * | `'autocomplete'`    | `AutocompleteRenderer`                                                         |
+     * | `'base'`            | `BaseRenderer`                                                                 |
+     * | `'checkbox'`        | `CheckboxRenderer`                                                             |
+     * | `'date'`            | `DateRenderer`                                                                 |
+     * | `'dropdown'`        | `DropdownRenderer`                                                             |
+     * | `'html'`            | `HtmlRenderer`                                                                 |
+     * | `'numeric'`         | `NumericRenderer`                                                              |
+     * | `'password'`        | `PasswordRenderer`                                                             |
+     * | `'text'`            | `TextRenderer`                                                                 |
+     * | `'time'`            | `TimeRenderer`                                                                 |
      *
      * To set the [`renderer`](#renderer), [`editor`](#editor), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
@@ -2068,16 +2068,16 @@ export default () => {
      * | Alias               | Cell editor function                                                       |
      * | ------------------- | -------------------------------------------------------------------------- |
      * | A custom alias      | Your [custom cell editor](@/guides/cell-functions/cell-editor.md) function |
-     * | `'autocomplete'`    | `Handsontable.editors.AutocompleteEditor`                                  |
-     * | `'base        '`    | `Handsontable.editors.BaseEditor`                                          |
-     * | `'checkbox'`        | `Handsontable.editors.CheckboxEditor`                                      |
-     * | `'date'`            | `Handsontable.editors.DateEditor`                                          |
-     * | `'dropdown'`        | `Handsontable.editors.DropdownEditor`                                      |
-     * | `'handsontable'`    | `Handsontable.editors.HandsontableEditor`                                  |
-     * | `'numeric'`         | `Handsontable.editors.NumericEditor`                                       |
-     * | `'password'`        | `Handsontable.renderers.PasswordEditor`                                    |
-     * | `'select'`          | `Handsontable.editors.SelectEditor`                                        |
-     * | `'text'`            | `Handsontable.editors.TextEditor`                                          |
+     * | `'autocomplete'`    | `AutocompleteEditor`                                                       |
+     * | `'base        '`    | `BaseEditor`                                                               |
+     * | `'checkbox'`        | `CheckboxEditor`                                                           |
+     * | `'date'`            | `DateEditor`                                                               |
+     * | `'dropdown'`        | `DropdownEditor`                                                           |
+     * | `'handsontable'`    | `HandsontableEditor`                                                       |
+     * | `'numeric'`         | `NumericEditor`                                                            |
+     * | `'password'`        | `PasswordEditor`                                                           |
+     * | `'select'`          | `SelectEditor`                                                             |
+     * | `'text'`            | `TextEditor`                                                               |
      *
      * To disable cell editing, set the `editor` option to `false`.
      *
@@ -2804,11 +2804,11 @@ export default () => {
      * | Alias               | Cell validator function                                                 |
      * | ------------------- | ----------------------------------------------------------------------- |
      * | A custom alias      | Your [custom cell validator](@/guides/cell-functions/cell-validator.md) |
-     * | `'autocomplete'`    | `Handsontable.validators.AutocompleteValidator`                         |
-     * | `'date'`            | `Handsontable.validators.DateValidator`                                 |
-     * | `'dropdown'`        | `Handsontable.validators.DropdownValidator`                             |
-     * | `'numeric'`         | `Handsontable.validators.NumericValidator`                              |
-     * | `'time'`            | `Handsontable.validators.TimeValidator`                                 |
+     * | `'autocomplete'`    | `AutocompleteValidator`                                                 |
+     * | `'date'`            | `DateValidator`                                                         |
+     * | `'dropdown'`        | `DropdownValidator`                                                     |
+     * | `'numeric'`         | `NumericValidator`                                                      |
+     * | `'time'`            | `TimeValidator`                                                         |
      *
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
