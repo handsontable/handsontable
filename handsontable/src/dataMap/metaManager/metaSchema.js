@@ -2106,7 +2106,7 @@ export default () => {
      * @example
      * ```js
      * // use the `numeric` editor for every cell of the entire grid
-     * editor: `'numeric'`,
+     * editor: 'numeric',
      *
      * // apply the `editor` option to individual columns
      * columns: [
