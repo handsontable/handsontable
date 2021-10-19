@@ -37,6 +37,7 @@ module.exports.create = function create(envArgs) {
             { loader: MiniCssExtractPlugin.loader },
             { loader: 'css-loader' },
             { loader: 'sass-loader'},
+            { loader: path.resolve(__dirname, 'loader/sass-rtl-loader.js')}
           ]
         },
         {
