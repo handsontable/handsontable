@@ -266,11 +266,12 @@ export default () => {
      *
      * You can set the `rowHeaders` option to one of the following:
      *
-     * | Setting  | Description                                                       |
-     * | -------- | ----------------------------------------------------------------- |
-     * | `true`   | Enable the default row headers ("1", "2", "3", ...)               |
-     * | `false`  | Disable row headers                                               |
-     * | An array | Define your own row headers (e.g. `['One', 'Two', 'Three', ...]`) |
+     * | Setting    | Description                                                       |
+     * | ---------- | ----------------------------------------------------------------- |
+     * | `true`     | Enable the default row headers ("1", "2", "3", ...)               |
+     * | `false`    | Disable row headers                                               |
+     * | An array   | Define your own row headers (e.g. `['One', 'Two', 'Three', ...]`) |
+     * | A function | Define your own row headers, using a function                     |
      *
      * Read more:
      * - [Row header &#8594;](@/guides/rows/row-header.md)
