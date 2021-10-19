@@ -216,7 +216,7 @@ export default () => {
      * height: '75vh',
      *
      * // set the grid's height to 500px, using a function
-     * height: function() {
+     * height() {
      *   return 500;
      * },
      * ```
