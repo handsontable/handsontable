@@ -181,7 +181,7 @@ export default () => {
      * width: '75vw',
      *
      * // set the grid's width to 500px, using a function
-     * width: function() {
+     * width() {
      *   return 500;
      * },
      * ```
@@ -216,7 +216,7 @@ export default () => {
      * height: '75vh',
      *
      * // set the grid's height to 500px, using a function
-     * height: function() {
+     * height() {
      *   return 500;
      * },
      * ```

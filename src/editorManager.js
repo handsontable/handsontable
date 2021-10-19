@@ -59,7 +59,7 @@ class EditorManager {
      * A reference to an instance of the activeEditor.
      *
      * @private
-     * @type {*}
+     * @type {BaseEditor}
      */
     this.activeEditor = void 0;
     /**
@@ -130,7 +130,7 @@ class EditorManager {
   /**
    * Get active editor.
    *
-   * @returns {*}
+   * @returns {BaseEditor}
    */
   getActiveEditor() {
     return this.activeEditor;
