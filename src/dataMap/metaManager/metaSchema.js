@@ -1707,7 +1707,9 @@ export default () => {
      * @description
      * The `renderer` option sets a [cell renderer](@/guides/cell-functions/cell-renderer.md) for a cell.
      *
-     * You can set the `renderer` option to one of the following [cell renderer aliases](@/guides/cell-functions/cell-renderer.md):
+     * You can set the `renderer` option to one of the following:
+     * - A custom renderer function
+     * - One of the following [cell renderer aliases](@/guides/cell-functions/cell-renderer.md):
      *
      * | Alias               | Cell renderer function                                                         |
      * | ------------------- | ------------------------------------------------------------------------------ |
@@ -1741,6 +1743,12 @@ export default () => {
      * ```js
      * // use the `numeric` renderer for every cell of the entire grid
      * renderer: `'numeric'`,
+     *
+     * // add a custom renderer function
+     * renderer(hotInstance, td, row, column, prop, value, cellProperties) {
+     *   // your custom renderer's logic
+     *   ...
+     * }
      *
      * // apply the `renderer` option to individual columns
      * columns: [
