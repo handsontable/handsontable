@@ -707,9 +707,12 @@ export default () => {
     customBorders: false,
 
     /**
-     * The `minRows` option sets a minimum number of rows that Handsontable has to create at initialization.
+     * The `minRows` option sets a minimum number of rows.
      *
-     * If the `minRows` value is higher than the initial number of rows, Handsontable adds empty rows at the bottom.
+     * The `minRows` option is used:
+     * - At initialization: if the `minRows` value is higher than the initial number of rows,
+     * Handsontable adds empty rows at the bottom.
+     * - At runtime: for example, when removing rows.
      *
      * @memberof Options#
      * @type {number}
@@ -718,16 +721,19 @@ export default () => {
      *
      * @example
      * ```js
-     * // at Handsontable's initialization, create at least 10 rows
+     * // set a minimum number of rows to 10
      * minRows: 10,
      * ```
      */
     minRows: 0,
 
     /**
-     * The `minCols` option sets a minimum number of columns that Handsontable has to create at initialization.
+     * The `minCols` option sets a minimum number of columns.
      *
-     * If the `minCols` value is higher than the initial number of columns, Handsontable adds empty columns to the right.
+     * The `minCols` option is used:
+     * - At initialization: if the `minCols` value is higher than the initial number of columns,
+     * Handsontable adds empty columns to the right.
+     * - At runtime: for example, when removing columns.
      *
      * The `minCols` option works only when your [`data`](#data) is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
      * When your [`data`](#data) is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects),
@@ -743,7 +749,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // at Handsontable's initialization, create at least 10 columns
+     * // set a minimum number of columns to 10
      * minCols: 10,
      * ```
      */
