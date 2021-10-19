@@ -372,8 +372,8 @@ export default () => {
      * colWidths: [100, 120, undefined],
      *
      * // set each column's width individually, using a function
-     * colWidths: function(index) {
-     *   return index * 10;
+     * colWidths(visualColumnIndex) {
+     *   return visualColumnIndex * 10;
      * },
      * ```
      */
