@@ -3794,7 +3794,7 @@ export default () => {
      *           {
      *             key: "option2:suboption1",
      *             name: "option2:suboption1",
-     *             callback: function(key, options) {
+     *             callback(key, options) {
      *               ...
      *             }
      *           },
