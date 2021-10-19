@@ -1198,7 +1198,7 @@ export default () => {
      * // the same setting, as a function
      * // `event` is a DOM Event object received on pressing Tab
      * // you can use it to check whether the user pressed Tab or Shift+Tab
-     * tabMoves: function(event) {
+     * tabMoves(event) {
      *   return {row: 2, col: 2};
      * },
      * ```
