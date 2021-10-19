@@ -1459,7 +1459,7 @@ export default () => {
      * @example
      * ```js
      * // overwrite the built-in `isEmptyRow` method
-     * isEmptyRow: function(row) {
+     * isEmptyRow(visualRowIndex) {
      *    // your custom method
      *    ...
      * },
