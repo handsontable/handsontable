@@ -295,18 +295,12 @@ const hot = new Handsontable(container, {
 hot.updateSettings({
   beforeKeyDown(e) {
     const selection = hot.getSelected()[0];
-    const [row, column] = selection;
     console.log(selection)
     // BACKSPACE or DELETE
     if (e.keyCode === 8 || e.keyCode === 46) {
       e.stopImmediatePropagation();
-
-      const dataAtCol = hot.getDataAtCol(column);
-      const setData = dataAtCol.slice(row + 1).map(dataAtCell => [dataAtCell]);
-   
       // remove data at cell, shift up
-      hot.populateFromArray(row, column, setData);
-
+      hot.spliceCol(selection[1], selection[0], 1);
       e.preventDefault();
     }
     // ENTER
@@ -314,9 +308,9 @@ hot.updateSettings({
       // if last change affected a single cell and did not change it's values
       if (lastChange && lastChange.length === 1 && lastChange[0][2] == lastChange[0][3]) {
         e.stopImmediatePropagation();
-        hot.populateFromArray(row, column, [['']], null, null, null, 'shift_down')
+        hot.spliceCol(selection[1], selection[0], 0, '');
         // add new cell
-        hot.selectCell(row, column);
+        hot.selectCell(selection[0], selection[1]);
         // select new cell
       }
     }
