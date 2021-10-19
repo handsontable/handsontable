@@ -1955,7 +1955,7 @@ export default () => {
      *     ...
      *   },
      *   // add a custom callback function
-     *   callback: function(instance, row, column, value, result) {
+     *   callback(instance, row, column, value, result) {
      *     ...
      *   }
      * }
