@@ -33,7 +33,7 @@ class Transformation {
    *
    * @param {number} rowDelta Rows number to move, value can be passed as negative number.
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
-   * @param {boolean} [force] If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
+   * @param {boolean} [force=false] If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
    *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    * @returns {CellCoords} Visual coordinates after transformation.
    */
