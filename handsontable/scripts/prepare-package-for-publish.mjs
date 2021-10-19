@@ -1,7 +1,7 @@
 import fse from 'fs-extra';
 import path from 'path';
 import glob from 'glob';
-import { displayErrorMessage } from './utils/console.mjs';
+import { displayErrorMessage } from '../../scripts/utils/console.mjs';
 
 const TARGET_PATH = './tmp/';
 const PACKAGE_PATH = path.resolve('package.json');
@@ -19,7 +19,7 @@ const {
 FILES_TO_COPY.forEach((file) => {
   fse.copySync(
     path.resolve(`./${file}`),
-    path.resolve(`${TARGET_PATH}${file}`),
+    path.resolve(`${TARGET_PATH}${file.replace('../', '')}`),
     { overwrite: true });
 });
 
