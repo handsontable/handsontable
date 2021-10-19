@@ -419,8 +419,8 @@ export default () => {
      * rowHeights: [100, 120, undefined],
      *
      * // set each row's height individually, using a function
-     * rowHeights: function(index) {
-     *   return index * 10;
+     * rowHeights(visualRowIndex) {
+     *   return visualRowIndex * 10;
      * },
      * ```
      */
