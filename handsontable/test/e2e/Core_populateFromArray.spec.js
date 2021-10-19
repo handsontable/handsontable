@@ -400,6 +400,43 @@ describe('Core_populateFromArray', () => {
         [4, 9, undefined, null], [4, 10, undefined, null], [4, 11, undefined, null],
       ], 'populateFromArray');
     });
+
+    it('should expand the dataset properly #6929', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+      });
+
+      const afterChange = jasmine.createSpy('afterChange');
+
+      hot.addHook('afterChange', afterChange);
+
+      hot.populateFromArray(0, 0, [
+        ['test', 'test2'],
+        ['test3', 'test4']
+      ], 3, 3, null, 'shift_right');
+
+      expect(getData()).toEqual([
+        ['test', 'test2', 'test', 'test2', 'A1', 'B1', 'C1', 'D1', 'E1'],
+        ['test3', 'test4', 'test3', 'test4', null, null, null, null, null],
+        ['test', 'test2', 'test', 'test2', null, null, null, null, null],
+        ['test3', 'test4', 'test3', 'test4', null, null, null, null, null],
+      ]);
+
+      expect(afterChange).toHaveBeenCalledTimes(1);
+      expect(afterChange).toHaveBeenCalledWith([
+        [0, 0, 'A1', 'test'], [0, 1, 'B1', 'test2'], [0, 2, 'C1', 'test'], [0, 3, 'D1', 'test2'], [0, 4, 'E1', 'A1'],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [0, 5, undefined, 'B1'], [0, 6, undefined, 'C1'], [0, 7, undefined, 'D1'], [0, 8, undefined, 'E1'],
+        [1, 0, null, 'test3'], [1, 1, null, 'test4'], [1, 2, null, 'test3'], [1, 3, null, 'test4'], [1, 4, null, null],
+        [1, 5, null, null], [1, 6, null, null], [1, 7, null, null], [1, 8, null, null],
+        [2, 0, null, 'test'], [2, 1, null, 'test2'], [2, 2, null, 'test'], [2, 3, null, 'test2'],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [2, 4, null, undefined],
+        [3, 0, null, 'test3'], [3, 1, null, 'test4'], [3, 2, null, 'test3'], [3, 3, null, 'test4'],
+        // TODO: Shouldn't the `undefined` be `null`?
+        [3, 4, null, undefined],
+      ], 'populateFromArray');
+    });
   });
 
   it('should run beforeAutofillInsidePopulate hook for each inserted value', () => {
