@@ -2845,7 +2845,7 @@ export default () => {
      *    },
      *    {
      *      // add a custom cell validator function
-     *      validator: function(value, callback) {
+     *      validator(value, callback) {
      *          ...
      *      }
      *    },
