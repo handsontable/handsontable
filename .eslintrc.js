@@ -164,6 +164,7 @@ module.exports = {
           'error',
           'never',
           {
+            js: ['error', 'always'],
             mjs: ['error', 'always'],
             json: ['error', 'always'],
           }

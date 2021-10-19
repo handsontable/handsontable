@@ -258,7 +258,7 @@ Are the version number and release date above correct?`,
  * Helper function validating the return status of `replace-in-file`'s `replace` method.
  *
  * @private
- * @param {array} replacementStatus Replacement status array returned from `replace-in-file`'s `replace` method.
+ * @param {Array} replacementStatus Replacement status array returned from `replace-in-file`'s `replace` method.
  * @param {string} replacedString The string replaced in the source file.
  */
 function validateReplacementStatus(replacementStatus, replacedString) {
