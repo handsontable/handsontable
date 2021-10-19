@@ -5,6 +5,7 @@ import {
   displayConfirmationMessage,
   displayErrorMessage
 } from './utils/console.mjs';
+import hotConfig from '../hot.config';
 
 // TODO: The bundle verification script was moved to a separate file because of a problem with React and Node 15
 //  (https://github.com/facebook/react/issues/20756). Having this script in a separate file, allows killing its
@@ -41,7 +42,7 @@ async function verifyBundles() {
 
   JSDOMGlobal();
 
-  console.log(`\nMain package.json version:\n${chalk.green(mainPackageJson.version)}\n`);
+  console.log(`\nHOT config version:\n${chalk.green(hotConfig.HOT_VERSION)}\n`);
 
   for (const packagesLocation of workspacePackages) {
     const subdirs = glob.sync(packagesLocation);
@@ -81,11 +82,11 @@ async function verifyBundles() {
           }
         }
 
-        if (mainPackageJson.version !== defaultPackageVersion) {
+        if (hotConfig.HOT_VERSION !== defaultPackageVersion) {
           mismatchedVersions.push(`${packageName} (default) - ${defaultPackageVersion}`);
         }
 
-        if (umdPackageVersion && (mainPackageJson.version !== umdPackageVersion)) {
+        if (umdPackageVersion && (hotConfig.HOT_VERSION !== umdPackageVersion)) {
           mismatchedVersions.push(`${packageName} (UMD) - ${umdPackageVersion}`);
         }
       }

@@ -11,7 +11,6 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "10.0.0",
   "scripts": {
     "in": "cross-env-shell COMMAND_ENV=in node --experimental-json-modules scripts/translate-to-native-npm.mjs",
     "all": "cross-env-shell COMMAND_ENV=all node --experimental-json-modules scripts/translate-to-native-npm.mjs",
