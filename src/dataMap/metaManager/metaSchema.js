@@ -290,8 +290,8 @@ export default () => {
      * rowHeaders: ['One', 'Two', 'Three'],
      *
      * // set your own row headers, using a function
-     * rowHeaders: function(rowIndex) {
-     *   return rowIndex + ': AB';
+     * rowHeaders: function(visualRowIndex) {
+     *   return visualRowIndex + ': AB';
      * },
      * ```
      */
@@ -325,8 +325,8 @@ export default () => {
      * colHeaders: ['One', 'Two', 'Three'],
      *
      * // set your own column headers, using a function
-     * colHeaders: function(columnIndex) {
-     *   return columnIndex + ': AB';
+     * colHeaders: function(visualColumnIndex) {
+     *   return visualColumnIndex + ': AB';
      * },
      * ```
      */
