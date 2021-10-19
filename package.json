@@ -160,6 +160,8 @@
     "puppeteer": "^10.2.0",
     "replace-in-file": "^6.1.0",
     "rimraf": "^2.5.4",
+    "sass": "^1.3.0",
+    "sass-loader": "^10.2.0",
     "semver": "^5.7.1",
     "spawn-command": "0.0.2",
     "string-replace-webpack-plugin": "^0.1.3",

@@ -32,10 +32,11 @@ module.exports.create = function create(envArgs) {
     module: {
       rules: [
         {
-          test: /\.css$/,
+          test: /\.(sass|scss|css)$/,
           use: [
             { loader: MiniCssExtractPlugin.loader },
             { loader: 'css-loader' },
+            { loader: 'sass-loader'},
           ]
         },
         {
