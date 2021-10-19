@@ -721,7 +721,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // set a minimum number of rows to 10
+     * // set the minimum number of rows to 10
      * minRows: 10,
      * ```
      */
@@ -749,16 +749,19 @@ export default () => {
      *
      * @example
      * ```js
-     * // set a minimum number of columns to 10
+     * // set the minimum number of columns to 10
      * minCols: 10,
      * ```
      */
     minCols: 0,
 
     /**
-     * The `maxRows` option sets a maximum number of rows that Handsontable can create at initialization.
+     * The `maxRows` option sets a maximum number of rows.
      *
-     * If the `maxRows` value is lower than the initial number of rows, Handsontable trims rows from the bottom.
+     * The `maxRows` option is used:
+     * - At initialization: if the `maxRows` value is lower than the initial number of columns,
+     * Handsontable trims rows from the bottom.
+     * - At runtime: for example, when inserting rows.
      *
      * @memberof Options#
      * @type {number}
@@ -767,16 +770,19 @@ export default () => {
      *
      * @example
      * ```js
-     * // at Handsontable's initialization, create no more than 300 rows
+     * // set the maximum number of rows to 300
      * maxRows: 300,
      * ```
      */
     maxRows: Infinity,
 
     /**
-     * The `maxCols` option sets a maximum number of columns that Handsontable can create at initialization.
+     * The `maxCols` option sets a maximum number of columns.
      *
-     * If the `maxCols` value is lower than the initial number of columns, Handsontable trims rows from the right.
+     * The `maxCols` option is used:
+     * - At initialization: if the `maxCols` value is lower than the initial number of columns,
+     * Handsontable trims columns from the right.
+     * - At runtime: for example, when inserting columns.
      *
      * @memberof Options#
      * @type {number}
@@ -784,8 +790,7 @@ export default () => {
      * @category Core
      *
      * @example
-     * ```js
-     * // at Handsontable's initialization, create no more than 300 columns
+     * // set the maximum number of columns to 300
      * maxCols: 300,
      * ```
      */
