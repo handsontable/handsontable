@@ -502,7 +502,7 @@ export default () => {
      * @example
      * ```js
      * // set the `cells` option to your custom function
-     * cells: function(row, column, prop) {
+     * cells(row, column, prop) {
      *   const cellProperties = { readOnly: false };
      *   const visualRowIndex = this.instance.toVisualRow(row);
      *   const visualColIndex = this.instance.toVisualColumn(column);
