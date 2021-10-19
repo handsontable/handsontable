@@ -1897,7 +1897,7 @@ export default () => {
      *
      * @example
      * ```js
-     * cells: function(row, column) {
+     * cells(row, column) {
      *  const cellProperties = {};
      *
      *  // disable pasting data into row 1
