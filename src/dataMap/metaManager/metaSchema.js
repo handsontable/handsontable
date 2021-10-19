@@ -1166,7 +1166,7 @@ export default () => {
      * // the same setting, as a function
      * // `event` is a DOM Event object received on pressing Enter
      * // you can use it to check whether the user pressed Enter or Shift+Enter
-     * enterMoves: function(event) {
+     * enterMoves(event) {
      *   return {col: 1, row: 1};
      * },
      * ```
