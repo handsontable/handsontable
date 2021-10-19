@@ -181,7 +181,7 @@ export default () => {
      * width: '75vw',
      *
      * // set the grid's width to 500px, using a function
-     * width: function() {
+     * width() {
      *   return 500;
      * },
      * ```
