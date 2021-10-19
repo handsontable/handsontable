@@ -10,7 +10,7 @@ import {
 } from './index.mjs';
 
 import mainPackageJson from '../../package.json';
-import hotConfig from '../../hot.config';
+import hotConfig from '../../hot.config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -272,7 +272,7 @@ function validateReplacementStatus(replacementStatus, replacedString) {
       versionReplaced = false;
 
     } else {
-      displayConfirmationMessage(`- Saved '${replacedString}' to ${filePath}.`);
+      displayConfirmationMessage(`- Saved '${replacedString}' to ${path.relative(process.cwd(), filePath)}.`);
     }
   });
 

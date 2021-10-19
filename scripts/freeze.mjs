@@ -52,8 +52,8 @@ displaySeparator();
     const processInfo = await spawnProcess('npm --version', { silent: true });
     const npmVersion = processInfo.stdout.toString();
 
-    if (!semver.satisfies(npmVersion, '>=7.2.0')) {
-      displayErrorMessage('The minimum required npm version is 7.2.0');
+    if (!semver.satisfies(npmVersion, '>=7.17.0')) {
+      displayErrorMessage('The minimum required npm version is 7.17.0');
       process.exit(1);
     }
   }

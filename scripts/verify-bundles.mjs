@@ -5,7 +5,7 @@ import {
   displayConfirmationMessage,
   displayErrorMessage
 } from './utils/console.mjs';
-import hotConfig from '../hot.config';
+import hotConfig from '../hot.config.js';
 
 // TODO: The bundle verification script was moved to a separate file because of a problem with React and Node 15
 //  (https://github.com/facebook/react/issues/20756). Having this script in a separate file, allows killing its
