@@ -1951,7 +1951,7 @@ export default () => {
      *   // add a `customClass` CSS class name to search results
      *   searchResultClass: 'customClass',
      *   // add a custom query method
-     *   queryMethod: function(queryStr, value) {
+     *   queryMethod(queryStr, value) {
      *     ...
      *   },
      *   // add a custom callback function
