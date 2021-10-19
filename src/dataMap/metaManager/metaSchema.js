@@ -466,7 +466,7 @@ export default () => {
      * ],
      *
      * // or set the `columns` option to a function, based on physical indexes
-     * columns: function(index) {
+     * columns(index) {
      *   return {
      *     type: index > 0 ? 'numeric' : 'text',
      *     readOnly: index < 1
