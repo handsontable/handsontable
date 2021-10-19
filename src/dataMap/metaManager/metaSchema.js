@@ -1446,7 +1446,7 @@ export default () => {
 
     /**
      * The `isEmptyRow` option lets you define your own custom method
-     * for checking if a row at a given index is empty.
+     * for checking if a row at a given visual index is empty.
      *
      * The `isEmptyRow` setting overwrites the built-in [`isEmptyRow`](@/api/core.md#isEmptyRow) method.
      *
