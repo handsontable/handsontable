@@ -808,7 +808,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         case 'shift_right':
           const numberOfDataRows = input.length;
-          // Method's argument may extend the range of data population (data would be repeated).
+          // method's argument can extend the range of data population (data would be repeated)
           const numberOfRowsToPopulate = Math.max(numberOfDataRows, rowsPopulationEnd);
           const pushedRightDataByRows = instance.getData().slice(startRow).map(rowData => rowData.slice(startColumn));
 
@@ -825,8 +825,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 }
 
               } else {
-                // There were no data for the row (it hasn't existed) before population. We fill newly created cells
-                // for particular columns with `null` values.
+                // if before data population, there was no data in the row
+                // we fill the required columns' newly-created cells with `null` values
                 input[r].push(...new Array(pushedRightDataByRows[0].length).fill(null));
               }
 
