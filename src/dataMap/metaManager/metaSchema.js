@@ -1096,12 +1096,12 @@ export default () => {
      * outsideClickDeselects: false,
      *
      * // take the click event target and return `false`
-     * outsideClickDeselects: function(event) {
+     * outsideClickDeselects(event) {
      *   return false;
      * }
      *
      * // take the click event target and return `true`
-     * outsideClickDeselects: function(event) {
+     * outsideClickDeselects(event) {
      *   return false;
      * }
      * ```
@@ -1166,7 +1166,7 @@ export default () => {
      * // the same setting, as a function
      * // `event` is a DOM Event object received on pressing Enter
      * // you can use it to check whether the user pressed Enter or Shift+Enter
-     * enterMoves: function(event) {
+     * enterMoves(event) {
      *   return {col: 1, row: 1};
      * },
      * ```
@@ -1198,7 +1198,7 @@ export default () => {
      * // the same setting, as a function
      * // `event` is a DOM Event object received on pressing Tab
      * // you can use it to check whether the user pressed Tab or Shift+Tab
-     * tabMoves: function(event) {
+     * tabMoves(event) {
      *   return {row: 2, col: 2};
      * },
      * ```
