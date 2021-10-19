@@ -2693,7 +2693,7 @@ export default () => {
      *   // disable clicking on the column header to sort the column
      *   headerAction: false,
      *   // add a custom compare function
-     *   compareFunctionFactory: function(sortOrder, columnMeta) {
+     *   compareFunctionFactory(sortOrder, columnMeta) {
      *     return function(value, nextValue) {
      *       // some value comparisons which will return -1, 0 or 1...
      *     }
