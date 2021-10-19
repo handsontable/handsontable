@@ -327,7 +327,7 @@ export default () => {
      *
      * // set your own column headers, using a function
      * colHeaders: function(visualColumnIndex) {
-     *   return visualColumnIndex + ': AB';
+     *   return `${visualColumnIndex} + : AB`;
      * },
      * ```
      */
