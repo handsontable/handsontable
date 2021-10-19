@@ -1,1 +1,0 @@
-../hot.config.js
