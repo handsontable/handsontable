@@ -1490,7 +1490,7 @@ export default () => {
 
     /**
      * The `isEmptyCol` option lets you define your own custom method
-     * for checking if a column at a given index is empty.
+     * for checking if a column at a given visual index is empty.
      *
      * The `isEmptyCol` setting overwrites the built-in [`isEmptyCol`](@/api/core.md#isEmptyCol) method.
      *
