@@ -1206,7 +1206,7 @@ export default () => {
     tabMoves: { row: 0, col: 1 },
 
     /**
-     * The `autoWrapRow` option determines what happens when you reach the grid's left or right edge, using keyboard navigation.
+     * The `autoWrapRow` option determines what happens to current cell selection when you navigate to the grid's left or right edge.
      *
      * You can set the `autoWrapRow` option to one of the following:
      *
@@ -1229,7 +1229,7 @@ export default () => {
     autoWrapRow: false,
 
     /**
-     * The `autoWrapCol` option determines what happens when you reach the grid's top or bottom edge, using keyboard navigation.
+     * The `autoWrapCol` option determines what happens to current cell selection when you navigate to the grid's top or bottom edge.
      *
      * You can set the `autoWrapCol` option to one of the following:
      *
