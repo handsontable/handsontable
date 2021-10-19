@@ -1503,7 +1503,7 @@ export default () => {
      * @example
      * ```js
      * // overwrite the built-in `isEmptyCol` method
-     * isEmptyCol: function(column) {
+     * isEmptyCol(visualColumnIndex) {
      *    // your custom method
      *    ...
      * },
