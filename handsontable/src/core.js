@@ -768,21 +768,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       // insert data with specified pasteMode method
       switch (method) {
         case 'shift_down':
-          // Translate data from list of rows to list of columns.
+          // translate data from a list of rows to a list of columns
           const populatedDataByColumns = pivot(input);
           const numberOfDataColumns = populatedDataByColumns.length;
-          // Method's argument may extend the range of data population (data would be repeated).
+          // method's argument can extend the range of data population (data would be repeated)
           const numberOfColumnsToPopulate = Math.max(numberOfDataColumns, columnsPopulationEnd);
           const pushedDownDataByRows = instance.getData().slice(startRow);
 
-          // Translate data from list of rows to list of columns.
+          // translate data from a list of rows to a list of columns
           const pushedDownDataByColumns = pivot(pushedDownDataByRows)
             .slice(startColumn, startColumn + numberOfColumnsToPopulate);
 
           for (c = 0; c < numberOfColumnsToPopulate; c += 1) {
             if (c < numberOfDataColumns) {
               for (r = 0, rlen = populatedDataByColumns[c].length; r < rowsPopulationEnd - rlen; r += 1) {
-                // Repeating data for rows.
+                // repeating data for rows
                 populatedDataByColumns[c].push(populatedDataByColumns[c][r % rlen]);
               }
 
@@ -790,8 +790,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 newDataByColumns.push(populatedDataByColumns[c].concat(pushedDownDataByColumns[c]));
 
               } else {
-                // There were no data for the column (it hasn't existed) before population. We fill newly created cells
-                // for particular rows with `null` values.
+                // if before data population, there was no data in the column
+                // we fill the required rows' newly-created cells with `null` values
                 newDataByColumns.push(populatedDataByColumns[c].concat(
                   new Array(pushedDownDataByRows.length).fill(null)));
               }
@@ -815,7 +815,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           for (r = 0; r < numberOfRowsToPopulate; r += 1) {
             if (r < numberOfDataRows) {
               for (c = 0, clen = input[r].length; c < columnsPopulationEnd - clen; c += 1) {
-                // Repeating data for rows.
+                // repeating data for rows
                 input[r].push(input[r][c % clen]);
               }
 
