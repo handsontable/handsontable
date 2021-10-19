@@ -2989,7 +2989,7 @@ export default () => {
      *   // set the `type` of every cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // for every `autocomplete` cell in this column, fetch data from an external source
-     *   source: function(query, callback) {
+     *   source(query, callback) {
      *     fetch('https://example.com/query?q=' + query, function(response) {
      *       callback(response.items);
      *     })
