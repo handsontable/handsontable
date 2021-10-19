@@ -372,8 +372,8 @@ export default () => {
      * colWidths: [100, 120, undefined],
      *
      * // set each column's width individually, using a function
-     * colWidths: function(index) {
-     *   return index * 10;
+     * colWidths(visualColumnIndex) {
+     *   return visualColumnIndex * 10;
      * },
      * ```
      */
@@ -419,8 +419,8 @@ export default () => {
      * rowHeights: [100, 120, undefined],
      *
      * // set each row's height individually, using a function
-     * rowHeights: function(index) {
-     *   return index * 10;
+     * rowHeights(visualRowIndex) {
+     *   return visualRowIndex * 10;
      * },
      * ```
      */
@@ -466,7 +466,7 @@ export default () => {
      * ],
      *
      * // or set the `columns` option to a function, based on physical indexes
-     * columns: function(index) {
+     * columns(index) {
      *   return {
      *     type: index > 0 ? 'numeric' : 'text',
      *     readOnly: index < 1
@@ -502,7 +502,7 @@ export default () => {
      * @example
      * ```js
      * // set the `cells` option to your custom function
-     * cells: function(row, column, prop) {
+     * cells(row, column, prop) {
      *   const cellProperties = { readOnly: false };
      *   const visualRowIndex = this.instance.toVisualRow(row);
      *   const visualColIndex = this.instance.toVisualColumn(column);
