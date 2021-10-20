@@ -361,10 +361,10 @@ class Selection {
    *
    * @param {number} rowDelta Rows number to move, value can be passed as negative number.
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
-   * @param {boolean} force If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
+   * @param {boolean} [force=false] If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
    *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    */
-  transformStart(rowDelta, colDelta, force) {
+  transformStart(rowDelta, colDelta, force = false) {
     this.setRangeStart(this.transformation.transformStart(rowDelta, colDelta, force));
   }
 
