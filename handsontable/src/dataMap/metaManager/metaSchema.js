@@ -158,11 +158,11 @@ export default () => {
      *
      * You can set the `width` option to one of the following:
      *
-     * | Setting                                                                    | Example                                                   |
-     * | -------------------------------------------------------------------------- | --------------------------------------------------------- |
-     * | A number of pixels                                                         | `width: 500`                                              |
-     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `width: '75vw'`                                           |
-     * | A function that returns a valid number or string                           | `width: function() {`<br>&nbsp;&nbsp;`return 500;`<br>`}` |
+     * | Setting                                                                    | Example                                              |
+     * | -------------------------------------------------------------------------- | ---------------------------------------------------- |
+     * | A number of pixels                                                         | `width: 500`                                         |
+     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `width: '75vw'`                                      |
+     * | A function that returns a valid number or string                           | <pre>width() {<br>&nbsp;&nbsp;return 500;<br>}</pre> |
      *
      * Read more:
      * - [Grid size &#8594;](@/guides/getting-started/grid-size.md)
@@ -193,11 +193,11 @@ export default () => {
      *
      * You can set `height` option to one of the following:
      *
-     * | Setting                                                                    | Example                                                    |
-     * | -------------------------------------------------------------------------- | ---------------------------------------------------------- |
-     * | A number of pixels                                                         | `height: 500`                                              |
-     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `height: '75vw'`                                           |
-     * | A function that returns a valid number or string                           | `height: function() {`<br>&nbsp;&nbsp;`return 500;`<br>`}` |
+     * | Setting                                                                    | Example                                               |
+     * | -------------------------------------------------------------------------- | ----------------------------------------------------- |
+     * | A number of pixels                                                         | `height: 500`                                         |
+     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `height: '75vw'`                                      |
+     * | A function that returns a valid number or string                           | <pre>height() {<br>&nbsp;&nbsp;return 500;<br>}</pre> |
      *
      * Read more:
      * - [Grid size &#8594;](@/guides/getting-started/grid-size.md)
@@ -339,13 +339,13 @@ export default () => {
      * In the rendering process, the default column width is 50px. To change it,
      * set the `colWidths` option to one of the following:
      *
-     * | Setting     | Description                                                                                          | Example                                                       |
-     * | ----------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-     * | A number    | Set the same width for every column                                                                  | `colWidths: 100`                                              |
-     * | A string    | Set the same width for every column                                                                  | `colWidths: '100px'`                                          |
-     * | An array    | Set widths separately for each column                                                                | `colWidths: [100, 120, undefined]`                            |
-     * | A function  | Set column widths dynamically,<br>on each render                                                     | `colWidths: function(index) {`<br>`return index * 10;`<br>`}` |
-     * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined`                                        |
+     * | Setting     | Description                                                                                          | Example                                                                                      |
+     * | ----------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+     * | A number    | Set the same width for every column                                                                  | `colWidths: 100`                                                                             |
+     * | A string    | Set the same width for every column                                                                  | `colWidths: '100px'`                                                                         |
+     * | An array    | Set widths separately for each column                                                                | `colWidths: [100, 120, undefined]`                                                           |
+     * | A function  | Set column widths dynamically,<br>on each render                                                     | <pre>colWidths(visualColumnIndex) {<br>&nbsp;&nbsp;return visualColumnIndex * 10;<br>}</pre> |
+     * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined`                                                                       |
      *
      * Setting the `colWidths` option disables the {@link AutoColumnSize} plugin.
      *
@@ -385,13 +385,13 @@ export default () => {
      * In the rendering process, the default row height is 23px.
      * You can change it to equal or greater than 23px, by setting the `rowHeights` option to one of the following:
      *
-     * | Setting     | Description                                                                                         | Example                                                                    |
-     * | ----------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-     * | A number    | Set the same height for every row                                                                   | `rowHeights: 100`                                                          |
-     * | A string    | Set the same height for every row                                                                   | `rowHeights: '100px'`                                                      |
-     * | An array    | Set heights separately for each row                                                                 | `rowHeights: [100, 120, undefined]`                                        |
-     * | A function  | Set row heights dynamically,<br>on each render                                                      | `rowHeights: function(index) {`<br>&nbsp;&nbsp;`return index * 10;`<br>`}` |
-     * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes | `rowHeights: undefined`                                                    |
+     * | Setting     | Description                                                                                         | Example                                                                                 |
+     * | ----------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+     * | A number    | Set the same height for every row                                                                   | `rowHeights: 100`                                                                       |
+     * | A string    | Set the same height for every row                                                                   | `rowHeights: '100px'`                                                                   |
+     * | An array    | Set heights separately for each row                                                                 | `rowHeights: [100, 120, undefined]`                                                     |
+     * | A function  | Set row heights dynamically,<br>on each render                                                      | <pre>rowHeights(visualRowIndex) {<br>&nbsp;&nbsp;return visualRowIndex * 10;<br>}</pre> |
+     * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes | `rowHeights: undefined`                                                                 |
      *
      * The `rowHeights` option also sets the minimum row height that can be set
      * via the {@link ManualRowResize} and {@link AutoRowSize} plugins (if they are enabled).
@@ -2087,7 +2087,10 @@ export default () => {
      * | `'select'`          | `SelectEditor`                                                             |
      * | `'text'`            | `TextEditor`                                                               |
      *
-     * To disable cell editing, set the `editor` option to `false`.
+     * To disable editing cells through cell editors,
+     * set the `editor` option to `false`.
+     * You'll still be able to change cells' content through Handsontable's API
+     * or through plugins (e.g. [`CopyPaste`](@/api/copyPaste.md)), though.
      *
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
@@ -2115,7 +2118,7 @@ export default () => {
      *     editor: 'autocomplete'
      *   },
      *   {
-     *     // disable cell editing for every cell of this column
+     *     // disable end-user cell editing for every cell of this column
      *     editor: false
      *   }
      * ]
