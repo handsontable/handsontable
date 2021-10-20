@@ -4317,7 +4317,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @private
    * @memberof Core#
-   * @function isLtr
+   * @function getDirectionFactor
    * @returns {number} Returns 1 for LTR; -1 for RTL.
    */
   this.getDirectionFactor = function() {
