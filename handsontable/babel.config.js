@@ -37,7 +37,7 @@ module.exports = {
     commonjs_dist: {
       plugins: [
         ['@babel/plugin-transform-modules-commonjs', { loose: true }],
-        ['babel-plugin-transform-require-ignore', { extensions: ['.css','.scss','.sass'] }]
+        ['babel-plugin-transform-require-ignore', { extensions: ['.css','.scss'] }]
       ],
       ignore: [
         '**/__tests__/**',
