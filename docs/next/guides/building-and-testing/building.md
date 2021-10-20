@@ -48,6 +48,18 @@ It is advised that you never modify the files mentioned above. Instead, make cha
 
 ## npm tasks
 
+The build process can be triggered by either navigating the the `./handsontable` directory and running:
+
+*   `npm run build`
+
+Or by utilizing one of the helper scripts in the root directory:
+
+*   `npm run in` - Runs a command for the specified project. For Example:  
+    `npm run in handsontable build` - runs the `build` command for the `@handsontable/handsontable` project.  
+    Shorthands are also available - the aforementioned command works as `npm run in handsontable build` as well.
+*   `npm run all handsontable` - Runs a command for all Handsontable packages. 
+    The order in which the packages are executed is defined in the `./scripts/run-all.mjs` script.
+
 Currently, the following tasks are available for building Handsontable:
 
 * `npm run test` - runs several tasks in this order:
@@ -68,7 +80,7 @@ Currently, the following tasks are available for building Handsontable:
 
 ## NPM tasks for the framework-specific wrappers.
 
-Each of the wrappers has its own framework-specific build environment and scripts. The build process can be triggered by either navigating the the wrapper directory (e.g. `./wrappers/react-handsontable/` and running:
+Each of the wrappers has its own framework-specific build environment and scripts. The build process can be triggered by either navigating the the wrapper directory (e.g. `./wrappers/react` and running:
 
 *   `npm run build`
 
