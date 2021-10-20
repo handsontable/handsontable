@@ -21,7 +21,7 @@ This guide provides detailed steps for building Handsontable and outlines the ta
 
 From version `8.3.2` onward, the `handsontable` repository is configured as a monorepo, and consist of four packages:
 
-1. `handsontable` (stored at `.` - the root directory)
+1. `handsontable` (stored at `./handsontable`)
 2. `@handsontable/angular` (stored at `./wrappers/angular`)
 3. `@handsontable/react` (stored at `./wrappers/react`)
 4. `@handsontable/vue` (stored at `./wrappers/vue`)
@@ -32,19 +32,19 @@ We're using [npm workspaces](https://docs.npmjs.com/cli/v7/using-npm/workspaces)
 
 The build process uses [Webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/) as well as npm tasks listed in [package.json](https://github.com/handsontable/handsontable/blob/master/package.json).
 
-During this process, the source files located in the `src/*` directory are transformed into the output files:
+During this process, the source files located in the `./handsontable/src/` directory are transformed into the output files:
 
-* `./dist/handsontable.js`
-* `./dist/handsontable.css`
-* `./dist/handsontable.full.js`
-* `./dist/handsontable.full.css`
-* `./dist/handsontable.full.min.js`
-* `./dist/handsontable.full.min.css`
-* `./dist/languages/*`
+* `./handsontable/dist/handsontable.js`
+* `./handsontable/dist/handsontable.css`
+* `./handsontable/dist/handsontable.full.js`
+* `./handsontable/dist/handsontable.full.css`
+* `./handsontable/dist/handsontable.full.min.js`
+* `./handsontable/dist/handsontable.full.min.css`
+* `./handsontable/dist/languages/*`
 
 More info about dist packages can be found [here](https://github.com/handsontable/handsontable/blob/master/dist/README.md.
 
-It is advised that you never modify the files mentioned above. Instead, make changes in the `src/` directory and then run a proper build. This is especially important if you want to contribute your changes back to Handsontable by making a pull request.
+It is advised that you never modify the files mentioned above. Instead, make changes in the `./handsontable/src/` directory and then run a proper build. This is especially important if you want to contribute your changes back to Handsontable by making a pull request.
 
 ## npm tasks
 
