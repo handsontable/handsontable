@@ -4292,6 +4292,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Check if currently it is RTL direction.
    *
    * @private
+   * @memberof Core#
+   * @function isRtl
    * @returns {boolean} True if RTL.
    */
   this.isRtl = function() {
@@ -4302,6 +4304,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Check if currently it is LTR direction.
    *
    * @private
+   * @memberof Core#
+   * @function isLtr
    * @returns {boolean} True if LTR.
    */
   this.isLtr = function() {
@@ -4312,6 +4316,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Returns 1 for LTR; -1 for RTL. Useful for calculations.
    *
    * @private
+   * @memberof Core#
+   * @function isLtr
    * @returns {number} Returns 1 for LTR; -1 for RTL.
    */
   this.getDirectionFactor = function() {
