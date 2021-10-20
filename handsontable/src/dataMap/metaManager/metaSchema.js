@@ -2118,7 +2118,7 @@ export default () => {
      *     editor: 'autocomplete'
      *   },
      *   {
-     *     // disable end-user cell editing for every cell of this column
+     *     // disable editing cells through cell editors for every cell of this column
      *     editor: false
      *   }
      * ]
