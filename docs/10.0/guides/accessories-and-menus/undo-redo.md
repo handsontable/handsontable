@@ -21,7 +21,7 @@ tags:
 
 This feature allows you to revert changes made in the data grid. It is very useful in a normal day-to-day routine, especially when the change is unintentional. This feature stacks the changes made with the user interface of the grid. Modifications done programatically are ommitted.
 
-The basic methods are `undo()` and `redo()`. The `undo()` method rolls back the last performed action, and the `undo()` restores it.
+The basic methods are `undo()` and `redo()`. The `undo()` method rolls back the last performed action, and the `redo()` restores it.
 
 This feature is provided by the `undoRedo` plugin, and is enabled by default.
 
