@@ -25,7 +25,7 @@ import { BaseEditor } from './editors/baseEditor';
 // register default mandatory cell type for the Base package
 registerCellType(TextCellType);
 
-// Export Base editor to the Handsontable global namespace.
+// export the `BaseEditor` class to the Handsontable global namespace
 Handsontable.editors = {
   BaseEditor
 };

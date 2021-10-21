@@ -8,7 +8,7 @@ import { getRegisteredValidatorNames } from '../../validators/registry';
 import { registerAllPlugins } from '../../registry';
 
 describe('`registerAllPlugins`', () => {
-  it('should register all build-in plugins', () => {
+  it('should register all built-in plugins', () => {
     registerAllPlugins();
 
     expect(getRegisteredCellTypeNames()).toEqual([

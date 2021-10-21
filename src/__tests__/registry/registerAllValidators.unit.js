@@ -8,7 +8,7 @@ import { getRegisteredValidatorNames } from '../../validators/registry';
 import { registerAllValidators } from '../../registry';
 
 describe('`registerAllValidators`', () => {
-  it('should register all build-in validators', () => {
+  it('should register all built-in validators', () => {
     registerAllValidators();
 
     expect(getRegisteredCellTypeNames()).toEqual([

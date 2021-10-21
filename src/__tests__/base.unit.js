@@ -22,7 +22,7 @@ describe('`handsontable/base` entry point', () => {
     expect(Handsontable.buildDate).toBeDefined();
   });
 
-  it('should export some modules as staic properties', () => {
+  it('should export some modules as static properties', () => {
     expect(Handsontable.Core).toBeDefined();
     expect(Handsontable.editors.BaseEditor).toBeDefined();
     expect(Handsontable.DefaultSettings).toBeDefined();
