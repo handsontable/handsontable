@@ -1582,4 +1582,56 @@ describe('MergeCells', () => {
       expect($(getHtCore())[0].offsetHeight).toBe(24 + (4 * 23)); // First row is 1px higher than others.
     });
   });
+
+  describe('Hooks', () => {
+    it('should trigger the `beforeOnCellMouseDown` hook with proper coords', () => {
+      let rowOnCellMouseDown;
+      let columnOnCellMouseDown;
+      let coordsOnCellMouseDown;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 4 }],
+        beforeOnCellMouseDown(_, coords) {
+          coordsOnCellMouseDown = coords;
+          rowOnCellMouseDown = coords.row;
+          columnOnCellMouseDown = coords.col;
+        }
+      });
+
+      // Click on the first visible cell (merged area).
+      simulateClick(spec().$container.find('tr:eq(1) td:eq(0)'));
+
+      expect(rowOnCellMouseDown).toEqual(0);
+      expect(columnOnCellMouseDown).toEqual(0);
+      expect(coordsOnCellMouseDown).toEqual(jasmine.objectContaining({ row: 0, col: 0 }));
+    });
+
+    it('should trigger the `afterOnCellMouseDown` hook with proper coords', () => {
+      let rowOnCellMouseDown;
+      let columnOnCellMouseDown;
+      let coordsOnCellMouseDown;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 4 }],
+        afterOnCellMouseDown(_, coords) {
+          coordsOnCellMouseDown = coords;
+          rowOnCellMouseDown = coords.row;
+          columnOnCellMouseDown = coords.col;
+        }
+      });
+
+      // Click on the first visible cell (merged area).
+      simulateClick(spec().$container.find('tr:eq(1) td:eq(0)'));
+
+      expect(rowOnCellMouseDown).toEqual(0);
+      expect(columnOnCellMouseDown).toEqual(0);
+      expect(coordsOnCellMouseDown).toEqual(jasmine.objectContaining({ row: 0, col: 0 }));
+    });
+  });
 });
