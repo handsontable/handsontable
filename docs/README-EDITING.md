@@ -147,11 +147,12 @@ To render content in different ways, the documentation uses custom Markdown cont
 
 We use the following Markdown containers:
 
-| Container                    | Usage                                                      |
-|------------------------------|------------------------------------------------------------|
-| `::: tip`                    | A note.                                                    |
-| `::: example [options]`      | Renders a code example as specified in [options].          |
-| `::: source-code-link <URL>` | Adds a source code link to the API ref header. |
+| Container                    | Usage                                             |
+| -----------------------------|-------------------------------------------------- |
+| `::: tip`                    | A note.                                           |
+| `::: example [options]`      | Renders a code example as specified in [options]. |
+| `::: source-code-link <URL>` | Adds a source code link to the API ref header.    |
+| `::: details`                | Adds an accordion with collapsible content.       |
 
 ### Adding code examples
 
