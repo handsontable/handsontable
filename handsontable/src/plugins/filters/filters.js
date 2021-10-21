@@ -463,11 +463,11 @@ export class Filters extends BasePlugin {
     const data = [];
 
     arrayEach(this.hot.getSourceDataAtCol(visualIndex), (value, rowIndex) => {
-      const { row, col, visualCol, visualRow, type, instance, dateFormat } = this.hot
+      const { row, col, visualCol, visualRow, type, instance, dateFormat, locale } = this.hot
         .getCellMeta(rowIndex, visualIndex);
 
       data.push({
-        meta: { row, col, visualCol, visualRow, type, instance, dateFormat },
+        meta: { row, col, visualCol, visualRow, type, instance, dateFormat, locale },
         value: toEmptyString(value),
       });
     });

@@ -2375,6 +2375,22 @@ export default () => {
     language: 'en-US',
 
     /**
+     * Locale used for actions performed on data (for example, sorting, filtering).
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default 'en-US'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // set Polish locale
+     * locale: 'pl-PL',
+     * ```
+     */
+    locale: 'en-US',
+
+    /**
      * Data source for [select-typed](@/guides/cell-types/select-cell-type.md) cells.
      *
      * __Note__, this option only works for [select-typed](@/guides/cell-types/select-cell-type.md) cells.

@@ -49,6 +49,7 @@ class ValueComponent extends BaseComponent {
 
       select.setItems(value.itemsSnapshot);
       select.setValue(value.args[0]);
+      select.setLocale(value.locale);
     }
   }
 
@@ -108,6 +109,9 @@ class ValueComponent extends BaseComponent {
           }
         );
 
+        const column = stateInfo.editedConditionStack.column;
+
+        state.locale = this.hot.getCellMeta(0, column).locale;
         state.args = [selectedValues];
         state.command = getConditionDescriptor(CONDITION_BY_VALUE);
         state.itemsSnapshot = itemsSnapshot;
@@ -192,6 +196,10 @@ class ValueComponent extends BaseComponent {
     this.getMultipleSelectElement().setItems(items);
     super.reset();
     this.getMultipleSelectElement().setValue(values);
+
+    const lastSelectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
+
+    this.getMultipleSelectElement().setLocale(this.hot.getCellMeta(0, lastSelectedColumn).locale);
   }
 
   /**
