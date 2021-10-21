@@ -143,45 +143,6 @@ Elements to be imported manually on demand:
 
 The use cases may wary greatly, this guide will go through the categories and present one example for each.
 
-## Importing plugins
-
-To use a specific plugin you need to import it alongside the registering method. For instance, let's try adding the context menu.
-
-Start with importing the base, `ContextMenu` and the `registerPlugin` method.
-
-```js
-// remember to have the base imported
-import Handsontable from 'handsontable/base';
-// import the method for registering a plugin
-// import the ContextMenu plugin
-import { registerPlugin, ContextMenu } from 'handsontable/plugins';
-```
-
-Afterwards you need to use the `registerPlugin` method to register the `ContextMenu` plugin:
-
-```js
-// register the plugin before using it
-registerPlugin(ContextMenu);
-```
-
-Now, you can use the `ContextMenu` plugin, the full example looks like this:
-
-```js
-import Handsontable from 'handsontable/base';
-import { registerPlugin, AutoColumnSize, ContextMenu } from 'handsontable/plugins';
-
-registerPlugin(AutoColumnSize);
-registerPlugin(ContextMenu);
-
-// switch the context menu on
-new Handsontable(container, {
-  contextMenu: true,
-  // rest of the settings
-});
-```
-
-And that is all! You can use the `ContextMenu` plugin.
-
 ## Importing editors
 
 To use a specific editor you need to import it alongside the registering method. For instance, let's try adding the password editor.
@@ -224,6 +185,33 @@ new Handsontable(container, {
 
 And that is all! You can use the password editor!
 
+#### Importing all editors at once
+
+You can quickly import and register all editors at once:
+
+```js
+// import all editors
+import {
+  registerEditor,
+  AutocompleteEditor,
+  BaseEditor,
+  CheckboxEditor,
+  DateEditor,
+  DropdownEditor,
+  HandsontableEditor,
+  NumericEditor,
+  PasswordEditor,
+  SelectEditor,
+  TextEditor,
+} from 'handsontable/editors';
+
+// import the `registerAllEditors()` function
+import { registerAllEditors } from 'handsontable/registry';
+
+// register all editors
+registerAllEditors();
+```
+
 ## Importing renderers
 
 To use a specific renderer you need to import it alongside the registering method. For instance, let's try adding the autocomplete renderer.
@@ -265,6 +253,30 @@ new Handsontable(container, {
 ```
 
 And that is all! You can use the autocomplete renderer!
+
+#### Importing all renderers at once
+
+You can quickly import and register all renderers at once:
+
+```js
+// import all renderers
+import {
+  registerRenderer,
+  baseRenderer,
+  autocompleteRenderer,
+  checkboxRenderer,
+  htmlRenderer,
+  numericRenderer,
+  passwordRenderer,
+  textRenderer,
+} from 'handsontable/renderers';
+
+// import the `registerAllRenderers()` function
+import { registerAllRenderers } from 'handsontable/registry';
+
+// register all renderers
+registerAllRenderers();
+```
 
 ## Importing validators
 
@@ -309,6 +321,27 @@ new Handsontable(container, {
 
 And that is all! You can use the numeric validator!
 
+#### Importing all validators at once
+
+You can quickly import and register all validators at once:
+
+```js
+// import all validators
+import {
+  registerValidator,
+  autocompleteValidator,
+  dateValidator,
+  numericValidator,
+  timeValidator,
+} from 'handsontable/validators';
+
+// import the `registerAllValidators()` function
+import { registerAllValidators } from 'handsontable/registry';
+
+// register all validators
+registerAllValidators();
+```
+
 ## Importing cell types
 
 To use a specific cell type you need to import it alongside the registering method. Let's try adding the checkbox cell type.
@@ -350,6 +383,124 @@ new Handsontable(container, {
 ```
 
 And that is all! You can use the checkbox cell type!
+
+#### Importing all cell types at once
+
+You can quickly import and register all cell types at once:
+
+```js
+// import all cell types
+import {
+  registerCellType,
+  AutocompleteCellType,
+  CheckboxCellType,
+  DateCellType,
+  DropdownCellType,
+  HandsontableCellType,
+  NumericCellType,
+  PasswordCellType,
+  TextCellType,
+  TimeCellType,
+} from 'handsontable/cellTypes';
+
+// import the `registerAllCellTypes()` function
+import { registerAllCellTypes } from 'handsontable/registry';
+
+// register all cell types
+registerAllCellTypes();
+```
+
+## Importing plugins
+
+To use a specific plugin you need to import it alongside the registering method. For instance, let's try adding the context menu.
+
+Start with importing the base, `ContextMenu` and the `registerPlugin` method.
+
+```js
+// remember to have the base imported
+import Handsontable from 'handsontable/base';
+// import the method for registering a plugin
+// import the ContextMenu plugin
+import { registerPlugin, ContextMenu } from 'handsontable/plugins';
+```
+
+Afterwards you need to use the `registerPlugin` method to register the `ContextMenu` plugin:
+
+```js
+// register the plugin before using it
+registerPlugin(ContextMenu);
+```
+
+Now, you can use the `ContextMenu` plugin, the full example looks like this:
+
+```js
+import Handsontable from 'handsontable/base';
+import { registerPlugin, AutoColumnSize, ContextMenu } from 'handsontable/plugins';
+
+registerPlugin(AutoColumnSize);
+registerPlugin(ContextMenu);
+
+// switch the context menu on
+new Handsontable(container, {
+  contextMenu: true,
+  // rest of the settings
+});
+```
+
+And that is all! You can use the `ContextMenu` plugin.
+
+#### Importing all plugins at once
+
+You can quickly import and register all plugins at once:
+
+```js
+// import all plugins
+import {
+  AutoColumnSize,
+  AutoRowSize,
+  Autofill,
+  BasePlugin,
+  BindRowsWithHeaders,
+  CollapsibleColumns,
+  ColumnSorting,
+  ColumnSummary,
+  Comments,
+  ContextMenu,
+  CopyPaste,
+  CustomBorders,
+  DragToScroll,
+  DropdownMenu,
+  ExportFile,
+  Filters,
+  Formulas,
+  HeaderTooltips,
+  HiddenColumns,
+  HiddenRows,
+  ManualColumnFreeze,
+  ManualColumnMove,
+  ManualColumnResize,
+  ManualRowMove,
+  ManualRowResize,
+  MergeCells,
+  MultiColumnSorting,
+  MultipleSelectionHandles,
+  NestedHeaders,
+  NestedRows,
+  ObserveChanges,
+  PersistentState,
+  Search,
+  TouchScroll,
+  TrimRows,
+  UndoRedo,
+  registerPlugin,
+} from 'handsontable/plugins';
+
+// import the `registerAllPlugins()` function
+import { registerAllPlugins } from 'handsontable/registry';
+
+// register all plugins
+registerAllPlugins();
+```
 
 ## Importing locales
 
@@ -437,7 +588,7 @@ The terms came in 2012, and currently, you can use them in most of the available
 
 If you want to learn more about this topic, don't hesitate to look at the official documentation of [Webpack](https://webpack.js.org/guides/tree-shaking/), [Rollup](https://rollupjs.org/guide/en/#tree-shaking), and [Parcel](https://parceljs.org/cli.html#enable-experimental-scope-hoisting/tree-shaking-support).
 
-**Important note**: this guide was prepared based on the newest version of Webpack. For the Webpack 3 and older, Parcel, and few other bundlers, those load CommonJS modules, three shaking might not work as presented above. For the modules to be imported correctly you need to split them and import them one by one from their respective files, just like this:
+**Important note**: this guide was prepared based on the newest version of Webpack. For the Webpack 3 and older, Parcel, and few other bundlers, those load CommonJS modules, tree shaking might not work as presented above. For the modules to be imported correctly you need to split them and import them one by one from their respective files, just like this:
 
 ```js
 // import the registering method directly from the file
@@ -533,7 +684,10 @@ import { registerLanguageDictionary } from 'handsontable/i18n/registry';
 Here is an extensive list of all Handsontable parts imported and registered. This example builds Handsontable out of all fragments. You can copy and paste the ones you need.
 
 ```js
+// import the `base` module
 import Handsontable from 'handsontable/base';
+
+// import editors
 import {
   registerEditor,
   AutocompleteEditor,
@@ -547,6 +701,8 @@ import {
   SelectEditor,
   TextEditor,
 } from 'handsontable/editors';
+
+// import renderers
 import {
   registerRenderer,
   baseRenderer,
@@ -557,6 +713,8 @@ import {
   passwordRenderer,
   textRenderer,
 } from 'handsontable/renderers';
+
+// import validators
 import {
   registerValidator,
   autocompleteValidator,
@@ -564,6 +722,8 @@ import {
   numericValidator,
   timeValidator,
 } from 'handsontable/validators';
+
+// import cell types
 import {
   registerCellType,
   AutocompleteCellType,
@@ -576,6 +736,8 @@ import {
   TextCellType,
   TimeCellType,
 } from 'handsontable/cellTypes';
+
+// import plugins
 import {
   AutoColumnSize,
   AutoRowSize,
@@ -615,6 +777,8 @@ import {
   UndoRedo,
   registerPlugin,
 } from 'handsontable/plugins';
+
+// import translations
 import {
   registerLanguageDictionary,
   deCH,
@@ -635,6 +799,17 @@ import {
   zhTW,
 } from 'handsontable/i18n';
 
+// optionally, import functions that let you quickly register all modules at once
+import {
+  registerAllEditors,
+  registerAllRenderers,
+  registerAllValidators,
+  registerAllCellTypes,
+  registerAllPlugins,
+  registerAllModules,
+  } from 'handsontable/registry'
+
+// register individual translations
 registerLanguageDictionary(deCH);
 registerLanguageDictionary(deDE);
 registerLanguageDictionary(enUS);
@@ -652,6 +827,7 @@ registerLanguageDictionary(ruRU);
 registerLanguageDictionary(zhCN);
 registerLanguageDictionary(zhTW);
 
+// register individual editors
 registerEditor(BaseEditor);
 registerEditor(AutocompleteEditor);
 registerEditor(CheckboxEditor);
@@ -662,7 +838,10 @@ registerEditor(NumericEditor);
 registerEditor(PasswordEditor);
 registerEditor(SelectEditor);
 registerEditor(TextEditor);
+// or, register all editors at once
+registerAllEditors();
 
+// register individual renderers
 registerRenderer(baseRenderer);
 registerRenderer(autocompleteRenderer);
 registerRenderer(checkboxRenderer);
@@ -670,12 +849,18 @@ registerRenderer(htmlRenderer);
 registerRenderer(numericRenderer);
 registerRenderer(passwordRenderer);
 registerRenderer(textRenderer);
+// or, register all renderers at once
+registerAllRenderers();
 
+// register individual validators
 registerValidator(autocompleteValidator);
 registerValidator(dateValidator);
 registerValidator(numericValidator);
 registerValidator(timeValidator);
+// or, register all validators at once
+registerAllValidators();
 
+// register individual cell types
 registerCellType(AutocompleteCellType);
 registerCellType(CheckboxCellType);
 registerCellType(DateCellType);
@@ -685,7 +870,10 @@ registerCellType(NumericCellType);
 registerCellType(PasswordCellType);
 registerCellType(TimeCellType);
 registerCellType(TextCellType);
+// or, register all cell types at once
+registerAllCellTypes();
 
+// register individual plugins
 registerPlugin(AutoColumnSize);
 registerPlugin(Autofill);
 registerPlugin(AutoRowSize);
@@ -721,6 +909,12 @@ registerPlugin(Search);
 registerPlugin(TouchScroll);
 registerPlugin(TrimRows);
 registerPlugin(UndoRedo);
+// or, register all plugins at once
+registerAllPlugins();
 
+// or, register all Handsontable modules at once
+registerAllModules();
+
+// create a Handsontable instance
 new Handsontable(container, {});
 ```
