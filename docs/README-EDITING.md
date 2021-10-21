@@ -151,7 +151,7 @@ We use the following Markdown containers:
 |------------------------------|------------------------------------------------------------|
 | `::: tip`                    | A note.                                                    |
 | `::: example [options]`      | Renders a code example as specified in [options].          |
-| `::: source-code-link <URL>` | Adds a source code link to the API ref header.             |
+| `::: source-code-link <URL>` | Adds a source code link to the API ref header. |
 
 ### Adding code examples
 
