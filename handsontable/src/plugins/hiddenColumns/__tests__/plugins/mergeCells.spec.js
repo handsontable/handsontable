@@ -1833,5 +1833,65 @@ describe('HiddenColumns', () => {
       expect($(mergeArea).hasClass('fullySelectedMergedCell-6')).toBeFalse();
       expect($(mergeArea).hasClass('fullySelectedMergedCell-7')).toBeFalse();
     });
+
+    describe('Hooks', () => {
+      it('should trigger the `beforeOnCellMouseDown` hook with proper coords', () => {
+        let rowOnCellMouseDown;
+        let columnOnCellMouseDown;
+        let coordsOnCellMouseDown;
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [0, 1],
+            indicators: true
+          },
+          mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 4 }],
+          beforeOnCellMouseDown(_, coords) {
+            coordsOnCellMouseDown = coords;
+            rowOnCellMouseDown = coords.row;
+            columnOnCellMouseDown = coords.col;
+          }
+        });
+
+        // Click on the first visible cell (merged area).
+        simulateClick(spec().$container.find('tr:eq(1) td:eq(0)'));
+
+        expect(rowOnCellMouseDown).toEqual(0);
+        expect(columnOnCellMouseDown).toEqual(2);
+        expect(coordsOnCellMouseDown).toEqual(jasmine.objectContaining({ row: 0, col: 2 }));
+      });
+
+      it('should trigger the `afterOnCellMouseDown` hook with proper coords', () => {
+        let rowOnCellMouseDown;
+        let columnOnCellMouseDown;
+        let coordsOnCellMouseDown;
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [0, 1],
+            indicators: true
+          },
+          mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 4 }],
+          afterOnCellMouseDown(_, coords) {
+            coordsOnCellMouseDown = coords;
+            rowOnCellMouseDown = coords.row;
+            columnOnCellMouseDown = coords.col;
+          }
+        });
+
+        // Click on the first visible cell (merged area).
+        simulateClick(spec().$container.find('tr:eq(1) td:eq(0)'));
+
+        expect(rowOnCellMouseDown).toEqual(0);
+        expect(columnOnCellMouseDown).toEqual(2);
+        expect(coordsOnCellMouseDown).toEqual(jasmine.objectContaining({ row: 0, col: 2 }));
+      });
+    });
   });
 });

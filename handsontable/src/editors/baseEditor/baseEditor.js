@@ -248,7 +248,7 @@ export class BaseEditor {
     this._opened = true;
     this.focus();
 
-    // only rerender the selections (FillHandle should disappear when beginediting is triggered)
+    // only rerender the selections (FillHandle should disappear when beginEditing is triggered)
     hotInstance.view.render();
 
     hotInstance.runHooks('afterBeginEditing', this.row, this.col);
