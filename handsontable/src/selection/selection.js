@@ -167,15 +167,19 @@ class Selection {
     const isRowNegative = coords.row < 0;
     const isColumnNegative = coords.col < 0;
     const selectedByCorner = isRowNegative && isColumnNegative;
+    // We are creating copy. We would like to modify just the start of the selection by below hook. Then original coords
+    // should be handled by next methods.
+    const coordsClone = coords.clone();
 
     this.selectedByCorner = selectedByCorner;
-    this.runLocalHooks(`beforeSetRangeStart${fragment ? 'Only' : ''}`, coords);
+
+    this.runLocalHooks(`beforeSetRangeStart${fragment ? 'Only' : ''}`, coordsClone);
 
     if (!isMultipleMode || (isMultipleMode && !isMultipleSelection && isUndefined(multipleSelection))) {
       this.selectedRange.clear();
     }
 
-    this.selectedRange.add(coords);
+    this.selectedRange.add(coordsClone);
 
     if (this.getLayerLevel() === 0) {
       this.selectedByRowHeader.clear();
@@ -216,13 +220,17 @@ class Selection {
       return;
     }
 
-    this.runLocalHooks('beforeSetRangeEnd', coords);
+    // We are creating copy. We would like to modify just the end of the selection by below hook. Then original coords
+    // should be handled by next methods.
+    const coordsClone = coords.clone();
+
+    this.runLocalHooks('beforeSetRangeEnd', coordsClone);
     this.begin();
 
     const cellRange = this.selectedRange.current();
 
     if (this.settings.selectionMode !== 'single') {
-      cellRange.setTo(new CellCoords(coords.row, coords.col));
+      cellRange.setTo(new CellCoords(coordsClone.row, coordsClone.col));
     }
 
     // Set up current selection.
