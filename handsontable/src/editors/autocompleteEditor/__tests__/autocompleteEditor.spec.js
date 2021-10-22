@@ -2474,39 +2474,79 @@ describe('AutocompleteEditor', () => {
     });
   });
 
-  describe('Autocomplete helper functions:', () => {
-    describe('sortByRelevance', () => {
-      it('should sort the provided array, so items more relevant to the provided value are listed first', () => {
-        const choicesList = [
-          'Wayne', // 0
-          'Draven', // 1
-          'Banner', // 2
-          'Stark', // 3
-          'Parker', // 4
-          'Kent', // 5
-          'Gordon', // 6
-          'Kyle', // 7
-          'Simmons'// 8
-        ];
-        let value = 'a';
-        let sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choicesList);
+  it('should not modify the suggestion lists\' order, when the `sortByRelevance` option is set to `true`', async() => {
+    const choicesList = [
+      'Wayne', 'Draven', 'Banner', 'Stark', 'Parker', 'Kent', 'Gordon', 'Kyle', 'Simmons'
+    ];
 
-        expect(sorted).toEqual([0, 2, 4, 3, 1]);
-
-        value = 'o';
-        sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choicesList);
-
-        expect(sorted).toEqual([6, 8]);
-
-        value = 'er';
-        sorted = Handsontable.editors.AutocompleteEditor.sortByRelevance(value, choicesList);
-
-        expect(sorted).toEqual([2, 4]);
-      });
+    handsontable({
+      columns: [
+        {
+          editor: 'autocomplete',
+          source: choicesList,
+          sortByRelevance: true
+        }
+      ]
     });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+    const $editorInput = $('.handsontableInput');
+
+    $editorInput.val('a');
+    keyDownUp('a'.charCodeAt(0));
+    Handsontable.dom.setCaretPosition($editorInput[0], 1);
+
+    await sleep(30);
+
+    let dropdownList = $('.autocompleteEditor tbody').first();
+    let $trs = dropdownList.find('tr');
+    let listLength = $trs.size();
+
+    expect($trs.eq(0).text()).toBe('Wayne');
+    expect($trs.eq(1).text()).toBe('Banner');
+    expect($trs.eq(2).text()).toBe('Parker');
+    expect($trs.eq(3).text()).toBe('Stark');
+    expect($trs.eq(4).text()).toBe('Draven');
+    expect(listLength).toBe(5);
+
+    keyDownUp('esc');
+    keyDownUp('enter');
+
+    $editorInput.val('o');
+    keyDownUp('o'.charCodeAt(0));
+    Handsontable.dom.setCaretPosition($editorInput[0], 1);
+
+    await sleep(30);
+
+    dropdownList = $('.autocompleteEditor tbody').first();
+    $trs = dropdownList.find('tr');
+    listLength = $trs.size();
+
+    expect($trs.eq(0).text()).toBe('Gordon');
+    expect($trs.eq(1).text()).toBe('Simmons');
+    expect(listLength).toBe(2);
+
+    keyDownUp('esc');
+    keyDownUp('enter');
+
+    $editorInput.val('er');
+    keyDownUp('e'.charCodeAt(0));
+    keyDownUp('r'.charCodeAt(0));
+    Handsontable.dom.setCaretPosition($editorInput[0], 1);
+
+    await sleep(30);
+
+    dropdownList = $('.autocompleteEditor tbody').first();
+    $trs = dropdownList.find('tr');
+    listLength = $trs.size();
+
+    expect($trs.eq(0).text()).toBe('Banner');
+    expect($trs.eq(1).text()).toBe('Parker');
+    expect(listLength).toBe(2);
   });
 
-  it('should not modify the suggestion lists\' order, when the sortByRelevance option is set to false', (done) => {
+  it('should not modify the suggestion lists\' order, when the `sortByRelevance` option is set to `false`', (done) => {
     const choicesList = [
       'Wayne', 'Draven', 'Banner', 'Stark', 'Parker', 'Kent', 'Gordon', 'Kyle', 'Simmons'
     ];

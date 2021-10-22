@@ -197,7 +197,7 @@ class ValueComponent extends BaseComponent {
     super.reset();
     this.getMultipleSelectElement().setValue(values);
 
-    const lastSelectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
+    const lastSelectedColumn = this.hot.getPlugin('filters').getSelectedColumn().visualIndex;
 
     this.getMultipleSelectElement().setLocale(this.hot.getCellMeta(0, lastSelectedColumn).locale);
   }

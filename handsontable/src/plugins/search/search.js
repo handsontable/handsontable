@@ -11,15 +11,16 @@ const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
   instance.getCellMeta(row, col).isSearchResult = testResult;
 };
 
-const DEFAULT_QUERY_METHOD = function(query, value) {
-  if (isUndefined(query) || query === null || !query.toLowerCase || query.length === 0) {
+const DEFAULT_QUERY_METHOD = function(query, value, cellProperties) {
+  if (isUndefined(query) || query === null || !query.toLocaleLowerCase || query.length === 0) {
     return false;
   }
   if (isUndefined(value) || value === null) {
     return false;
   }
 
-  return value.toString().toLowerCase().indexOf(query.toLowerCase()) !== -1;
+  return value.toString().toLocaleLowerCase(cellProperties.locale)
+    .indexOf(query.toLocaleLowerCase(cellProperties.locale)) !== -1;
 };
 
 /**
