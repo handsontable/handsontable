@@ -8,12 +8,13 @@ import {
   deepClone,
   duckSchema,
   isObjectEqual,
+  isObject,
   deepObjectSize,
   hasOwnProperty,
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray } from './helpers/array';
+import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray, pivot } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin, getPluginsNames } from './plugins/registry';
 import { getRenderer } from './renderers/registry';
@@ -22,7 +23,7 @@ import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse, isNumericLike } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
-import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
+import { cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
@@ -746,6 +747,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       let clen;
       const setData = [];
       const current = {};
+      const newDataByColumns = [];
+      const startRow = start.row;
+      const startColumn = start.col;
 
       rlen = input.length;
 
@@ -753,50 +757,87 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         return false;
       }
 
-      let repeatCol;
-      let repeatRow;
-      let cmax;
-      let rmax;
+      let columnsPopulationEnd = 0;
+      let rowsPopulationEnd = 0;
 
-      /* eslint-disable no-case-declarations */
+      if (isObject(end)) {
+        columnsPopulationEnd = end.col - startColumn + 1;
+        rowsPopulationEnd = end.row - startRow + 1;
+      }
+
       // insert data with specified pasteMode method
       switch (method) {
-        case 'shift_down' :
-          repeatCol = end ? end.col - start.col + 1 : 0;
-          repeatRow = end ? end.row - start.row + 1 : 0;
-          // eslint-disable-next-line no-param-reassign
-          input = translateRowsToColumns(input);
+        case 'shift_down':
+          // translate data from a list of rows to a list of columns
+          const populatedDataByColumns = pivot(input);
+          const numberOfDataColumns = populatedDataByColumns.length;
+          // method's argument can extend the range of data population (data would be repeated)
+          const numberOfColumnsToPopulate = Math.max(numberOfDataColumns, columnsPopulationEnd);
+          const pushedDownDataByRows = instance.getData().slice(startRow);
 
-          for (c = 0, clen = input.length, cmax = Math.max(clen, repeatCol); c < cmax; c++) {
-            if (c < clen) {
-              for (r = 0, rlen = input[c].length; r < repeatRow - rlen; r++) {
-                input[c].push(input[c][r % rlen]);
+          // translate data from a list of rows to a list of columns
+          const pushedDownDataByColumns = pivot(pushedDownDataByRows)
+            .slice(startColumn, startColumn + numberOfColumnsToPopulate);
+
+          for (c = 0; c < numberOfColumnsToPopulate; c += 1) {
+            if (c < numberOfDataColumns) {
+              for (r = 0, rlen = populatedDataByColumns[c].length; r < rowsPopulationEnd - rlen; r += 1) {
+                // repeating data for rows
+                populatedDataByColumns[c].push(populatedDataByColumns[c][r % rlen]);
               }
-              input[c].unshift(start.col + c, start.row, 0);
-              instance.spliceCol(...input[c]);
+
+              if (c < pushedDownDataByColumns.length) {
+                newDataByColumns.push(populatedDataByColumns[c].concat(pushedDownDataByColumns[c]));
+
+              } else {
+                // if before data population, there was no data in the column
+                // we fill the required rows' newly-created cells with `null` values
+                newDataByColumns.push(populatedDataByColumns[c].concat(
+                  new Array(pushedDownDataByRows.length).fill(null)));
+              }
+
             } else {
-              input[c % clen][0] = start.col + c;
-              instance.spliceCol(...input[c % clen]);
+              // Repeating data for columns.
+              newDataByColumns.push(populatedDataByColumns[c % numberOfDataColumns].concat(pushedDownDataByColumns[c]));
             }
           }
+
+          instance.populateFromArray(startRow, startColumn, pivot(newDataByColumns));
+
           break;
 
         case 'shift_right':
-          repeatCol = end ? end.col - start.col + 1 : 0;
-          repeatRow = end ? end.row - start.row + 1 : 0;
+          const numberOfDataRows = input.length;
+          // method's argument can extend the range of data population (data would be repeated)
+          const numberOfRowsToPopulate = Math.max(numberOfDataRows, rowsPopulationEnd);
+          const pushedRightDataByRows = instance.getData().slice(startRow).map(rowData => rowData.slice(startColumn));
 
-          for (r = 0, rlen = input.length, rmax = Math.max(rlen, repeatRow); r < rmax; r++) {
-            if (r < rlen) {
-              for (c = 0, clen = input[r].length; c < repeatCol - clen; c++) {
+          for (r = 0; r < numberOfRowsToPopulate; r += 1) {
+            if (r < numberOfDataRows) {
+              for (c = 0, clen = input[r].length; c < columnsPopulationEnd - clen; c += 1) {
+                // repeating data for rows
                 input[r].push(input[r][c % clen]);
               }
-              input[r].unshift(start.row + r, start.col, 0);
-              instance.spliceRow(...input[r]);
+
+              if (r < pushedRightDataByRows.length) {
+                for (let i = 0; i < pushedRightDataByRows[r].length; i += 1) {
+                  input[r].push(pushedRightDataByRows[r][i]);
+                }
+
+              } else {
+                // if before data population, there was no data in the row
+                // we fill the required columns' newly-created cells with `null` values
+                input[r].push(...new Array(pushedRightDataByRows[0].length).fill(null));
+              }
+
             } else {
-              input[r % rlen][0] = start.row + r;
-              instance.spliceRow(...input[r % rlen]);
+              // Repeating data for columns.
+              input.push(input[r % rlen].slice(0, numberOfRowsToPopulate).concat(pushedRightDataByRows[r]));
             }
           }
+
+          instance.populateFromArray(startRow, startColumn, input);
+
           break;
 
         case 'overwrite':
