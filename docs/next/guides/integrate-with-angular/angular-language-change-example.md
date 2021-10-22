@@ -21,6 +21,10 @@ Select a language from the selector above the table and open the Context Menu to
 // app.component.ts
 import { Component } from '@angular/core';
 import * as Handsontable from 'handsontable';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 @Component({
   selector: 'app-root',
@@ -52,6 +56,10 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 @NgModule({
   imports:      [ BrowserModule, FormsModule, HotTableModule ],

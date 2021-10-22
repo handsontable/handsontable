@@ -22,6 +22,10 @@ import { Component } from '@angular/core';
 import Handsontable from 'handsontable';
 import * as numbro from 'numbro';
 import * as languages from 'numbro/dist/languages.min';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 numbro.registerLanguage(languages['ja-JP']);
 numbro.registerLanguage(languages['tr-TR']);
@@ -82,6 +86,10 @@ class AppComponent {
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 @NgModule({
   imports:      [ BrowserModule, HotTableModule ],
