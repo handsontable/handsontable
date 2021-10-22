@@ -20,6 +20,10 @@ import ReactDOM from 'react-dom';
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
 import 'handsontable/dist/handsontable.min.css';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 import numbro from 'numbro';
 import languages from 'numbro/dist/languages.min.js';
