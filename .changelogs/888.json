@@ -1,0 +1,7 @@
+{
+  "title": "Changed the way the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`.",
+  "type": "changed",
+  "issue": 888,
+  "breaking": true,
+  "framework": "none"
+}
