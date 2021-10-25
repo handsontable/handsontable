@@ -37,6 +37,7 @@ import {
 import { Selection } from './selection';
 import { MetaManager, DynamicCellMetaMod, DataMap } from './dataMap';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
+import { createShortcutManager } from './shortcuts/manager';
 
 let activeGuid = null;
 
@@ -81,6 +82,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const tableMeta = metaManager.getTableMeta();
   const globalMeta = metaManager.getGlobalMeta();
   const pluginsRegistry = createUniqueMap();
+  const shortcutManager = createShortcutManager();
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
@@ -4364,6 +4366,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getDirectionFactor = function() {
     return instance.isLtr() ? 1 : -1;
   };
+
+  /**
+   * @TODO Description of getShortcutManager
+   *
+   * @returns {object}
+   */
+  this.getShortcutManager = function() {
+    return shortcutManager;
+  };
+
+  const selectionContext = shortcutManager.registerContext('selection');
+  selectionContext.register
 
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);

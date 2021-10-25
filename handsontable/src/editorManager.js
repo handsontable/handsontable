@@ -6,6 +6,7 @@ import EventManager from './eventManager';
 import { EDITOR_STATE } from './editors/baseEditor';
 import { getParentWindow } from './helpers/dom/element';
 
+export const EDITORMANAGER_CONTEXT = 'editorManager';
 class EditorManager {
   /**
    * @param {Core} instance The Handsontable instance.
@@ -75,6 +76,8 @@ class EditorManager {
      */
     this.lastKeyCode = void 0;
 
+    this.registerShortcuts();
+
     this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
 
     let frame = this.instance.rootWindow;
@@ -97,6 +100,19 @@ class EditorManager {
     });
 
     this.instance.view.wt.update('onCellDblClick', (event, coords, elem) => this.onCellDblClick(event, coords, elem));
+  }
+
+  registerShortcuts() {
+    const shortcutManager = this.instance.getShortcutManager();
+    shortcutManager.registerContext(EDITORMANAGER_CONTEXT);
+
+    shortcutManager.registerShortcut(EDITORMANAGER_CONTEXT, [KEY_CODES.F2], (event) => {
+      if (this.activeEditor) {
+        this.activeEditor.enableFullEditMode();
+      }
+
+      this.openEditor(null, event);
+    });
   }
 
   /**
@@ -463,15 +479,15 @@ class EditorManager {
         event.preventDefault();
         break;
 
-      case KEY_CODES.F2:
-        /* F2 */
-        if (this.activeEditor) {
-          this.activeEditor.enableFullEditMode();
-        }
-        this.openEditor(null, event);
+      // case KEY_CODES.F2:
+      //   /* F2 */
+      //   if (this.activeEditor) {
+      //     this.activeEditor.enableFullEditMode();
+      //   }
+      //   this.openEditor(null, event);
 
-        event.preventDefault(); // prevent Opera from opening 'Go to Page dialog'
-        break;
+      //   event.preventDefault(); // prevent Opera from opening 'Go to Page dialog'
+      //   break;
 
       case KEY_CODES.ENTER:
         /* return/enter */
