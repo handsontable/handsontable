@@ -93,5 +93,4 @@ Handsontable.helper.throttle(() => {}, 1);
 Handsontable.helper.throttleAfterHits(() => {}, 0, 1);
 Handsontable.helper.to2dArray([1, 'foo', true]);
 Handsontable.helper.toUpperCaseFirst('foo');
-Handsontable.helper.translateRowsToColumns([1, 'foo', true]);
 Handsontable.helper.valueAccordingPercent(1, 90);

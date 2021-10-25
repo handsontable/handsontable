@@ -1,5 +1,5 @@
 export default {
-  pathToSource: '../../../../src',
+  pathToSource: '../../../../handsontable/src',
   pathToDist: '../../../next/api',
   urlPrefix: '/next/api/',
   seo: {

@@ -25,6 +25,14 @@ export const PLUGIN_PRIORITY = 0;
  * value will be saved in `saveTo.value`.
  * - {@link Hooks#persistentStateReset} - Clears the value saved under key. If no key is given, all values associated
  * with table will be cleared.
+ *
+ * __Note:__ The main reason behind using `persistentState` hooks rather than regular LocalStorage API is that it
+ * ensures separation of data stored by multiple Handsontable instances. In other words, if you have two (or more)
+ * instances of Handsontable on one page, data saved by one instance won't be accessible by the second instance.
+ * Those two instances can store data under the same key and no data would be overwritten.
+ *
+ * __Important:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
+ *
  */
 export class PersistentState extends BasePlugin {
   static get PLUGIN_KEY() {

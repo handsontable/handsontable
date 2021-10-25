@@ -323,9 +323,9 @@ class EditorManager {
    */
   moveSelectionRight(isShiftPressed) {
     if (isShiftPressed) {
-      this.selection.transformEnd(0, 1);
+      this.selection.transformEnd(0, this.instance.getDirectionFactor());
     } else {
-      this.selection.transformStart(0, 1);
+      this.selection.transformStart(0, this.instance.getDirectionFactor());
     }
   }
 
@@ -337,9 +337,9 @@ class EditorManager {
    */
   moveSelectionLeft(isShiftPressed) {
     if (isShiftPressed) {
-      this.selection.transformEnd(0, -1);
+      this.selection.transformEnd(0, -1 * this.instance.getDirectionFactor());
     } else {
-      this.selection.transformStart(0, -1);
+      this.selection.transformStart(0, -1 * this.instance.getDirectionFactor());
     }
   }
 
