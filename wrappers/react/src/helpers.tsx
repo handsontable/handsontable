@@ -1,6 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { HotEditorElement } from './types';
+import {
+  HotEditorCache,
+  HotEditorElement
+} from './types';
 
 let bulkComponentContainer = null;
 
@@ -15,6 +18,11 @@ export const AUTOSIZE_WARNING = 'Your `HotTable` configuration includes `autoRow
  */
 export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' +
   ' used properly.';
+
+/**
+ * String identifier for the global-scoped editor components.
+ */
+export const GLOBAL_EDITOR_SCOPE = 'global';
 
 /**
  * Default classname given to the wrapper container.
@@ -94,7 +102,7 @@ export function removeEditorContainers(doc = document): void {
  * @param {Map} editorCache The editor cache reference.
  * @returns {React.ReactPortal} The portal for the editor.
  */
-export function createEditorPortal(doc = document, editorElement: HotEditorElement, editorCache: Map<Function, React.Component>): React.ReactPortal {
+export function createEditorPortal(doc = document, editorElement: HotEditorElement, editorCache: HotEditorCache): React.ReactPortal {
   if (editorElement === null) {
     return;
   }
@@ -122,9 +130,11 @@ export function createEditorPortal(doc = document, editorElement: HotEditorEleme
  *
  * @param {React.ReactNode} children Component children.
  * @param {Map} editorCache Component's editor cache.
+ * @param {string|number} [editorColumnScope] The editor scope (column index or a 'global' string). Defaults to
+ * 'global'.
  * @returns {React.ReactElement} An editor element containing the additional methods.
  */
-export function getExtendedEditorElement(children: React.ReactNode, editorCache: Map<Function, object>): React.ReactElement | null {
+export function getExtendedEditorElement(children: React.ReactNode, editorCache: HotEditorCache, editorColumnScope: string|number = GLOBAL_EDITOR_SCOPE): React.ReactElement | null {
   const editorElement = getChildElementByType(children, 'hot-editor');
   const editorClass = getOriginalEditorClass(editorElement);
 
@@ -133,9 +143,16 @@ export function getExtendedEditorElement(children: React.ReactNode, editorCache:
   }
 
   return React.cloneElement(editorElement, {
-    emitEditorInstance: (editorInstance) => {
-      editorCache.set(editorClass, editorInstance);
+    emitEditorInstance: (editorInstance, editorColumnScope) => {
+      if (!editorCache.get(editorClass)) {
+        editorCache.set(editorClass, new Map());
+      }
+
+      const cacheEntry = editorCache.get(editorClass);
+
+      cacheEntry.set(editorColumnScope ?? GLOBAL_EDITOR_SCOPE, editorInstance);
     },
+    editorColumnScope,
     isEditor: true
   } as object);
 }

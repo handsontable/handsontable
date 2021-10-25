@@ -168,6 +168,70 @@ describe('Editor configuration using React components', () => {
 
     done();
   });
+
+  it('should be possible to reuse editor components between columns width different props passed to them', async(done) => {
+    class ReusableEditor extends EditorComponent {
+      prepare(row, col, prop, TD, originalValue, cellProperties): any {
+        super.prepare(row, col, prop, TD, originalValue, cellProperties);
+
+        this.mainElementRef.current.style.backgroundColor = this.props.background;
+      }
+    }
+
+    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+      <HotTable licenseKey="non-commercial-and-evaluation"
+                id="test-hot"
+                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                width={300}
+                height={300}
+                rowHeights={23}
+                colWidths={50}
+                init={function () {
+                  mockElementDimensions(this.rootElement, 300, 300);
+                }}>
+        <HotColumn>
+          <ReusableEditor background='red' hot-editor></ReusableEditor>
+        </HotColumn>
+        <HotColumn>
+          <ReusableEditor background='yellow' hot-editor></ReusableEditor>
+        </HotColumn>
+      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
+    );
+
+    await sleep(100);
+
+    const hotInstance = wrapper.instance().hotInstance;
+
+    hotInstance.selectCell(0, 0);
+
+    expect((document.querySelectorAll('#editorComponentContainer')[0] as any).style.backgroundColor).toEqual('red');
+
+    simulateKeyboardEvent('keydown', 13);
+
+    expect(hotInstance.getActiveEditor().editorComponent.mainElementRef.current.style.backgroundColor).toEqual('red');
+
+    hotInstance.getActiveEditor().close();
+
+    hotInstance.selectCell(0, 1);
+
+    expect((document.querySelectorAll('#editorComponentContainer')[1] as any).style.backgroundColor).toEqual('yellow');
+
+    simulateKeyboardEvent('keydown', 13);
+
+    expect(hotInstance.getActiveEditor().editorComponent.mainElementRef.current.style.backgroundColor).toEqual('yellow');
+
+    hotInstance.selectCell(0, 0);
+
+    simulateKeyboardEvent('keydown', 13);
+
+    expect(hotInstance.getActiveEditor().editorComponent.mainElementRef.current.style.backgroundColor).toEqual('red');
+
+    hotInstance.getActiveEditor().close();
+
+    wrapper.detach();
+
+    done();
+  });
 });
 
 describe('Dynamic HotColumn configuration changes', () => {
