@@ -12,13 +12,13 @@ tags:
 
 [[toc]]
 
-Customize Handsontable with configuration options.
+You can customize Handsontable with [configuration options](@/api/options.md).
 
 ## About configuration options
 
-You can heavily customize Handsontable's look and behavior with numerous [configuration options](@/api/options.md).
+[Configuration options](@/api/options.md) let you customize your Handsontable instance.
 
-To apply configuration options, pass them as a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid), using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
+To apply [configuration options](@/api/options.md), pass them as a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid), using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
 
 ```js
 const container = document.getElementById('example');
@@ -157,9 +157,9 @@ To apply configuration options to an individual column (or a range of columns), 
     ```js
     const hot = new Handsontable(container, {
       columns: [
-        {}, // column options for the first column
-        {}, // column options for the second column
-        {}, // column options for the third column
+        {}, // column options for the first (by physical index) column
+        {}, // column options for the second (by physical index) column
+        {}, // column options for the third (by physical index) column
       ],
     });
     ```
@@ -170,7 +170,7 @@ To apply configuration options to an individual column (or a range of columns), 
       columns: [
         {},
         {},
-        // column options, apply to each cell of the third column
+        // column options, apply to each cell of the third (by physical index) column
         {
           readOnly: true,
         },
@@ -625,7 +625,7 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   // mid-level column options overwrite the top-level grid options
   columns: [
-    // each cell in the first column is editable
+    // each cell in the first (by physical index) column is editable
     {
       readOnly: false,
       className: '',
