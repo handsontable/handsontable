@@ -1,5 +1,18 @@
+import { IndexMapper } from './translations';
 import { Events } from './pluginHooks';
-import { GridSettings } from './settings';
+import {
+  CellValue,
+  RowObject,
+} from './common';
+import {
+  GridSettings,
+  ColumnSettings,
+  CellSettings,
+  CellMeta,
+  CellProperties,
+} from './settings';
+import CellCoords from './3rdparty/walkontable/src/cell/coords';
+import CellRange from './3rdparty/walkontable/src/cell/range';
 
 export default class Core {
   addHook<K extends keyof Events>(key: K, callback: Events[K] | Events[K][]): void;
@@ -12,7 +25,7 @@ export default class Core {
   clearUndo(): void;
   colOffset(): number;
   colToProp(col: number): string | number;
-  columnIndexMapper: Handsontable.RecordTranslation.IndexMapper;
+  columnIndexMapper: IndexMapper;
   constructor(element: Element, options: GridSettings);
   container: HTMLElement;
   countCols(): number;
@@ -30,48 +43,48 @@ export default class Core {
   destroyEditor(revertOriginal?: boolean, prepareEditorIfNeeded?: boolean): void;
   emptySelectedCells(): void;
   forceFullRender: boolean;
-  getActiveEditor<T extends Handsontable._editors.Base>(): T | undefined;
+  // getActiveEditor<T extends Handsontable._editors.Base>(): T | undefined;
   getCell(row: number, col: number, topmost?: boolean): HTMLTableCellElement | null;
-  getCellEditor<T extends Handsontable._editors.Base>(cellMeta: Handsontable.CellMeta): T;
-  getCellEditor<T extends Handsontable._editors.Base>(row: number, col: number): T;
-  getCellMeta(row: number, col: number): Handsontable.CellProperties;
-  getCellMetaAtRow(row: number): Handsontable.CellProperties[];
-  getCellRenderer(cellMeta: Handsontable.CellMeta): Handsontable.renderers.Base;
-  getCellRenderer(row: number, col: number): Handsontable.renderers.Base;
-  getCellsMeta(): Handsontable.CellProperties[];
-  getCellValidator(cellMeta: Handsontable.CellMeta): Handsontable.validators.Base | RegExp | undefined;
-  getCellValidator(row: number, col: number): Handsontable.validators.Base | RegExp | undefined;
+  // getCellEditor<T extends Handsontable._editors.Base>(cellMeta: CellMeta): T;
+  // getCellEditor<T extends Handsontable._editors.Base>(row: number, col: number): T;
+  getCellMeta(row: number, col: number): CellProperties;
+  getCellMetaAtRow(row: number): CellProperties[];
+  // getCellRenderer(cellMeta: CellMeta): Handsontable.renderers.Base;
+  // getCellRenderer(row: number, col: number): Handsontable.renderers.Base;
+  getCellsMeta(): CellProperties[];
+  // getCellValidator(cellMeta: CellMeta): Handsontable.validators.Base | RegExp | undefined;
+  // getCellValidator(row: number, col: number): Handsontable.validators.Base | RegExp | undefined;
   getColHeader(): (number | string)[];
   getColHeader(col: number): number | string;
   getColWidth(col: number): number;
-  getCoords(elem: Element | null): Handsontable.wot.CellCoords;
+  getCoords(elem: Element | null): CellCoords;
   getCopyableData(row: number, column: number): string;
   getCopyableText(startRow: number, startCol: number, endRow: number, endCol: number): string;
-  getData(row?: number, column?: number, row2?: number, column2?: number): Handsontable.CellValue[];
-  getDataAtCell(row: number, column: number): Handsontable.CellValue;
-  getDataAtCol(column: number): Handsontable.CellValue[];
-  getDataAtProp(prop: string | number): Handsontable.CellValue[];
-  getDataAtRow(row: number): Handsontable.CellValue[];
-  getDataAtRowProp(row: number, prop: string): Handsontable.CellValue;
-  getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): Handsontable.CellType | 'mixed';
-  getInstance(): Handsontable;
-  getPlugin<T extends keyof Handsontable.PluginsCollection>(pluginName: T): Handsontable.PluginsCollection[T];
+  getData(row?: number, column?: number, row2?: number, column2?: number): CellValue[];
+  getDataAtCell(row: number, column: number): CellValue;
+  getDataAtCol(column: number): CellValue[];
+  getDataAtProp(prop: string | number): CellValue[];
+  getDataAtRow(row: number): CellValue[];
+  getDataAtRowProp(row: number, prop: string): CellValue;
+  // getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): Handsontable.CellType | 'mixed';
+  getInstance(): Core;
+  // getPlugin<T extends keyof Handsontable.PluginsCollection>(pluginName: T): Handsontable.PluginsCollection[T];
   getRowHeader(): (string | number)[];
   getRowHeader(row: number): string | number;
   getRowHeight(row: number): number;
-  getSchema(): Handsontable.RowObject;
+  getSchema(): RowObject;
   getSelected(): Array<[number, number, number, number]> | undefined;
   getSelectedLast(): number[] | undefined;
-  getSelectedRange(): Handsontable.wot.CellRange[] | undefined;
-  getSelectedRangeLast(): Handsontable.wot.CellRange | undefined;
+  getSelectedRange(): CellRange[] | undefined;
+  getSelectedRangeLast(): CellRange | undefined;
   getSettings(): GridSettings;
-  getSourceData(row?: number, column?: number, row2?: number, column2?: number): Handsontable.CellValue[][] | Handsontable.RowObject[];
-  getSourceDataArray(row?: number, column?: number, row2?: number, ccolumn2?: number): Handsontable.CellValue[][];
-  getSourceDataAtCell(row: number, column: number): Handsontable.CellValue;
-  getSourceDataAtCol(column: number): Handsontable.CellValue[];
-  getSourceDataAtRow(row: number): Handsontable.CellValue[] | Handsontable.RowObject;
+  getSourceData(row?: number, column?: number, row2?: number, column2?: number): CellValue[][] | RowObject[];
+  getSourceDataArray(row?: number, column?: number, row2?: number, ccolumn2?: number): CellValue[][];
+  getSourceDataAtCell(row: number, column: number): CellValue;
+  getSourceDataAtCol(column: number): CellValue[];
+  getSourceDataAtRow(row: number): CellValue[] | RowObject;
   getTranslatedPhrase(dictionaryKey: string, extraArguments: any): string | null;
-  getValue(): Handsontable.CellValue;
+  getValue(): CellValue;
   hasColHeaders(): boolean;
   hasHook(key: keyof Events): boolean;
   hasRowHeaders(): boolean;
@@ -86,12 +99,12 @@ export default class Core {
   isRenderSuspended(): boolean;
   isUndoAvailable(): boolean;
   listen(): void;
-  loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[], source?: string): void;
-  populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
+  loadData(data: CellValue[][] | RowObject[], source?: string): void;
+  populateFromArray(row: number, col: number, input: CellValue[][], endRow?: number, endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
   propToCol(prop: string | number): number;
   redo(): void;
   refreshDimensions(): void;
-  removeCellMeta(row: number, col: number, key: keyof Handsontable.CellMeta): void;
+  removeCellMeta(row: number, col: number, key: keyof CellMeta): void;
   removeCellMeta(row: number, col: number, key: string): void;
   removeHook<K extends keyof Events>(key: K, callback: Events[K]): void;
   render(): void;
@@ -101,29 +114,28 @@ export default class Core {
   rootDocument: Document;
   rootElement: HTMLElement;
   rootWindow: Window;
-  rowIndexMapper: Handsontable.RecordTranslation.IndexMapper;
+  rowIndexMapper: IndexMapper;
   rowOffset(): number;
   runHooks(key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
   // Requires TS 3.0:
-  // runHooks<K extends keyof Handsontable.Events>(key: K, ...params: Parameters<Handsontable.Events[K]>): ReturnType<Handsontable.Events[K]>;
   scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean, considerHiddenIndexes?: boolean): boolean;
   selectAll(): void;
   selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
   selectCellByProp(row: number, prop: string, endRow?: number, endProp?: string, scrollToCell?: boolean): boolean;
-  selectCells(coords: Array<[number, number | string, number, number | string]> | Array<Handsontable.wot.CellRange>, scrollToCell?: boolean, changeListener?: boolean): boolean;
+  selectCells(coords: Array<[number, number | string, number, number | string]> | Array<CellRange>, scrollToCell?: boolean, changeListener?: boolean): boolean;
   selectColumns(startColumn: number | string, endColumn?: number | string): boolean;
   selectRows(startRow: number, endRow?: number): boolean;
   setCellMeta(row: number, col: number, key: string, val: any): void;
-  setCellMeta<K extends keyof Handsontable.CellMeta>(row: number, col: number, key: K, val: Handsontable.CellMeta[K]): void;
-  setCellMetaObject<T extends Handsontable.CellMeta>(row: number, col: number, prop: T): void;
-  setDataAtCell(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: string): void;
-  setDataAtCell(row: number, col: string | number, value: Handsontable.CellValue, source?: string): void;
-  setDataAtRowProp(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: string): void;
-  setDataAtRowProp(row: number, prop: string, value: Handsontable.CellValue, source?: string): void;
-  setSourceDataAtCell(changes: [number, string | number, Handsontable.CellValue][]): void;
-  setSourceDataAtCell(row: number, column: number | string, value: Handsontable.CellValue, source?: string): void;
-  spliceCol(col: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
-  spliceRow(row: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
+  setCellMeta<K extends keyof CellMeta>(row: number, col: number, key: K, val: CellMeta[K]): void;
+  setCellMetaObject<T extends CellMeta>(row: number, col: number, prop: T): void;
+  setDataAtCell(changes: Array<[number, string | number, CellValue]>, source?: string): void;
+  setDataAtCell(row: number, col: string | number, value: CellValue, source?: string): void;
+  setDataAtRowProp(changes: Array<[number, string | number, CellValue]>, source?: string): void;
+  setDataAtRowProp(row: number, prop: string, value: CellValue, source?: string): void;
+  setSourceDataAtCell(changes: [number, string | number, CellValue][]): void;
+  setSourceDataAtCell(row: number, column: number | string, value: CellValue, source?: string): void;
+  spliceCol(col: number, index: number, amount: number, ...elements: CellValue[]): void;
+  spliceRow(row: number, index: number, amount: number, ...elements: CellValue[]): void;
   suspendExecution(): void;
   suspendRender(): void;
   table: HTMLTableElement;
@@ -134,10 +146,9 @@ export default class Core {
   toVisualColumn(column: number): number;
   toVisualRow(row: number): number;
   undo(): void;
-  undoRedo: Handsontable.UndoRedo;
   unlisten(): void;
   updateSettings(settings: GridSettings, init?: boolean): void;
-  validateCell(value: any, cellProperties: Handsontable.CellProperties, callback: (valid: boolean) => void, source: string): void;
+  validateCell(value: any, cellProperties: CellProperties, callback: (valid: boolean) => void, source: string): void;
   validateCells(callback?: (valid: boolean) => void): void;
   validateColumns(columns: number[], callback?: (valid: boolean) => void): void;
   validateRows(rows: number[], callback?: (valid: boolean) => void): void;

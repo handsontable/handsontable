@@ -19,12 +19,10 @@ const sortConfigs = columnSorting.getSortConfig();
 sortConfigs[0].column;
 sortConfigs[0].sortOrder;
 
-columnSorting.setSortConfig();
 columnSorting.setSortConfig({ column: 0, sortOrder: 'asc' });
 columnSorting.setSortConfig([{ column: 0, sortOrder: 'asc' }]);
 columnSorting.setSortConfig([]);
 
 columnSorting.isSorted();
 
-columnSorting.sort();
 columnSorting.sort({ column: 0, sortOrder: 'asc' });

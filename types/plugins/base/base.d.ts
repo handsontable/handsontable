@@ -1,8 +1,10 @@
+import Core from '../../core';
+
 export class BasePlugin {
-  constructor(hotInstance: any);
+  constructor(hotInstance: Core);
 
   pluginName: string;
-  pluginsInitializedCallbacks: any[];
+  pluginsInitializedCallbacks: string[];
   isPluginsReady: boolean;
   enabled: boolean;
   initialized: boolean;
@@ -10,6 +12,7 @@ export class BasePlugin {
   init(): void;
   enablePlugin(): void;
   disablePlugin(): void;
+  updatePlugin(): void;
   addHook(name: string, callback: Function): void;
   removeHooks(name: string): void;
   clearHooks(): void;

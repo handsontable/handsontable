@@ -1,10 +1,14 @@
-import { BasePlugin } from "../base";
+import Core from '../../core';
+import { CellValue } from '../../common';
+import { BasePlugin } from '../base';
 
-export interface Settings {
+export interface DetailedSettings {
   pasteMode?: PasteModeType;
   rowsLimit?: number;
   columnsLimit?: number;
 }
+
+export type Settings = boolean | DetailedSettings;
 
 export type PasteModeType = 'overwrite' | 'shift_down' | 'shift_right';
 export type RangeType = {
@@ -15,7 +19,7 @@ export type RangeType = {
 };
 
 export class CopyPaste extends BasePlugin {
-  constructor(hotInstance: any);
+  constructor(hotInstance: Core);
 
   columnsLimit: number;
   pasteMode: string;
@@ -25,7 +29,7 @@ export class CopyPaste extends BasePlugin {
   copy(): void;
   cut(): void;
   getRangedCopyableData(ranges: RangeType[]): string;
-  getRangedData(ranges: RangeType[]): any[][];
+  getRangedData(ranges: RangeType[]): CellValue[][];
   paste(pastableText?: string, pastableHtml?: string): void;
   setCopyableText(): void;
 }

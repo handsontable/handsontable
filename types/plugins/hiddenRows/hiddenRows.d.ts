@@ -1,12 +1,15 @@
+import Core from '../../core';
 import { BasePlugin } from '../base';
 
-export interface Settings {
+export interface DetailedSettings {
   rows?: number[];
   indicators?: boolean;
 }
 
+export type Settings = boolean | DetailedSettings;
+
 export class HiddenRows extends BasePlugin {
-  constructor(hotInstance: any);
+  constructor(hotInstance: Core);
   isEnabled(): boolean;
   showRows(rows: number[]): void;
   showRow(...row: number[]): void;

@@ -1,5 +1,6 @@
+import Core from '../../core';
 import { BasePlugin } from '../base';
-import { CellCoords } from '../../3rdparty/walkontable/cell/coords';
+import CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 
 export type BorderOptions = {
   width?: number;
@@ -12,12 +13,15 @@ export type BorderRange = {
     to: CellCoords;
   }
 }
-export type Settings = (CellCoords | BorderRange) & {
+export type DetailedSettings = (CellCoords | BorderRange) & {
   left?: BorderOptions | string;
   right?: BorderOptions | string;
   top?: BorderOptions | string;
   bottom?: BorderOptions | string;
 }
+
+export type Settings = boolean | DetailedSettings[];
+
 export type RangeType = {
   startRow: number,
   startCol: number,
@@ -26,7 +30,7 @@ export type RangeType = {
 };
 
 export class CustomBorders extends BasePlugin {
-  constructor(hotInstance: any);
+  constructor(hotInstance: Core);
   isEnabled(): boolean;
   setBorders(selectionRanges: RangeType[][] | Array<[number, number, number, number]>, borderObject: object): void;
   getBorders(selectionRanges: RangeType[][] | Array<[number, number, number, number]>): Array<[object]>;

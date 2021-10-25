@@ -1,4 +1,6 @@
+import Core from '../../core';
 import { BasePlugin } from '../base';
+import CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 
 export interface CommentObject {
   value?: string;
@@ -8,9 +10,12 @@ export interface CommentObject {
     width?: number;
   }
 }
-export interface Settings {
+export interface DetailedSettings {
   displayDelay?: number;
 }
+
+export type Settings = boolean | DetailedSettings;
+
 export interface CommentConfig {
   row: number,
   col: number,
@@ -18,12 +23,13 @@ export interface CommentConfig {
 }
 
 export type CommentsRangeObject = {
-  from: wot.CellCoords;
-  to?: wot.CellCoords;
+  from: CellCoords;
+  to?: CellCoords;
 }
 
 export class Comments extends BasePlugin {
-  constructor(hotInstance: any);
+  constructor(hotInstance: Core);
+
   range: CommentsRangeObject;
 
   isEnabled(): boolean;

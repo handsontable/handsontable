@@ -1,0 +1,1 @@
+export { IndexMapper } from './indexMapper';

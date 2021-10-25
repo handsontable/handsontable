@@ -1,3 +1,5 @@
+import CellCoords from '../../3rdparty/walkontable/src/cell/coords';
+import Core from '../../core';
 import { BasePlugin } from '../base';
 
 export type PredefinedMenuItemKey = 'row_above' | 'row_below' | 'col_left' | 'col_right' |
@@ -12,11 +14,50 @@ export type SeparatorObject = {
   name: string;
 }
 
+export interface Selection {
+  start: CellCoords;
+  end: CellCoords;
+}
+
+export interface MenuConfig {
+  [key: string]: MenuItemConfig;
+}
+
+export interface MenuItemConfig {
+  name?: string | ((this: Core) => string);
+  key?: string;
+  hidden?: boolean | ((this: Core) => boolean | void);
+  disabled?: boolean | ((this: Core) => boolean | void);
+  disableSelection?: boolean;
+  isCommand?: boolean;
+  callback?(this: Core, key: string, selection: Selection[], clickEvent: MouseEvent): void;
+  renderer?(this: MenuItemConfig, hot: Core, wrapper: HTMLElement, row: number, col: number, prop: number | string, itemValue: string): HTMLElement;
+  submenu?: SubmenuConfig;
+}
+
+export interface SubmenuConfig {
+  items: SubmenuItemConfig[];
+}
+
+export interface SubmenuItemConfig extends Omit<MenuItemConfig, "key"> {
+  /**
+   * Submenu item `key` must be defined as "parent_key:sub_key" where "parent_key" is the parent MenuItemConfig key.
+   */
+  key: string;
+}
+
+export interface DetailedSettings {
+  callback?: (key: string, selection: Selection[], clickEvent: MouseEvent) => void;
+  items: PredefinedMenuItemKey[] | MenuConfig;
+}
+
+export type Settings = boolean | PredefinedMenuItemKey[] | DetailedSettings;
+
 export class ContextMenu extends BasePlugin {
   static DEFAULT_ITEMS: PredefinedMenuItemKey[];
   static SEPARATOR: SeparatorObject;
 
-  constructor(hotInstance: any);
+  constructor(hotInstance: Core);
   isEnabled(): boolean;
   open(event: Event): void;
   close(): void;

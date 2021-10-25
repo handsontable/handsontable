@@ -1,3 +1,47 @@
+import CellCoords from './3rdparty/walkontable/src/cell/coords';
+import CellRange from './3rdparty/walkontable/src/cell/range';
+import { ViewportColumnsCalculator } from './3rdparty/walkontable/src/calculator/viewportColumns';
+import Core from './core';
+import { SelectionController } from './selection';
+import {
+  ContextMenu,
+  PredefinedMenuItemKey as ContextMenuPredefinedMenuItemKey,
+  MenuItemConfig as ContextMenuMenuItemConfig,
+} from './plugins/contextMenu';
+import {
+  DropdownMenu,
+} from './plugins/dropdownMenu';
+import {
+  ColumnSorting,
+  Config as ColumnSortingConfig,
+} from './plugins/columnSorting';
+import {
+  Filters,
+  ColumnConditions as FiltersColumnConditions,
+} from './plugins/filters';
+import {
+  UndoRedo,
+  Action as UndoRedoAction,
+} from './plugins/undoRedo';
+import {
+  Settings as MergeCellsSettings,
+} from './plugins/mergeCells';
+import {
+  GridSettings,
+  ColumnSettings,
+  CellSettings,
+  CellMeta,
+  CellProperties,
+} from './settings';
+
+import {
+  CellValue,
+  RowObject,
+  CellChange,
+  ChangeSource,
+  RangeType,
+} from './common';
+
 type Bucket = {
   [P in keyof Events]: Events[P][];
 };
@@ -17,7 +61,7 @@ interface HookHighlightColumnHeaderMeta {
 
 export interface Events {
   afterAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
-  afterAutofill?: (fillData: CellValue[][], sourceRange: wot.CellRange, targetRange: wot.CellRange, direction: 'up' | 'down' | 'left' | 'right') => void;
+  afterAutofill?: (fillData: CellValue[][], sourceRange: CellRange, targetRange: CellRange, direction: 'up' | 'down' | 'left' | 'right') => void;
   afterBeginEditing?: (row: number, column: number) => void;
   afterCellMetaReset?: () => void;
   afterChange?: (changes: CellChange[] | null, source: ChangeSource) => void;
@@ -26,24 +70,24 @@ export interface Events {
   afterColumnExpand?: (currentCollapsedColumns: number[], destinationCollapsedColumns: number[], expandPossible: boolean, successfullyExpanded: boolean) => void;
   afterColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | void, movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
-  afterColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void;
-  afterContextMenuDefaultOptions?: (predefinedItems: (contextMenu.PredefinedMenuItemKey | contextMenu.MenuItemConfig)[]) => void;
-  afterContextMenuHide?: (context: plugins.ContextMenu) => void;
-  afterContextMenuShow?: (context: plugins.ContextMenu) => void;
-  afterCopy?: (data: CellValue[][], coords: plugins.RangeType[]) => void;
+  afterColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void;
+  afterContextMenuDefaultOptions?: (predefinedItems: (ContextMenuPredefinedMenuItemKey | ContextMenuMenuItemConfig)[]) => void;
+  afterContextMenuHide?: (context: ContextMenu) => void;
+  afterContextMenuShow?: (context: ContextMenu) => void;
+  afterCopy?: (data: CellValue[][], coords: RangeType[]) => void;
   afterCopyLimit?: (selectedRows: number, selectedColumns: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
   afterCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
   afterCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
-  afterCut?: (data: CellValue[][], coords: plugins.RangeType[]) => void;
+  afterCut?: (data: CellValue[][], coords: RangeType[]) => void;
   afterDeselect?: () => void;
   afterDestroy?: () => void;
   afterDetachChild?: (parent: RowObject, element: RowObject) => void;
   afterDocumentKeyDown?: (event: KeyboardEvent) => void;
   afterDrawSelection?: (currentRow: number, currentColumn: number, cornersOfSelection: number[], layerLevel: number | void) => string | void
-  afterDropdownMenuDefaultOptions?: (predefinedItems: (contextMenu.PredefinedMenuItemKey | contextMenu.MenuItemConfig)[]) => void;
-  afterDropdownMenuHide?: (instance: plugins.DropdownMenu) => void;
-  afterDropdownMenuShow?: (instance: plugins.DropdownMenu) => void;
-  afterFilter?: (conditionsStack: plugins.FiltersPlugin.ColumnConditions[]) => void;
+  afterDropdownMenuDefaultOptions?: (predefinedItems: (ContextMenuPredefinedMenuItemKey | ContextMenuMenuItemConfig)[]) => void;
+  afterDropdownMenuHide?: (instance: DropdownMenu) => void;
+  afterDropdownMenuShow?: (instance: DropdownMenu) => void;
+  afterFilter?: (conditionsStack: FiltersColumnConditions[]) => void;
   afterFormulasValuesUpdate?: (changes: object[]) => void;
   afterGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
   afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement) => void;
@@ -55,24 +99,24 @@ export interface Events {
   afterInit?: () => void;
   afterLanguageChange?: (languageCode: string) => void;
   afterListen?: () => void;
-  afterLoadData?: (sourceData: Handsontable.CellValue[], initialLoad: boolean, source: string | undefined) => void;
-  afterMergeCells?: (cellRange: wot.CellRange, mergeParent: mergeCells.Settings, auto: boolean) => void;
-  afterModifyTransformEnd?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
-  afterModifyTransformStart?: (coords: wot.CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
+  afterLoadData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
+  afterMergeCells?: (cellRange: CellRange, mergeParent: MergeCellsSettings, auto: boolean) => void;
+  afterModifyTransformEnd?: (coords: CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
+  afterModifyTransformStart?: (coords: CellCoords, rowTransformDir: -1 | 0, colTransformDir: -1 | 0) => void;
   afterMomentumScroll?: () => void;
   afterNamedExpressionAdded?: (namedExpressionName: string, changes: object[]) => void;
   afterNamedExpressionRemoved?: (namedExpressionName: string, changes: object[]) => void;
-  afterOnCellContextMenu?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
+  afterOnCellContextMenu?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellCornerDblClick?: (event: MouseEvent) => void;
   afterOnCellCornerMouseDown?: (event: MouseEvent) => void;
-  afterOnCellMouseDown?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
-  afterOnCellMouseOver?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
-  afterOnCellMouseOut?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
-  afterOnCellMouseUp?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
-  afterPaste?: (data: CellValue[][], coords: plugins.RangeType[]) => void;
+  afterOnCellMouseDown?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
+  afterOnCellMouseOver?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
+  afterOnCellMouseOut?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
+  afterOnCellMouseUp?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
+  afterPaste?: (data: CellValue[][], coords: RangeType[]) => void;
   afterPluginsInitialized?: () => void;
-  afterRedo?: (action: plugins.UndoRedoAction) => void;
-  afterRedoStackChange?: (undoneActionsBefore: plugins.UndoRedoAction[], undoneActionsAfter: plugins.UndoRedoAction[]) => void;
+  afterRedo?: (action: UndoRedoAction) => void;
+  afterRedoStackChange?: (undoneActionsBefore: UndoRedoAction[], undoneActionsAfter: UndoRedoAction[]) => void;
   afterRefreshDimensions?: (previousDimensions: object, currentDimensions: object, stateChanged: boolean) => void;
   afterRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
   afterRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
@@ -95,12 +139,12 @@ export interface Events {
   afterSheetRemoved?: (removedSheetDisplayName: string, changes: object[]) => void;
   afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
   afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
-  afterUndo?: (action: plugins.UndoRedoAction) => void;
-  afterUndoStackChange?: (doneActionsBefore: plugins.UndoRedoAction[], doneActionsAfter: plugins.UndoRedoAction[]) => void;
+  afterUndo?: (action: UndoRedoAction) => void;
+  afterUndoStackChange?: (doneActionsBefore: UndoRedoAction[], doneActionsAfter: UndoRedoAction[]) => void;
   afterUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
   afterUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
   afterUnlisten?: () => void;
-  afterUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
+  afterUnmergeCells?: (cellRange: CellRange, auto: boolean) => void;
   afterUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
   afterUpdateSettings?: (newSettings: GridSettings) => void;
   afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number, source: ChangeSource) => void | boolean;
@@ -108,27 +152,27 @@ export interface Events {
   afterViewportRowCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
   afterViewRender?: (isForced: boolean) => void;
   beforeAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
-  beforeAutofill?: (selectionData: CellValue[][], sourceRange: wot.CellRange, targetRange: wot.CellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | boolean | void;
-  beforeAutofillInsidePopulate?: (index: wot.CellCoords, direction: 'up' | 'down' | 'left' | 'right', input: CellValue[][], deltas: any[]) => void;
-  beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: wot.CellRange[], type: 'horizontal' | 'vertical', alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
+  beforeAutofill?: (selectionData: CellValue[][], sourceRange: CellRange, targetRange: CellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | boolean | void;
+  beforeAutofillInsidePopulate?: (index: CellCoords, direction: 'up' | 'down' | 'left' | 'right', input: CellValue[][], deltas: any[]) => void;
+  beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: CellRange[], type: 'horizontal' | 'vertical', alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
   beforeChange?: (changes: CellChange[], source: ChangeSource) => void | boolean;
   beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
   beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], collapsePossible: boolean) => void | boolean;
   beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean) => void | boolean;
   beforeColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | void, movePossible: boolean) => void | boolean;
   beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number;
-  beforeColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void | boolean;
-  beforeContextMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
-  beforeContextMenuShow?: (context: plugins.ContextMenu) => void;
-  beforeCopy?: (data: CellValue[][], coords: plugins.RangeType[]) => void | boolean;
+  beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void | boolean;
+  beforeContextMenuSetItems?: (menuItems: ContextMenuMenuItemConfig[]) => void;
+  beforeContextMenuShow?: (context: ContextMenu) => void;
+  beforeCopy?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeCreateCol?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
   beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
-  beforeCut?: (data: CellValue[][], coords: plugins.RangeType[]) => void | boolean;
+  beforeCut?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
   beforeDrawBorders?: (corners: number[], borderClassName: 'current' | 'area' | 'highlight' | undefined) => void;
-  beforeDropdownMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
-  beforeDropdownMenuShow?: (instance: plugins.DropdownMenu) => void;
-  beforeFilter?: (conditionsStack: plugins.FiltersPlugin.ColumnConditions[]) => void | boolean;
+  beforeDropdownMenuSetItems?: (menuItems: ContextMenuMenuItemConfig[]) => void;
+  beforeDropdownMenuShow?: (instance: DropdownMenu) => void;
+  beforeFilter?: (conditionsStack: FiltersColumnConditions[]) => void | boolean;
   beforeGetCellMeta?: (row: number, col: number, cellProperties: CellProperties) => void;
   beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
   beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
@@ -138,16 +182,16 @@ export interface Events {
   beforeInitWalkontable?: (walkontableConfig: object) => void;
   beforeKeyDown?: (event: KeyboardEvent) => void;
   beforeLanguageChange?: (languageCode: string) => void;
-  beforeLoadData?: (sourceData: Handsontable.CellValue[], initialLoad: boolean, source: string | undefined) => void;
-  beforeMergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
-  beforeOnCellContextMenu?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
-  beforeOnCellMouseDown?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
-  beforeOnCellMouseOut?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
-  beforeOnCellMouseOver?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
-  beforeOnCellMouseUp?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement) => void;
-  beforePaste?: (data: CellValue[][], coords: plugins.RangeType[]) => void | boolean;
-  beforeRedo?: (action: plugins.UndoRedoAction) => void;
-  beforeRedoStackChange?: (undoneActions: plugins.UndoRedoAction[]) => void;
+  beforeLoadData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
+  beforeMergeCells?: (cellRange: CellRange, auto: boolean) => void;
+  beforeOnCellContextMenu?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
+  beforeOnCellMouseDown?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
+  beforeOnCellMouseOut?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
+  beforeOnCellMouseOver?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
+  beforeOnCellMouseUp?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
+  beforePaste?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
+  beforeRedo?: (action: UndoRedoAction) => void;
+  beforeRedoStackChange?: (undoneActions: UndoRedoAction[]) => void;
   beforeRefreshDimensions?: (previousDimensions: object, currentDimensions: object, actionPossible: boolean) => boolean | void;
   beforeRemoveCellClassNames?: () => string[] | void;
   beforeRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
@@ -158,17 +202,17 @@ export interface Events {
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | void, movePossible: boolean) => void;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
   beforeSetCellMeta?: (row: number, col: number, key: string, value: any) => boolean | void;
-  beforeSetRangeEnd?: (coords: wot.CellCoords) => void;
-  beforeSetRangeStart?: (coords: wot.CellCoords) => void;
-  beforeSetRangeStartOnly?: (coords: wot.CellCoords) => void;
+  beforeSetRangeEnd?: (coords: CellCoords) => void;
+  beforeSetRangeStart?: (coords: CellCoords) => void;
+  beforeSetRangeStartOnly?: (coords: CellCoords) => void;
   beforeStretchingColumnWidth?: (stretchedWidth: number, column: number) => void | number;
   beforeTouchScroll?: () => void;
   beforeTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void | boolean;
-  beforeUndo?: (action: plugins.UndoRedoAction) => void;
-  beforeUndoStackChange?: (doneActions: plugins.UndoRedoAction[], source?: string) => void;
+  beforeUndo?: (action: UndoRedoAction) => void;
+  beforeUndoStackChange?: (doneActions: UndoRedoAction[], source?: string) => void;
   beforeUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
   beforeUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
-  beforeUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
+  beforeUnmergeCells?: (cellRange: CellRange, auto: boolean) => void;
   beforeUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void | boolean;
   beforeValidate?: (value: CellValue, row: number, prop: string | number, source?: ChangeSource) => void;
   beforeValueRender?: (value: CellValue, cellProperties: CellProperties) => void;
@@ -180,7 +224,7 @@ export interface Events {
   modifyColHeader?: (column: number) => void;
   modifyColumnHeaderHeight?: () => void;
   modifyColWidth?: (width: number, column: number) => void;
-  modifyCopyableRange?: (copyableRanges: plugins.RangeType[]) => void;
+  modifyCopyableRange?: (copyableRanges: RangeType[]) => void;
   modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyGetCellCoords?: (row: number, column: number, topmost: boolean) => void | [number, number] | [number, number, number, number];
   modifyRowData?: (row: number) => void;
@@ -189,27 +233,25 @@ export interface Events {
   modifyRowHeight?: (height: number, row: number) => void;
   modifyRowSourceData?: (row: number) => void;
   modifySourceData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
-  modifyTransformEnd?: (delta: wot.CellCoords) => void;
-  modifyTransformStart?: (delta: wot.CellCoords) => void;
+  modifyTransformEnd?: (delta: CellCoords) => void;
+  modifyTransformStart?: (delta: CellCoords) => void;
   persistentStateLoad?: (key: string, valuePlaceholder: { value: any }) => void;
   persistentStateReset?: (key: string) => void;
   persistentStateSave?: (key: string, value: any) => void;
 }
 
 export interface Hooks {
-  add<K extends keyof Events>(key: K, callback: Events[K] | Events[K][], context?: Handsontable): Hooks;
+  add<K extends keyof Events>(key: K, callback: Events[K] | Events[K][], context?: Core): Hooks;
   createEmptyBucket(): Bucket;
   deregister(key: string): void;
-  destroy(context?: Handsontable): void;
-  getBucket(context?: Handsontable): Bucket;
+  destroy(context?: Core): void;
+  getBucket(context?: Core): Bucket;
   getRegistered(): (keyof Events)[];
-  has(key: keyof Events, context?: Handsontable): boolean;
+  has(key: keyof Events, context?: Core): boolean;
   isDeprecated(key: keyof Events): boolean;
   isRegistered(key: keyof Events): boolean;
-  once<K extends keyof Events>(key: K, callback: Events[K] | Events[K][], context?: Handsontable): void;
+  once<K extends keyof Events>(key: K, callback: Events[K] | Events[K][], context?: Core): void;
   register(key: string): void;
-  remove(key: keyof Events, callback: Function, context?: Handsontable): boolean;
-  run(context: Handsontable, key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
-  // Requires TS 3.0:
-  // run<K extends keyof Events>(context: Handsontable, key: K, ...params: Parameters<Events[K]>): ReturnType<Events[K]>;
+  remove(key: keyof Events, callback: Function, context?: Core): boolean;
+  run(context: Core, key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
 }

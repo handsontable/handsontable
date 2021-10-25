@@ -1,12 +1,15 @@
+import Core from '../../core';
 import { BasePlugin } from '../base';
 
-export interface Settings {
+export interface DetailedSettings {
   columns?: number[];
   indicators?: boolean;
 }
 
+export type Settings = boolean | DetailedSettings;
+
 export class HiddenColumns extends BasePlugin {
-  constructor(hotInstance: any);
+  constructor(hotInstance: Core);
   isEnabled(): boolean;
   showColumns(columns: number[]): void;
   showColumn(...column: number[]): void;

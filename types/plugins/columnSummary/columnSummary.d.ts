@@ -1,6 +1,7 @@
+import Core from '../../core';
 import { BasePlugin } from '../base';
 
-export type Settings = {
+export type DetailedSettings = {
   destinationRow: number;
   destinationColumn: number;
   forceNumeric?: boolean;
@@ -16,6 +17,8 @@ export type Settings = {
   type: 'custom';
   customFunction: (this: ColumnSummary, endpoint: Endpoint) => number;
 });
+
+export type Settings = DetailedSettings[] | (() => DetailedSettings[]);
 
 export interface Endpoint {
   destinationRow: number;
@@ -52,8 +55,18 @@ export interface Endpoints {
 }
 
 export class ColumnSummary extends BasePlugin {
-  constructor(hotInstance: any);
+  constructor(hotInstance: Core);
+
+  endpoints: Endpoints | void;
+
   isEnabled(): boolean;
-  settings: any;
-  currentEndpoint: any;
+  calculate(endpoint: Endpoints): void;
+  calculateAverage(endpoint: Endpoints): number;
+  calculateMinMax(endpoint: Endpoints, type: string): number;
+  calculateSum(endpoint: Endpoints): void;
+  countEmpty(rowRange: any[], col: number): number;
+  countEntries(endpoint: Endpoints): number;
+  getCellValue(row: number, col: number): string;
+  getPartialMinMax(rowRange: any[], col: number, type: string): number;
+  getPartialSum(rowRange: any[], col: number): number;
 }

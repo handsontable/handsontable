@@ -1,11 +1,81 @@
+import { PikadayOptions } from 'pikaday';
+import Core from './core';
 import { Events } from './pluginHooks';
+import {
+  CellValue,
+  RowObject,
+  CellChange,
+  ChangeSource,
+  RangeType,
+  LabelOptions,
+  NumericFormatOptions,
+  SelectOptionsObject,
+  ColumnDataGetterSetterFunction,
+} from './common';
+import CellCoords from './3rdparty/walkontable/src/cell/coords';
+import CellRange from './3rdparty/walkontable/src/cell/range';
+import {
+  Settings as AutoColumnSizeSettings,
+} from './plugins/autoColumnSize';
+import {
+  Settings as AutofillSettings,
+} from './plugins/autofill';
+import {
+  Settings as AutoRowSizeSettings,
+} from './plugins/autoRowSize';
+import {
+  Settings as CollapsibleColumnsSettings,
+} from './plugins/collapsibleColumns';
+import {
+  Settings as ColumnSortingSettings,
+} from './plugins/columnSorting';
+import {
+  Settings as ColumnSummarySettings,
+} from './plugins/columnSummary';
+import {
+  Settings as CommentsSettings,
+  CommentObject,
+} from './plugins/comments';
+import {
+  Settings as ContextMenuSettings,
+} from './plugins/contextMenu';
+import {
+  Settings as CopyPasteSettings,
+} from './plugins/copyPaste';
+import {
+  Settings as CustomBordersSettings,
+} from './plugins/customBorders';
+import {
+  Settings as DropdownMenuSettings,
+} from './plugins/dropdownMenu';
+import {
+  Settings as FormulasSettings,
+} from './plugins/formulas';
+import {
+  Settings as HiddenColumnsSettings,
+} from './plugins/hiddenColumns';
+import {
+  Settings as HiddenRowsSettings,
+} from './plugins/hiddenRows';
+import {
+  Settings as MergeCellsSettings,
+} from './plugins/mergeCells';
+import {
+  Settings as MultiColumnSortingSettings,
+} from './plugins/multiColumnSorting';
+import {
+  Settings as NestedHeadersSettings,
+} from './plugins/nestedHeaders';
+import {
+  Settings as SearchSettings,
+} from './plugins/search';
 
 /**
  * Additional cell-specific meta data.
  */
-interface CellMeta extends ColumnSettings {
+export interface CellMeta extends ColumnSettings {
   valid?: boolean;
-  comment?: comments.CommentObject;
+  comment?: CommentObject;
   isSearchResult?: boolean;
   hidden?: boolean;
   skipRowOnPaste?: boolean;
@@ -14,10 +84,10 @@ interface CellMeta extends ColumnSettings {
 /**
  * A rendered cell object with computed properties.
  */
-interface CellProperties extends CellMeta {
+export interface CellProperties extends CellMeta {
   row: number;
   col: number;
-  instance: Handsontable;
+  instance: Core;
   visualRow: number;
   visualCol: number;
   prop: string | number;
@@ -26,7 +96,7 @@ interface CellProperties extends CellMeta {
 /**
  * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
  */
-interface ColumnSettings extends Omit<GridSettings, "data"> {
+export interface ColumnSettings extends Omit<GridSettings, "data"> {
   data?: string | number | ColumnDataGetterSetterFunction;
   /**
    * Column and cell meta data is extensible, developers can add any properties they want.
@@ -34,7 +104,7 @@ interface ColumnSettings extends Omit<GridSettings, "data"> {
   [key: string]: any;
 }
 
-interface CellSettings extends CellMeta {
+export interface CellSettings extends CellMeta {
   row: number;
   col: number;
 }
@@ -51,8 +121,8 @@ export interface GridSettings extends Events {
   allowInvalid?: boolean;
   allowRemoveColumn?: boolean;
   allowRemoveRow?: boolean;
-  autoColumnSize?: autoColumnSize.Settings | boolean;
-  autoRowSize?: autoRowSize.Settings | boolean;
+  autoColumnSize?: AutoColumnSizeSettings;
+  autoRowSize?: AutoRowSizeSettings;
   autoWrapCol?: boolean;
   autoWrapRow?: boolean;
   bindRowsWithHeaders?: boolean | 'loose' | 'strict';
@@ -61,22 +131,22 @@ export interface GridSettings extends Events {
   checkedTemplate?: boolean | string | number;
   className?: string | string[];
   colHeaders?: boolean | string[] | ((index: number) => string);
-  collapsibleColumns?: boolean | collapsibleColumns.Settings[];
+  collapsibleColumns?: CollapsibleColumnsSettings;
   columnHeaderHeight?: number | (number | undefined)[];
   columns?: ColumnSettings[] | ((index: number) => ColumnSettings);
-  columnSorting?: boolean | columnSorting.Settings;
-  columnSummary?: columnSummary.Settings[] | (() => columnSummary.Settings[]);
+  columnSorting?: ColumnSortingSettings;
+  columnSummary?: ColumnSummarySettings;
   colWidths?: number | string | number[] | string[] | undefined[] | (number | string | undefined)[] | ((index: number) => string | number | undefined);
   commentedCellClassName?: string;
-  comments?: boolean | comments.Settings | comments.CommentConfig[];
-  contextMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings;
+  comments?: CommentsSettings;
+  contextMenu?: ContextMenuSettings;
   copyable?: boolean;
-  copyPaste?: boolean | copyPaste.Settings;
+  copyPaste?: CopyPasteSettings;
   correctFormat?: boolean;
   currentColClassName?: string;
   currentHeaderClassName?: string;
   currentRowClassName?: string;
-  customBorders?: boolean | customBorders.Settings[];
+  customBorders?: CustomBordersSettings;
   data?: CellValue[][] | RowObject[];
   dataSchema?: RowObject | CellValue[] | ((row: number) => RowObject | CellValue[]);
   dateFormat?: string;
@@ -84,25 +154,25 @@ export interface GridSettings extends Events {
   defaultDate?: string;
   disableVisualSelection?: boolean | 'current' | 'area' | 'header' | ('current' | 'area' | 'header')[];
   dragToScroll?: boolean;
-  dropdownMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings;
-  editor?: EditorType | typeof _editors.Base | boolean | string;
+  dropdownMenu?: DropdownMenuSettings;
+  // editor?: EditorType | typeof _editors.Base | boolean | string;
   enterBeginsEditing?: boolean;
-  enterMoves?: wot.CellCoords | ((event: KeyboardEvent) => wot.CellCoords);
-  fillHandle?: boolean | 'vertical' | 'horizontal' | autoFill.Settings;
+  enterMoves?: CellCoords | ((event: KeyboardEvent) => CellCoords);
+  fillHandle?: AutofillSettings;
   filter?: boolean;
   filteringCaseSensitive?: boolean;
   filters?: boolean;
   fixedColumnsLeft?: number;
   fixedRowsBottom?: number;
   fixedRowsTop?: number;
-  formulas?: boolean | formulas.Settings;
+  formulas?: FormulasSettings;
   fragmentSelection?: boolean | 'cell';
   height?: number | string | (() => number | string);
-  hiddenColumns?: boolean | hiddenColumns.Settings;
-  hiddenRows?: boolean | hiddenRows.Settings;
+  hiddenColumns?: HiddenColumnsSettings;
+  hiddenRows?: HiddenRowsSettings;
   invalidCellClassName?: string;
-  isEmptyCol?: (this: _Handsontable.Core, col: number) => boolean;
-  isEmptyRow?: (this: _Handsontable.Core, row: number) => boolean;
+  isEmptyCol?: (this: Core, col: number) => boolean;
+  isEmptyRow?: (this: Core, row: number) => boolean;
   label?: LabelOptions;
   language?: string;
   licenseKey?: string | 'non-commercial-and-evaluation';
@@ -113,13 +183,13 @@ export interface GridSettings extends Events {
   manualRowResize?: boolean | number[];
   maxCols?: number;
   maxRows?: number;
-  mergeCells?: boolean | mergeCells.Settings[];
+  mergeCells?: MergeCellsSettings;
   minCols?: number;
   minRows?: number;
   minSpareCols?: number;
   minSpareRows?: number;
-  multiColumnSorting?: boolean | multiColumnSorting.Settings;
-  nestedHeaders?: (string | nestedHeaders.NestedHeader)[][];
+  multiColumnSorting?: MultiColumnSortingSettings;
+  nestedHeaders?: NestedHeadersSettings;
   nestedRows?: boolean;
   noWordWrapClassName?: string;
   numericFormat?: NumericFormatOptions;
@@ -133,11 +203,11 @@ export interface GridSettings extends Events {
   readOnly?: boolean;
   readOnlyCellClassName?: string;
   renderAllRows?: boolean;
-  renderer?: RendererType | string | renderers.Base;
+  // renderer?: RendererType | string | renderers.Base;
   rowHeaders?: boolean | string[] | ((index: number) => string);
   rowHeaderWidth?: number | number[];
   rowHeights?: number | string | number[] | string[] | undefined[] | (number | string | undefined)[] | ((index: number) => string | number | undefined);
-  search?: boolean | search.Settings;
+  search?: SearchSettings;
   selectionMode?: 'single' | 'range' | 'multiple';
   selectOptions?: string[] | SelectOptionsObject | ((visualRow: number, visualColumn: number, prop: string | number) => string[] | SelectOptionsObject);
   skipColumnOnPaste?: boolean;
@@ -149,15 +219,15 @@ export interface GridSettings extends Events {
   stretchH?: 'none' | 'all' | 'last';
   strict?: boolean;
   tableClassName?: string | string[];
-  tabMoves?: wot.CellCoords | ((event: KeyboardEvent) => wot.CellCoords);
+  tabMoves?: CellCoords | ((event: KeyboardEvent) => CellCoords);
   title?: string;
   trimDropdown?: boolean;
   trimRows?: boolean | number[];
   trimWhitespace?: boolean;
-  type?: CellType | string;
+  // type?: CellType | string;
   uncheckedTemplate?: boolean | string | number;
   undo?: boolean;
-  validator?: validators.Base | RegExp | ValidatorType | string;
+  // validator?: validators.Base | RegExp | ValidatorType | string;
   viewportColumnRenderingOffset?: number | 'auto';
   viewportRowRenderingOffset?: number | 'auto';
   visibleRows?: number;

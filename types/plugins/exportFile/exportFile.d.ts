@@ -1,7 +1,8 @@
+import Core from '../../core';
 import { BasePlugin } from '../base';
 
 export class ExportFile extends BasePlugin {
-  constructor(hotInstance: any);
+  constructor(hotInstance: Core);
   isEnabled(): boolean;
   exportAsString(format: string, options?: object): string;
   exportAsBlob(format: string, options?: object): Blob;

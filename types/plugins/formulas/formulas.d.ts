@@ -3,6 +3,8 @@ import {
   ConfigParams,
   HyperFormula,
 } from 'hyperformula';
+import Core from '../../core';
+import { CellValue } from '../../common';
 import { BasePlugin } from '../base';
 
 export interface HyperFormulaSettings extends Partial<ConfigParams> {
@@ -13,14 +15,14 @@ export interface Settings {
 }
 
 export class Formulas extends BasePlugin {
-  constructor(hotInstance: any);
+  constructor(hotInstance: Core);
 
   engine: HyperFormula | null;
   sheetName: string | null;
   get sheetId(): number | null;
 
   isEnabled(): boolean;
-  addSheet(sheetName?: string | null, sheetData?: any[][]): string | boolean;
+  addSheet(sheetName?: string | null, sheetData?: CellValue[][]): string | boolean;
   switchSheet(sheetName: string): void;
   getCellType(row: number, column: number, sheet?: number): HyperFormulaCellType;
   isFormulaCellType(row: number, column: number, sheet?: number): boolean;

@@ -1,7 +1,8 @@
+import Core from '../../core';
 import { BasePlugin } from '../base';
 
 export class DragToScroll extends BasePlugin {
-  constructor(hotInstance: any);
+  constructor(hotInstance: Core);
 
   boundaries: DOMRect | void;
 
