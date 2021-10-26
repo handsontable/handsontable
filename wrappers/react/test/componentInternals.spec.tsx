@@ -20,7 +20,7 @@ beforeEach(() => {
 });
 
 describe('Subcomponent state', () => {
-  it('should be possible to set the state of the renderer components passed to HotTable and HotColumn', async (done) => {
+  it('should be possible to set the state of the renderer components passed to HotTable and HotColumn', async () => {
     class RendererComponent2 extends React.Component<any, any, any> {
       constructor(props) {
         super(props);
@@ -90,10 +90,9 @@ describe('Subcomponent state', () => {
     expect(hotInstance.getCell(0, 1).innerHTML).toEqual('<div>altered as well</div>');
 
     wrapper.detach();
-    done();
   });
 
-  it('should be possible to set the state of the editor components passed to HotTable and HotColumn', async (done) => {
+  it('should be possible to set the state of the editor components passed to HotTable and HotColumn', async () => {
     class RendererEditor2 extends BaseEditorComponent {
       constructor(props) {
         super(props);
@@ -157,12 +156,11 @@ describe('Subcomponent state', () => {
     expect(document.querySelector('#second-editor').innerHTML).toEqual('altered as well');
 
     wrapper.detach();
-    done();
   });
 });
 
 describe('Component lifecyle', () => {
-  it('renderer components should trigger their lifecycle methods', async (done) => {
+  it('renderer components should trigger their lifecycle methods', async () => {
     class RendererComponent2 extends React.Component<any, any, any> {
       constructor(props) {
         super(props);
@@ -253,10 +251,9 @@ describe('Component lifecyle', () => {
     });
 
     wrapper.detach();
-    done();
   });
 
-  it('editor components should trigger their lifecycle methods', async (done) => {
+  it('editor components should trigger their lifecycle methods', async () => {
     class EditorComponent2 extends BaseEditorComponent {
       constructor(props) {
         super(props);
@@ -340,11 +337,10 @@ describe('Component lifecyle', () => {
     });
 
     wrapper.detach();
-    done();
   });
 
   it('should display a warning and not throw any errors, when the underlying Handsontable instance ' +
-    'has been destroyed', async(done) => {
+    'has been destroyed', async () => {
     const warnFunc = console.warn;
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable
@@ -376,6 +372,5 @@ describe('Component lifecyle', () => {
 
     console.warn = warnFunc;
 
-    done();
   });
 });

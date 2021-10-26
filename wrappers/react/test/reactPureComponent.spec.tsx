@@ -23,7 +23,7 @@ beforeEach(() => {
  * Handsontable's `render`.
  */
 describe('React PureComponents', () => {
-  it('should be possible to declare the renderer as PureComponent', async (done) => {
+  it('should be possible to declare the renderer as PureComponent', async () => {
     class RendererComponent2 extends React.PureComponent<any, any> {
       render(): React.ReactElement<string> {
         return (
@@ -60,7 +60,6 @@ describe('React PureComponents', () => {
 
     wrapper.detach();
 
-    done();
   });
 
   /*

@@ -115,31 +115,6 @@ export function createEmptySpreadsheetData(rows, columns) {
 }
 
 /**
- * @param {Array} input The data to translate.
- * @returns {Array}
- */
-export function translateRowsToColumns(input) {
-  const output = [];
-  let i;
-  let ilen;
-  let j;
-  let jlen;
-  let olen = 0;
-
-  for (i = 0, ilen = input.length; i < ilen; i++) {
-    for (j = 0, jlen = input[i].length; j < jlen; j++) {
-      if (j === olen) {
-        output.push([]);
-        olen += 1;
-      }
-      output[j].push(input[i][j]);
-    }
-  }
-
-  return output;
-}
-
-/**
  * Factory that produces a function for searching methods (or any properties) which could be defined directly in
  * table configuration or implicitly, within cell type definition.
  *
