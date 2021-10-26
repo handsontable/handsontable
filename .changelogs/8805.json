@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue with time cell rendering for RTL",
+  "type": "fixed",
+  "issue": 8805,
+  "breaking": false,
+  "framework": "none"
+}

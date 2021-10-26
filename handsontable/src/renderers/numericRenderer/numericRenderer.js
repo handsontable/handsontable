@@ -49,6 +49,8 @@ export function numericRenderer(instance, TD, row, col, prop, value, cellPropert
     }
 
     cellProperties.className = classArr.join(' ');
+
+    TD.dir = 'ltr';
   }
 
   textRenderer(instance, TD, row, col, prop, newValue, cellProperties);
