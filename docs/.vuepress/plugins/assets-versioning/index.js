@@ -35,14 +35,11 @@ module.exports = (options, context) => {
       $page.latestVersion = helpers.getLatestVersion();
       $page.currentVersion = helpers.parseVersion($page.path);
       $page.lastUpdatedFormat = formatDate($page.lastUpdated);
-      $page.frontmatter.canonicalUrl = `https://handsontable.com/docs/${$page.frontmatter.canonicalUrl}`;
+      $page.frontmatter.canonicalUrl =
+        `https://handsontable.com/docs${($page.frontmatter.canonicalUrl ?? '').replace(/^\/?/, '/')}`;
 
       if ((DOCS_VERSION || $page.currentVersion === $page.latestVersion) && $page.frontmatter.permalink) {
         $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
-      }
-
-      if ($page.currentVersion !== $page.latestVersion && $page.frontmatter.canonicalUrl) {
-        $page.frontmatter.canonicalUrl = `https://handsontable.com/docs${$page.frontmatter.canonicalUrl}`;
       }
     },
 
