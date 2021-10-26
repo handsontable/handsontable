@@ -22,7 +22,7 @@ beforeEach(() => {
 });
 
 describe('Passing column settings using HotColumn', () => {
-  it('should apply the Handsontable settings passed as HotColumn arguments to the Handsontable instance', async (done) => {
+  it('should apply the Handsontable settings passed as HotColumn arguments to the Handsontable instance', async () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable
         licenseKey="non-commercial-and-evaluation"
@@ -48,10 +48,9 @@ describe('Passing column settings using HotColumn', () => {
 
     wrapper.detach();
 
-    done();
   });
 
-  it('should allow to use data option as a string', async(done) => {
+  it('should allow to use data option as a string', async () => {
     const dataKeyCellValue = 'Value of key1 in row 0';
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable
@@ -71,12 +70,11 @@ describe('Passing column settings using HotColumn', () => {
 
     wrapper.detach();
 
-    done();
   })
 });
 
 describe('Renderer configuration using React components', () => {
-  it('should use the renderer component as Handsontable renderer, when it\'s nested under HotColumn and assigned the \'hot-renderer\' attribute', async (done) => {
+  it('should use the renderer component as Handsontable renderer, when it\'s nested under HotColumn and assigned the \'hot-renderer\' attribute', async () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
@@ -114,12 +112,11 @@ describe('Renderer configuration using React components', () => {
 
     wrapper.detach();
 
-    done();
   });
 });
 
 describe('Editor configuration using React components', () => {
-  it('should use the editor component as Handsontable editor, when it\'s nested under HotTable and assigned the \'hot-editor\' attribute', async (done) => {
+  it('should use the editor component as Handsontable editor, when it\'s nested under HotTable and assigned the \'hot-editor\' attribute', async () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
@@ -166,10 +163,9 @@ describe('Editor configuration using React components', () => {
 
     wrapper.detach();
 
-    done();
   });
 
-  it('should be possible to reuse editor components between columns width different props passed to them', async(done) => {
+  it('should be possible to reuse editor components between columns width different props passed to them', async () => {
     class ReusableEditor extends EditorComponent {
       prepare(row, col, prop, TD, originalValue, cellProperties): any {
         super.prepare(row, col, prop, TD, originalValue, cellProperties);
@@ -230,12 +226,11 @@ describe('Editor configuration using React components', () => {
 
     wrapper.detach();
 
-    done();
   });
 });
 
 describe('Dynamic HotColumn configuration changes', () => {
-  it('should be possible to rearrange and change the column + editor + renderer configuration dynamically', async (done) => {
+  it('should be possible to rearrange and change the column + editor + renderer configuration dynamically', async () => {
     function RendererComponent2(props) {
       return (
         <>r2: {props.value}</>
@@ -361,6 +356,5 @@ describe('Dynamic HotColumn configuration changes', () => {
 
     wrapper.detach();
 
-    done();
   });
 });
