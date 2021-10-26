@@ -23,7 +23,7 @@ beforeEach(() => {
 });
 
 describe('React Context', () => {
-  it('should be possible to declare a context and use it inside both renderers and editors', async (done) => {
+  it('should be possible to declare a context and use it inside both renderers and editors', async () => {
     let hotTableInstance = null;
     const TestContext = React.createContext('def-test-val');
 
@@ -111,6 +111,5 @@ describe('React Context', () => {
     expect(document.querySelector('.ec3').innerHTML).toEqual('testContextValue');
 
     wrapper.detach();
-    done();
   });
 });
