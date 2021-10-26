@@ -16,7 +16,6 @@ import {
  */
 export type CellValue = any;
 
-
 /**
  * A cell change represented by `[row, column, prevValue, nextValue]`.
  */

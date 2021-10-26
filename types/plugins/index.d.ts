@@ -33,6 +33,51 @@ import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
 import { UndoRedo } from './undoRedo';
 
+export interface Plugins {
+  autoColumnSize: AutoColumnSize;
+  autofill: Autofill;
+  autoRowSize: AutoRowSize;
+  basePlugin: BasePlugin;
+  bindRowsWithHeaders: BindRowsWithHeaders;
+  collapsibleColumns: CollapsibleColumns;
+  columnSorting: ColumnSorting;
+  columnSummary: ColumnSummary;
+  comments: Comments;
+  contextMenu: ContextMenu;
+  copyPaste: CopyPaste;
+  customBorders: CustomBorders;
+  dragToScroll: DragToScroll;
+  dropdownMenu: DropdownMenu;
+  exportFile: ExportFile;
+  filters: Filters;
+  formulas: Formulas;
+  hiddenColumns: HiddenColumns;
+  hiddenRows: HiddenRows;
+  manualColumnFreeze: ManualColumnFreeze;
+  manualColumnMove: ManualColumnMove;
+  manualColumnResize: ManualColumnResize;
+  manualRowMove: ManualRowMove;
+  manualRowResize: ManualRowResize;
+  mergeCells: MergeCells;
+  multiColumnSorting: MultiColumnSorting;
+  multipleSelectionHandles: MultipleSelectionHandles;
+  nestedHeaders: NestedHeaders;
+  nestedRows: NestedRows;
+  persistentState: PersistentState;
+  search: Search;
+  touchScroll: TouchScroll;
+  trimRows: TrimRows;
+  undoRedo: UndoRedo;
+}
+
+// export namespace Handsontable {
+//   namespace Plugins {
+//     interface Filters {
+//
+//     }
+//   }
+// }
+
 export { getPlugin, getPluginsNames, registerPlugin } from './registry';
 export function registerAllPlugins(): void;
 
@@ -72,40 +117,3 @@ export {
   TrimRows,
   UndoRedo
 };
-
-export interface PluginsCollection {
-  autoColumnSize: AutoColumnSize;
-  autofill: Autofill;
-  autoRowSize: AutoRowSize;
-  basePlugin: Base;
-  bindRowsWithHeaders: BindRowsWithHeaders;
-  collapsibleColumns: CollapsibleColumns;
-  columnSorting: ColumnSorting;
-  columnSummary: ColumnSummary;
-  comments: Comments;
-  contextMenu: ContextMenu;
-  copyPaste: CopyPaste;
-  customBorders: CustomBorders;
-  dragToScroll: DragToScroll;
-  dropdownMenu: DropdownMenu;
-  exportFile: ExportFile;
-  filters: Filters;
-  formulas: Formulas;
-  hiddenColumns: HiddenColumns;
-  hiddenRows: HiddenRows;
-  manualColumnFreeze: ManualColumnFreeze;
-  manualColumnMove: ManualColumnMove;
-  manualColumnResize: ManualColumnResize;
-  manualRowMove: ManualRowMove;
-  manualRowResize: ManualRowResize;
-  mergeCells: MergeCells;
-  multiColumnSorting: MultiColumnSorting;
-  multipleSelectionHandles: MultipleSelectionHandles;
-  nestedHeaders: NestedHeaders;
-  nestedRows: NestedRows;
-  persistentState: PersistenState;
-  search: Search;
-  touchScroll: TouchScroll;
-  trimRows: TrimRows;
-  undoRedo: UndoRedo;
-}

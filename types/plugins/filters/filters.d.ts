@@ -1,11 +1,15 @@
 import Core from '../../core';
 import { BasePlugin } from '../base';
-import { ConditionCollection } from './conditionCollection';
+import ConditionCollection from './conditionCollection';
+import ConditionUpdateObserver from './conditionUpdateObserver';
 
-export type OperationType = 'conjunction' | 'disjunction';
-export type ConditionName = 'begins_with' | 'between' | 'by_value' | 'contains' | 'empty' |
+type _OperationType = 'conjunction' | 'disjunction';
+export type OperationType = _OperationType;
+
+type _ConditionName = 'begins_with' | 'between' | 'by_value' | 'contains' | 'empty' |
   'ends_with' | 'eq' | 'gt' | 'gte' | 'lt' | 'lte' | 'not_between' | 'not_contains' |
   'not_empty' | 'neq';
+export type ConditionName = _ConditionName;
 
 export type ColumnConditions = {
   column: number;
@@ -34,9 +38,15 @@ export interface CellLikeData {
   value: string;
 }
 
-export class Filters extends BasePlugin {
+// declare namespace Filters {
+//   type OperationType = _OperationType;
+//   type ConditionName = _ConditionName;
+// }
+
+export declare class Filters extends BasePlugin {
   constructor(hotInstance: Core);
 
+  conditionUpdateObserver: ConditionUpdateObserver;
   conditionCollection: ConditionCollection;
 
   isEnabled(): boolean;

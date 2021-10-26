@@ -1,8 +1,6 @@
 export function getListenersCounter(): number;
-export default EventManager;
-
-declare class EventManager {
-  private constructor();
+export default class EventManager {
+  constructor(context?: object);
 
   context: any;
 

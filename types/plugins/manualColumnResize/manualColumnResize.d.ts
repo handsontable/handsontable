@@ -6,7 +6,7 @@ export class ManualColumnResize extends BasePlugin {
   constructor(hotInstance: Core);
 
   currentTH: HTMLElement | void;
-  currentCol: mumber | void;
+  currentCol: number | void;
   selectedCols: number[];
   currentWidth: number;
   newSize: number | void;

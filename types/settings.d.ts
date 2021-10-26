@@ -14,61 +14,31 @@ import {
 } from './common';
 import CellCoords from './3rdparty/walkontable/src/cell/coords';
 import CellRange from './3rdparty/walkontable/src/cell/range';
-import {
-  Settings as AutoColumnSizeSettings,
-} from './plugins/autoColumnSize';
-import {
-  Settings as AutofillSettings,
-} from './plugins/autofill';
-import {
-  Settings as AutoRowSizeSettings,
-} from './plugins/autoRowSize';
-import {
-  Settings as CollapsibleColumnsSettings,
-} from './plugins/collapsibleColumns';
-import {
-  Settings as ColumnSortingSettings,
-} from './plugins/columnSorting';
-import {
-  Settings as ColumnSummarySettings,
-} from './plugins/columnSummary';
-import {
-  Settings as CommentsSettings,
-  CommentObject,
-} from './plugins/comments';
-import {
-  Settings as ContextMenuSettings,
-} from './plugins/contextMenu';
-import {
-  Settings as CopyPasteSettings,
-} from './plugins/copyPaste';
-import {
-  Settings as CustomBordersSettings,
-} from './plugins/customBorders';
-import {
-  Settings as DropdownMenuSettings,
-} from './plugins/dropdownMenu';
-import {
-  Settings as FormulasSettings,
-} from './plugins/formulas';
-import {
-  Settings as HiddenColumnsSettings,
-} from './plugins/hiddenColumns';
-import {
-  Settings as HiddenRowsSettings,
-} from './plugins/hiddenRows';
-import {
-  Settings as MergeCellsSettings,
-} from './plugins/mergeCells';
-import {
-  Settings as MultiColumnSortingSettings,
-} from './plugins/multiColumnSorting';
-import {
-  Settings as NestedHeadersSettings,
-} from './plugins/nestedHeaders';
-import {
-  Settings as SearchSettings,
-} from './plugins/search';
+import { Settings as AutoColumnSizeSettings } from './plugins/autoColumnSize';
+import { Settings as AutofillSettings } from './plugins/autofill';
+import { Settings as AutoRowSizeSettings } from './plugins/autoRowSize';
+import { Settings as CollapsibleColumnsSettings } from './plugins/collapsibleColumns';
+import { Settings as ColumnSortingSettings } from './plugins/columnSorting';
+import { Settings as ColumnSummarySettings } from './plugins/columnSummary';
+import { Settings as CommentsSettings, CommentObject } from './plugins/comments';
+import { Settings as ContextMenuSettings } from './plugins/contextMenu';
+import { Settings as CopyPasteSettings } from './plugins/copyPaste';
+import { Settings as CustomBordersSettings } from './plugins/customBorders';
+import { Settings as DropdownMenuSettings } from './plugins/dropdownMenu';
+import { Settings as FormulasSettings } from './plugins/formulas';
+import { Settings as HiddenColumnsSettings } from './plugins/hiddenColumns';
+import { Settings as HiddenRowsSettings } from './plugins/hiddenRows';
+import { Settings as MergeCellsSettings } from './plugins/mergeCells';
+import { Settings as MultiColumnSortingSettings } from './plugins/multiColumnSorting';
+import { Settings as NestedHeadersSettings } from './plugins/nestedHeaders';
+import { Settings as SearchSettings } from './plugins/search';
+import { EditorType } from './editors';
+import { BaseEditor } from './editors/base';
+import { RendererType } from './renderers';
+import { BaseRenderer } from './renderers/base';
+import { ValidatorType } from './validators';
+import { BaseValidator } from './validators/base';
+import { CellType } from './cellTypes';
 
 /**
  * Additional cell-specific meta data.
@@ -92,6 +62,12 @@ export interface CellProperties extends CellMeta {
   visualCol: number;
   prop: string | number;
 }
+
+/**
+ * @internal
+ * Omit properties K from T
+ */
+type Omit<T, K extends keyof T> = Pick<T, ({ [P in keyof T]: P } & { [P in K]: never } & { [x: string]: never, [x: number]: never })[keyof T]>;
 
 /**
  * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
@@ -155,7 +131,7 @@ export interface GridSettings extends Events {
   disableVisualSelection?: boolean | 'current' | 'area' | 'header' | ('current' | 'area' | 'header')[];
   dragToScroll?: boolean;
   dropdownMenu?: DropdownMenuSettings;
-  // editor?: EditorType | typeof _editors.Base | boolean | string;
+  editor?: EditorType | BaseEditor | boolean | string;
   enterBeginsEditing?: boolean;
   enterMoves?: CellCoords | ((event: KeyboardEvent) => CellCoords);
   fillHandle?: AutofillSettings;
@@ -203,7 +179,7 @@ export interface GridSettings extends Events {
   readOnly?: boolean;
   readOnlyCellClassName?: string;
   renderAllRows?: boolean;
-  // renderer?: RendererType | string | renderers.Base;
+  renderer?: RendererType | string | BaseRenderer;
   rowHeaders?: boolean | string[] | ((index: number) => string);
   rowHeaderWidth?: number | number[];
   rowHeights?: number | string | number[] | string[] | undefined[] | (number | string | undefined)[] | ((index: number) => string | number | undefined);
@@ -224,10 +200,10 @@ export interface GridSettings extends Events {
   trimDropdown?: boolean;
   trimRows?: boolean | number[];
   trimWhitespace?: boolean;
-  // type?: CellType | string;
+  type?: CellType | string;
   uncheckedTemplate?: boolean | string | number;
   undo?: boolean;
-  // validator?: validators.Base | RegExp | ValidatorType | string;
+  validator?: BaseValidator | RegExp | ValidatorType | string;
   viewportColumnRenderingOffset?: number | 'auto';
   viewportRowRenderingOffset?: number | 'auto';
   visibleRows?: number;

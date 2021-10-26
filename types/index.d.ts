@@ -14,87 +14,112 @@ import {
   CellMeta as _CellMeta,
   CellProperties as _CellProperties,
 } from './settings';
-
 import {
   CellValue as _CellValue,
+  CellChange as _CellChange,
+  RowObject as _RowObject,
+  SelectOptionsObject as _SelectOptionsObject,
+  SourceRowData as _SourceRowData,
+  ChangeSource as _ChangeSource,
 } from './common';
+import { CellTypes, CellType as _CellType, getCellType, registerCellType } from './cellTypes';
+import { Editors, EditorType as _EditorType, getEditor, registerEditor } from './editors';
+import { Renderers, RendererType as _RendererType, getRenderer, registerRenderer } from './renderers';
+import { Validators, ValidatorType as _ValidatorType, getValidator, registerValidator } from './validators';
+import { Plugins, getPlugin, registerPlugin } from './plugins';
+import { Helper } from './helpers';
+import { Dom } from './helpers/dom';
+import EventManager from './eventManager';
+import { Hooks } from './pluginHooks';
+import {
+  LanguageDictionary,
+  registerLanguageDictionary,
+  getTranslatedPhrase,
+  getLanguagesDictionaries,
+  getLanguageDictionary,
+} from './i18n';
 
-// import { AutoColumnSize as AutoColumnSizePlugin } from './plugins/autoColumnSize';
-// import { Autofill as AutofillPlugin } from './plugins/autofill';
-// import { AutoRowSize as AutoRowSizePlugin } from './plugins/autoRowSize';
-// import { BasePlugin } from './plugins/base';
-// import { BindRowsWithHeaders as BindRowsWithHeadersPlugin } from './plugins/bindRowsWithHeaders';
-// import { CollapsibleColumns as CollapsibleColumnsPlugin } from './plugins/collapsibleColumns';
-// import { ColumnSorting as ColumnSortingPlugin } from './plugins/columnSorting';
-// import { ColumnSummary as ColumnSummaryPlugin } from './plugins/columnSummary';
+interface I18nModule {
+  dictionaryKeys: LanguageDictionary;
+  registerLanguageDictionary: typeof registerLanguageDictionary;
+  getTranslatedPhrase: typeof getTranslatedPhrase;
+  getLanguagesDictionaries: typeof getLanguagesDictionaries;
+  getLanguageDictionary: typeof getLanguageDictionary;
+}
 
-/**
- * @internal
- * Omit properties K from T
- */
-type Omit<T, K extends keyof T> = Pick<T, ({ [P in keyof T]: P } & { [P in K]: never } & { [x: string]: never, [x: number]: never })[keyof T]>;
-// type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>; // TS >= 2.8
+interface CellTypesModule extends CellTypes {
+  getCellType: typeof getCellType;
+  registerCellType: typeof registerCellType;
+}
+
+interface EditorsModule extends Editors {
+  getEditor: typeof getEditor;
+  registerEditor: typeof registerEditor;
+}
+
+interface RenderersModule extends Renderers {
+  getRenderer: typeof getRenderer;
+  registerRenderer: typeof registerRenderer;
+}
+
+interface ValidatorsModule extends Validators {
+  getValidator: typeof getValidator;
+  registerValidator: typeof registerValidator;
+}
+
+interface PluginsModule {
+  AutoColumnSize: Plugins['autoColumnSize'];
+  Autofill: Plugins['autofill'];
+  AutoRowSize: Plugins['autoRowSize'];
+  BasePlugin: Plugins['basePlugin'];
+  BindRowsWithHeaders: Plugins['bindRowsWithHeaders'];
+  CollapsibleColumns: Plugins['collapsibleColumns'];
+  ColumnSorting: Plugins['columnSorting'];
+  ColumnSummary: Plugins['columnSummary'];
+  Comments: Plugins['comments'];
+  ContextMenu: Plugins['contextMenu'];
+  CopyPaste: Plugins['copyPaste'];
+  CustomBorders: Plugins['customBorders'];
+  DragToScroll: Plugins['dragToScroll'];
+  DropdownMenu: Plugins['dropdownMenu'];
+  ExportFile: Plugins['exportFile'];
+  Filters: Plugins['filters'];
+  Formulas: Plugins['formulas'];
+  HiddenColumns: Plugins['hiddenColumns'];
+  HiddenRows: Plugins['hiddenRows'];
+  ManualColumnFreeze: Plugins['manualColumnFreeze'];
+  ManualColumnMove: Plugins['manualColumnMove'];
+  ManualColumnResize: Plugins['manualColumnResize'];
+  ManualRowMove: Plugins['manualRowMove'];
+  ManualRowResize: Plugins['manualRowResize'];
+  MergeCells: Plugins['mergeCells'];
+  MultiColumnSorting: Plugins['multiColumnSorting'];
+  MultipleSelectionHandles: Plugins['multipleSelectionHandles'];
+  NestedHeaders: Plugins['nestedHeaders'];
+  NestedRows: Plugins['nestedRows'];
+  Search: Plugins['search'];
+  TouchScroll: Plugins['touchScroll'];
+  TrimRows: Plugins['trimRows'];
+  getPlugin: typeof getPlugin;
+  registerPlugin: typeof registerPlugin;
+}
 
 declare namespace Handsontable {
+  type CellValue = _CellValue;
+  type CellChange = _CellChange;
+  type RowObject = _RowObject;
+  type SelectOptionsObject = _SelectOptionsObject;
+  type SourceRowData = _SourceRowData;
+  type ChangeSource = _ChangeSource;
+  type CellType = _CellType;
+  type EditorType = _EditorType;
+  type RendererType = _RendererType;
+  type ValidatorType = _ValidatorType;
 
-  // These types represent default known values, but users can extend with their own, leading to the need for assertions.
-  // Using type arguments (ex `_GridSettings<CellValue, CellType, SourceData>`) would solve this and provide very strict
-  // type-checking, but adds a lot of noise for no benefit in the most common use cases.
-
-  /**
-   * A cell value, which can be anything to support custom cell data types, but by default is `string | number | boolean | undefined`.
-   */
-  type CellValue = any;
-
-
-  /**
-   * A cell change represented by `[row, column, prevValue, nextValue]`.
-   */
-  type CellChange = [number, string | number, CellValue, CellValue];
-
-  /**
-   * A row object, one of the two ways to supply data to the table, the alternative being an array of values.
-   * Row objects can have any data assigned to them, not just column data, and can define a `__children` array for nested rows.
-   */
-  type RowObject = { [prop: string]: any };
-
-  /**
-   * An object containing possible options to use in SelectEditor.
-   */
-  type SelectOptionsObject = { [prop: string]: string };
-
-  /**
-   * A single row of source data, which can be represented as an array of values, or an object with key/value pairs.
-   */
-  type SourceRowData = RowObject | CellValue[];
-
-  /**
-   * The default sources for which the table triggers hooks.
-   */
-  type ChangeSource = 'auto' | 'edit' | 'loadData' | 'populateFromArray' | 'spliceCol' | 'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' | 'Autofill.fill' | 'ContextMenu.clearColumns' | 'ContextMenu.columnLeft' | 'ContextMenu.columnRight' | 'ContextMenu.removeColumn' | 'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' | 'CopyPaste.paste' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' | 'ColumnSummary.reset';
-  /**
-   * The default cell type aliases the table has built-in.
-   */
-  type CellType = 'autocomplete' | 'checkbox' | 'date' | 'dropdown' | 'handsontable' | 'numeric' | 'password' | 'text' | 'time';
-
-  /**
-   * The default editor aliases the table has built-in.
-   */
-  type EditorType = 'autocomplete' | 'checkbox' | 'date' | 'dropdown' | 'handsontable' | 'mobile' | 'password' | 'select' | 'text';
-
-  /**
-   * The default renderer aliases the table has built-in.
-   */
-  type RendererType = 'autocomplete' | 'checkbox' | 'html' | 'numeric' | 'password' | 'text';
-
-  /**
-   * The default validator aliases the table has built-in.
-   */
-  type ValidatorType = 'autocomplete' | 'date' | 'numeric' | 'time';
-
-  interface GridSettings extends _GridSettings {};
-  interface CellProperties extends _CellProperties {};
-  interface CellMeta extends _CellMeta {};
+  interface GridSettings extends _GridSettings {}
+  interface CellProperties extends _CellProperties {}
+  interface CellMeta extends _CellMeta {}
+  interface ColumnSettings extends _ColumnSettings {}
 }
 
 declare class Handsontable extends Core {
@@ -102,17 +127,17 @@ declare class Handsontable extends Core {
   static buildDate: string;
   static packageName: 'handsontable';
   static version: string;
-  // static cellTypes: Handsontable.CellTypes;
-  // static languages: Handsontable.I18n.Internationalization;
-  // static dom: Handsontable.Dom;
-  // static editors: Handsontable.Editors;
-  // static helper: Handsontable.Helper;
-  // static hooks: Handsontable.Hooks.Methods;
-  // static plugins: Handsontable.Plugins;
-  // static renderers: Handsontable.Renderers;
-  // static validators: Handsontable.Validators;
+  static cellTypes: CellTypesModule;
+  static languages: I18nModule;
+  static dom: Dom;
+  static editors: EditorsModule;
+  static helper: Helper;
+  static hooks: Hooks;
+  static plugins: PluginsModule;
+  static renderers: RenderersModule;
+  static validators: ValidatorsModule;
   static Core: typeof Core;
-  // static EventManager: Handsontable.EventManager;
+  static EventManager: typeof EventManager;
   static DefaultSettings: _GridSettings;
 }
 

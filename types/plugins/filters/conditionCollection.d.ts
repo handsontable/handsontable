@@ -4,8 +4,6 @@ import {
   CellLikeData,
 } from './filters';
 
-export default ConditionCollection;
-
 export type ConditionName = 'begins_with' | 'between' | 'by_value' | 'contains' | 'empty' | 'ends_with' |
                             'eq' | 'gt' | 'gte' | 'lt' | 'lte' | 'not_between' | 'not_contains' |
                             'not_empty' | 'neq';
@@ -16,7 +14,7 @@ export interface Condition {
   func: (dataRow: any, values: any[]) => boolean;
 }
 
-export class ConditionCollection {
+export default class ConditionCollection {
   addCondition(column: number, conditionDefinition: ConditionId, operation?: OperationType, position?: number): void;
   clean(): void;
   destroy(): void;

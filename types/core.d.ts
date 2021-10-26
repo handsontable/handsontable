@@ -13,6 +13,11 @@ import {
 } from './settings';
 import CellCoords from './3rdparty/walkontable/src/cell/coords';
 import CellRange from './3rdparty/walkontable/src/cell/range';
+import { BaseEditor } from './editors/base';
+import { BaseRenderer } from './renderers/base';
+import { BaseValidator } from './validators/base';
+import { Plugins } from './plugins';
+import { CellType } from './cellTypes';
 
 export default class Core {
   addHook<K extends keyof Events>(key: K, callback: Events[K] | Events[K][]): void;
@@ -43,17 +48,17 @@ export default class Core {
   destroyEditor(revertOriginal?: boolean, prepareEditorIfNeeded?: boolean): void;
   emptySelectedCells(): void;
   forceFullRender: boolean;
-  // getActiveEditor<T extends Handsontable._editors.Base>(): T | undefined;
+  getActiveEditor<T extends BaseEditor>(): T | undefined;
   getCell(row: number, col: number, topmost?: boolean): HTMLTableCellElement | null;
-  // getCellEditor<T extends Handsontable._editors.Base>(cellMeta: CellMeta): T;
-  // getCellEditor<T extends Handsontable._editors.Base>(row: number, col: number): T;
+  getCellEditor<T extends BaseEditor>(cellMeta: CellMeta): T;
+  getCellEditor<T extends BaseEditor>(row: number, col: number): T;
   getCellMeta(row: number, col: number): CellProperties;
   getCellMetaAtRow(row: number): CellProperties[];
-  // getCellRenderer(cellMeta: CellMeta): Handsontable.renderers.Base;
-  // getCellRenderer(row: number, col: number): Handsontable.renderers.Base;
+  getCellRenderer(cellMeta: CellMeta): BaseRenderer;
+  getCellRenderer(row: number, col: number): BaseRenderer;
   getCellsMeta(): CellProperties[];
-  // getCellValidator(cellMeta: CellMeta): Handsontable.validators.Base | RegExp | undefined;
-  // getCellValidator(row: number, col: number): Handsontable.validators.Base | RegExp | undefined;
+  getCellValidator(cellMeta: CellMeta): BaseValidator | RegExp | undefined;
+  getCellValidator(row: number, col: number): BaseValidator | RegExp | undefined;
   getColHeader(): (number | string)[];
   getColHeader(col: number): number | string;
   getColWidth(col: number): number;
@@ -66,9 +71,9 @@ export default class Core {
   getDataAtProp(prop: string | number): CellValue[];
   getDataAtRow(row: number): CellValue[];
   getDataAtRowProp(row: number, prop: string): CellValue;
-  // getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): Handsontable.CellType | 'mixed';
+  getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): CellType | 'mixed';
   getInstance(): Core;
-  // getPlugin<T extends keyof Handsontable.PluginsCollection>(pluginName: T): Handsontable.PluginsCollection[T];
+  getPlugin<T extends keyof Plugins>(pluginName: T): Plugins[T];
   getRowHeader(): (string | number)[];
   getRowHeader(row: number): string | number;
   getRowHeight(row: number): number;
@@ -117,7 +122,6 @@ export default class Core {
   rowIndexMapper: IndexMapper;
   rowOffset(): number;
   runHooks(key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
-  // Requires TS 3.0:
   scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean, considerHiddenIndexes?: boolean): boolean;
   selectAll(): void;
   selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;

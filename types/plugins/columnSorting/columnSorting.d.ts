@@ -26,5 +26,5 @@ export class ColumnSorting extends BasePlugin {
   clearSort(): void;
   isSorted(): boolean;
   getSortConfig(column?: number): Config;
-  setSortConfig(sortConfig: Config): void;
+  setSortConfig(sortConfig?: Config | Config[]): void;
 }
