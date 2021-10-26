@@ -134,7 +134,7 @@ export function createEditorPortal(doc = document, editorElement: HotEditorEleme
  * 'global'.
  * @returns {React.ReactElement} An editor element containing the additional methods.
  */
-export function getExtendedEditorElement(children: React.ReactNode, editorCache: HotEditorCache, editorColumnScope: string|number = GLOBAL_EDITOR_SCOPE): React.ReactElement | null {
+export function getExtendedEditorElement(children: React.ReactNode, editorCache: HotEditorCache, editorColumnScope: string | number = GLOBAL_EDITOR_SCOPE): React.ReactElement | null {
   const editorElement = getChildElementByType(children, 'hot-editor');
   const editorClass = getOriginalEditorClass(editorElement);
 
