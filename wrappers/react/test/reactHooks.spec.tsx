@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 
 describe('Using hooks within HotTable renderers', () => {
-  it('should be possible to use hook-enabled components as renderers', async (done) => {
+  it('should be possible to use hook-enabled components as renderers', async () => {
     function HookEnabledRenderer(props) {
       const [count, setCount] = useState(0);
 
@@ -67,7 +67,6 @@ describe('Using hooks within HotTable renderers', () => {
     expect(hotInstance.getCell(1,1).querySelector('span').innerHTML).toEqual('0');
 
     wrapper.detach();
-    done();
   });
 });
 
