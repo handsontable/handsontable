@@ -10,8 +10,6 @@ export const EDITOR_STATE: Readonly<{
 }>;
 
 export abstract class BaseEditor {
-  static get EDITOR_TYPE(): string;
-
   constructor(instance: Core);
 
   hot: Core;

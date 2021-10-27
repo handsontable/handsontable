@@ -2,6 +2,8 @@ import Core from '../../core';
 import { BasePlugin } from '../base';
 import EventManager from '../../eventManager';
 
+export type Settings = boolean | number[];
+
 export class ManualColumnResize extends BasePlugin {
   constructor(hotInstance: Core);
 

@@ -4,6 +4,6 @@ import { checkboxRenderer } from '../../renderers/checkboxRenderer';
 
 export const CELL_TYPE: 'checkbox';
 export interface CheckboxCellType extends CellTypeObject {
-  editor: CheckboxEditor;
+  editor: typeof CheckboxEditor;
   renderer: typeof checkboxRenderer;
 }

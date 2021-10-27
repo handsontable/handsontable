@@ -1,14 +1,15 @@
 {
   "compilerOptions": {
     "lib": [
-      "es6",
+      "es2015",
       "dom"
     ],
     "module": "commonjs",
+    "target": "es2015",
     "noEmit": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": "",
+    "baseUrl": "./",
     "paths": {
       "handsontable": [ "../../" ],
       "handsontable/base": [ "../../" ]

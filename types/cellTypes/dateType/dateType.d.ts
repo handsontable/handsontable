@@ -5,7 +5,7 @@ import { dateValidator } from '../../validators/dateValidator';
 
 export const CELL_TYPE: 'date';
 export interface DateCellType extends CellTypeObject {
-  editor: DateEditor;
+  editor: typeof DateEditor;
   renderer: typeof autocompleteRenderer;
   validator: typeof dateValidator;
 }

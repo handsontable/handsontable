@@ -1,6 +1,6 @@
 import Core from '../../core';
 import { BasePlugin } from '../base';
-import CellCoords from '../../3rdparty/walkontable/src/cell/coords';
+import { SimpleCellCoords } from "../../common";
 
 export type BorderOptions = {
   width?: number;
@@ -9,11 +9,11 @@ export type BorderOptions = {
 }
 export type BorderRange = {
   range: {
-    from: CellCoords;
-    to: CellCoords;
+    from: SimpleCellCoords;
+    to: SimpleCellCoords;
   }
 }
-export type DetailedSettings = (CellCoords | BorderRange) & {
+export type DetailedSettings = (SimpleCellCoords | BorderRange) & {
   left?: BorderOptions | string;
   right?: BorderOptions | string;
   top?: BorderOptions | string;

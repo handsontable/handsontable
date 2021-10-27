@@ -10,6 +10,7 @@ export function registerAllRenderers(): void;
 
 export interface Renderers {
   autocomplete: typeof autocompleteRenderer;
+  base: typeof baseRenderer;
   checkbox: typeof checkboxRenderer;
   html: typeof htmlRenderer;
   numeric: typeof numericRenderer;
@@ -37,4 +38,4 @@ export {
   getRenderer,
   hasRenderer,
   registerRenderer
-} from "./registry";
+} from './registry';

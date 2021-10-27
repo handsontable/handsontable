@@ -5,7 +5,7 @@ import { autocompleteValidator } from '../../validators/autocompleteValidator';
 
 export const CELL_TYPE: 'dropdown';
 export interface DropdownCellType extends CellTypeObject {
-  editor: DropdownEditor;
+  editor: typeof DropdownEditor;
   renderer: typeof autocompleteRenderer;
   validator: typeof autocompleteValidator;
 }

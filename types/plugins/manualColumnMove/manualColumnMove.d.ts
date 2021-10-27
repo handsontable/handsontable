@@ -1,6 +1,8 @@
 import Core from '../../core';
 import { BasePlugin } from '../base';
 
+export type Settings = boolean | number[];
+
 export class ManualColumnMove extends BasePlugin {
   constructor(hotInstance: Core);
   isEnabled(): boolean;

@@ -5,7 +5,7 @@ import { timeValidator } from '../../validators/timeValidator';
 
 export const CELL_TYPE: 'time';
 export interface TimeCellType extends CellTypeObject {
-  editor: TextEditor;
+  editor: typeof TextEditor;
   renderer: typeof textRenderer;
   validator: typeof timeValidator;
 }

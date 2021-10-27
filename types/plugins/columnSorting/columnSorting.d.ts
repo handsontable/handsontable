@@ -9,7 +9,7 @@ export type Config = {
 };
 
 export interface DetailedSettings {
-  initialConfig?: Config;
+  initialConfig?: Config | Config[];
   sortEmptyCells?: boolean;
   indicator?: boolean;
   headerAction?: boolean;
@@ -25,6 +25,6 @@ export class ColumnSorting extends BasePlugin {
   sort(sortConfig: Config): void;
   clearSort(): void;
   isSorted(): boolean;
-  getSortConfig(column?: number): Config;
+  getSortConfig(column?: number): Config | Config[];
   setSortConfig(sortConfig?: Config | Config[]): void;
 }

@@ -37,6 +37,11 @@ export type SelectOptionsObject = { [prop: string]: string };
  */
 export type SourceRowData = RowObject | CellValue[];
 
+export type SimpleCellCoords = {
+  row: number;
+  col: number;
+}
+
 export type RangeType = {
   startRow: number,
   startCol: number,

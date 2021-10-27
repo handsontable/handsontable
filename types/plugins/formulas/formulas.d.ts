@@ -10,9 +10,11 @@ import { BasePlugin } from '../base';
 export interface HyperFormulaSettings extends Partial<ConfigParams> {
   hyperformula: typeof HyperFormula | HyperFormula
 }
-export interface Settings {
+export interface DetailedSettings {
   engine: typeof HyperFormula | HyperFormula | HyperFormulaSettings
 }
+
+export type Settings = DetailedSettings;
 
 export class Formulas extends BasePlugin {
   constructor(hotInstance: Core);

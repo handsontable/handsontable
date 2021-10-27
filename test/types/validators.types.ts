@@ -3,7 +3,7 @@ import Handsontable from 'handsontable';
 const elem = document.createElement('div');
 const hot = new Handsontable(elem, {});
 
-const cellProperties: Handsontable.CellProperties = { 
+const cellProperties: Handsontable.CellProperties = {
   row: 0,
   col: 0,
   instance: {} as Handsontable,

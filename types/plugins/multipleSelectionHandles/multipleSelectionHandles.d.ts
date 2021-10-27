@@ -3,6 +3,8 @@ import { BasePlugin } from '../base';
 import EventManager from '../../eventManager';
 import CellRange from '../../3rdparty/walkontable/src/cell/range';
 
+export type Settings = boolean;
+
 export class MultipleSelectionHandles extends BasePlugin {
   constructor(hotInstance: Core);
 

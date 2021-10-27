@@ -5,7 +5,7 @@ import { numericValidator } from '../../validators/numericValidator';
 
 export const CELL_TYPE: 'numeric';
 export interface NumericCellType extends CellTypeObject {
-  editor: NumericEditor;
+  editor: typeof NumericEditor;
   renderer: typeof numericRenderer;
   validator: typeof numericValidator;
 }

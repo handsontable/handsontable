@@ -3,7 +3,7 @@ export function isFunctionKey(keyCode: number): boolean;
 export function isCtrlKey(keyCode: number): boolean;
 export function isCtrlMetaKey(keyCode: number): boolean;
 export function isKey(keyCode: number, baseCode: string): boolean;
-export const enum KEY_CODES {
+export enum KEY_CODES {
   ALT = 18,
   ARROW_DOWN = 40,
   ARROW_LEFT = 37,

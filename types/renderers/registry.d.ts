@@ -5,7 +5,7 @@ declare function _register(name: string, renderer: typeof baseRenderer): void;
 declare function _getItem(name: string): typeof baseRenderer;
 declare function hasItem(name: string): boolean;
 declare function getNames(): string[];
-declare function getValues(): (typeof baseRenderer)[];
+declare function getValues(): Array<typeof baseRenderer>;
 
 export {
   _register as registerRenderer,

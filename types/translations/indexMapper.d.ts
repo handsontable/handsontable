@@ -27,7 +27,8 @@ export class IndexMapper {
   getVisualFromPhysicalIndex(physicalIndex: number): number;
   getVisualFromRenderableIndex(renderableIndex: number): number;
   getRenderableFromVisualIndex(visualIndex: number): number;
-  getFirstNotHiddenIndex(fromVisualIndex: number, incrementBy: number, searchAlsoOtherWayAround?: boolean, indexForNextSearch?: number): number;
+  getFirstNotHiddenIndex(fromVisualIndex: number, incrementBy: number,
+    searchAlsoOtherWayAround?: boolean, indexForNextSearch?: number): number;
   initToLength(length?: number): void;
   getIndexesSequence(): number[];
   setIndexesSequence(indexes: number[]): void;

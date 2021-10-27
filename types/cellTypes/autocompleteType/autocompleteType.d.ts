@@ -5,7 +5,7 @@ import { autocompleteValidator } from '../../validators/autocompleteValidator';
 
 export const CELL_TYPE: 'autocomplete';
 export interface AutocompleteCellType extends CellTypeObject {
-  editor: AutocompleteEditor;
+  editor: typeof AutocompleteEditor;
   renderer: typeof autocompleteRenderer;
   validator: typeof autocompleteValidator;
 }

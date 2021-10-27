@@ -2,15 +2,16 @@ import { PikadayOptions } from 'pikaday';
 import Core from './core';
 import { Events } from './pluginHooks';
 import {
-  CellValue,
-  RowObject,
   CellChange,
+  CellValue,
   ChangeSource,
-  RangeType,
+  ColumnDataGetterSetterFunction,
   LabelOptions,
   NumericFormatOptions,
+  RangeType,
+  RowObject,
   SelectOptionsObject,
-  ColumnDataGetterSetterFunction,
+  SimpleCellCoords,
 } from './common';
 import CellCoords from './3rdparty/walkontable/src/cell/coords';
 import CellRange from './3rdparty/walkontable/src/cell/range';
@@ -133,7 +134,7 @@ export interface GridSettings extends Events {
   dropdownMenu?: DropdownMenuSettings;
   editor?: EditorType | BaseEditor | boolean | string;
   enterBeginsEditing?: boolean;
-  enterMoves?: CellCoords | ((event: KeyboardEvent) => CellCoords);
+  enterMoves?: CellCoords | SimpleCellCoords | ((event: KeyboardEvent) => CellCoords | SimpleCellCoords);
   fillHandle?: AutofillSettings;
   filter?: boolean;
   filteringCaseSensitive?: boolean;
@@ -195,7 +196,7 @@ export interface GridSettings extends Events {
   stretchH?: 'none' | 'all' | 'last';
   strict?: boolean;
   tableClassName?: string | string[];
-  tabMoves?: CellCoords | ((event: KeyboardEvent) => CellCoords);
+  tabMoves?: CellCoords | SimpleCellCoords | ((event: KeyboardEvent) => CellCoords | SimpleCellCoords);
   title?: string;
   trimDropdown?: boolean;
   trimRows?: boolean | number[];

@@ -6,14 +6,14 @@ const cssRule = new CSSRule();
 
 const htmlCharacters = Handsontable.dom.HTML_CHARACTERS;
 
-Handsontable.dom.addEvent(domElement, 'foo', (event) => {});
+Handsontable.dom.addEvent(domElement, 'foo', (event: Event) => {});
 Handsontable.dom.addClass(domElement, ['foo', 'bar']);
 Handsontable.dom.clearTextSelection();
 Handsontable.dom.clearTextSelection(window);
 Handsontable.dom.closest(domElement, ['foo']);
 Handsontable.dom.closest(domElement, ['foo'], domElement);
-Handsontable.dom.closestDown(domElement, ['foo', 'bar']);
-Handsontable.dom.closestDown(domElement, ['foo', 'bar'], domElement);
+Handsontable.dom.closestDown(domElement, [domElement, domElement]);
+Handsontable.dom.closestDown(domElement, [domElement], domElement);
 Handsontable.dom.empty(domElement);
 Handsontable.dom.fastInnerHTML(domElement, 'foo');
 Handsontable.dom.fastInnerText(domElement, 'foo');
@@ -63,7 +63,7 @@ Handsontable.dom.outerWidth(domElement);
 Handsontable.dom.overlayContainsElement('top', domElement, domElement);
 Handsontable.dom.removeClass(domElement, ['foo', 'bar']);
 Handsontable.dom.removeEvent(domElement, 'foo', () => {});
-Handsontable.dom.removeTextNodes(domElement, domElement);
+Handsontable.dom.removeTextNodes(domElement);
 Handsontable.dom.resetCssTransform(domElement);
 Handsontable.dom.setCaretPosition(domElement, 0, 0);
 Handsontable.dom.setOverlayPosition(domElement, 0, 0);

@@ -4,6 +4,6 @@ import { textRenderer } from '../../renderers/textRenderer';
 
 export const CELL_TYPE: 'text';
 export interface TextCellType extends CellTypeObject {
-  editor: TextEditor;
+  editor: typeof TextEditor;
   renderer: typeof textRenderer;
 }

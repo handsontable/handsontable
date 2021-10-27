@@ -11,6 +11,18 @@ export class AutocompleteEditor extends HandsontableEditor {
   rawChoices: string[];
 
   getValue(): string;
+  queryChoices(query: string): void;
+  updateChoicesList(choicesList: string[]): void;
+  flipDropdownIfNeeded(): boolean;
+  limitDropdownIfNeeded(spaceAvailable: number, dropdownHeight: number): void;
+  flipDropdown(dropdownHeight: number): void;
+  unflipDropdown(): void;
+  updateDropdownHeight(): void;
+  setDropdownHeight(height: number): void;
+  highlightBestMatchingChoice(index?: number): void;
+  getDropdownHeight(): number;
+  stripValueIfNeeded(value: string): string;
+  stripValuesIfNeeded(values: string[]): string[];
 }
 export namespace AutocompleteEditor {
   export function sortByRelevance(value: any, choices: string[], caseSensitive: boolean): number[];

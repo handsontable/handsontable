@@ -4,7 +4,7 @@ export function getParentWindow(frame: Window): Window;
 export function hasAccessToParentWindow(frame: Window): boolean;
 export function closest(element: Node, nodes?: (string | Node)[], until?: Node): Node;
 export function closestDown(element: HTMLElement, nodes: HTMLElement[], until?: HTMLElement): HTMLElement;
-export function isChildOf(child: HTMLElement, parent: HTMLElement): boolean;
+export function isChildOf(child: HTMLElement, parent: HTMLElement | string): boolean;
 export function index(element: Element): number;
 export function overlayContainsElement(overlayType: string, element: HTMLElement, root: HTMLElement): boolean;
 export function hasClass(element: HTMLElement, className: string): boolean;

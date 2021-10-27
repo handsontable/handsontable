@@ -4,6 +4,6 @@ import { passwordRenderer } from '../../renderers/passwordRenderer';
 
 export const CELL_TYPE: 'password';
 export interface PasswordCellType extends CellTypeObject {
-  editor: PasswordEditor;
+  editor: typeof PasswordEditor;
   renderer: typeof passwordRenderer;
 }

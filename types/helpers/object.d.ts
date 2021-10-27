@@ -9,7 +9,7 @@ export function isObjectEqual(object1: object | any[], object2: object | any[]):
 export function isObject(object: any): boolean;
 export function defineGetter(object: object, property: any, value: any, options: object): void;
 export function objectEach(object: object, iteratee: (value: any, key: any, object: object) => void): object;
-export function getProperty(object: object, name: string): any | void;
+export function getProperty(object: object, name: string): any;
 export function setProperty(object: object, name: string, value: any): void;
 export function deepObjectSize(object: object): number;
 export function createObjectPropListener(defaultValue?: any, propertyToListen?: string): object;

@@ -10,7 +10,7 @@ declare const true_or_false: true | false;
 enum DisableVisualSelection { current = 'current', area = 'area', header ='header' }
 enum SortDirection { asc = 'asc', desc = 'desc' }
 
-const contextMenuDemo: Handsontable.contextMenu.Settings = {
+const contextMenuDemo: Handsontable.plugins.ContextMenu.Settings = {
   callback(key, selection, clickEvent) { },
   items: {
     "item": {
@@ -144,13 +144,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ],
   colWidths: oneOf(100, '100px', [100, '100px'], ((index: number) => oneOf('100px', 100, void 0))),
   commentedCellClassName: 'foo',
-  comments: oneOf(true, { displayDelay: 123 }, [
-    {
-      row: 1,
-      col: 1,
-      comment: { value: "Test" }
-    }
-    ]),
+  comments: oneOf(true, { displayDelay: 123 }),
   contextMenu: oneOf(true_or_false, contextMenuDemo) || ['row_above', 'row_below', 'col_left', 'col_right', '---------', 'remove_row', 'remove_col', 'clear_column', 'undo', 'redo', 'make_read_only', 'alignment', 'cut', 'copy', 'freeze_column', 'unfreeze_column', 'borders', 'commentsAddEdit', 'commentsRemove', 'commentsReadOnly', 'mergeCells', 'add_child', 'detach_from_parent', 'hidden_columns_hide', 'hidden_columns_show', 'hidden_rows_hide', 'hidden_rows_show', 'filter_by_condition', 'filter_operators', 'filter_by_condition2', 'filter_by_value', 'filter_action_bar'],
   copyable: true,
   copyPaste: oneOf(true, {

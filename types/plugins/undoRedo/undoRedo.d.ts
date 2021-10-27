@@ -3,6 +3,8 @@ import { CellValue, CellChange } from '../../common';
 import { ColumnConditions } from '../filters';
 import { BasePlugin } from '../base';
 
+export type Settings = boolean;
+
 export type ChangeAction = {
   actionType: 'change';
   changes: CellChange[];

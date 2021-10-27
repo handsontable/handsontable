@@ -38,10 +38,7 @@ export interface CellLikeData {
   value: string;
 }
 
-// declare namespace Filters {
-//   type OperationType = _OperationType;
-//   type ConditionName = _ConditionName;
-// }
+export type Settings = boolean;
 
 export declare class Filters extends BasePlugin {
   constructor(hotInstance: Core);
