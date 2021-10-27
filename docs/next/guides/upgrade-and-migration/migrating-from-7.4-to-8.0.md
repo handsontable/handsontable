@@ -1,12 +1,12 @@
 ---
-title: Migrating from 7.4 to 8.0
-metaTitle: Migrating from 7.4 to 8.0 - Guide - Handsontable Documentation
+title: Migrating from 7 to 8
+metaTitle: Migrating from 7 to 8 - Guide - Handsontable Documentation
 permalink: /next/migration-from-7.4-to-8.0
 canonicalUrl: /migration-from-7.4-to-8.0
 pageClass: migration-guide
 ---
 
-# Migrating from 7.4 to 8.0
+# Migrating from 7 to 8
 
 [[toc]]
 

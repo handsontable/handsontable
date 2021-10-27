@@ -1,16 +1,16 @@
 ---
-title: Migrating from 9.0 to 10.0
-metaTitle: Migrating from 9.0 to 10.0 - Guide - Handsontable Documentation
+title: Migrating from 9 to 10
+metaTitle: Migrating from 9 to 10 - Guide - Handsontable Documentation
 permalink: /next/migration-from-9.0-to-10.0
 canonicalUrl: /migration-from-9.0-to-10.0
 pageClass: migration-guide
 ---
 
-# Migrating from 9.0 to 10.0
+# Migrating from 9 to 10
 
 [[toc]]
 
-To upgrade your Handsontable version from 9.0.x to 10.0.x, follow this guide.
+To upgrade your Handsontable version from 9.x.x to 10.x.x, follow this guide.
 
 ## Step 1: Rename your hooks
 

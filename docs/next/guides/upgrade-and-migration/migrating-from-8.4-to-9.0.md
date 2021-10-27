@@ -1,12 +1,12 @@
 ---
-title: Migrating from 8.4 to 9.0
-metaTitle: Migrating from 8.4 to 9.0 - Guide - Handsontable Documentation
+title: Migrating from 8 to 9
+metaTitle: Migrating from 8 to 9 - Guide - Handsontable Documentation
 permalink: /next/migration-from-8.4-to-9.0
 canonicalUrl: /migration-from-8.4-to-9.0
 pageClass: migration-guide
 ---
 
-# Migrating from 8.4 to 9.0
+# Migrating from 8 to 9
 
 [[toc]]
 
