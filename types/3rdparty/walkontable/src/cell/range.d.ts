@@ -45,7 +45,7 @@ export default class CellRange {
   getBordersSharedWith(range: CellRange): any[];
   getInner(): any[];
   getAll(): any[];
-  forAll(callback: Function): void;
+  forAll(callback: (row: number, column: number) => boolean): void;
   clone(): CellRange;
   toObject(): any;
 }

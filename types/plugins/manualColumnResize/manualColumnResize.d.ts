@@ -7,12 +7,12 @@ export type Settings = boolean | number[];
 export class ManualColumnResize extends BasePlugin {
   constructor(hotInstance: Core);
 
-  currentTH: HTMLElement | void;
-  currentCol: number | void;
+  currentTH: HTMLElement | undefined;
+  currentCol: number | undefined;
   selectedCols: number[];
   currentWidth: number;
-  newSize: number | void;
-  startX: number | void;
+  newSize: number | undefined;
+  startX: number | undefined;
   startWidth: number;
   startOffset: number;
   handle: HTMLElement;
@@ -20,11 +20,11 @@ export class ManualColumnResize extends BasePlugin {
   eventManager: EventManager;
   pressed: boolean;
   dblclick: number;
-  autoresizeTimeout: (() => void) | void;
+  autoresizeTimeout: (() => void) | undefined;
 
   isEnabled(): boolean;
   saveManualColumnWidths(): void;
-  loadManualColumnWidths(): (number | null)[];
+  loadManualColumnWidths(): Array<number | null>;
   setManualSize(column: number, width: number): number;
   clearManualSize(column: number): void;
 }

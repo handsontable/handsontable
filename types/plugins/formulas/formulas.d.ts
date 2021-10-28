@@ -8,10 +8,10 @@ import { CellValue } from '../../common';
 import { BasePlugin } from '../base';
 
 export interface HyperFormulaSettings extends Partial<ConfigParams> {
-  hyperformula: typeof HyperFormula | HyperFormula
+  hyperformula: typeof HyperFormula | HyperFormula;
 }
 export interface DetailedSettings {
-  engine: typeof HyperFormula | HyperFormula | HyperFormulaSettings
+  engine: typeof HyperFormula | HyperFormula | HyperFormulaSettings;
 }
 
 export type Settings = DetailedSettings;

@@ -10,7 +10,7 @@ export type PredefinedMenuItemKey = 'row_above' | 'row_below' | 'col_left' | 'co
   'hidden_rows_hide' | 'hidden_rows_show' | 'filter_by_condition' | 'filter_operators' |
   'filter_by_condition2' | 'filter_by_value' | 'filter_action_bar';
 
-export type SeparatorObject = {
+export interface SeparatorObject {
   name: string;
 }
 

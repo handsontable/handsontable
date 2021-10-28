@@ -6,7 +6,7 @@ const hot = new Handsontable(elem, {});
 const cellProperties: Handsontable.CellProperties = {
   row: 0,
   col: 0,
-  instance: {} as Handsontable,
+  instance: hot,
   visualRow: 0,
   visualCol: 0,
   prop: 'foo'
@@ -55,16 +55,17 @@ autocomplete.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
 autocomplete.validator.apply(cellProperties, ['', (valid: boolean) => {}]);
 
 class CustomEditor extends Handsontable.editors.BaseEditor {
-  open(){}
-  close(){}
-  getValue(){}
-  setValue(value: any){}
-  focus(){}
-};
+  open() {}
+  close() {}
+  getValue() {}
+  setValue(value: any) {}
+  focus() {}
+}
 
 Handsontable.cellTypes.registerCellType('custom', {
   editor: CustomEditor,
-  renderer: (hot: Handsontable, TD: HTMLTableCellElement, row: number, col: number, prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD,
+  renderer: (hot: Handsontable, TD: HTMLTableCellElement, row: number, col: number,
+    prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD,
   validator: (value: any, callback: (valid: boolean) => void) => {},
   className: 'my-cell',
   allowInvalid: true,

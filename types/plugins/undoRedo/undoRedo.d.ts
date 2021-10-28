@@ -5,27 +5,27 @@ import { BasePlugin } from '../base';
 
 export type Settings = boolean;
 
-export type ChangeAction = {
+export interface ChangeAction {
   actionType: 'change';
   changes: CellChange[];
-  selected: [number, number][]
-};
-export type InsertRowAction = {
+  selected: Array<[number, number]>;
+}
+export interface InsertRowAction {
   actionType: 'insert_row';
   amount: number;
   index: number;
 }
-export type RemoveRowAction = {
+export interface RemoveRowAction {
   actionType: 'remove_row';
   index: number;
   data: CellValue[][];
 }
-export type InsertColAction = {
+export interface InsertColAction {
   actionType: 'insert_col';
   amount: number;
   index: number;
 }
-export type RemoveColAction = {
+export interface RemoveColAction {
   actionType: 'remove_col';
   amount: number;
   columnPositions: number[];
@@ -34,7 +34,7 @@ export type RemoveColAction = {
   headers: string[];
   data: CellValue[][];
 }
-export type FilterAction = {
+export interface FilterAction {
   actionType: 'filter';
   conditionsStack: ColumnConditions[];
 }

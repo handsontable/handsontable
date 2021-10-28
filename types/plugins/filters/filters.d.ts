@@ -11,7 +11,7 @@ type _ConditionName = 'begins_with' | 'between' | 'by_value' | 'contains' | 'emp
   'not_empty' | 'neq';
 export type ConditionName = _ConditionName;
 
-export type ColumnConditions = {
+export interface ColumnConditions {
   column: number;
   conditions: ConditionId[];
   operation: OperationType;
@@ -22,7 +22,7 @@ export interface ConditionId {
   name?: ConditionName;
   command?: {
     key: ConditionName;
-  }
+  };
 }
 
 export interface CellLikeData {

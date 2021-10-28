@@ -28,7 +28,7 @@ export abstract class BaseEditor {
   abstract close(): void;
   discardEditor(validationResult?: boolean): void;
   enableFullEditMode(): void;
-  extend<T extends BaseEditor>(): T;
+  extend(): BaseEditor;
   finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void): void;
   abstract focus(): void;
   getEditedCell(): HTMLTableCellElement | null;

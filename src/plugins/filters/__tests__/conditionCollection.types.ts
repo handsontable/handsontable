@@ -15,16 +15,11 @@ const cellLikeData = {
     instance: hot,
   },
   value: 'foo',
-}
-// const condition = {
-//   args: [3],
-//   name: 'eq' as Handsontable.plugins.Filters.ConditionName,
-// };
-
-// const z: Handsontable.CellValue = 3;
-// const a: Handsontable.plugins.Filters = 3;
-
-// const zz = Handsontable.plugins.getPlugin('filters');
+};
+const condition = {
+  args: [3],
+  name: 'eq' as Handsontable.plugins.Filters.ConditionName,
+};
 
 if (conditionCollection) {
   conditionCollection.isEmpty();
@@ -38,15 +33,15 @@ if (conditionCollection) {
     cellLikeData,
     'conjunction'
   );
-  // conditionCollection.addCondition(2, condition);
-  // conditionCollection.addCondition(2, condition, 'conjunction');
-  // conditionCollection.addCondition(2, condition, 'conjunction', 3);
+  conditionCollection.addCondition(2, condition);
+  conditionCollection.addCondition(2, condition, 'conjunction');
+  conditionCollection.addCondition(2, condition, 'conjunction', 3);
   conditionCollection.getConditions(3);
   conditionCollection.getFilteredColumns();
   conditionCollection.getColumnStackPosition(3);
   conditionCollection.getOperation(3);
   conditionCollection.exportAllConditions();
-  // conditionCollection.importAllConditions([condition]);
+  conditionCollection.importAllConditions([condition]);
   conditionCollection.removeConditions(3);
   conditionCollection.hasConditions(3, 'eq');
   conditionCollection.clean();

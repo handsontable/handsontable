@@ -2,6 +2,14 @@ import Handsontable from 'handsontable';
 
 const elem = document.createElement('div');
 const hot = new Handsontable(elem, {});
+const cellProperties: Handsontable.CellProperties = {
+  row: 0,
+  col: 0,
+  instance: hot,
+  visualRow: 0,
+  visualCol: 0,
+  prop: 'foo'
+};
 
 hot.addHook('afterChange', (changes: any[] | null, source: string) => {});
 hot.addHook('afterChange', [(changes: any[] | null, source: string) => {}]);
@@ -39,8 +47,9 @@ hot.getCell(123, 123, true)!.focus();
 hot.getCellEditor(123, 123);
 hot.getCellMeta(123, 123).type === "text";
 hot.getCellMetaAtRow(123).forEach(meta => meta.type === "text");
-hot.getCellRenderer(123, 123)(hot, {} as any as HTMLTableCellElement, 1, 2, 'prop', '', {} as any as Handsontable.CellProperties);
-hot.getCellsMeta()[0].visualRow
+hot.getCellRenderer(123, 123)(hot, {} as any as HTMLTableCellElement, 1, 2, 'prop', '',
+  {} as any as Handsontable.CellProperties);
+hot.getCellsMeta()[0].visualRow;
 hot.getCellValidator(123, 123);
 hot.getColHeader().forEach((header: number | string) => {});
 hot.getColHeader(123).toString();
@@ -72,33 +81,37 @@ hot.getSourceDataAtCol(123)[0] === '';
 hot.getSourceDataAtRow(123) as any[];
 hot.getTranslatedPhrase('foo', 123)!.toLowerCase();
 hot.getValue() === '';
-hot.hasColHeaders() === true;
-hot.hasHook('afterChange') === true;
-hot.hasRowHeaders() === true;
+
+const hasColHeaders: boolean = hot.hasColHeaders();
+const hasHook: boolean = hot.hasHook('afterChange');
+const hasRowHeaders: boolean = hot.hasRowHeaders();
+
 hot.init() === void 0;
-hot.isColumnModificationAllowed() === true;
-hot.isEmptyCol(123) === true;
-hot.isEmptyRow(123) === true;
-hot.isExecutionSuspended();
-hot.isListening() === true;
-hot.isRedoAvailable() === true;
-hot.isRenderSuspended();
-hot.isUndoAvailable() === true;
+
+const isColumnModificationAllowed: boolean = hot.isColumnModificationAllowed();
+const isEmptyCol: boolean = hot.isEmptyCol(123);
+const isEmptyRow: boolean = hot.isEmptyRow(123);
+const isExecutionSuspended: boolean = hot.isExecutionSuspended();
+const isListening: boolean = hot.isListening();
+const isRedoAvailable: boolean = hot.isRedoAvailable();
+const isRenderSuspended: boolean = hot.isRenderSuspended();
+const isUndoAvailable: boolean = hot.isUndoAvailable();
+
 hot.listen();
-hot.loadData([[1,2,3], [1,2,3]]);
-hot.loadData([{a:'a',b:2,c:''}, {a:'a',b:2,c:''}]);
+hot.loadData([[1, 2, 3], [1, 2, 3]]);
+hot.loadData([{ a: 'a', b: 2, c: '' }, { a: 'a', b: 2, c: '' }]);
 hot.populateFromArray(123, 123, [], 123, 123, 'foo', 'shift_down', 'left', []);
 hot.propToCol('foo') === 123;
 hot.propToCol(123) === 123;
 hot.redo();
 hot.refreshDimensions();
 hot.removeCellMeta(123, 123, 'foo');
-hot.removeHook('afterChange', function() {});
+hot.removeHook('afterChange', () => {});
 hot.render();
 hot.resumeExecution();
 hot.resumeRender();
 hot.rowOffset() === 123;
-hot.runHooks('afterChange', 123, 'foo', true, {}, [], function() {});
+hot.runHooks('afterChange', 123, 'foo', true, {}, [], () => {});
 hot.selectAll();
 hot.selectCell(123, 123, 123, 123, true, true);
 hot.selectCellByProp(123, 'foo', 123, 'foo', true);
@@ -122,19 +135,19 @@ hot.spliceCol(123, 123, 123, 'foo');
 hot.spliceRow(123, 123, 123, 'foo');
 hot.suspendExecution();
 hot.suspendRender();
-hot.toPhysicalColumn(123) == 123;
+hot.toPhysicalColumn(123) === 123;
 hot.toPhysicalRow(123) === 123;
 hot.toVisualColumn(123) === 123;
 hot.toVisualRow(123) === 123;
 hot.undo();
 hot.unlisten();
-hot.updateSettings({} as Handsontable.GridSettings, true);
-hot.validateCell('test', {} as Handsontable.CellProperties, (valid: boolean) => {}, 'sourceString');
+hot.updateSettings({}, true);
+hot.validateCell('test', cellProperties, (valid: boolean) => {}, 'sourceString');
 hot.validateCells((valid: boolean) => {});
 hot.validateColumns([1, 2, 3], (valid: boolean) => {});
 hot.validateRows([1, 2, 3], (valid: boolean) => {});
-hot.isDestroyed === false;
 
+const isDestroyed: boolean = hot.isDestroyed;
 const testToHTMLTableElement: HTMLTableElement = hot.toTableElement();
 const testToHTML: string = hot.toHTML();
 

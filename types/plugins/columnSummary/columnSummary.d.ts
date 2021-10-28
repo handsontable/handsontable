@@ -40,7 +40,7 @@ export interface Endpoints {
   endpoints: Endpoint[];
   settings: object | (() => void);
   settingsType: string;
-  currentEndpoint: object | void;
+  currentEndpoint: object | undefined;
 
   assignSetting(settings: object, endpoint: object, name: string, defaultValue: any): void;
   getAllEndpoints(): any[];
@@ -57,7 +57,7 @@ export interface Endpoints {
 export class ColumnSummary extends BasePlugin {
   constructor(hotInstance: Core);
 
-  endpoints: Endpoints | void;
+  endpoints: Endpoints | undefined;
 
   isEnabled(): boolean;
   calculate(endpoint: Endpoints): void;

@@ -68,7 +68,7 @@ export interface CellProperties extends CellMeta {
  * @internal
  * Omit properties K from T
  */
-type Omit<T, K extends keyof T> = Pick<T, ({ [P in keyof T]: P } & { [P in K]: never } & { [x: string]: never, [x: number]: never })[keyof T]>;
+export type Omit<T, K extends keyof T> = Pick<T, ({ [P in keyof T]: P } & { [P in K]: never } & { [x: string]: never, [x: number]: never })[keyof T]>;
 
 /**
  * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
@@ -109,11 +109,11 @@ export interface GridSettings extends Events {
   className?: string | string[];
   colHeaders?: boolean | string[] | ((index: number) => string);
   collapsibleColumns?: CollapsibleColumnsSettings;
-  columnHeaderHeight?: number | (number | undefined)[];
+  columnHeaderHeight?: number | Array<number | undefined>;
   columns?: ColumnSettings[] | ((index: number) => ColumnSettings);
   columnSorting?: ColumnSortingSettings;
   columnSummary?: ColumnSummarySettings;
-  colWidths?: number | string | number[] | string[] | undefined[] | (number | string | undefined)[] | ((index: number) => string | number | undefined);
+  colWidths?: number | string | number[] | string[] | undefined[] | Array<number | string | undefined> | ((index: number) => string | number | undefined);
   commentedCellClassName?: string;
   comments?: CommentsSettings;
   contextMenu?: ContextMenuSettings;
@@ -129,7 +129,7 @@ export interface GridSettings extends Events {
   dateFormat?: string;
   datePickerConfig?: PikadayOptions;
   defaultDate?: string;
-  disableVisualSelection?: boolean | 'current' | 'area' | 'header' | ('current' | 'area' | 'header')[];
+  disableVisualSelection?: boolean | 'current' | 'area' | 'header' | Array<'current' | 'area' | 'header'>;
   dragToScroll?: boolean;
   dropdownMenu?: DropdownMenuSettings;
   editor?: EditorType | BaseEditor | boolean | string;
@@ -183,7 +183,7 @@ export interface GridSettings extends Events {
   renderer?: RendererType | string | BaseRenderer;
   rowHeaders?: boolean | string[] | ((index: number) => string);
   rowHeaderWidth?: number | number[];
-  rowHeights?: number | string | number[] | string[] | undefined[] | (number | string | undefined)[] | ((index: number) => string | number | undefined);
+  rowHeights?: number | string | number[] | string[] | undefined[] | Array<number | string | undefined> | ((index: number) => string | number | undefined);
   search?: SearchSettings;
   selectionMode?: 'single' | 'range' | 'multiple';
   selectOptions?: string[] | SelectOptionsObject | ((visualRow: number, visualColumn: number, prop: string | number) => string[] | SelectOptionsObject);

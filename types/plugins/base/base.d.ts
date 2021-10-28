@@ -13,9 +13,9 @@ export class BasePlugin {
   enablePlugin(): void;
   disablePlugin(): void;
   updatePlugin(): void;
-  addHook(name: string, callback: Function): void;
+  addHook(name: string, callback: () => void): void;
   removeHooks(name: string): void;
   clearHooks(): void;
-  callOnPluginsReady(callback: Function): void;
+  callOnPluginsReady(callback: () => void): void;
   destroy(): void;
 }

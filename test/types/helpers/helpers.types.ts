@@ -46,7 +46,8 @@ Handsontable.helper.getUnionOfArrays([1, 2, 3], [2, 3, 4]);
 Handsontable.helper.hasCaptionProblem();
 Handsontable.helper.inherit({key: 'foo'}, {key2: 'bar'});
 
-const testInstanceToString: string = Handsontable.helper.instanceToHTML(new Handsontable(document.createElement('div'), {}));
+const testInstanceToString: string = Handsontable.helper
+  .instanceToHTML(new Handsontable(document.createElement('div'), {}));
 
 Handsontable.helper.isChrome();
 Handsontable.helper.isCtrlKey(1);
@@ -83,8 +84,10 @@ Handsontable.helper.stringify(1);
 Handsontable.helper.stripTags('<a>foo</a>');
 Handsontable.helper.substitute('foo', {});
 
-const testTableToSettings: Handsontable.GridSettings = Handsontable.helper.htmlToGridSettings('');
-const testTableToSettings2: Handsontable.GridSettings = Handsontable.helper.htmlToGridSettings(document.createElement('table'));
+const testTableToSettings: Handsontable.GridSettings = Handsontable.helper
+  .htmlToGridSettings('');
+const testTableToSettings2: Handsontable.GridSettings = Handsontable.helper
+  .htmlToGridSettings(document.createElement('table'));
 
 Handsontable.helper.throttle(() => {}, 1);
 Handsontable.helper.throttleAfterHits(() => {}, 0, 1);

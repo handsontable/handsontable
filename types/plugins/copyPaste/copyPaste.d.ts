@@ -9,14 +9,14 @@ export interface DetailedSettings {
 }
 
 export type Settings = boolean | DetailedSettings;
-
 export type PasteModeType = 'overwrite' | 'shift_down' | 'shift_right';
-export type RangeType = {
-  startRow: number,
-  startCol: number,
-  endRow: number,
-  endCol: number
-};
+
+export interface RangeType {
+  startRow: number;
+  startCol: number;
+  endRow: number;
+  endCol: number;
+}
 
 export class CopyPaste extends BasePlugin {
   constructor(hotInstance: Core);

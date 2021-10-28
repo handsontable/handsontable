@@ -6,7 +6,7 @@ const hot = new Handsontable(elem, {});
 const cellProperties: Handsontable.CellProperties = {
   row: 0,
   col: 0,
-  instance: {} as Handsontable,
+  instance: hot,
   visualRow: 0,
   visualCol: 0,
   prop: 'foo'

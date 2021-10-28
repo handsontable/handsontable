@@ -8,11 +8,11 @@ export class ManualRowResize extends BasePlugin {
   constructor(hotInstance: Core);
 
   currentTH: HTMLElement;
-  currentRow: number | void;
+  currentRow: number | undefined;
   selectedRows: number[];
   currentHeight: number;
-  newSize: number | void;
-  startY: number | void;
+  newSize: number | undefined;
+  startY: number | undefined;
   startHeight: number;
   startOffset: number;
   handle: HTMLElement;
@@ -20,10 +20,10 @@ export class ManualRowResize extends BasePlugin {
   eventManager: EventManager;
   pressed: boolean;
   dblclick: number;
-  autoresizeTimeout: (() => void) | void;
+  autoresizeTimeout: (() => void) | undefined;
 
   isEnabled(): boolean;
   saveManualRowHeights(): void;
-  loadManualRowHeights(): (number|null)[];
+  loadManualRowHeights(): Array<number | null>;
   setManualSize(row: number, height: number): number;
 }

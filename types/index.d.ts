@@ -104,6 +104,9 @@ import {
 } from './plugins/exportFile';
 import {
   Settings as FiltersSettings,
+  ConditionId as FiltersConditionId,
+  ConditionName as FiltersConditionName,
+  OperationType as FiltersOperationType,
 } from './plugins/filters';
 import {
   Settings as FormulasSettings,
@@ -173,6 +176,7 @@ import {
   getLanguageDictionary,
 } from './i18n';
 
+// tslint:disable-next-line:interface-name
 interface I18nModule {
   dictionaryKeys: LanguageDictionary;
   registerLanguageDictionary: typeof registerLanguageDictionary;
@@ -277,6 +281,7 @@ declare namespace Handsontable {
   type RendererType = _RendererType;
   type ValidatorType = _ValidatorType;
 
+  /* tslint:disable:no-empty-interface */
   interface GridSettings extends _GridSettings {}
   interface CellProperties extends _CellProperties {}
   interface CellMeta extends _CellMeta {}
@@ -366,6 +371,9 @@ declare namespace Handsontable {
 
     namespace Filters {
       type Settings = FiltersSettings;
+      type ConditionId = FiltersConditionId;
+      type ConditionName = FiltersConditionName;
+      type OperationType = FiltersOperationType;
     }
 
     namespace Formulas {
@@ -441,6 +449,7 @@ declare namespace Handsontable {
       type Settings = UndoRedoSettings;
     }
   }
+  /* tslint:disable:no-empty-interface */
 }
 
 interface Helper extends _Helper {

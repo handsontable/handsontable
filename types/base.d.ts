@@ -1,3 +1,3 @@
-import Handsontable from './index'
+import Handsontable from './index';
 
 export default Handsontable;

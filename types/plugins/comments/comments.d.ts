@@ -8,7 +8,7 @@ export interface CommentObject {
   style?: {
     height?: number;
     width?: number;
-  }
+  };
 }
 export interface DetailedSettings {
   displayDelay?: number;
@@ -17,12 +17,12 @@ export interface DetailedSettings {
 export type Settings = boolean | DetailedSettings;
 
 export interface CommentConfig {
-  row: number,
-  col: number,
-  comment: CommentObject
+  row: number;
+  col: number;
+  comment: CommentObject;
 }
 
-export type CommentsRangeObject = {
+export interface CommentsRangeObject {
   from: CellCoords;
   to?: CellCoords;
 }

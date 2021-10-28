@@ -20,8 +20,8 @@ import { Plugins } from './plugins';
 import { CellType } from './cellTypes';
 
 export default class Core {
-  addHook<K extends keyof Events>(key: K, callback: Events[K] | Events[K][]): void;
-  addHookOnce<K extends keyof Events>(key: K, callback: Events[K] | Events[K][]): void;
+  addHook<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>): void;
+  addHookOnce<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>): void;
   alter(action: 'insert_row' | 'insert_col' | 'remove_row' | 'remove_col', index?: number | Array<[number, number]>, amount?: number, source?: string, keepEmptyRows?: boolean): void;
   batch<R>(wrappedOperations: () => R): R;
   batchExecution<R>(wrappedOperations: () => R, forceFlushChanges: boolean): R;
@@ -48,10 +48,10 @@ export default class Core {
   destroyEditor(revertOriginal?: boolean, prepareEditorIfNeeded?: boolean): void;
   emptySelectedCells(): void;
   forceFullRender: boolean;
-  getActiveEditor<T extends BaseEditor>(): T | undefined;
+  getActiveEditor(): BaseEditor | undefined;
   getCell(row: number, col: number, topmost?: boolean): HTMLTableCellElement | null;
-  getCellEditor<T extends BaseEditor>(cellMeta: CellMeta): T;
-  getCellEditor<T extends BaseEditor>(row: number, col: number): T;
+  getCellEditor(cellMeta: CellMeta): BaseEditor;
+  getCellEditor(row: number, col: number): BaseEditor;
   getCellMeta(row: number, col: number): CellProperties;
   getCellMetaAtRow(row: number): CellProperties[];
   getCellRenderer(cellMeta: CellMeta): BaseRenderer;
@@ -59,7 +59,7 @@ export default class Core {
   getCellsMeta(): CellProperties[];
   getCellValidator(cellMeta: CellMeta): BaseValidator | RegExp | undefined;
   getCellValidator(row: number, col: number): BaseValidator | RegExp | undefined;
-  getColHeader(): (number | string)[];
+  getColHeader(): Array<number | string>;
   getColHeader(col: number): number | string;
   getColWidth(col: number): number;
   getCoords(elem: Element | null): CellCoords;
@@ -74,7 +74,7 @@ export default class Core {
   getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): CellType | 'mixed';
   getInstance(): Core;
   getPlugin<T extends keyof Plugins>(pluginName: T): Plugins[T];
-  getRowHeader(): (string | number)[];
+  getRowHeader(): Array<string | number>;
   getRowHeader(row: number): string | number;
   getRowHeight(row: number): number;
   getSchema(): RowObject;
@@ -95,7 +95,7 @@ export default class Core {
   hasRowHeaders(): boolean;
   init(): () => void;
   isColumnModificationAllowed(): boolean;
-  isDestroyed: boolean
+  isDestroyed: boolean;
   isEmptyCol(col: number): boolean;
   isEmptyRow(row: number): boolean;
   isExecutionSuspended(): boolean;
@@ -105,12 +105,13 @@ export default class Core {
   isUndoAvailable(): boolean;
   listen(): void;
   loadData(data: CellValue[][] | RowObject[], source?: string): void;
-  populateFromArray(row: number, col: number, input: CellValue[][], endRow?: number, endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
+  populateFromArray(row: number, col: number, input: CellValue[][], endRow?: number,
+    endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite',
+    direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
   propToCol(prop: string | number): number;
   redo(): void;
   refreshDimensions(): void;
-  removeCellMeta(row: number, col: number, key: keyof CellMeta): void;
-  removeCellMeta(row: number, col: number, key: string): void;
+  removeCellMeta(row: number, col: number, key: (keyof CellMeta) | string): void;
   removeHook<K extends keyof Events>(key: K, callback: Events[K]): void;
   render(): void;
   renderCall: boolean;
@@ -126,17 +127,17 @@ export default class Core {
   selectAll(): void;
   selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
   selectCellByProp(row: number, prop: string, endRow?: number, endProp?: string, scrollToCell?: boolean): boolean;
-  selectCells(coords: Array<[number, number | string, number, number | string]> | Array<CellRange>, scrollToCell?: boolean, changeListener?: boolean): boolean;
+  selectCells(coords: Array<[number, number | string, number, number | string]> | CellRange[], scrollToCell?: boolean, changeListener?: boolean): boolean;
   selectColumns(startColumn: number | string, endColumn?: number | string): boolean;
   selectRows(startRow: number, endRow?: number): boolean;
   setCellMeta(row: number, col: number, key: string, val: any): void;
   setCellMeta<K extends keyof CellMeta>(row: number, col: number, key: K, val: CellMeta[K]): void;
-  setCellMetaObject<T extends CellMeta>(row: number, col: number, prop: T): void;
+  setCellMetaObject(row: number, col: number, prop: CellMeta): void;
   setDataAtCell(changes: Array<[number, string | number, CellValue]>, source?: string): void;
   setDataAtCell(row: number, col: string | number, value: CellValue, source?: string): void;
   setDataAtRowProp(changes: Array<[number, string | number, CellValue]>, source?: string): void;
   setDataAtRowProp(row: number, prop: string, value: CellValue, source?: string): void;
-  setSourceDataAtCell(changes: [number, string | number, CellValue][]): void;
+  setSourceDataAtCell(changes: Array<[number, string | number, CellValue]>): void;
   setSourceDataAtCell(row: number, column: number | string, value: CellValue, source?: string): void;
   spliceCol(col: number, index: number, amount: number, ...elements: CellValue[]): void;
   spliceRow(row: number, index: number, amount: number, ...elements: CellValue[]): void;

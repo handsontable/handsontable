@@ -2,7 +2,7 @@ import Core from '../../core';
 import { BasePlugin } from '../base';
 import { PredefinedMenuItemKey, Selection, MenuConfig } from '../contextMenu';
 
-export type SeparatorObject = {
+export interface SeparatorObject {
   name: string;
 }
 

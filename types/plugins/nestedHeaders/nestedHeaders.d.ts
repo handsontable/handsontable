@@ -6,7 +6,7 @@ export interface DetailedSettings {
   colspan: number;
 }
 
-export type Settings = (string | DetailedSettings)[][];
+export type Settings = Array<Array<string | DetailedSettings>>;
 
 export class NestedHeaders extends BasePlugin {
   constructor(hotInstance: Core);

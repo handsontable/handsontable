@@ -10,7 +10,7 @@ export class MultipleSelectionHandles extends BasePlugin {
 
   dragged: string[];
   eventManager: EventManager;
-  lastSetCell: HTMLElement | void;
+  lastSetCell: HTMLElement | undefined;
 
   isEnabled(): boolean;
   getCurrentRangeCoords(selectedRange: CellRange, currentTouch: CellRange, touchStartDirection: string, currentDirection: string, draggedHandle: string): {

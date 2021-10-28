@@ -43,7 +43,7 @@ import {
 } from './common';
 
 type Bucket = {
-  [P in keyof Events]: Events[P][];
+  [P in keyof Events]: Array<Events[P]>;
 };
 
 interface HookHighlightRowHeaderMeta {
@@ -60,7 +60,7 @@ interface HookHighlightColumnHeaderMeta {
 }
 
 export interface Events {
-  afterAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
+  afterAddChild?: (parent: RowObject, element: RowObject | undefined, index: number | undefined) => void;
   afterAutofill?: (fillData: CellValue[][], sourceRange: CellRange, targetRange: CellRange, direction: 'up' | 'down' | 'left' | 'right') => void;
   afterBeginEditing?: (row: number, column: number) => void;
   afterCellMetaReset?: () => void;
@@ -68,10 +68,10 @@ export interface Events {
   afterChangesObserved?: () => void;
   afterColumnCollapse?: (currentCollapsedColumns: number[], destinationCollapsedColumns: number[], collapsePossible: boolean, successfullyCollapsed: boolean) => void;
   afterColumnExpand?: (currentCollapsedColumns: number[], destinationCollapsedColumns: number[], expandPossible: boolean, successfullyExpanded: boolean) => void;
-  afterColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | void, movePossible: boolean, orderChanged: boolean) => void;
+  afterColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
   afterColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void;
-  afterContextMenuDefaultOptions?: (predefinedItems: (ContextMenuPredefinedMenuItemKey | ContextMenuMenuItemConfig)[]) => void;
+  afterContextMenuDefaultOptions?: (predefinedItems: Array<ContextMenuPredefinedMenuItemKey | ContextMenuMenuItemConfig>) => void;
   afterContextMenuHide?: (context: ContextMenu) => void;
   afterContextMenuShow?: (context: ContextMenu) => void;
   afterCopy?: (data: CellValue[][], coords: RangeType[]) => void;
@@ -83,17 +83,17 @@ export interface Events {
   afterDestroy?: () => void;
   afterDetachChild?: (parent: RowObject, element: RowObject) => void;
   afterDocumentKeyDown?: (event: KeyboardEvent) => void;
-  afterDrawSelection?: (currentRow: number, currentColumn: number, cornersOfSelection: number[], layerLevel: number | void) => string | void
-  afterDropdownMenuDefaultOptions?: (predefinedItems: (ContextMenuPredefinedMenuItemKey | ContextMenuMenuItemConfig)[]) => void;
+  afterDrawSelection?: (currentRow: number, currentColumn: number, cornersOfSelection: number[], layerLevel?: number) => string | void;
+  afterDropdownMenuDefaultOptions?: (predefinedItems: Array<ContextMenuPredefinedMenuItemKey | ContextMenuMenuItemConfig>) => void;
   afterDropdownMenuHide?: (instance: DropdownMenu) => void;
   afterDropdownMenuShow?: (instance: DropdownMenu) => void;
   afterFilter?: (conditionsStack: FiltersColumnConditions[]) => void;
   afterFormulasValuesUpdate?: (changes: object[]) => void;
   afterGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
   afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement) => void;
-  afterGetColumnHeaderRenderers?: (renderers: ((col: number, TH: HTMLTableHeaderCellElement) => void)[]) => void;
+  afterGetColumnHeaderRenderers?: (renderers: Array<(col: number, TH: HTMLTableHeaderCellElement) => void>) => void;
   afterGetRowHeader?: (row: number, TH: HTMLTableHeaderCellElement) => void;
-  afterGetRowHeaderRenderers?: (renderers: ((row: number, TH: HTMLTableHeaderCellElement) => void)[]) => void;
+  afterGetRowHeaderRenderers?: (renderers: Array<(row: number, TH: HTMLTableHeaderCellElement) => void>) => void;
   afterHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
   afterHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
   afterInit?: () => void;
@@ -123,7 +123,7 @@ export interface Events {
   afterRemoveRow?: (index: number, amount: number, physicalRows: number[], source?: ChangeSource) => void;
   afterRender?: (isForced: boolean) => void;
   afterRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
-  afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | void, movePossible: boolean, orderChanged: boolean) => void;
+  afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
   afterScrollHorizontally?: () => void;
   afterScrollVertically?: () => void;
@@ -151,15 +151,16 @@ export interface Events {
   afterViewportColumnCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
   afterViewportRowCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
   afterViewRender?: (isForced: boolean) => void;
-  beforeAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
+  beforeAddChild?: (parent: RowObject, element?: RowObject, index?: number) => void;
   beforeAutofill?: (selectionData: CellValue[][], sourceRange: CellRange, targetRange: CellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | boolean | void;
   beforeAutofillInsidePopulate?: (index: CellCoords, direction: 'up' | 'down' | 'left' | 'right', input: CellValue[][], deltas: any[]) => void;
-  beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: CellRange[], type: 'horizontal' | 'vertical', alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
+  beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: CellRange[], type: 'horizontal' | 'vertical',
+    alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
   beforeChange?: (changes: CellChange[], source: ChangeSource) => void | boolean;
   beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
   beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], collapsePossible: boolean) => void | boolean;
   beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean) => void | boolean;
-  beforeColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | void, movePossible: boolean) => void | boolean;
+  beforeColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void | boolean;
   beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number;
   beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void | boolean;
   beforeContextMenuSetItems?: (menuItems: ContextMenuMenuItemConfig[]) => void;
@@ -199,7 +200,7 @@ export interface Events {
   beforeRemoveRow?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
   beforeRender?: (isForced: boolean) => void;
   beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
-  beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | void, movePossible: boolean) => void;
+  beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
   beforeSetCellMeta?: (row: number, col: number, key: string, value: any) => boolean | void;
   beforeSetRangeEnd?: (coords: CellCoords) => void;
@@ -220,7 +221,7 @@ export interface Events {
   construct?: () => void;
   init?: () => void;
   modifyAutoColumnSizeSeed?: (seed: string, cellProperties: CellProperties, cellValue: CellValue) => string | void;
-  modifyAutofillRange?: (startArea: [number, number, number, number][], entireArea: [number, number, number, number][]) => void;
+  modifyAutofillRange?: (startArea: Array<[number, number, number, number]>, entireArea: Array<[number, number, number, number]>) => void;
   modifyColHeader?: (column: number) => void;
   modifyColumnHeaderHeight?: () => void;
   modifyColWidth?: (width: number, column: number) => void;
@@ -241,17 +242,17 @@ export interface Events {
 }
 
 export interface Hooks {
-  add<K extends keyof Events>(key: K, callback: Events[K] | Events[K][], context?: Core): Hooks;
+  add<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, context?: Core): Hooks;
   createEmptyBucket(): Bucket;
   deregister(key: string): void;
   destroy(context?: Core): void;
   getBucket(context?: Core): Bucket;
-  getRegistered(): (keyof Events)[];
+  getRegistered(): Array<keyof Events>;
   has(key: keyof Events, context?: Core): boolean;
   isDeprecated(key: keyof Events): boolean;
   isRegistered(key: keyof Events): boolean;
-  once<K extends keyof Events>(key: K, callback: Events[K] | Events[K][], context?: Core): void;
+  once<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, context?: Core): void;
   register(key: string): void;
-  remove(key: keyof Events, callback: Function, context?: Core): boolean;
+  remove(key: keyof Events, callback: () => void, context?: Core): boolean;
   run(context: Core, key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
 }

@@ -3,10 +3,10 @@ import { GridSettings } from '../../settings';
 import { BasePlugin } from '../base';
 
 export type SortOrderType = 'asc' | 'desc';
-export type Config = {
+export interface Config {
   column: number;
   sortOrder: SortOrderType;
-};
+}
 
 export interface DetailedSettings {
   initialConfig?: Config | Config[];

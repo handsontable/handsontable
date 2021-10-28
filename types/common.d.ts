@@ -25,29 +25,33 @@ export type CellChange = [number, string | number, CellValue, CellValue];
  * A row object, one of the two ways to supply data to the table, the alternative being an array of values.
  * Row objects can have any data assigned to them, not just column data, and can define a `__children` array for nested rows.
  */
-export type RowObject = { [prop: string]: any };
+export interface RowObject {
+  [prop: string]: any;
+}
 
 /**
  * An object containing possible options to use in SelectEditor.
  */
-export type SelectOptionsObject = { [prop: string]: string };
+export interface SelectOptionsObject {
+  [prop: string]: string;
+}
 
 /**
  * A single row of source data, which can be represented as an array of values, or an object with key/value pairs.
  */
 export type SourceRowData = RowObject | CellValue[];
 
-export type SimpleCellCoords = {
+export interface SimpleCellCoords {
   row: number;
   col: number;
 }
 
-export type RangeType = {
-  startRow: number,
-  startCol: number,
-  endRow: number,
-  endCol: number,
-};
+export interface RangeType {
+  startRow: number;
+  startCol: number;
+  endRow: number;
+  endCol: number;
+}
 
 /**
  * The default sources for which the table triggers hooks.
