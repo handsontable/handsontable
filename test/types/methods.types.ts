@@ -64,7 +64,9 @@ hot.getDataAtProp(123).forEach(v => v === '');
 hot.getDataAtRow(123).forEach(v => v === '');
 hot.getDataAtRowProp(123, 'foo') === '';
 hot.getDataType(123, 123, 123, 123) === 'text';
-hot.getInstance() === hot;
+
+const _hot: Handsontable = hot.getInstance();
+
 hot.getRowHeader().forEach(header => header.toString());
 hot.getRowHeader(123) === '';
 hot.getRowHeight(123) === 123;

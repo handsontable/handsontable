@@ -201,11 +201,11 @@
       "dist/languages",
       "dist/README.md",
       "languages",
+      "types",
       "base.d.ts",
       "CHANGELOG.md",
       "handsontable-general-terms.pdf",
       "handsontable-non-commercial-license.pdf",
-      "handsontable.d.ts",
       "LICENSE.txt",
       "README.md"
     ],
