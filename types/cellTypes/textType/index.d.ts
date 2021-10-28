@@ -1,1 +1,1 @@
-export { CELL_TYPE, TextCellType } from './textType';
+export * from './textType';

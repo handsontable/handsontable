@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 
-const columnSorting = Handsontable.plugins.ColumnSorting;
+const hot = new Handsontable(document.createElement('div'), {});
+const columnSorting = hot.getPlugin('columnSorting');
 
 columnSorting.clearSort();
 

@@ -8,24 +8,25 @@ import { default as _CellRange } from './3rdparty/walkontable/src/cell/range';
 import { OverlayType } from './3rdparty/walkontable/src';
 import Core from './core';
 import {
-  GridSettings as _GridSettings,
-  ColumnSettings as _ColumnSettings,
-  CellSettings as _CellSettings,
-  CellMeta as _CellMeta,
-  CellProperties as _CellProperties,
+  GridSettings,
+  ColumnSettings,
+  CellSettings,
+  CellMeta,
+  CellProperties,
 } from './settings';
 import {
-  CellChange as _CellChange,
-  CellValue as _CellValue,
-  ChangeSource as _ChangeSource,
-  NumericFormatOptions as _NumericFormatOptions,
-  RowObject as _RowObject,
-  SelectOptionsObject as _SelectOptionsObject,
-  SourceRowData as _SourceRowData,
+  CellChange,
+  CellValue,
+  ChangeSource,
+  NumericFormatOptions,
+  RowObject,
+  SelectOptionsObject,
+  SourceRowData,
 } from './common';
 import { htmlToGridSettings, instanceToHTML } from './utils/parseTable';
 import {
   AutocompleteCellType,
+  CellType,
   CheckboxCellType,
   DateCellType,
   DropdownCellType,
@@ -34,49 +35,96 @@ import {
   PasswordCellType,
   TextCellType,
   TimeCellType,
-  CellType as _CellType,
-  CellTypes,
   getCellType,
   registerCellType,
 } from './cellTypes';
-import { Editors, EditorType as _EditorType, getEditor, registerEditor } from './editors';
-import { Renderers, RendererType as _RendererType, getRenderer, registerRenderer } from './renderers';
-import { Validators, ValidatorType as _ValidatorType, getValidator, registerValidator } from './validators';
-import { Plugins, getPlugin, registerPlugin } from './plugins';
-import { Helper as _Helper } from './helpers';
-import { Dom } from './helpers/dom';
+import {
+  AutocompleteEditor,
+  BaseEditor,
+  CheckboxEditor,
+  DateEditor,
+  DropdownEditor,
+  HandsontableEditor,
+  NumericEditor,
+  PasswordEditor,
+  SelectEditor,
+  TextEditor,
+  Editors,
+  EditorType,
+  getEditor,
+  registerEditor,
+} from './editors';
+import {
+  Renderers,
+  RendererType,
+  autocompleteRenderer,
+  baseRenderer,
+  checkboxRenderer,
+  htmlRenderer,
+  numericRenderer,
+  passwordRenderer,
+  textRenderer,
+  getRenderer,
+  registerRenderer,
+} from './renderers';
+import {
+  Validators,
+  ValidatorType,
+  autocompleteValidator,
+  dateValidator,
+  numericValidator,
+  timeValidator ,
+  getValidator,
+  registerValidator,
+} from './validators';
+import {
+  Plugins,
+  getPlugin,
+  registerPlugin,
+} from './plugins';
+import * as helper from './helpers';
+import * as dom from './helpers/dom';
 import EventManager from './eventManager';
 import { Hooks } from './pluginHooks';
 // plugins
 import {
+  AutoColumnSize as _AutoColumnSize,
   Settings as AutoColumnSizeSettings,
 } from './plugins/autoColumnSize';
 import {
+  Autofill as _Autofill,
   Settings as AutofillSettings,
 } from './plugins/autofill';
 import {
+  AutoRowSize as _AutoRowSize,
   Settings as AutoRowSizeSettings,
 } from './plugins/autoRowSize';
 import {
+  BindRowsWithHeaders as _BindRowsWithHeaders,
   Settings as BindRowsWithHeadersSettings,
 } from './plugins/bindRowsWithHeaders';
 import {
+  CollapsibleColumns as _CollapsibleColumns,
   Settings as CollapsibleColumnsSettings,
 } from './plugins/collapsibleColumns';
 import {
+  ColumnSorting as _ColumnSorting,
   Settings as ColumnSortingSettings,
   SortOrderType as ColumnSortingSortOrderType,
   Config as ColumnSortingConfig,
 } from './plugins/columnSorting';
 import {
+  ColumnSummary as _ColumnSummary,
   Settings as ColumnSummarySettings,
 } from './plugins/columnSummary';
 import {
-  CommentObject as CommentsCommentObject,
+  Comments as _Comments,
+  CommentObject,
   Settings as CommentsSettings,
-  CommentConfig as CommentsCommentConfig,
+  CommentConfig,
 } from './plugins/comments';
 import {
+  ContextMenu as _ContextMenu,
   Settings as ContextMenuSettings,
   Selection as ContextMenuSelection,
   PredefinedMenuItemKey as ContextMenuPredefinedMenuItemKey,
@@ -86,85 +134,109 @@ import {
   SubmenuItemConfig as ContextMenuSubmenuItemConfig,
 } from './plugins/contextMenu';
 import {
+  CopyPaste as _CopyPaste,
   Settings as CopyPasteSettings,
 } from './plugins/copyPaste';
 import {
+  CustomBorders as _CustomBorders,
   Settings as CustomBordersSettings,
-  BorderRange as _BorderRange,
-  BorderOptions as _BorderOptions,
+  BorderRange,
+  BorderOptions,
 } from './plugins/customBorders';
 import {
+  DragToScroll as _DragToScroll,
   Settings as DragToScrollSettings,
 } from './plugins/dragToScroll';
 import {
+  DropdownMenu as _DropdownMenu,
   Settings as DropdownMenuSettings,
 } from './plugins/dropdownMenu';
 import {
+  ExportFile as _ExportFile,
   Settings as ExportFileSettings,
 } from './plugins/exportFile';
 import {
+  Filters as _Filters,
   Settings as FiltersSettings,
   ConditionId as FiltersConditionId,
   ConditionName as FiltersConditionName,
   OperationType as FiltersOperationType,
 } from './plugins/filters';
 import {
+  Formulas as _Formulas,
   Settings as FormulasSettings,
-  HyperFormulaSettings as _HyperFormulaSettings,
+  HyperFormulaSettings,
 } from './plugins/formulas';
 import {
+  HiddenColumns as _HiddenColumns,
   Settings as HiddenColumnsSettings,
 } from './plugins/hiddenColumns';
 import {
+  HiddenRows as _HiddenRows,
   Settings as HiddenRowsSettings,
 } from './plugins/hiddenRows';
 import {
+  ManualColumnFreeze as _ManualColumnFreeze,
   Settings as ManualColumnFreezeSettings,
 } from './plugins/manualColumnFreeze';
 import {
+  ManualColumnMove as _ManualColumnMove,
   Settings as ManualColumnMoveSettings,
 } from './plugins/manualColumnMove';
 import {
+  ManualColumnResize as _ManualColumnResize,
   Settings as ManualColumnResizeSettings,
 } from './plugins/manualColumnResize';
 import {
+  ManualRowMove as _ManualRowMove,
   Settings as ManualRowMoveSettings,
 } from './plugins/manualRowMove';
 import {
+  ManualRowResize as _ManualRowResize,
   Settings as ManualRowResizeSettings,
 } from './plugins/manualRowResize';
 import {
+  MergeCells as _MergeCells,
   Settings as MergeCellsSettings,
 } from './plugins/mergeCells';
 import {
+  MultiColumnSorting as _MultiColumnSorting,
   Settings as MultiColumnSortingSettings,
   SortOrderType as MultiColumnSortingSortOrderType,
   Config as MultiColumnSortingConfig,
 } from './plugins/multiColumnSorting';
 import {
+  MultipleSelectionHandles as _MultipleSelectionHandles,
   Settings as MultipleSelectionHandlesSettings,
 } from './plugins/multipleSelectionHandles';
 import {
+  NestedHeaders as _NestedHeaders,
   Settings as NestedHeadersSettings,
 } from './plugins/nestedHeaders';
 import {
+  NestedRows as _NestedRows,
   Settings as NestedRowsSettings,
 } from './plugins/nestedRows';
 import {
+  PersistentState as _PersistentState,
   Settings as PersistentStateSettings,
 } from './plugins/persistentState';
 import {
+  Search as _Search,
   Settings as SearchSettings,
-  SearchCallback as _SearchCallback,
-  SearchQueryMethod as _SearchQueryMethod,
+  SearchCallback,
+  SearchQueryMethod,
 } from './plugins/search';
 import {
+  TouchScroll as _TouchScroll,
   Settings as TouchScrollSettings,
 } from './plugins/touchScroll';
 import {
+  TrimRows as _TrimRows,
   Settings as TrimRowsSettings,
 } from './plugins/trimRows';
 import {
+  UndoRedo as _UndoRedo,
   Settings as UndoRedoSettings,
 } from './plugins/undoRedo';
 // i18n
@@ -176,285 +248,276 @@ import {
   getLanguageDictionary,
 } from './i18n';
 
-// tslint:disable-next-line:interface-name
-interface I18nModule {
-  dictionaryKeys: LanguageDictionary;
-  registerLanguageDictionary: typeof registerLanguageDictionary;
-  getTranslatedPhrase: typeof getTranslatedPhrase;
-  getLanguagesDictionaries: typeof getLanguagesDictionaries;
-  getLanguageDictionary: typeof getLanguageDictionary;
-}
-
-interface CellTypesModule extends CellTypes {
-  getCellType: typeof getCellType;
-  registerCellType: typeof registerCellType;
-}
-
-interface EditorsModule {
-  AutocompleteEditor: Editors['autocomplete'];
-  BaseEditor: Editors['base'];
-  CheckboxEditor: Editors['checkbox'];
-  DateEditor: Editors['date'];
-  DropdownEditor: Editors['dropdown'];
-  HandsontableEditor: Editors['handsontable'];
-  NumericEditor: Editors['numeric'];
-  PasswordEditor: Editors['password'];
-  SelectEditor: Editors['select'];
-  TextEditor: Editors['text'];
-  getEditor: typeof getEditor;
-  registerEditor: typeof registerEditor;
-}
-
-interface RenderersModule {
-  AutocompleteRenderer: Renderers['autocomplete'];
-  BaseRenderer: Renderers['base'];
-  CheckboxRenderer: Renderers['checkbox'];
-  DateRenderer: Renderers['autocomplete'];
-  DropdownRenderer: Renderers['autocomplete'];
-  HandsontableRenderer: Renderers['autocomplete'];
-  HtmlRenderer: Renderers['html'];
-  NumericRenderer: Renderers['numeric'];
-  PasswordRenderer: Renderers['password'];
-  TextRenderer: Renderers['text'];
-  TimeRenderer: Renderers['text'];
-  getRenderer: typeof getRenderer;
-  registerRenderer: typeof registerRenderer;
-}
-
-interface ValidatorsModule {
-  AutocompleteValidator: Validators['autocomplete'];
-  DateValidator: Validators['date'];
-  DropdownValidator: Validators['autocomplete'];
-  NumericValidator: Validators['numeric'];
-  TimeValidator: Validators['time'];
-  getValidator: typeof getValidator;
-  registerValidator: typeof registerValidator;
-}
-
-interface PluginsModule {
-  AutoColumnSize: Plugins['autoColumnSize'];
-  Autofill: Plugins['autofill'];
-  AutoRowSize: Plugins['autoRowSize'];
-  BasePlugin: Plugins['basePlugin'];
-  BindRowsWithHeaders: Plugins['bindRowsWithHeaders'];
-  CollapsibleColumns: Plugins['collapsibleColumns'];
-  ColumnSorting: Plugins['columnSorting'];
-  ColumnSummary: Plugins['columnSummary'];
-  Comments: Plugins['comments'];
-  ContextMenu: Plugins['contextMenu'];
-  CopyPaste: Plugins['copyPaste'];
-  CustomBorders: Plugins['customBorders'];
-  DragToScroll: Plugins['dragToScroll'];
-  DropdownMenu: Plugins['dropdownMenu'];
-  ExportFile: Plugins['exportFile'];
-  Filters: Plugins['filters'];
-  Formulas: Plugins['formulas'];
-  HiddenColumns: Plugins['hiddenColumns'];
-  HiddenRows: Plugins['hiddenRows'];
-  ManualColumnFreeze: Plugins['manualColumnFreeze'];
-  ManualColumnMove: Plugins['manualColumnMove'];
-  ManualColumnResize: Plugins['manualColumnResize'];
-  ManualRowMove: Plugins['manualRowMove'];
-  ManualRowResize: Plugins['manualRowResize'];
-  MergeCells: Plugins['mergeCells'];
-  MultiColumnSorting: Plugins['multiColumnSorting'];
-  MultipleSelectionHandles: Plugins['multipleSelectionHandles'];
-  NestedHeaders: Plugins['nestedHeaders'];
-  NestedRows: Plugins['nestedRows'];
-  PersistentState: Plugins['persistentState'];
-  Search: Plugins['search'];
-  TouchScroll: Plugins['touchScroll'];
-  TrimRows: Plugins['trimRows'];
-  getPlugin: typeof getPlugin;
-  registerPlugin: typeof registerPlugin;
-}
+declare const DefaultSettings: GridSettings;
+declare const hooks: Hooks;
 
 declare namespace Handsontable {
-  type CellValue = _CellValue;
-  type CellChange = _CellChange;
-  type RowObject = _RowObject;
-  type SelectOptionsObject = _SelectOptionsObject;
-  type SourceRowData = _SourceRowData;
-  type ChangeSource = _ChangeSource;
-  type CellType = _CellType;
-  type EditorType = _EditorType;
-  type RendererType = _RendererType;
-  type ValidatorType = _ValidatorType;
+  export {
+    // common
+    CellType,
+    CellValue,
+    CellChange,
+    RowObject,
+    SelectOptionsObject,
+    SourceRowData,
+    ChangeSource,
+    // editors
+    EditorType,
+    // renderers
+    RendererType,
+    // validators
+    ValidatorType,
+    // settings
+    GridSettings,
+    CellProperties,
+    CellMeta,
+    ColumnSettings,
+    NumericFormatOptions,
+  };
 
-  /* tslint:disable:no-empty-interface */
-  interface GridSettings extends _GridSettings {}
-  interface CellProperties extends _CellProperties {}
-  interface CellMeta extends _CellMeta {}
-  interface ColumnSettings extends _ColumnSettings {}
+  export { helper };
+  export { dom };
+  export { hooks };
+  export { Core };
+  export { EventManager };
+  export { DefaultSettings };
 
-  interface NumericFormatOptions extends _NumericFormatOptions {}
-
-  namespace cellTypes {
-    interface Autocomplete extends AutocompleteCellType {}
-    interface Checkbox extends CheckboxCellType {}
-    interface Date extends DateCellType {}
-    interface Dropdown extends DropdownCellType {}
-    interface Handsontable extends HandsontableCellType {}
-    interface Numeric extends NumericCellType {}
-    interface Password extends PasswordCellType {}
-    interface Text extends TextCellType {}
-    interface Time extends TimeCellType {}
+  export namespace languages {
+    export { LanguageDictionary as dictionaryKeys };
+    export { getLanguageDictionary };
+    export { getLanguagesDictionaries };
+    export { getTranslatedPhrase };
+    export { registerLanguageDictionary };
   }
 
-  // Plugin options
-  namespace plugins {
-    namespace AutoColumnSize {
-      type Settings = AutoColumnSizeSettings;
+  export namespace cellTypes {
+    export { AutocompleteCellType as autocomplete };
+    export { CheckboxCellType as checkbox };
+    export { DateCellType as date };
+    export { DropdownCellType as dropdown };
+    export { HandsontableCellType as handsontable };
+    export { NumericCellType as numeric };
+    export { PasswordCellType as password };
+    export { TextCellType as text };
+    export { TimeCellType as time };
+    export { registerCellType };
+    export { getCellType };
+  }
+
+  export namespace editors {
+    export { AutocompleteEditor };
+    export { BaseEditor };
+    export { CheckboxEditor };
+    export { DateEditor };
+    export { DropdownEditor };
+    export { HandsontableEditor };
+    export { NumericEditor };
+    export { PasswordEditor };
+    export { SelectEditor };
+    export { TextEditor };
+    export { registerEditor };
+    export { getEditor };
+  }
+
+  export namespace renderers {
+    export { autocompleteRenderer as AutocompleteRenderer };
+    export { baseRenderer as cellDecorator };
+    export { baseRenderer as BaseRenderer };
+    export { checkboxRenderer as CheckboxRenderer };
+    export { htmlRenderer as HtmlRenderer };
+    export { numericRenderer as NumericRenderer };
+    export { passwordRenderer as PasswordRenderer };
+    export { textRenderer as TextRenderer };
+    export { registerRenderer };
+    export { getRenderer };
+  }
+
+  export namespace validators {
+    export { autocompleteValidator as AutocompleteValidator };
+    export { dateValidator as DateValidator };
+    export { numericValidator as NumericValidator };
+    export { timeValidator as TimeValidator };
+    export { registerValidator };
+    export { getValidator };
+  }
+
+  export namespace plugins {
+    export class AutoColumnSize extends _AutoColumnSize {}
+    export class Autofill extends _Autofill {}
+    export class AutoRowSize extends _AutoRowSize {}
+    export class BindRowsWithHeaders extends _BindRowsWithHeaders {}
+    export class CollapsibleColumns extends _CollapsibleColumns {}
+    export class ColumnSorting extends _ColumnSorting {}
+    export class ColumnSummary extends _ColumnSummary {}
+    export class Comments extends _Comments {}
+    export class ContextMenu extends _ContextMenu {}
+    export class CopyPaste extends _CopyPaste {}
+    export class CustomBorders extends _CustomBorders {}
+    export class DragToScroll extends _DragToScroll {}
+    export class ExportFile extends _ExportFile {}
+    export class Filters extends _Filters {}
+    export class Formulas extends _Formulas {}
+    export class HiddenColumns extends _HiddenColumns {}
+    export class HiddenRows extends _HiddenRows {}
+    export class ManualColumnFreeze extends _ManualColumnFreeze {}
+    export class ManualColumnMove extends _ManualColumnMove {}
+    export class ManualColumnResize extends _ManualColumnResize {}
+    export class ManualRowMove extends _ManualRowMove {}
+    export class ManualRowResize extends _ManualRowResize {}
+    export class MergeCells extends _MergeCells {}
+    export class MultiColumnSorting extends _MultiColumnSorting {}
+    export class MultipleSelectionHandles extends _MultipleSelectionHandles {}
+    export class NestedHeaders extends _NestedHeaders {}
+    export class NestedRows extends _NestedRows {}
+    export class PersistentState extends _PersistentState {}
+    export class Search extends _Search {}
+    export class TrimRows extends _TrimRows {}
+    export class UndoRedo extends _UndoRedo {}
+
+    export namespace AutoColumnSize {
+      export { AutoColumnSizeSettings as Settings };
     }
 
-    namespace Autofill {
-      type Settings = AutofillSettings;
+    export namespace Autofill {
+      export { AutofillSettings as Settings };
     }
 
-    namespace AutoRowSize {
-      type Settings = AutoRowSizeSettings;
+    export namespace AutoRowSize {
+      export { AutoRowSizeSettings as Settings };
     }
 
-    namespace BindRowsWithHeaders {
-      type Settings = BindRowsWithHeadersSettings;
+    export namespace BindRowsWithHeaders {
+      export { BindRowsWithHeadersSettings as Settings };
     }
 
-    namespace CollapsibleColumns {
-      type Settings = CollapsibleColumnsSettings;
+    export namespace CollapsibleColumns {
+      export { CollapsibleColumnsSettings as Settings };
     }
 
-    namespace ColumnSorting {
-      type SortOrderType = ColumnSortingSortOrderType;
-      type Config = ColumnSortingConfig;
-      type Settings = ColumnSortingSettings;
+    export namespace ColumnSorting {
+      export { ColumnSortingSortOrderType as SortOrderType };
+      export { ColumnSortingConfig as Config };
+      export { ColumnSortingSettings as Settings };
     }
 
-    namespace ColumnSummary {
-      type Settings = ColumnSummarySettings;
+    export namespace ColumnSummary {
+      export { ColumnSummarySettings as Settings };
     }
 
-    namespace Comments {
-      type Settings = CommentsSettings;
-
-      interface CommentObject extends CommentsCommentObject {}
-      interface CommentConfig extends CommentsCommentConfig {}
+    export namespace Comments {
+      export { CommentsSettings as Settings };
+      export { CommentObject };
+      export { CommentConfig };
     }
 
-    namespace ContextMenu {
-      type PredefinedMenuItemKey = ContextMenuPredefinedMenuItemKey;
-      type Settings = ContextMenuSettings;
-
-      interface Selection extends ContextMenuSelection {}
-      interface MenuConfig extends ContextMenuMenuConfig {}
-      interface MenuItemConfig extends ContextMenuMenuItemConfig {}
-      interface SubmenuConfig extends ContextMenuSubmenuConfig {}
-      interface SubmenuItemConfig extends ContextMenuSubmenuItemConfig {}
+    export namespace ContextMenu {
+      export { ContextMenuSettings as Settings };
+      export { ContextMenuPredefinedMenuItemKey as PredefinedMenuItemKey };
+      export { ContextMenuSelection as Selection };
+      export { ContextMenuMenuConfig as MenuConfig };
+      export { ContextMenuMenuItemConfig as MenuItemConfig };
+      export { ContextMenuSubmenuConfig as SubmenuConfig };
+      export { ContextMenuSubmenuItemConfig as SubmenuItemConfig };
     }
 
-    namespace CopyPaste {
-      type Settings = CopyPasteSettings;
+    export namespace CopyPaste {
+      export { CopyPasteSettings as Settings };
     }
 
-    namespace CustomBorders {
-      type BorderOptions = _BorderOptions;
-      type BorderRange = _BorderRange;
-      type Settings = CustomBordersSettings;
+    export namespace CustomBorders {
+      export { CustomBordersSettings as Settings };
+      export { BorderOptions };
+      export { BorderRange };
     }
 
-    namespace DragToScroll {
-      type Settings = DragToScrollSettings;
+    export namespace DragToScroll {
+      export { DragToScrollSettings as Settings };
     }
 
-    namespace ExportFile {
-      type Settings = ExportFileSettings;
+    export namespace ExportFile {
+      export { ExportFileSettings as Settings };
     }
 
-    namespace Filters {
-      type Settings = FiltersSettings;
-      type ConditionId = FiltersConditionId;
-      type ConditionName = FiltersConditionName;
-      type OperationType = FiltersOperationType;
+    export namespace Filters {
+      export { FiltersSettings as Settings };
+      export { FiltersConditionId as ConditionId };
+      export { FiltersConditionName as ConditionName };
+      export { FiltersOperationType as OperationType };
     }
 
-    namespace Formulas {
-      type Settings = FormulasSettings;
-      type HyperFormulaSettings = _HyperFormulaSettings;
+    export namespace Formulas {
+      export { FormulasSettings as Settings };
+      export { HyperFormulaSettings };
     }
 
-    namespace HiddenColumns {
-      type Settings = HiddenColumnsSettings;
+    export namespace HiddenColumns {
+      export { HiddenColumnsSettings as Settings };
     }
 
-    namespace HiddenRows {
-      type Settings = HiddenRowsSettings;
+    export namespace HiddenRows {
+      export { HiddenRowsSettings as Settings };
     }
 
-    namespace ManualColumnFreeze {
-      type Settings = ManualColumnFreezeSettings;
+    export namespace ManualColumnFreeze {
+      export { ManualColumnFreezeSettings as Settings };
     }
 
-    namespace ManualColumnMove {
-      type Settings = ManualColumnMoveSettings;
+    export namespace ManualColumnMove {
+      export { ManualColumnMoveSettings as Settings };
     }
 
-    namespace ManualColumnResize {
-      type Settings = ManualColumnResizeSettings;
+    export namespace ManualColumnResize {
+      export { ManualColumnResizeSettings as Settings };
     }
 
-    namespace ManualRowMove {
-      type Settings = ManualRowMoveSettings;
+    export namespace ManualRowMove {
+      export { ManualRowMoveSettings as Settings };
     }
 
-    namespace ManualRowResize {
-      type Settings = ManualRowResizeSettings;
+    export namespace ManualRowResize {
+      export { ManualRowResizeSettings as Settings };
     }
 
-    namespace MergeCells {
-      type Settings = MergeCellsSettings;
+    export namespace MergeCells {
+      export { MergeCellsSettings as Settings };
     }
 
-    namespace MultiColumnSorting {
-      type SortOrderType = MultiColumnSortingSortOrderType;
-      type Config = MultiColumnSortingConfig;
-      type Settings = MultiColumnSortingSettings;
+    export namespace MultiColumnSorting {
+      export { MultiColumnSortingSettings as Settings };
+      export { MultiColumnSortingSortOrderType as SortOrderType };
+      export { MultiColumnSortingConfig as Config };
     }
 
-    namespace MultipleSelectionHandles {
-      type Settings = MultipleSelectionHandlesSettings;
+    export namespace MultipleSelectionHandles {
+      export { MultipleSelectionHandlesSettings as Settings };
     }
 
-    namespace NestedHeaders {
-      type Settings = NestedHeadersSettings;
+    export namespace NestedHeaders {
+      export { NestedHeadersSettings as Settings };
     }
 
-    namespace NestedRows {
-      type Settings = NestedRowsSettings;
+    export namespace NestedRows {
+      export { NestedRowsSettings as Settings };
     }
 
-    namespace PersistentState {
-      type Settings = PersistentStateSettings;
+    export namespace PersistentState {
+      export { PersistentStateSettings as Settings };
     }
 
-    namespace Search {
-      type Settings = SearchSettings;
-      type SearchCallback = _SearchCallback;
-      type SearchQueryMethod = _SearchQueryMethod;
+    export namespace Search {
+      export { SearchSettings as Settings };
+      export { SearchCallback };
+      export { SearchQueryMethod };
     }
 
-    namespace TrimRows {
-      type Settings = TrimRowsSettings;
+    export namespace TrimRows {
+      export { TrimRowsSettings as Settings };
     }
 
-    namespace UndoRedo {
-      type Settings = UndoRedoSettings;
+    export namespace UndoRedo {
+      export { UndoRedoSettings as Settings };
     }
   }
-  /* tslint:disable:no-empty-interface */
-}
-
-interface Helper extends _Helper {
-  htmlToGridSettings: typeof htmlToGridSettings;
-  instanceToHTML: typeof instanceToHTML;
 }
 
 declare class Handsontable extends Core {
@@ -462,18 +525,6 @@ declare class Handsontable extends Core {
   static buildDate: string;
   static packageName: 'handsontable';
   static version: string;
-  static cellTypes: CellTypesModule;
-  static languages: I18nModule;
-  static dom: Dom;
-  static editors: EditorsModule;
-  static helper: Helper;
-  static hooks: Hooks;
-  static plugins: PluginsModule;
-  static renderers: RenderersModule;
-  static validators: ValidatorsModule;
-  static Core: typeof Core;
-  static EventManager: typeof EventManager;
-  static DefaultSettings: _GridSettings;
 }
 
 export default Handsontable;

@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 
-const copyPaste = Handsontable.plugins.CopyPaste;
+const hot = new Handsontable(document.createElement('div'), {});
+const copyPaste = hot.getPlugin('copyPaste');
 
 copyPaste.columnsLimit = 10;
 copyPaste.rowsLimit = 10;

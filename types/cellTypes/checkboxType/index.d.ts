@@ -1,1 +1,1 @@
-export { CELL_TYPE, CheckboxCellType } from './checkboxType';
+export * from './checkboxType';

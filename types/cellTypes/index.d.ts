@@ -11,15 +11,15 @@ import { TimeCellType, CELL_TYPE as TIME_TYPE } from './timeType';
 export function registerAllCellTypes(): void;
 
 export interface CellTypes {
-  autocomplete: AutocompleteCellType;
-  checkbox: CheckboxCellType;
-  date: DateCellType;
-  dropdown: DropdownCellType;
-  handsontable: HandsontableCellType;
-  numeric: NumericCellType;
-  password: PasswordCellType;
-  text: TextCellType;
-  time: TimeCellType;
+  autocomplete: typeof AutocompleteCellType;
+  checkbox: typeof CheckboxCellType;
+  date: typeof DateCellType;
+  dropdown: typeof DropdownCellType;
+  handsontable: typeof HandsontableCellType;
+  numeric: typeof NumericCellType;
+  password: typeof PasswordCellType;
+  text: typeof TextCellType;
+  time: typeof TimeCellType;
 }
 
 /**

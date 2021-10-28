@@ -1,1 +1,1 @@
-export { CELL_TYPE, TimeCellType } from './timeType';
+export * from './timeType';

@@ -12,16 +12,16 @@ import { TextEditor, EDITOR_TYPE as TEXT_EDITOR } from './textEditor';
 export function registerAllEditors(): void;
 
 export interface Editors {
-  autocomplete: typeof AutocompleteEditor;
-  base: typeof BaseEditor;
-  checkbox: typeof CheckboxEditor;
-  date: typeof DateEditor;
-  dropdown: typeof DropdownEditor;
-  handsontable: typeof HandsontableEditor;
-  numeric: typeof NumericEditor;
-  password: typeof PasswordEditor;
-  select: typeof SelectEditor;
-  text: typeof TextEditor;
+  autocomplete: AutocompleteEditor;
+  base: BaseEditor;
+  checkbox: CheckboxEditor;
+  date: DateEditor;
+  dropdown: DropdownEditor;
+  handsontable: HandsontableEditor;
+  numeric: NumericEditor;
+  password: PasswordEditor;
+  select: SelectEditor;
+  text: TextEditor;
 }
 
 /**
@@ -31,6 +31,7 @@ export type EditorType = keyof Editors;
 
 export {
   AutocompleteEditor, AUTOCOMPLETE_EDITOR,
+  BaseEditor, BASE_EDITOR,
   CheckboxEditor, CHECKBOX_EDITOR,
   DateEditor, DATE_EDITOR,
   DropdownEditor, DROPDOWN_EDITOR,

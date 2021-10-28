@@ -241,7 +241,7 @@ export interface Events {
   persistentStateSave?: (key: string, value: any) => void;
 }
 
-export interface Hooks {
+export class Hooks {
   add<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, context?: Core): Hooks;
   createEmptyBucket(): Bucket;
   deregister(key: string): void;

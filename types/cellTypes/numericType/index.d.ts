@@ -1,1 +1,1 @@
-export { CELL_TYPE, NumericCellType } from './numericType';
+export * from './numericType';

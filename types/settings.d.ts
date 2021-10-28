@@ -33,8 +33,7 @@ import { Settings as MergeCellsSettings } from './plugins/mergeCells';
 import { Settings as MultiColumnSortingSettings } from './plugins/multiColumnSorting';
 import { Settings as NestedHeadersSettings } from './plugins/nestedHeaders';
 import { Settings as SearchSettings } from './plugins/search';
-import { EditorType } from './editors';
-import { BaseEditor } from './editors/base';
+import { EditorType, BaseEditor } from './editors';
 import { RendererType } from './renderers';
 import { BaseRenderer } from './renderers/base';
 import { ValidatorType } from './validators';
@@ -132,7 +131,7 @@ export interface GridSettings extends Events {
   disableVisualSelection?: boolean | 'current' | 'area' | 'header' | Array<'current' | 'area' | 'header'>;
   dragToScroll?: boolean;
   dropdownMenu?: DropdownMenuSettings;
-  editor?: EditorType | BaseEditor | boolean | string;
+  editor?: EditorType | typeof BaseEditor | boolean | string;
   enterBeginsEditing?: boolean;
   enterMoves?: CellCoords | SimpleCellCoords | ((event: KeyboardEvent) => CellCoords | SimpleCellCoords);
   fillHandle?: AutofillSettings;

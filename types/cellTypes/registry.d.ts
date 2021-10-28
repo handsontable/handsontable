@@ -1,20 +1,8 @@
-import { GridSettings } from '../settings';
-import { BaseRenderer } from '../renderers/base';
-import { BaseValidator } from '../validators/base';
-import { BaseEditor } from '../editors/base';
-
-interface CellTypeObject extends GridSettings {
-  renderer?: BaseRenderer;
-  editor?: BaseEditor;
-  validator?: BaseValidator;
-  /**
-   * Custom properties which will be accessible in `cellProperties`
-   */
-  [key: string]: any;
-}
+import { CellTypes } from './index';
+import { CellTypeObject } from './base';
 
 declare function _register(name: string, type: CellTypeObject): void;
-declare function _getItem(name: string): CellTypeObject;
+declare function _getItem<T extends keyof CellTypes>(name: T): CellTypes[T];
 declare function hasItem(name: string): boolean;
 declare function getNames(): string[];
 declare function getValues(): CellTypeObject[];

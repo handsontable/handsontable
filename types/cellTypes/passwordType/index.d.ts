@@ -1,1 +1,1 @@
-export { CELL_TYPE, PasswordCellType } from './passwordType';
+export * from './passwordType';

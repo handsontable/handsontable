@@ -13,7 +13,7 @@ import {
 } from './settings';
 import CellCoords from './3rdparty/walkontable/src/cell/coords';
 import CellRange from './3rdparty/walkontable/src/cell/range';
-import { BaseEditor } from './editors/base';
+import { BaseEditor } from './editors/baseEditor';
 import { BaseRenderer } from './renderers/base';
 import { BaseValidator } from './validators/base';
 import { Plugins } from './plugins';

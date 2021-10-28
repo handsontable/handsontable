@@ -1,1 +1,1 @@
-export { AutocompleteCellType, CELL_TYPE } from './autocompleteType';
+export * from './autocompleteType';

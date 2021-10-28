@@ -17,6 +17,7 @@ const TD = document.createElement('td');
 // Verify the built-in renderers exist and have the correct signature
 Handsontable.renderers.AutocompleteRenderer(hot, new HTMLTableDataCellElement(), 0, 0, 'prop', 1.235, cellProperties);
 Handsontable.renderers.BaseRenderer(hot, new HTMLTableDataCellElement(), 0, 0, 'prop', 1.235, cellProperties);
+Handsontable.renderers.cellDecorator(hot, new HTMLTableDataCellElement(), 0, 0, 'prop', 1.235, cellProperties);
 Handsontable.renderers.CheckboxRenderer(hot, new HTMLTableDataCellElement(), 0, 0, 'prop', 1.235, cellProperties);
 Handsontable.renderers.HtmlRenderer(hot, new HTMLTableDataCellElement(), 0, 0, 'prop', 1.235, cellProperties);
 Handsontable.renderers.NumericRenderer(hot, new HTMLTableDataCellElement(), 0, 0, 'prop', 1.235, cellProperties);

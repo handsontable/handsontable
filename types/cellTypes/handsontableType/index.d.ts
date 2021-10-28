@@ -1,1 +1,1 @@
-export { CELL_TYPE, HandsontableCellType } from './handsontableType';
+export * from './handsontableType';

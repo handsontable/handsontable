@@ -70,14 +70,6 @@ export interface Plugins {
   undoRedo: UndoRedo;
 }
 
-// export namespace Handsontable {
-//   namespace Plugins {
-//     interface Filters {
-//
-//     }
-//   }
-// }
-
 export { getPlugin, getPluginsNames, registerPlugin } from './registry';
 export function registerAllPlugins(): void;
 

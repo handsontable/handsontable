@@ -1,10 +1,10 @@
 import { GridSettings } from '../settings';
-import { BaseEditor } from '../editors/base';
+import { BaseEditor } from '../editors/baseEditor';
 import { BaseRenderer } from '../renderers/base';
 import { BaseValidator } from '../validators/base';
 
 export interface CellTypeObject extends GridSettings {
-  editor?: BaseEditor;
+  editor?: typeof BaseEditor;
   renderer?: BaseRenderer;
   validator?: BaseValidator;
   /**

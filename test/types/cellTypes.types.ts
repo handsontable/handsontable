@@ -48,7 +48,7 @@ Handsontable.cellTypes.time.renderer(hot, TD, 0, 0, 'prop', 'foo', cellPropertie
 Handsontable.cellTypes.time.validator.apply(cellProperties, ['', (valid: boolean) => {}]);
 
 // Verify top-level cellTypes API
-const autocomplete = Handsontable.cellTypes.getCellType('autocomplete') as Handsontable.cellTypes.Autocomplete;
+const autocomplete = Handsontable.cellTypes.getCellType('autocomplete');
 
 new autocomplete.editor(hot);
 autocomplete.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
