@@ -2375,7 +2375,7 @@ export default () => {
     language: 'en-US',
 
     /**
-     * Locale used for actions performed on data (for example, sorting, filtering).
+     * Locale used for actions performed on data (for example, filtering, searching, comparing data).
      *
      * @memberof Options#
      * @type {string}
