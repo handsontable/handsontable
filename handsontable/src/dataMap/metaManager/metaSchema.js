@@ -3254,7 +3254,6 @@ export default () => {
     locale: 'en-US',
 
     /**
-     * Data source for [select-typed](@/guides/cell-types/select-cell-type.md) cells.
      * The `selectOptions` option configures options that the end user can choose from in [`select`](@/guides/cell-types/select-cell-type.md) cells.
      *
      * You can set the `selectOptions` option to one of the following:
