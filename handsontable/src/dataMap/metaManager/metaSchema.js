@@ -3306,11 +3306,6 @@ export default () => {
      * | `true`    | Enable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin with the default configuration |
      * | An object | Enable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin and modify the plugin options  |
      *
-     * By default, the `autoColumnSize` option is set to `undefined`,
-     * but the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin acts as enabled.
-     * To disable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin completely,
-     * set the `autoColumnSize` option to `false`.
-     *
      * If you set the `autoColumnSize` option to an object, you can set the following [`AutoColumnSize`](@/api/autoColumnSize.md) plugin options:
      *
      * | Property                | Possible values                 | Description                                                                                                    |
@@ -3320,10 +3315,15 @@ export default () => {
      * | `samplingRatio`         | A number                        | The number of samples of the same length to be used in column width calculations                               |
      * | `allowSampleDuplicates` | `true` \| `false`               | When calculating column widths:<br>`true`: Allow duplicate samples<br>`false`: Don't allow duplicate samples |
      *
+     * By default, the `autoColumnSize` option is set to `undefined`,
+     * but the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin acts as enabled.
+     * To disable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin completely,
+     * set the `autoColumnSize` option to `false`.
+     *
      * Using the [`colWidths`](#colWidths) option forcibly disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
      * Read more:
-     * - [`AutoColumnSize`](@/api/autoColumnSize.md)
+     * - [`AutoColumnSize` &#8594;](@/api/autoColumnSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -3357,21 +3357,21 @@ export default () => {
      * | `true`    | Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin with the default configuration |
      * | An object | Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin and modify the plugin options  |
      *
-     * By default, the `autoRowSize` option is set to `undefined`,
-     * but the [`AutoRowSize`](@/api/autoRowSize.md) plugin acts as enabled.
-     * To disable the [`AutoRowSize`](@/api/autoRowSize.md) plugin completely,
-     * set the `autoRowSize` option to `false`.
-     *
      * If you set the `autoRowSize` option to an object, you can set the following [`AutoRowSize`](@/api/autoRowSize.md) plugin options:
      *
      * | Property    | Possible values                 | Description                                                       |
      * | ----------- | ------------------------------- | ----------------------------------------------------------------- |
      * | `syncLimit` | A number \| A percentage string | The number/percentage of rows to keep in sync<br>(default: `500`) |
      *
+     * By default, the `autoRowSize` option is set to `undefined`,
+     * but the [`AutoRowSize`](@/api/autoRowSize.md) plugin acts as enabled.
+     * To disable the [`AutoRowSize`](@/api/autoRowSize.md) plugin completely,
+     * set the `autoRowSize` option to `false`.
+     *
      * Using the [`rowHeights`](#rowHeights) option forcibly disables the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
      *
      * Read more:
-     * - [`AutoRowSize`](@/api/autoRowSize.md)
+     * - [`AutoRowSize`&#8594;](@/api/autoRowSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
