@@ -48,7 +48,7 @@
     "test:unit": "cross-env-shell npm_config_testPathPattern=. BABEL_ENV=commonjs env-cmd -f ./hot.config.js jest --testPathPattern=$npm_config_testPathPattern",
     "test:unit.watch": "cross-env-shell BABEL_ENV=commonjs env-cmd -f ./hot.config.js jest --testPathPattern=$npm_config_testPathPattern --watch",
     "test:mobile.dump": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-mobile env-cmd --no-override -f ./hot.config.js webpack --hide-modules helpers=./test/helpers/index.js mobile=./test/e2e/mobile/index.js",
-    "test:types": "node ./scripts/prepare-package-for-publish.mjs && tsc -p ./test/types",
+    "test:types": "npm run build:commonjs && npm run build:es && npm run postbuild && tsc -p ./test/types",
     "test:ci": "node --experimental-json-modules scripts/run-targeted-tests.mjs",
     "test:all": "npm run in handsontable build && npm run all test",
     "watch": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=watch env-cmd -f ./hot.config.js webpack --hide-modules --watch src/index.js",
