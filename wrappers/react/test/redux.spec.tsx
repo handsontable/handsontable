@@ -47,7 +47,7 @@ beforeEach(() => {
 });
 
 describe('Using Redux store within HotTable renderers and editors', () => {
-  it('should be possible to use redux-enabled components as renderers', async (done) => {
+  it('should be possible to use redux-enabled components as renderers', async () => {
     // let reduxStore = mockStore(initialReduxStoreState);
 
     const ReduxEnabledRenderer = connect(function (state: any) {
@@ -106,10 +106,9 @@ describe('Using Redux store within HotTable renderers and editors', () => {
 
     wrapper.detach();
 
-    done();
   });
 
-  it('should be possible to use redux-enabled components as editors', async (done) => {
+  it('should be possible to use redux-enabled components as editors', async () => {
     const ReduxEnabledEditor = connect(function (state: any) {
         return {
           bgColor: state.appReducer.hexColor
@@ -164,6 +163,5 @@ describe('Using Redux store within HotTable renderers and editors', () => {
 
     wrapper.detach();
 
-    done();
   });
 });

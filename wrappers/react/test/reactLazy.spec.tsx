@@ -19,7 +19,7 @@ beforeEach(() => {
 });
 
 describe('React.lazy', () => {
-  it('should be possible to lazy-load components and utilize Suspend', async (done) => {
+  it('should be possible to lazy-load components and utilize Suspend', async () => {
     function RendererComponent2(props) {
       return (
         <>
@@ -80,6 +80,5 @@ describe('React.lazy', () => {
 
     wrapper.detach();
 
-    done();
   });
 });

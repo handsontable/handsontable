@@ -8,6 +8,16 @@ import { ConnectedComponent } from 'react-redux';
 export type HotEditorElement = React.ReactElement<{}, ConnectedComponent<React.FunctionComponent, any> | any>;
 
 /**
+ * Type of the identifier under which the cached editor components are stored.
+ */
+export type EditorScopeIdentifier = 'global' | number;
+
+/**
+ * Type of the cache map for the Handsontable editor components.
+ */
+export type HotEditorCache = Map<Function, Map<EditorScopeIdentifier, React.Component>>;
+
+/**
  * Interface for the `prop` of the HotTable component - extending the default Handsontable settings with additional,
  * component-related properties.
  */
@@ -38,8 +48,8 @@ export interface HotColumnProps extends Handsontable.ColumnSettings {
   _columnIndex?: number,
   _getChildElementByType?: (children: React.ReactNode, type: string) => React.ReactElement;
   _getRendererWrapper?: (rendererNode: React.ReactElement) => Handsontable.renderers.Base;
-  _getEditorClass?: (editorElement: React.ReactElement) => typeof Handsontable.editors.BaseEditor;
-  _getEditorCache?: () => Map<Function, React.Component>;
+  _getEditorClass?: (editorElement: React.ReactElement, editorColumnScope: EditorScopeIdentifier) => typeof Handsontable.editors.BaseEditor;
+  _getEditorCache?: () => HotEditorCache;
   _getOwnerDocument?: () => Document;
   children?: React.ReactNode;
 }

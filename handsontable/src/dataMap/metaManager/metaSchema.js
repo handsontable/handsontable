@@ -7,71 +7,61 @@ import { isObjectEqual } from '../../helpers/object';
  * @class Options
  * @description
  *
- * Handsontable provides many options to choose from. They come either from the {@link Core} features or {@link Hooks}.
+ * [Configuration options](@/guides/getting-started/setting-options.md) let you heavily customize your Handsontable instance. For example, you can:
  *
- * You can pass options in an object iteral notation (a comma-separated list of name-value pairs wrapped in curly braces) as a second argument of the Handsontable constructor.
+ * - Enable and disable built-in features
+ * - Enable and configure additional [plugins](@/guides/building-and-testing/plugins.md)
+ * - Personalize Handsontable's look
+ * - Adjust Handsontable's behavior
+ * - Implement your own custom features
  *
- * In the further documentation, and in Guides, we prefer calling this object a `Settings` object or `configuration` object.
+ * To apply [configuration options](@/guides/getting-started/setting-options.md), pass them as
+ * a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid),
+ * using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
  *
  * ```js
  * const container = document.getElementById('example');
+ *
  * const hot = new Handsontable(container, {
- *   data: myArray,
+ *   // configuration options, in the object literal notation
+ *   licenseKey: "non-commercial-and-evaluation",
+ *   data: Handsontable.helper.createSpreadsheetData(5, 10),
  *   width: 400,
- *   height: 300
+ *   height: 300,
+ *   colHeaders: true,
+ *   rowHeaders: true,
+ *   customBorders: true,
+ *   dropdownMenu: true,
+ *   multiColumnSorting: true,
+ *   filters: true,
+ *   manualRowMove: true,
  * });
  * ```
  *
- * ## Applying options to different elements of the grid
+ * Depending on your needs, you can apply [configuration options](@/api/options.md) to different elements of your grid, such as:
+ * - [The entire grid](@/guides/getting-started/setting-options.md#setting-grid-options)
+ * - [Individual columns](@/guides/getting-started/setting-options.md#setting-column-options)
+ * - [Individual rows](@/guides/getting-started/setting-options.md#setting-row-options)
+ * - [Individual cells](@/guides/getting-started/setting-options.md#setting-cell-options)
+ * - [Individual grid elements, based on any logic you implement](@/guides/getting-started/setting-options.md#implementing-custom-logic)
  *
- * Options can set for many different parts of the data grid:
- *
- * - The entire grid
- * - A column or range of columns
- * - A row or range of rows
- * - A cell or range of cells
- *
- * Options use the cascading configuration to make that possible.
- *
- * Take a look at the following example:
- *
- * ```js
- * const container = document.getElementById('example');
- * const hot = new Handsontable(container, {
- *   readOnly: true,
- *   columns: [
- *     { readOnly: false },
- *     {},
- *     {},
- *   ],
- *   cells: function(row, col, prop) {
- *     var cellProperties = {};
- *
- *     if (row === 0 && col === 0) {
- *       cellProperties.readOnly = true;
- *     }
- *
- *     return cellProperties;
- *   }
- * });
- * ```
- *
- * In the above example we first set the `read-only` option for the entire grid. Then we make two exceptions of this rule:
- *
- * - We exclude the first column by passing `readOnly: false`, which in result makes it editable.
- * - We exclude the cell in the top left corner, just like we did it with the first column.
- *
- * To learn more about how to use cascading settings go to the [Setting Options](@/guides/getting-started/setting-options.md) page.
- *
- * ::: tip
- * In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
- * :::
+ * Read more:
+ * - [Configuration options &#8594;](@/guides/getting-started/setting-options.md)
  */
-/* eslint-enable jsdoc/require-description-complete-sentence */
 export default () => {
   return {
     /**
-     * License key for commercial version of Handsontable.
+     * The `licenseKey` option sets your Handsontable license key.
+     *
+     * You can set the `licenseKey` option to one of the following:
+     *
+     * | Setting                                                                                                 | Description                                                                                       |
+     * | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+     * | A string with your [commercial license key](@/guides/getting-started/license-key.md#commercial-license) | For [commercial use](@/guides/technical-specification/software-license.md#commercial-use)         |
+     * | `'non-commercial-and-evaluation'`                                                                       | For [non-commercial use](@/guides/technical-specification/software-license.md#non-commercial-use) |
+     *
+     * Read more:
+     * - [License key &#8594;](@/guides/getting-started/license-key.md)
      *
      * @memberof Options#
      * @type {string}
@@ -80,19 +70,29 @@ export default () => {
      *
      * @example
      * ```js
-     * licenseKey: '00000-00000-00000-00000-00000',
-     * // or
+     * // for commercial use
+     * licenseKey: 'xxxxx-xxxxx-xxxxx-xxxxx-xxxxx', // your commercial license key
+     *
+     * // for non-commercial use
      * licenseKey: 'non-commercial-and-evaluation',
      * ```
      */
     licenseKey: void 0,
 
+    /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * @description
-     * Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
-     * Can be declared as an array of arrays or an array of objects.
+     * The `data` option sets the initial [data](@/guides/getting-started/binding-to-data.md) of your Handsontable instance.
      *
-     * See [Understanding binding as reference](@/guides/getting-started/binding-to-data.md#understand-binding-as-a-reference).
+     * Handsontable's data is bound to your source data __by reference__ (i.e. when you edit Handsontable's data, your source data alters as well).
+     *
+     * You can set the `data` option:
+     * - Either to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
+     * - Or to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects).
+     *
+     * Read more:
+     * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
+     * - [`dataSchema`](#dataSchema)
      *
      * @memberof Options#
      * @type {Array[]|object[]}
@@ -120,11 +120,15 @@ export default () => {
      */
     data: void 0,
 
+    /* eslint-disable jsdoc/require-description-complete-sentence */
+
     /**
      * @description
-     * Defines the structure of a new row when data source is an array of objects.
+     * If the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
+     * (or is empty), the `dataSchema` option defines the structure of new rows.
      *
-     * See [data-schema](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema) for more options.
+     * Read more:
+     * - [Binding to data: Array of objects with custom data schema &#8594;](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema)
      *
      * @memberof Options#
      * @type {object}
@@ -133,7 +137,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // with data schema we can start with an empty table
+     * // with `dataSchema`, you can start with an empty grid
      * data: null,
      * dataSchema: {id: null, name: {first: null, last: null}, address: null},
      * colHeaders: ['ID', 'First Name', 'Last Name', 'Address'],
@@ -150,7 +154,18 @@ export default () => {
     dataSchema: void 0,
 
     /**
-     * Width of the grid. Can be a value or a function that returns a value.
+     * The `width` option configures the width of your grid.
+     *
+     * You can set the `width` option to one of the following:
+     *
+     * | Setting                                                                    | Example                                              |
+     * | -------------------------------------------------------------------------- | ---------------------------------------------------- |
+     * | A number of pixels                                                         | `width: 500`                                         |
+     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `width: '75vw'`                                      |
+     * | A function that returns a valid number or string                           | <pre>width() {<br>&nbsp;&nbsp;return 500;<br>}</pre> |
+     *
+     * Read more:
+     * - [Grid size &#8594;](@/guides/getting-started/grid-size.md)
      *
      * @memberof Options#
      * @type {number|string|Function}
@@ -159,14 +174,14 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a number
+     * // set the grid's width to 500px
      * width: 500,
      *
-     * // as a string
+     * // set the grid's width to 75vw
      * width: '75vw',
      *
-     * // as a function
-     * width: function() {
+     * // set the grid's width to 500px, using a function
+     * width() {
      *   return 500;
      * },
      * ```
@@ -174,7 +189,18 @@ export default () => {
     width: void 0,
 
     /**
-     * Height of the grid. Can be a number or a function that returns a number.
+     * The `height` option configures the height of your grid.
+     *
+     * You can set `height` option to one of the following:
+     *
+     * | Setting                                                                    | Example                                               |
+     * | -------------------------------------------------------------------------- | ----------------------------------------------------- |
+     * | A number of pixels                                                         | `height: 500`                                         |
+     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `height: '75vw'`                                      |
+     * | A function that returns a valid number or string                           | <pre>height() {<br>&nbsp;&nbsp;return 500;<br>}</pre> |
+     *
+     * Read more:
+     * - [Grid size &#8594;](@/guides/getting-started/grid-size.md)
      *
      * @memberof Options#
      * @type {number|string|Function}
@@ -183,14 +209,14 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a number
+     * // set the grid's height to 500px
      * height: 500,
      *
-     * // as a string
+     * // set the grid's height to 75vh
      * height: '75vh',
      *
-     * // as a function
-     * height: function() {
+     * // set the grid's height to 500px, using a function
+     * height() {
      *   return 500;
      * },
      * ```
@@ -199,9 +225,9 @@ export default () => {
 
     /**
      * @description
-     * Initial number of rows.
+     * If the [`data`](#data) option is not set, the `startRows` option sets the initial number of empty rows.
      *
-     * __Note:__ This option only has effect in Handsontable constructor and only if `data` option is not provided.
+     * The `startRows` option works only in Handsontable's constructor.
      *
      * @memberof Options#
      * @type {number}
@@ -218,9 +244,9 @@ export default () => {
 
     /**
      * @description
-     * Initial number of columns.
+     * If the [`data`](#data) option is not set, the `startCols` option sets the initial number of empty columns.
      *
-     * __Note:__ This option only has effect in Handsontable constructor and only if `data` option is not provided.
+     * The `startCols` option works only in Handsontable's constructor.
      *
      * @memberof Options#
      * @type {number}
@@ -236,9 +262,19 @@ export default () => {
     startCols: 5,
 
     /**
-     * Setting `true` or `false` will enable or disable the default row headers (1, 2, 3).
-     * You can also define an array `['One', 'Two', 'Three', ...]` or a function to define the headers.
-     * If a function is set the index of the row is passed as a parameter.
+     * The `rowHeaders` option configures your grid's row headers.
+     *
+     * You can set the `rowHeaders` option to one of the following:
+     *
+     * | Setting    | Description                                                       |
+     * | ---------- | ----------------------------------------------------------------- |
+     * | `true`     | Enable the default row headers ("1", "2", "3", ...)               |
+     * | `false`    | Disable row headers                                               |
+     * | An array   | Define your own row headers (e.g. `['One', 'Two', 'Three', ...]`) |
+     * | A function | Define your own row headers, using a function                     |
+     *
+     * Read more:
+     * - [Row header &#8594;](@/guides/rows/row-header.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
@@ -247,24 +283,34 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean
+     * // enable the default row headers
      * rowHeaders: true,
      *
-     * // as an array
-     * rowHeaders: ['1', '2', '3'],
+     * // set your own row headers
+     * rowHeaders: ['One', 'Two', 'Three'],
      *
-     * // as a function
-     * rowHeaders: function(index) {
-     *   return index + ': AB';
+     * // set your own row headers, using a function
+     * rowHeaders: function(visualRowIndex) {
+     *   return `${visualRowIndex}: AB`;
      * },
      * ```
      */
     rowHeaders: void 0,
 
     /**
-     * Setting `true` or `false` will enable or disable the default column headers (A, B, C).
-     * You can also define an array `['One', 'Two', 'Three', ...]` or a function to define the headers.
-     * If a function is set, then the index of the column is passed as a parameter.
+     * The `colHeaders` option configures your grid's column headers.
+     *
+     * You can set the `colHeaders` option to one of the following:
+     *
+     * | Setting  | Description                                                          |
+     * | -------- | -------------------------------------------------------------------- |
+     * | `true`   | Enable the default column headers ("A", "B", "C", ...)               |
+     * | `false`  | Disable column headers                                               |
+     * | An array | Define your own column headers (e.g. `['One', 'Two', 'Three', ...]`) |
+     * | A function | Define your own column headers, using a function                     |
+     *
+     * Read more:
+     * - [Column header &#8594;](@/guides/columns/column-header.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
@@ -273,30 +319,38 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean
+     * // enable the default column headers
      * colHeaders: true,
      *
-     * // as an array
-     * colHeaders: ['A', 'B', 'C'],
+     * // set your own column headers
+     * colHeaders: ['One', 'Two', 'Three'],
      *
-     * // as a function
-     * colHeaders: function(index) {
-     *   return index + ': AB';
+     * // set your own column headers, using a function
+     * colHeaders: function(visualColumnIndex) {
+     *   return `${visualColumnIndex} + : AB`;
      * },
      * ```
      */
     colHeaders: null,
 
     /**
-     * Defines column widths in pixels. Accepts number, string (that will be converted to a number), array of numbers
-     * (if you want to define column width separately for each column) or a function (if you want to set column width
-     * dynamically on each render).
+     * The `colWidths` option sets columns' widths, in pixels.
      *
-     * The default width for columns in the rendering process equals 50px.
+     * In the rendering process, the default column width is 50px. To change it,
+     * set the `colWidths` option to one of the following:
      *
-     * An `undefined` value is for detection in {@link Hooks#modifyColWidth} hook if plugin or setting changed the default size.
+     * | Setting     | Description                                                                                          | Example                                                                                      |
+     * | ----------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+     * | A number    | Set the same width for every column                                                                  | `colWidths: 100`                                                                             |
+     * | A string    | Set the same width for every column                                                                  | `colWidths: '100px'`                                                                         |
+     * | An array    | Set widths separately for each column                                                                | `colWidths: [100, 120, undefined]`                                                           |
+     * | A function  | Set column widths dynamically,<br>on each render                                                     | <pre>colWidths(visualColumnIndex) {<br>&nbsp;&nbsp;return visualColumnIndex * 10;<br>}</pre> |
+     * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined`                                                                       |
      *
-     * Note: This option will forcely disable {@link AutoColumnSize} plugin.
+     * Setting the `colWidths` option disables the {@link AutoColumnSize} plugin.
+     *
+     * Read more:
+     * - [Column width &#8594;](@/guides/columns/column-width.md)
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -305,35 +359,45 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a number, for each column.
+     * // set every column's width to 100px
      * colWidths: 100,
      *
-     * // as a string, for each column.
+     * // set every column's width to 100px
      * colWidths: '100px',
      *
-     * // as an array, based on visual indexes. Unspecified columns have a default width.
-     * colWidths: [100, 120, undefined, 90],
+     * // set the first (by visual index) column's width to 100
+     * // set the second (by visual index) column's width to 120
+     * // set the third (by visual index) column's width to `undefined`
+     * // set any other column's width to the default 50px
+     * colWidths: [100, 120, undefined],
      *
-     * // as a function, based on visual indexes.
-     * colWidths: function(index) {
-     *   return index * 10;
+     * // set each column's width individually, using a function
+     * colWidths(visualColumnIndex) {
+     *   return visualColumnIndex * 10;
      * },
      * ```
      */
     colWidths: void 0,
 
     /**
-     * Defines row heights in pixels. Accepts numbers, strings (that will be converted into a number), array of numbers
-     * (if you want to define row height separately for each row) or a function (if you want to set row height dynamically
-     * on each render).
+     * The `rowHeights` option sets rows' heights, in pixels.
      *
-     * If the {@link ManualRowResize} or {@link AutoRowSize} plugins are enabled, this is also the minimum height that can
-     * be set via either of those two plugins.
+     * In the rendering process, the default row height is 23px.
+     * You can change it to equal or greater than 23px, by setting the `rowHeights` option to one of the following:
      *
-     * The default height for rows in the rendering process equals 23px.
-     * Height should be equal or greater than 23px. Table is rendered incorrectly if height is less than 23px.
+     * | Setting     | Description                                                                                         | Example                                                                                 |
+     * | ----------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+     * | A number    | Set the same height for every row                                                                   | `rowHeights: 100`                                                                       |
+     * | A string    | Set the same height for every row                                                                   | `rowHeights: '100px'`                                                                   |
+     * | An array    | Set heights separately for each row                                                                 | `rowHeights: [100, 120, undefined]`                                                     |
+     * | A function  | Set row heights dynamically,<br>on each render                                                      | <pre>rowHeights(visualRowIndex) {<br>&nbsp;&nbsp;return visualRowIndex * 10;<br>}</pre> |
+     * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes | `rowHeights: undefined`                                                                 |
      *
-     * An `undefined` value is for detection in {@link Hooks#modifyRowHeight} hook if plugin or setting changed the default size.
+     * The `rowHeights` option also sets the minimum row height that can be set
+     * via the {@link ManualRowResize} and {@link AutoRowSize} plugins (if they are enabled).
+     *
+     * Read more:
+     * - [Row height &#8594;](@/guides/rows/row-height.md)
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -342,18 +406,21 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a number, the same for all rows
+     * // set every row's height to 100px
      * rowHeights: 100,
      *
-     * // as a string, the same for all row
+     * // set every row's height to 100px
      * rowHeights: '100px',
      *
-     * // as an array, based on visual indexes. The rest of the rows have a default height
-     * rowHeights: [100, 120, 90],
+     * // set the first (by visual index) row's height to 100
+     * // set the second (by visual index) row's height to 120
+     * // set the third (by visual index) row's height to `undefined`
+     * // set any other row's height to the default 23px
+     * rowHeights: [100, 120, undefined],
      *
-     * // as a function, based on visual indexes
-     * rowHeights: function(index) {
-     *   return index * 10;
+     * // set each row's height individually, using a function
+     * rowHeights(visualRowIndex) {
+     *   return visualRowIndex * 10;
      * },
      * ```
      */
@@ -361,11 +428,18 @@ export default () => {
 
     /**
      * @description
-     * Defines the cell properties and data binding for certain columns.
+     * The `columns` option lets you apply [configuration options](@/guides/getting-started/setting-options.md) to individual columns (or ranges of columns).
      *
-     * __Note:__ Using this option sets a fixed number of columns (options `startCols`, `minCols`, `maxCols` will be ignored).
+     * You can set the `columns` option to one of the following:
+     * - An array of objects (each object represents one column)
+     * - A function that returns an array of objects
      *
-     * See [documentation -> datasources.html](@/guides/getting-started/binding-to-data.md#array-of-objects-with-column-mapping) for examples.
+     * The `columns` option overwrites the [top-level grid options](@/guides/getting-started/setting-options.md#setting-grid-options).
+     *
+     * When you use the `columns` option, the [`startCols`](#startCols), [`minCols`](#minCols), and [`maxCols`](#maxCols) are ignored.
+     *
+     * Read more:
+     * - [Configuration options: Setting column options &#8594;](@/guides/getting-started/setting-options.md#setting-column-options)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -374,25 +448,25 @@ export default () => {
      *
      * @example
      * ```js
-     * // as an array of objects
-     * // order of the objects in array is representation of physical indexes.
+     * // set the `columns` option to an array of objects
+     * // each object represents one column
      * columns: [
      *   {
-     *     // column options for the first column
+     *     // column options for the first (by physical index) column
      *     type: 'numeric',
      *     numericFormat: {
      *       pattern: '0,0.00 $'
      *     }
      *   },
      *   {
-     *     // column options for the second column
+     *     // column options for the second (by physical index) column
      *     type: 'text',
      *     readOnly: true
      *   }
      * ],
      *
-     * // or as a function, based on physical indexes
-     * columns: function(index) {
+     * // or set the `columns` option to a function, based on physical indexes
+     * columns(index) {
      *   return {
      *     type: index > 0 ? 'numeric' : 'text',
      *     readOnly: index < 1
@@ -404,15 +478,21 @@ export default () => {
 
     /**
      * @description
-     * Defines the cell properties for given `row`, `col`, `prop` coordinates. Any constructor or column option may be
-     * overwritten for a particular cell (row/column combination) using the `cells` property in the Handsontable constructor.
+     * The `cells` option lets you apply [configuration options](@/guides/getting-started/setting-options.md) to
+     * individual grid elements (columns, rows, cells), based on any logic you implement.
      *
-     * __Note:__ Parameters `row` and `col` always represent __physical indexes__. Example below show how to execute
-     * operations based on the __visual__ representation of Handsontable.
+     * The `cells` option overwrites all other options (including options set by [`columns`](#columns) and [`cell`](#cell)).
+     * It takes the following parameters:
      *
-     * Possible values of `prop`:
-     * - property name for column's data source object, when dataset is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects)
-     * - the same number as `col`, when dataset is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
+     * | Parameter | Required | Type             | Description                                                                                                                                                                                                                                                                                                                             |
+     * | --------- | -------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `row`     | Yes      | Number           | A physical row index                                                                                                                                                                                                                                                                                                                    |
+     * | `column`  | Yes      | Number           | A physical column index                                                                                                                                                                                                                                                                                                                 |
+     * | `prop`    | No       | String \| Number | If [`data`](#data) is set to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), `prop` is the same number as `column`.<br><br>If [`data`](#data) is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), `prop` is a property name for the column's data object. |
+     *
+     * Read more:
+     * - [Configuration options: Implementing custom logic &#8594;](@/guides/getting-started/setting-options.md#implementing-custom-logic)
+     * - [Configuration options: Setting row options &#8594;](@/guides/getting-started/setting-options.md#setting-row-options)
      *
      * @memberof Options#
      * @type {Function}
@@ -421,7 +501,8 @@ export default () => {
      *
      * @example
      * ```js
-     * cells: function(row, column, prop) {
+     * // set the `cells` option to your custom function
+     * cells(row, column, prop) {
      *   const cellProperties = { readOnly: false };
      *   const visualRowIndex = this.instance.toVisualRow(row);
      *   const visualColIndex = this.instance.toVisualColumn(column);
@@ -437,8 +518,13 @@ export default () => {
     cells: void 0,
 
     /**
-     * Any constructor or column option may be overwritten for a particular cell (row/column combination), using `cell`
-     * array passed to the Handsontable constructor.
+     * The `cell` option lets you apply [configuration options](@/guides/getting-started/setting-options.md) to individual cells.
+     *
+     * The `cell` option overwrites the [top-level grid options](@/guides/getting-started/setting-options.md#setting-grid-options),
+     * and the [`columns`](#columns) options.
+     *
+     * Read more:
+     * - [Configuration options: Setting cell options &#8594;](@/guides/getting-started/setting-options.md#setting-cell-options)
      *
      * @memberof Options#
      * @type {Array[]}
@@ -447,8 +533,9 @@ export default () => {
      *
      * @example
      * ```js
-     * // make cell with coordinates (0, 0) read only
+     * // set the `cell` option to an array of objects
      * cell: [
+     *   // make the cell with coordinates (0, 0) read-only
      *   {
      *     row: 0,
      *     col: 0,
@@ -461,13 +548,26 @@ export default () => {
 
     /**
      * @description
-     * If `true`, enables the {@link Comments} plugin, which enables an option to apply cell comments through the context menu
-     * (configurable with context menu keys `commentsAddEdit`, `commentsRemove`).
+     * The `comments` option configures the [`Comments`](@/api/comments.md) plugin.
      *
-     * To initialize Handsontable with predefined comments, provide cell coordinates and comment text values in a form of
-     * an array.
+     * You can set the `comments` option to one of the following:
      *
-     * See [Comments](@/guides/cell-features/comments.md) demo for examples.
+     * | Setting   | Description                                                                                                                                                                           |
+     * | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true`    | - Enable the [`Comments`](@/api/comments.md) plugin<br>- Add comment menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md)                                 |
+     * | `false`   | Disable the [`Comments`](@/api/comments.md) plugin                                                                                                                                    |
+     * | An object | - Enable the [`Comments`](@/api/comments.md) plugin<br>- Add comment menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md)<br>- Configure comment settings |
+     *
+     * If you set the `comments` option to an object, you can configure the following comment options:
+     *
+     * | Option         | Possible settings           | Description                                         |
+     * | -------------- | --------------------------- | --------------------------------------------------- |
+     * | `displayDelay` | A number (default: `250`)   | Display comments after a delay (in milliseconds)    |
+     * | `readOnly`     | `true` \| `false` (default) | `true`: Make comments read-only                     |
+     * | `style`        | An object                   | Set comment boxes' `width` and `height` (in pixels) |
+     *
+     * Read more:
+     * - [Comments &#8594;](@/guides/cell-features/comments.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -476,36 +576,64 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable comments plugin
+     * // enable the `Comments` plugin
      * comments: true,
      *
-     * // or an object with extra predefined plugin config:
-     *
+     * // enable the `Comments` plugin
+     * // and configure its settings
      * comments: {
-     *   displayDelay: 1000
+     *   // display all comments with a 1-second delay
+     *   displayDelay: 1000,
+     *   // make all comments read-only
+     *   readOnly: true,
+     *   // set the default size of all comment boxes
+     *   style: {
+     *     width: 300,
+     *     height: 100
+     *   }
      * }
-     *
-     * // or
-     * // enable comments plugin and add predefined comments
-     * const hot = new Handsontable(document.getElementById('example'), {
-     *   data: getData(),
-     *   comments: true,
-     *   cell: [
-     *     { row: 1, col: 1, comment: { value: 'Foo' } },
-     *     { row: 2, col: 2, comment: { value: 'Bar' } }
-     *   ]
-     * });
      * ```
      */
     comments: false,
 
     /**
      * @description
-     * If `true`, enables the {@link CustomBorders} plugin, which enables an option to apply custom borders through the context
-     * menu (configurable with context menu key `borders`). To initialize Handsontable with predefined custom borders,
-     * provide cell coordinates and border styles in a form of an array.
+     * The `customBorders` option configures the [`CustomBorders`](@/api/customBorders.md) plugin.
      *
-     * See [Custom Borders](@/guides/cell-features/formatting-cells.md#custom-cell-borders) demo for examples.
+     * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
+     * (and add its menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md)),
+     * set the `customBorders` option to `true`.
+     *
+     * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
+     * and add a predefined border around a particular cell,
+     * set the `customBorders` option to an array of objects.
+     * Each object represents a border configuration for one cell, and has the following properties:
+     *
+     * | Property | Sub-properties     | Types                              | Description                                                       |
+     * | -------- | ------------------ | ---------------------------------- | ----------------------------------------------------------------- |
+     * | `row`    | -                  | `row`: Number                      | The cell's row coordinate.                                        |
+     * | `col`    | -                  | `col`: Number                      | The cell's column coordinate.                                     |
+     * | `left`   | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the left border's width (`width`)<br> and color (`color`).   |
+     * | `right`  | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the right border's width (`width`)<br> and color (`color`).  |
+     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the top border's width (`width`)<br> and color (`color`).    |
+     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the bottom border's width (`width`)<br> and color (`color`). |
+     *
+     * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
+     * and add a predefined border around a range of cells,
+     * set the `customBorders` option to an array of objects.
+     * Each object represents a border configuration for a single range of cells, and has the following properties:
+     *
+     * | Property | Sub-properties                               | Types                                                            | Description                                                                                  |
+     * | -------- | -------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+     * | `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | `from` selects the range's top-left corner.<br>`to` selects the range's bottom-right corner. |
+     * | `left`   | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the left border's `width` and `color`.                                                  |
+     * | `right`  | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the right border's `width` and `color`.                                                 |
+     * | `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the top border's `width` and `color`.                                                   |
+     * | `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the bottom border's `width` and `color`.                                                |
+     *
+     * Read more:
+     * - [Formatting cells: Custom cell borders &#8594;](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
+     * - [`CustomBorders`](@/api/customBorders.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -514,48 +642,64 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable custom borders
+     * // enable the `CustomBorders` plugin
      * customBorders: true,
      *
-     * // or
-     * // enable custom borders and start with predefined left border
+     * // enable the `CustomBorders` plugin
+     * // and add a predefined border for a particular cell
      * customBorders: [
+     *   // add an object with a border configuration for one cell
      *   {
+     *     // set the cell's row coordinate
+     *     row: 2,
+     *     // set the cell's column coordinate
+     *     col: 2,
+     *     // set the left border's width and color
+     *     left: {
+     *       width: 2,
+     *       color: 'red'
+     *     },
+     *     // set the right border's width and color
+     *     right: {
+     *       width: 1,
+     *       color: 'green'
+     *     },
+     *     // set the top border's width and color
+     *     top: '',
+     *     // set the bottom border's width and color
+     *     bottom: ''
+     *   }
+     * ],
+     *
+     * // enable the `CustomBorders` plugin
+     * // and add a predefined border for a range of cells
+     * customBorders: [
+     *   // add an object with a border configuration for one range of cells
+     *   {
+     *     // select a range of cells
      *     range: {
+     *       // set the range's top-left corner
      *       from: {
      *         row: 1,
      *         col: 1
      *       },
+     *       // set the range's bottom-right corner
      *       to: {
      *         row: 3,
      *         col: 4
      *       }
      *     },
+     *     // set the left border's width and color
      *     left: {
      *       width: 2,
      *       color: 'red'
      *     },
+     *     // set the right border's width and color
      *     right: {},
+     *     // set the top border's width and color
      *     top: {},
+     *     // set the bottom border's width and color
      *     bottom: {}
-     *   }
-     * ],
-     *
-     * // or
-     * customBorders: [
-     *   {
-     *     row: 2,
-     *     col: 2,
-     *     left: {
-     *       width: 2,
-     *       color: 'red'
-     *     },
-     *     right: {
-     *       width: 1,
-     *       color: 'green'
-     *     },
-     *     top: '',
-     *     bottom: ''
      *   }
      * ],
      * ```
@@ -563,7 +707,12 @@ export default () => {
     customBorders: false,
 
     /**
-     * Minimum number of rows. At least that number of rows will be created during initialization.
+     * The `minRows` option sets a minimum number of rows.
+     *
+     * The `minRows` option is used:
+     * - At initialization: if the `minRows` value is higher than the initial number of rows,
+     * Handsontable adds empty rows at the bottom.
+     * - At runtime: for example, when removing rows.
      *
      * @memberof Options#
      * @type {number}
@@ -572,16 +721,26 @@ export default () => {
      *
      * @example
      * ```js
-     * // set minimum table size to 10 rows
+     * // set the minimum number of rows to 10
      * minRows: 10,
      * ```
      */
     minRows: 0,
 
     /**
-     * Minimum number of columns. At least that number of columns will be created during initialization.
-     * Works only with an array data source. When data source in an object, you can only have as many columns
-     * as defined in the first data row, data schema, or the `columns` setting.
+     * The `minCols` option sets a minimum number of columns.
+     *
+     * The `minCols` option is used:
+     * - At initialization: if the `minCols` value is higher than the initial number of columns,
+     * Handsontable adds empty columns to the right.
+     * - At runtime: for example, when removing columns.
+     *
+     * The `minCols` option works only when your [`data`](#data) is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
+     * When your [`data`](#data) is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects),
+     * you can only have as many columns as defined in:
+     * - The first data row
+     * - The [`dataSchema`](#dataSchema) option
+     * - The [`columns`](#columns) option
      *
      * @memberof Options#
      * @type {number}
@@ -590,15 +749,19 @@ export default () => {
      *
      * @example
      * ```js
-     * // set minimum table size to 10 columns
+     * // set the minimum number of columns to 10
      * minCols: 10,
      * ```
      */
     minCols: 0,
 
     /**
-     * Maximum number of rows. If set to a value lower than the initial row count, the data will be trimmed to the provided
-     * value as the number of rows.
+     * The `maxRows` option sets a maximum number of rows.
+     *
+     * The `maxRows` option is used:
+     * - At initialization: if the `maxRows` value is lower than the initial number of columns,
+     * Handsontable trims rows from the bottom.
+     * - At runtime: for example, when inserting rows.
      *
      * @memberof Options#
      * @type {number}
@@ -607,15 +770,19 @@ export default () => {
      *
      * @example
      * ```js
-     * // limit table size to maximum 300 rows
+     * // set the maximum number of rows to 300
      * maxRows: 300,
      * ```
      */
     maxRows: Infinity,
 
     /**
-     * Maximum number of cols. If set to a value lower than the initial col count, the data will be trimmed to the provided
-     * value as the number of cols.
+     * The `maxCols` option sets a maximum number of columns.
+     *
+     * The `maxCols` option is used:
+     * - At initialization: if the `maxCols` value is lower than the initial number of columns,
+     * Handsontable trims columns from the right.
+     * - At runtime: for example, when inserting columns.
      *
      * @memberof Options#
      * @type {number}
@@ -623,22 +790,20 @@ export default () => {
      * @category Core
      *
      * @example
-     * ```js
-     * // limit table size to maximum 300 columns
+     * // set the maximum number of columns to 300
      * maxCols: 300,
      * ```
      */
     maxCols: Infinity,
 
     /**
-     * When set to an integer of more than `0`, appends the set number of empty rows
-     * to the bottom of your table.
+     * The `minSpareRows` option sets a minimum number of empty rows
+     * at the bottom of the grid.
      *
-     * `minSpareRows` sets a minimum number of empty rows,
-     * so if there already are other empty rows at the bottom of your table,
-     * they are counted into the number set in `minSpareRows`.
+     * If there already are other empty rows at the bottom,
+     * they are counted into the `minSpareRows` value.
      *
-     * The total number of rows can't exceed the number set in `maxRows`.
+     * The total number of rows can't exceed the [`maxRows`](#maxRows) value.
      *
      * @memberof Options#
      * @type {number}
@@ -647,24 +812,27 @@ export default () => {
      *
      * @example
      * ```js
-     * // always add 3 empty rows at the table end
+     * // at Handsontable's initialization, add at least 3 empty rows at the bottom
      * minSpareRows: 3,
      * ```
      */
     minSpareRows: 0,
 
     /**
-     * When set to an integer of more than `0`, appends the set number of empty columns
-     * to the right-hand end of your table.
+     * The `minSpareCols` option sets a minimum number of empty columns
+     * at the grid's right-hand end.
      *
-     * `minSpareCols` sets a minimum number of empty columns,
-     * so if there already are other empty columns at the right-hand end of your table,
-     * they are counted into the number set in `minSpareCols`.
+     * If there already are other empty columns at the grid's right-hand end,
+     * they are counted into the `minSpareCols` value.
      *
-     * The total number of columns can't exceed the number set in `maxCols`.
+     * The total number of columns can't exceed the [`maxCols`](#maxCols) value.
      *
-     * `minSpareCols` works only when your table data is an array of arrays
-     * (it doesn't work when your table data is an array of objects).
+     * The `minSpareCols` option works only when your [`data`](#data) is an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
+     * When your [`data`](#data) is an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects),
+     * you can only have as many columns as defined in:
+     * - The first data row
+     * - The [`dataSchema`](#dataSchema) option
+     * - The [`columns`](#columns) option
      *
      * @memberof Options#
      * @type {number}
@@ -673,14 +841,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // always add 3 empty columns at the table end
+     * // at Handsontable's initialization, add at least 3 empty columns on the right
      * minSpareCols: 3,
      * ```
      */
     minSpareCols: 0,
 
     /**
-     * If set to `false`, there won't be an option to insert new rows in the Context Menu.
+     * If set to `true`, the `allowInsertRow` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md):
+     * - **Insert row above**
+     * - **Insert row below**
      *
      * @memberof Options#
      * @type {boolean}
@@ -689,14 +859,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // hide "Insert row above" and "Insert row below" options from the Context Menu
+     * // hide the "Insert row above" and "Insert row below" menu items from the context menu
      * allowInsertRow: false,
      * ```
      */
     allowInsertRow: true,
 
     /**
-     * If set to `false`, there won't be an option to insert new columns in the Context Menu.
+     * If set to `true`, the `allowInsertColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md):
+     * - **Insert column left**
+     * - **Insert column right**
      *
      * @memberof Options#
      * @type {boolean}
@@ -705,14 +877,15 @@ export default () => {
      *
      * @example
      * ```js
-     * // hide "Insert column left" and "Insert column right" options from the Context Menu
+     * // hide the "Insert column left" and "Insert column right" menu items from the context menu
      * allowInsertColumn: false,
      * ```
      */
     allowInsertColumn: true,
 
     /**
-     * If set to `false`, there won't be an option to remove rows in the Context Menu.
+     * If set to `true`, the `allowRemoveRow` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md):
+     * - **Remove row**
      *
      * @memberof Options#
      * @type {boolean}
@@ -721,14 +894,15 @@ export default () => {
      *
      * @example
      * ```js
-     * // hide "Remove row" option from the Context Menu
+     * // hide the "Remove row" menu item from the context menu
      * allowRemoveRow: false,
      * ```
      */
     allowRemoveRow: true,
 
     /**
-     * If set to `false`, there won't be an option to remove columns in the Context Menu.
+     * If set to `true`, the `allowRemoveColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md):
+     * - **Remove column**
      *
      * @memberof Options#
      * @type {boolean}
@@ -737,7 +911,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // hide "Remove column" option from the Context Menu
+     * // hide the "Remove column" menu item from the context menu
      * allowRemoveColumn: false,
      * ```
      */
@@ -745,13 +919,18 @@ export default () => {
 
     /**
      * @description
-     * Defines how the table selection reacts. The selection support three different behaviors defined as:
-     *  * `'single'` Only a single cell can be selected.
-     *  * `'range'` Multiple cells within a single range can be selected.
-     *  * `'multiple'` Multiple ranges of cells can be selected.
+     * The `selectionMode` option configures how [selection](@/guides/cell-features/selection.md) works.
      *
-     * To see how to interact with selection by getting selected data or change styles of the selected cells go to
-     * [Selecting Ranges](@/guides/cell-features/selection.md).
+     * You can set the `selectionMode` option to one of the following:
+     *
+     * | Setting      | Description                                                  |
+     * | ------------ | ------------------------------------------------------------ |
+     * | `'single'`   | Allow the user to select only one cell at a time.            |
+     * | `'range'`    | Allow the user to select one range of cells at a time.       |
+     * | `'multiple'` | Allow the user to select multiple ranges of cells at a time. |
+     *
+     * Read more:
+     * - [Selection: Selecting ranges &#8594;](@/guides/cell-features/selection.md#selecting-ranges)
      *
      * @memberof Options#
      * @type {string}
@@ -760,22 +939,40 @@ export default () => {
      *
      * @example
      * ```js
-     * // only one cell can be selected at a time
+     * // you can only select one cell at at a time
      * selectionMode: 'single',
+     *
+     * // you can select one range of cells at a time
+     * selectionMode: 'range',
+     *
+     * // you can select multiple ranges of cells at a time
+     * selectionMode: 'multiple',
      * ```
      */
     selectionMode: 'multiple',
 
     /**
-     * Enables the fill handle (drag-down and copy-down) functionality, which shows a small rectangle in bottom
-     * right corner of the selected area, that let's you expand values to the adjacent cells.
+     * The `fillHandle` option configures the [Autofill](@/api/autofill.md) plugin.
      *
-     * Setting to `true` enables the fillHandle plugin. Possible values: `true` (to enable in all directions),
-     * `'vertical'` or `'horizontal'` (to enable in one direction), `false` (to disable completely), an object with
-     * options: `autoInsertRow`, `direction`.
+     * You can set the `fillHandle` option to one the following:
      *
-     * If `autoInsertRow` option is `true`, fill-handler will create new rows till it reaches the last row.
-     * It is enabled by default.
+     * | Setting        | Description                                                                |
+     * | -------------- | -------------------------------------------------------------------------- |
+     * | `true`         | - Enable autofill in all directions<br>- Add the fill handle               |
+     * | `false`        | Disable autofill                                                           |
+     * | `'vertical'`   | - Enable vertical autofill<br>- Add the fill handle                        |
+     * | `'horizontal'` | - Enable horizontal autofill<br>- Add the fill handle                      |
+     * | An object      | - Enable autofill<br>- Add the fill handle<br>- Configure autofill options |
+     *
+     * If you set the `fillHandle` option to an object, you can configure the following autofill options:
+     *
+     * | Option          | Possible settings              | Description                                                                                               |
+     * | --------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------- |
+     * | `autoInsertRow` | `true` (default) \| `false`    | `true`: When you reach the grid's bottom, add new rows<br>`false`: When you reach the grid's bottom, stop |
+     * | `direction`     | `'vertical'` \| `'horizontal'` | `'vertical'`: Enable vertical autofill<br>`'horizontal'`: Enable horizontal autofill                      |
+     *
+     * Read more:
+     * - [AutoFill values &#8594;](@/guides/cell-features/autofill-values.md)
      *
      * @memberof Options#
      * @type {boolean|string|object}
@@ -784,22 +981,27 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable plugin in all directions and with autoInsertRow as true
+     * // enable autofill in all directions
+     * // with `autoInsertRow` enabled
      * fillHandle: true,
      *
-     * // or
-     * // enable plugin in vertical direction and with autoInsertRow as true
+     * // enable vertical autofill
+     * // with `autoInsertRow` enabled
      * fillHandle: 'vertical',
      *
-     * // or
+     * // enable horizontal autofill
+     * // with `autoInsertRow` enabled
+     * fillHandle: 'horizontal',
+     *
+     * // enable autofill in all directions
+     * // with `autoInsertRow` disabled
      * fillHandle: {
-     *   // enable plugin in both directions and with autoInsertRow as false
      *   autoInsertRow: false,
      * },
      *
-     * // or
+     * // enable vertical autofill
+     * // with `autoInsertRow` disabled
      * fillHandle: {
-     *   // enable plugin in vertical direction and with autoInsertRow as false
      *   autoInsertRow: false,
      *   direction: 'vertical'
      * },
@@ -810,7 +1012,10 @@ export default () => {
     },
 
     /**
-     * Allows to specify the number of fixed (or *frozen*) rows at the top of the table.
+     * The `fixedRowsTop` option sets the number of [frozen rows](@/guides/rows/row-freezing.md) at the top of the grid.
+     *
+     * Read more:
+     * - [Row freezing &#8594;](@/guides/rows/row-freezing.md)
      *
      * @memberof Options#
      * @type {number}
@@ -819,14 +1024,18 @@ export default () => {
      *
      * @example
      * ```js
-     * // freeze the first 3 rows of the table.
+     * // freeze the top 3 rows
      * fixedRowsTop: 3,
      * ```
      */
     fixedRowsTop: 0,
 
     /**
-     * Allows to specify the number of fixed (or *frozen*) rows at the bottom of the table.
+     * The `fixedRowsBottom` option sets the number of [frozen rows](@/guides/rows/row-freezing.md)
+     * at the bottom of the grid.
+     *
+     * Read more:
+     * - [Row freezing &#8594;](@/guides/rows/row-freezing.md)
      *
      * @memberof Options#
      * @type {number}
@@ -835,14 +1044,18 @@ export default () => {
      *
      * @example
      * ```js
-     * // freeze the last 3 rows of the table.
+     * // freeze the bottom 3 rows
      * fixedRowsBottom: 3,
      * ```
      */
     fixedRowsBottom: 0,
 
     /**
-     * Allows to specify the number of fixed (or *frozen*) columns on the left of the table.
+     * The `fixedColumnsLeft` option sets the number of [frozen columns](@/guides/columns/column-freezing.md)
+     * at the left-hand side of the grid.
+     *
+     * Read more:
+     * - [Column freezing &#8594;](@/guides/columns/column-freezing.md)
      *
      * @memberof Options#
      * @type {number}
@@ -851,15 +1064,23 @@ export default () => {
      *
      * @example
      * ```js
-     * // freeze first 3 columns of the table.
+     * // freeze the first 3 columns from the left
      * fixedColumnsLeft: 3,
      * ```
      */
     fixedColumnsLeft: 0,
 
     /**
-     * If `true`, mouse click outside the grid will deselect the current selection. Can be a function that takes the
-     * click event target and returns a boolean.
+     * The `outsideClickDeselects` option determines what happens to the current [selection](@/guides/cell-features/selection.md)
+     * when you click outside of the grid.
+     *
+     * You can set the `outsideClickDeselects` option to one of the following:
+     *
+     * | Setting          | Description                                                                                              |
+     * | ---------------- | -------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | On a mouse click outside of the grid, clear the current [selection](@/guides/cell-features/selection.md) |
+     * | `false`          | On a mouse click outside of the grid, keep the current [selection](@/guides/cell-features/selection.md)  |
+     * | A function       | A function that takes the click event target and returns a boolean                                       |
      *
      * @memberof Options#
      * @type {boolean|Function}
@@ -868,11 +1089,19 @@ export default () => {
      *
      * @example
      * ```js
-     * // don't clear current selection when mouse click was outside the grid
+     * // on a mouse click outside of the grid, clear the current selection
+     * outsideClickDeselects: true,
+     *
+     * // on a mouse click outside of the grid, keep the current selection
      * outsideClickDeselects: false,
      *
-     * // or
-     * outsideClickDeselects: function(event) {
+     * // take the click event target and return `false`
+     * outsideClickDeselects(event) {
+     *   return false;
+     * }
+     *
+     * // take the click event target and return `true`
+     * outsideClickDeselects(event) {
      *   return false;
      * }
      * ```
@@ -880,8 +1109,14 @@ export default () => {
     outsideClickDeselects: true,
 
     /**
-     * If `true`, <kbd>ENTER</kbd> begins editing mode (like in Google Docs). If `false`, <kbd>ENTER</kbd> moves to next
-     * row (like Excel) and adds a new row if necessary. <kbd>TAB</kbd> adds new column if necessary.
+     * The `enterBeginsEditing` option configures the action of the <kbd>Enter</kbd> key.
+     *
+     * You can set the `enterBeginsEditing` option to one of the following:
+     *
+     * | Setting          | Description                                                                                                                                                                                               |
+     * | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | - On pressing <kbd>Enter</kbd> once, start editing the currently-selected cell<br>- On pressing <kbd>Enter</kbd> twice, move to another cell,<br>as configured by the [`enterMoves`](#enterMoves) setting |
+     * | `false`          | - On pressing <kbd>Enter</kbd> once, move to another cell,<br>as configured by the [`enterMoves`](#enterMoves) setting                                                                                    |
      *
      * @memberof Options#
      * @type {boolean}
@@ -890,16 +1125,32 @@ export default () => {
      *
      * @example
      * ```js
+     * // press Enter once to start editing
+     * // press Enter twice to move to another cell
+     * enterBeginsEditing: true,
+     *
+     * // press Enter once to move to another cell
      * enterBeginsEditing: false,
      * ```
      */
     enterBeginsEditing: true,
 
     /**
-     * Defines the cursor movement after <kbd>ENTER</kbd> was pressed (<kbd>SHIFT</kbd> + <kbd>ENTER</kbd> uses a negative vector). Can
-     * be an object or a function that returns an object. The event argument passed to the function is a DOM Event object
-     * received after the <kbd>ENTER</kbd> key has been pressed. This event object can be used to check whether user pressed
-     * <kbd>ENTER</kbd> or <kbd>SHIFT</kbd> + <kbd>ENTER</kbd>.
+     * The `enterMoves` option configures the action of the <kbd>Enter</kbd> key.
+     *
+     * If the [`enterBeginsEditing`](#enterBeginsEditing) option is set to `true`,
+     * the `enterMoves` setting applies to the **second** pressing of the <kbd>Enter</kbd> key.
+     *
+     * If the [`enterBeginsEditing`](#enterBeginsEditing) option is set to `false`,
+     * the `enterMoves` setting applies to the **first** pressing of the <kbd>Enter</kbd> key.
+     *
+     * You can set the `enterMoves` option to an object with the following properties
+     * (or to a function that returns such an object):
+     *
+     * | Property | Type   | Description                                                                                                                                              |
+     * | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `col`    | Number | - On pressing <kbd>Enter</kbd>, move selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move selection `col` columns left |
+     * | `row`    | Number | - On pressing <kbd>Enter</kbd>, move selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move selection `row` rows up          |
      *
      * @memberof Options#
      * @type {object|Function}
@@ -908,10 +1159,14 @@ export default () => {
      *
      * @example
      * ```js
-     * // move selection diagonal by 1 cell in x and y axis
+     * // on pressing Enter, move selection 1 column right and 1 row down
+     * // on pressing Shift+Enter, move selection 1 column left and 1 row up
      * enterMoves: {col: 1, row: 1},
-     * // or as a function
-     * enterMoves: function(event) {
+     *
+     * // the same setting, as a function
+     * // `event` is a DOM Event object received on pressing Enter
+     * // you can use it to check whether the user pressed Enter or Shift+Enter
+     * enterMoves(event) {
      *   return {col: 1, row: 1};
      * },
      * ```
@@ -919,10 +1174,15 @@ export default () => {
     enterMoves: { col: 0, row: 1 },
 
     /**
-     * Defines the cursor movement after <kbd>TAB</kbd> is pressed (<kbd>SHIFT</kbd> + <kbd>TAB</kbd> uses a negative vector). Can
-     * be an object or a function that returns an object. The event argument passed to the function is a DOM Event object
-     * received after the <kbd>TAB</kbd> key has been pressed. This event object can be used to check whether user pressed
-     * <kbd>TAB</kbd> or <kbd>SHIFT</kbd> + <kbd>TAB</kbd>.
+     * The `tabMoves` option configures the action of the <kbd>Tab</kbd> key.
+     *
+     * You can set the `tabMoves` option to an object with the following properties
+     * (or to a function that returns such an object):
+     *
+     * | Property | Type   | Description                                                                                                                                              |
+     * | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `row`    | Number | - On pressing <kbd>Tab</kbd>, move selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move selection `row` rows up              |
+     * | `col`    | Number | - On pressing <kbd>Tab</kbd>, move selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Tab</kbd>, move selection `col` columns left     |
      *
      * @memberof Options#
      * @type {object|Function}
@@ -931,10 +1191,14 @@ export default () => {
      *
      * @example
      * ```js
-     * // move selection 2 cells away after TAB pressed.
+     * // on pressing Tab, move selection 2 rows down and 2 columns right
+     * // on pressing Shift+Tab, move selection 2 rows up and 2 columns left
      * tabMoves: {row: 2, col: 2},
-     * // or as a function
-     * tabMoves: function(event) {
+     *
+     * // the same setting, as a function
+     * // `event` is a DOM Event object received on pressing Tab
+     * // you can use it to check whether the user pressed Tab or Shift+Tab
+     * tabMoves(event) {
      *   return {row: 2, col: 2};
      * },
      * ```
@@ -942,9 +1206,14 @@ export default () => {
     tabMoves: { row: 0, col: 1 },
 
     /**
-     * If set to `true`: when you use keyboard navigation,
-     * and you cross the grid's left or right edge,
-     * cell selection jumps to the opposite edge.
+     * The `autoWrapRow` option determines what happens to current cell selection when you navigate to the grid's left or right edge.
+     *
+     * You can set the `autoWrapRow` option to one of the following:
+     *
+     * | Setting           | Description                                                                                                                  |
+     * | ----------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+     * | `true`            | On reaching the grid's left or right edge:<br>- Jump to the grid's opposite edge<br>- Select a cell in the previous/next row |
+     * | `false` (default) | On reaching the grid's left or right edge, stop                                                                              |
      *
      * @memberof Options#
      * @type {boolean}
@@ -953,16 +1222,21 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable jumping across the grid's vertical edges
+     * // on reaching the grid's left or right edge, jump to the opposite edge
      * autoWrapRow: true,
      * ```
      */
     autoWrapRow: false,
 
     /**
-     * If set to `true`: when you use keyboard navigation,
-     * and you cross the grid's top or bottom edge,
-     * cell selection jumps to the grid's opposite edge.
+     * The `autoWrapCol` option determines what happens to current cell selection when you navigate to the grid's top or bottom edge.
+     *
+     * You can set the `autoWrapCol` option to one of the following:
+     *
+     * | Setting           | Description                                                                                                             |
+     * | ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
+     * | `true`            | On reaching the grid's top or bottom edge<br>- Jump to the opposite edge<br>- Select a cell in the previous/next column |
+     * | `false` (default) | On reaching the grid's top or bottom edge, stop                                                                         |
      *
      * @memberof Options#
      * @type {boolean}
@@ -971,7 +1245,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable jumping across the grid's horizontal edges
+     * // on reaching the grid's top or bottom edge, jump to the opposite edge
      * autoWrapCol: true,
      * ```
      */
@@ -979,32 +1253,18 @@ export default () => {
 
     /**
      * @description
-     * Turns on saving the state of column sorting, column positions and column sizes in local storage.
+     * The `persistentState` option configures the [`PersistentState`](@/api/persistentState.md) plugin.
      *
-     * You can save any sort of data in local storage to preserve table state between page reloads.  In order to enable
-     * data storage mechanism, `persistentState` option must be set to `true` (you can set it either during Handsontable
-     * initialization or using the `updateSettings` method). When `persistentState` is enabled it exposes 3 hooks:
+     * You can set the `persistentState` to one of the following:
      *
-     * __persistentStateSave__ (key: String, value: Mixed).
+     * | Setting           | Description                                                      |
+     * | ----------------- | ---------------------------------------------------------------- |
+     * | `false` (default) | Disable the [`PersistentState`](@/api/persistentState.md) plugin |
+     * | `true`            | Enable the [`PersistentState`](@/api/persistentState.md) plugin  |
      *
-     *   * Saves value under given key in browser local storage.
-     *
-     * __persistentStateLoad__ (key: String, valuePlaceholder: Object).
-     *
-     *   * Loads `value`, saved under given key, form browser local storage. The loaded `value` will be saved in
-     *   `valuePlaceholder.value` (this is due to specific behaviour of `Hooks.run()` method). If no value have
-     *   been saved under key `valuePlaceholder.value` will be `undefined`.
-     *
-     * __persistentStateReset__ (key: String).
-     *
-     *   * Clears the value saved under `key`. If no `key` is given, all values associated with table will be cleared.
-     *
-     * __Note:__ The main reason behind using `persistentState` hooks rather than regular LocalStorage API is that it
-     * ensures separation of data stored by multiple Handsontable instances. In other words, if you have two (or more)
-     * instances of Handsontable on one page, data saved by one instance won't be accessible by the second instance.
-     * Those two instances can store data under the same key and no data would be overwritten.
-     *
-     * __Important:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
+     * Read more:
+     * - [`PersistentState`](@/api/persistentState.md)
+     * - [Saving data: Saving data locally &#8594;](@/guides/getting-started/saving-data.md#saving-data-locally)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1013,14 +1273,15 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable the persistent state plugin
+     * // enable the `PersistentState` plugin
      * persistentState: true,
      * ```
      */
     persistentState: void 0,
 
     /**
-     * Class name for all visible rows in the current selection.
+     * The `currentRowClassName` option lets you add a CSS class name
+     * to every cell of the currently-visible, currently-selected rows.
      *
      * @memberof Options#
      * @type {string}
@@ -1029,14 +1290,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // This will add a 'currentRow' class name to appropriate table cells.
-     * currentRowClassName: 'currentRow',
+     * // add a `your-class-name` CSS class name
+     * // to every cell of the currently-visible, currently-selected rows
+     * currentRowClassName: 'your-class-name',
      * ```
      */
     currentRowClassName: void 0,
 
     /**
-     * Class name for all visible columns in the current selection.
+     * The `currentColClassName` option lets you add a CSS class name
+     * to every cell of the currently-visible, currently-selected columns.
      *
      * @memberof Options#
      * @type {string}
@@ -1045,14 +1308,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // This will add a 'currentColumn' class name to appropriate table cells.
-     * currentColClassName: 'currentColumn',
+     * // add a `your-class-name` CSS class name
+     * // to every cell of the currently-visible, currently-selected columns
+     * currentColClassName: 'your-class-name',
      * ```
      */
     currentColClassName: void 0,
 
     /**
-     * Class name for all visible headers in current selection.
+     * The `currentHeaderClassName` option lets you add a CSS class name
+     * to every currently-visible, currently-selected header.
      *
      * @memberof Options#
      * @type {string}
@@ -1061,15 +1326,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // This will add a 'ht__highlight' class name to appropriate table headers.
+     * // add an `ht__highlight` CSS class name
+     * // to every currently-visible, currently-selected header
      * currentHeaderClassName: 'ht__highlight',
      * ```
      */
     currentHeaderClassName: 'ht__highlight',
 
     /**
-     * Class name for all active headers in selections. The header will be marked with this class name
-     * only when a whole column or row will be selected.
+     * The `activeHeaderClassName` option lets you add a CSS class name
+     * to every currently-active, currently-selected header (when a whole column or row is selected).
      *
      * @memberof Options#
      * @type {string}
@@ -1079,17 +1345,27 @@ export default () => {
      *
      * @example
      * ```js
-     * // this will add a 'ht__active_highlight' class name to appropriate table headers.
+     * // add an `ht__active_highlight` CSS class name
+     * // to every currently-active, currently-selected header
      * activeHeaderClassName: 'ht__active_highlight',
      * ```
      */
     activeHeaderClassName: 'ht__active_highlight',
 
     /**
-     * Class name for the current element.
-     * The interpretation depends on the level on which this option is provided in the [cascading configuration](@/guides/getting-started/setting-options.md).
-     * If `className` is provided on the first (constructor) level, it is the applied to the Handsontable container.
-     * If `className` is provided on the second (`column`) or the third (`cell` or `cells`) level, it is applied to the table cell.
+     * The `className` option lets you add CSS class names to every currently-selected element.
+     *
+     * You can set the `className` option to one of the following:
+     *
+     * | Setting             | Description                                                      |
+     * | ------------------- | ---------------------------------------------------------------- |
+     * | A string            | Add a single CSS class name to every currently-selected element  |
+     * | An array of strings | Add multiple CSS class names to every currently-selected element |
+     *
+     * To apply different CSS class names on different levels, use Handsontable's [cascading configuration](@/guides/getting-started/setting-options.md#cascading-configuration).
+     *
+     * Read more:
+     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @type {string|string[]}
@@ -1098,17 +1374,27 @@ export default () => {
      *
      * @example
      * ```js
-     * // can be set as a string
-     * className: 'your__class--name',
+     * // add a `your-class-name` CSS class name
+     * // to every currently-selected element
+     * className: 'your-class-name',
      *
-     * // or as an array of strings
+     * // add `first-class-name` and `second-class-name` CSS class names
+     * // to every currently-selected element
      * className: ['first-class-name', 'second-class-name'],
      * ```
      */
     className: void 0,
 
     /**
-     * Class name for all tables inside container element.
+     * The `tableClassName` option lets you add CSS class names
+     * to every Handsontable instance inside the `container` element.
+     *
+     * You can set the `tableClassName` option to one of the following:
+     *
+     * | Setting             | Description                                                                                |
+     * | ------------------- | ------------------------------------------------------------------------------------------ |
+     * | A string            | Add a single CSS class name to every Handsontable instance inside the `container` element  |
+     * | An array of strings | Add multiple CSS class names to every Handsontable instance inside the `container` element |
      *
      * @memberof Options#
      * @type {string|string[]}
@@ -1117,10 +1403,12 @@ export default () => {
      *
      * @example
      * ```js
-     * // set custom class for table element
-     * tableClassName: 'your__class--name',
+     * // add a `your-class-name` CSS class name
+     * // to every Handsontable instance inside the `container` element
+     * tableClassName: 'your-class-name',
      *
-     * // or
+     * // add `first-class-name` and `second-class-name` CSS class names
+     * // to every Handsontable instance inside the `container` element
      * tableClassName: ['first-class-name', 'second-class-name'],
      * ```
      */
@@ -1128,11 +1416,19 @@ export default () => {
 
     /**
      * @description
-     * Defines how the columns react, when the declared table width is different than the calculated sum of all column widths.
-     * [See more](@/guides/columns/column-width.md#column-stretching) mode. Possible values:
-     *  * `'none'` Disable stretching
-     *  * `'last'` Stretch only the last column
-     *  * `'all'` Stretch all the columns evenly.
+     * The `stretchH` option determines what happens when the declared grid width
+     * is different from the calculated sum of all column widths.
+     *
+     * You can set the `stretchH` option to one of the following:
+     *
+     * | Setting            | Description                                                       |
+     * | ------------------ | ----------------------------------------------------------------- |
+     * | `'none'` (default) | Don't fit the grid to the container (disable column stretching)   |
+     * | `'last'`           | Fit the grid to the container, by stretching only the last column |
+     * | `'all'`            | Fit the grid to the container, by stretching all columns evenly   |
+     *
+     * Read more:
+     * - [Column width: Column stretching &#8594;](@/guides/columns/column-width.md#column-stretching)
      *
      * @memberof Options#
      * @type {string}
@@ -1141,14 +1437,18 @@ export default () => {
      *
      * @example
      * ```js
-     * // fit table to the container
+     * // fit the grid to the container
+     * // by stretching all columns evenly
      * stretchH: 'all',
      * ```
      */
     stretchH: 'none',
 
     /**
-     * Overwrites the default `isEmptyRow` method, which checks if row at the provided index is empty.
+     * The `isEmptyRow` option lets you define your own custom method
+     * for checking if a row at a given visual index is empty.
+     *
+     * The `isEmptyRow` setting overwrites the built-in [`isEmptyRow`](@/api/core.md#isEmptyRow) method.
      *
      * @memberof Options#
      * @type {Function}
@@ -1158,8 +1458,9 @@ export default () => {
      *
      * @example
      * ```js
-     * // define custom checks for empty row
-     * isEmptyRow: function(row) {
+     * // overwrite the built-in `isEmptyRow` method
+     * isEmptyRow(visualRowIndex) {
+     *    // your custom method
      *    ...
      * },
      * ```
@@ -1188,7 +1489,10 @@ export default () => {
     },
 
     /**
-     * Overwrites the default `isEmptyCol` method, which checks if column at the provided index is empty.
+     * The `isEmptyCol` option lets you define your own custom method
+     * for checking if a column at a given visual index is empty.
+     *
+     * The `isEmptyCol` setting overwrites the built-in [`isEmptyCol`](@/api/core.md#isEmptyCol) method.
      *
      * @memberof Options#
      * @type {Function}
@@ -1198,9 +1502,10 @@ export default () => {
      *
      * @example
      * ```js
-     * // define custom checks for empty column
-     * isEmptyCol: function(column) {
-     *    return false;
+     * // overwrite the built-in `isEmptyCol` method
+     * isEmptyCol(visualColumnIndex) {
+     *    // your custom method
+     *    ...
      * },
      * ```
      */
@@ -1221,7 +1526,8 @@ export default () => {
     },
 
     /**
-     * When set to `true`, the table is re-rendered when it is detected that it was made visible in DOM.
+     * If the `observeDOMVisibility` option is set to `true`,
+     * Handsontable rerenders every time it detects that the grid was made visible in the DOM.
      *
      * @memberof Options#
      * @type {boolean}
@@ -1230,17 +1536,29 @@ export default () => {
      *
      * @example
      * ```js
-     * // don't rerender the table on visibility changes
+     * // don't rerender the grid on visibility changes
      * observeDOMVisibility: false,
      * ```
      */
     observeDOMVisibility: true,
 
     /**
-     * If set to `true`, Handsontable will accept values that were marked as invalid by the cell `validator`. It will
-     * result with *invalid* cells being treated as *valid* (will save the *invalid* value into the Handsontable data source).
-     * If set to `false`, Handsontable will *not* accept the invalid values and won't allow the user to close the editor.
-     * This option will be particularly useful when used with the Autocomplete's `strict` mode.
+     * The `allowInvalid` option determines whether Handsontable accepts values
+     * that were marked as `invalid` by the [cell validator](@/guides/cell-functions/cell-validator.md).
+     *
+     * You can set the `allowInvalid` option to one of the following:
+     *
+     * | Setting          | Description                                                                                                                                                                        |
+     * | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | - Accept `invalid` values<br>- Allow the user to close the [cell editor](@/guides/cell-functions/cell-editor.md) with `invalid` values<br>- Save `invalid` values into the data source                   |
+     * | `false`          | - Don't accept `invalid` values<br>- Don't allow the user to close the [cell editor](@/guides/cell-functions/cell-editor.md) with `invalid` values<br>- Don't save `invalid` values into the data source |
+     *
+     * Setting the `allowInvalid` option to `false` can be useful when used with the [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode).
+     *
+     * Read more:
+     * - [Cell validator &#8594;](@/guides/cell-functions/cell-validator.md)
+     * - [Cell editor &#8594;](@/guides/cell-functions/cell-editor.md)
+     * - [Autocomplete strict mode &#8594;](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1249,15 +1567,26 @@ export default () => {
      *
      * @example
      * ```js
-     * // don't save the invalid values
+     * // don't accept `invalid` values
+     * // don't allow the user to close the cell editor
+     * // don't save `invalid` values into the data source
      * allowInvalid: false,
      * ```
      */
     allowInvalid: true,
 
     /**
-     * If set to `true`, Handsontable will accept values that are empty (`null`, `undefined` or `''`). If set
-     * to `false`, Handsontable will *not* accept the empty values and mark cell as invalid.
+     * The `allowEmpty` option determines whether Handsontable accepts the following values:
+     * - `null`
+     * - `undefined`
+     * - `''`
+     *
+     * You can set the `allowEmpty` option to one of the following:
+     *
+     * | Setting          | Description                                                                                                                           |
+     * | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | - Accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` and `''` values as `valid`              |
+     * | `false`          | - Don't accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` and `''` values with as `invalid` |
      *
      * @memberof Options#
      * @type {boolean}
@@ -1266,7 +1595,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // allow empty values for all cells (whole table)
+     * // allow empty values in every cell of the entire grid
      * allowEmpty: true,
      *
      * // or
@@ -1274,7 +1603,7 @@ export default () => {
      *   {
      *     data: 'date',
      *     dateFormat: 'DD/MM/YYYY',
-     *     // allow empty values only for the 'date' column
+     *     // allow empty values in every cell of the 'date' column
      *     allowEmpty: true
      *   }
      * ],
@@ -1283,7 +1612,11 @@ export default () => {
     allowEmpty: true,
 
     /**
-     * CSS class name for cells that did not pass validation.
+     * The `invalidCellClassName` option lets you add a CSS class name to cells
+     * that were marked as `invalid` by the [cell validator](@/guides/cell-functions/cell-validator.md).
+     *
+     * Read more:
+     * - [Cell validator &#8594;](@/guides/cell-functions/cell-validator.md)
      *
      * @memberof Options#
      * @type {string}
@@ -1292,15 +1625,22 @@ export default () => {
      *
      * @example
      * ```js
-     * // set custom validation error class
-     * invalidCellClassName: 'highlight--error',
+     * // add a `highlight-error` CSS class name
+     * // to every `invalid` cell`
+     * invalidCellClassName: 'highlight-error',
      * ```
      */
     invalidCellClassName: 'htInvalid',
 
     /**
-     * When set to an non-empty string, displayed as the cell content for empty cells. If a value of a different type is provided,
-     * it will be stringified and applied as a string.
+     * The `placeholder` option lets you display placeholder text in every empty cell.
+     *
+     * You can set the `placeholder` option to one of the following:
+     *
+     * | Setting            | Example        | Description                                                           |
+     * | ------------------ | -------------- | --------------------------------------------------------------------- |
+     * | A non-empty string | `'Empty cell'` | Display `Empty cell` text in empty cells                              |
+     * | A non-string value | `000`          | Display `000` text in empty cells (non-string values get stringified) |
      *
      * @memberof Options#
      * @type {string}
@@ -1309,14 +1649,27 @@ export default () => {
      *
      * @example
      * ```js
-     * // add custom placeholder content to empty cells
-     * placeholder: 'Empty Cell',
+     * // display 'Empty cell' text
+     * // in every empty cell of the entire grid
+     * placeholder: 'Empty cell',
+     *
+     * // or
+     * columns: [
+     *   {
+     *     data: 'date',
+     *     dateFormat: 'DD/MM/YYYY',
+     *     // display 'Empty date cell' text
+     *     // in every empty cell of the `date` column
+     *     placeholder: 'Empty date cell'
+     *   }
+     * ],
      * ```
      */
     placeholder: void 0,
 
     /**
-     * CSS class name for cells that have a placeholder in use.
+     * The `placeholderCellClassName` option lets you add a CSS class name to cells
+     * that contain [`placeholder`](#placeholder) text.
      *
      * @memberof Options#
      * @type {string}
@@ -1325,14 +1678,15 @@ export default () => {
      *
      * @example
      * ```js
-     * // set custom placeholder class
+     * // add a `has-placeholder` CSS class name
+     * // to every cell that contains `placeholder` text
      * placeholderCellClassName: 'has-placeholder',
      * ```
      */
     placeholderCellClassName: 'htPlaceholder',
 
     /**
-     * CSS class name for read-only cells.
+     * The `readOnlyCellClassName` option lets you add a CSS class name to [read-only](#readOnly) cells.
      *
      * @memberof Options#
      * @type {string}
@@ -1341,7 +1695,8 @@ export default () => {
      *
      * @example
      * ```js
-     * // set custom read-only class
+     * // add a `is-readOnly` CSS class name
+     * // to every read-only cell
      * readOnlyCellClassName: 'is-readOnly',
      * ```
      */
@@ -1350,23 +1705,34 @@ export default () => {
     /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * @description
-     * If a string is provided, it may be one of the following predefined values:
-     * * `autocomplete`,
-     * * `checkbox`,
-     * * `html`,
-     * * `numeric`,
-     * * `password`.
-     * * `text`.
+     * The `renderer` option sets a [cell renderer](@/guides/cell-functions/cell-renderer.md) for a cell.
      *
-     * Or you can [register](@/guides/cell-functions/cell-renderer.md) the custom renderer under specified name and use its name as an alias in your
-     * configuration.
+     * You can set the `renderer` option to one of the following:
+     * - A custom renderer function
+     * - One of the following [cell renderer aliases](@/guides/cell-functions/cell-renderer.md):
      *
-     * If a function is provided, it will receive the following arguments:
-     * ```js
-     * function(instance, TD, row, col, prop, value, cellProperties) {}
-     * ```
+     * | Alias               | Cell renderer function                                                         |
+     * | ------------------- | ------------------------------------------------------------------------------ |
+     * | A custom alias      | Your [custom cell renderer](@/guides/cell-functions/cell-renderer.md) function |
+     * | `'autocomplete'`    | `AutocompleteRenderer`                                                         |
+     * | `'base'`            | `BaseRenderer`                                                                 |
+     * | `'checkbox'`        | `CheckboxRenderer`                                                             |
+     * | `'date'`            | `DateRenderer`                                                                 |
+     * | `'dropdown'`        | `DropdownRenderer`                                                             |
+     * | `'html'`            | `HtmlRenderer`                                                                 |
+     * | `'numeric'`         | `NumericRenderer`                                                              |
+     * | `'password'`        | `PasswordRenderer`                                                             |
+     * | `'text'`            | `TextRenderer`                                                                 |
+     * | `'time'`            | `TimeRenderer`                                                                 |
      *
-     * You can read more about custom renderes [in the documentation](@/guides/cell-functions/cell-renderer.md).
+     * To set the [`renderer`](#renderer), [`editor`](#editor), and [`validator`](#validator)
+     * options all at once, use the [`type`](#type) option.
+     *
+     * Read more:
+     * - [Cell renderer &#8594;](@/guides/cell-functions/cell-renderer.md)
+     * - [Cell type &#8594;](@/guides/cell-types/cell-type.md)
+     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [`type`](#type)
      *
      * @memberof Options#
      * @type {string|Function}
@@ -1375,38 +1741,36 @@ export default () => {
      *
      * @example
      * ```js
-     * // register custom renderer
-     * Handsontable.renderers.registerRenderer('my.renderer', function(instance, TD, row, col, prop, value, cellProperties) {
-     *   TD.innerHTML = value;
-     * });
+     * // use the `numeric` renderer for every cell of the entire grid
+     * renderer: `'numeric'`,
      *
-     * // use it for selected column:
+     * // add a custom renderer function
+     * renderer(hotInstance, td, row, column, prop, value, cellProperties) {
+     *   // your custom renderer's logic
+     *   ...
+     * }
+     *
+     * // apply the `renderer` option to individual columns
      * columns: [
      *   {
-     *     // as a string with the name of build in renderer
-     *     renderer: 'autocomplete',
-     *     editor: 'select'
+     *     // use the `autocomplete` renderer for every cell of this column
+     *     renderer: 'autocomplete'
      *   },
      *   {
-     *     // as an alias to custom renderer registered above
-     *     renderer: 'my.renderer'
-     *   },
-     *   {
-     *     // renderer as custom function
-     *     renderer: function(hotInstance, TD, row, col, prop, value, cellProperties) {
-     *       TD.style.color = 'blue';
-     *       TD.innerHTML = value;
-     *     }
+     *     // use the `myCustomRenderer` renderer for every cell of this column
+     *     renderer: 'myCustomRenderer'
      *   }
-     * ],
+     * ]
      * ```
      */
     renderer: void 0,
 
-    /* eslint-enable jsdoc/require-description-complete-sentence */
-
     /**
-     * CSS class name added to the commented cells.
+     * The `commentedCellClassName` option lets you add a CSS class name to cells
+     * that have comments.
+     *
+     * Read more:
+     * - [Comments &#8594;](@/guides/cell-features/comments.md)
      *
      * @memberof Options#
      * @type {string}
@@ -1415,16 +1779,23 @@ export default () => {
      *
      * @example
      * ```js
-     * // set custom class for commented cells
+     * // add a `has-comment` CSS class name
+     * // to every cell that has a comment
      * commentedCellClassName: 'has-comment',
      * ```
      */
     commentedCellClassName: 'htCommentCell',
 
     /**
-     * If set to `true`, it enables the browser's native selection of a fragment of the text within a single cell, between
-     * adjacent cells or in a whole table. If set to `'cell'`, it enables the possibility of selecting a fragment of the
-     * text within a single cell's body.
+     * The `fragmentSelection` option configures text selection settings.
+     *
+     * You can set the `fragmentSelection` option to one of the following:
+     *
+     * | Setting           | Decription                                        |
+     * | ----------------- | ------------------------------------------------- |
+     * | `false` (default) | Disable text selection                            |
+     * | `true`            | Enable text selection in multiple cells at a time |
+     * | `'cell'`          | Enable text selection in one cell at a time       |
      *
      * @memberof Options#
      * @type {boolean|string}
@@ -1433,11 +1804,10 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable text selection within table
+     * // enable text selection in multiple cells at a time
      * fragmentSelection: true,
      *
-     * // or
-     * // enable text selection within cells only
+     * // enable text selection in one cell a time
      * fragmentSelection: 'cell',
      * ```
      */
@@ -1445,7 +1815,17 @@ export default () => {
 
     /**
      * @description
-     * Makes cell, column or comment [read only](@/guides/cell-features/disabled-cells.md#read-only-columns).
+     * The `readOnly` option determines whether a cell, column or comment is editable or not.
+     *
+     * You can set the `readOnly` option to one of the following:
+     *
+     * | Setting           | Decription                                                                                                                |
+     * | ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Set as editable                                                                                                           |
+     * | `true`            | - Set as read-only<br>- Add the [`readOnlyCellClassName`](#readOnlyCellClassName) CSS class name (by default: `htDimmed`) |
+     *
+     * Read more:
+     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1454,7 +1834,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // set as read only
+     * // set as read-only
      * readOnly: true,
      * ```
      */
@@ -1462,7 +1842,19 @@ export default () => {
 
     /**
      * @description
-     * When added to a `column` property, it skips the column on paste and pastes the data on the next column to the right.
+     * The `skipColumnOnPaste` option determines whether you can paste data into a given column.
+     *
+     * You can only apply the `skipColumnOnPaste` option to an entire column, using the [`columns`](#columns) option.
+     *
+     * You can set the `skipColumnOnPaste` option to one of the following:
+     *
+     * | Setting           | Description                                                                                           |
+     * | ----------------- | ----------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Enable pasting data into this column                                                                  |
+     * | `true`            | - Disable pasting data into this column<br>- On pasting, paste data into the next column to the right |
+     *
+     * Read more:
+     * - [Configuration options: Setting column options &#8594;](@/guides/getting-started/setting-options.md#setting-column-options)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1473,7 +1865,7 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     // don't paste data to this column
+     *     // disable pasting data into this column
      *     skipColumnOnPaste: true
      *   }
      * ],
@@ -1483,7 +1875,20 @@ export default () => {
 
     /**
      * @description
-     * When added to a cell property, it skips the row on paste and pastes the data on the following row.
+     *
+     * The `skipRowOnPaste` option determines whether you can paste data into a given row.
+     *
+     * You can only apply the `skipRowOnPaste` option to an entire row, using the [`cells`](#cells) option.
+     *
+     * You can set the `skipRowOnPaste` option to one of the following:
+     *
+     * | Setting           | Description                                                                         |
+     * | ----------------- | ----------------------------------------------------------------------------------- |
+     * | `false` (default) | Enable pasting data into this row                                                   |
+     * | `true`            | - Disable pasting data into this row<br>- On pasting, paste data into the row below |
+     *
+     * Read more:
+     * - [Configuration options: Setting row options &#8594;](@/guides/getting-started/setting-options.md#setting-row-options)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1492,10 +1897,10 @@ export default () => {
      *
      * @example
      * ```js
-     * cells: function(row, column) {
+     * cells(row, column) {
      *  const cellProperties = {};
      *
-     *  // don't paste data to the second row
+     *  // disable pasting data into row 1
      *  if (row === 1) {
      *    cellProperties.skipRowOnPaste = true;
      *  }
@@ -1508,9 +1913,28 @@ export default () => {
 
     /**
      * @description
-     * If set to `true`, enables the {@link Search} plugin with a default configuration.
-     * If set to an object, enables the {@link Search} plugin with a custom configuration.
-     * See the guide on [how to search values in Handsontable](@/guides/accessories-and-menus/searching-values.md).
+     * The `search` option configures the [`Search`](@/api/search.md) plugin.
+     *
+     * You can set the `search` option to one of the following:
+     *
+     * | Setting           | Description                                                                          |
+     * | ----------------- | ------------------------------------------------------------------------------------ |
+     * | `false` (default) | Disable the [`Search`](@/api/search.md) plugin                                       |
+     * | `true`            | Enable the [`Search`](@/api/search.md) plugin with the default configuration         |
+     * | An object         | - Enable the [`Search`](@/api/search.md) plugin<br>- Apply your custom configuration |
+     *
+     * If you set the `search` option to an object, you can configure the following search options:
+     *
+     * | Option              | Possible settings | Description                                                                                          |
+     * | ------------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
+     * | `searchResultClass` | A string          | Add a custom CSS class name to search results                                                        |
+     * | `queryMethod`       | A function        | Add a [custom query method](@/guides/accessories-and-menus/searching-values.md#custom-query-method)  |
+     * | `callback`          | A function        | Add a [custom callback function](@/guides/accessories-and-menus/searching-values.md#custom-callback) |
+     *
+     * Read more:
+     * - [Searching values &#8594;](@/guides/accessories-and-menus/searching-values.md)
+     * - [Searching values: Custom query method &#8594;](@/guides/accessories-and-menus/searching-values.md#custom-query-method)
+     * - [Searching values: Custom callback &#8594;](@/guides/accessories-and-menus/searching-values.md#custom-callback)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -1519,42 +1943,55 @@ export default () => {
      *
      * @example
      * ```js
-     * // set to `true`, to enable the Search plugin with a default configuration
+     * // enable the `Search` plugin with the default configuration
      * search: true,
-     * // or set to an object, to enable the Search plugin with a custom configuration
+     *
+     * // enable the `Search` plugin with a custom configuration
      * search: {
+     *   // add a `customClass` CSS class name to search results
      *   searchResultClass: 'customClass',
-     *   queryMethod: function(queryStr, value) {
+     *   // add a custom query method
+     *   queryMethod(queryStr, value) {
      *     ...
      *   },
-     *   callback: function(instance, row, column, value, result) {
+     *   // add a custom callback function
+     *   callback(instance, row, column, value, result) {
      *     ...
      *   }
      * }
-     *
-     * // set to `false, to disable the Search plugin
-     * search: false,
      * ```
      */
     search: false,
 
     /**
      * @description
-     * Shortcut to define the combination of the cell renderer, editor and validator for the column, cell or whole table.
+     * The `type` option lets you set the [`renderer`](#renderer), [`editor`](#editor), and [`validator`](#validator)
+     * options all at once, by selecting a [cell type](@/guides/cell-types/cell-type.md).
      *
-     * Possible values:
-     *  * [autocomplete](@/guides/cell-types/autocomplete-cell-type.md)
-     *  * [checkbox](@/guides/cell-types/checkbox-cell-type.md)
-     *  * [date](@/guides/cell-types/date-cell-type.md)
-     *  * [dropdown](@/guides/cell-types/dropdown-cell-type.md)
-     *  * [handsontable](@/guides/cell-types/handsontable-cell-type.md)
-     *  * [numeric](@/guides/cell-types/numeric-cell-type.md)
-     *  * [password](@/guides/cell-types/password-cell-type.md)
-     *  * text
-     *  * [time](@/guides/cell-types/time-cell-type.md).
+     * You can set the `type` option to one of the following:
      *
-     * Or you can register the custom cell type under specified name and use
-     * its name as an alias in your configuration.
+     * | Cell type                                                         | Renderer, editor & validator                                                                                                                                                                                                                       |
+     * | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | A [custom cell type](@/guides/cell-types/cell-type.md)            | Renderer: your [custom cell renderer](@/guides/cell-functions/cell-renderer.md)<br>Editor: your [custom cell editor](@/guides/cell-functions/cell-editor.md)<br>Validator: your [custom cell validator](@/guides/cell-functions/cell-validator.md) |
+     * | [`'autocomplete'`](@/guides/cell-types/autocomplete-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `AutocompleteEditor`<br>Validator: `AutocompleteValidator`                                                                         |
+     * | [`'checkbox'`](@/guides/cell-types/checkbox-cell-type.md)         | Renderer: `CheckboxRenderer`<br>Editor: `CheckboxEditor`<br>Validator: -                                                                                                                               |
+     * | [`'date'`](@/guides/cell-types/date-cell-type.md)                 | Renderer: `DateRenderer`<br>Editor: `DateEditor`<br>Validator: `DateValidator`                                                                                                 |
+     * | [`'dropdown'`](@/guides/cell-types/dropdown-cell-type.md)         | Renderer: `DropdownRenderer`<br>Editor: `DropdownEditor`<br>Validator: `DropdownValidator`                                                                                     |
+     * | [`'handsontable'`](@/guides/cell-types/handsontable-cell-type.md) | Renderer: `AutocompleteRenderer`<br>Editor: `HandsontableEditor`<br>Validator: -                                                                                                                       |
+     * | [`'numeric'`](@/guides/cell-types/numeric-cell-type.md)           | Renderer: `NumericRenderer`<br>Editor: `NumericEditor`<br>Validator: `NumericValidator`                                                                                        |
+     * | [`'password'`](@/guides/cell-types/password-cell-type.md)         | Renderer: `PasswordRenderer`<br>Editor: `PasswordEditor`<br>Validator: -                                                                                                                               |
+     * | `'text'`                                                          | Renderer: `TextRenderer`<br>Editor: `TextEditor`<br>Validator: -                                                                                                                                       |
+     * | [`'time`'](@/guides/cell-types/time-cell-type.md)                 | Renderer: `TimeRenderer`<br>Editor: `TimeEditor`<br>Validator: `TimeValidator`                                                                                                 |
+     *
+     * Read more:
+     * - [Cell type &#8594;](@/guides/cell-types/cell-type.md)
+     * - [Cell renderer &#8594;](@/guides/cell-functions/cell-renderer.md)
+     * - [Cell editor &#8594;](@/guides/cell-functions/cell-editor.md)
+     * - [Cell validator &#8594;](@/guides/cell-functions/cell-validator.md)
+     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [`renderer`](#renderer)
+     * - [`editor`](#editor)
+     * - [`validator`](#validator)
      *
      * @memberof Options#
      * @type {string}
@@ -1563,39 +2000,38 @@ export default () => {
      *
      * @example
      * ```js
-     * // register custom cell type:
-     * Handsontable.cellTypes.registerCellType('my.type', {
-     *   editor: MyEditorClass,
-     *   renderer: function(hot, td, row, col, prop, value, cellProperties) {
-     *     td.innerHTML = value;
-     *   },
-     *   validator: function(value, callback) {
-     *     callback(value === 'foo' ? true : false);
-     *   }
-     * });
+     * // use the `numeric` cell type for every cell of the entire grid
+     * type: `'numeric'`,
      *
-     * // use it in column settings:
+     * // apply the `type` option to individual columns
      * columns: [
      *   {
-     *     type: 'text'
+     *     // use the `autocomplete` cell type for every cell of this column
+     *     type: 'autocomplete'
      *   },
      *   {
-     *     // an alias to custom type
-     *     type: 'my.type'
-     *   },
-     *   {
-     *     type: 'checkbox'
+     *     // use the `myCustomCellType` cell type for every cell of this column
+     *     type: 'myCustomCellType'
      *   }
-     * ],
+     * ]
      * ```
      */
     type: 'text',
 
     /**
      * @description
-     * Makes a cell copyable (pressing <kbd>CTRL</kbd> + <kbd>C</kbd> on your keyboard moves its value to system clipboard).
+     * The `copyable` option determines whether a cell's value can be copied to the clipboard or not.
      *
-     * __Note:__ this setting is `false` by default for cells with type `password`.
+     * You can set the `copyable` option to one of the following:
+     *
+     * | Setting                                                                                                        | Description                                                                                                                        |
+     * | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default)                                                                                               | - Enable copying for this cell<br>- On pressing <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>C</kbd>, add the cell's value to the clipboard |
+     * | `false`<br>(default for the [`password`](@/guides/cell-types/password-cell-type.md) [cell type](#type))        | - Disable copying for this cell                                                                                                    |
+     *
+     * Read more:
+     * - [Clipboard &#8594;](@/guides/cell-features/clipboard.md)
+     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1604,11 +2040,27 @@ export default () => {
      *
      * @example
      * ```js
+     * // enable copying for every cell of the entire grid
+     * copyable: true,
+     *
+     * // enable copying for individual columns
+     * columns: [
+     *   {
+     *     // enable copying for every cell of this column
+     *     copyable: true
+     *   },
+     *   {
+     *     // disable copying for every cell of this column
+     *     copyable: false
+     *   }
+     * ]
+     *
+     * // enable copying for specific cells
      * cells: [
      *   {
      *     cell: 0,
      *     row: 0,
-     *     // cell with coordinates (0, 0) can't be copied
+     *     // disable copying for cell (0, 0)
      *     copyable: false,
      *   }
      * ],
@@ -1617,23 +2069,37 @@ export default () => {
     copyable: true,
 
     /**
-     * Defines the editor for the table/column/cell.
+     * The `editor` option sets a [cell editor](@/guides/cell-functions/cell-editor.md) for a cell.
      *
-     * If a string is provided, it may be one of the following predefined values:
-     *  * [autocomplete](@/guides/cell-types/autocomplete-cell-type.md)
-     *  * [checkbox](@/guides/cell-types/checkbox-cell-type.md)
-     *  * [date](@/guides/cell-types/date-cell-type.md)
-     *  * [dropdown](@/guides/cell-types/dropdown-cell-type.md)
-     *  * [handsontable](@/guides/cell-types/handsontable-cell-type.md)
-     *  * mobile
-     *  * [password](@/guides/cell-types/password-cell-type.md)
-     *  * [select](@/guides/cell-types/select-cell-type.md)
-     *  * text.
+     * You can set the `editor` option to one of the following [cell editor aliases](@/guides/cell-functions/cell-editor.md):
      *
-     * Or you can [register](@/guides/cell-functions/cell-editor.md#registering-an-editor) the custom editor under specified name and use its name as an alias in your
-     * configuration.
+     * | Alias               | Cell editor function                                                       |
+     * | ------------------- | -------------------------------------------------------------------------- |
+     * | A custom alias      | Your [custom cell editor](@/guides/cell-functions/cell-editor.md) function |
+     * | `'autocomplete'`    | `AutocompleteEditor`                                                       |
+     * | `'base        '`    | `BaseEditor`                                                               |
+     * | `'checkbox'`        | `CheckboxEditor`                                                           |
+     * | `'date'`            | `DateEditor`                                                               |
+     * | `'dropdown'`        | `DropdownEditor`                                                           |
+     * | `'handsontable'`    | `HandsontableEditor`                                                       |
+     * | `'numeric'`         | `NumericEditor`                                                            |
+     * | `'password'`        | `PasswordEditor`                                                           |
+     * | `'select'`          | `SelectEditor`                                                             |
+     * | `'text'`            | `TextEditor`                                                               |
      *
-     * To disable cell editing completely set `editor` property to `false`.
+     * To disable editing cells through cell editors,
+     * set the `editor` option to `false`.
+     * You'll still be able to change cells' content through Handsontable's API
+     * or through plugins (e.g. [`CopyPaste`](@/api/copyPaste.md)), though.
+     *
+     * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
+     * options all at once, use the [`type`](#type) option.
+     *
+     * Read more:
+     * - [Cell editor &#8594;](@/guides/cell-functions/cell-editor.md)
+     * - [Cell type &#8594;](@/guides/cell-types/cell-type.md)
+     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [`type`](#type)
      *
      * @memberof Options#
      * @type {string|Function|boolean}
@@ -1642,23 +2108,33 @@ export default () => {
      *
      * @example
      * ```js
+     * // use the `numeric` editor for every cell of the entire grid
+     * editor: 'numeric',
+     *
+     * // apply the `editor` option to individual columns
      * columns: [
      *   {
-     *     // set editor for the first column
-     *     editor: 'select'
+     *     // use the `autocomplete` editor for every cell of this column
+     *     editor: 'autocomplete'
      *   },
      *   {
-     *     // disable editor for the second column
+     *     // disable editing cells through cell editors for every cell of this column
      *     editor: false
      *   }
-     * ],
+     * ]
      * ```
      */
     editor: void 0,
 
     /**
-     * Control number of choices for the autocomplete (or dropdown) typed cells. After exceeding it, a scrollbar for the
-     * dropdown list of choices will appear.
+     * The `visibleRows` option sets the height of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
+     * and [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) lists.
+     *
+     * When the number of list options exceeds the `visibleRows` number, a scrollbar appears.
+     *
+     * Read more:
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
      *
      * @memberof Options#
      * @type {number}
@@ -1670,8 +2146,15 @@ export default () => {
      * columns: [
      *   {
      *     type: 'autocomplete',
-     *     // set autocomplete options list height
+     *     // set the `autocomplete` list's height to 15 options
+     *     // for every cell of this column
      *     visibleRows: 15,
+     *   },
+     *   {
+     *     type: 'dropdown',
+     *     // set the `dropdown` list's height to 5 options
+     *     // for every cell of this column
+     *     visibleRows: 5,
      *   }
      * ],
      * ```
@@ -1679,8 +2162,19 @@ export default () => {
     visibleRows: 10,
 
     /**
-     * Makes autocomplete or dropdown width the same as the edited cell width. If `false` then editor will be scaled
-     * according to its content.
+     * The `trimDropdown` option configures the width of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
+     * and [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) lists.
+     *
+     * You can set the `trimDropdown` option to one of the following:
+     *
+     * | Setting          | Description                                                                     |
+     * | ---------------- | ------------------------------------------------------------------------------- |
+     * | `true` (default) | Make the dropdown/autocomplete list's width the same as the edited cell's width |
+     * | `false`          | Scale the dropdown/autocomplete list's width to the list's content              |
+     *
+     * Read more:
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1692,7 +2186,14 @@ export default () => {
      * columns: [
      *   {
      *     type: 'autocomplete',
-     *     // don't trim dropdown width with column width
+     *     // for every cell of this column
+     *     // make the `autocomplete` list's width the same as the edited cell's width
+     *     trimDropdown: true,
+     *   },
+     *   {
+     *     type: 'dropdown',
+     *     // for every cell of this column
+     *     // scale the `dropdown` list's width to the list's content
      *     trimDropdown: false,
      *   }
      * ],
@@ -1701,7 +2202,19 @@ export default () => {
     trimDropdown: true,
 
     /**
-     * When set to `true`, the text of the cell content is wrapped if it does not fit in the fixed column width.
+     * The `wordWrap` option configures whether content that exceeds a column's width is wrapped or not.
+     *
+     * You can set the `wordWrap` option to one of the following:
+     *
+     * | Setting          | Description                                             |
+     * | ---------------- | ------------------------------------------------------- |
+     * | `true` (default) | If content exceeds the column's width, wrap the content |
+     * | `false`          | Don't wrap content                                      |
+     *
+     * To style cells that don't wrap content, use the [`noWordWrapClassName`](#noWordWrapClassName) option.
+     *
+     * Read more:
+     * - [`noWordWrapClassName`](#noWordWrapClassName)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1710,11 +2223,17 @@ export default () => {
      *
      * @example
      * ```js
+     * // set column width for every column of the entire grid
      * colWidths: 100,
+     *
      * columns: [
      *   {
-     *     // fixed column width is set but don't wrap the content
+     *     // don't wrap content in this column
      *     wordWrap: false,
+     *   },
+     *   {
+     *     // if content exceeds this column's width, wrap the content
+     *     wordWrap: true,
      *   }
      * ],
      * ```
@@ -1722,7 +2241,11 @@ export default () => {
     wordWrap: true,
 
     /**
-     * CSS class name added to cells with cell meta `wordWrap: false`.
+     * The `noWordWrapClassName` option lets you add a CSS class name
+     * to every cell that has the [`wordWrap`](#wordWrap) option set to `false`.
+     *
+     * Read more:
+     * - [`wordWrap`](#wordWrap)
      *
      * @memberof Options#
      * @type {string}
@@ -1731,7 +2254,8 @@ export default () => {
      *
      * @example
      * ```js
-     * // set custom class for cells which content won't be wrapped
+     * // add an `is-noWrapCell` CSS class name
+     * // to every cell that doesn't wrap content
      * noWordWrapClassName: 'is-noWrapCell',
      * ```
      */
@@ -1739,19 +2263,19 @@ export default () => {
 
     /**
      * @description
-     * Defines if the right-click context menu should be enabled. Context menu allows to create new row or column at any
-     * place in the grid among [other features](@/guides/accessories-and-menus/context-menu.md).
-     * Possible values:
-     * * `true` (to enable default options),
-     * * `false` (to disable completely)
-     * * an array of [predefined options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options),
-     * * an object [with defined structure](@/guides/accessories-and-menus/context-menu.md#context-menu-with-fully-custom-configuration).
+     * The `contextMenu` option configures the [`ContextMenu`](@/api/contextMenu.md) plugin.
      *
-     * If the value is an object, you can also customize the options with:
-     * * `disableSelection` - a `boolean`, if set to true it prevents mouseover from highlighting the item for selection
-     * * `isCommand` - a `boolean`, if set to false it prevents clicks from executing the command and closing the menu.
+     * You can set the `contextMenu` option to one of the following:
      *
-     * See [the context menu demo](@/guides/accessories-and-menus/context-menu.md) for examples.
+     * | Setting   | Description                                                                                                                                                                                             |
+     * | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`ContextMenu`](@/api/contextMenu.md) plugin                                                                                                                                                |
+     * | `true`    | - Enable the [`ContextMenu`](@/api/contextMenu.md) plugin<br>- Use the [default context menu options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-default-options)                 |
+     * | An array  | - Enable the [`ContextMenu`](@/api/contextMenu.md) plugin<br>- Modify [individual context menu options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options)              |
+     * | An object | - Enable the [`ContextMenu`](@/api/contextMenu.md) plugin<br>- Apply a [custom context menu configuration](@/guides/accessories-and-menus/context-menu.md#context-menu-with-fully-custom-configuration) |
+     *
+     * Read more:
+     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|object}
@@ -1760,13 +2284,16 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean
+     * // enable the `ContextMenu` plugin
+     * // use the default context menu options
      * contextMenu: true,
      *
-     * // as an array
+     * // enable the `ContextMenu` plugin
+     * // and modify individual context menu options
      * contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo'],
      *
-     * // as an object (`name` attribute is required in the custom keys)
+     * // enable the `ContextMenu` plugin
+     * // and apply a custom context menu configuration
      * contextMenu: {
      *   items: {
      *     "option1": {
@@ -1794,7 +2321,27 @@ export default () => {
     contextMenu: void 0,
 
     /**
-     * Disables or enables the copy/paste functionality.
+     * The `copyPaste` option configures the [`CopyPaste`](@/api/copyPaste.md) plugin.
+     *
+     * You can set the `copyPaste` option to one of the following:
+     *
+     * | Setting           | Description                                                                                                            |
+     * | ----------------- | ---------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default)  | Enable the [`CopyPaste`](@/api/copyPaste.md) plugin with the default configuration                                     |
+     * | `false`           | Disable the [`CopyPaste`](@/api/copyPaste.md) plugin                                                                   |
+     * | An object         | - Enable the [`CopyPaste`](@/api/copyPaste.md) plugin<br>- Modify the [`CopyPaste`](@/api/copyPaste.md) plugin options |
+     *
+     * If you set the `copyPaste` option to an object, you can set the following `CopyPaste` plugin options:
+     *
+     * | Option         | Possible settings                                  | Description                                                                                                                                                                             |
+     * | -------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `columnsLimit` | A number (default: `Infinity`)                       | A maximum number of columns that can be copied                                                                                                                                        |
+     * | `rowsLimit`    | A number (default: `Infinity`)                       | A maximum number of columns that can be copied                                                                                                                                        |
+     * | `pasteMode`    | `'overwrite'` \| `'shift_down'` \| `'shift_right'` | When pasting:<br>`'overwrite'`: overwrite currently-selected cells<br>`'shift_down'`: move currently-selected cells down<br>`'shift_right'`: move currently-selected cells to the right |
+     * | `uiContainer`  | An HTML element                                    | A UI container for the secondary focusable element                                                                                                                                      |
+     *
+     * Read more:
+     * - [`CopyPaste`](@/api/copyPaste.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -1803,14 +2350,19 @@ export default () => {
      *
      * @example
      * ```js
-     * // disable copy and paste
+     * // disable the `CopyPaste` plugin
      * copyPaste: false,
      *
-     * // enable copy and paste with custom configuration
+     * // enable the `CopyPaste` plugin
+     * // and modify the `CopyPaste` plugin options
      * copyPaste: {
+     *   // set the maximum number of columns that can be copied
      *   columnsLimit: 25,
+     *   // set the maximum number of rows that can be copied
      *   rowsLimit: 50,
+     *   // set the paste behavior
      *   pasteMode: 'shift_down',
+     *   // set the UI container
      *   uiContainer: document.body,
      * },
      * ```
@@ -1818,9 +2370,22 @@ export default () => {
     copyPaste: true,
 
     /**
-     * If `true`, undo/redo functionality is enabled.
-     * Note: `undefined` by default but it acts as enabled.
-     * You need to switch it to `false` to disable it completely.
+     * The `undo` option configures the [`UndoRedo`](@/api/undoRedo.md) plugin.
+     *
+     * You can set the `undo` option to one of the following:
+     *
+     * | Setting | Description                                        |
+     * | ------- | -------------------------------------------------- |
+     * | `true`  | Enable the [`UndoRedo`](@/api/undoRedo.md) plugin  |
+     * | `false` | Disable the [`UndoRedo`](@/api/undoRedo.md) plugin |
+     *
+     * By default, the `undo` option is set to `undefined`,
+     * but the [`UndoRedo`](@/api/undoRedo.md) plugin acts as enabled.
+     * To disable the [`UndoRedo`](@/api/undoRedo.md) plugin completely,
+     * set the `undo` option to `false`.
+     *
+     * Read more:
+     * - [Undo and redo &#8594;](@/guides/accessories-and-menus/undo-redo.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1829,7 +2394,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable undo and redo
+     * // enable the `UndoRedo` plugin
      * undo: true,
      * ```
      */
@@ -1837,22 +2402,38 @@ export default () => {
 
     /**
      * @description
-     * Turns on [Column sorting](@/guides/rows/row-sorting.md). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
-     * * `initialConfig` - Object with predefined keys:
-     *   * `column` - sorted column
-     *   * `sortOrder` - order in which column will be sorted
-     *     * `'asc'` = ascending
-     *     * `'desc'` = descending
-     * * `indicator` - display status for sorting order indicator (an arrow icon in the column header, specifying the sorting order).
-     *   * `true` = show sort indicator for sorted columns
-     *   * `false` = don't show sort indicator for sorted columns
-     * * `headerAction` - allow to click on the headers to sort
-     *   * `true` = turn on possibility to click on the headers to sort
-     *   * `false` = turn off possibility to click on the headers to sort
-     * * `sortEmptyCells` - how empty values should be handled, for more information see @{link Options#allowEmpty}
-     *   * `true` = the table sorts empty cells
-     *   * `false` = the table moves all empty cells to the end of the table
-     * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
+     * The `columnSorting` option configures the [`ColumnSorting`](@/api/columnSorting.md) plugin.
+     *
+     * You can set the `columnSorting` option to one of the following:
+     *
+     * | Setting    | Description                                                                                                                            |
+     * | ---------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true`     | Enable the [`ColumnSorting`](@/api/columnSorting.md) plugin with the default configuration                                             |
+     * | `false`    | Disable the [`ColumnSorting`](@/api/columnSorting.md) plugin                                                                           |
+     * | An object  | - Enable the [`ColumnSorting`](@/api/columnSorting.md) plugin<br>- Modify the [`ColumnSorting`](@/api/columnSorting.md) plugin options |
+     *
+     * If you set the `columnSorting` option to an object,
+     * you can set the following [`ColumnSorting`](@/api/columnSorting.md) plugin options:
+     *
+     * | Option                   | Possible settings                                                                                                                                |
+     * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `indicator`              | `true`: Display an arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
+     * | `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
+     * | `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
+     * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/row-sorting.md#custom-compare-functions)                                                                |
+     *
+     * If you set the `columnSorting` option to an object,
+     * you can also sort individual columns at Handsontable's initialization.
+     * In the `columnSorting` object, add an object named `initialConfig`,
+     * with the following properties:
+     *
+     * | Option      | Possible settings   | Description                                                      |
+     * | ----------- | ------------------- | ---------------------------------------------------------------- |
+     * | `column`    | A number            | The index of the column that you want to sort at initialization  |
+     * | `sortOrder` | `'asc'` \| `'desc'` | The sorting order:<br>`'asc'`: ascending<br>`'desc'`: descending |
+     *
+     * Read more:
+     * - [Row sorting &#8594;](@/guides/rows/row-sorting.md)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -1861,26 +2442,36 @@ export default () => {
      *
      * @example
      * ```js
-     * // as boolean
+     * // enable the `ColumnSorting` plugin
      * columnSorting: true
      *
-     * // as an object with initial sort config (sort ascending for column at index 1)
+     * // enable the `ColumnSorting` plugin with custom configuration
      * columnSorting: {
-     *   initialConfig: {
-     *     column: 1,
-     *     sortOrder: 'asc'
+     *   // sort empty cells as well
+     *   sortEmptyCells: true,
+     *   // display an arrow icon in the column header
+     *   indicator: true,
+     *   // disable clicking on the column header to sort the column
+     *   headerAction: false,
+     *   // add a custom compare function
+     *   compareFunctionFactory(sortOrder, columnMeta) {
+     *     return function(value, nextValue) {
+     *       // some value comparisons which will return -1, 0 or 1...
+     *     }
      *   }
      * }
      *
-     * // as an object which define specific sorting options for all columns
+     * // enable the `ColumnSorting` plugin
      * columnSorting: {
-     *   sortEmptyCells: true, // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
-     *   indicator: true, // true = shows indicator for all columns, false = don't show indicator for columns
-     *   headerAction: false, // true = allow to click on the headers to sort, false = turn off possibility to click on the headers to sort
-     *   compareFunctionFactory: function(sortOrder, columnMeta) {
-     *     return function(value, nextValue) {
-     *       // Some value comparisons which will return -1, 0 or 1...
-     *     }
+     *   // at initialization, sort column 1 in ascending order
+     *   initialConfig: {
+     *     column: 1,
+     *     sortOrder: 'asc'
+     *   },
+     *   // at initialization, sort column 2 in descending order
+     *   initialConfig: {
+     *     column: 2,
+     *     sortOrder: 'desc'
      *   }
      * }
      * ```
@@ -1888,7 +2479,18 @@ export default () => {
     columnSorting: void 0,
 
     /**
-     * Turns on [Manual column move](@/guides/columns/column-moving.md), if set to a boolean or define initial column order (as an array of column indexes).
+     * The `manualColumnMove` option configures the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin.
+     *
+     * You can set the `manualColumnMove` option to one of the following:
+     *
+     * | Setting  | Description                                                                                                        |
+     * | -------- | ------------------------------------------------------------------------------------------------------------------ |
+     * | `true`   | Enable the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin                                                  |
+     * | `false`  | Disable the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin                                                 |
+     * | An array | - Enable the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin<br>- Move individual columns at initialization |
+     *
+     * Read more:
+     * - [Column moving &#8594;](@/guides/columns/column-moving.md)
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -1897,19 +2499,32 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean to enable column move
+     * // enable the `ManualColumnMove` plugin
      * manualColumnMove: true,
      *
-     * // as a array with initial order
-     * // (move column index at 0 to 1 and move column index at 1 to 4)
-     * manualColumnMove: [1, 4],
+     * // enable the `ManualColumnMove` plugin
+     * // at initialization, move column 0 to 1
+     * // at initialization, move column 1 to 4
+     * // at initialization, move column 2 to 6
+     * manualColumnMove: [1, 4, 6],
      * ```
      */
     manualColumnMove: void 0,
 
     /**
      * @description
-     * Turns on [Manual column resize](@/guides/columns/column-width.md#column-stretching), if set to a boolean or define initial column resized widths (an an array of widths).
+     * The `manualColumnResize` option configures the [`ManualColumnResize`](@/api/manualColumnResize.md) plugin.
+     *
+     * You can set the `manualColumnResize` option to one of the following:
+     *
+     * | Setting  | Description                                                                                                           |
+     * | -------- | --------------------------------------------------------------------------------------------------------------------- |
+     * | `true`   | Enable the [`ManualColumnResize`](@/api/manualColumnResize.md) plugin                                                 |
+     * | `false`  | Disable the [`ManualColumnResize`](@/api/manualColumnResize.md) plugin                                                |
+     * | An array | - Enable the [`ManualColumnResize`](@/api/manualColumnResize.md) plugin<br>- Set initial widths of individual columns |
+     *
+     * Read more:
+     * - [Column width: Column stretching &#8594;](@/guides/columns/column-width.md#column-stretching)
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -1918,19 +2533,32 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean to enable column resize
+     * // enable the `manualColumnResize` plugin
      * manualColumnResize: true,
      *
-     * // as a array with initial widths
-     * // (column at 0 index has 40px and column at 1 index has 50px)
-     * manualColumnResize: [40, 50],
+     * // enable the `manualColumnResize` plugin
+     * // set the initial width of column 0 to 40 pixels
+     * // set the initial width of column 1 to 50 pixels
+     * // set the initial width of column 2 to 60 pixels
+     * manualColumnResize: [40, 50, 60],
      * ```
      */
     manualColumnResize: void 0,
 
     /**
      * @description
-     * Turns on [Manual row move](@/guides/columns/column-moving.md), if set to a boolean or define initial row order (as an array of row indexes).
+     * The `manualRowMove` option configures the [`ManualRowMove`](@/api/manualRowMove.md) plugin.
+     *
+     * You can set the `manualRowMove` option to one of the following:
+     *
+     * | Setting  | Description                                                                                               |
+     * | -------- | --------------------------------------------------------------------------------------------------------- |
+     * | `true`   | Enable the [`ManualRowMove`](@/api/manualRowMove.md) plugin                                               |
+     * | `false`  | Disable the [`ManualRowMove`](@/api/manualRowMove.md) plugin                                              |
+     * | An array | - Enable the [`ManualRowMove`](@/api/manualRowMove.md) plugin<br>- Move individual rows at initialization |
+     *
+     * Read more:
+     * - [Row moving &#8594;](@/guides/rows/row-moving.md)
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -1939,19 +2567,32 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean
+     * // enable the `ManualRowMove` plugin
      * manualRowMove: true,
      *
-     * // as a array with initial order
-     * // (move row index at 0 to 1 and move row index at 1 to 4)
-     * manualRowMove: [1, 4],
+     * // enable the `ManualRowMove` plugin
+     * // at initialization, move row 0 to 1
+     * // at initialization, move row 1 to 4
+     * // at initialization, move row 2 to 6
+     * manualColumnMove: [1, 4, 6],
      * ```
      */
     manualRowMove: void 0,
 
     /**
      * @description
-     * Turns on [Manual row resize](@/guides/columns/column-width.md#column-stretching), if set to a boolean or define initial row resized heights (as an array of heights).
+     * The `manualRowResize` option configures the [`ManualRowResize`](@/api/manualRowResize.md) plugin.
+     *
+     * You can set the `manualRowResize` option to one of the following:
+     *
+     * | Setting  | Description                                                                                                   |
+     * | -------- | ------------------------------------------------------------------------------------------------------------- |
+     * | `true`   | Enable the [`ManualRowResize`](@/api/manualRowResize.md) plugin                                               |
+     * | `false`  | Disable the [`ManualRowResize`](@/api/manualRowResize.md) plugin                                              |
+     * | An array | - Enable the [`ManualRowResize`](@/api/manualRowResize.md) plugin<br>- Set initial heights of individual rows |
+     *
+     * Read more:
+     * - [Row height: Adjust the row height manually &#8594;](@/guides/rows/row-height.md#adjust-the-row-height-manually)
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -1960,20 +2601,42 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean to enable row resize
-     * manualRowResize: true,
+     * // enable the `ManualRowResize` plugin
+     * manualColumnResize: true,
      *
-     * // as an array to set initial heights
-     * // (row at 0 index has 40px and row at 1 index has 50px)
-     * manualRowResize: [40, 50],
+     * // enable the `ManualRowResize` plugin
+     * // set the initial height of row 0 to 40 pixels
+     * // set the initial height of row 1 to 50 pixels
+     * // set the initial height of row 2 to 60 pixels
+     * manualColumnResize: [40, 50, 60],
      * ```
      */
     manualRowResize: void 0,
 
     /**
      * @description
-     * If set to `true`, it enables a possibility to merge cells. If set to an array of objects, it merges the cells provided
-     * in the objects (see the example below). More information on [the demo page](@/guides/cell-features/merge-cells.md).
+     * The `mergeCells` option configures the [`MergeCells`](@/api/mergeCells.md) plugin.
+     *
+     * You can set the `mergeCells` option to one of the following:
+     *
+     * | Setting             | Description                                                                                         |
+     * | ------------------- | --------------------------------------------------------------------------------------------------- |
+     * | `true`              | Enable the [`MergeCells`](@/api/mergeCells.md) plugin                                               |
+     * | `false`             | Disable the [`MergeCells`](@/api/mergeCells.md) plugin                                              |
+     * | An array of objects | - Enable the [`MergeCells`](@/api/mergeCells.md) plugin<br>- Merge specific cells at initialization |
+     *
+     * To merge specific cells at Handsontable's initialization,
+     * set the `mergeCells` option to an array of objects, with the following properties:
+     *
+     * | Property  | Description                                                |
+     * | --------- | ---------------------------------------------------------- |
+     * | `row`     | The row index of the merged section's beginning            |
+     * | `col`     | The column index of the merged section's beginning         |
+     * | `rowspan` | The width (as a number of rows) of the merged section      |
+     * | `colspan` | The height (as a number of columns ) of the merged section |
+     *
+     * Read more:
+     * - [Merge cells &#8594;](@/guides/cell-features/merge-cells.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -1982,14 +2645,17 @@ export default () => {
      *
      * @example
      * ```js
-     * // enables the mergeCells plugin
+     * // enable the `MergeCells` plugin
      * margeCells: true,
      *
-     * // declares a list of merged sections
+     * // enable the `MergeCells` plugin
+     * // and merge specific cells at initialization
      * mergeCells: [
-     *   // rowspan and colspan properties declare the width and height of a merged section in cells
+     *   // merge cells from cell (1,1) to cell (3,3)
      *   {row: 1, col: 1, rowspan: 3, colspan: 3},
+     *   // merge cells from cell (3,4) to cell (2,2)
      *   {row: 3, col: 4, rowspan: 2, colspan: 2},
+     *   // merge cells from cell (5,6) to cell (3,3)
      *   {row: 5, col: 6, rowspan: 3, colspan: 3}
      * ],
      * ```
@@ -1998,22 +2664,38 @@ export default () => {
 
     /**
      * @description
-     * Turns on [Multi-column sorting](@/guides/rows/row-sorting.md). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
-     * * `initialConfig` - Array containing objects, every with predefined keys:
-     *   * `column` - sorted column
-     *   * `sortOrder` - order in which column will be sorted
-     *     * `'asc'` = ascending
-     *     * `'desc'` = descending
-     * * `indicator` - display status for sorting order indicator (an arrow icon in the column header, specifying the sorting order).
-     *   * `true` = show sort indicator for sorted columns
-     *   * `false` = don't show sort indicator for sorted columns
-     * * `headerAction` - allow to click on the headers to sort
-     *   * `true` = turn on possibility to click on the headers to sort
-     *   * `false` = turn off possibility to click on the headers to sort
-     * * `sortEmptyCells` - how empty values should be handled, for more information see @{link Options#allowEmpty}
-     *   * `true` = the table sorts empty cells
-     *   * `false` = the table moves all empty cells to the end of the table
-     * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
+     * The `multiColumnSorting` option configures the [`MultiColumnSorting`](@/api/columnSorting.md) plugin.
+     *
+     * You can set the `multiColumnSorting` option to one of the following:
+     *
+     * | Setting    | Description                                                                                                                                                |
+     * | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true`     | Enable the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin with the default configuration                                                       |
+     * | `false`    | Disable the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin                                                                                     |
+     * | An object  | - Enable the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin<br>- Modify the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin options |
+     *
+     * If you set the `multiColumnSorting` option to an object,
+     * you can set the following [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin options:
+     *
+     * | Option                   | Possible settings                                                                                                                                |
+     * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `indicator`              | `true`: Display an arrow icon in the column header, to indicate a sortable column<br>`false`: Don't display the arrow icon in the column header  |
+     * | `headerAction`           | `true`: Enable clicking on the column header to sort the column<br>`false`: Disable clicking on the column header to sort the column             |
+     * | `sortEmptyCells`         | `true`: Sort empty cells as well<br>`false`: Place empty cells at the end                                                                        |
+     * | `compareFunctionFactory` | A [custom compare function](@/guides/rows/row-sorting.md#custom-compare-functions)                                                                |
+     *
+     * If you set the `multiColumnSorting` option to an object,
+     * you can also sort individual columns at Handsontable's initialization.
+     * In the `multiColumnSorting` object, add an object named `initialConfig`,
+     * with the following properties:
+     *
+     * | Option      | Possible settings   | Description                                                      |
+     * | ----------- | ------------------- | ---------------------------------------------------------------- |
+     * | `column`    | A number            | The index of the column that you want to sort at initialization  |
+     * | `sortOrder` | `'asc'` \| `'desc'` | The sorting order:<br>`'asc'`: ascending<br>`'desc'`: descending |
+     *
+     * Read more:
+     * - [Row sorting &#8594;](@/guides/rows/row-sorting.md)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -2022,40 +2704,57 @@ export default () => {
      *
      * @example
      * ```js
-     * // as boolean
+     * // enable the `MultiColumnSorting` plugin
      * multiColumnSorting: true
      *
-     * // as an object with initial sort config (sort ascending for column at index 1 and then sort descending for column at index 0)
+     * // enable the `MultiColumnSorting` plugin with custom configuration
      * multiColumnSorting: {
-     *   initialConfig: [{
-     *     column: 1,
-     *     sortOrder: 'asc'
-     *   }, {
-     *     column: 0,
-     *     sortOrder: 'desc'
-     *   }]
+     *   // sort empty cells as well
+     *   sortEmptyCells: true,
+     *   // display an arrow icon in the column header
+     *   indicator: true,
+     *   // disable clicking on the column header to sort the column
+     *   headerAction: false,
+     *   // add a custom compare function
+     *   compareFunctionFactory(sortOrder, columnMeta) {
+     *     return function(value, nextValue) {
+     *       // some value comparisons which will return -1, 0 or 1...
+     *     }
+     *   }
      * }
      *
-     * // as an object which define specific sorting options for all columns
+     * // enable the `MultiColumnSorting` plugin
      * multiColumnSorting: {
-     *   sortEmptyCells: true, // true = the table sorts empty cells, false = the table moves all empty cells to the end of the table
-     *   indicator: true, // true = shows indicator for all columns, false = don't show indicator for columns
-     *   headerAction: false, // true = allow to click on the headers to sort, false = turn off possibility to click on the headers to sort
-     *   compareFunctionFactory: function(sortOrder, columnMeta) {
-     *     return function(value, nextValue) {
-     *       // Some value comparisons which will return -1, 0 or 1...
-     *     }
+     *   // at initialization, sort column 1 in ascending order
+     *   initialConfig: {
+     *     column: 1,
+     *     sortOrder: 'asc'
+     *   },
+     *   // at initialization, sort column 2 in descending order
+     *   initialConfig: {
+     *     column: 2,
+     *     sortOrder: 'desc'
      *   }
      * }
      * ```
      */
     multiColumnSorting: void 0,
+
     /**
      * @description
-     * Number of rows to be rendered outside of the visible part of the table. By default, it's set to `'auto'`, which
-     * makes Handsontable to attempt to calculate the best offset performance-wise.
+     * The `viewportRowRenderingOffset` option configures the number of rows
+     * to be rendered outside of the grid's viewport.
      *
-     * You may test out different values to find the best one that works for your specific implementation.
+     * You can set the `viewportRowRenderingOffset` option to one of the following:
+     *
+     * | Setting            | Description                                             |
+     * | ------------------ | ------------------------------------------------------- |
+     * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
+     * | A number           | Set the offset manually                                 |
+     *
+     * Read more:
+     * - [Performance: Define the number of pre-rendered rows and columns &#8594;](@/guides/advanced-topics/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
+     * - [Column virtualization &#8594;](@/guides/columns/column-virtualization.md)
      *
      * @memberof Options#
      * @type {number|string}
@@ -2064,6 +2763,7 @@ export default () => {
      *
      * @example
      * ```js
+     * // render 70 rows outside of the grid's viewport
      * viewportRowRenderingOffset: 70,
      * ```
      */
@@ -2071,10 +2771,18 @@ export default () => {
 
     /**
      * @description
-     * Number of columns to be rendered outside of the visible part of the table. By default, it's set to `'auto'`, which
-     * makes Handsontable try calculating the best offset performance-wise.
+     * The `viewportColumnRenderingOffset` option configures the number of columns
+     * to be rendered outside of the grid's viewport.
      *
-     * You may experiment with the value to find the one that works best for your specific implementation.
+     * You can set the `viewportColumnRenderingOffset` option to one of the following:
+     *
+     * | Setting            | Description                                             |
+     * | ------------------ | ------------------------------------------------------- |
+     * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
+     * | A number           | Set the offset manually                                 |
+     *
+     * Read more:
+     * - [Performance: Define the number of pre-rendered rows and columns &#8594;](@/guides/advanced-topics/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      *
      * @memberof Options#
      * @type {number|string}
@@ -2083,6 +2791,7 @@ export default () => {
      *
      * @example
      * ```js
+     * // render 70 columns outside of the grid's viewport
      * viewportColumnRenderingOffset: 70,
      * ```
      */
@@ -2090,22 +2799,36 @@ export default () => {
 
     /**
      * @description
-     * A function, regular expression or a string, which will be used in the process of cell validation. If a function is
-     * used, be sure to execute the callback argument with either `true` (`callback(true)`) if the validation passed
-     * or with `false` (`callback(false)`), if the validation failed.
+     * The `validator` option sets a [cell validator](@/guides/cell-functions/cell-validator.md) for a cell.
      *
-     * __Note__, that `this` in the function points to the `cellProperties` object.
+     * You can set the `validator` option to one of the following:
      *
-     * If a string is provided, it may be one of the following predefined values:
-     * * `autocomplete`,
-     * * `date`,
-     * * `numeric`,
-     * * `time`.
+     * | Setting              | Description                                                                      |
+     * | -------------------- | -------------------------------------------------------------------------------- |
+     * | A string             | A [cell validator alias](@/guides/cell-functions/cell-validator.md)              |
+     * | A function           | Your [custom cell validator function](@/guides/cell-functions/cell-validator.md) |
+     * | A regular expression | A regular expression used for cell validation                                    |
      *
-     * Or you can [register](@/guides/cell-functions/cell-validator.md) the validator function under specified name and use its name as an alias in your
-     * configuration.
+     * By setting the `validator` option to a string,
+     * you can use one of the following [cell validator aliases](@/guides/cell-functions/cell-validator.md):
      *
-     * See more [in the demo](@/guides/cell-functions/cell-validator.md).
+     * | Alias               | Cell validator function                                                 |
+     * | ------------------- | ----------------------------------------------------------------------- |
+     * | A custom alias      | Your [custom cell validator](@/guides/cell-functions/cell-validator.md) |
+     * | `'autocomplete'`    | `AutocompleteValidator`                                                 |
+     * | `'date'`            | `DateValidator`                                                         |
+     * | `'dropdown'`        | `DropdownValidator`                                                     |
+     * | `'numeric'`         | `NumericValidator`                                                      |
+     * | `'time'`            | `TimeValidator`                                                         |
+     *
+     * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
+     * options all at once, use the [`type`](#type) option.
+     *
+     * Read more:
+     * - [Cell validator &#8594;](@/guides/cell-functions/cell-validator.md)
+     * - [Cell type &#8594;](@/guides/cell-types/cell-type.md)
+     * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [`type`](#type)
      *
      * @memberof Options#
      * @type {Function|RegExp|string}
@@ -2116,19 +2839,19 @@ export default () => {
      * ```js
      * columns: [
      *    {
-     *      // as a function
-     *      validator: function(value, callback) {
-     *          ...
-     *      }
+     *      // use a built-in `numeric` cell validator
+     *      validator: 'numeric'
      *    },
      *    {
-     *      // regular expression
+     *      // validate against a regular expression
      *      validator: /^[0-9]$/
      *    },
      *    {
-     *      // as a string
-     *      validator: 'numeric'
-     *    }
+     *      // add a custom cell validator function
+     *      validator(value, callback) {
+     *          ...
+     *      }
+     *    },
      * ],
      * ```
      */
@@ -2136,14 +2859,22 @@ export default () => {
 
     /**
      * @description
-     * Disables visual cells selection.
+     * The `disableVisualSelection` option configures how
+     * [selection](@/guides/cell-features/selection.md) is shown.
      *
-     * Possible values:
-     *  * `true` - Disables any type of visual selection (current, header and area selection),
-     *  * `false` - Enables any type of visual selection. This is default value.
-     *  * `'current'` - Disables the selection of a currently selected cell, the area selection is still present.
-     *  * `'area'` - Disables the area selection, the currently selected cell selection is still present.
-     *  * `'header'` - Disables the headers selection, the currently selected cell selection is still present.
+     * You can set the `disableVisualSelection` option to one of the following:
+     *
+     * | Setting           | Description                                                                                         |
+     * | ----------------- | --------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | - Show single-cell selection<br>- Show range selection<br>- Show header selection                   |
+     * | `true`            | - Don't show single-cell selection<br>- Don't show range selection<br>- Don't show header selection |
+     * | `'current'`       | - Don't show single-cell selection<br>- Show range selection<br>- Show header selection             |
+     * | `'area'`          | - Show single-cell selection<br>- Don't show range selection<br>- Show header selection             |
+     * | `'header'`        | - Show single-cell selection<br>- Show range selection<br>- Don't show header selection             |
+     * | An array          | A combination of `'current'`, `'area'`, and/or `'header'`                                           |
+     *
+     * Read more:
+     * - [Selection &#8594;](@/guides/cell-features/selection.md)
      *
      * @memberof Options#
      * @type {boolean|string|string[]}
@@ -2152,20 +2883,36 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a boolean
+     * // don't show single-cell selection
+     * // don't show range selection
+     * // don't show header selection
      * disableVisualSelection: true,
      *
-     * // as a string ('current', 'area' or 'header')
+     * // don't show single-cell selection
+     * // show range selection
+     * // show header selection
      * disableVisualSelection: 'current',
      *
-     * // as an array
+     * // don't show single-cell selection
+     * // don't show range selection
+     * // show header selection
      * disableVisualSelection: ['current', 'area'],
      * ```
      */
     disableVisualSelection: false,
 
     /**
-     * Disables or enables {@link ManualColumnFreeze} plugin.
+     * The `manualColumnFreeze` option configures the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin.
+     *
+     * You can set the `manualColumnFreeze` option to one of the following:
+     *
+     * | Setting  | Description                                                            |
+     * | -------- | ---------------------------------------------------------------------- |
+     * | `true`   | Enable the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin  |
+     * | `false`  | Disable the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin |
+     *
+     * Read more:
+     * - [Column freezing &#8594;](@/guides/columns/column-freezing.md#user-triggered-freeze)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2174,16 +2921,23 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable fixed columns
+     * // enable the `ManualColumnFreeze` plugin
      * manualColumnFreeze: true,
      * ```
      */
     manualColumnFreeze: void 0,
 
     /**
-     * Defines whether Handsontable should trim the whitespace at the beginning and the end of the cell contents.
+     * The `trimWhitespace` option configures automatic whitespace removal.
      *
-     * @memberof Options#
+     * You can set the `trimWhitespace` option to one of the following:
+     *
+     * | Setting          | Description                                                     |
+     * | ---------------- | --------------------------------------------------------------- |
+     * | `true` (default) | Remove whitespace at the beginning and at the end of every cell |
+     * | `false`          | Don't remove whitespace                                         |
+     *
+     * @memberof Options#tr
      * @type {boolean}
      * @default true
      * @category Core
@@ -2193,6 +2947,7 @@ export default () => {
      * columns: [
      *   {
      *     // don't remove whitespace
+     *     // from any cell of this column
      *     trimWhitespace: false
      *   }
      * ]
@@ -2201,7 +2956,21 @@ export default () => {
     trimWhitespace: true,
 
     /**
-     * Defines data source for Autocomplete or Dropdown cell types.
+     * The `source` option sets options available in [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
+     * and [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) cells.
+     *
+     * You can set the `source` option to one of the following:
+     *
+     * - An array
+     * - A function
+     *
+     * Read more:
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
+     * - [`strict`](#strict)
+     * - [`allowHtml`](#allowHtml)
+     * - [`filter`](#filter)
+     * - [`sortByRelevance`](#sortByRelevance)
      *
      * @memberof Options#
      * @type {Array|Function}
@@ -2210,16 +2979,20 @@ export default () => {
      *
      * @example
      * ```js
-     * // source as a array
+     * // set `source` to an array
      * columns: [{
+     *   // set the `type` of every cell in this column to `autocomplete`
      *   type: 'autocomplete',
+     *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C', 'D']
      * }],
      *
-     * // source as a function
+     * // set `source` to a function
      * columns: [{
+     *   // set the `type` of every cell in this column to `autocomplete`
      *   type: 'autocomplete',
-     *   source: function(query, callback) {
+     *   // for every `autocomplete` cell in this column, fetch data from an external source
+     *   source(query, callback) {
      *     fetch('https://example.com/query?q=' + query, function(response) {
      *       callback(response.items);
      *     })
@@ -2231,7 +3004,13 @@ export default () => {
 
     /**
      * @description
-     * Defines the column header name.
+     * The `title` option configures [column header](@/guides/columns/column-header.md) names.
+     *
+     * You can set the `title` option to a string.
+     *
+     * Read more:
+     * - [Column header &#8594;](@/guides/columns/column-header.md)
+     * - [`columns`](#columns)
      *
      * @memberof Options#
      * @type {string}
@@ -2240,13 +3019,14 @@ export default () => {
      *
      * @example
      * ```js
-     * // set header names for every column
      * columns: [
      *   {
+     *     // set the first column header name to `First name`
      *     title: 'First name',
      *     type: 'text',
      *   },
      *   {
+     *     // set the second column header name to `Last name`
      *     title: 'Last name',
      *     type: 'text',
      *   }
@@ -2256,7 +3036,19 @@ export default () => {
     title: void 0,
 
     /**
-     * Data template for `'checkbox'` type when checkbox is checked.
+     * The `checkedTemplate` option lets you configure what value
+     * a checked [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell has.
+     *
+     * You can set the `checkedTemplate` option to one of the following:
+     *
+     * | Setting          | Description                                                                                                                                                                              |
+     * | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell is checked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns `true`                  |
+     * | A string         | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell is checked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns a string of your choice |
+     *
+     * Read more:
+     * - [Checkbox cell type: Checkbox template &#8594;](@/guides/cell-types/checkbox-cell-type.md#checkbox-template)
+     * - [`uncheckedTemplate`](#uncheckedTemplate)
      *
      * @memberof Options#
      * @type {boolean|string|number}
@@ -2265,16 +3057,40 @@ export default () => {
      *
      * @example
      * ```js
-     * checkedTemplate: 'good'
-     *
-     * // if a checkbox-typed cell is checked, then getDataAtCell(x, y),
-     * // where x and y are the coordinates of the cell will return 'good'.
+     * columns: [
+     *   {
+     *     // set the `type` of every cell in this column to `checkbox`
+     *     // when checked, the cell's value is `true`
+     *     // when unchecked, the cell's value is `false`
+     *     type: 'checkbox',
+     *   },
+     *   {
+     *     // set the `type` of every cell in this column to `checkbox`
+     *     type: 'checkbox',
+     *     // when checked, the cell's value is `'Yes'`
+     *     checkedTemplate: 'Yes',
+     *     // when unchecked, the cell's value is `'No'`
+     *     uncheckedTemplate: 'No'
+     *  }
+     * ],
      * ```
      */
     checkedTemplate: void 0,
 
     /**
-     * Data template for `'checkbox'` type when checkbox is unchecked.
+     * The `uncheckedTemplate` option lets you configure what value
+     * an unchecked [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell has.
+     *
+     * You can set the `uncheckedTemplate` option to one of the following:
+     *
+     * | Setting           | Description                                                                                                                                                                                |
+     * | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `false` (default) | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell is unchecked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns `false`                 |
+     * | A string          | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cell is unchecked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns a string of your choice |
+     *
+     * Read more:
+     * - [Checkbox cell type: Checkbox template &#8594;](@/guides/cell-types/checkbox-cell-type.md#checkbox-template)
+     * - [`checkedTemplate`](#checkedTemplate)
      *
      * @memberof Options#
      * @type {boolean|string|number}
@@ -2283,29 +3099,41 @@ export default () => {
      *
      * @example
      * ```js
-     * uncheckedTemplate: 'bad'
-     *
-     * // if a checkbox-typed cell is not checked, then getDataAtCell(x,y),
-     * // where x and y are the coordinates of the cell will return 'bad'.
+     * columns: [
+     *   {
+     *     // set the `type` of every cell in this column to `checkbox`
+     *     // when unchecked, the cell's value is `false`
+     *     // when checked, the cell's value is `true`
+     *     type: 'checkbox',
+     *   },
+     *   {
+     *     // set the `type` of every cell in this column to `checkbox`
+     *     // when unchecked, the cell's value is `'No'`
+     *     // when checked, the cell's value is `'Yes'`
+     *     type: 'checkbox',
+     *     uncheckedTemplate: 'No'
+     *     checkedTemplate: 'Yes',
+     *  }
+     * ],
      * ```
      */
     uncheckedTemplate: void 0,
 
     /**
      * @description
-     * Object which describes if renderer should create checkbox element with label element as a parent.
+     * The `label` option configures [`checkbox`](@/guides/cell-types/checkbox-cell-type.md) cells` labels.
      *
-     * __Note__, this option only works for [checkbox-typed](@/guides/cell-types/checkbox-cell-type.md) cells.
+     * You can set the `label` option to an object with the following properties:
      *
-     * By default the [checkbox](@/guides/cell-types/checkbox-cell-type.md) renderer renders the checkbox without a label.
+     * | Property    | Possible values                   | Description                                                                                                                                                                                                             |
+     * | ----------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `position`  | `'after'` (default) \| `'before'` | `'after'`: place the label to the right of the checkbox<br>`'before'`: place the label to the left of the checkbox                                                                                                      |
+     * | `value`     | A string \| A function            | The label's text                                                                                                                                                                                                        |
+     * | `separated` | `false` (default) \| `true`       | `false`: don't separate the label from the checkbox<br>`true`: separate the label from the checkbox                                                                                                                     |
+     * | `property`  | A string                          | - A [`data`](#data) object property name that's used as the label's text <br>- Works only when the [`data`](#data) option is set to an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects) |
      *
-     * Possible object properties:
-     *  * `property` - Defines the property name of the data object, which will to be used as a label.
-     *  (eg. `label: {property: 'name.last'}`). This option works only if data was passed as an array of objects.
-     *  * `position` - String which describes where to place the label text (before or after checkbox element).
-     * Valid values are `'before'` and '`after`' (defaults to `'after'`).
-     *  * `value` - String or a Function which will be used as label text.
-     *  * `separated` - Boolean which describes that checkbox & label elements are separated or not. Default value is `false`.
+     * Read more:
+     * - [Checkbox cell type: Checkbox labels &#8594;](@/guides/cell-types/checkbox-cell-type.md#checkbox-labels)
      *
      * @memberof Options#
      * @type {object}
@@ -2324,17 +3152,26 @@ export default () => {
     label: void 0,
 
     /**
-     * Display format for numeric typed renderers.
+     * The `numericFormat` option configures the number format and the currency format
+     * of [`numeric`](@/guides/cell-types/numeric-cell-type.md) cells` displayed output.
      *
-     * __Note__, this option only works for [numeric-typed](@/guides/cell-types/numeric-cell-type.md) cells.
+     * You can set the `numericFormat` option to an object with the following properties:
      *
-     * Format is described by two properties:
-     * * `pattern` - Handled by `numbro` for purpose of formatting numbers to desired pattern. List of supported patterns can be found [here](https://numbrojs.com/format.html#numbers).
-     * * `culture` - Handled by `numbro` for purpose of formatting currencies. Examples showing how it works can be found [here](https://numbrojs.com/format.html#currency). List of supported cultures can be found [here](https://numbrojs.com/languages.html#supported-languages).
+     * | Property    | Possible values                                                               | Description     |
+     * | ----------- | ----------------------------------------------------------------------------- | --------------- |
+     * | `pattern`   | All [`numbro.js` number formats](https://numbrojs.com/format.html#numbers)    | Number format   |
+     * | `culture`   | All [`numbro.js` currency formats](https://numbrojs.com/format.html#currency) | Currency format |
      *
-     * __Note:__ Please keep in mind that this option is used only to format the displayed output! It has no effect on the input data provided for the cell. The numeric data can be entered to the table only as floats (separated by a dot or a comma) or integers, and are stored in the source dataset as JavaScript numbers.
+     * The `numericFormat` option as no effect on cells' input data.
+     * To enter numeric data into Handsontable, use:
+     * - Either floats (separated by a dot, or a comma)
+     * - Or integers
      *
-     * Handsontable uses [numbro](https://numbrojs.com/) as a main library for numbers formatting.
+     * In the source data, numeric data is stored as JavaScript numbers.
+     *
+     * Read more:
+     * - [Numeric cell type &#8594;](@/guides/cell-types/numeric-cell-type.md)
+     * - [Third-party licenses &#8594;](@/guides/technical-specification/third-party-licenses.md)
      *
      * @memberof Options#
      * @since 0.35.0
@@ -2346,10 +3183,13 @@ export default () => {
      * ```js
      * columns: [
      *   {
+     *     // set the `type` of every cell in this column to `numeric`
      *     type: 'numeric',
-     *     // set desired format pattern and
+     *     // set the `numericFormat` option for every `numeric` cell of this column
      *     numericFormat: {
+     *       // set the number format
      *       pattern: '0,00',
+     *       // set the currency format
      *       culture: 'en-US'
      *     }
      *   }
@@ -2359,7 +3199,30 @@ export default () => {
     numericFormat: void 0,
 
     /**
-     * Language for Handsontable translation. Possible language codes are [listed here](@/guides/internationalization/internationalization-i18n.md#list-of-available-languages).
+     * The `language` option configures Handsontable's language.
+     *
+     * You can set the `language` option to one of the following:
+     *
+     * | Setting             | Description                 |
+     * | ------------------- | --------------------------- |
+     * | `'en-US'` (default) | English - United States     |
+     * | `'de-DE'`           | German - Germany            |
+     * | `'es-MX'`           | Spanish - Mexico            |
+     * | `'fr-FR'`           | French - France             |
+     * | `'it-IT'`           | Italian - Italy             |
+     * | `'ja-JP'`           | Japanese - Japan            |
+     * | `'ko-KR'`           | Korean - Korea              |
+     * | `'lv-LV'`           | Latvian - Latvia            |
+     * | `'nb-NO'`           | Norwegian (Bokmål) - Norway |
+     * | `'nl-NL'`           | Dutch - Netherlands         |
+     * | `'pl-PL'`           | Polish - Poland             |
+     * | `'pt-BR'`           | Portuguese - Brazil         |
+     * | `'ru-RU'`           | Russian - Russia            |
+     * | `'zh-CN'`           | Chinese - China             |
+     * | `'zh-TW'`           | Chinese - Taiwan            |
+     *
+     * Read more:
+     * - [Internationalization (i18n) &#8594;](@/guides/internationalization/internationalization-i18n.md)
      *
      * @memberof Options#
      * @type {string}
@@ -2368,7 +3231,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // set Polish language
+     * // set Handsontable's language to Polish
      * language: 'pl-PL',
      * ```
      */
@@ -2392,8 +3255,18 @@ export default () => {
 
     /**
      * Data source for [select-typed](@/guides/cell-types/select-cell-type.md) cells.
+     * The `selectOptions` option configures options that the end user can choose from in [`select`](@/guides/cell-types/select-cell-type.md) cells.
      *
-     * __Note__, this option only works for [select-typed](@/guides/cell-types/select-cell-type.md) cells.
+     * You can set the `selectOptions` option to one of the following:
+     *
+     * | Setting                         | Description                                                                   |
+     * | ------------------------------- | ----------------------------------------------------------------------------- |
+     * | An array of strings             | Each string is one option's value and label                                   |
+     * | An object with key-string pairs | - Each key is one option's value<br>- The key's string is that option's label |
+     * | A function                      | A function that returns an object with key-string pairs                       |
+     *
+     * Read more:
+     * - [Select cell type &#8594;](@/guides/cell-types/select-cell-type.md)
      *
      * @memberof Options#
      * @type {string[]|object|Function}
@@ -2404,48 +3277,70 @@ export default () => {
      * ```js
      * columns: [
      *   {
-     *     editor: 'select',
-     *     // as an array of strings: `option.value` and `option.textContent` use the same value
+     *     // set the `type` of every cell in this column to `select`
+     *     type: 'select',
+     *     // set the first option's value and label to `A`
+     *     // set the second option's value and label to `B`
+     *     // set the third option's value and label to `C`
      *     selectOptions: ['A', 'B', 'C'],
-     *     // as an object: `option.value` appoints a key, and `option.textContent` contains a string assigned to the key
+     *   },
+     *   {
+     *     // set the `type` of every cell in this column to `select`
+     *     type: 'select',
      *     selectOptions: {
+     *       // set the first option's value to `value1` and label to `Label 1`
      *       value1: 'Label 1',
+     *       // set the second option's value to `value2` and label to `Label 2`
      *       value2: 'Label 2',
+     *       // set the third option's value to `value3` and label to `Label 3`
      *       value3: 'Label 3',
      *     },
-     *     // as a function that returns possible options as an array
-     *     selectOptions(visualRow, visualColumn, prop) {
-     *       return ['A', 'B', 'C'];
-     *     },
-     *     // as a function that returns possible options as an object
+     *   },
+     *   {
+     *     // set the `type` of every cell in this column to `select`
+     *     type: 'select',
+     *     // set `selectOption` to a function that returns available options as an object
      *     selectOptions(visualRow, visualColumn, prop) {
      *       return {
      *         value1: 'Label 1',
      *         value2: 'Label 2',
      *         value3: 'Label 3',
      *       };
-     *     },
-     *   }
+     *   },
      * ],
      * ```
      */
     selectOptions: void 0,
 
     /**
-     * Enables or disables the {@link AutoColumnSize} plugin. Default value `undefined`
-     * is an equivalent of `true`, sets `syncLimit` to 50.
-     * Disabling this plugin can increase performance, as no size-related calculations would be done.
-     * To disable plugin it's necessary to set `false`.
+     * The `autoColumnSize` option configures the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
-     * Column width calculations are divided into sync and async part. Each of those parts has their own advantages and
-     * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
-     * operations don't block the browser UI.
+     * You can set the `autoColumnSize` option to one of the following:
      *
-     * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value.
+     * | Setting   | Description                                                                                  |
+     * | --------- | -------------------------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin                               |
+     * | `true`    | Enable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin with the default configuration |
+     * | An object | Enable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin and modify the plugin options  |
      *
-     * You can also use the `useHeaders` option to take the column headers width into calculation.
+     * By default, the `autoColumnSize` option is set to `undefined`,
+     * but the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin acts as enabled.
+     * To disable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin completely,
+     * set the `autoColumnSize` option to `false`.
      *
-     * Note: Using {@link Core#colWidths} option will forcibly disable {@link AutoColumnSize}.
+     * If you set the `autoColumnSize` option to an object, you can set the following [`AutoColumnSize`](@/api/autoColumnSize.md) plugin options:
+     *
+     * | Property                | Possible values                 | Description                                                                                                    |
+     * | ----------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+     * | `syncLimit`             | A number \| A percentage string | The number/percentage of columns to keep in sync<br>(default: `50`)                                            |
+     * | `useHeaders`            | `true` \| `false`               | When calculating column widths:<br>`true`: use column headers<br>`false`: don't use column headers          |
+     * | `samplingRatio`         | A number                        | The number of samples of the same length to be used in column width calculations                               |
+     * | `allowSampleDuplicates` | `true` \| `false`               | When calculating column widths:<br>`true`: Allow duplicate samples<br>`false`: Don't allow duplicate samples |
+     *
+     * Using the [`colWidths`](#colWidths) option forcibly disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
+     *
+     * Read more:
+     * - [`AutoColumnSize`](@/api/autoColumnSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -2454,35 +3349,46 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a number (300 columns in sync, rest async)
-     * autoColumnSize: { syncLimit: 300 },
-     *
-     * // as a string (percent)
-     * autoColumnSize: { syncLimit: '40%' },
-     *
-     * // use headers width while calculating the column width
-     * autoColumnSize: { useHeaders: true },
-     *
-     * // defines how many samples for the same length will be caught to calculations
-     * autoColumnSize: { samplingRatio: 10 },
-     *
-     * // defines if duplicated samples are allowed in calculations
-     * autoColumnSize: { allowSampleDuplicates: true },
+     * autoColumnSize: {
+     *   // keep 40% of columns in sync (the rest of columns: async)
+     *   syncLimit: '40%',
+     *   // when calculating column widths, use column headers
+     *   useHeaders: true,
+     *   // when calculating column widths, use 10 samples of the same length
+     *   samplingRatio: 10,
+     *   // when calculating column widths, allow duplicate samples
+     *   allowSampleDuplicates: true
+     * },
      * ```
      */
     autoColumnSize: void 0,
 
     /**
-     * Enables or disables {@link AutoRowSize} plugin. Default value is `undefined`, which has the same effect as `false`
-     * (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
+     * The `autoRowSize` option configures the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
      *
-     * __Note:__ the default `syncLimit` value is set to 500 when the plugin is manually enabled by declaring it as: `autoRowSize: true`.
+     * You can set the `autoRowSize` option to one of the following:
      *
-     * Row height calculations are divided into sync and async stages. Each of these stages has their own advantages and
-     * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
-     * operations don't block the browser UI.
+     * | Setting   | Description                                                                            |
+     * | --------- | -------------------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`AutoRowSize`](@/api/autoRowSize.md) plugin                               |
+     * | `true`    | Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin with the default configuration |
+     * | An object | Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin and modify the plugin options  |
      *
-     * To configure the sync/async distribution, you can pass an absolute value (number of rows) or a percentage value.
+     * By default, the `autoRowSize` option is set to `undefined`,
+     * but the [`AutoRowSize`](@/api/autoRowSize.md) plugin acts as enabled.
+     * To disable the [`AutoRowSize`](@/api/autoRowSize.md) plugin completely,
+     * set the `autoRowSize` option to `false`.
+     *
+     * If you set the `autoRowSize` option to an object, you can set the following [`AutoRowSize`](@/api/autoRowSize.md) plugin options:
+     *
+     * | Property    | Possible values                 | Description                                                       |
+     * | ----------- | ------------------------------- | ----------------------------------------------------------------- |
+     * | `syncLimit` | A number \| A percentage string | The number/percentage of rows to keep in sync<br>(default: `500`) |
+     *
+     * Using the [`rowHeights`](#rowHeights) option forcibly disables the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
+     *
+     * Read more:
+     * - [`AutoRowSize`](@/api/autoRowSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -2491,19 +3397,26 @@ export default () => {
      *
      * @example
      * ```js
-     * // as a number (300 rows in sync, rest async)
-     * autoRowSize: {syncLimit: 300},
-     *
-     * // as a string (percent)
-     * autoRowSize: {syncLimit: '40%'},
+     * autoRowSize: {
+     *   // keep 40% of rows in sync (the rest of rows: async)
+     *   syncLimit: '40%'
+     * },
      * ```
      */
     autoRowSize: void 0,
 
     /**
-     * Date validation format.
+     * The `dateFormat` option configures [`date`](@/guides/cell-types/date-cell-type.md) cells' date format.
      *
-     * __Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md) cells.
+     * You can set the `dateFormat` option to a date format string. The default value is: `'DD/MM/YYYY'`.
+     *
+     * To enforce the date format set by the `dateFormat` option,
+     * use the [`correctFormat`](#correctFormat) option.
+     *
+     * Read more:
+     * - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
+     * - [`correctFormat`](#correctFormat)
+     * - [`defaultDate`](#defaultDate)
      *
      * @memberof Options#
      * @type {string}
@@ -2512,19 +3425,31 @@ export default () => {
      *
      * @example
      * ```js
-     * columns: [{
+     * columns: [
+     *   {
+     *   // set the `type` of every cell in this column to `date`
      *   type: 'date',
-     *   // localise date format
-     *   dateFormat: 'MM/DD/YYYY'
-     * }],
+     *   // for every `date` cell of this column, set the date format to `YYYY-MM-DD`
+     *   dateFormat: 'YYYY-MM-DD',
+     *   },
+     * ],
      * ```
      */
     dateFormat: 'DD/MM/YYYY',
 
     /**
-     * If `true` then dates will be automatically formatted to match the desired format.
+     * The `correctFormat` option configures [`date`](@/guides/cell-types/date-cell-type.md) cells' date format correction.
      *
-     * __Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md) cells.
+     * You can set the `correctFormat` option to one of the following
+     *
+     * | Setting           | Description                                                           |
+     * | ----------------- | --------------------------------------------------------------------- |
+     * | `false` (default) | Don't correct dates                                                   |
+     * | `true`            | Enforce the date format set by the [`dateFormat`](#dateFormat) option |
+     *
+     * Read more:
+     * - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
+     * - [`dateFormat`](#dateFormat)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2533,20 +3458,29 @@ export default () => {
      *
      * @example
      * ```js
-     * columns: [{
+     * columns: [
+     *   {
+     *   // set the `type` of every cell in this column to `date`
      *   type: 'date',
+     *   // for every `date` cell of this column, set the date format to `YYYY-MM-DD`
      *   dateFormat: 'YYYY-MM-DD',
-     *   // force selected date format
+     *   // enforce the `YYYY-MM-DD` date format
      *   correctFormat: true
-     * }],
+     *   },
+     * ],
      * ```
      */
     correctFormat: false,
 
     /**
-     * Definition of default value which will fill the empty cells.
+     * The `defaultDate` option configures the date displayed
+     * in empty [`date`](@/guides/cell-types/date-cell-type.md) cells.
      *
-     * __Note__, this option only works for [date-typed](@/guides/cell-types/date-cell-type.md) cells.
+     * You can set the `defaultDate` option to a string.
+     *
+     * Read more:
+     * - [Date cell type &#8594;](@/guides/cell-types/date-cell-type.md)
+     * - [`dateFormat`](#dateFormat)
      *
      * @memberof Options#
      * @type {string}
@@ -2557,8 +3491,9 @@ export default () => {
      * ```js
      * columns: [
      *   {
+     *     // set the `type` of every cell in this column to `date`
      *     type: 'date',
-     *     // always set this date for empty cells
+     *     // in every empty `date` cell of this column, display `2015-02-02`
      *     defaultDate: '2015-02-02'
      *   }
      * ],
@@ -2567,11 +3502,19 @@ export default () => {
     defaultDate: void 0,
 
     /**
-     * If set to `true`, the value entered into the cell must match (case-sensitive) the autocomplete source.
-     * Otherwise, cell won't pass the validation. When filtering the autocomplete source list, the editor will
-     * be working in case-insensitive mode.
+     * The `strict` option configures [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
+     * cells' strict/lazy mode.
      *
-     * __Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
+     * You can set the `strict` option to one of the following:
+     *
+     * | Setting | Mode                                                                                  | Description                                                                                                                                       |
+     * | ------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true`  | [Strict mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-strict-mode) | The value entered must match an autocomplete option (case-sensitive)                                                                              |
+     * | `false` | [Lazy mode](@/guides/cell-types/autocomplete-cell-type.md#autocomplete-lazy-mode)     | The value entered doesn't have to match an autocomplete option.<br>The end user can:<br>- Choose from suggested options<br>- Enter a custom value |
+     *
+     * Read more:
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [`source`](#source)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2580,22 +3523,38 @@ export default () => {
      *
      * @example
      * ```js
-     * columns: [{
+     * columns: [
+     *   {
+     *   // set the `type` of every cell in this column to `autocomplete`
      *   type: 'autocomplete',
+     *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C'],
-     *   // force selected value to match the source list
+     *   // values entered must match `A`, `B`, or `C`
      *   strict: true
-     * }],
+     *   },
+     * ],
      * ```
      */
     strict: void 0,
 
     /**
-     * If set to `true`, data defined in `source` of the autocomplete or dropdown cell will be treated as HTML.
+     * The `allowHtml` option configures whether [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)
+     * and [`dropdown`](@/guides/cell-types/dropdown-cell-type.md) cells' [`source`](#source) data
+     * is treated as HTML.
      *
-     * __Warning:__ Enabling this option can cause serious XSS vulnerabilities.
+     * You can set the `allowHtml` option to one of the following:
      *
-     * __Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
+     * | Setting           | Description                                         |
+     * | ----------------- | --------------------------------------------------- |
+     * | `false` (default) | The [`source`](#source) data is not treated as HTML |
+     * | `true`            | The [`source`](#source) data is treated as HTML     |
+     *
+     * __Warning:__ Setting the `allowHtml` option to `true` can cause serious XSS vulnerabilities.
+     *
+     * Read more:
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
+     * - [`source`](#source)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2604,18 +3563,32 @@ export default () => {
      *
      * @example
      * ```js
-     * columns: [{
+     * columns: [
+     *   {
+     *   // set the `type` of every cell in this column to `autocomplete`
      *   type: 'autocomplete',
-     *   // use HTML in the source list
-     *   allowHtml: true,
+     *   // set options available in every `autocomplete` cell of this column
      *   source: ['<strong>foo</strong>', '<strong>bar</strong>']
-     * }],
+     *   // use HTML in the `source` list
+     *   allowHtml: true,
+     *   },
+     * ],
      * ```
      */
     allowHtml: false,
 
     /**
-     * If typed `true` then virtual rendering mechanism for handsontable will be disabled.
+     * The `renderAllRows` option configures Handsontable's [row virtualization](@/guides/rows/row-virtualization).
+     *
+     * You can set the `renderAllRows` option to one of the following:
+     *
+     * | Setting           | Description                                                                                        |
+     * | ----------------- | -------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | Enable [row virtualization](@/guides/rows/row-virtualization.md)                                   |
+     * | `true`            | Disable [row virtualization](@/guides/rows/row-virtualization.md)<br>(render all rows of the grid) |
+     *
+     * Read more:
+     * - [Row virtualization &#8594;](@/guides/rows/row-virtualization.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2624,20 +3597,23 @@ export default () => {
      *
      * @example
      * ```js
-     * // disable virtual rows rendering
+     * // disable row virtualization
      * renderAllRows: true,
      * ```
      */
     renderAllRows: void 0,
 
     /**
-     * Prevents table to overlap outside the parent element. If `'horizontal'` option is chosen then table will show
-     * a horizontal scrollbar if parent's width is narrower then table's width.
+     * The `preventOverflow` option configures preventing Handsontable
+     * from overflowing outside of its parent element.
      *
-     * Possible values:
-     *  * `false` - Disables functionality.
-     *  * `horizontal` - Prevents horizontal overflow table.
-     *  * `vertical` - Prevents vertical overflow table.
+     * You can set the `preventOverflow` option to one of the following:
+     *
+     * | Setting           | Description                      |
+     * | ----------------- | -------------------------------- |
+     * | `false` (default) | Don't prevent overflowing        |
+     * | `'horizontal'`      | Prevent horizontal overflowing |
+     * | `'vertical'`        | Prevent vertical overflowing   |
      *
      * @memberof Options#
      * @type {string|boolean}
@@ -2646,13 +3622,22 @@ export default () => {
      *
      * @example
      * ```js
+     * // prevent horizontal overflowing
      * preventOverflow: 'horizontal',
      * ```
      */
     preventOverflow: false,
 
     /**
-     * Prevents wheel event on overlays for doing default action.
+     * The `preventWheel` option configures preventing the `wheel` event's default action
+     * on overlays.
+     *
+     * You can set the `preventOverflow` option to one of the following:
+     *
+     * | Setting           | Description                                      |
+     * | ----------------- | ------------------------------------------------ |
+     * | `false` (default) | Don't prevent the `wheel` event's default action |
+     * | `true`            | Prevent the `wheel` event's default action       |
      *
      * @memberof Options#
      * @private
@@ -2662,6 +3647,7 @@ export default () => {
      *
      * @example
      * ```js
+     * // don't prevent the `wheel` event's default action
      * preventWheel: false,
      * ```
      */
@@ -2669,9 +3655,17 @@ export default () => {
 
     /**
      * @description
-     * Enables the functionality of the {@link BindRowsWithHeaders} plugin which allows binding the table rows with their headers.
-     * If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,
-     * if at the initialization row 0 has a header titled "A", it will have it no matter what you do with the table.
+     * The `bindRowsWithHeaders` option configures the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin.
+     *
+     * You can set the `bindRowsWithHeaders` option to one of the following:
+     *
+     * | Setting | Description                                                                  |
+     * | ------- | ---------------------------------------------------------------------------- |
+     * | `false` | Disable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin |
+     * | `true`  | Enable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin  |
+     *
+     * Read more:
+     * - [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
      *
      * @memberof Options#
      * @type {boolean|string}
@@ -2680,7 +3674,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // keep row data and row headers in sync
+     * // enable the `BindRowsWithHeaders` plugin
      * bindRowsWithHeaders: true
      * ```
      */
@@ -2688,16 +3682,18 @@ export default () => {
 
     /**
      * @description
-     * The {@link CollapsibleColumns} plugin allows collapsing of columns, covered by a header with the `colspan` property
-     * defined.
+     * The `collapsibleColumns` option configures the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin.
      *
-     * Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
+     * You can set the `collapsibleColumns` option to one of the following:
      *
-     * Setting the `collapsibleColumns` property to `true` will display a "collapse/expand" button in every
-     * header with a defined colspan` property.
+     * | Setting              | Description                                                                                       |
+     * | -------------------- | ------------------------------------------------------------------------------------------------- |
+     * | `false`              | Disable the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin                            |
+     * | `true`               | Enable the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin                             |
+     * | An array of objects  | Enable the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin for selected column headers |
      *
-     * To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property
-     * as an array of objects, as in the example below.
+     * Read more:
+     * - [`CollapsibleColumns`](@/api/collapsibleColumns.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -2706,11 +3702,10 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable collapsing for all headers
+     * // enable column collapsing for all headers
      * collapsibleColumns: true,
      *
-     * // or
-     * // enable collapsing for selected headers
+     * // enable column collapsing for selected headers
      * collapsibleColumns: [
      *   {row: -4, col: 1, collapsible: true},
      *   {row: -3, col: 5, collapsible: true}
@@ -2721,26 +3716,28 @@ export default () => {
 
     /**
      * @description
-     * The `ColumnSummary` plugin lets you [easily summarize your columns](@/guides/columns/column-summary.md).
+     * The `columnSummary` option configures the [`ColumnSummary`](@/api/columnSummary.md) plugin.
      *
-     * You can use the [built-in summary functions](@/guides/columns/column-summary.md#built-in-summary-functions),
-     * or implement a [custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function).
+     * You can set the `columnSummary` option to an array of objects.
+     * Each object configures a single column summary, using the following properties:
      *
-     * For each column summary, you can set the following configuration options:
+     * | Property                 | Possible values                                                         | Description                                                                                                                  |
+     * | ------------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+     * | `sourceColumn`           | A number                                                                | [Column to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize)                     |
+     * | `ranges`                 | An array                                                                | [Ranges of rows to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize)             |
+     * | `type`                   | `'sum'` \| `'min'` \| `'max'` \| `'count'` \| `'average'` \| `'custom'` | [Summary function](@/guides/columns/column-summary.md#step-3-calculate-your-summary)                                         |
+     * | `destinationRow`         | A number                                                                | [Destination cell's row coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates)    |
+     * | `destinationColumn`      | A number                                                                | [Destination cell's column coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
+     * | `forceNumeric`           | `true`  \| `false`                                                      | [Treat non-numerics as numerics](@/guides/columns/column-summary.md#forcing-numeric-values)                                  |
+     * | `reversedRowCoords`      | `true`  \| `false`                                                      | [Reverse row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell)                      |
+     * | `suppressDataTypeErrors` | `true`  \| `false`                                                      | [Suppress data type errors](@/guides/columns/column-summary.md#throwing-data-type-errors)                                    |
+     * | `readOnly`               | `true`  \| `false`                                                      | Make summary cell read-only                                                                                                  |
+     * | `roundFloat`             | `true`  \| `false`                                                      | [Round summary result](@/guides/columns/column-summary.md#rounding-a-column-summary-result)                                  |
+     * | `customFunction`         | A function                                                              | [Custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function)                         |
      *
-     * | Option | Required | Type | Default | Description |
-     * |---|---|---|---|---|
-     * | `sourceColumn` | No | Number | Same as `destinationColumn` | [Selects a column to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
-     * | `ranges` | No | Array | - | [Selects ranges of rows to summarize](@/guides/columns/column-summary.md#step-2-select-cells-that-you-want-to-summarize) |
-     * | `type` | Yes | String | - | [Sets a summary function](@/guides/columns/column-summary.md#step-3-calculate-your-summary) |
-     * | `destinationRow` | Yes | Number | - | [Sets the destination cell's row coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
-     * | `destinationColumn` | Yes | Number | - | [Sets the destination cell's column coordinate](@/guides/columns/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
-     * | `forceNumeric` | No | Boolean | `false` | [Forces the summary to treat non-numerics as numerics](@/guides/columns/column-summary.md#forcing-numeric-values) |
-     * | `reversedRowCoords` | No | Boolean | `false` | [Reverses row coordinates](@/guides/columns/column-summary.md#step-5-make-room-for-the-destination-cell) |
-     * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary.md#throwing-data-type-errors) |
-     * | `readOnly` | No | Boolean | `true` | Makes summary cell read-only |
-     * | `roundFloat` | No | Number | - | [Rounds summary result](@/guides/columns/column-summary.md#rounding-a-column-summary-result) |
-     * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary.md#implementing-a-custom-summary-function) |
+     * Read more:
+     * - [Column summary &#8594;](@/guides/columns/column-summary.md)
+     * - [`ColumnSummary`](@/api/columnSummary.md)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -2773,8 +3770,20 @@ export default () => {
     columnSummary: void 0,
 
     /**
-     * This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
-     * the {@link Options#contextMenu}, but is triggered by clicking the button in the header.
+     * The `dropdownMenu` option configures the [`DropdownMenu`](@/api/dropdownMenu.md) plugin.
+     *
+     * You can set the `dropdownMenu` option to one of the following:
+     *
+     * | Setting   | Description                                                                                                                                                                                  |
+     * | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin                                                                                                                                   |
+     * | `true`    | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Use the [default context menu options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-default-options)    |
+     * | An array  | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Modify [individual context menu options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options) |
+     * | An object | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Apply a custom dropdown menu configuration                                                                                  |
+     *
+     * Read more:
+     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+     * - [`DropdownMenu`](@/api/dropdownMenu.md)
      *
      * @memberof Options#
      * @type {boolean|object|string[]}
@@ -2783,18 +3792,55 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable dropdown menu
+     * // enable the `DropdownMenu` plugin
+     * // use the default context menu options
      * dropdownMenu: true,
      *
-     * // or
-     * // enable and configure dropdown menu options
-     * dropdownMenu: ['remove_col', '---------', 'make_read_only', 'alignment']
+     * // enable the `DropdownMenu` plugin
+     * // and modify individual context menu options
+     * dropdownMenu: ['row_above', 'row_below', '---------', 'undo', 'redo'],
+     *
+     * // enable the `DropdownMenu` plugin
+     * // and apply a custom dropdown menu configuration
+     * dropdownMenu: {
+     *   items: {
+     *     "option1": {
+     *       name: "option1"
+     *     },
+     *     "option2": {
+     *       name: "option2",
+     *       submenu: {
+     *         items: [
+     *           {
+     *             key: "option2:suboption1",
+     *             name: "option2:suboption1",
+     *             callback(key, options) {
+     *               ...
+     *             }
+     *           },
+     *           ...
+     *         ]
+     *       }
+     *     }
+     *   }
+     * },
      * ```
      */
     dropdownMenu: void 0,
 
     /**
-     * The {@link Filters} plugin allows filtering the table data either by the built-in component or with the API.
+     * The `filters` option configures the [`Filters`](@/api/filters.md) plugin.
+     *
+     * You can set the `filters` option to one of the following:
+     *
+     * | Setting | Description                                      |
+     * | ------- | ------------------------------------------------ |
+     * | `false` | Disable the [`Filters`](@/api/filters.md) plugin |
+     * | `true`  | Enable the [`Filters`](@/api/filters.md) plugin  |
+     *
+     * Read more:
+     * - [Column filter &#8594;](@/guides/columns/column-filter.md)
+     * - [`Filters`](@/api/filters.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2803,14 +3849,32 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable filters
+     * // enable the `Filters` plugin
      * filters: true,
      * ```
      */
     filters: void 0,
 
     /**
-     * The {@link Formulas} plugin allows Handsontable to process formula expressions defined in the provided data.
+     * The `formulas` option configures the [`Formulas`](@/api/formulas.md) plugin.
+     *
+     * The [`Formulas`](@/api/formulas.md) plugin uses the [HyperFormula](https://handsontable.github.io/hyperformula/) calculation engine.
+     * To install [HyperFormula](https://handsontable.github.io/hyperformula/), read the following:
+     * - [Formula calculation: Initialization methods &#8594;](@/guides/formulas/formula-calculation.md#initialization-methods)
+     *
+     * You can set the `formulas` option to an object with the following properties:
+     *
+     * | Property    | Possible values                                                                                                                                                                                                        |
+     * | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `engine`    | `HyperFormula` \|<br>A [HyperFormula](https://handsontable.github.io/hyperformula/) instance \|<br>A [HyperFormula configuration](https://handsontable.github.io/hyperformula/api/interfaces/configparams.html) object |
+     * | `sheetId`   | A number                                                                                                                                                                                                               |
+     * | `sheetName` | A string                                                                                                                                                                                                               |
+     *
+     * Read more:
+     * - [`Formulas`](@/api/formulas.md)
+     * - [Formula calculation &#8594;](@/guides/formulas/formula-calculation.md)
+     * - [HyperFormula documentation: Client-side installation](https://handsontable.github.io/hyperformula/guide/client-side-installation)
+     * - [HyperFormula documentation: Configuration options](https://handsontable.github.io/hyperformula/api/interfaces/configparams.html)
      *
      * @memberof Options#
      * @type {object}
@@ -2819,18 +3883,34 @@ export default () => {
      *
      * @example
      * ```js
-     * // in Handsontable's `formulas` configuration option, add the `HyperFormula` class
+     * // either add the `HyperFormula` class
      * formulas: {
+     *   // set engine to `HyperFormula`
      *   engine: HyperFormula,
-     *   // the `Formulas` plugin configuration
+     *   sheetId: 1,
+     *   sheetName: 'Sheet 1'
      * }
      *
      * // or, add a HyperFormula instance
-     * const hyperformulaInstance = HyperFormula.buildEmpty({})
+     * const hyperFormulaInstance = HyperFormula.buildEmpty({})
      *
      * formulas: {
-     *   engine: hyperformulaInstance,
-     *   // the `Formulas` plugin configuration
+     *   // set `engine` to a HyperFormula instance
+     *   engine: hyperFormulaInstance,
+     *   sheetId: 1,
+     *   sheetName: 'Sheet 1'
+     * }
+     *
+     * // or, add a HyperFormula configuration object
+     * formulas: {
+     *   // set `engine` to a HyperFormula configuration object
+     *   engine: {
+     *     hyperformula: HyperFormula // or `engine: hyperFormulaInstance`
+     *     leapYear1900: false,       // this option comes from HyperFormula
+     *     // add more HyperFormula configuration options
+     *   },
+     *   sheetId: 1,
+     *   sheetName: 'Sheet 1'
      * }
      *
      * // use the same HyperFormula instance in multiple Handsontable instances
@@ -2838,27 +3918,42 @@ export default () => {
      * // a Handsontable instance `hot1`
      * formulas: {
      *   engine: HyperFormula,
-     *   // the `Formulas` plugin configuration
+     *   sheetId: 1,
+     *   sheetName: 'Sheet 1'
      * }
      *
      * // a Handsontable instance `hot2`
      * formulas: {
      *   engine: hot1.getPlugin('formulas').engine,
-     *   // the `Formulas` plugin configuration
+     *   sheetId: 1,
+     *   sheetName: 'Sheet 1'
      * }
      * ```
      */
     formulas: void 0,
 
     /**
-     * The `hiddenColumns` option enables and configures the {@link HiddenColumns} plugin.
+     * The `hiddenColumns` option configures the [`HiddenColumns`](@/api/hiddenColumns.md) plugin.
      *
-     * To enable the `HiddenColumns` plugin, set the `hiddenColumns` option to `true`.
+     * You can set the `hiddenColumns` option to one of the following:
      *
-     * To enable the `HiddenColumns` plugin and configure its settings, set the `hiddenColumns` option to an object with the following properties:
-     *  * `columns`: An array of indexes of columns that are hidden on plugin initialization.
-     *  * `copyPasteEnabled`: When set to `true`, takes hidden columns into account when copying or pasting data.
-     *  * `indicators`: When set to `true`, displays UI markers to indicate the presence of hidden columns.
+     * | Setting   | Description                                                                                  |
+     * | --------- | -------------------------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`HiddenColumns`](@/api/hiddenColumns.md) plugin                                 |
+     * | `true`    | Enable the [`HiddenColumns`](@/api/hiddenColumns.md) plugin with the default plugin options  |
+     * | An object | - Enable the [`HiddenColumns`](@/api/hiddenColumns.md) plugin<br>- Modify the plugin options |
+     *
+     * If you set the `hiddenColumns` to an object, you can set the following [`HiddenColumns`](@/api/hiddenColumns.md) plugin options:
+     *
+     * | Property           | Possible values     | Description                                                                                                                                             |
+     * | ------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `columns`          | An array of indexes | An array of indexes of columns that are hidden at initialization                                                                                        |
+     * | `copyPasteEnabled` | `true` \| `false`   | `true`: when copying or pasting data, take hidden columns into account<br>`false`: when copying or pasting data, don't take hidden columns into account |
+     * | `indicators`       | `true` \| `false`   | `true`: display UI markers to indicate the presence of hidden columns<br>`false`: display UI markers                                                    |
+     *
+     * Read more:
+     * - [`HiddenColumns`](@/api/hiddenColumns.md)
+     * - [Column hiding &#8594;](@/guides/columns/column-hiding.md)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -2870,11 +3965,11 @@ export default () => {
      * // enable the `HiddenColumns` plugin
      * hiddenColumns: true,
      *
-     * // or enable `HiddenColumns` plugin, and configure its settings
+     * // enable `HiddenColumns` plugin, and modify the plugin options
      * hiddenColumns: {
      *   // set columns that are hidden by default
      *   columns: [5, 10, 15],
-     *   // take hidden columns into account when copying or pasting
+     *   // when copying or pasting data, take hidden columns into account
      *   copyPasteEnabled: true,
      *   // show where hidden columns are
      *   indicators: true
@@ -2884,14 +3979,27 @@ export default () => {
     hiddenColumns: void 0,
 
     /**
-     * The `hiddenRows` option enables and configures the {@link HiddenRows} plugin.
+     * The `hiddenRows` option configures the [`HiddenRows`](@/api/hiddenRows.md) plugin.
      *
-     * To enable the `HiddenRows` plugin, set the `hiddenRows` option to `true`.
+     * You can set the `hiddenRows` option to one of the following:
      *
-     * To enable the `HiddenRows` plugin and configure its settings, set the `hiddenRows` option to an object with the following properties:
-     *  * `rows`: An array of indexes of rows that are hidden on plugin initialization.
-     *  * `copyPasteEnabled`: When set to `true`, takes hidden rows into account when copying or pasting data.
-     *  * `indicators`: When set to `true`, displays UI markers to indicate the presence of hidden rows.
+     * | Setting   | Description                                                                            |
+     * | --------- | -------------------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`HiddenRows`](@/api/hiddenRows.md) plugin                                 |
+     * | `true`    | Enable the [`HiddenRows`](@/api/hiddenRows.md) plugin with the default plugin options  |
+     * | An object | - Enable the [`HiddenRows`](@/api/hiddenRows.md) plugin<br>- Modify the plugin options |
+     *
+     * If you set the `hiddenRows` to an object, you can set the following [`HiddenRows`](@/api/hiddenRows.md) plugin options:
+     *
+     * | Property           | Possible values     | Description                                                                                                                                       |
+     * | ------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `rows   `          | An array of indexes | An array of indexes of rows that are hidden at initialization                                                                                     |
+     * | `copyPasteEnabled` | `true` \| `false`   | `true`: when copying or pasting data, take hidden rows into account<br>`false`: when copying or pasting data, don't take hidden rows into account |
+     * | `indicators`       | `true` \| `false`   | `true`: display UI markers to indicate the presence of hidden rows<br>`false`: display UI markers                                                 |
+     *
+     * Read more:
+     * - [`HiddenRows`](@/api/hiddenRows.md)
+     * - [Row hiding &#8594;](@/guides/rows/row-hiding.md)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -2903,11 +4011,11 @@ export default () => {
      * // enable the `HiddenRows` plugin
      * hiddenRows: true,
      *
-     * // or enable `HiddenRows` plugin, and configure its settings
+     * // enable `HiddenRows` plugin, and modify the plugin options
      * hiddenRows: {
      *   // set rows that are hidden by default
      *   rows: [5, 10, 15],
-     *   // take hidden rows into account when copying or pasting
+     *   // when copying or pasting data, take hidden rows into account
      *   copyPasteEnabled: true,
      *   // show where hidden rows are
      *   indicators: true
@@ -2918,7 +4026,20 @@ export default () => {
 
     /**
      * @description
-     * Allows creating a nested header structure, using the HTML's colspan attribute.
+     * The `nestedHeaders` option configures the [`NestedHeaders`](@/api/nestedHeaders.md) plugin.
+     *
+     * You can set the `nestedHeaders` option to an array of arrays:
+     * - Each array configures one set of nested headers.
+     * - Each array element configures one header, and can be one of the following:
+     *
+     * | Array element | Description                                                                                  |
+     * | ------------- | -------------------------------------------------------------------------------------------- |
+     * | A string      | The header's label                                                                           |
+     * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): the column width |
+     *
+     * Read more:
+     * - [`NestedHeaders`](@/api/nestedHeaders.md)
+     * - [Column groups: Nested headers &#8594;](@/guides/columns/column-groups.md#nested-headers)
      *
      * @memberof Options#
      * @type {Array[]}
@@ -2938,7 +4059,19 @@ export default () => {
 
     /**
      * @description
-     * Plugin allowing hiding of certain rows.
+     * The `trimRows` option configures the [`TrimRows`](@/api/trimRows.md) plugin.
+     *
+     * You can set the `trimRows` option to one of the following:
+     *
+     * | Setting  | Description                                                                                   |
+     * | -------- | --------------------------------------------------------------------------------------------- |
+     * | `false`  | Disable the [`TrimRows`](@/api/trimRows.md) plugin                                            |
+     * | `true`   | Enable the [`TrimRows`](@/api/trimRows.md) plugin                                             |
+     * | An array | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
+     *
+     * Read more:
+     * - [`TrimRows`](@/api/trimRows.md)
+     * - [Row trimming &#8594;](@/guides/rows/row-trimming.md)
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -2947,11 +4080,11 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable plugin
+     * // enable the `TrimRows` plugin
      * trimRows: true,
      *
-     * // or
-     * // trim selected rows on table initialization
+     * // enable the `TrimRows` plugin
+     * // trim rows 5, 10, and 15 at Handsontable's initialization
      * trimRows: [5, 10, 15],
      * ```
      */
@@ -2959,8 +4092,14 @@ export default () => {
 
     /**
      * @description
-     * Allows setting a custom width of the row headers. You can provide a number or an array of widths, if many row
-     * header levels are defined.
+     * The `rowHeaderWidth` option configures the width of row headers.
+     *
+     * You can set the `rowHeaderWidth` option to one of the following:
+     *
+     * | Setting  | Description                                     |
+     * | -------- | ----------------------------------------------- |
+     * | A number | Set the same width for every row header         |
+     * | An array | Set different widths for individual row headers |
      *
      * @memberof Options#
      * @type {number|number[]}
@@ -2969,11 +4108,10 @@ export default () => {
      *
      * @example
      * ```js
-     * // set width for all row headers
+     * // set the same width for every row header
      * rowHeaderWidth: 25,
      *
-     * // or
-     * // set width for selected headers only
+     * // set different widths for individual row headers
      * rowHeaderWidth: [25, 30, 55],
      * ```
      */
@@ -2981,8 +4119,14 @@ export default () => {
 
     /**
      * @description
-     * Allows setting a custom height of the column headers. You can provide a number or an array of heights, if many
-     * column header levels are defined.
+     * The `columnHeaderHeight` option configures the height of column headers.
+     *
+     * You can set the `columnHeaderHeight` option to one of the following:
+     *
+     * | Setting  | Description                                         |
+     * | -------- | --------------------------------------------------- |
+     * | A number | Set the same height for every column header         |
+     * | An array | Set different heights for individual column headers |
      *
      * @memberof Options#
      * @type {number|number[]}
@@ -2991,25 +4135,29 @@ export default () => {
      *
      * @example
      * ```js
-     * // set shared height for all headers
-     * columnHeaderHeight: 35,
+     * // set the same height for every column header
+     * columnHeaderHeight: 25,
      *
-     * // or
-     * // set height for each header individually
-     * columnHeaderHeight: [35, 20, 55],
-     *
-     * // or
-     * // skipped headers will fallback to default value
-     * columnHeaderHeight: [35, undefined, 55],
+     * // set different heights for individual column headers
+     * columnHeaderHeight: [25, 30, 55],
      * ```
      */
     columnHeaderHeight: void 0,
 
     /**
-     * If defined as `true`, the Autocomplete's suggestion list would be sorted by relevance (the closer to the left the
-     * match is, the higher the suggestion).
+     * The `sortByRelevance` option configures whether [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) cells'
+     * lists are sorted in the same order as provided in the [`source`](#source) option.
      *
-     * __Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
+     * You can set the `sortByRelevance` option to one of the following:
+     *
+     * | Setting          | Description                                                                  |
+     * | ---------------- | ---------------------------------------------------------------------------- |
+     * | `true` (default) | Sort options in the same order as provided in the [`source`](#source) option |
+     * | `false`          | Sort options alphabetically                                                  |
+     *
+     * Read more:
+     * - [`source`](#source)
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3018,24 +4166,33 @@ export default () => {
      *
      * @example
      * ```js
-     * columns: [
-     *   {
-     *     type: 'autocomplete',
-     *     source: [ ... ],
-     *     // keep options order as they were defined
-     *     sortByRelevance: false
-     *   }
-     * ],
+     * columns: [{
+     *   // set the `type` of every cell in this column to `autocomplete`
+     *   type: 'autocomplete',
+     *   // set options available in every `autocomplete` cell of this column
+     *   source: ['D', 'C', 'B', 'A'],
+     *   // sort the `autocomplete` option in this order: D, C, B, A
+     *   sortByRelevance: true
+     * }],
      * ```
      */
     sortByRelevance: true,
 
     /**
-     * If defined as `true`, when the user types into the input area the Autocomplete's suggestion list is updated to only
-     * include those choices starting with what has been typed; if defined as `false` all suggestions remain shown, with
-     * those matching what has been typed marked in bold.
+     * The `filter` option configures whether [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) cells'
+     * lists are updated by the end user's input.
      *
-     * __Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
+     * You can set the `filter` option to one of the following:
+     *
+     * | Setting          | Description                                                                                                           |
+     * | ---------------- | --------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | When the end user types into the input area, only options matching the input are displayed                            |
+     * | `false`          | When the end user types into the input area, all options are displayed<br>(options matching the input are put in bold |
+     *
+     * Read more:
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [`source`](#source)
+     * - [`filteringCaseSensitive`](#filteringCaseSensitive)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3044,22 +4201,35 @@ export default () => {
      *
      * @example
      * ```js
-     * columns: [
-     *   {
-     *     type: 'autocomplete',
-     *     source: [ ... ],
-     *     // don't hide options that don't match search query
-     *     filter: false
-     *   }
-     * ],
+     * columns: [{
+     *   // set the `type` of every cell in this column to `autocomplete`
+     *   type: 'autocomplete',
+     *   // set options available in every `autocomplete` cell of this column
+     *   source: ['A', 'B', 'C'],
+     *   // when the end user types in `A`, display only the A option
+     *   // when the end user types in `B`, display only the B option
+     *   // when the end user types in `C`, display only the C option
+     *   filter: true
+     * }],
      * ```
      */
     filter: true,
 
     /**
-     * If defined as `true`, filtering in the Autocomplete Editor will be case-sensitive.
+     * The `filteringCaseSensitive` option configures whether [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) cells'
+     * input is case-sensitive.
      *
-     * __Note__, this option only works for [autocomplete-typed](@/guides/cell-types/autocomplete-cell-type.md) cells.
+     * You can set the `filteringCaseSensitive` option to one of the following:
+     *
+     * | Setting           | Description                                                                                        |
+     * | ----------------- | -------------------------------------------------------------------------------------------------- |
+     * | `false` (default) | [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) cells' input is not case-sensitive |
+     * | `true`            | [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) cells' input is case-sensitive     |
+     *
+     * Read more:
+     * - [Autocomplete cell type &#8594;](@/guides/cell-types/autocomplete-cell-type.md)
+     * - [`source`](#source)
+     * - [`filter`](#filter)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3082,7 +4252,18 @@ export default () => {
 
     /**
      * @description
-     * Disables or enables the {@link DragToScroll} functionality.
+     * The `dragToScroll` option configures the [`DragToScroll`](@/api/dragToScroll.md) plugin.
+     *
+     * You can set the `dragToScroll` option to one of the following:
+     *
+     * | Setting          | Description                                                                 |
+     * | ---------------- | --------------------------------------------------------------------------- |
+     * | `true` (default) | When selection reaches the edge of the grid's viewport, scroll the viewport |
+     * | `false`          | Don't scroll the viewport                                                   |
+     *
+     * Read more:
+     * - [`DragToScroll`](@/api/dragToScroll.md)
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -3090,19 +4271,29 @@ export default () => {
      *
      * @example
      * ```js
-     * // don't scroll the viewport when selection gets to the viewport edge
-     * dragToScroll: false,
+     * // when selection reaches the edge of the grid's viewport, scroll the viewport
+     * dragToScroll: true,
      * ```
      */
     dragToScroll: true,
 
     /**
      * @description
-     * Disable or enable the nested rows functionality - displaying nested structures in a two-dimensional data table.
+     * The `nestedRows` option configures the [`NestedRows`](@/api/nestedRows.md) plugin.
      *
-     * See [quick setup of the Nested rows](@/guides/rows/row-parent-child.md).
+     * You can set the `nestedRows` option to one of the following:
+     *
+     * | Setting           | Description                                            |
+     * | ----------------- | ------------------------------------------------------ |
+     * | `false` (default) | Disable the [`NestedRows`](@/api/nestedRows.md) plugin |
+     * | `true`            | Enable the [`NestedRows`](@/api/nestedRows.md) plugin  |
+     *
+     * Read more:
+     * - [`NestedRows`](@/api/nestedRows.md)
+     *
      * @example
      * ```js
+     * // enable the `NestedRows` plugin
      * nestedRows: true,
      * ```
      *
@@ -3112,5 +4303,8 @@ export default () => {
      * @category NestedRows
      */
     nestedRows: void 0,
+
+    /* eslint-enable jsdoc/require-description-complete-sentence */
+
   };
 };
