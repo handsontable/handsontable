@@ -74,6 +74,7 @@ export default class Core {
   getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): CellType | 'mixed';
   getInstance(): Core;
   getPlugin<T extends keyof Plugins>(pluginName: T): Plugins[T];
+  getPlugin(pluginName: string): Plugins['basePlugin'];
   getRowHeader(): Array<string | number>;
   getRowHeader(row: number): string | number;
   getRowHeight(row: number): number;
