@@ -3357,16 +3357,14 @@ export default () => {
      * | `true`    | Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin with the default configuration |
      * | An object | Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin and modify the plugin options  |
      *
+     * To give Handsontable's [scrollbar](https://handsontable.com/docs/8.0.0/demo-scrolling.html)
+     * a proper size, set the `autoRowSize` option to `true`.
+     *
      * If you set the `autoRowSize` option to an object, you can set the following [`AutoRowSize`](@/api/autoRowSize.md) plugin options:
      *
      * | Property    | Possible values                 | Description                                                       |
      * | ----------- | ------------------------------- | ----------------------------------------------------------------- |
      * | `syncLimit` | A number \| A percentage string | The number/percentage of rows to keep in sync<br>(default: `500`) |
-     *
-     * By default, the `autoRowSize` option is set to `undefined`,
-     * but the [`AutoRowSize`](@/api/autoRowSize.md) plugin acts as enabled.
-     * To disable the [`AutoRowSize`](@/api/autoRowSize.md) plugin completely,
-     * set the `autoRowSize` option to `false`.
      *
      * Using the [`rowHeights`](#rowHeights) option forcibly disables the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
      *

@@ -18,12 +18,16 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * @plugin AutoRowSize
  * @class AutoRowSize
  * @description
- * This plugin allows to set row heights based on their highest cells.
+ * The `AutoRowSize` plugin allows you to set row heights based on their highest cells.
  *
  * By default, the plugin is declared as `undefined`, which makes it disabled (same as if it was declared as `false`).
  * Enabling this plugin may decrease the overall table performance, as it needs to calculate the heights of all cells to
  * resize the rows accordingly.
  * If you experience problems with the performance, try turning this feature off and declaring the row heights manually.
+ *
+ * But, to display Handsontable's [scrollbar](https://handsontable.com/docs/8.0.0/demo-scrolling.html)
+ * in a proper size, you need to enable the `AutoRowSize` plugin,
+ * by setting the [`autoRowSize`](@/api/options.md#autoRowSize) option to `true`.
  *
  * Row height calculations are divided into sync and async part. Each of this parts has their own advantages and
  * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
