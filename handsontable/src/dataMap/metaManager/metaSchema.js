@@ -633,7 +633,7 @@ export default () => {
      *
      * Read more:
      * - [Formatting cells: Custom cell borders &#8594;](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
-     * - [`CustomBorders`](@/api/customBorders.md)
+     * - [`CustomBorders` &#8594;](@/api/customBorders.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -1263,7 +1263,7 @@ export default () => {
      * | `true`            | Enable the [`PersistentState`](@/api/persistentState.md) plugin  |
      *
      * Read more:
-     * - [`PersistentState`](@/api/persistentState.md)
+     * - [`PersistentState` &#8594;](@/api/persistentState.md)
      * - [Saving data: Saving data locally &#8594;](@/guides/getting-started/saving-data.md#saving-data-locally)
      *
      * @memberof Options#
@@ -3323,7 +3323,7 @@ export default () => {
      * Using the [`colWidths`](#colWidths) option forcibly disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
      * Read more:
-     * - [`AutoColumnSize`](@/api/autoColumnSize.md)
+     * - [`AutoColumnSize` &#8594;](@/api/autoColumnSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -3371,7 +3371,7 @@ export default () => {
      * Using the [`rowHeights`](#rowHeights) option forcibly disables the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
      *
      * Read more:
-     * - [`AutoRowSize`](@/api/autoRowSize.md)
+     * - [`AutoRowSize` &#8594;](@/api/autoRowSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -3648,7 +3648,7 @@ export default () => {
      * | `true`  | Enable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin  |
      *
      * Read more:
-     * - [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
+     * - [`BindRowsWithHeaders` &#8594;](@/api/bindRowsWithHeaders.md)
      *
      * @memberof Options#
      * @type {boolean|string}
@@ -3676,7 +3676,7 @@ export default () => {
      * | An array of objects  | Enable the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin for selected column headers |
      *
      * Read more:
-     * - [`CollapsibleColumns`](@/api/collapsibleColumns.md)
+     * - [`CollapsibleColumns` &#8594;](@/api/collapsibleColumns.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -3720,7 +3720,7 @@ export default () => {
      *
      * Read more:
      * - [Column summary &#8594;](@/guides/columns/column-summary.md)
-     * - [`ColumnSummary`](@/api/columnSummary.md)
+     * - [`ColumnSummary` &#8594;](@/api/columnSummary.md)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -3766,7 +3766,7 @@ export default () => {
      *
      * Read more:
      * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
-     * - [`DropdownMenu`](@/api/dropdownMenu.md)
+     * - [`DropdownMenu` &#8594;](@/api/dropdownMenu.md)
      *
      * @memberof Options#
      * @type {boolean|object|string[]}
@@ -3823,7 +3823,7 @@ export default () => {
      *
      * Read more:
      * - [Column filter &#8594;](@/guides/columns/column-filter.md)
-     * - [`Filters`](@/api/filters.md)
+     * - [`Filters` &#8594;](@/api/filters.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3854,7 +3854,7 @@ export default () => {
      * | `sheetName` | A string                                                                                                                                                                                                               |
      *
      * Read more:
-     * - [`Formulas`](@/api/formulas.md)
+     * - [`Formulas` &#8594;](@/api/formulas.md)
      * - [Formula calculation &#8594;](@/guides/formulas/formula-calculation.md)
      * - [HyperFormula documentation: Client-side installation](https://handsontable.github.io/hyperformula/guide/client-side-installation)
      * - [HyperFormula documentation: Configuration options](https://handsontable.github.io/hyperformula/api/interfaces/configparams.html)
@@ -3935,7 +3935,7 @@ export default () => {
      * | `indicators`       | `true` \| `false`   | `true`: display UI markers to indicate the presence of hidden columns<br>`false`: display UI markers                                                    |
      *
      * Read more:
-     * - [`HiddenColumns`](@/api/hiddenColumns.md)
+     * - [`HiddenColumns` &#8594;](@/api/hiddenColumns.md)
      * - [Column hiding &#8594;](@/guides/columns/column-hiding.md)
      *
      * @memberof Options#
@@ -3981,7 +3981,7 @@ export default () => {
      * | `indicators`       | `true` \| `false`   | `true`: display UI markers to indicate the presence of hidden rows<br>`false`: display UI markers                                                 |
      *
      * Read more:
-     * - [`HiddenRows`](@/api/hiddenRows.md)
+     * - [`HiddenRows` &#8594;(@/api/hiddenRows.md)
      * - [Row hiding &#8594;](@/guides/rows/row-hiding.md)
      *
      * @memberof Options#
@@ -4021,7 +4021,7 @@ export default () => {
      * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): the column width |
      *
      * Read more:
-     * - [`NestedHeaders`](@/api/nestedHeaders.md)
+     * - [`NestedHeaders` &#8594;](@/api/nestedHeaders.md)
      * - [Column groups: Nested headers &#8594;](@/guides/columns/column-groups.md#nested-headers)
      *
      * @memberof Options#
@@ -4053,7 +4053,7 @@ export default () => {
      * | An array | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
      *
      * Read more:
-     * - [`TrimRows`](@/api/trimRows.md)
+     * - [`TrimRows` &#8594;](@/api/trimRows.md)
      * - [Row trimming &#8594;](@/guides/rows/row-trimming.md)
      *
      * @memberof Options#
@@ -4245,7 +4245,7 @@ export default () => {
      * | `false`          | Don't scroll the viewport                                                   |
      *
      * Read more:
-     * - [`DragToScroll`](@/api/dragToScroll.md)
+     * - [`DragToScroll` &#8594;](@/api/dragToScroll.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -4272,7 +4272,7 @@ export default () => {
      * | `true`            | Enable the [`NestedRows`](@/api/nestedRows.md) plugin  |
      *
      * Read more:
-     * - [`NestedRows`](@/api/nestedRows.md)
+     * - [`NestedRows` &#8594;](@/api/nestedRows.md)
      *
      * @example
      * ```js
