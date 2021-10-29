@@ -8,13 +8,6 @@ import { default as _CellRange } from './3rdparty/walkontable/src/cell/range';
 import { OverlayType } from './3rdparty/walkontable/src';
 import Core from './core';
 import {
-  GridSettings,
-  ColumnSettings,
-  CellSettings,
-  CellMeta,
-  CellProperties,
-} from './settings';
-import {
   CellChange,
   CellValue,
   ChangeSource,
@@ -23,6 +16,14 @@ import {
   SelectOptionsObject,
   SourceRowData,
 } from './common';
+import {
+  GridSettings,
+  ColumnSettings,
+  CellSettings,
+  CellMeta,
+  CellProperties,
+} from './settings';
+import * as RecordTranslation from './translations';
 import { htmlToGridSettings, instanceToHTML } from './utils/parseTable';
 import {
   AutocompleteCellType,
@@ -254,13 +255,14 @@ declare const hooks: Hooks;
 declare namespace Handsontable {
   export {
     // common
-    CellType,
     CellValue,
     CellChange,
     RowObject,
     SelectOptionsObject,
     SourceRowData,
     ChangeSource,
+    // cell types
+    CellType,
     // editors
     EditorType,
     // renderers
@@ -268,11 +270,13 @@ declare namespace Handsontable {
     // validators
     ValidatorType,
     // settings
-    GridSettings,
     CellProperties,
     CellMeta,
     ColumnSettings,
+    GridSettings,
     NumericFormatOptions,
+
+    RecordTranslation,
   };
 
   export { helper };

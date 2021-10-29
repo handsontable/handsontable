@@ -1,1 +1,1 @@
-export { IndexMapper } from './indexMapper';
+export * from './indexMapper';
