@@ -11,8 +11,8 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": "./",
     "paths": {
-      "handsontable": [ "../../" ],
-      "handsontable/base": [ "../../" ]
+      "handsontable": [ "../../tmp" ],
+      "handsontable/*": [ "../../tmp/*" ]
     }
   },
   "include": [

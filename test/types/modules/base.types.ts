@@ -17,7 +17,10 @@ Handsontable.plugins;
 Handsontable.renderers;
 Handsontable.validators;
 
-new Handsontable.Core(elem, {});
+const hot = new Handsontable.Core(elem, {});
+
+hot.alter('insert_col', 0, 1);
+hot.addHook('afterCopy', () => {});
 
 const defaultSettings: Handsontable.GridSettings = Handsontable.DefaultSettings;
 

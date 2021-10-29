@@ -4,11 +4,11 @@ import { textRenderer } from '../../renderers/textRenderer';
 import { timeValidator } from '../../validators/timeValidator';
 
 export const CELL_TYPE: 'time';
-// export interface TimeCellType extends CellTypeObject {
-//   editor: TextEditor;
-//   renderer: typeof textRenderer;
-//   validator: typeof timeValidator;
-// }
+export interface TimeCellType extends CellTypeObject {
+  editor: typeof TextEditor;
+  renderer: typeof textRenderer;
+  validator: typeof timeValidator;
+}
 
 export namespace TimeCellType {
   export { TextEditor as editor };

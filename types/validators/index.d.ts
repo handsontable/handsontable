@@ -30,3 +30,4 @@ export {
   hasValidator,
   registerValidator
 } from './registry';
+export { BaseValidator } from './base';

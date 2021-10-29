@@ -39,3 +39,4 @@ export {
   hasRenderer,
   registerRenderer
 } from './registry';
+export { BaseRenderer } from './base';
