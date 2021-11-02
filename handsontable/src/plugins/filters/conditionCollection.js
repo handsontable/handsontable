@@ -104,8 +104,6 @@ class ConditionCollection {
       v => (typeof v === 'string' ? v.toLocaleLowerCase(localeForColumn) : v));
     const name = conditionDefinition.name || conditionDefinition.command.key;
 
-    conditionDefinition.args.forEach(v => console.log(v))
-
     this.runLocalHooks('beforeAdd', column);
 
     const columnType = this.getOperation(column);
