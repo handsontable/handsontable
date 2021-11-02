@@ -1,0 +1,7 @@
+{
+  "title": "Introduced locales and fixed bugs related to not handling properly some data",
+  "type": "fixed",
+  "issue": 6095,
+  "breaking": false,
+  "framework": "none"
+}
