@@ -1,6 +1,6 @@
 <script lang="ts">
   import Vue from 'vue';
-  import Handsontable from 'handsontable';
+  import Handsontable from 'handsontable/base';
   import Component from 'vue-class-component';
 
   @Component({})
