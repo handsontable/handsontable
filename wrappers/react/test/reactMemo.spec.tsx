@@ -7,10 +7,10 @@ import {
   HotTable
 } from '../src/hotTable';
 import {
+  createSpreadsheetData,
   mockElementDimensions,
   sleep,
 } from './_helpers';
-import Handsontable from 'handsontable';
 
 beforeEach(() => {
   let container = document.createElement('DIV');
@@ -23,7 +23,7 @@ beforeEach(() => {
  * Handsontable's `render`.
  */
 describe('React.memo', () => {
-  it('should be possible to use React.memo on renderer components.', async (done) => {
+  it('should be possible to use React.memo on renderer components.', async () => {
     function RendererComponent2 (props) {
       return (
         <>
@@ -37,7 +37,7 @@ describe('React.memo', () => {
     const wrapper: ReactWrapper<{}, {}, any> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(1, 1)}
+                data={createSpreadsheetData(1, 1)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -63,8 +63,6 @@ describe('React.memo', () => {
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>value: A1</div>');
 
     wrapper.detach();
-
-    done();
   });
 
   /*

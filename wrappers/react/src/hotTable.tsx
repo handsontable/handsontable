@@ -1,5 +1,5 @@
 import React from 'react';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import { SettingsMapper } from './settingsMapper';
 import { PortalManager } from './portalManager';
 import { HotColumn } from './hotColumn';
@@ -432,10 +432,10 @@ class HotTable extends React.Component<HotTableProps, {}> {
     if (
       this.hotInstance &&
       (
-        this.hotInstance.getPlugin('autoRowSize').enabled ||
-        this.hotInstance.getPlugin('autoColumnSize').enabled
+        this.hotInstance.getPlugin('autoRowSize')?.enabled ||
+        this.hotInstance.getPlugin('autoColumnSize')?.enabled
       )
-    ){
+    ) {
       if (this.componentRendererColumns.size > 0) {
         warn(AUTOSIZE_WARNING);
       }

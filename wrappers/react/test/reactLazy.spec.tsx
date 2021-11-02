@@ -7,10 +7,10 @@ import {
   HotTable
 } from '../src/hotTable';
 import {
+  createSpreadsheetData,
   mockElementDimensions,
   sleep,
 } from './_helpers';
-import Handsontable from 'handsontable';
 
 beforeEach(() => {
   let container = document.createElement('DIV');
@@ -19,7 +19,7 @@ beforeEach(() => {
 });
 
 describe('React.lazy', () => {
-  it('should be possible to lazy-load components and utilize Suspend', async (done) => {
+  it('should be possible to lazy-load components and utilize Suspend', async () => {
     function RendererComponent2(props) {
       return (
         <>
@@ -48,7 +48,7 @@ describe('React.lazy', () => {
     const wrapper: ReactWrapper<{}, {}, any> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(1, 1)}
+                data={createSpreadsheetData(1, 1)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -79,7 +79,5 @@ describe('React.lazy', () => {
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>lazy value: A1</div>');
 
     wrapper.detach();
-
-    done();
   });
 });

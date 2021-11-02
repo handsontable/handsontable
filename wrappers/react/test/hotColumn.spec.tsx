@@ -3,10 +3,10 @@ import {
   mount,
   ReactWrapper
 } from 'enzyme';
-import Handsontable from 'handsontable';
 import { HotTable } from '../src/hotTable';
 import { HotColumn } from '../src/hotColumn';
 import {
+  createSpreadsheetData,
   RendererComponent,
   mockElementDimensions,
   sleep,
@@ -22,7 +22,7 @@ beforeEach(() => {
 });
 
 describe('Passing column settings using HotColumn', () => {
-  it('should apply the Handsontable settings passed as HotColumn arguments to the Handsontable instance', async (done) => {
+  it('should apply the Handsontable settings passed as HotColumn arguments to the Handsontable instance', async () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable
         licenseKey="non-commercial-and-evaluation"
@@ -47,11 +47,9 @@ describe('Passing column settings using HotColumn', () => {
     expect(hotInstance.getSettings().licenseKey).toEqual('non-commercial-and-evaluation');
 
     wrapper.detach();
-
-    done();
   });
 
-  it('should allow to use data option as a string', async(done) => {
+  it('should allow to use data option as a string', async() => {
     const dataKeyCellValue = 'Value of key1 in row 0';
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable
@@ -70,17 +68,15 @@ describe('Passing column settings using HotColumn', () => {
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual(dataKeyCellValue);
 
     wrapper.detach();
-
-    done();
   })
 });
 
 describe('Renderer configuration using React components', () => {
-  it('should use the renderer component as Handsontable renderer, when it\'s nested under HotColumn and assigned the \'hot-renderer\' attribute', async (done) => {
+  it('should use the renderer component as Handsontable renderer, when it\'s nested under HotColumn and assigned the \'hot-renderer\' attribute', async () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(100, 2)}
+                data={createSpreadsheetData(100, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -113,17 +109,15 @@ describe('Renderer configuration using React components', () => {
     expect(hotInstance.getCell(99, 1).innerHTML).toEqual('<div>value: B100</div>');
 
     wrapper.detach();
-
-    done();
   });
 });
 
 describe('Editor configuration using React components', () => {
-  it('should use the editor component as Handsontable editor, when it\'s nested under HotTable and assigned the \'hot-editor\' attribute', async (done) => {
+  it('should use the editor component as Handsontable editor, when it\'s nested under HotTable and assigned the \'hot-editor\' attribute', async () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -165,13 +159,11 @@ describe('Editor configuration using React components', () => {
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
 
     wrapper.detach();
-
-    done();
   });
 });
 
 describe('Dynamic HotColumn configuration changes', () => {
-  it('should be possible to rearrange and change the column + editor + renderer configuration dynamically', async (done) => {
+  it('should be possible to rearrange and change the column + editor + renderer configuration dynamically', async () => {
     function RendererComponent2(props) {
       return (
         <>r2: {props.value}</>
@@ -198,7 +190,7 @@ describe('Dynamic HotColumn configuration changes', () => {
       render() {
         return (
           <HotTable licenseKey="non-commercial-and-evaluation" id="test-hot"
-                    data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                    data={createSpreadsheetData(3, 2)}
                     width={300}
                     height={300}
                     rowHeights={23}
@@ -296,7 +288,5 @@ describe('Dynamic HotColumn configuration changes', () => {
     expect(hotInstance.getSettings().licenseKey).toEqual('non-commercial-and-evaluation');
 
     wrapper.detach();
-
-    done();
   });
 });
