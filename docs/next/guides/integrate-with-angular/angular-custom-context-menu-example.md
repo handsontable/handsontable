@@ -17,11 +17,8 @@ The following is an implementation of the `@handsontable/angular` component with
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
-import * as Handsontable from 'handsontable';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
+import Handsontable from 'handsontable/base';
+import { ContextMenu } from 'handsontable/plugins/contextMenu';
 
 @Component({
   selector: 'app-root',
@@ -33,7 +30,7 @@ registerAllModules();
 })
 class AppComponent {
   hotSettings: Handsontable.GridSettings = {
-    data: Handsontable.helper.createSpreadsheetData(5, 5),
+    data: createSpreadsheetData(5, 5),
     colHeaders: true,
     contextMenu: {
       items: {
@@ -41,7 +38,7 @@ class AppComponent {
           name: 'Insert row above this one (custom name)'
         },
         'row_below': {},
-        'separator': Handsontable.plugins.ContextMenu.SEPARATOR,
+        'separator': ContextMenu.SEPARATOR,
         'clear_custom': {
           name: 'Clear all cells (custom)',
           callback: function() {

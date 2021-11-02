@@ -19,11 +19,7 @@ A custom `id` can be passed in together with other attributes to the `hot-table`
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
-import * as Handsontable from 'handsontable';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
+import Handsontable from 'handsontable/base';
 
 @Component({
   selector: 'app-root',

@@ -18,14 +18,13 @@ The following example implements the `@handsontable/react`component showing how 
 import React, { useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
-import Handsontable from 'handsontable';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
 
 const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(4, 4),
+  data: createSpreadsheetData(4, 4),
   colHeaders: true,
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation'

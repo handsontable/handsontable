@@ -38,7 +38,6 @@ Toggle `readOnly` for the entire table.
 ```js
 import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
-import Handsontable from 'handsontable';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
@@ -49,7 +48,7 @@ new Vue({
   data() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         colHeaders: true,
         rowHeaders: true,
         readOnly: true,

@@ -18,12 +18,8 @@ The following example is an implementation of `@handsontable/angular`, which sho
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
-import * as Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import { HotTableRegisterer } from '@handsontable/angular';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
 
 @Component({
   selector: 'app-root',
@@ -39,7 +35,7 @@ class AppComponent {
   private hotRegisterer = new HotTableRegisterer();
   id = 'hotInstance';
   hotSettings: Handsontable.GridSettings = {
-    data: Handsontable.helper.createSpreadsheetData(4, 4),
+    data: createSpreadsheetData(4, 4),
     colHeaders: true,
     height: 'auto',
     licenseKey: 'non-commercial-and-evaluation'

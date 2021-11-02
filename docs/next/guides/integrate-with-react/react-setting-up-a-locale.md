@@ -17,10 +17,10 @@ The following example shows a Handsontable instance with locales set up in React
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
-import 'handsontable/dist/handsontable.min.css';
 import { registerAllModules } from 'handsontable/registry';
+
+import 'handsontable/dist/handsontable.min.css';
 
 // register Handsontable's modules
 registerAllModules();

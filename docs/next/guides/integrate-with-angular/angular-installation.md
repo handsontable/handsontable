@@ -38,7 +38,6 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-
 @NgModule({
   declarations: [
     AppComponent

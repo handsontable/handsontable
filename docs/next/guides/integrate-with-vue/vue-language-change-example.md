@@ -27,7 +27,7 @@ Note that the `language` property is bound to the component separately using `la
 ```js
 import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
-import Handsontable from 'handsontable';
+import { getLanguagesDictionaries } from 'handsontable/i18n';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
@@ -38,7 +38,7 @@ new Vue({
   data() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        data: createSpreadsheetData(5, 10),
         colHeaders: true,
         rowHeaders: true,
         contextMenu: true,
@@ -53,7 +53,7 @@ new Vue({
   },
   methods: {
     getAllLanguageOptions() {
-      const allDictionaries = Handsontable.languages.getLanguagesDictionaries();
+      const allDictionaries = getLanguagesDictionaries();
       const langSelect = document.querySelector('#languages');
       langSelect.innerHTML = '';
 

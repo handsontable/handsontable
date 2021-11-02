@@ -20,11 +20,7 @@ Select a language from the selector above the table and open the Context Menu to
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
-import * as Handsontable from 'handsontable';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
+import { getLanguagesDictionaries } from 'handsontable/i18n';
 
 @Component({
   selector: 'app-root',
@@ -40,7 +36,7 @@ registerAllModules();
 })
 class AppComponent {
   hotSettings: Handsontable.GridSettings = {
-    data: Handsontable.helper.createSpreadsheetData(5, 10),
+    data: createSpreadsheetData(5, 10),
     colHeaders: true,
     rowHeaders: true,
     contextMenu: true,
@@ -48,7 +44,7 @@ class AppComponent {
     licenseKey: 'non-commercial-and-evaluation'
   };
   language = 'en-US';
-  languages = Handsontable.languages.getLanguagesDictionaries();
+  languages = getLanguagesDictionaries();
 }
 
 // app.module.ts
