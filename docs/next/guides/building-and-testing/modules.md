@@ -588,24 +588,11 @@ And that is all! You can use the autocomplete renderer!
 You can quickly import and register all renderers at once:
 
 ```js
-// import all renderers
-import {
-  registerRenderer,
-  baseRenderer,
-  autocompleteRenderer,
-  checkboxRenderer,
-  htmlRenderer,
-  numericRenderer,
-  passwordRenderer,
-  textRenderer,
-} from 'handsontable/renderers';
-
 // import the `registerAllRenderers()` function
 import { registerAllRenderers } from 'handsontable/registry';
 
 // register all renderers
 registerAllRenderers();
-```
 
 ## Importing validators
 
