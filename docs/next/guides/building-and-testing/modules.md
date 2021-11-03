@@ -695,19 +695,6 @@ And that is all! You can use the checkbox cell type!
 You can quickly import and register all cell types at once:
 
 ```js
-// import all cell types
-import {
-  registerCellType,
-  AutocompleteCellType,
-  CheckboxCellType,
-  DateCellType,
-  DropdownCellType,
-  HandsontableCellType,
-  NumericCellType,
-  PasswordCellType,
-  TextCellType,
-  TimeCellType,
-} from 'handsontable/cellTypes';
 
 // import the `registerAllCellTypes()` function
 import { registerAllCellTypes } from 'handsontable/registry';
