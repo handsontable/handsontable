@@ -158,7 +158,7 @@
   "resolutions": {
     "babel-core": "7.0.0-bridge.0"
   },
-  "typings": "./types/index.d.ts",
+  "typings": "./index.d.ts",
   "handsontable": {
     "copy": [
       "dist/handsontable.css",
