@@ -340,7 +340,7 @@ describe('Component lifecyle', () => {
   });
 
   it('should display a warning and not throw any errors, when the underlying Handsontable instance ' +
-    'has been destroyed', async() => {
+    'has been destroyed', async () => {
     const warnFunc = console.warn;
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable

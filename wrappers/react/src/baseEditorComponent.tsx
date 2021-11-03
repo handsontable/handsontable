@@ -20,7 +20,7 @@ class BaseEditorComponent<P = {}, S = {}, SS = any> extends React.Component<P | 
     super(props);
 
     if (props.emitEditorInstance) {
-      props.emitEditorInstance(this);
+      props.emitEditorInstance(this, props.editorColumnScope);
     }
   }
 

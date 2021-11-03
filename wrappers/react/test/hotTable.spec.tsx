@@ -88,6 +88,7 @@ describe('Updating the Handsontable settings', () => {
     wrapper.instance().setState({hotSettings: {data: [[2]], contextMenu: true, readOnly: true}});
 
     expect(updateSettingsCount).toEqual(1);
+
     wrapper.detach();
   });
 

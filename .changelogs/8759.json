@@ -1,0 +1,7 @@
+{
+  "title": "Moved the entire Handsontable package to its own subdirectory (`./handsontable`).",
+  "type": "changed",
+  "issue": 8759,
+  "breaking": false,
+  "framework": "none"
+}
