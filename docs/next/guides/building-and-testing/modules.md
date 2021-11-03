@@ -534,21 +534,6 @@ And that is all! You can use the password editor!
 You can quickly import and register all editors at once:
 
 ```js
-// import all editors
-import {
-  registerEditor,
-  AutocompleteEditor,
-  BaseEditor,
-  CheckboxEditor,
-  DateEditor,
-  DropdownEditor,
-  HandsontableEditor,
-  NumericEditor,
-  PasswordEditor,
-  SelectEditor,
-  TextEditor,
-} from 'handsontable/editors';
-
 // import the `registerAllEditors()` function
 import { registerAllEditors } from 'handsontable/registry';
 
