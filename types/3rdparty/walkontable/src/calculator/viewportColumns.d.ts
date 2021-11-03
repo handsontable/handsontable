@@ -1,4 +1,4 @@
-export interface ViewportColumnsCalculator {
+export class ViewportColumnsCalculator {
   count: number;
   startColumn: number | null;
   endColumn: number | null;
