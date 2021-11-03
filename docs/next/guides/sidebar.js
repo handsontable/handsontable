@@ -13,6 +13,7 @@ const gettingStartedItems = [
 const integrateWithReactItems = [
   'guides/integrate-with-react/react-installation',
   'guides/integrate-with-react/react-simple-example',
+  'guides/integrate-with-react/react-modules',
   'guides/integrate-with-react/react-hot-column',
   'guides/integrate-with-react/react-setting-up-a-locale',
   'guides/integrate-with-react/react-custom-context-menu-example',
@@ -26,6 +27,7 @@ const integrateWithReactItems = [
 const integrateWithAngularItems = [
   'guides/integrate-with-angular/angular-installation',
   'guides/integrate-with-angular/angular-simple-example',
+  'guides/integrate-with-angular/angular-modules',
   'guides/integrate-with-angular/angular-custom-id',
   'guides/integrate-with-angular/angular-setting-up-a-locale',
   'guides/integrate-with-angular/angular-custom-context-menu-example',
@@ -38,6 +40,7 @@ const integrateWithAngularItems = [
 const integrateWithVueItems = [
   'guides/integrate-with-vue/vue-installation',
   'guides/integrate-with-vue/vue-simple-example',
+  'guides/integrate-with-vue/vue-modules',
   'guides/integrate-with-vue/vue-hot-column',
   'guides/integrate-with-vue/vue-setting-up-a-locale',
   'guides/integrate-with-vue/vue-custom-id-class-style',
