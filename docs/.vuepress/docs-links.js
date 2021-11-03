@@ -14,7 +14,10 @@ module.exports = function(src) {
 
       if (fm.data.permalink) {
         permalink = fm.data.permalink;
-        permalink = permalink.replace(new RegExp(`^/${latest}/`), '/');
+
+        if (helpers.getBuildDocsVersion() || latest === version) {
+          permalink = permalink.replace(new RegExp(`^/${version}/`), '/');
+        }
         permalink = permalink.endsWith('/') ? permalink : `${permalink}/`;
         permalink = hash ? permalink + hash : permalink;
       }

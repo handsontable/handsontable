@@ -23,7 +23,7 @@ beforeEach(() => {
  * Handsontable's `render`.
  */
 describe('React.memo', () => {
-  it('should be possible to use React.memo on renderer components.', async (done) => {
+  it('should be possible to use React.memo on renderer components.', async () => {
     function RendererComponent2 (props) {
       return (
         <>
@@ -64,7 +64,6 @@ describe('React.memo', () => {
 
     wrapper.detach();
 
-    done();
   });
 
   /*

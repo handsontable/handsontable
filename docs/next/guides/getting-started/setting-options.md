@@ -12,13 +12,13 @@ tags:
 
 [[toc]]
 
-Customize Handsontable with configuration options.
+You can customize Handsontable with [configuration options](@/api/options.md).
 
 ## About configuration options
 
-You can heavily customize Handsontable's look and behavior with numerous [configuration options](@/api/options.md).
+[Configuration options](@/api/options.md) let you customize your Handsontable instance.
 
-To apply configuration options, pass them as a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid), using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
+To apply [configuration options](@/api/options.md), pass them as a second argument of the [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid), using the [object literal notation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer):
 
 ```js
 const container = document.getElementById('example');
@@ -157,9 +157,9 @@ To apply configuration options to an individual column (or a range of columns), 
     ```js
     const hot = new Handsontable(container, {
       columns: [
-        {}, // column options for the first column
-        {}, // column options for the second column
-        {}, // column options for the third column
+        {}, // column options for the first (by physical index) column
+        {}, // column options for the second (by physical index) column
+        {}, // column options for the third (by physical index) column
       ],
     });
     ```
@@ -170,7 +170,7 @@ To apply configuration options to an individual column (or a range of columns), 
       columns: [
         {},
         {},
-        // column options, apply to each cell of the third column
+        // column options, apply to each cell of the third (by physical index) column
         {
           readOnly: true,
         },
@@ -246,7 +246,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
       height: 300,
       // the `cells` option
       cells() {
-        
+
       };
     });
     ```
@@ -426,7 +426,7 @@ hot.getCellMeta(0, 1).readOnly;
 ```
 :::
 
-### Checking cell options
+### Reading cell options
 
 When Handsontable is running, you can check a cell's current options, using the [`getCellMeta()`](@/api/core.md#getcellmeta) method.
 
@@ -524,7 +524,7 @@ The [`cells`](@/api/options.md#cells) option overwrites all other options.
 The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
 :::
 
-1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`cells`](@/api/cells.md#cells), and set it to a function.
+1. Within [Handsontable constructor](@/guides/getting-started/installation.md#initialize-the-grid)'s second argument, add an option called [`cells`](@/api/options.md#cells), and set it to a function.
     ```js
     const hot = new Handsontable(container, {
       // top-level grid options that apply to the entire grid
@@ -532,7 +532,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
       height: 300,
       // the `cells` option
       cells() {
-        
+
       };
     });
     ```
@@ -625,7 +625,7 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   // mid-level column options overwrite the top-level grid options
   columns: [
-    // each cell in the first column is editable
+    // each cell in the first (by physical index) column is editable
     {
       readOnly: false,
       className: '',

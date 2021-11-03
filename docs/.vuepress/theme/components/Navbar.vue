@@ -55,7 +55,7 @@ export default {
   },
   methods: {
     versionedUrl(url) {
-      if (this.$page.currentVersion === this.$page.latestVersion) {
+      if (this.$page.currentVersion === this.$page.latestVersion || this.$page.DOCS_VERSION) {
         return ensureExt(url);
       } else {
         return ensureExt(`/${this.$page.currentVersion}${url}`);

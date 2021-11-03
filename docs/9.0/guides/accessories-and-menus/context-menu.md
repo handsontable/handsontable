@@ -47,11 +47,11 @@ You can define items in the menu by passing the `contextMenu` option as an array
 | Key | Purpose | Extra conditions |
 |----|----|----|
 | `row_above` | Insert row above action | |
-| `row_below` | Insert row above action | |
+| `row_below` | Insert row below action | |
 | `col_left` | Insert column left action | |
 | `col_right` | Insert column right action | |
 | `---------` | Separator | |
-| `remove_row` | Insert column right action | |
+| `remove_row` | Remove row action | |
 | `clear_column` | Clear column values action | |
 | `undo` | Undo action | Plugin [UndoRedo](@/api/undoRedo.md) turned on |
 | `redo` | Redo action | Plugin [UndoRedo](@/api/undoRedo.md) turned on |

@@ -78,6 +78,7 @@ const presetMap = {
   /* eslint-disable max-len */
   hot: ['hot'],
   'hot-lang': ['hot', 'languages'],
+  'hot-numbro': ['hot', 'numbro'],
   react: ['hot', 'react', 'react-dom', 'hot-react', 'fixer'],
   'react-languages': ['hot', 'languages', 'react', 'react-dom', 'hot-react', 'fixer'],
   'react-numbro': ['hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer'],
