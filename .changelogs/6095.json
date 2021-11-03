@@ -1,5 +1,5 @@
 {
-  "title": "Introduced locales and fixed bugs related to not handling properly some data",
+  "title": "Fixed an issue with wrong filtering locale-based data while using search input from drop-down menu.",
   "type": "fixed",
   "issue": 6095,
   "breaking": false,
