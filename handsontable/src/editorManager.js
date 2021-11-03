@@ -104,14 +104,52 @@ class EditorManager {
 
   registerShortcuts() {
     const shortcutManager = this.instance.getShortcutManager();
-    shortcutManager.registerContext(EDITORMANAGER_CONTEXT);
+    const shortcutsContext = shortcutManager.addContext(EDITORMANAGER_CONTEXT);
 
-    shortcutManager.registerShortcut(EDITORMANAGER_CONTEXT, [KEY_CODES.F2], (event) => {
+    shortcutsContext.addShortcut([['F2']], (event) => {
       if (this.activeEditor) {
         this.activeEditor.enableFullEditMode();
       }
 
       this.openEditor(null, event);
+    });
+
+    shortcutsContext.addShortcut([['Backspace'], ['Delete']], () => {
+      this.instance.emptySelectedCells();
+      this.prepareEditor();
+    });
+
+    shortcutsContext.addShortcut(
+      [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
+      (event, keys) => {
+        if (this.isEditorOpened()) {
+          if (this.activeEditor && this.activeEditor.state !== EDITOR_STATE.WAITING) {
+            this.closeEditorAndSaveChanges(keys.includes('Control'));
+          }
+          this.moveSelectionAfterEnter(keys.includes('Shift'));
+
+        } else if (this.instance.getSettings().enterBeginsEditing) {
+          if (this.cellProperties.readOnly) {
+            this.moveSelectionAfterEnter();
+
+          } else if (this.activeEditor) {
+            this.activeEditor.enableFullEditMode();
+            this.openEditor(null, event);
+          }
+
+        } else {
+          this.moveSelectionAfterEnter(keys.includes('Shift'));
+        }
+
+        stopImmediatePropagation(event); // required by HandsontableEditor
+      });
+
+    shortcutsContext.addShortcut([['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']], (event, keys) => {
+      if (this.isEditorOpened()) {
+        this.closeEditorAndRestoreOriginalValue(keys.includes('Control') || keys.includes('Meta'));
+
+        this.activeEditor.focus();
+      }
     });
   }
 
@@ -379,6 +417,7 @@ class EditorManager {
     if (this.destroyed || keyCode === 229) {
       return;
     }
+
     if (isImmediatePropagationStopped(event)) {
       return;
     }
@@ -394,182 +433,7 @@ class EditorManager {
     if (this.activeEditor && !this.activeEditor.isWaiting()) {
       if (!isFunctionKey(keyCode) && !isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
         this.openEditor('', event);
-
-        return;
       }
-    }
-
-    const isShiftPressed = event.shiftKey;
-
-    const rangeModifier = isShiftPressed ? this.selection.setRangeEnd : this.selection.setRangeStart;
-    let tabMoves;
-
-    switch (keyCode) {
-      case KEY_CODES.A:
-        if (!this.isEditorOpened() && isCtrlPressed) {
-          this.instance.selectAll();
-
-          event.preventDefault();
-          event.stopPropagation();
-        }
-        break;
-
-      case KEY_CODES.ARROW_UP:
-        if (this.isEditorOpened() && !this.activeEditor.isWaiting()) {
-          this.closeEditorAndSaveChanges(isCtrlPressed);
-        }
-        this.moveSelectionUp(isShiftPressed);
-
-        event.preventDefault();
-        event.stopPropagation();
-        break;
-
-      case KEY_CODES.ARROW_DOWN:
-        if (this.isEditorOpened() && !this.activeEditor.isWaiting()) {
-          this.closeEditorAndSaveChanges(isCtrlPressed);
-        }
-
-        this.moveSelectionDown(isShiftPressed);
-
-        event.preventDefault();
-        event.stopPropagation();
-        break;
-
-      case KEY_CODES.ARROW_RIGHT:
-        if (this.isEditorOpened() && !this.activeEditor.isWaiting()) {
-          this.closeEditorAndSaveChanges(isCtrlPressed);
-        }
-
-        this.moveSelectionRight(isShiftPressed);
-
-        event.preventDefault();
-        event.stopPropagation();
-        break;
-
-      case KEY_CODES.ARROW_LEFT:
-        if (this.isEditorOpened() && !this.activeEditor.isWaiting()) {
-          this.closeEditorAndSaveChanges(isCtrlPressed);
-        }
-
-        this.moveSelectionLeft(isShiftPressed);
-
-        event.preventDefault();
-        event.stopPropagation();
-        break;
-
-      case KEY_CODES.TAB:
-        tabMoves = typeof this.tableMeta.tabMoves === 'function' ?
-          this.tableMeta.tabMoves(event) : this.tableMeta.tabMoves;
-
-        if (isShiftPressed) {
-          // move selection left
-          this.selection.transformStart(-tabMoves.row, -tabMoves.col);
-        } else {
-          // move selection right (add a new column if needed)
-          this.selection.transformStart(tabMoves.row, tabMoves.col, true);
-        }
-        event.preventDefault();
-        event.stopPropagation();
-        break;
-
-      case KEY_CODES.BACKSPACE:
-      case KEY_CODES.DELETE:
-        this.instance.emptySelectedCells();
-        this.prepareEditor();
-        event.preventDefault();
-        break;
-
-      // case KEY_CODES.F2:
-      //   /* F2 */
-      //   if (this.activeEditor) {
-      //     this.activeEditor.enableFullEditMode();
-      //   }
-      //   this.openEditor(null, event);
-
-      //   event.preventDefault(); // prevent Opera from opening 'Go to Page dialog'
-      //   break;
-
-      case KEY_CODES.ENTER:
-        /* return/enter */
-        if (this.isEditorOpened()) {
-
-          if (this.activeEditor && this.activeEditor.state !== EDITOR_STATE.WAITING) {
-            this.closeEditorAndSaveChanges(isCtrlPressed);
-          }
-          this.moveSelectionAfterEnter(isShiftPressed);
-
-        } else if (this.instance.getSettings().enterBeginsEditing) {
-          if (this.cellProperties.readOnly) {
-            this.moveSelectionAfterEnter();
-
-          } else if (this.activeEditor) {
-            this.activeEditor.enableFullEditMode();
-            this.openEditor(null, event);
-          }
-
-        } else {
-          this.moveSelectionAfterEnter(isShiftPressed);
-        }
-        event.preventDefault(); // don't add newline to field
-        stopImmediatePropagation(event); // required by HandsontableEditor
-        break;
-
-      case KEY_CODES.ESCAPE:
-        if (this.isEditorOpened()) {
-          this.closeEditorAndRestoreOriginalValue(isCtrlPressed);
-
-          this.activeEditor.focus();
-        }
-        event.preventDefault();
-        break;
-
-      case KEY_CODES.HOME:
-        if (event.ctrlKey || event.metaKey) {
-          rangeModifier.call(this.selection,
-            new CellCoords(
-              this.instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
-              this.selection.selectedRange.current().from.col));
-        } else {
-          rangeModifier.call(this.selection,
-            new CellCoords(this.selection.selectedRange.current().from.row,
-              this.instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1)));
-        }
-        event.preventDefault(); // don't scroll the window
-        event.stopPropagation();
-        break;
-
-      case KEY_CODES.END:
-        if (event.ctrlKey || event.metaKey) {
-          rangeModifier.call(
-            this.selection,
-            new CellCoords(this.instance.rowIndexMapper.getFirstNotHiddenIndex(this.instance.countRows() - 1, -1),
-              this.selection.selectedRange.current().from.col)
-          );
-        } else {
-          rangeModifier.call(
-            this.selection,
-            new CellCoords(this.selection.selectedRange.current().from.row,
-              this.instance.columnIndexMapper.getFirstNotHiddenIndex(this.instance.countCols() - 1, -1))
-          );
-        }
-        event.preventDefault(); // don't scroll the window
-        event.stopPropagation();
-        break;
-
-      case KEY_CODES.PAGE_UP:
-        this.selection.transformStart(-this.instance.countVisibleRows(), 0);
-        event.preventDefault(); // don't page up the window
-        event.stopPropagation();
-        break;
-
-      case KEY_CODES.PAGE_DOWN:
-        this.selection.transformStart(this.instance.countVisibleRows(), 0);
-        event.preventDefault(); // don't page down the window
-        event.stopPropagation();
-        break;
-
-      default:
-        break;
     }
   }
 

@@ -4376,8 +4376,101 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return shortcutManager;
   };
 
-  const selectionContext = shortcutManager.registerContext('selection');
-  selectionContext.register
+  const gridContext = shortcutManager.addContext('grid');
+
+  shortcutManager.setActiveContexts(['grid']);
+
+  gridContext.addShortcut([['Control', 'A']], () => {
+    instance.selectAll();
+  });
+
+  gridContext.addShortcut([['ArrowUp']], () => {
+    selection.transformStart(-1, 0);
+  });
+  gridContext.addShortcut([['ArrowUp', 'Shift']], () => {
+    selection.transformEnd(-1, 0);
+  });
+
+  gridContext.addShortcut([['ArrowDown']], () => {
+    selection.transformStart(1, 0);
+  });
+  gridContext.addShortcut([['ArrowDown', 'Shift']], () => {
+    selection.transformEnd(1, 0);
+  });
+
+  gridContext.addShortcut([['ArrowLeft']], () => {
+    selection.transformStart(0, -1);
+  });
+  gridContext.addShortcut([['ArrowLeft', 'Shift']], () => {
+    selection.transformEnd(0, -1);
+  });
+
+  gridContext.addShortcut([['ArrowRight']], () => {
+    selection.transformStart(0, 1);
+  });
+  gridContext.addShortcut([['ArrowRight', 'Shift']], () => {
+    selection.transformEnd(0, 1);
+  });
+
+  gridContext.addShortcut([['Home']], () => {
+    selection.transformStart(
+      selection.selectedRange.current().from.row,
+      instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
+    );
+  });
+  gridContext.addShortcut([['Home', 'Shift']], () => {
+    selection.transformEnd(
+      selection.selectedRange.current().from.row,
+      instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
+    );
+  });
+
+  gridContext.addShortcut([['Home', 'Control'], ['Home', 'Meta']], () => {
+    selection.transformStart(
+      instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
+      selection.selectedRange.current().from.col,
+    );
+  });
+  gridContext.addShortcut([['Home', 'Control', 'Shift'], ['Home', 'Meta', 'Shift']], () => {
+    selection.transformEnd(
+      instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
+      selection.selectedRange.current().from.col,
+    );
+  });
+
+  gridContext.addShortcut([['End']], () => {
+    selection.transformStart(
+      this.selection.selectedRange.current().from.row,
+      this.instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
+    );
+  });
+  gridContext.addShortcut([['End', 'Shift']], () => {
+    this.selection.transformEnd(
+      this.selection.selectedRange.current().from.row,
+      this.instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
+    );
+  });
+
+  gridContext.addShortcut([['End', 'Control'], ['End', 'Meta']], () => {
+    selection.transformStart(
+      instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
+      selection.selectedRange.current().from.col,
+    );
+  });
+  gridContext.addShortcut([['End', 'Control', 'Shift'], ['End', 'Meta', 'Shift']], () => {
+    selection.transformEnd(
+      instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
+      selection.selectedRange.current().from.col,
+    );
+  });
+
+  gridContext.addShortcut([['PageUp']], () => {
+    selection.transformStart(-instance.countVisibleRows(), 0);
+  });
+
+  gridContext.addShortcut([['PageDown']], () => {
+    selection.transformStart(instance.countVisibleRows(), 0);
+  });
 
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);
