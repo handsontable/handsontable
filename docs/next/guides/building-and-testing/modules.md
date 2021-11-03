@@ -642,21 +642,11 @@ And that is all! You can use the numeric validator!
 You can quickly import and register all validators at once:
 
 ```js
-// import all validators
-import {
-  registerValidator,
-  autocompleteValidator,
-  dateValidator,
-  numericValidator,
-  timeValidator,
-} from 'handsontable/validators';
-
 // import the `registerAllValidators()` function
 import { registerAllValidators } from 'handsontable/registry';
 
 // register all validators
 registerAllValidators();
-```
 
 ## Importing cell types
 
