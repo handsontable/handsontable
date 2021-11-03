@@ -229,6 +229,11 @@ Handsontable.languages.registerLanguageDictionary(enUSDictionary); // re-registr
 Handsontable.languages.getTranslatedPhrase('en-US', 'customKey'); // 'Hello world'
 ```
 
+## Using locales
+Handsontable uses by default `en-US` locale for actions performed on data. Operations such as filtering, searching, comparing data sometimes cast text to lower case (for example, while using ignore case option). Without specifying proper locale for data it can work  incorrectly.
+
+You don't need include any files to handle locales. Just use the `locale` key which should use structurally valid and canonicalized Unicode BCP 47 locale identifier (same as for the `languale` key).  Please keep in mind that different locales may be set for different columns.
+
 ## Static Handsontable methods and properties
 
 Handsontable has a few static methods and properties connected with languages. They are stored in the `languages` key of the global `Handsontable` variable. All of them are described below.

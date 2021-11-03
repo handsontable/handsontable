@@ -3238,7 +3238,8 @@ export default () => {
     language: 'en-US',
 
     /**
-     * Locale used for actions performed on data (for example, filtering, searching, comparing data).
+     * Locale used for actions performed on data (for example, filtering, searching, comparing locale-based data)
+     * which should be structurally valid and canonicalized Unicode BCP 47 locale identifier.
      *
      * @memberof Options#
      * @type {string}
