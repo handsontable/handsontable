@@ -374,7 +374,7 @@ import {
   registerAllCellTypes,
   registerAllPlugins,
   registerAllModules,
-  } from 'handsontable/registry'
+} from 'handsontable/registry'
 
 // register individual translations
 registerLanguageDictionary(deCH);
