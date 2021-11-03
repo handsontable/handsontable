@@ -132,7 +132,7 @@ fse.writeJSONSync(`${TARGET_PATH}/package.json`, {
 /**
  * Helper that checks if the passed value is POJO.
  *
- * @param {any} object The object to checks.
+ * @param {any} object The object to check.
  * @returns {boolean}
  */
 function isObject(object) {
