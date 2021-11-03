@@ -259,7 +259,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * @param {React.ReactElement} rendererElement React renderer component.
    * @returns {Handsontable.renderers.Base} The Handsontable rendering function.
    */
-  getRendererWrapper(rendererElement: React.ReactElement): Handsontable.renderers.Base | any {
+  getRendererWrapper(rendererElement: React.ReactElement): typeof Handsontable.renderers.BaseRenderer | any {
     const hotTableComponent = this;
 
     return function (instance, TD, row, col, prop, value, cellProperties) {
@@ -318,11 +318,11 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * @returns {Function} A class to be passed to the Handsontable editor settings.
    */
   makeEditorClass(editorComponent: React.Component): typeof Handsontable.editors.BaseEditor {
-    const customEditorClass = class CustomEditor extends Handsontable.editors.BaseEditor implements Handsontable._editors.Base {
+    const customEditorClass = class CustomEditor extends Handsontable.editors.BaseEditor implements Handsontable.editors.BaseEditor {
       editorComponent: React.Component;
 
-      constructor(hotInstance, row, col, prop, TD, cellProperties) {
-        super(hotInstance, row, col, prop, TD, cellProperties);
+      constructor(hotInstance) {
+        super(hotInstance);
 
         (editorComponent as any).hotCustomEditorInstance = this;
 

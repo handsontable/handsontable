@@ -14,7 +14,7 @@ class PasswordEditor extends Handsontable.editors.TextEditor {
     this.textareaStyle.width = '0';
     this.textareaStyle.height = '0';
 
-    //replace textarea with password input
+    // replace textarea with password input
     Handsontable.dom.empty(this.TEXTAREA_PARENT);
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }

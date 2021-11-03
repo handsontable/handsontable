@@ -16,11 +16,30 @@ const {
 /**
  * Copy necessary files we don't need to process.
  */
-FILES_TO_COPY.forEach((file) => {
-  fse.copySync(
-    path.resolve(`./${file}`),
-    path.resolve(`${TARGET_PATH}${file}`),
-    { overwrite: true });
+FILES_TO_COPY.forEach((fileToCopy) => {
+  const isPatternMode = isObject(fileToCopy);
+  let pathSlice = 0;
+  let foundFiles = [fileToCopy];
+
+  if (isPatternMode) {
+    foundFiles = glob.sync(fileToCopy.pattern);
+    // slice a path off the bottom of the paths e.g. for value 1 it
+    // slices path from `./types/base.d.ts` to `./base.d.ts`.
+    pathSlice = fileToCopy.pathSlice;
+  }
+
+  foundFiles.forEach((file) => {
+    const from = path.resolve(`./${file}`);
+
+    if (isPatternMode) {
+      file = path.join(...path.normalize(file).split(path.sep).slice(pathSlice));
+    }
+
+    fse.copySync(
+      from,
+      path.resolve(`${TARGET_PATH}${file}`),
+      { overwrite: true });
+  });
 });
 
 /**
@@ -109,3 +128,13 @@ fse.writeJSONSync(`${TARGET_PATH}/package.json`, {
   spaces: 2,
   replacer: null,
 });
+
+/**
+ * Helper that checks if the passed value is POJO.
+ *
+ * @param {any} object The object to check.
+ * @returns {boolean}
+ */
+function isObject(object) {
+  return Object.prototype.toString.call(object) === '[object Object]';
+}
