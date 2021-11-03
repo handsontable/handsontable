@@ -1,11 +1,4 @@
 import numbro from 'numbro';
-import {
-  GridSettings as _GridSettings,
-  ColumnSettings as _ColumnSettings,
-  CellSettings as _CellSettings,
-  CellMeta as _CellMeta,
-  CellProperties as _CellProperties,
-} from './settings';
 
 // These types represent default known values, but users can extend with their own, leading to the need for assertions.
 // Using type arguments (ex `_GridSettings<CellValue, CellType, SourceData>`) would solve this and provide very strict

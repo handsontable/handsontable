@@ -2,19 +2,15 @@ import { PikadayOptions } from 'pikaday';
 import Core from './core';
 import { Events } from './pluginHooks';
 import {
-  CellChange,
   CellValue,
-  ChangeSource,
   ColumnDataGetterSetterFunction,
   LabelOptions,
   NumericFormatOptions,
-  RangeType,
   RowObject,
   SelectOptionsObject,
   SimpleCellCoords,
 } from './common';
 import CellCoords from './3rdparty/walkontable/src/cell/coords';
-import CellRange from './3rdparty/walkontable/src/cell/range';
 import { Settings as AutoColumnSizeSettings } from './plugins/autoColumnSize';
 import { Settings as AutofillSettings } from './plugins/autofill';
 import { Settings as AutoRowSizeSettings } from './plugins/autoRowSize';

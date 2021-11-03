@@ -1,11 +1,3 @@
-import {
-  CellType as HyperFormulaCellType,
-  ConfigParams,
-  HyperFormula,
-} from 'hyperformula';
-import { default as _CellCoords } from './3rdparty/walkontable/src/cell/coords';
-import { default as _CellRange } from './3rdparty/walkontable/src/cell/range';
-import { OverlayType } from './3rdparty/walkontable/src';
 import Core from './core';
 import {
   CellChange,
@@ -19,12 +11,10 @@ import {
 import {
   GridSettings,
   ColumnSettings,
-  CellSettings,
   CellMeta,
   CellProperties,
 } from './settings';
 import * as RecordTranslation from './translations';
-import { htmlToGridSettings, instanceToHTML } from './utils/parseTable';
 import {
   AutocompleteCellType,
   CellType,
@@ -50,13 +40,11 @@ import {
   PasswordEditor,
   SelectEditor,
   TextEditor,
-  Editors,
   EditorType,
   getEditor,
   registerEditor,
 } from './editors';
 import {
-  Renderers,
   RendererType,
   autocompleteRenderer,
   baseRenderer,
@@ -69,7 +57,6 @@ import {
   registerRenderer,
 } from './renderers';
 import {
-  Validators,
   ValidatorType,
   autocompleteValidator,
   dateValidator,
@@ -78,11 +65,6 @@ import {
   getValidator,
   registerValidator,
 } from './validators';
-import {
-  Plugins,
-  getPlugin,
-  registerPlugin,
-} from './plugins';
 import * as helper from './helpers';
 import * as dom from './helpers/dom';
 import EventManager from './eventManager';

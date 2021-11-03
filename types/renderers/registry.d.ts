@@ -1,4 +1,3 @@
-import Core from '../core';
 import { BaseRenderer } from './base';
 import { Renderers } from './index';
 

@@ -1,4 +1,3 @@
-import Core from '../core';
 import { Plugins } from './index';
 import { BasePlugin } from './base';
 

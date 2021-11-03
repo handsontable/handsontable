@@ -1,6 +1,3 @@
-import Core from '../core';
-import { CellProperties } from '../settings';
-import { CellValue } from '../common';
 import { BaseValidator } from './base';
 import { Validators } from './index';
 

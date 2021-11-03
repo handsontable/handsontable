@@ -28,9 +28,6 @@ import {
 } from './plugins/mergeCells';
 import {
   GridSettings,
-  ColumnSettings,
-  CellSettings,
-  CellMeta,
   CellProperties,
 } from './settings';
 

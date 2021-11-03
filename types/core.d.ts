@@ -6,8 +6,6 @@ import {
 } from './common';
 import {
   GridSettings,
-  ColumnSettings,
-  CellSettings,
   CellMeta,
   CellProperties,
 } from './settings';

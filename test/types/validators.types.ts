@@ -12,8 +12,6 @@ const cellProperties: Handsontable.CellProperties = {
   prop: 'foo'
 };
 
-const TD = document.createElement('td');
-
 // Verify the built-in validators exist and have the correct signature
 Handsontable.validators.AutocompleteValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
 Handsontable.validators.DateValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
