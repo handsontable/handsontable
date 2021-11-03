@@ -351,6 +351,8 @@ export default () => {
      *
      * Read more:
      * - [Column width &#8594;](@/guides/columns/column-width.md)
+     * - [Hooks: `modifyColWidth` &#8594;](@/api/hooks.md#modifyColWidth)
+     * - [`autoColumnSize`](#autoColumnSize)
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -440,6 +442,9 @@ export default () => {
      *
      * Read more:
      * - [Configuration options: Setting column options &#8594;](@/guides/getting-started/setting-options.md#setting-column-options)
+     * - [`startCols`](#startCols)
+     * - [`minCols`](#minCols)
+     * - [`maxCols`](#maxCols)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -493,6 +498,8 @@ export default () => {
      * Read more:
      * - [Configuration options: Implementing custom logic &#8594;](@/guides/getting-started/setting-options.md#implementing-custom-logic)
      * - [Configuration options: Setting row options &#8594;](@/guides/getting-started/setting-options.md#setting-row-options)
+     * - [`columns`](#columns)
+     * - [`cell`](#cell)
      *
      * @memberof Options#
      * @type {Function}
@@ -525,6 +532,7 @@ export default () => {
      *
      * Read more:
      * - [Configuration options: Setting cell options &#8594;](@/guides/getting-started/setting-options.md#setting-cell-options)
+     * - [`columns`](#columns)
      *
      * @memberof Options#
      * @type {Array[]}
@@ -568,6 +576,10 @@ export default () => {
      *
      * Read more:
      * - [Comments &#8594;](@/guides/cell-features/comments.md)
+     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+     * - [`width`](#width)
+     * - [`height`](#height)
+     * - [`readOnly`](#readOnly)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -633,7 +645,8 @@ export default () => {
      *
      * Read more:
      * - [Formatting cells: Custom cell borders &#8594;](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
-     * - [`CustomBorders` &#8594;](@/api/customBorders.md)
+     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+     * - [Plugins: `CustomBorders` &#8594;](@/api/customBorders.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -887,6 +900,9 @@ export default () => {
      * If set to `true`, the `allowRemoveRow` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md):
      * - **Remove row**
      *
+     * Read more:
+     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -903,6 +919,9 @@ export default () => {
     /**
      * If set to `true`, the `allowRemoveColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md):
      * - **Remove column**
+     *
+     * Read more:
+     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -1263,8 +1282,8 @@ export default () => {
      * | `true`            | Enable the [`PersistentState`](@/api/persistentState.md) plugin  |
      *
      * Read more:
-     * - [`PersistentState` &#8594;](@/api/persistentState.md)
      * - [Saving data: Saving data locally &#8594;](@/guides/getting-started/saving-data.md#saving-data-locally)
+     * - [Plugins: `PersistentState` &#8594;](@/api/persistentState.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2032,6 +2051,7 @@ export default () => {
      * Read more:
      * - [Clipboard &#8594;](@/guides/cell-features/clipboard.md)
      * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [Password cell type &#8594;](@/guides/cell-types/password-cell-type.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2276,6 +2296,10 @@ export default () => {
      *
      * Read more:
      * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+     * - [Context menu: Context menu with default options &#8594;](@/guides/accessories-and-menus/context-menu.md#context-menu-with-default-options)
+     * - [Context menu: Context menu with specific options &#8594;](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options)
+     * - [Context menu: Context menu with fully custom configuration options &#8594;](@/guides/accessories-and-menus/context-menu.md#context-menu-with-fully-custom-configuration)
+     * - [Plugins: `ContextMenu` &#8594;](@/api/contextMenu.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|object}
@@ -2341,7 +2365,7 @@ export default () => {
      * | `uiContainer`  | An HTML element                                    | A UI container for the secondary focusable element                                                                                                                                      |
      *
      * Read more:
-     * - [`CopyPaste`](@/api/copyPaste.md)
+     * - [Plugins: `CopyPaste` &#8594;](@/api/copyPaste.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -2434,6 +2458,7 @@ export default () => {
      *
      * Read more:
      * - [Row sorting &#8594;](@/guides/rows/row-sorting.md)
+     * - [Row sorting: Custom compare functions &#8594;](@/guides/rows/row-sorting.md#custom-compare-functions)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -3048,6 +3073,7 @@ export default () => {
      *
      * Read more:
      * - [Checkbox cell type: Checkbox template &#8594;](@/guides/cell-types/checkbox-cell-type.md#checkbox-template)
+     * - [`getDataAtCell()` &#8594;](@/api/core.md#getDataAtCell)
      * - [`uncheckedTemplate`](#uncheckedTemplate)
      *
      * @memberof Options#
@@ -3090,6 +3116,7 @@ export default () => {
      *
      * Read more:
      * - [Checkbox cell type: Checkbox template &#8594;](@/guides/cell-types/checkbox-cell-type.md#checkbox-template)
+     * - [`getDataAtCell()` &#8594;](@/api/core.md#getDataAtCell)
      * - [`checkedTemplate`](#checkedTemplate)
      *
      * @memberof Options#
@@ -3323,7 +3350,7 @@ export default () => {
      * Using the [`colWidths`](#colWidths) option forcibly disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
      * Read more:
-     * - [`AutoColumnSize` &#8594;](@/api/autoColumnSize.md)
+     * - [Plugins: `AutoColumnSize` &#8594;](@/api/autoColumnSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -3371,7 +3398,7 @@ export default () => {
      * Using the [`rowHeights`](#rowHeights) option forcibly disables the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
      *
      * Read more:
-     * - [`AutoRowSize` &#8594;](@/api/autoRowSize.md)
+     * - [Plugins: `AutoRowSize` &#8594;](@/api/autoRowSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -3648,7 +3675,7 @@ export default () => {
      * | `true`  | Enable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin  |
      *
      * Read more:
-     * - [`BindRowsWithHeaders` &#8594;](@/api/bindRowsWithHeaders.md)
+     * - [Plugins: `BindRowsWithHeaders` &#8594;](@/api/bindRowsWithHeaders.md)
      *
      * @memberof Options#
      * @type {boolean|string}
@@ -3676,7 +3703,7 @@ export default () => {
      * | An array of objects  | Enable the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin for selected column headers |
      *
      * Read more:
-     * - [`CollapsibleColumns` &#8594;](@/api/collapsibleColumns.md)
+     * - [Plugins: `CollapsibleColumns` &#8594;](@/api/collapsibleColumns.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -3720,7 +3747,7 @@ export default () => {
      *
      * Read more:
      * - [Column summary &#8594;](@/guides/columns/column-summary.md)
-     * - [`ColumnSummary` &#8594;](@/api/columnSummary.md)
+     * - [Plugins: `ColumnSummary` &#8594;](@/api/columnSummary.md)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -3766,7 +3793,7 @@ export default () => {
      *
      * Read more:
      * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
-     * - [`DropdownMenu` &#8594;](@/api/dropdownMenu.md)
+     * - [Plugins: `DropdownMenu` &#8594;](@/api/dropdownMenu.md)
      *
      * @memberof Options#
      * @type {boolean|object|string[]}
@@ -3823,7 +3850,7 @@ export default () => {
      *
      * Read more:
      * - [Column filter &#8594;](@/guides/columns/column-filter.md)
-     * - [`Filters` &#8594;](@/api/filters.md)
+     * - [Plugins: `Filters` &#8594;](@/api/filters.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3854,7 +3881,7 @@ export default () => {
      * | `sheetName` | A string                                                                                                                                                                                                               |
      *
      * Read more:
-     * - [`Formulas` &#8594;](@/api/formulas.md)
+     * - [Plugins: `Formulas` &#8594;](@/api/formulas.md)
      * - [Formula calculation &#8594;](@/guides/formulas/formula-calculation.md)
      * - [HyperFormula documentation: Client-side installation](https://handsontable.github.io/hyperformula/guide/client-side-installation)
      * - [HyperFormula documentation: Configuration options](https://handsontable.github.io/hyperformula/api/interfaces/configparams.html)
@@ -3935,7 +3962,7 @@ export default () => {
      * | `indicators`       | `true` \| `false`   | `true`: display UI markers to indicate the presence of hidden columns<br>`false`: display UI markers                                                    |
      *
      * Read more:
-     * - [`HiddenColumns` &#8594;](@/api/hiddenColumns.md)
+     * - [Plugins: `HiddenColumns` &#8594;](@/api/hiddenColumns.md)
      * - [Column hiding &#8594;](@/guides/columns/column-hiding.md)
      *
      * @memberof Options#
@@ -3981,7 +4008,7 @@ export default () => {
      * | `indicators`       | `true` \| `false`   | `true`: display UI markers to indicate the presence of hidden rows<br>`false`: display UI markers                                                 |
      *
      * Read more:
-     * - [`HiddenRows` &#8594;(@/api/hiddenRows.md)
+     * - [Plugins: `HiddenRows` &#8594;(@/api/hiddenRows.md)
      * - [Row hiding &#8594;](@/guides/rows/row-hiding.md)
      *
      * @memberof Options#
@@ -4021,7 +4048,7 @@ export default () => {
      * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): the column width |
      *
      * Read more:
-     * - [`NestedHeaders` &#8594;](@/api/nestedHeaders.md)
+     * - [Plugins: `NestedHeaders` &#8594;](@/api/nestedHeaders.md)
      * - [Column groups: Nested headers &#8594;](@/guides/columns/column-groups.md#nested-headers)
      *
      * @memberof Options#
@@ -4053,7 +4080,7 @@ export default () => {
      * | An array | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
      *
      * Read more:
-     * - [`TrimRows` &#8594;](@/api/trimRows.md)
+     * - [Plugins: `TrimRows` &#8594;](@/api/trimRows.md)
      * - [Row trimming &#8594;](@/guides/rows/row-trimming.md)
      *
      * @memberof Options#
@@ -4245,7 +4272,7 @@ export default () => {
      * | `false`          | Don't scroll the viewport                                                   |
      *
      * Read more:
-     * - [`DragToScroll` &#8594;](@/api/dragToScroll.md)
+     * - [Plugins: `DragToScroll` &#8594;](@/api/dragToScroll.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -4272,7 +4299,7 @@ export default () => {
      * | `true`            | Enable the [`NestedRows`](@/api/nestedRows.md) plugin  |
      *
      * Read more:
-     * - [`NestedRows` &#8594;](@/api/nestedRows.md)
+     * - [Plugins: `NestedRows` &#8594;](@/api/nestedRows.md)
      *
      * @example
      * ```js
