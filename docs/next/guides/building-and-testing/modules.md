@@ -370,7 +370,7 @@ import {
   registerAllCellTypes,
   registerAllPlugins,
   registerAllModules,
-  } from 'handsontable/registry'
+} from 'handsontable/registry'
 
 // register individual translations
 registerLanguageDictionary(deCH);
@@ -528,21 +528,6 @@ And that is all! You can use the password editor!
 You can quickly import and register all editors at once:
 
 ```js
-// import all editors
-import {
-  registerEditor,
-  AutocompleteEditor,
-  BaseEditor,
-  CheckboxEditor,
-  DateEditor,
-  DropdownEditor,
-  HandsontableEditor,
-  NumericEditor,
-  PasswordEditor,
-  SelectEditor,
-  TextEditor,
-} from 'handsontable/editors';
-
 // import the `registerAllEditors()` function
 import { registerAllEditors } from 'handsontable/registry';
 
@@ -597,24 +582,11 @@ And that is all! You can use the autocomplete renderer!
 You can quickly import and register all renderers at once:
 
 ```js
-// import all renderers
-import {
-  registerRenderer,
-  baseRenderer,
-  autocompleteRenderer,
-  checkboxRenderer,
-  htmlRenderer,
-  numericRenderer,
-  passwordRenderer,
-  textRenderer,
-} from 'handsontable/renderers';
-
 // import the `registerAllRenderers()` function
 import { registerAllRenderers } from 'handsontable/registry';
 
 // register all renderers
 registerAllRenderers();
-```
 
 ## Importing validators
 
@@ -664,21 +636,11 @@ And that is all! You can use the numeric validator!
 You can quickly import and register all validators at once:
 
 ```js
-// import all validators
-import {
-  registerValidator,
-  autocompleteValidator,
-  dateValidator,
-  numericValidator,
-  timeValidator,
-} from 'handsontable/validators';
-
 // import the `registerAllValidators()` function
 import { registerAllValidators } from 'handsontable/registry';
 
 // register all validators
 registerAllValidators();
-```
 
 ## Importing cell types
 
@@ -727,19 +689,6 @@ And that is all! You can use the checkbox cell type!
 You can quickly import and register all cell types at once:
 
 ```js
-// import all cell types
-import {
-  registerCellType,
-  AutocompleteCellType,
-  CheckboxCellType,
-  DateCellType,
-  DropdownCellType,
-  HandsontableCellType,
-  NumericCellType,
-  PasswordCellType,
-  TextCellType,
-  TimeCellType,
-} from 'handsontable/cellTypes';
 
 // import the `registerAllCellTypes()` function
 import { registerAllCellTypes } from 'handsontable/registry';
