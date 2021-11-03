@@ -206,7 +206,6 @@ import { DragToScroll } from 'handsontable/plugins/dragToScroll';
 import { DropdownMenu } from 'handsontable/plugins/dropdownMenu';
 import { ExportFile } from 'handsontable/plugins/exportFile';
 import { Filters } from 'handsontable/plugins/filters';
-import { HeaderTooltips } from 'handsontable/plugins/headerTooltips';
 import { HiddenColumns } from 'handsontable/plugins/hiddenColumns';
 import { HiddenRows } from 'handsontable/plugins/hiddenRows';
 import { ManualColumnFreeze } from 'handsontable/plugins/manualColumnFreeze';
@@ -218,7 +217,6 @@ import { MergeCells } from 'handsontable/plugins/mergeCells';
 import { MultipleSelectionHandles } from 'handsontable/plugins/multipleSelectionHandles';
 import { NestedHeaders } from 'handsontable/plugins/nestedHeaders';
 import { NestedRows } from 'handsontable/plugins/nestedRows';
-import { ObserveChanges } from 'handsontable/plugins/observeChanges';
 import { PersistentState } from 'handsontable/plugins/persistentState';
 import { Search } from 'handsontable/plugins/search';
 import { TouchScroll } from 'handsontable/plugins/touchScroll';
@@ -322,7 +320,6 @@ import {
   ExportFile,
   Filters,
   Formulas,
-  HeaderTooltips,
   HiddenColumns,
   HiddenRows,
   ManualColumnFreeze,
@@ -335,7 +332,6 @@ import {
   MultipleSelectionHandles,
   NestedHeaders,
   NestedRows,
-  ObserveChanges,
   PersistentState,
   Search,
   TouchScroll,
@@ -457,7 +453,6 @@ registerPlugin(DropdownMenu);
 registerPlugin(ExportFile);
 registerPlugin(Filters);
 registerPlugin(Formulas);
-registerPlugin(HeaderTooltips);
 registerPlugin(HiddenColumns);
 registerPlugin(HiddenRows);
 registerPlugin(ManualColumnFreeze);
@@ -470,7 +465,6 @@ registerPlugin(MultiColumnSorting);
 registerPlugin(MultipleSelectionHandles);
 registerPlugin(NestedHeaders);
 registerPlugin(NestedRows);
-registerPlugin(ObserveChanges);
 registerPlugin(PersistentState);
 registerPlugin(Search);
 registerPlugin(TouchScroll);
@@ -817,7 +811,6 @@ import {
   ExportFile,
   Filters,
   Formulas,
-  HeaderTooltips,
   HiddenColumns,
   HiddenRows,
   ManualColumnFreeze,
@@ -830,7 +823,6 @@ import {
   MultipleSelectionHandles,
   NestedHeaders,
   NestedRows,
-  ObserveChanges,
   PersistentState,
   Search,
   TouchScroll,
