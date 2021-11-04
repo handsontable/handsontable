@@ -17,8 +17,8 @@ To reduce the size of your app, you can use Handsontable by importing individual
 
 To use modules with Handsontable's [React wrapper](@/guides/integrate-with-react/react-installation.md), follow the steps below:
 
-### Step 1: Import the `Base` module
-In the entry point file of your application, import Handsontable's `Base` module:
+### Step 1: Import the `handsontable/base` module
+In the entry point file of your application, import the `handsontable/base` module:
   ```js
   // your `index.js` file
   import React from 'react';
@@ -26,7 +26,7 @@ In the entry point file of your application, import Handsontable's `Base` module
   import './index.css';
   import App from './App';
 
-  // import Handsontable's `Base` module
+  // import the `handsontable/base` module
   import Handsontable from 'handsontable/base';
   ```
 

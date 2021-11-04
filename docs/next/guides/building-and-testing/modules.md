@@ -248,7 +248,7 @@ Here is a full list of all Handsontable parts imported and registered. This exam
 
 ::: details Modules cheatsheet
 ```js
-// import the `base` module
+// import the `handsontable/base` module
 import Handsontable from 'handsontable/base';
 
 // import editors

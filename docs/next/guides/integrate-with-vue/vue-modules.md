@@ -17,14 +17,14 @@ To reduce the size of your app, you can use Handsontable by importing individual
 
 To use modules with Handsontable's [Vue 2 wrapper](@/guides/integrate-with-vue/vue-installation.md), follow the steps below:
 
-### Step 1: Import the `Base` module
-In the entry point file of your application, import Handsontable's `Base` module:
+### Step 1: Import the `handsontable/base` module
+In the entry point file of your application, import the `handsontable/base` module:
   ```js
   // your `main.js` file
   import Vue from 'vue';
   import App from './App.vue';
 
-  // import Handsontable's `Base` module
+  // import the `handsontable/base` module
   import Handsontable from 'handsontable/base';
   ```
 
