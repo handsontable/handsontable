@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an error being thrown while performing an autofill on a date-typed cells.",
+  "type": "fixed",
+  "issue": 8894,
+  "breaking": false,
+  "framework": "none"
+}
