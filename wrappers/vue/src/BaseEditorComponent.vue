@@ -1,10 +1,10 @@
 <script lang="ts">
   import Vue from 'vue';
-  import Handsontable from 'handsontable';
+  import Handsontable from 'handsontable/base';
   import Component from 'vue-class-component';
 
   @Component({})
-  class BaseEditorComponent extends Vue implements Handsontable._editors.Base {
+  class BaseEditorComponent extends Vue implements Handsontable.editors.BaseEditor {
     name = 'BaseEditorComponent';
     instance = null;
     row = null;
@@ -20,9 +20,9 @@
       const _this = this;
 
       this.$data.hotCustomEditorClass = function () {
-        const customEditorClass = class CustomEditor extends Handsontable.editors.BaseEditor implements Handsontable._editors.Base {
-          constructor(hotInstance, row, col, prop, TD, cellProperties) {
-            super(hotInstance, row, col, prop, TD, cellProperties);
+        const customEditorClass = class CustomEditor extends Handsontable.editors.BaseEditor implements Handsontable.editors.BaseEditor {
+          constructor(hotInstance) {
+            super(hotInstance);
 
             _this.$data.hotCustomEditorInstance = this;
           }

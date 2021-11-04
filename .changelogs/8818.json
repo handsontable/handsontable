@@ -1,0 +1,7 @@
+{
+  "title": "Added support for modularize Angular wrapper",
+  "type": "added",
+  "issue": 8818,
+  "breaking": true,
+  "framework": "angular"
+}
