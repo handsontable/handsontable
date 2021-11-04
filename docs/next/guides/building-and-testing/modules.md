@@ -587,6 +587,7 @@ import { registerAllRenderers } from 'handsontable/registry';
 
 // register all renderers
 registerAllRenderers();
+```
 
 ## Importing validators
 
@@ -641,6 +642,7 @@ import { registerAllValidators } from 'handsontable/registry';
 
 // register all validators
 registerAllValidators();
+```
 
 ## Importing cell types
 
