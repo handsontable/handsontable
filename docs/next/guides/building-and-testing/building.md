@@ -55,7 +55,7 @@ The build process can be triggered by either navigating the the `./handsontable`
 Or by utilizing one of the helper scripts in the root directory:
 
 *   `npm run in` - Runs a command for the specified project. For Example:  
-    `npm run in handsontable build` - runs the `build` command for the `@handsontable/handsontable` project.  
+    `npm run in handsontable build` - runs the `build` command for the `handsontable` project.  
     Shorthands are also available - the aforementioned command works as `npm run in handsontable build` as well.
 *   `npm run all handsontable` - Runs a command for all Handsontable packages. 
     The order in which the packages are executed is defined in the `./scripts/run-all.mjs` script.
