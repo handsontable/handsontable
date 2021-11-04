@@ -691,7 +691,6 @@ And that is all! You can use the checkbox cell type!
 You can quickly import and register all cell types at once:
 
 ```js
-
 // import the `registerAllCellTypes()` function
 import { registerAllCellTypes } from 'handsontable/registry';
 
