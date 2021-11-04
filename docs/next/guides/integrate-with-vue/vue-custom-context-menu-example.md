@@ -24,6 +24,7 @@ import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
 
 // register Handsontable's modules
 registerAllModules();

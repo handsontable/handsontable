@@ -21,6 +21,7 @@ import { createStore } from 'redux';
 import { Provider, useSelector, useDispatch } from 'react-redux';
 import { HotTable } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
 
 // register Handsontable's modules
 registerAllModules();

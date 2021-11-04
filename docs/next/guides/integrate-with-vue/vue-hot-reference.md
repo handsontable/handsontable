@@ -25,6 +25,7 @@ The following example implements the `@handsontable/vue`, showing how to referen
 import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
 
 // register Handsontable's modules
 registerAllModules();

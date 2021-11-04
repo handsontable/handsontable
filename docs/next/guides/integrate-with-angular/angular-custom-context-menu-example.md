@@ -19,6 +19,7 @@ The following is an implementation of the `@handsontable/angular` component with
 import { Component } from '@angular/core';
 import Handsontable from 'handsontable/base';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
+import { createSpreadsheetData } from './helpers';
 
 @Component({
   selector: 'app-root',

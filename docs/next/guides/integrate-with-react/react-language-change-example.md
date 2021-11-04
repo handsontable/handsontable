@@ -24,6 +24,7 @@ import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { getLanguagesDictionaries } from 'handsontable/i18n';
 import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
 
 // register Handsontable's modules
 registerAllModules();

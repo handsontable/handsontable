@@ -29,6 +29,7 @@ import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { getLanguagesDictionaries } from 'handsontable/i18n';
 import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
 
 // register Handsontable's modules
 registerAllModules();

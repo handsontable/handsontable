@@ -1,9 +1,9 @@
 /* eslint-disable */
-(function() {
+(function(helpers) {
   const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
 
-  window.spreadsheetColumnLabel = function(index) {
+  helpers.spreadsheetColumnLabel = function(index) {
     let dividend = index + 1;
     let columnLabel = '';
     let modulo;
@@ -17,7 +17,7 @@
     return columnLabel;
   }
 
-  window.createSpreadsheetData = function(rows = 100, columns = 4) {
+  helpers.createSpreadsheetData = function(rows = 100, columns = 4) {
     const _rows = [];
     let i;
     let j;
@@ -26,11 +26,11 @@
       const row = [];
 
       for (j = 0; j < columns; j++) {
-        row.push(spreadsheetColumnLabel(j) + (i + 1));
+        row.push(helpers.spreadsheetColumnLabel(j) + (i + 1));
       }
       _rows.push(row);
     }
 
     return _rows;
   }
-}());
+}(window.helpers = window.helpers || {}));

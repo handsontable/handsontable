@@ -21,6 +21,7 @@ Select a language from the selector above the table and open the Context Menu to
 // app.component.ts
 import { Component } from '@angular/core';
 import { getLanguagesDictionaries } from 'handsontable/i18n';
+import { createSpreadsheetData } from './helpers';
 
 @Component({
   selector: 'app-root',

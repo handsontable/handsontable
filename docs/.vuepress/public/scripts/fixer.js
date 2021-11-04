@@ -80,7 +80,10 @@
         ns = ns + nsPart;
       });
 
-      if (key === 'handsontable/base') {
+      if (key === './helpers') {
+        ns = 'helpers';
+
+      } else if (key === 'handsontable/base') {
         ns = 'Handsontable';
 
       } else if (key === 'react-dom') {

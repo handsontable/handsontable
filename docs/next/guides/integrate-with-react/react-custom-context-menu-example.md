@@ -20,6 +20,7 @@ import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
 
 // register Handsontable's modules
 registerAllModules();

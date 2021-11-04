@@ -25,6 +25,7 @@ In this example, a `div` element of `id="example1"` where the `@handsontable/vue
 import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
 
 // register Handsontable's modules
 registerAllModules();
