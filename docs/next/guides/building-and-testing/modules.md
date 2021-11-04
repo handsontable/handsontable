@@ -691,7 +691,6 @@ And that is all! You can use the checkbox cell type!
 You can quickly import and register all cell types at once:
 
 ```js
-
 // import the `registerAllCellTypes()` function
 import { registerAllCellTypes } from 'handsontable/registry';
 
@@ -743,45 +742,6 @@ And that is all! You can use the `ContextMenu` plugin.
 You can quickly import and register all plugins at once:
 
 ```js
-// import all plugins
-import {
-  AutoColumnSize,
-  AutoRowSize,
-  Autofill,
-  BasePlugin,
-  BindRowsWithHeaders,
-  CollapsibleColumns,
-  ColumnSorting,
-  ColumnSummary,
-  Comments,
-  ContextMenu,
-  CopyPaste,
-  CustomBorders,
-  DragToScroll,
-  DropdownMenu,
-  ExportFile,
-  Filters,
-  Formulas,
-  HiddenColumns,
-  HiddenRows,
-  ManualColumnFreeze,
-  ManualColumnMove,
-  ManualColumnResize,
-  ManualRowMove,
-  ManualRowResize,
-  MergeCells,
-  MultiColumnSorting,
-  MultipleSelectionHandles,
-  NestedHeaders,
-  NestedRows,
-  PersistentState,
-  Search,
-  TouchScroll,
-  TrimRows,
-  UndoRedo,
-  registerPlugin,
-} from 'handsontable/plugins';
-
 // import the `registerAllPlugins()` function
 import { registerAllPlugins } from 'handsontable/registry';
 
