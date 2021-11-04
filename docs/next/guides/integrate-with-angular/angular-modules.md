@@ -30,7 +30,9 @@ In the entry point file of your application, import the `handsontable/base` modu
   ```
 
 ### Step 2: Import modules and their registering functions
-Import the required modules (for the list of Handsontable modules, see the [modules cheatsheet](@/guides/building-and-testing/modules.md#modules-cheatsheet)).
+Import the modules that you want to use (for the full list of Handsontable modules, see the [modules cheatsheet](@/guides/building-and-testing/modules.md#modules-cheatsheet)).
+
+Also, import those modules' registering functions.
 
 For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type and the [`UndoRedo`](@/api/undoRedo.md) plugin:
   ```js
@@ -55,7 +57,7 @@ For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) ce
   ```
 
 ### Step 3: Register the modules
-Register the required modules (for the full list of Handsontable's registering functions, see the [modules cheatsheet](@/guides/building-and-testing/modules.md#modules-cheatsheet)):
+Register your modules, using the registering functions that you imported (for the full list of Handsontable's registering functions, see the [modules cheatsheet](@/guides/building-and-testing/modules.md#modules-cheatsheet)):
   ```jsx
   import { BrowserModule } from '@angular/platform-browser';
   import { NgModule } from '@angular/core';
