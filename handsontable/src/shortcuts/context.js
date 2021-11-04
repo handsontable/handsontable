@@ -7,18 +7,19 @@ export const createContext = (name) => {
   });
 
   const addShortcut = (variants, callback) => {
+    debugger;
     variants.forEach((variant) => {
-      const normalizedKeys = normalizeKeys(...variant);
+      const normalizedVariant = normalizeKeys(variant);
 
-      SHORTCUTS.addItem(normalizedKeys, callback);
+      SHORTCUTS.addItem(normalizedVariant, callback);
     });
   };
 
   const removeShortcut = (variants) => {
     variants.forEach((variant) => {
-      const normalizedKeys = normalizeKeys(...variant);
+      const normalizedVariant = normalizeKeys(variant);
 
-      SHORTCUTS.removeItem(normalizedKeys);
+      SHORTCUTS.removeItem(normalizedVariant);
     });
   };
 
@@ -26,10 +27,13 @@ export const createContext = (name) => {
 
   const getShortcuts = () => SHORTCUTS.getItems();
 
+  const hasShortcut = variant => SHORTCUTS.hasItem(variant);
+
   return {
     addShortcut,
     getShortcut,
     getShortcuts,
+    hasShortcut,
     removeShortcut,
   };
 };

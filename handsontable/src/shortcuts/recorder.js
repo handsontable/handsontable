@@ -7,13 +7,17 @@ import { normalizeKeyCode } from './utils';
  */
 export function useRecorder(frame, invokeClbck) {
   const keyStore = createKeyStore();
-  const eventTarget = frame;
+  let eventTarget = frame;
 
-  while (eventTarget.defaultView) {
+  window.keys = keyStore;
+
+  while (eventTarget) {
     eventTarget.addEventListener('keydown', onkeydown);
     eventTarget.addEventListener('keyup', onkeyup);
     eventTarget.addEventListener('blur', onblur);
     eventTarget.addEventListener('unload', onunload);
+
+    eventTarget = eventTarget.frameElement;
   }
 
   /**
@@ -22,9 +26,9 @@ export function useRecorder(frame, invokeClbck) {
   function onkeydown(event) {
     keyStore.press(normalizeKeyCode(event.code));
 
-    const nextCombination = keyStore.getPressed().join('+');
+    const nextCombination = keyStore.getPressed().sort().join('+');
 
-    invokeClbck(nextCombination.split('+'), event);
+    invokeClbck(event, nextCombination);
   }
 
   /**
@@ -32,12 +36,6 @@ export function useRecorder(frame, invokeClbck) {
    */
   function onkeyup(event) {
     keyStore.release(normalizeKeyCode(event.code));
-
-    const nextCombination = keyStore.getPressed().join('+');
-
-    if (nextCombination.length) {
-      invokeClbck(nextCombination.split('+'), event);
-    }
   }
 
   /**

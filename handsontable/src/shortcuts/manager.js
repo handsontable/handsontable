@@ -34,8 +34,10 @@ export const createShortcutManager = (frame = window) => {
     getActiveContexts().forEach((context) => {
       const ctx = getContext(context);
 
-      if (ctx?.has(keys)) {
-        ctx.get(keys)(event, keys);
+      if (ctx.hasShortcut(keys)) {
+        ctx.getShortcut(keys)(event, keys);
+
+        event.preventDefault();
       }
     });
   });

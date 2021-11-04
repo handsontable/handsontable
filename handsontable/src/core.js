@@ -4413,55 +4413,55 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   gridContext.addShortcut([['Home']], () => {
-    selection.transformStart(
+    selection.setRangeStart(new CellCoords(
       selection.selectedRange.current().from.row,
       instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
-    );
+    ));
   });
   gridContext.addShortcut([['Home', 'Shift']], () => {
-    selection.transformEnd(
+    selection.setRangeEnd(new CellCoords(
       selection.selectedRange.current().from.row,
       instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
-    );
+    ));
   });
 
   gridContext.addShortcut([['Home', 'Control'], ['Home', 'Meta']], () => {
-    selection.transformStart(
+    selection.setRangeStart(new CellCoords(
       instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
       selection.selectedRange.current().from.col,
-    );
+    ));
   });
   gridContext.addShortcut([['Home', 'Control', 'Shift'], ['Home', 'Meta', 'Shift']], () => {
-    selection.transformEnd(
+    selection.setRangeEnd(new CellCoords(
       instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
       selection.selectedRange.current().from.col,
-    );
+    ));
   });
 
   gridContext.addShortcut([['End']], () => {
-    selection.transformStart(
-      this.selection.selectedRange.current().from.row,
-      this.instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
-    );
+    selection.setRangeStart(new CellCoords(
+      selection.selectedRange.current().from.row,
+      instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
+    ));
   });
   gridContext.addShortcut([['End', 'Shift']], () => {
-    this.selection.transformEnd(
-      this.selection.selectedRange.current().from.row,
-      this.instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
-    );
+    this.selection.setRangeEnd(new CellCoords(
+      selection.selectedRange.current().from.row,
+      instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
+    ));
   });
 
   gridContext.addShortcut([['End', 'Control'], ['End', 'Meta']], () => {
-    selection.transformStart(
+    selection.setRangeStart(new CellCoords(
       instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
       selection.selectedRange.current().from.col,
-    );
+    ));
   });
   gridContext.addShortcut([['End', 'Control', 'Shift'], ['End', 'Meta', 'Shift']], () => {
-    selection.transformEnd(
+    selection.setRangeEnd(new CellCoords(
       instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
       selection.selectedRange.current().from.col,
-    );
+    ));
   });
 
   gridContext.addShortcut([['PageUp']], () => {
