@@ -80,7 +80,7 @@ Currently, the following tasks are available for building Handsontable:
 
 ## NPM tasks for the framework-specific wrappers.
 
-Each of the wrappers has its own framework-specific build environment and scripts. The build process can be triggered by either navigating the the wrapper directory (e.g. `./wrappers/react` and running:
+Each of the wrappers has its own framework-specific build environment and scripts. The build process can be triggered by either navigating to the wrapper directory (e.g. `./wrappers/react` and running:
 
 *   `npm run build`
 
