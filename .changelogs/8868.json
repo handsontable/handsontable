@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue with navigation when RTL is on",
+  "type": "fixed",
+  "issue": 8868,
+  "breaking": false,
+  "framework": "none"
+}

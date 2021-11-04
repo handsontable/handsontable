@@ -7,9 +7,7 @@ const hot = new Handsontable(elem, {});
   const observer = hot.rowIndexMapper.createChangesObserver('hiding');
 
   observer.subscribe((changes) => {
-    changes.forEach(({ op, index, oldValue, newValue }) => {
-
-    });
+    changes.forEach(({ op, index, oldValue, newValue }) => { });
   });
   observer.unsubscribe();
 
@@ -58,9 +56,7 @@ hot.rowIndexMapper.isHidden(0);
   const observer = hot.columnIndexMapper.createChangesObserver('hiding');
 
   observer.subscribe((changes) => {
-    changes.forEach(({ op, index, oldValue, newValue }) => {
-
-    });
+    changes.forEach(({ op, index, oldValue, newValue }) => { });
   });
   observer.unsubscribe();
 
