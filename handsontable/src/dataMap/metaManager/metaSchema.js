@@ -3223,6 +3223,7 @@ export default () => {
      *
      * Read more:
      * - [Internationalization (i18n) &#8594;](@/guides/internationalization/internationalization-i18n.md)
+     * - [`locale`](#locale)
      *
      * @memberof Options#
      * @type {string}
@@ -3238,8 +3239,14 @@ export default () => {
     language: 'en-US',
 
     /**
-     * Locale used for actions performed on data (for example, filtering, searching, comparing locale-based data)
-     * which should be structurally valid and canonicalized Unicode BCP 47 locale identifier.
+     * The `locale` option configures Handsontable's locale.
+     *
+     * You can set the `locale` option to any valid and canonicalized Unicode BCP 47 locale tag,
+     * both for the entire grid, and for individual columns.
+     *
+     * Read more:
+     * - [Internationalization (i18n) &#8594;](@/guides/internationalization/internationalization-i18n.md)
+     * - [`language`](#language)
      *
      * @memberof Options#
      * @type {string}
@@ -3248,8 +3255,20 @@ export default () => {
      *
      * @example
      * ```js
-     * // set Polish locale
+     * // set the entire grid's locale to Polish
      * locale: 'pl-PL',
+     *
+     * // set individual columns' locales
+     * columns: [
+     *   {
+     *     // set the first column's locale to Polish
+     *     locale: 'pl-PL',
+     *   },
+     *   {
+     *     // set the second column's locale to German
+     *     locale: 'de-DE',
+     *   },
+     * ],
      * ```
      */
     locale: 'en-US',
