@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 
-const hiddenColumns = Handsontable.plugins.HiddenColumns;
+const hot = new Handsontable(document.createElement('div'), {});
+const hiddenColumns = hot.getPlugin('hiddenColumns');
 
 hiddenColumns.showColumns([1, 2, 3]);
 hiddenColumns.showColumn(1);
