@@ -1,6 +1,12 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HotTableModule, HotTableRegisterer } from '@handsontable/angular';
+import {
+  registerCellType,
+  DateCellType,
+} from 'handsontable/cellTypes';
+
+registerCellType(DateCellType);
 
 @Component({
   selector: 'hot-test-component',
