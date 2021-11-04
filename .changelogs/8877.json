@@ -1,0 +1,7 @@
+{
+  "title": "Replaced the current license files with the updated versions.",
+  "type": "changed",
+  "issue": 8877,
+  "breaking": false,
+  "framework": "none"
+}
