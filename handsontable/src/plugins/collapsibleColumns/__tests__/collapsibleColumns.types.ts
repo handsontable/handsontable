@@ -9,10 +9,10 @@ collapsibleColumns.enablePlugin();
 collapsibleColumns.disablePlugin();
 collapsibleColumns.updatePlugin();
 collapsibleColumns.collapseAll();
-collapsibleColumns.collapseSection({ row: -1, col: 1 })
+collapsibleColumns.collapseSection({ row: -1, col: 1 });
 collapsibleColumns.expandAll();
 collapsibleColumns.expandSection({ row: -1, col: 1 });
 collapsibleColumns.toggleAllCollapsibleSections('collapse');
 collapsibleColumns.toggleAllCollapsibleSections('expand');
-collapsibleColumns.toggleCollapsibleSection({ row: -1, col: 1 }, 'collapse');
-collapsibleColumns.toggleCollapsibleSection({ row: -1, col: 1 }, 'expand');
+collapsibleColumns.toggleCollapsibleSection([{ row: -1, col: 1 }], 'collapse');
+collapsibleColumns.toggleCollapsibleSection([{ row: -1, col: 1 }], 'expand');

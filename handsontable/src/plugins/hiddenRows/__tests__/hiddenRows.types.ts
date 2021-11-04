@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 
-const hiddenRows = Handsontable.plugins.HiddenRows;
+const hot = new Handsontable(document.createElement('div'), {});
+const hiddenRows = hot.getPlugin('hiddenRows');
 
 hiddenRows.showRows([1, 2, 3]);
 hiddenRows.showRow(1);
