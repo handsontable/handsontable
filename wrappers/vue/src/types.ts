@@ -1,4 +1,4 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import Vue, { VNode } from 'vue';
 import { ThisTypedComponentOptionsWithRecordProps } from 'vue/types/options';
 
