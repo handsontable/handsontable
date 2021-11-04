@@ -1,5 +1,5 @@
 import React from 'react';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import { SettingsMapper } from './settingsMapper';
 import { PortalManager } from './portalManager';
 import { HotColumn } from './hotColumn';
@@ -262,7 +262,7 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * @param {React.ReactElement} rendererElement React renderer component.
    * @returns {Handsontable.renderers.Base} The Handsontable rendering function.
    */
-  getRendererWrapper(rendererElement: React.ReactElement): Handsontable.renderers.Base | any {
+  getRendererWrapper(rendererElement: React.ReactElement): typeof Handsontable.renderers.BaseRenderer | any {
     const hotTableComponent = this;
 
     return function (instance, TD, row, col, prop, value, cellProperties) {
@@ -323,11 +323,11 @@ class HotTable extends React.Component<HotTableProps, {}> {
    * @returns {Function} A class to be passed to the Handsontable editor settings.
    */
   makeEditorClass(editorComponent: React.Component): typeof Handsontable.editors.BaseEditor {
-    const customEditorClass = class CustomEditor extends Handsontable.editors.BaseEditor implements Handsontable._editors.Base {
+    const customEditorClass = class CustomEditor extends Handsontable.editors.BaseEditor implements Handsontable.editors.BaseEditor {
       editorComponent: React.Component;
 
-      constructor(hotInstance, row, col, prop, TD, cellProperties) {
-        super(hotInstance, row, col, prop, TD, cellProperties);
+      constructor(hotInstance) {
+        super(hotInstance);
 
         (editorComponent as any).hotCustomEditorInstance = this;
 
@@ -437,10 +437,10 @@ class HotTable extends React.Component<HotTableProps, {}> {
     if (
       this.hotInstance &&
       (
-        this.hotInstance.getPlugin('autoRowSize').enabled ||
-        this.hotInstance.getPlugin('autoColumnSize').enabled
+        this.hotInstance.getPlugin('autoRowSize')?.enabled ||
+        this.hotInstance.getPlugin('autoColumnSize')?.enabled
       )
-    ){
+    ) {
       if (this.componentRendererColumns.size > 0) {
         warn(AUTOSIZE_WARNING);
       }
