@@ -9,7 +9,6 @@ const TARGET_PATH = './dist/hot-table';
 [
   'LICENSE.txt',
   'README.md',
-  'handsontable-general-terms.pdf',
   'handsontable-non-commercial-license.pdf',
 ].forEach((file) => {
   fse.copySync(path.resolve(`./${file}`), path.resolve(`${TARGET_PATH}/${file}`), { overwrite: true });
