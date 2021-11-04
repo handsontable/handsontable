@@ -15,10 +15,10 @@ const cellLikeData = {
     instance: hot,
   },
   value: 'foo',
-}
+};
 const condition = {
   args: [3],
-  name: 'eq' as Handsontable.plugins.FiltersPlugin.ConditionName,
+  name: 'eq' as Handsontable.plugins.Filters.ConditionName,
 };
 
 if (conditionCollection) {

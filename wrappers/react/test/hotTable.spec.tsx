@@ -7,6 +7,7 @@ import {
   HotTable
 } from '../src/hotTable';
 import {
+  createSpreadsheetData,
   IndividualPropsWrapper,
   mockElementDimensions,
   RendererComponent,
@@ -16,7 +17,6 @@ import {
   simulateKeyboardEvent,
   simulateMouseEvent
 } from './_helpers';
-import Handsontable from 'handsontable';
 
 beforeEach(() => {
   let container = document.createElement('DIV');
@@ -36,7 +36,7 @@ describe('Handsontable initialization', () => {
 
     await sleep(300);
 
-    let hotInstance = wrapper.instance().hotInstance;
+    const hotInstance = wrapper.instance().hotInstance;
 
     expect(hotInstance).not.toBe(null);
     expect(hotInstance).not.toBe(void 0);
@@ -44,7 +44,6 @@ describe('Handsontable initialization', () => {
     expect(hotInstance.rootElement.id).toEqual('test-hot');
 
     wrapper.detach();
-
   });
 
   it('should pass the provided properties to the Handsontable instance', async () => {
@@ -59,14 +58,14 @@ describe('Handsontable initialization', () => {
     );
 
     await sleep(300);
-    let hotInstance = wrapper.instance().hotInstance;
+    const hotInstance = wrapper.instance().hotInstance;
 
-    expect(hotInstance.getPlugin('contextMenu').enabled).toBe(true);
+    expect(hotInstance.getSettings().contextMenu).toBe(true);
     expect(hotInstance.getSettings().rowHeaders).toBe(true);
     expect(hotInstance.getSettings().colHeaders).toBe(true);
     expect(JSON.stringify(hotInstance.getData())).toEqual('[[2]]');
-    wrapper.detach();
 
+    wrapper.detach();
   });
 });
 
@@ -89,6 +88,7 @@ describe('Updating the Handsontable settings', () => {
     wrapper.instance().setState({hotSettings: {data: [[2]], contextMenu: true, readOnly: true}});
 
     expect(updateSettingsCount).toEqual(1);
+
     wrapper.detach();
   });
 
@@ -110,6 +110,7 @@ describe('Updating the Handsontable settings', () => {
     wrapper.instance().setState({hotSettings: {data: [[2]], contextMenu: true, readOnly: true}});
 
     expect(updateSettingsCount).toEqual(1);
+
     wrapper.detach();
   });
 
@@ -131,9 +132,8 @@ describe('Updating the Handsontable settings', () => {
     expect(hotInstance.getSettings().contextMenu).toBe(true);
     expect(hotInstance.getSettings().readOnly).toBe(true);
     expect(JSON.stringify(hotInstance.getSettings().data)).toEqual('[[2]]');
+
     wrapper.detach();
-
-
   });
 
   it('should update the Handsontable options, when the component properties get updated (when providing properties as a single settings object)', async () => {
@@ -155,8 +155,8 @@ describe('Updating the Handsontable settings', () => {
     expect(hotInstance.getSettings().contextMenu).toBe(true);
     expect(hotInstance.getSettings().readOnly).toBe(true);
     expect(JSON.stringify(hotInstance.getSettings().data)).toEqual('[[2]]');
-    wrapper.detach();
 
+    wrapper.detach();
   });
 });
 
@@ -165,7 +165,7 @@ describe('Renderer configuration using React components', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(100, 100)}
+                data={createSpreadsheetData(100, 100)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -199,7 +199,6 @@ describe('Renderer configuration using React components', () => {
     expect(hotInstance.getCell(99, 99).innerHTML).toEqual('<div>value: CV100</div>');
 
     wrapper.detach();
-
   });
 });
 
@@ -208,7 +207,7 @@ describe('Editor configuration using React components', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -240,6 +239,5 @@ describe('Editor configuration using React components', () => {
     hotInstance.getActiveEditor().close();
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
-
   });
 });

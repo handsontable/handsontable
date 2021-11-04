@@ -3,6 +3,7 @@ import {
   mount,
   ReactWrapper
 } from 'enzyme';
+import { registerAllModules } from 'handsontable/registry';
 import {
   HotTable
 } from '../src/hotTable';
@@ -10,19 +11,21 @@ import {
   HotColumn
 } from '../src/hotColumn';
 import {
+  createSpreadsheetData,
   mockElementDimensions,
   sleep
 } from './_helpers';
 import {
   AUTOSIZE_WARNING
 } from '../src/helpers';
-import Handsontable from 'handsontable';
 
 beforeEach(() => {
   let container = document.createElement('DIV');
   container.id = 'hotContainer';
   document.body.appendChild(container);
 });
+
+registerAllModules();
 
 describe('`autoRowSize`/`autoColumns` warning', () => {
   it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a global component-based renderer' +
@@ -36,7 +39,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 init={function () {
@@ -64,7 +67,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 autoRowSize={false}
@@ -94,7 +97,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 init={function () {
@@ -126,7 +129,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 autoColumnSize={false}
@@ -159,7 +162,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 autoRowSize={false}
@@ -193,7 +196,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 autoRowSize={true}
@@ -221,7 +224,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 autoRowSize={true}
@@ -250,7 +253,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 autoRowSize={false}

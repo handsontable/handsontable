@@ -9,12 +9,12 @@ import {
   HotTable
 } from '../src/hotTable';
 import {
+  createSpreadsheetData,
   mockElementDimensions,
   sleep,
   RendererComponent,
   EditorComponent
 } from './_helpers';
-import Handsontable from 'handsontable';
 
 const initialReduxStoreState = {
   hexColor: '#fff'
@@ -67,7 +67,7 @@ describe('Using Redux store within HotTable renderers and editors', () => {
       <Provider store={reduxStore}>
         <HotTable licenseKey="non-commercial-and-evaluation"
                   id="test-hot"
-                  data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                  data={createSpreadsheetData(3, 3)}
                   width={300}
                   height={300}
                   rowHeights={23}
@@ -105,7 +105,6 @@ describe('Using Redux store within HotTable renderers and editors', () => {
     });
 
     wrapper.detach();
-
   });
 
   it('should be possible to use redux-enabled components as editors', async () => {
@@ -126,7 +125,7 @@ describe('Using Redux store within HotTable renderers and editors', () => {
       <Provider store={reduxStore}>
         <HotTable licenseKey="non-commercial-and-evaluation"
                   id="test-hot"
-                  data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                  data={createSpreadsheetData(3, 3)}
                   width={300}
                   height={300}
                   rowHeights={23}
@@ -162,6 +161,5 @@ describe('Using Redux store within HotTable renderers and editors', () => {
     });
 
     wrapper.detach();
-
   });
 });

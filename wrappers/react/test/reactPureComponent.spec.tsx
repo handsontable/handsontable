@@ -7,10 +7,10 @@ import {
   HotTable
 } from '../src/hotTable';
 import {
+  createSpreadsheetData,
   mockElementDimensions,
   sleep,
 } from './_helpers';
-import Handsontable from 'handsontable';
 
 beforeEach(() => {
   let container = document.createElement('DIV');
@@ -37,7 +37,7 @@ describe('React PureComponents', () => {
     const wrapper: ReactWrapper<{}, {}, any> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -59,7 +59,6 @@ describe('React PureComponents', () => {
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>value: A1</div>');
 
     wrapper.detach();
-
   });
 
   /*
