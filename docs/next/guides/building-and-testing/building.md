@@ -169,7 +169,7 @@ From the `./wrappers/angular` directory, You can also run individual Angular `bu
 ::: details Angular build tasks
 `npm run build`
   - Builds the `@handsontable/angular` package for multiple module systems.
-  - Places the output in the `./wrappers/angular/dist/hot-table` directory.
+  - Places the output in the `./wrappers/angular/dist/hot-table/` directory.
 :::
 
 ### Building the React package
