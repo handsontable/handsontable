@@ -42,7 +42,6 @@ Released on 15th of November, 2021
 - Moved the entire Handsontable package to its own subdirectory (`./handsontable`). [#8759](https://github.com/handsontable/handsontable/issues/8759)
 - Replaced the current license files with the updated versions. [#8877](https://github.com/handsontable/handsontable/issues/8877)
 
-
 ## 10.0.0
 
 Released on 29th of September, 2021
