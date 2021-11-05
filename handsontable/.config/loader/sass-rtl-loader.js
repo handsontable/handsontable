@@ -4,18 +4,6 @@ const trim = (properties) => {
   )?.join('');
 };
 
-const splitSources = (source) => {
-  let rtl = '';
-  const ltr = source.replace(
-    /([^}]*){([^{]*(inline-end|inline-start)[^}]*)}/gm, // detect ltr/rtl dependent properties
-    (all, selector, properties) => {
-      rtl += `${selector}{${trim(properties)}}`;
-
-      return `${selector}{${properties}}`;
-    });
-
-  return [ltr, rtl];
-};
 
 const polyfillDirection = (direction, source) => {
   switch (direction) {
@@ -28,16 +16,19 @@ const polyfillDirection = (direction, source) => {
   }
 };
 
-const applyRtlStyles = (source) => {
-  const [ltrSource, rtlSource] = splitSources(source);
+const appendRtl = (all, selector, properties) => `
+${polyfillDirection('ltr', `${selector}{${properties}}`)}
 
-  return `
-${polyfillDirection('ltr', ltrSource)}
-    
 [dir=rtl] {
-${polyfillDirection('rtl', rtlSource)}
+${polyfillDirection('rtl', `${selector}{${trim(properties)}}`)}
 }
 `;
+
+const applyRtlStyles = (source) => {
+  return source.replace(
+    /([^}/]*){([^{]*(inline-end|inline-start)[^}]*)}/gm, // detect ltr/rtl dependent properties
+    appendRtl
+  );
 };
 
 module.exports = function(source) {
