@@ -114,11 +114,9 @@ From the `./handsontable` directory, you can also run individual JavaScript `bui
 ::: details JavaScript build tasks
 `npm run build:commonjs`
   - Transpiles files into the `CommonJS` format.
-  - During release, these files are published into the npm repository.
 
 `npm run build:es`
   - Transpiles files into the `import/export` format.
-  - During release, these files are published into the npm repository.
 
 `npm run build:umd`
   - Creates the following bundles compatible with the Universal Module Definition:
@@ -197,7 +195,6 @@ From the `./wrappers/react` directory, you can also run individual React `build`
 ::: details React build tasks
 `npm run build:commonjs`
   - Transpiles files into the `CommonJS` format.
-  - During release, these files are published into the npm repository.
 
 `npm run build:umd`
   - Creates the following bundles compatible with the Universal Module Definition:
@@ -208,7 +205,6 @@ From the `./wrappers/react` directory, you can also run individual React `build`
 
 `npm run build:es`
   - Transpiles files into the `import/export` format.
-  - During release, these files are published into the npm repository.
 
 `npm run build:min`
   - Creates the minified bundles:
@@ -237,7 +233,6 @@ From the `./wrappers/vue` directory, you can also run individual Vue `build` tas
 ::: details Vue build tasks
 `npm run build:commonjs`
   - Transpiles files into the `CommonJS` format.
-  - During release, these files are published into the npm repository.
 
 `npm run build:umd`
   - Creates the following bundles compatible with the Universal Module Definition:
@@ -248,7 +243,6 @@ From the `./wrappers/vue` directory, you can also run individual Vue `build` tas
 
 `npm run build:es`
   - Transpiles files into the `import/export` format.
-  - During release, these files are published into the npm repository.
 
 `npm run build:min`
   - Creates the minified bundles:
