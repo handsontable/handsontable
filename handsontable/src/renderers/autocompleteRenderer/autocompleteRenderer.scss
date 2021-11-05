@@ -3,7 +3,7 @@ AutocompleteRenderer down arrow
 */
 
 .handsontable .htAutocompleteArrow {
-  float: #{$inline-end};
+  float: inline-end;
   font-size: 10px;
   color: #EEE;
   cursor: default;
