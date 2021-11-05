@@ -1,8 +1,15 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import { HotTableModule, HotTableRegisterer } from '@handsontable/angular';
 import { HOT_DESTROYED_WARNING } from '../lib/hot-table-registerer.service';
+import { createSpreadsheetData } from './helpers';
+import {
+  registerPlugin,
+  CopyPaste,
+} from 'handsontable/plugins';
+
+registerPlugin(CopyPaste);
 
 @Component({
   selector: 'hot-test-component',
@@ -60,7 +67,7 @@ describe('HotTableComponent', () => {
       const app = fixture.componentInstance;
 
       app.prop['settings'] = {
-        data: Handsontable.helper.createSpreadsheetData(5, 5)
+        data: createSpreadsheetData(5, 5)
       };
 
       fixture.detectChanges();
@@ -345,7 +352,7 @@ describe('HotTableComponent', () => {
         const app = fixture.componentInstance;
 
         app.prop['settings'] = {
-          data: Handsontable.helper.createSpreadsheetData(5, 5)
+          data: createSpreadsheetData(5, 5)
         };
 
         fixture.detectChanges();
