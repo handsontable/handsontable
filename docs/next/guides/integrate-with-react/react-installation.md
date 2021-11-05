@@ -34,6 +34,10 @@ Use the Handsontable for React component in your app.
 
 ```jsx
 import { HotTable } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 const hotData = [
   ["", "Tesla", "Volvo", "Toyota", "Honda"],

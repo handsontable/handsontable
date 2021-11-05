@@ -28,6 +28,10 @@ Note that the `language` property is bound to the component separately using `la
 import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import Handsontable from 'handsontable';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 new Vue({
   el: '#example1',

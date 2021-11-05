@@ -25,6 +25,10 @@ The following examples outline how to perform basic tasks using a React Handsont
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import Handsontable from 'handsontable';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 const hotData = Handsontable.helper.createSpreadsheetData(6, 10);
 
@@ -53,6 +57,10 @@ ReactDOM.render(<App />, document.getElementById('example1'));
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import Handsontable from 'handsontable';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 const hotData = Handsontable.helper.createSpreadsheetData(6, 10);
 
@@ -84,6 +92,10 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import Handsontable from 'handsontable';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 const App = () => {
   const [settings, setSettings] = useState(() => {
