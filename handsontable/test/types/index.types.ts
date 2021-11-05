@@ -5,7 +5,7 @@ const elem = document.createElement('div');
 // Verify the various top-level namespace APIs exist
 Handsontable.baseVersion.toUpperCase();
 Handsontable.buildDate.toUpperCase();
-Handsontable.packageName == 'handsontable';
+Handsontable.packageName === 'handsontable';
 Handsontable.version.split('');
 Handsontable.cellTypes;
 Handsontable.languages;
@@ -19,4 +19,5 @@ Handsontable.validators;
 new Handsontable.Core(elem, {});
 
 const defaultSettings: Handsontable.GridSettings = Handsontable.DefaultSettings;
+
 new Handsontable.EventManager({});
