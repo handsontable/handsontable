@@ -11,7 +11,7 @@ export const CONDITION_NAME = 'begins_with';
  * @returns {boolean}
  */
 export function condition(dataRow, [value]) {
-  return stringify(dataRow.value).toLowerCase().startsWith(stringify(value));
+  return stringify(dataRow.value).toLocaleLowerCase(dataRow.meta.locale).startsWith(stringify(value));
 }
 
 registerCondition(CONDITION_NAME, condition, {

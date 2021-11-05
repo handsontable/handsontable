@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue with incorrect filtering of locale-based data while using search input from a drop-down menu.",
+  "type": "fixed",
+  "issue": 6095,
+  "breaking": false,
+  "framework": "none"
+}
