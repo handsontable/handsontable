@@ -249,7 +249,4 @@ From the `./wrappers/vue` directory, you can also run individual Vue `build` tas
     - `./wrappers/vue/dist/vue-handsontable.min.css`
     - `./wrappers/vue/dist/vue-handsontable.min.full.js`
     - `./wrappers/vue/dist/vue-handsontable.min.full.css`
-
-`npm run build:esDts`
-  - PLACEHOLDER
 :::
