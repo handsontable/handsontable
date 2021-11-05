@@ -35,6 +35,7 @@ module.exports = function(source) {
   if (this.resource.endsWith('.scss')) {
     return applyRtlStyles(source);
   }
+  
   if (this.resource.endsWith('.sass')) {
     this.getLogger('sass-rtl-loader').warn('RTL features for SASS are not supported. Please convert to SCSS.');
   }
