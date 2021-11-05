@@ -1,8 +1,8 @@
 ---
 title: Setting up a translation
 metaTitle: Setting up a translation - Guide - Handsontable Documentation
-permalink: /next/angular-setting-up-a-locale
-canonicalUrl: /angular-setting-up-a-locale
+permalink: /next/angular-setting-up-a-language
+canonicalUrl: /angular-setting-up-a-language
 ---
 
 # Setting up a translation
