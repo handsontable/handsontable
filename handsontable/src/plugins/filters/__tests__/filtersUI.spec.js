@@ -4271,4 +4271,52 @@ describe('Filters UI', () => {
       expect(spec().$container.find('th:eq(1)').hasClass('htFiltersActive')).toEqual(true);
     });
   });
+
+  it('should handle locales properly while using search input for Filter by value component', async() => {
+    handsontable({
+      data: [
+        ['Abdulhamit Akkaya'],
+        ['Abubekir Kılıç'],
+        ['Furkan İnanç'],
+        ['Halil İbrahim Öztürk'],
+        ['Kaan Yerli'],
+        ['Ömer Emin Sarıkoç'],
+      ],
+      colHeaders: true,
+      filters: true,
+      dropdownMenu: true,
+      locale: 'tr-TR',
+    });
+
+    dropdownMenu(0);
+
+    await sleep(200);
+
+    const inputElement = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
+    const event = new Event('input', {
+      bubbles: true,
+      cancelable: true,
+    });
+
+    $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
+    $(inputElement).focus();
+
+    await sleep(200);
+
+    document.activeElement.value = 'inanç';
+    document.activeElement.dispatchEvent(event);
+
+    let elements = $(byValueBoxRootElement()).find('label').toArray();
+    let text = elements.map(element => $(element).text());
+
+    expect(text).toEqual(['Furkan İnanç']);
+
+    document.activeElement.value = 'İnanç';
+    document.activeElement.dispatchEvent(event);
+
+    elements = $(byValueBoxRootElement()).find('label').toArray();
+    text = elements.map(element => $(element).text());
+
+    expect(text).toEqual(['Furkan İnanç']);
+  });
 });
