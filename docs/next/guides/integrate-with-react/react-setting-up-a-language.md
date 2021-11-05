@@ -21,6 +21,10 @@ import { HotTable, HotColumn } from '@handsontable/react';
 import { registerAllModules } from 'handsontable/registry';
 
 import 'handsontable/dist/handsontable.min.css';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 // register Handsontable's modules
 registerAllModules();

@@ -23,6 +23,10 @@ The following is an implementation of the `@handsontable/angular` component with
 import { Component } from '@angular/core';
 import Handsontable from 'handsontable/base';
 //import { CustomEditor } from './CustomEditor.js';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 @Component({
   selector: 'app-root',

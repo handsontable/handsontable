@@ -21,6 +21,10 @@ The following example shows a Handsontable instance with translations set up in 
 import { Component } from '@angular/core';
 import * as numbro from 'numbro';
 import * as languages from 'numbro/dist/languages.min';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 numbro.registerLanguage(languages['ja-JP']);
 numbro.registerLanguage(languages['tr-TR']);
