@@ -113,10 +113,10 @@ From the `./handsontable` directory, you can also run individual JavaScript `bui
 
 ::: details JavaScript build tasks
 `npm run build:commonjs`
-  - Transpiles files into the CommonJS format.
+  - Transpiles the files into the CommonJS format.
 
 `npm run build:es`
-  - Transpiles files into the ESM format.
+  - Transpiles the files into the ESM format.
 
 `npm run build:umd`
   - Creates the following bundles compatible with the Universal Module Definition:
@@ -168,7 +168,8 @@ From the `./wrappers/angular` directory, You can also run individual Angular `bu
 
 ::: details Angular build tasks
 `npm run build`
-  - Builds the `@handsontable/angular` package for multiple module systems, and places the result in the `./wrappers/angular/dist/hot-table` directory.
+  - Builds the `@handsontable/angular` package for multiple module systems.
+  - Places the output in the `./wrappers/angular/dist/hot-table` directory.
 :::
 
 ### Building the React package
@@ -189,7 +190,7 @@ From the `./wrappers/react` directory, you can also run individual React `build`
 
 ::: details React build tasks
 `npm run build:commonjs`
-  - Transpiles files into the CommonJS format.
+  - Transpiles the files into the CommonJS format.
   - Places the output in `./wrappers/react/commonjs/react-handsontable.js`
 
 `npm run build:umd`
@@ -200,7 +201,7 @@ From the `./wrappers/react` directory, you can also run individual React `build`
     - `./wrappers/react/dist/react-handsontable.full.css`
 
 `npm run build:es`
-  - Transpiles files into the ESM format.
+  - Transpiles the files into the ESM format.
   - Places the output in `./wrappers/react/es/react-handsontable.js`
 
 `npm run build:min`
@@ -229,7 +230,7 @@ From the `./wrappers/vue` directory, you can also run individual Vue `build` tas
 
 ::: details Vue build tasks
 `npm run build:commonjs`
-  - Transpiles files into the CommonJS format.
+  - Transpiles the files into the CommonJS format.
   - Places the output in `./wrappers/vue/commonjs/vue-handsontable.js`
 
 `npm run build:umd`
@@ -240,7 +241,7 @@ From the `./wrappers/vue` directory, you can also run individual Vue `build` tas
     - `./wrappers/vue/dist/vue-handsontable.full.css`
 
 `npm run build:es`
-  - Transpiles files into the ESM format.
+  - Transpiles the files into the ESM format.
   - Places the output in `./wrappers/vue/es/vue-handsontable.js`
 
 `npm run build:min`
