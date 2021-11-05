@@ -120,25 +120,25 @@ From the `./handsontable` directory, you can also run individual JavaScript `bui
 
 `npm run build:umd`
   - Creates the following bundles compatible with the Universal Module Definition:
-    - `dist/handsontable.js`
-    - `dist/handsontable.css`
-    - `dist/handsontable.full.js`
-    - `dist/handsontable.full.css`
+    - `./handsontable/dist/handsontable.js`
+    - `./handsontable/dist/handsontable.css`
+    - `./handsontable/dist/handsontable.full.js`
+    - `./handsontable/dist/handsontable.full.css`
 
 `npm run build:umd.min`
   - Creates the minified bundles compatible with the Universal Module Definition:
-    - `dist/handsontable.min.js`
-    - `dist/handsontable.min.css`
-    - `dist/handsontable.min.full.js`
-    - `dist/handsontable.min.full.css`
+    - `./handsontable/dist/handsontable.min.js`
+    - `./handsontable/dist/handsontable.min.css`
+    - `./handsontable/dist/handsontable.min.full.js`
+    - `./handsontable/dist/handsontable.min.full.css`
 
 `npm run build:walkontable`
   - Builds Walkontable, an essential part of Handsontable that's responsible for the rendering process.
 
 `npm run build:languages`
   - Creates the [language](@/guides/internationalization/internationalization-i18n.md) bundles compatible with the Universal Module Definition, for example:
-    - `dist/languages/de-DE.js`
-    - `dist/languages/all.js`
+    - `./handsontable/dist/languages/de-DE.js`
+    - `./handsontable/dist/languages/all.js`
 
 `build:languages.es`
   - Creates the [language](@/guides/internationalization/internationalization-i18n.md) bundles compatible with the ESM format, for example:
@@ -146,8 +146,8 @@ From the `./handsontable` directory, you can also run individual JavaScript `bui
 
 `npm run build:languages.min`
    - Creates the minified [language](@/guides/internationalization/internationalization-i18n.md) bundles compatible with the Universal Module Definition, for example:
-     - `dist/languages/de-DE.min.js`
-     - `dist/languages/all.min.js`
+     - `./handsontable/dist/languages/de-DE.min.js`
+     - `./handsontable/dist/languages/all.min.js`
 :::
 
 ### Building the Angular package
@@ -168,7 +168,7 @@ From the `./wrappers/angular` directory, You can also run individual Angular `bu
 
 ::: details Angular build tasks
 `npm run build`
-  - Builds the `@handsontable/angular` package for multiple module systems, and places the result in the `dist/hot-table` directory.
+  - Builds the `@handsontable/angular` package for multiple module systems, and places the result in the `./wrappers/angular/dist/hot-table` directory.
 :::
 
 ### Building the React package
@@ -190,25 +190,25 @@ From the `./wrappers/react` directory, you can also run individual React `build`
 ::: details React build tasks
 `npm run build:commonjs`
   - Transpiles files into the CommonJS format.
-  - Places the output in `wrappers/react/commonjs/react-handsontable.js`
+  - Places the output in `./wrappers/react/commonjs/react-handsontable.js`
 
 `npm run build:umd`
   - Creates the following bundles compatible with the Universal Module Definition:
-    - `wrappers/react/dist/react-handsontable.js`
-    - `wrappers/react/dist/react-handsontable.css`
-    - `wrappers/react/dist/react-handsontable.full.js`
-    - `wrappers/react/dist/react-handsontable.full.css`
+    - `./wrappers/react/dist/react-handsontable.js`
+    - `./wrappers/react/dist/react-handsontable.css`
+    - `./wrappers/react/dist/react-handsontable.full.js`
+    - `./wrappers/react/dist/react-handsontable.full.css`
 
 `npm run build:es`
   - Transpiles files into the ESM format.
-  - Places the output in `wrappers/react/es/react-handsontable.js`
+  - Places the output in `./wrappers/react/es/react-handsontable.js`
 
 `npm run build:min`
   - Creates the minified bundles:
-    - `wrappers/react/dist/react-handsontable.min.js`
-    - `wrappers/react/dist/react-handsontable.min.css`
-    - `wrappers/react/dist/react-handsontable.min.full.js`
-    - `wrappers/react/dist/react-handsontable.min.full.css`
+    - `./wrappers/react/dist/react-handsontable.min.js`
+    - `./wrappers/react/dist/react-handsontable.min.css`
+    - `./wrappers/react/dist/react-handsontable.min.full.js`
+    - `./wrappers/react/dist/react-handsontable.min.full.css`
 :::
 
 ### Building the Vue package
@@ -230,25 +230,25 @@ From the `./wrappers/vue` directory, you can also run individual Vue `build` tas
 ::: details Vue build tasks
 `npm run build:commonjs`
   - Transpiles files into the CommonJS format.
-  - Places the output in `wrappers/vue/commonjs/vue-handsontable.js`
+  - Places the output in `./wrappers/vue/commonjs/vue-handsontable.js`
 
 `npm run build:umd`
   - Creates the following bundles compatible with the Universal Module Definition:
-    - `wrappers/vue/dist/vue-handsontable.js`
-    - `wrappers/vue/dist/vue-handsontable.css`
-    - `wrappers/vue/dist/vue-handsontable.full.js`
-    - `wrappers/vue/dist/vue-handsontable.full.css`
+    - `./wrappers/vue/dist/vue-handsontable.js`
+    - `./wrappers/vue/dist/vue-handsontable.css`
+    - `./wrappers/vue/dist/vue-handsontable.full.js`
+    - `./wrappers/vue/dist/vue-handsontable.full.css`
 
 `npm run build:es`
   - Transpiles files into the ESM format.
-  - Places the output in `wrappers/vue/es/vue-handsontable.js`
+  - Places the output in `./wrappers/vue/es/vue-handsontable.js`
 
 `npm run build:min`
   - Creates the minified bundles:
-    - `wrappers/vue/dist/vue-handsontable.min.js`
-    - `wrappers/vue/dist/vue-handsontable.min.css`
-    - `wrappers/vue/dist/vue-handsontable.min.full.js`
-    - `wrappers/vue/dist/vue-handsontable.min.full.css`
+    - `./wrappers/vue/dist/vue-handsontable.min.js`
+    - `./wrappers/vue/dist/vue-handsontable.min.css`
+    - `./wrappers/vue/dist/vue-handsontable.min.full.js`
+    - `./wrappers/vue/dist/vue-handsontable.min.full.css`
 
 `npm run build:esDts`
   - PLACEHOLDER
