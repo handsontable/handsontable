@@ -20,7 +20,7 @@ The following example implements `@handsontable/react` with a custom renderer ad
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
-import Handsontable from 'handsontable';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
@@ -36,21 +36,21 @@ const hotSettings = {
     {},
     {
       renderer(instance, td, row, col, prop, value, cellProperties) {
-        const escaped = Handsontable.helper.stringify(value);
+        const escaped = `${value}`;
 
         if (escaped.indexOf('http') === 0) {
           const img = document.createElement('IMG');
           img.src = value;
 
-          Handsontable.dom.addEvent(img, 'mousedown', event => {
+          img.addEventListener('mousedown', event => {
             event.preventDefault();
           });
 
-          Handsontable.dom.empty(td);
+          td.innerText = '';
           td.appendChild(img);
 
         } else {
-          Handsontable.renderers.TextRenderer.apply(this, arguments);
+          textRenderer.apply(this, arguments);
         }
 
         return td;

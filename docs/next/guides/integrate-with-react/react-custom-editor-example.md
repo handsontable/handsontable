@@ -22,13 +22,13 @@ The following example implements the `@handsontable/react` component with a cust
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
-import Handsontable from 'handsontable';
+import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
 
-class CustomEditor extends Handsontable.editors.TextEditor {
+class CustomEditor extends TextEditor {
   constructor(props) {
     super(props);
   }
@@ -40,7 +40,7 @@ class CustomEditor extends Handsontable.editors.TextEditor {
     this.TEXTAREA.setAttribute('placeholder', 'Custom placeholder');
     this.TEXTAREA.setAttribute('data-hot-input', true);
     this.textareaStyle = this.TEXTAREA.style;
-    Handsontable.dom.empty(this.TEXTAREA_PARENT);
+    this.TEXTAREA_PARENT.innerText = '';
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }

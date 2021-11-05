@@ -24,13 +24,13 @@ The following examples outline how to perform basic tasks using a React Handsont
 ```jsx
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
-import Handsontable from 'handsontable';
 import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
 
 // register Handsontable's modules
 registerAllModules();
 
-const hotData = Handsontable.helper.createSpreadsheetData(6, 10);
+const hotData = createSpreadsheetData(6, 10);
 
 const App = () => {
   return (
@@ -56,13 +56,13 @@ ReactDOM.render(<App />, document.getElementById('example1'));
 ```jsx
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
-import Handsontable from 'handsontable';
 import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
 
 // register Handsontable's modules
 registerAllModules();
 
-const hotData = Handsontable.helper.createSpreadsheetData(6, 10);
+const hotData = createSpreadsheetData(6, 10);
 
 const App = () => {
   return (
@@ -91,8 +91,8 @@ ReactDOM.render(<App />, document.getElementById('example2'));
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
-import Handsontable from 'handsontable';
 import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
 
 // register Handsontable's modules
 registerAllModules();
@@ -100,7 +100,7 @@ registerAllModules();
 const App = () => {
   const [settings, setSettings] = useState(() => {
     const initialState = {
-      data: Handsontable.helper.createSpreadsheetData(15, 20),
+      data: createSpreadsheetData(15, 20),
       height: 220,
       licenseKey: 'non-commercial-and-evaluation'
     }
