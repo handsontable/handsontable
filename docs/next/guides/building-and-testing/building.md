@@ -166,14 +166,8 @@ To build the Angular package from the root directory:
 From the `./wrappers/angular` directory, You can also run individual Angular `build` tasks:
 
 ::: details Angular build tasks
-`npm run prebuild`
-  - PLACEHOLDER
-
 `npm run build`
-  - PLACEHOLDER
-
-`npm run postbuild`
-  - PLACEHOLDER
+  - Builds the `@handsontable/angular` package for multiple module systems, and places the result in the `dist/hot-table` directory.
 :::
 
 ### Building the React package
