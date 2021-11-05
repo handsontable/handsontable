@@ -1,6 +1,6 @@
 ---
-title: Building process
-metaTitle: Building process - Guide - Handsontable Documentation
+title: Building
+metaTitle: Building - Guide - Handsontable Documentation
 permalink: /next/building
 canonicalUrl: /building
 tags:
@@ -9,30 +9,33 @@ tags:
   - contributing
 ---
 
-# Building process
+# Building
+
+Learn how to build Handsontable packages, using the available npm tasks.
 
 [[toc]]
 
-## Overview
+## About building
 
-This guide provides detailed steps for building Handsontable and outlines the tasks that are available to be run.
+Get an overview of Handsontable's building processes.
 
-## Introduction
+### Monorepo
 
-From version `8.3.2` onward, the `handsontable` repository is configured as a monorepo, and consist of four packages:
+The [Handsontable repository](https://github.com/handsontable/handsontable) is a [monorepo](https://en.wikipedia.org/wiki/Monorepo) that contains the following projects:
 
-1. `handsontable` (stored at `./handsontable`)
-2. `@handsontable/angular` (stored at `./wrappers/angular`)
-3. `@handsontable/react` (stored at `./wrappers/react`)
-4. `@handsontable/vue` (stored at `./wrappers/vue`)
+| Project                 | Location             | Description                                                                |
+| ----------------------- | -------------------- | -------------------------------------------------------------------------- |
+| `handsontable`          | `./handsontable`     | Main Handsontable project                                                  |
+| `@handsontable/angular` | `./wrappers/angular` | [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md) |
+| `@handsontable/react`   | `./wrappers/react`   | [React wrapper](@/guides/integrate-with-react/react-installation.md)       |
+| `@handsontable/vue`     | `./wrappers/vue`     | [Vue 2 wrapper](@/guides/integrate-with-vue/vue-installation.md)           |
 
-Although the packages are versioned with the same number and are released together, they all have their own build and testing processes.
+All the projects are released together, under the same version number.
+But each project has its own [building](#building-processes) and [testing](@/guides/building-and-testing/testing.md) processes.
 
-We're using [npm workspaces](https://docs.npmjs.com/cli/v7/using-npm/workspaces) (introduced in `npm@7`) to manage the monorepo. Because of some crucial bugfixes in the later versions, the Handsontable monorepo requires using **`npm@7.1.1+`**.
+### Building processes
 
-The build process uses [Webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/) as well as npm tasks listed in [package.json](https://github.com/handsontable/handsontable/blob/master/package.json).
-
-During this process, the source files located in the `./handsontable/src/` directory are transformed into the output files:
+The building processes transform the source files located in the `./handsontable/src/` directory into the following output files:
 
 * `./handsontable/dist/handsontable.js`
 * `./handsontable/dist/handsontable.css`
@@ -42,62 +45,227 @@ During this process, the source files located in the `./handsontable/src/` direc
 * `./handsontable/dist/handsontable.full.min.css`
 * `./handsontable/dist/languages/*`
 
-More info about dist packages can be found [here](https://github.com/handsontable/handsontable/blob/master/dist/README.md.
+::: tip
+Don't modify the output files mentioned above. Instead, make changes in the `./handsontable/src/` directory and then run a selected [build](#building-the-packages). This is especially important if you want to contribute your changes back to Handsontable through a pull request.
 
-It is advised that you never modify the files mentioned above. Instead, make changes in the `./handsontable/src/` directory and then run a proper build. This is especially important if you want to contribute your changes back to Handsontable by making a pull request.
+For more information on the distribution packages, see [this file](https://github.com/handsontable/handsontable/blob/master/dist/README.md).
+:::
 
-## npm tasks
+### Building requirements
 
-The build process can be triggered by either navigating the the `./handsontable` directory and running:
+Handsontable building processes require:
+- [Node.js](https://nodejs.org/) (version **15.11**+)
+- [npm](https://www.npmjs.com/) (version **7.17**+)
+- Node modules installed through `npm install` (e.g. [webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/))
 
-*   `npm run build`
+### `package.json` files
 
-Or by utilizing one of the helper scripts in the root directory:
+Each Handsontable [project](#about-building) has its own [building](#building-the-packages) processes defined in its own `package.json` file. Apart from that, the root directory has its own `package.json` file as well:
 
-*   `npm run in` - Runs a command for the specified project. For Example:  
-    `npm run in handsontable build` - runs the `build` command for the `handsontable` project.  
-    Shorthands are also available - the aforementioned command works as `npm run in handsontable build` as well.
-*   `npm run all handsontable` - Runs a command for all Handsontable packages. 
-    The order in which the packages are executed is defined in the `./scripts/run-all.mjs` script.
-
-Currently, the following tasks are available for building Handsontable:
-
-* `npm run test` - runs several tasks in this order:
-  * `npm run lint` - check if changes applied to the source code adhere to [our code style](https://github.com/handsontable/handsontable/blob/master/.eslintrc.js).
-  * `npm run test:unit` - runs the test suite in node environment. It uses [Jest](https://facebook.github.io/jest/) as a test runner.
-  * `npm run test:types` - runs the tests which check if the code follows TypeScript definition.
-  * `npm run test:walkontable` - runs a single build of Walkontable (the Handsontable renderer engine) followed by Jasmine test suite and executes in [Puppeteer](https://github.com/GoogleChrome/puppeteer).
-  * `npm run test:e2e` - runs a single build of Handsontable followed by Jasmine test suite and by using the generated bundle `/dist/handsontable.js` executes it in [Puppeteer](https://github.com/GoogleChrome/puppeteer).
-  * `npm run test:production` - runs a single build followed by Jasmine test suite and by using generated minified bundle `/dist/handsontable.full.min.js` executes it in [Puppeteer](https://github.com/GoogleChrome/puppeteer).
-* `npm run build` - runs a single build but without the code quality checking. It internally executes these tasks:
-  * `npm run build:commonjs` - transpiles files into the `CommonJS` format. These files are published into NPM repository later.
-  * `npm run build:es` - transpiles files into the `import/export` format. These files are published into NPM repository later.
-  * `npm run build:umd` - creates the bundles (`dist/handsontable.js`, `dist/handsontable.css`, `dist/handsontable.full.js` and `dist/handsontable.full.css`) which are compatible with UMD (Universal Module Definition).
-  * `npm run build:umd.min` - creates the minified bundles (`dist/handsontable.min.js`, `dist/handsontable.min.css`, `dist/handsontable.min.full.js` and `dist/handsontable.min.full.css`) which are compatible with UMD (Universal Module Definition).
-  * `npm run build:languages` - creates the bundles containing language sets (i.e. `dist/languages/de-DE.js`, `dist/languages/all.js`) which are compatible with UMD (Universal Module Definition). More information about languages can be found [here](@/guides/internationalization/internationalization-i18n.md).
-  * `npm run build:languages.min` - creates the minified bundles containing language sets (i.e. `dist/languages/de-DE.min.js`, `dist/languages/all.min.js`) which are compatible with UMD (Universal Module Definition). More information about languages can be found [here](@/guides/internationalization/internationalization-i18n.md).
-* `npm run watch` - watches for changes in source directory and runs a build when a change is observed. For faster rebuild when a change is observed, the watcher triggers the file-building task without minify.
-
-## NPM tasks for the framework-specific wrappers.
-
-Each of the wrappers has its own framework-specific build environment and scripts. The build process can be triggered by either navigating to the wrapper directory (e.g. `./wrappers/react` and running:
-
-*   `npm run build`
-
-Or by utilizing one of the helper scripts in the root directory:
-
-*   `npm run in` - Runs a command for the specified project. For Example:  
-    `npm run in angular build` - runs the `build` command for the `@handsontable/angular` project.  
-    Shorthands are also available - the aforementioned command works as `npm run in angular build` as well.
-*   `npm run all` - Runs a command for all the packages. For example:  
-    `npm run all build` will run the `build` command for all the defined packages.  
-    The order in which the packages are executed is defined in the `./scripts/run-all.mjs` script.
+| File                              | Holds tasks for building:                           |
+| --------------------------------- | --------------------------------------------------- |
+| `./package.json`                  | - All the packages at once<br>- Individual packages |
+| `./handsontable/package.json`     | The JavaScript package                              |
+| `./wrappers/angular/package.json` | The Angular package                                 |
+| `./wrappers/react/package.json`   | The React package                                   |
+| `./wrappers/vue/package.json`     | The Vue package                                     |
 
 ## Running your first build
 
-To run your own build, follow the below steps:
+To run your first build:
+1. Install [Node.js](https://nodejs.org/) (version **15.11**+).
+2. Install [npm](https://www.npmjs.com/) (version **7.17**+).
+3. Clone the [Handsontable repository](https://github.com/handsontable/handsontable).
+4. From the root directory, run `npm install`.<br>All the required dependencies get installed.
+5. From the root directory, run `npm run build`.<br>All the Handsontable packages get built.
 
-1. Install Node.js (available for Windows, macOS, and Linux). This will also install NPM - Node Package Manager, which handles all the dependencies. Handsontable requires **Node.js >=15.11.0** and npm **>=7.1.1** for building and testing.
-2. Clone the Handsontable repository on your local disk and go to the directory where you cloned it.
-3. Run `npm install` to download all the dependencies defined in `package.json`. The dependencies will be downloaded into a new directory `node_modules`, which is ignored by Git.
-4. **Run `npm run build` to make your first build!**
+## Building the packages
+
+You can either build all the packages at once, or build each package individually.
+
+### Building all the packages
+
+To build all the packages at once:
+1. Make sure you meet the [building requirements](#building-requirements).
+2. Go to the root directory.
+3. Run `npm run build`.<br>The script builds the following packages:
+     - The JavaScript package
+     - The Angular package
+     - The React package
+     - The Vue package
+     - A code examples package
+
+#### Root directory build tasks
+
+You can also run individual root directory `build` tasks:
+
+::: details Root directory build tasks
+`build:codesandbox`
+  - PLACEHOLDER
+:::
+
+### Building the JavaScript package
+
+To build the JavaScript package:
+1. Make sure you meet the [building requirements](#building-requirements).
+2. Go to `./handsontable`.
+3. Run `npm run build`.<br>Only the JavaScript package builds.
+
+To build the JavaScript package from the root directory:
+1. Make sure you meet the [building requirements](#building-requirements).
+2. Go to the root directory.
+3. Run `npm run in handsontable build`.<br>Only the JavaScript package builds.
+
+#### JavaScript build tasks
+
+You can also run individual JavaScript `build` tasks:
+
+::: details JavaScript build tasks
+`npm run build:commonjs`
+  - Transpiles files into the `CommonJS` format.
+  - During release, these files are published into the npm repository.
+
+`npm run build:es`
+  - Transpiles files into the `import/export` format.
+  - During release, these files are published into the npm repository.
+
+`npm run build:umd`
+  - Creates the following bundles compatible with the Universal Module Definition:
+    - `dist/handsontable.js`
+    - `dist/handsontable.css`
+    - `dist/handsontable.full.js`
+    - `dist/handsontable.full.css`
+
+`npm run build:umd.min`
+  - Creates the minified bundles compatible with the Universal Module Definition:
+    - `dist/handsontable.min.js`
+    - `dist/handsontable.min.css`
+    - `dist/handsontable.min.full.js`
+    - `dist/handsontable.min.full.css`
+
+`npm run build:walkontable`
+  - PLACEHOLDER
+
+`npm run build:languages`
+  - Creates the [language](@/guides/internationalization/internationalization-i18n.md) bundles compatible with the Universal Module Definition, for example:
+    - `dist/languages/de-DE.js`
+    - `dist/languages/all.js`
+
+`build:languages.es`
+  - PLACEHOLDER
+
+`npm run build:languages.min`
+   - Creates the minified [language](@/guides/internationalization/internationalization-i18n.md) bundles compatible with the Universal Module Definition, for example:
+     - `dist/languages/de-DE.min.js`
+     - `dist/languages/all.min.js`
+:::
+
+### Building the Angular package
+
+To build the Angular package:
+1. Make sure you meet the [building requirements](#building-requirements).
+3. Go to `./wrappers/angular`.
+4. Run `npm run build`.<br>Only the Angular package builds.
+
+To build the Angular package from the root directory:
+1. Make sure you meet the [building requirements](#building-requirements).
+2. Go to the root directory.
+3. Run `npm run in angular build`.<br>Only the Angular package builds.
+
+#### Angular build tasks
+
+You can also run individual Angular `build` tasks:
+
+::: details Angular build tasks
+`prebuild`
+  - PLACEHOLDER
+
+`build`
+  - PLACEHOLDER
+
+`postbuild`
+  - PLACEHOLDER
+:::
+
+### Building the React package
+
+To build the React package:
+1. Make sure you meet the [building requirements](#building-requirements).
+2. Go to `./wrappers/react`.
+3. Run `npm run build`.<br>Only the React package builds.
+
+To build the React package from the root directory:
+1. Make sure you meet the [building requirements](#building-requirements).
+2. Go to the root directory.
+3. Run `npm run in react build`.<br>Only the React package builds.
+
+#### React build tasks
+
+You can also run individual React `build` tasks:
+
+::: details React build tasks
+`build:commonjs`
+  - Transpiles files into the `CommonJS` format.
+  - During release, these files are published into the npm repository.
+
+`build:umd`
+  - Creates the following bundles compatible with the Universal Module Definition:
+    - `dist/handsontable.js`
+    - `dist/handsontable.css`
+    - `dist/handsontable.full.js`
+    - `dist/handsontable.full.css`
+
+`build:es`
+  - Transpiles files into the `import/export` format.
+  - During release, these files are published into the npm repository.
+
+`build:min`
+  - Creates the minified bundles:
+    - `dist/handsontable.min.js`
+    - `dist/handsontable.min.css`
+    - `dist/handsontable.min.full.js`
+    - `dist/handsontable.min.full.css`
+:::
+
+### Building the Vue package
+
+To build the Vue package:
+1. Make sure you meet the [building requirements](#building-requirements).
+2. Go to `./wrappers/vue`.
+3. Run `npm run build`.<br>Only the Vue package builds.
+
+To build the Vue package from the root directory:
+1. Make sure you meet the [building requirements](#building-requirements).
+2. Go to the root directory.
+3. Run `npm run in vue build`.<br>Only the Vue package builds.
+
+#### Vue build tasks
+
+You can also run individual Vue `build` tasks:
+
+::: details Vue build tasks
+`build:commonjs`
+  - Transpiles files into the `CommonJS` format.
+  - During release, these files are published into the npm repository.
+
+`build:umd`
+  - Creates the following bundles compatible with the Universal Module Definition:
+    - `dist/handsontable.js`
+    - `dist/handsontable.css`
+    - `dist/handsontable.full.js`
+    - `dist/handsontable.full.css`
+
+`build:es`
+  - Transpiles files into the `import/export` format.
+  - During release, these files are published into the npm repository.
+
+`build:min`
+  - Creates the minified bundles:
+    - `dist/handsontable.min.js`
+    - `dist/handsontable.min.css`
+    - `dist/handsontable.min.full.js`
+    - `dist/handsontable.min.full.css`
+
+`build:esDts`
+  - PLACEHOLDER
+:::

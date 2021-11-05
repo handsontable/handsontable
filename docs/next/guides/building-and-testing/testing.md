@@ -1,6 +1,6 @@
 ---
-title: Testing process
-metaTitle: Testing process - Guide - Handsontable Documentation
+title: Testing
+metaTitle: Testing - Guide - Handsontable Documentation
 permalink: /next/testing
 canonicalUrl: /testing
 tags:
@@ -13,7 +13,7 @@ tags:
   - 
 ---
 
-# Testing process
+# Testing
 
 [[toc]]
 
