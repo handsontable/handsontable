@@ -133,7 +133,7 @@ From the `./handsontable` directory, you can also run individual JavaScript `bui
     - `dist/handsontable.min.full.css`
 
 `npm run build:walkontable`
-  - PLACEHOLDER
+  - Builds Walkontable, an essential part of Handsontable that's responsible for the rendering process.
 
 `npm run build:languages`
   - Creates the [language](@/guides/internationalization/internationalization-i18n.md) bundles compatible with the Universal Module Definition, for example:
