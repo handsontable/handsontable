@@ -19,11 +19,6 @@ The following example is a basic implementation of the `@handsontable/angular` w
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
-import * as Handsontable from 'handsontable';
-import { registerAllModules } from 'handsontable/registry';
-
-// register Handsontable's modules
-registerAllModules();
 
 @Component({
   selector: 'app-root',
