@@ -21,7 +21,7 @@ When you become familiar with Handsontable functionalities you may find out that
 
 Thanks to [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) the package could be split into smaller pieces and you can **import** them as you need. Essentialy it was divided into two: the base and the optional part. The base of Handsontable holds mandatory parts packed inside `handsontable/base`, and it includes vital parts for the component to run. The rest is customizable based on what you want to import. A mindful use of the modules brings a lot of optimization to the application, yet, it only needs several lines of code.
 
-The graph presents a comparison of size in KB for a full bundle, basic optimization and with optimized locales. The sample code is avaiable just below - it shows sample countries and cities and although it looks small it will generate over 345 KB (Gzipped). [Webpack 5](https://webpack.js.org/) with a default configuration for production builds was used to prepare this example.
+The graph presents a comparison of size in KB for a full bundle, basic optimization and with optimized translations. The sample code is avaiable just below - it shows sample countries and cities and although it looks small it will generate over 345 KB (Gzipped). [Webpack 5](https://webpack.js.org/) with a default configuration for production builds was used to prepare this example.
 
 ![bundle_size_comparison](/docs/next/img/bundle_size_comparison.png)
 
@@ -141,7 +141,7 @@ Elements to be imported manually on demand:
 - renderers
 - validators
 - cell types
-- locales
+- languages (translations)
 
 The use cases may wary greatly, this guide will go through the categories and present one example for each.
 
@@ -206,7 +206,6 @@ import { DragToScroll } from 'handsontable/plugins/dragToScroll';
 import { DropdownMenu } from 'handsontable/plugins/dropdownMenu';
 import { ExportFile } from 'handsontable/plugins/exportFile';
 import { Filters } from 'handsontable/plugins/filters';
-import { HeaderTooltips } from 'handsontable/plugins/headerTooltips';
 import { HiddenColumns } from 'handsontable/plugins/hiddenColumns';
 import { HiddenRows } from 'handsontable/plugins/hiddenRows';
 import { ManualColumnFreeze } from 'handsontable/plugins/manualColumnFreeze';
@@ -218,7 +217,6 @@ import { MergeCells } from 'handsontable/plugins/mergeCells';
 import { MultipleSelectionHandles } from 'handsontable/plugins/multipleSelectionHandles';
 import { NestedHeaders } from 'handsontable/plugins/nestedHeaders';
 import { NestedRows } from 'handsontable/plugins/nestedRows';
-import { ObserveChanges } from 'handsontable/plugins/observeChanges';
 import { PersistentState } from 'handsontable/plugins/persistentState';
 import { Search } from 'handsontable/plugins/search';
 import { TouchScroll } from 'handsontable/plugins/touchScroll';
@@ -250,7 +248,7 @@ Here is a full list of all Handsontable parts imported and registered. This exam
 
 ::: details Modules cheatsheet
 ```js
-// import the `base` module
+// import the `handsontable/base` module
 import Handsontable from 'handsontable/base';
 
 // import editors
@@ -322,7 +320,6 @@ import {
   ExportFile,
   Filters,
   Formulas,
-  HeaderTooltips,
   HiddenColumns,
   HiddenRows,
   ManualColumnFreeze,
@@ -335,7 +332,6 @@ import {
   MultipleSelectionHandles,
   NestedHeaders,
   NestedRows,
-  ObserveChanges,
   PersistentState,
   Search,
   TouchScroll,
@@ -374,7 +370,7 @@ import {
   registerAllCellTypes,
   registerAllPlugins,
   registerAllModules,
-  } from 'handsontable/registry'
+} from 'handsontable/registry'
 
 // register individual translations
 registerLanguageDictionary(deCH);
@@ -457,7 +453,6 @@ registerPlugin(DropdownMenu);
 registerPlugin(ExportFile);
 registerPlugin(Filters);
 registerPlugin(Formulas);
-registerPlugin(HeaderTooltips);
 registerPlugin(HiddenColumns);
 registerPlugin(HiddenRows);
 registerPlugin(ManualColumnFreeze);
@@ -470,7 +465,6 @@ registerPlugin(MultiColumnSorting);
 registerPlugin(MultipleSelectionHandles);
 registerPlugin(NestedHeaders);
 registerPlugin(NestedRows);
-registerPlugin(ObserveChanges);
 registerPlugin(PersistentState);
 registerPlugin(Search);
 registerPlugin(TouchScroll);
@@ -534,21 +528,6 @@ And that is all! You can use the password editor!
 You can quickly import and register all editors at once:
 
 ```js
-// import all editors
-import {
-  registerEditor,
-  AutocompleteEditor,
-  BaseEditor,
-  CheckboxEditor,
-  DateEditor,
-  DropdownEditor,
-  HandsontableEditor,
-  NumericEditor,
-  PasswordEditor,
-  SelectEditor,
-  TextEditor,
-} from 'handsontable/editors';
-
 // import the `registerAllEditors()` function
 import { registerAllEditors } from 'handsontable/registry';
 
@@ -603,18 +582,6 @@ And that is all! You can use the autocomplete renderer!
 You can quickly import and register all renderers at once:
 
 ```js
-// import all renderers
-import {
-  registerRenderer,
-  baseRenderer,
-  autocompleteRenderer,
-  checkboxRenderer,
-  htmlRenderer,
-  numericRenderer,
-  passwordRenderer,
-  textRenderer,
-} from 'handsontable/renderers';
-
 // import the `registerAllRenderers()` function
 import { registerAllRenderers } from 'handsontable/registry';
 
@@ -670,15 +637,6 @@ And that is all! You can use the numeric validator!
 You can quickly import and register all validators at once:
 
 ```js
-// import all validators
-import {
-  registerValidator,
-  autocompleteValidator,
-  dateValidator,
-  numericValidator,
-  timeValidator,
-} from 'handsontable/validators';
-
 // import the `registerAllValidators()` function
 import { registerAllValidators } from 'handsontable/registry';
 
@@ -733,20 +691,6 @@ And that is all! You can use the checkbox cell type!
 You can quickly import and register all cell types at once:
 
 ```js
-// import all cell types
-import {
-  registerCellType,
-  AutocompleteCellType,
-  CheckboxCellType,
-  DateCellType,
-  DropdownCellType,
-  HandsontableCellType,
-  NumericCellType,
-  PasswordCellType,
-  TextCellType,
-  TimeCellType,
-} from 'handsontable/cellTypes';
-
 // import the `registerAllCellTypes()` function
 import { registerAllCellTypes } from 'handsontable/registry';
 
@@ -798,47 +742,6 @@ And that is all! You can use the `ContextMenu` plugin.
 You can quickly import and register all plugins at once:
 
 ```js
-// import all plugins
-import {
-  AutoColumnSize,
-  AutoRowSize,
-  Autofill,
-  BasePlugin,
-  BindRowsWithHeaders,
-  CollapsibleColumns,
-  ColumnSorting,
-  ColumnSummary,
-  Comments,
-  ContextMenu,
-  CopyPaste,
-  CustomBorders,
-  DragToScroll,
-  DropdownMenu,
-  ExportFile,
-  Filters,
-  Formulas,
-  HeaderTooltips,
-  HiddenColumns,
-  HiddenRows,
-  ManualColumnFreeze,
-  ManualColumnMove,
-  ManualColumnResize,
-  ManualRowMove,
-  ManualRowResize,
-  MergeCells,
-  MultiColumnSorting,
-  MultipleSelectionHandles,
-  NestedHeaders,
-  NestedRows,
-  ObserveChanges,
-  PersistentState,
-  Search,
-  TouchScroll,
-  TrimRows,
-  UndoRedo,
-  registerPlugin,
-} from 'handsontable/plugins';
-
 // import the `registerAllPlugins()` function
 import { registerAllPlugins } from 'handsontable/registry';
 
@@ -846,9 +749,9 @@ import { registerAllPlugins } from 'handsontable/registry';
 registerAllPlugins();
 ```
 
-## Importing locales
+## Importing translations
 
-Importing locales works slightly different than in case of other elements. Let's try adding the `pl-PL` locale.
+Importing translations works slightly different than in case of other elements. Let's try adding the `pl-PL` language.
 
 Start with importing the base and the language code:
 
@@ -870,7 +773,7 @@ registerLanguageDictionary(plPL.languageCode, plPL);
 registerLanguageDictionary(plPL);
 ```
 
-Now, you can use newly registered locale. The full example looks like this:
+Now, you can use newly registered translation. The full example looks like this:
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -885,7 +788,7 @@ new Handsontable(container, {
 });
 ```
 
-And that is all! You can use the PL-pl locale!
+And that is all! You can use the PL-pl translation!
 
 ### Optimizing moment.js locales
 
@@ -920,229 +823,9 @@ new Handsontable(container, {
 });
 ```
 
-## Using modules with wrappers
+## Using modules with frameworks
 
-You can use modules with Handsontable's [React](@/guides/integrate-with-react/react-installation.md), [Angular](@/guides/integrate-with-angular/angular-installation.md), and [Vue 2](@/guides/integrate-with-vue/vue-installation.md) wrappers.
-
-### Using modules with React
-
-To use modules with Handsontable's [React](@/guides/integrate-with-react/react-installation.md) wrapper, follow the steps below:
-
-#### Step 1: Import the `Base` module
-In the entry point file of your application, import Handsontable's `Base` module:
-  ```js
-  // your `index.js` file
-  import React from 'react';
-  import ReactDOM from 'react-dom';
-  import './index.css';
-  import App from './App';
-
-  // import Handsontable's `Base` module
-  import Handsontable from 'handsontable/base';
-  ```
-
-#### Step 2: Import modules and their registering functions
-Import the required modules (for the list of Handsontable modules, see the [modules cheatsheet](#modules-cheatsheet)).<br>
-For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type and the [`UndoRedo`](@/api/undoRedo.md) plugin:
-  ```js
-  import React from 'react';
-  import ReactDOM from 'react-dom';
-  import './index.css';
-  import App from './App';
-
-  import Handsontable from 'handsontable/base';
-
-  // import the `NumericCellType` module and the `registerCellType()` function
-  import {
-    registerCellType,
-    NumericCellType,
-  } from 'handsontable/cellTypes';
-
-  // import the `UndoRedo` module and the `registerPlugin()` function
-  import {
-    registerPlugin,
-    UndoRedo,
-  } from 'handsontable/plugins';
-  ```
-
-#### Step 3: Register the modules
-Register the required modules (for the full list of Handsontable's registering functions, see the [modules cheatsheet](#modules-cheatsheet)):
-  ```jsx
-  import React from 'react';
-  import ReactDOM from 'react-dom';
-  import './index.css';
-  import App from './App';
-
-  import Handsontable from 'handsontable/base';
-
-  import {
-    registerCellType,
-    NumericCellType,
-  } from 'handsontable/cellTypes';
-
-  import {
-    registerPlugin,
-    UndoRedo,
-  } from 'handsontable/plugins';
-
-  // register the `NumericCellType` module
-  registerCellType(NumericCellType);
-
-  // register the `UndoRedo` module
-  registerPlugin(UndoRedo);
-
-  ReactDOM.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>,
-    document.getElementById('root')
-  );
-  ```
-
-### Using modules with Angular
-
-To use modules with Handsontable's [Angular](@/guides/integrate-with-angular/angular-installation.md) wrapper, follow the steps below:
-
-#### Step 1: Import the `Base` module
-In the entry point file of your application, import Handsontable's `Base` module:
-  ```js
-  import { BrowserModule } from '@angular/platform-browser';
-  import { NgModule } from '@angular/core';
-  import { AppComponent } from './app.component';
-  import { HotTableModule } from '@handsontable/angular';
-
-  // import Handsontable's `Base` module
-  import Handsontable from 'handsontable/base';
-  ```
-
-#### Step 2: Import modules and their registering functions
-Import the required modules (for the list of Handsontable modules, see the [modules cheatsheet](#modules-cheatsheet)).<br>
-For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type and the [`UndoRedo`](@/api/undoRedo.md) plugin:
-  ```js
-  import { BrowserModule } from '@angular/platform-browser';
-  import { NgModule } from '@angular/core';
-  import { AppComponent } from './app.component';
-  import { HotTableModule } from '@handsontable/angular';
-
-  import Handsontable from 'handsontable/base';
-
-  // import the `NumericCellType` module and the `registerCellType()` function
-  import {
-    registerCellType,
-    NumericCellType,
-  } from 'handsontable/cellTypes';
-
-  // import the `UndoRedo` module and the `registerPlugin()` function
-  import {
-    registerPlugin,
-    UndoRedo,
-  } from 'handsontable/plugins';
-  ```
-
-#### Step 3: Register the modules
-Register the required modules (for the full list of Handsontable's registering functions, see the [modules cheatsheet](#modules-cheatsheet)):
-  ```jsx
-  import { BrowserModule } from '@angular/platform-browser';
-  import { NgModule } from '@angular/core';
-  import { AppComponent } from './app.component';
-  import { HotTableModule } from '@handsontable/angular';
-
-  import Handsontable from 'handsontable/base';
-
-  import {
-    registerCellType,
-    NumericCellType,
-  } from 'handsontable/cellTypes';
-
-  import {
-    registerPlugin,
-    UndoRedo,
-  } from 'handsontable/plugins';
-
-  // register the `NumericCellType` module
-  registerCellType(NumericCellType);
-
-  // register the `UndoRedo` module
-  registerPlugin(UndoRedo);
-
-  @NgModule({
-    declarations: [
-      AppComponent
-    ],
-    imports: [
-      BrowserModule,
-      HotTableModule
-    ],
-    providers: [],
-    bootstrap: [AppComponent]
-  })
-  export class AppModule { }
-  ```
-
-### Using modules with Vue 2
-
-To use modules with Handsontable's [Vue 2](@/guides/integrate-with-vue/vue-installation.md) wrapper, follow the steps below:
-
-#### Step 1: Import the `Base` module
-In the entry point file of your application, import Handsontable's `Base` module:
-  ```js
-  // your `main.js` file
-  import Vue from 'vue';
-  import App from './App.vue';
-
-  // import Handsontable's `Base` module
-  import Handsontable from 'handsontable/base';
-  ```
-
-#### Step 2: Import modules and their registering functions
-Import the required modules (for the list of Handsontable modules, see the [modules cheatsheet](#modules-cheatsheet)).<br>
-For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type and the [`UndoRedo`](@/api/undoRedo.md) plugin:
-  ```js
-  import Vue from 'vue';
-  import App from './App.vue';
-
-  import Handsontable from 'handsontable/base';
-
-  // import the `NumericCellType` module and the `registerCellType()` function
-  import {
-    registerCellType,
-    NumericCellType,
-  } from 'handsontable/cellTypes';
-
-  // import the `UndoRedo` module and the `registerPlugin()` function
-  import {
-    registerPlugin,
-    UndoRedo,
-  } from 'handsontable/plugins';
-  ```
-
-#### Step 3: Register the modules
-Register the required modules (for the full list of Handsontable's registering functions, see the [modules cheatsheet](#modules-cheatsheet)):
-  ```js
-  import Vue from 'vue';
-  import App from './App.vue';
-
-  import Handsontable from 'handsontable/base';
-
-  import {
-    registerCellType,
-    NumericCellType,
-  } from 'handsontable/cellTypes';
-
-  import {
-    registerPlugin,
-    UndoRedo,
-  } from 'handsontable/plugins';
-
-  // register the `NumericCellType` module
-  registerCellType(NumericCellType);
-
-  // register the `UndoRedo` module
-  registerPlugin(UndoRedo);
-  
-  Vue.config.productionTip = false;
-
-  new Vue({
-    render: h => h(App),
-  }).$mount('#app');
-  ```
+You can also use modules with Handsontable's framework wrappers:
+- [Using modules with React](@/guides/integrate-with-react/react-modules.md)
+- [Using modules with Angular](@/guides/integrate-with-angular/angular-modules.md)
+- [Using modules with Vue](@/guides/integrate-with-vue/vue-modules.md)

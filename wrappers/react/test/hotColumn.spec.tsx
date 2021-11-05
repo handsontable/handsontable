@@ -3,10 +3,10 @@ import {
   mount,
   ReactWrapper
 } from 'enzyme';
-import Handsontable from 'handsontable';
 import { HotTable } from '../src/hotTable';
 import { HotColumn } from '../src/hotColumn';
 import {
+  createSpreadsheetData,
   RendererComponent,
   mockElementDimensions,
   sleep,
@@ -47,7 +47,6 @@ describe('Passing column settings using HotColumn', () => {
     expect(hotInstance.getSettings().licenseKey).toEqual('non-commercial-and-evaluation');
 
     wrapper.detach();
-
   });
 
   it('should allow to use data option as a string', async () => {
@@ -69,7 +68,6 @@ describe('Passing column settings using HotColumn', () => {
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual(dataKeyCellValue);
 
     wrapper.detach();
-
   })
 });
 
@@ -78,7 +76,7 @@ describe('Renderer configuration using React components', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(100, 2)}
+                data={createSpreadsheetData(100, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -111,7 +109,6 @@ describe('Renderer configuration using React components', () => {
     expect(hotInstance.getCell(99, 1).innerHTML).toEqual('<div>value: B100</div>');
 
     wrapper.detach();
-
   });
 });
 
@@ -120,7 +117,7 @@ describe('Editor configuration using React components', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -162,7 +159,6 @@ describe('Editor configuration using React components', () => {
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
 
     wrapper.detach();
-
   });
 
   it('should be possible to reuse editor components between columns width different props passed to them', async () => {
@@ -177,7 +173,7 @@ describe('Editor configuration using React components', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -225,7 +221,6 @@ describe('Editor configuration using React components', () => {
     hotInstance.getActiveEditor().close();
 
     wrapper.detach();
-
   });
 });
 
@@ -257,7 +252,7 @@ describe('Dynamic HotColumn configuration changes', () => {
       render() {
         return (
           <HotTable licenseKey="non-commercial-and-evaluation" id="test-hot"
-                    data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                    data={createSpreadsheetData(3, 2)}
                     width={300}
                     height={300}
                     rowHeights={23}
@@ -355,6 +350,5 @@ describe('Dynamic HotColumn configuration changes', () => {
     expect(hotInstance.getSettings().licenseKey).toEqual('non-commercial-and-evaluation');
 
     wrapper.detach();
-
   });
 });

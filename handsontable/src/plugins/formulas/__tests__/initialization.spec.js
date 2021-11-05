@@ -876,7 +876,7 @@ describe('Formulas general', () => {
       const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
       hfInstance1.updateConfig({
-        binarySearchThreshold: 25,
+        undoLimit: 11,
         useColumnIndex: true,
         useStats: true,
       });
@@ -891,7 +891,7 @@ describe('Formulas general', () => {
       const plugin = getPlugin('formulas');
       const hfConfig = plugin.engine.getConfig();
 
-      expect(hfConfig.binarySearchThreshold).toEqual(25);
+      expect(hfConfig.undoLimit).toEqual(11);
       expect(hfConfig.useColumnIndex).toEqual(true);
       expect(hfConfig.useStats).toEqual(true);
     });
@@ -901,7 +901,7 @@ describe('Formulas general', () => {
         formulas: {
           engine: {
             hyperformula: HyperFormula,
-            binarySearchThreshold: 25,
+            undoLimit: 11,
             useColumnIndex: true,
             useStats: true,
           }
@@ -912,7 +912,7 @@ describe('Formulas general', () => {
       const plugin = getPlugin('formulas');
       const hfConfig = plugin.engine.getConfig();
 
-      expect(hfConfig.binarySearchThreshold).toEqual(25);
+      expect(hfConfig.undoLimit).toEqual(11);
       expect(hfConfig.useColumnIndex).toEqual(true);
       expect(hfConfig.useStats).toEqual(true);
     });
@@ -952,17 +952,17 @@ describe('Formulas general', () => {
         }
       });
 
-      expect(hot.getPlugin('formulas').engine.getConfig().binarySearchThreshold).toEqual(20);
+      expect(hot.getPlugin('formulas').engine.getConfig().undoLimit).toEqual(20);
 
       hot.getPlugin('formulas').engine.updateConfig({
-        binarySearchThreshold: 50
+        undoLimit: 50
       });
 
       hot.updateSettings({
         colWidths: () => 400
       });
 
-      expect(hot.getPlugin('formulas').engine.getConfig().binarySearchThreshold).toEqual(50);
+      expect(hot.getPlugin('formulas').engine.getConfig().undoLimit).toEqual(50);
     });
 
     it('should not update `sheetName` if `updateSettings` was got one that doesn\'t exist in the engine', () => {

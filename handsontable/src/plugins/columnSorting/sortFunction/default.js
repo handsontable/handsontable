@@ -10,15 +10,17 @@ import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortSer
  * @returns {Function} The compare function.
  */
 export function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
+  const locale = columnMeta.locale;
+
   return function(value, nextValue) {
     const { sortEmptyCells } = columnPluginSettings;
 
     if (typeof value === 'string') {
-      value = value.toLowerCase();
+      value = value.toLocaleLowerCase(locale);
     }
 
     if (typeof nextValue === 'string') {
-      nextValue = nextValue.toLowerCase();
+      nextValue = nextValue.toLocaleLowerCase(locale);
     }
 
     if (value === nextValue) {

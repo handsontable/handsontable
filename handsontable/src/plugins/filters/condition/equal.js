@@ -11,7 +11,7 @@ export const CONDITION_NAME = 'eq';
  * @returns {boolean}
  */
 export function condition(dataRow, [value]) {
-  return stringify(dataRow.value).toLowerCase() === stringify(value);
+  return stringify(dataRow.value).toLocaleLowerCase(dataRow.meta.locale) === stringify(value);
 }
 
 registerCondition(CONDITION_NAME, condition, {
