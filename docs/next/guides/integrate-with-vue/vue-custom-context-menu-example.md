@@ -22,8 +22,9 @@ The following example implements the `@handsontable/vue` component, adding a cus
 ```js
 import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
-import Handsontable from 'handsontable';
+import { ContextMenu } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
 
 // register Handsontable's modules
 registerAllModules();
@@ -33,7 +34,7 @@ new Vue({
   data() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         colHeaders: true,
         contextMenu: {
           items: {
@@ -41,7 +42,7 @@ new Vue({
               name: 'Insert row above this one (custom name)'
             },
             'row_below': {},
-            'separator': Handsontable.plugins.ContextMenu.SEPARATOR,
+            'separator': ContextMenu.SEPARATOR,
             'clear_custom': {
               name: 'Clear all cells (custom)',
               callback() {

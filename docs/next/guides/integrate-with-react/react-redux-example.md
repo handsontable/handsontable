@@ -20,8 +20,8 @@ import ReactDOM from 'react-dom';
 import { createStore } from 'redux';
 import { Provider, useSelector, useDispatch } from 'react-redux';
 import { HotTable } from '@handsontable/react';
-import Handsontable from 'handsontable';
 import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
 
 // register Handsontable's modules
 registerAllModules();
@@ -107,7 +107,7 @@ const App = () => {
 };
 
 const initialReduxStoreState = {
-  data: Handsontable.helper.createSpreadsheetData(5, 3),
+  data: createSpreadsheetData(5, 3),
   colHeaders: true,
   rowHeaders: true,
   readOnly: false,

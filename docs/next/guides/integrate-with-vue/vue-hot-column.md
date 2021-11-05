@@ -32,8 +32,8 @@ To declare column-specific settings, pass the settings as `hot-column` propertie
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
-import Handsontable from 'handsontable';
 import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
 
 // register Handsontable's modules
 registerAllModules();
@@ -43,7 +43,7 @@ new Vue({
   data: function() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         height: 'auto',
         licenseKey: 'non-commercial-and-evaluation',
       },
@@ -82,7 +82,6 @@ To work with an array of objects for the `hot-column` component, you need to pro
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
-import Handsontable from 'handsontable';
 
 new Vue({
   el: '#example2',
@@ -135,7 +134,7 @@ Be sure to turn those options off in your Handsontable config, as keeping them e
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
-import Handsontable from 'handsontable';
+import { createSpreadsheetData } from './helpers';
 
 const CustomRenderer = {
   template: '<div><i style="color: #a9a9a9">Row: {{row}}, column: {{col}},</i> value: {{value}}</div>',
@@ -166,7 +165,7 @@ const App = new Vue({
   data() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         autoRowSize: false,
         autoColumnSize: false,
         height: 'auto',
@@ -218,7 +217,6 @@ This will give you a solid base to build on. Note that the editor component need
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/vue';
-import Handsontable from 'handsontable';
 
 const CustomEditor = {
   name: 'CustomEditor',
@@ -349,7 +347,7 @@ List of row indexes (starting from 0):
 ```js
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
-import Handsontable from 'handsontable';
+import { createSpreadsheetData } from './helpers';
 
 const CustomRenderer = {
   template: `<div v-bind:style="{ backgroundColor: bgColor }">{{value}}</div>`,
@@ -366,7 +364,6 @@ const CustomRenderer = {
   },
   computed: {
     bgColor() {
-      console.log(this.$root.highlightedRows);
       return this.$root.highlightedRows.includes(this.row) ? '#40b882' : '#fff';
     }
   }
@@ -377,7 +374,7 @@ const App = new Vue({
   data() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(10, 1)  ,
+        data: createSpreadsheetData(10, 1)  ,
         licenseKey: 'non-commercial-and-evaluation',
         autoRowSize: false,
         autoColumnSize: false,
