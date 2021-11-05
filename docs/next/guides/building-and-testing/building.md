@@ -141,7 +141,8 @@ From the `./handsontable` directory, you can also run individual JavaScript `bui
     - `dist/languages/all.js`
 
 `build:languages.es`
-  - PLACEHOLDER
+  - Creates the [language](@/guides/internationalization/internationalization-i18n.md) bundles compatible with the ESM format, for example:
+    - `languages/en-US.mjs`
 
 `npm run build:languages.min`
    - Creates the minified [language](@/guides/internationalization/internationalization-i18n.md) bundles compatible with the Universal Module Definition, for example:
