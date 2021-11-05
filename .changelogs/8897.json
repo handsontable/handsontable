@@ -1,5 +1,5 @@
 {
-  "title": "Introduced locales for handling properly locale-based data",
+  "title": "Added a new `locale` option, to properly handle locale-based data.",
   "type": "added",
   "issue": 8897,
   "breaking": false,

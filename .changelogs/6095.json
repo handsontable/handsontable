@@ -1,5 +1,5 @@
 {
-  "title": "Fixed an issue with wrong filtering locale-based data while using search input from drop-down menu.",
+  "title": "Fixed an issue with incorrect filtering of locale-based data while using search input from a drop-down menu.",
   "type": "fixed",
   "issue": 6095,
   "breaking": false,

@@ -1,14 +1,14 @@
 ---
-title: Setting up a locale
-metaTitle: Setting up a locale - Guide - Handsontable Documentation
+title: Setting up a translation
+metaTitle: Setting up a translation - Guide - Handsontable Documentation
 permalink: /next/angular-setting-up-a-locale
 canonicalUrl: /angular-setting-up-a-locale
 ---
 
-# Setting up a locale
+# Setting up a translation
 
 ## Overview
-The following example shows a Handsontable instance with locales set up in Angular.
+The following example shows a Handsontable instance with translations set up in Angular.
 
 ## Example
 ::: example :angular-numbro --html 1 --js 2
