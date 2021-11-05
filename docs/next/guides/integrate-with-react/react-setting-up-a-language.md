@@ -1,8 +1,8 @@
 ---
 title: Setting up a translation
 metaTitle: Setting up a translation - Guide - Handsontable Documentation
-permalink: /next/react-setting-up-a-locale
-canonicalUrl: /react-setting-up-a-locale
+permalink: /next/react-setting-up-a-language
+canonicalUrl: /react-setting-up-a-language
 ---
 
 # Setting up a translation
