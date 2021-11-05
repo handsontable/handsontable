@@ -95,15 +95,6 @@ To build all the packages at once:
      - The Vue package
      - A code examples package
 
-#### Root directory build tasks
-
-You can also run individual root directory `build` tasks:
-
-::: details Root directory build tasks
-`build:codesandbox`
-  - PLACEHOLDER
-:::
-
 ### Building the JavaScript package
 
 To build the JavaScript package:
