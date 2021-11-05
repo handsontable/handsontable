@@ -33,6 +33,10 @@ To declare column-specific settings, pass the settings as `hot-column` propertie
 import Vue from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue';
 import Handsontable from 'handsontable';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 new Vue({
   el: '#example1',

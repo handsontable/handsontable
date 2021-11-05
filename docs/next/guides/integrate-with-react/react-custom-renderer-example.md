@@ -21,6 +21,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import Handsontable from 'handsontable';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 const hotSettings = {
   data:
