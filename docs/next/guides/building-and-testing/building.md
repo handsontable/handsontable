@@ -109,7 +109,7 @@ To build the JavaScript package from the root directory:
 
 #### JavaScript build tasks
 
-You can also run individual JavaScript `build` tasks:
+From the `./handsontable` directory, you can also run individual JavaScript `build` tasks:
 
 ::: details JavaScript build tasks
 `npm run build:commonjs`
@@ -165,16 +165,16 @@ To build the Angular package from the root directory:
 
 #### Angular build tasks
 
-You can also run individual Angular `build` tasks:
+From the `./wrappers/angular` directory, You can also run individual Angular `build` tasks:
 
 ::: details Angular build tasks
-`prebuild`
+`npm run prebuild`
   - PLACEHOLDER
 
-`build`
+`npm run build`
   - PLACEHOLDER
 
-`postbuild`
+`npm run postbuild`
   - PLACEHOLDER
 :::
 
@@ -192,25 +192,25 @@ To build the React package from the root directory:
 
 #### React build tasks
 
-You can also run individual React `build` tasks:
+From the `./wrappers/react` directory, you can also run individual React `build` tasks:
 
 ::: details React build tasks
-`build:commonjs`
+`npm run build:commonjs`
   - Transpiles files into the `CommonJS` format.
   - During release, these files are published into the npm repository.
 
-`build:umd`
+`npm run build:umd`
   - Creates the following bundles compatible with the Universal Module Definition:
     - `dist/handsontable.js`
     - `dist/handsontable.css`
     - `dist/handsontable.full.js`
     - `dist/handsontable.full.css`
 
-`build:es`
+`npm run build:es`
   - Transpiles files into the `import/export` format.
   - During release, these files are published into the npm repository.
 
-`build:min`
+`npm run build:min`
   - Creates the minified bundles:
     - `dist/handsontable.min.js`
     - `dist/handsontable.min.css`
@@ -232,31 +232,31 @@ To build the Vue package from the root directory:
 
 #### Vue build tasks
 
-You can also run individual Vue `build` tasks:
+From the `./wrappers/vue` directory, you can also run individual Vue `build` tasks:
 
 ::: details Vue build tasks
-`build:commonjs`
+`npm run build:commonjs`
   - Transpiles files into the `CommonJS` format.
   - During release, these files are published into the npm repository.
 
-`build:umd`
+`npm run build:umd`
   - Creates the following bundles compatible with the Universal Module Definition:
     - `dist/handsontable.js`
     - `dist/handsontable.css`
     - `dist/handsontable.full.js`
     - `dist/handsontable.full.css`
 
-`build:es`
+`npm run build:es`
   - Transpiles files into the `import/export` format.
   - During release, these files are published into the npm repository.
 
-`build:min`
+`npm run build:min`
   - Creates the minified bundles:
     - `dist/handsontable.min.js`
     - `dist/handsontable.min.css`
     - `dist/handsontable.min.full.js`
     - `dist/handsontable.min.full.css`
 
-`build:esDts`
+`npm run build:esDts`
   - PLACEHOLDER
 :::
