@@ -3,11 +3,14 @@ import HotColumn from '../src/HotColumn.vue';
 import BaseEditorComponent from '../src/BaseEditorComponent.vue';
 import { mount } from '@vue/test-utils';
 import Vue from 'vue';
+import { registerAllCellTypes } from 'handsontable/registry';
 import {
   createDomContainer,
   createSampleData,
   mockClientDimensions
 } from './_helpers';
+
+registerAllCellTypes();
 
 describe('createColumnSettings', () => {
   it('should create the column settings based on the data provided to the `hot-column` component and its child components', () => {
@@ -443,4 +446,3 @@ describe('hot-column children', () => {
     testWrapper.destroy();
   });
 });
-

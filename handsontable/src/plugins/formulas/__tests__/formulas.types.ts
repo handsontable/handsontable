@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 
-const formulas = Handsontable.plugins.Formulas;
+const hot = new Handsontable(document.createElement('div'), {});
+const formulas = hot.getPlugin('formulas');
 
 formulas.engine!.addSheet();
 formulas.sheetName!.toLowerCase();
