@@ -195,9 +195,9 @@ From the `./wrappers/react` directory, you can also run individual React `build`
 `npm run build:umd`
   - Creates the following bundles compatible with the Universal Module Definition:
     - `wrappers/react/dist/react-handsontable.js`
-    - `wrappers/react/dist/handsontable.css`
-    - `wrappers/react/dist/handsontable.full.js`
-    - `wrappers/react/dist/handsontable.full.css`
+    - `wrappers/react/dist/react-handsontable.css`
+    - `wrappers/react/dist/react-handsontable.full.js`
+    - `wrappers/react/dist/react-handsontable.full.css`
 
 `npm run build:es`
   - Transpiles files into the ESM format.
@@ -205,10 +205,10 @@ From the `./wrappers/react` directory, you can also run individual React `build`
 
 `npm run build:min`
   - Creates the minified bundles:
-    - `wrappers/react/dist/handsontable.min.js`
-    - `wrappers/react/dist/handsontable.min.css`
-    - `wrappers/react/dist/handsontable.min.full.js`
-    - `wrappers/react/dist/handsontable.min.full.css`
+    - `wrappers/react/dist/react-handsontable.min.js`
+    - `wrappers/react/dist/react-handsontable.min.css`
+    - `wrappers/react/dist/react-handsontable.min.full.js`
+    - `wrappers/react/dist/react-handsontable.min.full.css`
 :::
 
 ### Building the Vue package
@@ -234,10 +234,10 @@ From the `./wrappers/vue` directory, you can also run individual Vue `build` tas
 
 `npm run build:umd`
   - Creates the following bundles compatible with the Universal Module Definition:
-    - `dist/handsontable.js`
-    - `dist/handsontable.css`
-    - `dist/handsontable.full.js`
-    - `dist/handsontable.full.css`
+    - `wrappers/vue/dist/vue-handsontable.js`
+    - `wrappers/vue/dist/vue-handsontable.css`
+    - `wrappers/vue/dist/vue-handsontable.full.js`
+    - `wrappers/vue/dist/vue-handsontable.full.css`
 
 `npm run build:es`
   - Transpiles files into the ESM format.
@@ -245,10 +245,10 @@ From the `./wrappers/vue` directory, you can also run individual Vue `build` tas
 
 `npm run build:min`
   - Creates the minified bundles:
-    - `dist/handsontable.min.js`
-    - `dist/handsontable.min.css`
-    - `dist/handsontable.min.full.js`
-    - `dist/handsontable.min.full.css`
+    - `wrappers/vue/dist/vue-handsontable.min.js`
+    - `wrappers/vue/dist/vue-handsontable.min.css`
+    - `wrappers/vue/dist/vue-handsontable.min.full.js`
+    - `wrappers/vue/dist/vue-handsontable.min.full.css`
 
 `npm run build:esDts`
   - PLACEHOLDER
