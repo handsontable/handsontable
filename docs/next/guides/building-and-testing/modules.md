@@ -21,7 +21,7 @@ When you become familiar with Handsontable functionalities you may find out that
 
 Thanks to [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) the package could be split into smaller pieces and you can **import** them as you need. Essentialy it was divided into two: the base and the optional part. The base of Handsontable holds mandatory parts packed inside `handsontable/base`, and it includes vital parts for the component to run. The rest is customizable based on what you want to import. A mindful use of the modules brings a lot of optimization to the application, yet, it only needs several lines of code.
 
-The graph presents a comparison of size in KB for a full bundle, basic optimization and with optimized locales. The sample code is avaiable just below - it shows sample countries and cities and although it looks small it will generate over 345 KB (Gzipped). [Webpack 5](https://webpack.js.org/) with a default configuration for production builds was used to prepare this example.
+The graph presents a comparison of size in KB for a full bundle, basic optimization and with optimized translations. The sample code is avaiable just below - it shows sample countries and cities and although it looks small it will generate over 345 KB (Gzipped). [Webpack 5](https://webpack.js.org/) with a default configuration for production builds was used to prepare this example.
 
 ![bundle_size_comparison](/docs/next/img/bundle_size_comparison.png)
 
@@ -141,7 +141,7 @@ Elements to be imported manually on demand:
 - renderers
 - validators
 - cell types
-- locales
+- languages (translations)
 
 The use cases may wary greatly, this guide will go through the categories and present one example for each.
 
@@ -749,9 +749,9 @@ import { registerAllPlugins } from 'handsontable/registry';
 registerAllPlugins();
 ```
 
-## Importing locales
+## Importing translations
 
-Importing locales works slightly different than in case of other elements. Let's try adding the `pl-PL` locale.
+Importing translations works slightly different than in case of other elements. Let's try adding the `pl-PL` language.
 
 Start with importing the base and the language code:
 
@@ -773,7 +773,7 @@ registerLanguageDictionary(plPL.languageCode, plPL);
 registerLanguageDictionary(plPL);
 ```
 
-Now, you can use newly registered locale. The full example looks like this:
+Now, you can use newly registered translation. The full example looks like this:
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -788,7 +788,7 @@ new Handsontable(container, {
 });
 ```
 
-And that is all! You can use the PL-pl locale!
+And that is all! You can use the PL-pl translation!
 
 ### Optimizing moment.js locales
 

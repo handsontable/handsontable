@@ -40,4 +40,20 @@ describe('Filters condition (`ends_with`)', () => {
     expect(condition(data('true'), [false])).toBe(false);
     expect(condition(data(true), [' true'])).toBe(false);
   });
+
+  it('should handle locales properly', () => {
+    const data = dateRowFactory({ locale: 'tr-TR' });
+
+    expect(condition(data('İnanç'), ['ç'])).toBe(true);
+    expect(condition(data('İnanç'), ['nç'])).toBe(true);
+    expect(condition(data('İnanç'), ['anç'])).toBe(true);
+    expect(condition(data('İnanç'), ['nanç'])).toBe(true);
+    expect(condition(data('İnanç'), ['inanç'])).toBe(true);
+
+    expect(condition(data('İNANÇ'), ['ç'])).toBe(true);
+    expect(condition(data('İNANÇ'), ['nç'])).toBe(true);
+    expect(condition(data('İNANÇ'), ['anç'])).toBe(true);
+    expect(condition(data('İNANÇ'), ['nanç'])).toBe(true);
+    expect(condition(data('İNANÇ'), ['inanç'])).toBe(true);
+  });
 });

@@ -11,7 +11,7 @@ export const CONDITION_NAME = 'contains';
  * @returns {boolean}
  */
 export function condition(dataRow, [value]) {
-  return stringify(dataRow.value).toLowerCase().indexOf(stringify(value)) >= 0;
+  return stringify(dataRow.value).toLocaleLowerCase(dataRow.meta.locale).indexOf(stringify(value)) >= 0;
 }
 
 registerCondition(CONDITION_NAME, condition, {
