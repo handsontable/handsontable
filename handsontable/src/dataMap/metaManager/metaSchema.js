@@ -3223,6 +3223,7 @@ export default () => {
      *
      * Read more:
      * - [Internationalization (i18n) &#8594;](@/guides/internationalization/internationalization-i18n.md)
+     * - [`locale`](#locale)
      *
      * @memberof Options#
      * @type {string}
@@ -3236,6 +3237,41 @@ export default () => {
      * ```
      */
     language: 'en-US',
+
+    /**
+     * The `locale` option configures Handsontable's locale.
+     *
+     * You can set the `locale` option to any valid and canonicalized Unicode BCP 47 locale tag,
+     * both for the entire grid, and for individual columns.
+     *
+     * Read more:
+     * - [Internationalization (i18n) &#8594;](@/guides/internationalization/internationalization-i18n.md)
+     * - [`language`](#language)
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default 'en-US'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // set the entire grid's locale to Polish
+     * locale: 'pl-PL',
+     *
+     * // set individual columns' locales
+     * columns: [
+     *   {
+     *     // set the first column's locale to Polish
+     *     locale: 'pl-PL',
+     *   },
+     *   {
+     *     // set the second column's locale to German
+     *     locale: 'de-DE',
+     *   },
+     * ],
+     * ```
+     */
+    locale: 'en-US',
 
     /**
      * The `selectOptions` option configures options that the end user can choose from in [`select`](@/guides/cell-types/select-cell-type.md) cells.

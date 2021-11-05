@@ -10,11 +10,11 @@ import {
   HotColumn
 } from '../src/hotColumn';
 import {
+  createSpreadsheetData,
   mockElementDimensions,
   sleep
 } from './_helpers';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
-import Handsontable from 'handsontable';
 
 beforeEach(() => {
   let container = document.createElement('DIV');
@@ -71,7 +71,7 @@ describe('React Context', () => {
       <TestContext.Provider value={'testContextValue'}>
         <HotTable licenseKey="non-commercial-and-evaluation"
                   id="test-hot"
-                  data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                  data={createSpreadsheetData(3, 2)}
                   width={300}
                   height={300}
                   rowHeights={23}

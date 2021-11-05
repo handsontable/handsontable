@@ -99,7 +99,9 @@ class ConditionCollection {
    * @fires ConditionCollection#afterAdd
    */
   addCondition(column, conditionDefinition, operation = OPERATION_AND, position) {
-    const args = arrayMap(conditionDefinition.args, v => (typeof v === 'string' ? v.toLowerCase() : v));
+    const localeForColumn = this.hot.getCellMeta(0, column).locale;
+    const args = arrayMap(conditionDefinition.args,
+      v => (typeof v === 'string' ? v.toLocaleLowerCase(localeForColumn) : v));
     const name = conditionDefinition.name || conditionDefinition.command.key;
 
     this.runLocalHooks('beforeAdd', column);

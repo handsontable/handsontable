@@ -14,7 +14,7 @@ const umdConfig = {
     exports: 'named',
     globals: {
       vue: 'Vue',
-      handsontable: 'Handsontable'
+      'handsontable/base': 'Handsontable'
     }
   },
   plugins: baseConfig.plugins,

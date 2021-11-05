@@ -1,37 +1,117 @@
-export { PersistentState } from './persistentState';
-export { AutoColumnSize } from './autoColumnSize';
-export { Autofill } from './autofill';
-export { ManualRowResize } from './manualRowResize';
-export { AutoRowSize } from './autoRowSize';
-export { ColumnSorting } from './columnSorting';
-export { Comments } from './comments';
-export { ContextMenu } from './contextMenu';
-export { CopyPaste } from './copyPaste';
-export { CustomBorders } from './customBorders';
-export { DragToScroll } from './dragToScroll';
-export { ManualColumnFreeze } from './manualColumnFreeze';
-export { ManualColumnMove } from './manualColumnMove';
-export { ManualColumnResize } from './manualColumnResize';
-export { ManualRowMove } from './manualRowMove';
-export { MergeCells } from './mergeCells';
-export { MultipleSelectionHandles } from './multipleSelectionHandles';
-export { MultiColumnSorting } from './multiColumnSorting';
-export { Search } from './search';
-export { TouchScroll } from './touchScroll';
-export { UndoRedo } from './undoRedo';
-export { BasePlugin } from './base';
-export { BindRowsWithHeaders } from './bindRowsWithHeaders';
-export { ColumnSummary } from './columnSummary';
-export { DropdownMenu } from './dropdownMenu';
-export { ExportFile } from './exportFile';
-export { Filters } from './filters';
-export { Formulas } from './formulas';
-export { NestedHeaders } from './nestedHeaders';
-export { CollapsibleColumns } from './collapsibleColumns';
-export { NestedRows } from './nestedRows';
-export { HiddenColumns } from './hiddenColumns';
-export { HiddenRows } from './hiddenRows';
-export { TrimRows } from './trimRows';
+import { AutoColumnSize } from './autoColumnSize';
+import { Autofill } from './autofill';
+import { AutoRowSize } from './autoRowSize';
+import { BasePlugin } from './base';
+import { BindRowsWithHeaders } from './bindRowsWithHeaders';
+import { CollapsibleColumns } from './collapsibleColumns';
+import { ColumnSorting } from './columnSorting';
+import { ColumnSummary } from './columnSummary';
+import { Comments } from './comments';
+import { ContextMenu } from './contextMenu';
+import { CopyPaste } from './copyPaste';
+import { CustomBorders } from './customBorders';
+import { DragToScroll } from './dragToScroll';
+import { DropdownMenu } from './dropdownMenu';
+import { ExportFile } from './exportFile';
+import { Filters } from './filters';
+import { Formulas } from './formulas';
+import { HiddenColumns } from './hiddenColumns';
+import { HiddenRows } from './hiddenRows';
+import { ManualColumnFreeze } from './manualColumnFreeze';
+import { ManualColumnMove } from './manualColumnMove';
+import { ManualColumnResize } from './manualColumnResize';
+import { ManualRowMove } from './manualRowMove';
+import { ManualRowResize } from './manualRowResize';
+import { MergeCells } from './mergeCells';
+import { MultiColumnSorting } from './multiColumnSorting';
+import { MultipleSelectionHandles } from './multipleSelectionHandles';
+import { NestedHeaders } from './nestedHeaders';
+import { NestedRows } from './nestedRows';
+import { PersistentState } from './persistentState';
+import { Search } from './search';
+import { TouchScroll } from './touchScroll';
+import { TrimRows } from './trimRows';
+import { UndoRedo } from './undoRedo';
+import {
+  registerPlugin,
+} from './registry';
+
+/**
+ * Registers all available plugins.
+ */
+export function registerAllPlugins() {
+  registerPlugin(AutoColumnSize);
+  registerPlugin(Autofill);
+  registerPlugin(AutoRowSize);
+  registerPlugin(BindRowsWithHeaders);
+  registerPlugin(CollapsibleColumns);
+  registerPlugin(ColumnSorting);
+  registerPlugin(ColumnSummary);
+  registerPlugin(Comments);
+  registerPlugin(ContextMenu);
+  registerPlugin(CopyPaste);
+  registerPlugin(CustomBorders);
+  registerPlugin(DragToScroll);
+  registerPlugin(DropdownMenu);
+  registerPlugin(ExportFile);
+  registerPlugin(Filters);
+  registerPlugin(Formulas);
+  registerPlugin(HiddenColumns);
+  registerPlugin(HiddenRows);
+  registerPlugin(ManualColumnFreeze);
+  registerPlugin(ManualColumnMove);
+  registerPlugin(ManualColumnResize);
+  registerPlugin(ManualRowMove);
+  registerPlugin(ManualRowResize);
+  registerPlugin(MergeCells);
+  registerPlugin(MultiColumnSorting);
+  registerPlugin(MultipleSelectionHandles);
+  registerPlugin(NestedHeaders);
+  registerPlugin(NestedRows);
+  registerPlugin(PersistentState);
+  registerPlugin(Search);
+  registerPlugin(TouchScroll);
+  registerPlugin(TrimRows);
+  registerPlugin(UndoRedo);
+}
+
+export {
+  AutoColumnSize,
+  Autofill,
+  AutoRowSize,
+  BasePlugin,
+  BindRowsWithHeaders,
+  CollapsibleColumns,
+  ColumnSorting,
+  ColumnSummary,
+  Comments,
+  ContextMenu,
+  CopyPaste,
+  CustomBorders,
+  DragToScroll,
+  DropdownMenu,
+  ExportFile,
+  Filters,
+  Formulas,
+  HiddenColumns,
+  HiddenRows,
+  ManualColumnFreeze,
+  ManualColumnMove,
+  ManualColumnResize,
+  ManualRowMove,
+  ManualRowResize,
+  MergeCells,
+  MultiColumnSorting,
+  MultipleSelectionHandles,
+  NestedHeaders,
+  NestedRows,
+  PersistentState,
+  Search,
+  TouchScroll,
+  TrimRows,
+  UndoRedo,
+};
+
 export {
   getPlugin,
   getPluginsNames,

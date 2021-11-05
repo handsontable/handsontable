@@ -96,6 +96,24 @@ class MultipleSelectUI extends BaseUI {
   }
 
   /**
+   * Set a locale for the component.
+   *
+   * @param {string} locale Locale used for filter actions performed on data, ie. `en-US`.
+   */
+  setLocale(locale) {
+    this.locale = locale;
+  }
+
+  /**
+   * Get a locale for the component.
+   *
+   * @returns {string}
+   */
+  getLocale() {
+    return this.locale;
+  }
+
+  /**
    * Get all available options.
    *
    * @returns {Array}
@@ -223,13 +241,14 @@ class MultipleSelectUI extends BaseUI {
    * @param {Event} event DOM event.
    */
   onInput(event) {
-    const value = event.target.value.toLowerCase();
+    const value = event.target.value.toLocaleLowerCase(this.getLocale());
     let filteredItems;
 
     if (value === '') {
       filteredItems = [...this.items];
     } else {
-      filteredItems = arrayFilter(this.items, item => (`${item.value}`).toLowerCase().indexOf(value) >= 0);
+      filteredItems = arrayFilter(this.items,
+        item => (`${item.value}`).toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0);
     }
     this.itemsBox.loadData(filteredItems);
   }

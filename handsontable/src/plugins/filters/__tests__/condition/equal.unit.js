@@ -39,4 +39,11 @@ describe('Filters condition (`eq`)', () => {
     expect(condition(data('true'), [false])).toBe(false);
     expect(condition(data(true), ['e'])).toBe(false);
   });
+
+  it('should handle locales properly', () => {
+    const data = dateRowFactory({ locale: 'tr-TR' });
+
+    expect(condition(data('İnanç'), ['inanç'])).toBe(true);
+    expect(condition(data('İNANÇ'), ['inanç'])).toBe(true);
+  });
 });
