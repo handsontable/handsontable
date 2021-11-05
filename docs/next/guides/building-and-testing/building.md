@@ -190,6 +190,7 @@ From the `./wrappers/react` directory, you can also run individual React `build`
 ::: details React build tasks
 `npm run build:commonjs`
   - Transpiles files into the CommonJS format.
+  - Places the output in `wrappers/react/commonjs/react-handsontable.js`
 
 `npm run build:umd`
   - Creates the following bundles compatible with the Universal Module Definition:
@@ -200,6 +201,7 @@ From the `./wrappers/react` directory, you can also run individual React `build`
 
 `npm run build:es`
   - Transpiles files into the ESM format.
+  - Places the output in `wrappers/react/es/react-handsontable.js`
 
 `npm run build:min`
   - Creates the minified bundles:
@@ -228,6 +230,7 @@ From the `./wrappers/vue` directory, you can also run individual Vue `build` tas
 ::: details Vue build tasks
 `npm run build:commonjs`
   - Transpiles files into the CommonJS format.
+  - Places the output in `wrappers/vue/commonjs/vue-handsontable.js`
 
 `npm run build:umd`
   - Creates the following bundles compatible with the Universal Module Definition:
@@ -238,6 +241,7 @@ From the `./wrappers/vue` directory, you can also run individual Vue `build` tas
 
 `npm run build:es`
   - Transpiles files into the ESM format.
+  - Places the output in `wrappers/vue/es/vue-handsontable.js`
 
 `npm run build:min`
   - Creates the minified bundles:
