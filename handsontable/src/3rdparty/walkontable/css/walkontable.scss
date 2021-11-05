@@ -16,7 +16,8 @@
 
 .handsontable .wtSpreader {
   position: relative;
-  width: 0; /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
+  /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
+  width: 0; 
   height: auto;
 }
 
