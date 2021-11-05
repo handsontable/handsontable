@@ -40,4 +40,16 @@ describe('Filters condition (`contains`)', () => {
     expect(condition(data('true'), [false])).toBe(false);
     expect(condition(data(true), ['e '])).toBe(false);
   });
+
+  it('should handle locales properly', () => {
+    const data = dateRowFactory({ locale: 'tr-TR' });
+
+    expect(condition(data('İnanç'), ['i'])).toBe(true);
+    expect(condition(data('İnanç'), ['ç'])).toBe(true);
+    expect(condition(data('İnanç'), ['inanç'])).toBe(true);
+
+    expect(condition(data('İNANÇ'), ['i'])).toBe(true);
+    expect(condition(data('İNANÇ'), ['ç'])).toBe(true);
+    expect(condition(data('İNANÇ'), ['inanç'])).toBe(true);
+  });
 });
