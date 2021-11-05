@@ -20,6 +20,10 @@ A custom `id` can be passed in together with other attributes to the `hot-table`
 // app.component.ts
 import { Component } from '@angular/core';
 import * as Handsontable from 'handsontable';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 @Component({
   selector: 'app-root',
@@ -48,6 +52,10 @@ class AppComponent {
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 @NgModule({
   imports:      [ BrowserModule, HotTableModule ],

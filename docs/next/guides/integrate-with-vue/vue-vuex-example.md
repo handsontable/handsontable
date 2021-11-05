@@ -39,6 +39,10 @@ Toggle `readOnly` for the entire table.
 import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
 import Handsontable from 'handsontable';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 new Vue({
   el: "#example1",
