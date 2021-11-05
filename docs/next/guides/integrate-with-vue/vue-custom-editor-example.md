@@ -26,13 +26,13 @@ The following example implements the `@handsontable/vue` component with a custom
 ```js
 import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
-import Handsontable from 'handsontable';
+import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
 
-class CustomEditor extends Handsontable.editors.TextEditor {
+class CustomEditor extends TextEditor {
   constructor(props) {
     super(props);
   }
@@ -44,7 +44,7 @@ class CustomEditor extends Handsontable.editors.TextEditor {
     this.TEXTAREA.setAttribute('placeholder', 'Custom placeholder');
     this.TEXTAREA.setAttribute('data-hot-input', true);
     this.textareaStyle = this.TEXTAREA.style;
-    Handsontable.dom.empty(this.TEXTAREA_PARENT);
+    this.TEXTAREA_PARENT.innerText = '';
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }

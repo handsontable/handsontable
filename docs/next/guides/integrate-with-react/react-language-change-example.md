@@ -22,14 +22,15 @@ Note that the `language` property is bound to the component separately using `la
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
-import Handsontable from 'handsontable';
+import { getLanguagesDictionaries } from 'handsontable/i18n';
 import { registerAllModules } from 'handsontable/registry';
+import { createSpreadsheetData } from './helpers';
 
 // register Handsontable's modules
 registerAllModules();
 
 const hotSettings = {
-  data: Handsontable.helper.createSpreadsheetData(5, 10),
+  data: createSpreadsheetData(5, 10),
   colHeaders: true,
   rowHeaders: true,
   contextMenu: true,
@@ -42,7 +43,7 @@ const App = () => {
   const [languageList, setLanguageList] = useState([]);
 
   useEffect(() => {
-    setLanguageList(Handsontable.languages.getLanguagesDictionaries());
+    setLanguageList(getLanguagesDictionaries());
   }, []);
 
   const updateHotLanguage = event => {
