@@ -19,7 +19,8 @@ The following example is an implementation of `@handsontable/angular` with a cus
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
-import * as Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 @Component({
   selector: 'app-root',
@@ -40,22 +41,22 @@ class AppComponent {
       {},
       {
         renderer(instance, td, row, col, prop, value, cellProperties) {
-          const escaped = Handsontable.helper.stringify(value);
+          const escaped = `${value}`;
           let img = null;
 
           if (escaped.indexOf('http') === 0) {
             img = document.createElement('IMG');
             img.src = value;
 
-            Handsontable.dom.addEvent(img, 'mousedown', event => {
+            img.addEventListener('mousedown', event => {
               event.preventDefault();
             });
 
-            Handsontable.dom.empty(td);
+            td.innerText = '';
             td.appendChild(img);
 
           } else {
-            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            textRenderer.apply(this, arguments);
           }
 
           return td;
@@ -73,6 +74,10 @@ class AppComponent {
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 @NgModule({
   imports:      [ BrowserModule, HotTableModule ],

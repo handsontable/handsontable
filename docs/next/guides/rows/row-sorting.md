@@ -301,8 +301,8 @@ Hooks are also run when you use the `clearSort` method or provide a configuratio
 
 List of methods exposed by the plugin:
 
-* [clearSort](@/api/columnSorting.md#clearsort)
-* [getSortConfig](@/api/columnSorting.md#getsortconfig)
-* [isSorted](@/api/columnSorting.md#issorted)
-* [setSortConfig](@/api/columnSorting.md#setsortconfig)
-* [sort](@/api/columnSorting.md#sort)
+* [`clearSort` &#8594;](@/api/columnSorting.md#clearsort)
+* [`getSortConfig` &#8594;](@/api/columnSorting.md#getsortconfig)
+* [`isSorted` &#8594;](@/api/columnSorting.md#issorted)
+* [`setSortConfig` &#8594;](@/api/columnSorting.md#setsortconfig)
+* [`sort` &#8594;](@/api/columnSorting.md#sort)
