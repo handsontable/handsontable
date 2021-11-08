@@ -8,6 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [11.0.0] - 2021-11-15
+
+### Fixed
+- Fixed an issue with incorrect filtering of locale-based data while using search input from a drop-down menu. [#6095](https://github.com/handsontable/handsontable/issues/6095) 
+- Fixed an issue with throwing an error while using the `populateFromArray()` method with its `method` argument set to `shift_right`. [#6929](https://github.com/handsontable/handsontable/issues/6929) 
+- Fixed an issue with triggering `beforeOnCellMouseDown` and `afterOnCellMouseDown` hooks using wrong coords [#8498](https://github.com/handsontable/handsontable/issues/8498) 
+- Improved the performance of the regular expression used to detect numeric values and fixed major code smells [#8752](https://github.com/handsontable/handsontable/issues/8752) 
+- Fixed TypeError that occurs while calling `updateSettings` method when the modularized Handsontable was used. [#8830](https://github.com/handsontable/handsontable/issues/8830) 
+- Fixed an issue with navigation when RTL is on [#8868](https://github.com/handsontable/handsontable/issues/8868) 
+- Fixed issues with the canonicalUrl entries in the docs. [#8886](https://github.com/handsontable/handsontable/issues/8886) 
+- Fixed an error being thrown while performing an autofill on a date-typed cells. [#8894](https://github.com/handsontable/handsontable/issues/8894) 
+- *React:* Fix an issue in the React wrapper where it was impossible to utilize different sets of props in the editor components reused between multiple columns. [#8527](https://github.com/handsontable/handsontable/issues/8527) 
+
+### Added
+- Add TypeScript definition files for modularized version of the Handsontable. [#7489](https://github.com/handsontable/handsontable/issues/7489) (**Breaking change**)
+- *Vue:* Added support for the modularized Vue wrapper. [#8820](https://github.com/handsontable/handsontable/issues/8820) (**Breaking change**)
+- *React:* Added support for the modularized React wrapper. [#8819](https://github.com/handsontable/handsontable/issues/8819) (**Breaking change**)
+- *Angular:* Added support for modularize Angular wrapper [#8818](https://github.com/handsontable/handsontable/issues/8818) (**Breaking change**)
+- Add a Github Actions workflow covering the testing of Handsontable and all of the wrappers. [#8652](https://github.com/handsontable/handsontable/issues/8652) 
+- Added a new package entry point that allows importing built-in modules in one function call: (`import { registerAllEditors, registerAllRenderers, registerAllValidators, registerAllCellTypes, registerAllPlugins } from 'handsontable/registry'`). [#8816](https://github.com/handsontable/handsontable/issues/8816) 
+- Added a new `locale` option, to properly handle locale-based data. [#8897](https://github.com/handsontable/handsontable/issues/8897) 
+
+### Changed
+- Changed the way the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888) (**Breaking change**)
+- Moved the entire Handsontable package to its own subdirectory (`./handsontable`). [#8759](https://github.com/handsontable/handsontable/issues/8759) 
+- Replaced the current license files with the updated versions. [#8877](https://github.com/handsontable/handsontable/issues/8877)
+
 ## [10.0.0] - 2021-09-29
 
 ### Changed
