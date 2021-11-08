@@ -18,7 +18,8 @@
 }
 
 .handsontable td.htInvalid {
-  background-color: #ff4c42 !important; /*gives priority over td.area selection background*/
+  /*gives priority over td.area selection background*/
+  background-color: #ff4c42 !important; 
 }
 
 .handsontable td.htNoWrap {
@@ -106,10 +107,12 @@
 .handsontable span.colHeader.columnSorting::before {
   /* Centering start */
   top: 50%;
-  margin-top: -6px; /* One extra pixel for purpose of proper positioning of sorting arrow, when `font-size` set to default */
+  /* One extra pixel for purpose of proper positioning of sorting arrow, when `font-size` set to default */
+  margin-top: -6px;
   /* Centering end */
 
-  padding-left: 8px; /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
+  /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
+  padding-left: 8px; 
   position: absolute;
   right: -9px;
 
@@ -165,7 +168,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  bottom: -100%\9; /* Fix for IE9 to spread the ":before" pseudo element to 100% height of the parent element */
+  /* Fix for IE9 to spread the ":before" pseudo element to 100% height of the parent element */
+  bottom: -100%\9; 
   background: #005eff;
 }
 
