@@ -47,7 +47,8 @@
     -moz-user-select: none;
     -o-user-select: none;
     -ms-user-select: none;
-    user-select: none; */ /* no browser supports unprefixed version */
+    user-select: none; // no browser supports unprefixed version
+  */
   border-spacing: 0;
   margin: 0;
   border-width: 0;
