@@ -281,6 +281,17 @@ TextRenderer readOnly cell
   font-size: 9px;
 }
 
+[dir=rtl] .handsontable .htSubmenu :after{
+  content: '';
+}
+
+[dir=rtl] .handsontable .htSubmenu :before{
+  content: '\25C0';
+  color: #777;
+  position: absolute;
+  left: 5px;
+  font-size: 9px;
+}
 
 /*
 TextRenderer horizontal alignment

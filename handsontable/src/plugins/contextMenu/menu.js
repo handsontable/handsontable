@@ -34,10 +34,25 @@ import localHooks from '../../mixins/localHooks';
 const MIN_WIDTH = 215;
 
 /**
+ * @typedef MenuOptions
+ * @property {Menu} [parent] Default value: `null`.
+ * @property {string} [name] Default value: `null`.
+ * @property {string} [className] Default value: `''`.
+ * @property {boolean} [keepInViewport] Default value: `true`.
+ * @property {boolean} [standalone] Default value: `false`.
+ * @property {number} [minWidth] Default value: `MIN_WIDTH`.
+ * @property {HTMLElement} [container] Default value: `this.hot.rootDocument.documentElement`.
+ */
+
+/**
  * @private
  * @class Menu
  */
 class Menu {
+  /**
+   * @param {Core} hotInstance Handsontable instance.
+   * @param {MenuOptions} [options] Menu options.
+   */
   constructor(hotInstance, options) {
     this.hot = hotInstance;
     this.options = options || {
@@ -432,10 +447,20 @@ class Menu {
       } else {
         this.setPositionBelowCursor(cursor);
       }
-      if (cursor.fitsOnRight(this.container)) {
-        this.setPositionOnRightOfCursor(cursor);
-      } else {
-        this.setPositionOnLeftOfCursor(cursor);
+
+      if (this.hot.isLtr()) { // ltr mode
+        if (cursor.fitsOnRight(this.container)) {
+          this.setPositionOnRightOfCursor(cursor);
+        } else {
+          this.setPositionOnLeftOfCursor(cursor);
+        }
+      } else { // rtl mode
+        // eslint-disable-next-line no-lonely-if
+        if (cursor.fitsOnLeft(this.container)) {
+          this.setPositionOnLeftOfCursor(cursor);
+        } else {
+          this.setPositionOnRightOfCursor(cursor);
+        }
       }
     } else {
       this.setPositionBelowCursor(cursor);

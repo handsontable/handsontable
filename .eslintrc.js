@@ -104,7 +104,7 @@ module.exports = {
     'jsdoc/check-tag-names': [
       'error',
       {
-        definedTags: ['plugin', 'util', 'experimental', 'deprecated', 'preserve', 'core', 'TODO', 'category']
+        definedTags: ['plugin', 'util', 'experimental', 'deprecated', 'preserve', 'core', 'TODO', 'category', 'internal']
       }
     ],
     'jsdoc/check-types': 'error',

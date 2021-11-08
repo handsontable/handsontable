@@ -107,6 +107,9 @@ export class ContextMenu extends BasePlugin {
     ];
   }
 
+  /**
+   * @param {Core} hotInstance Handsontable instance.
+   */
   constructor(hotInstance) {
     super(hotInstance);
     /**
