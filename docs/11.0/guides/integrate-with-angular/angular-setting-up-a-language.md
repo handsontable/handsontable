@@ -19,7 +19,6 @@ The following example shows a Handsontable instance with translations set up in 
 ```ts
 // app.component.ts
 import { Component } from '@angular/core';
-import Handsontable from 'handsontable';
 import * as numbro from 'numbro';
 import * as languages from 'numbro/dist/languages.min';
 
@@ -82,6 +81,10 @@ class AppComponent {
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 @NgModule({
   imports:      [ BrowserModule, HotTableModule ],

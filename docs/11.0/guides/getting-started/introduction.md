@@ -37,7 +37,7 @@ Welcome 👋&nbsp; to Handsontable's Guides. Here you will learn how Handsontabl
 
 ## What's new
 
-- [Release notes](@/guides/upgrade-and-migration/release-notes.md)
+- [Release notes &#8594;](@/guides/upgrade-and-migration/release-notes.md)
 - [Blog](https://handsontable.com/blog)
 - [Twitter](https://twitter.com/handsontable)
 

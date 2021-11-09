@@ -21,7 +21,7 @@ The following is an implementation of the `@handsontable/angular` component with
 ```js
 /// file: app.component.ts
 import { Component } from '@angular/core';
-import * as Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 //import { CustomEditor } from './CustomEditor.js';
 
 @Component({
@@ -50,6 +50,11 @@ class AppComponent {
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
+import { TextEditor } from 'handsontable/editors/textEditor';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 @NgModule({
   imports:      [ BrowserModule, HotTableModule ],
@@ -59,7 +64,7 @@ import { HotTableModule } from '@handsontable/angular';
 class AppModule { }
 
 /// file: CustomEditor.js
-export class CustomEditor extends Handsontable.editors.TextEditor {
+export class CustomEditor extends TextEditor {
   constructor(props) {
     super(props);
   }
@@ -71,7 +76,7 @@ export class CustomEditor extends Handsontable.editors.TextEditor {
     this.TEXTAREA.setAttribute('placeholder', 'Custom placeholder');
     this.TEXTAREA.setAttribute('data-hot-input', true);
     this.textareaStyle = this.TEXTAREA.style;
-    Handsontable.dom.empty(this.TEXTAREA_PARENT);
+    this.TEXTAREA_PARENT.innerText = '';
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }

@@ -24,6 +24,10 @@ Each of them will be applied to the root Handsontable element, allowing further 
 ```js
 import Vue from 'vue';
 import { HotTable } from '@handsontable/vue';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 new Vue({
   el: '#example1',
