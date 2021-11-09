@@ -14,7 +14,7 @@ Your contributions to this project are very welcome. If you want to fix a bug or
     - `./wrappers/react/dist/` & `./wrappers/react/es/` & `./wrappers/react/commonjs/`
     - `./wrappers/vue/dist/` & `./wrappers/vue/es/` & `./wrappers/vue/commonjs/`
     - `./handsontable/languages/`
-6. Instead, edit files inside the source directories, and then [make a build](https://handsontable.com/docs/building/):
+6. Instead, edit files inside the source directories (and then [make a build](https://handsontable.com/docs/building/)):
     - `./handsontable/src/`
     - `./wrappers/angular/projects/hot-table/src/`
     - `./wrappers/react/src/`
