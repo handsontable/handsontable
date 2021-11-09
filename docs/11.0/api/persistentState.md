@@ -25,37 +25,6 @@ value will be saved in `saveTo.value`.
 - [Hooks#persistentStateReset](@/api/hooks.md#persistentstatereset) - Clears the value saved under key. If no key is given, all values associated
 with table will be cleared.
 
-
-## Options
-
-### persistentState
-  
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/dataMap/metaManager/metaSchema.js#L1020
-
-:::
-
-_persistentState.persistentState : boolean_
-
-Turns on saving the state of column sorting, column positions and column sizes in local storage.
-
-You can save any sort of data in local storage to preserve table state between page reloads.  In order to enable
-data storage mechanism, `persistentState` option must be set to `true` (you can set it either during Handsontable
-initialization or using the `updateSettings` method). When `persistentState` is enabled it exposes 3 hooks:
-
-__persistentStateSave__ (key: String, value: Mixed).
-
-  * Saves value under given key in browser local storage.
-
-__persistentStateLoad__ (key: String, valuePlaceholder: Object).
-
-  * Loads `value`, saved under given key, form browser local storage. The loaded `value` will be saved in
-  `valuePlaceholder.value` (this is due to specific behaviour of `Hooks.run()` method). If no value have
-  been saved under key `valuePlaceholder.value` will be `undefined`.
-
-__persistentStateReset__ (key: String).
-
-  * Clears the value saved under `key`. If no `key` is given, all values associated with table will be cleared.
-
 __Note:__ The main reason behind using `persistentState` hooks rather than regular LocalStorage API is that it
 ensures separation of data stored by multiple Handsontable instances. In other words, if you have two (or more)
 instances of Handsontable on one page, data saved by one instance won't be accessible by the second instance.
@@ -63,10 +32,34 @@ Those two instances can store data under the same key and no data would be overw
 
 __Important:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
 
+
+## Options
+
+### persistentState
+  
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/dataMap/metaManager/metaSchema.js#L1307
+
+:::
+
+_persistentState.persistentState : boolean_
+
+The `persistentState` option configures the [`PersistentState`](@/api/persistentState.md) plugin.
+
+You can set the `persistentState` to one of the following:
+
+| Setting           | Description                                                      |
+| ----------------- | ---------------------------------------------------------------- |
+| `false` (default) | Disable the [`PersistentState`](@/api/persistentState.md) plugin |
+| `true`            | Enable the [`PersistentState`](@/api/persistentState.md) plugin  |
+
+Read more:
+- [Saving data: Saving data locally &#8594;](@/guides/getting-started/saving-data.md#saving-data-locally)
+- [Plugins: `PersistentState` &#8594;](@/api/persistentState.md)
+
 **Default**: <code>false</code>  
 **Example**  
 ```js
-// enable the persistent state plugin
+// enable the `PersistentState` plugin
 persistentState: true,
 ```
 
@@ -74,7 +67,7 @@ persistentState: true,
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/persistentState/persistentState.js#L134
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/persistentState/persistentState.js#L142
 
 :::
 
@@ -86,7 +79,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/persistentState/persistentState.js#L81
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/persistentState/persistentState.js#L89
 
 :::
 
@@ -98,7 +91,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/persistentState/persistentState.js#L62
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/persistentState/persistentState.js#L70
 
 :::
 
@@ -110,7 +103,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/persistentState/persistentState.js#L55
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/persistentState/persistentState.js#L63
 
 :::
 
@@ -123,7 +116,7 @@ hook and if it returns `true` than the [PersistentState#enablePlugin](@/api/pers
 
 ### loadValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/persistentState/persistentState.js#L103
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/persistentState/persistentState.js#L111
 
 :::
 
@@ -141,7 +134,7 @@ Loads the value from local storage.
 
 ### resetValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/persistentState/persistentState.js#L122
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/persistentState/persistentState.js#L130
 
 :::
 
@@ -158,7 +151,7 @@ Resets the data or all data from local storage.
 
 ### saveValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/persistentState/persistentState.js#L113
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/persistentState/persistentState.js#L121
 
 :::
 
@@ -176,7 +169,7 @@ Saves the data to local storage.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/persistentState/persistentState.js#L90
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/persistentState/persistentState.js#L98
 
 :::
 

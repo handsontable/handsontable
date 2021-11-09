@@ -14,7 +14,7 @@ editLink: false
 
 ### getHiddenIndexes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/translations/maps/hidingMap.js#L20
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/translations/maps/hidingMap.js#L20
 
 :::
 

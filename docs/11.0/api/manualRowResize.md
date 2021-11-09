@@ -25,30 +25,43 @@ The plugin creates additional components to make resizing possibly using user in
 
 ### manualRowResize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/dataMap/metaManager/metaSchema.js#L1971
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/dataMap/metaManager/metaSchema.js#L2648
 
 :::
 
 _manualRowResize.manualRowResize : boolean | Array&lt;number&gt;_
 
-Turns on [Manual row resize](@/guides/columns/column-width.md#column-stretching), if set to a boolean or define initial row resized heights (as an array of heights).
+The `manualRowResize` option configures the [`ManualRowResize`](@/api/manualRowResize.md) plugin.
+
+You can set the `manualRowResize` option to one of the following:
+
+| Setting  | Description                                                                                                   |
+| -------- | ------------------------------------------------------------------------------------------------------------- |
+| `true`   | Enable the [`ManualRowResize`](@/api/manualRowResize.md) plugin                                               |
+| `false`  | Disable the [`ManualRowResize`](@/api/manualRowResize.md) plugin                                              |
+| An array | - Enable the [`ManualRowResize`](@/api/manualRowResize.md) plugin<br>- Set initial heights of individual rows |
+
+Read more:
+- [Row height: Adjust the row height manually &#8594;](@/guides/rows/row-height.md#adjust-the-row-height-manually)
 
 **Default**: <code>undefined</code>  
 **Example**  
 ```js
-// as a boolean to enable row resize
-manualRowResize: true,
+// enable the `ManualRowResize` plugin
+manualColumnResize: true,
 
-// as an array to set initial heights
-// (row at 0 index has 40px and row at 1 index has 50px)
-manualRowResize: [40, 50],
+// enable the `ManualRowResize` plugin
+// set the initial height of row 0 to 40 pixels
+// set the initial height of row 1 to 50 pixels
+// set the initial height of row 2 to 60 pixels
+manualColumnResize: [40, 50, 60],
 ```
 
 ## Methods
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/manualRowResize/manualRowResize.js#L585
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualRowResize/manualRowResize.js#L585
 
 :::
 
@@ -60,7 +73,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/manualRowResize/manualRowResize.js#L117
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualRowResize/manualRowResize.js#L117
 
 :::
 
@@ -72,7 +85,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/manualRowResize/manualRowResize.js#L88
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualRowResize/manualRowResize.js#L88
 
 :::
 
@@ -84,7 +97,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/manualRowResize/manualRowResize.js#L81
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualRowResize/manualRowResize.js#L81
 
 :::
 
@@ -97,7 +110,7 @@ hook and if it returns `true` than the [ManualRowResize#enablePlugin](@/api/manu
 
 ### loadManualRowHeights
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/manualRowResize/manualRowResize.js#L143
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualRowResize/manualRowResize.js#L143
 
 :::
 
@@ -111,7 +124,7 @@ has be enabled).
 
 ### saveManualRowHeights
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/manualRowResize/manualRowResize.js#L132
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualRowResize/manualRowResize.js#L132
 
 :::
 
@@ -125,7 +138,7 @@ enabled).
 
 ### setManualSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/manualRowResize/manualRowResize.js#L158
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualRowResize/manualRowResize.js#L158
 
 :::
 
@@ -144,7 +157,7 @@ Sets the new height for specified row index.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/manualRowResize/manualRowResize.js#L107
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualRowResize/manualRowResize.js#L107
 
 :::
 
