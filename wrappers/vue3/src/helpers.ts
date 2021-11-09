@@ -1,4 +1,5 @@
-import Handsontable from 'handsontable';
+import { createApp, defineComponent } from 'vue';
+import Handsontable from 'handsontable/base';
 import { HotTableProps, VueProps, EditorComponent } from './types';
 
 type VNode = any;
@@ -125,7 +126,7 @@ export function propFactory(source): VueProps<HotTableProps> {
  * @returns {Object} Object containing only used props.
  */
 export function filterPassedProps(props) {
-  const filteredProps: VueProps<HotTableProps> = {} as any;
+  const filteredProps: VueProps<HotTableProps> = {};
   const columnSettingsProp = props['settings'];
 
   if (columnSettingsProp !== unassignedPropSymbol) {
@@ -195,9 +196,12 @@ export function findVNodeByType(componentSlots: VNode[], type: string): VNode {
   let componentVNode: VNode = null;
 
   componentSlots.every((slot, index) => {
-    // console.log(slot)
-    if (slot.props && slot.props.attrs && slot.props.attrs[type] !== void 0) {
+    if (getVNodeName(slot) === 'HotColumn' && slot.children) {
+      componentVNode = findVNodeByType(slot.children.default(), type);
+
+    } else if (slot.props && slot.props[type] !== void 0) {
       componentVNode = slot;
+
       return false;
     }
 
@@ -214,8 +218,15 @@ export function findVNodeByType(componentSlots: VNode[], type: string): VNode {
  * @returns {Array} Array of `hot-column` instances.
  */
 export function getHotColumnComponents(children) {
-  return children.filter(child => child.type && child.type.name === 'HotColumn')
-  // return children.filter((child) => child.$options && child.$options.name === 'HotColumn');
+  return children.filter(child => getVNodeName(child) === 'HotColumn')
+}
+
+function getVNodeName(node: VNode) {
+  if (typeof node.type === 'string') {
+    return node.type;
+  }
+
+  return node.type?.name;
 }
 
 /**
@@ -226,12 +237,15 @@ export function getHotColumnComponents(children) {
  * @param {Object} props Props to be passed to the new instance.
  * @param {Object} data Data to be passed to the new instance.
  */
-export function createVueComponent(vNode: VNode, parent: Vue, props: object, data: object): EditorComponent {
-  const ownerDocument = parent.$el ? parent.$el.ownerDocument : document;
-  const settings: object = {
-    propsData: props,
-    parent,
-    data
+// export function createVueComponent(vNode: VNode, parent: Vue, props: any, data: object): EditorComponent {
+export function createVueComponent(vNode: VNode, parent: Vue, props: any, data: object) {
+  const ownerDocument = parent.element ? parent.element.ownerDocument : document;
+  const settings: Record<string, unknown> = {
+    props,
+    // parent,
+    data() {
+      return data;
+    }
   };
 
   if (!bulkComponentContainer) {
@@ -242,9 +256,10 @@ export function createVueComponent(vNode: VNode, parent: Vue, props: object, dat
   }
 
   const componentContainer = ownerDocument.createElement('DIV');
+
   bulkComponentContainer.appendChild(componentContainer);
 
-  return (new (vNode.componentOptions as any).Ctor(settings)).$mount(componentContainer);
+  return createApp(vNode).mount(componentContainer);
 }
 
 /**

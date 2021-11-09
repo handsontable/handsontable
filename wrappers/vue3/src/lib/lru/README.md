@@ -17,8 +17,8 @@ Useful when you want to limit use of memory to only hold commonly-used things.
   an "older" entry (doubly-linked, "older" being close to "head" and "newer"
   being closer to "tail").
 
-- Key lookup is done through a key-entry mapping native object, which on most 
-  platforms mean `O(1)` complexity. This comes at a very low memory cost  (for 
+- Key lookup is done through a key-entry mapping native object, which on most
+  platforms mean `O(1)` complexity. This comes at a very low memory cost  (for
   storing two extra pointers for each entry).
 
 Fancy ASCII art illustration of the general design:
@@ -29,7 +29,7 @@ Fancy ASCII art illustration of the general design:
           | head |.newer => |      |.newer => |      |.newer => | tail |      
 .oldest = |  A   |          |  B   |          |  C   |          |  D   | = .newest
           |______| <= older.|______| <= older.|______| <= older.|______|      
-                                                                             
+
        removed  <--  <--  <--  <--  <--  <--  <--  <--  <--  <--  <--  added
 ```
 
@@ -81,7 +81,6 @@ This module comes with complete typing coverage for use with TypeScript. If you 
 import {LRUMap} from './lru'
 // import {LRUMap} from 'lru'     // when using via AMD
 // import {LRUMap} from 'lru_map' // when using from NPM
-console.log('LRUMap:', LRUMap)
 ```
 
 # API

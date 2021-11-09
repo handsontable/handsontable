@@ -15,7 +15,12 @@ export const plugins = {
       script: 'ts'
     },
     template: {
-      isProduction: true
+      isProduction: true,
+      compilerOptions: {
+        compatConfig: {
+          MODE: 2
+        }
+      }
     }
   }),
   typescript: typescript({
@@ -61,8 +66,7 @@ export const baseConfig = {
     plugins.nodeResolve
   ],
   external: [
-    'handsontable',
+    'handsontable/base',
     'vue'
   ]
 };
-

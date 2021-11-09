@@ -42,7 +42,8 @@ if (argv._.length === 0) {
     }
     case 'all': {
       const [command] = argv._;
-      const workspacesCommandList = '-w ' + [
+      // eslint-disable-next-line prefer-template
+      let workspacesCommandList = '-w ' + [
         'handsontable',
         '@handsontable/angular',
         '@handsontable/react',

@@ -1,4 +1,4 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import { ThisTypedComponentOptionsWithRecordProps } from 'vue/types/options';
 
 type VNode = any;
@@ -27,9 +27,9 @@ export interface HotTableMethods {
 }
 
 export interface HotTableProps extends Handsontable.GridSettings {
-  id: string,
-  settings: Handsontable.GridSettings,
-  wrapperRendererCacheSize: number
+  id?: string,
+  settings?: Handsontable.GridSettings,
+  wrapperRendererCacheSize?: number
 }
 export interface HotColumnProps extends Handsontable.GridSettings {
   settings: Handsontable.GridSettings,
@@ -62,8 +62,5 @@ type ClassFieldKey<T> = ({[P in keyof T]: T[P] extends Function ? never : P })[k
 type ClassMethods<T> = Pick<T, NotOriginalValueProp<T>>;
 type ClassFields<T> = Pick<T, ClassFieldKey<T>>;
 
-export interface BaseVueEditorMethods extends ClassMethods<Handsontable._editors.Base> {
-}
-
-export interface BaseVueEditorFields extends ClassFields<Handsontable._editors.Base> {
-}
+export interface BaseVueEditorMethods extends ClassMethods<Handsontable.editors.BaseEditor> {}
+export interface BaseVueEditorFields extends ClassFields<Handsontable.editors.BaseEditor> {}
