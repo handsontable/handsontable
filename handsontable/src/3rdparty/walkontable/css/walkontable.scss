@@ -73,8 +73,8 @@
 .handsontable th,
 .handsontable td {
   border-top-width: 0;
-  border-left-width: 0;
-  border-right: 1px solid #ccc;
+  border-inline-start-width: 0;
+  border-inline-end: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
   height: 22px;
   empty-cells: show;
@@ -90,18 +90,22 @@
 
 .handsontable th:last-child {
   /*Foundation framework fix*/
-  border-right: 1px solid #ccc;
+  border-inline-end: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
 }
 
 .handsontable th:first-child,
 .handsontable th:nth-child(2),
 .handsontable td:first-of-type {
-  border-left: 1px solid #ccc;
+  border-inline-start: 1px solid #ccc;
 }
 
+.handsontable .ht_clone_top th:nth-child(2) {
+  border-inline-start-width: 0;
+  border-inline-end: 1px solid #ccc;
+}
 .handsontable.htRowHeaders thead tr th:nth-child(2) {
-  border-left: 1px solid #ccc;
+  border-inline-start: 1px solid #ccc;
 }
 
 .handsontable tr:first-child th,
@@ -111,7 +115,8 @@
 
 .ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable tbody tr th,
 .ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
-  border-right-width: 0;
+  border-inline-end-width: 0;
+  border-inline-start: 1px solid #ccc;
 }
 
 /*
@@ -216,11 +221,11 @@ innerBorderBottom - Property controlled by bottom overlay
   Cell borders
   */
 .handsontable tbody tr th:nth-last-child(2) {
-  border-right: 1px solid #ccc;
+  border-inline-end: 1px solid #ccc;
 }
 
 .ht_clone_top_left_corner thead tr th:nth-last-child(2) {
-  border-right: 1px solid #ccc;
+  border-inline-end: 1px solid #ccc;
 }
 
 .handsontable col.hidden {
