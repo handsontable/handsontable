@@ -38,7 +38,8 @@
 .htDropdownMenu table.htCore {
   border: 1px solid #bbb;
   border-bottom-width: 2px;
-  border-right-width: 2px;
+  border-inline-start-width: 1px;
+  border-inline-end-width: 2px;
 }
 
 .htDropdownMenu .wtBorder {
