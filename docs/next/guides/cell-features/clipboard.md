@@ -122,10 +122,10 @@ Handsontable.dom.addEvent(cutBtn, 'click', function () {
 
 The **CopyPaste** plugin exposes the following hooks to manipulate data during copy or cut operations:
 
-- [beforeCopy](@/api/hooks.md#beforecopy)
-- [afterCopy](@/api/hooks.md#aftercopy)
-- [beforeCut](@/api/hooks.md#beforecut)
-- [afterCut](@/api/hooks.md#aftercut)
+- [`beforeCopy` &#8594;](@/api/hooks.md#beforecopy)
+- [`afterCopy` &#8594;](@/api/hooks.md#aftercopy)
+- [`beforeCut` &#8594;](@/api/hooks.md#beforecut)
+- [`afterCut` &#8594;](@/api/hooks.md#aftercut)
 
 Examples of how to use them are provided in their descriptions.
 
@@ -155,8 +155,8 @@ Due to security reason, modern browsers disallow to read from the system clipboa
 
 The **CopyPaste** plugin exposes the following hooks to manipulate data during the pasting operation:
 
-- [beforePaste](@/api/hooks.md#beforepaste)
-- [afterPaste](@/api/hooks.md#afterpaste)
+- [`beforePaste` &#8594;](@/api/hooks.md#beforepaste)
+- [`afterPaste` &#8594;](@/api/hooks.md#afterpaste)
 
 Examples of how to use them are provided in their descriptions.
 

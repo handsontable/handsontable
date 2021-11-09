@@ -1,6 +1,6 @@
 {
   "name": "@handsontable/react",
-  "version": "10.0.0",
+  "version": "11.0.0",
   "description": "Best Data Grid for React with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
@@ -64,7 +64,7 @@
     "enzyme": "^3.10.0",
     "enzyme-adapter-react-16": "^1.14.0",
     "enzyme-to-json": "^3.4.0",
-    "handsontable": "^10.0.0",
+    "handsontable": "^11.0.0",
     "jest": "^25.1.0",
     "prop-types": "^15.7.2",
     "react": "^16.10.2",
@@ -84,7 +84,7 @@
     "uglify-js": "^3.4.9"
   },
   "peerDependencies": {
-    "handsontable": ">=10.0.0"
+    "handsontable": ">=11.0.0"
   },
   "scripts": {
     "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min",

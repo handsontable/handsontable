@@ -1,7 +1,0 @@
-{
-  "title": "Added a new package entry point that allows importing built-in modules in one function call: (`import { registerAllEditors, registerAllRenderers, registerAllValidators, registerAllCellTypes, registerAllPlugins } from 'handsontable/registry'`).",
-  "type": "added",
-  "issue": 8816,
-  "breaking": false,
-  "framework": "none"
-}
