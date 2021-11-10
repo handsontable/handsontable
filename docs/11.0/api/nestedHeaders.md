@@ -39,13 +39,26 @@ const hot = new Handsontable(container, {
 
 ### nestedHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/dataMap/metaManager/metaSchema.js#L2921
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/dataMap/metaManager/metaSchema.js#L4112
 
 :::
 
 _nestedHeaders.nestedHeaders : Array&lt;Array&gt;_
 
-Allows creating a nested header structure, using the HTML's colspan attribute.
+The `nestedHeaders` option configures the [`NestedHeaders`](@/api/nestedHeaders.md) plugin.
+
+You can set the `nestedHeaders` option to an array of arrays:
+- Each array configures one set of nested headers.
+- Each array element configures one header, and can be one of the following:
+
+| Array element | Description                                                                                  |
+| ------------- | -------------------------------------------------------------------------------------------- |
+| A string      | The header's label                                                                           |
+| An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): the column width |
+
+Read more:
+- [Plugins: `NestedHeaders` &#8594;](@/api/nestedHeaders.md)
+- [Column groups: Nested headers &#8594;](@/guides/columns/column-groups.md#nested-headers)
 
 **Default**: <code>undefined</code>  
 **Example**  
@@ -61,7 +74,7 @@ nestedHeaders: [
 
 ### detectedOverlappedHeaders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/nestedHeaders/nestedHeaders.js#L90
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L90
 
 :::
 
@@ -75,7 +88,7 @@ configuration.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/nestedHeaders/nestedHeaders.js#L594
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L594
 
 :::
 
@@ -87,7 +100,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/nestedHeaders/nestedHeaders.js#L189
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L189
 
 :::
 
@@ -99,7 +112,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/nestedHeaders/nestedHeaders.js#L104
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L104
 
 :::
 
@@ -111,7 +124,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/nestedHeaders/nestedHeaders.js#L97
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L97
 
 :::
 
@@ -123,7 +136,7 @@ Check if plugin is enabled.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/nestedHeaders/nestedHeaders.js#L136
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/nestedHeaders/nestedHeaders.js#L136
 
 :::
 

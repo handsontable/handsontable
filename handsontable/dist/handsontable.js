@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 11.0.0
- * Release date: 15/11/2021 (built at 09/11/2021 09:16:49)
+ * Release date: 15/11/2021 (built at 09/11/2021 16:38:44)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -39141,7 +39141,7 @@ var _default = function _default() {
     allowHtml: false,
 
     /**
-     * The `renderAllRows` option configures Handsontable's [row virtualization](@/guides/rows/row-virtualization).
+     * The `renderAllRows` option configures Handsontable's [row virtualization](@/guides/rows/row-virtualization.md).
      *
      * You can set the `renderAllRows` option to one of the following:
      *
@@ -43873,7 +43873,7 @@ Handsontable.Core = function (rootElement) {
 Handsontable.DefaultSettings = (0, _dataMap.metaSchemaFactory)();
 Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "09/11/2021 09:16:49";
+Handsontable.buildDate = "09/11/2021 16:38:44";
 Handsontable.version = "11.0.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,

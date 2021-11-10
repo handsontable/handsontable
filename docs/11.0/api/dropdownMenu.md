@@ -48,31 +48,69 @@ const hot = new Handsontable(container, {
 
 ### dropdownMenu
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/dataMap/metaManager/metaSchema.js#L2778
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/dataMap/metaManager/metaSchema.js#L3882
 
 :::
 
 _dropdownMenu.dropdownMenu : boolean | object | Array&lt;string&gt;_
 
-This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
-the [Options#contextMenu](@/api/options.md#contextmenu), but is triggered by clicking the button in the header.
+The `dropdownMenu` option configures the [`DropdownMenu`](@/api/dropdownMenu.md) plugin.
+
+You can set the `dropdownMenu` option to one of the following:
+
+| Setting   | Description                                                                                                                                                                                  |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `false`   | Disable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin                                                                                                                                   |
+| `true`    | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Use the [default context menu options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-default-options)    |
+| An array  | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Modify [individual context menu options](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options) |
+| An object | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Apply a custom dropdown menu configuration                                                                                  |
+
+Read more:
+- [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+- [Plugins: `DropdownMenu` &#8594;](@/api/dropdownMenu.md)
 
 **Default**: <code>undefined</code>  
 **Example**  
 ```js
-// enable dropdown menu
+// enable the `DropdownMenu` plugin
+// use the default context menu options
 dropdownMenu: true,
 
-// or
-// enable and configure dropdown menu options
-dropdownMenu: ['remove_col', '---------', 'make_read_only', 'alignment']
+// enable the `DropdownMenu` plugin
+// and modify individual context menu options
+dropdownMenu: ['row_above', 'row_below', '---------', 'undo', 'redo'],
+
+// enable the `DropdownMenu` plugin
+// and apply a custom dropdown menu configuration
+dropdownMenu: {
+  items: {
+    'option1': {
+      name: 'option1'
+    },
+    'option2': {
+      name: 'option2',
+      submenu: {
+        items: [
+          {
+            key: 'option2:suboption1',
+            name: 'option2:suboption1',
+            callback(key, options) {
+              ...
+            }
+          },
+          ...
+        ]
+      }
+    }
+  }
+},
 ```
 
 ## Members
 
 ### DEFAULT_ITEMS
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/dropdownMenu/dropdownMenu.js#L89
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/dropdownMenu/dropdownMenu.js#L89
 
 :::
 
@@ -85,7 +123,7 @@ Default menu items order when `dropdownMenu` is enabled by setting the config it
 
 ### close
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/dropdownMenu/dropdownMenu.js#L258
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/dropdownMenu/dropdownMenu.js#L258
 
 :::
 
@@ -97,7 +135,7 @@ Closes dropdown menu.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/dropdownMenu/dropdownMenu.js#L425
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/dropdownMenu/dropdownMenu.js#L425
 
 :::
 
@@ -109,7 +147,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/dropdownMenu/dropdownMenu.js#L213
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/dropdownMenu/dropdownMenu.js#L213
 
 :::
 
@@ -121,7 +159,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/dropdownMenu/dropdownMenu.js#L155
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/dropdownMenu/dropdownMenu.js#L155
 
 :::
 
@@ -134,7 +172,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### executeCommand
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/dropdownMenu/dropdownMenu.js#L291
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/dropdownMenu/dropdownMenu.js#L291
 
 :::
 
@@ -172,7 +210,7 @@ Or you can execute command registered in settings where `key` is your command na
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/dropdownMenu/dropdownMenu.js#L145
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/dropdownMenu/dropdownMenu.js#L145
 
 :::
 
@@ -185,7 +223,7 @@ hook and if it returns `true` than the [DropdownMenu#enablePlugin](@/api/dropdow
 
 ### open
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/dropdownMenu/dropdownMenu.js#L243
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/dropdownMenu/dropdownMenu.js#L243
 
 :::
 
@@ -203,7 +241,7 @@ Opens menu and re-position it based on the passed coordinates.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/02b383f1251b92a16acfecc11a5fa136efd15e1f/../src/plugins/dropdownMenu/dropdownMenu.js#L204
+::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/dropdownMenu/dropdownMenu.js#L204
 
 :::
 
