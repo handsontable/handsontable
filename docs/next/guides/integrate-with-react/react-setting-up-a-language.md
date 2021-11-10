@@ -1,15 +1,15 @@
 ---
-title: Setting up a locale
-metaTitle: Setting up a locale - Guide - Handsontable Documentation
-permalink: /next/react-setting-up-a-locale
-canonicalUrl: /react-setting-up-a-locale
+title: Setting up a translation
+metaTitle: Setting up a translation - Guide - Handsontable Documentation
+permalink: /next/react-setting-up-a-language
+canonicalUrl: /react-setting-up-a-language
 ---
 
-# Setting up a locale
+# Setting up a translation
 
 ## Overview
 
-The following example shows a Handsontable instance with locales set up in React.
+The following example shows a Handsontable instance with translations set up in React.
 
 ## Example
 
@@ -17,9 +17,13 @@ The following example shows a Handsontable instance with locales set up in React
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from '@handsontable/react';
+import { registerAllModules } from 'handsontable/registry';
+
 import 'handsontable/dist/handsontable.min.css';
+
+// register Handsontable's modules
+registerAllModules();
 
 import numbro from 'numbro';
 import languages from 'numbro/dist/languages.min.js';

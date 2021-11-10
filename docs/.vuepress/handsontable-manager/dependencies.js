@@ -19,13 +19,13 @@ const getHotUrls = (version) => {
     languagesJs: `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/languages/all.js`
   };
 };
-const getFixer = () => {
+const getCommonScript = (scriptName) => {
   if (isBrowser) {
     // eslint-disable-next-line no-restricted-globals
-    return [`${window.location.origin}/docs/scripts/fixer.js`, ['require', 'exports']];
+    return [`${window.location.origin}/docs/scripts/${scriptName}.js`, ['require', 'exports']];
   }
 
-  return ['https://handsontable.com/docs/scripts/fixer.js', ['require', 'exports']];
+  return [`https://handsontable.com/docs/scripts/${scriptName}.js`, ['require', 'exports']];
 };
 
 /**
@@ -39,12 +39,14 @@ const getFixer = () => {
 const buildDependencyGetter = (version) => {
   const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version);
   const mappedVersion = formatVersion(version);
-  const fixer = getFixer();
+  const fixer = getCommonScript('fixer');
+  const helpers = getCommonScript('helpers');
 
   return (dependency) => {
     /* eslint-disable max-len */
     const dependencies = {
       fixer,
+      helpers,
       hot: [handsontableJs, ['Handsontable'], handsontableCss],
       react: ['https://unpkg.com/react@17/umd/react.development.js', ['React']],
       'react-dom': ['https://unpkg.com/react-dom@17/umd/react-dom.development.js', ['ReactDOM']],
@@ -79,17 +81,17 @@ const presetMap = {
   hot: ['hot'],
   'hot-lang': ['hot', 'languages'],
   'hot-numbro': ['hot', 'numbro'],
-  react: ['hot', 'react', 'react-dom', 'hot-react', 'fixer'],
-  'react-languages': ['hot', 'languages', 'react', 'react-dom', 'hot-react', 'fixer'],
-  'react-numbro': ['hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer'],
-  'react-redux': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer'],
-  angular: ['hot', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
-  'angular-languages': ['hot', 'languages', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
-  'angular-numbro': ['hot', 'numbro', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
-  vue: ['hot', 'vue', 'hot-vue', 'fixer'],
-  'vue-numbro': ['hot', 'numbro', 'vue', 'hot-vue', 'fixer'],
-  'vue-languages': ['hot', 'languages', 'vue', 'hot-vue', 'fixer'],
-  'vue-vuex': ['hot', 'vue', 'vuex', 'hot-vue', 'fixer'],
+  react: ['hot', 'react', 'react-dom', 'hot-react', 'fixer', 'helpers'],
+  'react-languages': ['hot', 'languages', 'react', 'react-dom', 'hot-react', 'fixer', 'helpers'],
+  'react-numbro': ['hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer', 'helpers'],
+  'react-redux': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer', 'helpers'],
+  angular: ['hot', 'fixer', 'helpers', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
+  'angular-languages': ['hot', 'languages', 'fixer', 'helpers', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
+  'angular-numbro': ['hot', 'numbro', 'fixer', 'helpers', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
+  vue: ['hot', 'vue', 'hot-vue', 'fixer', 'helpers'],
+  'vue-numbro': ['hot', 'numbro', 'vue', 'hot-vue', 'fixer', 'helpers'],
+  'vue-languages': ['hot', 'languages', 'vue', 'hot-vue', 'fixer', 'helpers'],
+  'vue-vuex': ['hot', 'vue', 'vuex', 'hot-vue', 'fixer', 'helpers'],
   /* eslint-enable max-len */
 };
 

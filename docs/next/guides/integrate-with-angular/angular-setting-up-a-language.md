@@ -1,14 +1,14 @@
 ---
-title: Setting up a locale
-metaTitle: Setting up a locale - Guide - Handsontable Documentation
-permalink: /next/angular-setting-up-a-locale
-canonicalUrl: /angular-setting-up-a-locale
+title: Setting up a translation
+metaTitle: Setting up a translation - Guide - Handsontable Documentation
+permalink: /next/angular-setting-up-a-language
+canonicalUrl: /angular-setting-up-a-language
 ---
 
-# Setting up a locale
+# Setting up a translation
 
 ## Overview
-The following example shows a Handsontable instance with locales set up in Angular.
+The following example shows a Handsontable instance with translations set up in Angular.
 
 ## Example
 ::: example :angular-numbro --html 1 --js 2
@@ -19,7 +19,6 @@ The following example shows a Handsontable instance with locales set up in Angul
 ```ts
 // app.component.ts
 import { Component } from '@angular/core';
-import Handsontable from 'handsontable';
 import * as numbro from 'numbro';
 import * as languages from 'numbro/dist/languages.min';
 
@@ -82,6 +81,10 @@ class AppComponent {
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
 
 @NgModule({
   imports:      [ BrowserModule, HotTableModule ],

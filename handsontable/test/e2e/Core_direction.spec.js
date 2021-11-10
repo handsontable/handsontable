@@ -10,7 +10,7 @@ describe('Core_alter', () => {
       destroy();
       this.$container.remove();
     }
-    $('html').removeAttr('dir');
+    $('html').attr('dir', 'ltr');
   });
 
   describe('Direction detection', () => {

@@ -2,7 +2,6 @@ import { condition } from 'handsontable/plugins/filters/condition/beginsWith';
 import { dateRowFactory } from '../helpers/utils';
 
 describe('Filters condition (`begins_with`)', () => {
-
   it('should filter matching values', () => {
     const data = dateRowFactory();
 
@@ -39,5 +38,21 @@ describe('Filters condition (`begins_with`)', () => {
     expect(condition(data(true), ['false'])).toBe(false);
     expect(condition(data('true'), [false])).toBe(false);
     expect(condition(data(true), ['e'])).toBe(false);
+  });
+
+  it('should handle locales properly', () => {
+    const data = dateRowFactory({ locale: 'tr-TR' });
+
+    expect(condition(data('İnanç'), ['i'])).toBe(true);
+    expect(condition(data('İnanç'), ['in'])).toBe(true);
+    expect(condition(data('İnanç'), ['ina'])).toBe(true);
+    expect(condition(data('İnanç'), ['inan'])).toBe(true);
+    expect(condition(data('İnanç'), ['inanç'])).toBe(true);
+
+    expect(condition(data('İNANÇ'), ['i'])).toBe(true);
+    expect(condition(data('İNANÇ'), ['in'])).toBe(true);
+    expect(condition(data('İNANÇ'), ['ina'])).toBe(true);
+    expect(condition(data('İNANÇ'), ['inan'])).toBe(true);
+    expect(condition(data('İNANÇ'), ['inanç'])).toBe(true);
   });
 });

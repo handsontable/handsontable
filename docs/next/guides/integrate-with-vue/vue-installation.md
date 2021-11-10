@@ -30,6 +30,10 @@ npm install handsontable @handsontable/vue
 
 <script>
   import { HotTable } from '@handsontable/vue';
+  import { registerAllModules } from 'handsontable/registry';
+
+  // register Handsontable's modules
+  registerAllModules();
 
   export default {
     data: function() {
