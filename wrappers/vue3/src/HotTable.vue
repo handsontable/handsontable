@@ -128,13 +128,14 @@
 
         newSettings.columns = this.columnSettings ? this.columnSettings : newSettings.columns;
 
-        // TODO: bring back vue components in cells
+        // TODO: implement declarative editors
         if (globalEditorVNode) {
           newSettings.editor = this.getEditorClass(globalEditorVNode, this);
 
           // globalEditorVNode.child.$destroy();
         }
 
+        // TODO: implement declarative renderers
         if (globalRendererVNode) {
           newSettings.renderer = this.getRendererWrapper(globalRendererVNode, this);
 
@@ -213,8 +214,6 @@
        * Get settings for the columns provided in the `hot-column` components.
        */
       getColumnSettings: function (): HotTableProps[] | void {
-        // const slots = typeof this.$slots.default === 'function' ? this.$slots.default() : [];
-        // const hotColumns = getHotColumnComponents(this.$slots?.default() || []);
         const hotColumns: any[] = Array.from(this.columnsCache.values());
         const columnSettings: HotTableProps[] = [];
         let usesRendererComponent = false;

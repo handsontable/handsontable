@@ -221,7 +221,13 @@ export function getHotColumnComponents(children) {
   return children.filter(child => getVNodeName(child) === 'HotColumn')
 }
 
-function getVNodeName(node: VNode) {
+/**
+ * Returns the Vue Component name.
+ *
+ * @param {Object} vNode VNode element to be checked.
+ * @returns {String}
+ */
+export function getVNodeName(node: VNode) {
   if (typeof node.type === 'string') {
     return node.type;
   }
@@ -237,7 +243,6 @@ function getVNodeName(node: VNode) {
  * @param {Object} props Props to be passed to the new instance.
  * @param {Object} data Data to be passed to the new instance.
  */
-// export function createVueComponent(vNode: VNode, parent: Vue, props: any, data: object): EditorComponent {
 export function createVueComponent(vNode: VNode, parent: Vue, props: any, data: object) {
   const ownerDocument = parent.element ? parent.element.ownerDocument : document;
   const settings: Record<string, unknown> = {
