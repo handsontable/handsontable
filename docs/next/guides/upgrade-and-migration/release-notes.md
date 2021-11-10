@@ -17,21 +17,21 @@ tags:
 
 Released on 15th of November, 2021
 
-### Added
-- Added TypeScript definition files for Handsontable's modularized version. [#7489](https://github.com/handsontable/handsontable/issues/7489) (**Breaking change**)
-- *Vue:* Added support for modularization to the Vue wrapper. [#8820](https://github.com/handsontable/handsontable/issues/8820) (**Breaking change**)
-- *React:* Added support for modularization to the React wrapper. [#8819](https://github.com/handsontable/handsontable/issues/8819) (**Breaking change**)
-- *Angular:* Added support for modularization to the Angular wrapper. [#8818](https://github.com/handsontable/handsontable/issues/8818) (**Breaking change**)
+**Added**
+- Added TypeScript definition files for Handsontable's modularized version. [#7489](https://github.com/handsontable/handsontable/issues/7489) **[breaking change]**
+- *Vue:* Added support for modularization to the Vue wrapper. [#8820](https://github.com/handsontable/handsontable/issues/8820) **[breaking change]**
+- *React:* Added support for modularization to the React wrapper. [#8819](https://github.com/handsontable/handsontable/issues/8819) **[breaking change]**
+- *Angular:* Added support for modularization to the Angular wrapper. [#8818](https://github.com/handsontable/handsontable/issues/8818) **[breaking change]**
 - Added a new package entry point that allows importing built-in modules in one function call: `import { registerAllEditors, registerAllRenderers, registerAllValidators, registerAllCellTypes, registerAllPlugins } from 'handsontable/registry'`. [#8816](https://github.com/handsontable/handsontable/issues/8816)
 - Added a new `locale` option, to properly handle locale-based data. [#8897](https://github.com/handsontable/handsontable/issues/8897)
 - Added a GitHub Actions workflow that covers testing Handsontable and the wrappers. [#8652](https://github.com/handsontable/handsontable/issues/8652)
 
-### Changed
-- Changed how the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888) (**Breaking change**)
+**Changed**
+- Changed how the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888) **[breaking change]**
 - Moved the entire Handsontable package to its own, new subdirectory: `./handsontable`. [#8759](https://github.com/handsontable/handsontable/issues/8759) 
 - Replaced the license files with updated versions. [#8877](https://github.com/handsontable/handsontable/issues/8877)
 
-### Fixed
+**Fixed**
 - Improved the performance of a regular expression used to detect numeric values, and fixed major code smells. [#8752](https://github.com/handsontable/handsontable/issues/8752) 
 - Fixed an issue with incorrect filtering of locale-based data while using search input from a drop-down menu. [#6095](https://github.com/handsontable/handsontable/issues/6095) 
 - Fixed an error thrown when using the `populateFromArray()` method with its `method` argument set to `shift_right`. [#6929](https://github.com/handsontable/handsontable/issues/6929) 
