@@ -21,18 +21,18 @@
        * Create the column settings based on the data provided to the `hot-column` component and it's child components.
        */
       createColumnSettings: function (): void {
-        const hotColumnSlots: VNode[] | any[] = typeof this.$slots.default === 'function' ? this.$slots.default() : [];
+        const hotColumnSlots: VNode[] = typeof this.$slots.default === 'function' ? this.$slots.default() : [];
         const rendererVNode: VNode | null = findVNodeByType(hotColumnSlots, 'hot-renderer');
         const editorVNode: VNode | null = findVNodeByType(hotColumnSlots, 'hot-editor');
 
         let usesRendererComponent = false;
         const assignedProps = filterPassedProps(this.$props);
 
-        if (rendererVNode && usesRendererComponent === false) {
+        if (rendererVNode) {
           usesRendererComponent = true;
         }
 
-        let columnSettings = { ...assignedProps, usesRendererComponent: false };
+        const columnSettings = { ...assignedProps };
 
         if (rendererVNode !== null) {
           columnSettings.renderer = this.$parent.getRendererWrapper(rendererVNode, this);
@@ -50,14 +50,14 @@
 
         columnSettings.usesRendererComponent = usesRendererComponent;
 
-        this.columnsCache.set(this, columnSettings)
+        this.columnsCache.set(this, columnSettings);
       }
     },
     mounted: function () {
       this.createColumnSettings();
     },
     unmounted: function () {
-      this.columnsCache.delete(this)
+      this.columnsCache.delete(this);
     },
     render: function () {
       return null;

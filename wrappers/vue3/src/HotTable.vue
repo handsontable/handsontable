@@ -5,6 +5,7 @@
 </template>
 
 <script lang="ts">
+  import { render } from 'vue';
   import {
     propFactory,
     preventInternalEditWatch,
@@ -82,8 +83,10 @@
 
       // Make the LRU cache destroy each removed component
       rendererCache.shift = function () {
-        let entry = LRUMap.prototype.shift.call(this);
-        entry[1].component.$destroy();
+        const entry = LRUMap.prototype.shift.call(this);
+
+        // equal to $destroy in Vue2
+        render(null, entry[1].component.$el);
 
         return entry;
       };
@@ -120,7 +123,6 @@
        * Initialize Handsontable.
        */
       hotInit: function (): void {
-        // TODO: bring back vue components in cells
         const globalRendererVNode = this.getGlobalRendererVNode();
         const globalEditorVNode = this.getGlobalEditorVNode();
 
@@ -128,14 +130,12 @@
 
         newSettings.columns = this.columnSettings ? this.columnSettings : newSettings.columns;
 
-        // TODO: implement declarative editors
         if (globalEditorVNode) {
           newSettings.editor = this.getEditorClass(globalEditorVNode, this);
 
           // globalEditorVNode.child.$destroy();
         }
 
-        // TODO: implement declarative renderers
         if (globalRendererVNode) {
           newSettings.renderer = this.getRendererWrapper(globalRendererVNode, this);
 
@@ -230,7 +230,7 @@
           (typeof this.settings === 'object' && (this.settings.autoColumnSize !== false || this.settings.autoRowSize)) &&
           (this.autoColumnSize !== false || this.autoRowSize)) {
           console.warn('Your `hot-table` configuration includes both `hot-column` and `autoRowSize`/`autoColumnSize`, which are not compatible with each other ' +
-            'in this version of `@handsontable/vue`. Disable `autoRowSize` and `autoColumnSize` to prevent row and column misalignment.');
+            'in this version of `@handsontable/vue3`. Disable `autoRowSize` and `autoColumnSize` to prevent row and column misalignment.');
         }
 
         return columnSettings.length ? columnSettings : void 0;
@@ -261,8 +261,7 @@
             };
 
             if (rendererCache && !rendererCache.has(`${row}-${col}`)) {
-              const mountedComponent: Vue = createVueComponent(
-                vNode, containerComponent, {}, rendererArgs);
+              const mountedComponent: Vue = createVueComponent(vNode, containerComponent, rendererArgs);
 
               rendererCache.set(`${row}-${col}`, {
                 component: mountedComponent,
@@ -273,8 +272,6 @@
             const cachedEntry = rendererCache.get(`${row}-${col}`);
             const cachedComponent: Vue = cachedEntry.component;
             const cachedTD: HTMLTableCellElement = cachedEntry.lastUsedTD;
-
-            Object.assign(cachedComponent.$data, rendererArgs);
 
             if (!cachedComponent.$el.parentElement || cachedTD !== TD) {
               // Clear the previous contents of a TD

@@ -196,10 +196,7 @@ export function findVNodeByType(componentSlots: VNode[], type: string): VNode {
   let componentVNode: VNode = null;
 
   componentSlots.every((slot, index) => {
-    if (getVNodeName(slot) === 'HotColumn' && slot.children) {
-      componentVNode = findVNodeByType(slot.children.default(), type);
-
-    } else if (slot.props && slot.props[type] !== void 0) {
+    if (slot.props && slot.props[type] !== void 0) {
       componentVNode = slot;
 
       return false;
@@ -243,15 +240,8 @@ export function getVNodeName(node: VNode) {
  * @param {Object} props Props to be passed to the new instance.
  * @param {Object} data Data to be passed to the new instance.
  */
-export function createVueComponent(vNode: VNode, parent: Vue, props: any, data: object) {
+export function createVueComponent(vNode: VNode, parent: Vue, data: Record<string, unknown>) {
   const ownerDocument = parent.element ? parent.element.ownerDocument : document;
-  const settings: Record<string, unknown> = {
-    props,
-    // parent,
-    data() {
-      return data;
-    }
-  };
 
   if (!bulkComponentContainer) {
     bulkComponentContainer = ownerDocument.createElement('DIV');
@@ -264,7 +254,14 @@ export function createVueComponent(vNode: VNode, parent: Vue, props: any, data: 
 
   bulkComponentContainer.appendChild(componentContainer);
 
-  return createApp(vNode).mount(componentContainer);
+  const app = createApp({
+    template: vNode.type.template,
+    data() {
+      return data;
+    }
+  });
+
+  return app.mount(componentContainer);
 }
 
 /**

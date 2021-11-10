@@ -4,7 +4,7 @@ import {
 } from '../src/helpers';
 import { createStore } from 'vuex';
 import { createVNode, defineComponent, createApp } from 'vue';
-import { mount, config } from '@vue/test-utils';
+import { mount, shallowMount, config } from '@vue/test-utils';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 config.renderStubDefaultSlot = true;
