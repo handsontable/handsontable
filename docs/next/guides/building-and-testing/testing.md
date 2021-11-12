@@ -1,6 +1,6 @@
 ---
-title: Testing process
-metaTitle: Testing process - Guide - Handsontable Documentation
+title: Testing
+metaTitle: Testing - Guide - Handsontable Documentation
 permalink: /next/testing
 canonicalUrl: /testing
 tags:
@@ -13,7 +13,7 @@ tags:
   - 
 ---
 
-# Testing process
+# Testing
 
 [[toc]]
 
@@ -27,8 +27,12 @@ To run the Jasmine tests in your browser, go to the following pages:
 
 ## Testing with NPM (CLI)
 
-To run Jasmine tests in your command line (using Puppeteer), first install all necessary dependencies by executing `npm install`. After the `NPM` finishes fetching required modules your workspace is ready to test.
+To run Jasmine tests in your command line (using Puppeteer), first install all necessary dependencies by executing `npm install`. After the `NPM` finishes fetching required modules, your workspace is ready to test.
 
+To run all tests from the monorepo's root directory, use the following command:
+* `npm run test`
+
+To run individual tests, go to to the `./handsontable` directory, and use the following commands:
 * `npm test` - runs all test cases (Handsontable and Walkontable).
 * `npm test:unit` - runs all unit tests.
 * `npm test:walkontable` - runs only Walkontable tests.
