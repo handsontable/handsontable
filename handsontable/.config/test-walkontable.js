@@ -51,7 +51,7 @@ module.exports.create = function create(envArgs) {
           ) ? '../../../../' : '../../../../../'
         }`,
         externalCssFiles: [
-          '../css/walkontable.css',
+          '../dist/walkontable.css',
           '../css/walkontable.test.css',
         ],
         externalJsFiles: [
