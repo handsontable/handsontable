@@ -25,7 +25,8 @@
 .htDropdownMenu:not(.htGhostTable) {
   display: none;
   position: absolute;
-  z-index: 1060; /* needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569) */
+  /* needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569) */
+  z-index: 1060;
 }
 
 .htDropdownMenu .ht_clone_top,
