@@ -100,10 +100,12 @@
   border-inline-start: 1px solid #ccc;
 }
 
+/* It removes double right border from first column header when row headers are disabled */
 .handsontable .ht_clone_top th:nth-child(2) {
   border-inline-start-width: 0;
   border-inline-end: 1px solid #ccc;
 }
+
 .handsontable.htRowHeaders thead tr th:nth-child(2) {
   border-inline-start: 1px solid #ccc;
 }
