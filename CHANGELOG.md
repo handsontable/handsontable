@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
-## [11.0.0] - 2021-11-15
+## [11.0.0] - 2021-11-17
 
 ### Added
 - Added TypeScript definition files for Handsontable's modularized version. [#7489](https://github.com/handsontable/handsontable/issues/7489) (**Breaking change**)

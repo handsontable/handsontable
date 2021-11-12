@@ -15,7 +15,7 @@ tags:
 
 ## 11.0.0
 
-Released on 15th of November, 2021
+Released on 17th of November, 2021
 
 **Added**
 - Added TypeScript definition files for Handsontable's modularized version. [#7489](https://github.com/handsontable/handsontable/issues/7489) **[breaking change]**
