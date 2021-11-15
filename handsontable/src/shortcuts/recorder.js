@@ -1,30 +1,28 @@
 import { createKeyStore } from './keyStore';
-import { normalizeKeyCode } from './utils';
+import { normalizeEventKey } from './utils';
 
 /**
  * @param {EventTarget} frame
- * @param invokeClbck
+ * @param {Function} invokeClbck
+ * @returns {Function}
  */
 export function useRecorder(frame, invokeClbck) {
   const keyStore = createKeyStore();
   let eventTarget = frame;
 
-  window.keys = keyStore;
-
   while (eventTarget) {
     eventTarget.addEventListener('keydown', onkeydown);
     eventTarget.addEventListener('keyup', onkeyup);
     eventTarget.addEventListener('blur', onblur);
-    eventTarget.addEventListener('unload', onunload);
 
     eventTarget = eventTarget.frameElement;
   }
 
   /**
-   * @param event
+   * @param {KeyboardEvent} event
    */
   function onkeydown(event) {
-    keyStore.press(normalizeKeyCode(event.code));
+    keyStore.press(normalizeEventKey(event.key));
 
     const nextCombination = keyStore.getPressed().sort().join('+');
 
@@ -32,16 +30,28 @@ export function useRecorder(frame, invokeClbck) {
   }
 
   /**
-   * @param event
+   * @param {KeyboardEvent} event
    */
   function onkeyup(event) {
-    keyStore.release(normalizeKeyCode(event.code));
+    keyStore.release(normalizeEventKey(event.key));
   }
 
   /**
-   * @param event
+   *
    */
   function onblur() {
     keyStore.releaseAll();
   }
+
+  return () => {
+    eventTarget = frame;
+
+    while (eventTarget) {
+      eventTarget.removeEventListener('keydown', onkeydown);
+      eventTarget.removeEventListener('keyup', onkeyup);
+      eventTarget.removeEventListener('blur', onblur);
+
+      eventTarget = eventTarget.frameElement;
+    }
+  };
 }

@@ -68,8 +68,8 @@ describe('BaseEditor', () => {
       expect(getDataAtCell(1, 1)).toEqual('B2');
       expect(getDataAtCell(2, 2)).toEqual('C3');
 
-      keyDown(Handsontable.helper.KEY_CODES.ENTER);
-      keyDown('ctrl+enter');
+      keyDownUp(['enter']);
+      keyDownUp(['control', 'enter']);
 
       expect(getDataAtCell(1, 1)).toEqual('B2');
       expect(getDataAtCell(1, 2)).toEqual('B2');
@@ -83,8 +83,8 @@ describe('BaseEditor', () => {
       expect(getDataAtCell(1, 2)).toEqual('C2');
       expect(getDataAtCell(2, 1)).toEqual('B3');
 
-      keyDown(Handsontable.helper.KEY_CODES.ENTER);
-      keyDown('ctrl+enter');
+      keyDownUp(['enter']);
+      keyDownUp(['control', 'enter']);
 
       expect(getDataAtCell(1, 1)).toEqual('C2');
       expect(getDataAtCell(1, 2)).toEqual('C2');
@@ -95,8 +95,8 @@ describe('BaseEditor', () => {
       selectCell(2, 2, 1, 1);
       expect(getDataAtCell(2, 2)).toEqual('C3');
 
-      keyDown(Handsontable.helper.KEY_CODES.ENTER);
-      keyDown('ctrl+enter');
+      keyDownUp(['enter']);
+      keyDownUp(['control', 'enter']);
 
       expect(getDataAtCell(1, 1)).toEqual('C3');
       expect(getDataAtCell(1, 2)).toEqual('C3');
@@ -107,8 +107,8 @@ describe('BaseEditor', () => {
       selectCell(2, 1, 1, 2);
       expect(getDataAtCell(2, 1)).toEqual('B3');
 
-      keyDown(Handsontable.helper.KEY_CODES.ENTER);
-      keyDown('ctrl+enter');
+      keyDownUp(['enter']);
+      keyDownUp(['control', 'enter']);
 
       expect(getDataAtCell(1, 1)).toEqual('B3');
       expect(getDataAtCell(1, 2)).toEqual('B3');

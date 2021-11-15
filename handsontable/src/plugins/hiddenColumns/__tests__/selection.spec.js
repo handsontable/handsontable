@@ -195,12 +195,12 @@ describe('HiddenColumns', () => {
       mouseDown(startColumn, 'LMB');
       mouseUp(startColumn);
 
-      keyDown('ctrl');
+      keyDown(['control']);
 
       mouseDown(endColumn, 'LMB');
       mouseUp(endColumn);
 
-      keyUp('ctrl');
+      keyUp(['control']);
 
       expect(getSelected()).toEqual([
         [-1, 4, 4, 4],
@@ -258,11 +258,13 @@ describe('HiddenColumns', () => {
       |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDown('ctrl');
+      keyDown(['control']);
 
       $(getCell(3, 5)).simulate('mousedown');
       $(getCell(5, 8)).simulate('mouseover');
       $(getCell(5, 8)).simulate('mouseup');
+
+      keyUp(['control']);
 
       expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8]]);
       expect(getSelectedRangeLast().highlight.row).toBe(3);
@@ -371,7 +373,7 @@ describe('HiddenColumns', () => {
 
       selectCell(0, 2);
 
-      keyDownUp('arrow_left');
+      keyDownUp(['arrowleft']);
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(`
@@ -1068,13 +1070,13 @@ describe('HiddenColumns', () => {
         $(getCell(4, 6)).simulate('mouseover');
         $(getCell(4, 6)).simulate('mouseup');
 
-        keyDown('ctrl');
+        keyDown(['control']);
 
         $(getCell(3, 5)).simulate('mousedown');
         $(getCell(5, 8)).simulate('mouseover');
         $(getCell(5, 8)).simulate('mouseup');
 
-        keyDown('ctrl');
+        keyUp(['control']);
 
         $(getCell(3, 6)).simulate('mousedown');
         $(getCell(6, 9)).simulate('mouseover');
@@ -1214,17 +1216,17 @@ describe('HiddenColumns', () => {
         $(getCell(4, 6)).simulate('mouseover');
         $(getCell(4, 6)).simulate('mouseup');
 
-        keyDown('ctrl');
+        keyDown(['control']);
 
         $(getCell(3, 5)).simulate('mousedown');
         $(getCell(5, 8)).simulate('mouseover');
         $(getCell(5, 8)).simulate('mouseup');
 
-        keyDown('ctrl');
-
         $(getCell(3, 6)).simulate('mousedown');
         $(getCell(6, 9)).simulate('mouseover');
         $(getCell(6, 9)).simulate('mouseup');
+
+        keyUp(['control']);
 
         expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
         expect(getSelectedRangeLast().highlight.row).toBe(3);

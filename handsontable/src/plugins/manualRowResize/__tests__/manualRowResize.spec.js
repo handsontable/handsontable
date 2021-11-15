@@ -791,10 +791,14 @@ describe('manualRowResize', () => {
       });
 
       selectRows(3);
-      keyDown('ctrl');
+
+      keyDown(['control']);
+
       selectRows(7);
       selectRows(10);
-      keyUp('ctrl');
+
+      keyUp(['control']);
+
       getLeftClone().find('tbody tr:eq(10) th:eq(0)').simulate('mouseover');
 
       const $resizer = spec().$container.find('.manualRowResizer');

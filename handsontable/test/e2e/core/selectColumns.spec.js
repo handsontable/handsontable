@@ -58,8 +58,9 @@ describe('Core.selectColumns', () => {
     });
 
     selectColumns(2);
-    keyDown('ctrl');
+    keyDown(['control']);
     selectColumns(0);
+    keyUp(['control']);
 
     expect(`
       |   ║ * :   : * :   |

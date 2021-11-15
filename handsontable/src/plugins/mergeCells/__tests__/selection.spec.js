@@ -48,10 +48,12 @@ describe('MergeCells Selection', () => {
     const selectedCellOpacity = getComputedStyle(mergedCell, ':before').opacity;
     const firstRowHeader = getCell(0, -1, true);
 
-    keyDown('ctrl');
+    keyDown(['control']);
 
     $(firstRowHeader).simulate('mousedown');
     $(firstRowHeader).simulate('mouseup');
+
+    keyUp(['control']);
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
@@ -118,28 +120,28 @@ describe('MergeCells Selection', () => {
 
     deselectCell();
 
-    keyDown('ctrl');
+    keyDown(['control']);
     $(rowHeaders[0]).simulate('mousedown');
     $(rowHeaders[1]).simulate('mouseover');
     $(rowHeaders[1]).simulate('mouseup');
     $(rowHeaders[2]).simulate('mousedown');
     $(rowHeaders[2]).simulate('mouseover');
     $(rowHeaders[2]).simulate('mouseup');
-    keyUp('ctrl');
+    keyUp(['control']);
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
 
     deselectCell();
 
-    keyDown('ctrl');
+    keyDown(['control']);
     $(columnHeaders[0]).simulate('mousedown');
     $(columnHeaders[1]).simulate('mouseover');
     $(columnHeaders[1]).simulate('mouseup');
     $(columnHeaders[2]).simulate('mousedown');
     $(columnHeaders[3]).simulate('mouseover');
     $(columnHeaders[3]).simulate('mouseup');
-    keyUp('ctrl');
+    keyUp(['control']);
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
@@ -167,11 +169,13 @@ describe('MergeCells Selection', () => {
     const firstRowHeader = getCell(0, -1, true);
     const thirdRowHeader = getCell(2, -1, true);
 
-    keyDown('ctrl');
+    keyDown(['control']);
 
     $(firstRowHeader).simulate('mousedown');
     $(thirdRowHeader).simulate('mouseover');
     $(thirdRowHeader).simulate('mouseup');
+
+    keyUp(['control']);
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);

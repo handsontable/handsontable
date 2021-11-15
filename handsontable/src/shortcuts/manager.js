@@ -9,6 +9,7 @@ export const createShortcutManager = (frame = window) => {
     errorIdExists: keys => `The passed context name "${keys}" is already registered.`
   });
   const ACTIVE_CONTEXTS = createUniqueSet();
+  let listening = false;
 
   const addContext = (name) => {
     const context = createContext(name);
@@ -30,7 +31,11 @@ export const createShortcutManager = (frame = window) => {
     contexts.forEach(context => ACTIVE_CONTEXTS.addItem(context));
   };
 
-  useRecorder(frame, (event, keys) => {
+  const destroyRecorder = useRecorder(frame, (event, keys) => {
+    if (!listening) {
+      return;
+    }
+
     getActiveContexts().forEach((context) => {
       const ctx = getContext(context);
 
@@ -47,6 +52,9 @@ export const createShortcutManager = (frame = window) => {
     getActiveContexts,
     getContext,
     setActiveContexts,
+    destroy: destroyRecorder,
+    listen: () => listening = true,
+    unlisten: () => listening = false,
   };
 };
 

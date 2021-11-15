@@ -42,7 +42,7 @@ describe('Core_getCellMeta', () => {
     render(); // It triggers the table "slow render" cycle that clears the cell meta cache
     selectCell(2, 2);
 
-    keyDown('enter');
+    keyDownUp(['enter']);
 
     expect(isEditorVisible()).toEqual(false);
   });
@@ -60,7 +60,7 @@ describe('Core_getCellMeta', () => {
     render(); // It triggers the table "slow render" cycle that clears the cell meta cache
     selectCell(2, 2);
 
-    keyDown('enter');
+    keyDownUp(['enter']);
 
     expect(isEditorVisible()).toEqual(true);
   });
@@ -77,7 +77,7 @@ describe('Core_getCellMeta', () => {
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
 
-    keyDown('enter');
+    keyDownUp(['enter']);
 
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
@@ -98,7 +98,7 @@ describe('Core_getCellMeta', () => {
     });
     selectCell(2, 2);
 
-    keyDown('enter');
+    keyDownUp(['enter']);
     document.activeElement.value = 'new value';
     destroyEditor();
 

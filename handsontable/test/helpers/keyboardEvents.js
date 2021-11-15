@@ -1,18 +1,20 @@
 const { KEY_CODES } = Handsontable.helper;
-const KEYS_MAP = new Map([
+const KEYCODES_MAP = new Map([
   ['a', KEY_CODES.A],
   ['alt', KEY_CODES.ALT],
-  ['arrow_down', KEY_CODES.ARROW_DOWN],
-  ['arrow_left', KEY_CODES.ARROW_LEFT],
-  ['arrow_right', KEY_CODES.ARROW_RIGHT],
-  ['arrow_up', KEY_CODES.ARROW_UP],
-  ['audio_down', KEY_CODES.AUDIO_DOWN],
-  ['audio_mute', KEY_CODES.AUDIO_MUTE],
-  ['audio_up', KEY_CODES.AUDIO_UP],
+  ['arrowdown', KEY_CODES.ARROW_DOWN],
+  ['arrowleft', KEY_CODES.ARROW_LEFT],
+  ['arrowright', KEY_CODES.ARROW_RIGHT],
+  ['arrowup', KEY_CODES.ARROW_UP],
+  ['audiodown', KEY_CODES.AUDIO_DOWN],
+  ['audiomute', KEY_CODES.AUDIO_MUTE],
+  ['audioup', KEY_CODES.AUDIO_UP],
   ['backspace', KEY_CODES.BACKSPACE],
   ['c', KEY_CODES.C],
-  ['caps_lock', KEY_CODES.CAPS_LOCK],
+  ['capslock', KEY_CODES.CAPS_LOCK],
   ['ctrl', window.navigator.platform.includes('Mac') ? KEY_CODES.COMMAND_LEFT : KEY_CODES.CONTROL],
+  ['control', KEY_CODES.CONTROL],
+  ['meta', KEY_CODES.COMMAND_LEFT],
   ['delete', KEY_CODES.DELETE],
   ['end', KEY_CODES.END],
   ['enter', KEY_CODES.ENTER],
@@ -39,16 +41,16 @@ const KEYS_MAP = new Map([
   ['f19', KEY_CODES.F19],
   ['home', KEY_CODES.HOME],
   ['insert', KEY_CODES.INSERT],
-  ['media_next', KEY_CODES.MEDIA_NEXT],
-  ['media_play_pause', KEY_CODES.MEDIA_PLAY_PAUSE],
-  ['media_prev', KEY_CODES.MEDIA_PREV],
-  ['media_stop', KEY_CODES.MEDIA_STOP],
+  ['medianext', KEY_CODES.MEDIA_NEXT],
+  ['mediaplaypause', KEY_CODES.MEDIA_PLAY_PAUSE],
+  ['mediaprev', KEY_CODES.MEDIA_PREV],
+  ['mediastop', KEY_CODES.MEDIA_STOP],
   ['null', KEY_CODES.NULL],
-  ['num_lock', KEY_CODES.NUM_LOCK],
-  ['page_down', KEY_CODES.PAGE_DOWN],
-  ['page_up', KEY_CODES.PAGE_UP],
+  ['numlock', KEY_CODES.NUM_LOCK],
+  ['pagedown', KEY_CODES.PAGE_DOWN],
+  ['pageup', KEY_CODES.PAGE_UP],
   ['pause', KEY_CODES.PAUSE],
-  ['scroll_lock', KEY_CODES.SCROLL_LOCK],
+  ['scrolllock', KEY_CODES.SCROLL_LOCK],
   ['shift', KEY_CODES.SHIFT],
   ['space', KEY_CODES.SPACE],
   ['tab', KEY_CODES.TAB],
@@ -64,58 +66,47 @@ const KEYS_MAP = new Map([
  * @param {string} type Event type.
  * @returns {Function}
  */
-export function handsontableKeyTriggerFactory(type) {
+export function handsontableKeyTriggerFactory(type, target) {
   return function(key, extend) {
     const ev = {};
-    let keyToTrigger = key;
 
-    if (typeof keyToTrigger === 'string') {
-      if (keyToTrigger.includes('ctrl+')) {
-        keyToTrigger = keyToTrigger.replace('ctrl+', '');
-        ev.ctrlKey = true;
-        ev.metaKey = true;
-      }
-
-      if (keyToTrigger.includes('shift+')) {
-        keyToTrigger = keyToTrigger.replace('shift+', '');
-        ev.shiftKey = true;
-      }
-
-      if (!KEYS_MAP.has(keyToTrigger)) {
-        throw new Error(`Unrecognised key name: ${keyToTrigger}`);
-      }
-
-      ev.keyCode = KEYS_MAP.get(keyToTrigger);
-
-    } else if (typeof keyToTrigger === 'number') {
-      ev.keyCode = keyToTrigger;
-    }
+    ev.keyCode = KEYCODES_MAP.has(key) ? KEYCODES_MAP.get(key) : key.codePointAt(0);
+    ev.key = key;
 
     $.extend(ev, extend);
-    $(document.activeElement).simulate(type, ev);
+    $(target).simulate(type, ev);
   };
 }
 
-export const keyDown = handsontableKeyTriggerFactory('keydown');
-export const keyUp = handsontableKeyTriggerFactory('keyup');
+export const keyDown = triggerKeys('keydown');
+export const keyUp = triggerKeys('keyup');
+
+/**
+ * @param {string} type Event type.
+ * @returns {Function}
+ */
+function triggerKeys(type) {
+  return function(keys, extend = {}, target = document.activeElement) {
+    keys.forEach((key) => {
+
+      extend.ctrlKey = keys.includes('control');
+      extend.metaKey = keys.includes('control');
+      extend.shiftKey = keys.includes('shift');
+
+      handsontableKeyTriggerFactory(type, target)(key, extend);
+    });
+  };
+}
 
 /**
  * Presses keyDown, then keyUp.
  *
- * @param {string|number} key The key code which will be associated with the event.
+ * @param {Array} keys The keys `key` which will be associated with the event.
  * @param {object} extend Additional options which extends the event.
  */
-export function keyDownUp(key, extend) {
-  if (typeof key === 'string' && key.includes('shift+')) {
-    keyDown('shift');
-  }
-
-  keyDown(key, extend);
-  keyUp(key, extend);
-
-  if (typeof key === 'string' && key.includes('shift+')) {
-    keyUp('shift');
-  }
+export function keyDownUp(keys, extend, target) {
+  keyDown(keys, extend, target);
+  keyUp(keys, extend, target);
 }
 
 /**

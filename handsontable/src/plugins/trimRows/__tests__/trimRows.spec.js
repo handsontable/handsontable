@@ -782,19 +782,19 @@ describe('TrimRows', () => {
 
       expect(getValue()).toEqual('A1');
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+      keyDownUp(['arrowdown']);
 
       expect(getValue()).toEqual('A3');
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+      keyDownUp(['arrowdown']);
 
       expect(getValue()).toEqual('A4');
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+      keyDownUp(['arrowdown']);
 
       expect(getValue()).toEqual('A5');
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+      keyDownUp(['arrowdown']);
 
       expect(getValue()).toEqual('A10');
     });

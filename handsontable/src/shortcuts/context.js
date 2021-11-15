@@ -7,7 +7,6 @@ export const createContext = (name) => {
   });
 
   const addShortcut = (variants, callback) => {
-    debugger;
     variants.forEach((variant) => {
       const normalizedVariant = normalizeKeys(variant);
 

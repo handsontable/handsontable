@@ -188,9 +188,9 @@ describe('Core_dataSchema', () => {
     });
     selectCell(0, 1);
 
-    keyDownUp('enter');
+    keyDownUp(['enter']);
     keyProxy().val('Ted');
-    keyDownUp('enter');
+    keyDownUp(['enter']);
     expect(getData()[0][1]).toEqual('Ted');
     expect(getSourceData()[0].name.first).toEqual('Ted');
   });
@@ -227,9 +227,9 @@ describe('Core_dataSchema', () => {
     });
     selectCell(0, 1);
 
-    keyDownUp('enter');
+    keyDownUp(['enter']);
     keyProxy().val('Ted');
-    keyDownUp('enter');
+    keyDownUp(['enter']);
     expect(getData()[0][1]).toEqual('Ted');
     expect(getSourceData()[0].name.first).toEqual('Ted');
   });
@@ -261,13 +261,13 @@ describe('Core_dataSchema', () => {
     selectCell(4, 1);
 
     expect(countRows()).toEqual(5);
-    keyDownUp('enter');
+    keyDownUp(['enter']);
     keyProxy().val('Ted');
 
     // need it in next frame as long as HT is rendered in async
-    keyDownUp('enter');
+    keyDownUp(['enter']);
     // need it in next frame as long as HT is rendered in async
-    keyDownUp('enter');
+    keyDownUp(['enter']);
 
     expect(getSourceData()[4].name.first).toEqual('Ted');
     expect(getSourceData()[4].id).toEqual(1004);
@@ -318,13 +318,13 @@ describe('Core_dataSchema', () => {
     selectCell(4, 1);
 
     expect(countRows()).toEqual(5);
-    keyDownUp('enter');
+    keyDownUp(['enter']);
     keyProxy().val('Ted');
 
     // need it in next frame as long as HT is rendered in async
-    keyDownUp('enter');
+    keyDownUp(['enter']);
     // need it in next frame as long as HT is rendered in async
-    keyDownUp('enter');
+    keyDownUp(['enter']);
 
     expect(getSourceData()[4].name.first).toEqual('Ted');
     expect(getSourceData()[4].id).toEqual(1004);

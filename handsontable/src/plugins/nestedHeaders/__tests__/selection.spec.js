@@ -771,11 +771,13 @@ describe('NestedHeaders', () => {
 
       expect(getSelected()).toEqual([[-2, 1, 9, 1]]);
 
-      keyDown('ctrl');
+      keyDown(['control']);
 
       $(getCell(-3, 5)) // Header "F2"
         .simulate('mousedown')
         .simulate('mouseup');
+
+      keyUp(['control']);
 
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>

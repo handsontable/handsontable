@@ -24,7 +24,7 @@ describe('Core_selection', () => {
     $(getCell(1, 1)).simulate('mouseover');
     $(getCell(1, 1)).simulate('mouseup');
 
-    keyDown('ctrl');
+    keyDown(['control']);
 
     $(getCell(0, 2)).simulate('mousedown');
     $(getCell(8, 2)).simulate('mouseover');
@@ -37,6 +37,8 @@ describe('Core_selection', () => {
     $(getCell(7, 6)).simulate('mousedown');
     $(getCell(8, 7)).simulate('mouseover');
     $(getCell(8, 7)).simulate('mouseup');
+
+    keyUp(['control']);
 
     expect(`
       |   ║   : - : - : - : - :   : - : - |
@@ -59,7 +61,7 @@ describe('Core_selection', () => {
     handsontable();
     selectCell(0, 0);
 
-    keyDown('enter');
+    keyDownUp(['enter']);
     // $("html").triggerHandler('mouseup');
     $('html').simulate('mouseup');
     textarea.focus();
@@ -94,7 +96,7 @@ describe('Core_selection', () => {
       autoWrapRow: false
     });
     selectCell(0, 0);
-    keyDownUp('arrow_left');
+    keyDownUp(['arrowleft']);
 
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     expect(`
@@ -118,7 +120,7 @@ describe('Core_selection', () => {
       autoWrapRow: false
     });
     selectCell(0, 0);
-    keyDownUp('arrow_up');
+    keyDownUp(['arrowup']);
 
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     expect(`
@@ -142,7 +144,7 @@ describe('Core_selection', () => {
       autoWrapRow: false
     });
     selectCell(0, 4);
-    keyDownUp('arrow_right');
+    keyDownUp(['arrowright']);
 
     expect(getSelected()).toEqual([[0, 4, 0, 4]]);
     expect(`
@@ -166,7 +168,7 @@ describe('Core_selection', () => {
       autoWrapRow: false
     });
     selectCell(4, 0);
-    keyDownUp('arrow_down');
+    keyDownUp(['arrowdown']);
 
     expect(getSelected()).toEqual([[4, 0, 4, 0]]);
     expect(`
@@ -188,8 +190,8 @@ describe('Core_selection', () => {
       startCols: 5
     });
     selectCell(0, 1);
-    keyDownUp('shift+arrow_left');
-    keyDownUp('shift+arrow_left');
+    keyDownUp(['shift', 'arrowleft']);
+    keyDownUp(['shift', 'arrowleft']);
 
     expect(getSelected()).toEqual([[0, 1, 0, 0]]);
     expect(`
@@ -211,8 +213,8 @@ describe('Core_selection', () => {
       startCols: 5
     });
     selectCell(1, 0);
-    keyDownUp('shift+arrow_up');
-    keyDownUp('shift+arrow_up');
+    keyDownUp(['shift', 'arrowup']);
+    keyDownUp(['shift', 'arrowup']);
 
     expect(getSelected()).toEqual([[1, 0, 0, 0]]);
     expect(`
@@ -234,8 +236,8 @@ describe('Core_selection', () => {
       startCols: 5
     });
     selectCell(0, 3);
-    keyDownUp('shift+arrow_right');
-    keyDownUp('shift+arrow_right');
+    keyDownUp(['shift', 'arrowright']);
+    keyDownUp(['shift', 'arrowright']);
 
     expect(getSelected()).toEqual([[0, 3, 0, 4]]);
     expect(`
@@ -257,9 +259,9 @@ describe('Core_selection', () => {
       startCols: 5
     });
     selectCell(3, 0);
-    keyDownUp('shift+arrow_down');
-    keyDownUp('shift+arrow_down');
-    keyDownUp('shift+arrow_down');
+    keyDownUp(['shift', 'arrowdown']);
+    keyDownUp(['shift', 'arrowdown']);
+    keyDownUp(['shift', 'arrowdown']);
 
     expect(getSelected()).toEqual([[3, 0, 4, 0]]);
     expect(`
@@ -470,9 +472,9 @@ describe('Core_selection', () => {
       }
     });
     selectCell(3, 0); // makes tick++
-    keyDownUp('shift+arrow_down'); // makes tick++
-    keyDownUp('shift+arrow_down'); // makes tick++
-    keyDownUp('shift+arrow_down'); // makes tick++
+    keyDownUp(['shift', 'arrowdown']); // makes tick++
+    keyDownUp(['shift', 'arrowdown']); // makes tick++
+    keyDownUp(['shift', 'arrowdown']); // makes tick++
 
     expect(getSelected()).toEqual([[3, 0, 4, 0]]);
     expect(`
@@ -500,9 +502,9 @@ describe('Core_selection', () => {
       }
     });
     selectCell(3, 0); // makes tick++
-    keyDown('shift+arrow_down');
-    keyDown('shift+arrow_down');
-    keyDownUp('shift+arrow_down'); // makes tick++
+    keyDown(['shift', 'arrowdown']);
+    keyDown(['shift', 'arrowdown']);
+    keyDownUp(['shift', 'arrowdown']); // makes tick++
 
     expect(getSelected()).toEqual([[3, 0, 4, 0]]);
     expect(`
@@ -747,7 +749,7 @@ describe('Core_selection', () => {
     $input[0].focus();
     selectCell(0, 0);
 
-    keyDownUp('enter');
+    keyDownUp(['enter']);
     expect(isEditorVisible()).toEqual(true);
     $input.remove();
   });
@@ -765,7 +767,7 @@ describe('Core_selection', () => {
     $input.focus();
     expect(document.activeElement.nodeName).toBe('INPUT');
 
-    $input.simulate('keydown', { ctrlKey: true, metaKey: true });
+    $input.simulate('keydown', { key: 'Control', ctrlKey: true, metaKey: true });
     expect(document.activeElement.nodeName).toBe('INPUT');
 
     $input.remove();
@@ -810,8 +812,12 @@ describe('Core_selection', () => {
     });
 
     spec().$container.find('thead th:eq(3)').simulate('mousedown');
-    keyDown('ctrl');
+
+    keyDown(['control']);
+
     spec().$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
+
+    keyUp(['control']);
 
     expect(`
       |   ║ - : - : * : - : - |
@@ -840,13 +846,16 @@ describe('Core_selection', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp('enter');
+    keyDownUp(['enter']);
 
     expect(getActiveEditor()).not.toBeUndefined();
 
-    keyDown('ctrl');
+    keyDown(['control']);
+
     spec().$container.find('thead th:eq(3)').simulate('mousedown');
     spec().$container.find('tr:eq(3) th:eq(0)').simulate('mousedown');
+
+    keyUp(['control']);
 
     expect(`
       |   ║ - : - : * : - : - |
@@ -1124,46 +1133,46 @@ describe('Core_selection', () => {
 
     mainHolder.scrollTop = 100;
     selectCell(1, 3);
-    keyDownUp('arrow_down');
+    keyDownUp(['arrowdown']);
     expect(mainHolder.scrollTop).toEqual(0);
 
     mainHolder.scrollTop = 100;
     selectCell(1, 3);
-    keyDownUp('shift+arrow_down');
+    keyDownUp(['shift', 'arrowdown']);
     expect(mainHolder.scrollTop).toEqual(0);
 
     mainHolder.scrollLeft = 100;
     selectCell(3, 1);
-    keyDownUp('arrow_right');
+    keyDownUp(['arrowright']);
     expect(mainHolder.scrollLeft).toEqual(0);
 
     mainHolder.scrollLeft = 100;
     selectCell(3, 1);
-    keyDownUp('shift+arrow_right');
+    keyDownUp(['shift', 'arrowright']);
     expect(mainHolder.scrollLeft).toEqual(0);
 
     const lastVisibleColumn = hot.view.wt.wtTable.getLastVisibleColumn();
 
     selectCell(3, lastVisibleColumn);
-    keyDownUp('arrow_right');
+    keyDownUp(['arrowright']);
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 1);
 
-    keyDownUp('arrow_right');
+    keyDownUp(['arrowright']);
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 2);
 
-    keyDownUp('shift+arrow_right');
+    keyDownUp(['shift', 'arrowright']);
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 3);
 
     const lastVisibleRow = hot.view.wt.wtTable.getLastVisibleRow();
 
     selectCell(lastVisibleRow, 3);
-    keyDownUp('arrow_down');
+    keyDownUp(['arrowdown']);
     expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 1);
 
-    keyDownUp('arrow_down');
+    keyDownUp(['arrowdown']);
     expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 2);
 
-    keyDownUp('shift+arrow_down');
+    keyDownUp(['shift', 'arrowdown']);
     expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 3);
   });
 
@@ -1187,13 +1196,13 @@ describe('Core_selection', () => {
 
     $(columnHeader).simulate('mousedown');
     $(columnHeader).simulate('mouseup');
-    keyDownUp('shift+arrow_right');
+    keyDownUp(['shift', 'arrowright']);
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 1);
 
-    keyDownUp('shift+arrow_right');
+    keyDownUp(['shift', 'arrowright']);
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 2);
 
-    keyDownUp('shift+arrow_right');
+    keyDownUp(['shift', 'arrowright']);
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 3);
 
     const scrollLeft = mainHolder.scrollLeft;
@@ -1203,13 +1212,13 @@ describe('Core_selection', () => {
 
     $(rowHeader).simulate('mousedown');
     $(rowHeader).simulate('mouseup');
-    keyDownUp('shift+arrow_down');
+    keyDownUp(['shift', 'arrowdown']);
     expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 1);
 
-    keyDownUp('shift+arrow_down');
+    keyDownUp(['shift', 'arrowdown']);
     expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 2);
 
-    keyDownUp('shift+arrow_down');
+    keyDownUp(['shift', 'arrowdown']);
     expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 3);
     expect(mainHolder.scrollLeft).toBe(scrollLeft);
     expect(mainHolder.scrollTop).toBeGreaterThan(0);
@@ -1310,10 +1319,10 @@ describe('Core_selection', () => {
 
     await sleep(10);
     selectCell(4, 0);
-    keyDownUp('enter');
+    keyDownUp(['enter']);
 
     await sleep(90);
-    keyDownUp('enter');
+    keyDownUp(['enter']);
 
     await sleep(100);
     expect(countRows()).toEqual(6);
@@ -1337,7 +1346,7 @@ describe('Core_selection', () => {
     });
 
     selectCell(0, 5);
-    keyDownUp('tab');
+    keyDownUp(['tab']);
 
     expect(countCols()).toEqual(7);
     expect(getSelected()).toEqual([[0, 6, 0, 6]]);
@@ -1367,7 +1376,7 @@ describe('Core_selection', () => {
       coords.col += 1;
       coords.row += 1;
     });
-    keyDown('arrow_down');
+    keyDownUp(['arrowdown']);
 
     expect(getSelected()).toEqual([[2, 1, 2, 1]]);
     expect(`
@@ -1395,7 +1404,7 @@ describe('Core_selection', () => {
       coords.col += 2;
       coords.row += 1;
     });
-    keyDown('shift+arrow_down');
+    keyDownUp(['shift', 'arrowdown']);
 
     expect(getSelected()).toEqual([[0, 0, 2, 2]]);
     expect(`
@@ -1420,28 +1429,28 @@ describe('Core_selection', () => {
 
     hot.addHook('afterModifyTransformStart', spy);
     selectCell(2, 0);
-    keyDownUp('arrow_left');
+    keyDownUp(['arrowleft']);
 
     expect(spy.calls.mostRecent().args[1]).toBe(0);
     expect(spy.calls.mostRecent().args[2]).toBe(-1);
 
     spy.calls.reset();
     selectCell(2, 4);
-    keyDownUp('arrow_right');
+    keyDownUp(['arrowright']);
 
     expect(spy.calls.mostRecent().args[1]).toBe(0);
     expect(spy.calls.mostRecent().args[2]).toBe(1);
 
     spy.calls.reset();
     selectCell(4, 2);
-    keyDownUp('arrow_down');
+    keyDownUp(['arrowdown']);
 
     expect(spy.calls.mostRecent().args[1]).toBe(1);
     expect(spy.calls.mostRecent().args[2]).toBe(0);
 
     spy.calls.reset();
     selectCell(0, 2);
-    keyDownUp('arrow_up');
+    keyDownUp(['arrowup']);
 
     expect(spy.calls.mostRecent().args[1]).toBe(-1);
     expect(spy.calls.mostRecent().args[2]).toBe(0);
@@ -1456,28 +1465,28 @@ describe('Core_selection', () => {
 
     hot.addHook('afterModifyTransformEnd', spy);
     selectCell(2, 0);
-    keyDownUp('shift+arrow_left');
+    keyDownUp(['shift', 'arrowleft']);
 
     expect(spy.calls.mostRecent().args[1]).toBe(0);
     expect(spy.calls.mostRecent().args[2]).toBe(-1);
 
     spy.calls.reset();
     selectCell(2, 4);
-    keyDownUp('shift+arrow_right');
+    keyDownUp(['shift', 'arrowright']);
 
     expect(spy.calls.mostRecent().args[1]).toBe(0);
     expect(spy.calls.mostRecent().args[2]).toBe(1);
 
     spy.calls.reset();
     selectCell(4, 2);
-    keyDownUp('shift+arrow_down');
+    keyDownUp(['shift', 'arrowdown']);
 
     expect(spy.calls.mostRecent().args[1]).toBe(1);
     expect(spy.calls.mostRecent().args[2]).toBe(0);
 
     spy.calls.reset();
     selectCell(0, 2);
-    keyDownUp('shift+arrow_up');
+    keyDownUp(['shift', 'arrowup']);
 
     expect(spy.calls.mostRecent().args[1]).toBe(-1);
     expect(spy.calls.mostRecent().args[2]).toBe(0);
@@ -1685,8 +1694,8 @@ describe('Core_selection', () => {
 
     selectCell(0, 0); // Select cell "A1"
 
-    keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN); // Move selection down to the end of the table
-    keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN); // Move selection to the next column, to the cell "B1"
+    keyDownUp(['arrowdown']); // Move selection down to the end of the table
+    keyDownUp(['arrowdown']); // Move selection to the next column, to the cell "B1"
 
     expect(getSelected()).toEqual([[0, 1, 0, 1]]);
   });
@@ -1703,8 +1712,8 @@ describe('Core_selection', () => {
 
     selectCell(0, 0); // Select cell "A1"
 
-    keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT); // Move selection to the right edge of the table
-    keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT); // Move selection to first column, to the cell "A2"
+    keyDownUp(['arrowright']); // Move selection to the right edge of the table
+    keyDownUp(['arrowright']); // Move selection to first column, to the cell "A2"
 
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
@@ -2669,11 +2678,13 @@ describe('Core_selection', () => {
       |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDown('ctrl');
+      keyDown(['control']);
 
       $(getCell(3, 3)).simulate('mousedown');
       $(getCell(5, 6)).simulate('mouseover');
       $(getCell(5, 6)).simulate('mouseup');
+
+      keyUp(['control']);
 
       expect(getSelected()).toEqual([[1, 1, 4, 4], [3, 3, 5, 6]]);
       expect(`
@@ -2717,11 +2728,13 @@ describe('Core_selection', () => {
       |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDown('ctrl');
+      keyDown(['control']);
 
       $(getCell(3, 3)).simulate('mousedown');
       $(getCell(5, 6)).simulate('mouseover');
       $(getCell(5, 6)).simulate('mouseup');
+
+      keyUp(['control']);
 
       expect(getSelected()).toEqual([[3, 3, 3, 3]]);
       expect(`
@@ -2811,11 +2824,13 @@ describe('Core_selection', () => {
       |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDown('ctrl');
+      keyDown(['control']);
 
       $(getCell(3, 3)).simulate('mousedown');
       $(getCell(5, 6)).simulate('mouseover');
       $(getCell(5, 6)).simulate('mouseup');
+
+      keyUp(['control']);
 
       expect(getSelected()).toEqual([[3, 3, 5, 6]]);
       expect(`
@@ -2845,7 +2860,7 @@ describe('Core_selection', () => {
       $(getCell(20, 15)).simulate('mouseover');
       $(getCell(20, 15)).simulate('mouseup');
 
-      keyDown('ctrl');
+      keyDown(['control']);
 
       $(getCell(1, 1)).simulate('mousedown');
       $(getCell(19, 16)).simulate('mouseover');
@@ -2886,6 +2901,8 @@ describe('Core_selection', () => {
       $(getCell(10, 10)).simulate('mousedown');
       $(getCell(10, 25)).simulate('mouseover');
       $(getCell(10, 25)).simulate('mouseup');
+
+      keyUp(['control']);
 
       /* eslint-disable max-len */
       expect(`
@@ -2937,7 +2954,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
       expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 0, 20, 15, 0]);
 
-      keyDown('ctrl');
+      keyDown(['control']);
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
@@ -3062,6 +3079,8 @@ describe('Core_selection', () => {
       $(getCell(10, 25)).simulate('mouseover');
       $(getCell(10, 25)).simulate('mouseup');
 
+      keyUp(['control']);
+
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([10, 10, 10, 10, jasmine.any(Object), 10]);
       expect(hooks.afterSelection.calls.argsFor(1)).toEqual([10, 10, 10, 25, jasmine.any(Object), 10]);
@@ -3089,7 +3108,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
       expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 'prop0', 20, 'prop15', 0]);
 
-      keyDown('ctrl');
+      keyDown(['control']);
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
@@ -3213,6 +3232,8 @@ describe('Core_selection', () => {
       $(getCell(10, 10)).simulate('mousedown');
       $(getCell(10, 25)).simulate('mouseover');
       $(getCell(10, 25)).simulate('mouseup');
+
+      keyUp(['control']);
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([10, 'prop10', 10, 'prop10', jasmine.any(Object), 10]);

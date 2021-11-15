@@ -176,7 +176,7 @@ describe('settings', () => {
           });
 
           selectCell(0, 0);
-          keyDown('enter');
+          keyDownUp(['enter']);
 
           const editor = $('.handsontableInput');
 

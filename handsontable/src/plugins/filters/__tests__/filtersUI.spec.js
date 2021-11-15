@@ -258,9 +258,9 @@ describe('Filters UI', () => {
 
       document.activeElement.value = '123';
 
-      keyDownUp('arrow_up');
-      keyDownUp('arrow_up');
-      keyDownUp('arrow_up');
+      keyDownUp(['arrowup']);
+      keyDownUp(['arrowup']);
+      keyDownUp(['arrowup']);
 
       // The menu item is frozen on the lastly selected item
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().key).toBe('filter_by_condition');
@@ -388,7 +388,7 @@ describe('Filters UI', () => {
         .simulate('mouseup');
 
       setTimeout(() => {
-        keyDownUp('esc');
+        keyDownUp(['escape']);
 
         expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
         expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
@@ -431,7 +431,7 @@ describe('Filters UI', () => {
         .simulate('click');
 
       await sleep(200);
-      keyDownUp('esc');
+      keyDownUp(['escape']);
 
       expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
       expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
@@ -468,8 +468,8 @@ describe('Filters UI', () => {
 
       await sleep(200);
 
-      keyDownUp('esc');
-      keyDownUp('esc');
+      keyDownUp(['escape']);
+      keyDownUp(['escape']);
 
       expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
       expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
@@ -649,9 +649,9 @@ describe('Filters UI', () => {
         });
 
         selectCell(3, 0);
-        keyDownUp('enter');
+        keyDownUp(['enter']);
         document.activeElement.value = '99';
-        keyDownUp('enter');
+        keyDownUp(['enter']);
 
         dropdownMenu(1);
 
@@ -676,9 +676,9 @@ describe('Filters UI', () => {
         filters.filter();
 
         selectCell(3, 0);
-        keyDownUp('enter');
+        keyDownUp(['enter']);
         document.activeElement.value = '99';
-        keyDownUp('enter');
+        keyDownUp(['enter']);
 
         dropdownMenu(1);
 
@@ -1020,7 +1020,7 @@ describe('Filters UI', () => {
       byValueMultipleSelect().element.querySelector('input').focus();
 
       setTimeout(() => {
-        keyDownUp('esc');
+        keyDownUp(['escape']);
 
         expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
         expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
@@ -1042,7 +1042,7 @@ describe('Filters UI', () => {
 
       setTimeout(() => {
         byValueMultipleSelect().itemsBox.listen();
-        keyDownUp('esc');
+        keyDownUp(['escape']);
         expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
         expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
         done();
@@ -2034,9 +2034,9 @@ describe('Filters UI', () => {
       expect(getData().length).toBe(7);
 
       selectCell(3, 0);
-      keyDownUp('enter');
+      keyDownUp(['enter']);
       document.activeElement.value = '99';
-      keyDownUp('enter');
+      keyDownUp(['enter']);
 
       await sleep(200);
 
@@ -3483,9 +3483,9 @@ describe('Filters UI', () => {
       });
 
       selectCell(3, 0);
-      keyDownUp('enter');
+      keyDownUp(['enter']);
       document.activeElement.value = '99';
-      keyDownUp('enter');
+      keyDownUp(['enter']);
 
       dropdownMenu(1);
 
@@ -3510,9 +3510,9 @@ describe('Filters UI', () => {
       filters.filter();
 
       selectCell(3, 0);
-      keyDownUp('enter');
+      keyDownUp(['enter']);
       document.activeElement.value = '99';
-      keyDownUp('enter');
+      keyDownUp(['enter']);
 
       dropdownMenu(1);
 

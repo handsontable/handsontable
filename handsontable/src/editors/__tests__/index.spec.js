@@ -49,7 +49,7 @@ describe('editors', () => {
     });
 
     selectCell(0, 0);
-    keyDown('enter');
+    keyDown(['enter']);
     document.activeElement.value = 'hello';
     destroyEditor();
 
@@ -90,7 +90,7 @@ describe('editors', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp('1'.charCodeAt(0));
+    keyDownUp(['1']);
 
     destroyEditor();
 
@@ -99,7 +99,7 @@ describe('editors', () => {
     expect(getCell(0, 0).innerHTML).not.toEqual('10');
 
     selectCell(0, 1);
-    keyDownUp('a'.charCodeAt(0));
+    keyDownUp(['a']);
 
     destroyEditor();
 

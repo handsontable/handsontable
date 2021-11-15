@@ -23,7 +23,7 @@ describe('HiddenColumns', () => {
 
       selectCell(0, 0);
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+      keyDownUp(['arrowright']);
 
       expect(getSelected()).toEqual([[0, 4, 0, 4]]);
       expect(getCell(0, 4)).toHaveClass('current');
@@ -48,7 +48,7 @@ describe('HiddenColumns', () => {
 
       selectCell(0, 4);
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+      keyDownUp(['arrowleft']);
 
       expect(getCell(0, 0)).toHaveClass('current');
       expect(`
@@ -79,7 +79,7 @@ describe('HiddenColumns', () => {
 
       selectCell(0, 2);
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+      keyDownUp(['arrowright']);
 
       expect(getCell(1, 0)).toHaveClass('current');
       expect(`
@@ -110,7 +110,7 @@ describe('HiddenColumns', () => {
 
       selectCell(1, 2);
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+      keyDownUp(['arrowleft']);
 
       expect(getCell(0, 4)).toHaveClass('current');
       expect(`
@@ -141,7 +141,7 @@ describe('HiddenColumns', () => {
 
       selectCell(4, 0);
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+      keyDownUp(['arrowdown']);
 
       expect(getCell(0, 4)).toHaveClass('current');
       expect(`
@@ -172,7 +172,7 @@ describe('HiddenColumns', () => {
 
       selectCell(0, 4);
 
-      keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+      keyDownUp(['arrowup']);
 
       expect(getCell(4, 0)).toHaveClass('current');
       expect(`
@@ -207,7 +207,7 @@ describe('HiddenColumns', () => {
         const header = getCell(0, -1);
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+        keyDownUp(['arrowright']);
 
         expect(`
         |   ║   : - :   |
@@ -242,7 +242,7 @@ describe('HiddenColumns', () => {
         const header = getCell(0, -1);
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+        keyDownUp(['arrowleft']);
 
         expect(`
         |   ║   :   : - |
@@ -277,7 +277,7 @@ describe('HiddenColumns', () => {
         let header = getCell(0, -1); // first visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+        keyDownUp(['arrowup']);
 
         expect(`
         |   ║ - |
@@ -299,7 +299,7 @@ describe('HiddenColumns', () => {
         header = getCell(0, -1); // first visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+        keyDownUp(['arrowdown']);
 
         expect(`
         |   ║ - |
@@ -321,7 +321,7 @@ describe('HiddenColumns', () => {
         header = getCell(0, -1); // first visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+        keyDownUp(['arrowleft']);
 
         expect(`
         |   ║ - |
@@ -343,7 +343,7 @@ describe('HiddenColumns', () => {
         header = getCell(0, -1); // first visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+        keyDownUp(['arrowright']);
 
         expect(`
         |   ║ - |
@@ -365,7 +365,7 @@ describe('HiddenColumns', () => {
         header = getCell(4, -1); // last visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+        keyDownUp(['arrowup']);
 
         expect(getSelected()).toEqual([[3, 0, 3, 0]]);
         expect(`
@@ -383,7 +383,7 @@ describe('HiddenColumns', () => {
         header = getCell(4, -1); // last visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+        keyDownUp(['arrowdown']);
 
         expect(`
         |   ║ - |
@@ -405,7 +405,7 @@ describe('HiddenColumns', () => {
         header = getCell(4, -1); // last visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+        keyDownUp(['arrowleft']);
 
         expect(`
         |   ║ - |
@@ -427,7 +427,7 @@ describe('HiddenColumns', () => {
         header = getCell(4, -1); // last visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+        keyDownUp(['arrowright']);
 
         expect(`
         |   ║ - |
@@ -462,7 +462,7 @@ describe('HiddenColumns', () => {
         let header = getCell(0, -1); // first visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+        keyDownUp(['arrowup']);
 
         expect(`
         |   ║ - |
@@ -484,7 +484,7 @@ describe('HiddenColumns', () => {
         header = getCell(0, -1); // first visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+        keyDownUp(['arrowdown']);
 
         expect(`
         |   ║ - |
@@ -506,7 +506,7 @@ describe('HiddenColumns', () => {
         header = getCell(0, -1); // first visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+        keyDownUp(['arrowleft']);
 
         expect(`
         |   ║ - |
@@ -528,7 +528,7 @@ describe('HiddenColumns', () => {
         header = getCell(0, -1); // first visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+        keyDownUp(['arrowright']);
 
         expect(`
         |   ║ - |
@@ -550,7 +550,7 @@ describe('HiddenColumns', () => {
         header = getCell(4, -1); // last visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+        keyDownUp(['arrowup']);
 
         expect(`
         |   ║ - |
@@ -572,7 +572,7 @@ describe('HiddenColumns', () => {
         header = getCell(4, -1); // last visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+        keyDownUp(['arrowdown']);
 
         expect(`
         |   ║ - |
@@ -594,7 +594,7 @@ describe('HiddenColumns', () => {
         header = getCell(4, -1); // last visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+        keyDownUp(['arrowleft']);
 
         expect(`
         |   ║ - |
@@ -616,7 +616,7 @@ describe('HiddenColumns', () => {
         header = getCell(4, -1); // last visible cell
 
         simulateClick(header, 'LMB');
-        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+        keyDownUp(['arrowright']);
 
         expect(`
         |   ║ - |
@@ -656,7 +656,7 @@ describe('HiddenColumns', () => {
 
           selectCell(1, 0);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+          keyDownUp(['arrowup']);
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(-1);
@@ -666,7 +666,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+          keyDownUp(['arrowdown']);
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(1);
@@ -676,7 +676,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+          keyDownUp(['arrowleft']);
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -686,7 +686,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+          keyDownUp(['arrowright']);
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -713,7 +713,7 @@ describe('HiddenColumns', () => {
 
           selectCell(1, 2);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+          keyDownUp(['arrowup']);
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(-1);
@@ -723,7 +723,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+          keyDownUp(['arrowdown']);
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(1);
@@ -733,7 +733,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+          keyDownUp(['arrowleft']);
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -743,7 +743,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+          keyDownUp(['arrowright']);
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -770,7 +770,7 @@ describe('HiddenColumns', () => {
 
           selectCell(1, 4);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+          keyDownUp(['arrowup']);
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(-1);
@@ -780,7 +780,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+          keyDownUp(['arrowdown']);
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(1);
@@ -790,7 +790,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+          keyDownUp(['arrowleft']);
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -800,7 +800,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+          keyDownUp(['arrowright']);
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -829,7 +829,7 @@ describe('HiddenColumns', () => {
 
           selectCell(1, 0);
 
-          keyDownUp('shift+arrow_up');
+          keyDownUp(['shift', 'arrowup']);
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(-1);
@@ -839,7 +839,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('shift+arrow_down');
+          keyDownUp(['shift', 'arrowdown']);
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(1);
@@ -849,7 +849,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('shift+arrow_left');
+          keyDownUp(['shift', 'arrowleft']);
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -859,7 +859,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('shift+arrow_right');
+          keyDownUp(['shift', 'arrowright']);
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -886,7 +886,7 @@ describe('HiddenColumns', () => {
 
           selectCell(1, 2);
 
-          keyDownUp('shift+arrow_up');
+          keyDownUp(['shift', 'arrowup']);
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(-1);
@@ -896,7 +896,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[0].col).toEqual(2);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('shift+arrow_down');
+          keyDownUp(['shift', 'arrowdown']);
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(1);
@@ -906,7 +906,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('shift+arrow_left');
+          keyDownUp(['shift', 'arrowleft']);
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -916,7 +916,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('shift+arrow_right');
+          keyDownUp(['shift', 'arrowright']);
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -943,7 +943,7 @@ describe('HiddenColumns', () => {
 
           selectCell(1, 4);
 
-          keyDownUp('shift+arrow_up');
+          keyDownUp(['shift', 'arrowup']);
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(-1);
@@ -953,7 +953,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('shift+arrow_down');
+          keyDownUp(['shift', 'arrowdown']);
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(1);
@@ -963,7 +963,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('shift+arrow_left');
+          keyDownUp(['shift', 'arrowleft']);
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -973,7 +973,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('shift+arrow_right');
+          keyDownUp(['shift', 'arrowright']);
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -997,7 +997,7 @@ describe('HiddenColumns', () => {
 
         selectCell(4, 4);
 
-        keyDownUp('home');
+        keyDownUp(['home']);
 
         expect(`
         |   :   |
@@ -1025,8 +1025,7 @@ describe('HiddenColumns', () => {
 
         selectCell(4, 4);
 
-        keyDown('ctrl');
-        keyDownUp('home', { ctrlKey: true });
+        keyDownUp(['control', 'home']);
 
         expect(`
         |   : A |
@@ -1055,8 +1054,7 @@ describe('HiddenColumns', () => {
 
         selectCell(4, 4);
 
-        keyDown('shift');
-        keyDownUp('home', { shiftKey: true });
+        keyDownUp(['shift', 'home']);
 
         expect(`
         |   :   |
@@ -1085,7 +1083,7 @@ describe('HiddenColumns', () => {
 
         selectCell(0, 0);
 
-        keyDownUp('end');
+        keyDownUp(['end']);
 
         expect(`
         |   : # |
@@ -1113,8 +1111,7 @@ describe('HiddenColumns', () => {
 
         selectCell(0, 0);
 
-        keyDown('ctrl');
-        keyDownUp('end', { ctrlKey: true });
+        keyDownUp(['control', 'end']);
 
         expect(`
         | 0 :   |
@@ -1142,8 +1139,7 @@ describe('HiddenColumns', () => {
 
         selectCell(0, 0);
 
-        keyDown('shift');
-        keyDownUp('end', { shiftKey: true });
+        keyDownUp(['shift', 'end']);
 
         expect(`
         | A : 0 |

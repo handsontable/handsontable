@@ -1463,6 +1463,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.listen = function() {
     if (instance && !instance.isListening()) {
       activeGuid = instance.guid;
+      shortcutManager.listen();
       instance.runHooks('afterListen');
     }
   };
@@ -1477,6 +1478,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.unlisten = function() {
     if (this.isListening()) {
       activeGuid = null;
+      shortcutManager.listen();
       instance.runHooks('afterUnlisten');
     }
   };
@@ -3986,6 +3988,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     dataSource = null;
 
+    shortcutManager.destroy();
     metaManager.clearCache();
 
     keyStateStopObserving();

@@ -56,8 +56,12 @@ describe('Core.selectRows', () => {
     });
 
     selectRows(2);
-    keyDown('ctrl');
+
+    keyDown(['control']);
+
     selectRows(0);
+
+    keyUp(['control']);
 
     expect(`
       |   ║ - : - : - : - |
