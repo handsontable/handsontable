@@ -38,7 +38,7 @@ To start using individual Handsontable modules with your wrapper, see the follow
 - [Using modules with Angular](@/guides/integrate-with-angular/angular-modules.md)
 - [Using modules with Vue](@/guides/integrate-with-vue/vue-modules.md)
 
-## Step 2: Adapt to the TypeScript definition file changes
+## Step 2: Adapt to the TypeScript definitions file changes
 
 Before, all of Handsontable's TypeScript definitions were kept in one huge file, placed in the root directory: `./handsontable.d.ts`.
 
@@ -50,8 +50,16 @@ For more details, see [this pull request](https://github.com/handsontable/handso
 
 The [`populateFromArray()`](@/api/core.md#populatefromarray) method works differently now, when its `method` argument is set to `shift_down` or `shift_right`.
 
-Before, when set to `shift_down` or `shift_right`, [`populateFromArray()`](@/api/core.md#populatefromarray) performed a separate `spliceRow` action for each row, or a separate `spliceColumn` action for each column.
+#### Before
 
-Now, when set to `shift_down` or `shift_right`, [`populateFromArray()`](@/api/core.md#populatefromarray) populates rows (or columns) with one large operation.
+- [`populateFromArray()`](@/api/core.md#populatefromarray) performed a separate `spliceRow` action for each populated row, and a separate `spliceColumn` action for each populated column.
+- The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks were triggered multiple times, separately for each populated row and column.
+- The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks were triggered by the `spliceRow` and `spliceColumn` actions.
+
+#### Now
+
+- [`populateFromArray()`](@/api/core.md#populatefromarray) populates rows and columns with one large operation.
+- The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks are triggered only once, for all populated rows and columns.
+- The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks are triggered directly by the [`populateFromArray()`](@/api/core.md#populatefromarray) method.
 
 For more details, see [this pull request](https://github.com/handsontable/handsontable/pull/8867).
