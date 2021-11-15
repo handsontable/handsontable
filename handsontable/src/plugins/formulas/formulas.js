@@ -19,6 +19,7 @@ import {
 import { getEngineSettingsWithOverrides } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
+import { isObject } from '../../helpers/object';
 import Hooks from '../../pluginHooks';
 
 export const PLUGIN_KEY = 'formulas';
@@ -185,7 +186,11 @@ export class Formulas extends BasePlugin {
         return;
       }
 
+      this.syncingChanges = true;
+
       this.engine.undo();
+
+      this.syncingChanges = false;
     });
 
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism
@@ -195,7 +200,11 @@ export class Formulas extends BasePlugin {
         return;
       }
 
+      this.syncingChanges = true;
+
       this.engine.redo();
+
+      this.syncingChanges = false;
     });
 
     this.addHook('afterDetachChild', (...args) => this.onAfterDetachChild(...args));
@@ -616,6 +625,8 @@ export class Formulas extends BasePlugin {
    * @private
    */
   onBeforeLoadData(sourceData, initialLoad, source = '') {
+    this.syncingChanges = true;
+
     if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
       return;
     }
@@ -637,6 +648,8 @@ export class Formulas extends BasePlugin {
     if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
       return;
     }
+
+    this.syncingChanges = false;
 
     this.sheetName = setupSheet(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
 
@@ -779,6 +792,8 @@ export class Formulas extends BasePlugin {
     const outOfBoundsChanges = [];
     const changedCells = [];
 
+    this.syncingChanges = true;
+
     const dependentCells = this.engine.batch(() => {
       changes.forEach(([row, prop, , newValue]) => {
         const column = this.hot.propToCol(prop);
@@ -801,15 +816,21 @@ export class Formulas extends BasePlugin {
       });
     });
 
+    this.syncingChanges = false;
+
     if (outOfBoundsChanges.length) {
       // Workaround for rows/columns being created two times (by HOT and the engine).
       // (unfortunately, this requires an extra re-render)
       this.hot.addHookOnce('afterChange', () => {
+        this.syncingChanges = true;
+
         const outOfBoundsDependentCells = this.engine.batch(() => {
           outOfBoundsChanges.forEach(([row, column, newValue]) => {
             this.syncChangeWithEngine(row, column, newValue);
           });
         });
+
+        this.syncingChanges = false;
 
         this.renderDependentSheets(outOfBoundsDependentCells, true);
       });
@@ -855,7 +876,12 @@ export class Formulas extends BasePlugin {
       }
 
       changedCells.push({ address });
+
+      this.syncingChanges = true;
+
       dependentCells.push(...this.engine.setCellContents(address, newValue));
+
+      this.syncingChanges = false;
     });
 
     this.renderDependentSheets(dependentCells);
@@ -987,11 +1013,15 @@ export class Formulas extends BasePlugin {
 
     const descendingPhysicalRows = physicalRows.sort().reverse();
 
+    this.syncingChanges = true;
+
     const changes = this.engine.batch(() => {
       descendingPhysicalRows.forEach((physicalRow) => {
         this.engine.removeRows(this.sheetId, [physicalRow, 1]);
       });
     });
+
+    this.syncingChanges = false;
 
     this.renderDependentSheets(changes);
   }
@@ -1013,11 +1043,15 @@ export class Formulas extends BasePlugin {
 
     const descendingPhysicalColumns = physicalColumns.sort().reverse();
 
+    this.syncingChanges = true;
+
     const changes = this.engine.batch(() => {
       descendingPhysicalColumns.forEach((physicalColumn) => {
         this.engine.removeColumns(this.sheetId, [physicalColumn, 1]);
       });
     });
+
+    this.syncingChanges = false;
 
     this.renderDependentSheets(changes);
   }
@@ -1042,6 +1076,7 @@ export class Formulas extends BasePlugin {
     );
 
     this.#internalOperationPending = false;
+    this.syncingChanges = true;
 
     rowsData.forEach((row, relativeRowIndex) => {
       row.forEach((value, colIndex) => {
@@ -1052,6 +1087,8 @@ export class Formulas extends BasePlugin {
         }, [[value]]);
       });
     });
+
+    this.syncingChanges = false;
   }
 
   /**
@@ -1063,6 +1100,41 @@ export class Formulas extends BasePlugin {
    */
   onEngineValuesUpdated(changes) {
     this.hot.runHooks('afterFormulasValuesUpdate', changes);
+
+    if (this.#internalOperationPending === true) {
+      return;
+    }
+
+    if (this.syncingChanges === true) {
+      return;
+    }
+
+    const changesForSetSourceData = changes.reduce((mappedChanges, change) => {
+      const address = change?.address;
+
+      if (isObject(address) && address.sheet === this.sheetId) {
+        const { row, col } = address;
+        let newValue = change.newValue;
+
+        if (this.engine.doesCellHaveSimpleValue(address) === false) {
+          newValue = this.engine.getCellFormula(address);
+        }
+
+        if (this.hot.getSourceDataAtCell(row, col) !== newValue) {
+          return mappedChanges.concat([[row, col, newValue]]);
+        }
+      }
+
+      return mappedChanges;
+    }, []);
+    
+    if (changesForSetSourceData.length > 0) {
+      this.#internalOperationPending = true;
+
+      this.hot.setSourceDataAtCell(changesForSetSourceData);
+
+      this.#internalOperationPending = false;
+    }
   }
 
   /**

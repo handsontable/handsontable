@@ -2720,4 +2720,19 @@ describe('Formulas general', () => {
       [9, 8, 7, 6, '#NAME?'],
     ]);
   });
+
+  it('should re-render upon changes to the engine from the outside', () => {
+    const hot = handsontable({
+      formulas: {
+        engine: HyperFormula
+      },
+      data: [['x', 'x', 'x']]
+    });
+
+    const engine = hot.getPlugin('formulas').engine;
+
+    engine.setCellContents({ sheet: 0, row: 0, col: 0 }, 10);
+
+    expect(document.querySelector('.ht_master td:first-child').textContent).toEqual('10');
+  });
 });
