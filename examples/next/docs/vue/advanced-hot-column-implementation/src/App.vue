@@ -10,6 +10,7 @@
     </hot-table>
   </div>
 </template>
+
 <script>
 import Vue from "vue";
 import Vuex from "vuex";
@@ -17,10 +18,14 @@ import { HotTable, HotColumn } from "@handsontable/vue";
 import ColorPicker from "./components/ColorPicker.vue";
 import StarsRating from "./components/StarsRating.vue";
 
+import './assets/styles.css';
+import 'handsontable/dist/handsontable.full.css';
+
 Vue.use(Vuex);
 
-export default Vue.extend({
-  data: function() {
+export default {
+  name: "App",
+  data: function () {
     return {
       hotSettings: {
         data: [
@@ -29,7 +34,7 @@ export default Vue.extend({
           [3, "#A7DEA2", "#E4E8DA"],
           [4, "#ABE025", "#D4E1E6"],
           [5, "#018FC5", "#E8D3D7"],
-          [5, "#FF1E49", "#D0D7E4"]
+          [5, "#FF1E49", "#D0D7E4"],
         ],
         fillHandle: false,
         copyPaste: false,
@@ -37,18 +42,17 @@ export default Vue.extend({
         rowHeaders: true,
         colHeaders: ["Rating", "Active star color", "Inactive star color"],
         autoRowSize: false,
-        autoColumnSize: false
-      }
+        autoColumnSize: false,
+      },
     };
   },
-  created: function() {
+  created: function () {
     this.$store.commit("initStarColors", this.hotSettings.data);
   },
-  methods: {},
   store: new Vuex.Store({
     state: {
       activeColors: [],
-      inactiveColors: []
+      inactiveColors: [],
     },
     mutations: {
       initStarColors(state, hotData) {
@@ -62,26 +66,26 @@ export default Vue.extend({
       },
       setInactiveStarColor(state, payload) {
         Vue.set(state.inactiveColors, payload.row, payload.newColor);
-      }
-    }
+      },
+    },
   }),
   components: {
     HotTable,
     HotColumn,
     ColorPicker,
-    StarsRating
-  }
-});
+    StarsRating,
+    // HelloWorld
+  },
+};
 </script>
 
 <style>
-button {
-  width: 100%;
-  height: 33px;
-  margin-top: 10px;
-}
-
-.vc-chrome {
-  box-shadow: none;
+#app {
+  font-family: "Avenir", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
 }
 </style>

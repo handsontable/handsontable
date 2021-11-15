@@ -1,19 +1,25 @@
 <template>
   <div>
     <div
-        v-if="isEditor && isVisible"
-        id="colorPickerElement"
-        :style="style"
-        @mousedown="stopMousedownPropagation"
+      v-if="isEditor && isVisible"
+      id="colorPickerElement"
+      :style="style"
+      @mousedown="stopMousedownPropagation"
     >
       <chrome-picker :value="value" @input="updateColor"></chrome-picker>
       <button v-on:click="applyColor">Apply</button>
     </div>
     <div v-if="isRenderer">
       <div
-          :style="{background: value, width: '21px', height: '21px', float: 'left', marginRight: '5px'}"
+        :style="{
+          background: value,
+          width: '21px',
+          height: '21px',
+          float: 'left',
+          marginRight: '5px',
+        }"
       ></div>
-      <div>{{value}}</div>
+      <div>{{ value }}</div>
     </div>
   </div>
 </template>
@@ -25,8 +31,8 @@ import Component from "vue-class-component";
 
 @Component({
   components: {
-    "chrome-picker": Chrome
-  }
+    "chrome-picker": Chrome,
+  },
 })
 class ColorPicker extends BaseEditorComponent {
   hotInstance = null;
@@ -47,7 +53,7 @@ class ColorPicker extends BaseEditorComponent {
     zIndex: 999,
     border: "1px solid #000",
     left: "0px",
-    top: "0px"
+    top: "0px",
   };
 
   stopMousedownPropagation(e) {
@@ -56,13 +62,13 @@ class ColorPicker extends BaseEditorComponent {
 
   prepare(row, col, prop, td, originalValue, cellProperties) {
     BaseEditorComponent.options.methods.prepare.call(
-        this,
-        row,
-        col,
-        prop,
-        td,
-        originalValue,
-        cellProperties
+      this,
+      row,
+      col,
+      prop,
+      td,
+      originalValue,
+      cellProperties
     );
 
     const tdPosition = td.getBoundingClientRect();
@@ -79,12 +85,12 @@ class ColorPicker extends BaseEditorComponent {
     if (this.col === 1) {
       this.$store.commit("setActiveStarColor", {
         row: this.row,
-        newColor: this.getValue()
+        newColor: this.getValue(),
       });
     } else if (this.col === 2) {
       this.$store.commit("setInactiveStarColor", {
         row: this.row,
-        newColor: this.getValue()
+        newColor: this.getValue(),
       });
     }
     this.finishEditing();
