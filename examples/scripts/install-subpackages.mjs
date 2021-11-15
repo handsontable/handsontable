@@ -38,7 +38,8 @@ if (!version) {
       if ((version && frameworkUrl.startsWith(version))) {
         console.log(`\nRunning npm install for ${frameworkUrl}:\n`);
 
-        await execa('npm', ['install', '--no-audit'], {
+        // TODO: remove `--legacy-peer-deps` eventually
+        await execa('npm', ['install', '--no-audit', '--legacy-peer-deps'], {
           cwd: frameworkUrl,
           stdio: 'inherit'
         });
@@ -48,7 +49,7 @@ if (!version) {
     // Link the main-level packages from the base ./node_modules to the local ./node_modules (to be read by the
     // examples).
     await spawnProcess(
-      `node --experimental-json-modules ./scripts/link-packages.mjs --f js angular react vue --examples-version ${version}`
+      `node --experimental-json-modules ./scripts/link-packages.mjs --f js ts angular react vue --examples-version ${version}`
     );
   }
 })();

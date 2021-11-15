@@ -1,0 +1,25 @@
+{
+  "name": "vue-advanced-hot-column-implementation",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "vue": "2.6.12",
+    "vue-class-component": "^7.2.6",
+    "vue-color": "^2.8.1",
+    "vue-star-rating":"^1.7.0",
+    "@handsontable/vue": "latest",
+    "core-js": "3.9.1",
+    "handsontable": "latest"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.16.0",
+    "@babel/plugin-proposal-decorators": "^7.16.0",
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "vue-template-compiler": "2.6.12"
+  }
+}
