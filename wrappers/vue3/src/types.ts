@@ -29,7 +29,8 @@ export interface HotTableMethods {
 export interface HotTableProps extends Handsontable.GridSettings {
   id?: string,
   settings?: Handsontable.GridSettings,
-  wrapperRendererCacheSize?: number
+  wrapperRendererCacheSize?: number,
+  usesRendererComponent?: boolean,
 }
 export interface HotColumnProps extends Handsontable.GridSettings {
   settings: Handsontable.GridSettings,

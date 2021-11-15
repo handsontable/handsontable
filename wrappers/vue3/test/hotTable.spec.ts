@@ -12,6 +12,12 @@ import { LRUMap } from '../src/lib/lru/lru';
 
 config.renderStubDefaultSlot = true;
 
+beforeEach(() => {
+  document.body.innerHTML = `
+    <div id="app"></div>
+  `;
+});
+
 describe('hotInit', () => {
   it('should initialize Handsontable and assign it to the `hotInstace` property of the provided object', () => {
     const testWrapper = mount(HotTable, {
@@ -86,7 +92,9 @@ describe('Updating the Handsontable settings', () => {
       },
     };
 
-    const testWrapper = mount(App);
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
     const hotTableComponent = testWrapper.vm.$refs.grid;
 
     expect(hotTableComponent.hotInstance.getSettings().rowHeaders).toBe(true);
@@ -134,7 +142,9 @@ describe('Updating the Handsontable settings', () => {
       },
     };
 
-    const testWrapper = mount(App);
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
 
     testWrapper.vm.updateData();
 
@@ -175,7 +185,9 @@ describe('Updating the Handsontable settings', () => {
       },
     };
 
-    const testWrapper = mount(App);
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
     const { hotInstance } = testWrapper.vm.$refs.grid;
 
     testWrapper.vm.addRow();
@@ -233,7 +245,9 @@ describe('Updating the Handsontable settings', () => {
       },
     };
 
-    const testWrapper = mount(App);
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
     const { hotInstance } = testWrapper.vm.$refs.grid;
 
     testWrapper.vm.updateData({ a: 1, b: 2, c: 3, d: 4 });
@@ -284,7 +298,9 @@ describe('Updating the Handsontable settings', () => {
       },
     };
 
-    const testWrapper = mount(App);
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
     const { hotInstance } = testWrapper.vm.$refs.grid;
 
     testWrapper.vm.addRow();
@@ -305,26 +321,102 @@ describe('Updating the Handsontable settings', () => {
   });
 });
 
-describe('getRendererWrapper', () => {
-  xit('should create the wrapper function for the provided renderer child component', () => {
-
-  });
-});
-
-describe('getEditorClass', () => {
-  xit('should create a fresh class to be used as an editor, based on the editor component provided.', () => {
-
-  });
-});
-
 describe('Global editors and renderers', () => {
-  xit('should allow defining renderer and editor components to work globally on the entire table', () => {
+  it('should allow defining renderer and editor components to work globally on the entire table', () => {
+    const DummyRendererComponent = {
+      name: 'DummyRendererComponent',
+      template: '<div>Row: {{ row }}, Col: {{ col }}, Prop: {{ prop }}, Value: {{ value }}</div>',
+      data() {
+        return {
+          row: null,
+          col: null,
+          prop: null,
+          value: null,
+        }
+      }
+    };
+    const DummyEditorComponent = {
+      extends: BaseEditorComponent,
+      name: 'DummyEditorComponent',
+      template: '<div></div>',
+    };
+    const App = {
+      components: { HotTable, DummyRendererComponent, DummyEditorComponent },
+      template: `
+        <HotTable
+          ref="grid"
+          licenseKey="non-commercial-and-evaluation"
+          :data="data">
+            <DummyRendererComponent hot-renderer />
+            <DummyEditorComponent hot-editor />
+          </HotTable>`,
+      data() {
+        return {
+          data: [{ a: 1, b: 2, c: 3 }],
+        };
+      },
+    };
 
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
+    const { hotInstance } = testWrapper.vm.$refs.grid;
+    const GlobalEditor = hotInstance.getSettings().editor;
+    const globalEditorInstance = new GlobalEditor(hotInstance);
+
+    expect(globalEditorInstance._fullEditMode).toBe(false);
+    expect(globalEditorInstance.hot).toBe(hotInstance);
+    expect(hotInstance.getSettings().renderer(hotInstance, document.createElement('TD'), 555, 0, 0, '0', {}).innerHTML)
+      .toBe('<div>Row: 555, Col: 0, Prop: 0, Value: 0</div>');
+
+    testWrapper.unmount();
   });
 });
 
-xit('should inject an `isRenderer` and `isEditor` properties to renderer/editor components', () => {
+it('should inject an `isRenderer` and `isEditor` properties to renderer/editor components', () => {
+  const DummyRendererComponent = {
+    name: 'DummyRendererComponent',
+    template: '<div>Row: {{ row }}, Col: {{ col }}, Prop: {{ prop }}, Value: {{ value }}</div>',
+    data() {
+      return {
+        row: null,
+        col: null,
+        prop: null,
+        value: null,
+      }
+    }
+  };
+  const DummyEditorComponent = {
+    extends: BaseEditorComponent,
+    name: 'DummyEditorComponent',
+    template: '<div></div>',
+  };
+  const App = {
+    components: { HotTable, DummyRendererComponent, DummyEditorComponent },
+    template: `
+      <HotTable
+        ref="grid"
+        licenseKey="non-commercial-and-evaluation"
+        :autoRowSize="false" :autoColumnSize="false" :data="data">
+          <DummyRendererComponent hot-renderer />
+          <DummyEditorComponent hot-editor />
+        </HotTable>`,
+    data() {
+      return {
+        data: createSampleData(1, 1),
+      };
+    },
+  };
 
+  const testWrapper = mount(App, {
+    attachTo: document.getElementById('app')
+  });
+  const hotTableComponent = testWrapper.getComponent(HotTable as any).vm;
+
+  expect(hotTableComponent.rendererCache.get('0-0').component.isRenderer).toBe(true);
+  expect(hotTableComponent.editorCache.get('DummyEditorComponent').isEditor).toBe(true);
+
+  testWrapper.unmount();
 });
 
 xit('should be possible to access the `hotInstance` property of the HotTable instance from a parent-component', () => {
@@ -353,7 +445,9 @@ xit('should display a warning and not throw any errors, when the underlying Hand
     },
   };
   const warnCalls = [];
-  const testWrapper = mount(App);
+  const testWrapper = mount(App, {
+    attachTo: document.getElementById('app')
+  });
   const { hotInstance } = testWrapper.vm.$refs.grid;
 
   console.warn = (warningMessage) => {
@@ -395,7 +489,9 @@ describe('HOT-based CRUD actions', () => {
         };
       },
     };
-    const testWrapper = mount(App);
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
     const { hotInstance } = testWrapper.vm.$refs.grid;
 
     hotInstance.alter('insert_row', 2, 2);
@@ -443,7 +539,9 @@ describe('Non-HOT based CRUD actions', () => {
         };
       },
     };
-    const testWrapper = mount(App);
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
     const { hotInstance } = testWrapper.vm.$refs.grid;
 
     externalData.push('A', 'B');

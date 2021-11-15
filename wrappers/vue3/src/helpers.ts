@@ -241,7 +241,7 @@ export function getVNodeName(node: VNode) {
  * @param {Object} data Data to be passed to the new instance.
  */
 export function createVueComponent(vNode: VNode, parent: Vue, data: Record<string, unknown>) {
-  const ownerDocument = parent.element ? parent.element.ownerDocument : document;
+  const ownerDocument = parent.$el ? parent.$el.ownerDocument : document;
 
   if (!bulkComponentContainer) {
     bulkComponentContainer = ownerDocument.createElement('DIV');
@@ -254,12 +254,17 @@ export function createVueComponent(vNode: VNode, parent: Vue, data: Record<strin
 
   bulkComponentContainer.appendChild(componentContainer);
 
+  const {
+    'hot-editor': hotEditor,
+    'hot-renderer': hotRenderer,
+    ...newProps
+  } = vNode.props;
   const app = createApp({
-    template: vNode.type.template,
+    ...vNode.type,
     data() {
-      return data;
+      return Object.assign(typeof vNode.type.data === 'function' ? vNode.type.data() : {}, data);
     }
-  });
+  }, newProps);
 
   return app.mount(componentContainer);
 }

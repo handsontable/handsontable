@@ -1,4 +1,3 @@
-import { defineComponent } from 'vue';
 import { config, mount } from '@vue/test-utils'
 import HotTable from '../src/HotTable.vue';
 import HotColumn from '../src/HotColumn.vue';
@@ -27,6 +26,7 @@ describe('createColumnSettings', () => {
       template: '<div>Row: {{ row }}, Col: {{ col }}, Prop: {{ prop }}, Value: {{ value }}</div>',
     };
     const DummyEditorComponent = {
+      extends: BaseEditorComponent,
       name: 'DummyEditorComponent',
       template: '<div></div>',
       data() {
@@ -70,8 +70,7 @@ describe('createColumnSettings', () => {
     expect(columnSettings[0].title).toBe('test-title');
     expect(columnSettings[0].renderer(hotInstance, document.createElement('TD'), 0, 0, 0, 'A1', {}).innerHTML)
       .toBe('<div>Row: 0, Col: 0, Prop: 0, Value: A1</div>');
-    // TODO: vue components in cells are not working yet
-    // expect((new columnSettings[0].editor()).getValue()).toBe('test-value-editor');
+    expect((new columnSettings[0].editor()).getValue()).toBe('test-value-editor');
     expect(columnSettings[1].title).toBe(void 0);
     expect(columnSettings[1].readOnly).toBe(true);
     expect(columnSettings[1].type).toBe('numeric');
@@ -83,8 +82,7 @@ describe('createColumnSettings', () => {
     expect(hotInstance.getSettings().columns[0].title).toBe('test-title');
     expect(hotInstance.getSettings().columns[0].renderer(hotInstance, document.createElement('TD'), 0, 0, 0, 'A1', {}).innerHTML)
       .toBe('<div>Row: 0, Col: 0, Prop: 0, Value: A1</div>');
-    // TODO: vue components in cells are not working yet
-    // expect((new (hotInstance.getSettings().columns[0].editor)()).getValue()).toBe('test-value-editor');
+    expect((new (hotInstance.getSettings().columns[0].editor)()).getValue()).toBe('test-value-editor');
     expect(hotInstance.getSettings().columns[1].title).toBe(void 0);
     expect(hotInstance.getSettings().columns[1].readOnly).toBe(true);
     expect(hotInstance.getSettings().columns[1].type).toBe('numeric');
@@ -176,16 +174,139 @@ describe('renderer cache', () => {
 });
 
 describe('hot-column children', () => {
-  xit('should add as many hot-column children as there are cached renderers and editors for that column', () => {
+  it('should add as many hot-column children as there are cached renderers and editors for that column', () => {
+    const DummyRendererComponent = {
+      name: 'DummyRendererComponent',
+      template: '<div class="renderer"></div>',
+    };
+    const App = {
+      components: { HotTable, HotColumn, DummyRendererComponent },
+      data() {
+        return {
+          data: createSampleData(50, 2),
+          init: function () {
+            mockClientDimensions(this.rootElement, 400, 400);
+          },
+        };
+      },
+      template: `
+        <HotTable :data="data" licenseKey="non-commercial-and-evaluation" :height="400" :width="400"
+                  :autoRowSize="false" :autoColumnSize="false" :init="init">
+          <HotColumn>
+            <DummyRendererComponent hot-renderer />
+          </HotColumn>
+          <HotColumn>
+            <DummyRendererComponent hot-renderer />
+          </HotColumn>
+        </HotTable>
+      `
+    };
 
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
+    const hotTableComponent = testWrapper.getComponent(HotTable as any).vm;
+
+    expect(hotTableComponent.rendererCache.size).toBe(100);
+    expect(hotTableComponent.$el.querySelectorAll('.renderer').length).toBe(100);
+
+    testWrapper.unmount();
   });
 
-  xit('should be possible to set a key on custom editor to use the same component twice', () => {
+  it('should be possible to set a key on custom editor to use the same component twice', () => {
+    const DummyEditorComponent = {
+      extends: BaseEditorComponent,
+      name: 'DummyEditorComponent',
+      template: '<div class="editor"></div>',
+      props: ['test-prop'],
+    };
+    const App = {
+      components: { HotTable, HotColumn, DummyEditorComponent },
+      data() {
+        return {
+          data: createSampleData(2, 2),
+        };
+      },
+      template: `
+        <HotTable :data="data" licenseKey="non-commercial-and-evaluation">
+          <HotColumn>
+            <DummyEditorComponent hot-editor key="editor-one" test-prop="test-prop-value-1" />
+          </HotColumn>
+          <HotColumn>
+            <DummyEditorComponent hot-editor key="editor-two" test-prop="test-prop-value-2" />
+          </HotColumn>
+        </HotTable>
+      `
+    };
 
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
+    const hotTableComponent = testWrapper.getComponent(HotTable as any).vm;
+    const { editorCache } = hotTableComponent;
+
+    expect(editorCache.get('DummyEditorComponent:editor-one').testProp).toBe('test-prop-value-1');
+    expect(editorCache.get('DummyEditorComponent:editor-two').testProp).toBe('test-prop-value-2');
+
+    testWrapper.unmount();
   });
 
-  xit('should be possible to set a key on custom editor to use the same component twice, alongside an editor without' +
+  it('should be possible to set a key on custom editor to use the same component twice, alongside an editor without' +
     ' the key property defined', () => {
+    const DummyEditorComponent = {
+      extends: BaseEditorComponent,
+      name: 'DummyEditorComponent',
+      template: '<div></div>',
+      props: ['test-prop'],
+      methods: {
+        getValue() {
+          // For the sake of this test, the returned value is the passed test prop
+          return this.testProp;
+        },
+        setValue: () => {},
+        open: () => {},
+      },
+    };
+    const App = {
+      components: { HotTable, HotColumn, DummyEditorComponent },
+      data() {
+        return {
+          data: createSampleData(1, 4),
+        };
+      },
+      template: `
+        <HotTable :data="data" licenseKey="non-commercial-and-evaluation">
+          <HotColumn>
+            <DummyEditorComponent hot-editor key="editor-one" test-prop="test-prop-value-1" />
+          </HotColumn>
+          <HotColumn>
+            <DummyEditorComponent hot-editor key="editor-two" test-prop="test-prop-value-2" />
+          </HotColumn>
+          <HotColumn>
+            <DummyEditorComponent hot-editor test-prop="test-prop-value-common" />
+          </HotColumn>
+          <HotColumn>
+            <DummyEditorComponent hot-editor />
+          </HotColumn>
+        </HotTable>
+      `
+    };
 
+    const testWrapper = mount(App, {
+      attachTo: document.getElementById('app')
+    });
+    const hotTableComponent = testWrapper.getComponent(HotTable as any).vm;
+    const { editorCache, hotInstance } = hotTableComponent;
+
+    expect(editorCache.get('DummyEditorComponent:editor-one').testProp).toBe('test-prop-value-1');
+    expect(editorCache.get('DummyEditorComponent:editor-two').testProp).toBe('test-prop-value-2');
+    expect(editorCache.get('DummyEditorComponent').testProp).toBe('test-prop-value-common');
+
+    expect(hotInstance.getCellEditor(0, 0).prototype.getValue()).toBe('test-prop-value-1');
+    expect(hotInstance.getCellEditor(0, 1).prototype.getValue()).toBe('test-prop-value-2');
+    expect(hotInstance.getCellEditor(0, 2).prototype.getValue()).toBe('test-prop-value-common');
+    expect(hotInstance.getCellEditor(0, 3).prototype.getValue()).toBe('test-prop-value-common');
+
+    testWrapper.unmount();
   });
 });

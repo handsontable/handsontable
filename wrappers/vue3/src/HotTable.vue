@@ -7,13 +7,14 @@
 <script lang="ts">
   import { render } from 'vue';
   import {
-    propFactory,
-    preventInternalEditWatch,
-    prepareSettings,
     createVueComponent,
     findVNodeByType,
     getHotColumnComponents,
+    getVNodeName,
     HOT_DESTROYED_WARNING,
+    prepareSettings,
+    preventInternalEditWatch,
+    propFactory,
   } from './helpers';
   import {
     HotTableData,
@@ -249,7 +250,7 @@
           // Prevent caching and rendering of the GhostTable table cells
           if (TD && !TD.getAttribute('ghost-table')) {
             const rendererCache = $vm.rendererCache;
-            const rendererArgs: object = {
+            const rendererArgs = {
               hotInstance: instance,
               TD,
               row,
@@ -297,14 +298,14 @@
        */
       getEditorClass: function (vNode: VNode, containerComponent: Vue): typeof Handsontable.editors.BaseEditor {
         const componentKey: string = vNode.key ? vNode.key.toString() : null;
-        const componentName: string = vNode.type.name;
+        const componentName: string = getVNodeName(vNode);
         const componentCacheKey = componentKey ? `${componentName}:${componentKey}` : componentName;
 
         const editorCache = this.editorCache;
         let mountedComponent: EditorComponent = null;
 
         if (!editorCache.has(componentCacheKey)) {
-          mountedComponent = createVueComponent(vNode, containerComponent, vNode.type?.data(), { isEditor: true });
+          mountedComponent = createVueComponent(vNode, containerComponent, { 'isEditor': true });
 
           editorCache.set(componentCacheKey, mountedComponent);
 
