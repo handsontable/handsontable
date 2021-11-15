@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a new package entry point that allows importing built-in modules in one function call: `import { registerAllEditors, registerAllRenderers, registerAllValidators, registerAllCellTypes, registerAllPlugins } from 'handsontable/registry'`. [#8816](https://github.com/handsontable/handsontable/issues/8816)
 - Added a new `locale` option, to properly handle locale-based data. [#8897](https://github.com/handsontable/handsontable/issues/8897)
 - Added a GitHub Actions workflow that covers testing Handsontable and the wrappers. [#8652](https://github.com/handsontable/handsontable/issues/8652)
+- Added new direction helpers that lay ground for future RTL support. [#8868](https://github.com/handsontable/handsontable/issues/8868)
+
 
 ### Changed
 - Changed how the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888) (**Breaking change**)
@@ -30,7 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an error thrown when using the `populateFromArray()` method with its `method` argument set to `shift_right`. [#6929](https://github.com/handsontable/handsontable/issues/6929) 
 - Fixed an issue with the `beforeOnCellMouseDown` and `afterOnCellMouseDown` hooks using wrong coordinates. [#8498](https://github.com/handsontable/handsontable/issues/8498) 
 - Fixed a `TypeError` thrown when calling the `updateSettings()` method in Handsontable's modularized version. [#8830](https://github.com/handsontable/handsontable/issues/8830) 
-- Fixed a navigation issue occurring when RTL is on. [#8868](https://github.com/handsontable/handsontable/issues/8868)
 - Fixed two issues with the documentation's `canonicalUrl` entries. [#8886](https://github.com/handsontable/handsontable/issues/8886)
 - Fixed an error thrown when autofill's source is a `date` cell. [#8894](https://github.com/handsontable/handsontable/issues/8894)
 - *React:* Fixed a React wrapper issue where it's impossible to use different sets of props in editor components reused across multiple columns. [#8527](https://github.com/handsontable/handsontable/issues/8527)
