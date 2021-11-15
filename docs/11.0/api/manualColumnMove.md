@@ -35,7 +35,7 @@ The plugin creates additional components to make moving possibly using user inte
 
 ### manualColumnMove
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/dataMap/metaManager/metaSchema.js#L2546
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/dataMap/metaManager/metaSchema.js#L2546
 
 :::
 
@@ -71,7 +71,7 @@ manualColumnMove: [1, 4, 6],
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L727
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L727
 
 :::
 
@@ -83,7 +83,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L147
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L147
 
 :::
 
@@ -95,7 +95,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### dragColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L214
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L214
 
 :::
 
@@ -114,7 +114,7 @@ Drag a single column to drop index position.
 
 ### dragColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L228
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L228
 
 :::
 
@@ -133,7 +133,7 @@ Drag multiple columns to drop index position.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L113
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L113
 
 :::
 
@@ -145,7 +145,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L106
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L106
 
 :::
 
@@ -158,7 +158,7 @@ hook and if it returns `true` than the [ManualColumnMove#enablePlugin](@/api/man
 
 ### isMovePossible
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L246
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L246
 
 :::
 
@@ -177,7 +177,7 @@ possible, i.e. You can’t move more than one element to the last position.
 
 ### moveColumn
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L167
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L167
 
 :::
 
@@ -196,7 +196,7 @@ Moves a single column.
 
 ### moveColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L181
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L181
 
 :::
 
@@ -215,7 +215,7 @@ Moves a multiple columns.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/5e44cfb4149d57e5295a90f9847568b1ecbd9bbf/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L135
+::: source-code-link https://github.com/handsontable/handsontable/blob/440c4e816bdf6fc295f5dd12c660a8e6a45a2706/../handsontable/src/plugins/manualColumnMove/manualColumnMove.js#L135
 
 :::
 
