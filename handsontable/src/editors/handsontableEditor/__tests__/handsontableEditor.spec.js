@@ -541,7 +541,7 @@ describe('HandsontableEditor', () => {
     selectCell(2, 0);
 
     keyDownUp(['enter']);
-    keyDownUp(['arrow_down']);
+    keyDownUp(['arrowdown']);
     keyDownUp(['enter']);
     expect(spec().$container.find('.handsontableEditor:visible').length).toEqual(0);
     expect(getDataAtCell(2, 0)).toEqual('BMW');
@@ -563,7 +563,7 @@ describe('HandsontableEditor', () => {
     selectCell(2, 0);
 
     keyDownUp(['enter']);
-    keyDownUp(['arrow_down']);
+    keyDownUp(['arrowdown']);
     expect(document.activeElement).toEqual(hot.getActiveEditor().TEXTAREA);
   });
 
@@ -581,8 +581,8 @@ describe('HandsontableEditor', () => {
     });
 
     selectCell(2, 0);
-    keyDownUp(['arrow_down']);
-    keyDownUp(['arrow_down']);
+    keyDownUp(['arrowdown']);
+    keyDownUp(['arrowdown']);
 
     expect(getSelected()).toEqual([[4, 0, 4, 0]]);
   });
@@ -612,16 +612,16 @@ describe('HandsontableEditor', () => {
     selectCell(1, 0);
     expect(selections[0]).toEqual(['outer', 1]);
 
-    keyDownUp(['arrow_down']);
+    keyDownUp(['arrowdown']);
     expect(selections[1]).toEqual(['outer', 2]);
 
     keyDownUp(['enter']);
 
-    keyDownUp(['arrow_down']);
+    keyDownUp(['arrowdown']);
     expect(selections[2]).toEqual(['inner', 0]);
 
     keyDownUp(['esc']);
-    keyDownUp(['arrow_down']);
+    keyDownUp(['arrowdown']);
     expect(selections[3]).toEqual(['outer', 3]);
 
     expect(selections.length).toBe(4);

@@ -621,7 +621,7 @@ describe('TextEditor', () => {
     expect(isEditorVisible()).toBe(false);
   });
 
-  it('should render textarea editor in specified height (single line)', (done) => {
+  it('should render textarea editor in specified height (single line)', async() => {
     const hot = handsontable();
 
     setDataAtCell(2, 2, 'first line');
@@ -629,13 +629,12 @@ describe('TextEditor', () => {
 
     keyDownUp(['enter']);
 
-    setTimeout(() => {
-      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
   });
 
-  it('should render textarea editor in specified height (multi line)', (done) => {
+  it('should render textarea editor in specified height (multi line)', async() => {
     const hot = handsontable();
 
     setDataAtCell(2, 2, 'first line\n second line\n third line...');
@@ -643,10 +642,9 @@ describe('TextEditor', () => {
 
     keyDownUp(['enter']);
 
-    setTimeout(() => {
-      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('64px');
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('64px');
   });
 
   it('should render number in textarea', () => {
@@ -941,9 +939,7 @@ describe('TextEditor', () => {
 
     keyDownUp(['enter']);
 
-    keyDown(65, {
-      ctrlKey: true
-    }); // CTRL+A should NOT select all table when cell is edited
+    keyDownUp(['control', 'a']); // CTRL+A should NOT select all table when cell is edited
 
     const selection = getSelected();
 
@@ -1081,7 +1077,7 @@ describe('TextEditor', () => {
 
     document.activeElement.value = 'Very very very very very very very very very very very very very ' +
       'very very very very long text';
-    keyDownUp(32); // space - trigger textarea resize
+    keyDownUp(['space']); // space - trigger textarea resize
 
     const $textarea = $(document.activeElement);
     const $wtHider = spec().$container.find('.wtHider');
@@ -1756,7 +1752,7 @@ describe('TextEditor', () => {
     expect(document.activeElement).toBe(activeElement);
   });
 
-  it('should not throw an exception when window.attachEvent is defined but the text area does not have attachEvent', (done) => {
+  it('should not throw an exception when window.attachEvent is defined but the text area does not have attachEvent', () => {
     const hot = handsontable();
 
     window.attachEvent = true;
@@ -1765,8 +1761,6 @@ describe('TextEditor', () => {
     expect(() => {
       hot.getActiveEditor().autoResize.init(hot.getActiveEditor().TEXTAREA);
     }).not.toThrow();
-
-    done();
   });
 
   it('should keep editor open, focusable and with untouched value when allowInvalid is set as false', async() => {

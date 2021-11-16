@@ -22,6 +22,10 @@ export function useRecorder(frame, invokeClbck) {
    * @param {KeyboardEvent} event
    */
   function onkeydown(event) {
+    if (event.key === void 0) {
+      return;
+    }
+
     keyStore.press(normalizeEventKey(event.key));
 
     const nextCombination = keyStore.getPressed().sort().join('+');
@@ -33,6 +37,10 @@ export function useRecorder(frame, invokeClbck) {
    * @param {KeyboardEvent} event
    */
   function onkeyup(event) {
+    if (event.key === void 0) {
+      return;
+    }
+
     keyStore.release(normalizeEventKey(event.key));
   }
 

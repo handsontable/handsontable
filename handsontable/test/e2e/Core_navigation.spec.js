@@ -1,7 +1,7 @@
 describe('Core_navigation LTR', () => {
   const id = 'testContainer';
-  const ARROW_NEXT_COLUMN = 'arrow_right';
-  const ARROW_PREV_COLUMN = 'arrow_left';
+  const ARROW_NEXT_COLUMN = ['arrowright'];
+  const ARROW_PREV_COLUMN = ['arrowleft'];
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');

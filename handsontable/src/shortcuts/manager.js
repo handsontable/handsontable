@@ -4,12 +4,11 @@ import { createContext } from './context';
 import { useRecorder } from './recorder';
 
 // eslint-disable-next-line no-restricted-globals
-export const createShortcutManager = (frame = window) => {
+export const createShortcutManager = ({ isActive, frame }) => {
   const CONTEXTS = createUniqueMap({
     errorIdExists: keys => `The passed context name "${keys}" is already registered.`
   });
   const ACTIVE_CONTEXTS = createUniqueSet();
-  let listening = false;
 
   const addContext = (name) => {
     const context = createContext(name);
@@ -32,7 +31,7 @@ export const createShortcutManager = (frame = window) => {
   };
 
   const destroyRecorder = useRecorder(frame, (event, keys) => {
-    if (!listening) {
+    if (!isActive()) {
       return;
     }
 
@@ -53,8 +52,6 @@ export const createShortcutManager = (frame = window) => {
     getContext,
     setActiveContexts,
     destroy: destroyRecorder,
-    listen: () => listening = true,
-    unlisten: () => listening = false,
   };
 };
 

@@ -2,7 +2,7 @@ import { addClass, empty, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
-import EditorManager from './editorManager';
+import EditorManager, { EDITORMANAGER_CONTEXT } from './editorManager';
 import EventManager from './eventManager';
 import {
   deepClone,
@@ -82,7 +82,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const tableMeta = metaManager.getTableMeta();
   const globalMeta = metaManager.getGlobalMeta();
   const pluginsRegistry = createUniqueMap();
-  const shortcutManager = createShortcutManager();
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
@@ -1463,7 +1462,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.listen = function() {
     if (instance && !instance.isListening()) {
       activeGuid = instance.guid;
-      shortcutManager.listen();
       instance.runHooks('afterListen');
     }
   };
@@ -1478,7 +1476,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.unlisten = function() {
     if (this.isListening()) {
       activeGuid = null;
-      shortcutManager.listen();
       instance.runHooks('afterUnlisten');
     }
   };
@@ -4379,9 +4376,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return shortcutManager;
   };
 
+  const shortcutManager = createShortcutManager({
+    isActive: () => this.isListening(),
+    frame: this.rootWindow,
+  });
   const gridContext = shortcutManager.addContext('grid');
 
-  shortcutManager.setActiveContexts(['grid']);
+  shortcutManager.setActiveContexts(['grid', EDITORMANAGER_CONTEXT]);
 
   gridContext.addShortcut([['Control', 'A']], () => {
     instance.selectAll();
