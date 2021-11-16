@@ -1,0 +1,7 @@
+{
+  "title": "Moved the Codesandbox examples to the \"examples\" directory.",
+  "type": "changed",
+  "issue": 8927,
+  "breaking": false,
+  "framework": "none"
+}
