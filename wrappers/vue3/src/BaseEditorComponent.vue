@@ -2,102 +2,118 @@
 import Handsontable from 'handsontable/base';
 import { Options, Vue } from 'vue-class-component';
 
+const BaseEditorProto = Handsontable.editors.BaseEditor.prototype;
+
 @Options({ name: 'BaseEditorComponent' })
 class BaseEditorComponent extends Vue implements Handsontable.editors.BaseEditor {
+  hot = null;
+  instance = null;
+  state = null;
+  TD = null;
+  row = null;
+  col = null;
+  prop = null;
+  originalValue = null;
+  cellProperties = null;
+
   get hotCustomEditorClass() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const _this = this;
 
-    const customEditorClass = class CustomEditor extends Handsontable.editors.BaseEditor implements Handsontable.editors.BaseEditor {
+    const CustomEditorClass = class CustomEditor extends Handsontable.editors.BaseEditor
+      implements Handsontable.editors.BaseEditor {
+
       constructor(hotInstance) {
         super(hotInstance);
-
         _this.$data.hotCustomEditorInstance = this;
       }
 
+      /* eslint-disable @typescript-eslint/no-empty-function */
       focus() {}
       getValue() {}
       setValue() {}
       open() {}
       close() {}
-    } as any;
+      /* eslint-enable @typescript-eslint/no-empty-function */
+    };
 
     // Fill with the rest of the Handsontable.editors.BaseEditorComponent methods
-    Object.getOwnPropertyNames(Handsontable.editors.BaseEditor.prototype).forEach(propName => {
+    Object.getOwnPropertyNames(BaseEditorProto).forEach((propName) => {
       if (propName === 'constructor') {
         return;
       }
 
-      customEditorClass.prototype[propName] = function (...args) {
+      CustomEditorClass.prototype[propName] = function(...args) {
         return _this[propName].call(this, ...args);
-      }
+      };
     });
 
-    return customEditorClass;
+    return CustomEditorClass;
   }
 
   // Handsontable.editors.BaseEditorComponent methods:
   private _fireCallbacks(...args) {
-    (Handsontable.editors.BaseEditor.prototype as any)._fireCallbacks.call(this.$data.hotCustomEditorInstance, ...args);
+    (BaseEditorProto as any)._fireCallbacks.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   beginEditing(...args) {
-    return Handsontable.editors.BaseEditor.prototype.beginEditing.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.beginEditing.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   cancelChanges(...args) {
-    return Handsontable.editors.BaseEditor.prototype.cancelChanges.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.cancelChanges.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   checkEditorSection(...args) {
-    return Handsontable.editors.BaseEditor.prototype.checkEditorSection.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.checkEditorSection.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   close(...args) {
-    return Handsontable.editors.BaseEditor.prototype.close.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.close.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   discardEditor(...args) {
-    return Handsontable.editors.BaseEditor.prototype.discardEditor.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.discardEditor.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   enableFullEditMode(...args) {
-    return Handsontable.editors.BaseEditor.prototype.enableFullEditMode.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.enableFullEditMode.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   extend(...args) {
-    return Handsontable.editors.BaseEditor.prototype.extend.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.extend.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   finishEditing(...args) {
-    return Handsontable.editors.BaseEditor.prototype.finishEditing.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.finishEditing.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   focus(...args) {
-    return Handsontable.editors.BaseEditor.prototype.focus.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.focus.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   getValue(...args) {
-    return Handsontable.editors.BaseEditor.prototype.getValue.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.getValue.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   init(...args) {
-    return Handsontable.editors.BaseEditor.prototype.init.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.init.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   isInFullEditMode(...args) {
-    return Handsontable.editors.BaseEditor.prototype.isInFullEditMode.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.isInFullEditMode.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   isOpened(...args) {
-    return Handsontable.editors.BaseEditor.prototype.isOpened.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.isOpened.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   isWaiting(...args) {
-    return Handsontable.editors.BaseEditor.prototype.isWaiting.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.isWaiting.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   open(...args) {
-    return Handsontable.editors.BaseEditor.prototype.open.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.open.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   prepare(row, col, prop, TD, originalValue, cellProperties) {
@@ -109,39 +125,40 @@ class BaseEditorComponent extends Vue implements Handsontable.editors.BaseEditor
     this.$data.originalValue = originalValue;
     this.$data.cellProperties = cellProperties;
 
-    return Handsontable.editors.BaseEditor.prototype.prepare.call(this.$data.hotCustomEditorInstance, row, col, prop, TD, originalValue, cellProperties);
+    return BaseEditorProto.prepare
+      .call(this.$data.hotCustomEditorInstance, row, col, prop, TD, originalValue, cellProperties);
   }
 
   saveValue(...args) {
-    return Handsontable.editors.BaseEditor.prototype.saveValue.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.saveValue.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   setValue(...args) {
-    return Handsontable.editors.BaseEditor.prototype.setValue.call(this.$data.hotCustomEditorInstance, ...args);
+    return BaseEditorProto.setValue.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   addHook(...args) {
-    return (Handsontable.editors.BaseEditor.prototype as any).addHook.call(this.$data.hotCustomEditorInstance, ...args);
+    return (BaseEditorProto as any).addHook.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   removeHooksByKey(...args) {
-    return (Handsontable.editors.BaseEditor.prototype as any).removeHooksByKey.call(this.$data.hotCustomEditorInstance, ...args);
+    return (BaseEditorProto as any).removeHooksByKey.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   clearHooks(...args) {
-    return (Handsontable.editors.BaseEditor.prototype as any).clearHooks.call(this.$data.hotCustomEditorInstance, ...args);
+    return (BaseEditorProto as any).clearHooks.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   getEditedCell(...args) {
-    return (Handsontable.editors.BaseEditor.prototype as any).getEditedCell.call(this.$data.hotCustomEditorInstance, ...args);
+    return (BaseEditorProto as any).getEditedCell.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   getEditedCellsZIndex(...args) {
-    return (Handsontable.editors.BaseEditor.prototype as any).getEditedCellsZIndex.call(this.$data.hotCustomEditorInstance, ...args);
+    return (BaseEditorProto as any).getEditedCellsZIndex.call(this.$data.hotCustomEditorInstance, ...args);
   }
 
   getEditedCellsLayerClass(...args) {
-    return (Handsontable.editors.BaseEditor.prototype as any).getEditedCellsLayerClass.call(this.$data.hotCustomEditorInstance, ...args);
+    return (BaseEditorProto as any).getEditedCellsLayerClass.call(this.$data.hotCustomEditorInstance, ...args);
   }
 }
 

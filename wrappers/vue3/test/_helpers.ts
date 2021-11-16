@@ -1,18 +1,11 @@
-export function wait (amount, body, resolveFunc) {
-  if (!resolveFunc) {
-    resolveFunc = body;
-    body = () => {
-    };
-  }
-  return new Promise((resolve, reject) => {
-    body();
-    setTimeout(() => {
-      resolve();
-    }, amount);
-  }).then(resolveFunc);
-}
-
-export function createSampleData (rows, columns) {
+/**
+ * Creates an 2D array.
+ *
+ * @param {number} rows Number of rows to generate.
+ * @param {number} columns Numbers of columns to generate.
+ * @returns {string[][]}
+ */
+export function createSampleData(rows: number, columns: number): Array<string>[] {
   const data = [];
 
   for (let i = 0; i < rows; i++) {
@@ -26,26 +19,19 @@ export function createSampleData (rows, columns) {
   return data;
 }
 
-export function mockClientDimensions (element, width, height) {
+/**
+ * Mocks the element `clientWidth` and `clientHeight` props to trick the Handsontable that
+ * it is injected into the specific container size.
+ *
+ * @param {HTMLElement} element DOM element to mock.
+ * @param {number} width The container width.
+ * @param {number} height The container height.
+ */
+export function mockClientDimensions(element: HTMLElement, width: number, height: number) {
   Object.defineProperty(element, 'clientWidth', {
     value: width,
   });
   Object.defineProperty(element, 'clientHeight', {
     value: height,
   });
-}
-
-/**
- * Create a temporary DOM container for the components to be placed in.
- * It should be replaced with the actual mounted component from `@vue/test-utils`, so there's no need to remove it
- * after the test case is finished.
- */
-export function createDomContainer () {
-  const container = document.createElement('div');
-
-  if (document.body) {
-    document.body.appendChild(container);
-  }
-
-  return container;
 }

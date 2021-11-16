@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import {
   rewriteSettings,
   prepareSettings,
@@ -6,26 +7,28 @@ import {
 
 describe('rewriteSettings', () => {
   it('should rewrite the settings element passed to the watchers to be a clean object prepared to use withing Handsontable config, when the input element is an object', () => {
-    const fakeWatcher = () => {};
-    fakeWatcher.prototype.sampleMethod = () => {};
-    fakeWatcher.prototype.sampleProperty = null;
+    const FakeWatcher = function() {};
 
-    const fakeWatcherInstance = new fakeWatcher();
+    FakeWatcher.prototype.sampleMethod = function() {};
+    FakeWatcher.prototype.sampleProperty = null;
+
+    const fakeWatcherInstance = new FakeWatcher();
+
     fakeWatcherInstance.testedProperty = null;
-    fakeWatcherInstance.testedMethod = () => {};
+    fakeWatcherInstance.testedMethod = function() {};
 
-    expect(typeof fakeWatcherInstance.sampleMethod).toEqual('function');
-    expect(typeof fakeWatcherInstance.testedMethod).toEqual('function');
-    expect(fakeWatcherInstance.sampleProperty).toEqual(null);
-    expect(fakeWatcherInstance.testedProperty).toEqual(null);
+    expect(typeof fakeWatcherInstance.sampleMethod).toBe('function');
+    expect(typeof fakeWatcherInstance.testedMethod).toBe('function');
+    expect(fakeWatcherInstance.sampleProperty).toBe(null);
+    expect(fakeWatcherInstance.testedProperty).toBe(null);
 
-    let cleanObject = rewriteSettings(fakeWatcherInstance) as any;
+    const cleanObject: any = rewriteSettings(fakeWatcherInstance);
 
-    expect(typeof cleanObject.sampleMethod).toEqual('undefined');
-    expect(typeof cleanObject.testedMethod).toEqual('function');
-    expect(cleanObject.sampleProperty).toEqual(void 0);
-    expect(cleanObject.testedProperty).toEqual(null);
-    expect(Object.prototype.toString.call(cleanObject)).toEqual('[object Object]');
+    expect(typeof cleanObject.sampleMethod).toBe('undefined');
+    expect(typeof cleanObject.testedMethod).toBe('function');
+    expect(cleanObject.sampleProperty).toBe(void 0);
+    expect(cleanObject.testedProperty).toBe(null);
+    expect(Object.prototype.toString.call(cleanObject)).toBe('[object Object]');
   });
 });
 
@@ -33,14 +36,14 @@ describe('propFactory', () => {
   it('should generate an object containing all the available Handsontable properties and plugin hooks', () => {
     const props: any = propFactory('HotTable');
 
-    expect(typeof props.startRows).toEqual('object');
-    expect(typeof props.startCols).toEqual('object');
-    expect(typeof props.data).toEqual('object');
-    expect(typeof props.fixedRowsTop).toEqual('object');
-    expect(typeof props.afterCreateRow).toEqual('object');
-    expect(typeof props.afterGetCellMeta).toEqual('object');
-    expect(typeof props.beforeInit).toEqual('object');
-    expect(typeof props.randomProp).toEqual('undefined');
+    expect(typeof props.startRows).toBe('object');
+    expect(typeof props.startCols).toBe('object');
+    expect(typeof props.data).toBe('object');
+    expect(typeof props.fixedRowsTop).toBe('object');
+    expect(typeof props.afterCreateRow).toBe('object');
+    expect(typeof props.afterGetCellMeta).toBe('object');
+    expect(typeof props.beforeInit).toBe('object');
+    expect(typeof props.randomProp).toBe('undefined');
   });
 });
 
@@ -58,14 +61,14 @@ describe('prepareSettings', () => {
       }
     };
 
-    const preparedSettings = prepareSettings(propsMock as any) as any;
+    const preparedSettings = prepareSettings(propsMock);
 
     expect(preparedSettings.readOnly).toBe(true);
     expect(preparedSettings.colHeaders).toBe(true);
     expect(preparedSettings.rowHeaders).toBe(true);
     expect(preparedSettings.data).toEqual([[1, 2], [3, 4]]);
-    expect(preparedSettings.afterUpdateSettings()).toBe('afterUpdateSettingsResult');
-    expect(preparedSettings.afterChange()).toBe('afterChangeResult');
+    expect(preparedSettings.afterUpdateSettings(preparedSettings)).toBe('afterUpdateSettingsResult');
+    expect(preparedSettings.afterChange([[1, 1, 1, 1]], 'auto')).toBe('afterChangeResult');
     expect(preparedSettings.id).toBe(void 0);
     expect(preparedSettings.settings).toBe(void 0);
     expect(preparedSettings.wrapperRendererCacheSize).toBe(void 0);

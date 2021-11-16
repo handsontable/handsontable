@@ -1,10 +1,9 @@
-import { config, mount } from '@vue/test-utils'
+import { config, mount } from '@vue/test-utils';
+import { registerAllCellTypes } from 'handsontable/registry';
 import HotTable from '../src/HotTable.vue';
 import HotColumn from '../src/HotColumn.vue';
 import BaseEditorComponent from '../src/BaseEditorComponent.vue';
-import { registerAllCellTypes } from 'handsontable/registry';
 import {
-  createDomContainer,
   createSampleData,
   mockClientDimensions,
 } from './_helpers';
@@ -29,14 +28,10 @@ describe('createColumnSettings', () => {
       extends: BaseEditorComponent,
       name: 'DummyEditorComponent',
       template: '<div></div>',
-      data() {
-        return {
-          hotCustomEditorClass: class A {
-            getValue() {
-              return 'test-value-editor';
-            }
-          },
-        };
+      methods: {
+        getValue() {
+          return 'test-value-editor';
+        }
       },
     };
 
@@ -68,9 +63,13 @@ describe('createColumnSettings', () => {
     const { columnSettings, hotInstance } = hotTableComponent;
 
     expect(columnSettings[0].title).toBe('test-title');
-    expect(columnSettings[0].renderer(hotInstance, document.createElement('TD'), 0, 0, 0, 'A1', {}).innerHTML)
+    expect(columnSettings[0]
+      .renderer(hotInstance, document.createElement('TD'), 0, 0, 0, 'A1', {}).innerHTML)
       .toBe('<div>Row: 0, Col: 0, Prop: 0, Value: A1</div>');
-    expect((new columnSettings[0].editor()).getValue()).toBe('test-value-editor');
+
+    const EditorClass1 = columnSettings[0].editor;
+
+    expect(new EditorClass1().getValue()).toBe('test-value-editor');
     expect(columnSettings[1].title).toBe(void 0);
     expect(columnSettings[1].readOnly).toBe(true);
     expect(columnSettings[1].type).toBe('numeric');
@@ -80,9 +79,13 @@ describe('createColumnSettings', () => {
     expect(columnSettings[2].renderer()).toBe('test-value3');
 
     expect(hotInstance.getSettings().columns[0].title).toBe('test-title');
-    expect(hotInstance.getSettings().columns[0].renderer(hotInstance, document.createElement('TD'), 0, 0, 0, 'A1', {}).innerHTML)
+    expect(hotInstance.getSettings().columns[0]
+      .renderer(hotInstance, document.createElement('TD'), 0, 0, 0, 'A1', {}).innerHTML)
       .toBe('<div>Row: 0, Col: 0, Prop: 0, Value: A1</div>');
-    expect((new (hotInstance.getSettings().columns[0].editor)()).getValue()).toBe('test-value-editor');
+
+    const EditorClass2 = hotInstance.getSettings().columns[0].editor;
+
+    expect(new EditorClass2().getValue()).toBe('test-value-editor');
     expect(hotInstance.getSettings().columns[1].title).toBe(void 0);
     expect(hotInstance.getSettings().columns[1].readOnly).toBe(true);
     expect(hotInstance.getSettings().columns[1].type).toBe('numeric');
@@ -106,7 +109,7 @@ describe('renderer cache', () => {
       data() {
         return {
           data: createSampleData(20, 2),
-          init: function () {
+          init() {
             mockClientDimensions(this.rootElement, 400, 400);
           },
         };
@@ -144,7 +147,7 @@ describe('renderer cache', () => {
       data() {
         return {
           data: createSampleData(200, 2),
-          init: function () {
+          init() {
             mockClientDimensions(this.rootElement, 400, 400);
           },
         };
@@ -184,7 +187,7 @@ describe('hot-column children', () => {
       data() {
         return {
           data: createSampleData(50, 2),
-          init: function () {
+          init() {
             mockClientDimensions(this.rootElement, 400, 400);
           },
         };
@@ -263,8 +266,6 @@ describe('hot-column children', () => {
           // For the sake of this test, the returned value is the passed test prop
           return this.testProp;
         },
-        setValue: () => {},
-        open: () => {},
       },
     };
     const App = {

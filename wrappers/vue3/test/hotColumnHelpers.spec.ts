@@ -1,11 +1,8 @@
+import { createVNode } from 'vue';
+import { config } from '@vue/test-utils';
 import {
   findVNodeByType,
-  createVueComponent,
 } from '../src/helpers';
-import { createStore } from 'vuex';
-import { createVNode, defineComponent, createApp } from 'vue';
-import { mount, shallowMount, config } from '@vue/test-utils';
-import { createRouter, createWebHashHistory } from 'vue-router';
 
 config.renderStubDefaultSlot = true;
 

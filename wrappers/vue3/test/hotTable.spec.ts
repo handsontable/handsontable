@@ -1,14 +1,11 @@
+/* eslint-disable no-console */
+import { mount, config } from '@vue/test-utils';
 import HotTable from '../src/HotTable.vue';
 import BaseEditorComponent from '../src/BaseEditorComponent.vue';
 import { HOT_DESTROYED_WARNING } from '../src/helpers';
-import { mount, config } from '@vue/test-utils';
 import {
-  createDomContainer,
   createSampleData,
-  mockClientDimensions,
-  wait,
 } from './_helpers';
-import { LRUMap } from '../src/lib/lru/lru';
 
 config.renderStubDefaultSlot = true;
 
@@ -29,41 +26,42 @@ describe('hotInit', () => {
 
     const hotTableComponent = testWrapper.getComponent(HotTable as any).vm;
 
-    expect(typeof hotTableComponent.hotInstance).toEqual('object');
-    expect(hotTableComponent.hotInstance.getDataAtCell(0, 0)).toEqual('0-0');
+    expect(typeof hotTableComponent.hotInstance).toBe('object');
+    expect(hotTableComponent.hotInstance.getDataAtCell(0, 0)).toBe('0-0');
 
     testWrapper.unmount();
   });
 });
 
 describe('Updating the Handsontable settings', () => {
-  it('should update the previously initialized Handsontable instance with a single changed property', async () => {
+  it('should update the previously initialized Handsontable instance with a single changed property', async() => {
     let updateSettingsCalls = 0;
     const testWrapper = mount(HotTable, {
       props: {
         data: createSampleData(1, 1),
         licenseKey: 'non-commercial-and-evaluation',
         rowHeaders: true,
-        afterUpdateSettings () {
-          updateSettingsCalls++;
+        afterUpdateSettings() {
+          updateSettingsCalls += 1;
         },
       },
     });
 
     const hotTableComponent = testWrapper.getComponent(HotTable as any);
-    expect(hotTableComponent.vm.hotInstance.getSettings().rowHeaders).toEqual(true);
+
+    expect(hotTableComponent.vm.hotInstance.getSettings().rowHeaders).toBe(true);
 
     await testWrapper.setProps({
       rowHeaders: false,
     });
 
-    expect(updateSettingsCalls).toEqual(1);
-    expect(hotTableComponent.vm.hotInstance.getSettings().rowHeaders).toEqual(false);
+    expect(updateSettingsCalls).toBe(1);
+    expect(hotTableComponent.vm.hotInstance.getSettings().rowHeaders).toBe(false);
 
     testWrapper.unmount();
   });
 
-  it('should update the previously initialized Handsontable instance only once with multiple changed properties', async () => {
+  it('should update the previously initialized Handsontable instance only once with multiple changed properties', async() => {
     const App = {
       components: { HotTable },
       template: `
@@ -112,7 +110,7 @@ describe('Updating the Handsontable settings', () => {
   });
 
   it('should update the previously initialized Handsontable instance with only the options that are passed to the' +
-    ' component as props and actually changed', async () => {
+    ' component as props and actually changed', async() => {
     const App = {
       components: { HotTable },
       template: `
@@ -156,7 +154,7 @@ describe('Updating the Handsontable settings', () => {
   });
 
   it('should not call Handsontable\'s `updateSettings` method, when the table data was changed by reference, and the' +
-      ' dataset is an array of arrays', async () => {
+      ' dataset is an array of arrays', async() => {
     const App = {
       components: { HotTable },
       template: `
@@ -222,7 +220,7 @@ describe('Updating the Handsontable settings', () => {
   });
 
   it('should call Handsontable\'s `updateSettings` method, when the table data was changed by reference while the' +
-      ' dataset is an array of object and property number changed', async () => {
+      ' dataset is an array of object and property number changed', async() => {
     const App = {
       components: { HotTable },
       template: `
@@ -272,7 +270,7 @@ describe('Updating the Handsontable settings', () => {
   });
 
   it('should NOT call Handsontable\'s `updateSettings` method, when the table data was changed by reference while the' +
-      ' dataset is an array of object and property number DID NOT change', async () => {
+      ' dataset is an array of object and property number DID NOT change', async() => {
     const App = {
       components: { HotTable },
       template: `
@@ -332,7 +330,7 @@ describe('Global editors and renderers', () => {
           col: null,
           prop: null,
           value: null,
-        }
+        };
       }
     };
     const DummyEditorComponent = {
@@ -383,7 +381,7 @@ it('should inject an `isRenderer` and `isEditor` properties to renderer/editor c
         col: null,
         prop: null,
         value: null,
-      }
+      };
     }
   };
   const DummyEditorComponent = {
@@ -419,15 +417,91 @@ it('should inject an `isRenderer` and `isEditor` properties to renderer/editor c
   testWrapper.unmount();
 });
 
-xit('should be possible to access the `hotInstance` property of the HotTable instance from a parent-component', () => {
+it('should be possible to access the `hotInstance` property of the HotTable instance from a parent-component', () => {
+  let hotInstanceFromRef = 'not-set';
+  const App = {
+    components: { HotTable },
+    template: `
+      <HotTable
+        ref="grid"
+        licenseKey="non-commercial-and-evaluation"
+        :data="data"
+        :autoRowSize="false"
+        :autoColumnSize="false"
+        :cells="cellsCallback"
+        >
+        </HotTable>`,
+    data() {
+      return {
+        data: createSampleData(1, 1),
+      };
+    },
+    methods: {
+      cellsCallback() {
+        if (hotInstanceFromRef === 'not-set') {
+          hotInstanceFromRef = this.$refs.grid.hotInstance;
+        }
+      },
+    },
+  };
 
+  const testWrapper = mount(App, {
+    attachTo: document.getElementById('app')
+  });
+
+  expect(['not-set', null].includes(hotInstanceFromRef)).toBe(false);
+
+  testWrapper.unmount();
 });
 
-xit('should be possible to pass props to the editor and renderer components', () => {
+it('should be possible to pass props to the editor and renderer components', () => {
+  const DummyRendererComponent = {
+    name: 'DummyRendererComponent',
+    template: '<div>Row: {{ row }}, Col: {{ col }}, Prop: {{ prop }}, Value: {{ value }}</div>',
+    props: ['test-prop'],
+    data() {
+      return {
+        row: null,
+        col: null,
+        prop: null,
+        value: null,
+      };
+    }
+  };
+  const DummyEditorComponent = {
+    extends: BaseEditorComponent,
+    name: 'DummyEditorComponent',
+    props: ['test-prop'],
+    template: '<div></div>',
+  };
+  const App = {
+    components: { HotTable, DummyRendererComponent, DummyEditorComponent },
+    template: `
+      <HotTable
+        licenseKey="non-commercial-and-evaluation"
+        :data="data">
+          <DummyRendererComponent hot-renderer test-prop="test-prop-value" />
+          <DummyEditorComponent hot-editor test-prop="test-prop-value" />
+        </HotTable>`,
+    data() {
+      return {
+        data: createSampleData(1, 1),
+      };
+    },
+  };
 
+  const testWrapper = mount(App, {
+    attachTo: document.getElementById('app')
+  });
+  const hotTableComponent = testWrapper.getComponent(HotTable as any).vm;
+
+  expect(hotTableComponent.rendererCache.get('0-0').component.testProp).toBe('test-prop-value');
+  expect(hotTableComponent.editorCache.get('DummyEditorComponent').testProp).toBe('test-prop-value');
+
+  testWrapper.unmount();
 });
 
-xit('should display a warning and not throw any errors, when the underlying Handsontable instance ' +
+it('should display a warning and not throw any errors, when the underlying Handsontable instance ' +
   'has been destroyed', () => {
   const warnFunc = console.warn;
   const App = {
@@ -472,7 +546,7 @@ xit('should display a warning and not throw any errors, when the underlying Hand
 });
 
 describe('HOT-based CRUD actions', () => {
-  it('should should not add/remove any additional rows when calling `alter` on the HOT instance', async () => {
+  it('should should not add/remove any additional rows when calling `alter` on the HOT instance', async() => {
     const App = {
       components: { HotTable },
       template: `
@@ -521,7 +595,7 @@ describe('HOT-based CRUD actions', () => {
 });
 
 describe('Non-HOT based CRUD actions', () => {
-  it('should not add/remove any additional rows when modifying a data array passed to the wrapper', async () => {
+  it('should not add/remove any additional rows when modifying a data array passed to the wrapper', async() => {
     const externalData = createSampleData(4, 4);
     const App = {
       components: { HotTable },
@@ -539,13 +613,15 @@ describe('Non-HOT based CRUD actions', () => {
         };
       },
     };
+
     const testWrapper = mount(App, {
       attachTo: document.getElementById('app')
     });
     const { hotInstance } = testWrapper.vm.$refs.grid;
 
-    externalData.push('A', 'B');
-    externalData[0].push('test', 'test');
+    externalData[0].push('col4', 'col5');
+    externalData.push(['A', 'B', 'C', 'D']);
+    externalData.push(['E', 'F', 'G', 'H']);
 
     await testWrapper.vm.$nextTick();
 
