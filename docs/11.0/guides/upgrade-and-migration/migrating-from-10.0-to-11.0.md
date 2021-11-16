@@ -54,7 +54,7 @@ The [`populateFromArray()`](@/api/core.md#populatefromarray) method works differ
 
 - [`populateFromArray()`](@/api/core.md#populatefromarray) performed a separate `spliceRow` action for each populated row, and a separate `spliceColumn` action for each populated column.
 - The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks were triggered multiple times, separately for each populated row and column.
-- The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks were triggered by the `spliceRow` and `spliceColumn` actions.
+- The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks were triggered by each `spliceRow` and `spliceColumn` action, with the `source` argument defined as `spliceRow` or `spliceCol`.
 
 #### Now
 
