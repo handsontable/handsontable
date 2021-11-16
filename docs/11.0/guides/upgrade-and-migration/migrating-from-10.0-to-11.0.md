@@ -62,5 +62,4 @@ The [`populateFromArray()`](@/api/core.md#populatefromarray) method works differ
 - The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks are triggered only once, for all populated rows and columns.
 - The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks are triggered directly by the [`populateFromArray()`](@/api/core.md#populatefromarray) method, with the `source` argument defined as `populateFromArray`.
 
-
 For more details, see [this pull request](https://github.com/handsontable/handsontable/pull/8867).
