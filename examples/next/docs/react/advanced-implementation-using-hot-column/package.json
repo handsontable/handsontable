@@ -14,7 +14,8 @@
     "react-native-listener": "1.1.0",
     "react-redux": "7.2.4",
     "react-star-rating-component": "^1.4.1",
-    "redux": "4.1.0"
+    "redux": "4.1.0",
+    "core-js": "^3.19.1"
   },
   "devDependencies": {
     "cross-env": "7.0.3",
