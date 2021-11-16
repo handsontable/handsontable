@@ -74,7 +74,7 @@ new Handsontable(element, {
 
 ```js
 new Handsontable(element, {
-  afterChange: (changes) => {
+  afterChange: (changes, source) => {
     if (source === 'populateFromArray') {
       changes.forEach(change =>  handleChange(change))
     }
