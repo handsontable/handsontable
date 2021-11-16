@@ -25,7 +25,7 @@ Handsontable's source files are stored on GitHub, in a [mono repository](https:/
     ├── scripts                             # Handsontable scripts
     ├── src                                 # Source files
     ├── test                                # Automated tests
-    └── handsontable.d.ts                   # Handsontable TypeScript definitions file
+    └── types                               # Handsontable TypeScript definitions files
 ├── resources                               # Static files for README.md
 ├── scripts                                 # Monorepo scripts
 └── wrappers                                # Wrapper files
