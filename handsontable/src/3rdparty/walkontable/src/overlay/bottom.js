@@ -83,16 +83,16 @@ export class BottomOverlay extends Overlay {
       const bodyHeight = rootDocument.documentElement.clientHeight;
       let finalLeft;
       let finalBottom;
-      
+
       finalLeft = wtTable.hider.style.left;
       finalLeft = finalLeft === '' ? 0 : Number.parseInt(finalLeft);
 
-      if(this.isRtl()) {
-        finalLeft = this.holder.getBoundingClientRect().width - hiderRect.width + finalLeft
+      if (this.isRtl()) {
+        finalLeft = this.holder.getBoundingClientRect().width - hiderRect.width + finalLeft;
       }
 
-      finalLeft = finalLeft !== 0 ? finalLeft + 'px' : finalLeft;
-      
+      finalLeft = finalLeft !== 0 ? `${finalLeft}px` : finalLeft;
+
       if (bottom > bodyHeight) {
         finalBottom = (bottom - bodyHeight);
       } else {

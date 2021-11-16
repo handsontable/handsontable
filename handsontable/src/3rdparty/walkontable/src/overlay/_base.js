@@ -303,11 +303,12 @@ export class Overlay {
 
   /**
    * Determine if Walkontable is running in RTL mode.
+   *
    * @internal
-   * @return {boolean}
+   * @returns {boolean}
    */
-  isRtl(){
-   return this.wot.rootWindow.getComputedStyle(this.holder).direction === 'rtl';
+  isRtl() {
+    return this.wot.rootWindow.getComputedStyle(this.holder).direction === 'rtl';
   }
   /**
    * Destroy overlay instance.

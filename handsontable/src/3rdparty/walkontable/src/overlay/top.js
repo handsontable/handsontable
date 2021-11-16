@@ -101,12 +101,12 @@ export class TopOverlay extends Overlay {
 
       finalLeft = wtTable.hider.style.left;
       finalLeft = finalLeft === '' ? 0 : Number.parseInt(finalLeft);
-      
-      if(this.isRtl()) {
-        finalLeft = this.holder.getBoundingClientRect().width - hiderRect.width + finalLeft
+
+      if (this.isRtl()) {
+        finalLeft = this.holder.getBoundingClientRect().width - hiderRect.width + finalLeft;
       }
-      
-      finalLeft = finalLeft !== 0 ? finalLeft + 'px' : finalLeft;
+
+      finalLeft = finalLeft !== 0 ? `${finalLeft}px` : finalLeft;
 
       if (top < 0 && (bottom - rootHeight) > 0) {
         finalTop = -top;
