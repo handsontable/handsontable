@@ -17,7 +17,7 @@ import {
  * and (optionally) implements behavior needed for native horizontal and vertical scrolling.
  *
  * @class Overlay
- */
+ * @property {Walkontable} wot Walkontable instance. */
 export class Overlay {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
