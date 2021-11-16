@@ -67,6 +67,14 @@ export class Formulas extends BasePlugin {
   #internalOperationPending = false;
 
   /**
+   * Flag used to bypass hooks when source data has been already synchronized.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #blockSyncingSourceData = false;
+
+  /**
    * Flag needed to mark if Handsontable was initialized with no data.
    * (Required to work around the fact, that Handsontable auto-generates sample data, when no data is provided).
    *
@@ -186,11 +194,12 @@ export class Formulas extends BasePlugin {
         return;
       }
 
-      this.blockSyncingSourceData = true;
+      // Undo/redo plugin wil sync source data.
+      this.#blockSyncingSourceData = true;
 
       this.engine.undo();
 
-      this.blockSyncingSourceData = false;
+      this.#blockSyncingSourceData = false;
     });
 
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism
@@ -200,11 +209,12 @@ export class Formulas extends BasePlugin {
         return;
       }
 
-      this.blockSyncingSourceData = true;
+      // Undo/redo plugin wil sync source data.
+      this.#blockSyncingSourceData = true;
 
       this.engine.redo();
 
-      this.blockSyncingSourceData = false;
+      this.#blockSyncingSourceData = false;
     });
 
     this.addHook('afterDetachChild', (...args) => this.onAfterDetachChild(...args));
@@ -788,7 +798,9 @@ export class Formulas extends BasePlugin {
     const outOfBoundsChanges = [];
     const changedCells = [];
 
-    this.blockSyncingSourceData = true;
+    // The `setDataAtCell` will update source data by it own. Callback to engine's `valuesUpdated` hook shouldn't
+    // repeat that action.
+    this.#blockSyncingSourceData = true;
 
     const dependentCells = this.engine.batch(() => {
       changes.forEach(([row, prop, , newValue]) => {
@@ -826,7 +838,7 @@ export class Formulas extends BasePlugin {
       });
     }
 
-    this.blockSyncingSourceData = false;
+    this.#blockSyncingSourceData = false;
 
     this.renderDependentSheets(dependentCells);
     this.validateDependentCells(dependentCells, changedCells);
@@ -848,7 +860,9 @@ export class Formulas extends BasePlugin {
     const dependentCells = [];
     const changedCells = [];
 
-    this.blockSyncingSourceData = true;
+    // The `setSourceDataAtCell` will update source data by it own. Callback to engine's `valuesUpdated` hook shouldn't
+    // repeat that action.
+    this.#blockSyncingSourceData = true;
 
     changes.forEach(([row, prop, , newValue]) => {
       const column = this.hot.propToCol(prop);
@@ -874,7 +888,7 @@ export class Formulas extends BasePlugin {
       dependentCells.push(...this.engine.setCellContents(address, newValue));
     });
 
-    this.blockSyncingSourceData = false;
+    this.#blockSyncingSourceData = false;
 
     this.renderDependentSheets(dependentCells);
     this.validateDependentCells(dependentCells, changedCells);
@@ -1082,7 +1096,7 @@ export class Formulas extends BasePlugin {
   onEngineValuesUpdated(changes) {
     this.hot.runHooks('afterFormulasValuesUpdate', changes);
 
-    if (this.#internalOperationPending === true || this.blockSyncingSourceData === true) {
+    if (this.#internalOperationPending || this.#blockSyncingSourceData) {
       return;
     }
 
@@ -1097,6 +1111,8 @@ export class Formulas extends BasePlugin {
           newValue = this.engine.getCellFormula(address);
         }
 
+        // When the change has been already processed by Handsontable, there is no need to update value once again
+        // It would litter undo/redo stack inside engine provided by HyperFormula and trigger not needed renderers.
         if (this.hot.getSourceDataAtCell(row, col) !== newValue) {
           return mappedChanges.concat([[row, col, newValue]]);
         }
@@ -1106,11 +1122,12 @@ export class Formulas extends BasePlugin {
     }, []);
 
     if (changesForSetSourceData.length > 0) {
-      this.blockSyncingSourceData = true;
+      // Below action will trigger `valuesUpdated`. Setting flag will prevent creation of infinite loop.
+      this.#blockSyncingSourceData = true;
 
       this.hot.setSourceDataAtCell(changesForSetSourceData);
 
-      this.blockSyncingSourceData = false;
+      this.#blockSyncingSourceData = false;
     }
   }
 
