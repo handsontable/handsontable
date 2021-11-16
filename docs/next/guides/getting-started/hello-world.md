@@ -25,31 +25,31 @@ Want to play with the code yourself? Select the button in the frame's bottom rig
   {
     name: 'JavaScript',
     title: 'Handsontable JavaScript Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-javascript-data-grid-hello-world-app-1cc81',
+    codeSandboxId: 'github/handsontable/handsontable/tree/develop/examples/next/docs/js/hello-world',
     selectedFile: '/src/index.js',
   },
   {
     name: 'TypeScript',
     title: 'Handsontable TypeScript Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-typescript-data-grid-hello-world-app-tbsul',
+    codeSandboxId: 'github/handsontable/handsontable/tree/develop/examples/next/docs/ts/hello-world',
     selectedFile: '/src/index.ts',
   },
   {
     name: 'React',
     title: 'Handsontable React Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-react-data-grid-hello-world-app-bhipr',
+    codeSandboxId: 'github/handsontable/handsontable/tree/develop/examples/next/docs/react/hello-world',
     selectedFile: '/src/index.tsx',
   },
   {
     name: 'Angular',
     title: 'Handsontable Angular Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-angular-data-grid-hello-world-app-dhojw',
+    codeSandboxId: 'github/handsontable/handsontable/tree/develop/examples/next/docs/angular/hello-world',
     selectedFile: '/src/data-grid/data-grid.component.ts',
   },
   {
     name: 'Vue 2',
     title: 'Handsontable Vue Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-vue-data-grid-hello-world-app-5qgo7',
+    codeSandboxId: 'github/handsontable/handsontable/tree/develop/examples/next/docs/vue/hello-world',
     selectedFile: '/src/components/DataGrid.vue',
   },
 ]"></HelloWorld>

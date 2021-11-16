@@ -17,7 +17,7 @@ You can configure the column-related settings using the `HotColumn` component's 
 
 To declare column-specific settings, pass the settings as `HotColumn` properties, either separately or wrapped as a `settings` property, exactly as you would with `HotTable`.
 
-<iframe src="https://codesandbox.io/embed/declaring-column-settings-seg0l?fontsize=14&theme=dark" title="Declaring column settings" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
+<iframe src="https://codesandbox.io/embed/github/handsontable/handsontable/tree/develop/examples/next/docs/react/declaring-column-settings?fontsize=14&theme=dark" title="Declaring column settings" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
   style="width: 100%;
   height: 390px;
   border: 0;
@@ -38,7 +38,7 @@ Handsontable's `autoRowSize` and `autoColumnSize` options require calculating th
 Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results. Please note that `autoColumnSize` is enabled by default.
 :::
 
-<iframe src="https://codesandbox.io/embed/declaring-a-custom-renderer-as-a-component-4yv9m?fontsize=14&theme=dark" title="Declaring a custom renderer as a component" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
+<iframe src="https://codesandbox.io/embed/github/handsontable/handsontable/tree/develop/examples/next/docs/react/declaring-a-custom-renderer-as-a-component?fontsize=14&theme=dark" title="Declaring a custom renderer as a component" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
   style="width: 100%;
   height: 390px;
   border: 0;
@@ -50,7 +50,7 @@ Be sure to turn those options off in your Handsontable config, as keeping them e
 
 When you use object data binding for `HotColumn`, you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in properties as `data`, for example, `<HotColumn data="id" />`.
 
-<iframe src="https://codesandbox.io/embed/object-data-source-y8xwr?fontsize=14&theme=dark" 
+<iframe src="https://codesandbox.io/embed/github/handsontable/handsontable/tree/develop/examples/next/docs/react/object-data-source?fontsize=14&theme=dark" 
   style="width: 100%;
   height: 390px;
   border: 0;
@@ -73,7 +73,7 @@ To prevent that, the `mousedown` event on the editor container must call `event.
 
 The example below uses the [react-native-listener](https://www.npmjs.com/package/react-native-listener) library to utilize the native `mousedown` event.
 
-<iframe src="https://codesandbox.io/embed/declaring-a-custom-editor-as-a-component-qhbnv?fontsize=14&theme=dark" 
+<iframe src="https://codesandbox.io/embed/github/handsontable/handsontable/tree/develop/examples/next/docs/react/declaring-a-custom-editor-as-a-component?fontsize=14&theme=dark" 
   style="width: 100%;
   height: 390px;
   border: 0;
@@ -87,7 +87,7 @@ The example below uses the [react-native-listener](https://www.npmjs.com/package
 
 In this example, React's Context is used to pass the information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with editors just as well.
 
-<iframe src="https://codesandbox.io/embed/using-the-renderer-component-with-reacts-context-forked-27pl0?fontsize=14&theme=dark" 
+<iframe src="https://codesandbox.io/embed/github/handsontable/handsontable/tree/develop/examples/next/docs/react/using-the-renderer-component-with-reacts-context?fontsize=14&theme=dark" 
   style="width: 100%;
   height: 390px;
   border: 0;
@@ -101,7 +101,7 @@ In this example, React's Context is used to pass the information available in th
 
 In this example, the custom editor component is created with an external dependency. This acts as both renderer and editor. The renderer uses information from that component in the first column to change the way it behaves. Information is passed using Redux and `react-redux`'s `connect` method.
 
-<iframe src="https://codesandbox.io/embed/advanced-handsontablereact-implementation-using-hotcolumn-forked-jgrk2?fontsize=14&theme=dark" 
+<iframe src="https://codesandbox.io/embed/github/handsontable/handsontable/tree/develop/examples/next/docs/react/advanced-implementation-using-hot-column?fontsize=14&theme=dark" 
   style="width: 100%;
   height: 390px;
   border: 0;
