@@ -1,0 +1,51 @@
+{
+  "name": "vue-advanced-hot-column-implementation",
+  "version": "11.0.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "@vue/cli-plugin-babel": "4.1.1",
+    "vue": "2.6.12",
+    "vue-class-component": "^7.2.6",
+    "vue-color": "^2.8.1",
+    "vue-star-rating": "^1.7.0",
+    "vuex": "3.6.2",
+    "@handsontable/vue": "11.0.0",
+    "core-js": "3.9.1",
+    "handsontable": "11.0.0"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-decorators": "latest",
+    "@babel/plugin-proposal-class-properties": "latest",
+    "@vue/cli-plugin-babel": "4.4.6",
+    "@vue/cli-plugin-eslint": "4.4.6",
+    "@vue/cli-service": "4.4.6",
+    "babel-eslint": "10.1.0",
+    "eslint": "6.8.0",
+    "eslint-plugin-vue": "6.2.2",
+    "vue-template-compiler": "2.6.12"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "rules": {},
+    "parserOptions": {
+      "parser": "babel-eslint"
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

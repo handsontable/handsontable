@@ -1,0 +1,23 @@
+{
+  "name": "ts-hello-world",
+  "private": true,
+  "version": "11.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html",
+    "check-types": "tsc --noEmit --skipLibCheck"
+  },
+  "dependencies": {
+    "handsontable": "11.0.0",
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "typescript": "4.2.3"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "keywords": []
+}

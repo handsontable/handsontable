@@ -1,0 +1,37 @@
+{
+  "name": "react-advanced-implementation-using-hot-column",
+  "private": true,
+  "version": "11.0.0",
+  "description": "",
+  "keywords": [],
+  "main": "src/index.js",
+  "dependencies": {
+    "@handsontable/react": "11.0.0",
+    "handsontable": "11.0.0",
+    "react": "17.0.2",
+    "react-color": "2.19.3",
+    "react-dom": "17.0.2",
+    "react-native-listener": "1.1.0",
+    "react-redux": "7.2.4",
+    "react-star-rating-component": "^1.4.1",
+    "redux": "4.1.0",
+    "core-js": "^3.19.1"
+  },
+  "devDependencies": {
+    "cross-env": "7.0.3",
+    "react-app-rewired": "2.1.8",
+    "typescript": "3.3.3"
+  },
+  "scripts": {
+    "start": "cross-env SKIP_PREFLIGHT_CHECK=true BROWSER=none PORT=8080 react-app-rewired start",
+    "build": "cross-env BUILD_PATH=dist SKIP_PREFLIGHT_CHECK=true PUBLIC_URL=. react-app-rewired build",
+    "_test": "react-app-rewired test --env=jsdom",
+    "eject": "react-app-rewired eject"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}

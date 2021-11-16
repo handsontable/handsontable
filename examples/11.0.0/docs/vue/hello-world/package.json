@@ -1,0 +1,52 @@
+{
+  "name": "vue-hello-world",
+  "version": "11.0.0",
+  "private": true,
+  "description": "",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "@handsontable/vue": "11.0.0",
+    "handsontable": "11.0.0",
+    "vue": "2.6.12"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.18.0",
+    "@typescript-eslint/parser": "^4.18.0",
+    "@vue/cli-plugin-babel": "4.4.6",
+    "@vue/cli-plugin-eslint": "4.4.6",
+    "@vue/cli-service": "4.4.6",
+    "@vue/cli-plugin-typescript": "4.4.6",
+    "@vue/eslint-config-typescript": "^7.0.0",
+    "eslint": "^6.8.0",
+    "eslint-plugin-vue": "^7.13.0",
+    "node-sass": "^6.0.1",
+    "sass-loader": "^10.2.0",
+    "typescript": "^4.4.0",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended",
+      "@vue/typescript"
+    ],
+    "rules": {},
+    "parserOptions": {
+      "parser": "@typescript-eslint/parser"
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ],
+  "keywords": []
+}
