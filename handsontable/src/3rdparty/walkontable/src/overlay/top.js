@@ -102,7 +102,7 @@ export class TopOverlay extends Overlay {
       finalLeft = wtTable.hider.style.left;
       finalLeft = finalLeft === '' ? 0 : Number.parseInt(finalLeft);
       
-      if(this.wot.rootWindow.getComputedStyle(this.holder).direction === 'rtl') {
+      if(this.isRtl()) {
         finalLeft = this.holder.getBoundingClientRect().width - hiderRect.width + finalLeft
       }
       
