@@ -56,6 +56,16 @@ The [`populateFromArray()`](@/api/core.md#populatefromarray) method works differ
 - The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks were triggered multiple times, separately for each populated row and column.
 - The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks were triggered by each `spliceRow` and `spliceColumn` action, with the `source` argument defined as `spliceRow` or `spliceCol`.
 
+```js
+new Handsontable(element, {
+  afterChange: (changes, source) => {
+    if (source === 'spliceRow' || source === 'spliceCol') {
+       // your code
+    }
+  }
+})
+```
+
 #### Now
 
 - [`populateFromArray()`](@/api/core.md#populatefromarray) populates rows and columns with one large operation.
@@ -63,3 +73,13 @@ The [`populateFromArray()`](@/api/core.md#populatefromarray) method works differ
 - The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks are triggered directly by the [`populateFromArray()`](@/api/core.md#populatefromarray) method, with the `source` argument defined as `populateFromArray`.
 
 For more details, see [this pull request](https://github.com/handsontable/handsontable/pull/8867).
+
+```js
+new Handsontable(element, {
+  afterChange: (changes, source) => {
+    if (source === 'populateFromArray') {
+       // your code
+    }
+  }
+})
+```
