@@ -13,6 +13,13 @@ tags:
 
 [[toc]]
 
+## 11.0.1
+
+Released on 17th of November, 2021
+
+**Fixed**
+- Fixed the UMD build of `@handsontable/angular`, which was not working properly in `11.0.0`. [#8946](https://github.com/handsontable/handsontable/pull/8946)
+
 ## 11.0.0
 
 Released on 17th of November, 2021
