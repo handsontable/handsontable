@@ -59,7 +59,7 @@ The [`populateFromArray()`](@/api/core.md#populatefromarray) method works differ
 ```js
 new Handsontable(element, {
   afterChange: (changes, source) => {
-    if (source === 'spliceRow') {
+    if (source === 'spliceRow' || source === 'spliceCol') {
       handleChange(changes[0]);
     }
   }
