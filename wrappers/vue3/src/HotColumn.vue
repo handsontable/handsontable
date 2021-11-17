@@ -1,4 +1,5 @@
 <script lang="ts">
+import { defineComponent } from 'vue';
 import {
   propFactory,
   findVNodeByType,
@@ -8,7 +9,7 @@ import {
   VNode,
 } from './types';
 
-const HotColumn = {
+const HotColumn = defineComponent({
   name: 'HotColumn',
   props: propFactory('HotColumn'),
   inject: ['columnsCache'],
@@ -58,7 +59,7 @@ const HotColumn = {
   render() {
     return null;
   }
-};
+});
 
 export default HotColumn;
 export { HotColumn };

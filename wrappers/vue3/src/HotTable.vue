@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import { render } from 'vue';
+import { defineComponent, render } from 'vue';
 import Handsontable from 'handsontable/base';
 import {
   createVueComponent,
@@ -23,7 +23,7 @@ import {
 import * as packageJson from '../package.json';
 import { LRUMap } from './lib/lru/lru';
 
-const HotTable = {
+const HotTable = defineComponent({
   name: 'HotTable',
   props: propFactory('HotTable'),
   provide() {
@@ -72,7 +72,7 @@ const HotTable = {
     }
   },
   data() {
-    const rendererCache = new LRUMap(this.wrapperRendererCacheSize);
+    const rendererCache = new LRUMap(this.wrapperRendererCacheSize as number);
 
     // Make the LRU cache destroy each removed component
     rendererCache.shift = function() {
@@ -85,12 +85,14 @@ const HotTable = {
     };
 
     return {
-      rendererCache,
+      /* eslint-disable vue/no-reserved-keys */
       __internalEdit: false,
+      __hotInstance: null,
+      /* eslint-enable vue/no-reserved-keys */
+      rendererCache,
       miscCache: {
         currentSourceColumns: null,
       },
-      __hotInstance: null,
       columnSettings: null,
       editorCache: new Map(),
       columnsCache: new Map(),
@@ -125,14 +127,10 @@ const HotTable = {
 
       if (globalEditorVNode) {
         newSettings.editor = this.getEditorClass(globalEditorVNode, this);
-
-        // globalEditorVNode.child.$destroy();
       }
 
       if (globalRendererVNode) {
         newSettings.renderer = this.getRendererWrapper(globalRendererVNode, this);
-
-        // globalRendererVNode.child.$destroy();
       }
 
       this.hotInstance = new Handsontable.Core(this.$el, newSettings);
@@ -316,13 +314,13 @@ const HotTable = {
 
     return this.hotInit();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     if (this.hotInstance) {
       this.hotInstance.destroy();
     }
   },
   version: (packageJson as any).version,
-};
+});
 
 export default HotTable;
 export { HotTable };
