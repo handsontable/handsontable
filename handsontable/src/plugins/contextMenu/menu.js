@@ -451,6 +451,7 @@ class Menu {
       if (this.hot.isLtr()) { // ltr mode
         if (cursor.fitsOnRight(this.container)) {
           this.setPositionOnRightOfCursor(cursor);
+
         } else {
           this.setPositionOnLeftOfCursor(cursor);
         }
