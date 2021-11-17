@@ -459,6 +459,7 @@ class Menu {
         // eslint-disable-next-line no-lonely-if
         if (cursor.fitsOnLeft(this.container)) {
           this.setPositionOnLeftOfCursor(cursor);
+
         } else {
           this.setPositionOnRightOfCursor(cursor);
         }
