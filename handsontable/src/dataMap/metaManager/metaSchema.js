@@ -3631,7 +3631,7 @@ export default () => {
     allowHtml: false,
 
     /**
-     * The `renderAllRows` option configures Handsontable's [row virtualization](@/guides/rows/row-virtualization).
+     * The `renderAllRows` option configures Handsontable's [row virtualization](@/guides/rows/row-virtualization.md).
      *
      * You can set the `renderAllRows` option to one of the following:
      *
