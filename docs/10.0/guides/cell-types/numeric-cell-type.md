@@ -31,7 +31,7 @@ All the positive and negative integers whose magnitude is no greater than 253 (+
 
 ## Basic example
 
-::: example #example1
+::: example #example1 :hot-numbro
 ```js
 const container = document.querySelector('#example1');
 

@@ -1,12 +1,13 @@
 {
   "name": "handsontable-examples",
   "private": true,
-  "version": "10.0.0",
+  "version": "11.0.0",
   "scripts": {
     "clean": "node ./scripts/clean-subpackages.mjs",
     "test": "cd .. && npm run examples:test next",
     "build": "cd .. && npm run examples:build next",
-    "install:version": "node --experimental-json-modules ./scripts/install-subpackages.mjs"
+    "install:version": "node --experimental-json-modules ./scripts/install-subpackages.mjs",
+    "prebuild": "npm run install:version next -- --skip-clean"
   },
   "eslintConfig": {
     "root": true,
@@ -14,9 +15,7 @@
       "node": true
     }
   },
-  "workspaces": {
-    "packages": [
-      "@(next|@(+([0-9]).+([0-9]).+([0-9])*))/@(!(node_modules))/+(js|angular|react|vue)"
-    ]
-  }
+  "workspaces": [
+    "@(next|@(+([0-9]).+([0-9]).+([0-9])*))/@(!(node_modules))/+(js|angular|react|vue)"
+  ]
 }

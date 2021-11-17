@@ -1,13 +1,28 @@
 import rimraf from 'rimraf';
-import hotPackageJson from '../../package.json';
+import mainPackageJSON from '../../package.json';
 
-const workspaces = hotPackageJson.workspaces.packages;
+const workspaces = mainPackageJSON.workspaces;
 
 /**
  * Cleans the `node_modules` directory and `package-lock.json` files for all the packages declared as npm workspaces.
  */
 export function cleanNodeModules() {
   console.log('\n Cleaning the "node_modules" directories and lock files.\n');
+
+  try {
+    console.log('- Removing the ./node_modules directory.');
+
+    rimraf.sync('./node_modules');
+
+    console.log('- Removing the ./package-lock.json file.');
+
+    rimraf.sync('./package-lock.json');
+
+  } catch (error) {
+    console.error(`Error deleting ./node_modules or ./package-lock.json - ${error}.`);
+
+    process.exit(1);
+  }
 
   workspaces.forEach((packagesLocation) => {
     const nodeModulesLocation = `${packagesLocation}/node_modules`;

@@ -79,7 +79,7 @@ docs                            # All documentation files
 │   ├── docs-links.js           # Lets us link within the currently-selected docs version with `@` (e.g. [link](@/guides/path/file.md).)
 │   ├── enhanceApp.js           # VuePress app-level enhancements
 │   ├── helpers.js              # Common helpers that set up sidebars and the documentation version picker
-│   ├── highlight.js            # Code highlight configuration
+│   └── highlight.js            # Code highlight configuration
 ├── docker                      # Docker configuration
 ├── next                        # The documentation's draft version, unavailable on the production environment
 │   ├── api                     # The API reference output, generated automatically from JSDoc. Do not edit!

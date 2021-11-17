@@ -4,8 +4,17 @@ const examples = require('./containers/examples');
 const sourceCodeLink = require('./containers/sourceCodeLink');
 const nginxRedirectsPlugin = require('./plugins/generate-nginx-redirects');
 const assetsVersioningPlugin = require('./plugins/assets-versioning');
+const { getBuildDocsVersion, getLatestVersion } = require('./helpers');
 
 const buildMode = process.env.BUILD_MODE;
+const versionPartialPath = getBuildDocsVersion() || '**';
+const isLatestOrMultiVersion = getBuildDocsVersion() === getLatestVersion() || !getBuildDocsVersion();
+const base = isLatestOrMultiVersion ? '/docs/' : `/docs/${versionPartialPath}/`;
+const redirectsPlugin = isLatestOrMultiVersion ?
+  [nginxRedirectsPlugin, {
+    outputFile: path.resolve(__dirname, '../docker/redirects.conf')
+  }] : {};
+
 const environmentHead = buildMode === 'production' ?
   [
     // Google Tag Manager, an extra element within the `ssr.html` file.
@@ -20,9 +29,15 @@ const environmentHead = buildMode === 'production' ?
   : [];
 
 module.exports = {
-  patterns: ['**/*.md', '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'], // to enable vue pages add: '**/*.vue'.
+  define: {
+    GA_ID: 'UA-33932793-7',
+  },
+  patterns: [
+    `${versionPartialPath}/*.md`, `${versionPartialPath}/**/*.md`,
+    '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'
+  ],
   description: 'Handsontable',
-  base: '/docs/',
+  base,
   head: [
     ['link', { rel: 'icon', href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png' }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
@@ -93,9 +108,7 @@ module.exports = {
       },
     },
     assetsVersioningPlugin,
-    [nginxRedirectsPlugin, {
-      outputFile: path.resolve(__dirname, '../docker/redirects.conf')
-    }],
+    redirectsPlugin
   ],
   themeConfig: {
     nextLinks: true,

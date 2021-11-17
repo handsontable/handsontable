@@ -1,3 +1,7 @@
+import rimraf from 'rimraf';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
 /// shared dependencies
 import utils from '../utils.js';
 
@@ -11,6 +15,18 @@ import { buildParser } from './parser/index.mjs';
 /// extract commonjs module
 const { logger } = utils;
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const filesToRemoveGlob = path.resolve(`${__dirname}/${configuration.pathToDist}/!(introduction|plugins).md`);
+
+logger.log('Clearing old markdown files:', path.resolve(`${__dirname}/${configuration.pathToDist}`));
+
+rimraf.sync(filesToRemoveGlob, {
+  glob: true,
+  silent: false,
+});
+
+logger.success('Cleared old markdown files successfully.');
+
 /// build services
 const { source, dist } = buildPathsDeterminants(configuration);
 const { parseJsdoc, generateMarkdown } = buildJsdocToMarkdownIntegrator({ source });
@@ -20,7 +36,8 @@ const render = buildRenderer({ logger, dist, generateMarkdown, configuration });
 /// program:
 const errors = [];
 
-for (const { type, members, metaData: { parsedTypes } } of parse()) { // eslint-disable-line no-restricted-syntax
+for (const data of parse()) { // eslint-disable-line no-restricted-syntax
+  const { type, members, metaData: { parsedTypes } } = data;
   const fileName = `${type}.md`;
 
   logger.log(`Generating \`${type}\` into:`, dist(fileName));

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { getBuildDocsVersion, getLatestVersion } = require('../../.vuepress/helpers');
 
 const apiHighLevelPages = [
   'introduction',
@@ -15,12 +16,10 @@ const plugins = fs.readdirSync(path.join(__dirname, './'))
     return file.includes('hotPlugin: true\n');
   }).map(fileName => fileName.split('.').shift());
 
-const { getLatestVersion } = require('../../.vuepress/helpers');
-
 const getUrlVersionPart = () => {
   const version = path.resolve(__dirname, '../').split('/').pop();
 
-  return getLatestVersion() === version ? '' : `/${version}`;
+  return getLatestVersion() === version || getBuildDocsVersion() ? '' : `/${version}`;
 };
 
 module.exports = {

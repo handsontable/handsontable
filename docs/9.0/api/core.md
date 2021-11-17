@@ -975,7 +975,7 @@ _core.getRowHeight(row) ⇒ number_
 
 Returns the row height.
 
-Mind that this method is different from the [AutoRowSize](@/api/auto-row-size.md) plugin's [`getRowHeight()`](@/api/auto-row-size.md#getrowheight) method.
+Mind that this method is different from the [AutoRowSize](@/api/autoRowSize.md) plugin's [`getRowHeight()`](@/api/autoRowSize.md#getrowheight) method.
 
 **Emits**: [`Hooks#event:modifyRowHeight`](@/api/pluginHooks.md#modifyrowheight)  
 

@@ -4,7 +4,13 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const buildPathsDeterminants = ({ pathToSource, pathToDist }) => {
-  const source = file => path.join(__dirname, pathToSource, file);
+  const source = (files) => {
+    const sourceArray = [];
+
+    files.forEach(file => sourceArray.push(path.join(__dirname, pathToSource, file)));
+
+    return sourceArray;
+  };
 
   const flat = file => file.split('/').pop();
 

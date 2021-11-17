@@ -42,12 +42,12 @@ In Handsontable 10.0.0, we changed the default values of the [`autoWrapCol`](@/a
 | [`autoWrapCol: true`](@/api/options.md#autowrapcol) | [`autoWrapCol: false`](@/api/options.md#autowrapcol) |
 | [`autoWrapRow: true`](@/api/options.md#autowraprow) | [`autoWrapRow: false`](@/api/options.md#autowraprow) |
 
-We also changed the default values for the [`rowsLimit`](@/api/copypaste.md#rowslimit) and [`columnsLimit`](@/api/copypaste.md#columnslimit) options of the [`CopyPaste`](@/api/copypaste.md) plugin, from `1000` to `Infinity` ([#8676](https://github.com/handsontable/handsontable/pull/8676)):
+We also changed the default values for the [`rowsLimit`](@/api/copyPaste.md#rowslimit) and [`columnsLimit`](@/api/copyPaste.md#columnslimit) options of the [`CopyPaste`](@/api/copyPaste.md) plugin, from `1000` to `Infinity` ([#8676](https://github.com/handsontable/handsontable/pull/8676)):
 
 | Before                                                  | After                                                       |
 | ------------------------------------------------------- | ----------------------------------------------------------- |
-| [`rowsLimit: 1000`](@/api/copypaste.md#rowslimit)       | [`rowsLimit: Infinity`](@/api/copypaste.md#rowslimit)       |
-| [`columnsLimit: 1000`](@/api/copypaste.md#columnslimit) | [`columnsLimit: Infinity`](@/api/copypaste.md#columnslimit) |
+| [`rowsLimit: 1000`](@/api/copyPaste.md#rowslimit)       | [`rowsLimit: Infinity`](@/api/copyPaste.md#rowslimit)       |
+| [`columnsLimit: 1000`](@/api/copyPaste.md#columnslimit) | [`columnsLimit: Infinity`](@/api/copyPaste.md#columnslimit) |
 
 ## Step 4: Adapt to the hook changes
 
@@ -65,11 +65,11 @@ In both cases, the renamed `controller` object now has a `cell` property, instea
 | `row`<br>`column`<br>`cells` | `row`<br>`column`<br>`cell` |
 
 This change affects the following plugins:
-- [`ColumnSorting`](@/api/columnsorting.md)
-- [`MultiColumnSorting`](@/api/multicolumnsorting.md)
-- [`ManualColumnMove`](@/api/manualcolumnmove.md)
-- [`ManualRowMove`](@/api/manualrowmove.md)
-- [`NestedHeaders`](@/api/nestedheaders.md)
+- [`ColumnSorting`](@/api/columnSorting.md)
+- [`MultiColumnSorting`](@/api/multiColumnSorting.md)
+- [`ManualColumnMove`](@/api/manualColumnMove.md)
+- [`ManualRowMove`](@/api/manualRowMove.md)
+- [`NestedHeaders`](@/api/nestedHeaders.md)
 
 For more details, see [this PR](https://github.com/handsontable/handsontable/pull/8591).
 

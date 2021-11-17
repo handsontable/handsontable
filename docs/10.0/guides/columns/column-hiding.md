@@ -21,7 +21,7 @@ When you're hiding a column:
 
 ## Enabling column hiding
 
-To simply enable column hiding (without further configuration), set the [`hiddenColumns`](@/api/metaSchema.md#hiddencolumns) [configuration option](@/guides/getting-started/setting-options.md) to `true`:
+To simply enable column hiding (without further configuration), set the [`hiddenColumns`](@/api/options.md#hiddencolumns) [configuration option](@/guides/getting-started/setting-options.md) to `true`:
 
 ::: example #example1
 ```js
@@ -44,7 +44,7 @@ To set up your column hiding configuration, follow the steps below.
 
 ### Step 1: Specify columns hidden by default
 
-To both enable column hiding and specify columns hidden by default, set the [`hiddenColumns`](@/api/metaSchema.md#hiddencolumns) [configuration option](@/guides/getting-started/setting-options.md)  to an object.
+To both enable column hiding and specify columns hidden by default, set the [`hiddenColumns`](@/api/options.md#hiddencolumns) [configuration option](@/guides/getting-started/setting-options.md)  to an object.
 
 In the object, add a `columns` property, and set it to an array of column indexes.
 
@@ -75,7 +75,7 @@ To easily see which columns are currently hidden, display UI indicators.
 To enable the UI indicators, in the `hiddenColumns` object, set the `indicators` property to `true`:
 
 ::: tip
-If you use both the [`NestedHeaders`](@/api/nestedheaders.md) plugin and the [`HiddenColumns`](@/api/hiddenColumns.md) plugin, you also need to set the `colHeaders` property to `true`. Otherwise, `indicators` won't work.
+If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the [`HiddenColumns`](@/api/hiddenColumns.md) plugin, you also need to set the `colHeaders` property to `true`. Otherwise, `indicators` won't work.
 :::
 
 ::: example #example3
@@ -186,7 +186,7 @@ const plugin = hot.getPlugin('hiddenColumns');
 
 ### Hiding a single column
 
-To hide a single column, use the [`hideColumn()`](@/api/hiddencolumns.md#hidecolumn) method:
+To hide a single column, use the [`hideColumn()`](@/api/hiddenColumns.md#hidecolumn) method:
 
 ```js
 const plugin = hot.getPlugin('hiddenColumns');
