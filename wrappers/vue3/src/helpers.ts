@@ -23,41 +23,6 @@ export function hasOwnProperty(object: unknown, key: string): boolean {
 }
 
 /**
- * Rewrite the settings object passed to the watchers to be a clean array/object prepared to use within Handsontable config.
- *
- * @param {*} observerSettings Watcher object containing the changed data.
- * @returns {object|Array}
- */
-export function rewriteSettings(observerSettings): any[] | object {
-  const settingsType = Object.prototype.toString.call(observerSettings);
-  const type: { array?: boolean, object?: boolean } = {};
-  let settings: any[] | object | null = null;
-
-  if (settingsType === '[object Array]') {
-    settings = [];
-    type.array = true;
-
-  } else if (settingsType === '[object Object]') {
-    settings = {};
-    type.object = true;
-  }
-
-  if (type.array || type.object) {
-    // eslint-disable-next-line no-restricted-syntax
-    for (const p in observerSettings) {
-      if (hasOwnProperty(observerSettings, p)) {
-        settings[p] = observerSettings[p];
-      }
-    }
-
-  } else {
-    settings = observerSettings;
-  }
-
-  return settings;
-}
-
-/**
  * Private method to ensure the table is not calling `updateSettings` after editing cells.
  *
  * @private

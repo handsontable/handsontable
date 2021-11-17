@@ -15,12 +15,7 @@ export const plugins = {
       script: 'ts'
     },
     template: {
-      isProduction: true,
-      compilerOptions: {
-        compatConfig: {
-          MODE: 2
-        }
-      }
+      isProduction: true
     }
   }),
   typescript: typescript({

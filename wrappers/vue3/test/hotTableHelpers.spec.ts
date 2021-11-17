@@ -1,36 +1,8 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import {
-  rewriteSettings,
   prepareSettings,
   propFactory
 } from '../src/helpers';
-
-describe('rewriteSettings', () => {
-  it('should rewrite the settings element passed to the watchers to be a clean object prepared to use withing Handsontable config, when the input element is an object', () => {
-    const FakeWatcher = function() {};
-
-    FakeWatcher.prototype.sampleMethod = function() {};
-    FakeWatcher.prototype.sampleProperty = null;
-
-    const fakeWatcherInstance = new FakeWatcher();
-
-    fakeWatcherInstance.testedProperty = null;
-    fakeWatcherInstance.testedMethod = function() {};
-
-    expect(typeof fakeWatcherInstance.sampleMethod).toBe('function');
-    expect(typeof fakeWatcherInstance.testedMethod).toBe('function');
-    expect(fakeWatcherInstance.sampleProperty).toBe(null);
-    expect(fakeWatcherInstance.testedProperty).toBe(null);
-
-    const cleanObject: any = rewriteSettings(fakeWatcherInstance);
-
-    expect(typeof cleanObject.sampleMethod).toBe('undefined');
-    expect(typeof cleanObject.testedMethod).toBe('function');
-    expect(cleanObject.sampleProperty).toBe(void 0);
-    expect(cleanObject.testedProperty).toBe(null);
-    expect(Object.prototype.toString.call(cleanObject)).toBe('[object Object]');
-  });
-});
 
 describe('propFactory', () => {
   it('should generate an object containing all the available Handsontable properties and plugin hooks', () => {

@@ -18,7 +18,6 @@ import {
 } from './helpers';
 import {
   HotTableProps,
-  EditorComponent,
   VNode,
 } from './types';
 import * as packageJson from '../package.json';
@@ -298,7 +297,7 @@ const HotTable = {
       const componentCacheKey = componentKey ? `${componentName}:${componentKey}` : componentName;
 
       const editorCache = this.editorCache;
-      let mountedComponent: EditorComponent = null;
+      let mountedComponent = null;
 
       if (!editorCache.has(componentCacheKey)) {
         mountedComponent = createVueComponent(vNode, containerComponent, { isEditor: true });
