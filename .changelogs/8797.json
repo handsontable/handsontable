@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue with checkboxes positions.",
+  "type": "fixed",
+  "issue": 8797,
+  "breaking": false,
+  "framework": "none"
+}

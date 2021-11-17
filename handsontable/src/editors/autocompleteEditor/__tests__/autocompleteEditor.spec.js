@@ -883,7 +883,7 @@ describe('AutocompleteEditor', () => {
       const autocompleteEditor = $('.autocompleteEditor');
 
       await sleep(100);
-      expect(autocompleteEditor.css('position')).toEqual('relative');
+      expect(autocompleteEditor.css('position')).toEqual('absolute');
 
       autocompleteEditor.siblings('textarea').first().val('');
       keyDownUp('backspace');
