@@ -16,8 +16,7 @@ let verboseReporting = false;
 if (!originalPath) {
   /* eslint-disable no-console */
   console.log('The `path` argument is missing.');
-
-  return;
+  process.exit(1);
 }
 
 if (flags) {
