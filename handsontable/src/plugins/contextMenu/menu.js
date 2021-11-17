@@ -35,7 +35,7 @@ const MIN_WIDTH = 215;
 
 /**
  * @typedef MenuOptions
- * @property {Menu} [parent] Default value: `null`.
+ * @property {Menu} [parent=null] Instance of {@link Menu}.
  * @property {string} [name] Default value: `null`.
  * @property {string} [className] Default value: `''`.
  * @property {boolean} [keepInViewport] Default value: `true`.
