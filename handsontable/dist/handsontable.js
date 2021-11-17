@@ -25,8 +25,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 11.0.0
- * Release date: 17/11/2021 (built at 15/11/2021 11:49:05)
+ * Version: 11.0.1
+ * Release date: 17/11/2021 (built at 17/11/2021 15:10:49)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -2911,7 +2911,7 @@ module.exports =
 
 var superPropBase = __webpack_require__(423);
 
-function _get(target, property, receiver) {
+function _get() {
   if (typeof Reflect !== "undefined" && Reflect.get) {
     module.exports = _get = Reflect.get;
     module.exports["default"] = module.exports, module.exports.__esModule = true;
@@ -2922,7 +2922,7 @@ function _get(target, property, receiver) {
       var desc = Object.getOwnPropertyDescriptor(base, property);
 
       if (desc.get) {
-        return desc.get.call(receiver);
+        return desc.get.call(arguments.length < 3 ? target : receiver);
       }
 
       return desc.value;
@@ -2931,7 +2931,7 @@ function _get(target, property, receiver) {
     module.exports["default"] = module.exports, module.exports.__esModule = true;
   }
 
-  return _get(target, property, receiver || target);
+  return _get.apply(this, arguments);
 }
 
 module.exports = _get;
@@ -3241,7 +3241,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "11.0.0";
+  var hotVersion = "11.0.1";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -43873,8 +43873,8 @@ Handsontable.Core = function (rootElement) {
 Handsontable.DefaultSettings = (0, _dataMap.metaSchemaFactory)();
 Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "15/11/2021 11:49:05";
-Handsontable.version = "11.0.0";
+Handsontable.buildDate = "17/11/2021 15:10:49";
+Handsontable.version = "11.0.1";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
   getLanguageDictionary: _registry.getLanguageDictionary,
