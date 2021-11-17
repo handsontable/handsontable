@@ -1,35 +1,32 @@
 /*!
  * Copyright (c) HANDSONCODE sp. z o. o.
  * 
- * HANDSONTABLE is a software distributed by HANDSONCODE sp. z o. o.,
- * a Polish corporation, based in Gdynia, Poland, at 96/98 Aleja Zwycięstwa,
- * registered with the National Court Register under number 538651,
- * EU tax ID number: PL5862294002, share capital: PLN 62,800.00.
+ * HANDSONTABLE is a software distributed by HANDSONCODE sp. z o. o., a Polish corporation based in
+ * Gdynia, Poland, at Aleja Zwycięstwa 96-98, registered by the District Court in Gdansk under number
+ * 538651, EU tax ID number: PL5862294002, share capital: PLN 62,800.00.
  * 
- * This software is protected by applicable copyright laws, including
- * international treaties, and dual-licensed – depending on whether
- * your use is intended for or may result in commercial advantage
- * or monetary compensation (commercial purposes), or not.
+ * This software is protected by applicable copyright laws, including international treaties, and dual-
+ * licensed – depending on whether your use for commercial purposes, meaning intended for or
+ * resulting in commercial advantage or monetary compensation, or not.
  * 
- * If your use involves only such purposes as research, private study,
- * evaluation and the like, you agree to be bound by the terms included
- * in the "handsontable-non-commercial-license.pdf" file, available
- * in the main directory of this software repository.
+ * If your use is strictly personal or solely for evaluation purposes, meaning for the purposes of testing
+ * the suitability, performance, and usefulness of this software outside the production environment,
+ * you agree to be bound by the terms included in the "handsontable-non-commercial-license.pdf" file.
  * 
- * By installing, copying, or otherwise using this software for
- * commercial purposes, you agree to be bound by the terms included
- * in the "handsontable-general-terms.pdf" file, available in the main
- * directory of this software repository.
+ * Your use of this software for commercial purposes is subject to the terms included in an applicable
+ * license agreement.
  * 
- * HANDSONCODE PROVIDES THIS SOFTWARE ON AN "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND. IN NO EVENT
- * AND UNDER NO LEGAL THEORY, SHALL HANDSONCODE BE LIABLE
- * TO YOU FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT, SPECIAL,
- * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
- * FROM USE OR INABILITY TO USE THIS SOFTWARE.
+ * In any case, you must not make any such use of this software as to develop software which may be
+ * considered competitive with this software.
  * 
- * Version: 10.0.0
- * Release date: 29/09/2021 (built at 29/09/2021 10:35:57)
+ * UNLESS EXPRESSLY AGREED OTHERWISE, HANDSONCODE PROVIDES THIS SOFTWARE ON AN &quot;AS IS&quot;
+ * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, AND IN NO EVENT AND UNDER NO
+ * LEGAL THEORY, SHALL HANDSONCODE BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY DIRECT,
+ * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
+ * USE OR INABILITY TO USE THIS SOFTWARE.
+ * 
+ * Version: 11.0.0
+ * Release date: 17/11/2021 (built at 15/11/2021 11:49:05)
  */
 /**
  * Fix for bootstrap styles
@@ -1215,200 +1212,6 @@ textarea.HandsontableCopyPaste {
   outline: 0 none !important;
 }
 
-.htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_top_left_corner th:nth-child(2),
-.htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_left td:first-of-type {
-  border-left: 0 none;
-}
-
-.handsontable .wtHider {
-  position: relative;
-}
-.handsontable.ht__manualColumnMove.after-selection--columns thead th.ht__highlight {
-  cursor: move;
-  cursor: -moz-grab;
-  cursor: -webkit-grab;
-  cursor: grab;
-}
-.handsontable.ht__manualColumnMove.on-moving--columns,
-.handsontable.ht__manualColumnMove.on-moving--columns thead th.ht__highlight {
-  cursor: move;
-  cursor: -moz-grabbing;
-  cursor: -webkit-grabbing;
-  cursor: grabbing;
-}
-.handsontable.ht__manualColumnMove.on-moving--columns .manualColumnResizer {
-  display: none;
-}
-.handsontable .ht__manualColumnMove--guideline,
-.handsontable .ht__manualColumnMove--backlight {
-  position: absolute;
-  height: 100%;
-  display: none;
-}
-.handsontable .ht__manualColumnMove--guideline {
-  background: #757575;
-  width: 2px;
-  top: 0;
-  margin-left: -1px;
-  z-index: 205;
-}
-.handsontable .ht__manualColumnMove--backlight {
-  background: #343434;
-  background: rgba(52, 52, 52, 0.25);
-  display: none;
-  z-index: 205;
-  pointer-events: none;
-}
-.handsontable.on-moving--columns.show-ui .ht__manualColumnMove--guideline,
-.handsontable.on-moving--columns .ht__manualColumnMove--backlight {
-  display: block;
-}
-
-.handsontable .wtHider {
-  position: relative;
-}
-.handsontable.ht__manualRowMove.after-selection--rows tbody th.ht__highlight {
-  cursor: move;
-  cursor: -moz-grab;
-  cursor: -webkit-grab;
-  cursor: grab;
-}
-.handsontable.ht__manualRowMove.on-moving--rows,
-.handsontable.ht__manualRowMove.on-moving--rows tbody th.ht__highlight {
-  cursor: move;
-  cursor: -moz-grabbing;
-  cursor: -webkit-grabbing;
-  cursor: grabbing;
-}
-.handsontable.ht__manualRowMove.on-moving--rows .manualRowResizer {
-  display: none;
-}
-.handsontable .ht__manualRowMove--guideline,
-.handsontable .ht__manualRowMove--backlight {
-  position: absolute;
-  width: 100%;
-  display: none;
-}
-.handsontable .ht__manualRowMove--guideline {
-  background: #757575;
-  height: 2px;
-  left: 0;
-  margin-top: -1px;
-  z-index: 205;
-}
-.handsontable .ht__manualRowMove--backlight {
-  background: #343434;
-  background: rgba(52, 52, 52, 0.25);
-  display: none;
-  z-index: 205;
-  pointer-events: none;
-}
-.handsontable.on-moving--rows.show-ui .ht__manualRowMove--guideline,
-.handsontable.on-moving--rows .ht__manualRowMove--backlight {
-  display: block;
-}
-
-.handsontable tbody td[rowspan][class*="area"][class*="highlight"]:not([class*="fullySelectedMergedCell"]):before {
-  opacity: 0;
-}
-
-.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-multiple"]:before {
-  opacity: 0.1;
-}
-
-.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-0"]:before {
-  opacity: 0.1;
-}
-
-.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-1"]:before {
-  opacity: 0.2;
-}
-
-.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-2"]:before {
-  opacity: 0.27;
-}
-
-.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-3"]:before {
-  opacity: 0.35;
-}
-
-.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-4"]:before {
-  opacity: 0.41;
-}
-
-.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-5"]:before {
-  opacity: 0.47;
-}
-
-.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-6"]:before {
-  opacity: 0.54;
-}
-
-.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-7"]:before {
-  opacity: 0.58;
-}
-
-/* Column's number position */
-.handsontable span.colHeader.columnSorting::after {
-  /* Centering start */
-  top: 50%;
-  margin-top: -2px; /* Two extra pixels (-2 instead of -4) for purpose of proper positioning of numeric indicators, when `font-size` set to default */
-  /* Centering end */
-
-  position: absolute;
-  right: -15px;
-  padding-left: 5px; ; /* For purpose of continuous mouse over experience, when moving between the `::before` and the `::after` elements */
-
-  font-size: 8px;
-  height: 8px;
-  line-height: 1.1;
-  text-decoration: underline; /* Workaround for IE9 - IE11 */
-}
-
-/* Workaround for IE9 - IE11, https://stackoverflow.com/a/21902566, https://stackoverflow.com/a/32120247 */
-.handsontable span.colHeader.columnSorting::after {
-  text-decoration: none;
-}
-
-/* We support up to 7 numeric indicators, describing order of column in sorted columns queue */
-.handsontable span.colHeader.columnSorting[class^="sort-"]::after,
-.handsontable span.colHeader.columnSorting[class*=" sort-"]::after {
-  content: "+"
-}
-
-.handsontable span.colHeader.columnSorting.sort-1::after {
-  content: '1';
-}
-
-.handsontable span.colHeader.columnSorting.sort-2::after {
-  content: '2';
-}
-
-.handsontable span.colHeader.columnSorting.sort-3::after {
-  content: '3';
-}
-
-.handsontable span.colHeader.columnSorting.sort-4::after {
-  content: '4';
-}
-
-.handsontable span.colHeader.columnSorting.sort-5::after {
-  content: '5';
-}
-
-.handsontable span.colHeader.columnSorting.sort-6::after {
-  content: '6';
-}
-
-.handsontable span.colHeader.columnSorting.sort-7::after {
-  content: '7';
-}
-
-/* Drop-down menu widens header by 5 pixels, sort sequence numbers won't overlap the icon; mainly for the IE9+ */
-.htGhostTable th div button.changeType + span.colHeader.columnSorting:not(.indicatorDisabled) {
-  padding-right: 5px;
-}
-
 /*!
  * Handsontable DropdownMenu
  */
@@ -1799,66 +1602,6 @@ textarea.HandsontableCopyPaste {
   padding-bottom: 5px;
 }
 
-.handsontable thead th.hiddenHeader:not(:first-of-type) {
-  display: none;
-}
-
-.handsontable th.ht_nestingLevels {
-  text-align: left;
-  padding-left: 7px;
-}
-
-.handsontable th div.ht_nestingLevels {
-  display: inline-block;
-  position: absolute;
-  left: 11px;
-}
-
-.handsontable.innerBorderLeft th div.ht_nestingLevels,
-.handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingLevels {
-  right: 10px;
-}
-
-.handsontable th span.ht_nestingLevel {
-  display: inline-block;
-}
-
-.handsontable th span.ht_nestingLevel_empty {
-  display: inline-block;
-  width: 10px;
-  height: 1px;
-  float: left;
-}
-
-.handsontable th span.ht_nestingLevel::after {
-  content: "\2510";
-  font-size: 9px;
-  display: inline-block;
-  position: relative;
-  bottom: 3px;
-}
-
-
-.handsontable th div.ht_nestingButton {
-  display: inline-block;
-  position: absolute;
-  right: -2px;
-  cursor: pointer;
-}
-
-.handsontable th div.ht_nestingButton.ht_nestingExpand::after {
-  content: "\002B";
-}
-
-.handsontable th div.ht_nestingButton.ht_nestingCollapse::after {
-  content: "\002D";
-}
-
-.handsontable.innerBorderLeft th div.ht_nestingButton,
-.handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingButton {
-  right: 0;
-}
-
 /*
  * Handsontable HiddenColumns
  */
@@ -1920,5 +1663,259 @@ textarea.HandsontableCopyPaste {
 .handsontable td.afterHiddenRow.firstVisibleRow,
 .handsontable th.afterHiddenRow.firstVisibleRow {
   border-top: 1px solid #CCC;
+}
+
+.htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_top_left_corner th:nth-child(2),
+.htRowHeaders .ht_master.innerBorderLeft ~ .ht_clone_left td:first-of-type {
+  border-left: 0 none;
+}
+
+.handsontable .wtHider {
+  position: relative;
+}
+.handsontable.ht__manualColumnMove.after-selection--columns thead th.ht__highlight {
+  cursor: move;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+.handsontable.ht__manualColumnMove.on-moving--columns,
+.handsontable.ht__manualColumnMove.on-moving--columns thead th.ht__highlight {
+  cursor: move;
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+.handsontable.ht__manualColumnMove.on-moving--columns .manualColumnResizer {
+  display: none;
+}
+.handsontable .ht__manualColumnMove--guideline,
+.handsontable .ht__manualColumnMove--backlight {
+  position: absolute;
+  height: 100%;
+  display: none;
+}
+.handsontable .ht__manualColumnMove--guideline {
+  background: #757575;
+  width: 2px;
+  top: 0;
+  margin-left: -1px;
+  z-index: 205;
+}
+.handsontable .ht__manualColumnMove--backlight {
+  background: #343434;
+  background: rgba(52, 52, 52, 0.25);
+  display: none;
+  z-index: 205;
+  pointer-events: none;
+}
+.handsontable.on-moving--columns.show-ui .ht__manualColumnMove--guideline,
+.handsontable.on-moving--columns .ht__manualColumnMove--backlight {
+  display: block;
+}
+
+.handsontable .wtHider {
+  position: relative;
+}
+.handsontable.ht__manualRowMove.after-selection--rows tbody th.ht__highlight {
+  cursor: move;
+  cursor: -moz-grab;
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+.handsontable.ht__manualRowMove.on-moving--rows,
+.handsontable.ht__manualRowMove.on-moving--rows tbody th.ht__highlight {
+  cursor: move;
+  cursor: -moz-grabbing;
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+.handsontable.ht__manualRowMove.on-moving--rows .manualRowResizer {
+  display: none;
+}
+.handsontable .ht__manualRowMove--guideline,
+.handsontable .ht__manualRowMove--backlight {
+  position: absolute;
+  width: 100%;
+  display: none;
+}
+.handsontable .ht__manualRowMove--guideline {
+  background: #757575;
+  height: 2px;
+  left: 0;
+  margin-top: -1px;
+  z-index: 205;
+}
+.handsontable .ht__manualRowMove--backlight {
+  background: #343434;
+  background: rgba(52, 52, 52, 0.25);
+  display: none;
+  z-index: 205;
+  pointer-events: none;
+}
+.handsontable.on-moving--rows.show-ui .ht__manualRowMove--guideline,
+.handsontable.on-moving--rows .ht__manualRowMove--backlight {
+  display: block;
+}
+
+.handsontable tbody td[rowspan][class*="area"][class*="highlight"]:not([class*="fullySelectedMergedCell"]):before {
+  opacity: 0;
+}
+
+.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-multiple"]:before {
+  opacity: 0.1;
+}
+
+.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-0"]:before {
+  opacity: 0.1;
+}
+
+.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-1"]:before {
+  opacity: 0.2;
+}
+
+.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-2"]:before {
+  opacity: 0.27;
+}
+
+.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-3"]:before {
+  opacity: 0.35;
+}
+
+.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-4"]:before {
+  opacity: 0.41;
+}
+
+.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-5"]:before {
+  opacity: 0.47;
+}
+
+.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-6"]:before {
+  opacity: 0.54;
+}
+
+.handsontable tbody td[rowspan][class*="area"][class*="highlight"][class*="fullySelectedMergedCell-7"]:before {
+  opacity: 0.58;
+}
+
+/* Column's number position */
+.handsontable span.colHeader.columnSorting::after {
+  /* Centering start */
+  top: 50%;
+  margin-top: -2px; /* Two extra pixels (-2 instead of -4) for purpose of proper positioning of numeric indicators, when `font-size` set to default */
+  /* Centering end */
+
+  position: absolute;
+  right: -15px;
+  padding-left: 5px; ; /* For purpose of continuous mouse over experience, when moving between the `::before` and the `::after` elements */
+
+  font-size: 8px;
+  height: 8px;
+  line-height: 1.1;
+  text-decoration: underline; /* Workaround for IE9 - IE11 */
+}
+
+/* Workaround for IE9 - IE11, https://stackoverflow.com/a/21902566, https://stackoverflow.com/a/32120247 */
+.handsontable span.colHeader.columnSorting::after {
+  text-decoration: none;
+}
+
+/* We support up to 7 numeric indicators, describing order of column in sorted columns queue */
+.handsontable span.colHeader.columnSorting[class^="sort-"]::after,
+.handsontable span.colHeader.columnSorting[class*=" sort-"]::after {
+  content: "+"
+}
+
+.handsontable span.colHeader.columnSorting.sort-1::after {
+  content: '1';
+}
+
+.handsontable span.colHeader.columnSorting.sort-2::after {
+  content: '2';
+}
+
+.handsontable span.colHeader.columnSorting.sort-3::after {
+  content: '3';
+}
+
+.handsontable span.colHeader.columnSorting.sort-4::after {
+  content: '4';
+}
+
+.handsontable span.colHeader.columnSorting.sort-5::after {
+  content: '5';
+}
+
+.handsontable span.colHeader.columnSorting.sort-6::after {
+  content: '6';
+}
+
+.handsontable span.colHeader.columnSorting.sort-7::after {
+  content: '7';
+}
+
+/* Drop-down menu widens header by 5 pixels, sort sequence numbers won't overlap the icon; mainly for the IE9+ */
+.htGhostTable th div button.changeType + span.colHeader.columnSorting:not(.indicatorDisabled) {
+  padding-right: 5px;
+}
+
+.handsontable thead th.hiddenHeader:not(:first-of-type) {
+  display: none;
+}
+
+.handsontable th.ht_nestingLevels {
+  text-align: left;
+  padding-left: 7px;
+}
+
+.handsontable th div.ht_nestingLevels {
+  display: inline-block;
+  position: absolute;
+  left: 11px;
+}
+
+.handsontable.innerBorderLeft th div.ht_nestingLevels,
+.handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingLevels {
+  right: 10px;
+}
+
+.handsontable th span.ht_nestingLevel {
+  display: inline-block;
+}
+
+.handsontable th span.ht_nestingLevel_empty {
+  display: inline-block;
+  width: 10px;
+  height: 1px;
+  float: left;
+}
+
+.handsontable th span.ht_nestingLevel::after {
+  content: "\2510";
+  font-size: 9px;
+  display: inline-block;
+  position: relative;
+  bottom: 3px;
+}
+
+
+.handsontable th div.ht_nestingButton {
+  display: inline-block;
+  position: absolute;
+  right: -2px;
+  cursor: pointer;
+}
+
+.handsontable th div.ht_nestingButton.ht_nestingExpand::after {
+  content: "\002B";
+}
+
+.handsontable th div.ht_nestingButton.ht_nestingCollapse::after {
+  content: "\002D";
+}
+
+.handsontable.innerBorderLeft th div.ht_nestingButton,
+.handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingButton {
+  right: 0;
 }
 
