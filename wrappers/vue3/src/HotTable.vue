@@ -19,6 +19,7 @@ import {
 import {
   HotTableProps,
   VNode,
+  RendererEntryCache,
 } from './types';
 import * as packageJson from '../package.json';
 import { LRUMap } from './lib/lru/lru';
@@ -72,7 +73,7 @@ const HotTable = defineComponent({
     }
   },
   data() {
-    const rendererCache = new LRUMap(this.wrapperRendererCacheSize as number);
+    const rendererCache = new LRUMap<string, RendererEntryCache>(this.wrapperRendererCacheSize as number);
 
     // Make the LRU cache destroy each removed component
     rendererCache.shift = function() {

@@ -12,3 +12,8 @@ export interface HotTableProps extends Handsontable.GridSettings {
 }
 
 export type VueProps<T> = { [P in keyof T]: any };
+
+export interface RendererEntryCache {
+  component: VNode,
+  lastUsedTD: HTMLTableCellElement | null,
+}

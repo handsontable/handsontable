@@ -48,7 +48,7 @@ describe('cooperation with NestedRows plugin', () => {
     const testWrapper = mount(App, {
       attachTo: document.getElementById('app')
     });
-    const { hotInstance } = testWrapper.vm.$refs.grid;
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
 
     expect(hotInstance.countRows()).toBe(7);
 

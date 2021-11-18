@@ -24,7 +24,7 @@ describe('hotInit', () => {
       },
     });
 
-    const hotTableComponent = testWrapper.getComponent(HotTable as any).vm;
+    const hotTableComponent = testWrapper.getComponent(HotTable).vm;
 
     expect(typeof hotTableComponent.hotInstance).toBe('object');
     expect(hotTableComponent.hotInstance.getDataAtCell(0, 0)).toBe('0-0');
@@ -47,7 +47,7 @@ describe('Updating the Handsontable settings', () => {
       },
     });
 
-    const hotTableComponent = testWrapper.getComponent(HotTable as any);
+    const hotTableComponent = testWrapper.getComponent(HotTable);
 
     expect(hotTableComponent.vm.hotInstance.getSettings().rowHeaders).toBe(true);
 
@@ -66,7 +66,6 @@ describe('Updating the Handsontable settings', () => {
       components: { HotTable },
       template: `
         <HotTable
-          ref="grid"
           licenseKey="non-commercial-and-evaluation"
           :rowHeaders="rowHeaders"
           :colHeaders="colHeaders"
@@ -93,7 +92,7 @@ describe('Updating the Handsontable settings', () => {
     const testWrapper = mount(App, {
       attachTo: document.getElementById('app')
     });
-    const hotTableComponent = testWrapper.vm.$refs.grid;
+    const hotTableComponent = testWrapper.getComponent(HotTable).vm;
 
     expect(hotTableComponent.hotInstance.getSettings().rowHeaders).toBe(true);
     expect(hotTableComponent.hotInstance.getSettings().colHeaders).toBe(true);
@@ -115,7 +114,6 @@ describe('Updating the Handsontable settings', () => {
       components: { HotTable },
       template: `
         <HotTable
-          ref="grid"
           licenseKey="non-commercial-and-evaluation"
           :rowHeaders="rowHeaders"
           :colHeaders="colHeaders"
@@ -159,7 +157,6 @@ describe('Updating the Handsontable settings', () => {
       components: { HotTable },
       template: `
         <HotTable
-          ref="grid"
           licenseKey="non-commercial-and-evaluation"
           :data="data"
           :afterUpdateSettings="(newSettings) => { this.newSettings = newSettings }"
@@ -186,7 +183,7 @@ describe('Updating the Handsontable settings', () => {
     const testWrapper = mount(App, {
       attachTo: document.getElementById('app')
     });
-    const { hotInstance } = testWrapper.vm.$refs.grid;
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
 
     testWrapper.vm.addRow();
 
@@ -225,7 +222,6 @@ describe('Updating the Handsontable settings', () => {
       components: { HotTable },
       template: `
         <HotTable
-          ref="grid"
           licenseKey="non-commercial-and-evaluation"
           :data="data"
           :afterUpdateSettings="(newSettings) => { this.newSettings = newSettings }"
@@ -246,7 +242,7 @@ describe('Updating the Handsontable settings', () => {
     const testWrapper = mount(App, {
       attachTo: document.getElementById('app')
     });
-    const { hotInstance } = testWrapper.vm.$refs.grid;
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
 
     testWrapper.vm.updateData({ a: 1, b: 2, c: 3, d: 4 });
 
@@ -275,7 +271,6 @@ describe('Updating the Handsontable settings', () => {
       components: { HotTable },
       template: `
         <HotTable
-          ref="grid"
           licenseKey="non-commercial-and-evaluation"
           :data="data"
           :afterUpdateSettings="(newSettings) => { this.newSettings = newSettings }"
@@ -299,7 +294,7 @@ describe('Updating the Handsontable settings', () => {
     const testWrapper = mount(App, {
       attachTo: document.getElementById('app')
     });
-    const { hotInstance } = testWrapper.vm.$refs.grid;
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
 
     testWrapper.vm.addRow();
 
@@ -342,7 +337,6 @@ describe('Global editors and renderers', () => {
       components: { HotTable, DummyRendererComponent, DummyEditorComponent },
       template: `
         <HotTable
-          ref="grid"
           licenseKey="non-commercial-and-evaluation"
           :data="data">
             <DummyRendererComponent hot-renderer />
@@ -358,7 +352,7 @@ describe('Global editors and renderers', () => {
     const testWrapper = mount(App, {
       attachTo: document.getElementById('app')
     });
-    const { hotInstance } = testWrapper.vm.$refs.grid;
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
     const GlobalEditor = hotInstance.getSettings().editor;
     const globalEditorInstance = new GlobalEditor(hotInstance);
 
@@ -393,7 +387,6 @@ it('should inject an `isRenderer` and `isEditor` properties to renderer/editor c
     components: { HotTable, DummyRendererComponent, DummyEditorComponent },
     template: `
       <HotTable
-        ref="grid"
         licenseKey="non-commercial-and-evaluation"
         :autoRowSize="false" :autoColumnSize="false" :data="data">
           <DummyRendererComponent hot-renderer />
@@ -409,7 +402,7 @@ it('should inject an `isRenderer` and `isEditor` properties to renderer/editor c
   const testWrapper = mount(App, {
     attachTo: document.getElementById('app')
   });
-  const hotTableComponent = testWrapper.getComponent(HotTable as any).vm;
+  const hotTableComponent = testWrapper.getComponent(HotTable).vm;
 
   expect(hotTableComponent.rendererCache.get('0-0').component.isRenderer).toBe(true);
   expect(hotTableComponent.editorCache.get('DummyEditorComponent').isEditor).toBe(true);
@@ -493,7 +486,7 @@ it('should be possible to pass props to the editor and renderer components', () 
   const testWrapper = mount(App, {
     attachTo: document.getElementById('app')
   });
-  const hotTableComponent = testWrapper.getComponent(HotTable as any).vm;
+  const hotTableComponent = testWrapper.getComponent(HotTable).vm;
 
   expect(hotTableComponent.rendererCache.get('0-0').component.testProp).toBe('test-prop-value');
   expect(hotTableComponent.editorCache.get('DummyEditorComponent').testProp).toBe('test-prop-value');
@@ -508,7 +501,6 @@ it('should display a warning and not throw any errors, when the underlying Hands
     components: { HotTable },
     template: `
       <HotTable
-        ref="grid"
         licenseKey="non-commercial-and-evaluation"
         :data="data"
         ></HotTable>`,
@@ -522,7 +514,7 @@ it('should display a warning and not throw any errors, when the underlying Hands
   const testWrapper = mount(App, {
     attachTo: document.getElementById('app')
   });
-  const { hotInstance } = testWrapper.vm.$refs.grid;
+  const { hotInstance } = testWrapper.getComponent(HotTable).vm;
 
   console.warn = (warningMessage) => {
     warnCalls.push(warningMessage);
@@ -533,7 +525,7 @@ it('should display a warning and not throw any errors, when the underlying Hands
   hotInstance.destroy();
 
   expect(hotInstance.isDestroyed).toBe(true);
-  expect(testWrapper.vm.$refs.grid.hotInstance).toBe(null);
+  expect(testWrapper.getComponent(HotTable).vm.hotInstance).toBe(null);
 
   expect(warnCalls.length).toBeGreaterThan(0);
   warnCalls.forEach((message) => {
@@ -551,7 +543,6 @@ describe('HOT-based CRUD actions', () => {
       components: { HotTable },
       template: `
         <HotTable
-          ref="grid"
           licenseKey="non-commercial-and-evaluation"
           :rowHeaders="true"
           :colHeaders="true"
@@ -566,7 +557,7 @@ describe('HOT-based CRUD actions', () => {
     const testWrapper = mount(App, {
       attachTo: document.getElementById('app')
     });
-    const { hotInstance } = testWrapper.vm.$refs.grid;
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
 
     hotInstance.alter('insert_row', 2, 2);
     hotInstance.alter('insert_col', 2, 2);
@@ -601,7 +592,6 @@ describe('Non-HOT based CRUD actions', () => {
       components: { HotTable },
       template: `
         <HotTable
-          ref="grid"
           licenseKey="non-commercial-and-evaluation"
           :rowHeaders="true"
           :colHeaders="true"
@@ -617,7 +607,7 @@ describe('Non-HOT based CRUD actions', () => {
     const testWrapper = mount(App, {
       attachTo: document.getElementById('app')
     });
-    const { hotInstance } = testWrapper.vm.$refs.grid;
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
 
     externalData[0].push('col4', 'col5');
     externalData.push(['A', 'B', 'C', 'D']);

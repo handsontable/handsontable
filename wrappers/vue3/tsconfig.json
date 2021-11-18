@@ -8,12 +8,16 @@
     "sourceMap": true,
     "baseUrl": ".",
     "experimentalDecorators": true,
-    "declarationDir": "./"
+    "declaration": true,
+    "declarationDir": "./",
+    "types": [
+      "jest"
+    ]
   },
   "include": [
     "src/*"
   ],
   "exclude": [
-    "**/node_modules/*"
+    "node_modules"
   ]
 }

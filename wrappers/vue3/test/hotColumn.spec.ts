@@ -59,7 +59,7 @@ describe('createColumnSettings', () => {
     };
 
     const testWrapper = mount(App);
-    const hotTableComponent = testWrapper.getComponent(HotTable as any).vm;
+    const hotTableComponent = testWrapper.getComponent(HotTable).vm;
     const { columnSettings, hotInstance } = hotTableComponent;
 
     expect(columnSettings[0].title).toBe('test-title');
@@ -130,7 +130,7 @@ describe('renderer cache', () => {
     const testWrapper = mount(App, {
       attachTo: document.getElementById('app')
     });
-    const hotTableComponent = testWrapper.getComponent(HotTable as any).vm;
+    const hotTableComponent = testWrapper.getComponent(HotTable).vm;
 
     expect(hotTableComponent.rendererCache.size).toBe(40);
 
@@ -168,7 +168,7 @@ describe('renderer cache', () => {
     const testWrapper = mount(App, {
       attachTo: document.getElementById('app')
     });
-    const hotTableComponent = testWrapper.getComponent(HotTable as any).vm;
+    const hotTableComponent = testWrapper.getComponent(HotTable).vm;
 
     expect(hotTableComponent.rendererCache.size).toBe(100);
 
@@ -208,7 +208,7 @@ describe('hot-column children', () => {
     const testWrapper = mount(App, {
       attachTo: document.getElementById('app')
     });
-    const hotTableComponent = testWrapper.getComponent(HotTable as any).vm;
+    const hotTableComponent = testWrapper.getComponent(HotTable).vm;
 
     expect(hotTableComponent.rendererCache.size).toBe(100);
     expect(hotTableComponent.$el.querySelectorAll('.renderer').length).toBe(100);
@@ -245,7 +245,7 @@ describe('hot-column children', () => {
     const testWrapper = mount(App, {
       attachTo: document.getElementById('app')
     });
-    const hotTableComponent = testWrapper.getComponent(HotTable as any).vm;
+    const hotTableComponent = testWrapper.getComponent(HotTable).vm;
     const { editorCache } = hotTableComponent;
 
     expect(editorCache.get('DummyEditorComponent:editor-one').testProp).toBe('test-prop-value-1');
@@ -296,7 +296,7 @@ describe('hot-column children', () => {
     const testWrapper = mount(App, {
       attachTo: document.getElementById('app')
     });
-    const hotTableComponent = testWrapper.getComponent(HotTable as any).vm;
+    const hotTableComponent = testWrapper.getComponent(HotTable).vm;
     const { editorCache, hotInstance } = hotTableComponent;
 
     expect(editorCache.get('DummyEditorComponent:editor-one').testProp).toBe('test-prop-value-1');
