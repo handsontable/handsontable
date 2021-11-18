@@ -338,10 +338,8 @@ export class AutocompleteEditor extends HandsontableEditor {
   unflipDropdown() {
     const dropdownStyle = this.htEditor.rootElement.style;
 
-    if (dropdownStyle.position === 'absolute') {
-      dropdownStyle.position = '';
-      dropdownStyle.top = '';
-    }
+    dropdownStyle.position = 'absolute';
+    dropdownStyle.top = '';
 
     this.htEditor.flipped = void 0;
   }

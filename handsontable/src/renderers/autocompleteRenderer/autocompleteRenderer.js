@@ -4,7 +4,7 @@ import { CellCoords } from '../../3rdparty/walkontable/src';
 import EventManager from '../../eventManager';
 import { addClass, hasClass } from '../../helpers/dom/element';
 
-import './autocompleteRenderer.css';
+import './autocompleteRenderer.scss';
 
 export const RENDERER_TYPE = 'autocomplete';
 
