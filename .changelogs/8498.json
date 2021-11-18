@@ -1,7 +1,0 @@
-{
-  "title": "Fixed an issue with triggering `beforeOnCellMouseDown` and `afterOnCellMouseDown` hooks using wrong coords",
-  "type": "fixed",
-  "issue": 8498,
-  "breaking": false,
-  "framework": "none"
-}

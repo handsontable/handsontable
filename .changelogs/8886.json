@@ -1,7 +1,0 @@
-{
-  "title": "Fixed issues with the canonicalUrl entries in the docs.",
-  "type": "fixed",
-  "issue": 8886,
-  "breaking": false,
-  "framework": "none"
-}

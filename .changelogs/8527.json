@@ -1,7 +1,0 @@
-{
-  "title": "Fix an issue in the React wrapper where it was impossible to utilize different sets of props in the editor components reused between multiple columns.",
-  "type": "fixed",
-  "issue": 8527,
-  "breaking": false,
-  "framework": "react"
-}
