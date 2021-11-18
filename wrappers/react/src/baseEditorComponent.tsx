@@ -1,8 +1,8 @@
 import React from 'react';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import { HotEditorProps } from './types';
 
-class BaseEditorComponent<P = {}, S = {}, SS = any> extends React.Component<P | HotEditorProps, S> implements Handsontable._editors.Base {
+class BaseEditorComponent<P = {}, S = {}, SS = any> extends React.Component<P | HotEditorProps, S> implements Handsontable.editors.BaseEditor {
   name = 'BaseEditorComponent';
   instance = null;
   row = null;
@@ -20,7 +20,7 @@ class BaseEditorComponent<P = {}, S = {}, SS = any> extends React.Component<P | 
     super(props);
 
     if (props.emitEditorInstance) {
-      props.emitEditorInstance(this);
+      props.emitEditorInstance(this, props.editorColumnScope);
     }
   }
 

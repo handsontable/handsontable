@@ -1,7 +1,0 @@
-{
-  "title": "Fixed an issue with throwing an error while using the `populateFromArray()` method with its `method` argument set to `shift_right`.",
-  "type": "fixed",
-  "issue": 6929,
-  "breaking": false,
-  "framework": "none"
-}

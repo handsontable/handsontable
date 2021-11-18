@@ -125,7 +125,6 @@ describe('Search plugin', () => {
   });
 
   describe('query method', () => {
-
     it('should use the default query method if no queryMethod is passed to query function', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -139,6 +138,38 @@ describe('Search plugin', () => {
       hot.getPlugin('search').query('A');
 
       expect(queryMethod.calls.count()).toEqual(25);
+    });
+
+    it('should handle locales properly while using default query method', () => {
+      let result;
+      const hot = handsontable({
+        data: [
+          ['Abdulhamit Akkaya'],
+          ['Abubekir Kılıç'],
+          ['Furkan İnanç'],
+          ['Halil İbrahim Öztürk'],
+          ['Kaan Yerli'],
+          ['Ömer Emin Sarıkoç'],
+        ],
+        search: true,
+        locale: 'tr-TR',
+      });
+
+      result = hot.getPlugin('search').query('inanç');
+
+      expect(result).toEqual([jasmine.objectContaining({
+        row: 2,
+        col: 0,
+        data: 'Furkan İnanç',
+      })]);
+
+      result = hot.getPlugin('search').query('İnanç');
+
+      expect(result).toEqual([jasmine.objectContaining({
+        row: 2,
+        col: 0,
+        data: 'Furkan İnanç',
+      })]);
     });
 
     it('should use the custom default query method if no queryMethod is passed to query function', () => {

@@ -7,6 +7,7 @@ const path = require('path');
 const configFactory = require('./test-e2e');
 const JasmineHtml = require('./plugin/jasmine-html');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const fsExtra = require('fs-extra');
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
@@ -21,7 +22,9 @@ module.exports.create = function create(envArgs) {
     c.plugins.push(
       new JasmineHtml({
         filename: path.resolve(__dirname, '../test/MobileRunner.html'),
-        baseJasminePath: '../',
+        baseJasminePath: `${
+          fsExtra.pathExistsSync('./node_modules/jasmine-core') ? '../' : '../../'
+        }`,
         externalCssFiles: [
           'lib/normalize.css',
           '../dist/handsontable.css',

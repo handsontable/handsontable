@@ -61,8 +61,7 @@ export const baseConfig = {
     plugins.nodeResolve
   ],
   external: [
-    'handsontable',
+    'handsontable/base',
     'vue'
   ]
 };
-

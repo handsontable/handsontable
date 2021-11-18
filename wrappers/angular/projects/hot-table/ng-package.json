@@ -5,7 +5,8 @@
   "lib": {
     "entryFile": "src/public_api.ts",
     "umdModuleIds": {
-      "handsontable": "Handsontable"
+      "handsontable": "Handsontable",
+      "handsontable/base": "Handsontable"
     }
   }
 }

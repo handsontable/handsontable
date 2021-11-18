@@ -1710,6 +1710,42 @@ describe('AutoFill', () => {
     expect(getDataAtCell(1, 0)).toEqual(7);
   });
 
+  it('should autofill the appropriate cells, when performing the action over date-typed cells', async() => {
+    const errorSpy = jasmine.createSpyObj('error', ['test']);
+    const prevError = window.onerror;
+
+    handsontable({
+      data: [
+        ['', '03/05/2020'],
+        ['', '27/03/2020'],
+        ['', '29/08/2020']
+      ],
+      columns: [
+        {},
+        { type: 'date' }
+      ]
+    });
+
+    window.onerror = errorSpy.test;
+
+    selectCell(0, 1);
+
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+    spec().$container.find(
+      '.ht_master tbody tr:nth-child(3) td:nth-of-type(2)'
+    ).simulate('mouseover').simulate('mouseup');
+
+    await sleep(300);
+
+    expect(errorSpy.test).not.toHaveBeenCalled();
+
+    expect(getDataAtCell(1, 1)).toEqual('03/05/2020');
+    expect(getDataAtCell(2, 1)).toEqual('03/05/2020');
+
+    window.onerror = prevError;
+  });
+
   describe('fill border position', () => {
     it('display the fill border in the correct position', () => {
       handsontable({

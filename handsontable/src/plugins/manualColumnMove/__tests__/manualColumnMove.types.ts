@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 
-const manualColumnMove = Handsontable.plugins.ManualColumnMove;
+const hot = new Handsontable(document.createElement('div'), {});
+const manualColumnMove = hot.getPlugin('manualColumnMove');
 
 manualColumnMove.isMovePossible([0], 3);
 

@@ -24,7 +24,7 @@ import { isObjectEqual } from '../../helpers/object';
  *
  * const hot = new Handsontable(container, {
  *   // configuration options, in the object literal notation
- *   licenseKey: "non-commercial-and-evaluation",
+ *   licenseKey: 'non-commercial-and-evaluation',
  *   data: Handsontable.helper.createSpreadsheetData(5, 10),
  *   width: 400,
  *   height: 300,
@@ -129,6 +129,7 @@ export default () => {
      *
      * Read more:
      * - [Binding to data: Array of objects with custom data schema &#8594;](@/guides/getting-started/binding-to-data.md#array-of-objects-with-custom-data-schema)
+     * - [`data`](#data)
      *
      * @memberof Options#
      * @type {object}
@@ -158,11 +159,11 @@ export default () => {
      *
      * You can set the `width` option to one of the following:
      *
-     * | Setting                                                                    | Example                                              |
-     * | -------------------------------------------------------------------------- | ---------------------------------------------------- |
-     * | A number of pixels                                                         | `width: 500`                                         |
-     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `width: '75vw'`                                      |
-     * | A function that returns a valid number or string                           | <pre>width() {<br>&nbsp;&nbsp;return 500;<br>}</pre> |
+     * | Setting                                                                    | Example                   |
+     * | -------------------------------------------------------------------------- | ------------------------- |
+     * | A number of pixels                                                         | `width: 500`              |
+     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `width: '75vw'`           |
+     * | A function that returns a valid number or string                           | `width() { return 500; }` |
      *
      * Read more:
      * - [Grid size &#8594;](@/guides/getting-started/grid-size.md)
@@ -193,11 +194,11 @@ export default () => {
      *
      * You can set `height` option to one of the following:
      *
-     * | Setting                                                                    | Example                                               |
-     * | -------------------------------------------------------------------------- | ----------------------------------------------------- |
-     * | A number of pixels                                                         | `height: 500`                                         |
-     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `height: '75vw'`                                      |
-     * | A function that returns a valid number or string                           | <pre>height() {<br>&nbsp;&nbsp;return 500;<br>}</pre> |
+     * | Setting                                                                    | Example                    |
+     * | -------------------------------------------------------------------------- | -------------------------- |
+     * | A number of pixels                                                         | `height: 500`              |
+     * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `height: '75vw'`           |
+     * | A function that returns a valid number or string                           | `height() { return 500; }` |
      *
      * Read more:
      * - [Grid size &#8594;](@/guides/getting-started/grid-size.md)
@@ -268,7 +269,7 @@ export default () => {
      *
      * | Setting    | Description                                                       |
      * | ---------- | ----------------------------------------------------------------- |
-     * | `true`     | Enable the default row headers ("1", "2", "3", ...)               |
+     * | `true`     | Enable the default row headers ('1', '2', '3', ...)               |
      * | `false`    | Disable row headers                                               |
      * | An array   | Define your own row headers (e.g. `['One', 'Two', 'Three', ...]`) |
      * | A function | Define your own row headers, using a function                     |
@@ -304,7 +305,7 @@ export default () => {
      *
      * | Setting  | Description                                                          |
      * | -------- | -------------------------------------------------------------------- |
-     * | `true`   | Enable the default column headers ("A", "B", "C", ...)               |
+     * | `true`   | Enable the default column headers ('A', 'B', 'C', ...)               |
      * | `false`  | Disable column headers                                               |
      * | An array | Define your own column headers (e.g. `['One', 'Two', 'Three', ...]`) |
      * | A function | Define your own column headers, using a function                     |
@@ -339,18 +340,20 @@ export default () => {
      * In the rendering process, the default column width is 50px. To change it,
      * set the `colWidths` option to one of the following:
      *
-     * | Setting     | Description                                                                                          | Example                                                                                      |
-     * | ----------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-     * | A number    | Set the same width for every column                                                                  | `colWidths: 100`                                                                             |
-     * | A string    | Set the same width for every column                                                                  | `colWidths: '100px'`                                                                         |
-     * | An array    | Set widths separately for each column                                                                | `colWidths: [100, 120, undefined]`                                                           |
-     * | A function  | Set column widths dynamically,<br>on each render                                                     | <pre>colWidths(visualColumnIndex) {<br>&nbsp;&nbsp;return visualColumnIndex * 10;<br>}</pre> |
-     * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined`                                                                       |
+     * | Setting     | Description                                                                                          | Example                                                           |
+     * | ----------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+     * | A number    | Set the same width for every column                                                                  | `colWidths: 100`                                                  |
+     * | A string    | Set the same width for every column                                                                  | `colWidths: '100px'`                                              |
+     * | An array    | Set widths separately for each column                                                                | `colWidths: [100, 120, undefined]`                                |
+     * | A function  | Set column widths dynamically,<br>on each render                                                     | `colWidths(visualColumnIndex) { return visualColumnIndex * 10; }` |
+     * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined`                                            |
      *
      * Setting the `colWidths` option disables the {@link AutoColumnSize} plugin.
      *
      * Read more:
      * - [Column width &#8594;](@/guides/columns/column-width.md)
+     * - [Hooks: `modifyColWidth` &#8594;](@/api/hooks.md#modifyColWidth)
+     * - [`autoColumnSize`](#autoColumnSize)
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -385,13 +388,13 @@ export default () => {
      * In the rendering process, the default row height is 23px.
      * You can change it to equal or greater than 23px, by setting the `rowHeights` option to one of the following:
      *
-     * | Setting     | Description                                                                                         | Example                                                                                 |
-     * | ----------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-     * | A number    | Set the same height for every row                                                                   | `rowHeights: 100`                                                                       |
-     * | A string    | Set the same height for every row                                                                   | `rowHeights: '100px'`                                                                   |
-     * | An array    | Set heights separately for each row                                                                 | `rowHeights: [100, 120, undefined]`                                                     |
-     * | A function  | Set row heights dynamically,<br>on each render                                                      | <pre>rowHeights(visualRowIndex) {<br>&nbsp;&nbsp;return visualRowIndex * 10;<br>}</pre> |
-     * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes | `rowHeights: undefined`                                                                 |
+     * | Setting     | Description                                                                                         | Example                                                      |
+     * | ----------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+     * | A number    | Set the same height for every row                                                                   | `rowHeights: 100`                                            |
+     * | A string    | Set the same height for every row                                                                   | `rowHeights: '100px'`                                        |
+     * | An array    | Set heights separately for each row                                                                 | `rowHeights: [100, 120, undefined]`                          |
+     * | A function  | Set row heights dynamically,<br>on each render                                                      | `rowHeights(visualRowIndex) { return visualRowIndex * 10; }` |
+     * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes | `rowHeights: undefined`                                      |
      *
      * The `rowHeights` option also sets the minimum row height that can be set
      * via the {@link ManualRowResize} and {@link AutoRowSize} plugins (if they are enabled).
@@ -440,6 +443,9 @@ export default () => {
      *
      * Read more:
      * - [Configuration options: Setting column options &#8594;](@/guides/getting-started/setting-options.md#setting-column-options)
+     * - [`startCols`](#startCols)
+     * - [`minCols`](#minCols)
+     * - [`maxCols`](#maxCols)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -493,6 +499,8 @@ export default () => {
      * Read more:
      * - [Configuration options: Implementing custom logic &#8594;](@/guides/getting-started/setting-options.md#implementing-custom-logic)
      * - [Configuration options: Setting row options &#8594;](@/guides/getting-started/setting-options.md#setting-row-options)
+     * - [`columns`](#columns)
+     * - [`cell`](#cell)
      *
      * @memberof Options#
      * @type {Function}
@@ -525,6 +533,7 @@ export default () => {
      *
      * Read more:
      * - [Configuration options: Setting cell options &#8594;](@/guides/getting-started/setting-options.md#setting-cell-options)
+     * - [`columns`](#columns)
      *
      * @memberof Options#
      * @type {Array[]}
@@ -568,6 +577,10 @@ export default () => {
      *
      * Read more:
      * - [Comments &#8594;](@/guides/cell-features/comments.md)
+     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+     * - [`width`](#width)
+     * - [`height`](#height)
+     * - [`readOnly`](#readOnly)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -633,7 +646,8 @@ export default () => {
      *
      * Read more:
      * - [Formatting cells: Custom cell borders &#8594;](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
-     * - [`CustomBorders`](@/api/customBorders.md)
+     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+     * - [Plugins: `CustomBorders` &#8594;](@/api/customBorders.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -790,6 +804,7 @@ export default () => {
      * @category Core
      *
      * @example
+     * ```js
      * // set the maximum number of columns to 300
      * maxCols: 300,
      * ```
@@ -859,7 +874,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // hide the "Insert row above" and "Insert row below" menu items from the context menu
+     * // hide the 'Insert row above' and 'Insert row below' menu items from the context menu
      * allowInsertRow: false,
      * ```
      */
@@ -877,7 +892,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // hide the "Insert column left" and "Insert column right" menu items from the context menu
+     * // hide the 'Insert column left' and 'Insert column right' menu items from the context menu
      * allowInsertColumn: false,
      * ```
      */
@@ -887,6 +902,9 @@ export default () => {
      * If set to `true`, the `allowRemoveRow` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md):
      * - **Remove row**
      *
+     * Read more:
+     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -894,7 +912,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // hide the "Remove row" menu item from the context menu
+     * // hide the 'Remove row' menu item from the context menu
      * allowRemoveRow: false,
      * ```
      */
@@ -904,6 +922,9 @@ export default () => {
      * If set to `true`, the `allowRemoveColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu.md):
      * - **Remove column**
      *
+     * Read more:
+     * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -911,7 +932,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // hide the "Remove column" menu item from the context menu
+     * // hide the 'Remove column' menu item from the context menu
      * allowRemoveColumn: false,
      * ```
      */
@@ -1118,6 +1139,9 @@ export default () => {
      * | `true` (default) | - On pressing <kbd>Enter</kbd> once, start editing the currently-selected cell<br>- On pressing <kbd>Enter</kbd> twice, move to another cell,<br>as configured by the [`enterMoves`](#enterMoves) setting |
      * | `false`          | - On pressing <kbd>Enter</kbd> once, move to another cell,<br>as configured by the [`enterMoves`](#enterMoves) setting                                                                                    |
      *
+     * Read more:
+     * - [`enterMoves`](#enterMoves)
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -1151,6 +1175,9 @@ export default () => {
      * | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
      * | `col`    | Number | - On pressing <kbd>Enter</kbd>, move selection `col` columns right<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move selection `col` columns left |
      * | `row`    | Number | - On pressing <kbd>Enter</kbd>, move selection `row` rows down<br>- On pressing <kbd>Shift</kbd>+<kbd>Enter</kbd>, move selection `row` rows up          |
+     *
+     * Read more:
+     * - [`enterBeginsEditing`](#enterBeginsEditing)
      *
      * @memberof Options#
      * @type {object|Function}
@@ -1263,8 +1290,8 @@ export default () => {
      * | `true`            | Enable the [`PersistentState`](@/api/persistentState.md) plugin  |
      *
      * Read more:
-     * - [`PersistentState`](@/api/persistentState.md)
      * - [Saving data: Saving data locally &#8594;](@/guides/getting-started/saving-data.md#saving-data-locally)
+     * - [Plugins: `PersistentState` &#8594;](@/api/persistentState.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2032,6 +2059,7 @@ export default () => {
      * Read more:
      * - [Clipboard &#8594;](@/guides/cell-features/clipboard.md)
      * - [Configuration options: Cascading configuration &#8594;](@/guides/getting-started/setting-options.md#cascading-configuration)
+     * - [Password cell type &#8594;](@/guides/cell-types/password-cell-type.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -2077,7 +2105,7 @@ export default () => {
      * | ------------------- | -------------------------------------------------------------------------- |
      * | A custom alias      | Your [custom cell editor](@/guides/cell-functions/cell-editor.md) function |
      * | `'autocomplete'`    | `AutocompleteEditor`                                                       |
-     * | `'base        '`    | `BaseEditor`                                                               |
+     * | `'base'`            | `BaseEditor`                                                               |
      * | `'checkbox'`        | `CheckboxEditor`                                                           |
      * | `'date'`            | `DateEditor`                                                               |
      * | `'dropdown'`        | `DropdownEditor`                                                           |
@@ -2086,6 +2114,7 @@ export default () => {
      * | `'password'`        | `PasswordEditor`                                                           |
      * | `'select'`          | `SelectEditor`                                                             |
      * | `'text'`            | `TextEditor`                                                               |
+     * | `'time'`            | `TimeEditor`                                                               |
      *
      * To disable editing cells through cell editors,
      * set the `editor` option to `false`.
@@ -2276,6 +2305,10 @@ export default () => {
      *
      * Read more:
      * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
+     * - [Context menu: Context menu with default options &#8594;](@/guides/accessories-and-menus/context-menu.md#context-menu-with-default-options)
+     * - [Context menu: Context menu with specific options &#8594;](@/guides/accessories-and-menus/context-menu.md#context-menu-with-specific-options)
+     * - [Context menu: Context menu with fully custom configuration options &#8594;](@/guides/accessories-and-menus/context-menu.md#context-menu-with-fully-custom-configuration)
+     * - [Plugins: `ContextMenu` &#8594;](@/api/contextMenu.md)
      *
      * @memberof Options#
      * @type {boolean|string[]|object}
@@ -2296,16 +2329,16 @@ export default () => {
      * // and apply a custom context menu configuration
      * contextMenu: {
      *   items: {
-     *     "option1": {
-     *       name: "option1"
+     *     'option1': {
+     *       name: 'option1'
      *     },
-     *     "option2": {
-     *       name: "option2",
+     *     'option2': {
+     *       name: 'option2',
      *       submenu: {
      *         items: [
      *           {
-     *             key: "option2:suboption1",
-     *             name: "option2:suboption1",
+     *             key: 'option2:suboption1',
+     *             name: 'option2:suboption1',
      *             callback: function(key, options) {
      *               ...
      *             }
@@ -2341,7 +2374,7 @@ export default () => {
      * | `uiContainer`  | An HTML element                                    | A UI container for the secondary focusable element                                                                                                                                      |
      *
      * Read more:
-     * - [`CopyPaste`](@/api/copyPaste.md)
+     * - [Plugins: `CopyPaste` &#8594;](@/api/copyPaste.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -2434,6 +2467,7 @@ export default () => {
      *
      * Read more:
      * - [Row sorting &#8594;](@/guides/rows/row-sorting.md)
+     * - [Row sorting: Custom compare functions &#8594;](@/guides/rows/row-sorting.md#custom-compare-functions)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -3048,6 +3082,7 @@ export default () => {
      *
      * Read more:
      * - [Checkbox cell type: Checkbox template &#8594;](@/guides/cell-types/checkbox-cell-type.md#checkbox-template)
+     * - [`getDataAtCell()` &#8594;](@/api/core.md#getDataAtCell)
      * - [`uncheckedTemplate`](#uncheckedTemplate)
      *
      * @memberof Options#
@@ -3090,6 +3125,7 @@ export default () => {
      *
      * Read more:
      * - [Checkbox cell type: Checkbox template &#8594;](@/guides/cell-types/checkbox-cell-type.md#checkbox-template)
+     * - [`getDataAtCell()` &#8594;](@/api/core.md#getDataAtCell)
      * - [`checkedTemplate`](#checkedTemplate)
      *
      * @memberof Options#
@@ -3144,7 +3180,7 @@ export default () => {
      * ```js
      * columns: [{
      *   type: 'checkbox',
-     *   // add "My label:" after the checkbox
+     *   // add 'My label:' after the checkbox
      *   label: { position: 'after', value: 'My label: ', separated: true }
      * }],
      * ```
@@ -3223,6 +3259,7 @@ export default () => {
      *
      * Read more:
      * - [Internationalization (i18n) &#8594;](@/guides/internationalization/internationalization-i18n.md)
+     * - [`locale`](#locale)
      *
      * @memberof Options#
      * @type {string}
@@ -3236,6 +3273,41 @@ export default () => {
      * ```
      */
     language: 'en-US',
+
+    /**
+     * The `locale` option configures Handsontable's locale.
+     *
+     * You can set the `locale` option to any valid and canonicalized Unicode BCP 47 locale tag,
+     * both for the entire grid, and for individual columns.
+     *
+     * Read more:
+     * - [Internationalization (i18n) &#8594;](@/guides/internationalization/internationalization-i18n.md)
+     * - [`language`](#language)
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default 'en-US'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // set the entire grid's locale to Polish
+     * locale: 'pl-PL',
+     *
+     * // set individual columns' locales
+     * columns: [
+     *   {
+     *     // set the first column's locale to Polish
+     *     locale: 'pl-PL',
+     *   },
+     *   {
+     *     // set the second column's locale to German
+     *     locale: 'de-DE',
+     *   },
+     * ],
+     * ```
+     */
+    locale: 'en-US',
 
     /**
      * The `selectOptions` option configures options that the end user can choose from in [`select`](@/guides/cell-types/select-cell-type.md) cells.
@@ -3306,11 +3378,6 @@ export default () => {
      * | `true`    | Enable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin with the default configuration |
      * | An object | Enable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin and modify the plugin options  |
      *
-     * By default, the `autoColumnSize` option is set to `undefined`,
-     * but the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin acts as enabled.
-     * To disable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin completely,
-     * set the `autoColumnSize` option to `false`.
-     *
      * If you set the `autoColumnSize` option to an object, you can set the following [`AutoColumnSize`](@/api/autoColumnSize.md) plugin options:
      *
      * | Property                | Possible values                 | Description                                                                                                    |
@@ -3320,10 +3387,15 @@ export default () => {
      * | `samplingRatio`         | A number                        | The number of samples of the same length to be used in column width calculations                               |
      * | `allowSampleDuplicates` | `true` \| `false`               | When calculating column widths:<br>`true`: Allow duplicate samples<br>`false`: Don't allow duplicate samples |
      *
+     * By default, the `autoColumnSize` option is set to `undefined`,
+     * but the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin acts as enabled.
+     * To disable the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin completely,
+     * set the `autoColumnSize` option to `false`.
+     *
      * Using the [`colWidths`](#colWidths) option forcibly disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
      * Read more:
-     * - [`AutoColumnSize`](@/api/autoColumnSize.md)
+     * - [Plugins: `AutoColumnSize` &#8594;](@/api/autoColumnSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -3357,10 +3429,8 @@ export default () => {
      * | `true`    | Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin with the default configuration |
      * | An object | Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin and modify the plugin options  |
      *
-     * By default, the `autoRowSize` option is set to `undefined`,
-     * but the [`AutoRowSize`](@/api/autoRowSize.md) plugin acts as enabled.
-     * To disable the [`AutoRowSize`](@/api/autoRowSize.md) plugin completely,
-     * set the `autoRowSize` option to `false`.
+     * To give Handsontable's [scrollbar](https://handsontable.com/docs/8.0.0/demo-scrolling.html)
+     * a proper size, set the `autoRowSize` option to `true`.
      *
      * If you set the `autoRowSize` option to an object, you can set the following [`AutoRowSize`](@/api/autoRowSize.md) plugin options:
      *
@@ -3371,7 +3441,7 @@ export default () => {
      * Using the [`rowHeights`](#rowHeights) option forcibly disables the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
      *
      * Read more:
-     * - [`AutoRowSize`](@/api/autoRowSize.md)
+     * - [Plugins: `AutoRowSize` &#8594;](@/api/autoRowSize.md)
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -3561,7 +3631,7 @@ export default () => {
     allowHtml: false,
 
     /**
-     * The `renderAllRows` option configures Handsontable's [row virtualization](@/guides/rows/row-virtualization).
+     * The `renderAllRows` option configures Handsontable's [row virtualization](@/guides/rows/row-virtualization.md).
      *
      * You can set the `renderAllRows` option to one of the following:
      *
@@ -3648,7 +3718,7 @@ export default () => {
      * | `true`  | Enable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin  |
      *
      * Read more:
-     * - [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
+     * - [Plugins: `BindRowsWithHeaders` &#8594;](@/api/bindRowsWithHeaders.md)
      *
      * @memberof Options#
      * @type {boolean|string}
@@ -3676,7 +3746,7 @@ export default () => {
      * | An array of objects  | Enable the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin for selected column headers |
      *
      * Read more:
-     * - [`CollapsibleColumns`](@/api/collapsibleColumns.md)
+     * - [Plugins: `CollapsibleColumns` &#8594;](@/api/collapsibleColumns.md)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -3720,7 +3790,7 @@ export default () => {
      *
      * Read more:
      * - [Column summary &#8594;](@/guides/columns/column-summary.md)
-     * - [`ColumnSummary`](@/api/columnSummary.md)
+     * - [Plugins: `ColumnSummary` &#8594;](@/api/columnSummary.md)
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -3766,7 +3836,7 @@ export default () => {
      *
      * Read more:
      * - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
-     * - [`DropdownMenu`](@/api/dropdownMenu.md)
+     * - [Plugins: `DropdownMenu` &#8594;](@/api/dropdownMenu.md)
      *
      * @memberof Options#
      * @type {boolean|object|string[]}
@@ -3787,16 +3857,16 @@ export default () => {
      * // and apply a custom dropdown menu configuration
      * dropdownMenu: {
      *   items: {
-     *     "option1": {
-     *       name: "option1"
+     *     'option1': {
+     *       name: 'option1'
      *     },
-     *     "option2": {
-     *       name: "option2",
+     *     'option2': {
+     *       name: 'option2',
      *       submenu: {
      *         items: [
      *           {
-     *             key: "option2:suboption1",
-     *             name: "option2:suboption1",
+     *             key: 'option2:suboption1',
+     *             name: 'option2:suboption1',
      *             callback(key, options) {
      *               ...
      *             }
@@ -3823,7 +3893,8 @@ export default () => {
      *
      * Read more:
      * - [Column filter &#8594;](@/guides/columns/column-filter.md)
-     * - [`Filters`](@/api/filters.md)
+     * - [Plugins: `Filters` &#8594;](@/api/filters.md)
+     * - [`dropdownMenu`](#dropdownMenu)
      *
      * @memberof Options#
      * @type {boolean}
@@ -3854,7 +3925,7 @@ export default () => {
      * | `sheetName` | A string                                                                                                                                                                                                               |
      *
      * Read more:
-     * - [`Formulas`](@/api/formulas.md)
+     * - [Plugins: `Formulas` &#8594;](@/api/formulas.md)
      * - [Formula calculation &#8594;](@/guides/formulas/formula-calculation.md)
      * - [HyperFormula documentation: Client-side installation](https://handsontable.github.io/hyperformula/guide/client-side-installation)
      * - [HyperFormula documentation: Configuration options](https://handsontable.github.io/hyperformula/api/interfaces/configparams.html)
@@ -3935,7 +4006,7 @@ export default () => {
      * | `indicators`       | `true` \| `false`   | `true`: display UI markers to indicate the presence of hidden columns<br>`false`: display UI markers                                                    |
      *
      * Read more:
-     * - [`HiddenColumns`](@/api/hiddenColumns.md)
+     * - [Plugins: `HiddenColumns` &#8594;](@/api/hiddenColumns.md)
      * - [Column hiding &#8594;](@/guides/columns/column-hiding.md)
      *
      * @memberof Options#
@@ -3981,7 +4052,7 @@ export default () => {
      * | `indicators`       | `true` \| `false`   | `true`: display UI markers to indicate the presence of hidden rows<br>`false`: display UI markers                                                 |
      *
      * Read more:
-     * - [`HiddenRows`](@/api/hiddenRows.md)
+     * - [Plugins: `HiddenRows` &#8594;](@/api/hiddenRows.md)
      * - [Row hiding &#8594;](@/guides/rows/row-hiding.md)
      *
      * @memberof Options#
@@ -4021,7 +4092,7 @@ export default () => {
      * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): the column width |
      *
      * Read more:
-     * - [`NestedHeaders`](@/api/nestedHeaders.md)
+     * - [Plugins: `NestedHeaders` &#8594;](@/api/nestedHeaders.md)
      * - [Column groups: Nested headers &#8594;](@/guides/columns/column-groups.md#nested-headers)
      *
      * @memberof Options#
@@ -4053,7 +4124,7 @@ export default () => {
      * | An array | - Enable the [`TrimRows`](@/api/trimRows.md) plugin<br>- Trim selected rows at initialization |
      *
      * Read more:
-     * - [`TrimRows`](@/api/trimRows.md)
+     * - [Plugins: `TrimRows` &#8594;](@/api/trimRows.md)
      * - [Row trimming &#8594;](@/guides/rows/row-trimming.md)
      *
      * @memberof Options#
@@ -4245,7 +4316,7 @@ export default () => {
      * | `false`          | Don't scroll the viewport                                                   |
      *
      * Read more:
-     * - [`DragToScroll`](@/api/dragToScroll.md)
+     * - [Plugins: `DragToScroll` &#8594;](@/api/dragToScroll.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -4272,7 +4343,7 @@ export default () => {
      * | `true`            | Enable the [`NestedRows`](@/api/nestedRows.md) plugin  |
      *
      * Read more:
-     * - [`NestedRows`](@/api/nestedRows.md)
+     * - [Plugins: `NestedRows` &#8594;](@/api/nestedRows.md)
      *
      * @example
      * ```js

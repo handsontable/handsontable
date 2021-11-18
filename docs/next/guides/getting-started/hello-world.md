@@ -13,10 +13,10 @@ Before you dive deep into Handsontable, check out our demo app.
 
 Rather than display "Hello, World!", the demo contains 100 rows and 13 columns packed with features:
 
-- [Column groups](@/guides/columns/column-groups.md)
-- [Column menu](@/guides/columns/column-menu.md)
-- [Filters](@/guides/columns/column-filter.md)
-- [Sorting](@/guides/rows/row-sorting.md)
+- [Column groups &#8594;](@/guides/columns/column-groups.md)
+- [Column menu &#8594;](@/guides/columns/column-menu.md)
+- [Column filter &#8594;](@/guides/columns/column-filter.md)
+- [Row sorting &#8594;](@/guides/rows/row-sorting.md)
 - And way more than that!
 
 Want to play with the code yourself? Select the button in the frame's bottom right corner.

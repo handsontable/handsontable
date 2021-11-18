@@ -1269,6 +1269,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Validate a single cell.
    *
+   * @memberof Core#
+   * @function validateCell
    * @param {string|number} value The value to validate.
    * @param {object} cellProperties The cell meta which corresponds with the value.
    * @param {Function} callback The callback function.
