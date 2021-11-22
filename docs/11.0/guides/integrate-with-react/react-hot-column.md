@@ -17,13 +17,41 @@ You can configure the column-related settings using the `HotColumn` component's 
 
 To declare column-specific settings, pass the settings as `HotColumn` properties, either separately or wrapped as a `settings` property, exactly as you would with `HotTable`.
 
-<iframe src="https://codesandbox.io/embed/declaring-column-settings-seg0l?fontsize=14&theme=dark" title="Declaring column settings" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
-  style="width: 100%;
-  height: 390px;
-  border: 0;
-  borderRadius: 4;
-  overflow: hidden;" 
-  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+::: example #example1 :react --html 1 --js 2
+```html
+<!-- a root div in which the component is being rendered -->
+<div id="example1"></div>
+```
+
+```jsx
+import ReactDOM from "react-dom";
+import Handsontable from "handsontable";
+import { HotTable, HotColumn } from "@handsontable/react";
+import "handsontable/dist/handsontable.min.css";
+
+const hotData = Handsontable.helper.createSpreadsheetData(10, 5);
+const secondColumnSettings = {
+  title: "Second column header",
+  readOnly: true
+};
+
+const App = () => {
+  return (
+    <div>
+    <HotTable data={hotData} licenseKey="non-commercial-and-evaluation">
+      <HotColumn title="First column header" />
+      <HotColumn settings={secondColumnSettings} />
+      <HotColumn title="Third column header" />
+      <HotColumn title="Fourth column header" />
+      <HotColumn title="Fifth column header" />
+    </HotTable>
+    </div>
+  );
+};
+
+ReactDOM.render(<App />, document.getElementById('example1'));
+```
+:::
 
 ## Declaring a custom renderer as a component
 
