@@ -3,34 +3,78 @@ import { createUniqueSet } from '../utils/dataStructures/uniqueSet';
 import { createContext } from './context';
 import { useRecorder } from './recorder';
 
-// eslint-disable-next-line no-restricted-globals
 export const createShortcutManager = ({ isActive, frame }) => {
+  /**
+   * UniqueMap to storing contexts.
+   *
+   * @type {UniqueMap}
+   */
   const CONTEXTS = createUniqueMap({
     errorIdExists: keys => `The passed context name "${keys}" is already registered.`
   });
+  /**
+   * UniqueSet to storing active contexts.
+   *
+   * @type {UniqueSet}
+   */
   const ACTIVE_CONTEXTS = createUniqueSet();
 
-  const addContext = (name) => {
-    const context = createContext(name);
+  /**
+   * Create a new context with a given name.
+   *
+   * @param {string} contextName A new context's name.
+   * @returns {object}
+   */
+  const addContext = (contextName) => {
+    const context = createContext(contextName);
 
-    CONTEXTS.addItem(name, context);
+    CONTEXTS.addItem(contextName, context);
 
     return context;
   };
 
-  const getContext = (name) => {
-    return CONTEXTS.getItem(name);
-  };
-
+  /**
+   * Get active contexts.
+   *
+   * @returns {Array<string>}
+   */
   const getActiveContexts = () => {
     return ACTIVE_CONTEXTS.getItems();
   };
 
+  /**
+   * Get context by name.
+   *
+   * @param {string} contextName Context's name to get.
+   * @returns {object}
+   */
+  const getContext = (contextName) => {
+    return CONTEXTS.getItem(contextName);
+  };
+
+  /**
+   * Check if specific context exists within this Shortcut Manager instance.
+   *
+   * @param {string} contextName Context's name to check.
+   * @returns {boolean}
+   */
+  const hasContext = (contextName) => {
+    return CONTEXTS.hasItem(contextName);
+  };
+
+  /**
+   * Activate shortcuts' listening within given contexts.
+   *
+   * @param {Array<string>} contexts Contexts' to activate.
+   */
   const setActiveContexts = (contexts) => {
     contexts.forEach(context => ACTIVE_CONTEXTS.addItem(context));
   };
 
-  const destroyRecorder = useRecorder(frame, (event, keys) => {
+  /**
+   * 
+   */
+  const keyRecorder = useRecorder(frame, (event, keys) => {
     if (!isActive()) {
       return;
     }
@@ -39,19 +83,29 @@ export const createShortcutManager = ({ isActive, frame }) => {
       const ctx = getContext(context);
 
       if (ctx.hasShortcut(keys)) {
-        ctx.getShortcut(keys)(event, keys);
+        const { callback, options } = ctx.getShortcut(keys);
 
-        event.preventDefault();
+        callback(event, keys);
+
+        if (options.preventDefault) {
+          event.preventDefault();
+        }
       }
     });
   });
+
+  keyRecorder.mount();
 
   return {
     addContext,
     getActiveContexts,
     getContext,
+    hasContext,
     setActiveContexts,
-    destroy: destroyRecorder,
+
+    isPressed: key => keyRecorder.isPressed(key),
+    getPressed: () => keyRecorder.getPressed(),
+    destroy: () => keyRecorder.unmount(),
   };
 };
 

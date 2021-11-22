@@ -8,20 +8,12 @@ import { normalizeEventKey } from './utils';
  */
 export function useRecorder(frame, invokeClbck) {
   const keyStore = createKeyStore();
-  let eventTarget = frame;
-
-  while (eventTarget) {
-    eventTarget.addEventListener('keydown', onkeydown);
-    eventTarget.addEventListener('keyup', onkeyup);
-    eventTarget.addEventListener('blur', onblur);
-
-    eventTarget = eventTarget.frameElement;
-  }
 
   /**
+   * @private
    * @param {KeyboardEvent} event
    */
-  function onkeydown(event) {
+  const onkeydown = (event) => {
     if (event.key === void 0) {
       return;
     }
@@ -31,28 +23,47 @@ export function useRecorder(frame, invokeClbck) {
     const nextCombination = keyStore.getPressed().sort().join('+');
 
     invokeClbck(event, nextCombination);
-  }
+  };
 
   /**
+   * @private
    * @param {KeyboardEvent} event
    */
-  function onkeyup(event) {
+  const onkeyup = (event) => {
     if (event.key === void 0) {
       return;
     }
 
     keyStore.release(normalizeEventKey(event.key));
-  }
+  };
 
   /**
-   *
+   * @private
    */
-  function onblur() {
+  const onblur = () => {
     keyStore.releaseAll();
-  }
+  };
 
-  return () => {
-    eventTarget = frame;
+  /**
+   * 
+   */
+  const mount = () => {
+    let eventTarget = frame;
+
+    while (eventTarget) {
+      eventTarget.addEventListener('keydown', onkeydown);
+      eventTarget.addEventListener('keyup', onkeyup);
+      eventTarget.addEventListener('blur', onblur);
+
+      eventTarget = eventTarget.frameElement;
+    }
+  };
+
+  /**
+   * 
+   */
+  const unmount = () => {
+    let eventTarget = frame;
 
     while (eventTarget) {
       eventTarget.removeEventListener('keydown', onkeydown);
@@ -61,5 +72,12 @@ export function useRecorder(frame, invokeClbck) {
 
       eventTarget = eventTarget.frameElement;
     }
+  };
+
+  return {
+    mount,
+    unmount,
+    getPressed: () => keyStore.getPressed(),
+    isPressed: key => keyStore.isPressed(key),
   };
 }
