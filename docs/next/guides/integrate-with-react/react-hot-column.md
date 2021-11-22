@@ -17,12 +17,7 @@ You can configure the column-related settings using the `HotColumn` component's 
 
 To declare column-specific settings, pass the settings as `HotColumn` properties, either separately or wrapped as a `settings` property, exactly as you would with `HotTable`.
 
-::: example #example1 :react --html 1 --js 2 --tab preview
-```html
-<!-- a root div in which the component is being rendered -->
-<div id="example1"></div>
-```
-
+::: example #example1 :react --js 1 --tab preview
 ```jsx
 import ReactDOM from "react-dom";
 import Handsontable from "handsontable";
@@ -37,15 +32,10 @@ const secondColumnSettings = {
 
 const App = () => {
   return (
-    <div>
     <HotTable data={hotData} licenseKey="non-commercial-and-evaluation">
       <HotColumn title="First column header" />
       <HotColumn settings={secondColumnSettings} />
-      <HotColumn title="Third column header" />
-      <HotColumn title="Fourth column header" />
-      <HotColumn title="Fifth column header" />
     </HotTable>
-    </div>
   );
 };
 
@@ -66,12 +56,7 @@ Handsontable's `autoRowSize` and `autoColumnSize` options require calculating th
 Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results. Please note that `autoColumnSize` is enabled by default.
 :::
 
-::: example #example2 :react --html 1 --js 2 --tab preview
-```html
-<!-- a root div in which the component is being rendered -->
-<div id="example2"></div>
-```
-
+::: example #example2 :react --js 1 --tab preview
 ```jsx
 import ReactDOM from "react-dom";
 import Handsontable from "handsontable";
@@ -87,12 +72,12 @@ const RendererComponent = (props) => {
   // - `TD` (the HTML cell element)
   // - `cellProperties` (the `cellProperties` object for the edited cell)
   return (
-    <>
+    <React.Fragment>
       <i style={{ color: "#a9a9a9" }}>
         Row: {props.row}, column: {props.col},
       </i>{" "}
       value: {props.value}
-    </>
+    </React.Fragment>
   );
 }
 
