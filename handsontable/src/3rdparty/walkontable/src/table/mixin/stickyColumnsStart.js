@@ -1,6 +1,6 @@
 import { defineGetter } from '../../../../../helpers/object';
 
-const MIXIN_NAME = 'stickyColumnsLeft';
+const MIXIN_NAME = 'stickyColumnsStart';
 
 /**
  * Mixin for the subclasses of `Table` with implementations of

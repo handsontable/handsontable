@@ -1,6 +1,6 @@
 import Table from '../table';
 import calculatedRows from './mixin/calculatedRows';
-import stickyColumnsStart from './mixin/stickyColumnsLeft';
+import stickyColumnsStart from './mixin/stickyColumnsStart';
 import { mixin } from './../../../../helpers/object';
 
 /**
