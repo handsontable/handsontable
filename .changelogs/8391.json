@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue with no synchronizaton with source data when Hf's `setCellContents` method is executed",
+  "type": "fixed",
+  "issue": 8391,
+  "breaking": false,
+  "framework": "none"
+}

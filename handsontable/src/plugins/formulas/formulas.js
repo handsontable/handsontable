@@ -194,7 +194,7 @@ export class Formulas extends BasePlugin {
         return;
       }
 
-      // Undo/redo plugin wil sync source data.
+      // Undo/redo plugin will sync source data.
       this.#blockSyncingSourceData = true;
 
       this.engine.undo();
@@ -209,7 +209,7 @@ export class Formulas extends BasePlugin {
         return;
       }
 
-      // Undo/redo plugin wil sync source data.
+      // Undo/redo plugin will sync source data.
       this.#blockSyncingSourceData = true;
 
       this.engine.redo();
