@@ -16,7 +16,7 @@ describe('settings', () => {
     describe('defined in constructor', () => {
       it('should show columns headers', () => {
         handsontable({
-          fixedColumnsLeft: 3
+          fixedColumnsLeft: 3// todo make a decision to rename or duplicate
         });
 
         expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(3);
@@ -26,7 +26,7 @@ describe('settings', () => {
         handsontable({
           rowHeaders: true,
           colHeaders: true,
-          fixedColumnsLeft: 2
+          fixedColumnsLeft: 2// todo make a decision to rename or duplicate
         });
 
         expect(getLeftClone().find('thead tr th').length).toEqual(3);
@@ -37,11 +37,11 @@ describe('settings', () => {
     describe('defined in updateSettings', () => {
       it('should increase fixed columns', () => {
         handsontable({
-          fixedColumnsLeft: 2
+          fixedColumnsLeft: 2// todo make a decision to rename or duplicate
         });
 
         updateSettings({
-          fixedColumnsLeft: 4
+          fixedColumnsLeft: 4// todo make a decision to rename or duplicate
         });
 
         expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(4);
@@ -49,11 +49,11 @@ describe('settings', () => {
 
       it('should decrease fixed columns', () => {
         handsontable({
-          fixedColumnsLeft: 4
+          fixedColumnsLeft: 4// todo make a decision to rename or duplicate
         });
 
         updateSettings({
-          fixedColumnsLeft: 2
+          fixedColumnsLeft: 2// todo make a decision to rename or duplicate
         });
 
         expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(2);
@@ -61,11 +61,11 @@ describe('settings', () => {
 
       it('should create fixed columns when they are disabled eariler', () => {
         handsontable({
-          fixedColumnsLeft: 0
+          fixedColumnsLeft: 0// todo make a decision to rename or duplicate
         });
 
         updateSettings({
-          fixedColumnsLeft: 2
+          fixedColumnsLeft: 2// todo make a decision to rename or duplicate
         });
 
         expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(2);
@@ -73,11 +73,11 @@ describe('settings', () => {
 
       it('should disable fixed columns', () => {
         handsontable({
-          fixedColumnsLeft: 2
+          fixedColumnsLeft: 2// todo make a decision to rename or duplicate
         });
 
         updateSettings({
-          fixedColumnsLeft: 0
+          fixedColumnsLeft: 0// todo make a decision to rename or duplicate
         });
 
         expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(2);
@@ -99,7 +99,7 @@ describe('settings', () => {
         });
 
         updateSettings({
-          fixedColumnsLeft: 2
+          fixedColumnsLeft: 2// todo make a decision to rename or duplicate
         });
 
         setTimeout(() => {
@@ -120,7 +120,7 @@ describe('settings', () => {
           width: 200,
           height: 200,
           rowHeaders: true,
-          fixedColumnsLeft: 2,
+          fixedColumnsLeft: 2,// todo make a decision to rename or duplicate
         });
 
         getMaster().find('.wtHolder').scrollTop(100);
@@ -134,7 +134,7 @@ describe('settings', () => {
     it('should limit fixed columns to dataset columns length', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 3),
-        fixedColumnsLeft: 3
+        fixedColumnsLeft: 3// todo make a decision to rename or duplicate
       });
 
       expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(3);

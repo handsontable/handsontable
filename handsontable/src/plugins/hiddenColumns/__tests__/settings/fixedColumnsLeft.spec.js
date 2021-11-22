@@ -33,7 +33,7 @@ describe('HiddenColumns', () => {
           columns: [2, 3],
           indicators: true
         },
-        fixedColumnsLeft: 6
+        fixedColumnsLeft: 6// todo make a decision to rename or duplicate
       });
 
       expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(6 - 2);
@@ -54,7 +54,7 @@ describe('HiddenColumns', () => {
           columns: [1],
           indicators: true
         },
-        fixedColumnsLeft: 1
+        fixedColumnsLeft: 1// todo make a decision to rename or duplicate
       });
 
       expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(1);
@@ -72,7 +72,7 @@ describe('HiddenColumns', () => {
           columns: [0, 1, 2],
           indicators: true
         },
-        fixedColumnsLeft: 6
+        fixedColumnsLeft: 6// todo make a decision to rename or duplicate
       });
 
       expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(6 - 3);
@@ -93,7 +93,7 @@ describe('HiddenColumns', () => {
           columns: [3, 4, 5],
           indicators: true
         },
-        fixedColumnsLeft: 6
+        fixedColumnsLeft: 6// todo make a decision to rename or duplicate
       });
 
       expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(6 - 3);
@@ -114,7 +114,7 @@ describe('HiddenColumns', () => {
           columns: [0, 1, 2, 3],
           indicators: true
         },
-        fixedColumnsLeft: 4
+        fixedColumnsLeft: 4// todo make a decision to rename or duplicate
       });
 
       expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(0);
@@ -125,7 +125,7 @@ describe('HiddenColumns', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 10),
         hiddenColumns: true,
-        fixedColumnsLeft: 3
+        fixedColumnsLeft: 3// todo make a decision to rename or duplicate
       });
 
       getPlugin('hiddenColumns').hideColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);

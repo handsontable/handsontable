@@ -284,7 +284,7 @@ export class NestedHeaders extends BasePlugin {
    * @fires Hooks#afterGetColHeader
    */
   headerRendererFactory(headerLevel) {
-    const fixedColumnsLeft = this.hot.view.wt.getSetting('fixedColumnsLeft');
+    const fixedColumnsStart = this.hot.view.wt.getSetting('fixedColumnsStart');
 
     return (renderedColumnIndex, TH) => {
       const { rootDocument, columnIndexMapper, view } = this.hot;
@@ -314,7 +314,7 @@ export class NestedHeaders extends BasePlugin {
 
         // Check if there is a fixed column enabled, if so then reduce colspan to fixed column width.
         const correctedColspan = isTopLeftOverlay || isLeftOverlay ?
-          Math.min(colspan, fixedColumnsLeft - renderedColumnIndex) : colspan;
+          Math.min(colspan, fixedColumnsStart - renderedColumnIndex) : colspan;
 
         if (correctedColspan > 1) {
           TH.setAttribute('colspan', correctedColspan);

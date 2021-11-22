@@ -32,7 +32,7 @@ describe('TrimRows', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 5),
         colHeaders: true,
-        fixedColumnsLeft: 2,
+        fixedColumnsLeft: 2,// todo make a decision to rename or duplicate
         columns: [{}, {}],
       });
 
@@ -69,7 +69,7 @@ describe('TrimRows', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 5),
         colHeaders: true,
-        fixedColumnsLeft: 2,
+        fixedColumnsLeft: 2,// todo make a decision to rename or duplicate
         columns: [{}],
       });
 
@@ -102,7 +102,7 @@ describe('TrimRows', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 5),
         colHeaders: true,
-        fixedColumnsLeft: 2,
+        fixedColumnsLeft: 2,// todo make a decision to rename or duplicate
         columns: [],
       });
 

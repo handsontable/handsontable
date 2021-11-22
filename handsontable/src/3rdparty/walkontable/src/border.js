@@ -342,7 +342,7 @@ class Border {
     }
 
     if (row === this.wot.wtSettings.getSetting('fixedRowsTop') ||
-        col === this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
+        col === this.wot.wtSettings.getSetting('fixedColumnsStart')) {
       this.selectionHandles.styles.topLeft.zIndex = '9999';
       this.selectionHandles.styles.topLeftHitArea.zIndex = '9999';
     } else {

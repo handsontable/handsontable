@@ -1,16 +1,16 @@
 import Table from '../table';
 import calculatedRows from './mixin/calculatedRows';
-import stickyColumnsLeft from './mixin/stickyColumnsLeft';
+import stickyColumnsStart from './mixin/stickyColumnsLeft';
 import { mixin } from './../../../../helpers/object';
 
 /**
  * Subclass of `Table` that provides the helper methods relevant to LeftOverlay, implemented through mixins.
  */
-class LeftOverlayTable extends Table {
+class InlineStartOverlayTable extends Table {
 
 }
 
-mixin(LeftOverlayTable, calculatedRows);
-mixin(LeftOverlayTable, stickyColumnsLeft);
+mixin(InlineStartOverlayTable, calculatedRows);
+mixin(InlineStartOverlayTable, stickyColumnsStart);
 
-export default LeftOverlayTable;
+export default InlineStartOverlayTable;

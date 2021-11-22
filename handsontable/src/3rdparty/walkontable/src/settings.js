@@ -36,14 +36,18 @@ class Settings {
       data: void 0,
       freezeOverlays: false,
       // Number of renderable columns for the left overlay.
-      fixedColumnsLeft: 0,
+      fixedColumnsStart: 0,
       // Number of renderable rows for the top overlay.
       fixedRowsTop: 0,
       // Number of renderable rows for the bottom overlay.
       fixedRowsBottom: 0,
       // Enable the left overlay when conditions are met.
       shouldRenderLeftOverlay: () => {
-        return this.getSetting('fixedColumnsLeft') > 0 || this.getSetting('rowHeaders').length > 0;
+        return this.getSetting('fixedColumnsStart') > 0 || this.getSetting('rowHeaders').length > 0; //todo is ltr
+      },
+      // Enable the right overlay when conditions are met.
+      shouldRenderRightOverlay: () => {
+        return this.getSetting('fixedColumnsStart') > 0 || this.getSetting('rowHeaders').length > 0; //todo is rtl
       },
       // Enable the top overlay when conditions are met.
       shouldRenderTopOverlay: () => {

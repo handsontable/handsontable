@@ -792,7 +792,7 @@ describe('HiddenColumns', () => {
             hiddenColumns: {
               columns: [1]
             },
-            fixedColumnsLeft: 3,
+            fixedColumnsLeft: 3,// todo make a decision to rename or duplicate
           });
 
           selectColumns(0, 2);

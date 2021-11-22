@@ -12,15 +12,15 @@ import {
 import InlineStartOverlayTable from './../table/inlineStart';
 import { Overlay } from './_base';
 import {
-  CLONE_LEFT,
+  CLONE_RIGHT,
 } from './constants';
 
 /**
- * @class LeftOverlay
+ * @class RightOverlay
  */
-export class LeftOverlay extends Overlay {
+export class RightOverlay extends Overlay {
   static get OVERLAY_NAME() {
-    return CLONE_LEFT;
+    return CLONE_RIGHT;
   }
 
   /**
@@ -28,7 +28,7 @@ export class LeftOverlay extends Overlay {
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(CLONE_LEFT);
+    this.clone = this.makeClone(CLONE_RIGHT);
   }
 
   /**
@@ -48,11 +48,11 @@ export class LeftOverlay extends Overlay {
    * @returns {boolean}
    */
   shouldBeRendered() {
-    return this.wot.getSetting('shouldRenderLeftOverlay');
+    return this.wot.getSetting('shouldRenderRightOverlay');
   }
 
   /**
-   * Updates the left overlay position.
+   * Updates the right overlay position.
    *
    * @returns {boolean}
    */

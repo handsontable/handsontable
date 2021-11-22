@@ -3057,7 +3057,7 @@ describe('ColumnSorting', () => {
     it('should not break the ability to freeze column', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 3),
-        fixedColumnsLeft: 1,
+        fixedColumnsLeft: 1,// todo make a decision to rename or duplicate
         columnSorting: true,
         manualColumnFreeze: true,
         contextMenu: true
@@ -3072,7 +3072,7 @@ describe('ColumnSorting', () => {
 
       simulateClick(freezeColumn);
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(2);
       expect(hot.toPhysicalColumn(0)).toEqual(0);
       expect(hot.toPhysicalColumn(1)).toEqual(2);
       expect(hot.toPhysicalColumn(2)).toEqual(1);

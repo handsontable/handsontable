@@ -448,7 +448,7 @@ describe('Core_view', () => {
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 9),
-      fixedColumnsLeft: 1
+      fixedColumnsLeft: 1 // todo make a decision to rename or duplicate
     });
 
     const htCore = getHtCore();
@@ -476,13 +476,13 @@ describe('Core_view', () => {
 
   });
 
-  it('should enable to change fixedColumnsLeft with updateSettings', () => {
+  it('should enable to change fixedColumnsLeft with updateSettings', () => { // todo make a decision to rename or duplicate
     spec().$container[0].style.width = '200px';
     spec().$container[0].style.height = '100px';
 
     const HOT = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 9),
-      fixedColumnsLeft: 1
+      fixedColumnsLeft: 1 // todo make a decision to rename or duplicate
     });
 
     selectCell(0, 0);
@@ -506,7 +506,7 @@ describe('Core_view', () => {
     selectCell(0, 0);
 
     HOT.updateSettings({
-      fixedColumnsLeft: 2
+      fixedColumnsStart: 2
     });
 
     expect(leftClone.find('tr:eq(0) td').length).toEqual(2);
@@ -936,7 +936,7 @@ describe('Core_view', () => {
         data: [['A', 'B', 'C', 'D'], ['a', 'b', 'c\nc', 'd'], ['aa', 'bb', 'cc', 'dd']],
         startRows: 3,
         startCols: 4,
-        fixedColumnsLeft: 2,
+        fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
       });
 
       expect(hot.getCell(1, 2).clientHeight).toEqual(hot.getCell(1, 1).clientHeight);
@@ -959,7 +959,7 @@ describe('Core_view', () => {
         startRows: 3,
         startCols: 4,
         fixedRowsTop: 2,
-        fixedColumnsLeft: 2,
+        fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
         width: 200,
         height: 200
       });
@@ -988,7 +988,7 @@ describe('Core_view', () => {
         startRows: 3,
         startCols: 4,
         fixedRowsTop: 2,
-        fixedColumnsLeft: 2,
+        fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
         width: 200,
         height: 200
       });
@@ -1011,7 +1011,7 @@ describe('Core_view', () => {
     it('should set the columns width correctly after changes made during updateSettings', () => {
       const hot = handsontable({
         startRows: 2,
-        fixedColumnsLeft: 2,
+        fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
         columns: [{
           width: 50
         }, {
@@ -1035,7 +1035,7 @@ describe('Core_view', () => {
 
       hot.updateSettings({
         manualColumnMove: [2, 0, 1],
-        fixedColumnsLeft: 1
+        fixedColumnsStart: 1
       });
 
       expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(1)')[0])).toEqual(110);
@@ -1043,7 +1043,7 @@ describe('Core_view', () => {
 
       hot.updateSettings({
         manualColumnMove: false,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(1)')[0])).toEqual(110);
@@ -1054,7 +1054,7 @@ describe('Core_view', () => {
       const hot = handsontable({
         startCols: 7,
         startRows: 2,
-        fixedColumnsLeft: 2,
+        fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
         columns(column) {
           let colMeta = {};
 
@@ -1087,7 +1087,7 @@ describe('Core_view', () => {
 
       hot.updateSettings({
         manualColumnMove: [2, 0, 1],
-        fixedColumnsLeft: 1
+        fixedColumnsStart: 1
       });
 
       expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(1)')[0])).toEqual(110);
@@ -1095,7 +1095,7 @@ describe('Core_view', () => {
 
       hot.updateSettings({
         manualColumnMove: false,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(1)')[0])).toEqual(110);

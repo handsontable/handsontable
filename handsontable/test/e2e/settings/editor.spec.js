@@ -203,7 +203,7 @@ describe('settings', () => {
           },
           colWidths: 100,
           width: 400,
-          fixedColumnsLeft: 1,
+          fixedColumnsLeft: 1,// todo make a decision to rename or duplicate
           viewportColumnRenderingOffset: 0,
         });
         editedTd = spec().$container.find('.ht_clone_left td')[0];

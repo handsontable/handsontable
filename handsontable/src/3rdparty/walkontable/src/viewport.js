@@ -373,17 +373,17 @@ class Viewport {
     const { wtSettings, wtOverlays, wtTable, rootDocument } = wot;
     let width = this.getViewportWidth();
     let pos = wtOverlays.leftOverlay.getScrollPosition() - wtOverlays.leftOverlay.getTableParentOffset();
-
+    
     this.columnHeaderHeight = NaN;
 
     if (pos < 0) {
       pos = 0;
     }
 
-    const fixedColumnsLeft = wot.getSetting('fixedColumnsLeft');
+    const fixedColumnsStart = wot.getSetting('fixedColumnsStar');
 
-    if (fixedColumnsLeft) {
-      const fixedColumnsWidth = wtOverlays.leftOverlay.sumCellSizes(0, fixedColumnsLeft);
+    if (fixedColumnsStart) {
+      const fixedColumnsWidth = wtOverlays.leftOverlay.sumCellSizes(0, fixedColumnsStart);
 
       pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;

@@ -120,7 +120,7 @@ function UndoRedo(instance) {
       const rowsMap = instance.rowIndexMapper.getIndexesSequence();
 
       return new UndoRedo.RemoveColumnAction(
-        columnIndex, indexes, removedData, headers, columnsMap, rowsMap, instance.getSettings().fixedColumnsLeft);
+        columnIndex, indexes, removedData, headers, columnsMap, rowsMap, instance.getSettings().fixedColumnsStart);
     };
 
     plugin.done(wrappedAction, source);
@@ -563,9 +563,9 @@ UndoRedo.CreateColumnAction.prototype.redo = function(instance, redoneCallback) 
  * @param {Array} headers The header values.
  * @param {number[]} columnPositions The column position.
  * @param {number[]} rowPositions The row position.
- * @param {number} fixedColumnsLeft Number of fixed columns on the left. Remove column action change it sometimes.
+ * @param {number} fixedColumnsStart Number of fixed columns on the left. Remove column action change it sometimes.
  */
-UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions, rowPositions, fixedColumnsLeft) {
+UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions, rowPositions, fixedColumnsStart) {
   this.index = index;
   this.indexes = indexes;
   this.data = data;
@@ -574,7 +574,7 @@ UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPosi
   this.columnPositions = columnPositions.slice(0);
   this.rowPositions = rowPositions.slice(0);
   this.actionType = 'remove_col';
-  this.fixedColumnsLeft = fixedColumnsLeft;
+  this.fixedColumnsStart = fixedColumnsStart;
 };
 inherit(UndoRedo.RemoveColumnAction, UndoRedo.Action);
 
@@ -582,7 +582,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
   const settings = instance.getSettings();
 
   // Changing by the reference as `updateSettings` doesn't work the best.
-  settings.fixedColumnsLeft = this.fixedColumnsLeft;
+  settings.fixedColumnsStart = this.fixedColumnsStart;
 
   const ascendingIndexes = this.indexes.slice(0).sort();
   const sortByIndexes = (elem, j, arr) => arr[this.indexes.indexOf(ascendingIndexes[j])];

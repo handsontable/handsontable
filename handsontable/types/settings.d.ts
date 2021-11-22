@@ -134,7 +134,8 @@ export interface GridSettings extends Events {
   filter?: boolean;
   filteringCaseSensitive?: boolean;
   filters?: boolean;
-  fixedColumnsLeft?: number;
+  fixedColumnsLeft?: number; // todo alias, warning/error
+  fixedColumnsStart?: number;
   fixedRowsBottom?: number;
   fixedRowsTop?: number;
   formulas?: FormulasSettings;

@@ -1072,11 +1072,30 @@ export default () => {
     fixedRowsBottom: 0,
 
     /**
-     * The `fixedColumnsLeft` option sets the number of [frozen columns](@/guides/columns/column-freezing.md)
+     * The `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md)
      * at the left-hand side of the grid.
      *
      * Read more:
      * - [Column freezing &#8594;](@/guides/columns/column-freezing.md)
+     *
+     * @memberof Options#
+     * @type {number}
+     * @default 0
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // freeze the first 3 columns from the left
+     * fixedColumnsStart: 3,
+     * ```
+     */
+    fixedColumnsStart: 0,
+    
+    /**
+     * An alias for `fixedColumnsStart`. Works only for Left-To-Right.
+     * Throws a warn when used.
+     * Throws an error when used together with `fixedColumnsStart`.
+     * Throws an error when used in RTL mode.
      *
      * @memberof Options#
      * @type {number}

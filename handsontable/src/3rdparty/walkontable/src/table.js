@@ -242,7 +242,7 @@ class Table {
       this.holderOffset = offset(this.holder);
       runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
-      if (rowHeadersCount && !wot.getSetting('fixedColumnsLeft')) {
+      if (rowHeadersCount && !wot.getSetting('fixedColumnsStart')) {
         const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
         const previousState = this.correctHeaderWidth;
 
@@ -921,7 +921,7 @@ class Table {
    *
    * Negative column index is used to check the rows' headers.
    *
-   *                            For fixedColumnsLeft: 1 the master overlay
+   *                            For fixedColumnsStart: 1 the master overlay
    *                            do not render this first columns.
    *  Headers    -3   -2   -1    |
    *           +----+----+----║┄ ┄ +------+------+
@@ -965,7 +965,7 @@ class Table {
    * it is not possible to render headers partially. The "after" index can not be
    * lower than -1.
    *
-   *                            For fixedColumnsLeft: 1 the master overlay
+   *                            For fixedColumnsStart: 1 the master overlay
    *                            do not render this first columns.
    *  Headers    -3   -2   -1    |
    *           +----+----+----║┄ ┄ +------+------+

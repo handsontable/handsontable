@@ -344,7 +344,7 @@ describe('WalkontableTable', () => {
       totalColumns: getTotalColumns,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       columnHeaders: [function(col, TH) {
         TH.innerHTML = `${hotParentName(TH)}-header-of-col-${col}`;
       }],
@@ -576,7 +576,7 @@ describe('WalkontableTable', () => {
       totalColumns: getTotalColumns,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       columnHeaders: [function(col, TH) {
         TH.innerHTML = `${hotParentName(TH)}-header-of-col-${col}`;
       }],
@@ -645,7 +645,7 @@ describe('WalkontableTable', () => {
       totalColumns: getTotalColumns,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       columnHeaders: [function(col, TH) {
         TH.innerHTML = `${hotParentName(TH)}-header-of-col-${col}`;
       }],
@@ -760,12 +760,12 @@ describe('WalkontableTable', () => {
     expect(wt.wtTable.getCoords($th2[0])).toEqual(new Walkontable.CellCoords(-1, 1));
   });
 
-  it('getCoords should return coords of TD (with fixedColumnsLeft)', () => {
+  it('getCoords should return coords of TD (with fixedColumnsStart)', () => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       columnHeaders: [function(col, TH) {
         TH.innerHTML = col + 1;
       }]
@@ -1417,7 +1417,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
         columnWidth: 70,
-        fixedColumnsLeft: 2,
+        fixedColumnsStart: 2,
         columnHeaders: [function() {}]
       });
 
@@ -1542,7 +1542,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
@@ -1599,7 +1599,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
@@ -1656,7 +1656,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
@@ -1713,7 +1713,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
@@ -1770,7 +1770,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
@@ -1812,7 +1812,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
@@ -1854,7 +1854,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
@@ -1898,7 +1898,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
@@ -1974,7 +1974,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
@@ -2031,7 +2031,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
@@ -2088,7 +2088,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
@@ -2139,7 +2139,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
@@ -2190,7 +2190,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
@@ -2241,7 +2241,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
@@ -2292,7 +2292,7 @@ describe('WalkontableTable', () => {
         totalColumns: getTotalColumns,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();

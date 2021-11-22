@@ -565,10 +565,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               metaManager.removeColumn(physicalColumnIndex, groupAmount);
 
-              const fixedColumnsLeft = tableMeta.fixedColumnsLeft;
+              const fixedColumnsStart = tableMeta.fixedColumnsStart;
 
-              if (fixedColumnsLeft >= calcIndex + 1) {
-                tableMeta.fixedColumnsLeft -= Math.min(groupAmount, fixedColumnsLeft - calcIndex);
+              if (fixedColumnsStart >= calcIndex + 1) {
+                tableMeta.fixedColumnsStart -= Math.min(groupAmount, fixedColumnsStart - calcIndex);
               }
 
               if (Array.isArray(tableMeta.colHeaders)) {

@@ -533,11 +533,12 @@ class TableView {
       totalRows: () => this.countRenderableRows(),
       totalColumns: () => this.countRenderableColumns(),
       // Number of renderable columns for the left overlay.
-      fixedColumnsLeft: () => {
+      fixedColumnsStart: () => {
         const countCols = this.instance.countCols();
-        const visualFixedColumnsLeft = Math.min(parseInt(this.settings.fixedColumnsLeft, 10), countCols) - 1;
-
-        return this.countNotHiddenColumnIndexes(visualFixedColumnsLeft, -1);
+        const visualFixedColumnsStart = Math.min(parseInt(this.settings.fixedColumnsStart, 10), countCols) - 1;
+        // const visualFixedColumnsLeft = Math.min(parseInt(this.settings.fixedColumnsLeft, 10), countCols) - 1;
+        // todo ltr/rtl/fixedColumnsStart/fixedColumnsLeft
+        return this.countNotHiddenColumnIndexes(visualFixedColumnsStart, -1);
       },
       // Number of renderable rows for the top overlay.
       fixedRowsTop: () => {
@@ -555,7 +556,11 @@ class TableView {
       },
       // Enable the left overlay when conditions are met.
       shouldRenderLeftOverlay: () => {
-        return this.settings.fixedColumnsLeft > 0 || walkontableConfig.rowHeaders().length > 0;
+        return this.settings.fixedColumnsStart > 0 || walkontableConfig.rowHeaders().length > 0; //todo if ltr
+      },
+      // Enable the right overlay when conditions are met.
+      shouldRenderRightOverlay: () => {
+        return this.settings.fixedColumnsStart > 0 || walkontableConfig.rowHeaders().length > 0; //todo if rtl
       },
       // Enable the top overlay when conditions are met.
       shouldRenderTopOverlay: () => {
@@ -607,7 +612,7 @@ class TableView {
         const visualIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
 
         // It's not a bug that we can't find visual index for some handled by method indexes. The function is called also
-        // for not displayed indexes (beyond the table boundaries), i.e. when `fixedColumnsLeft` > `startCols` (wrong config?) or
+        // for not displayed indexes (beyond the table boundaries), i.e. when `fixedColumnsStart` > `startCols` (wrong config?) or
         // scrolling and dataset is empty (scroll should handle that?).
         return this.instance.getColWidth(visualIndex === null ? renderedColumnIndex : visualIndex);
       },
@@ -891,7 +896,7 @@ class TableView {
       viewportColumnCalculatorOverride: (calc) => {
         let viewportOffset = this.settings.viewportColumnRenderingOffset;
 
-        if (viewportOffset === 'auto' && this.settings.fixedColumnsLeft) {
+        if (viewportOffset === 'auto' && this.settings.fixedColumnsStart) {
           viewportOffset = 10;
         }
 

@@ -933,13 +933,13 @@ describe('Core_alter', () => {
       const hot = handsontable({
         startCols: 1,
         startRows: 3,
-        fixedColumnsLeft: 4
+        fixedColumnsLeft: 4// todo make a decision to rename or duplicate
       });
 
       alter('remove_col', 1, 1);
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(3);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(3);
       alter('remove_col', 1, 2);
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(1);
     });
 
     it('should shift the cell meta according to the new column layout', () => {
