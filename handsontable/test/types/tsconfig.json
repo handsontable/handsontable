@@ -9,6 +9,7 @@
     "noEmit": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
     "baseUrl": "./",
     "paths": {
       "handsontable": [ "../../types" ],
