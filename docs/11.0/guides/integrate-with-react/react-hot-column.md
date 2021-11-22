@@ -37,15 +37,10 @@ const secondColumnSettings = {
 
 const App = () => {
   return (
-    <div>
     <HotTable data={hotData} licenseKey="non-commercial-and-evaluation">
       <HotColumn title="First column header" />
       <HotColumn settings={secondColumnSettings} />
-      <HotColumn title="Third column header" />
-      <HotColumn title="Fourth column header" />
-      <HotColumn title="Fifth column header" />
     </HotTable>
-    </div>
   );
 };
 
