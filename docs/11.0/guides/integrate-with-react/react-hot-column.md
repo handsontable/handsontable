@@ -17,12 +17,7 @@ You can configure the column-related settings using the `HotColumn` component's 
 
 To declare column-specific settings, pass the settings as `HotColumn` properties, either separately or wrapped as a `settings` property, exactly as you would with `HotTable`.
 
-::: example #example1 :react --html 1 --js 2 --tab preview
-```html
-<!-- a root div in which the component is being rendered -->
-<div id="example1"></div>
-```
-
+::: example #example1 :react --js 1 --tab preview
 ```jsx
 import ReactDOM from "react-dom";
 import Handsontable from "handsontable";
@@ -61,12 +56,7 @@ Handsontable's `autoRowSize` and `autoColumnSize` options require calculating th
 Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results. Please note that `autoColumnSize` is enabled by default.
 :::
 
-::: example #example2 :react --html 1 --js 2 --tab preview
-```html
-<!-- a root div in which the component is being rendered -->
-<div id="example2"></div>
-```
-
+::: example #example2 :react --js 1 --tab preview
 ```jsx
 import ReactDOM from "react-dom";
 import Handsontable from "handsontable";
