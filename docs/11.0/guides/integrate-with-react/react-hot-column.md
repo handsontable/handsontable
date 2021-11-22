@@ -87,12 +87,12 @@ const RendererComponent = (props) => {
   // - `TD` (the HTML cell element)
   // - `cellProperties` (the `cellProperties` object for the edited cell)
   return (
-    <>
+    <React.Fragment>
       <i style={{ color: "#a9a9a9" }}>
         Row: {props.row}, column: {props.col},
       </i>{" "}
       value: {props.value}
-    </>
+    </React.Fragment>
   );
 }
 
