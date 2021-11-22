@@ -3,6 +3,9 @@ import { expandMetaType } from '../utils';
 import metaSchemaFactory from '../metaSchema';
 
 /**
+ * @typedef {Options} TableMeta
+ */
+/**
  * @returns {TableMeta} Returns an empty object. The holder for global meta object.
  */
 function createTableMetaEmptyClass() {
@@ -77,6 +80,9 @@ export default class GlobalMeta {
    * @param {object} settings An object to merge with.
    */
   updateMeta(settings) {
+    if(settings.fixedColumnsLeft && !settings.fixedColumnsStart) {
+      settings.fixedColumnsStart = settings.fixedColumnsLeft;
+    }
     extend(this.meta, settings);
     extend(this.meta, expandMetaType(settings.type, settings));
   }

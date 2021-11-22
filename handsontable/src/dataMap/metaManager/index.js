@@ -84,7 +84,7 @@ export default class MetaManager {
    * default settings inherited from the GlobalMeta layer merged with settings passed by the developer.
    * Adding, removing, or changing property in that object has no direct reflection on any other layers.
    *
-   * @returns {object}
+   * @returns {TableMeta}
    */
   getTableMeta() {
     return this.tableMeta.getMeta();

@@ -2453,7 +2453,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getSettings
-   * @returns {object} Object containing the current table settings.
+   * @returns {TableMeta} Object containing the current table settings.
    */
   this.getSettings = function() {
     return tableMeta;
@@ -4374,4 +4374,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   Hooks.getSingleton().run(instance, 'construct');
+  
+  if(this.isRtl() && this.getSettings().fixedColumnsLeft){
+    throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
+  }
 }
