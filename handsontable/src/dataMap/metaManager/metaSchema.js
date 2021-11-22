@@ -4358,6 +4358,36 @@ export default () => {
      */
     nestedRows: void 0,
 
+    /**
+     * The `datePickerConfig` option configures the `date` [cell editor](@/guides/cell-functions/cell-editor.md)'s date picker, which uses an external dependency: [Pikaday](https://github.com/Pikaday/Pikaday/tree/1.8.0).
+     *
+     * You can set the `datePickerConfig` option to an object with any of the available [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration),
+     * except for the following, which are always overwritten by the `date` [cell editor](@/guides/cell-functions/cell-editor.md):
+     * - `bound`
+     * - `container`
+     * - `field`
+     * - `trigger`
+     *
+     * If the `datePickerConfig` option is not defined, the `date` [cell editor](@/guides/cell-functions/cell-editor.md) overwrites the following [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration) as well:
+     *
+     * | Pikaday option       | Handsontable's setting |
+     * | -------------------- | ---------------------- |
+     * | `format`             | `'DD/MM/YYYY'`         |
+     * | `reposition`         | `false`                |
+     *
+     * Read more:
+     * - [`editor`](#editor)
+     * - [`dateFormat`](#dateFormat)
+     * - [Cell editor &#8594;](@/guides/cell-functions/cell-editor.md)
+     * - [All Pikaday options &#8594;](https://github.com/Pikaday/Pikaday/tree/1.8.0#configuration)
+     *
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @category Core
+     */
+    datePickerConfig: void 0,
+
     /* eslint-enable jsdoc/require-description-complete-sentence */
 
   };
