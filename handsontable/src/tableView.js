@@ -536,6 +536,7 @@ class TableView {
       fixedColumnsStart: () => {
         const countCols = this.instance.countCols();
         const visualFixedColumnsStart = Math.min(parseInt(this.settings.fixedColumnsStart, 10), countCols) - 1;
+
         // const visualFixedColumnsLeft = Math.min(parseInt(this.settings.fixedColumnsLeft, 10), countCols) - 1;
         // todo ltr/rtl/fixedColumnsStart/fixedColumnsLeft
         return this.countNotHiddenColumnIndexes(visualFixedColumnsStart, -1);
@@ -556,11 +557,11 @@ class TableView {
       },
       // Enable the left overlay when conditions are met.
       shouldRenderLeftOverlay: () => {
-        return this.settings.fixedColumnsStart > 0 || walkontableConfig.rowHeaders().length > 0; //todo if ltr
+        return this.settings.fixedColumnsStart > 0 || walkontableConfig.rowHeaders().length > 0; // todo if ltr
       },
       // Enable the right overlay when conditions are met.
       shouldRenderRightOverlay: () => {
-        return this.settings.fixedColumnsStart > 0 || walkontableConfig.rowHeaders().length > 0; //todo if rtl
+        return this.settings.fixedColumnsStart > 0 || walkontableConfig.rowHeaders().length > 0; // todo if rtl
       },
       // Enable the top overlay when conditions are met.
       shouldRenderTopOverlay: () => {

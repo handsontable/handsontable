@@ -120,7 +120,7 @@ describe('settings', () => {
           width: 200,
           height: 200,
           rowHeaders: true,
-          fixedColumnsLeft: 2,// todo make a decision to rename or duplicate
+          fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
         });
 
         getMaster().find('.wtHolder').scrollTop(100);

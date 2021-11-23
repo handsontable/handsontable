@@ -91,7 +91,7 @@ describe('HiddenColumns', () => {
           columns: [1],
           indicators: true,
         },
-        fixedColumnsLeft: 3,// todo make a decision to rename or duplicate
+        fixedColumnsLeft: 3, // todo make a decision to rename or duplicate
         manualColumnResize: true
       });
 

@@ -80,7 +80,7 @@ export default class GlobalMeta {
    * @param {object} settings An object to merge with.
    */
   updateMeta(settings) {
-    if(settings.fixedColumnsLeft && !settings.fixedColumnsStart) {
+    if (settings.fixedColumnsLeft && !settings.fixedColumnsStart) {
       settings.fixedColumnsStart = settings.fixedColumnsLeft;
     }
     extend(this.meta, settings);

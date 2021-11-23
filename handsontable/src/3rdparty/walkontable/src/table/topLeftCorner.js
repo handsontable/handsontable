@@ -5,6 +5,9 @@ import { mixin } from './../../../../helpers/object';
 
 /**
  * Subclass of `Table` that provides the helper methods relevant to TopLeftCornerOverlay, implemented through mixins.
+ * 
+ * @mixes stickyRowsTop
+ * @mixes stickyColumnsStart
  */
 class TopLeftCornerOverlayTable extends Table {
 

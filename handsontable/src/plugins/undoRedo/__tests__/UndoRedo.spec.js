@@ -3126,7 +3126,7 @@ describe('UndoRedo', () => {
         data: Handsontable.helper.createSpreadsheetData(3, 3),
         colHeaders: true,
         rowHeaders: true,
-        fixedColumnsLeft: 1,// todo make a decision to rename or duplicate
+        fixedColumnsLeft: 1, // todo make a decision to rename or duplicate
       });
 
       alter('remove_col', 0, 3);

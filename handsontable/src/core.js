@@ -4374,8 +4374,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   Hooks.getSingleton().run(instance, 'construct');
-  
-  if(this.isRtl() && this.getSettings().fixedColumnsLeft){
+
+  if (this.isRtl() && this.getSettings().fixedColumnsLeft) {
     throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
   }
 }

@@ -1090,7 +1090,7 @@ export default () => {
      * ```
      */
     fixedColumnsStart: 0,
-    
+
     /**
      * An alias for `fixedColumnsStart`. Works only for Left-To-Right.
      * Throws a warn when used.

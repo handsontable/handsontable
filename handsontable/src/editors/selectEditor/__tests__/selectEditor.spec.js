@@ -122,7 +122,7 @@ describe('SelectEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,// todo make a decision to rename or duplicate
+      fixedColumnsLeft: 3, // todo make a decision to rename or duplicate
       editor: 'select',
     });
 
@@ -224,7 +224,7 @@ describe('SelectEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,// todo make a decision to rename or duplicate
+      fixedColumnsLeft: 3, // todo make a decision to rename or duplicate
       hiddenColumns: {
         indicators: true,
         columns: [0],

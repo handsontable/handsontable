@@ -167,7 +167,7 @@ describe('manualColumnFreeze', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        fixedColumnsLeft: 1,// todo make a decision to rename or duplicate
+        fixedColumnsLeft: 1, // todo make a decision to rename or duplicate
         contextMenu: true
       });
 
@@ -197,7 +197,7 @@ describe('manualColumnFreeze', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        fixedColumnsLeft: 3,// todo make a decision to rename or duplicate
+        fixedColumnsLeft: 3, // todo make a decision to rename or duplicate
         manualColumnMove: [0, 2, 5, 3, 4, 1, 6, 7, 8, 9],
         contextMenu: true,
         rowHeaders: true

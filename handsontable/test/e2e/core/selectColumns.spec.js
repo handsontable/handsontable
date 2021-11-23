@@ -78,7 +78,7 @@ describe('Core.selectColumns', () => {
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
       colHeaders: true,
       rowHeaders: true,
-      fixedColumnsLeft: 2,// todo make a decision to rename or duplicate
+      fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
     });
 
     selectColumns(1, 2);

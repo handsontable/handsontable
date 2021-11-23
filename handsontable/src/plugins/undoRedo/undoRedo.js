@@ -565,7 +565,7 @@ UndoRedo.CreateColumnAction.prototype.redo = function(instance, redoneCallback) 
  * @param {number[]} rowPositions The row position.
  * @param {number} fixedColumnsStart Number of fixed columns on the left. Remove column action change it sometimes.
  */
-UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions, rowPositions, fixedColumnsStart) {
+UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions, rowPositions, fixedColumnsStart) { // eslint-disable-line max-len
   this.index = index;
   this.indexes = indexes;
   this.data = data;

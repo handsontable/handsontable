@@ -373,7 +373,7 @@ class Viewport {
     const { wtSettings, wtOverlays, wtTable, rootDocument } = wot;
     let width = this.getViewportWidth();
     let pos = wtOverlays.leftOverlay.getScrollPosition() - wtOverlays.leftOverlay.getTableParentOffset();
-    
+
     this.columnHeaderHeight = NaN;
 
     if (pos < 0) {

@@ -1596,9 +1596,9 @@ describe('Core_selection', () => {
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
   });
 
-  it('should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsLeft` are set, and user scrolled', async() => {// todo make a decision to rename or duplicate
+  it('should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsLeft` are set, and user scrolled', async() => { // todo make a decision to rename or duplicate
     const hot = handsontable({
-      fixedColumnsLeft: 2,// todo make a decision to rename or duplicate
+      fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
       startRows: 20,
       startCols: 20,
       colHeaders: true,

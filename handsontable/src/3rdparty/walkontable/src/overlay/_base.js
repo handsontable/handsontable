@@ -128,11 +128,14 @@ export class Overlay {
     let offsetObject = null;
 
     if (windowScroll) {
-      offsetObject = this.getRelativeCellPositionWithinWindow(fixedRowTop, fixedColumnStart, elementOffset, spreaderOffset);
+      offsetObject = this.getRelativeCellPositionWithinWindow(
+        fixedRowTop, fixedColumnStart, elementOffset, spreaderOffset
+      );
 
     } else {
-      offsetObject = this.getRelativeCellPositionWithinHolder(fixedRowTop, fixedRowBottom, fixedColumnStart,
-        elementOffset, spreaderOffset);
+      offsetObject = this.getRelativeCellPositionWithinHolder(
+        fixedRowTop, fixedRowBottom, fixedColumnStart, elementOffset, spreaderOffset
+      );
     }
 
     return offsetObject;

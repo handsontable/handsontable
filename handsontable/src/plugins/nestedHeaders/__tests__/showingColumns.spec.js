@@ -814,7 +814,7 @@ describe('NestedHeaders', () => {
           ['A4', { label: 'B4', colspan: 2 }, { label: 'D4', colspan: 2 }, { label: 'F4', colspan: 2 },
             { label: 'H4', colspan: 2 }, 'J4', 'K4', { label: 'L4', colspan: 2 }],
         ],
-        fixedColumnsLeft: 6,// todo make a decision to rename or duplicate
+        fixedColumnsLeft: 6, // todo make a decision to rename or duplicate
       });
 
       const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
