@@ -87,13 +87,11 @@ const hotData = Handsontable.helper.createSpreadsheetData(10, 5);
 // add a `hot-renderer` attribute to it
 const App = () => {
   return (
-    <div>
     <HotTable data={hotData} licenseKey="non-commercial-and-evaluation">
       <HotColumn width={250}>
         <RendererComponent hot-renderer />
       </HotColumn>
     </HotTable>
-    </div>
   );
 };
 
@@ -117,9 +115,9 @@ const ScoreRenderer = (props) => {
   const { value } = props;
   const color = value > 60 ? "#2ECC40" : "#FF4136";
   return (
-    <>
+    <React.Fragment>
       <span style={{ color }}>{value}</span>
-    </>
+    </React.Fragment>
   );
 };
 
@@ -128,15 +126,15 @@ const PromotionRenderer = (props) => {
   const { value } = props;
   if (value) {
     return (
-      <>
+      <React.Fragment>
         <span>&#10004;</span>
-      </>
+      </React.Fragment>
     );
   }
   return (
-    <>
+    <React.Fragment>
       <span>&#10007;</span>
-    </>
+    </React.Fragment>
   );
 };
 
@@ -237,15 +235,40 @@ To prevent that, the `mousedown` event on the editor container must call `event.
 
 The example below uses the [react-native-listener](https://www.npmjs.com/package/react-native-listener) library to utilize the native `mousedown` event.
 
-<iframe src="https://codesandbox.io/embed/declaring-a-custom-editor-as-a-component-qhbnv?fontsize=14&theme=dark" 
-  style="width: 100%;
-  height: 390px;
-  border: 0;
-  borderRadius: 4;
-  overflow: hidden;"
-  title="Declaring a custom editor as a component" 
-  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
-  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+::: example #example4 :react --js 1 --tab preview
+```jsx
+import ReactDOM from "react-dom";
+import Handsontable from "handsontable";
+import { HotTable, HotColumn } from "@handsontable/react";
+import "handsontable/dist/handsontable.min.css";
+
+const hotSettings = {
+  data: [
+    ["Obrien Fischer"],
+    ["Alexandria Gordon"],
+    ["John Stafford"],
+    ["Regina Waters"],
+    ["Kay Bentley"],
+    ["Emerson Drake"],
+    ["Dean Stapleton"]
+  ],
+  rowHeaders: true,
+  licenseKey: "non-commercial-and-evaluation"
+};
+
+const App = () => {
+  return (
+    <HotTable settings={hotSettings}>
+      <HotColumn width={250}>
+        <EditorComponent hot-editor />
+      </HotColumn>
+    </HotTable>
+  );
+};
+
+ReactDOM.render(<App />, document.getElementById('example4'));
+```
+:::
 
 ## Using the renderer/editor components with React's Context
 

@@ -116,9 +116,9 @@ const ScoreRenderer = (props) => {
   const { value } = props;
   const color = value > 60 ? "#2ECC40" : "#FF4136";
   return (
-    <>
+    <React.Fragment>
       <span style={{ color }}>{value}</span>
-    </>
+    </React.Fragment>
   );
 };
 
@@ -127,15 +127,15 @@ const PromotionRenderer = (props) => {
   const { value } = props;
   if (value) {
     return (
-      <>
+      <React.Fragment>
         <span>&#10004;</span>
-      </>
+      </React.Fragment>
     );
   }
   return (
-    <>
+    <React.Fragment>
       <span>&#10007;</span>
-    </>
+    </React.Fragment>
   );
 };
 
