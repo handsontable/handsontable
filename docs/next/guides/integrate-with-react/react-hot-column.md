@@ -232,14 +232,15 @@ This will give you a solid base to build on. Note that the editor component need
 
 It's also worth noting that editors in Handsontable will close after clicking on them if the `outsideClickDeselects` option is enabled - *default setting*.
 
-To prevent that, the `mousedown` event on the editor container must call `event.stopPropagation()`. In React's case, however, it doesn't work out of the box because of the way React handles events. [This article by Eric Clemmons](https://medium.com/@ericclemmons/react-event-preventdefault-78c28c950e46) sums it up pretty well. 
+To prevent that, the `mousedown` event on the editor container must call `event.stopPropagation()`. 
 
-The example below uses the [react-native-listener](https://www.npmjs.com/package/react-native-listener) library to utilize the native `mousedown` event.
+If you are using React 17 and newer, `event.stopPropagation()` should work for you as expected. See the [React 17 release notes](https://reactjs.org/blog/2020/08/10/react-v17-rc.html#changes-to-event-delegation) for details about event delegation.
+
+Note that in case of React 16 and older, it wouldn't work out of the box because of the way how React used to handle events. [This article by Eric Clemmons](https://medium.com/@ericclemmons/react-event-preventdefault-78c28c950e46) sums it up pretty well and presents a solution ([react-native-listener](https://www.npmjs.com/package/react-native-listener)).
 
 ::: example #example4 :react --tab preview
 ```jsx
 import ReactDOM from "react-dom";
-import NativeListener from "react-native-listener";
 import Handsontable from "handsontable";
 import { HotTable, HotColumn, BaseEditorComponent } from "@handsontable/react";
 import "handsontable/dist/handsontable.min.css";
@@ -295,8 +296,8 @@ class EditorComponent extends BaseEditorComponent {
     // As the `prepare` method is triggered after selecting
     // any cell, we're updating the styles for the editor element,
     // so it shows up in the correct position.
-    this.mainElementRef.current.style.left = tdPosition.left + "px";
-    this.mainElementRef.current.style.top = tdPosition.top + "px";
+    this.mainElementRef.current.style.left = tdPosition.left + window.pageXOffset + "px";
+    this.mainElementRef.current.style.top = tdPosition.top + window.pageYOffset + "px";
   }
 
   setLowerCase() {
@@ -327,10 +328,10 @@ class EditorComponent extends BaseEditorComponent {
 
   render() {
     return (
-      <NativeListener onMouseDown={this.stopMousedownPropagation}>
         <div
           style={this.containerStyle}
           ref={this.mainElementRef}
+          onMouseDown={this.stopMousedownPropagation}
           id="editorElement"
         >
           <button onClick={this.setLowerCase.bind(this)}>
@@ -340,7 +341,6 @@ class EditorComponent extends BaseEditorComponent {
             {this.state.value.toUpperCase()}
           </button>
         </div>
-      </NativeListener>
     );
   }
 }
