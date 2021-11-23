@@ -377,15 +377,63 @@ ReactDOM.render(<App />, document.getElementById('example4'));
 
 In this example, React's Context is used to pass the information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with editors just as well.
 
-<iframe src="https://codesandbox.io/embed/using-the-renderer-component-with-reacts-context-forked-27pl0?fontsize=14&theme=dark" 
-  style="width: 100%;
-  height: 390px;
-  border: 0;
-  borderRadius: 4;
-  overflow: hidden;"
-  title="Using the renderer component with React&#039;s Context" 
-  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
-  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+::: example #example5 :react --tab preview
+```jsx
+import React, { useState, useContext } from "react";
+import ReactDOM from "react-dom";
+import Handsontable from "handsontable";
+import { HotTable, HotColumn } from "@handsontable/react";
+import "handsontable/dist/handsontable.min.css";
+import "./styles.css";
+
+// a component
+const HighlightContext = React.createContext();
+
+// a renderer component
+function CustomRenderer(props) {
+  const darkMode = useContext(HighlightContext);
+
+  if (darkMode) {
+    props.TD.className = "dark";
+  } else {
+    props.TD.className = "";
+  }
+
+  return <div>{props.value}</div>;
+}
+
+const hotSettings = {
+  data: Handsontable.helper.createSpreadsheetData(10, 1),
+  rowHeaders: true,
+  licenseKey: "non-commercial-and-evaluation"
+};
+
+const App = () => {
+  const [darkMode, setDarkMode] = useState(false);
+
+  const toggleDarkMode = (event) => {
+    setDarkMode(event.target.checked);
+  };
+
+  return (
+    <HighlightContext.Provider value={darkMode}>
+      <h3>
+        <input id="dark-mode" type="checkbox" onClick={toggleDarkMode} />{" "}
+        <label htmlFor="dark-mode">Dark mode</label>
+      </h3>
+      <HotTable settings={hotSettings}>
+        <HotColumn>
+          {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
+          <CustomRenderer hot-renderer />
+        </HotColumn>
+      </HotTable>
+    </HighlightContext.Provider>
+  );
+};
+
+ReactDOM.render(<App />, document.getElementById('example5'));
+```
+:::
 
 ## An advanced example
 
