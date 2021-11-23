@@ -445,12 +445,12 @@ ReactDOM.render(<App />, document.getElementById('example5'));
 
 In this example, the custom editor component is created with an external dependency. This acts as both renderer and editor. The renderer uses information from that component in the first column to change the way it behaves. Information is passed using Redux and `react-redux`'s `connect` method.
 
-::: example #example6 :react --tab preview
+::: example #example6 :react-advanced --tab preview
 ```jsx
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
-import { TwitterPicker } from "react-color";
-import NativeListener from "react-native-listener";
+import { HexColorPicker } from "react-colorful";
+import StarRatingComponent from "react-star-rating-component";
 import { Provider, connect } from "react-redux";
 import { createStore, combineReducers } from "redux";
 import { HotTable, HotColumn, BaseEditorComponent } from "@handsontable/react";
@@ -481,7 +481,7 @@ class UnconnectedColorPicker extends BaseEditorComponent {
   }
 
   stopMousedownPropagation(e) {
-    e.stopImmediatePropagation();
+    e.stopPropagation();
   }
 
   setValue(value, callback) {
@@ -511,12 +511,12 @@ class UnconnectedColorPicker extends BaseEditorComponent {
 
     const tdPosition = td.getBoundingClientRect();
 
-    this.editorRef.current.style.left = tdPosition.left + "px";
-    this.editorRef.current.style.top = tdPosition.top + "px";
+    this.editorRef.current.style.left = tdPosition.left + window.pageXOffset + "px";
+    this.editorRef.current.style.top = tdPosition.top + window.pageYOffset + "px";
   }
 
   onPickedColor(color) {
-    this.setValue(color.hex);
+    this.setValue(color);
   }
 
   applyColor() {
@@ -543,11 +543,10 @@ class UnconnectedColorPicker extends BaseEditorComponent {
 
     if (this.props.isEditor) {
       renderResult = (
-        <NativeListener onMouseDown={this.stopMousedownPropagation}>
-          <div style={this.editorContainerStyle} ref={this.editorRef}>
-            <TwitterPicker
+        <div style={this.editorContainerStyle} ref={this.editorRef} onMouseDown={this.stopMousedownPropagation}>
+            <HexColorPicker
               color={this.state.pickedColor || this.state.value}
-              onChangeComplete={this.onPickedColor.bind(this)}
+              onChange={this.onPickedColor.bind(this)}
             />
             <button
               style={{ width: "100%", height: "33px", marginTop: "10px" }}
@@ -555,8 +554,7 @@ class UnconnectedColorPicker extends BaseEditorComponent {
             >
               Apply
             </button>
-          </div>
-        </NativeListener>
+        </div>
       );
     } else if (this.props.isRenderer) {
       const colorboxStyle = {
@@ -568,14 +566,14 @@ class UnconnectedColorPicker extends BaseEditorComponent {
       };
 
       renderResult = (
-        <>
+        <React.Fragment>
           <div style={colorboxStyle} />
           <div>{this.props.value}</div>
-        </>
+        </React.Fragment>
       );
     }
 
-    return <>{renderResult}</>;
+    return <React.Fragment>{renderResult}</React.Fragment>;
   }
 }
 
