@@ -2276,16 +2276,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
-      if (i === 'data') {
-        /* eslint-disable-next-line no-continue */
-        continue; // loadData will be triggered later
-
+      if (i === 'fixedColumnsLeft') {
+        if(!settings['fixedColumnsStart']) {
+          globalMeta['fixedColumnsStart'] = settings[i];
+        }
+      } else if (i === 'data') {
+       // Do nothing. loadData will be triggered later
       } else if (i === 'language') {
         setLanguage(settings.language);
-
-        /* eslint-disable-next-line no-continue */
-        continue;
-
       } else if (i === 'className') {
         setClassName('className', settings.className);
 
