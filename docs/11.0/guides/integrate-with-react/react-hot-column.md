@@ -105,16 +105,125 @@ ReactDOM.render(<App />, document.getElementById('example2'));
 
 When you use object data binding for `HotColumn`, you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in properties as `data`, for example, `<HotColumn data="id" />`.
 
-<iframe src="https://codesandbox.io/embed/object-data-source-y8xwr?fontsize=14&theme=dark" 
-  style="width: 100%;
-  height: 390px;
-  border: 0;
-  borderRadius: 4;
-  overflow: hidden;" 
-  title="Object data source" 
-  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
-  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+::: example #example3 :react --tab preview
+```jsx
+import ReactDOM from "react-dom";
+import Handsontable from "handsontable";
+import { HotTable, HotColumn } from "@handsontable/react";
+import "handsontable/dist/handsontable.min.css";
 
+// a renderer component
+const ScoreRenderer = (props) => {
+  const { value } = props;
+  const color = value > 60 ? "#2ECC40" : "#FF4136";
+  return (
+    <>
+      <span style={{ color }}>{value}</span>
+    </>
+  );
+};
+
+// a renderer component
+const PromotionRenderer = (props) => {
+  const { value } = props;
+  if (value) {
+    return (
+      <>
+        <span>&#10004;</span>
+      </>
+    );
+  }
+  return (
+    <>
+      <span>&#10007;</span>
+    </>
+  );
+};
+
+const hotSettings = {
+  // you can set `data` to an array of objects
+  data: [
+    {
+      id: 1,
+      name: "Alex",
+      score: 10,
+      isPromoted: false
+    },
+    {
+      id: 2,
+      name: "Adam",
+      score: 55,
+      isPromoted: false
+    },
+    {
+      id: 3,
+      name: "Kate",
+      score: 61,
+      isPromoted: true
+    },
+    {
+      id: 5,
+      name: "Max",
+      score: 98,
+      isPromoted: true
+    },
+    {
+      id: 6,
+      name: "Lucy",
+      score: 59,
+      isPromoted: false
+    },
+    {
+      id: 7,
+      name: "Max",
+      score: 70,
+      isPromoted: true
+    },
+    {
+      id: 8,
+      name: "Lucas",
+      score: 3,
+      isPromoted: false
+    },
+    {
+      id: 9,
+      name: "Mary",
+      score: 99,
+      isPromoted: true
+    },
+    {
+      id: 10,
+      name: "Andy",
+      score: 13,
+      isPromoted: false
+    }
+  ],
+  licenseKey: "non-commercial-and-evaluation",
+  autoRowSize: false,
+  autoColumnSize: false
+};
+
+const App = () => {
+  return (
+    <HotTable settings={hotSettings}>
+      {/* use the `data` prop to reference the column data */}
+      <HotColumn data="id" />
+      <HotColumn data="name" />
+      <HotColumn data="score">
+        {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
+        <ScoreRenderer hot-renderer />
+      </HotColumn>
+      <HotColumn data="isPromoted">
+        {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
+        <PromotionRenderer hot-renderer />
+      </HotColumn>
+    </HotTable>
+  );
+};
+
+ReactDOM.render(<App />, document.getElementById('example3'));
+```
+:::
 
 ## Declaring a custom editor as a component
 
