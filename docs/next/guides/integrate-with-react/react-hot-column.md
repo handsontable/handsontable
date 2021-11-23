@@ -103,7 +103,7 @@ ReactDOM.render(<App />, document.getElementById('example2'));
  
 ## Object data source
 
-When you use object data binding for `HotColumn`, you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in properties as `data`, for example, `<HotColumn data="id" />`.
+When you use object data binding for `HotColumn`, you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in properties as `data`, for example, `<HotColumn data="id" />`:
 
 <iframe src="https://codesandbox.io/embed/object-data-source-y8xwr?fontsize=14&theme=dark" 
   style="width: 100%;
