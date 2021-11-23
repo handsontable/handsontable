@@ -128,10 +128,14 @@ const HotTable = defineComponent({
 
       if (globalEditorVNode) {
         newSettings.editor = this.getEditorClass(globalEditorVNode, this);
+        // TODO: Ugly workaround for destroying the hot-editor components after cloning
+        this.$el.querySelector('[hot-editor]').remove();
       }
 
       if (globalRendererVNode) {
         newSettings.renderer = this.getRendererWrapper(globalRendererVNode, this);
+        // TODO: Ugly workaround for destroying the hot-renderer components after cloning
+        this.$el.querySelector('[hot-renderer]').remove();
       }
 
       this.hotInstance = new Handsontable.Core(this.$el, newSettings);
@@ -267,6 +271,8 @@ const HotTable = defineComponent({
           const cachedEntry = rendererCache.get(`${row}-${col}`);
           const cachedComponent: VNode = cachedEntry.component;
           const cachedTD: HTMLTableCellElement = cachedEntry.lastUsedTD;
+
+          Object.assign(cachedComponent, rendererArgs);
 
           if (!cachedComponent.$el.parentElement || cachedTD !== TD) {
             // Clear the previous contents of a TD
