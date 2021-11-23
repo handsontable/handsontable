@@ -17,7 +17,7 @@ You can configure the column-related settings using the `HotColumn` component's 
 
 To declare column-specific settings, pass the settings as `HotColumn` properties, either separately or wrapped as a `settings` property, exactly as you would with `HotTable`.
 
-::: example #example1 :react --js 1 --tab preview
+::: example #example1 :react --tab preview
 ```jsx
 import ReactDOM from "react-dom";
 import Handsontable from "handsontable";
@@ -56,7 +56,7 @@ Handsontable's `autoRowSize` and `autoColumnSize` options require calculating th
 Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results. Please note that `autoColumnSize` is enabled by default.
 :::
 
-::: example #example2 :react --js 1 --tab preview
+::: example #example2 :react --tab preview
 ```jsx
 import ReactDOM from "react-dom";
 import Handsontable from "handsontable";
@@ -83,15 +83,16 @@ const RendererComponent = (props) => {
 
 const hotData = Handsontable.helper.createSpreadsheetData(10, 5);
 
-// to mark the `RendererComponent` component as a Handsontable renderer,
-// add a `hot-renderer` attribute to it
 const App = () => {
   return (
+    <div>
     <HotTable data={hotData} licenseKey="non-commercial-and-evaluation">
       <HotColumn width={250}>
+        {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
         <RendererComponent hot-renderer />
       </HotColumn>
     </HotTable>
+    </div>
   );
 };
 
@@ -101,7 +102,7 @@ ReactDOM.render(<App />, document.getElementById('example2'));
  
 ## Object data source
 
-When you use object data binding for `HotColumn`, you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in properties as `data`, for example, `<HotColumn data="id" />`.
+When you use object data binding for `HotColumn`, you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in properties as `data`, for example, `<HotColumn data="id" />`:
 
 ::: example #example3 :react --tab preview
 ```jsx
@@ -373,7 +374,7 @@ ReactDOM.render(<App />, document.getElementById('example4'));
 ```
 :::
 
-## Using the renderer/editor components with React's Context
+## Using the renderer/editor components within React's Context
 
 In this example, React's Context is used to pass the information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with editors just as well.
 
@@ -439,12 +440,272 @@ ReactDOM.render(<App />, document.getElementById('example5'));
 
 In this example, the custom editor component is created with an external dependency. This acts as both renderer and editor. The renderer uses information from that component in the first column to change the way it behaves. Information is passed using Redux and `react-redux`'s `connect` method.
 
-<iframe src="https://codesandbox.io/embed/advanced-handsontablereact-implementation-using-hotcolumn-forked-jgrk2?fontsize=14&theme=dark" 
-  style="width: 100%;
-  height: 390px;
-  border: 0;
-  borderRadius: 4;
-  overflow: hidden;"
-  title="Advanced @handsontable/react implementation using HotColumn" 
-  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
-  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+::: example #example6 :react --tab preview
+```jsx
+import React, { useEffect } from "react";
+import ReactDOM from "react-dom";
+import { TwitterPicker } from "react-color";
+import NativeListener from "react-native-listener";
+import { Provider, connect } from "react-redux";
+import { createStore, combineReducers } from "redux";
+import { HotTable, HotColumn, BaseEditorComponent } from "@handsontable/react";
+import "handsontable/dist/handsontable.min.css";
+
+// a component
+class UnconnectedColorPicker extends BaseEditorComponent {
+  constructor(props) {
+    super(props);
+
+    this.editorRef = React.createRef();
+
+    this.editorContainerStyle = {
+      display: "none",
+      position: "absolute",
+      left: 0,
+      top: 0,
+      zIndex: 999,
+      background: "#fff",
+      padding: "15px",
+      border: "1px solid #cecece"
+    };
+
+    this.state = {
+      renderResult: null,
+      value: ""
+    };
+  }
+
+  stopMousedownPropagation(e) {
+    e.stopImmediatePropagation();
+  }
+
+  setValue(value, callback) {
+    this.setState((state, props) => {
+      return { value: value };
+    }, callback);
+  }
+
+  getValue() {
+    return this.state.value;
+  }
+
+  open() {
+    this.editorRef.current.style.display = "block";
+  }
+
+  close() {
+    this.editorRef.current.style.display = "none";
+
+    this.setState({
+      pickedColor: null
+    });
+  }
+
+  prepare(row, col, prop, td, originalValue, cellProperties) {
+    super.prepare(row, col, prop, td, originalValue, cellProperties);
+
+    const tdPosition = td.getBoundingClientRect();
+
+    this.editorRef.current.style.left = tdPosition.left + "px";
+    this.editorRef.current.style.top = tdPosition.top + "px";
+  }
+
+  onPickedColor(color) {
+    this.setValue(color.hex);
+  }
+
+  applyColor() {
+    const dispatch = this.props.dispatch;
+
+    if (this.col === 1) {
+      dispatch({
+        type: "updateActiveStarColor",
+        row: this.row,
+        hexColor: this.getValue()
+      });
+    } else if (this.col === 2) {
+      dispatch({
+        type: "updateInactiveStarColor",
+        row: this.row,
+        hexColor: this.getValue()
+      });
+    }
+    this.finishEditing();
+  }
+
+  render() {
+    let renderResult = null;
+
+    if (this.props.isEditor) {
+      renderResult = (
+        <NativeListener onMouseDown={this.stopMousedownPropagation}>
+          <div style={this.editorContainerStyle} ref={this.editorRef}>
+            <TwitterPicker
+              color={this.state.pickedColor || this.state.value}
+              onChangeComplete={this.onPickedColor.bind(this)}
+            />
+            <button
+              style={{ width: "100%", height: "33px", marginTop: "10px" }}
+              onClick={this.applyColor.bind(this)}
+            >
+              Apply
+            </button>
+          </div>
+        </NativeListener>
+      );
+    } else if (this.props.isRenderer) {
+      const colorboxStyle = {
+        background: this.props.value,
+        width: "21px",
+        height: "21px",
+        float: "left",
+        marginRight: "5px"
+      };
+
+      renderResult = (
+        <>
+          <div style={colorboxStyle} />
+          <div>{this.props.value}</div>
+        </>
+      );
+    }
+
+    return <>{renderResult}</>;
+  }
+}
+
+const ColorPicker = connect(function(state) {
+  return {
+    activeColors: state.appReducer.activeColors,
+    inactiveColors: state.appReducer.inactiveColors
+  };
+})(UnconnectedColorPicker);
+
+// a component
+const initialReduxStoreState = {
+  activeColors: [],
+  inactiveColors: []
+};
+
+const appReducer = (state = initialReduxStoreState, action) => {
+  switch (action.type) {
+    case "initRatingColors": {
+      const { hotData } = action;
+
+      const activeColors = hotData.map((data) => data[1]);
+      const inactiveColors = hotData.map((data) => data[2]);
+
+      return {
+        ...state,
+        activeColors,
+        inactiveColors
+      };
+    }
+
+    case "updateActiveStarColor": {
+      const rowIndex = action.row;
+      const newColor = action.hexColor;
+
+      const activeColorArray = [...state.activeColors];
+
+      activeColorArray[rowIndex] = newColor;
+
+      return {
+        ...state,
+        activeColors: activeColorArray
+      };
+    }
+
+    case "updateInactiveStarColor": {
+      const rowIndex = action.row;
+      const newColor = action.hexColor;
+
+      const inactiveColorArray = [...state.inactiveColors];
+
+      inactiveColorArray[rowIndex] = newColor;
+
+      return {
+        ...state,
+        inactiveColors: inactiveColorArray
+      };
+    }
+
+    default:
+      return state;
+  }
+};
+const actionReducers = combineReducers({ appReducer });
+const reduxStore = createStore(actionReducers);
+
+// a component
+const UnconnectedStarRatingRenderer = ({
+  row,
+  col,
+  value,
+  activeColors,
+  inactiveColors
+}) => {
+  return (
+    <StarRatingComponent
+      name={`${row}-${col}`}
+      value={value}
+      starCount={5}
+      starColor={activeColors[row]}
+      emptyStarColor={inactiveColors[row]}
+      editing={true}
+    />
+  );
+};
+
+const StarRatingRenderer = connect((state) => ({
+  activeColors: state.appReducer.activeColors,
+  inactiveColors: state.appReducer.inactiveColors
+}))(UnconnectedStarRatingRenderer);
+
+const hotSettings = {
+  data: [
+    [1, "#ff6900", "#fcb900"],
+    [2, "#fcb900", "#7bdcb5"],
+    [3, "#7bdcb5", "#8ed1fc"],
+    [4, "#00d084", "#0693e3"],
+    [5, "#eb144c", "#abb8c3"]
+  ],
+  rowHeaders: true,
+  rowHeights: 30,
+  colHeaders: ["Rating", "Active star color", "Inactive star color"],
+  licenseKey: "non-commercial-and-evaluation"
+};
+
+const App = () => {
+  useEffect(() => {
+    reduxStore.dispatch({
+      type: "initRatingColors",
+      hotData: hotSettings.data
+    });
+  }, []);
+
+  return (
+    <Provider store={reduxStore}>
+      <HotTable settings={hotSettings}>
+        <HotColumn width={100} type={"numeric"}>
+          {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
+          <StarRatingRenderer hot-renderer />
+        </HotColumn>
+        <HotColumn width={150}>
+          {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
+          {/* add the `hot-editor` attribute to mark the component as a Handsontable editor */}
+          <ColorPicker hot-renderer hot-editor />
+        </HotColumn>
+        <HotColumn width={150}>
+          {/* add the `hot-renderer` attribute to mark the component as a Handsontable renderer */}
+          {/* add the `hot-editor` attribute to mark the component as a Handsontable editor */}
+          <ColorPicker hot-renderer hot-editor />
+        </HotColumn>
+      </HotTable>
+    </Provider>
+  );
+};
+
+ReactDOM.render(<App />, document.getElementById('example6'));
+```
+:::
