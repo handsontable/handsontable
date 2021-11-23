@@ -83,9 +83,7 @@
     "vue": "^3.2.22",
     "vue-class-component": "8.0.0-rc.1",
     "vue-eslint-parser": "^8.0.1",
-    "vue-jest": "5.0.0-alpha.10",
-    "vue-router": "4.0.11",
-    "vuex": "4.0.2"
+    "vue-jest": "5.0.0-alpha.10"
   },
   "scripts": {
     "lint": "eslint --ext .js,.ts,.vue src test",
