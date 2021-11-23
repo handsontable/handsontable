@@ -365,7 +365,7 @@ describe('settings', () => {
       expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(3);
     });
   });
-  describe('fixedColumnsLeft with RTL', ()=>{
+  describe('fixedColumnsLeft with RTL', () => {
     const id = 'testContainer';
 
     beforeEach(function() {
@@ -380,7 +380,7 @@ describe('settings', () => {
     });
 
     it('constructor should throw Error', () => {
-      expect(()=>handsontable({
+      expect(() => handsontable({
         fixedColumnsLeft: 3
       })).toThrow();
     });
@@ -388,7 +388,7 @@ describe('settings', () => {
     it('updateSettings should throw Error', () => {
       handsontable();
 
-      expect(()=>updateSettings({
+      expect(() => updateSettings({
         fixedColumnsLeft: 4
       })).toThrow();
     });

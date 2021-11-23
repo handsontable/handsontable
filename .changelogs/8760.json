@@ -1,0 +1,7 @@
+{
+  "title": "Added new setting: `fixedColumnsStart`",
+  "type": "added",
+  "issue": 8760,
+  "breaking": false,
+  "framework": "none"
+}
