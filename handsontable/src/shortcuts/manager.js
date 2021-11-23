@@ -72,7 +72,7 @@ export const createShortcutManager = ({ isActive, frame }) => {
   };
 
   /**
-   * 
+   *
    */
   const keyRecorder = useRecorder(frame, (event, keys) => {
     if (!isActive()) {

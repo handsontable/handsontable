@@ -45,7 +45,7 @@ export function useRecorder(frame, invokeClbck) {
   };
 
   /**
-   * 
+   *
    */
   const mount = () => {
     let eventTarget = frame;
@@ -60,7 +60,7 @@ export function useRecorder(frame, invokeClbck) {
   };
 
   /**
-   * 
+   *
    */
   const unmount = () => {
     let eventTarget = frame;

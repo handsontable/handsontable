@@ -7,10 +7,10 @@ export const createContext = (name) => {
   });
 
   /**
-   * 
-   * @param {Array<string>} variants 
-   * @param {Function} callback 
-   * @param {object} options 
+   *
+   * @param {Array<string>} variants
+   * @param {Function} callback
+   * @param {object} options
    */
   const addShortcut = (variants, callback, options = { description: '', preventDefault: true }) => {
     variants.forEach((variant) => {
@@ -21,8 +21,8 @@ export const createContext = (name) => {
   };
 
   /**
-   * 
-   * @param {*} variants 
+   *
+   * @param {*} variants
    */
   const removeShortcut = (variants) => {
     variants.forEach((variant) => {
@@ -33,9 +33,9 @@ export const createContext = (name) => {
   };
 
   /**
-   * 
-   * @param {Array<string>} variant 
-   * @returns 
+   *
+   * @param {Array<string>} variant
+   * @returns
    */
   const getShortcut = variant => SHORTCUTS.getItem(variant);
 
