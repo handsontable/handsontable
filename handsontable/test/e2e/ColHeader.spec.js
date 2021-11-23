@@ -370,7 +370,7 @@ describe('ColHeader', () => {
     handsontable({
       startCols: 5,
       colHeaders: ['a', 'a', 'a', 'a<BR>a', 'a'],
-      fixedColumnsLeft: 2// todo make a decision to rename or duplicate
+      fixedColumnsStart: 2
     });
 
     const topHeaderExample = $('.ht_clone_top').find('thead tr:first-child th:nth-child(1)');

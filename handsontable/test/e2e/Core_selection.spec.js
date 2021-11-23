@@ -716,7 +716,7 @@ describe('Core_selection', () => {
       colHeaders: true,
       startRows: 5,
       startCols: 5,
-      fixedColumnsLeft: 2// todo make a decision to rename or duplicate// todo make a decision to rename or duplicate
+      fixedColumnsStart: 2
     });
 
     spec().$container.find('.ht_clone_left tr:eq(0) th:eq(2)').simulate('mousedown');
@@ -884,7 +884,7 @@ describe('Core_selection', () => {
       colHeaders: true,
       rowHeaders: true,
       fixedRowsTop: 2,
-      fixedColumnsLeft: 2// todo make a decision to rename or duplicate
+      fixedColumnsStart: 2
     });
 
     spec().$container.find('.ht_clone_top_left_corner thead th:eq(1)').simulate('mousedown');
@@ -915,7 +915,7 @@ describe('Core_selection', () => {
       startCols: 10,
       colHeaders: true,
       rowHeaders: true,
-      fixedColumnsLeft: 2// todo make a decision to rename or duplicate
+      fixedColumnsStart: 2
     });
 
     hot.render();
@@ -1117,7 +1117,7 @@ describe('Core_selection', () => {
       colHeaders: true,
       rowHeaders: true,
       fixedRowsTop: 2,
-      fixedColumnsLeft: 2// todo make a decision to rename or duplicate
+      fixedColumnsStart: 2
     });
 
     const mainHolder = hot.view.wt.wtTable.holder;
@@ -1176,7 +1176,7 @@ describe('Core_selection', () => {
       colHeaders: true,
       rowHeaders: true,
       fixedRowsTop: 2,
-      fixedColumnsLeft: 2// todo make a decision to rename or duplicate
+      fixedColumnsStart: 2
     });
 
     const mainHolder = hot.view.wt.wtTable.holder;
@@ -1268,7 +1268,7 @@ describe('Core_selection', () => {
       colHeaders: true,
       rowHeaders: true,
       fixedRowsTop: 2,
-      fixedColumnsLeft: 2// todo make a decision to rename or duplicate
+      fixedColumnsStart: 2
     });
 
     spec().$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
@@ -1596,9 +1596,9 @@ describe('Core_selection', () => {
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
   });
 
-  it('should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsLeft` are set, and user scrolled', async() => { // todo make a decision to rename or duplicate
+  it('should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsStart` are set, and user scrolled', async() => {
     const hot = handsontable({
-      fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
+      fixedColumnsStart: 2,
       startRows: 20,
       startCols: 20,
       colHeaders: true,

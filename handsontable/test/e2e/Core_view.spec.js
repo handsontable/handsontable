@@ -448,7 +448,7 @@ describe('Core_view', () => {
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 9),
-      fixedColumnsLeft: 1 // todo make a decision to rename or duplicate
+      fixedColumnsStart: 1
     });
 
     const htCore = getHtCore();
@@ -476,13 +476,13 @@ describe('Core_view', () => {
 
   });
 
-  it('should enable to change fixedColumnsLeft with updateSettings', () => { // todo make a decision to rename or duplicate
+  it('should enable to change fixedColumnsStart with updateSettings', () => {
     spec().$container[0].style.width = '200px';
     spec().$container[0].style.height = '100px';
 
     const HOT = handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 9),
-      fixedColumnsLeft: 1 // todo make a decision to rename or duplicate
+      fixedColumnsStart: 1
     });
 
     selectCell(0, 0);
@@ -936,7 +936,7 @@ describe('Core_view', () => {
         data: [['A', 'B', 'C', 'D'], ['a', 'b', 'c\nc', 'd'], ['aa', 'bb', 'cc', 'dd']],
         startRows: 3,
         startCols: 4,
-        fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
+        fixedColumnsStart: 2,
       });
 
       expect(hot.getCell(1, 2).clientHeight).toEqual(hot.getCell(1, 1).clientHeight);
@@ -959,7 +959,7 @@ describe('Core_view', () => {
         startRows: 3,
         startCols: 4,
         fixedRowsTop: 2,
-        fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
+        fixedColumnsStart: 2,
         width: 200,
         height: 200
       });
@@ -988,7 +988,7 @@ describe('Core_view', () => {
         startRows: 3,
         startCols: 4,
         fixedRowsTop: 2,
-        fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
+        fixedColumnsStart: 2,
         width: 200,
         height: 200
       });
@@ -1011,7 +1011,7 @@ describe('Core_view', () => {
     it('should set the columns width correctly after changes made during updateSettings', () => {
       const hot = handsontable({
         startRows: 2,
-        fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
+        fixedColumnsStart: 2,
         columns: [{
           width: 50
         }, {
@@ -1054,7 +1054,7 @@ describe('Core_view', () => {
       const hot = handsontable({
         startCols: 7,
         startRows: 2,
-        fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
+        fixedColumnsStart: 2,
         columns(column) {
           let colMeta = {};
 

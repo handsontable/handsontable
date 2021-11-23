@@ -781,7 +781,7 @@ describe('HiddenColumns', () => {
           `).toBeMatchToSelectionPattern();
         });
 
-        it('should cooperate with the `fixedColumnsLeft` option properly', () => {
+        it('should cooperate with the `fixedColumnsStart` option properly', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 10),
             width: 300,
@@ -792,7 +792,7 @@ describe('HiddenColumns', () => {
             hiddenColumns: {
               columns: [1]
             },
-            fixedColumnsLeft: 3, // todo make a decision to rename or duplicate
+            fixedColumnsStart: 3,
           });
 
           selectColumns(0, 2);

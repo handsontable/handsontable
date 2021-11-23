@@ -880,7 +880,7 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should work with multiple levels of nested headers configuration with cooperation with the fixedColumnsLeft option', () => {
+    it('should work with multiple levels of nested headers configuration with cooperation with the fixedColumnsStart option', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 13),
         colHeaders: true,
@@ -891,7 +891,7 @@ describe('NestedHeaders', () => {
           ['A4', { label: 'B4', colspan: 2 }, { label: 'D4', colspan: 2 }, { label: 'F4', colspan: 2 },
             { label: 'H4', colspan: 2 }, 'J4', 'K4', { label: 'L4', colspan: 2 }],
         ],
-        fixedColumnsLeft: 6, // todo make a decision to rename or duplicate
+        fixedColumnsStart: 6,
       });
 
       const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');

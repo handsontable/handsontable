@@ -147,7 +147,7 @@ describe('HandsontableEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3, // todo make a decision to rename or duplicate
+      fixedColumnsStart: 3,
       type: 'handsontable',
       handsontable: {
         colHeaders: ['Marque', 'Country', 'Parent company'],
@@ -262,7 +262,7 @@ describe('HandsontableEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3, // todo make a decision to rename or duplicate
+      fixedColumnsStart: 3,
       hiddenColumns: {
         indicators: true,
         columns: [0],

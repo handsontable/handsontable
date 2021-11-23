@@ -125,7 +125,7 @@ describe('TextEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3, // todo make a decision to rename or duplicate
+      fixedColumnsStart: 3,
       type: 'text',
     });
 
@@ -232,7 +232,7 @@ describe('TextEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3, // todo make a decision to rename or duplicate
+      fixedColumnsStart: 3,
       hiddenColumns: {
         indicators: true,
         columns: [0],
@@ -394,7 +394,7 @@ describe('TextEditor', () => {
       editor: 'text',
       fixedRowsBottom: 2,
       fixedRowsTop: 2,
-      fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
+      fixedColumnsStart: 2,
     });
 
     // .ht_clone_top_left_corner
@@ -1288,7 +1288,7 @@ describe('TextEditor', () => {
   it('should open editor at the same coordinates as the edited cell', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(16, 8),
-      fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
+      fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
 
@@ -1329,7 +1329,7 @@ describe('TextEditor', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(30, 30),
       preventOverflow: 'horizontal',
-      fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       rowHeaders: true,
       colHeaders: true,
@@ -1377,7 +1377,7 @@ describe('TextEditor', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(300, 300),
       preventOverflow: 'horizontal',
-      fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       rowHeaders: true,
       colHeaders: true,
@@ -1424,7 +1424,7 @@ describe('TextEditor', () => {
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (corner)', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(16, 8),
-      fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
+      fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
 
@@ -1451,7 +1451,7 @@ describe('TextEditor', () => {
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (top)', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
-      fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
+      fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
 
@@ -1481,7 +1481,7 @@ describe('TextEditor', () => {
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (left)', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
-      fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
+      fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
 
@@ -1510,7 +1510,7 @@ describe('TextEditor', () => {
   it('should open editor at the same coordinates as the edited cell after the table had been scrolled (non-fixed)', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(50, 50),
-      fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
+      fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
 

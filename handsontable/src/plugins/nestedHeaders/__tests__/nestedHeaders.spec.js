@@ -243,11 +243,11 @@ describe('NestedHeaders', () => {
   });
 
   describe('The \'colspan\' property', () => {
-    it('should allow creating a more complex nested setup when fixedColumnsLeft option is enabled', () => {
+    it('should allow creating a more complex nested setup when fixedColumnsStart option is enabled', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
-        fixedColumnsLeft: 2, // todo make a decision to rename or duplicate
+        fixedColumnsStart: 2,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1'],
           ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2']
@@ -278,7 +278,7 @@ describe('NestedHeaders', () => {
         expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
       }
 
-      updateSettings({ fixedColumnsLeft: 3 });// todo make a decision to rename or duplicate
+      updateSettings({ fixedColumnsStart: 3 });
 
       {
         const htmlPattern = `
@@ -307,7 +307,7 @@ describe('NestedHeaders', () => {
         expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
       }
 
-      updateSettings({ fixedColumnsLeft: 6 });// todo make a decision to rename or duplicate
+      updateSettings({ fixedColumnsStart: 6 });
 
       {
         const htmlPattern = `

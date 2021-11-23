@@ -91,12 +91,12 @@ describe('HiddenColumns', () => {
           columns: [1],
           indicators: true,
         },
-        fixedColumnsLeft: 3, // todo make a decision to rename or duplicate
+        fixedColumnsStart: 3,
         manualColumnResize: true
       });
 
       // Show resize handler using the third renderable column. This column belongs to master as
-      // the "fixedColumnsLeft" is decreased to 2.
+      // the "fixedColumnsStart" is decreased to 2.
       const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(2)'); // Header "D"
 
       $headerTH.simulate('mouseover');

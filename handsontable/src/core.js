@@ -2276,8 +2276,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
-      if (i === 'fixedColumnsLeft') {
-        if (!settings.fixedColumnsStart) {
+      if (i === 'fixedColumnsLeft' && !settings.fixedColumnsStart) {
+        if(this.isRtl() && settings[i]){
+          throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
+        }else {
           globalMeta.fixedColumnsStart = settings[i];
         }
       } else if (i === 'data') {

@@ -146,7 +146,7 @@ describe('NumericEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3, // todo make a decision if this should be changed to  the fixedColumnsStart or duplicated to cover both
+      fixedColumnsStart: 3,
       type: 'numeric'
     });
 
@@ -262,7 +262,7 @@ describe('NumericEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3, // todo make a decision if this should be changed to  the fixedColumnsStart or duplicated to cover both
+      fixedColumnsStart: 3,
       hiddenColumns: {
         indicators: true,
         columns: [0],

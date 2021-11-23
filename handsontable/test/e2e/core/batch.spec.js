@@ -122,7 +122,7 @@ describe('Core.batch', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       fixedRowsTop: 0,
-      fixedColumnsLeft: 0, // todo make a decision to rename or duplicate
+      fixedColumnsStart: 0,
       fixedRowsBottom: 0,
     });
 

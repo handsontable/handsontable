@@ -933,7 +933,7 @@ describe('Core_alter', () => {
       const hot = handsontable({
         startCols: 1,
         startRows: 3,
-        fixedColumnsLeft: 4// todo make a decision to rename or duplicate
+        fixedColumnsStart: 4
       });
 
       alter('remove_col', 1, 1);

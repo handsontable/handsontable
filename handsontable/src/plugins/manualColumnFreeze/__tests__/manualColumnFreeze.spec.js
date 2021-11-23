@@ -13,7 +13,7 @@ describe('manualColumnFreeze', () => {
   });
 
   describe('freezeColumn', () => {
-    it('should increase fixedColumnsLeft setting', () => {
+    it('should increase fixedColumnsStart setting', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true
@@ -53,11 +53,11 @@ describe('manualColumnFreeze', () => {
   });
 
   describe('unfreezeColumn', () => {
-    it('should decrease fixedColumnsLeft setting', () => {
+    it('should decrease fixedColumnsStart setting', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        fixedColumnsLeft: 1// todo make a decision to rename or duplicate
+        fixedColumnsStart: 1
       });
       const plugin = hot.getPlugin('manualColumnFreeze');
 
@@ -69,7 +69,7 @@ describe('manualColumnFreeze', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        fixedColumnsLeft: 3// todo make a decision to rename or duplicate
+        fixedColumnsStart: 3
       });
 
       const plugin = hot.getPlugin('manualColumnFreeze');
@@ -149,7 +149,7 @@ describe('manualColumnFreeze', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
         contextMenu: true,
-        fixedColumnsLeft: 2// todo make a decision to rename or duplicate
+        fixedColumnsStart: 2
       });
 
       selectCell(1, 1);
@@ -167,7 +167,7 @@ describe('manualColumnFreeze', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        fixedColumnsLeft: 1, // todo make a decision to rename or duplicate
+        fixedColumnsStart: 1,
         contextMenu: true
       });
 
@@ -197,7 +197,7 @@ describe('manualColumnFreeze', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        fixedColumnsLeft: 3, // todo make a decision to rename or duplicate
+        fixedColumnsStart: 3,
         manualColumnMove: [0, 2, 5, 3, 4, 1, 6, 7, 8, 9],
         contextMenu: true,
         rowHeaders: true
