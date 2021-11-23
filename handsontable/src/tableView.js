@@ -557,11 +557,7 @@ class TableView {
       },
       // Enable the left overlay when conditions are met.
       shouldRenderLeftOverlay: () => {
-        return this.settings.fixedColumnsStart > 0 || walkontableConfig.rowHeaders().length > 0; // todo if ltr
-      },
-      // Enable the right overlay when conditions are met.
-      shouldRenderRightOverlay: () => {
-        return this.settings.fixedColumnsStart > 0 || walkontableConfig.rowHeaders().length > 0; // todo if rtl
+        return this.settings.fixedColumnsStart > 0 || walkontableConfig.rowHeaders().length > 0;
       },
       // Enable the top overlay when conditions are met.
       shouldRenderTopOverlay: () => {
