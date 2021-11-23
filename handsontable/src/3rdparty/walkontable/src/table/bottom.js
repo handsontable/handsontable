@@ -5,7 +5,7 @@ import { mixin } from './../../../../helpers/object';
 
 /**
  * Subclass of `Table` that provides the helper methods relevant to BottomOverlay, implemented through mixins.
- * 
+ *
  * @mixes stickyRowsBottom
  * @mixes calculatedColumns
  */

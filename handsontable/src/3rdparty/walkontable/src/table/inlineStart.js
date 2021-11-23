@@ -5,7 +5,7 @@ import { mixin } from './../../../../helpers/object';
 
 /**
  * Subclass of `Table` that provides the helper methods relevant to LeftOverlay, implemented through mixins.
- * 
+ *
  * @mixes calculatedRows
  * @mixes stickyColumnsStart
  */

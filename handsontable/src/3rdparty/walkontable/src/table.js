@@ -27,7 +27,7 @@ import {
 } from './overlay/constants';
 
 /**
- * @todo these mixes are never added to the class Table, however their members are used here. Potentially it works only, because some of these mixes are added to every inherited class.
+ * @todo These mixes are never added to the class Table, however their members are used here. Potentially it works only, because some of these mixes are added to every inherited class.
  * @mixes stickyColumnsStart
  * @mixes stickyRowsBottom
  * @mixes stickyRowsTop
@@ -85,7 +85,7 @@ class Table {
     this.wtRootElement = this.holder.parentNode;
 
     if (this.isMaster) {
-      this.alignOverlaysWithTrimmingContainer(); //todo wow, It calls method from child class (MasterTable).
+      this.alignOverlaysWithTrimmingContainer(); // todo wow, It calls method from child class (MasterTable).
     }
     this.fixTableDomTree();
 
@@ -287,7 +287,7 @@ class Table {
 
       // Only master table rendering can be skipped
       if (this.isMaster) {
-        this.alignOverlaysWithTrimmingContainer(); //todo It calls method from child class (MasterTable).
+        this.alignOverlaysWithTrimmingContainer(); // todo It calls method from child class (MasterTable).
         const skipRender = {};
 
         this.wot.getSetting('beforeDraw', true, skipRender);
