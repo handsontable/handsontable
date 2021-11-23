@@ -378,14 +378,19 @@ ReactDOM.render(<App />, document.getElementById('example4'));
 
 In this example, React's Context is used to pass the information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with editors just as well.
 
-::: example #example5 :react --tab preview
+::: example #example5 :react --css 1 --js 2 --tab preview
+```css
+.handsontable td.dark {
+  background: #000;
+  color: #fff;
+}
+```
 ```jsx
 import React, { useState, useContext } from "react";
 import ReactDOM from "react-dom";
 import Handsontable from "handsontable";
 import { HotTable, HotColumn } from "@handsontable/react";
 import "handsontable/dist/handsontable.min.css";
-import "./styles.css";
 
 // a component
 const HighlightContext = React.createContext();
