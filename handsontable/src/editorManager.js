@@ -1,5 +1,4 @@
-import { CellCoords } from './3rdparty/walkontable/src';
-import { KEY_CODES, isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
+import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';

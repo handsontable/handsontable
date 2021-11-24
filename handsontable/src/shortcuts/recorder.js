@@ -1,51 +1,59 @@
-import { createKeyStore } from './keyStore';
+import { createKeysController } from './keyStore';
 import { normalizeEventKey } from './utils';
 
 /**
- * @param {EventTarget} frame
- * @param {Function} invokeClbck
- * @returns {Function}
+ * Keys recorder tracking key events.
+ *
+ * @param {EventTarget} frame The starting frame element.
+ * @param {Function} invokeClbck The KeyEvent's listener callback.
+ * @returns {object}
  */
 export function useRecorder(frame, invokeClbck) {
-  const keyStore = createKeyStore();
+  const keysController = createKeysController();
 
   /**
+   * KeyboardEvent's callback.
+   *
    * @private
-   * @param {KeyboardEvent} event
+   * @param {KeyboardEvent} event The event object.
    */
   const onkeydown = (event) => {
     if (event.key === void 0) {
       return;
     }
 
-    keyStore.press(normalizeEventKey(event.key));
+    keysController.press(normalizeEventKey(event.key));
 
-    const nextCombination = keyStore.getPressed().sort().join('+');
+    const nextCombination = keysController.getPressed().sort().join('+');
 
     invokeClbck(event, nextCombination);
   };
 
   /**
+   * KeyboardEvent's callback.
+   *
    * @private
-   * @param {KeyboardEvent} event
+   * @param {KeyboardEvent} event The event object.
    */
   const onkeyup = (event) => {
     if (event.key === void 0) {
       return;
     }
 
-    keyStore.release(normalizeEventKey(event.key));
+    keysController.release(normalizeEventKey(event.key));
   };
 
   /**
+   * FocusEvent's callback.
+   *
    * @private
    */
   const onblur = () => {
-    keyStore.releaseAll();
+    keysController.releaseAll();
   };
 
   /**
-   *
+   * Add event listeners to the starting frame and its parents' frames.
    */
   const mount = () => {
     let eventTarget = frame;
@@ -60,7 +68,7 @@ export function useRecorder(frame, invokeClbck) {
   };
 
   /**
-   *
+   * Remove event listeners from the starting frame and its parents' frames.
    */
   const unmount = () => {
     let eventTarget = frame;
@@ -77,7 +85,7 @@ export function useRecorder(frame, invokeClbck) {
   return {
     mount,
     unmount,
-    getPressed: () => keyStore.getPressed(),
-    isPressed: key => keyStore.isPressed(key),
+    getPressed: () => keysController.getPressed(),
+    isPressed: key => keysController.isPressed(key),
   };
 }

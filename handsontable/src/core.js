@@ -142,6 +142,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   keyStateStartObserving(this.rootDocument);
 
+  const shortcutManager = createShortcutManager({
+    isActive: () => this.isListening(),
+    frame: this.rootWindow,
+  });
+
   this.container = this.rootDocument.createElement('div');
   this.renderCall = false;
 
@@ -3987,7 +3992,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
     dataSource = null;
 
-    shortcutManager.destroy();
+    this.getShortcutManager().destroy();
     metaManager.clearCache();
 
     keyStateStopObserving();
@@ -4370,18 +4375,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * @TODO Description of getShortcutManager
-   *
    * @returns {object}
    */
   this.getShortcutManager = function() {
     return shortcutManager;
   };
 
-  const shortcutManager = createShortcutManager({
-    isActive: () => this.isListening(),
-    frame: this.rootWindow,
-  });
   const gridContext = shortcutManager.addContext('grid');
 
   shortcutManager.setActiveContexts(['grid', EDITORMANAGER_CONTEXT]);

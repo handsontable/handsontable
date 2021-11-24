@@ -64,7 +64,7 @@ const KEYCODES_MAP = new Map([
  * Returns a function that triggers a key event.
  *
  * @param {string} type Event type.
- * @param target
+ * @param {string|Element} target Event target.
  * @returns {Function}
  */
 export function handsontableKeyTriggerFactory(type, target) {
@@ -104,7 +104,7 @@ function triggerKeys(type) {
  *
  * @param {Array} keys The keys `key` which will be associated with the event.
  * @param {object} extend Additional options which extends the event.
- * @param target
+ * @param {string|Element} target Event target.
  */
 export function keyDownUp(keys, extend, target) {
   keyDown(keys, extend, target);

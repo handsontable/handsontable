@@ -1390,16 +1390,15 @@ describe('AutocompleteEditor', () => {
       setDataAtCell(0, 0, 'yellow');
 
       await sleep(200);
-        expect(getData()).toEqual([
-          ['yellow', 'two'],
-          ['three', 'four']
-        ]);
 
-        expect(syncSources.calls.count()).toEqual(1);
-        expect(onAfterValidate.calls.count()).toEqual(1);
-        expect(onAfterChange.calls.count()).toEqual(2); // 1 for loadData and 1 for setDataAtCell
-        
-      }, 200);
+      expect(getData()).toEqual([
+        ['yellow', 'two'],
+        ['three', 'four']
+      ]);
+
+      expect(syncSources.calls.count()).toEqual(1);
+      expect(onAfterValidate.calls.count()).toEqual(1);
+      expect(onAfterChange.calls.count()).toEqual(2); // 1 for loadData and 1 for setDataAtCell
     });
 
     it('strict mode should NOT use value if it DOES NOT match the list (async reponse is empty)', async() => {
@@ -1709,33 +1708,37 @@ describe('AutocompleteEditor', () => {
 
       await sleep(200);
 
-      const ac = hot.getActiveEditor();
-      const innerHot = ac.htEditor;
+      {
+        const ac = hot.getActiveEditor();
+        const innerHot = ac.htEditor;
 
-      expect(innerHot.getData()).toEqual([
-        ['red'],
-        ['yellow'],
-        ['green'],
-        ['blue'],
-        ['lime'],
-        ['white'],
-        ['olive'],
-        ['orange'],
-        ['purple']
-      ]);
+        expect(innerHot.getData()).toEqual([
+          ['red'],
+          ['yellow'],
+          ['green'],
+          ['blue'],
+          ['lime'],
+          ['white'],
+          ['olive'],
+          ['orange'],
+          ['purple']
+        ]);
 
-      syncSources.calls.reset();
-      editorInput.val('ed');
-      keyDownUp(['d']); // d
+        syncSources.calls.reset();
+        editorInput.val('ed');
+        keyDownUp(['d']); // d
+      }
 
       await sleep(200);
 
-      const ac = hot.getActiveEditor();
-      const innerHot = ac.htEditor;
+      {
+        const ac = hot.getActiveEditor();
+        const innerHot = ac.htEditor;
 
-      expect(innerHot.getData()).toEqual([
-        ['red']
-      ]);
+        expect(innerHot.getData()).toEqual([
+          ['red']
+        ]);
+      }
     });
 
     it('default filtering should be case insensitive', async() => {
@@ -1760,40 +1763,44 @@ describe('AutocompleteEditor', () => {
 
       await sleep(50);
 
-      const ac = hot.getActiveEditor();
-      const innerHot = ac.htEditor;
+      {
+        const ac = hot.getActiveEditor();
+        const innerHot = ac.htEditor;
 
-      expect(innerHot.getData()).toEqual([
-        ['red'],
-        ['yellow'],
-        ['green'],
-        ['blue'],
-        ['lime'],
-        ['white'],
-        ['olive'],
-        ['orange'],
-        ['purple']
-      ]);
+        expect(innerHot.getData()).toEqual([
+          ['red'],
+          ['yellow'],
+          ['green'],
+          ['blue'],
+          ['lime'],
+          ['white'],
+          ['olive'],
+          ['orange'],
+          ['purple']
+        ]);
 
-      editorInput.val('e');
-      keyDownUp(['e']); // E (same as 'e')
+        editorInput.val('e');
+        keyDownUp(['e']); // E (same as 'e')
+      }
 
       await sleep(50);
 
-      const ac = hot.getActiveEditor();
-      const innerHot = ac.htEditor;
+      {
+        const ac = hot.getActiveEditor();
+        const innerHot = ac.htEditor;
 
-      expect(innerHot.getData()).toEqual([
-        ['red'],
-        ['yellow'],
-        ['green'],
-        ['blue'],
-        ['lime'],
-        ['white'],
-        ['olive'],
-        ['orange'],
-        ['purple']
-      ]);
+        expect(innerHot.getData()).toEqual([
+          ['red'],
+          ['yellow'],
+          ['green'],
+          ['blue'],
+          ['lime'],
+          ['white'],
+          ['olive'],
+          ['orange'],
+          ['purple']
+        ]);
+      }
     });
 
     it('default filtering should be case sensitive when filteringCaseSensitive is false', async() => {
@@ -1875,20 +1882,24 @@ describe('AutocompleteEditor', () => {
 
       await sleep(20);
 
-      const ac = hot.getActiveEditor();
-      const innerHot = ac.htEditor;
+      {
+        const ac = hot.getActiveEditor();
+        const innerHot = ac.htEditor;
 
-      expect(innerHot.getData()).toEqual(Handsontable.helper.pivot([choices]));
+        expect(innerHot.getData()).toEqual(Handsontable.helper.pivot([choices]));
 
-      editorInput.val('ed');
-      keyDownUp(['d']); // d
+        editorInput.val('ed');
+        keyDownUp(['d']); // d
+      }
 
       await sleep(20);
 
-      const ac = hot.getActiveEditor();
-      const innerHot = ac.htEditor;
+      {
+        const ac = hot.getActiveEditor();
+        const innerHot = ac.htEditor;
 
-      expect(innerHot.getData()).toEqual(Handsontable.helper.pivot([choices]));
+        expect(innerHot.getData()).toEqual(Handsontable.helper.pivot([choices]));
+      }
     });
 
     it('typing in textarea should highlight the matching phrase', async() => {
@@ -2179,29 +2190,33 @@ describe('AutocompleteEditor', () => {
 
       await sleep(200);
 
-      const ac = hot.getActiveEditor();
-      const innerHot = ac.htEditor;
+      {
+        const ac = hot.getActiveEditor();
+        const innerHot = ac.htEditor;
 
-      expect(innerHot.getData()).toEqual([
-        ['<i>bar</i>'],
-        ['<strong>baz</strong>'],
-      ]);
+        expect(innerHot.getData()).toEqual([
+          ['<i>bar</i>'],
+          ['<strong>baz</strong>'],
+        ]);
 
-      editorInput.val('bar');
-      keyDownUp(['a']);
-      keyDownUp(['r']);
+        editorInput.val('bar');
+        keyDownUp(['a']);
+        keyDownUp(['r']);
+      }
 
       await sleep(200);
 
-      const ac = hot.getActiveEditor();
-      const innerHot = ac.htEditor;
+      {
+        const ac = hot.getActiveEditor();
+        const innerHot = ac.htEditor;
 
-      expect(innerHot.getData()).toEqual([
-        ['<i>bar</i>']
-      ]);
+        expect(innerHot.getData()).toEqual([
+          ['<i>bar</i>']
+        ]);
 
-      keyDownUp(['arrowdown']);
-      keyDownUp(['enter']);
+        keyDownUp(['arrowdown']);
+        keyDownUp(['enter']);
+      }
 
       await sleep(100);
 
@@ -2233,29 +2248,33 @@ describe('AutocompleteEditor', () => {
 
       await sleep(200);
 
-      const ac = hot.getActiveEditor();
-      const innerHot = ac.htEditor;
+      {
+        const ac = hot.getActiveEditor();
+        const innerHot = ac.htEditor;
 
-      expect(innerHot.getData()).toEqual([
-        ['<i>bar</i>'],
-        ['<strong>baz</strong>'],
-      ]);
+        expect(innerHot.getData()).toEqual([
+          ['<i>bar</i>'],
+          ['<strong>baz</strong>'],
+        ]);
 
-      editorInput.val('bar');
-      keyDownUp(['a']);
-      keyDownUp(['r']);
+        editorInput.val('bar');
+        keyDownUp(['a']);
+        keyDownUp(['r']);
+      }
 
       await sleep(200);
 
-      const ac = hot.getActiveEditor();
-      const innerHot = ac.htEditor;
+      {
+        const ac = hot.getActiveEditor();
+        const innerHot = ac.htEditor;
 
-      expect(innerHot.getData()).toEqual([
-        ['<i>bar</i>']
-      ]);
+        expect(innerHot.getData()).toEqual([
+          ['<i>bar</i>']
+        ]);
 
-      keyDownUp(['arrowdown']);
-      keyDownUp(['enter']);
+        keyDownUp(['arrowdown']);
+        keyDownUp(['enter']);
+      }
 
       await sleep(100);
 
@@ -2352,7 +2371,9 @@ describe('AutocompleteEditor', () => {
         keyDownUp(['a']);
         keyDownUp(['r']);
       }
+
       await sleep(200);
+
       {
         const ac = hot.getActiveEditor();
         const innerHot = ac.htEditor;
@@ -2364,6 +2385,7 @@ describe('AutocompleteEditor', () => {
         keyDownUp(['arrowdown']);
         keyDownUp(['enter']);
       }
+
       await sleep(200);
 
       expect(getCell(0, 0).querySelector('i')).toBeNull();
