@@ -4,7 +4,7 @@ const path = require('path');
 const ecstatic = require('ecstatic');
 const JasmineReporter = require('jasmine-terminal-reporter');
 
-const PORT = Math.ceil(Math.random()*100)+8080;
+const PORT = 8086;
 const DEFAULT_INACTIVITY_TIMEOUT = 10000;
 const IS_CI = process.env.CI;
 const CI_DOTS_PER_LINE = 120;
