@@ -89,7 +89,7 @@ To edit a published version's API reference:
 
 To create a new version of the Handsontable documentation:
 
-1. From the `./docs` directory, run:
+1. From the `docs` directory, run:
     ```bash
     npm run docs:api
     npm run docs:version
