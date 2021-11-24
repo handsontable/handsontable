@@ -3,6 +3,7 @@ export const removeInternals = (data) => {
     const isInternal = x.customTags
       ?.filter(tag => tag.tag === 'internal')
       ?.length > 0;
+
     return !isInternal;
   });
 };

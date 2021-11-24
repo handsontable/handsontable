@@ -36,12 +36,12 @@ const MIN_WIDTH = 215;
 /**
  * @typedef MenuOptions
  * @property {Menu} [parent=null] Instance of {@link Menu}.
- * @property {string} [name] Default value: `null`.
- * @property {string} [className] Default value: `''`.
- * @property {boolean} [keepInViewport] Default value: `true`.
- * @property {boolean} [standalone] Default value: `false`.
- * @property {number} [minWidth] Default value: `MIN_WIDTH`.
- * @property {HTMLElement} [container] Default value: `this.hot.rootDocument.documentElement`.
+ * @property {string} [name=null] Name of the menu.
+ * @property {string} [className=''] Custom class name.
+ * @property {boolean} [keepInViewport=true] Determine if should be kept in viewport.
+ * @property {boolean} [standalone] Enabling closing menu when clicked element is not belongs to menu itself.
+ * @property {number} [minWidth=MIN_WIDTH] The minimum width.
+ * @property {HTMLElement} [container] The container.
  */
 
 /**
@@ -450,7 +450,7 @@ class Menu {
 
       if (this.hot.isLtr()) {
         this.setHorizontalPossitionForLtr(cursor);
-        
+
       } else {
         this.setHorizontalPossitionForRtl(cursor);
       }
