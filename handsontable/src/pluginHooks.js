@@ -309,7 +309,7 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after new data is loaded (by the `updateData` method) into the data source array.
    *
-   * @since 11.0.2
+   * @since 11.1.0
    * @event Hooks#afterUpdateData
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
@@ -320,7 +320,7 @@ const REGISTERED_HOOKS = [
   /**
    * Fired after new data is loaded (by `setData` or `updateSettings` method) into the data source array.
    *
-   * @since 11.0.2
+   * @since 11.1.0
    * @event Hooks#afterSetData
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
@@ -813,7 +813,7 @@ const REGISTERED_HOOKS = [
    * Fired before new data is loaded (by the `beforeUpdateData` method) into the data source array.
    *
    * @event Hooks#beforeUpdateData
-   * @since 11.0.2
+   * @since 11.1.0
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    * @param {string} source Source of the call.
@@ -825,7 +825,7 @@ const REGISTERED_HOOKS = [
    * Fired before new data is loaded (by `setData` or `updateSettings` method) into the data source array.
    *
    * @event Hooks#beforeSetData
-   * @since 11.0.2
+   * @since 11.1.0
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    * @param {string} source Source of the call.
