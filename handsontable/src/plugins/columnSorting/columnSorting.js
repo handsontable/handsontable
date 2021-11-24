@@ -158,7 +158,7 @@ export class ColumnSorting extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterInit', () => this.loadOrSortBySettings());
-    this.addHook('afterLoadData', (sourceData, initialLoad) => this.onAfterLoadData(initialLoad));
+    this.addHook('afterSetData', (sourceData, initialLoad) => this.onAfterSetData(initialLoad));
 
     // TODO: Workaround? It should be refactored / described.
     if (this.hot.view) {
@@ -720,12 +720,12 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Callback for the `afterLoadData` hook.
+   * Callback for the `afterSetData` hook.
    *
    * @private
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    */
-  onAfterLoadData(initialLoad) {
+  onAfterSetData(initialLoad) {
     if (initialLoad === true) {
       // TODO: Workaround? It should be refactored / described.
       if (this.hot.view) {

@@ -115,7 +115,7 @@ export class ManualRowMove extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
     this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('afterScrollHorizontally', () => this.onAfterScrollHorizontally());
-    this.addHook('afterLoadData', () => this.onAfterLoadData());
+    this.addHook('afterSetData', () => this.onAfterSetData());
 
     this.buildPluginUI();
     this.registerEvents();
@@ -698,11 +698,11 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Callback for the `afterLoadData` hook.
+   * Callback for the `afterSetData` hook.
    *
    * @private
    */
-  onAfterLoadData() {
+  onAfterSetData() {
     this.moveBySettingsOrLoad();
   }
 

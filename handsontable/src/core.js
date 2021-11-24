@@ -2019,19 +2019,29 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Loads new data to Handsontable. Loading new data resets the cell meta.
-   * Since 8.0.0 loading new data also resets states corresponding to rows and columns
-   * (for example, row/column sequence, column width, row height, frozen columns etc.).
+   * Loads new data to Handsontable. Depending on the `resetState` argument, it can reset the cell
+   * meta and the table state corresponding to rows and columns (for example, row/column sequence, column width, row
+   * height, frozen columns etc.).
    *
-   * @memberof Core#
-   * @function loadData
+   * @private
    * @param {Array} data Array of arrays or array of objects containing data.
-   * @param {string} [source] Source of the loadData call.
+   * @param {string} [source] Source of the `replaceData` call.
+   * @param {string} [internalSource] The immediate internal source of the `replaceData` call.
+   * @param {boolean} [resetState=true] If `true`, it resets the state of the table (similarly to the `loadData`
+   * method), if `false` - it doesn't (similarly to the `updateData` method).
    * @fires Hooks#beforeLoadData
+   * @fires Hooks#beforeSetData
+   * @fires Hooks#beforeUpdateData
    * @fires Hooks#afterLoadData
+   * @fires Hooks#afterSetData
+   * @fires Hooks#afterUpdateData
    * @fires Hooks#afterChange
    */
-  this.loadData = function(data, source) {
+  this.replaceData = function(data, source, internalSource, resetState = true) {
+    const capitalizedInternalSource = (([firstLetter, ...remainingLetters]) => {
+      return [firstLetter.toUpperCase(), ...remainingLetters].join('');
+    })(internalSource);
+
     if (Array.isArray(tableMeta.dataSchema)) {
       instance.dataType = 'array';
     } else if (isFunction(tableMeta.dataSchema)) {
@@ -2044,7 +2054,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       datamap.destroy();
     }
 
-    data = instance.runHooks('beforeLoadData', data, firstRun, source);
+    data = instance.runHooks(`before${capitalizedInternalSource}`, data, firstRun, source);
+
+    // TODO: deprecated, will be eventually removed, leaving only the `beforeSetData` hook.
+    // Triggers an additional `afterLoadData` hook for the `updateSettings` calls for backward compatibility.
+    if (internalSource !== 'loadData' && source === 'updateSettings') {
+      data = instance.runHooks('beforeLoadData', data, firstRun, source);
+    }
 
     datamap = new DataMap(instance, data, tableMeta);
 
@@ -2101,15 +2117,29 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     dataSource.propToCol = datamap.propToCol.bind(datamap);
     dataSource.countCachedColumns = datamap.countCachedColumns.bind(datamap);
 
-    metaManager.clearCellsCache();
-    instance.initIndexMappers();
+    if (firstRun || resetState) {
+      metaManager.clearCellsCache();
+      instance.initIndexMappers();
+
+    } else {
+      this.columnIndexMapper.fitToLength(this.getInitialColumnCount());
+
+      this.rowIndexMapper.fitToLength(this.countSourceRows());
+    }
 
     grid.adjustRowsAndCols();
 
-    instance.runHooks('afterLoadData', data, firstRun, source);
+    data = instance.runHooks(`after${capitalizedInternalSource}`, data, firstRun, source);
+
+    // TODO: deprecated, will be eventually removed, leaving only the `afterSetData` hook.
+    // Triggers an additional `afterLoadData` hook for the `updateSettings` calls for backward compatibility.
+    if (internalSource !== 'loadData' && source === 'updateSettings') {
+      data = instance.runHooks('afterLoadData', data, firstRun, source);
+    }
 
     if (firstRun) {
       firstRun = [null, 'loadData'];
+
     } else {
       instance.runHooks('afterChange', null, 'loadData');
       instance.render();
@@ -2117,11 +2147,68 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Init index mapper which manage indexes assigned to the data.
+   * Loads new data to Handsontable. Loading new data resets the cell meta.
+   * Since 8.0.0 loading new data also resets states corresponding to rows and columns
+   * (for example, row/column sequence, column width, row height, frozen columns etc.).
+   *
+   * @memberof Core#
+   * @function setData
+   * @param {Array} data Array of arrays or array of objects containing data.
+   * @param {string} [source] Source of the `setData` call.
+   * @fires Hooks#beforeLoadData
+   * @fires Hooks#beforeSetData
+   * @fires Hooks#beforeUpdateData
+   * @fires Hooks#afterLoadData
+   * @fires Hooks#afterSetData
+   * @fires Hooks#afterUpdateData
+   * @fires Hooks#afterChange
+   */
+  this.setData = function(data, source) {
+    this.replaceData(data, source, 'setData');
+  };
+
+  /**
+   * Replaces the dataset with a new one. Unlike `setData` and the `loadData` methods, it doesn't reset the
+   * state of the table.
+   *
+   * @memberof Core#
+   * @function updateData
+   * @param {Array} data Array of arrays or array of objects containing data.
+   * @param {string} [source] Source of the `updateData` call.
+   * @fires Hooks#beforeUpdateData
+   * @fires Hooks#afterUpdateData
+   * @fires Hooks#afterChange
+   */
+  this.updateData = function(data, source) {
+    this.replaceData(data, source, 'updateData', false);
+  };
+
+  /**
+   * Loads new data to Handsontable. Loading new data resets the cell meta.
+   * Since 8.0.0 loading new data also resets states corresponding to rows and columns
+   * (for example, row/column sequence, column width, row height, frozen columns etc.).
+   *
+   * @memberof Core#
+   * @function loadData
+   * @param {Array} data Array of arrays or array of objects containing data.
+   * @param {string} [source] Source of the loadData call.
+   * @fires Hooks#beforeLoadData
+   * @fires Hooks#beforeSetData
+   * @fires Hooks#afterLoadData
+   * @fires Hooks#afterSetData
+   * @fires Hooks#afterChange
+   */
+  this.loadData = function(data, source) {
+    this.replaceData(data, source, 'loadData');
+  };
+
+  /**
+   * Gets the initial column count, calculated based on the `columns` setting.
    *
    * @private
+   * @returns {number} The calculated number of columns.
    */
-  this.initIndexMappers = function() {
+  this.getInitialColumnCount = function() {
     const columnsSettings = tableMeta.columns;
     let finalNrOfColumns = 0;
 
@@ -2157,7 +2244,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       finalNrOfColumns = this.countSourceCols();
     }
 
-    this.columnIndexMapper.initToLength(finalNrOfColumns);
+    return finalNrOfColumns;
+  };
+
+  /**
+   * Init index mapper which manage indexes assigned to the data.
+   *
+   * @private
+   */
+  this.initIndexMappers = function() {
+    this.columnIndexMapper.initToLength(this.getInitialColumnCount());
     this.rowIndexMapper.initToLength(this.countSourceRows());
   };
 
@@ -2260,6 +2356,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings, init = false) {
+    const dataUpdateFunction = (firstRun ? instance.setData : instance.updateData).bind(this);
     let columnsAsFunc = false;
     let i;
     let j;
@@ -2308,10 +2405,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     // Load data or create data map
     if (settings.data === void 0 && tableMeta.data === void 0) {
-      instance.loadData(null, 'updateSettings'); // data source created just now
+      dataUpdateFunction(null, 'updateSettings'); // data source created just now
 
     } else if (settings.data !== void 0) {
-      instance.loadData(settings.data, 'updateSettings'); // data source given as option
+      dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
 
     } else if (settings.columns !== void 0) {
       datamap.createMap();

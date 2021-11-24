@@ -177,7 +177,7 @@ export class AutoRowSize extends BasePlugin {
 
     this.setSamplingOptions();
 
-    this.addHook('afterLoadData', () => this.onAfterLoadData());
+    this.addHook('afterSetData', () => this.onAfterSetData());
     this.addHook('beforeChange', changes => this.onBeforeChange(changes));
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
     this.addHook('beforeViewRender', force => this.onBeforeViewRender(force));
@@ -525,7 +525,7 @@ export class AutoRowSize extends BasePlugin {
    *
    * @private
    */
-  onAfterLoadData() {
+  onAfterSetData() {
     if (this.hot.view) {
       this.recalculateAllRowsHeight();
     } else {
