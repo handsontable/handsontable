@@ -6,8 +6,7 @@ import {
   isImmediatePropagationStopped,
 } from '../../helpers/dom/event';
 import { partial } from '../../helpers/function';
-import { equalsIgnoreCase } from '../../helpers/string';
-import { isEmpty } from '../../helpers/mixed';
+import { isEmpty, stringify } from '../../helpers/mixed';
 import { isKey } from '../../helpers/unicode';
 
 import './checkboxRenderer.css';
@@ -78,10 +77,14 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
   empty(TD); // TODO identify under what circumstances this line can be removed
 
-  if (value === cellProperties.checkedTemplate || equalsIgnoreCase(value, cellProperties.checkedTemplate)) {
+  if (value === cellProperties.checkedTemplate ||
+    stringify(value).toLocaleLowerCase(cellProperties.locale) ===
+    stringify(cellProperties.checkedTemplate).toLocaleLowerCase(cellProperties.locale)) {
     input.checked = true;
 
-  } else if (value === cellProperties.uncheckedTemplate || equalsIgnoreCase(value, cellProperties.uncheckedTemplate)) {
+  } else if (value === cellProperties.uncheckedTemplate ||
+    stringify(value).toLocaleLowerCase(cellProperties.locale) ===
+    stringify(cellProperties.uncheckedTemplate).toLocaleLowerCase(cellProperties.locale)) {
     input.checked = false;
 
   } else if (isEmpty(value)) { // default value

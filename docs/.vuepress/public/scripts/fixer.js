@@ -25,6 +25,10 @@
     return s[0].toUpperCase() + s.substr(1);
   }
 
+  function toUpperCaseFirst(string) {
+    return string[0].toUpperCase() + string.substr(1);
+  }
+
   // Necessery for jsFiddle environment
   if (!isInternalFixer && window.addEventListener) {
     function appendScript(code) {
@@ -68,6 +72,7 @@
           if (nsPart === 'Angular') {
             nsPart = 'ng';
           }
+
         } else {
           nsPart = `.${camelCase(k, true)}`;
         }
@@ -75,7 +80,13 @@
         ns = ns + nsPart;
       });
 
-      if (key === 'react-dom') {
+      if (key === './helpers') {
+        ns = 'helpers';
+
+      } else if (key === 'handsontable/base') {
+        ns = 'Handsontable';
+
+      } else if (key === 'react-dom') {
         ns = 'ReactDOM';
 
       } else if (key === '@handsontable/react') {
@@ -97,6 +108,36 @@
         const match = key.match(/^numbro\/languages\/(.+)$/);
 
         ns = `numbro.allLanguages.${match[1]}`;
+
+      } else if (/^handsontable\/registry$/.test(key)) {
+        // The wrappers are run in the environment where the full Handsontable
+        // exists. The `handsontable/registry` imports are only use as an example how to
+        // use these functions.
+        return {
+          registerAllEditors: function() {},
+          registerAllRenderers: function() {},
+          registerAllValidators: function() {},
+          registerAllCellTypes: function() {},
+          registerAllPlugins: function() {},
+          registerAllModules: function() {},
+        };
+      } else if (/^handsontable\/cellTypes(\/(.+))?$/.test(key)) {
+        ns = 'Handsontable.cellTypes';
+
+      } else if (/^handsontable\/editors(\/(.+))?$/.test(key)) {
+        ns = 'Handsontable.editors';
+
+      } else if (/^handsontable\/plugins(\/(.+))?$/.test(key)) {
+        ns = 'Handsontable.plugins';
+
+      } else if (/^handsontable\/renderers(\/(.+))?$/.test(key)) {
+        ns = 'Handsontable.renderers';
+
+      } else if (/^handsontable\/validators(\/(.+))?$/.test(key)) {
+        ns = 'Handsontable.validators';
+
+      } else if (/^handsontable\/i18n(\/(.+))?$/.test(key)) {
+        ns = 'Handsontable.languages';
       }
 
       let moduleToReturn = window;

@@ -10,7 +10,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "10.0.0",
+  "version": "11.0.1",
   "main": "index",
   "module": "index.mjs",
   "jsnext:main": "index.mjs",
@@ -18,12 +18,14 @@
   "unpkg": "dist/handsontable.full.min.js",
   "scripts": {
     "clean": "rimraf commonjs es coverage tmp",
-    "lint": "npm run eslint && npm run stylelint",
+    "lint": "npm run eslint && npm run tslint && npm run dtslint && npm run stylelint",
     "lint:fix": "npm run eslint:fix && npm run stylelint:fix",
     "stylelint": "stylelint \"src/**/*.css\" \"test/**/*.css\"",
     "stylelint:fix": "stylelint --fix \"src/**/*.css\" \"test/**/*.css\"",
     "eslint": "eslint src/ test/ .config/plugin scripts/",
     "eslint:fix": "eslint --fix src/ test/ .config/plugin scripts/",
+    "tslint": "tslint -p ./test/types -c ./types/tslint.json",
+    "dtslint": "dtslint --localTs ../node_modules/typescript/lib types",
     "test": "npm run lint && npm run test:unit && npm run test:types && npm run test:walkontable && npm run test:e2e && npm run test:production",
     "test.random": "npm run lint && npm run test:unit && npm run test:types && npm run test:walkontable.random && npm run test:e2e.random && npm run test:production.random",
     "test:walkontable": "npm run build:walkontable && npm run test:walkontable.dump && npm run test:walkontable.puppeteer",
@@ -50,7 +52,7 @@
     "build:es": "cross-env-shell BABEL_ENV=es env-cmd -f ../hot.config.js babel src --out-file-extension .mjs --out-dir tmp",
     "build:umd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js webpack --hide-modules",
     "build:umd.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ../hot.config.js webpack --hide-modules",
-    "build:walkontable": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ../hot.config.js webpack --hide-modules ./src/3rdparty/walkontable/src/index.js",
+    "build:walkontable": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ../hot.config.js webpack --hide-modules  ./src/3rdparty/walkontable/css/walkontable.scss ./src/3rdparty/walkontable/src/index.js",
     "build:languages": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd -f ../hot.config.js webpack",
     "build:languages.es": "cross-env-shell BABEL_ENV=es_languages babel src/i18n/languages --out-file-extension .mjs --out-dir languages",
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ../hot.config.js webpack",
@@ -110,6 +112,7 @@
     "cpy-cli": "^3.1.1",
     "cross-env": "^5.0.1",
     "css-loader": "^2.1.1",
+    "dtslint": "^4.2.0",
     "ecstatic": "^4.1.4",
     "env-cmd": "^9.0.3",
     "eslint": "^7.25.0",
@@ -141,6 +144,8 @@
     "puppeteer": "^10.2.0",
     "replace-in-file": "^6.1.0",
     "rimraf": "^2.5.4",
+    "sass": "^1.3.0",
+    "sass-loader": "^10.2.0",
     "spawn-command": "0.0.2",
     "string-replace-webpack-plugin": "^0.1.3",
     "style-loader": "^0.18.2",
@@ -155,7 +160,7 @@
   "resolutions": {
     "babel-core": "7.0.0-bridge.0"
   },
-  "typings": "./handsontable.d.ts",
+  "typings": "./index.d.ts",
   "handsontable": {
     "copy": [
       "dist/handsontable.css",
@@ -169,13 +174,14 @@
       "dist/languages",
       "dist/README.md",
       "languages",
-      "base.d.ts",
       "../CHANGELOG.md",
-      "../handsontable-general-terms.pdf",
       "../handsontable-non-commercial-license.pdf",
-      "handsontable.d.ts",
       "../LICENSE.txt",
-      "README.md"
+      "README.md",
+      {
+        "pattern": "types/**/*.d.ts",
+        "pathSlice": 1
+      }
     ],
     "exports": [
       "./cellTypes/*/+(index)*",
@@ -208,6 +214,12 @@
         "./languages/all": {
           "import": "./languages/index.mjs",
           "require": "./languages/all.js"
+        }
+      },
+      {
+        "./registry": {
+          "import": "./registry.mjs",
+          "require": "./registry.js"
         }
       }
     ],

@@ -1,17 +1,19 @@
 {
   "compilerOptions": {
     "lib": [
-      "es6",
+      "es2015",
       "dom"
     ],
     "module": "commonjs",
+    "target": "es2015",
     "noEmit": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": "",
+    "skipLibCheck": true,
+    "baseUrl": "./",
     "paths": {
-      "handsontable": [ "../../" ],
-      "handsontable/base": [ "../../" ]
+      "handsontable": [ "../../types" ],
+      "handsontable/*": [ "../../types/*" ]
     }
   },
   "include": [

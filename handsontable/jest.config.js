@@ -15,6 +15,6 @@ module.exports = {
   moduleNameMapper: {
     '^handsontable(.*)$': '<rootDir>/src$1',
     '^walkontable(.*)$': '<rootDir>/src/3rdparty/walkontable/src$1',
-    '\\.css$': '<rootDir>/test/__mocks__/styleMock.js'
+    '\\.(css|scss)$': '<rootDir>/test/__mocks__/styleMock.js',
   }
 };

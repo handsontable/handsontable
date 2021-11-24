@@ -4,6 +4,7 @@
  */
 const path = require('path');
 const webpack = require('webpack');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const wotPath = path.resolve(__dirname, '../src/3rdparty/walkontable');
 
@@ -29,14 +30,23 @@ module.exports.create = function create() {
           options: {
             cacheDirectory: true,
           },
-        }
+        },
+        {
+          test: /\.(scss|css)$/,
+          use: [
+            { loader: MiniCssExtractPlugin.loader },
+            { loader: 'css-loader' },
+            { loader: 'sass-loader'},
+            { loader: path.resolve(__dirname, 'loader/sass-rtl-loader.js')}
+          ]
+        },
       ]
     },
     plugins: [
       // This helps ensure the builds are consistent if source code hasn't changed
       new webpack.optimize.OccurrenceOrderPlugin(),
+      new MiniCssExtractPlugin({ filename: `walkontable.css` }),
     ],
   };
-
   return [].concat(config);
 }

@@ -6,7 +6,8 @@ import { IndexMapper } from 'handsontable/translations';
 const hotMock = {
   toPhysicalColumn: column => column,
   toVisualColumn: column => column,
-  columnIndexMapper: new IndexMapper()
+  columnIndexMapper: new IndexMapper(),
+  getCellMeta: () => ({}),
 };
 
 // Mocking that table have 5 columns.

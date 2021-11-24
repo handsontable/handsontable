@@ -110,7 +110,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       renderer: (instance, TD, row, col, prop, value, cellProperties) => {
         textRenderer(instance, TD, row, col, prop, value, cellProperties);
 
-        const { filteringCaseSensitive, allowHtml } = this.cellProperties;
+        const { filteringCaseSensitive, allowHtml, locale } = this.cellProperties;
         const query = this.query;
         let cellValue = stringify(value);
         let indexOfMatch;
@@ -118,7 +118,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
         if (cellValue && !allowHtml) {
           indexOfMatch = filteringCaseSensitive === true ?
-            cellValue.indexOf(query) : cellValue.toLowerCase().indexOf(query.toLowerCase());
+            cellValue.indexOf(query) : cellValue.toLocaleLowerCase(locale).indexOf(query.toLocaleLowerCase(locale));
 
           if (indexOfMatch !== -1) {
             match = cellValue.substr(indexOfMatch, query.length);
@@ -202,7 +202,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     let choices = choicesList;
 
     if (sortByRelevanceSetting) {
-      orderByRelevance = AutocompleteEditor.sortByRelevance(
+      orderByRelevance = this.sortByRelevance(
         this.stripValueIfNeeded(this.getValue()),
         choices,
         this.cellProperties.filteringCaseSensitive
@@ -484,82 +484,84 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     super.onBeforeKeyDown(event);
   }
-}
 
-/**
- * Filters and sorts by relevance.
- *
- * @param {*} value The selected value.
- * @param {string[]} choices The list of available choices.
- * @param {boolean} caseSensitive Indicates if it's sorted by case.
- * @returns {number[]} Array of indexes in original choices array.
- */
-AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
-  const choicesRelevance = [];
-  const result = [];
-  const valueLength = value.length;
-  let choicesCount = choices.length;
-  let charsLeft;
-  let currentItem;
-  let i;
-  let valueIndex;
+  /**
+   * Filters and sorts by relevance.
+   *
+   * @param {*} value The selected value.
+   * @param {string[]} choices The list of available choices.
+   * @param {boolean} caseSensitive Indicates if it's sorted by case.
+   * @returns {number[]} Array of indexes in original choices array.
+   */
+  sortByRelevance = function(value, choices, caseSensitive) {
+    const choicesRelevance = [];
+    const result = [];
+    const valueLength = value.length;
+    let choicesCount = choices.length;
+    let charsLeft;
+    let currentItem;
+    let i;
+    let valueIndex;
 
-  if (valueLength === 0) {
+    if (valueLength === 0) {
+      for (i = 0; i < choicesCount; i++) {
+        result.push(i);
+      }
+
+      return result;
+    }
+
     for (i = 0; i < choicesCount; i++) {
-      result.push(i);
+      currentItem = stripTags(stringify(choices[i]));
+
+      if (caseSensitive) {
+        valueIndex = currentItem.indexOf(value);
+      } else {
+        const locale = this.cellProperties.locale;
+
+        valueIndex = currentItem.toLocaleLowerCase(locale).indexOf(value.toLocaleLowerCase(locale));
+      }
+
+      if (valueIndex !== -1) {
+        charsLeft = currentItem.length - valueIndex - valueLength;
+
+        choicesRelevance.push({
+          baseIndex: i,
+          index: valueIndex,
+          charsLeft,
+          value: currentItem
+        });
+      }
+    }
+
+    choicesRelevance.sort((a, b) => {
+
+      if (b.index === -1) {
+        return -1;
+      }
+      if (a.index === -1) {
+        return 1;
+      }
+
+      if (a.index < b.index) {
+        return -1;
+      } else if (b.index < a.index) {
+        return 1;
+      } else if (a.index === b.index) {
+        if (a.charsLeft < b.charsLeft) {
+          return -1;
+        } else if (a.charsLeft > b.charsLeft) {
+          return 1;
+        }
+      }
+
+      return 0;
+    });
+
+    for (i = 0, choicesCount = choicesRelevance.length; i < choicesCount; i++) {
+      result.push(choicesRelevance[i].baseIndex);
     }
 
     return result;
   }
-
-  for (i = 0; i < choicesCount; i++) {
-    currentItem = stripTags(stringify(choices[i]));
-
-    if (caseSensitive) {
-      valueIndex = currentItem.indexOf(value);
-    } else {
-      valueIndex = currentItem.toLowerCase().indexOf(value.toLowerCase());
-    }
-
-    if (valueIndex !== -1) {
-      charsLeft = currentItem.length - valueIndex - valueLength;
-
-      choicesRelevance.push({
-        baseIndex: i,
-        index: valueIndex,
-        charsLeft,
-        value: currentItem
-      });
-    }
-  }
-
-  choicesRelevance.sort((a, b) => {
-
-    if (b.index === -1) {
-      return -1;
-    }
-    if (a.index === -1) {
-      return 1;
-    }
-
-    if (a.index < b.index) {
-      return -1;
-    } else if (b.index < a.index) {
-      return 1;
-    } else if (a.index === b.index) {
-      if (a.charsLeft < b.charsLeft) {
-        return -1;
-      } else if (a.charsLeft > b.charsLeft) {
-        return 1;
-      }
-    }
-
-    return 0;
-  });
-
-  for (i = 0, choicesCount = choicesRelevance.length; i < choicesCount; i++) {
-    result.push(choicesRelevance[i].baseIndex);
-  }
-
-  return result;
-};
+}

@@ -1,7 +1,17 @@
+import { BasePlugin } from 'handsontable/plugins';
 import Handsontable from 'handsontable';
 
+const mockTD = document.createElement('td');
 const elem = document.createElement('div');
 const hot = new Handsontable(elem, {});
+const cellProperties: Handsontable.CellProperties = {
+  row: 0,
+  col: 0,
+  instance: hot,
+  visualRow: 0,
+  visualCol: 0,
+  prop: 'foo'
+};
 
 hot.addHook('afterChange', (changes: any[] | null, source: string) => {});
 hot.addHook('afterChange', [(changes: any[] | null, source: string) => {}]);
@@ -39,8 +49,8 @@ hot.getCell(123, 123, true)!.focus();
 hot.getCellEditor(123, 123);
 hot.getCellMeta(123, 123).type === "text";
 hot.getCellMetaAtRow(123).forEach(meta => meta.type === "text");
-hot.getCellRenderer(123, 123)(hot, {} as any as HTMLTableCellElement, 1, 2, 'prop', '', {} as any as Handsontable.CellProperties);
-hot.getCellsMeta()[0].visualRow
+hot.getCellRenderer(123, 123)(hot, mockTD, 1, 2, 'prop', '', cellProperties);
+hot.getCellsMeta()[0].visualRow;
 hot.getCellValidator(123, 123);
 hot.getColHeader().forEach((header: number | string) => {});
 hot.getColHeader(123).toString();
@@ -55,7 +65,9 @@ hot.getDataAtProp(123).forEach(v => v === '');
 hot.getDataAtRow(123).forEach(v => v === '');
 hot.getDataAtRowProp(123, 'foo') === '';
 hot.getDataType(123, 123, 123, 123) === 'text';
-hot.getInstance() === hot;
+
+const _hot: Handsontable = hot.getInstance();
+
 hot.getRowHeader().forEach(header => header.toString());
 hot.getRowHeader(123) === '';
 hot.getRowHeight(123) === 123;
@@ -72,33 +84,37 @@ hot.getSourceDataAtCol(123)[0] === '';
 hot.getSourceDataAtRow(123) as any[];
 hot.getTranslatedPhrase('foo', 123)!.toLowerCase();
 hot.getValue() === '';
-hot.hasColHeaders() === true;
-hot.hasHook('afterChange') === true;
-hot.hasRowHeaders() === true;
+
+const hasColHeaders: boolean = hot.hasColHeaders();
+const hasHook: boolean = hot.hasHook('afterChange');
+const hasRowHeaders: boolean = hot.hasRowHeaders();
+
 hot.init() === void 0;
-hot.isColumnModificationAllowed() === true;
-hot.isEmptyCol(123) === true;
-hot.isEmptyRow(123) === true;
-hot.isExecutionSuspended();
-hot.isListening() === true;
-hot.isRedoAvailable() === true;
-hot.isRenderSuspended();
-hot.isUndoAvailable() === true;
+
+const isColumnModificationAllowed: boolean = hot.isColumnModificationAllowed();
+const isEmptyCol: boolean = hot.isEmptyCol(123);
+const isEmptyRow: boolean = hot.isEmptyRow(123);
+const isExecutionSuspended: boolean = hot.isExecutionSuspended();
+const isListening: boolean = hot.isListening();
+const isRedoAvailable: boolean = hot.isRedoAvailable();
+const isRenderSuspended: boolean = hot.isRenderSuspended();
+const isUndoAvailable: boolean = hot.isUndoAvailable();
+
 hot.listen();
-hot.loadData([[1,2,3], [1,2,3]]);
-hot.loadData([{a:'a',b:2,c:''}, {a:'a',b:2,c:''}]);
+hot.loadData([[1, 2, 3], [1, 2, 3]]);
+hot.loadData([{ a: 'a', b: 2, c: '' }, { a: 'a', b: 2, c: '' }]);
 hot.populateFromArray(123, 123, [], 123, 123, 'foo', 'shift_down', 'left', []);
 hot.propToCol('foo') === 123;
 hot.propToCol(123) === 123;
 hot.redo();
 hot.refreshDimensions();
 hot.removeCellMeta(123, 123, 'foo');
-hot.removeHook('afterChange', function() {});
+hot.removeHook('afterChange', () => {});
 hot.render();
 hot.resumeExecution();
 hot.resumeRender();
 hot.rowOffset() === 123;
-hot.runHooks('afterChange', 123, 'foo', true, {}, [], function() {});
+hot.runHooks('afterChange', 123, 'foo', true, {}, [], () => {});
 hot.selectAll();
 hot.selectCell(123, 123, 123, 123, true, true);
 hot.selectCellByProp(123, 'foo', 123, 'foo', true);
@@ -122,51 +138,59 @@ hot.spliceCol(123, 123, 123, 'foo');
 hot.spliceRow(123, 123, 123, 'foo');
 hot.suspendExecution();
 hot.suspendRender();
-hot.toPhysicalColumn(123) == 123;
+hot.toPhysicalColumn(123) === 123;
 hot.toPhysicalRow(123) === 123;
 hot.toVisualColumn(123) === 123;
 hot.toVisualRow(123) === 123;
 hot.undo();
 hot.unlisten();
-hot.updateSettings({} as Handsontable.GridSettings, true);
-hot.validateCell('test', {} as Handsontable.CellProperties, (valid: boolean) => {}, 'sourceString');
+hot.updateSettings({}, true);
+hot.validateCell('test', cellProperties, (valid: boolean) => {}, 'sourceString');
 hot.validateCells((valid: boolean) => {});
 hot.validateColumns([1, 2, 3], (valid: boolean) => {});
 hot.validateRows([1, 2, 3], (valid: boolean) => {});
-hot.isDestroyed === false;
 
+const isDestroyed: boolean = hot.isDestroyed;
 const testToHTMLTableElement: HTMLTableElement = hot.toTableElement();
 const testToHTML: string = hot.toHTML();
 
-const autoColumnSize: Handsontable.plugins.AutoColumnSize = hot.getPlugin('autoColumnSize');
-const autoRowSize: Handsontable.plugins.AutoRowSize = hot.getPlugin('autoRowSize');
-const autofill: Handsontable.plugins.Autofill = hot.getPlugin('autofill');
-const bindeRowsWithHeaders: Handsontable.plugins.BindRowsWithHeaders = hot.getPlugin('bindRowsWithHeaders');
-const collapsibleColumns: Handsontable.plugins.CollapsibleColumns = hot.getPlugin('collapsibleColumns');
-const columnSorting: Handsontable.plugins.ColumnSorting = hot.getPlugin('columnSorting');
-const columnSummary: Handsontable.plugins.ColumnSummary = hot.getPlugin('columnSummary');
-const comments: Handsontable.plugins.Comments = hot.getPlugin('comments');
-const contextMenu: Handsontable.plugins.ContextMenu = hot.getPlugin('contextMenu');
-const copyPaste: Handsontable.plugins.CopyPaste = hot.getPlugin('copyPaste');
-const customBorders: Handsontable.plugins.CustomBorders = hot.getPlugin('customBorders');
-const dragToScroll: Handsontable.plugins.DragToScroll = hot.getPlugin('dragToScroll');
-const dropdownMenu: Handsontable.plugins.DropdownMenu = hot.getPlugin('dropdownMenu');
-const exportFile: Handsontable.plugins.ExportFile = hot.getPlugin('exportFile');
-const filters: Handsontable.plugins.Filters = hot.getPlugin('filters');
-const hiddenColumns: Handsontable.plugins.HiddenColumns = hot.getPlugin('hiddenColumns');
-const hiddenRows: Handsontable.plugins.HiddenRows = hot.getPlugin('hiddenRows');
-const manualColumnFreeze: Handsontable.plugins.ManualColumnFreeze = hot.getPlugin('manualColumnFreeze');
-const manualColumnMove: Handsontable.plugins.ManualColumnMove = hot.getPlugin('manualColumnMove');
-const manualColumnResize: Handsontable.plugins.ManualColumnResize = hot.getPlugin('manualColumnResize');
-const manualRowMove: Handsontable.plugins.ManualRowMove = hot.getPlugin('manualRowMove');
-const manualRowResize: Handsontable.plugins.ManualRowResize = hot.getPlugin('manualRowResize');
-const mergeCells: Handsontable.plugins.MergeCells = hot.getPlugin('mergeCells');
-const multiColumnSorting: Handsontable.plugins.MultiColumnSorting = hot.getPlugin('multiColumnSorting');
-const nestedHeaders: Handsontable.plugins.NestedHeaders = hot.getPlugin('nestedHeaders');
-const persistentState: Handsontable.plugins.PersistenState = hot.getPlugin('persistentState');
-const search: Handsontable.plugins.Search = hot.getPlugin('search');
-const trimeRows: Handsontable.plugins.TrimRows = hot.getPlugin('trimRows');
-const formulas: Handsontable.plugins.Formulas = hot.getPlugin('formulas');
-const nestedRows: Handsontable.plugins.NestedRows = hot.getPlugin('nestedRows');
+const autoColumnSize = hot.getPlugin('autoColumnSize');
 
-autoColumnSize.samplesGenerator.setSampleCount(5);
+autoColumnSize.inProgress;
+
+autoColumnSize.calculateVisibleColumnsWidth();
+autoColumnSize.isEnabled();
+
+const autofill: BasePlugin = hot.getPlugin('autofill');
+const autoRowSize: BasePlugin = hot.getPlugin('autoRowSize');
+const bindRowsWithHeaders: BasePlugin = hot.getPlugin('bindRowsWithHeaders');
+const collapsibleColumns: BasePlugin = hot.getPlugin('collapsibleColumns');
+const columnSorting: BasePlugin = hot.getPlugin('columnSorting');
+const columnSummary: BasePlugin = hot.getPlugin('columnSummary');
+const comments: BasePlugin = hot.getPlugin('comments');
+const contextMenu: BasePlugin = hot.getPlugin('contextMenu');
+const copyPaste: BasePlugin = hot.getPlugin('copyPaste');
+const customBorders: BasePlugin = hot.getPlugin('customBorders');
+const dragToScroll: BasePlugin = hot.getPlugin('dragToScroll');
+const dropdownMenu: BasePlugin = hot.getPlugin('dropdownMenu');
+const exportFile: BasePlugin = hot.getPlugin('exportFile');
+const filters: BasePlugin = hot.getPlugin('filters');
+const formulas: BasePlugin = hot.getPlugin('formulas');
+const hiddenColumns: BasePlugin = hot.getPlugin('hiddenColumns');
+const hiddenRows: BasePlugin = hot.getPlugin('hiddenRows');
+const manualColumnFreeze: BasePlugin = hot.getPlugin('manualColumnFreeze');
+const manualColumnMove: BasePlugin = hot.getPlugin('manualColumnMove');
+const manualColumnResize: BasePlugin = hot.getPlugin('manualColumnResize');
+const manualRowMove: BasePlugin = hot.getPlugin('manualRowMove');
+const manualRowResize: BasePlugin = hot.getPlugin('manualRowResize');
+const mergeCells: BasePlugin = hot.getPlugin('mergeCells');
+const multiColumnSorting: BasePlugin = hot.getPlugin('multiColumnSorting');
+const multipleSelectionHandles: BasePlugin = hot.getPlugin('multipleSelectionHandles');
+const nestedHeaders: BasePlugin = hot.getPlugin('nestedHeaders');
+const nestedRows: BasePlugin = hot.getPlugin('nestedRows');
+const persistentState: BasePlugin = hot.getPlugin('persistentState');
+const search: BasePlugin = hot.getPlugin('search');
+const touchScroll: BasePlugin = hot.getPlugin('touchScroll');
+const trimRows: BasePlugin = hot.getPlugin('trimRows');
+const undoRedo: BasePlugin = hot.getPlugin('undoRedo');
+const custom: BasePlugin = hot.getPlugin('custom');

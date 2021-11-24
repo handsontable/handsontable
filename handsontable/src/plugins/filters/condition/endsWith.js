@@ -11,7 +11,7 @@ export const CONDITION_NAME = 'ends_with';
  * @returns {boolean}
  */
 export function condition(dataRow, [value]) {
-  return stringify(dataRow.value).toLowerCase().endsWith(stringify(value));
+  return stringify(dataRow.value).toLocaleLowerCase(dataRow.meta.locale).endsWith(stringify(value));
 }
 
 registerCondition(CONDITION_NAME, condition, {
