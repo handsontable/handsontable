@@ -42,7 +42,7 @@ To start a local Handsontable documentation server:
 
 ## Documentation npm scripts:
 
-From the `./docs` directory, you can run the following npm scripts:
+From the `docs` directory, you can run the following npm scripts:
 
 * `npm run docs:start` – Starts a local documentation server at `localhost:8080/docs/`.
 * `npm run docs:start:no-cache` – Starts a local documentation server without cache.
