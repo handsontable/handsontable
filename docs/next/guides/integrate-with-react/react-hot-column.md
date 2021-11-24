@@ -161,39 +161,15 @@ const hotSettings = {
       isPromoted: true
     },
     {
-      id: 5,
+      id: 4,
       name: "Max",
       score: 98,
       isPromoted: true
     },
     {
-      id: 6,
+      id: 5,
       name: "Lucy",
       score: 59,
-      isPromoted: false
-    },
-    {
-      id: 7,
-      name: "Max",
-      score: 70,
-      isPromoted: true
-    },
-    {
-      id: 8,
-      name: "Lucas",
-      score: 3,
-      isPromoted: false
-    },
-    {
-      id: 9,
-      name: "Mary",
-      score: 99,
-      isPromoted: true
-    },
-    {
-      id: 10,
-      name: "Andy",
-      score: 13,
       isPromoted: false
     }
   ],
