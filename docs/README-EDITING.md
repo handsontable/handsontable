@@ -141,7 +141,7 @@ To check for broken links:
     ```bash
     npm run docs:api
     ```
-2. Build the documentation output. From the `./docs` directory, run:
+2. Build the documentation output. From the `docs` directory, run:
     ```bash
     npm run docs:build
     ```
