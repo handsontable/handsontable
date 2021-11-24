@@ -448,25 +448,33 @@ class Menu {
         this.setPositionBelowCursor(cursor);
       }
 
-      if (this.hot.isLtr()) { // ltr mode
-        if (cursor.fitsOnRight(this.container)) {
-          this.setPositionOnRightOfCursor(cursor);
-
-        } else {
-          this.setPositionOnLeftOfCursor(cursor);
-        }
-      } else { // rtl mode
-        // eslint-disable-next-line no-lonely-if
-        if (cursor.fitsOnLeft(this.container)) {
-          this.setPositionOnLeftOfCursor(cursor);
-
-        } else {
-          this.setPositionOnRightOfCursor(cursor);
-        }
+      if (this.hot.isLtr()) {
+        this.setHorizontalPossitionForLtr(cursor);
+        
+      } else {
+        this.setHorizontalPossitionForRtl(cursor);
       }
     } else {
       this.setPositionBelowCursor(cursor);
       this.setPositionOnRightOfCursor(cursor);
+    }
+  }
+
+  setHorizontalPossitionForRtl(cursor) {
+    if (cursor.fitsOnLeft(this.container)) {
+      this.setPositionOnLeftOfCursor(cursor);
+
+    } else {
+      this.setPositionOnRightOfCursor(cursor);
+    }
+  }
+
+  setHorizontalPossitionForLtr(cursor) {
+    if (cursor.fitsOnRight(this.container)) {
+      this.setPositionOnRightOfCursor(cursor);
+
+    } else {
+      this.setPositionOnLeftOfCursor(cursor);
     }
   }
 
