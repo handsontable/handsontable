@@ -26,7 +26,7 @@ We update the documentation:
 
 To start a local Handsontable documentation server:
 
-1. From the `./docs` directory, install the documentation dependencies:
+1. From the `docs` directory, install the documentation dependencies:
     ```bash
     npm install
     ```
