@@ -137,7 +137,7 @@ Also, the following rules apply:
 
 To check for broken links:
 
-1. Generate the Handsontable API reference. From the `./docs` directory, run:
+1. Generate the Handsontable API reference. From the `docs` directory, run:
     ```bash
     npm run docs:api
     ```
