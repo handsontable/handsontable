@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import {
   prepareSettings,
   propFactory
@@ -6,7 +5,7 @@ import {
 
 describe('propFactory', () => {
   it('should generate an object containing all the available Handsontable properties and plugin hooks', () => {
-    const props: any = propFactory('HotTable');
+    const props = propFactory('HotTable');
 
     expect(typeof props.startRows).toBe('object');
     expect(typeof props.startCols).toBe('object');

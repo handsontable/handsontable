@@ -1,6 +1,6 @@
 {
   "name": "@handsontable/vue3",
-  "version": "11.0.0",
+  "version": "11.0.1",
   "description": "Best Data Grid for Vue with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
@@ -61,9 +61,7 @@
     "@vue/eslint-config-typescript": "^9.0.1",
     "@vue/test-utils": "2.0.0-rc.16",
     "babel-core": "^7.0.0-bridge.0",
-    "cpy-cli": "^3.1.1",
     "cross-env": "^7.0.0",
-    "css-loader": "^6.5.1",
     "del-cli": "^4.0.1",
     "eslint-plugin-vue": "^8.0.3",
     "handsontable": "^11.0.0",
@@ -81,7 +79,6 @@
     "ts-jest": "^26.5.6",
     "typescript": "^4.0.0",
     "vue": "^3.2.22",
-    "vue-class-component": "8.0.0-rc.1",
     "vue-eslint-parser": "^8.0.1",
     "vue-jest": "5.0.0-alpha.10"
   },

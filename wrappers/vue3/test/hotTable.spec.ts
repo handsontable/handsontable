@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 import { mount, config } from '@vue/test-utils';
 import HotTable from '../src/HotTable.vue';
-import BaseEditorComponent from '../src/BaseEditorComponent.vue';
 import { HOT_DESTROYED_WARNING } from '../src/helpers';
 import {
   createSampleData,
@@ -314,102 +313,6 @@ describe('Updating the Handsontable settings', () => {
   });
 });
 
-describe('Global editors and renderers', () => {
-  it('should allow defining renderer and editor components to work globally on the entire table', () => {
-    const DummyRendererComponent = {
-      name: 'DummyRendererComponent',
-      template: '<div>Row: {{ row }}, Col: {{ col }}, Prop: {{ prop }}, Value: {{ value }}</div>',
-      data() {
-        return {
-          row: null,
-          col: null,
-          prop: null,
-          value: null,
-        };
-      }
-    };
-    const DummyEditorComponent = {
-      extends: BaseEditorComponent,
-      name: 'DummyEditorComponent',
-      template: '<div></div>',
-    };
-    const App = {
-      components: { HotTable, DummyRendererComponent, DummyEditorComponent },
-      template: `
-        <HotTable
-          licenseKey="non-commercial-and-evaluation"
-          :data="data">
-            <DummyRendererComponent hot-renderer />
-            <DummyEditorComponent hot-editor />
-          </HotTable>`,
-      data() {
-        return {
-          data: [{ a: 1, b: 2, c: 3 }],
-        };
-      },
-    };
-
-    const testWrapper = mount(App, {
-      attachTo: document.getElementById('app')
-    });
-    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
-    const GlobalEditor = hotInstance.getSettings().editor;
-    const globalEditorInstance = new GlobalEditor(hotInstance);
-
-    expect(globalEditorInstance._fullEditMode).toBe(false);
-    expect(globalEditorInstance.hot).toBe(hotInstance);
-    expect(hotInstance.getSettings().renderer(hotInstance, document.createElement('TD'), 555, 0, 0, '0', {}).innerHTML)
-      .toBe('<div>Row: 555, Col: 0, Prop: 0, Value: 0</div>');
-
-    testWrapper.unmount();
-  });
-});
-
-it('should inject an `isRenderer` and `isEditor` properties to renderer/editor components', () => {
-  const DummyRendererComponent = {
-    name: 'DummyRendererComponent',
-    template: '<div>Row: {{ row }}, Col: {{ col }}, Prop: {{ prop }}, Value: {{ value }}</div>',
-    data() {
-      return {
-        row: null,
-        col: null,
-        prop: null,
-        value: null,
-      };
-    }
-  };
-  const DummyEditorComponent = {
-    extends: BaseEditorComponent,
-    name: 'DummyEditorComponent',
-    template: '<div></div>',
-  };
-  const App = {
-    components: { HotTable, DummyRendererComponent, DummyEditorComponent },
-    template: `
-      <HotTable
-        licenseKey="non-commercial-and-evaluation"
-        :autoRowSize="false" :autoColumnSize="false" :data="data">
-          <DummyRendererComponent hot-renderer />
-          <DummyEditorComponent hot-editor />
-        </HotTable>`,
-    data() {
-      return {
-        data: createSampleData(1, 1),
-      };
-    },
-  };
-
-  const testWrapper = mount(App, {
-    attachTo: document.getElementById('app')
-  });
-  const hotTableComponent = testWrapper.getComponent(HotTable).vm;
-
-  expect(hotTableComponent.rendererCache.get('0-0').component.isRenderer).toBe(true);
-  expect(hotTableComponent.editorCache.get('DummyEditorComponent').isEditor).toBe(true);
-
-  testWrapper.unmount();
-});
-
 it('should be possible to access the `hotInstance` property of the HotTable instance from a parent-component', () => {
   let hotInstanceFromRef = 'not-set';
   const App = {
@@ -443,53 +346,6 @@ it('should be possible to access the `hotInstance` property of the HotTable inst
   });
 
   expect(['not-set', null].includes(hotInstanceFromRef)).toBe(false);
-
-  testWrapper.unmount();
-});
-
-it('should be possible to pass props to the editor and renderer components', () => {
-  const DummyRendererComponent = {
-    name: 'DummyRendererComponent',
-    template: '<div>Row: {{ row }}, Col: {{ col }}, Prop: {{ prop }}, Value: {{ value }}</div>',
-    props: ['test-prop'],
-    data() {
-      return {
-        row: null,
-        col: null,
-        prop: null,
-        value: null,
-      };
-    }
-  };
-  const DummyEditorComponent = {
-    extends: BaseEditorComponent,
-    name: 'DummyEditorComponent',
-    props: ['test-prop'],
-    template: '<div></div>',
-  };
-  const App = {
-    components: { HotTable, DummyRendererComponent, DummyEditorComponent },
-    template: `
-      <HotTable
-        licenseKey="non-commercial-and-evaluation"
-        :data="data">
-          <DummyRendererComponent hot-renderer test-prop="test-prop-value" />
-          <DummyEditorComponent hot-editor test-prop="test-prop-value" />
-        </HotTable>`,
-    data() {
-      return {
-        data: createSampleData(1, 1),
-      };
-    },
-  };
-
-  const testWrapper = mount(App, {
-    attachTo: document.getElementById('app')
-  });
-  const hotTableComponent = testWrapper.getComponent(HotTable).vm;
-
-  expect(hotTableComponent.rendererCache.get('0-0').component.testProp).toBe('test-prop-value');
-  expect(hotTableComponent.editorCache.get('DummyEditorComponent').testProp).toBe('test-prop-value');
 
   testWrapper.unmount();
 });

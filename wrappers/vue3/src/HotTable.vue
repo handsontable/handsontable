@@ -5,24 +5,17 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, render } from 'vue';
+import { defineComponent, VNode } from 'vue';
 import Handsontable from 'handsontable/base';
 import {
-  createVueComponent,
-  findVNodeByType,
-  getVNodeName,
   HOT_DESTROYED_WARNING,
   prepareSettings,
-  preventInternalEditWatch,
   propFactory,
 } from './helpers';
 import {
   HotTableProps,
-  VNode,
-  RendererEntryCache,
 } from './types';
 import * as packageJson from '../package.json';
-import { LRUMap } from './lib/lru/lru';
 
 const HotTable = defineComponent({
   name: 'HotTable',
@@ -73,43 +66,29 @@ const HotTable = defineComponent({
     }
   },
   data() {
-    const rendererCache = new LRUMap<string, RendererEntryCache>(this.wrapperRendererCacheSize as number);
-
-    // Make the LRU cache destroy each removed component
-    rendererCache.shift = function() {
-      const entry = LRUMap.prototype.shift.call(this);
-
-      // equal to $destroy in Vue2
-      render(null, entry[1].component.$el);
-
-      return entry;
-    };
-
     return {
       /* eslint-disable vue/no-reserved-keys */
-      __internalEdit: false,
-      __hotInstance: null,
+      __hotInstance: null as Handsontable,
       /* eslint-enable vue/no-reserved-keys */
-      rendererCache,
       miscCache: {
         currentSourceColumns: null,
       },
-      columnSettings: null,
-      editorCache: new Map(),
-      columnsCache: new Map(),
-      get hotInstance() {
+      columnSettings: null as HotTableProps[],
+      columnsCache: new Map<VNode, HotTableProps>(),
+      get hotInstance(): Handsontable | null {
         if (!this.__hotInstance || (this.__hotInstance && !this.__hotInstance.isDestroyed)) {
 
           // Will return the Handsontable instance or `null` if it's not yet been created.
           return this.__hotInstance;
 
         } else {
+          /* eslint-disable-next-line no-console */
           console.warn(HOT_DESTROYED_WARNING);
 
           return null;
         }
       },
-      set hotInstance(hotInstance) {
+      set hotInstance(hotInstance: Handsontable) {
         this.__hotInstance = hotInstance;
       },
     };
@@ -118,33 +97,17 @@ const HotTable = defineComponent({
     /**
      * Initialize Handsontable.
      */
-    hotInit(): void {
-      const globalRendererVNode = this.getGlobalRendererVNode();
-      const globalEditorVNode = this.getGlobalEditorVNode();
-
-      const newSettings: Handsontable.GridSettings = prepareSettings(this.$props);
+    hotInit() {
+      const newSettings = prepareSettings(this.$props);
 
       newSettings.columns = this.columnSettings ? this.columnSettings : newSettings.columns;
-
-      if (globalEditorVNode) {
-        newSettings.editor = this.getEditorClass(globalEditorVNode, this);
-        // TODO: Ugly workaround for destroying the hot-editor components after cloning
-        this.$el.querySelector('[hot-editor]').remove();
-      }
-
-      if (globalRendererVNode) {
-        newSettings.renderer = this.getRendererWrapper(globalRendererVNode, this);
-        // TODO: Ugly workaround for destroying the hot-renderer components after cloning
-        this.$el.querySelector('[hot-renderer]').remove();
-      }
 
       this.hotInstance = new Handsontable.Core(this.$el, newSettings);
       this.hotInstance.init();
 
-      preventInternalEditWatch(this);
-
       this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
     },
+
     matchHotMappersSize(): void {
       if (!this.hotInstance) {
         return;
@@ -168,8 +131,7 @@ const HotTable = defineComponent({
       if (isColumnModificationAllowed) {
         indexMapperColumnCount = this.hotInstance.columnIndexMapper.getNumberOfIndexes();
 
-        if (data && data[0] && data[0]?.length !==
-          indexMapperColumnCount) {
+        if (data && data[0] && data[0]?.length !== indexMapperColumnCount) {
           if (data[0].length < indexMapperColumnCount) {
             for (let c = data[0].length; c < indexMapperColumnCount; c++) {
               columnsToRemove.push(c);
@@ -198,135 +160,28 @@ const HotTable = defineComponent({
         }
       });
     },
-    getGlobalRendererVNode(): VNode | null {
-      const hotTableSlots: VNode[] = typeof this.$slots.default === 'function' ? this.$slots.default() : [];
 
-      return findVNodeByType(hotTableSlots, 'hot-renderer');
-    },
-    getGlobalEditorVNode(): VNode | null {
-      const hotTableSlots: VNode[] = typeof this.$slots.default === 'function' ? this.$slots.default() : [];
-
-      return findVNodeByType(hotTableSlots, 'hot-editor');
-    },
     /**
      * Get settings for the columns provided in the `hot-column` components.
      *
      * @returns {HotTableProps[] | undefined}
      */
     getColumnSettings(): HotTableProps[] | void {
-      const hotColumns: any[] = Array.from(this.columnsCache.values());
-      const columnSettings: HotTableProps[] = [];
-      let usesRendererComponent = false;
-
-      hotColumns.forEach((elem) => {
-        if (elem.usesRendererComponent) {
-          usesRendererComponent = true;
-        }
-
-        columnSettings.push({ ...elem });
-      });
-
-      if (usesRendererComponent &&
-        (typeof this.settings === 'object' && (this.settings.autoColumnSize !== false || this.settings.autoRowSize)) &&
-        (this.autoColumnSize !== false || this.autoRowSize)) {
-        console.warn('Your `hot-table` configuration includes both `hot-column` and `autoRowSize`/`autoColumnSize`, ' +
-                     'which are not compatible with each other in this version of `@handsontable/vue3`. ' +
-                     'Disable `autoRowSize` and `autoColumnSize` to prevent row and column misalignment.');
-      }
+      const columnSettings: HotTableProps[] = Array.from(this.columnsCache.values());
 
       return columnSettings.length ? columnSettings : void 0;
-    },
-    /**
-     * Create the wrapper function for the provided renderer child component.
-     *
-     * @param {object} vNode VNode of the renderer child component.
-     * @param {boolean} containerComponent Instance of the component, which will be treated as a parent for the newly created renderer component.
-     * @returns {Function} The wrapper function used as the renderer.
-     */
-    getRendererWrapper(vNode: VNode, containerComponent: VNode): (...args) => HTMLElement {
-      return (instance, TD, row, col, prop, value, cellProperties) => {
-        // Prevent caching and rendering of the GhostTable table cells
-        if (TD && !TD.getAttribute('ghost-table')) {
-          const rendererCache = this.rendererCache;
-          const rendererArgs = {
-            hotInstance: instance,
-            TD,
-            row,
-            col,
-            prop,
-            value,
-            cellProperties,
-            isRenderer: true,
-          };
-
-          if (rendererCache && !rendererCache.has(`${row}-${col}`)) {
-            const mountedComponent: VNode = createVueComponent(vNode, containerComponent, rendererArgs);
-
-            rendererCache.set(`${row}-${col}`, {
-              component: mountedComponent,
-              lastUsedTD: null,
-            });
-          }
-
-          const cachedEntry = rendererCache.get(`${row}-${col}`);
-          const cachedComponent: VNode = cachedEntry.component;
-          const cachedTD: HTMLTableCellElement = cachedEntry.lastUsedTD;
-
-          Object.assign(cachedComponent, rendererArgs);
-
-          if (!cachedComponent.$el.parentElement || cachedTD !== TD) {
-            // Clear the previous contents of a TD
-            while (TD.firstChild) {
-              TD.removeChild(TD.firstChild);
-            }
-
-            TD.appendChild(cachedComponent.$el);
-
-            cachedEntry.lastUsedTD = TD;
-          }
-        }
-
-        return TD;
-      };
-    },
-    /**
-     * Create a fresh class to be used as an editor, based on the editor component provided.
-     *
-     * @param {object} vNode VNode for the editor child component.
-     * @param {boolean} containerComponent Instance of the component, which will be treated as a parent for the newly created editor component.
-     * @returns {BaseEditor} The class used as an editor in Handsontable.
-     */
-    getEditorClass(vNode: VNode, containerComponent: VNode): typeof Handsontable.editors.BaseEditor {
-      const componentKey: string = vNode.key ? vNode.key.toString() : null;
-      const componentName: string = getVNodeName(vNode);
-      const componentCacheKey = componentKey ? `${componentName}:${componentKey}` : componentName;
-
-      const editorCache = this.editorCache;
-      let mountedComponent = null;
-
-      if (!editorCache.has(componentCacheKey)) {
-        mountedComponent = createVueComponent(vNode, containerComponent, { isEditor: true });
-
-        editorCache.set(componentCacheKey, mountedComponent);
-
-      } else {
-        mountedComponent = editorCache.get(componentCacheKey);
-      }
-
-      return mountedComponent.hotCustomEditorClass;
     },
   },
   mounted() {
     this.columnSettings = this.getColumnSettings();
-
-    return this.hotInit();
+    this.hotInit();
   },
   beforeUnmount() {
     if (this.hotInstance) {
       this.hotInstance.destroy();
     }
   },
-  version: (packageJson as any).version,
+  version: (packageJson as unknown as { version: string }).version,
 });
 
 export default HotTable;

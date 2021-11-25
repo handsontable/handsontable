@@ -1,9 +1,7 @@
-import { createApp } from 'vue';
 import Handsontable from 'handsontable/base';
-import { HotTableProps, VueProps, VNode } from './types';
+import { HotTableProps, VueProps } from './types';
 
 const unassignedPropSymbol = Symbol('unassigned');
-let bulkComponentContainer = null;
 
 /**
  * Message for the warning thrown if the Handsontable instance has been destroyed.
@@ -23,36 +21,6 @@ export function hasOwnProperty(object: unknown, key: string): boolean {
 }
 
 /**
- * Private method to ensure the table is not calling `updateSettings` after editing cells.
- *
- * @private
- * @param {VNode} component VNode component.
- */
-export function preventInternalEditWatch(component) {
-  if (component.hotInstance) {
-    component.hotInstance.addHook('beforeChange', () => {
-      component.__internalEdit = true;
-    });
-
-    component.hotInstance.addHook('beforeCreateRow', () => {
-      component.__internalEdit = true;
-    });
-
-    component.hotInstance.addHook('beforeCreateCol', () => {
-      component.__internalEdit = true;
-    });
-
-    component.hotInstance.addHook('beforeRemoveRow', () => {
-      component.__internalEdit = true;
-    });
-
-    component.hotInstance.addHook('beforeRemoveCol', () => {
-      component.__internalEdit = true;
-    });
-  }
-}
-
-/**
  * Generate an object containing all the available Handsontable properties and plugin hooks.
  *
  * @param {string} source Source for the factory (either 'HotTable' or 'HotColumn').
@@ -60,7 +28,7 @@ export function preventInternalEditWatch(component) {
  */
 export function propFactory(source): VueProps<HotTableProps> {
   const registeredHooks = Handsontable.hooks.getRegistered();
-  const propSchema: VueProps<HotTableProps> = {} as any;
+  const propSchema: VueProps<HotTableProps> = {};
 
   Object.assign(propSchema, Handsontable.DefaultSettings);
 
@@ -155,7 +123,6 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
       hasOwnProperty(additionalHotSettingsInProps, key) &&
       key !== 'id' &&
       key !== 'settings' &&
-      key !== 'wrapperRendererCacheSize' &&
       additionalHotSettingsInProps[key] !== void 0 &&
       ((currentSettings && key !== 'data')
         ? !simpleEqual(currentSettings[key], additionalHotSettingsInProps[key]) : true)
@@ -165,91 +132,6 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
   }
 
   return newSettings;
-}
-
-/**
- * Get the VNode element with the provided type attribute from the component slots.
- *
- * @param {Array} componentSlots Array of slots from a component.
- * @param {string} type Type of the child component. Either `hot-renderer` or `hot-editor`.
- * @returns {Object|null} The VNode of the child component (or `null` when nothing's found).
- */
-export function findVNodeByType(componentSlots: VNode[], type: string): VNode {
-  let componentVNode: VNode = null;
-
-  componentSlots.every((slot) => {
-    if (slot.props && slot.props[type] !== void 0) {
-      componentVNode = slot;
-
-      return false;
-    }
-
-    return true;
-  });
-
-  return componentVNode;
-}
-
-/**
- * Get all `hot-column` component instances from the provided children array.
- *
- * @param {VNode[]} children Array of children from a component.
- * @returns {VNode[]} Array of `hot-column` instances.
- */
-export function getHotColumnComponents(children) {
-  return children.filter(child => getVNodeName(child) === 'HotColumn');
-}
-
-/**
- * Returns the Vue Component name.
- *
- * @param {VNode} node VNode element to be checked.
- * @returns {string}
- */
-export function getVNodeName(node: VNode) {
-  if (typeof node.type === 'string') {
-    return node.type;
-  }
-
-  return node.type?.name;
-}
-
-/**
- * Create an instance of the Vue Component based on the provided VNode.
- *
- * @param {VNode} vNode VNode element to be turned into a component instance.
- * @param {VNode} parent Instance of the component to be marked as a parent of the newly created instance.
- * @param {object} data Data to be passed to the new instance.
- * @returns {VNode}
- */
-export function createVueComponent(vNode: VNode, parent: VNode, data: Record<string, unknown>) {
-  const ownerDocument = parent.$el ? parent.$el.ownerDocument : document;
-
-  if (!bulkComponentContainer) {
-    bulkComponentContainer = ownerDocument.createElement('DIV');
-    bulkComponentContainer.id = 'vueHotComponents';
-
-    ownerDocument.body.appendChild(bulkComponentContainer);
-  }
-
-  const componentContainer = ownerDocument.createElement('DIV');
-
-  bulkComponentContainer.appendChild(componentContainer);
-
-  // Clone component props without `hot-editor` and `hot-renderer` props
-  const {
-    'hot-editor': _hotEditor,
-    'hot-renderer': _hotRenderer,
-    ...newProps
-  } = vNode.props;
-  const app = createApp({
-    ...vNode.type,
-    data() {
-      return Object.assign(typeof vNode.type.data === 'function' ? vNode.type.data() : {}, data);
-    }
-  }, newProps);
-
-  return app.mount(componentContainer);
 }
 
 /**
