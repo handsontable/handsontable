@@ -17,13 +17,31 @@ You can configure the column-related settings using the `HotColumn` component's 
 
 To declare column-specific settings, pass the settings as `HotColumn` properties, either separately or wrapped as a `settings` property, exactly as you would with `HotTable`.
 
-<iframe src="https://codesandbox.io/embed/declaring-column-settings-seg0l?fontsize=14&theme=dark" title="Declaring column settings" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
-  style="width: 100%;
-  height: 390px;
-  border: 0;
-  borderRadius: 4;
-  overflow: hidden;" 
-  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+::: example #example1 :react --js 1 --tab preview
+```jsx
+import ReactDOM from "react-dom";
+import Handsontable from "handsontable";
+import { HotTable, HotColumn } from "@handsontable/react";
+import "handsontable/dist/handsontable.min.css";
+
+const hotData = Handsontable.helper.createSpreadsheetData(10, 5);
+const secondColumnSettings = {
+  title: "Second column header",
+  readOnly: true
+};
+
+const App = () => {
+  return (
+    <HotTable data={hotData} licenseKey="non-commercial-and-evaluation">
+      <HotColumn title="First column header" />
+      <HotColumn settings={secondColumnSettings} />
+    </HotTable>
+  );
+};
+
+ReactDOM.render(<App />, document.getElementById('example1'));
+```
+:::
 
 ## Declaring a custom renderer as a component
 
@@ -38,13 +56,50 @@ Handsontable's `autoRowSize` and `autoColumnSize` options require calculating th
 Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results. Please note that `autoColumnSize` is enabled by default.
 :::
 
-<iframe src="https://codesandbox.io/embed/declaring-a-custom-renderer-as-a-component-4yv9m?fontsize=14&theme=dark" title="Declaring a custom renderer as a component" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
-  style="width: 100%;
-  height: 390px;
-  border: 0;
-  borderRadius: 4;
-  overflow: hidden;"
-  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+::: example #example2 :react --js 1 --tab preview
+```jsx
+import ReactDOM from "react-dom";
+import Handsontable from "handsontable";
+import { HotTable, HotColumn } from "@handsontable/react";
+import "handsontable/dist/handsontable.min.css";
+
+// your renderer component
+const RendererComponent = (props) => {
+  // the available renderer-related props are:
+  // - `row` (row index)
+  // - `col` (column index)
+  // - `prop` (column property name)
+  // - `TD` (the HTML cell element)
+  // - `cellProperties` (the `cellProperties` object for the edited cell)
+  return (
+    <React.Fragment>
+      <i style={{ color: "#a9a9a9" }}>
+        Row: {props.row}, column: {props.col},
+      </i>{" "}
+      value: {props.value}
+    </React.Fragment>
+  );
+}
+
+const hotData = Handsontable.helper.createSpreadsheetData(10, 5);
+
+// to mark the `RendererComponent` component as a Handsontable renderer,
+// add a `hot-renderer` attribute to it
+const App = () => {
+  return (
+    <div>
+    <HotTable data={hotData} licenseKey="non-commercial-and-evaluation">
+      <HotColumn width={250}>
+        <RendererComponent hot-renderer />
+      </HotColumn>
+    </HotTable>
+    </div>
+  );
+};
+
+ReactDOM.render(<App />, document.getElementById('example2'));
+```
+:::
  
 ## Object data source
 
