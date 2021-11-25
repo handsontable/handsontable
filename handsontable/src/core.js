@@ -4404,17 +4404,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   gridContext.addShortcut([['ArrowLeft']], () => {
-    selection.transformStart(0, -1);
+    selection.transformStart(0, -1 * instance.getDirectionFactor());
   });
   gridContext.addShortcut([['ArrowLeft', 'Shift']], () => {
-    selection.transformEnd(0, -1);
+    selection.transformEnd(0, -1 * instance.getDirectionFactor());
   });
 
   gridContext.addShortcut([['ArrowRight']], () => {
-    selection.transformStart(0, 1);
+    selection.transformStart(0, instance.getDirectionFactor());
   });
   gridContext.addShortcut([['ArrowRight', 'Shift']], () => {
-    selection.transformEnd(0, 1);
+    selection.transformEnd(0, instance.getDirectionFactor());
   });
 
   gridContext.addShortcut([['Home']], () => {
