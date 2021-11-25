@@ -98,13 +98,13 @@ module.exports.create = function create() {
         filesInOutputLanguagesDirectory.forEach((fileName) => {
           // Copy only UMD language files (ignore ES files that with .mjs extension)
           if (fileName !== indexFileName && fileName.endsWith('.js')) {
-            fsExtra.copySync(`${OUTPUT_LANGUAGES_DIRECTORY}/${fileName}`, `dist/languages/${fileName}`);
+            fsExtra.copySync(path.resolve(__dirname, `../${OUTPUT_LANGUAGES_DIRECTORY}/${fileName}`), path.resolve(__dirname, `../dist/languages/${fileName}`));
           }
         });
 
         // Copy from `languages/all.js` to `languages/index.js`
         if (filesInOutputLanguagesDirectory.includes(allLanguagesFileName)) {
-          fsExtra.copySync(`${OUTPUT_LANGUAGES_DIRECTORY}/${allLanguagesFileName}`, `${OUTPUT_LANGUAGES_DIRECTORY}/${indexFileName}`);
+          fsExtra.copySync(path.resolve(__dirname, `../${OUTPUT_LANGUAGES_DIRECTORY}/${allLanguagesFileName}`), path.resolve(__dirname, `../${OUTPUT_LANGUAGES_DIRECTORY}/${indexFileName}`));
         }
       })
     ]
