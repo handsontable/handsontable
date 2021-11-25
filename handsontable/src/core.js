@@ -2101,7 +2101,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
 
     } else {
-      throw new Error(`loadData only accepts array of objects or array of arrays (${typeof data} given)`);
+      throw new Error(`${internalSource} only accepts array of objects or array of arrays (${typeof data} given)`);
     }
 
     if (Array.isArray(data[0])) {
@@ -2132,7 +2132,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     data = instance.runHooks(`after${capitalizedInternalSource}`, data, firstRun, source);
 
     // TODO: deprecated, will be eventually removed, leaving only the `afterSetData` hook.
-    // Triggers an additional `afterLoadData` hook for the `updateSettings` calls for backward compatibility.
+    //  Triggers an additional `afterLoadData` hook for the `updateSettings` calls for backward compatibility.
     if (internalSource !== 'loadData' && source === 'updateSettings') {
       data = instance.runHooks('afterLoadData', data, firstRun, source);
     }
@@ -2141,7 +2141,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       firstRun = [null, 'loadData'];
 
     } else {
-      instance.runHooks('afterChange', null, 'loadData');
+      // TODO: `afterChange` still needs to provide `loadData` as a `source` when called from `updateSettings` to keep
+      //  backward compatibility - to be changed after removing `loadData`.
+      instance.runHooks('afterChange', null, (source === 'updateSettings' ? 'loadData' : internalSource));
       instance.render();
     }
   };
