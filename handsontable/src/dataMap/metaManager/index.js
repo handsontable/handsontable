@@ -42,7 +42,6 @@ export default class MetaManager {
      * @type {GlobalMeta}
      */
     this.globalMeta = new GlobalMeta(hot);
-    this.globalMeta.updateMeta(customSettings);
     /**
      * @type {TableMeta}
      */
@@ -57,6 +56,8 @@ export default class MetaManager {
     this.cellMeta = new CellMeta(this.columnMeta);
 
     metaMods.forEach(ModifierClass => new ModifierClass(this));
+
+    this.globalMeta.updateMeta(customSettings);
   }
 
   /**

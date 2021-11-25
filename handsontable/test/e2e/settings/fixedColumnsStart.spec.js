@@ -182,6 +182,7 @@ describe('settings', () => {
       expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(3);
     });
   });
+
   describe('fixedColumnsLeft', () => {
     const id = 'testContainer';
 
