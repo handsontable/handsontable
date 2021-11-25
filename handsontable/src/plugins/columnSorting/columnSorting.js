@@ -158,6 +158,7 @@ export class ColumnSorting extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterInit', () => this.loadOrSortBySettings());
+    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
     this.addHook('afterSetData', (sourceData, initialLoad) => this.onAfterSetData(initialLoad));
 
     // TODO: Workaround? It should be refactored / described.
@@ -731,6 +732,21 @@ export class ColumnSorting extends BasePlugin {
       if (this.hot.view) {
         this.loadOrSortBySettings();
       }
+    }
+  }
+
+  /**
+   * Alias for `onAfterSetData`.
+   *
+   * @private
+   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
+   *                              during the initialization.
+   * @param {string} source Source of the hook call.
+   */
+  onAfterLoadData(sourceData, initialLoad, source) {
+    if (source !== 'updateSettings') {
+      this.onAfterSetData(sourceData, initialLoad, source);
     }
   }
 

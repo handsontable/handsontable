@@ -156,7 +156,9 @@ export class Formulas extends BasePlugin {
       }
     }
 
+    this.addHook('beforeLoadData', (...args) => this.onBeforeLoadData(...args));
     this.addHook('beforeSetData', (...args) => this.onBeforeSetData(...args));
+    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
     this.addHook('afterSetData', (...args) => this.onAfterSetData(...args));
     this.addHook('modifyData', (...args) => this.onModifyData(...args));
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
@@ -655,6 +657,36 @@ export class Formulas extends BasePlugin {
 
     } else {
       this.switchSheet(this.sheetName);
+    }
+  }
+
+  /**
+   * Alias for `onAfterSetData`.
+   *
+   * @private
+   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
+   *                              during the initialization.
+   * @param {string} source Source of the hook call.
+   */
+  onAfterLoadData(sourceData, initialLoad, source) {
+    if (source !== 'updateSettings') {
+      this.onAfterSetData(sourceData, initialLoad, source);
+    }
+  }
+
+  /**
+   * Alias for `onAfterSetData`.
+   *
+   * @private
+   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
+   *                              during the initialization.
+   * @param {string} source Source of the hook call.
+   */
+  onBeforeLoadData(sourceData, initialLoad, source) {
+    if (source !== 'updateSettings') {
+      this.onBeforeSetData(sourceData, initialLoad, source);
     }
   }
 
