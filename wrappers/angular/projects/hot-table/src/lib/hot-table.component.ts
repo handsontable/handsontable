@@ -9,7 +9,7 @@ import {
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import {
   HotTableRegisterer,
   HOT_DESTROYED_WARNING
@@ -235,6 +235,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() afterValidate: Handsontable.GridSettings['afterValidate'];
   @Input() afterViewportColumnCalculatorOverride: Handsontable.GridSettings['afterViewportColumnCalculatorOverride'];
   @Input() afterViewportRowCalculatorOverride: Handsontable.GridSettings['afterViewportRowCalculatorOverride'];
+  @Input() afterViewRender: Handsontable.GridSettings['afterViewRender'];
   @Input() beforeAddChild: Handsontable.GridSettings['beforeAddChild'];
   @Input() beforeAutofill: Handsontable.GridSettings['beforeAutofill'];
   @Input() beforeAutofillInsidePopulate: Handsontable.GridSettings['beforeAutofillInsidePopulate'];
@@ -298,6 +299,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() beforeUntrimRow: Handsontable.GridSettings['beforeUntrimRow'];
   @Input() beforeValidate: Handsontable.GridSettings['beforeValidate'];
   @Input() beforeValueRender: Handsontable.GridSettings['beforeValueRender'];
+  @Input() beforeViewRender: Handsontable.GridSettings['beforeViewRender'];
   @Input() construct: Handsontable.GridSettings['construct'];
   @Input() init: Handsontable.GridSettings['init'];
   @Input() modifyAutoColumnSizeSeed: Handsontable.GridSettings['modifyAutoColumnSizeSeed'];

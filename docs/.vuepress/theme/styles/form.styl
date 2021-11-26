@@ -1,0 +1,68 @@
+/*
+  A stylesheet for different form elements:
+
+  - button
+  - input
+  - textarea
+  - select
+  - checkbox
+*/
+
+/* BUTTON */
+
+.controls {
+  margin-top: 10px;
+  padding-bottom: 10px;
+}
+
+// select all <button>s that are not descendants of .handsontable container elements
+.page button:not(.theme-code-group__nav-tab, .handsontable *) {
+  padding: 8px 14px;
+  font-size: 14px;
+  display: inline-block;
+  cursor: pointer;
+  text-decoration: none;
+  border-radius: 4px;
+  border: none;
+  color: #fff;
+  box-shadow: 0 3px 3px rgba(0,0,0,0.10);
+  background-color: #2c3e51;
+  transition: background-color .3s ease-in-out;
+
+  &:hover, &:focus, &:active {
+    text-decoration: none;
+    background-color: #2c3e51de;
+  }
+
+  &.button {
+
+    // blue is default
+    &--blue {
+      background-color: #2456f2;
+    }
+
+    &--green {
+      background-color: #43a047;
+    }
+
+    &--darkNavy {
+      background-color: #15202f;
+    }
+
+    &--gray {
+      color: #fff;
+      background-color: #8D8D8D;
+    }
+
+    &--darkGray {
+      color: #fff;
+      background-color: #363636;
+    }
+
+    &--white {
+      color: $textColor;
+      border: 1px solid #cfdbe4;
+      background-color: #fff;
+    }
+  }
+}

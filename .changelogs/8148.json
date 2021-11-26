@@ -1,7 +1,0 @@
-{
-  "title": "Fixed an issue, where adding rows to the Handsontable instance wrapped for Vue resulted in additional rows being inserted at the end of the table.",
-  "type": "fixed",
-  "issue": 8148,
-  "breaking": false,
-  "framework": "vue"
-}

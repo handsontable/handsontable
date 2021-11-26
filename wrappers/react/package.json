@@ -1,6 +1,6 @@
 {
   "name": "@handsontable/react",
-  "version": "9.0.1",
+  "version": "11.0.1",
   "description": "Best Data Grid for React with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
@@ -64,27 +64,27 @@
     "enzyme": "^3.10.0",
     "enzyme-adapter-react-16": "^1.14.0",
     "enzyme-to-json": "^3.4.0",
-    "handsontable": "^9.0.0",
+    "handsontable": "^11.0.0",
     "jest": "^25.1.0",
     "prop-types": "^15.7.2",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",
     "react-redux": "^7.1.1",
     "redux": "^4.0.4",
-    "rollup": "^2.0.0",
+    "rollup": "^2.58.0",
     "rollup-plugin-alias": "^1.5.2",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-commonjs": "^10.0.1",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-replace": "^2.2.0",
-    "rollup-plugin-typescript2": "^0.22.1",
     "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.22.1",
     "typescript": "3.8.2",
     "uglify-js": "^3.4.9"
   },
   "peerDependencies": {
-    "handsontable": ">=9.0.0"
+    "handsontable": ">=11.0.0"
   },
   "scripts": {
     "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min",

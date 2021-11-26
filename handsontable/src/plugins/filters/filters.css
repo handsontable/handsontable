@@ -1,0 +1,283 @@
+/*!
+ * Handsontable Filters
+ */
+
+/* Conditions menu */
+.htFiltersConditionsMenu:not(.htGhostTable) {
+  display: none;
+  position: absolute;
+  z-index: 1070;
+}
+
+.htFiltersConditionsMenu .ht_clone_top,
+.htFiltersConditionsMenu .ht_clone_left,
+.htFiltersConditionsMenu .ht_clone_corner {
+  display: none;
+}
+
+.htFiltersConditionsMenu table.htCore {
+  border: 1px solid #bbb;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+}
+
+.htFiltersConditionsMenu .wtBorder {
+  visibility: hidden;
+}
+
+.htFiltersConditionsMenu table tbody tr td {
+  background: white;
+  border-width: 0;
+  padding: 4px 6px 0 6px;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.htFiltersConditionsMenu table tbody tr td:first-child {
+  border: 0;
+}
+
+.htFiltersConditionsMenu table tbody tr td.htDimmed {
+  font-style: normal;
+  color: #323232;
+}
+
+.htFiltersConditionsMenu table tbody tr td.current,
+.htFiltersConditionsMenu table tbody tr td.zeroclipboard-is-hover {
+  background: #e9e9e9;
+}
+
+.htFiltersConditionsMenu table tbody tr td.htSeparator {
+  border-top: 1px solid #e6e6e6;
+  height: 0;
+  padding: 0;
+}
+
+.htFiltersConditionsMenu table tbody tr td.htDisabled {
+  color: #999;
+}
+
+.htFiltersConditionsMenu table tbody tr td.htDisabled:hover {
+  background: #fff;
+  color: #999;
+  cursor: default;
+}
+
+.htFiltersConditionsMenu table tbody tr td .htItemWrapper {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.htFiltersConditionsMenu table tbody tr td div span.selected {
+  margin-top: -2px;
+  position: absolute;
+  left: 4px;
+}
+
+.htFiltersConditionsMenu .ht_master .wtHolder {
+  overflow: hidden;
+}
+
+.handsontable .htMenuFiltering {
+  border-bottom: 1px dotted #ccc;
+  height: 135px;
+  overflow: hidden;
+}
+
+.handsontable .ht_master table td.htCustomMenuRenderer {
+  background-color: #fff;
+  cursor: auto;
+}
+
+/* Menu label */
+.handsontable .htFiltersMenuLabel {
+  font-size: 0.75em;
+}
+
+/* Component action bar */
+.handsontable .htFiltersMenuActionBar {
+  text-align: center;
+  padding-top: 10px;
+  padding-bottom: 3px;
+}
+
+/* Component filter by conditional */
+.handsontable .htFiltersMenuCondition.border {
+  border-bottom: 1px dotted #ccc !important;
+}
+.handsontable .htFiltersMenuCondition .htUIInput {
+  padding: 0 0 5px 0;
+}
+
+/* Component filter by value */
+.handsontable .htFiltersMenuValue {
+  border-bottom: 1px dotted #ccc !important;
+}
+.handsontable .htFiltersMenuValue .htUIMultipleSelectSearch {
+  padding: 0;
+}
+.handsontable .htFiltersMenuCondition .htUIInput input,
+.handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input {
+  font-family: inherit;
+  font-size: 0.75em;
+  padding: 4px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.htUIMultipleSelect .ht_master .wtHolder {
+  overflow-y: scroll;
+}
+
+.handsontable .htFiltersActive .changeType {
+  border: 1px solid #509272;
+  color: #18804e;
+  background-color: #d2e0d9;
+}
+
+.handsontable .htUISelectAll {
+  margin-right: 10px;
+}
+
+.handsontable .htUIClearAll, .handsontable .htUISelectAll {
+  display: inline-block;
+}
+
+.handsontable .htUIClearAll a, .handsontable .htUISelectAll a {
+  font-size: 0.75em;
+}
+
+.handsontable .htUISelectionControls {
+  text-align: right;
+}
+
+.handsontable .htCheckboxRendererInput {
+  margin: 0 5px 0 0;
+  vertical-align: middle;
+  height: 1em;
+}
+
+/* UI elements */
+/* Input */
+.handsontable .htUIInput {
+  padding: 3px 0 7px 0;
+  position: relative;
+  text-align: center;
+}
+.handsontable .htUIInput input {
+  border-radius: 2px;
+  border: 1px solid #d2d1d1;
+}
+.handsontable .htUIInput input:focus {
+  outline: 0;
+}
+.handsontable .htUIInputIcon {
+  position: absolute;
+}
+
+/* Button */
+.handsontable .htUIInput.htUIButton {
+  cursor: pointer;
+  display: inline-block;
+}
+.handsontable .htUIInput.htUIButton input {
+  background-color: #eee;
+  color: #000;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.75em;
+  font-weight: bold;
+  height: 19px;
+  min-width: 64px;
+}
+.handsontable .htUIInput.htUIButton input:hover {
+  border-color: #b9b9b9;
+}
+
+.handsontable .htUIInput.htUIButtonOK {
+  margin-right: 10px;
+}
+
+.handsontable .htUIInput.htUIButtonOK input {
+  background-color: #0f9d58;
+  border-color: #18804e;
+  color: #fff;
+}
+.handsontable .htUIInput.htUIButtonOK input:hover {
+  border-color: #1a6f46;
+}
+
+/* Select */
+.handsontable .htUISelect {
+  cursor: pointer;
+  margin-bottom: 7px;
+  position: relative;
+}
+.handsontable .htUISelectCaption {
+  background-color: #e8e8e8;
+  border-radius: 2px;
+  border: 1px solid #d2d1d1;
+  font-family: inherit;
+  font-size: 0.75em;
+  font-weight: bold;
+  padding: 3px 20px 3px 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.handsontable .htUISelectCaption:hover {
+  background-color: #e8e8e8;
+  border: 1px solid #b9b9b9;
+}
+.handsontable .htUISelectDropdown:after {
+  content: '\25B2';
+  font-size: 7px;
+  position: absolute;
+  right: 10px;
+  top: 0;
+}
+.handsontable .htUISelectDropdown:before {
+  content: '\25BC';
+  font-size: 7px;
+  position: absolute;
+  right: 10px;
+  top: 8px;
+}
+
+/* SelectMultiple */
+.handsontable .htUIMultipleSelect .handsontable .htCore {
+  border: none;
+}
+.handsontable .htUIMultipleSelect .handsontable .htCore td:hover {
+  background-color: #F5F5F5;
+}
+
+.handsontable .htUIMultipleSelectSearch input {
+  border-radius: 2px;
+  border: 1px solid #d2d1d1;
+  padding: 3px;
+}
+
+.handsontable .htUIRadio {
+  display: inline-block;
+  margin-right: 5px;
+  height: 100%;
+}
+
+.handsontable .htUIRadio:last-child {
+  margin-right: 0;
+}
+
+.handsontable .htUIRadio > input[type=radio] {
+  margin-right: 0.5ex;
+}
+
+.handsontable .htUIRadio label {
+  vertical-align: middle;
+}
+
+.handsontable .htFiltersMenuOperators {
+  padding-bottom: 5px;
+}

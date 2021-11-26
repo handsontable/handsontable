@@ -1,0 +1,94 @@
+---
+title: Custom renderer example
+metaTitle: Custom renderer example - Guide - Handsontable Documentation
+permalink: /next/angular-custom-renderer-example
+canonicalUrl: /angular-custom-renderer-example
+---
+
+# Custom renderer example
+
+## Overview
+The following example is an implementation of `@handsontable/angular` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
+
+## Example
+::: example :angular --html 1 --js 2
+```html
+<app-root></app-root>
+```
+
+```js
+// app.component.ts
+import { Component } from '@angular/core';
+import Handsontable from 'handsontable/base';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+
+@Component({
+  selector: 'app-root',
+  template: `
+  <div>
+    <hot-table [settings]="hotSettings"></hot-table>
+  </div>
+  `,
+})
+class AppComponent {
+  hotSettings: Handsontable.GridSettings = {
+    data:
+      [
+        ['A1', 'https://handsontable.com/docs/next/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
+        ['A2', 'https://handsontable.com/docs/next/img/examples/javascript-the-good-parts.jpg']
+      ],
+    columns: [
+      {},
+      {
+        renderer(instance, td, row, col, prop, value, cellProperties) {
+          const escaped = `${value}`;
+          let img = null;
+
+          if (escaped.indexOf('http') === 0) {
+            img = document.createElement('IMG');
+            img.src = value;
+
+            img.addEventListener('mousedown', event => {
+              event.preventDefault();
+            });
+
+            td.innerText = '';
+            td.appendChild(img);
+
+          } else {
+            textRenderer.apply(this, arguments);
+          }
+
+          return td;
+        }
+      }
+    ],
+    colHeaders: true,
+    rowHeights: 55,
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation'
+  };
+}
+
+// app.module.ts
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { HotTableModule } from '@handsontable/angular';
+import { registerAllModules } from 'handsontable/registry';
+
+// register Handsontable's modules
+registerAllModules();
+
+@NgModule({
+  imports:      [ BrowserModule, HotTableModule ],
+  declarations: [ AppComponent ],
+  bootstrap:    [ AppComponent ]
+})
+class AppModule { }
+
+// bootstrap
+import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+
+platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
+```
+:::

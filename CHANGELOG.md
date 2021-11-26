@@ -8,6 +8,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [11.0.1] - 2021-11-17
+
+### Fixed
+- Fixed the UMD build of `@handsontable/angular`, which was not working properly in `11.0.0`. [#8946](https://github.com/handsontable/handsontable/pull/8946)
+
+## [11.0.0] - 2021-11-17
+
+### Added
+- Added TypeScript definition files for Handsontable's modularized version. [#7489](https://github.com/handsontable/handsontable/issues/7489) (**Breaking change**)
+- *Vue:* Added support for modularization to the Vue wrapper. [#8820](https://github.com/handsontable/handsontable/issues/8820) (**Breaking change**)
+- *React:* Added support for modularization to the React wrapper. [#8819](https://github.com/handsontable/handsontable/issues/8819) (**Breaking change**)
+- *Angular:* Added support for modularization to the Angular wrapper. [#8818](https://github.com/handsontable/handsontable/issues/8818) (**Breaking change**)
+- Added a new package entry point that allows importing built-in modules in one function call: `import { registerAllEditors, registerAllRenderers, registerAllValidators, registerAllCellTypes, registerAllPlugins } from 'handsontable/registry'`. [#8816](https://github.com/handsontable/handsontable/issues/8816)
+- Added a new `locale` option, to properly handle locale-based data. [#8897](https://github.com/handsontable/handsontable/issues/8897)
+- Added a GitHub Actions workflow that covers testing Handsontable and the wrappers. [#8652](https://github.com/handsontable/handsontable/issues/8652)
+- Added new direction helpers (internal API) that lay ground for future RTL support. [#8868](https://github.com/handsontable/handsontable/issues/8868)
+
+
+### Changed
+- Changed how the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888) (**Breaking change**)
+- Moved the entire Handsontable package to its own, new subdirectory: `./handsontable`. [#8759](https://github.com/handsontable/handsontable/issues/8759) 
+- Replaced the license files with updated versions. [#8877](https://github.com/handsontable/handsontable/issues/8877)
+
+### Fixed 
+- Fixed an issue with incorrect filtering of locale-based data while using search input from a drop-down menu. [#6095](https://github.com/handsontable/handsontable/issues/6095) 
+- Fixed an error thrown when using the `populateFromArray()` method with its `method` argument set to `shift_right`. [#6929](https://github.com/handsontable/handsontable/issues/6929) 
+- Fixed an issue with the `beforeOnCellMouseDown` and `afterOnCellMouseDown` hooks using wrong coordinates. [#8498](https://github.com/handsontable/handsontable/issues/8498) 
+- Fixed a `TypeError` thrown when calling the `updateSettings()` method in Handsontable's modularized version. [#8830](https://github.com/handsontable/handsontable/issues/8830) 
+- Fixed two issues with the documentation's `canonicalUrl` entries. [#8886](https://github.com/handsontable/handsontable/issues/8886)
+- Fixed an error thrown when autofill's source is a `date` cell. [#8894](https://github.com/handsontable/handsontable/issues/8894)
+- *React:* Fixed a React wrapper issue where it's impossible to use different sets of props in editor components reused across multiple columns. [#8527](https://github.com/handsontable/handsontable/issues/8527)
+
+## [10.0.0] - 2021-09-29
+
+### Changed
+- Unified the naming and description of the fourth argument, `controller`, for selection manipulation in the `beforeOnCellMouseDown` and `beforeOnCellMouseOver` hooks. [#4996](https://github.com/handsontable/handsontable/issues/4996) (**Breaking change**)
+- Changed what the `beforeRender` and `afterRender` hooks are, and when they are triggered. Added two new hooks: `beforeViewRender` and `afterViewRender`. [#6303](https://github.com/handsontable/handsontable/issues/6303) (**Breaking change**)
+- Changed the optional HyperFormula dependency from 0.6.2 to ^1.1.0, which introduces breaking changes for the `Formulas` plugin users. [#8502](https://github.com/handsontable/handsontable/issues/8502) (**Breaking change**)
+- Changed the default values for the `rowsLimit` and `columnsLimit` options of the `CopyPaste` plugin. [#8660](https://github.com/handsontable/handsontable/issues/8660) (**Breaking change**)
+- Added a default font family, size, weight and color. [#8661](https://github.com/handsontable/handsontable/issues/8661) (**Breaking change**)
+- Changed the `autoWrapRow` and `autoWrapCol` options\` default values from `true` to `false`. [#8662](https://github.com/handsontable/handsontable/issues/8662) (**Breaking change**)
+- Improved the performance of the `getCellMeta()` method. [#6303](https://github.com/handsontable/handsontable/issues/6303)
+- Improved the documentation and TypeScript definition of the `selectOptions` option. [#8488](https://github.com/handsontable/handsontable/issues/8488)
+- Improved the arguments forwarding in the hooks [#8668](https://github.com/handsontable/handsontable/issues/8668)
+- Added a Github Actions workflow covering the testing of Handsontable and all of the wrappers. [#8652](https://github.com/handsontable/handsontable/issues/8652)
+
+### Fixed
+- Fixed an issue of not resetting the date picker's configuration. [#6636](https://github.com/handsontable/handsontable/issues/6636)
+- An error won't be thrown while inserting a new row for nested rows in a specific case. [#7137](https://github.com/handsontable/handsontable/issues/7137)
+- Fixed a few problems with the `NestedRows` plugin, occurring with the `Formulas` plugin enabled. [#8048](https://github.com/handsontable/handsontable/issues/8048)
+- Fixed errors being thrown in the `Formulas` plugin if a provided sheet name contained a dash character. [#8057](https://github.com/handsontable/handsontable/issues/8057)
+- Fixed multiple bugs related to undo/redo actions while using the `Formulas` plugin. [#8078](https://github.com/handsontable/handsontable/issues/8078)
+- Fixed an issue where autofill was not able to be blocked/changed with the `beforeChange` hook when the `Formulas` plugin was enabled [#8107](https://github.com/handsontable/handsontable/issues/8107)
+- Data stored by the `NestedRows` plugin won't be corrupted by some actions. [#8180](https://github.com/handsontable/handsontable/issues/8180)
+- Collapsed parents won't be expanded after inserting rows. [#8181](https://github.com/handsontable/handsontable/issues/8181)
+- Fixed the cooperation of the dropdown menu and column sorting (menu closing on click). [#8232](https://github.com/handsontable/handsontable/issues/8232)
+- Data won't be corrupted anymore when some alterations are performed. [#8614](https://github.com/handsontable/handsontable/issues/8614)
+- Adjusted directories and files related to `dataMap`, to prevent potential circular references. [#8704](https://github.com/handsontable/handsontable/issues/8704)
+- Improved the performance of the regular expression used to detect numeric values, and fixed major code smells. [#8752](https://github.com/handsontable/handsontable/issues/8752)
+
+## [9.0.2] - 2021-07-28
+
+### Fixed
+- Fixed an issue with an error being thrown when lazy loading columns on a setup with Nested Headers + Hidden Columns. [#7160](https://github.com/handsontable/handsontable/issues/7160)
+- Fixed column header sizes not being updated on `updateSettings` calls containing `columns`. [#7689](https://github.com/handsontable/handsontable/issues/7689)
+- Fixed functional keys' behavior, to prevent unexpected editing. [#7838](https://github.com/handsontable/handsontable/issues/7838)
+- Fixed missing collapsible indicator on IE. [#8028](https://github.com/handsontable/handsontable/issues/8028)
+- Fixed support for row and column headers in the `parseTable` utility. [#8041](https://github.com/handsontable/handsontable/issues/8041)
+- Fixed a bug where not providing a data object with the `nestedRows` plugin enabled crashed the table. [#8171](https://github.com/handsontable/handsontable/issues/8171)
+- *Vue:* Fixed an issue where adding rows to a Handsontable instance wrapped for Vue resulted in additional rows being inserted at the end of the table. [#8148](https://github.com/handsontable/handsontable/issues/8148)
+- *Vue:* Fixed a problem in the Vue wrapper, where destroying the underlying Handsontable instance caused it to throw errors and crash. [#8311](https://github.com/handsontable/handsontable/issues/8311)
+- *React:* Fixed a problem in the React wrapper, where destroying the underlying Handsontable instance caused it to throw errors and crash. [#8311](https://github.com/handsontable/handsontable/issues/8311)
+- *Angular:* Fixed a problem in the Angular wrapper, where destroying the underlying Handsontable instance caused it to throw errors and crash. [#8311](https://github.com/handsontable/handsontable/issues/8311)
+
+### Added
+- Added new documentation engine [#7624](https://github.com/handsontable/handsontable/issues/7624)
+
 ## [9.0.1] - 2021-06-17
 
 ### Fixed
