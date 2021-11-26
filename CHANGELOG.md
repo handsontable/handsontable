@@ -16,10 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [11.0.0] - 2021-11-17
 
 ### Added
-- Added TypeScript definition files for Handsontable's modularized version. [#7489](https://github.com/handsontable/handsontable/issues/7489) (**Breaking change**)
-- *Vue:* Added support for modularization to the Vue wrapper. [#8820](https://github.com/handsontable/handsontable/issues/8820) (**Breaking change**)
-- *React:* Added support for modularization to the React wrapper. [#8819](https://github.com/handsontable/handsontable/issues/8819) (**Breaking change**)
-- *Angular:* Added support for modularization to the Angular wrapper. [#8818](https://github.com/handsontable/handsontable/issues/8818) (**Breaking change**)
+-  **Breaking change**: Added TypeScript definition files for Handsontable's modularized version. [#7489](https://github.com/handsontable/handsontable/issues/7489)
+- **Breaking change (Vue)**: Added support for modularization to the Vue wrapper. [#8820](https://github.com/handsontable/handsontable/issues/8820)
+- **Breaking change (React)**: Added support for modularization to the React wrapper. [#8819](https://github.com/handsontable/handsontable/issues/8819)
+- **Breaking change (Angular)**: Added support for modularization to the Angular wrapper. [#8818](https://github.com/handsontable/handsontable/issues/8818)
 - Added a new package entry point that allows importing built-in modules in one function call: `import { registerAllEditors, registerAllRenderers, registerAllValidators, registerAllCellTypes, registerAllPlugins } from 'handsontable/registry'`. [#8816](https://github.com/handsontable/handsontable/issues/8816)
 - Added a new `locale` option, to properly handle locale-based data. [#8897](https://github.com/handsontable/handsontable/issues/8897)
 - Added a GitHub Actions workflow that covers testing Handsontable and the wrappers. [#8652](https://github.com/handsontable/handsontable/issues/8652)
@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ### Changed
-- Changed how the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888) (**Breaking change**)
+- **Breaking change**: Changed how the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888)
 - Moved the entire Handsontable package to its own, new subdirectory: `./handsontable`. [#8759](https://github.com/handsontable/handsontable/issues/8759) 
 - Replaced the license files with updated versions. [#8877](https://github.com/handsontable/handsontable/issues/8877)
 
