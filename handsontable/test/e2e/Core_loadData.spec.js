@@ -272,6 +272,7 @@ describe('Core_loadData', () => {
     const afterInitCellsSpy = cellsSpy.calls.count();
 
     loadData(arrayOfNestedObjects());
+    
     expect(cellsSpy.calls.count() - afterInitCellsSpy).toBe(12);
   });
 
@@ -290,6 +291,7 @@ describe('Core_loadData', () => {
     const afterInitCellsSpy = cellsSpy.calls.count();
 
     loadData(arrayOfNestedObjects());
+    
     expect(cellsSpy.calls.count() - afterInitCellsSpy).toBe(12);
   });
 

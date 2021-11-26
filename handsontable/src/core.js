@@ -2038,9 +2038,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterChange
    */
   this.replaceData = function(data, source, internalSource, resetState = true) {
-    const capitalizedInternalSource = (([firstLetter, ...remainingLetters]) => {
-      return [firstLetter.toUpperCase(), ...remainingLetters].join('');
-    })(internalSource);
+    const capitalizedInternalSource = toUpperCaseFirst(internalSource);
 
     if (Array.isArray(tableMeta.dataSchema)) {
       instance.dataType = 'array';
@@ -2123,7 +2121,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     } else {
       this.columnIndexMapper.fitToLength(this.getInitialColumnCount());
-
       this.rowIndexMapper.fitToLength(this.countSourceRows());
     }
 
@@ -2155,6 +2152,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function setData
+   * @since 11.1.0
    * @param {Array} data Array of arrays or array of objects containing data.
    * @param {string} [source] Source of the `setData` call.
    * @fires Hooks#beforeLoadData
@@ -2175,6 +2173,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function updateData
+   * @since 11.1.0
    * @param {Array} data Array of arrays or array of objects containing data.
    * @param {string} [source] Source of the `updateData` call.
    * @fires Hooks#beforeUpdateData
