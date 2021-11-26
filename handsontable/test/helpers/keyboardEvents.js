@@ -90,9 +90,9 @@ function triggerKeys(type) {
   return function(keys, extend = {}, target = document.activeElement) {
     keys.forEach((key) => {
 
-      extend.ctrlKey = keys.includes('control');
-      extend.metaKey = keys.includes('control');
-      extend.shiftKey = keys.includes('shift');
+      extend.ctrlKey = type === 'keyup' && key === 'control' ? false : keys.includes('control');
+      extend.metaKey = type === 'keyup' && key === 'control' ? false : keys.includes('control');
+      extend.shiftKey = type === 'keyup' && key === 'shift' ? false : keys.includes('shift');
 
       handsontableKeyTriggerFactory(type, target)(key, extend);
     });
@@ -108,7 +108,7 @@ function triggerKeys(type) {
  */
 export function keyDownUp(keys, extend, target) {
   keyDown(keys, extend, target);
-  keyUp(keys, extend, target);
+  keyUp(keys.reverse(), extend, target);
 }
 
 /**
