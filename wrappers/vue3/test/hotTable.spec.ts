@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { nextTick, ref } from 'vue';
 import { mount, config } from '@vue/test-utils';
 import HotTable from '../src/HotTable.vue';
 import { HOT_DESTROYED_WARNING } from '../src/helpers';
@@ -143,7 +144,7 @@ describe('Updating the Handsontable settings', () => {
 
     testWrapper.vm.updateData();
 
-    await testWrapper.vm.$nextTick();
+    await nextTick();
 
     expect(Object.keys(testWrapper.vm.newSettings).length).toBe(3);
 
@@ -186,28 +187,28 @@ describe('Updating the Handsontable settings', () => {
 
     testWrapper.vm.addRow();
 
-    await testWrapper.vm.$nextTick();
+    await nextTick();
 
     expect(hotInstance.getData()).toEqual([[1, 2, 3], [2, 3, 4]]);
     expect(testWrapper.vm.newSettings).toBe(null);
 
     testWrapper.vm.removeRow();
 
-    await testWrapper.vm.$nextTick();
+    await nextTick();
 
     expect(hotInstance.getData()).toEqual([[1, 2, 3]]);
     expect(testWrapper.vm.newSettings).toBe(null);
 
     testWrapper.vm.modifyFirstRow();
 
-    await testWrapper.vm.$nextTick();
+    await nextTick();
 
     expect(hotInstance.getData()).toEqual([[22, 32, 42]]);
     expect(testWrapper.vm.newSettings).toBe(null);
 
     testWrapper.vm.removeRow();
 
-    await testWrapper.vm.$nextTick();
+    await nextTick();
 
     expect(hotInstance.getData()).toEqual([]);
     expect(testWrapper.vm.newSettings).toBe(null);
@@ -245,7 +246,7 @@ describe('Updating the Handsontable settings', () => {
 
     testWrapper.vm.updateData({ a: 1, b: 2, c: 3, d: 4 });
 
-    await testWrapper.vm.$nextTick();
+    await nextTick();
 
     expect(hotInstance.getData()).toEqual([[1, 2, 3, 4]]);
     expect(JSON.stringify(testWrapper.vm.newSettings)).toBe(JSON.stringify({
@@ -254,7 +255,7 @@ describe('Updating the Handsontable settings', () => {
 
     testWrapper.vm.updateData({ a: 1 });
 
-    await testWrapper.vm.$nextTick();
+    await nextTick();
 
     expect(hotInstance.getData()).toEqual([[1]]);
     expect(JSON.stringify(testWrapper.vm.newSettings)).toBe(JSON.stringify({
@@ -297,14 +298,14 @@ describe('Updating the Handsontable settings', () => {
 
     testWrapper.vm.addRow();
 
-    await testWrapper.vm.$nextTick();
+    await nextTick();
 
     expect(hotInstance.getData()).toEqual([[1, 2, 3], [12, 22, 32]]);
     expect(testWrapper.vm.newSettings).toBe(null);
 
     testWrapper.vm.removeRow();
 
-    await testWrapper.vm.$nextTick();
+    await nextTick();
 
     expect(hotInstance.getData()).toEqual([[1, 2, 3]]);
     expect(testWrapper.vm.newSettings).toBe(null);
@@ -418,7 +419,7 @@ describe('HOT-based CRUD actions', () => {
     hotInstance.alter('insert_row', 2, 2);
     hotInstance.alter('insert_col', 2, 2);
 
-    await testWrapper.vm.$nextTick();
+    await nextTick();
 
     expect(hotInstance.countRows()).toBe(6);
     expect(hotInstance.countSourceRows()).toBe(6);
@@ -443,7 +444,7 @@ describe('HOT-based CRUD actions', () => {
 
 describe('Non-HOT based CRUD actions', () => {
   it('should not add/remove any additional rows when modifying a data array passed to the wrapper', async() => {
-    const externalData = createSampleData(4, 4);
+    const data = ref(createSampleData(4, 4));
     const App = {
       components: { HotTable },
       template: `
@@ -455,7 +456,7 @@ describe('Non-HOT based CRUD actions', () => {
           ></HotTable>`,
       data() {
         return {
-          data: externalData,
+          data,
         };
       },
     };
@@ -465,27 +466,27 @@ describe('Non-HOT based CRUD actions', () => {
     });
     const { hotInstance } = testWrapper.getComponent(HotTable).vm;
 
-    externalData[0].push('col4', 'col5');
-    externalData.push(['A', 'B', 'C', 'D']);
-    externalData.push(['E', 'F', 'G', 'H']);
+    data.value[0].push('col4', 'col5');
+    data.value.push(['A', 'B', 'C', 'D']);
+    data.value.push(['E', 'F', 'G', 'H']);
 
-    await testWrapper.vm.$nextTick();
+    await nextTick();
 
-    // expect(hotInstance.countRows()).toBe(6);
+    expect(hotInstance.countRows()).toBe(6);
     expect(hotInstance.countSourceRows()).toBe(6);
-    // expect(hotInstance.countCols()).toBe(6);
+    expect(hotInstance.countCols()).toBe(6);
     expect(hotInstance.countSourceCols()).toBe(6);
     expect(hotInstance.getSourceData().length).toBe(6);
     expect(hotInstance.getSourceData()[0].length).toBe(6);
 
-    externalData.pop();
-    externalData[0].pop();
+    data.value.pop();
+    data.value[0].pop();
 
-    await testWrapper.vm.$nextTick();
+    await nextTick();
 
-    // expect(hotInstance.countRows()).toBe(4);
+    expect(hotInstance.countRows()).toBe(5);
     expect(hotInstance.countSourceRows()).toBe(5);
-    // expect(hotInstance.countCols()).toBe(4);
+    expect(hotInstance.countCols()).toBe(5);
     expect(hotInstance.countSourceCols()).toBe(5);
     expect(hotInstance.getSourceData().length).toBe(5);
     expect(hotInstance.getSourceData()[0].length).toBe(5);

@@ -27,14 +27,14 @@ const HotTable = defineComponent({
   },
   watch: {
     $props: {
-      handler(value2) {
-        const value = prepareSettings(value2, this.hotInstance ? this.hotInstance.getSettings() : void 0);
+      handler(props) {
+        const settings = prepareSettings(props, this.hotInstance ? this.hotInstance.getSettings() : void 0);
 
-        if (!this.hotInstance || value === void 0) {
+        if (!this.hotInstance || settings === void 0) {
           return;
         }
 
-        if (value.data) {
+        if (settings.data) {
           if (
             this.hotInstance.isColumnModificationAllowed() ||
             (
@@ -46,14 +46,13 @@ const HotTable = defineComponent({
             this.matchHotMappersSize();
 
             // Data is automatically synchronized by reference.
-            delete value.data;
+            delete settings.data;
           }
         }
 
         // If there are another options changed, update the HOT settings, render the table otherwise.
-        if (Object.keys(value).length) {
-          // const newVal = makeRaw(value)
-          this.hotInstance.updateSettings(value);
+        if (Object.keys(settings).length) {
+          this.hotInstance.updateSettings(settings);
 
         } else {
           this.hotInstance.render();
@@ -63,7 +62,7 @@ const HotTable = defineComponent({
       },
       deep: true,
       immediate: true,
-    }
+    },
   },
   data() {
     return {

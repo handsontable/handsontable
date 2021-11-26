@@ -42,6 +42,5 @@ describe('prepareSettings', () => {
     expect(preparedSettings.afterChange([[1, 1, 1, 1]], 'auto')).toBe('afterChangeResult');
     expect(preparedSettings.id).toBe(void 0);
     expect(preparedSettings.settings).toBe(void 0);
-    expect(preparedSettings.wrapperRendererCacheSize).toBe(void 0);
   });
 });

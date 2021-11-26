@@ -26,7 +26,7 @@ export function hasOwnProperty(object: unknown, key: string): boolean {
  * @param {string} source Source for the factory (either 'HotTable' or 'HotColumn').
  * @returns {object}
  */
-export function propFactory(source): VueProps<HotTableProps> {
+export function propFactory(source: 'HotTable' | 'HotColumn'): VueProps<HotTableProps> {
   const registeredHooks = Handsontable.hooks.getRegistered();
   const propSchema: VueProps<HotTableProps> = {};
 
@@ -53,11 +53,6 @@ export function propFactory(source): VueProps<HotTableProps> {
     propSchema.id = {
       type: String,
       default: `hot-${Math.random().toString(36).substring(5)}`
-    };
-
-    propSchema.wrapperRendererCacheSize = {
-      type: Number,
-      default: 3000
     };
   }
 

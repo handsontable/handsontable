@@ -1,3 +1,4 @@
+import { nextTick } from 'vue';
 import { mount, config } from '@vue/test-utils';
 import { registerPlugin } from 'handsontable/plugins/registry';
 import { NestedRows } from 'handsontable/plugins/nestedRows';
@@ -52,7 +53,7 @@ describe('cooperation with NestedRows plugin', () => {
 
     expect(hotInstance.countRows()).toBe(7);
 
-    await testWrapper.vm.$nextTick();
+    await nextTick();
 
     expect(hotInstance.countRows()).toBe(7);
 
