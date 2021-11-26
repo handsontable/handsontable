@@ -77,19 +77,19 @@ class EditorManager {
 
     this.registerShortcuts();
 
-    this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
+    // this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
 
-    let frame = this.instance.rootWindow;
+    // let frame = this.instance.rootWindow;
 
-    while (frame) {
-      this.eventManager.addEventListener(frame.document.documentElement, 'keydown', (event) => {
-        if (!this.destroyed) {
-          this.instance.runHooks('afterDocumentKeyDown', event);
-        }
-      });
+    // while (frame) {
+    //   this.eventManager.addEventListener(frame.document.documentElement, 'keydown', (event) => {
+    //     if (!this.destroyed) {
+    //       this.instance.runHooks('afterDocumentKeyDown', event);
+    //     }
+    //   });
 
-      frame = getParentWindow(frame);
-    }
+    //   frame = getParentWindow(frame);
+    // }
 
     // Open editor when text composition is started (IME editor)
     this.eventManager.addEventListener(this.instance.rootDocument.documentElement, 'compositionstart', (event) => {
@@ -340,63 +340,6 @@ class EditorManager {
   }
 
   /**
-   * Controls selection behaviour after clicking `arrow up`.
-   *
-   * @private
-   * @param {boolean} isShiftPressed If `true`, then the selection will expand up.
-   */
-  moveSelectionUp(isShiftPressed) {
-    if (isShiftPressed) {
-      this.selection.transformEnd(-1, 0);
-    } else {
-      this.selection.transformStart(-1, 0);
-    }
-  }
-
-  /**
-   * Controls selection's behaviour after clicking `arrow down`.
-   *
-   * @private
-   * @param {boolean} isShiftPressed If `true`, then the selection will expand down.
-   */
-  moveSelectionDown(isShiftPressed) {
-    if (isShiftPressed) {
-      // expanding selection down with shift
-      this.selection.transformEnd(1, 0);
-    } else {
-      this.selection.transformStart(1, 0);
-    }
-  }
-
-  /**
-   * Controls selection's behaviour after clicking `arrow right`.
-   *
-   * @private
-   * @param {boolean} isShiftPressed If `true`, then the selection will expand right.
-   */
-  moveSelectionRight(isShiftPressed) {
-    if (isShiftPressed) {
-      this.selection.transformEnd(0, this.instance.getDirectionFactor());
-    } else {
-      this.selection.transformStart(0, this.instance.getDirectionFactor());
-    }
-  }
-
-  /**
-   * Controls selection's behaviour after clicking `arrow left`.
-   *
-   * @private
-   * @param {boolean} isShiftPressed If `true`, then the selection will expand left.
-   */
-  moveSelectionLeft(isShiftPressed) {
-    if (isShiftPressed) {
-      this.selection.transformEnd(0, -1 * this.instance.getDirectionFactor());
-    } else {
-      this.selection.transformStart(0, -1 * this.instance.getDirectionFactor());
-    }
-  }
-
-  /**
    * OnAfterDocumentKeyDown callback.
    *
    * @private
@@ -409,31 +352,31 @@ class EditorManager {
 
     this.instance.runHooks('beforeKeyDown', event);
 
-    const { keyCode } = event;
+    // const { keyCode } = event;
 
-    // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is produced when unfinished
-    // character is entering (using IME editor). It is fired mainly on linux (ubuntu) with installed ibus-pinyin package.
-    if (this.destroyed || keyCode === 229) {
-      return;
-    }
+    // // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is produced when unfinished
+    // // character is entering (using IME editor). It is fired mainly on linux (ubuntu) with installed ibus-pinyin package.
+    // if (this.destroyed || keyCode === 229) {
+    //   return;
+    // }
 
-    if (isImmediatePropagationStopped(event)) {
-      return;
-    }
+    // if (isImmediatePropagationStopped(event)) {
+    //   return;
+    // }
 
-    this.lastKeyCode = keyCode;
+    // this.lastKeyCode = keyCode;
 
-    if (!this.selection.isSelected()) {
-      return;
-    }
-    // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-    const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;
+    // if (!this.selection.isSelected()) {
+    //   return;
+    // }
+    // // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+    // const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;
 
-    if (this.activeEditor && !this.activeEditor.isWaiting()) {
-      if (!isFunctionKey(keyCode) && !isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
-        this.openEditor('', event);
-      }
-    }
+    // if (this.activeEditor && !this.activeEditor.isWaiting()) {
+    //   if (!isFunctionKey(keyCode) && !isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
+    //     this.openEditor('', event);
+    //   }
+    // }
   }
 
   /**

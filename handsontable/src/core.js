@@ -4479,16 +4479,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   gridContext.addShortcut([['Tab']], () => {
     const tabMoves = typeof tableMeta.tabMoves === 'function'
-                      ? tableMeta.tabMoves(event)
-                      : tableMeta.tabMoves;
+      ? tableMeta.tabMoves(event)
+      : tableMeta.tabMoves;
 
     selection.transformStart(tabMoves.row, tabMoves.col, true);
   });
 
   gridContext.addShortcut([['Shift', 'Tab']], () => {
     const tabMoves = typeof tableMeta.tabMoves === 'function'
-                      ? tableMeta.tabMoves(event)
-                      : tableMeta.tabMoves;
+      ? tableMeta.tabMoves(event)
+      : tableMeta.tabMoves;
 
     this.selection.transformStart(-tabMoves.row, -tabMoves.col);
   });

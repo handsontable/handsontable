@@ -15,7 +15,7 @@ describe('editorManager', () => {
   describe('function keys', () => {
     describe('should begin editing', () => {
       [
-        'ENTER',
+        'Enter',
         'F2',
       ].forEach((key) => {
         it(`if ${key} was pressed`, () => {
