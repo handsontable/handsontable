@@ -50,9 +50,22 @@ For more details, see [this pull request](https://github.com/handsontable/handso
 
 Before, all of Handsontable's TypeScript definitions were kept in one file, placed in the root directory: `./handsontable.d.ts`.
 
+The only way to import types was to get all of them by importing the `Handsontable` package:
+
+```ts
+import Handsontable from 'handsontable';
+```
+
 #### Now
 
 Now, each module has its own TypeScript definitions file. They're all kept in a new directory called `types`: [`./handsontable/types`](https://github.com/handsontable/handsontable/tree/master/handsontable/types).
+
+You can still import all of the Handsontable's type definitions in the same as before. Additionally, now you can also import individual modules from within the Handsontable package with the correct types:
+
+```ts
+import Handsontable from 'handsontable/base';
+import { registerPlugin, HiddenRows } from 'handsontable/plugins';
+```
 
 ### Editors' interfaces
 
@@ -68,14 +81,6 @@ class CustomEditor extends Handsontable.editors.BaseEditor implements Handsontab
 
 ```ts
 class CustomEditor extends Handsontable.editors.BaseEditor implements Handsontable.editors.BaseEditor ()
-```
-
-### Importing all type definitions
-
-To import all of Handsontable's type definitions at once, simply load the `Handsontable` package, just like in JavaScript:
-
-```ts
-import Handsontable from 'handsontable';
 ```
 
 ## Step 3: Adapt to the `populateFromArray()` method's changes
