@@ -26,7 +26,7 @@ We update the documentation:
 
 To start a local Handsontable documentation server:
 
-1. From the `handsontable/docs` directory, install the documentation dependencies:
+1. From the `docs` directory, install the documentation dependencies:
     ```bash
     npm install
     ```
@@ -42,18 +42,18 @@ To start a local Handsontable documentation server:
 
 ## Documentation npm scripts:
 
-From the `handsontable/docs` directory, you can run the following npm scripts:
+From the `docs` directory, you can run the following npm scripts:
 
 * `npm run docs:start` – Starts a local documentation server at `localhost:8080/docs/`.
 * `npm run docs:start:no-cache` – Starts a local documentation server without cache.
 * `npm run docs:api` – Generates the Handsontable API reference into `/next/api`.
 * `npm run docs:build` – Builds the documentation output into `/.vuepress/dist` and checks for broken links.
-* `npm run docs:build:no-check-links` – Builds the documentation output into `/.vuepress/dist`.
+* `npm run docs:build:no-check-links` – Builds the documentation output into `/.vuepress/dist`, without checking for broken links.
 * `npm run docs:docker:build` – Builds a Docker image for the staging environment.
 * `npm run docs:docker:build:staging` – Builds a Docker image for the staging environment.
 * `npm run docs:docker:build:production` – Builds a Docker image for the production environment.
 * `npm run docs:version <semver.version>` – Creates a new documentation version in a new `/<semver.version>/` directory.
-* `npm run docs:check-links` – Checks for broken links. You can also run it for a specific URL (e.g. `npm run docs:check-links https://handsontable.com`).
+* `npm run docs:check-links` – Checks for broken links (first, run `npm run docs:build:no-check-links`). You can also run it for a specific URL (e.g. `npm run docs:check-links https://handsontable.com`).
 * `npm run docs:lint` – Runs ESLint on the `/next/` directory's content.
 * `npm run docs:lint:fix` – Runs ESLint on the `/next/` directory's content and auto-fixes problems.
 * `npm run docs:assets:next` – Prepares the `next` documentation version's CSS and JavaScript.
@@ -79,7 +79,7 @@ docs                            # All documentation files
 │   ├── docs-links.js           # Lets us link within the currently-selected docs version with `@` (e.g. [link](@/guides/path/file.md).)
 │   ├── enhanceApp.js           # VuePress app-level enhancements
 │   ├── helpers.js              # Common helpers that set up sidebars and the documentation version picker
-│   ├── highlight.js            # Code highlight configuration
+│   └── highlight.js            # Code highlight configuration
 ├── docker                      # Docker configuration
 ├── next                        # The documentation's draft version, unavailable on the production environment
 │   ├── api                     # The API reference output, generated automatically from JSDoc. Do not edit!
