@@ -4490,7 +4490,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ? tableMeta.tabMoves(event)
       : tableMeta.tabMoves;
 
-    this.selection.transformStart(-tabMoves.row, -tabMoves.col);
+    selection.transformStart(-tabMoves.row, -tabMoves.col);
   });
 
   getPluginsNames().forEach((pluginName) => {

@@ -1,6 +1,7 @@
 const { KEY_CODES } = Handsontable.helper;
 const KEYCODES_MAP = new Map([
-  ['a', KEY_CODES.A],
+  ['A', KEY_CODES.A],
+  ['a', 97],
   ['alt', KEY_CODES.ALT],
   ['arrowdown', KEY_CODES.ARROW_DOWN],
   ['arrowleft', KEY_CODES.ARROW_LEFT],
