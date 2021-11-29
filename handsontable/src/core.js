@@ -35,7 +35,7 @@ import {
   stopObserving as keyStateStopObserving
 } from './utils/keyStateObserver';
 import { Selection } from './selection';
-import { MetaManager, DynamicCellMetaMod, DataMap } from './dataMap';
+import { MetaManager, DynamicCellMetaMod, PropertyAliasingMod, DataMap } from './dataMap';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 
 let activeGuid = null;
@@ -77,7 +77,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   userSettings.language = getValidLanguageCode(userSettings.language);
 
-  const metaManager = new MetaManager(instance, userSettings, [DynamicCellMetaMod]);
+  const metaManager = new MetaManager(instance, userSettings, [
+    DynamicCellMetaMod,
+    PropertyAliasingMod,
+  ]);
   const tableMeta = metaManager.getTableMeta();
   const globalMeta = metaManager.getGlobalMeta();
   const pluginsRegistry = createUniqueMap();
@@ -2276,16 +2279,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
-      if (i === 'fixedColumnsLeft' && !settings.fixedColumnsStart) {
-        if (this.isRtl() && settings[i]) {
-          throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
-        } else {
-          globalMeta.fixedColumnsStart = settings[i];
-        }
-      } else if (i === 'data') {
+      if (i === 'data') {
         // Do nothing. loadData will be triggered later
       } else if (i === 'language') {
         setLanguage(settings.language);
+
       } else if (i === 'className') {
         setClassName('className', settings.className);
 
@@ -2302,6 +2300,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         }
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
+        if (i === 'fixedColumnsLeft' && !settings.fixedColumnsStart) {
+          if (this.isRtl() && settings[i]) {
+            throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
+          }
+        }
+
         globalMeta[i] = settings[i];
       }
     }
