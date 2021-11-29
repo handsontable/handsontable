@@ -1092,10 +1092,11 @@ export default () => {
     fixedColumnsStart: 0,
 
     /**
-     * An alias for `fixedColumnsStart`. Works only for Left-To-Right.
-     * Throws a warn when used.
-     * Throws an error when used together with `fixedColumnsStart`.
-     * Throws an error when used in RTL mode.
+     * The `fixedColumnsLeft` option is an alias for the [`fixedColumnsStart`](#fixedColumnsStart) option.
+     *
+     * The `fixedColumnsLeft` option works only in the left-to-right mode, and:
+     * - Throws an error when used together with the [`fixedColumnsStart`](#fixedColumnsStart) option
+     * - Throws an error when used in the right-to-left mode
      *
      * @memberof Options#
      * @type {number}
