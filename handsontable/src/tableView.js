@@ -537,8 +537,6 @@ class TableView {
         const countCols = this.instance.countCols();
         const visualFixedColumnsStart = Math.min(parseInt(this.settings.fixedColumnsStart, 10), countCols) - 1;
 
-        // const visualFixedColumnsLeft = Math.min(parseInt(this.settings.fixedColumnsLeft, 10), countCols) - 1;
-        // todo ltr/rtl/fixedColumnsStart/fixedColumnsLeft
         return this.countNotHiddenColumnIndexes(visualFixedColumnsStart, -1);
       },
       // Number of renderable rows for the top overlay.

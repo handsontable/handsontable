@@ -27,7 +27,8 @@ import {
 } from './overlay/constants';
 
 /**
- * @todo These mixes are never added to the class Table, however their members are used here. Potentially it works only, because some of these mixes are added to every inherited class.
+ * @todo These mixes are never added to the class Table, however their members are used here.
+ * @todo Continue: Potentially it works only, because some of these mixes are added to every inherited class.
  * @todo Refactoring, move code from `if(this.isMaster)` into MasterTable, and others like that.
  * @mixes stickyColumnsStart
  * @mixes stickyRowsBottom
