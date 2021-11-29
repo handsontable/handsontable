@@ -2037,7 +2037,7 @@ describe('AutocompleteEditor', () => {
       });
 
       selectCell(0, 0);
-      const editorInput = $('.handsontableInput');
+      const editorInput = spec().$container.find('.handsontableInput');
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
@@ -2466,11 +2466,11 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp('enter');
+    keyDownUp(['enter']);
     const $editorInput = $('.handsontableInput');
 
     $editorInput.val('a');
-    keyDownUp('a'.charCodeAt(0));
+    keyDownUp(['a']);
     Handsontable.dom.setCaretPosition($editorInput[0], 1);
 
     await sleep(30);
@@ -2486,11 +2486,11 @@ describe('AutocompleteEditor', () => {
     expect($trs.eq(4).text()).toBe('Draven');
     expect(listLength).toBe(5);
 
-    keyDownUp('escape');
-    keyDownUp('enter');
+    keyDownUp(['escape']);
+    keyDownUp(['enter']);
 
     $editorInput.val('o');
-    keyDownUp('o'.charCodeAt(0));
+    keyDownUp(['o']);
     Handsontable.dom.setCaretPosition($editorInput[0], 1);
 
     await sleep(30);
@@ -2503,12 +2503,12 @@ describe('AutocompleteEditor', () => {
     expect($trs.eq(1).text()).toBe('Simmons');
     expect(listLength).toBe(2);
 
-    keyDownUp('escape');
-    keyDownUp('enter');
+    keyDownUp(['escape']);
+    keyDownUp(['enter']);
 
     $editorInput.val('er');
-    keyDownUp('e'.charCodeAt(0));
-    keyDownUp('r'.charCodeAt(0));
+    keyDownUp(['e']);
+    keyDownUp(['r']);
     Handsontable.dom.setCaretPosition($editorInput[0], 1);
 
     await sleep(30);

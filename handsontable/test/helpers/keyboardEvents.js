@@ -94,6 +94,7 @@ function triggerKeys(type) {
       extend.ctrlKey = type === 'keyup' && key === 'control' ? false : keys.includes('control');
       extend.metaKey = type === 'keyup' && key === 'control' ? false : keys.includes('control');
       extend.shiftKey = type === 'keyup' && key === 'shift' ? false : keys.includes('shift');
+      extend.altKey = type === 'keyup' && key === 'alt' ? false : keys.includes('alt');
 
       handsontableKeyTriggerFactory(type, target)(key, extend);
     });

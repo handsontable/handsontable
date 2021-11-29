@@ -342,7 +342,7 @@ describe('DateEditor', () => {
 
     selectCell(0, 0);
     keyDownUp(['enter']);
-    keyDownUP(['escape']);
+    keyDownUp(['escape']);
 
     const config = hot.getActiveEditor().$datePicker.config();
 
