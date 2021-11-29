@@ -1072,7 +1072,7 @@ export default () => {
     fixedRowsBottom: 0,
 
     /**
-     * The `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md)
+     * The `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the grid's left-hand side (in the left-to-right mode), or at the grid's right-hand side (in the right-to-left mode).
      * at the left-hand side of the grid.
      *
      * Read more:
