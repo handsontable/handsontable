@@ -2037,21 +2037,20 @@ describe('AutocompleteEditor', () => {
       });
 
       selectCell(0, 0);
-      const editorInput = spec().$container.find('.handsontableInput');
+      const editorInput = $('.handsontableInput');
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp(['f']);
 
       await sleep(200);
 
       queryChoices.calls.reset();
       editorInput.val('foobar');
       keyDownUp(['r']); // r
+      keyDownUp(['enter']);
 
       await sleep(200);
-
-      keyDownUp(['enter']);
 
       expect(getDataAtCell(0, 0)).toEqual('foobar');
     });
