@@ -1635,9 +1635,6 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
     keyDownUp(['enter']);
-
-    const $editorInput = $('.handsontableInput');
-
     keyDownUp(['alt', 'enter']);
 
     const editorTextarea = hot.getActiveEditor().TEXTAREA;

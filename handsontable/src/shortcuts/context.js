@@ -22,7 +22,14 @@ export const createContext = (name) => {
    *                         - stopPropagation - to stop event's propagation,
    *                         - description - to describe what that shortcut is doing.
    */
-  const addShortcut = (variants, callback, options = { description: '', preventDefault: true, stopPropagation: true }) => {
+  const addShortcut = (
+    variants,
+    callback,
+    options = {
+      description: '',
+      preventDefault: true,
+      stopPropagation: true
+    }) => {
     variants.forEach((variant) => {
       const normalizedVariant = normalizeKeys(variant);
 
