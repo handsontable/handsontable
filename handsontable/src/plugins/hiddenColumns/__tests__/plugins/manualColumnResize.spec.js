@@ -96,7 +96,7 @@ describe('HiddenColumns', () => {
       });
 
       // Show resize handler using the third renderable column. This column belongs to master as
-      // the "fixedColumnsStart" is decreased to 2.
+      // the `fixedColumnsStart` setting is decreased to 2
       const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(2)'); // Header "D"
 
       $headerTH.simulate('mouseover');
