@@ -702,6 +702,7 @@ class Menu {
 
   /**
    * On before key down listener.
+   * TODO: Can we move that shortcuts to the ShortcutManager flow?
    *
    * @private
    * @param {Event} event The keyaboard event object.

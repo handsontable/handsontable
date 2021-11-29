@@ -174,6 +174,7 @@ export class HandsontableEditor extends TextEditor {
 
   /**
    * OnBeforeKeyDown callback.
+   * TODO: Can we move that shortcuts to the ShortcutManager flow?
    *
    * @private
    * @param {Event} event The keyboard event object.

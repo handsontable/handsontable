@@ -848,6 +848,7 @@ UndoRedo.prototype.init = function() {
 };
 
 /**
+ * TODO: Can we move that shortcuts to the ShortcutManager flow?
  * @param {Event} event The keyboard event object.
  */
 function onBeforeKeyDown(event) {

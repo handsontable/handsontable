@@ -68,11 +68,15 @@ export const createShortcutManager = ({ isActive, frame }) => {
    * @param {Array<string>} contexts Contexts' to activate.
    */
   const setActiveContexts = (contexts) => {
+    ACTIVE_CONTEXTS.clear();
+
     contexts.forEach(context => ACTIVE_CONTEXTS.addItem(context));
   };
 
   /**
+   * Internal key recorder.
    *
+   * @private
    */
   const keyRecorder = useRecorder(frame, (event, keys) => {
     if (!isActive()) {

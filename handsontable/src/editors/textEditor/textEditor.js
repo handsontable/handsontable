@@ -485,6 +485,7 @@ export class TextEditor extends BaseEditor {
 
   /**
    * OnBeforeKeyDown callback.
+   * TODO: Can we move that shortcuts to the ShortcutManager flow?
    *
    * @param {Event} event The keyboard event object.
    */

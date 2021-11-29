@@ -2047,10 +2047,16 @@ describe('AutocompleteEditor', () => {
 
       queryChoices.calls.reset();
       editorInput.val('foobar');
-      keyDownUp(['r']); // r
-      keyDownUp(['enter']);
+      keyDownUp(['f']);
+      keyDownUp(['o']);
+      keyDownUp(['o']);
+      keyDownUp(['b']);
+      keyDownUp(['a']);
+      keyDownUp(['r']);
 
       await sleep(200);
+
+      keyDownUp(['enter']);
 
       expect(getDataAtCell(0, 0)).toEqual('foobar');
     });

@@ -28,7 +28,7 @@ export const createContext = (name) => {
     options = {
       description: '',
       preventDefault: true,
-      stopPropagation: true
+      stopPropagation: false
     }) => {
     variants.forEach((variant) => {
       const normalizedVariant = normalizeKeys(variant);

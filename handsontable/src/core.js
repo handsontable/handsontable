@@ -4375,6 +4375,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
+   * Returns the ShortcutManager's instance.
+   *
+   * @memberof Core#
+   * @function getShortcutManager
    * @returns {object}
    */
   this.getShortcutManager = function() {
@@ -4385,8 +4389,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   shortcutManager.setActiveContexts(['grid', EDITORMANAGER_CONTEXT]);
 
-  gridContext.addShortcut([['Control', 'A']], () => {
+  gridContext.addShortcut([['Control', 'A']], (event) => {
+    if (instance.getActiveEditor().isOpened()) {
+      return;
+    }
+
     instance.selectAll();
+    event.preventDefault();
+  }, {
+    preventDefault: false,
   });
 
   gridContext.addShortcut([['ArrowUp']], () => {
@@ -4477,7 +4488,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     selection.transformStart(instance.countVisibleRows(), 0);
   });
 
-  gridContext.addShortcut([['Tab']], () => {
+  gridContext.addShortcut([['Tab']], (event) => {
     const tabMoves = typeof tableMeta.tabMoves === 'function'
       ? tableMeta.tabMoves(event)
       : tableMeta.tabMoves;
@@ -4485,7 +4496,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     selection.transformStart(tabMoves.row, tabMoves.col, true);
   });
 
-  gridContext.addShortcut([['Shift', 'Tab']], () => {
+  gridContext.addShortcut([['Shift', 'Tab']], (event) => {
     const tabMoves = typeof tableMeta.tabMoves === 'function'
       ? tableMeta.tabMoves(event)
       : tableMeta.tabMoves;

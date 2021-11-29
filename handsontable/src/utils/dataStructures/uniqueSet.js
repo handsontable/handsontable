@@ -41,8 +41,16 @@ export function createUniqueSet({ errorItemExists } = {}) {
     return [...uniqueSet];
   }
 
+  /**
+   * Clears the unique set.
+   */
+  function clear() {
+    uniqueSet.clear();
+  }
+
   return {
     addItem,
+    clear,
     getItems,
   };
 }

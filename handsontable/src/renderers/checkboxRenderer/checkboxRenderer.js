@@ -150,6 +150,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
   /**
    * On before key down DOM listener.
+   * TODO: Can we move that shortcuts to the ShortcutManager flow?
    *
    * @private
    * @param {Event} event The keyboard event object.
