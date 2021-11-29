@@ -1,7 +1,0 @@
-{
-  "title": "Fixed TypeError that occurs while calling `updateSettings` method when the modularized Handsontable was used.",
-  "type": "fixed",
-  "issue": 8830,
-  "breaking": false,
-  "framework": "none"
-}
