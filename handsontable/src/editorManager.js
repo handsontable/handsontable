@@ -77,19 +77,19 @@ class EditorManager {
 
     this.registerShortcuts();
 
-    // this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
+    this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
 
-    // let frame = this.instance.rootWindow;
+    let frame = this.instance.rootWindow;
 
-    // while (frame) {
-    //   this.eventManager.addEventListener(frame.document.documentElement, 'keydown', (event) => {
-    //     if (!this.destroyed) {
-    //       this.instance.runHooks('afterDocumentKeyDown', event);
-    //     }
-    //   });
+    while (frame) {
+      this.eventManager.addEventListener(frame.document.documentElement, 'keydown', (event) => {
+        if (!this.destroyed) {
+          this.instance.runHooks('afterDocumentKeyDown', event);
+        }
+      });
 
-    //   frame = getParentWindow(frame);
-    // }
+      frame = getParentWindow(frame);
+    }
 
     // Open editor when text composition is started (IME editor)
     this.eventManager.addEventListener(this.instance.rootDocument.documentElement, 'compositionstart', (event) => {
@@ -123,9 +123,9 @@ class EditorManager {
       (event, keys) => {
         if (this.isEditorOpened()) {
           if (this.activeEditor && this.activeEditor.state !== EDITOR_STATE.WAITING) {
-            this.closeEditorAndSaveChanges(keys.includes('Control'));
+            this.closeEditorAndSaveChanges(keys.includes('control'));
           }
-          this.moveSelectionAfterEnter(keys.includes('Shift'));
+          this.moveSelectionAfterEnter(keys.includes('shift'));
 
         } else if (this.instance.getSettings().enterBeginsEditing) {
           if (this.cellProperties.readOnly) {
@@ -137,7 +137,7 @@ class EditorManager {
           }
 
         } else {
-          this.moveSelectionAfterEnter(keys.includes('Shift'));
+          this.moveSelectionAfterEnter(keys.includes('shift'));
         }
 
         stopImmediatePropagation(event); // required by HandsontableEditor
@@ -145,7 +145,7 @@ class EditorManager {
 
     shortcutsContext.addShortcut([['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']], (event, keys) => {
       if (this.isEditorOpened()) {
-        this.closeEditorAndRestoreOriginalValue(keys.includes('Control') || keys.includes('Meta'));
+        this.closeEditorAndRestoreOriginalValue(keys.includes('control') || keys.includes('meta'));
 
         this.activeEditor.focus();
       }
@@ -352,31 +352,35 @@ class EditorManager {
 
     this.instance.runHooks('beforeKeyDown', event);
 
-    // const { keyCode } = event;
+    const { keyCode } = event;
 
-    // // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is produced when unfinished
-    // // character is entering (using IME editor). It is fired mainly on linux (ubuntu) with installed ibus-pinyin package.
-    // if (this.destroyed || keyCode === 229) {
-    //   return;
-    // }
+    // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is produced when unfinished
+    // character is entering (using IME editor). It is fired mainly on linux (ubuntu) with installed ibus-pinyin package.
+    if (this.destroyed || keyCode === 229) {
+      return;
+    }
 
-    // if (isImmediatePropagationStopped(event)) {
-    //   return;
-    // }
+    if (isImmediatePropagationStopped(event)) {
+      return;
+    }
 
-    // this.lastKeyCode = keyCode;
+    this.lastKeyCode = keyCode;
 
-    // if (!this.selection.isSelected()) {
-    //   return;
-    // }
-    // // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-    // const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;
+    if (!this.selection.isSelected()) {
+      return;
+    }
+    // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+    const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;
 
-    // if (this.activeEditor && !this.activeEditor.isWaiting()) {
-    //   if (!isFunctionKey(keyCode) && !isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
-    //     this.openEditor('', event);
-    //   }
-    // }
+    if (this.activeEditor && !this.activeEditor.isWaiting()) {
+      if (isFunctionKey(keyCode)) {
+        return;
+      }
+
+      if (!isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
+        this.openEditor('', event);
+      }
+    }
   }
 
   /**
