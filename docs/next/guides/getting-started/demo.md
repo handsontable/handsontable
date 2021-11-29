@@ -11,15 +11,16 @@ tags:
 
 Before you dive deep into Handsontable, check out our demo app.
 
-Rather than display "Hello, World!", the demo contains 100 rows and 13 columns packed with features:
+The demo lets you see the code behind features such as:
 
+- [Context menu](@/guides/accessories-and-menus/context-menu.md)
+- [Dropdown cell type](@/guides/cell-types/dropdown-cell-type.md)
 - [Column groups &#8594;](@/guides/columns/column-groups.md)
 - [Column menu &#8594;](@/guides/columns/column-menu.md)
-- [Column filter &#8594;](@/guides/columns/column-filter.md)
+- [Column filter &#8594;](@/guides/columns/column-filter.md)- 
+- [Column hiding &#8594;](@/guides/columns/column-hiding.md)
 - [Row sorting &#8594;](@/guides/rows/row-sorting.md)
 - And way more than that!
-
-Want to play with the code yourself? Select the button in the frame's bottom right corner.
 
 ## JavaScript
 
