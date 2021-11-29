@@ -794,7 +794,7 @@ describe('CheckboxRenderer', () => {
     });
 
     selectCell(0, 0);
-    keyDown(['f2']);
+    keyDownUp(['f2']);
 
     expect(getDataAtCell(0, 0)).toBe(false);
 

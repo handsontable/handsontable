@@ -2486,7 +2486,7 @@ describe('AutocompleteEditor', () => {
     expect($trs.eq(4).text()).toBe('Draven');
     expect(listLength).toBe(5);
 
-    keyDownUp('esc');
+    keyDownUp('escape');
     keyDownUp('enter');
 
     $editorInput.val('o');
@@ -2503,7 +2503,7 @@ describe('AutocompleteEditor', () => {
     expect($trs.eq(1).text()).toBe('Simmons');
     expect(listLength).toBe(2);
 
-    keyDownUp('esc');
+    keyDownUp('escape');
     keyDownUp('enter');
 
     $editorInput.val('er');

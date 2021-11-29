@@ -319,7 +319,7 @@ describe('AutoFill', () => {
     selectCell(2, 2);
 
     keyDownUp(['enter']);
-    keyDown(['esc']);
+    keyDownUp(['escape']);
 
     expect(isFillHandleVisible()).toBe(true);
   });

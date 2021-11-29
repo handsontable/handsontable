@@ -846,7 +846,7 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
-    keyDown(['f2']);
+    keyDownUp(['f2']);
     expect(isEditorVisible()).toEqual(true);
   });
 
@@ -855,9 +855,9 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
-    keyDown(['f2']);
+    keyDownUp(['f2']);
     expect(isEditorVisible()).toEqual(true);
-    keyDown(['esc']);
+    keyDownUp(['escape']);
     expect(isEditorVisible()).toEqual(false);
   });
 
@@ -866,7 +866,7 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
-    keyDown(['capslock']);
+    keyDownUp(['capslock']);
     expect(isEditorVisible()).toEqual(false);
   });
 
@@ -875,11 +875,11 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
-    keyDown(['f2']);
+    keyDownUp(['f2']);
     expect(isEditorVisible()).toEqual(true);
-    keyDown(['esc']);
+    keyDownUp(['escape']);
     expect(isEditorVisible()).toEqual(false);
-    keyDown(['f2']);
+    keyDownUp(['f2']);
     expect(isEditorVisible()).toEqual(true);
   });
 
@@ -887,7 +887,7 @@ describe('TextEditor', () => {
     handsontable();
     selectCell(2, 2);
 
-    keyDown(['f2']);
+    keyDownUp(['f2']);
     loadData(getData());
 
     expect(isEditorVisible()).toEqual(true);
@@ -897,7 +897,7 @@ describe('TextEditor', () => {
     handsontable();
     selectCell(2, 2);
 
-    keyDown(['f2']);
+    keyDownUp(['f2']);
     updateSettings({
       data: getData()
     });
@@ -1057,7 +1057,7 @@ describe('TextEditor', () => {
 
     expect(editor.isOpened()).toEqual(false);
     expect(editor.focus).not.toHaveBeenCalled();
-    keyDown(['f2']);
+    keyDownUp(['f2']);
     expect(editor.isOpened()).toEqual(true);
     expect(editor.focus).toHaveBeenCalled();
   });
@@ -1222,7 +1222,7 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
 
-    keyDown(['backspace']);
+    keyDownUp(['backspace']);
 
     expect(getDataAtCell(0, 0)).toEqual(null);
     expect(hot.getActiveEditor().isOpened()).toBe(false);
@@ -1242,7 +1242,7 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
 
-    keyDown(['delete']);
+    keyDownUp(['delete']);
 
     expect(getDataAtCell(0, 0)).toEqual(null);
     expect(hot.getActiveEditor().isOpened()).toBe(false);
@@ -1618,7 +1618,7 @@ describe('TextEditor', () => {
 
     Handsontable.dom.setCaretPosition($editorInput[0], 2);
 
-    keyDownUp(['alt', 'enter'], {}, $editorInput[0]);
+    keyDownUp(['alt', 'enter']);
 
     expect(hot.getActiveEditor().TEXTAREA.value).toEqual('Ma\nserati');
   });
@@ -1638,7 +1638,7 @@ describe('TextEditor', () => {
 
     const $editorInput = $('.handsontableInput');
 
-    keyDownUp(['alt'], {}, $editorInput[0]);
+    keyDownUp(['alt', 'enter']);
 
     const editorTextarea = hot.getActiveEditor().TEXTAREA;
     const editorComputedStyle = getComputedStyle(editorTextarea);

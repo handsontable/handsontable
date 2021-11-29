@@ -467,7 +467,7 @@ describe('HandsontableEditor', () => {
     selectCell(2, 0);
 
     keyDownUp(['enter']);
-    keyDownUp(['esc']);
+    keyDownUp(['escape']);
     expect(spec().$container.find('.handsontableEditor:visible').length).toEqual(0);
   });
 
@@ -620,7 +620,7 @@ describe('HandsontableEditor', () => {
     keyDownUp(['arrowdown']);
     expect(selections[2]).toEqual(['inner', 0]);
 
-    keyDownUp(['esc']);
+    keyDownUp(['escape']);
     keyDownUp(['arrowdown']);
     expect(selections[3]).toEqual(['outer', 3]);
 

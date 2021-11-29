@@ -837,9 +837,13 @@ describe('NestedHeaders', () => {
         [-3, 5, 9, 5],
       ]);
 
+      keyDown(['control']);
+
       $(getCell(-3, 1)) // Header "B2"
         .simulate('mousedown')
         .simulate('mouseup');
+
+      keyUp(['control']);
 
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>

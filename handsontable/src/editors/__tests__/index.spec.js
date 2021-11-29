@@ -49,7 +49,7 @@ describe('editors', () => {
     });
 
     selectCell(0, 0);
-    keyDown(['enter']);
+    keyDownUp(['enter']);
     document.activeElement.value = 'hello';
     destroyEditor();
 

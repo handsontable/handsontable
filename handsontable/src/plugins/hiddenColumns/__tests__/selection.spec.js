@@ -1076,11 +1076,11 @@ describe('HiddenColumns', () => {
         $(getCell(5, 8)).simulate('mouseover');
         $(getCell(5, 8)).simulate('mouseup');
 
-        keyUp(['control']);
-
         $(getCell(3, 6)).simulate('mousedown');
         $(getCell(6, 9)).simulate('mouseover');
         $(getCell(6, 9)).simulate('mouseup');
+
+        keyUp(['control']);
 
         expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
         expect(getSelectedRangeLast().highlight.row).toBe(3);

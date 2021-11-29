@@ -487,7 +487,7 @@ describe('NumericEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDown(['delete']);
+    keyDownUp(['delete']);
 
     await sleep(100);
 

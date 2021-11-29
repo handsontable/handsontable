@@ -76,7 +76,7 @@ describe('cellTypes', () => {
     expect(getCell(1, 0).innerHTML).toBe('--10--');
 
     selectCell(0, 0);
-    keyDown(['enter']);
+    keyDownUp(['enter']);
     document.activeElement.value = 'hello';
     destroyEditor();
 

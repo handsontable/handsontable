@@ -373,11 +373,7 @@ class EditorManager {
     const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;
 
     if (this.activeEditor && !this.activeEditor.isWaiting()) {
-      if (isFunctionKey(keyCode)) {
-        return;
-      }
-
-      if (!isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
+      if (!isFunctionKey(keyCode) && !isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
         this.openEditor('', event);
       }
     }
