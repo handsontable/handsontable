@@ -57,11 +57,11 @@ describe('Core.selectRows', () => {
 
     selectRows(2);
 
-    keyDown(['control']);
+    keyDown('control');
 
     selectRows(0);
 
-    keyUp(['control']);
+    keyUp('control');
 
     expect(`
       |   ║ - : - : - : - |

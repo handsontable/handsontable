@@ -771,13 +771,13 @@ describe('NestedHeaders', () => {
 
       expect(getSelected()).toEqual([[-2, 1, 9, 1]]);
 
-      keyDown(['control']);
+      keyDown('control');
 
       $(getCell(-3, 5)) // Header "F2"
         .simulate('mousedown')
         .simulate('mouseup');
 
-      keyUp(['control']);
+      keyUp('control');
 
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
@@ -837,13 +837,13 @@ describe('NestedHeaders', () => {
         [-3, 5, 9, 5],
       ]);
 
-      keyDown(['control']);
+      keyDown('control');
 
       $(getCell(-3, 1)) // Header "B2"
         .simulate('mousedown')
         .simulate('mouseup');
 
-      keyUp(['control']);
+      keyUp('control');
 
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>

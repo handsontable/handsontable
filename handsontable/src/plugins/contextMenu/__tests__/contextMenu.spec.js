@@ -3416,7 +3416,7 @@ describe('ContextMenu', () => {
       $(getCell(2, 2)).simulate('mouseover');
       $(getCell(2, 2)).simulate('mouseup');
 
-      keyDown(['control']);
+      keyDown('control');
 
       $(getCell(2, 2)).simulate('mousedown');
       $(getCell(7, 2)).simulate('mouseover');
@@ -3426,7 +3426,7 @@ describe('ContextMenu', () => {
       $(getCell(2, 4)).simulate('mouseover');
       $(getCell(2, 4)).simulate('mouseup');
 
-      keyUp(['control']);
+      keyUp('control');
       contextMenu(getCell(0, 0));
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
@@ -3444,7 +3444,7 @@ describe('ContextMenu', () => {
       $(getCell(2, 2)).simulate('mouseover');
       $(getCell(2, 2)).simulate('mouseup');
 
-      keyDown(['control']);
+      keyDown('control');
 
       $(getCell(2, 2)).simulate('mousedown');
       $(getCell(7, 2)).simulate('mouseover');
@@ -3454,7 +3454,7 @@ describe('ContextMenu', () => {
       $(getCell(2, 4)).simulate('mouseover');
       $(getCell(2, 4)).simulate('mouseup');
 
-      keyUp(['control']);
+      keyUp('control');
       contextMenu(getCell(2, 2));
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
@@ -3472,7 +3472,7 @@ describe('ContextMenu', () => {
       $(getCell(2, 2)).simulate('mouseover');
       $(getCell(2, 2)).simulate('mouseup');
 
-      keyDown(['control']);
+      keyDown('control');
 
       $(getCell(2, 2)).simulate('mousedown');
       $(getCell(7, 2)).simulate('mouseover');
@@ -3482,7 +3482,7 @@ describe('ContextMenu', () => {
       $(getCell(2, 4)).simulate('mouseover');
       $(getCell(2, 4)).simulate('mouseup');
 
-      keyUp(['control']);
+      keyUp('control');
       contextMenu(getCell(2, 4));
 
       expect($('.htContextMenu').is(':visible')).toBe(true);

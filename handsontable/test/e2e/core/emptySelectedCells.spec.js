@@ -20,7 +20,7 @@ describe('Core.emptySelectedCells', () => {
     $(getCell(1, 1)).simulate('mouseover');
     $(getCell(1, 1)).simulate('mouseup');
 
-    keyDown(['control']);
+    keyDown('control');
 
     $(getCell(2, 2)).simulate('mousedown');
     $(getCell(7, 2)).simulate('mouseover');
@@ -34,7 +34,7 @@ describe('Core.emptySelectedCells', () => {
     $(getCell(8, 7)).simulate('mouseover');
     $(getCell(8, 7)).simulate('mouseup');
 
-    keyUp(['control']);
+    keyUp('control');
 
     emptySelectedCells();
 

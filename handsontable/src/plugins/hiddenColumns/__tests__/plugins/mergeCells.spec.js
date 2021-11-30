@@ -1802,12 +1802,12 @@ describe('HiddenColumns', () => {
       // Selected 2 ranges containing together merged area.
       selectColumns(1);
 
-      keyDown(['control']);
+      keyDown('control');
 
       selectColumns(3);
       selectColumns(2);
 
-      keyUp(['control']);
+      keyUp('control');
 
       expect(`
       |   ║   : * : * :   |

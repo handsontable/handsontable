@@ -58,9 +58,9 @@ describe('Core.selectColumns', () => {
     });
 
     selectColumns(2);
-    keyDown(['control']);
+    keyDown('control');
     selectColumns(0);
-    keyUp(['control']);
+    keyUp('control');
 
     expect(`
       |   ║ * :   : * :   |

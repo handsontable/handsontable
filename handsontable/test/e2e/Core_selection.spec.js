@@ -24,7 +24,7 @@ describe('Core_selection', () => {
     $(getCell(1, 1)).simulate('mouseover');
     $(getCell(1, 1)).simulate('mouseup');
 
-    keyDown(['control']);
+    keyDown('control');
 
     $(getCell(0, 2)).simulate('mousedown');
     $(getCell(8, 2)).simulate('mouseover');
@@ -38,7 +38,7 @@ describe('Core_selection', () => {
     $(getCell(8, 7)).simulate('mouseover');
     $(getCell(8, 7)).simulate('mouseup');
 
-    keyUp(['control']);
+    keyUp('control');
 
     expect(`
       |   ║   : - : - : - : - :   : - : - |
@@ -813,11 +813,11 @@ describe('Core_selection', () => {
 
     spec().$container.find('thead th:eq(3)').simulate('mousedown');
 
-    keyDown(['control']);
+    keyDown('control');
 
     spec().$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
 
-    keyUp(['control']);
+    keyUp('control');
 
     expect(`
       |   ║ - : - : * : - : - |
@@ -850,12 +850,12 @@ describe('Core_selection', () => {
 
     expect(getActiveEditor()).not.toBeUndefined();
 
-    keyDown(['control']);
+    keyDown('control');
 
     spec().$container.find('thead th:eq(3)').simulate('mousedown');
     spec().$container.find('tr:eq(3) th:eq(0)').simulate('mousedown');
 
-    keyUp(['control']);
+    keyUp('control');
 
     expect(`
       |   ║ - : - : * : - : - |
@@ -2678,13 +2678,13 @@ describe('Core_selection', () => {
       |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDown(['control']);
+      keyDown('control');
 
       $(getCell(3, 3)).simulate('mousedown');
       $(getCell(5, 6)).simulate('mouseover');
       $(getCell(5, 6)).simulate('mouseup');
 
-      keyUp(['control']);
+      keyUp('control');
 
       expect(getSelected()).toEqual([[1, 1, 4, 4], [3, 3, 5, 6]]);
       expect(`
@@ -2728,13 +2728,13 @@ describe('Core_selection', () => {
       |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDown(['control']);
+      keyDown('control');
 
       $(getCell(3, 3)).simulate('mousedown');
       $(getCell(5, 6)).simulate('mouseover');
       $(getCell(5, 6)).simulate('mouseup');
 
-      keyUp(['control']);
+      keyUp('control');
 
       expect(getSelected()).toEqual([[3, 3, 3, 3]]);
       expect(`
@@ -2824,13 +2824,13 @@ describe('Core_selection', () => {
       |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDown(['control']);
+      keyDown('control');
 
       $(getCell(3, 3)).simulate('mousedown');
       $(getCell(5, 6)).simulate('mouseover');
       $(getCell(5, 6)).simulate('mouseup');
 
-      keyUp(['control']);
+      keyUp('control');
 
       expect(getSelected()).toEqual([[3, 3, 5, 6]]);
       expect(`
@@ -2860,7 +2860,7 @@ describe('Core_selection', () => {
       $(getCell(20, 15)).simulate('mouseover');
       $(getCell(20, 15)).simulate('mouseup');
 
-      keyDown(['control']);
+      keyDown('control');
 
       $(getCell(1, 1)).simulate('mousedown');
       $(getCell(19, 16)).simulate('mouseover');
@@ -2902,7 +2902,7 @@ describe('Core_selection', () => {
       $(getCell(10, 25)).simulate('mouseover');
       $(getCell(10, 25)).simulate('mouseup');
 
-      keyUp(['control']);
+      keyUp('control');
 
       /* eslint-disable max-len */
       expect(`
@@ -2954,7 +2954,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
       expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 0, 20, 15, 0]);
 
-      keyDown(['control']);
+      keyDown('control');
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
@@ -3079,7 +3079,7 @@ describe('Core_selection', () => {
       $(getCell(10, 25)).simulate('mouseover');
       $(getCell(10, 25)).simulate('mouseup');
 
-      keyUp(['control']);
+      keyUp('control');
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([10, 10, 10, 10, jasmine.any(Object), 10]);
@@ -3108,7 +3108,7 @@ describe('Core_selection', () => {
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
       expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 'prop0', 20, 'prop15', 0]);
 
-      keyDown(['control']);
+      keyDown('control');
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
@@ -3233,7 +3233,7 @@ describe('Core_selection', () => {
       $(getCell(10, 25)).simulate('mouseover');
       $(getCell(10, 25)).simulate('mouseup');
 
-      keyUp(['control']);
+      keyUp('control');
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([10, 'prop10', 10, 'prop10', jasmine.any(Object), 10]);

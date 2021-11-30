@@ -972,12 +972,12 @@ describe('manualColumnResize', () => {
 
       selectColumns(3);
 
-      keyDown(['control']);
+      keyDown('control');
 
       selectColumns(7);
       selectColumns(10);
 
-      keyUp(['control']);
+      keyUp('control');
 
       getTopClone().find('thead tr:eq(0) th:eq(11)').simulate('mouseover'); // Select 10th Column
 

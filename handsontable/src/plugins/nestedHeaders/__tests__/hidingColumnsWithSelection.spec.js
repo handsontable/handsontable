@@ -314,12 +314,12 @@ describe('NestedHeaders', () => {
 
         simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
 
-        keyDown(['control']);
+        keyDown('control');
 
         simulateClick(getTopClone().find('thead tr:eq(2) th:eq(3)')); // select column F3
         simulateClick(getTopClone().find('thead tr:eq(1) th:eq(7)')); // select column K2
 
-        keyUp(['control']);
+        keyUp('control');
 
         expect(getSelected()).toEqual([
           [-1, 1, 9, 2], // B4 column

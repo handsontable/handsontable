@@ -792,12 +792,12 @@ describe('manualRowResize', () => {
 
       selectRows(3);
 
-      keyDown(['control']);
+      keyDown('control');
 
       selectRows(7);
       selectRows(10);
 
-      keyUp(['control']);
+      keyUp('control');
 
       getLeftClone().find('tbody tr:eq(10) th:eq(0)').simulate('mouseover');
 

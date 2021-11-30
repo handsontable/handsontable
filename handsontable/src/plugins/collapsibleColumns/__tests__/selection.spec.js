@@ -338,7 +338,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      keyDown(['control']);
+      keyDown('control');
 
       $(getCell(-1, 5)) // Select header "F5"
         .simulate('mousedown')
@@ -355,7 +355,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      keyUp(['control']);
+      keyUp('control');
 
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>

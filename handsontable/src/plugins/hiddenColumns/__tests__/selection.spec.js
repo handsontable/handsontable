@@ -195,12 +195,12 @@ describe('HiddenColumns', () => {
       mouseDown(startColumn, 'LMB');
       mouseUp(startColumn);
 
-      keyDown(['control']);
+      keyDown('control');
 
       mouseDown(endColumn, 'LMB');
       mouseUp(endColumn);
 
-      keyUp(['control']);
+      keyUp('control');
 
       expect(getSelected()).toEqual([
         [-1, 4, 4, 4],
@@ -258,13 +258,13 @@ describe('HiddenColumns', () => {
       |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDown(['control']);
+      keyDown('control');
 
       $(getCell(3, 5)).simulate('mousedown');
       $(getCell(5, 8)).simulate('mouseover');
       $(getCell(5, 8)).simulate('mouseup');
 
-      keyUp(['control']);
+      keyUp('control');
 
       expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8]]);
       expect(getSelectedRangeLast().highlight.row).toBe(3);
@@ -1070,7 +1070,7 @@ describe('HiddenColumns', () => {
         $(getCell(4, 6)).simulate('mouseover');
         $(getCell(4, 6)).simulate('mouseup');
 
-        keyDown(['control']);
+        keyDown('control');
 
         $(getCell(3, 5)).simulate('mousedown');
         $(getCell(5, 8)).simulate('mouseover');
@@ -1080,7 +1080,7 @@ describe('HiddenColumns', () => {
         $(getCell(6, 9)).simulate('mouseover');
         $(getCell(6, 9)).simulate('mouseup');
 
-        keyUp(['control']);
+        keyUp('control');
 
         expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
         expect(getSelectedRangeLast().highlight.row).toBe(3);
@@ -1216,7 +1216,7 @@ describe('HiddenColumns', () => {
         $(getCell(4, 6)).simulate('mouseover');
         $(getCell(4, 6)).simulate('mouseup');
 
-        keyDown(['control']);
+        keyDown('control');
 
         $(getCell(3, 5)).simulate('mousedown');
         $(getCell(5, 8)).simulate('mouseover');
@@ -1226,7 +1226,7 @@ describe('HiddenColumns', () => {
         $(getCell(6, 9)).simulate('mouseover');
         $(getCell(6, 9)).simulate('mouseup');
 
-        keyUp(['control']);
+        keyUp('control');
 
         expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
         expect(getSelectedRangeLast().highlight.row).toBe(3);
