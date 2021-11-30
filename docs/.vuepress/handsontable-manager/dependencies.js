@@ -68,7 +68,7 @@ const buildDependencyGetter = (version) => {
       'hot-angular': [`https://cdn.jsdelivr.net/npm/@handsontable/angular@${mappedVersion}/bundles/handsontable-angular.umd.min.js`, [/* todo */]],
       'hot-vue': [`https://cdn.jsdelivr.net/npm/@handsontable/vue@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */]],
       // TODO: Replace the vue3 build with production one (jsdelivry)
-      'hot-vue3': [`https://gist.githack.com/budnix/140887ad4d8f32de7dd68166cfb38190/raw/0645abfafd1a7f7f09506ac1323800787ad02df2/vue-handsontable.js`, [/* todo */]],
+      'hot-vue3': ['https://gist.githack.com/budnix/140887ad4d8f32de7dd68166cfb38190/raw/0645abfafd1a7f7f09506ac1323800787ad02df2/vue-handsontable.js', [/* todo */]],
       vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */]],
       vuex: ['https://unpkg.com/vuex@3/dist/vuex.js', [/* todo */]],
       vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */]],
