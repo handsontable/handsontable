@@ -35,7 +35,7 @@ import {
   stopObserving as keyStateStopObserving
 } from './utils/keyStateObserver';
 import { Selection } from './selection';
-import { MetaManager, DynamicCellMetaMod, PropertyAliasingMod, DataMap } from './dataMap';
+import { MetaManager, DynamicCellMetaMod, FixedColumnsPropertiesMod, DataMap } from './dataMap';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 
 let activeGuid = null;
@@ -74,16 +74,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let grid;
   let editorManager;
   let firstRun = true;
-
-  userSettings.language = getValidLanguageCode(userSettings.language);
-
-  const metaManager = new MetaManager(instance, userSettings, [
-    DynamicCellMetaMod,
-    PropertyAliasingMod,
-  ]);
-  const tableMeta = metaManager.getTableMeta();
-  const globalMeta = metaManager.getGlobalMeta();
-  const pluginsRegistry = createUniqueMap();
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
@@ -141,6 +131,52 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {number}
    */
   this.executionSuspendedCounter = 0;
+
+  /**
+   * Check if currently it is RTL direction.
+   *
+   * @private
+   * @memberof Core#
+   * @function isRtl
+   * @returns {boolean} True if RTL.
+   */
+  this.isRtl = function() {
+    return instance.rootWindow.getComputedStyle(instance.rootElement).direction === 'rtl';
+  };
+
+  /**
+   * Check if currently it is LTR direction.
+   *
+   * @private
+   * @memberof Core#
+   * @function isLtr
+   * @returns {boolean} True if LTR.
+   */
+  this.isLtr = function() {
+    return !instance.isRtl();
+  };
+
+  /**
+   * Returns 1 for LTR; -1 for RTL. Useful for calculations.
+   *
+   * @private
+   * @memberof Core#
+   * @function getDirectionFactor
+   * @returns {number} Returns 1 for LTR; -1 for RTL.
+   */
+  this.getDirectionFactor = function() {
+    return instance.isLtr() ? 1 : -1;
+  };
+
+  userSettings.language = getValidLanguageCode(userSettings.language);
+
+  const metaManager = new MetaManager(instance, userSettings, [
+    DynamicCellMetaMod,
+    FixedColumnsPropertiesMod
+  ]);
+  const tableMeta = metaManager.getTableMeta();
+  const globalMeta = metaManager.getGlobalMeta();
+  const pluginsRegistry = createUniqueMap();
 
   keyStateStartObserving(this.rootDocument);
 
@@ -2300,12 +2336,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         }
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
-        if (i === 'fixedColumnsLeft' && !settings.fixedColumnsStart) {
-          if (this.isRtl() && settings[i]) {
-            throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
-          }
-        }
-
         globalMeta[i] = settings[i];
       }
     }
@@ -4335,42 +4365,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   };
 
-  /**
-   * Check if currently it is RTL direction.
-   *
-   * @private
-   * @memberof Core#
-   * @function isRtl
-   * @returns {boolean} True if RTL.
-   */
-  this.isRtl = function() {
-    return instance.rootWindow.getComputedStyle(instance.rootElement).direction === 'rtl';
-  };
-
-  /**
-   * Check if currently it is LTR direction.
-   *
-   * @private
-   * @memberof Core#
-   * @function isLtr
-   * @returns {boolean} True if LTR.
-   */
-  this.isLtr = function() {
-    return !instance.isRtl();
-  };
-
-  /**
-   * Returns 1 for LTR; -1 for RTL. Useful for calculations.
-   *
-   * @private
-   * @memberof Core#
-   * @function getDirectionFactor
-   * @returns {number} Returns 1 for LTR; -1 for RTL.
-   */
-  this.getDirectionFactor = function() {
-    return instance.isLtr() ? 1 : -1;
-  };
-
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);
 
@@ -4378,8 +4372,4 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   Hooks.getSingleton().run(instance, 'construct');
-
-  if (this.isRtl() && this.getSettings().fixedColumnsLeft) {
-    throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
-  }
 }
