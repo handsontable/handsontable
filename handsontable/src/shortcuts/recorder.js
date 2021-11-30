@@ -1,4 +1,4 @@
-import { createKeysController } from './keyStore';
+import { createKeysController } from './keyController';
 import { normalizeEventKey } from './utils';
 
 /**
