@@ -52,6 +52,11 @@ const integrateWithVueItems = [
   'guides/integrate-with-vue/vue-hot-reference',
 ];
 
+const integrateWithVue3Items = [
+  'guides/integrate-with-vue3/vue-installation',
+  'guides/integrate-with-vue3/vue-simple-example',
+];
+
 const columnsItems = [
   'guides/columns/column-header',
   'guides/columns/column-groups',
@@ -176,6 +181,7 @@ module.exports = {
     { title: 'Integrate with React', children: integrateWithReactItems },
     { title: 'Integrate with Angular', children: integrateWithAngularItems },
     { title: 'Integrate with Vue 2', children: integrateWithVueItems },
+    { title: 'Integrate with Vue 3', children: integrateWithVue3Items },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
     { title: 'Cell Features', children: cellFeaturesItems },
