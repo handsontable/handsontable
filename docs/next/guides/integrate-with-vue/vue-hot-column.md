@@ -208,7 +208,7 @@ This will give you a solid base to build on. Note that the editor component need
   // We're binding the `style` attribute to the style object in our component's data
   // as well as the `mousedown` event to a function, which stops the event propagation
   // in order to prevent closing the editor on click.
-  <div v-if="isVisible" id="editorElement" :style="style" @mousedown="stopMousedownPropagation" >
+  <div v-if="isVisible" id="editorElement" :style="style" v-on:mousedown="stopMousedownPropagation" >
     <button v-on:click="setLowerCase">{{ value.toLowerCase() }}</button>
     <button v-on:click="setUpperCase">{{ value.toUpperCase() }}</button>
   </div>
@@ -400,19 +400,230 @@ In this example, several capabilities of the wrapper are combined:
 2. Declare settings for several columns using Vue's `v-for`
 3. Create a component where the state will be bound by the data retrieved from the first component
 
-Due to the complexity of this example, the components have been split into different files, making it previewable on Codesandbox instead of jsfiddle.
+::: example #advanced-editor-example :vue --html 1 --js 2
+```html
+<div id="advanced-editor-example" class="hot">
+  <hot-table :settings="hotSettings">
+    <hot-column :width="150">
+      <stars-rating hot-renderer></stars-rating>
+    </hot-column>
+    <hot-column v-for="n in 2" :width="150" v-bind:key="'col' + n">
+      <color-picker hot-editor hot-renderer></color-picker>
+    </hot-column>
+  </hot-table>
+</div>
+```
+```js
+import Vue from "vue";
+import Vuex from "vuex";
+import { HotTable, HotColumn, BaseEditorComponent } from "@handsontable/vue";
+import { Chrome } from "vue-color";
+import Component from "vue-class-component";
+import StarRating from "vue-star-rating";
 
-<style>
-iframe {
-  width: 100%;
-  height: 500px;
-  border: 0;
-  border-radius: 4px;
-  overflow: hidden;
+// ColorPicker.vue
+@Component({
+  components: {
+    "chrome-picker": Chrome
+  },
+  template: `
+    <div>
+      <div
+        v-if="isEditor && isVisible"
+        id="colorPickerElement"
+        :style="style"
+        @mousedown="stopMousedownPropagation"
+      >
+        <chrome-picker :value="value" @input="updateColor"></chrome-picker>
+        <button v-on:click="applyColor">Apply</button>
+      </div>
+      <div v-if="isRenderer">
+        <div
+          :style="{background: value, width: '21px', height: '21px', float: 'left', marginRight: '5px'}"
+        ></div>
+        <div>{{value}}</div>
+      </div>
+    </div>
+  `
+})
+class ColorPicker extends BaseEditorComponent {
+  hotInstance = null;
+  TD = null;
+  row = null;
+  col = null;
+  prop = null;
+  value = "";
+  cellProperties = null;
+  isEditor = null;
+  isRenderer = null;
+  editorElement = null;
+  isVisible = false;
+  style = {
+    position: "absolute",
+    padding: "15px",
+    background: "#fff",
+    zIndex: 999,
+    border: "1px solid #000",
+    left: "0px",
+    top: "0px"
+  };
+
+  stopMousedownPropagation(e) {
+    e.stopPropagation();
+  }
+
+  prepare(row, col, prop, td, originalValue, cellProperties) {
+    BaseEditorComponent.options.methods.prepare.call(
+      this,
+      row,
+      col,
+      prop,
+      td,
+      originalValue,
+      cellProperties
+    );
+
+    const tdPosition = td.getBoundingClientRect();
+
+    this.style.left = tdPosition.left + window.pageXOffset + "px";
+    this.style.top = tdPosition.top + window.pageYOffset + "px";
+  }
+
+  updateColor(info) {
+    this.setValue(info.hex);
+  }
+
+  applyColor() {
+    if (this.col === 1) {
+      this.$store.commit("setActiveStarColor", {
+        row: this.row,
+        newColor: this.getValue()
+      });
+    } else if (this.col === 2) {
+      this.$store.commit("setInactiveStarColor", {
+        row: this.row,
+        newColor: this.getValue()
+      });
+    }
+    this.finishEditing();
+  }
+
+  open() {
+    this.isVisible = true;
+  }
+
+  close() {
+    this.applyColor();
+    this.isVisible = false;
+  }
+
+  setValue(value) {
+    this.value = value;
+  }
+
+  getValue() {
+    return this.value;
+  }
 }
-</style>
 
-<iframe src="https://codesandbox.io/embed/advanced-vue-hot-column-implementation-d4ymm?fontsize=14" title="Advanced vue hot-column implementation (7.2.2 + 4.1.1)" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+// StarsRating.vue
+@Component({
+  components: {
+    StarRating,
+  },
+  template: `
+    <div class="rating-renderer">
+      <star-rating
+        v-on:rating-selected="saveRating"
+        :rating="rating"
+        :star-size="15"
+        :show-rating="false"
+        :active-color="this.$store.state.activeColors[this.row]"
+        :inactive-color="this.$store.state.inactiveColors[this.row]"
+      ></star-rating>
+    </div>
+  `
+})
+class StarsRenderer extends Vue {
+  hotInstance = null;
+  row = null;
+  col = null;
+  value = 0;
+
+  get rating() {
+    return parseInt(this.value, 10);
+  }
+
+  set rating(newValue) {
+    this.value = parseInt(newValue, 10);
+  }
+
+  saveRating(newRating) {
+    this.hotInstance.setDataAtCell(this.row, this.col, newRating);
+  }
+}
+
+// App.vue + main.js
+Vue.use(Vuex);
+
+Vue.config.productionTip = false;
+
+const App = new Vue({
+  el: "#advanced-editor-example",
+  data: function() {
+    return {
+      hotSettings: {
+        data: [
+          [1, "#2269EC", "#E1E7F3"],
+          [2, "#A1E3CD", "#E5ECE4"],
+          [3, "#A7DEA2", "#E4E8DA"],
+          [4, "#ABE025", "#D4E1E6"],
+          [5, "#018FC5", "#E8D3D7"],
+          [5, "#FF1E49", "#D0D7E4"]
+        ],
+        fillHandle: false,
+        copyPaste: false,
+        licenseKey: "non-commercial-and-evaluation",
+        rowHeaders: true,
+        colHeaders: ["Rating", "Active star color", "Inactive star color"],
+        autoRowSize: false,
+        autoColumnSize: false
+      }
+    };
+  },
+  created: function() {
+    this.$store.commit("initStarColors", this.hotSettings.data);
+  },
+  methods: {},
+  store: new Vuex.Store({
+    state: {
+      activeColors: [],
+      inactiveColors: []
+    },
+    mutations: {
+      initStarColors(state, hotData) {
+        for (var i = 0; i < hotData.length; i++) {
+          state.activeColors[i] = hotData[i][1];
+          state.inactiveColors[i] = hotData[i][2];
+        }
+      },
+      setActiveStarColor(state, payload) {
+        Vue.set(state.activeColors, payload.row, payload.newColor);
+      },
+      setInactiveStarColor(state, payload) {
+        Vue.set(state.inactiveColors, payload.row, payload.newColor);
+      }
+    }
+  }),
+  components: {
+    HotTable,
+    HotColumn,
+    ColorPicker,
+    StarsRating
+  }
+});
+```
+:::
 
 ### 1. Editor component with an external dependency, which will act as both renderer and editor
 
