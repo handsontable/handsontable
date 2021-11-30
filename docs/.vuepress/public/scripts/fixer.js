@@ -89,6 +89,9 @@
       } else if (key === 'react-dom') {
         ns = 'ReactDOM';
 
+      } else if (key === 'react-colorful') {
+        return window.exports;
+
       } else if (key === '@handsontable/react') {
         ns = 'Handsontable.react';
 
