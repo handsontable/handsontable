@@ -139,7 +139,7 @@ describe('Core_loadData', () => {
       ]
     });
     loadData(arrayOfNestedObjects());
-    
+
     expect(getDataAtCell(0, 2)).toEqual('Ted');
     expect(getDataAtCell(1, 3)).toEqual('Street II');
     expect(getDataAtRowProp(2, 'full.street')).toEqual('Street III');
@@ -167,7 +167,7 @@ describe('Core_loadData', () => {
       }
     });
     loadData(arrayOfNestedObjects());
-    
+
     expect(getDataAtCell(0, 2)).toEqual('Ted');
     expect(getDataAtCell(1, 3)).toEqual('Street II');
     expect(getDataAtRowProp(2, 'full.street')).toEqual('Street III');
@@ -178,7 +178,7 @@ describe('Core_loadData', () => {
       colHeaders: true
     });
     loadData(arrayOfNestedObjects());
-    
+
     expect(getDataAtCell(0, 2)).toEqual('Right');
   });
 
@@ -233,7 +233,7 @@ describe('Core_loadData', () => {
     });
 
     loadData(arrayOfArrays());
-    
+
     expect(countRows()).toEqual(20); // TODO why this must be checked after render?
   });
 
@@ -243,7 +243,7 @@ describe('Core_loadData', () => {
     });
 
     loadData(arrayOfNestedObjects());
-    
+
     expect(countRows()).toEqual(20); // TODO why this must be checked after render?
   });
 
@@ -260,7 +260,7 @@ describe('Core_loadData', () => {
     });
 
     loadData(arrayOfObjects());
-    
+
     expect(getCell(9, 1).innerHTML).toEqual('Eve');
   });
 
@@ -406,7 +406,7 @@ describe('Core_loadData', () => {
     });
 
     loadData(data1);
-    
+
     expect(countCols()).toBe(2);
   });
 
@@ -428,7 +428,7 @@ describe('Core_loadData', () => {
     });
 
     loadData(data1);
-    
+
     expect(countCols()).toBe(2);
   });
 

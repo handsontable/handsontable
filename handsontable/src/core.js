@@ -35,8 +35,7 @@ import {
   stopObserving as keyStateStopObserving
 } from './utils/keyStateObserver';
 import { Selection } from './selection';
-import { MetaManager, DynamicCellMetaMod } from './dataMap';
-import { replaceData } from './dataMap/replaceData';
+import { MetaManager, DynamicCellMetaMod, replaceData } from './dataMap';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 
 let activeGuid = null;
@@ -2019,7 +2018,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     );
   };
 
-  /* eslint-disable jsdoc/require-param */
   /**
    * Loads new data to Handsontable. Loading new data resets the cell meta.
    * Since 8.0.0 loading new data also resets states corresponding to rows and columns
@@ -2038,8 +2036,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterUpdateData
    * @fires Hooks#afterChange
    */
-  /* eslint-enable jsdoc/require-param */
-  this.setData = function(data, source, internalSource = 'setData') {
+  this.setData = function(data, source) {
     replaceData(
       data,
       (newDataMap) => {
@@ -2059,7 +2056,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         hotInstance: instance,
         dataMap: datamap,
         dataSource,
-        internalSource,
+        internalSource: 'setData',
         source,
         firstRun
       });
@@ -2117,7 +2114,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterChange
    */
   this.loadData = function(data, source) {
-    this.setData(data, source, 'loadData');
+    // Legacy alias for `setData` - these two should be kept in sync.
+
+    replaceData(
+      data,
+      (newDataMap) => {
+        datamap = newDataMap;
+      },
+      () => {
+        metaManager.clearCellsCache();
+
+        instance.initIndexMappers();
+
+        grid.adjustRowsAndCols();
+
+        if (firstRun) {
+          firstRun = [null, 'loadData'];
+        }
+      }, {
+        hotInstance: instance,
+        dataMap: datamap,
+        dataSource,
+        internalSource: 'loadData',
+        source,
+        firstRun
+      });
   };
 
   /**

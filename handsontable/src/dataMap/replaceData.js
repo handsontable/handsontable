@@ -1,6 +1,6 @@
 import { toUpperCaseFirst } from '../helpers/string';
 import { isFunction } from '../helpers/function';
-import { DataMap } from './index';
+import DataMap from './dataMap';
 import { deepClone } from '../helpers/object';
 
 /**
