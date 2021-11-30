@@ -2019,6 +2019,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     );
   };
 
+  /* eslint-disable jsdoc/require-param */
   /**
    * Loads new data to Handsontable. Loading new data resets the cell meta.
    * Since 8.0.0 loading new data also resets states corresponding to rows and columns
@@ -2037,6 +2038,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterUpdateData
    * @fires Hooks#afterChange
    */
+  /* eslint-enable jsdoc/require-param */
   this.setData = function(data, source, internalSource = 'setData') {
     replaceData(
       data,
