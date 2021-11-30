@@ -91,12 +91,17 @@ function triggerKeys(type) {
   return function(keys, extend = {}, target = document.activeElement) {
     // Adds support for a single key as a string and as an array of strings.
     const variants = typeof keys === 'string' ? [keys] : keys;
+    const isKeyUp = type === 'keyup';
+
+    if (isKeyUp) {
+      variants.reverse();
+    }
 
     variants.forEach((key) => {
-      extend.ctrlKey = type === 'keyup' && key === 'control' ? false : keys.includes('control');
-      extend.metaKey = type === 'keyup' && key === 'control' ? false : keys.includes('control');
-      extend.shiftKey = type === 'keyup' && key === 'shift' ? false : keys.includes('shift');
-      extend.altKey = type === 'keyup' && key === 'alt' ? false : keys.includes('alt');
+      extend.ctrlKey = isKeyUp && key === 'control' ? false : keys.includes('control');
+      extend.metaKey = isKeyUp && key === 'control' ? false : keys.includes('control');
+      extend.shiftKey = isKeyUp && key === 'shift' ? false : keys.includes('shift');
+      extend.altKey = isKeyUp && key === 'alt' ? false : keys.includes('alt');
 
       handsontableKeyTriggerFactory(type, target)(key, extend);
     });
@@ -112,7 +117,7 @@ function triggerKeys(type) {
  */
 export function keyDownUp(keys, extend, target) {
   keyDown(keys, extend, target);
-  keyUp(keys.reverse(), extend, target);
+  keyUp(keys, extend, target);
 }
 
 /**
