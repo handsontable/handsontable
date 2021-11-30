@@ -2059,7 +2059,6 @@ describe('AutocompleteEditor', () => {
 
       await sleep(200);
 
-
       expect(getDataAtCell(0, 0)).toEqual('foobar');
     });
 
