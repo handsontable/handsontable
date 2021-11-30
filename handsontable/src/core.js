@@ -2029,7 +2029,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @since 11.1.0
    * @param {Array} data Array of arrays or array of objects containing data.
    * @param {string} [source] Source of the `setData` call.
-   * @param {string} [internalSource = 'setData'] Immediate calling source of the `setData` call.
    * @fires Hooks#beforeLoadData
    * @fires Hooks#beforeSetData
    * @fires Hooks#beforeUpdateData

@@ -22,6 +22,7 @@ export class IndexMapper {
   registerMap(uniqueName: string, indexMap: IndexMap): IndexMap;
   unregisterMap(name: string): void;
   unregisterAll(): void;
+  fitToLength(length?: number): void;
   getPhysicalFromVisualIndex(visualIndex: number): number;
   getPhysicalFromRenderableIndex(renderableIndex: number): number;
   getVisualFromPhysicalIndex(physicalIndex: number): number;
