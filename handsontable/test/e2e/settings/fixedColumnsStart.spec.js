@@ -1,4 +1,4 @@
-describe('settings', () => {
+xdescribe('settings', () => {
   describe('fixedColumnsStart', () => {
     const id = 'testContainer';
 

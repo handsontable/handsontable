@@ -13,11 +13,12 @@ export class FixedColumnsPropertiesMod {
     
     Object.defineProperty(metaManager.globalMeta.meta, 'fixedColumnsLeft', {
       get() {
+        // TODO: should it show a warn?
         return this._fixedColumnsStart;
       },
       set(value) {
         this._fixedColumnsStart = value;
-        self.checkRtl()
+        // self.checkRtl()
         self.checkDoubleUse('fixedColumnsLeft');
       },
       enumerable: true,
