@@ -2245,7 +2245,7 @@ describe('Formulas general', () => {
 
     selectCell(1, 1, 5, 5);
 
-    keyDownUp(['delete']);
+    keyDownUp('delete');
 
     expect(afterViewRender).toHaveBeenCalledTimes(2);
   });

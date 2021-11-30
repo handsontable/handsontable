@@ -31,7 +31,7 @@ describe('DateEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -48,7 +48,7 @@ describe('DateEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -68,13 +68,13 @@ describe('DateEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -84,40 +84,40 @@ describe('DateEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -136,13 +136,13 @@ describe('DateEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
     selectCell(0, 1);
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -154,19 +154,19 @@ describe('DateEditor', () => {
 
     selectCell(0, 2);
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     selectCell(0, 3);
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     selectCell(0, 4);
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
@@ -190,14 +190,14 @@ describe('DateEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // First renderable row index.
     expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -207,28 +207,28 @@ describe('DateEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -248,7 +248,7 @@ describe('DateEditor', () => {
     });
 
     selectCell(0, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
@@ -257,7 +257,7 @@ describe('DateEditor', () => {
 
     selectCell(0, 2);
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -269,13 +269,13 @@ describe('DateEditor', () => {
 
     selectCell(0, 3);
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     selectCell(0, 4);
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
@@ -286,7 +286,7 @@ describe('DateEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const editor = getActiveEditor().TEXTAREA;
 
@@ -306,7 +306,7 @@ describe('DateEditor', () => {
     expect($('.pika-single').is(':visible')).toBe(false);
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect($('.pika-single').is(':visible')).toBe(true);
   });
@@ -341,8 +341,8 @@ describe('DateEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
-    keyDownUp(['escape']);
+    keyDownUp('enter');
+    keyDownUp('escape');
 
     const config = hot.getActiveEditor().$datePicker.config();
 
@@ -370,7 +370,7 @@ describe('DateEditor', () => {
     expect($('.pika-single').length).toBe(0);
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect($('.pika-single').length).toBe(1);
 
@@ -391,7 +391,7 @@ describe('DateEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const date = new Date(getDates()[0][0]);
 
@@ -414,7 +414,7 @@ describe('DateEditor', () => {
     selectCell(0, 0);
     expect(getDataAtCell(0, 0)).toMatch('01/14/2006');
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
 
@@ -438,7 +438,7 @@ describe('DateEditor', () => {
     selectCell(0, 0);
     expect(getDataAtCell(0, 0)).toMatch('01/14/2006');
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
 
@@ -465,7 +465,7 @@ describe('DateEditor', () => {
     selectCell(5, 0);
     expect(getDataAtCell(5, 0)).toBe(null);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const date = new Date('01/01/1900');
 
@@ -473,7 +473,7 @@ describe('DateEditor', () => {
     expect($('.pika-single').find('.pika-select-month').find(':selected').val()).toMatch(date.getMonth().toString());
     expect($('.pika-single').find('.pika-table .is-selected').text()).toMatch(date.getDate().toString());
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     setTimeout(() => {
       expect(getDataAtCell(5, 0)).toMatch('01/01/1900');
@@ -493,7 +493,7 @@ describe('DateEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect($('.pika-single').is(':visible')).toBe(true);
 
@@ -521,7 +521,7 @@ describe('DateEditor', () => {
     expect(editor.isOpened()).toBe(true);
 
     editor.TEXTAREA.value = 'foo';
-    keyDownUp(['o']);
+    keyDownUp('o');
 
     expect(editor.getValue()).toEqual('foo');
 
@@ -586,7 +586,7 @@ describe('DateEditor', () => {
     expect(activeElement).not.toBe(null);
     expect(document.activeElement).toBe(activeElement);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -595,17 +595,17 @@ describe('DateEditor', () => {
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = 't';
-    keyDownUp(['t']);
+    keyDownUp('t');
 
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = 'te';
-    keyDownUp(['e']);
+    keyDownUp('e');
 
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = 'teo';
-    keyDownUp(['o']);
+    keyDownUp('o');
 
     expect(document.activeElement).toBe(activeElement);
   });
@@ -632,7 +632,7 @@ describe('DateEditor', () => {
 
     expect(editor.getValue()).toEqual('foo');
 
-    keyDownUp(['escape']); // cancel editing
+    keyDownUp('escape'); // cancel editing
 
     await sleep(30);
 
@@ -655,7 +655,7 @@ describe('DateEditor', () => {
 
     await sleep(200);
     selectCell(5, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect($('.pika-single').is(':visible')).toBe(true);
 
@@ -678,7 +678,7 @@ describe('DateEditor', () => {
     });
 
     selectCell(1, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const cellOffset = $(hot.getActiveEditor().TD).offset();
     const datePickerOffset = $('.pika-single').offset();
@@ -710,7 +710,7 @@ describe('DateEditor', () => {
     });
 
     selectCell(20, 6);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const cellOffset = $(hot.getActiveEditor().TD).offset();
     const datePickerOffset = $('.pika-single').offset();
@@ -737,7 +737,7 @@ describe('DateEditor', () => {
     const cellValue = getDataAtCell(0, 0);
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const editor = hot.getActiveEditor();
 
@@ -764,25 +764,25 @@ describe('DateEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200);
 
     expect($('.pika-lendar').length).toEqual(1);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200);
 
     selectCell(0, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200);
 
     expect($('.pika-lendar').length).toEqual(3);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200);
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     await sleep(200);
 
     expect($('.pika-lendar').length).toEqual(1);
@@ -817,8 +817,8 @@ describe('DateEditor', () => {
       });
 
       selectCell(0, 0);
-      keyDownUp(['enter']);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
+      keyDownUp('enter');
 
       destroy();
 

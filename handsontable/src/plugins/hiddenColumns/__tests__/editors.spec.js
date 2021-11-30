@@ -29,7 +29,7 @@ describe('HiddenColumns', () => {
       const $mainHolder = spec().$container.find('.ht_master .wtHolder');
       const startScrollLeft = $mainHolder.scrollLeft();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -51,7 +51,7 @@ describe('HiddenColumns', () => {
 
       simulateClick(firstHeader, 'LMB');
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       keyDownUp(['control', 'enter']);
 
       expect(getData()).toEqual([
@@ -78,7 +78,7 @@ describe('HiddenColumns', () => {
 
       simulateClick(corner, 'LMB');
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       keyDownUp(['control', 'enter']);
 
       expect(getData()).toEqual([
@@ -109,13 +109,13 @@ describe('HiddenColumns', () => {
       });
 
       hot.selectCell(0, 1);
-      keyDownUp(['enter']); // open the editor
+      keyDownUp('enter'); // open the editor
       await sleep(200);
 
       document.activeElement.value = 'aa'; // type incorect value
-      keyDownUp(['enter']); // confirm change the value
+      keyDownUp('enter'); // confirm change the value
       await sleep(200);
-      keyDownUp(['escape']); // close the editor
+      keyDownUp('escape'); // close the editor
       await sleep(200);
 
       expect(hot.getDataAtCell(0, 1)).toBe(2);

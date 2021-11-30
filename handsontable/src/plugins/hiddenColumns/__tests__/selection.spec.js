@@ -373,7 +373,7 @@ describe('HiddenColumns', () => {
 
       selectCell(0, 2);
 
-      keyDownUp(['arrowleft']);
+      keyDownUp('arrowleft');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(`

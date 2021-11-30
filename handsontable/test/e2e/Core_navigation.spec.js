@@ -45,7 +45,7 @@ describe('Core_navigation LTR', () => {
     });
 
     selectCell(1, 2);
-    keyDownUp(['arrowup']);
+    keyDownUp('arrowup');
 
     expect(getSelected()).toEqual([[0, 2, 0, 2]]);
   });
@@ -57,7 +57,7 @@ describe('Core_navigation LTR', () => {
     });
 
     selectCell(1, 2);
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[2, 2, 2, 2]]);
   });
@@ -97,7 +97,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(4, 0);
-      keyDownUp(['arrowdown']);
+      keyDownUp('arrowdown');
 
       expect(getSelected()).toEqual([[4, 0, 4, 0]]);
     });
@@ -110,7 +110,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(0, 1);
-      keyDownUp(['arrowup']);
+      keyDownUp('arrowup');
 
       expect(getSelected()).toEqual([[0, 1, 0, 1]]);
     });
@@ -152,7 +152,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(4, 1);
-      keyDownUp(['arrowdown']);
+      keyDownUp('arrowdown');
 
       expect(getSelected()).toEqual([[0, 2, 0, 2]]);
     });
@@ -165,7 +165,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(0, 1);
-      keyDownUp(['arrowup']);
+      keyDownUp('arrowup');
 
       expect(getSelected()).toEqual([[4, 0, 4, 0]]);
     });
@@ -191,7 +191,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(4, 4);
-      keyDownUp(['arrowdown']);
+      keyDownUp('arrowdown');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     });
@@ -217,7 +217,7 @@ describe('Core_navigation LTR', () => {
       });
 
       selectCell(0, 0);
-      keyDownUp(['arrowup']);
+      keyDownUp('arrowup');
 
       expect(getSelected()).toEqual([[4, 4, 4, 4]]);
     });
@@ -272,7 +272,7 @@ describe('Core_navigation LTR', () => {
       for (let col = 0, clen = countCols(); col < clen; col++) {
         for (let row = 0, rlen = countRows(); row < rlen; row++) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
-          keyDownUp(['arrowdown']);
+          keyDownUp('arrowdown');
         }
       }
 
@@ -291,7 +291,7 @@ describe('Core_navigation LTR', () => {
       for (let col = countCols() - 1; col >= 0; col--) {
         for (let row = countRows() - 1; row >= 0; row--) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
-          keyDownUp(['arrowup']);
+          keyDownUp('arrowup');
         }
       }
 
@@ -347,7 +347,7 @@ describe('Core_navigation RTL', () => {
     });
 
     selectCell(1, 2);
-    keyDownUp(['arrowup']);
+    keyDownUp('arrowup');
 
     expect(getSelected()).toEqual([[0, 2, 0, 2]]);
   });
@@ -359,7 +359,7 @@ describe('Core_navigation RTL', () => {
     });
 
     selectCell(1, 2);
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[2, 2, 2, 2]]);
   });
@@ -399,7 +399,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(4, 0);
-      keyDownUp(['arrowdown']);
+      keyDownUp('arrowdown');
 
       expect(getSelected()).toEqual([[4, 0, 4, 0]]);
     });
@@ -412,7 +412,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(0, 1);
-      keyDownUp(['arrowup']);
+      keyDownUp('arrowup');
 
       expect(getSelected()).toEqual([[0, 1, 0, 1]]);
     });
@@ -454,7 +454,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(4, 1);
-      keyDownUp(['arrowdown']);
+      keyDownUp('arrowdown');
 
       expect(getSelected()).toEqual([[0, 2, 0, 2]]);
     });
@@ -467,7 +467,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(0, 1);
-      keyDownUp(['arrowup']);
+      keyDownUp('arrowup');
 
       expect(getSelected()).toEqual([[4, 0, 4, 0]]);
     });
@@ -493,7 +493,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(4, 4);
-      keyDownUp(['arrowdown']);
+      keyDownUp('arrowdown');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     });
@@ -519,7 +519,7 @@ describe('Core_navigation RTL', () => {
       });
 
       selectCell(0, 0);
-      keyDownUp(['arrowup']);
+      keyDownUp('arrowup');
 
       expect(getSelected()).toEqual([[4, 4, 4, 4]]);
     });
@@ -574,7 +574,7 @@ describe('Core_navigation RTL', () => {
       for (let col = 0, clen = countCols(); col < clen; col++) {
         for (let row = 0, rlen = countRows(); row < rlen; row++) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
-          keyDownUp(['arrowdown']);
+          keyDownUp('arrowdown');
         }
       }
 
@@ -593,7 +593,7 @@ describe('Core_navigation RTL', () => {
       for (let col = countCols() - 1; col >= 0; col--) {
         for (let row = countRows() - 1; row >= 0; row--) {
           expect(getSelected()).toEqual([[row, col, row, col]]);
-          keyDownUp(['arrowup']);
+          keyDownUp('arrowup');
         }
       }
 

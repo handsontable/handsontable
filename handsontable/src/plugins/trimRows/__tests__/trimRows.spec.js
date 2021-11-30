@@ -782,19 +782,19 @@ describe('TrimRows', () => {
 
       expect(getValue()).toEqual('A1');
 
-      keyDownUp(['arrowdown']);
+      keyDownUp('arrowdown');
 
       expect(getValue()).toEqual('A3');
 
-      keyDownUp(['arrowdown']);
+      keyDownUp('arrowdown');
 
       expect(getValue()).toEqual('A4');
 
-      keyDownUp(['arrowdown']);
+      keyDownUp('arrowdown');
 
       expect(getValue()).toEqual('A5');
 
-      keyDownUp(['arrowdown']);
+      keyDownUp('arrowdown');
 
       expect(getValue()).toEqual('A10');
     });

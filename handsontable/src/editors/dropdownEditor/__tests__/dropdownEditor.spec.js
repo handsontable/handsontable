@@ -28,7 +28,7 @@ describe('DropdownEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -50,7 +50,7 @@ describe('DropdownEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -76,12 +76,12 @@ describe('DropdownEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -91,34 +91,34 @@ describe('DropdownEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -138,12 +138,12 @@ describe('DropdownEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
     selectCell(0, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -154,17 +154,17 @@ describe('DropdownEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
 
     selectCell(0, 2);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     selectCell(0, 3);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     selectCell(0, 4);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
@@ -196,13 +196,13 @@ describe('DropdownEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // First renderable row index.
     expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -212,24 +212,24 @@ describe('DropdownEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -253,13 +253,13 @@ describe('DropdownEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // First renderable column index.
     expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
 
     selectCell(0, 2);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -270,12 +270,12 @@ describe('DropdownEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     selectCell(0, 3);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     selectCell(0, 4);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
@@ -287,7 +287,7 @@ describe('DropdownEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const editor = getActiveEditor().TEXTAREA;
 
@@ -311,9 +311,9 @@ describe('DropdownEditor', () => {
       });
 
       selectCell(0, 0);
-      keyDownUp(['enter']);
-      keyDownUp(['enter']);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
+      keyDownUp('enter');
+      keyDownUp('enter');
 
       expect(spy.test.calls.count()).toBe(0);
 
@@ -433,7 +433,7 @@ describe('DropdownEditor', () => {
       });
 
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -468,7 +468,7 @@ describe('DropdownEditor', () => {
       });
 
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 

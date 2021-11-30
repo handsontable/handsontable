@@ -37,7 +37,7 @@ import {
 import { Selection } from './selection';
 import { MetaManager, DynamicCellMetaMod, DataMap } from './dataMap';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
-import { createShortcutManager } from './shortcuts/manager';
+import { createShortcutManager } from './shortcuts';
 
 let activeGuid = null;
 
@@ -4389,7 +4389,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   shortcutManager.setActiveContexts(['grid', EDITORMANAGER_CONTEXT]);
 
-  gridContext.addShortcut([['Control', 'A']], (event) => {
+  gridContext.addShortcut([['Control', 'A'], ['Meta', 'A']], (event) => {
     if (instance.getActiveEditor().isOpened()) {
       return;
     }

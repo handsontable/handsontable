@@ -283,7 +283,7 @@ describe('AutoFill', () => {
     });
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(isFillHandleVisible()).toBe(false);
   });
@@ -294,8 +294,8 @@ describe('AutoFill', () => {
     });
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(isFillHandleVisible()).toBe(true);
   });
@@ -306,8 +306,8 @@ describe('AutoFill', () => {
     });
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(isFillHandleVisible()).toBe(false);
   });
@@ -318,8 +318,8 @@ describe('AutoFill', () => {
     });
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
-    keyDownUp(['escape']);
+    keyDownUp('enter');
+    keyDownUp('escape');
 
     expect(isFillHandleVisible()).toBe(true);
   });

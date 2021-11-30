@@ -60,9 +60,9 @@ describe('Formulas general', () => {
 
       selectCell(0, 0);
       // Opening an editor
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       // Closing the editor and saving changes.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(100); // Validator is asynchronous.
 
@@ -70,9 +70,9 @@ describe('Formulas general', () => {
 
       selectCell(0, 2);
       // Opening an editor
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       // Closing the editor and saving changes.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(100); // Validator is asynchronous.
 

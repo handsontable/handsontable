@@ -45,7 +45,7 @@ describe('Core_modifyGetCellCoords', () => {
     expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
 
     // Closing the editor.
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     editor = getActiveEditor();
 

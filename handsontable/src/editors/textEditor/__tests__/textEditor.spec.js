@@ -26,7 +26,7 @@ describe('TextEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -47,7 +47,7 @@ describe('TextEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -72,12 +72,12 @@ describe('TextEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -87,34 +87,34 @@ describe('TextEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -133,12 +133,12 @@ describe('TextEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
     selectCell(0, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -149,17 +149,17 @@ describe('TextEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
 
     selectCell(0, 2);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     selectCell(0, 3);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     selectCell(0, 4);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
@@ -188,13 +188,13 @@ describe('TextEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // First renderable row index.
     expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -204,24 +204,24 @@ describe('TextEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -244,13 +244,13 @@ describe('TextEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // First renderable column index.
     expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
 
     selectCell(0, 2);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -261,12 +261,12 @@ describe('TextEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     selectCell(0, 3);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     selectCell(0, 4);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
@@ -277,7 +277,7 @@ describe('TextEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const editor = getActiveEditor().TEXTAREA;
 
@@ -291,7 +291,7 @@ describe('TextEditor', () => {
     });
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const selection = getSelected();
 
@@ -305,8 +305,8 @@ describe('TextEditor', () => {
     });
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     const selection = getSelected();
 
@@ -319,7 +319,7 @@ describe('TextEditor', () => {
     });
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const selection = getSelected();
 
@@ -367,7 +367,7 @@ describe('TextEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const cell = getCell(0, 0);
     const [cellOffsetTop, cellOffsetLeft] = [cell.offsetTop, cell.offsetLeft];
@@ -399,7 +399,7 @@ describe('TextEditor', () => {
 
     // .ht_clone_top_left_corner
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const handsontableInputHolder = spec().$container.find('.handsontableInputHolder');
 
@@ -407,31 +407,31 @@ describe('TextEditor', () => {
 
     // .ht_clone_left
     selectCell(5, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(handsontableInputHolder.css('zIndex')).toBe('120');
 
     // .ht_clone_bottom_left_corner
     selectCell(9, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(handsontableInputHolder.css('zIndex')).toBe('150');
 
     // .ht_clone_top
     selectCell(0, 5);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(handsontableInputHolder.css('zIndex')).toBe('160');
 
     // .ht_clone_master
     selectCell(2, 2);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(handsontableInputHolder.css('zIndex')).toBe('100');
 
     // .ht_clone_bottom
     selectCell(9, 5);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(handsontableInputHolder.css('zIndex')).toBe('130');
   });
@@ -441,7 +441,7 @@ describe('TextEditor', () => {
     setDataAtCell(2, 2, 'string');
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(keyProxy().val()).toEqual('string');
   });
@@ -465,7 +465,7 @@ describe('TextEditor', () => {
     const hot = handsontable();
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     await sleep(10);
 
@@ -476,7 +476,7 @@ describe('TextEditor', () => {
     const hot = handsontable();
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     await sleep(200);
 
@@ -488,7 +488,7 @@ describe('TextEditor', () => {
     const hot = handsontable();
 
     selectCell(1, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     await sleep(200);
 
@@ -502,7 +502,7 @@ describe('TextEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     await sleep(200);
 
@@ -518,7 +518,7 @@ describe('TextEditor', () => {
 
     selectAll();
     listen();
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     await sleep(200);
 
@@ -545,7 +545,7 @@ describe('TextEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     await sleep(200);
 
@@ -564,7 +564,7 @@ describe('TextEditor', () => {
     setDataAtCell(2, 2, 'string\nstring\nstring');
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     keyUp(['enter']);
 
     const mainHolder = hot.view.wt.wtTable.holder;
@@ -587,7 +587,7 @@ describe('TextEditor', () => {
     setDataAtCell(2, 2, 'string\nstring\nstring');
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     keyUp(['enter']);
 
     const mainHolder = hot.view.wt.wtTable.holder;
@@ -612,7 +612,7 @@ describe('TextEditor', () => {
     setDataAtCell(2, 2, 'string\nstring\nstring');
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     keyUp(['enter']);
     hot.scrollViewportTo(49);
 
@@ -627,7 +627,7 @@ describe('TextEditor', () => {
     setDataAtCell(2, 2, 'first line');
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     await sleep(200);
 
@@ -640,7 +640,7 @@ describe('TextEditor', () => {
     setDataAtCell(2, 2, 'first line\n second line\n third line...');
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     await sleep(200);
 
@@ -652,7 +652,7 @@ describe('TextEditor', () => {
     setDataAtCell(2, 2, 13);
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(keyProxy().val()).toEqual('13');
   });
@@ -662,7 +662,7 @@ describe('TextEditor', () => {
     setDataAtCell(2, 2, true);
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(keyProxy().val()).toEqual('true');
   });
@@ -672,7 +672,7 @@ describe('TextEditor', () => {
     setDataAtCell(2, 2, false);
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(keyProxy().val()).toEqual('false');
   });
@@ -682,7 +682,7 @@ describe('TextEditor', () => {
     setDataAtCell(2, 2, null);
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(keyProxy().val()).toEqual('');
   });
@@ -692,7 +692,7 @@ describe('TextEditor', () => {
     setDataAtCell(2, 2);
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(keyProxy().val()).toEqual('');
   });
@@ -721,12 +721,12 @@ describe('TextEditor', () => {
       }]
     });
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(keyProxy().val()).toEqual('Kowalski');
 
     selectCell(1, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(keyProxy().val()).toEqual('bar');
   });
@@ -760,16 +760,16 @@ describe('TextEditor', () => {
     hot.render();
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     expect(keyProxy().val()).toEqual('Cage');
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(hot.getDataAtCell(0, 0)).toEqual('Cage');
 
     selectCell(1, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     expect(keyProxy().val()).toEqual('');
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(hot.getDataAtCell(1, 1)).toEqual('');
   });
@@ -803,16 +803,16 @@ describe('TextEditor', () => {
     hot.render();
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     expect(keyProxy().val()).toEqual('');
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(hot.getDataAtCell(0, 0)).toEqual('');
 
     selectCell(1, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     expect(keyProxy().val()).toEqual('Cage');
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(hot.getDataAtCell(1, 1)).toEqual('Cage');
   });
@@ -831,12 +831,12 @@ describe('TextEditor', () => {
       }],
     });
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(keyProxy().val()).toEqual('Kia');
 
     selectCell(1, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(keyProxy().val()).toEqual('2012');
   });
@@ -846,7 +846,7 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
-    keyDownUp(['f2']);
+    keyDownUp('f2');
     expect(isEditorVisible()).toEqual(true);
   });
 
@@ -855,9 +855,9 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
-    keyDownUp(['f2']);
+    keyDownUp('f2');
     expect(isEditorVisible()).toEqual(true);
-    keyDownUp(['escape']);
+    keyDownUp('escape');
     expect(isEditorVisible()).toEqual(false);
   });
 
@@ -866,7 +866,7 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
-    keyDownUp(['capslock']);
+    keyDownUp('capslock');
     expect(isEditorVisible()).toEqual(false);
   });
 
@@ -875,11 +875,11 @@ describe('TextEditor', () => {
     selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
-    keyDownUp(['f2']);
+    keyDownUp('f2');
     expect(isEditorVisible()).toEqual(true);
-    keyDownUp(['escape']);
+    keyDownUp('escape');
     expect(isEditorVisible()).toEqual(false);
-    keyDownUp(['f2']);
+    keyDownUp('f2');
     expect(isEditorVisible()).toEqual(true);
   });
 
@@ -887,7 +887,7 @@ describe('TextEditor', () => {
     handsontable();
     selectCell(2, 2);
 
-    keyDownUp(['f2']);
+    keyDownUp('f2');
     loadData(getData());
 
     expect(isEditorVisible()).toEqual(true);
@@ -897,7 +897,7 @@ describe('TextEditor', () => {
     handsontable();
     selectCell(2, 2);
 
-    keyDownUp(['f2']);
+    keyDownUp('f2');
     updateSettings({
       data: getData()
     });
@@ -923,12 +923,12 @@ describe('TextEditor', () => {
     selectCell(1, 1);
     const $td = getHtCore().find('tbody tr:eq(1) td:eq(1)');
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     expect(keyProxy().width()).toEqual($td.width());
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     data[1][1] = 'dddddddddddddddddddd';
     render();
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(keyProxy().width()).toEqual($td.width());
   });
@@ -937,7 +937,7 @@ describe('TextEditor', () => {
     handsontable();
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     keyDownUp(['control', 'a']); // CTRL+A should NOT select all table when cell is edited
 
@@ -1057,7 +1057,7 @@ describe('TextEditor', () => {
 
     expect(editor.isOpened()).toEqual(false);
     expect(editor.focus).not.toHaveBeenCalled();
-    keyDownUp(['f2']);
+    keyDownUp('f2');
     expect(editor.isOpened()).toEqual(true);
     expect(editor.focus).toHaveBeenCalled();
   });
@@ -1071,13 +1071,13 @@ describe('TextEditor', () => {
 
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(isEditorVisible()).toEqual(true);
 
     document.activeElement.value = 'Very very very very very very very very very very very very very ' +
       'very very very very long text';
-    keyDownUp(['space']); // space - trigger textarea resize
+    keyDownUp('space'); // space - trigger textarea resize
 
     const $textarea = $(document.activeElement);
     const $wtHider = spec().$container.find('.wtHider');
@@ -1098,12 +1098,12 @@ describe('TextEditor', () => {
     spec().$container.find('tbody tr:eq(0) td:eq(0)').simulate('mouseup');
 
     // Open editor in HOT1
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(isEditorVisible($(hot1.getActiveEditor().TEXTAREA))).toBe(true);
 
     // Close editor in HOT1
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(isEditorVisible($(hot1.getActiveEditor().TEXTAREA))).toBe(false);
 
@@ -1114,7 +1114,7 @@ describe('TextEditor', () => {
     expect(hot2.getSelected()).toEqual([[0, 0, 0, 0]]);
 
     // Open editor in HOT2
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(isEditorVisible($(hot2.getActiveEditor().TEXTAREA))).toBe(true);
 
@@ -1140,7 +1140,7 @@ describe('TextEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    keyDownUp(['a']);
+    keyDownUp('a');
 
     expect(isEditorVisible()).toBe(true);
   });
@@ -1168,8 +1168,8 @@ describe('TextEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    keyDownUp(['delete']);
-    keyDownUp(['a']);
+    keyDownUp('delete');
+    keyDownUp('a');
 
     expect(isEditorVisible()).toBe(true);
   });
@@ -1183,8 +1183,8 @@ describe('TextEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    keyDownUp(['backspace']);
-    keyDownUp(['a']);
+    keyDownUp('backspace');
+    keyDownUp('a');
 
     expect(isEditorVisible()).toBe(true);
   });
@@ -1207,7 +1207,7 @@ describe('TextEditor', () => {
     expect(getCell(0, 0)).toBeNull();
     expect(getCell(19, 19)).not.toBeNull();
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(getCell(0, 0)).not.toBeNull();
     expect(getCell(19, 19)).toBeNull();
@@ -1222,12 +1222,12 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
 
-    keyDownUp(['backspace']);
+    keyDownUp('backspace');
 
     expect(getDataAtCell(0, 0)).toEqual(null);
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(hot.getActiveEditor().isOpened()).toBe(true);
     expect(hot.getActiveEditor().getValue()).toEqual('');
@@ -1242,12 +1242,12 @@ describe('TextEditor', () => {
 
     selectCell(0, 0);
 
-    keyDownUp(['delete']);
+    keyDownUp('delete');
 
     expect(getDataAtCell(0, 0)).toEqual(null);
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(hot.getActiveEditor().isOpened()).toBe(true);
     expect(hot.getActiveEditor().getValue()).toEqual('');
@@ -1279,7 +1279,7 @@ describe('TextEditor', () => {
 
     // corner
     selectCell(1, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     const $inputHolder = $('.handsontableInputHolder');
 
     expect($(getCell(1, 1)).offset().left).toEqual($inputHolder.offset().left + 1);
@@ -1287,19 +1287,19 @@ describe('TextEditor', () => {
 
     // top
     selectCell(1, 4);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     expect($(getCell(1, 4)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(1, 4)).offset().top).toEqual($inputHolder.offset().top + 1);
 
     // left
     selectCell(4, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     expect($(getCell(4, 1)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(4, 1)).offset().top).toEqual($inputHolder.offset().top + 1);
 
     // non-fixed
     selectCell(4, 4);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     expect($(getCell(4, 4)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(4, 4)).offset().top).toEqual($inputHolder.offset().top + 1);
 
@@ -1329,7 +1329,7 @@ describe('TextEditor', () => {
     await sleep(50);
     // corner
     selectCell(1, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     const $inputHolder = $('.handsontableInputHolder');
 
     expect($(getCell(1, 1, true)).offset().left).toEqual($inputHolder.offset().left + 1);
@@ -1337,19 +1337,19 @@ describe('TextEditor', () => {
 
     // top
     selectCell(1, 4);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     expect($(getCell(1, 4, true)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(1, 4, true)).offset().top).toEqual($inputHolder.offset().top + 1);
 
     // left
     selectCell(4, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     expect($(getCell(4, 1, true)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(4, 1, true)).offset().top).toEqual($inputHolder.offset().top + 1);
 
     // non-fixed
     selectCell(10, 6);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     expect($(getCell(10, 6, true)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(10, 6, true)).offset().top).toEqual($inputHolder.offset().top + 1);
   });
@@ -1372,7 +1372,7 @@ describe('TextEditor', () => {
     // corner
     window.scrollBy(300, 300);
     selectCell(1, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     window.scrollBy(-300, -300);
     const $inputHolder = $('.handsontableInputHolder');
 
@@ -1382,7 +1382,7 @@ describe('TextEditor', () => {
     // top
     window.scrollBy(0, 300);
     selectCell(1, 4);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     window.scrollBy(0, -300);
     expect($(getCell(1, 4, true)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(1, 4, true)).offset().top).toEqual($inputHolder.offset().top + 1);
@@ -1390,7 +1390,7 @@ describe('TextEditor', () => {
     // left
     window.scrollBy(300, 0);
     selectCell(4, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     window.scrollBy(-300, 0);
     expect($(getCell(4, 1, true)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(4, 1, true)).offset().top).toEqual($inputHolder.offset().top + 1);
@@ -1398,7 +1398,7 @@ describe('TextEditor', () => {
     // non-fixed
     window.scrollBy(300, 300);
     selectCell(10, 6);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     window.scrollBy(-300, -300);
     expect($(getCell(10, 6, true)).offset().left).toEqual($inputHolder.offset().left + 1);
     expect($(getCell(10, 6, true)).offset().top).toEqual($inputHolder.offset().top + 1);
@@ -1426,7 +1426,7 @@ describe('TextEditor', () => {
 
     const $inputHolder = $('.handsontableInputHolder');
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     expect(left).toEqual($inputHolder.offset().left + 1);
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
@@ -1455,7 +1455,7 @@ describe('TextEditor', () => {
     const top = $(currentCell).offset().top;
     const $inputHolder = $('.handsontableInputHolder');
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(left).toEqual($inputHolder.offset().left + 1);
     expect(top).toEqual($inputHolder.offset().top + 1);
@@ -1485,7 +1485,7 @@ describe('TextEditor', () => {
 
     const $inputHolder = $('.handsontableInputHolder');
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     expect(left).toEqual($inputHolder.offset().left + 1);
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
@@ -1512,7 +1512,7 @@ describe('TextEditor', () => {
 
     const $inputHolder = $('.handsontableInputHolder');
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     expect(left).toEqual($inputHolder.offset().left + 1);
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
@@ -1555,7 +1555,7 @@ describe('TextEditor', () => {
     });
 
     selectCell(0, 7);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(Handsontable.dom.outerWidth(hot.getActiveEditor().TEXTAREA))
       .toBeAroundValue(Handsontable.dom.outerWidth(hot.getCell(0, 7)));
@@ -1569,13 +1569,13 @@ describe('TextEditor', () => {
     });
 
     selectCell(0, 2);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     const regularHeight = Handsontable.dom.outerHeight(hot.getActiveEditor().TEXTAREA);
 
     selectCell(3, 2);
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // lame check, needs investigating why sometimes it leaves 2px error
     if (Handsontable.dom.outerHeight(hot.getActiveEditor().TEXTAREA) === regularHeight) {
@@ -1594,9 +1594,9 @@ describe('TextEditor', () => {
     });
 
     selectCell(0, 2);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     hot.getActiveEditor().TEXTAREA.value = '       test    of    whitespace      ';
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(getDataAtCell(0, 2).length).toEqual(37);
   });
@@ -1612,7 +1612,7 @@ describe('TextEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const $editorInput = $('.handsontableInput');
 
@@ -1634,7 +1634,7 @@ describe('TextEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     keyDownUp(['alt', 'enter']);
 
     const editorTextarea = hot.getActiveEditor().TEXTAREA;
@@ -1664,7 +1664,7 @@ describe('TextEditor', () => {
     });
 
     selectCell(1, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const $editorInput = $('.handsontableInput');
     const $editedCell = $(hot.getCell(1, 1));
@@ -1702,7 +1702,7 @@ describe('TextEditor', () => {
     });
 
     selectCell(4, 10);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const $editorInput = $('.handsontableInput');
 
@@ -1725,7 +1725,7 @@ describe('TextEditor', () => {
     expect(activeElement).not.toBe(null);
     expect(document.activeElement).toBe(activeElement);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -1734,17 +1734,17 @@ describe('TextEditor', () => {
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = 'a';
-    keyDownUp(['a']);
+    keyDownUp('a');
 
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = 'ab';
-    keyDownUp(['b']);
+    keyDownUp('b');
 
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = 'abc';
-    keyDownUp(['c']);
+    keyDownUp('c');
 
     expect(document.activeElement).toBe(activeElement);
   });
@@ -1770,7 +1770,7 @@ describe('TextEditor', () => {
     });
     selectCell(0, 0);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     destroyEditor();
     document.activeElement.value = '999';
 
@@ -1780,7 +1780,7 @@ describe('TextEditor', () => {
     expect(isEditorVisible()).toBe(true);
     expect(getActiveEditor().TEXTAREA.value).toBe('999');
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     expect(isEditorVisible()).toBe(true);
@@ -1811,12 +1811,12 @@ describe('TextEditor', () => {
 
     selectCell(0, 1);
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     selectCell(0, 0);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(hot.getActiveEditor()).toBe(void 0);
   });
@@ -1841,7 +1841,7 @@ describe('TextEditor', () => {
       });
 
       selectCell(2, 2);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       const textarea = getActiveEditor().TEXTAREA;
 

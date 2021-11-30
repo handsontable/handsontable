@@ -67,7 +67,7 @@ describe('Core.setSourceDataAtCell', () => {
     });
 
     selectCell(0, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     spyOn(hot.getActiveEditor(), 'refreshValue').and.callThrough();
 

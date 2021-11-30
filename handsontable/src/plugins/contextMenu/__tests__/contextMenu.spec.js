@@ -360,7 +360,7 @@ describe('ContextMenu', () => {
       });
 
       selectCell(2, 2);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       expect(getPlugin('contextMenu')).toBeDefined();
       expect($('.htContextMenu').is(':visible')).toBe(false);
@@ -2447,7 +2447,7 @@ describe('ContextMenu', () => {
 
         expect(menuHot.getSelected()).toBeUndefined();
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
       });
@@ -2505,46 +2505,46 @@ describe('ContextMenu', () => {
 
         contextMenu();
 
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
+        keyDownUp('arrowdown');
 
         const scrollHeight = typeof window.scrollY !== 'undefined' ?
           window.scrollY : document.documentElement.scrollTop;
@@ -2578,7 +2578,7 @@ describe('ContextMenu', () => {
 
         expect(menuHot.getSelected()).toBeUndefined();
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
       });
@@ -2599,7 +2599,7 @@ describe('ContextMenu', () => {
         expect(menuHot.getSelected()).toBeUndefined();
 
         input.focus();
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
@@ -2633,7 +2633,7 @@ describe('ContextMenu', () => {
 
         expect(menuHot.getSelected()).toBeUndefined();
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toBeUndefined();
       });
@@ -2656,7 +2656,7 @@ describe('ContextMenu', () => {
 
         expect(menuHot.getSelected()).toBeUndefined();
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
       });
@@ -2687,7 +2687,7 @@ describe('ContextMenu', () => {
 
         expect(menuHot.getSelected()).toBeUndefined();
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
       });
@@ -2719,7 +2719,7 @@ describe('ContextMenu', () => {
 
         expect(menuHot.getSelected()).toBeUndefined();
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toBeUndefined();
       });
@@ -2749,15 +2749,15 @@ describe('ContextMenu', () => {
 
         const menuHot = getPlugin('contextMenu').menu.hotMenu;
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
       });
@@ -2785,11 +2785,11 @@ describe('ContextMenu', () => {
 
         const menuHot = getPlugin('contextMenu').menu.hotMenu;
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
       });
@@ -2817,15 +2817,15 @@ describe('ContextMenu', () => {
 
         const menuHot = getPlugin('contextMenu').menu.hotMenu;
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[3, 0, 3, 0]]);
       });
@@ -2852,19 +2852,19 @@ describe('ContextMenu', () => {
 
         const menuHot = getPlugin('contextMenu').menu.hotMenu;
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
       });
@@ -2892,15 +2892,15 @@ describe('ContextMenu', () => {
 
         const menuHot = getPlugin('contextMenu').menu.hotMenu;
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
       });
@@ -2927,15 +2927,15 @@ describe('ContextMenu', () => {
 
         const menuHot = getPlugin('contextMenu').menu.hotMenu;
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
       });
@@ -2963,11 +2963,11 @@ describe('ContextMenu', () => {
 
         const menuHot = getPlugin('contextMenu').menu.hotMenu;
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
       });
@@ -2995,15 +2995,15 @@ describe('ContextMenu', () => {
 
         const menuHot = getPlugin('contextMenu').menu.hotMenu;
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[3, 0, 3, 0]]);
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
       });
@@ -3030,19 +3030,19 @@ describe('ContextMenu', () => {
 
         const menuHot = getPlugin('contextMenu').menu.hotMenu;
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
       });
@@ -3070,15 +3070,15 @@ describe('ContextMenu', () => {
 
         const menuHot = getPlugin('contextMenu').menu.hotMenu;
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[2, 0, 2, 0]]);
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
 
-        keyDownUp(['arrowup']);
+        keyDownUp('arrowup');
 
         expect(menuHot.getSelected()).toEqual([[1, 0, 1, 0]]);
       });
@@ -3102,13 +3102,13 @@ describe('ContextMenu', () => {
 
         const menuHot = hot.getPlugin('contextMenu').menu.hotMenu;
 
-        keyDownUp(['arrowdown']);
+        keyDownUp('arrowdown');
 
         expect(menuHot.getSelected()).toEqual([[0, 0, 0, 0]]);
 
         expect(itemAction).not.toHaveBeenCalled();
 
-        keyDownUp(['enter']);
+        keyDownUp('enter');
 
         expect(itemAction).toHaveBeenCalled();
         expect($(hot.getPlugin('contextMenu').menu).is(':visible')).toBe(false);
@@ -3125,7 +3125,7 @@ describe('ContextMenu', () => {
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
 
-      keyDownUp(['escape']);
+      keyDownUp('escape');
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -3146,11 +3146,11 @@ describe('ContextMenu', () => {
 
       expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(true);
 
-      keyDownUp(['escape']);
+      keyDownUp('escape');
 
       expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(false);
 
-      keyDownUp(['escape']);
+      keyDownUp('escape');
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -3648,7 +3648,7 @@ describe('ContextMenu', () => {
       });
 
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       contextMenu(getCell(2, 2));
 

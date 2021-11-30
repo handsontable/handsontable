@@ -18,7 +18,7 @@ describe('noEditor', () => {
       editor: false
     });
     selectCell(2, 2);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(getSelected()).toEqual([[2, 2, 2, 2]]);
     expect(isEditorVisible()).toEqual(false);
@@ -29,8 +29,8 @@ describe('noEditor', () => {
       editor: false
     });
     selectCell(2, 2);
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(getSelected()).toEqual([[2, 2, 2, 2]]);
   });
@@ -41,7 +41,7 @@ describe('noEditor', () => {
       editor: false
     });
     selectCell(2, 2);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(getSelected()).toEqual([[3, 2, 3, 2]]);
     expect(isEditorVisible()).toEqual(false);
@@ -53,7 +53,7 @@ describe('noEditor', () => {
     });
     setDataAtCell(2, 2, 'string');
     selectCell(2, 2);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(keyProxy().length).toEqual(0);
   });
@@ -66,7 +66,7 @@ describe('noEditor', () => {
 
     expect(isEditorVisible()).toEqual(false);
 
-    keyDownUp(['f2']);
+    keyDownUp('f2');
 
     expect(isEditorVisible()).toEqual(false);
   });
@@ -79,7 +79,7 @@ describe('noEditor', () => {
 
     expect(isEditorVisible()).toEqual(false);
 
-    keyDownUp(['capslock']);
+    keyDownUp('capslock');
 
     expect(isEditorVisible()).toEqual(false);
   });
@@ -124,7 +124,7 @@ describe('noEditor', () => {
 
     expect(isEditorVisible()).toBe(false);
 
-    keyDownUp(['a']);
+    keyDownUp('a');
 
     expect(isEditorVisible()).toBe(false);
   });
@@ -151,7 +151,7 @@ describe('noEditor', () => {
     expect(getDataAtCell(0, 0)).toEqual('A1');
 
     selectCell(0, 0);
-    keyDownUp(['alt']);
+    keyDownUp('alt');
 
     expect(isEditorVisible()).toBe(false);
   });

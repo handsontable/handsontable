@@ -21,14 +21,14 @@ describe('Core_view', () => {
     });
     selectCell(0, 0);
 
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[4, 0, 4, 0]]);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(isEditorVisible()).toEqual(true);
   });
@@ -48,10 +48,10 @@ describe('Core_view', () => {
     const scrollableElement = hot.view.wt.wtOverlays.topOverlay.mainTableScrollableElement;
     const initialScrollTop = scrollableElement.scrollTop;
 
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
 
     expect(scrollableElement.scrollTop).toBeGreaterThan(initialScrollTop);
   });
@@ -388,10 +388,10 @@ describe('Core_view', () => {
 
     selectCell(0, 0);
 
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
 
     expect(hot.rootElement.querySelector('.wtHolder').scrollTop).toBeGreaterThan(scrollTop);
   });
@@ -420,10 +420,10 @@ describe('Core_view', () => {
     expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
     expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A4');
 
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
 
     expect(topClone.find('tr').length).toEqual(1);
     expect(topClone.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
@@ -465,10 +465,10 @@ describe('Core_view', () => {
 
     selectCell(0, 3);
 
-    keyDownUp(['arrowright']);
-    keyDownUp(['arrowright']);
-    keyDownUp(['arrowright']);
-    keyDownUp(['arrowright']);
+    keyDownUp('arrowright');
+    keyDownUp('arrowright');
+    keyDownUp('arrowright');
+    keyDownUp('arrowright');
 
     expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
     expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
@@ -494,10 +494,10 @@ describe('Core_view', () => {
     expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
     expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
 
-    keyDownUp(['arrowright']);
-    keyDownUp(['arrowright']);
-    keyDownUp(['arrowright']);
-    keyDownUp(['arrowright']);
+    keyDownUp('arrowright');
+    keyDownUp('arrowright');
+    keyDownUp('arrowright');
+    keyDownUp('arrowright');
 
     expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
     expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
@@ -533,7 +533,7 @@ describe('Core_view', () => {
 
     expect($(window).scrollTop()).toEqual(lastScroll);
 
-    keyDownUp(['arrowright']);
+    keyDownUp('arrowright');
 
     expect(getSelected()).toEqual([[39, 1, 39, 1]]);
     expect($(window).scrollTop()).toEqual(lastScroll);

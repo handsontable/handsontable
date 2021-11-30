@@ -214,11 +214,11 @@ describe('Core_keepEmptyRows', () => {
     });
 
     selectCell(1, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     setTimeout(() => {
-      keyDownUp(['arrowdown']);
-      keyDownUp(['enter']);
+      keyDownUp('arrowdown');
+      keyDownUp('enter');
 
       expect(data.length).toEqual(3);
       done();
@@ -262,11 +262,11 @@ describe('Core_keepEmptyRows', () => {
     });
 
     selectCell(1, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     setTimeout(() => {
-      keyDownUp(['arrowdown']);
-      keyDownUp(['enter']);
+      keyDownUp('arrowdown');
+      keyDownUp('enter');
 
       expect(data.length).toEqual(3);
       done();

@@ -29,7 +29,7 @@ describe('HiddenRows', () => {
       const $mainHolder = spec().$container.find('.ht_master .wtHolder');
       const startScrollTop = $mainHolder.scrollTop();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -51,7 +51,7 @@ describe('HiddenRows', () => {
 
       simulateClick(firstHeader, 'LMB');
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       keyDownUp(['control', 'enter']);
 
       expect(getData()).toEqual([
@@ -78,7 +78,7 @@ describe('HiddenRows', () => {
 
       simulateClick(corner, 'LMB');
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       keyDownUp(['control', 'enter']);
 
       expect(getData()).toEqual([

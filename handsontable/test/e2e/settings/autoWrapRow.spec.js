@@ -31,11 +31,11 @@ describe('settings', () => {
 
       expect(getSelected()).toEqual([[0, 4, 0, 4]]);
 
-      keyDownUp(['arrowright']);
+      keyDownUp('arrowright');
 
       expect(getSelected()).toEqual([[1, 0, 1, 0]]);
 
-      keyDownUp(['arrowleft']);
+      keyDownUp('arrowleft');
 
       expect(getSelected()).toEqual([[0, 4, 0, 4]]);
     });
@@ -50,11 +50,11 @@ describe('settings', () => {
 
       expect(getSelected()).toEqual([[4, 4, 4, 4]]);
 
-      keyDownUp(['arrowright']);
+      keyDownUp('arrowright');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
 
-      keyDownUp(['arrowleft']);
+      keyDownUp('arrowleft');
 
       expect(getSelected()).toEqual([[4, 4, 4, 4]]);
 

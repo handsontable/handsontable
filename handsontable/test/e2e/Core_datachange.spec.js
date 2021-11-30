@@ -165,9 +165,9 @@ describe('Core_datachange', () => {
     });
     selectCell(0, 0);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     document.activeElement.value = 'Ted';
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(sources).toEqual(['loadData', 'edit']); // loadData is always the first source
   });

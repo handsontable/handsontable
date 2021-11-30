@@ -16,7 +16,7 @@ describe('Core_onKeyDown', () => {
     // https://github.com/handsontable/handsontable/issues/151
     handsontable();
     selectCell(0, 0);
-    keyDownUp(['tab']);
+    keyDownUp('tab');
     expect(getSelected()).toEqual([[0, 1, 0, 1]]);
   });
 
@@ -33,9 +33,9 @@ describe('Core_onKeyDown', () => {
       handsontable();
       selectCell(1, 1);
 
-      keyDownUp(['x']); // value to cell trigger quick edit mode
+      keyDownUp('x'); // value to cell trigger quick edit mode
       keyProxy().val('Ted');
-      keyDownUp(['tab']);
+      keyDownUp('tab');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[1, 2, 1, 2]]);
     });
@@ -45,9 +45,9 @@ describe('Core_onKeyDown', () => {
       handsontable();
       selectCell(1, 1);
 
-      keyDownUp(['x']); // value to cell trigger quick edit mode
+      keyDownUp('x'); // value to cell trigger quick edit mode
       keyProxy().val('Ted');
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[2, 1, 2, 1]]);
     });
@@ -57,7 +57,7 @@ describe('Core_onKeyDown', () => {
       handsontable();
       selectCell(1, 1);
 
-      keyDownUp(['x']); // trigger quick edit mode
+      keyDownUp('x'); // trigger quick edit mode
       keyProxy().val('Ted');
       keyDownUp(['shift', 'enter']);
       expect(getData()[1][1]).toEqual('Ted');
@@ -68,9 +68,9 @@ describe('Core_onKeyDown', () => {
       handsontable();
       selectCell(1, 1);
 
-      keyDownUp(['x']);
+      keyDownUp('x');
       keyProxy().val('Ted');
-      keyDownUp(['arrowdown']);
+      keyDownUp('arrowdown');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[2, 1, 2, 1]]);
     });
@@ -79,9 +79,9 @@ describe('Core_onKeyDown', () => {
       handsontable();
       selectCell(1, 1);
 
-      keyDownUp(['x']);
+      keyDownUp('x');
       keyProxy().val('Ted');
-      keyDownUp(['arrowup']);
+      keyDownUp('arrowup');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[0, 1, 0, 1]]);
     });
@@ -90,12 +90,12 @@ describe('Core_onKeyDown', () => {
       handsontable();
       selectCell(1, 1);
 
-      keyDownUp(['x']);
+      keyDownUp('x');
       keyProxy().val('Ted');
-      keyDownUp(['arrowright']);
-      keyDownUp(['arrowright']);
-      keyDownUp(['arrowright']);
-      keyDownUp(['arrowright']);
+      keyDownUp('arrowright');
+      keyDownUp('arrowright');
+      keyDownUp('arrowright');
+      keyDownUp('arrowright');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[1, 4, 1, 4]]);
     });
@@ -104,14 +104,14 @@ describe('Core_onKeyDown', () => {
       handsontable();
       selectCell(1, 1);
 
-      keyDownUp(['x']);
+      keyDownUp('x');
       keyProxy().val('Ted');
       Handsontable.dom.setCaretPosition(keyProxy()[0], 0, 0);
-      keyDownUp(['arrowleft']);
-      keyDownUp(['arrowleft']);
-      keyDownUp(['arrowleft']);
-      keyDownUp(['arrowleft']);
-      keyDownUp(['arrowleft']);
+      keyDownUp('arrowleft');
+      keyDownUp('arrowleft');
+      keyDownUp('arrowleft');
+      keyDownUp('arrowleft');
+      keyDownUp('arrowleft');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[1, 0, 1, 0]]);
     });
@@ -128,11 +128,11 @@ describe('Core_onKeyDown', () => {
 
       selectCell(1, 1);
 
-      keyDownUp(['x']);
+      keyDownUp('x');
       keyProxy().val('Ted');
 
       onAfterValidate.calls.reset();
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       setTimeout(() => {
         expect(onAfterValidate).toHaveBeenCalled();
@@ -155,11 +155,11 @@ describe('Core_onKeyDown', () => {
       });
       selectCell(1, 1);
 
-      keyDownUp(['x']);
+      keyDownUp('x');
       keyProxy().val('Ted');
 
       onAfterValidate.calls.reset();
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       setTimeout(() => {
         expect(onAfterValidate).toHaveBeenCalled();
@@ -176,9 +176,9 @@ describe('Core_onKeyDown', () => {
       handsontable();
       selectCell(1, 1);
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       keyProxy().val('Ted');
-      keyDownUp(['tab']);
+      keyDownUp('tab');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[1, 2, 1, 2]]);
     });
@@ -188,9 +188,9 @@ describe('Core_onKeyDown', () => {
       handsontable();
       selectCell(1, 1);
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       keyProxy().val('Ted');
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[2, 1, 2, 1]]);
     });
@@ -200,7 +200,7 @@ describe('Core_onKeyDown', () => {
       handsontable();
       selectCell(1, 1);
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       keyProxy().val('Ted');
       keyDownUp(['shift', 'enter']);
       expect(getData()[1][1]).toEqual('Ted');
@@ -211,9 +211,9 @@ describe('Core_onKeyDown', () => {
       handsontable();
       selectCell(1, 1);
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       keyProxy().val('Ted');
-      keyDownUp(['arrowdown']);
+      keyDownUp('arrowdown');
       expect(getData()[1][1]).toEqual(null);
       expect(getSelected()).toEqual([[1, 1, 1, 1]]);
     });
@@ -222,9 +222,9 @@ describe('Core_onKeyDown', () => {
       handsontable();
       selectCell(1, 1);
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       keyProxy().val('Ted');
-      keyDownUp(['arrowup']);
+      keyDownUp('arrowup');
       expect(getData()[1][1]).toEqual(null);
       expect(getSelected()).toEqual([[1, 1, 1, 1]]);
     });
@@ -233,12 +233,12 @@ describe('Core_onKeyDown', () => {
       handsontable();
       selectCell(1, 1);
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       keyProxy().val('Ted');
-      keyDownUp(['arrowright']);
-      keyDownUp(['arrowright']);
-      keyDownUp(['arrowright']);
-      keyDownUp(['arrowright']);
+      keyDownUp('arrowright');
+      keyDownUp('arrowright');
+      keyDownUp('arrowright');
+      keyDownUp('arrowright');
       expect(getData()[1][1]).toEqual(null);
       expect(getSelected()).toEqual([[1, 1, 1, 1]]);
     });
@@ -247,12 +247,12 @@ describe('Core_onKeyDown', () => {
       handsontable();
       selectCell(1, 1);
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       keyProxy().val('Ted');
-      keyDownUp(['arrowleft']);
-      keyDownUp(['arrowleft']);
-      keyDownUp(['arrowleft']);
-      keyDownUp(['arrowleft']);
+      keyDownUp('arrowleft');
+      keyDownUp('arrowleft');
+      keyDownUp('arrowleft');
+      keyDownUp('arrowleft');
       expect(getData()[1][1]).toEqual(null);
       expect(getSelected()).toEqual([[1, 1, 1, 1]]);
     });
@@ -269,11 +269,11 @@ describe('Core_onKeyDown', () => {
 
       selectCell(1, 1);
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       keyProxy().val('Ted');
 
       onAfterValidate.calls.reset();
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       setTimeout(() => {
         expect(onAfterValidate).toHaveBeenCalled();
@@ -296,11 +296,11 @@ describe('Core_onKeyDown', () => {
       });
       selectCell(1, 1);
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       keyProxy().val('Ted');
 
       onAfterValidate.calls.reset();
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       setTimeout(() => {
         expect(onAfterValidate).toHaveBeenCalled();

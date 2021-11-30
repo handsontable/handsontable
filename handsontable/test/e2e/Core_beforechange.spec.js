@@ -82,8 +82,8 @@ describe('Core_beforechange', () => {
     expect(getDataAtCell(0, 0)).toEqual('a');
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(isEditorVisible()).toBe(false);
   });
@@ -112,8 +112,8 @@ describe('Core_beforechange', () => {
     expect(getDataAtCell(0, 0)).toEqual('a');
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(isEditorVisible()).toBe(false);
   });
@@ -133,8 +133,8 @@ describe('Core_beforechange', () => {
     expect(getDataAtCell(0, 0)).toEqual('a');
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(isEditorVisible()).toBe(true);
   });
@@ -154,8 +154,8 @@ describe('Core_beforechange', () => {
     expect(getDataAtCell(0, 0)).toEqual('a');
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(isEditorVisible()).toBe(false);
   });

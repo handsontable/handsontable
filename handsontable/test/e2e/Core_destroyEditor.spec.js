@@ -16,7 +16,7 @@ describe('Core_destroyEditor', () => {
     handsontable();
     selectCell(1, 1);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     destroyEditor();
 
     expect(isEditorVisible()).toEqual(false);
@@ -26,7 +26,7 @@ describe('Core_destroyEditor', () => {
     handsontable();
     selectCell(1, 1);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     keyProxy().val('Ted');
 
     destroyEditor();
@@ -37,7 +37,7 @@ describe('Core_destroyEditor', () => {
     handsontable();
     selectCell(1, 1);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     destroyEditor();
     expect(getSelected()).toEqual([[1, 1, 1, 1]]);
@@ -47,7 +47,7 @@ describe('Core_destroyEditor', () => {
     handsontable();
     selectCell(1, 1);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     keyProxy().val('Ted');
 
     destroyEditor(true);
@@ -65,7 +65,7 @@ describe('Core_destroyEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const editor = $('.handsontableInputHolder');
 

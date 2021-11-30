@@ -28,7 +28,7 @@ describe('AutocompleteEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -50,7 +50,7 @@ describe('AutocompleteEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -76,12 +76,12 @@ describe('AutocompleteEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -91,34 +91,34 @@ describe('AutocompleteEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -138,12 +138,12 @@ describe('AutocompleteEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
     selectCell(0, 1);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -154,17 +154,17 @@ describe('AutocompleteEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
 
     selectCell(0, 2);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     selectCell(0, 3);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     selectCell(0, 4);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
@@ -196,13 +196,13 @@ describe('AutocompleteEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // First renderable row index.
     expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -212,24 +212,24 @@ describe('AutocompleteEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDownUp(['enter']);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -253,13 +253,13 @@ describe('AutocompleteEditor', () => {
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // First renderable column index.
     expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
 
     selectCell(0, 2);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -270,12 +270,12 @@ describe('AutocompleteEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     selectCell(0, 3);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     selectCell(0, 4);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
@@ -287,7 +287,7 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     const editor = getActiveEditor().TEXTAREA;
 
@@ -308,7 +308,7 @@ describe('AutocompleteEditor', () => {
       selectCell(0, 0);
       expect(isEditorVisible()).toBe(false);
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       expect(isEditorVisible()).toBe(true);
     });
 
@@ -325,7 +325,7 @@ describe('AutocompleteEditor', () => {
       selectCell(0, 0);
       expect(isEditorVisible()).toBe(false);
 
-      keyDownUp(['f2']);
+      keyDownUp('f2');
       expect(isEditorVisible()).toBe(true);
     });
 
@@ -362,9 +362,9 @@ describe('AutocompleteEditor', () => {
       });
 
       selectCell(0, 0);
-      keyDownUp(['enter']);
-      keyDownUp(['enter']);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
+      keyDownUp('enter');
+      keyDownUp('enter');
 
       expect(spy.test.calls.count()).toBe(0);
 
@@ -389,7 +389,7 @@ describe('AutocompleteEditor', () => {
 
       const editor = $('.autocompleteEditor');
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(100);
 
@@ -410,7 +410,7 @@ describe('AutocompleteEditor', () => {
       selectCell(0, 0);
       const editor = $('.autocompleteEditor');
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(100);
 
@@ -440,7 +440,7 @@ describe('AutocompleteEditor', () => {
 
       selectCell(0, 0);
       source.calls.reset();
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -467,7 +467,7 @@ describe('AutocompleteEditor', () => {
       const editor = $('.autocompleteEditor');
 
       syncSources.calls.reset();
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -499,7 +499,7 @@ describe('AutocompleteEditor', () => {
       selectCell(0, 0);
       const editor = $('.autocompleteEditor');
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -527,7 +527,7 @@ describe('AutocompleteEditor', () => {
       selectCell(0, 0);
       const editor = hot.getActiveEditor();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -559,14 +559,14 @@ describe('AutocompleteEditor', () => {
 
       updateChoicesList.calls.reset();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
       updateChoicesList.calls.reset();
       editor.TEXTAREA.value = 'red';
 
-      keyDownUp(['d'], {}, editor.TEXTAREA);
+      keyDownUp('d', {}, editor.TEXTAREA);
 
       await sleep(100);
 
@@ -599,7 +599,7 @@ describe('AutocompleteEditor', () => {
 
       updateChoicesList.calls.reset();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -626,7 +626,7 @@ describe('AutocompleteEditor', () => {
       const editor = $('.handsontableInputHolder');
 
       syncSources.calls.reset();
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
       // -2 for transparent borders
@@ -658,7 +658,7 @@ describe('AutocompleteEditor', () => {
       const editor = $('.handsontableInputHolder');
 
       syncSources.calls.reset();
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -689,7 +689,7 @@ describe('AutocompleteEditor', () => {
       });
 
       selectCell(1, 1);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(10);
 
@@ -751,7 +751,7 @@ describe('AutocompleteEditor', () => {
       });
 
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       const $autocomplete = autocomplete();
       const $autocompleteHolder = $autocomplete.find('.ht_master .wtHolder').first();
 
@@ -779,7 +779,7 @@ describe('AutocompleteEditor', () => {
 
       const editor = $('.autocompleteEditor');
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(100);
 
@@ -804,11 +804,11 @@ describe('AutocompleteEditor', () => {
 
       selectCell(0, 0);
 
-      keyDownUp(['backspace']);
+      keyDownUp('backspace');
 
       const editor = $('.autocompleteEditor');
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(100);
 
@@ -871,7 +871,7 @@ describe('AutocompleteEditor', () => {
       expect(autocompleteEditor.css('position')).toEqual('relative');
 
       autocompleteEditor.siblings('textarea').first().val('');
-      keyDownUp(['backspace']);
+      keyDownUp('backspace');
       await sleep(100);
 
       expect(autocompleteEditor.css('position')).toEqual('absolute');
@@ -896,7 +896,7 @@ describe('AutocompleteEditor', () => {
         ]
       });
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -917,7 +917,7 @@ describe('AutocompleteEditor', () => {
         ]
       });
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -944,7 +944,7 @@ describe('AutocompleteEditor', () => {
         ]
       });
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -972,7 +972,7 @@ describe('AutocompleteEditor', () => {
         afterChange
       });
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -1007,7 +1007,7 @@ describe('AutocompleteEditor', () => {
         afterChange
       });
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -1033,14 +1033,14 @@ describe('AutocompleteEditor', () => {
         ]
       });
       selectCell(0, 0);
-      keyDownUp(['enter']);
-      keyDownUp(['backspace']);
+      keyDownUp('enter');
+      keyDownUp('backspace');
       document.activeElement.value = '1';
       $(document.activeElement).simulate('keyup');
 
       await sleep(200);
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       expect(getDataAtCell(0, 0)).toEqual(1);
     });
 
@@ -1061,15 +1061,15 @@ describe('AutocompleteEditor', () => {
       });
 
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
-      keyDownUp(['arrowdown']);
-      keyDownUp(['arrowdown']);
-      keyDownUp(['arrowdown']);
-      keyDownUp(['arrowdown']);
-      keyDownUp(['enter']);
+      keyDownUp('arrowdown');
+      keyDownUp('arrowdown');
+      keyDownUp('arrowdown');
+      keyDownUp('arrowdown');
+      keyDownUp('enter');
 
       expect(getDataAtCell(0, 0)).toEqual('green');
     });
@@ -1090,13 +1090,13 @@ describe('AutocompleteEditor', () => {
         ]
       });
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
       expect(isEditorVisible(autocompleteEditor())).toBe(true);
 
-      keyDownUp(['escape']);
+      keyDownUp('escape');
 
       expect(isEditorVisible(autocompleteEditor())).toBe(false);
     });
@@ -1123,7 +1123,7 @@ describe('AutocompleteEditor', () => {
 
       expect(isEditorVisible(autocompleteEditor())).toBe(true);
 
-      keyDownUp(['escape']);
+      keyDownUp('escape');
 
       expect(isEditorVisible(autocompleteEditor())).toBe(false);
     });
@@ -1146,13 +1146,13 @@ describe('AutocompleteEditor', () => {
 
       setDataAtCell(0, 0, 'black');
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
       autocomplete().siblings('.handsontableInput').val('ye');
-      keyDownUp(['e']); // e
-      keyDownUp(['escape']);
+      keyDownUp('e'); // e
+      keyDownUp('escape');
 
       expect(getDataAtCell(0, 0)).toEqual('black');
     });
@@ -1202,8 +1202,8 @@ describe('AutocompleteEditor', () => {
       });
 
       selectCell(1, 0);
-      keyDownUp(['x']); // Trigger quick edit mode
-      keyDownUp(['enter']);
+      keyDownUp('x'); // Trigger quick edit mode
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -1228,14 +1228,14 @@ describe('AutocompleteEditor', () => {
         ]
       });
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
       const editor = $('.handsontableInput');
 
       editor.val('foo');
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       expect(getDataAtCell(0, 0)).toEqual('foo');
     });
@@ -1256,7 +1256,7 @@ describe('AutocompleteEditor', () => {
         ]
       });
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -1289,14 +1289,14 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
       syncSources.calls.reset();
 
       editorInput.val('b');
-      keyDownUp(['b']);
+      keyDownUp('b');
 
       await sleep(200);
 
@@ -1312,7 +1312,7 @@ describe('AutocompleteEditor', () => {
 
       expect(selected).toBeUndefined();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       expect(getDataAtCell(0, 0)).toEqual('b');
     });
@@ -1554,14 +1554,14 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
       syncSources.calls.reset();
 
       editorInput.val('b');
-      keyDownUp(['b']);
+      keyDownUp('b');
 
       await sleep(200);
 
@@ -1580,7 +1580,7 @@ describe('AutocompleteEditor', () => {
 
       onAfterValidate.calls.reset();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -1611,14 +1611,14 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
       syncSources.calls.reset();
 
       editorInput.val('b');
-      keyDownUp(['b']);
+      keyDownUp('b');
 
       await sleep(200);
 
@@ -1637,7 +1637,7 @@ describe('AutocompleteEditor', () => {
 
       onAfterValidate.calls.reset();
 
-      keyDownUp(['tab']);
+      keyDownUp('tab');
 
       await sleep(200);
 
@@ -1668,7 +1668,7 @@ describe('AutocompleteEditor', () => {
 
       selectCell(0, 0);
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -1698,13 +1698,13 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
       syncSources.calls.reset();
       editorInput.val('e');
-      keyDownUp(['e']); // e
+      keyDownUp('e'); // e
 
       await sleep(200);
 
@@ -1726,7 +1726,7 @@ describe('AutocompleteEditor', () => {
 
         syncSources.calls.reset();
         editorInput.val('ed');
-        keyDownUp(['d']); // d
+        keyDownUp('d'); // d
       }
 
       await sleep(200);
@@ -1756,10 +1756,10 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editorInput.val('e');
-      keyDownUp(['e']); // e
+      keyDownUp('e'); // e
 
       await sleep(50);
 
@@ -1780,7 +1780,7 @@ describe('AutocompleteEditor', () => {
         ]);
 
         editorInput.val('e');
-        keyDownUp(['e']); // E (same as 'e')
+        keyDownUp('e'); // E (same as 'e')
       }
 
       await sleep(50);
@@ -1819,10 +1819,10 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editorInput.val('e');
-      keyDownUp(['e']); // e
+      keyDownUp('e'); // e
 
       await sleep(100);
 
@@ -1843,7 +1843,7 @@ describe('AutocompleteEditor', () => {
         ]);
 
         editorInput.val('E');
-        keyDownUp(['E']); // E (same as 'e')
+        keyDownUp('e'); // E (same as 'e')
       }
 
       await sleep(100);
@@ -1873,12 +1873,12 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(20);
 
       editorInput.val('e');
-      keyDownUp(['e']); // e
+      keyDownUp('e'); // e
 
       await sleep(20);
 
@@ -1889,7 +1889,7 @@ describe('AutocompleteEditor', () => {
         expect(innerHot.getData()).toEqual(Handsontable.helper.pivot([choices]));
 
         editorInput.val('ed');
-        keyDownUp(['d']); // d
+        keyDownUp('d'); // d
       }
 
       await sleep(20);
@@ -1925,14 +1925,14 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
       syncSources.calls.reset();
 
       editorInput.val('Male');
-      keyDownUp(['e']); // e
+      keyDownUp('e'); // e
 
       await sleep(200);
 
@@ -1962,13 +1962,13 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
       queryChoices.calls.reset();
       editorInput.val('yellow|red');
-      keyDownUp(['d']);
+      keyDownUp('d');
 
       await sleep(200);
 
@@ -2001,13 +2001,13 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
       syncSources.calls.reset();
       editorInput.val('M|F');
-      keyDownUp(['F']);
+      keyDownUp('F');
 
       await sleep(200);
 
@@ -2041,22 +2041,24 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['f']);
+      keyDownUp('f');
 
       await sleep(200);
 
       queryChoices.calls.reset();
+
+      keyDownUp('o');
+      keyDownUp('o');
+      keyDownUp('b');
+      keyDownUp('a');
+      keyDownUp('r');
+
       editorInput.val('foobar');
-      keyDownUp(['f']);
-      keyDownUp(['o']);
-      keyDownUp(['o']);
-      keyDownUp(['b']);
-      keyDownUp(['a']);
-      keyDownUp(['r']);
+
+      keyDownUp('enter');
 
       await sleep(200);
 
-      keyDownUp(['enter']);
 
       expect(getDataAtCell(0, 0)).toEqual('foobar');
     });
@@ -2085,13 +2087,13 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
       syncSources.calls.reset();
       editorInput.val('e');
-      keyDownUp(['e']); // e
+      keyDownUp('e'); // e
 
       await sleep(200);
 
@@ -2122,7 +2124,7 @@ describe('AutocompleteEditor', () => {
 
     expect(getDataAtCell(0, 0)).toBeNull();
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     await sleep(200);
 
@@ -2156,7 +2158,7 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     await sleep(200);
 
@@ -2186,12 +2188,12 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
       editorInput.val('b');
-      keyDownUp(['b']);
+      keyDownUp('b');
 
       await sleep(200);
 
@@ -2205,8 +2207,8 @@ describe('AutocompleteEditor', () => {
         ]);
 
         editorInput.val('bar');
-        keyDownUp(['a']);
-        keyDownUp(['r']);
+        keyDownUp('a');
+        keyDownUp('r');
       }
 
       await sleep(200);
@@ -2219,8 +2221,8 @@ describe('AutocompleteEditor', () => {
           ['<i>bar</i>']
         ]);
 
-        keyDownUp(['arrowdown']);
-        keyDownUp(['enter']);
+        keyDownUp('arrowdown');
+        keyDownUp('enter');
       }
 
       await sleep(100);
@@ -2244,12 +2246,12 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
       editorInput.val('b');
-      keyDownUp(['b']);
+      keyDownUp('b');
 
       await sleep(200);
 
@@ -2263,8 +2265,8 @@ describe('AutocompleteEditor', () => {
         ]);
 
         editorInput.val('bar');
-        keyDownUp(['a']);
-        keyDownUp(['r']);
+        keyDownUp('a');
+        keyDownUp('r');
       }
 
       await sleep(200);
@@ -2277,8 +2279,8 @@ describe('AutocompleteEditor', () => {
           ['<i>bar</i>']
         ]);
 
-        keyDownUp(['arrowdown']);
-        keyDownUp(['enter']);
+        keyDownUp('arrowdown');
+        keyDownUp('enter');
       }
 
       await sleep(100);
@@ -2302,7 +2304,7 @@ describe('AutocompleteEditor', () => {
       });
 
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       await sleep(200);
 
@@ -2355,11 +2357,11 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       await sleep(200);
 
       editorInput.val('b');
-      keyDownUp(['b']);
+      keyDownUp('b');
 
       await sleep(200);
 
@@ -2373,8 +2375,8 @@ describe('AutocompleteEditor', () => {
         ]);
 
         editorInput.val('bar');
-        keyDownUp(['a']);
-        keyDownUp(['r']);
+        keyDownUp('a');
+        keyDownUp('r');
       }
 
       await sleep(200);
@@ -2387,8 +2389,8 @@ describe('AutocompleteEditor', () => {
           ['bar']
         ]);
 
-        keyDownUp(['arrowdown']);
-        keyDownUp(['enter']);
+        keyDownUp('arrowdown');
+        keyDownUp('enter');
       }
 
       await sleep(200);
@@ -2413,10 +2415,10 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       await sleep(200);
       editorInput.val('b');
-      keyDownUp(['b']);
+      keyDownUp('b');
 
       await sleep(200);
 
@@ -2431,8 +2433,8 @@ describe('AutocompleteEditor', () => {
       }
 
       editorInput.val('bar');
-      keyDownUp(['a']);
-      keyDownUp(['r']);
+      keyDownUp('a');
+      keyDownUp('r');
 
       await sleep(200);
 
@@ -2445,8 +2447,8 @@ describe('AutocompleteEditor', () => {
         ]);
       }
 
-      keyDownUp(['arrowdown']);
-      keyDownUp(['enter']);
+      keyDownUp('arrowdown');
+      keyDownUp('enter');
 
       await sleep(100);
 
@@ -2471,11 +2473,11 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     const $editorInput = $('.handsontableInput');
 
     $editorInput.val('a');
-    keyDownUp(['a']);
+    keyDownUp('a');
     Handsontable.dom.setCaretPosition($editorInput[0], 1);
 
     await sleep(30);
@@ -2491,11 +2493,11 @@ describe('AutocompleteEditor', () => {
     expect($trs.eq(4).text()).toBe('Draven');
     expect(listLength).toBe(5);
 
-    keyDownUp(['escape']);
-    keyDownUp(['enter']);
+    keyDownUp('escape');
+    keyDownUp('enter');
 
     $editorInput.val('o');
-    keyDownUp(['o']);
+    keyDownUp('o');
     Handsontable.dom.setCaretPosition($editorInput[0], 1);
 
     await sleep(30);
@@ -2508,12 +2510,12 @@ describe('AutocompleteEditor', () => {
     expect($trs.eq(1).text()).toBe('Simmons');
     expect(listLength).toBe(2);
 
-    keyDownUp(['escape']);
-    keyDownUp(['enter']);
+    keyDownUp('escape');
+    keyDownUp('enter');
 
     $editorInput.val('er');
-    keyDownUp(['e']);
-    keyDownUp(['r']);
+    keyDownUp('e');
+    keyDownUp('r');
     Handsontable.dom.setCaretPosition($editorInput[0], 1);
 
     await sleep(30);
@@ -2543,11 +2545,11 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     const $editorInput = $('.handsontableInput');
 
     $editorInput.val('a');
-    keyDownUp(['a']);
+    keyDownUp('a');
     Handsontable.dom.setCaretPosition($editorInput[0], 1);
 
     await sleep(30);
@@ -2582,7 +2584,7 @@ describe('AutocompleteEditor', () => {
 
     selectCell(0, 0);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     await sleep(200);
 
@@ -2680,7 +2682,7 @@ describe('AutocompleteEditor', () => {
     selectCell(0, 0);
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     await sleep(200);
 
@@ -2738,21 +2740,21 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     await sleep(0);
 
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
 
     hot.getActiveEditor().TEXTAREA.value = 'r';
-    keyDownUp(['r']);
+    keyDownUp('r');
 
     await sleep(0);
 
     // Check if ESCAPE key is responsive.
-    keyDownUp(['escape']);
+    keyDownUp('escape');
 
     expect(hot.isListening()).toBeTruthy();
     expect(isEditorVisible($(hot.getActiveEditor().htEditor.rootElement))).toBeFalsy();
@@ -2889,7 +2891,7 @@ describe('AutocompleteEditor', () => {
 
     expect(dropdownHolder.scrollHeight).toBeGreaterThan(dropdownHolder.clientHeight);
 
-    keyDownUp(['escape']);
+    keyDownUp('escape');
 
     hot.getSettings().columns[0].source = hot.getSettings().columns[0].source.slice(0).splice(3);
     hot.updateSettings({});
@@ -2964,12 +2966,12 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     const $editorInput = $('.handsontableInput');
 
     $editorInput.val('an');
-    keyDownUp(['a']); // a
-    keyDownUp(['n']); // n
+    keyDownUp('a'); // a
+    keyDownUp('n'); // n
 
     await sleep(0);
 
@@ -2977,11 +2979,11 @@ describe('AutocompleteEditor', () => {
 
     await sleep(200);
 
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
 
     expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
 
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
 
     expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
   });
@@ -3004,12 +3006,12 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     const $editorInput = $('.handsontableInput');
 
     $editorInput.val('an');
-    keyDownUp(['a']); // a
-    keyDownUp(['n']); // n
+    keyDownUp('a'); // a
+    keyDownUp('n'); // n
 
     await sleep(0);
 
@@ -3017,12 +3019,12 @@ describe('AutocompleteEditor', () => {
 
     await sleep(200);
 
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
 
     expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
     expect(Handsontable.dom.getSelectionEndPosition($editorInput[0])).toEqual(2);
 
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
 
     expect(Handsontable.dom.getCaretPosition($editorInput[0])).toEqual(1);
     expect(Handsontable.dom.getSelectionEndPosition($editorInput[0])).toEqual(2);
@@ -3047,16 +3049,16 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(1, 0);
-    keyDownUp(['x']); // trigger quick edit mode
+    keyDownUp('x'); // trigger quick edit mode
     const $editorInput = $('.handsontableInput');
 
     $editorInput.val('an');
-    keyDownUp(['a']); // a
-    keyDownUp(['n']); // n
+    keyDownUp('a'); // a
+    keyDownUp('n'); // n
 
     await sleep(200);
 
-    keyDownUp(['arrowup']);
+    keyDownUp('arrowup');
 
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
   });
@@ -3080,16 +3082,16 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(1, 0);
-    keyDownUp(['x']); // trigger quick edit mode
+    keyDownUp('x'); // trigger quick edit mode
     const $editorInput = $('.handsontableInput');
 
     $editorInput.val('an');
-    keyDownUp(['a']); // a
-    keyDownUp(['n']); // n
+    keyDownUp('a'); // a
+    keyDownUp('n'); // n
 
     await sleep(200);
 
-    keyDownUp(['arrowright']);
+    keyDownUp('arrowright');
 
     expect(getSelected()).toEqual([[1, 1, 1, 1]]);
   });
@@ -3113,18 +3115,18 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(1, 1);
-    keyDownUp(['x']); // trigger quick edit mode
+    keyDownUp('x'); // trigger quick edit mode
     const $editorInput = $('.handsontableInput');
 
     $editorInput.val('an');
-    keyDownUp(['a']); // a
-    keyDownUp(['n']); // n
+    keyDownUp('a'); // a
+    keyDownUp('n'); // n
     // put caret on the end of the text to ensure that editor will be closed after hit left arrow key
     Handsontable.dom.setCaretPosition($editorInput[0], 2, 2);
 
     await sleep(200);
 
-    keyDownUp(['arrowleft']);
+    keyDownUp('arrowleft');
 
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
@@ -3147,16 +3149,16 @@ describe('AutocompleteEditor', () => {
       ]
     });
     selectCell(1, 0);
-    keyDownUp(['x']); // trigger quick edit mode
+    keyDownUp('x'); // trigger quick edit mode
     const $editorInput = $('.handsontableInput');
 
     $editorInput.val('an');
-    keyDownUp(['a']); // a
-    keyDownUp(['n']); // n
+    keyDownUp('a'); // a
+    keyDownUp('n'); // n
 
     await sleep(200);
 
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
@@ -3179,22 +3181,22 @@ describe('AutocompleteEditor', () => {
       ]
     });
     selectCell(1, 0);
-    keyDownUp(['x']); // trigger quick edit mode
+    keyDownUp('x'); // trigger quick edit mode
     const $editorInput = $('.handsontableInput');
 
     $editorInput.val('anananan');
-    keyDownUp(['a']); // a
-    keyDownUp(['n']); // n
-    keyDownUp(['a']); // a
-    keyDownUp(['n']); // n
-    keyDownUp(['a']); // a
-    keyDownUp(['n']); // n
-    keyDownUp(['a']); // a
-    keyDownUp(['n']); // n
+    keyDownUp('a'); // a
+    keyDownUp('n'); // n
+    keyDownUp('a'); // a
+    keyDownUp('n'); // n
+    keyDownUp('a'); // a
+    keyDownUp('n'); // n
+    keyDownUp('a'); // a
+    keyDownUp('n'); // n
 
     await sleep(200);
 
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[2, 0, 2, 0]]);
   });
@@ -3217,16 +3219,16 @@ describe('AutocompleteEditor', () => {
       ]
     });
     selectCell(1, 0);
-    keyDownUp(['x']); // trigger quick edit mode
+    keyDownUp('x'); // trigger quick edit mode
     const $editorInput = $('.handsontableInput');
 
     $editorInput.val('an');
-    keyDownUp(['a']); // a
-    keyDownUp(['n']); // n
+    keyDownUp('a'); // a
+    keyDownUp('n'); // n
 
     await sleep(200);
 
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
@@ -3250,19 +3252,19 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(1, 0);
-    keyDownUp(['x']); // Trigger quick edit mode
+    keyDownUp('x'); // Trigger quick edit mode
 
     await sleep(200);
 
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
 
     expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[0, 0, 0, 0]]);
 
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
 
     expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[1, 0, 1, 0]]);
 
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
 
     expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[2, 0, 2, 0]]);
   });
@@ -3288,7 +3290,7 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(1, 0);
-    keyDownUp(['x']); // Trigger quick edit mode
+    keyDownUp('x'); // Trigger quick edit mode
 
     await sleep(200);
 
@@ -3296,15 +3298,15 @@ describe('AutocompleteEditor', () => {
 
     expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[2, 0, 2, 0]]);
 
-    keyDownUp(['arrowup']);
+    keyDownUp('arrowup');
 
     expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[1, 0, 1, 0]]);
 
-    keyDownUp(['arrowup']);
+    keyDownUp('arrowup');
 
     expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[0, 0, 0, 0]]);
 
-    keyDownUp(['arrowup']);
+    keyDownUp('arrowup');
 
     expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[0, 0, 0, 0]]);
   });
@@ -3328,18 +3330,18 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(1, 0);
-    keyDownUp(['x']); // Trigger quick edit mode
+    keyDownUp('x'); // Trigger quick edit mode
 
     await sleep(200);
 
     hot.getActiveEditor().htEditor.selectCell(7, 0);
     hot.listen();
 
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
 
     expect(hot.getActiveEditor().isOpened()).toBe(true);
   });
@@ -3363,16 +3365,16 @@ describe('AutocompleteEditor', () => {
     });
 
     selectCell(1, 0);
-    keyDownUp(['x']); // Trigger quick edit mode
+    keyDownUp('x'); // Trigger quick edit mode
 
     await sleep(200);
 
     hot.getActiveEditor().htEditor.selectCell(1, 0);
     hot.listen();
 
-    keyDownUp(['arrowup']);
-    keyDownUp(['arrowup']);
-    keyDownUp(['arrowup']);
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
 
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
   });

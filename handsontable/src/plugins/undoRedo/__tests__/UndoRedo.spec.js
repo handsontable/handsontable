@@ -2917,7 +2917,7 @@ describe('UndoRedo', () => {
         setDataAtCell(0, 0, 'new value');
 
         selectCell(1, 0);
-        keyDownUp(['enter']);
+        keyDownUp('enter');
         keyDownUp(['control', 'z']);
         expect(getDataAtCell(0, 0)).toBe('new value');
       });

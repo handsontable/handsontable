@@ -201,7 +201,7 @@ describe('settings', () => {
 
       const LETTER_A_KEY = 97;
 
-      keyDownUp(['a']);
+      keyDownUp('a');
 
       // textarea should receive the event and be an active element
       expect(keyPressed).toEqual(LETTER_A_KEY);
@@ -213,7 +213,7 @@ describe('settings', () => {
 
       await sleep(50);
 
-      keyDownUp(['a']);
+      keyDownUp('a');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toBeNull();
@@ -240,7 +240,7 @@ describe('settings', () => {
 
       const LETTER_A_KEY = 97;
 
-      keyDownUp(['a']);
+      keyDownUp('a');
 
       // textarea should receive the event and be an active element
       expect(keyPressed).toEqual(LETTER_A_KEY);
@@ -252,7 +252,7 @@ describe('settings', () => {
 
       await sleep(50);
 
-      keyDownUp(['a']);
+      keyDownUp('a');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toBeNull();
@@ -268,7 +268,7 @@ describe('settings', () => {
         outsideClickDeselects: false
       });
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       document.activeElement.value = 'Foo';
 
       textarea.focus();
@@ -281,7 +281,7 @@ describe('settings', () => {
 
       const LETTER_A_KEY = 97;
 
-      keyDownUp(['a']);
+      keyDownUp('a');
 
       // textarea should receive the event and be an active element
       expect(keyPressed).toEqual(LETTER_A_KEY);
@@ -293,7 +293,7 @@ describe('settings', () => {
 
       await sleep(50);
 
-      keyDownUp(['a']);
+      keyDownUp('a');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toEqual('Foo');
@@ -309,7 +309,7 @@ describe('settings', () => {
         outsideClickDeselects: () => false
       });
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
       document.activeElement.value = 'Foo';
 
       textarea.focus();
@@ -322,7 +322,7 @@ describe('settings', () => {
 
       const LETTER_A_KEY = 97;
 
-      keyDownUp(['a']);
+      keyDownUp('a');
 
       // textarea should receive the event and be an active element
       expect(keyPressed).toEqual(LETTER_A_KEY);
@@ -334,7 +334,7 @@ describe('settings', () => {
 
       await sleep(50);
 
-      keyDownUp(['a']);
+      keyDownUp('a');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toEqual('Foo');

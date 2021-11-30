@@ -1234,13 +1234,13 @@ describe('Core_validate', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     document.activeElement.value = 'Ted';
 
     onAfterValidate.calls.reset();
     onAfterChange.calls.reset();
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(document.activeElement.nodeName).toEqual('TEXTAREA');
 
@@ -1277,13 +1277,13 @@ describe('Core_validate', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     document.activeElement.value = 'Ted';
 
     onAfterValidate.calls.reset();
     onAfterChange.calls.reset();
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(document.activeElement.nodeName).toEqual('TEXTAREA');
 
@@ -1309,7 +1309,7 @@ describe('Core_validate', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
@@ -1334,11 +1334,11 @@ describe('Core_validate', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     setTimeout(() => {
       expect(validationResult).toBe(false);
@@ -1360,11 +1360,11 @@ describe('Core_validate', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     setTimeout(() => {
       expect(validationResult).toBe(false);
@@ -1387,7 +1387,7 @@ describe('Core_validate', () => {
       }
     });
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
@@ -1412,7 +1412,7 @@ describe('Core_validate', () => {
       }
     });
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
@@ -1441,11 +1441,11 @@ describe('Core_validate', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     await sleep(300);
 
@@ -1471,7 +1471,7 @@ describe('Core_validate', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
@@ -1499,7 +1499,7 @@ describe('Core_validate', () => {
       }
     });
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
@@ -1527,7 +1527,7 @@ describe('Core_validate', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(isEditorVisible()).toBe(true);
 
@@ -1568,7 +1568,7 @@ describe('Core_validate', () => {
       }
     });
     selectCell(0, 0);
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     document.activeElement.value = 'AAA';
 
@@ -1614,12 +1614,12 @@ describe('Core_validate', () => {
     });
     selectCell(2, 0);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     document.activeElement.value = '99';
 
     onAfterValidate.calls.reset();
 
-    keyDownUp(['enter']); // should be ignored
+    keyDownUp('enter'); // should be ignored
 
     await sleep(200);
 
@@ -1627,14 +1627,14 @@ describe('Core_validate', () => {
     document.activeElement.value = '999';
 
     onAfterValidate.calls.reset();
-    keyDownUp(['enter']); // should be accepted
+    keyDownUp('enter'); // should be accepted
 
     await sleep(200);
 
     expect(isEditorVisible()).toBe(false);
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
-    keyDownUp(['arrowup']);
+    keyDownUp('arrowup');
     expect(getSelected()).toEqual([[2, 0, 2, 0]]);
   });
 
@@ -1659,14 +1659,14 @@ describe('Core_validate', () => {
     });
     selectCell(2, 0);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     document.activeElement.value = '999';
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
-    keyDownUp(['arrowdown']);
-    keyDownUp(['arrowdown']);
+    keyDownUp('arrowdown');
+    keyDownUp('arrowdown');
 
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([[5, 0, 5, 0]]);
@@ -1699,14 +1699,14 @@ describe('Core_validate', () => {
 
     selectCell(2, 0);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     document.activeElement.value = '999';
-    keyDownUp(['enter']);
+    keyDownUp('enter');
 
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
-    keyDownUp(['arrowup']);
-    keyDownUp(['arrowup']);
+    keyDownUp('arrowup');
+    keyDownUp('arrowup');
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
 
@@ -1739,13 +1739,13 @@ describe('Core_validate', () => {
 
     selectCell(2, 0);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     document.activeElement.value = '999';
-    keyDownUp(['enter']); // should be accepted but only after 100 ms
+    keyDownUp('enter'); // should be accepted but only after 100 ms
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
-    keyDownUp(['arrowright']);
-    keyDownUp(['arrowright']);
+    keyDownUp('arrowright');
+    keyDownUp('arrowright');
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([[3, 2, 3, 2]]);
 
@@ -1778,13 +1778,13 @@ describe('Core_validate', () => {
 
     selectCell(2, 2);
 
-    keyDownUp(['enter']);
+    keyDownUp('enter');
     document.activeElement.value = '999';
-    keyDownUp(['enter']); // should be accepted but only after 100 ms
+    keyDownUp('enter'); // should be accepted but only after 100 ms
     expect(getSelected()).toEqual([[3, 2, 3, 2]]);
 
-    keyDownUp(['arrowleft']);
-    keyDownUp(['arrowleft']);
+    keyDownUp('arrowleft');
+    keyDownUp('arrowleft');
 
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
@@ -1809,8 +1809,8 @@ describe('Core_validate', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']); // open editor
-    keyDownUp(['escape']); // cancel editing
+    keyDownUp('enter'); // open editor
+    keyDownUp('escape'); // cancel editing
 
     setTimeout(() => {
       expect(onAfterValidate).not.toHaveBeenCalled();
@@ -1843,8 +1843,8 @@ describe('Core_validate', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp(['enter']); // open editor
-    keyDownUp(['escape']); // cancel editing
+    keyDownUp('enter'); // open editor
+    keyDownUp('escape'); // cancel editing
 
     setTimeout(() => {
       expect(onAfterValidate).not.toHaveBeenCalled();
@@ -1874,8 +1874,8 @@ describe('Core_validate', () => {
       expect(getCellMeta(0, 0).valid).toBe(false);
 
       selectCell(0, 0);
-      keyDownUp(['enter']); // open editor
-      keyDownUp(['escape']); // cancel editing
+      keyDownUp('enter'); // open editor
+      keyDownUp('escape'); // cancel editing
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       done();
@@ -1916,8 +1916,8 @@ describe('Core_validate', () => {
       expect(getCellMeta(0, 0).valid).toBe(false);
 
       selectCell(0, 0);
-      keyDownUp(['enter']); // open editor
-      keyDownUp(['escape']); // cancel editing
+      keyDownUp('enter'); // open editor
+      keyDownUp('escape'); // cancel editing
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       done();
@@ -1951,9 +1951,9 @@ describe('Core_validate', () => {
     expect(activeEditor.row).toEqual(0);
     expect(activeEditor.col).toEqual(0);
 
-    keyDownUp(['enter']); // open editor
+    keyDownUp('enter'); // open editor
     activeEditor.setValue('foo');
-    keyDownUp(['enter']); // save changes, close editor
+    keyDownUp('enter'); // save changes, close editor
 
     setTimeout(() => {
       onAfterValidate.calls.reset();
@@ -1965,11 +1965,11 @@ describe('Core_validate', () => {
 
       activeEditor.setValue(2);
 
-      keyDownUp(['enter']); // save changes and move to cell below (row: 1, col: ś0)
+      keyDownUp('enter'); // save changes and move to cell below (row: 1, col: ś0)
     }, 200);
 
     setTimeout(() => {
-      keyDownUp(['enter']); // open editor
+      keyDownUp('enter'); // open editor
 
       activeEditor = hot.getActiveEditor();
       expect(activeEditor.row).toEqual(1);
@@ -2016,9 +2016,9 @@ describe('Core_validate', () => {
     expect(activeEditor.row).toEqual(0);
     expect(activeEditor.col).toEqual(0);
 
-    keyDownUp(['enter']); // open editor
+    keyDownUp('enter'); // open editor
     activeEditor.setValue('foo');
-    keyDownUp(['enter']); // save changes, close editor
+    keyDownUp('enter'); // save changes, close editor
 
     setTimeout(() => {
       onAfterValidate.calls.reset();
@@ -2030,11 +2030,11 @@ describe('Core_validate', () => {
 
       activeEditor.setValue(2);
 
-      keyDownUp(['enter']); // save changes and move to cell below (row: 1, col: ś0)
+      keyDownUp('enter'); // save changes and move to cell below (row: 1, col: ś0)
     }, 200);
 
     setTimeout(() => {
-      keyDownUp(['enter']); // open editor
+      keyDownUp('enter'); // open editor
 
       activeEditor = hot.getActiveEditor();
       expect(activeEditor.row).toEqual(1);

@@ -25,7 +25,7 @@ describe('editorManager', () => {
 
           const activeEditor = getActiveEditor();
 
-          keyDownUp([key]);
+          keyDownUp(key);
 
           expect(activeEditor.isOpened()).toBe(true);
         });
@@ -87,7 +87,7 @@ describe('editorManager', () => {
 
           const activeEditor = getActiveEditor();
 
-          keyDownUp([key]);
+          keyDownUp(key);
 
           expect(activeEditor.isOpened()).toBe(false);
         });

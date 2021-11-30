@@ -494,7 +494,7 @@ describe('HiddenColumns', () => {
       getPlugin('mergeCells').merge(0, 1, 0, 3);
 
       selectCell(0, 1);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       let editor = getActiveEditor();
 
@@ -503,7 +503,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -511,7 +511,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 2);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -520,7 +520,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -528,7 +528,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 3);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -537,7 +537,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -566,7 +566,7 @@ describe('HiddenColumns', () => {
       getPlugin('mergeCells').merge(0, 0, 0, 3);
 
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       let editor = getActiveEditor();
 
@@ -575,7 +575,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -583,12 +583,12 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 1);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -596,7 +596,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 2);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -605,7 +605,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -613,7 +613,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 3);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -622,7 +622,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -651,7 +651,7 @@ describe('HiddenColumns', () => {
       getPlugin('mergeCells').merge(0, 1, 0, 4);
 
       selectCell(0, 1);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       let editor = getActiveEditor();
 
@@ -660,7 +660,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -668,7 +668,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 2);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -677,7 +677,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -685,7 +685,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 3);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -694,7 +694,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -702,7 +702,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 4);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -711,7 +711,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -740,7 +740,7 @@ describe('HiddenColumns', () => {
       getPlugin('mergeCells').merge(0, 0, 0, 4);
 
       selectCell(0, 0);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       let editor = getActiveEditor();
 
@@ -749,7 +749,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -757,7 +757,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 1);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -766,7 +766,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -774,7 +774,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 2);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -783,7 +783,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -791,7 +791,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 3);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -800,7 +800,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -808,7 +808,7 @@ describe('HiddenColumns', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 4);
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -817,7 +817,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -853,7 +853,7 @@ describe('HiddenColumns', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       expect(getData()).toEqual([['A1', 'Edited value', null, null, 'E1']]);
     });
@@ -877,7 +877,7 @@ describe('HiddenColumns', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       expect(getData()).toEqual([['Edited value', null, null, null, 'E1']]);
     });
@@ -901,7 +901,7 @@ describe('HiddenColumns', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       expect(getData()).toEqual([['A1', 'Edited value', null, null, null]]);
     });
@@ -925,7 +925,7 @@ describe('HiddenColumns', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       expect(getData()).toEqual([['Edited value', null, null, null, null]]);
     });
@@ -960,7 +960,7 @@ describe('HiddenColumns', () => {
       expect(editor).toBeUndefined();
 
       // Try of opening the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -997,7 +997,7 @@ describe('HiddenColumns', () => {
       expect(editor).toBeUndefined();
 
       // Try of opening the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -1023,7 +1023,7 @@ describe('HiddenColumns', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       expect(getData()).toEqual([['A1', 'Edited value', null, null, 'E1']]);
     });
@@ -1047,7 +1047,7 @@ describe('HiddenColumns', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       expect(getData()).toEqual([['Edited value', null, null, null, 'E1']]);
     });
@@ -1071,7 +1071,7 @@ describe('HiddenColumns', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       expect(getData()).toEqual([['A1', 'Edited value', null, null, null]]);
     });
@@ -1095,7 +1095,7 @@ describe('HiddenColumns', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp(['enter']);
+      keyDownUp('enter');
 
       expect(getData()).toEqual([['Edited value', null, null, null, null]]);
     });
