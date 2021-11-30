@@ -55,5 +55,5 @@ describe('createKeysController', () => {
 
     expect(keyController.isPressed('e')).toEqual(true);
     expect(keyController.isPressed('g')).toEqual(false);
-  })
+  });
 });
