@@ -1,11 +1,11 @@
 ---
-title: Custom context menu example
-metaTitle: Custom context menu example - Guide - Handsontable Documentation
+title: 'Vue: Custom context menu example'
+metaTitle: 'Vue: Custom context menu example - Guide - Handsontable Documentation'
 permalink: /10.0/vue-custom-context-menu-example
 canonicalUrl: /vue-custom-context-menu-example
 ---
 
-# Custom context menu example
+# Vue: Custom context menu example
 
 ## Overview
 

@@ -1,11 +1,11 @@
 ---
-title: Vue installation
-metaTitle: Vue installation - Guide - Handsontable Documentation
+title: 'Vue: Installation'
+metaTitle: 'Vue: Installation - Guide - Handsontable Documentation'
 permalink: /next/vue-installation
 canonicalUrl: /vue-installation
 ---
 
-# Installation
+# Vue: Installation
 
 [[toc]]
 

@@ -1,11 +1,11 @@
 ---
-title: Vuex example
-metaTitle: Vuex example - Guide - Handsontable Documentation
+title: 'Vue: Vuex example'
+metaTitle: 'Vue: Vuex example - Guide - Handsontable Documentation'
 permalink: /9.0/vue-vuex-example
 canonicalUrl: /vue-vuex-example
 ---
 
-# Vuex example
+# Vue: Vuex example
 
 [[toc]]
 

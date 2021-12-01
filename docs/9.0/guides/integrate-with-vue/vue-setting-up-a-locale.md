@@ -1,11 +1,11 @@
 ---
-title: Setting up a locale
-metaTitle: Setting up a locale - Guide - Handsontable Documentation
+title: 'Vue: Setting up a translation'
+metaTitle: 'Vue: Setting up a translation - Guide - Handsontable Documentation'
 permalink: /9.0/vue-setting-up-a-locale
 canonicalUrl: /vue-setting-up-a-locale
 ---
 
-# Setting up a locale
+# Vue: Setting up a translation
 
 ## Overview
 
