@@ -394,7 +394,7 @@ xdescribe('settings', () => {
       })).toThrow();
     });
   });
- xdescribe('fixedColumnsLeft with fixedColumnsStart', () => { // todo should throw errors
+  xdescribe('fixedColumnsLeft with fixedColumnsStart', () => { // todo should throw errors
     const id = 'testContainer';
 
     beforeEach(function() {

@@ -2,17 +2,17 @@
  * @class FixedColumnsPropertiesMod
  */
 export class FixedColumnsPropertiesMod {
-  /**
-   * @param {MetaManager} metaManager
-   */
   constructor(metaManager) {
     const self = this;
-    
-    this.metaManager = metaManager
+
+    /**
+     * @type {MetaManager}
+     */
+    this.metaManager = metaManager;
     this.usedBy = new Set();
-    
+
     metaManager.globalMeta.meta._fixedColumnsStart = 0; // setting a default value
-    
+
     Object.defineProperty(metaManager.globalMeta.meta, 'fixedColumnsLeft', {
       get() {
         // TODO: should it show a warn?
@@ -41,14 +41,16 @@ export class FixedColumnsPropertiesMod {
 
   checkRtl() {
     debugger;
-    if(this.metaManager.hot.isRtl()){
+
+    if (this.metaManager.hot.isRtl()) {
       throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
     }
   }
 
   checkDoubleUse(name) {
     this.usedBy.add(name);
-    if(this.usedBy.size>=2){
+
+    if (this.usedBy.size >= 2) {
       throw new Error('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. ' +
         'Please use only the option `fixedColumnsStart`.');
     }
