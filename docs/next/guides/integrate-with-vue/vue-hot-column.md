@@ -400,12 +400,12 @@ In this example, several capabilities of the wrapper are combined:
 2. Declare settings for several columns using Vue's `v-for`
 3. Create a component where the state will be bound by the data retrieved from the first component
 
-::: example #advanced-editor-example :vue --html 1 --js 2
+::: example #advanced-editor-example :vue-advanced --html 1 --css 2 --js 3
 ```html
 <div id="advanced-editor-example" class="hot">
   <hot-table :settings="hotSettings">
-    <hot-column :width="150">
-      <stars-rating hot-renderer></stars-rating>
+    <hot-column :width="100">
+      <stars-renderer hot-renderer></stars-renderer>
     </hot-column>
     <hot-column v-for="n in 2" :width="150" v-bind:key="'col' + n">
       <color-picker hot-editor hot-renderer></color-picker>
@@ -413,35 +413,46 @@ In this example, several capabilities of the wrapper are combined:
   </hot-table>
 </div>
 ```
+```css
+#colorPickerElement button {
+  width: 100%;
+  height: 33px;
+  margin-top: 10px;
+}
+
+.vc-chrome {
+  box-shadow: none;
+}
+```
 ```js
-import Vue from "vue";
-import Vuex from "vuex";
-import { HotTable, HotColumn, BaseEditorComponent } from "@handsontable/vue";
-import { Chrome } from "vue-color";
-import Component from "vue-class-component";
-import StarRating from "vue-star-rating";
+import Vue from 'vue';
+import Vuex from 'vuex';
+import { HotTable, HotColumn, BaseEditorComponent } from '@handsontable/vue';
+import { Chrome } from 'vue-color';
+import Component from 'vue-class-component';
+import StarRating from 'vue-star-rating';
 
 // ColorPicker.vue
 @Component({
   components: {
-    "chrome-picker": Chrome
+    Chrome,
   },
   template: `
-    <div>
+    <div style="display: flex">
       <div
         v-if="isEditor && isVisible"
         id="colorPickerElement"
         :style="style"
         @mousedown="stopMousedownPropagation"
       >
-        <chrome-picker :value="value" @input="updateColor"></chrome-picker>
+        <chrome :value="value" @input="updateColor"></chrome>
         <button v-on:click="applyColor">Apply</button>
       </div>
       <div v-if="isRenderer">
         <div
           :style="{background: value, width: '21px', height: '21px', float: 'left', marginRight: '5px'}"
         ></div>
-        <div>{{value}}</div>
+        <span>{{value}}</span>
       </div>
     </div>
   `
@@ -452,20 +463,20 @@ class ColorPicker extends BaseEditorComponent {
   row = null;
   col = null;
   prop = null;
-  value = "";
+  value = '';
   cellProperties = null;
   isEditor = null;
   isRenderer = null;
   editorElement = null;
   isVisible = false;
   style = {
-    position: "absolute",
-    padding: "15px",
-    background: "#fff",
+    position: 'absolute',
+    padding: '15px',
+    background: '#fff',
     zIndex: 999,
-    border: "1px solid #000",
-    left: "0px",
-    top: "0px"
+    border: '1px solid #000',
+    left: '0px',
+    top: '0px'
   };
 
   stopMousedownPropagation(e) {
@@ -485,8 +496,8 @@ class ColorPicker extends BaseEditorComponent {
 
     const tdPosition = td.getBoundingClientRect();
 
-    this.style.left = tdPosition.left + window.pageXOffset + "px";
-    this.style.top = tdPosition.top + window.pageYOffset + "px";
+    this.style.left = tdPosition.left + window.pageXOffset + 'px';
+    this.style.top = tdPosition.top + window.pageYOffset + 'px';
   }
 
   updateColor(info) {
@@ -495,12 +506,12 @@ class ColorPicker extends BaseEditorComponent {
 
   applyColor() {
     if (this.col === 1) {
-      this.$store.commit("setActiveStarColor", {
+      this.$store.commit('setActiveStarColor', {
         row: this.row,
         newColor: this.getValue()
       });
     } else if (this.col === 2) {
-      this.$store.commit("setInactiveStarColor", {
+      this.$store.commit('setInactiveStarColor', {
         row: this.row,
         newColor: this.getValue()
       });
@@ -526,7 +537,7 @@ class ColorPicker extends BaseEditorComponent {
   }
 }
 
-// StarsRating.vue
+// StarsRenderer.vue
 @Component({
   components: {
     StarRating,
@@ -566,35 +577,33 @@ class StarsRenderer extends Vue {
 // App.vue + main.js
 Vue.use(Vuex);
 
-Vue.config.productionTip = false;
-
 const App = new Vue({
-  el: "#advanced-editor-example",
-  data: function() {
+  el: '#advanced-editor-example',
+  data() {
     return {
       hotSettings: {
         data: [
-          [1, "#2269EC", "#E1E7F3"],
-          [2, "#A1E3CD", "#E5ECE4"],
-          [3, "#A7DEA2", "#E4E8DA"],
-          [4, "#ABE025", "#D4E1E6"],
-          [5, "#018FC5", "#E8D3D7"],
-          [5, "#FF1E49", "#D0D7E4"]
+          [1, '#2269EC', '#E1E7F3'],
+          [2, '#A1E3CD', '#E5ECE4'],
+          [3, '#A7DEA2', '#E4E8DA'],
+          [4, '#ABE025', '#D4E1E6'],
+          [5, '#018FC5', '#E8D3D7'],
+          [5, '#FF1E49', '#D0D7E4']
         ],
         fillHandle: false,
         copyPaste: false,
-        licenseKey: "non-commercial-and-evaluation",
+        licenseKey: 'non-commercial-and-evaluation',
         rowHeaders: true,
-        colHeaders: ["Rating", "Active star color", "Inactive star color"],
+        colHeaders: ['Rating', 'Active star color', 'Inactive star color'],
         autoRowSize: false,
-        autoColumnSize: false
+        autoColumnSize: false,
+        height: 'auto',
       }
     };
   },
-  created: function() {
-    this.$store.commit("initStarColors", this.hotSettings.data);
+  created() {
+    this.$store.commit('initStarColors', this.hotSettings.data);
   },
-  methods: {},
   store: new Vuex.Store({
     state: {
       activeColors: [],
@@ -602,7 +611,7 @@ const App = new Vue({
     },
     mutations: {
       initStarColors(state, hotData) {
-        for (var i = 0; i < hotData.length; i++) {
+        for (let i = 0; i < hotData.length; i++) {
           state.activeColors[i] = hotData[i][1];
           state.inactiveColors[i] = hotData[i][2];
         }
@@ -619,7 +628,7 @@ const App = new Vue({
     HotTable,
     HotColumn,
     ColorPicker,
-    StarsRating
+    StarsRenderer,
   }
 });
 ```
@@ -636,8 +645,6 @@ In our case, we're also adding an "Apply" button, which triggers the Handsontabl
 Finally, modify the component template to be used as a renderer _and_ editor. We'll utilize the `isEditor` and `isRenderer` properties, injected into the component instances created by the wrapper. The template will be divided into a render and editor part using Vue's `v-if`.
 
 This component contains some Vuex state logic. Ignore it for now. We'll cover this in the third step.
-
-<iframe src="https://codesandbox.io/embed/advanced-vue-hot-column-implementation-d4ymm?fontsize=14&hidenavigation=1&module=%2Fsrc%2FColorPicker.vue&view=editor" title="Advanced @handsontable/vue hot-column implementation" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
 ### 2. Using `v-for` for column declaration
 
@@ -657,5 +664,3 @@ This component contains some Vuex state logic. Ignore it for now. We'll cover th
 ### 3. Binding the state between components.
 
 As you can see in our first editor/renderer component, we're already committing all of the changes into the applications `$store`. This way, we can easily bind the state of our new component (based on a star-rating component dependency) to the data in the second and third columns.
-
-<iframe src="https://codesandbox.io/embed/advanced-vue-hot-column-implementation-d4ymm?fontsize=14&hidenavigation=1&module=%2Fsrc%2FStarsRating.vue&view=editor" title="Advanced @handsontable/vue hot-column implementation" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
