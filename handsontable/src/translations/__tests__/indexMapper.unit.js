@@ -1407,6 +1407,25 @@ describe('IndexMapper', () => {
       indexMapper.unregisterMap('trimmingMap');
       indexMapper.unregisterMap('hidingMap');
     });
+
+    it('should remove the right amount of indexes from the end of the mapper using the `fitToLength` method,' +
+      ' regardless of the index order.', () => {
+      const indexMapper = new IndexMapper();
+
+      indexMapper.initToLength(10);
+
+      indexMapper.fitToLength(5);
+
+      expect(indexMapper.getNumberOfIndexes()).toEqual(5);
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4]);
+
+      indexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+
+      indexMapper.fitToLength(3);
+
+      expect(indexMapper.getNumberOfIndexes()).toEqual(3);
+      expect(indexMapper.getIndexesSequence()).toEqual([2, 1, 0]);
+    });
   });
 
   describe('inserting indexes', () => {
@@ -1855,6 +1874,25 @@ describe('IndexMapper', () => {
         indexMapper.unregisterMap('lPIndexToValueMap');
         indexMapper.unregisterMap('hidingMap');
       });
+    });
+
+    it('should insert the right amount of indexes at the end of the mapper using the `fitToLength` method,' +
+      ' regardless of the index order.', () => {
+      const indexMapper = new IndexMapper();
+
+      indexMapper.initToLength(5);
+
+      indexMapper.fitToLength(10);
+
+      expect(indexMapper.getNumberOfIndexes()).toEqual(10);
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      indexMapper.setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
+
+      indexMapper.fitToLength(12);
+
+      expect(indexMapper.getNumberOfIndexes()).toEqual(12);
+      expect(indexMapper.getIndexesSequence()).toEqual([9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 10, 11]);
     });
   });
 
