@@ -1,11 +1,11 @@
 ---
-title: Using modules with React
-metaTitle: Using modules with React - Guide - Handsontable Documentation
+title: 'React: Modules'
+metaTitle: 'React: Modules - Guide - Handsontable Documentation'
 permalink: /next/react-modules
 canonicalUrl: /react-modules
 ---
 
-# Using modules with React
+# React: Modules
 
 [[toc]]
 

@@ -5,7 +5,7 @@ permalink: /10.0/vue-hot-column
 canonicalUrl: /vue-hot-column
 ---
 
-# Vue: Using the hot-column component
+# Vue: Using the `hot-column` component
 
 [[toc]]
 
