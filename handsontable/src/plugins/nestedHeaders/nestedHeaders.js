@@ -115,6 +115,7 @@ export class NestedHeaders extends BasePlugin {
 
     this.addHook('init', () => this.onInit());
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
+    this.addHook('afterSetData', (...args) => this.onAfterSetData(...args));
     this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
     this.addHook('afterOnCellMouseDown', (...args) => this.onAfterOnCellMouseDown(...args));
     this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
@@ -582,9 +583,24 @@ export class NestedHeaders extends BasePlugin {
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded
    *                              during the initialization.
    */
-  onAfterLoadData(sourceData, initialLoad) {
+  onAfterSetData(sourceData, initialLoad) {
     if (!initialLoad) {
       this.updatePlugin();
+    }
+  }
+
+  /**
+   * Alias for `onAfterSetData`.
+   *
+   * @private
+   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
+   *                              during the initialization.
+   * @param {string} source Source of the hook call.
+   */
+  onAfterLoadData(sourceData, initialLoad, source) {
+    if (source !== 'updateSettings') {
+      this.onAfterSetData(sourceData, initialLoad);
     }
   }
 

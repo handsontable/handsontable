@@ -7,6 +7,7 @@ const path = require('path');
 const webpack = require('webpack');
 const fsExtra = require('fs-extra');
 const JasmineHtml = require('./plugin/jasmine-html');
+const compilationDoneMarker = require('./plugin/webpack/compilation-done-marker');
 
 const wotPath = path.resolve(__dirname, '../src/3rdparty/walkontable');
 
@@ -64,6 +65,7 @@ module.exports.create = function create(envArgs) {
       new webpack.DefinePlugin({
         '__ENV_ARGS__': JSON.stringify(envArgs),
       }),
+      compilationDoneMarker(),
     ],
   };
 

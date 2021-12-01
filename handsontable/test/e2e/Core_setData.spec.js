@@ -1,4 +1,4 @@
-describe('Core_loadData', () => {
+describe('Core_setData', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -71,14 +71,14 @@ describe('Core_loadData', () => {
 
   it('should allow array of arrays', () => {
     handsontable();
-    loadData(arrayOfArrays());
+    setData(arrayOfArrays());
     expect(getDataAtCell(0, 2)).toEqual('Nissan');
   });
 
   it('should load data properly when it is defined as an array of objects #4204', () => {
     handsontable({});
 
-    loadData(arrayOfObjects());
+    setData(arrayOfObjects());
 
     expect(getData()).toEqual([
       [1, 'Ted', 'Right'],
@@ -102,7 +102,7 @@ describe('Core_loadData', () => {
         { data: 'name' }
       ]
     });
-    loadData(arrayOfObjects());
+    setData(arrayOfObjects());
     expect(getDataAtCell(0, 2)).toEqual('Ted');
   });
 
@@ -124,12 +124,13 @@ describe('Core_loadData', () => {
         return colMeta;
       }
     });
-    loadData(arrayOfObjects());
+    setData(arrayOfObjects());
     expect(getDataAtCell(0, 2)).toEqual('Ted');
   });
 
   it('should allow array of nested objects', () => {
     handsontable({
+      data: arrayOfNestedObjects(),
       colHeaders: true,
       columns: [
         { data: 'id' },
@@ -138,8 +139,6 @@ describe('Core_loadData', () => {
         { data: 'full.street' },
       ]
     });
-    loadData(arrayOfNestedObjects());
-
     expect(getDataAtCell(0, 2)).toEqual('Ted');
     expect(getDataAtCell(1, 3)).toEqual('Street II');
     expect(getDataAtRowProp(2, 'full.street')).toEqual('Street III');
@@ -147,6 +146,7 @@ describe('Core_loadData', () => {
 
   it('should allow array of nested objects when columns as a function', () => {
     handsontable({
+      data: arrayOfNestedObjects(),
       colHeaders: true,
       columns(column) {
         let colMeta = {};
@@ -166,8 +166,6 @@ describe('Core_loadData', () => {
         return colMeta;
       }
     });
-    loadData(arrayOfNestedObjects());
-
     expect(getDataAtCell(0, 2)).toEqual('Ted');
     expect(getDataAtCell(1, 3)).toEqual('Street II');
     expect(getDataAtRowProp(2, 'full.street')).toEqual('Street III');
@@ -175,10 +173,9 @@ describe('Core_loadData', () => {
 
   it('should figure out default column names for array of nested objects', () => {
     handsontable({
+      data: arrayOfNestedObjects(),
       colHeaders: true
     });
-    loadData(arrayOfNestedObjects());
-
     expect(getDataAtCell(0, 2)).toEqual('Right');
   });
 
@@ -187,12 +184,12 @@ describe('Core_loadData', () => {
 
     handsontable({
       afterChange(changes, source) {
-        if (source === 'loadData') {
+        if (source === 'setData') {
           called = true;
         }
       }
     });
-    loadData(arrayOfArrays());
+    setData(arrayOfArrays());
 
     expect(called).toEqual(true);
   });
@@ -202,12 +199,12 @@ describe('Core_loadData', () => {
 
     handsontable({
       afterChange(changes, source) {
-        if (source === 'loadData') {
+        if (source === 'setData') {
           called = true;
         }
       }
     });
-    loadData(arrayOfObjects());
+    setData(arrayOfObjects());
 
     expect(called).toEqual(true);
   });
@@ -217,12 +214,12 @@ describe('Core_loadData', () => {
 
     handsontable({
       afterChange(changes, source) {
-        if (source === 'loadData') {
+        if (source === 'setData') {
           called = true;
         }
       }
     });
-    loadData(arrayOfNestedObjects());
+    setData(arrayOfNestedObjects());
 
     expect(called).toEqual(true);
   });
@@ -230,9 +227,8 @@ describe('Core_loadData', () => {
   it('should create new rows for array of arrays (and respect minRows)', () => {
     handsontable({
       minRows: 20, // minRows should be respected
+      data: arrayOfArrays()
     });
-
-    loadData(arrayOfArrays());
 
     expect(countRows()).toEqual(20); // TODO why this must be checked after render?
   });
@@ -240,16 +236,15 @@ describe('Core_loadData', () => {
   it('should create new rows for array of nested objects (and respect minRows)', () => {
     handsontable({
       minRows: 20, // minRows should be respected
+      data: arrayOfNestedObjects()
     });
-
-    loadData(arrayOfNestedObjects());
 
     expect(countRows()).toEqual(20); // TODO why this must be checked after render?
   });
 
   it('HTML special chars should be escaped by default', () => {
     handsontable();
-    loadData(htmlData);
+    setData(htmlData);
 
     expect(getCell(0, 0).innerHTML).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
   });
@@ -257,9 +252,8 @@ describe('Core_loadData', () => {
   it('should create as many rows as needed by array of objects', () => {
     handsontable({
       minRows: 6,
+      data: arrayOfObjects()
     });
-
-    loadData(arrayOfObjects());
 
     expect(getCell(9, 1).innerHTML).toEqual('Eve');
   });
@@ -269,23 +263,20 @@ describe('Core_loadData', () => {
     const cellsSpy = jasmine.createSpy('cellsSpy');
 
     handsontable({
+      data: arrayOfNestedObjects(),
       colWidths: [90, 90, 90, 90],
       rowHeights: [23, 23, 23, 23],
       cells: cellsSpy,
     });
 
-    // Default `cells` calls (table initializes with default values)
-    const afterInitCellsSpy = cellsSpy.calls.count();
-
-    loadData(arrayOfNestedObjects());
-
-    expect(cellsSpy.calls.count() - afterInitCellsSpy).toBe(12);
+    expect(cellsSpy.calls.count()).toBe(12);
   });
 
   it('should not invoke the cells callback multiple times with the same row/col (with overlays)', () => {
     const cellsSpy = jasmine.createSpy('cellsSpy');
 
     handsontable({
+      data: arrayOfNestedObjects(),
       colHeaders: true,
       rowHeaders: true,
       colWidths: [90, 90, 90, 90],
@@ -293,12 +284,7 @@ describe('Core_loadData', () => {
       cells: cellsSpy
     });
 
-    // Default `cells` calls (table initializes with default values)
-    const afterInitCellsSpy = cellsSpy.calls.count();
-
-    loadData(arrayOfNestedObjects());
-
-    expect(cellsSpy.calls.count() - afterInitCellsSpy).toBe(12);
+    expect(cellsSpy.calls.count()).toBe(12);
   });
 
   it('should remove grid rows if new data source has less of them', () => {
@@ -322,13 +308,12 @@ describe('Core_loadData', () => {
     ];
 
     handsontable({
+      data: data1,
       rowHeaders: true,
       colHeaders: true
     });
-
-    loadData(data1);
     selectCell(7, 0);
-    loadData(data2);
+    setData(data2);
 
     expect(countRows()).toBe(data2.length);
     expect(getSelected()).toEqual([[4, 0, 4, 0]]);
@@ -354,15 +339,14 @@ describe('Core_loadData', () => {
     ];
 
     handsontable({
+      data: data1,
       minSpareCols: 1,
       minSpareRows: 1,
       rowHeaders: true,
       colHeaders: true
     });
-
-    loadData(data1);
     selectCell(8, 0);
-    loadData(data2);
+    setData(data2);
 
     expect(countRows()).toBe(6); // +1 because of minSpareRows
     expect(getSelected()).toEqual([[5, 0, 5, 0]]);
@@ -383,13 +367,12 @@ describe('Core_loadData', () => {
     const data2 = [];
 
     handsontable({
+      data: data1,
       rowHeaders: true,
       colHeaders: true
     });
-
-    loadData(data1);
     selectCell(7, 0);
-    loadData(data2);
+    setData(data2);
 
     expect(countRows()).toBe(0);
     expect(getSelected()).toBeUndefined();
@@ -399,13 +382,12 @@ describe('Core_loadData', () => {
     const data1 = arrayOfArrays();
 
     handsontable({
+      data: data1,
       columns: [
         { data: 1 },
         { data: 3 }
       ]
     });
-
-    loadData(data1);
 
     expect(countCols()).toBe(2);
   });
@@ -414,6 +396,7 @@ describe('Core_loadData', () => {
     const data1 = arrayOfArrays();
 
     handsontable({
+      data: data1,
       columns(column) {
         let colMeta = {
           data: column
@@ -427,17 +410,29 @@ describe('Core_loadData', () => {
       }
     });
 
-    loadData(data1);
-
     expect(countCols()).toBe(2);
   });
 
-  it('should throw error when trying to load a string (loadData)', () => {
+  it('should throw error when trying to load a string (constructor)', () => {
+    let errors = 0;
+
+    try {
+      handsontable({
+        data: 'string'
+      });
+    } catch (e) {
+      errors += 1;
+    }
+
+    expect(errors).toBe(1);
+  });
+
+  it('should throw error when trying to load a string (setData)', () => {
     let errors = 0;
 
     try {
       handsontable();
-      loadData('string');
+      setData('string');
     } catch (e) {
       errors += 1;
     }
@@ -485,10 +480,7 @@ describe('Core_loadData', () => {
     cars.push({ make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808 });
 
     handsontable({
-    });
-
-    loadData(cars);
-    updateSettings({
+      data: cars,
       columns: [
         attr('make'),
         attr('model'),
@@ -553,6 +545,7 @@ describe('Core_loadData', () => {
     cars.push({ make: 'Smart', model: 'Fortwo', year: 2012, weight: 1808 });
 
     handsontable({
+      data: cars,
       columns(column) {
         let colMeta = null;
 
@@ -567,8 +560,6 @@ describe('Core_loadData', () => {
         return colMeta;
       }
     });
-
-    loadData(cars);
 
     // normally, you'd get these from the server with .fetch()
     function attr(attribute) {
@@ -587,34 +578,34 @@ describe('Core_loadData', () => {
     expect(countRows()).toBe(3);
   });
 
-  it('should clear cell properties after loadData', () => {
+  it('should clear cell properties after setData', () => {
     handsontable();
-    loadData(arrayOfArrays());
+    setData(arrayOfArrays());
 
     getCellMeta(0, 0).foo = 'bar';
 
     expect(getCellMeta(0, 0).foo).toEqual('bar');
 
-    loadData(arrayOfArrays());
+    setData(arrayOfArrays());
 
     expect(getCellMeta(0, 0).foo).toBeUndefined();
   });
 
-  it('should clear cell properties after loadData, but before rendering new data', () => {
+  it('should clear cell properties after setData, but before rendering new data', () => {
     handsontable();
-    loadData(arrayOfArrays());
+    setData(arrayOfArrays());
 
     getCellMeta(0, 0).valid = false;
     render();
 
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
 
-    loadData(arrayOfArrays());
+    setData(arrayOfArrays());
 
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
   });
 
-  it('should reinitialize index mappers after calling loadData', () => {
+  it('should reinitialize index mappers after calling setData', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
@@ -622,17 +613,17 @@ describe('Core_loadData', () => {
     hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
     hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
-    loadData(Handsontable.helper.createSpreadsheetData(5, 5));
+    setData(Handsontable.helper.createSpreadsheetData(5, 5));
 
     expect(hot.rowIndexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4]);
     expect(hot.columnIndexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4]);
 
-    loadData(Handsontable.helper.createSpreadsheetData(3, 3));
+    setData(Handsontable.helper.createSpreadsheetData(3, 3));
 
     expect(hot.rowIndexMapper.getIndexesSequence()).toEqual([0, 1, 2]);
     expect(hot.columnIndexMapper.getIndexesSequence()).toEqual([0, 1, 2]);
 
-    loadData(Handsontable.helper.createSpreadsheetData(5, 5));
+    setData(Handsontable.helper.createSpreadsheetData(5, 5));
 
     expect(hot.rowIndexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4]);
     expect(hot.columnIndexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4]);
@@ -649,14 +640,13 @@ describe('Core_loadData', () => {
     ];
 
     handsontable({
+      data: objectData,
       columns: [
         { data: 'id' },
         { data: 'user.name.first' },
         { data: 'user.name.last' }
       ]
     });
-
-    loadData(objectData);
 
     mouseDoubleClick(getCell(1, 1));
     document.activeElement.value = 'Harry';
@@ -678,6 +668,7 @@ describe('Core_loadData', () => {
     ];
 
     handsontable({
+      data: objectData,
       columns(column) {
         let colMeta = null;
 
@@ -695,8 +686,6 @@ describe('Core_loadData', () => {
       }
     });
 
-    loadData(objectData);
-
     mouseDoubleClick(getCell(1, 1));
     document.activeElement.value = 'Harry';
     deselectCell();
@@ -710,33 +699,33 @@ describe('Core_loadData', () => {
 
   it('should create new data schema after loading data', () => {
     handsontable({
+      data: arrayOfObjects()
     });
 
-    loadData(arrayOfObjects());
-    loadData(arrayOfArrays());
+    setData(arrayOfArrays());
 
     expect(getSourceData()).toEqual(arrayOfArrays());
     expect(getData()).toEqual(arrayOfArrays());
   });
 
-  it('should pass the `source` argument to the `beforeLoadData` and `afterLoadData` hooks', () => {
+  it('should pass the `source` argument to the `beforeSetData` and `afterSetData` hooks', () => {
     let correctSourceCount = 0;
 
     handsontable({
-      beforeLoadData: (data, firstRun, source) => {
+      data: arrayOfObjects(),
+      beforeSetData: (data, firstRun, source) => {
         if (source === 'testSource') {
           correctSourceCount += 1;
         }
       },
-      afterLoadData: (data, firstRun, source) => {
+      afterSetData: (data, firstRun, source) => {
         if (source === 'testSource') {
           correctSourceCount += 1;
         }
       }
     });
 
-    loadData(arrayOfObjects());
-    loadData(arrayOfArrays(), 'testSource');
+    setData(arrayOfArrays(), 'testSource');
 
     expect(correctSourceCount).toEqual(2);
   });

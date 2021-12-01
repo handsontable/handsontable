@@ -114,6 +114,7 @@ export class NestedRows extends BasePlugin {
     this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
     this.addHook('beforeRowMove', (...args) => this.onBeforeRowMove(...args));
     this.addHook('beforeLoadData', data => this.onBeforeLoadData(data));
+    this.addHook('beforeSetData', data => this.onBeforeSetData(data));
 
     super.enablePlugin();
   }
@@ -450,12 +451,12 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * `beforeLoadData` hook callback.
+   * `beforeSetData` hook callback.
    *
    * @param {Array} data The source data.
    * @private
    */
-  onBeforeLoadData(data) {
+  onBeforeSetData(data) {
     if (!isArrayOfObjects(data)) {
       error(WRONG_DATA_TYPE_ERROR);
 
@@ -466,5 +467,20 @@ export class NestedRows extends BasePlugin {
 
     this.dataManager.setData(data);
     this.dataManager.rewriteCache();
+  }
+
+  /**
+   * Alias for `onBeforeSetData`.
+   *
+   * @private
+   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
+   *                              during the initialization.
+   * @param {string} source Source of the hook call.
+   */
+  onBeforeLoadData(sourceData, initialLoad, source) {
+    if (source !== 'updateSettings') {
+      this.onBeforeSetData(sourceData);
+    }
   }
 }
