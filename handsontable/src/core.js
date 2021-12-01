@@ -2115,7 +2115,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.loadData = function(data, source) {
     // Legacy alias for `setData` - these two should be kept in sync.
-
     replaceData(
       data,
       (newDataMap) => {
@@ -2123,9 +2122,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       },
       () => {
         metaManager.clearCellsCache();
-
         instance.initIndexMappers();
-
         grid.adjustRowsAndCols();
 
         if (firstRun) {
