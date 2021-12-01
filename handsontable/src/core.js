@@ -2044,9 +2044,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       },
       () => {
         metaManager.clearCellsCache();
-
         instance.initIndexMappers();
-
         grid.adjustRowsAndCols();
 
         if (firstRun) {
