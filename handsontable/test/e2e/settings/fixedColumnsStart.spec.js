@@ -1,4 +1,4 @@
-xdescribe('settings', () => {
+describe('settings', () => {
   describe('fixedColumnsStart', () => {
     const id = 'testContainer';
 
@@ -380,13 +380,13 @@ xdescribe('settings', () => {
       }
     });
 
-    xit('constructor should throw Error', () => { // todo causes another tests to crash
+    it('constructor should throw Error', () => { // todo causes another tests to crash
       expect(() => handsontable({
         fixedColumnsLeft: 3
       })).toThrow();
     });
 
-    xit('updateSettings should throw Error', () => { // todo causes another tests to crash
+    it('updateSettings should throw Error', () => { // todo causes another tests to crash
       handsontable();
 
       expect(() => updateSettings({
@@ -394,7 +394,7 @@ xdescribe('settings', () => {
       })).toThrow();
     });
   });
-  xdescribe('fixedColumnsLeft with fixedColumnsStart', () => { // todo should throw errors
+  describe('fixedColumnsLeft with fixedColumnsStart', () => { // todo should throw errors
     const id = 'testContainer';
 
     beforeEach(function() {
@@ -408,53 +408,45 @@ xdescribe('settings', () => {
       }
     });
 
-    describe('defined in constructor', () => {
-      it('should prefer `fixedColumnsStart` to show fixed columns', () => {
-        handsontable({
+    it('defined both in constructor should thrown an error', () => {
+      expect(() => handsontable(
+        {
           fixedColumnsStart: 3,
           fixedColumnsLeft: 1
-        });
-
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(3);
-      });
+        }
+      )).toThrow();
 
     });
 
-    describe('defined in updateSettings', () => {
-      it('should increase fixed columns (init with alias, update with final)', () => {
-        handsontable({
-          fixedColumnsLeft: 2
-        });
-
-        updateSettings({
-          fixedColumnsStart: 4
-        });
-
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(4);
+    it('defined `fixedColumnsLeft` in constructor, `fixedColumnsStart` in updateSettings should thrown an error', () => {
+      handsontable({
+        fixedColumnsLeft: 2
       });
-      it('should increase fixed columns (init with final, update with alias)', () => {
-        handsontable({
-          fixedColumnsStart: 2
-        });
 
-        updateSettings({
-          fixedColumnsLeft: 4
-        });
+      expect(() => updateSettings({
+        fixedColumnsStart: 4
+      }));
 
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(4);
+    });
+
+    it('defined `fixedColumnsStart` in constructor, `fixedColumnsLeft` in updateSettings should thrown an error', () => {
+      handsontable({
+        fixedColumnsStart: 2
       });
-      it('should increase fixed columns (init with final, update with both: prefer final)', () => {
-        handsontable({
-          fixedColumnsStart: 2
-        });
 
-        updateSettings({
-          fixedColumnsStart: 4,
-          fixedColumnsLeft: 3
-        });
+      expect(() => updateSettings({
+        fixedColumnsLeft: 4
+      }));
 
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(4);
-      });
+    });
+
+    it('defined both in updateSettings should thrown an error ', () => {
+      handsontable({});
+
+      expect(() => updateSettings({
+        fixedColumnsStart: 4,
+        fixedColumnsLeft: 3
+      })).toThrow();
     });
   });
 });

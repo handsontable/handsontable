@@ -20,7 +20,7 @@ export class FixedColumnsPropertiesMod {
       },
       set(value) {
         this._fixedColumnsStart = value;
-        // self.checkRtl()
+        self.checkRtl();
         self.checkDoubleUse('fixedColumnsLeft');
       },
       enumerable: true,
@@ -40,8 +40,6 @@ export class FixedColumnsPropertiesMod {
   }
 
   checkRtl() {
-    debugger;
-
     if (this.metaManager.hot.isRtl()) {
       throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
     }
@@ -49,6 +47,7 @@ export class FixedColumnsPropertiesMod {
 
   checkDoubleUse(name) {
     this.usedBy.add(name);
+    this.metaManager.globalMeta.meta.testInfo += `;;;;;;${JSON.stringify(this.usedBy)}`;
 
     if (this.usedBy.size >= 2) {
       throw new Error('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. ' +
