@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { nextTick, ref } from 'vue';
+import { nextTick, ref, isProxy } from 'vue';
 import { mount, config } from '@vue/test-utils';
 import HotTable from '../src/HotTable.vue';
 import { HOT_DESTROYED_WARNING } from '../src/helpers';
@@ -28,6 +28,21 @@ describe('hotInit', () => {
 
     expect(typeof hotTableComponent.hotInstance).toBe('object');
     expect(hotTableComponent.hotInstance.getDataAtCell(0, 0)).toBe('0-0');
+
+    testWrapper.unmount();
+  });
+
+  it('should not proxy the components `hotInstance` property', async() => {
+    const testWrapper = mount(HotTable, {
+      props: {
+        data: createSampleData(1, 1),
+        licenseKey: 'non-commercial-and-evaluation',
+      },
+    });
+
+    const { hotInstance } = testWrapper.getComponent(HotTable).vm;
+
+    expect(isProxy(hotInstance)).toBe(false);
 
     testWrapper.unmount();
   });
