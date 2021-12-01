@@ -9,6 +9,7 @@ import RowFilter from './filter/row';
 import MasterTable from './table/master';
 import {
   LeftOverlay,
+  RightOverlay,
   TopOverlay,
   TopLeftCornerOverlay,
   BottomOverlay,
@@ -40,6 +41,7 @@ export {
   MasterTable,
 
   LeftOverlay,
+  RightOverlay,
   TopOverlay,
   TopLeftCornerOverlay,
   BottomOverlay,

@@ -45,6 +45,10 @@ class Settings {
       shouldRenderLeftOverlay: () => {
         return this.getSetting('fixedColumnsStart') > 0 || this.getSetting('rowHeaders').length > 0;
       },
+      // Enable the right overlay when conditions are met.
+      shouldRenderRightOverlay: () => {
+        return this.getSetting('fixedColumnsStart') > 0 || this.getSetting('rowHeaders').length > 0;
+      },
       // Enable the top overlay when conditions are met.
       shouldRenderTopOverlay: () => {
         return this.getSetting('fixedRowsTop') > 0 || this.getSetting('columnHeaders').length > 0;

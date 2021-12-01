@@ -13,6 +13,7 @@ import {
   CLONE_TOP_LEFT_CORNER,
   CLONE_TOP,
   LeftOverlay,
+  RightOverlay,
   TopOverlay,
   TopLeftCornerOverlay,
   BottomOverlay,
@@ -25,6 +26,7 @@ import {
 registerOverlayOnce(BottomLeftCornerOverlay);
 registerOverlayOnce(BottomOverlay);
 registerOverlayOnce(LeftOverlay);
+registerOverlayOnce(RightOverlay);
 registerOverlayOnce(TopLeftCornerOverlay);
 registerOverlayOnce(TopOverlay);
 
@@ -68,6 +70,7 @@ class Overlays {
     this.topOverlay = void 0;
     this.bottomOverlay = void 0;
     this.leftOverlay = void 0;
+    this.rightOverlay = void 0;
     this.topLeftCornerOverlay = void 0;
     this.bottomLeftCornerOverlay = void 0;
 
@@ -132,6 +135,12 @@ class Overlays {
       this.leftOverlay = createOverlay(CLONE_LEFT, this.wot);
     }
 
+    if (this.rightOverlay) {
+      syncScroll = this.rightOverlay.updateStateOfRendering() || syncScroll;
+    } else {
+      this.rightOverlay = createOverlay(CLONE_LEFT, this.wot);
+    }
+
     if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
       if (this.topLeftCornerOverlay) {
         syncScroll = this.topLeftCornerOverlay.updateStateOfRendering() || syncScroll;
@@ -168,10 +177,11 @@ class Overlays {
 
     if (this.verticalScrolling) {
       this.leftOverlay.onScroll();
+      this.right.onScroll();
     }
 
     if (this.horizontalScrolling) {
-      this.topOverlay.onScroll();
+      this.topOverlay.onScroll(); // TODO: check why not same for bottom?
     }
 
     this.verticalScrolling = false;
@@ -183,8 +193,9 @@ class Overlays {
    */
   registerListeners() {
     const { rootDocument, rootWindow } = this.wot;
-    const { mainTableScrollableElement: topOverlayScrollableElement } = this.topOverlay;
+    const { mainTableScrollableElement: topOverlayScrollableElement } = this.topOverlay; // TODO: check why not same for bottom?
     const { mainTableScrollableElement: leftOverlayScrollableElement } = this.leftOverlay;
+    const { mainTableScrollableElement: rightOverlayScrollableElement } = this.rightOverlay;
 
     this.eventManager.addEventListener(rootDocument.documentElement, 'keydown', event => this.onKeyDown(event));
     this.eventManager.addEventListener(rootDocument.documentElement, 'keyup', () => this.onKeyUp());
@@ -195,7 +206,7 @@ class Overlays {
       { passive: true }
     );
 
-    if (topOverlayScrollableElement !== leftOverlayScrollableElement) {
+    if (topOverlayScrollableElement !== leftOverlayScrollableElement) { // TODO: what here?
       this.eventManager.addEventListener(
         leftOverlayScrollableElement,
         'scroll',
@@ -222,6 +233,7 @@ class Overlays {
       this.topOverlay,
       this.bottomOverlay,
       this.leftOverlay,
+      this.rightOverlay,
       this.topLeftCornerOverlay,
       this.bottomLeftCornerOverlay,
     ];
@@ -266,7 +278,7 @@ class Overlays {
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
     // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
     const rootWindow = this.wot.rootWindow;
-    const masterHorizontal = this.leftOverlay.mainTableScrollableElement;
+    const masterHorizontal = this.leftOverlay.mainTableScrollableElement; // TODO: should it get rightOverlay when rtl?
     const masterVertical = this.topOverlay.mainTableScrollableElement;
     const target = event.target;
 
@@ -294,7 +306,7 @@ class Overlays {
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
     // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
 
-    const masterHorizontal = this.leftOverlay.mainTableScrollableElement;
+    const masterHorizontal = this.leftOverlay.mainTableScrollableElement;// TODO: should it get rightOverlay when rtl?
     const masterVertical = this.topOverlay.mainTableScrollableElement;
     const target = event.target;
 
@@ -396,7 +408,7 @@ class Overlays {
 
     const { rootWindow } = this.wot;
     const topHolder = this.topOverlay.clone.wtTable.holder;
-    const leftHolder = this.leftOverlay.clone.wtTable.holder;
+    const leftHolder = this.leftOverlay.clone.wtTable.holder; // TODO: should it get rightOverlay when rtl?
 
     const [scrollLeft, scrollTop] = [this.scrollableElement.scrollLeft, this.scrollableElement.scrollTop];
 
@@ -435,7 +447,7 @@ class Overlays {
     if (this.bottomOverlay.needFullRender) {
       this.bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
     }
-    if (this.leftOverlay.needFullRender) {
+    if (this.leftOverlay.needFullRender) { // TODO: should it get rightOverlay when rtl?
       this.leftOverlay.clone.wtTable.holder.scrollTop = scrollTop;
     }
   }
@@ -446,7 +458,7 @@ class Overlays {
   updateMainScrollableElements() {
     this.deregisterListeners();
 
-    this.leftOverlay.updateMainScrollableElement();
+    this.leftOverlay.updateMainScrollableElement(); // TODO: should it get rightOverlay when rtl?
     this.topOverlay.updateMainScrollableElement();
 
     if (this.bottomOverlay.needFullRender) {
@@ -473,7 +485,8 @@ class Overlays {
     if (this.bottomOverlay.clone) {
       this.bottomOverlay.destroy();
     }
-    this.leftOverlay.destroy();
+    this.leftOverlay.destroy(); // todo always?
+    this.rightOverlay.destroy(); // todo always?
 
     if (this.topLeftCornerOverlay) {
       this.topLeftCornerOverlay.destroy();
@@ -506,7 +519,8 @@ class Overlays {
       this.bottomOverlay.refresh(fastDraw);
     }
 
-    this.leftOverlay.refresh(fastDraw);
+    this.leftOverlay.refresh(fastDraw); // TODO: should switch between left/right depending on rtl?
+    this.rightOverlay.refresh(fastDraw); // TODO: should switch between left/right depending on rtl?
     this.topOverlay.refresh(fastDraw);
 
     if (this.topLeftCornerOverlay) {
@@ -556,6 +570,7 @@ class Overlays {
 
     this.topOverlay.adjustElementsSize(force);
     this.leftOverlay.adjustElementsSize(force);
+    this.rightOverlay.adjustElementsSize(force);
     this.bottomOverlay.adjustElementsSize(force);
   }
 
@@ -575,7 +590,8 @@ class Overlays {
       this.bottomOverlay.applyToDOM();
     }
 
-    this.leftOverlay.applyToDOM();
+    this.leftOverlay.applyToDOM();  // TODO: should switch between left/right depending on rtl?
+    this.rightOverlay.applyToDOM();  // TODO: should switch between left/right depending on rtl?
   }
 
   /**
@@ -592,6 +608,7 @@ class Overlays {
     const overlays = [
       this.topOverlay,
       this.leftOverlay,
+      this.rightOverlay,
       this.bottomOverlay,
       this.topLeftCornerOverlay,
       this.bottomLeftCornerOverlay
@@ -620,6 +637,7 @@ class Overlays {
     const overlays = [
       this.topOverlay,
       this.leftOverlay,
+      this.rightOverlay,
       this.bottomOverlay,
       this.topLeftCornerOverlay,
       this.bottomLeftCornerOverlay
