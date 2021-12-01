@@ -35,7 +35,7 @@ import {
   stopObserving as keyStateStopObserving
 } from './utils/keyStateObserver';
 import { Selection } from './selection';
-import { MetaManager, DynamicCellMetaMod, FixedColumnsPropertiesMod, DataMap, replaceData } from './dataMap';
+import { MetaManager, DynamicCellMetaMod, FixedColumnsPropertiesMod, replaceData } from './dataMap';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 
 let activeGuid = null;
