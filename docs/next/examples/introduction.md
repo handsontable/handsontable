@@ -1,6 +1,6 @@
 ---
-title: Introduction
-metaTitle: Introduction - Examples - Handsontable Documentation
+title: Examples
+metaTitle: Examples - Handsontable Documentation
 permalink: /next/examples/
 canonicalUrl: /examples/
 tags:
