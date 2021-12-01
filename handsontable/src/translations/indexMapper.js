@@ -438,6 +438,26 @@ export class IndexMapper {
   }
 
   /**
+   * Trim/extend the mappers to fit the desired length.
+   *
+   * @param {number} length New mapper length.
+   */
+  fitToLength(length) {
+    const currentIndexCount = this.getNumberOfIndexes();
+
+    if (length < currentIndexCount) {
+      const indexesToBeRemoved = [
+        ...Array(this.getNumberOfIndexes() - length).keys()
+      ].map(i => i + length);
+
+      this.removeIndexes(indexesToBeRemoved);
+
+    } else {
+      this.insertIndexes(currentIndexCount, length - currentIndexCount);
+    }
+  }
+
+  /**
    * Get sequence of indexes.
    *
    * @returns {Array} Physical indexes.
