@@ -11,6 +11,8 @@ export class FixedColumnsPropertiesMod {
     this.metaManager = metaManager
     this.usedBy = new Set();
     
+    metaManager.globalMeta.meta._fixedColumnsStart = 0; // setting a default value
+    
     Object.defineProperty(metaManager.globalMeta.meta, 'fixedColumnsLeft', {
       get() {
         // TODO: should it show a warn?
