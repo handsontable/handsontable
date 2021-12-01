@@ -98,6 +98,9 @@
       } else if (key === '@handsontable/vue' || key === '@handsontable/vue3') {
         ns = 'Handsontable.vue';
 
+      } else if (key === 'vuex') {
+        ns = 'Vuex';
+
       } else if (/^handsontable\/dist\/.+\.css$/.test(key)) { // ignore CSS imports
         ns = '';
 

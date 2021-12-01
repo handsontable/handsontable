@@ -55,6 +55,16 @@ const integrateWithVueItems = [
 const integrateWithVue3Items = [
   'guides/integrate-with-vue3/vue-installation',
   'guides/integrate-with-vue3/vue-simple-example',
+  'guides/integrate-with-vue3/vue-modules',
+  'guides/integrate-with-vue3/vue-hot-column',
+  'guides/integrate-with-vue3/vue-setting-up-a-language',
+  'guides/integrate-with-vue3/vue-custom-id-class-style',
+  'guides/integrate-with-vue3/vue-custom-context-menu-example',
+  'guides/integrate-with-vue3/vue-custom-editor-example',
+  'guides/integrate-with-vue3/vue-custom-renderer-example',
+  'guides/integrate-with-vue3/vue-language-change-example',
+  'guides/integrate-with-vue3/vue-vuex-example',
+  'guides/integrate-with-vue3/vue-hot-reference',
 ];
 
 const columnsItems = [

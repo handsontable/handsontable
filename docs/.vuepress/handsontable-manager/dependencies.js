@@ -48,8 +48,8 @@ const buildDependencyGetter = (version) => {
       fixer,
       helpers,
       hot: [handsontableJs, ['Handsontable'], handsontableCss],
-      react: ['https://unpkg.com/react@17/umd/react.development.js', ['React']],
-      'react-dom': ['https://unpkg.com/react-dom@17/umd/react-dom.development.js', ['ReactDOM']],
+      react: ['https://cdn.jsdelivr.net/npm/react@17/umd/react.development.js', ['React']],
+      'react-dom': ['https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.development.js', ['ReactDOM']],
       'hot-react': [`https://cdn.jsdelivr.net/npm/@handsontable/react@${mappedVersion}/dist/react-handsontable.js`, ['Handsontable.react']],
       'react-redux': ['https://cdnjs.cloudflare.com/ajax/libs/react-redux/7.2.4/react-redux.min.js'],
       'react-colorful': ['https://cdn.jsdelivr.net/npm/react-colorful@5.5.1/dist/index.min.js'],
@@ -68,10 +68,11 @@ const buildDependencyGetter = (version) => {
       'hot-angular': [`https://cdn.jsdelivr.net/npm/@handsontable/angular@${mappedVersion}/bundles/handsontable-angular.umd.min.js`, [/* todo */]],
       'hot-vue': [`https://cdn.jsdelivr.net/npm/@handsontable/vue@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */]],
       // TODO: Replace the vue3 build with production one (jsdelivry)
-      'hot-vue3': ['https://gist.githack.com/budnix/140887ad4d8f32de7dd68166cfb38190/raw/0645abfafd1a7f7f09506ac1323800787ad02df2/vue-handsontable.js', [/* todo */]],
+      'hot-vue3': ['https://gist.githack.com/budnix/0d139fac25311b29570abbe225413bd5/raw/e2c0eab2cb27ed63c1821c8e01c652938e97cacc/vue-handsontable.js', [/* todo */]],
       vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */]],
-      vuex: ['https://unpkg.com/vuex@3/dist/vuex.js', [/* todo */]],
+      vuex: ['https://cdn.jsdelivr.net/npm/vuex@3/dist/vuex.min.js', [/* todo */]],
       vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */]],
+      vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */]],
       languages: [languagesJs, [/* todo */]],
     };
     /* eslint-enable max-len */
@@ -99,11 +100,18 @@ const presetMap = {
   'vue-languages': ['hot', 'languages', 'vue', 'hot-vue', 'fixer', 'helpers'],
   'vue-vuex': ['hot', 'vue', 'vuex', 'hot-vue', 'fixer', 'helpers'],
   vue3: ['hot', 'vue3', 'hot-vue3', 'fixer', 'helpers'],
+  'vue3-numbro': ['hot', 'numbro', 'vue3', 'hot-vue3', 'fixer', 'helpers'],
+  'vue3-languages': ['hot', 'languages', 'vue3', 'hot-vue3', 'fixer', 'helpers'],
+  'vue3-vuex': ['hot', 'vue3', 'vuex4', 'hot-vue3', 'fixer', 'helpers'],
   /* eslint-enable max-len */
 };
 
 const getDependencies = (version, preset) => {
   const getter = buildDependencyGetter(version);
+
+  if (!Array.isArray(presetMap[preset])) {
+    throw new Error(`The preset "${preset}" was not found.`);
+  }
 
   return presetMap[preset].map(x => getter(x));
 };
