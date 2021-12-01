@@ -177,7 +177,7 @@ class Overlays {
 
     if (this.verticalScrolling) {
       this.leftOverlay.onScroll();
-      this.right.onScroll();
+      this.rightOverlay.onScroll();
     }
 
     if (this.horizontalScrolling) {
@@ -195,7 +195,6 @@ class Overlays {
     const { rootDocument, rootWindow } = this.wot;
     const { mainTableScrollableElement: topOverlayScrollableElement } = this.topOverlay; // TODO: check why not same for bottom?
     const { mainTableScrollableElement: leftOverlayScrollableElement } = this.leftOverlay;
-    const { mainTableScrollableElement: rightOverlayScrollableElement } = this.rightOverlay;
 
     this.eventManager.addEventListener(rootDocument.documentElement, 'keydown', event => this.onKeyDown(event));
     this.eventManager.addEventListener(rootDocument.documentElement, 'keyup', () => this.onKeyUp());
@@ -482,13 +481,13 @@ class Overlays {
     this.eventManager.destroy();
     this.topOverlay.destroy();
 
-    if (this.bottomOverlay.clone) {
+    if (this.bottomOverlay.clone) { //todo why here is check for clone
       this.bottomOverlay.destroy();
     }
     this.leftOverlay.destroy(); // todo always?
     this.rightOverlay.destroy(); // todo always?
 
-    if (this.topLeftCornerOverlay) {
+    if (this.topLeftCornerOverlay) { //todo why here is check without `.clone`
       this.topLeftCornerOverlay.destroy();
     }
 
