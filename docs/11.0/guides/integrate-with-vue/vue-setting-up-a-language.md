@@ -1,11 +1,11 @@
 ---
-title: 'Vue: Setting up a translation'
-metaTitle: 'Vue: Setting up a translation - Guide - Handsontable Documentation'
+title: 'Vue 2: Setting up a translation'
+metaTitle: 'Vue 2: Setting up a translation - Guide - Handsontable Documentation'
 permalink: /11.0/vue-setting-up-a-language
 canonicalUrl: /vue-setting-up-a-language
 ---
 
-# Vue: Setting up a translation
+# Vue 2: Setting up a translation
 
 ## Overview
 

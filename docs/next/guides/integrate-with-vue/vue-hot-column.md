@@ -1,11 +1,11 @@
 ---
-title: 'Vue: Using the hot-column component'
-metaTitle: 'Vue: Using the hot-column component - Guide - Handsontable Documentation'
+title: 'Vue 2: Using the hot-column component'
+metaTitle: 'Vue 2: Using the hot-column component - Guide - Handsontable Documentation'
 permalink: /next/vue-hot-column
 canonicalUrl: /vue-hot-column
 ---
 
-# Vue: Using the `hot-column` component
+# Vue 2: Using the `hot-column` component
 
 [[toc]]
 

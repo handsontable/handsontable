@@ -1,11 +1,11 @@
 ---
-title: 'Vue: Modules'
-metaTitle: 'Vue: Modules - Guide - Handsontable Documentation'
+title: 'Vue 2: Modules'
+metaTitle: 'Vue 2: Modules - Guide - Handsontable Documentation'
 permalink: /11.0/vue-modules
 canonicalUrl: /vue-modules
 ---
 
-# Vue: Modules
+# Vue 2: Modules
 
 [[toc]]
 
