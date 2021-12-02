@@ -1,11 +1,11 @@
 ---
-title: Custom editor example
-metaTitle: Custom editor example - Guide - Handsontable Documentation
+title: 'Vue 3: Custom editor example'
+metaTitle: 'Vue 3: Custom editor example - Guide - Handsontable Documentation'
 permalink: /next/vue3-custom-editor-example
 canonicalUrl: /vue3-custom-editor-example
 ---
 
-# Custom editor example
+# Vue 3: Custom editor example
 
 [[toc]]
 

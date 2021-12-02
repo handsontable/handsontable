@@ -1,11 +1,11 @@
 ---
-title: Custom ID, Class, Style and other attributes
-metaTitle: Custom ID, Class, Style and other attributes - Guide - Handsontable Documentation
+title: 'Vue 3: Custom ID, Class, Style and other attributes'
+metaTitle: 'Vue 3: Custom ID, Class, Style and other attributes - Guide - Handsontable Documentation'
 permalink: /next/vue3-custom-id-class-style
 canonicalUrl: /vue3-custom-id-class-style
 ---
 
-# Custom ID, Class, Style, and other attributes
+# Vue 3: Custom ID, Class, Style, and other attributes
 
 ## Overview
 

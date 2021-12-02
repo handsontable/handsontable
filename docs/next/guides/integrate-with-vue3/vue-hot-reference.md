@@ -1,10 +1,10 @@
 ---
-title: Referencing the Handsontable instance
-metaTitle: Referencing the Handsontable instance - Guide - Handsontable Documentation
+title: 'Vue 3: Referencing the Handsontable instance'
+metaTitle: 'Vue 3: Referencing the Handsontable instance - Guide - Handsontable Documentation'
 permalink: /next/vue3-hot-reference
 ---
 
-# Referencing the Handsontable instance
+# Vue 3: Referencing the Handsontable instance
 
 [[toc]]
 
