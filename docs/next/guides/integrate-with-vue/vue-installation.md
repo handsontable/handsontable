@@ -11,7 +11,7 @@ canonicalUrl: /vue-installation
 
 ## Overview
 
-Vue installation and basic usage guide.
+Vue 2 installation and basic usage guide.
 
 ## Install with npm
 

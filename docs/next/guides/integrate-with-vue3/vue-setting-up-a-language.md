@@ -9,7 +9,7 @@ canonicalUrl: /vue3-setting-up-a-language
 
 ## Overview
 
-The following example shows a Handsontable instance with translations set up in Vue.
+The following example shows a Handsontable instance with translations set up in Vue 3.
 
 ## Example
 

@@ -11,7 +11,7 @@ canonicalUrl: /vue3-installation
 
 ## Overview
 
-Vue installation and basic usage guide.
+Vue 3 installation and basic usage guide.
 
 ## Install with npm
 

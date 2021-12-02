@@ -11,7 +11,7 @@ canonicalUrl: /vue3-hot-column
 
 ## Overview
 
-You can configure the column-related settings using the `hot-column` component's attributes. You can also create custom renderers and editors using Vue components.
+You can configure the column-related settings using the `hot-column` component's attributes. You can also create custom renderers and editors using Vue 3 components.
 
 ## Declaring column settings
 
