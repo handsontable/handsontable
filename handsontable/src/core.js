@@ -35,7 +35,7 @@ import {
   stopObserving as keyStateStopObserving
 } from './utils/keyStateObserver';
 import { Selection } from './selection';
-import { MetaManager, DynamicCellMetaMod, FixedColumnsPropertiesMod, replaceData } from './dataMap';
+import { MetaManager, DynamicCellMetaMod, ExtendMetaPropertiesMod, replaceData } from './dataMap';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 
 let activeGuid = null;
@@ -172,7 +172,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   const metaManager = new MetaManager(instance, userSettings, [
     DynamicCellMetaMod,
-    FixedColumnsPropertiesMod
+    ExtendMetaPropertiesMod,
   ]);
   const tableMeta = metaManager.getTableMeta();
   const globalMeta = metaManager.getGlobalMeta();

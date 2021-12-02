@@ -3,13 +3,13 @@ import MetaManager from './metaManager';
 import metaSchemaFactory from './metaManager/metaSchema';
 import { replaceData } from './replaceData';
 import { DynamicCellMetaMod } from './metaManager/mods/dynamicCellMeta';
-import { FixedColumnsPropertiesMod } from './metaManager/mods/fixedColumnsProperties';
+import { ExtendMetaPropertiesMod } from './metaManager/mods/extendMetaProperties';
 
 export {
   DataMap,
   MetaManager,
   DynamicCellMetaMod,
-  FixedColumnsPropertiesMod,
+  ExtendMetaPropertiesMod,
   metaSchemaFactory,
   replaceData
 };
