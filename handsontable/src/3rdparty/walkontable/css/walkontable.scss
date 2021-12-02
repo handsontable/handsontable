@@ -17,7 +17,7 @@
 .handsontable .wtSpreader {
   position: relative;
   /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
-  width: 0; 
+  width: 0;
   height: auto;
 }
 
@@ -48,7 +48,8 @@
     -moz-user-select: none;
     -o-user-select: none;
     -ms-user-select: none;
-    user-select: none; */ /* no browser supports unprefixed version */
+    user-select: none; // no browser supports unprefixed version
+  */
   border-spacing: 0;
   margin: 0;
   border-width: 0;
@@ -99,10 +100,12 @@
   border-inline-start: 1px solid #ccc;
 }
 
+/* It removes double right border from first column header when row headers are disabled */
 .handsontable .ht_clone_top th:nth-child(2) {
   border-inline-start-width: 0;
   border-inline-end: 1px solid #ccc;
 }
+
 .handsontable.htRowHeaders thead tr th:nth-child(2) {
   border-inline-start: 1px solid #ccc;
 }
