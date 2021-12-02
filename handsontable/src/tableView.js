@@ -519,6 +519,7 @@ class TableView {
   initializeWalkontable() {
     const priv = privatePool.get(this);
     const walkontableConfig = {
+      direction: this.instance.isLtr() ? 'ltr' : 'rtl',
       externalRowCalculator: this.instance.getPlugin('autoRowSize') &&
         this.instance.getPlugin('autoRowSize').isEnabled(),
       table: priv.table,
@@ -1201,17 +1202,7 @@ class TableView {
   }
 
   /**
-   * Checks if master overlay is active.
-   *
-   * @private
-   * @returns {boolean}
-   */
-  mainViewIsActive() {
-    return this.wt === this.activeWt;
-  }
-
-  /**
-   * Destroyes internal WalkOnTable's instance. Detaches all of the bonded listeners.
+   * Destroys internal WalkOnTable's instance. Detaches all of the bonded listeners.
    *
    * @private
    */

@@ -122,7 +122,8 @@ class Settings {
       groups: false,
       rowHeaderWidth: null,
       columnHeaderHeight: null,
-      headerClassName: null
+      headerClassName: null,
+      direction: 'ltr'
     };
 
     // reference to settings
