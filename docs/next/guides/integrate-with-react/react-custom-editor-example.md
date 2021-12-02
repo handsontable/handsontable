@@ -1,11 +1,11 @@
 ---
-title: Custom editor example
-metaTitle: Custom editor example - Guide - Handsontable Documentation
+title: 'React: Custom editor example'
+metaTitle: 'React: Custom editor example - Guide - Handsontable Documentation'
 permalink: /next/react-custom-editor-example
 canonicalUrl: /react-custom-editor-example
 ---
 
-# Custom editor example
+# React: Custom editor example
 
 [[toc]]
 
