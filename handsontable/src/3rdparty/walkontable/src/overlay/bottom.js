@@ -85,7 +85,7 @@ export class BottomOverlay extends Overlay {
       let finalBottom;
 
       finalLeft = wtTable.hider.style.left;
-      finalLeft = finalLeft === '' ? 0 : Number.parseInt(finalLeft);
+      finalLeft = finalLeft === '' ? 0 : Number.parseInt(finalLeft, 10);
 
       if (this.isRtl()) {
         finalLeft = this.holder.getBoundingClientRect().width - hiderRect.width + finalLeft;

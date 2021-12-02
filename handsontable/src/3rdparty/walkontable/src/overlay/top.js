@@ -100,7 +100,7 @@ export class TopOverlay extends Overlay {
       let finalTop;
 
       finalLeft = wtTable.hider.style.left;
-      finalLeft = finalLeft === '' ? 0 : Number.parseInt(finalLeft);
+      finalLeft = finalLeft === '' ? 0 : Number.parseInt(finalLeft, 10);
 
       if (this.isRtl()) {
         finalLeft = this.holder.getBoundingClientRect().width - hiderRect.width + finalLeft;
