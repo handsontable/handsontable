@@ -366,7 +366,7 @@ describe('settings', () => {
       expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(3);
     });
   });
-  
+
   describe('fixedColumnsLeft with RTL', () => {
     const id = 'testContainer';
 
@@ -381,13 +381,13 @@ describe('settings', () => {
       }
     });
 
-    it('constructor should throw Error', () => { // todo causes another tests to crash
+    it('constructor should throw Error', () => {
       expect(() => handsontable({
         fixedColumnsLeft: 3
       })).toThrowError('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
     });
 
-    it('updateSettings should throw Error', () => { // todo causes another tests to crash
+    it('updateSettings should throw Error', () => {
       handsontable();
 
       expect(() => updateSettings({
@@ -395,7 +395,7 @@ describe('settings', () => {
       })).toThrowError('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
     });
   });
-  
+
   describe('fixedColumnsLeft with fixedColumnsStart', () => {
     const id = 'testContainer';
 
@@ -416,7 +416,8 @@ describe('settings', () => {
           fixedColumnsStart: 3,
           fixedColumnsLeft: 1
         }
-      )).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. Please use only the option `fixedColumnsStart`.');
+      )).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together.'
+        + ' Please use only the option `fixedColumnsStart`.');
     });
 
     it('defined `fixedColumnsLeft` in constructor, `fixedColumnsStart` in updateSettings should thrown an error', () => {
@@ -426,7 +427,8 @@ describe('settings', () => {
 
       expect(() => updateSettings({
         fixedColumnsStart: 4
-      })).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. Please use only the option `fixedColumnsStart`.');
+      })).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together.'
+        + ' Please use only the option `fixedColumnsStart`.');
     });
 
     it('defined `fixedColumnsStart` in constructor, `fixedColumnsLeft` in updateSettings should thrown an error', () => {
@@ -436,7 +438,8 @@ describe('settings', () => {
 
       expect(() => updateSettings({
         fixedColumnsLeft: 4
-      })).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. Please use only the option `fixedColumnsStart`.');
+      })).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together.'
+        + ' Please use only the option `fixedColumnsStart`.');
     });
 
     it('defined both in updateSettings should thrown an error ', () => {
@@ -445,7 +448,8 @@ describe('settings', () => {
       expect(() => updateSettings({
         fixedColumnsStart: 4,
         fixedColumnsLeft: 3
-      })).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. Please use only the option `fixedColumnsStart`.');
+      })).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. '
+        + 'Please use only the option `fixedColumnsStart`.');
     });
   });
 });

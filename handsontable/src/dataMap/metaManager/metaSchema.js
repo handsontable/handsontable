@@ -2014,7 +2014,7 @@ export default () => {
     fixedColumnsLeft: 0,
 
     /**
-     * The `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the start edge of the grid. 
+     * The `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the start edge of the grid.
      * By default, the start edge is the left-hand edge. In the RTL mode, the start edge is the right-hand edge.
      *
      * Read more:
