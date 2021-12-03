@@ -17,8 +17,6 @@ export class ExtendMetaPropertiesMod {
     this.propDescriptors = new Map([
       ['fixedColumnsLeft', {
         target: 'fixedColumnsStart',
-        observeTarget: true,
-        trackUsage: true,
         onChange(propName) {
           const isRtl = this.metaManager.hot.isRtl();
 
@@ -42,18 +40,14 @@ export class ExtendMetaPropertiesMod {
    */
   extendMetaProps() {
     this.propDescriptors.forEach((descriptor, alias) => {
-      const { target, observeTarget } = descriptor;
+      const { target, onChange = () => {} } = descriptor;
 
-      if (observeTarget) {
-        const origProp = `_${target}`;
+      const origProp = `_${target}`;
 
-        this.metaManager.globalMeta.meta[origProp] = this.metaManager.globalMeta.meta[target];
+      this.metaManager.globalMeta.meta[origProp] = this.metaManager.globalMeta.meta[target];
 
-        this.installPropWatcher(alias, origProp, descriptor);
-        this.installPropWatcher(target, origProp, descriptor);
-      } else {
-        this.installPropWatcher(alias, target, descriptor);
-      }
+      this.installPropWatcher(alias, origProp, onChange);
+      this.installPropWatcher(target, origProp, onChange);
     });
   }
 
@@ -63,9 +57,9 @@ export class ExtendMetaPropertiesMod {
    *
    * @param {string} propName The property to watch.
    * @param {string} origProp The property from/to the value is forwarded.
-   * @param {object} descriptor The descriptor object.
+   * @param {Function} onChange The callback.
    */
-  installPropWatcher(propName, origProp, { trackUsage, onChange }) {
+  installPropWatcher(propName, origProp, onChange) {
     const self = this;
 
     Object.defineProperty(this.metaManager.globalMeta.meta, propName, {
@@ -73,13 +67,9 @@ export class ExtendMetaPropertiesMod {
         return this[origProp];
       },
       set(value) {
-        if (trackUsage) {
-          self.usageTracker.add(propName);
-        }
+        self.usageTracker.add(propName);
 
-        if (onChange) {
-          onChange.call(self, propName, value);
-        }
+        onChange.call(self, propName, value);
 
         this[origProp] = value;
       },
