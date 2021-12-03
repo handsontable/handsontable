@@ -17,7 +17,6 @@ import RowFilter from './filter/row';
 import { Renderer } from './renderer';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
-import { isOverlayTypeOf } from './overlay/registerer';
 import {
   CLONE_TOP,
   CLONE_BOTTOM,
@@ -107,14 +106,14 @@ class Table {
   }
 
   /**
-   * Returns a boolean that is true if this intance of Table represents a specific overlay, identified by the overlay name.
+   * Returns a boolean that is true if this Table represents a specific overlay, identified by the overlay name.
    * For MasterTable, it returns false.
    *
    * @param {string} overlayTypeName The overlay type.
    * @returns {boolean}
    */
-  is(overlayTypeName) {
-    return isOverlayTypeOf(this.wot.cloneOverlay, overlayTypeName);
+  is(overlayTypeName) { // todo refactoring: eliminate all protected and private usages
+    return this.wot.cloneOverlay && this.wot.cloneOverlay.type === overlayTypeName;
   }
 
   /**

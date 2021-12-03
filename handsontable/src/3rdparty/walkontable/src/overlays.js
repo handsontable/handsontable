@@ -17,16 +17,8 @@ import {
   TopLeftCornerOverlay,
   BottomOverlay,
   BottomLeftCornerOverlay,
-  registerOverlayOnce,
-  createOverlay,
-  hasOverlay,
 } from './overlay';
 
-registerOverlayOnce(BottomLeftCornerOverlay);
-registerOverlayOnce(BottomOverlay);
-registerOverlayOnce(LeftOverlay);
-registerOverlayOnce(TopLeftCornerOverlay);
-registerOverlayOnce(TopOverlay);
 
 /**
  * @class Overlays
@@ -104,39 +96,26 @@ class Overlays {
     if (this.topOverlay) {
       syncScroll = this.topOverlay.updateStateOfRendering() || syncScroll;
     } else {
-      this.topOverlay = createOverlay(CLONE_TOP, this.wot);
-    }
-
-    if (!hasOverlay(CLONE_BOTTOM)) {
-      this.bottomOverlay = {
-        needFullRender: false,
-        updateStateOfRendering: () => false,
-      };
-    }
-    if (!hasOverlay(CLONE_BOTTOM_LEFT_CORNER)) {
-      this.bottomLeftCornerOverlay = {
-        needFullRender: false,
-        updateStateOfRendering: () => false,
-      };
+      this.topOverlay = new TopOverlay(this.wot);
     }
 
     if (this.bottomOverlay) {
       syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
     } else {
-      this.bottomOverlay = createOverlay(CLONE_BOTTOM, this.wot);
+      this.bottomOverlay = new BottomOverlay(this.wot);
     }
 
     if (this.leftOverlay) {
       syncScroll = this.leftOverlay.updateStateOfRendering() || syncScroll;
     } else {
-      this.leftOverlay = createOverlay(CLONE_LEFT, this.wot);
+      this.leftOverlay = new LeftOverlay(this.wot);
     }
 
     if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
       if (this.topLeftCornerOverlay) {
         syncScroll = this.topLeftCornerOverlay.updateStateOfRendering() || syncScroll;
       } else {
-        this.topLeftCornerOverlay = createOverlay(CLONE_TOP_LEFT_CORNER, this.wot);
+        this.topLeftCornerOverlay = new TopLeftCornerOverlay(this.wot);
       }
     }
 
@@ -144,7 +123,7 @@ class Overlays {
       if (this.bottomLeftCornerOverlay) {
         syncScroll = this.bottomLeftCornerOverlay.updateStateOfRendering() || syncScroll;
       } else {
-        this.bottomLeftCornerOverlay = createOverlay(CLONE_BOTTOM_LEFT_CORNER, this.wot);
+        this.bottomLeftCornerOverlay = new BottomLeftCornerOverlay(this.wot);
       }
     }
 

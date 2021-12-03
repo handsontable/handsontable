@@ -7,7 +7,7 @@ import { objectEach } from './../../../helpers/object';
 class Settings {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
-   * @param {object} settings The user defined settings.
+   * @param {Settings} settings The user defined settings.
    */
   constructor(wotInstance, settings) {
     this.wot = wotInstance;

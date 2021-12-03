@@ -17,7 +17,7 @@ import Viewport from './viewport';
  */
 class Walkontable {
   /**
-   * @param {object} settings The Walkontable settings.
+   * @param {Settings} settings The Walkontable settings.
    */
   constructor(settings) {
     const originalHeaders = [];
