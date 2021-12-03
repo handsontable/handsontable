@@ -7,18 +7,12 @@ import { isKey } from './../../../helpers/unicode';
 import { isChrome } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import {
-  CLONE_BOTTOM_LEFT_CORNER,
-  CLONE_BOTTOM,
-  CLONE_LEFT,
-  CLONE_TOP_LEFT_CORNER,
-  CLONE_TOP,
   LeftOverlay,
   TopOverlay,
   TopLeftCornerOverlay,
   BottomOverlay,
   BottomLeftCornerOverlay,
 } from './overlay';
-
 
 /**
  * @class Overlays
@@ -31,47 +25,47 @@ class Overlays {
    * @type {Walkontable}
    */
   wot = null;
-  
+
   /**
-   * Refer to the TopOverlay instance
-   * 
+   * Refer to the TopOverlay instance.
+   *
    * @protected
    * @type {TopOverlay}
    */
   topOverlay = null;
-  
+
   /**
-   * Refer to the BottomOverlay instance
-   * 
+   * Refer to the BottomOverlay instance.
+   *
    * @protected
    * @type {BottomOverlay}
    */
   bottomOverlay = null;
-  
+
   /**
-   * Refer to the LeftOverlay instance
-   * 
+   * Refer to the LeftOverlay instance.
+   *
    * @protected
    * @type {LeftOverlay}
    */
   leftOverlay = null;
-  
+
   /**
-   * Refer to the TopLeftCornerOverlay instance
-   * 
+   * Refer to the TopLeftCornerOverlay instance.
+   *
    * @protected
    * @type {TopLeftCornerOverlay}
    */
   topLeftCornerOverlay = null;
-  
+
   /**
-   * Refer to the BottomLeftCornerOverlay instance
-   * 
+   * Refer to the BottomLeftCornerOverlay instance.
+   *
    * @protected
    * @type {BottomLeftCornerOverlay}
    */
   bottomLeftCornerOverlay = null;
-  
+
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
@@ -125,7 +119,6 @@ class Overlays {
    * Prepare overlays based on user settings.
    *
    * @private
-   * @returns {boolean} Returns `true` if changes applied to overlay needs scroll synchronization.
    */
   initOverlays() {
     // TODO refactoring, conceive about using generic collection of overlays
@@ -134,8 +127,8 @@ class Overlays {
     this.leftOverlay = new LeftOverlay(this.wot);
     this.topLeftCornerOverlay = new TopLeftCornerOverlay(this.wot);
     this.bottomLeftCornerOverlay = new BottomLeftCornerOverlay(this.wot);
-  } 
-  
+  }
+
   /**
    * Update state of rendering, check if changed.
    *
@@ -143,15 +136,15 @@ class Overlays {
    * @returns {boolean} Returns `true` if changes applied to overlay needs scroll synchronization.
    */
   updateStateOfRendering() {
-    let syncScroll = this.leftOverlay.updateStateOfRendering() 
-      || this.bottomOverlay.updateStateOfRendering() 
+    let syncScroll = this.leftOverlay.updateStateOfRendering()
+      || this.bottomOverlay.updateStateOfRendering()
       || this.topOverlay.updateStateOfRendering();
 
-    if(this.leftOverlay.needFullRender) {
-      if (this.topOverlay.needFullRender) { //todo refactoring: conceive how to remove this ifs (first idea: move logic into overlays, then checking if related overlays needs to full render)
+    if (this.leftOverlay.needFullRender) {
+      if (this.topOverlay.needFullRender) { // todo refactoring: conceive how to remove this ifs (first idea: move logic into overlays, then checking if related overlays needs to full render)
         syncScroll = this.topLeftCornerOverlay.updateStateOfRendering() || syncScroll;
       }
-      if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender) {
+      if (this.bottomOverlay.needFullRender) {
         syncScroll = this.bottomLeftCornerOverlay.updateStateOfRendering() || syncScroll;
       }
     }
