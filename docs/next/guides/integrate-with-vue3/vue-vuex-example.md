@@ -1,11 +1,11 @@
 ---
-title: 'Vuex with Vue 3'
-metaTitle: 'Vuex with Vue 3 - Guide - Handsontable Documentation'
+title: 'Vuex in Vue 3'
+metaTitle: 'Vuex in Vue 3 - Guide - Handsontable Documentation'
 permalink: /next/vue3-vuex-example
 canonicalUrl: /vue3-vuex-example
 ---
 
-# Vuex with Vue 3
+# Vuex in Vue 3
 
 [[toc]]
 

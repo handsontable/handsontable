@@ -1,11 +1,11 @@
 ---
-title: 'Modules with Vue 3'
-metaTitle: 'Modules with Vue 3 - Guide - Handsontable Documentation'
+title: 'Modules in Vue 3'
+metaTitle: 'Modules in Vue 3 - Guide - Handsontable Documentation'
 permalink: /next/vue3-modules
 canonicalUrl: /vue3-modules
 ---
 
-# Modules with Vue 3
+# Modules in Vue 3
 
 [[toc]]
 
