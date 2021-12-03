@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable';
 import MetaManager from '../../index';
-import { FixedColumnsPropertiesMod } from '../fixedColumnsProperties';
+import { ExtendMetaPropertiesMod } from '../extendMetaProperties';
 
 jest.mock('handsontable');
 
@@ -21,7 +21,7 @@ describe('fixedColumnsProperties', () => {
 
     it('when set nothing should equal  0', () => {
       const hotMock = new Handsontable();
-      const metaManager = new MetaManager(hotMock, {}, [FixedColumnsPropertiesMod]);
+      const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
       expect(metaManager.getTableMeta().fixedColumnsLeft).toEqual(0);
       expect(metaManager.getTableMeta().fixedColumnsStart).toEqual(0);
@@ -29,7 +29,7 @@ describe('fixedColumnsProperties', () => {
 
     it('when set `fixedColumnsLeft` = 0  should equal  0', () => {
       const hotMock = new Handsontable();
-      const metaManager = new MetaManager(hotMock, {}, [FixedColumnsPropertiesMod]);
+      const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
       metaManager.getTableMeta().fixedColumnsLeft = 0;
 
@@ -39,7 +39,7 @@ describe('fixedColumnsProperties', () => {
 
     it('when set `fixedColumnsLeft` = 0 and `fixedColumnsStart` = 0 should throws', () => {
       const hotMock = new Handsontable();
-      const metaManager = new MetaManager(hotMock, {}, [FixedColumnsPropertiesMod]);
+      const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
       expect(() => {
         metaManager.getTableMeta().fixedColumnsLeft = 0;
@@ -49,7 +49,7 @@ describe('fixedColumnsProperties', () => {
 
     it('when set `fixedColumnsStart` = 0  should equal  0', () => {
       const hotMock = new Handsontable();
-      const metaManager = new MetaManager(hotMock, {}, [FixedColumnsPropertiesMod]);
+      const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
       metaManager.getTableMeta().fixedColumnsStart = 0;
 
@@ -59,7 +59,7 @@ describe('fixedColumnsProperties', () => {
 
     it('when set `fixedColumnsLeft` = 1  should equal  1', () => {
       const hotMock = new Handsontable();
-      const metaManager = new MetaManager(hotMock, {}, [FixedColumnsPropertiesMod]);
+      const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
       metaManager.getTableMeta().fixedColumnsLeft = 1;
 
@@ -69,7 +69,7 @@ describe('fixedColumnsProperties', () => {
 
     it('when set `fixedColumnsLeft` = 1 and `fixedColumnsStart` = 2 should throws', () => {
       const hotMock = new Handsontable();
-      const metaManager = new MetaManager(hotMock, {}, [FixedColumnsPropertiesMod]);
+      const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
       expect(() => {
         metaManager.getTableMeta().fixedColumnsLeft = 1;
@@ -79,7 +79,7 @@ describe('fixedColumnsProperties', () => {
 
     it('when set `fixedColumnsStart` = 2  should equal  2', () => {
       const hotMock = new Handsontable();
-      const metaManager = new MetaManager(hotMock, {}, [FixedColumnsPropertiesMod]);
+      const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
       metaManager.getTableMeta().fixedColumnsStart = 2;
 
@@ -102,7 +102,7 @@ describe('fixedColumnsProperties', () => {
     });
     it('when RTL, set nothingshould equal 0', () => {
       const hotMock = new Handsontable();
-      const metaManager = new MetaManager(hotMock, {}, [FixedColumnsPropertiesMod]);
+      const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
       expect(metaManager.getTableMeta().fixedColumnsLeft).toEqual(0);
       expect(metaManager.getTableMeta().fixedColumnsStart).toEqual(0);
@@ -110,7 +110,7 @@ describe('fixedColumnsProperties', () => {
 
     it('when RTL, set `fixedColumnsLeft` = 0 and RTL should throws', () => {
       const hotMock = new Handsontable();
-      const metaManager = new MetaManager(hotMock, {}, [FixedColumnsPropertiesMod]);
+      const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
       expect(() => {
         metaManager.getTableMeta().fixedColumnsLeft = 0;
@@ -119,7 +119,7 @@ describe('fixedColumnsProperties', () => {
 
     it('when RTL, set `fixedColumnsLeft` = 0 and `fixedColumnsStart` = 0 and RTL should throws', () => {
       const hotMock = new Handsontable();
-      const metaManager = new MetaManager(hotMock, {}, [FixedColumnsPropertiesMod]);
+      const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
       expect(() => {
         metaManager.getTableMeta().fixedColumnsLeft = 0;
@@ -129,7 +129,7 @@ describe('fixedColumnsProperties', () => {
 
     it('when RTL, set `fixedColumnsStart` = 0 should equal 0', () => {
       const hotMock = new Handsontable();
-      const metaManager = new MetaManager(hotMock, {}, [FixedColumnsPropertiesMod]);
+      const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
       metaManager.getTableMeta().fixedColumnsStart = 0;
 
@@ -139,7 +139,7 @@ describe('fixedColumnsProperties', () => {
 
     it('when RTL, set `fixedColumnsLeft` = 1 and RTL should throws', () => {
       const hotMock = new Handsontable();
-      const metaManager = new MetaManager(hotMock, {}, [FixedColumnsPropertiesMod]);
+      const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
       expect(() => {
         metaManager.getTableMeta().fixedColumnsLeft = 1;
@@ -148,7 +148,7 @@ describe('fixedColumnsProperties', () => {
 
     it('when RTL, set `fixedColumnsLeft` = 1 and `fixedColumnsStart` = 2 and RTL should throws', () => {
       const hotMock = new Handsontable();
-      const metaManager = new MetaManager(hotMock, {}, [FixedColumnsPropertiesMod]);
+      const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
       expect(() => {
         metaManager.getTableMeta().fixedColumnsLeft = 1;
@@ -158,7 +158,7 @@ describe('fixedColumnsProperties', () => {
 
     it('when RTL, set `fixedColumnsStart` = 2 should equal 2', () => {
       const hotMock = new Handsontable();
-      const metaManager = new MetaManager(hotMock, {}, [FixedColumnsPropertiesMod]);
+      const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
       metaManager.getTableMeta().fixedColumnsStart = 2;
 
