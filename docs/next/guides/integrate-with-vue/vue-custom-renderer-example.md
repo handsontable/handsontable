@@ -1,11 +1,11 @@
 ---
-title: 'Custom renderer with Vue 2'
-metaTitle: 'Custom renderer with Vue 2 - Guide - Handsontable Documentation'
+title: 'Custom renderer in Vue 2'
+metaTitle: 'Custom renderer in Vue 2 - Guide - Handsontable Documentation'
 permalink: /next/vue-custom-renderer-example
 canonicalUrl: /vue-custom-renderer-example
 ---
 
-# Custom renderer with Vue 2
+# Custom renderer in Vue 2
 
 [[toc]]
 

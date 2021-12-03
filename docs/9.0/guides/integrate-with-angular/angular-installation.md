@@ -1,11 +1,11 @@
 ---
-title: 'Installation with Angular'
-metaTitle: 'Installation with Angular - Guide - Handsontable Documentation'
+title: 'Installation in Angular'
+metaTitle: 'Installation in Angular - Guide - Handsontable Documentation'
 permalink: /9.0/angular-installation
 canonicalUrl: /angular-installation
 ---
 
-# Installation with Angular
+# Installation in Angular
 
 ## Overview
 Angular installation and basic usage guide.

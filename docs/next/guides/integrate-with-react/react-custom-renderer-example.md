@@ -1,11 +1,11 @@
 ---
-title: 'Custom renderer with React'
-metaTitle: 'Custom renderer with React - Guide - Handsontable Documentation'
+title: 'Custom renderer in React'
+metaTitle: 'Custom renderer in React - Guide - Handsontable Documentation'
 permalink: /next/react-custom-renderer-example
 canonicalUrl: /react-custom-renderer-example
 ---
 
-# Custom renderer with React
+# Custom renderer in React
 
 ## Overview
 

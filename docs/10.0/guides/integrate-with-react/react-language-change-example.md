@@ -1,11 +1,11 @@
 ---
-title: 'Language change with React'
-metaTitle: 'Language change with React - Guide - Handsontable Documentation'
+title: 'Language change in React'
+metaTitle: 'Language change in React - Guide - Handsontable Documentation'
 permalink: /10.0/react-language-change-example
 canonicalUrl: /react-language-change-example
 ---
 
-# Language change with React
+# Language change in React
 
 ## Overview
 
