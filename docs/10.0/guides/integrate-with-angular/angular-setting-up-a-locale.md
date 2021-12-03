@@ -1,11 +1,11 @@
 ---
-title: 'Angular: Setting up a translation'
-metaTitle: 'Angular: Setting up a translation - Guide - Handsontable Documentation'
+title: 'Setting up a translation with Angular'
+metaTitle: 'Setting up a translation with Angular - Guide - Handsontable Documentation'
 permalink: /10.0/angular-setting-up-a-locale
 canonicalUrl: /angular-setting-up-a-locale
 ---
 
-# Angular: Setting up a translation
+# Setting up a translation with Angular
 
 ## Overview
 The following example shows a Handsontable instance with translations set up in Angular.

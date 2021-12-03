@@ -1,11 +1,11 @@
 ---
-title: 'Angular: Modules'
-metaTitle: 'Angular: Modules - Guide - Handsontable Documentation'
+title: 'Modules with Angular'
+metaTitle: 'Modules with Angular - Guide - Handsontable Documentation'
 permalink: /11.0/angular-modules
 canonicalUrl: /angular-modules
 ---
 
-# Angular: Modules
+# Modules with Angular
 
 [[toc]]
 

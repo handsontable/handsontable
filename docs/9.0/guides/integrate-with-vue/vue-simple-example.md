@@ -1,11 +1,11 @@
 ---
-title: 'Vue 2: Basic example in Vue'
-metaTitle: 'Vue 2: Basic example in Vue - Guide - Handsontable Documentation'
+title: 'Basic example with Vue 2'
+metaTitle: 'Basic example with Vue 2 - Guide - Handsontable Documentation'
 permalink: /9.0/vue-simple-example
 canonicalUrl: /vue-simple-example
 ---
 
-# Vue 2: Basic example
+# Basic example with Vue 2
 
 ## Overview
 

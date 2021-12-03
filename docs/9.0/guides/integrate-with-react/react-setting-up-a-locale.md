@@ -1,11 +1,11 @@
 ---
-title: 'React: Setting up a translation'
-metaTitle: 'React: Setting up a translation - Guide - Handsontable Documentation'
+title: 'Setting up a translation with React'
+metaTitle: 'Setting up a translation with React - Guide - Handsontable Documentation'
 permalink: /9.0/react-setting-up-a-locale
 canonicalUrl: /react-setting-up-a-locale
 ---
 
-# React: Setting up a translation
+# Setting up a translation with React
 
 ## Overview
 

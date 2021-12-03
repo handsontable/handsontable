@@ -1,11 +1,11 @@
 ---
-title: 'Vue 2: Language change example'
-metaTitle: 'Vue 2: Language change example - Guide - Handsontable Documentation'
+title: 'Language change with Vue 2'
+metaTitle: 'Language change with Vue 2 - Guide - Handsontable Documentation'
 permalink: /next/vue-language-change-example
 canonicalUrl: /vue-language-change-example
 ---
 
-# Vue 2: Language change example
+# Language change with Vue 2
 
 The following example implements the `@handsontable/vue` component with the option to change the Context Menu language configured. Select a language from the selector above the table and open the Context Menu to see the result.
 
