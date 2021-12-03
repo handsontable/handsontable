@@ -54,7 +54,7 @@ export class Overlay {
    *
    * @returns {boolean} Returns `true` if the state has changed since the last check.
    */
-  updateStateOfRendering() { 
+  updateStateOfRendering() {
     // todo refactoring: conceive introducing final state machine, normal -> changed (once) -> needs-full-render -> ...? -> normal
     const previousState = this.needFullRender;
 
