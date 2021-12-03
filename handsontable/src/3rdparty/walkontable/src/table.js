@@ -254,7 +254,7 @@ class Table {
     }
 
     if (this.isMaster) {
-      syncScroll = wtOverlays.prepareOverlays();
+      syncScroll = wtOverlays.updateStateOfRendering();
     }
 
     if (runFastDraw) {

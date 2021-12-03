@@ -25,15 +25,57 @@ import {
  */
 class Overlays {
   /**
+   * Walkontable instance's reference.
+   *
+   * @protected
+   * @type {Walkontable}
+   */
+  wot = null;
+  
+  /**
+   * Refer to the TopOverlay instance
+   * 
+   * @protected
+   * @type {TopOverlay}
+   */
+  topOverlay = null;
+  
+  /**
+   * Refer to the BottomOverlay instance
+   * 
+   * @protected
+   * @type {BottomOverlay}
+   */
+  bottomOverlay = null;
+  
+  /**
+   * Refer to the LeftOverlay instance
+   * 
+   * @protected
+   * @type {LeftOverlay}
+   */
+  leftOverlay = null;
+  
+  /**
+   * Refer to the TopLeftCornerOverlay instance
+   * 
+   * @protected
+   * @type {TopLeftCornerOverlay}
+   */
+  topLeftCornerOverlay = null;
+  
+  /**
+   * Refer to the BottomLeftCornerOverlay instance
+   * 
+   * @protected
+   * @type {BottomLeftCornerOverlay}
+   */
+  bottomLeftCornerOverlay = null;
+  
+  /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
-    /**
-     * Walkontable instance's reference.
-     *
-     * @private
-     * @type {Walkontable}
-     */
     this.wot = wotInstance;
 
     const { rootDocument, rootWindow, wtTable } = this.wot;
@@ -57,13 +99,7 @@ class Overlays {
 
     this.scrollableElement = isOverflowHidden ? wtTable.holder : getScrollableElement(wtTable.TABLE);
 
-    this.topOverlay = void 0;
-    this.bottomOverlay = void 0;
-    this.leftOverlay = void 0;
-    this.topLeftCornerOverlay = void 0;
-    this.bottomLeftCornerOverlay = void 0;
-
-    this.prepareOverlays();
+    this.initOverlays();
 
     this.hasScrollbarBottom = false;
     this.hasScrollbarRight = false;
@@ -88,42 +124,35 @@ class Overlays {
   /**
    * Prepare overlays based on user settings.
    *
+   * @private
    * @returns {boolean} Returns `true` if changes applied to overlay needs scroll synchronization.
    */
-  prepareOverlays() {
-    let syncScroll = false;
+  initOverlays() {
+    // TODO refactoring, conceive about using generic collection of overlays
+    this.topOverlay = new TopOverlay(this.wot);
+    this.bottomOverlay = new BottomOverlay(this.wot);
+    this.leftOverlay = new LeftOverlay(this.wot);
+    this.topLeftCornerOverlay = new TopLeftCornerOverlay(this.wot);
+    this.bottomLeftCornerOverlay = new BottomLeftCornerOverlay(this.wot);
+  } 
+  
+  /**
+   * Update state of rendering, check if changed.
+   *
+   * @internal
+   * @returns {boolean} Returns `true` if changes applied to overlay needs scroll synchronization.
+   */
+  updateStateOfRendering() {
+    let syncScroll = this.leftOverlay.updateStateOfRendering() 
+      || this.bottomOverlay.updateStateOfRendering() 
+      || this.topOverlay.updateStateOfRendering();
 
-    if (this.topOverlay) {
-      syncScroll = this.topOverlay.updateStateOfRendering() || syncScroll;
-    } else {
-      this.topOverlay = new TopOverlay(this.wot);
-    }
-
-    if (this.bottomOverlay) {
-      syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
-    } else {
-      this.bottomOverlay = new BottomOverlay(this.wot);
-    }
-
-    if (this.leftOverlay) {
-      syncScroll = this.leftOverlay.updateStateOfRendering() || syncScroll;
-    } else {
-      this.leftOverlay = new LeftOverlay(this.wot);
-    }
-
-    if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
-      if (this.topLeftCornerOverlay) {
+    if(this.leftOverlay.needFullRender) {
+      if (this.topOverlay.needFullRender) { //todo refactoring: conceive how to remove this ifs (first idea: move logic into overlays, then checking if related overlays needs to full render)
         syncScroll = this.topLeftCornerOverlay.updateStateOfRendering() || syncScroll;
-      } else {
-        this.topLeftCornerOverlay = new TopLeftCornerOverlay(this.wot);
       }
-    }
-
-    if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender) {
-      if (this.bottomLeftCornerOverlay) {
+      if (this.bottomOverlay.needFullRender && this.leftOverlay.needFullRender) {
         syncScroll = this.bottomLeftCornerOverlay.updateStateOfRendering() || syncScroll;
-      } else {
-        this.bottomLeftCornerOverlay = new BottomLeftCornerOverlay(this.wot);
       }
     }
 
