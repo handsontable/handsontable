@@ -21,8 +21,9 @@ import {
 export class Overlay {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {CLONE_TYPES_ENUM} type The overlay type name (clone name).
    */
-  constructor(wotInstance) {
+  constructor(wotInstance, type) {
     defineGetter(this, 'wot', wotInstance, {
       writable: false,
     });
@@ -38,7 +39,7 @@ export class Overlay {
     // legacy support, deprecated in the future
     this.instance = this.wot;
 
-    this.type = '';
+    this.type = type;
     this.mainTableScrollableElement = null;
     this.TABLE = TABLE;
     this.hider = hider;
@@ -47,6 +48,8 @@ export class Overlay {
     this.wtRootElement = wtRootElement;
     this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
     this.updateStateOfRendering();
+
+    this.clone = this.makeClone();
   }
 
   /**
@@ -220,20 +223,18 @@ export class Overlay {
   /**
    * Make a clone of table for overlay.
    *
-   * @param {string} direction Can be `Overlay.CLONE_TOP`, `Overlay.CLONE_LEFT`,
-   *                           `Overlay.CLONE_TOP_LEFT_CORNER`.
    * @returns {Walkontable}
    */
-  makeClone(direction) {
-    if (CLONE_TYPES.indexOf(direction) === -1) {
-      throw new Error(`Clone type "${direction}" is not supported.`);
+  makeClone() {
+    if (CLONE_TYPES.indexOf(this.type) === -1) {
+      throw new Error(`Clone type "${this.type}" is not supported.`);
     }
     const { wtTable, rootDocument, rootWindow } = this.wot;
     const clone = rootDocument.createElement('DIV');
     const clonedTable = rootDocument.createElement('TABLE');
     const tableParent = wtTable.wtRootElement.parentNode;
 
-    clone.className = `ht_clone_${direction} handsontable`;
+    clone.className = `ht_clone_${this.type} handsontable`;
     clone.style.position = 'absolute';
     clone.style.top = 0;
     clone.style.left = 0;
@@ -242,7 +243,6 @@ export class Overlay {
     clonedTable.className = wtTable.TABLE.className;
     clone.appendChild(clonedTable);
 
-    this.type = direction;
     tableParent.appendChild(clone);
 
     const preventOverflow = this.wot.getSetting('preventOverflow');

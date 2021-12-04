@@ -18,8 +18,7 @@ export class TopLeftCornerOverlay extends Overlay {
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
-    super(wotInstance);
-    this.clone = this.makeClone(CLONE_TOP_LEFT_CORNER);
+    super(wotInstance, CLONE_TOP_LEFT_CORNER);
   }
 
   /**

@@ -23,8 +23,7 @@ export class LeftOverlay extends Overlay {
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
-    super(wotInstance);
-    this.clone = this.makeClone(CLONE_LEFT); // todo move to parent class
+    super(wotInstance, CLONE_LEFT);
   }
 
   /**
