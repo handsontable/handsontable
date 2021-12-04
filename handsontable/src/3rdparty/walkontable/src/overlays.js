@@ -125,6 +125,9 @@ class Overlays {
     this.topOverlay = new TopOverlay(this.wot);
     this.bottomOverlay = new BottomOverlay(this.wot);
     this.leftOverlay = new LeftOverlay(this.wot);
+
+    // TODO discuss, the controversial here would be removing the lazy creation mechanism for corners.
+    // TODO cond. Has no any visual impact. They're initially hidden in same way like left, tob, and bottom overlays
     this.topLeftCornerOverlay = new TopLeftCornerOverlay(this.wot);
     this.bottomLeftCornerOverlay = new BottomLeftCornerOverlay(this.wot);
   }
@@ -136,9 +139,10 @@ class Overlays {
    * @returns {boolean} Returns `true` if changes applied to overlay needs scroll synchronization.
    */
   updateStateOfRendering() {
-    let syncScroll = this.leftOverlay.updateStateOfRendering()
-      || this.bottomOverlay.updateStateOfRendering()
-      || this.topOverlay.updateStateOfRendering();
+    let syncScroll = this.topOverlay.updateStateOfRendering();
+
+    syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
+    syncScroll = this.leftOverlay.updateStateOfRendering() || syncScroll;
 
     if (this.leftOverlay.needFullRender) {
       if (this.topOverlay.needFullRender) { // todo refactoring: conceive how to remove this ifs (first idea: move logic into overlays, then checking if related overlays needs to full render)

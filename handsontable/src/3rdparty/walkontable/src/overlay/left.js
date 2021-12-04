@@ -19,7 +19,7 @@ import {
  * @class LeftOverlay
  */
 export class LeftOverlay extends Overlay {
-  static get OVERLAY_NAME() {
+  static get OVERLAY_NAME() { // todo refactoring unused
     return CLONE_LEFT;
   }
 
@@ -28,7 +28,7 @@ export class LeftOverlay extends Overlay {
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(CLONE_LEFT);
+    this.clone = this.makeClone(CLONE_LEFT); // todo move to parent class
   }
 
   /**
