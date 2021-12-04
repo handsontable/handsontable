@@ -19,10 +19,6 @@ import {
  * @class LeftOverlay
  */
 export class LeftOverlay extends Overlay {
-  static get OVERLAY_NAME() { // todo refactoring unused
-    return CLONE_LEFT;
-  }
-
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */

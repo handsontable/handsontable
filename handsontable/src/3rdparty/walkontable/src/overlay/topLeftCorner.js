@@ -14,10 +14,6 @@ import {
  * @class TopLeftCornerOverlay
  */
 export class TopLeftCornerOverlay extends Overlay {
-  static get OVERLAY_NAME() {
-    return CLONE_TOP_LEFT_CORNER;
-  }
-
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
