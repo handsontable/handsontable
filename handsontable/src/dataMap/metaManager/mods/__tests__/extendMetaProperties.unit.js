@@ -19,7 +19,7 @@ describe('fixedColumnsProperties', () => {
       });
     });
 
-    it('when set nothing should equal  0', () => {
+    it('when set nothing should equal 0', () => {
       const hotMock = new Handsontable();
       const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
@@ -27,7 +27,7 @@ describe('fixedColumnsProperties', () => {
       expect(metaManager.getTableMeta().fixedColumnsStart).toEqual(0);
     });
 
-    it('when set `fixedColumnsLeft` = 0  should equal  0', () => {
+    it('when set `fixedColumnsLeft` = 0 should equal 0', () => {
       const hotMock = new Handsontable();
       const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
@@ -47,7 +47,7 @@ describe('fixedColumnsProperties', () => {
       }).toThrow();
     });
 
-    it('when set `fixedColumnsStart` = 0  should equal  0', () => {
+    it('when set `fixedColumnsStart` = 0 should equal 0', () => {
       const hotMock = new Handsontable();
       const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
@@ -57,7 +57,7 @@ describe('fixedColumnsProperties', () => {
       expect(metaManager.getTableMeta().fixedColumnsStart).toEqual(0);
     });
 
-    it('when set `fixedColumnsLeft` = 1  should equal  1', () => {
+    it('when set `fixedColumnsLeft` = 1 should equal 1', () => {
       const hotMock = new Handsontable();
       const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
@@ -77,7 +77,7 @@ describe('fixedColumnsProperties', () => {
       }).toThrow();
     });
 
-    it('when set `fixedColumnsStart` = 2  should equal  2', () => {
+    it('when set `fixedColumnsStart` = 2 should equal 2', () => {
       const hotMock = new Handsontable();
       const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
 
@@ -87,6 +87,7 @@ describe('fixedColumnsProperties', () => {
       expect(metaManager.getTableMeta().fixedColumnsStart).toEqual(2);
     });
   });
+  
   describe('when RTL mode', () => {
     beforeEach(() => {
       Handsontable.mockImplementation(() => {
@@ -100,6 +101,7 @@ describe('fixedColumnsProperties', () => {
         };
       });
     });
+    
     it('when RTL, set nothingshould equal 0', () => {
       const hotMock = new Handsontable();
       const metaManager = new MetaManager(hotMock, {}, [ExtendMetaPropertiesMod]);
