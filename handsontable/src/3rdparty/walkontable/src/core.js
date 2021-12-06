@@ -32,18 +32,18 @@ class Walkontable {
       this.cloneSource = settings.cloneSource;
       this.cloneOverlay = settings.cloneOverlay;
       this.wtSettings = settings.cloneSource.wtSettings;
-      this.wtTable = this.cloneOverlay.createTable(this, settings.table);
+      this.wtTable = this.cloneOverlay.createTable(this, settings.table, this.wtSettings);
       this.wtScroll = new Scroll(this);
       this.wtViewport = settings.cloneSource.wtViewport;
       this.wtEvent = new Event(this);
       this.selections = this.cloneSource.selections;
     } else {
-      this.wtSettings = new Settings(this, settings);
-      this.wtTable = new MasterTable(this, settings.table);
+      this.wtSettings = new Settings(settings);
+      this.wtTable = new MasterTable(this, settings.table, this.wtSettings);
       this.wtScroll = new Scroll(this);
       this.wtViewport = new Viewport(this);
       this.wtEvent = new Event(this);
-      this.selections = this.getSetting('selections');
+      this.selections = this.wtSettings.getSetting('selections');
       this.wtOverlays = new Overlays(this);
       this.exportSettingsAsClassNames();
     }
@@ -53,7 +53,7 @@ class Walkontable {
       for (let c = 0, clen = this.wtTable.THEAD.childNodes[0].childNodes.length; c < clen; c++) {
         originalHeaders.push(this.wtTable.THEAD.childNodes[0].childNodes[c].innerHTML);
       }
-      if (!this.getSetting('columnHeaders').length) {
+      if (!this.wtSettings.getSetting('columnHeaders').length) {
         this.update('columnHeaders', [
           function(column, TH) {
             fastInnerText(TH, originalHeaders[column]);
@@ -83,7 +83,7 @@ class Walkontable {
       this.wtTable.draw(fastDraw);
     }
 
-    return this;
+    return this; 
   }
 
   /**
@@ -222,7 +222,7 @@ class Walkontable {
     const newClassNames = [];
 
     objectEach(toExport, (className, key) => {
-      if (this.getSetting(key).length) {
+      if (this.wtSettings.getSetting(key).length) {
         newClassNames.push(className);
       }
       allClassNames.push(className);
@@ -242,7 +242,6 @@ class Walkontable {
    * @returns {*}
    */
   getSetting(key, param1, param2, param3, param4) {
-    // this is faster than .apply - https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
     return this.wtSettings.getSetting(key, param1, param2, param3, param4);
   }
 

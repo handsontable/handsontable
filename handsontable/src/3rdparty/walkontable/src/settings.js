@@ -4,17 +4,11 @@ import { objectEach } from './../../../helpers/object';
 /**
  * @class Settings
  */
-class Settings {
+export default class Settings {
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
    * @param {Settings} settings The user defined settings.
    */
-  constructor(wotInstance, settings) {
-    this.wot = wotInstance;
-
-    // legacy support
-    this.instance = wotInstance;
-
+  constructor(settings) {
     // default settings. void 0 means it is required, null means it can be empty
     this.defaults = {
       table: void 0,
@@ -146,7 +140,7 @@ class Settings {
    *
    * @param {object} settings The singular settings to update or if passed as object to merge with.
    * @param {*} value The value to set if the first argument is passed as string.
-   * @returns {Walkontable}
+   * @returns {Settings}
    */
   update(settings, value) {
     if (value === void 0) { // settings is object
@@ -157,7 +151,7 @@ class Settings {
       this.settings[settings] = value;
     }
 
-    return this.wot;
+    return this;
   }
 
   /**
@@ -172,11 +166,9 @@ class Settings {
    */
   getSetting(key, param1, param2, param3, param4) {
     if (typeof this.settings[key] === 'function') {
-      // this is faster than .apply - https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
       return this.settings[key](param1, param2, param3, param4);
 
     } else if (param1 !== void 0 && Array.isArray(this.settings[key])) {
-      // perhaps this can be removed, it is only used in tests
       return this.settings[key][param1];
 
     }
@@ -194,5 +186,3 @@ class Settings {
     return !!this.settings[key];
   }
 }
-
-export default Settings;
