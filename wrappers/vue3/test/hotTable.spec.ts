@@ -1,9 +1,5 @@
 /* eslint-disable no-console */
-<<<<<<< HEAD
-import { nextTick, ref } from 'vue';
-=======
 import { nextTick, ref, isProxy } from 'vue';
->>>>>>> develop
 import { mount, config } from '@vue/test-utils';
 import HotTable from '../src/HotTable.vue';
 import { HOT_DESTROYED_WARNING } from '../src/helpers';
