@@ -9,7 +9,7 @@ canonicalUrl: /
 
 [[toc]]
 
-Welcome 👋&nbsp; to Handsontable's Guides. Here you will learn how Handsontable works and what you can build with it. Handsontable supports the most popular frameworks such as **[React](@/guides/integrate-with-react/react-simple-example.md)**, **[Angular](@/guides/integrate-with-angular/angular-simple-example.md)**, and **[Vue 2](@/guides/integrate-with-vue/vue-simple-example.md)**.
+Welcome 👋&nbsp; to Handsontable's Guides. Here you will learn how Handsontable works and what you can build with it. Handsontable supports the most popular frameworks such as **[React](@/guides/integrate-with-react/react-simple-example.md)**, **[Angular](@/guides/integrate-with-angular/angular-simple-example.md)**, **[Vue 2](@/guides/integrate-with-vue/vue-simple-example.md)**, and **[Vue 3](@/guides/integrate-with-vue3/vue-simple-example.md)**.
 
 ## Get started with sample apps
 
