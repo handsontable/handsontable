@@ -1,5 +1,5 @@
 {
-  "title": "Fixe an issue with BottomOverlay position for RTL",
+  "title": "Fixed an issue with BottomOverlay position for RTL",
   "type": "fixed",
   "issue": 8761,
   "breaking": false,
