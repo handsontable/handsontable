@@ -1,11 +1,11 @@
 ---
-title: Custom editor example
-metaTitle: Custom editor example - Guide - Handsontable Documentation
+title: 'Angular: Custom editor example'
+metaTitle: 'Angular: Custom editor example - Guide - Handsontable Documentation'
 permalink: /9.0/angular-custom-editor-example
 canonicalUrl: /angular-custom-editor-example
 ---
 
-# Custom editor example
+# Angular: Custom editor example
 
 ## Overview
 

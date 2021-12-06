@@ -307,6 +307,28 @@ const REGISTERED_HOOKS = [
   'afterLoadData',
 
   /**
+   * Fired after new data is loaded (by the `updateData` method) into the data source array.
+   *
+   * @since 11.1.0
+   * @event Hooks#afterUpdateData
+   * @param {Array} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
+   * @param {string} source Source of the call.
+   */
+  'afterUpdateData',
+
+  /**
+   * Fired after new data is loaded (by `setData` or `updateSettings` method) into the data source array.
+   *
+   * @since 11.1.0
+   * @event Hooks#afterSetData
+   * @param {Array} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
+   * @param {string} source Source of the call.
+   */
+  'afterSetData',
+
+  /**
    * Fired after a scroll event, which is identified as a momentum scroll (e.g. On an iPad).
    *
    * @event Hooks#afterMomentumScroll
@@ -786,6 +808,30 @@ const REGISTERED_HOOKS = [
    * @returns {Array} The returned array will be used as new dataset.
    */
   'beforeLoadData',
+
+  /**
+   * Fired before new data is loaded (by the `beforeUpdateData` method) into the data source array.
+   *
+   * @event Hooks#beforeUpdateData
+   * @since 11.1.0
+   * @param {Array} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
+   * @param {string} source Source of the call.
+   * @returns {Array} The returned array will be used as new dataset.
+   */
+  'beforeUpdateData',
+
+  /**
+   * Fired before new data is loaded (by `setData` or `updateSettings` method) into the data source array.
+   *
+   * @event Hooks#beforeSetData
+   * @since 11.1.0
+   * @param {Array} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
+   * @param {string} source Source of the call.
+   * @returns {Array} The returned array will be used as new dataset.
+   */
+  'beforeSetData',
 
   /**
    * Fired before keydown event is handled. It can be used to overwrite default key bindings.
