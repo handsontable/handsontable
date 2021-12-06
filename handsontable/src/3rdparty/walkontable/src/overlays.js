@@ -67,18 +67,19 @@ class Overlays {
   bottomLeftCornerOverlay = null;
 
   /**
+   * Browser line height for purposes of translating mouse wheel.
+   *
+   * @private
+   * @type {number}
+   */
+  browserLineHeight = undefined;
+  /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
     this.wot = wotInstance;
 
     const { rootDocument, rootWindow, wtTable } = this.wot;
-    /**
-     * Sometimes `line-height` might be set to 'normal'. In that case, a default `font-size` should be multiplied by roughly 1.2.
-     * Https://developer.mozilla.org/pl/docs/Web/CSS/line-height#Values.
-     */
-    const BODY_LINE_HEIGHT = parseInt(rootWindow.getComputedStyle(rootDocument.body).lineHeight, 10);
-    const FALLBACK_BODY_LINE_HEIGHT = parseInt(rootWindow.getComputedStyle(rootDocument.body).fontSize, 10) * 1.2;
 
     // legacy support
     this.instance = this.wot;
@@ -108,11 +109,28 @@ class Overlays {
     this.verticalScrolling = false;
     this.horizontalScrolling = false;
 
-    this.browserLineHeight = BODY_LINE_HEIGHT || FALLBACK_BODY_LINE_HEIGHT;
-
+    this.initBrowserLineHeight();
     this.registerListeners();
     this.lastScrollX = rootWindow.scrollX;
     this.lastScrollY = rootWindow.scrollY;
+  }
+
+  /**
+   * Retrieve browser line height and apply its value to `browserLineHeight`.
+   *
+   * @private
+   */
+  initBrowserLineHeight() {
+    const { rootWindow, rootDocument } = this.wot;
+    const computedStyle = rootWindow.getComputedStyle(rootDocument.body);
+    /**
+     * Sometimes `line-height` might be set to 'normal'. In that case, a default `font-size` should be multiplied by roughly 1.2.
+     * Https://developer.mozilla.org/pl/docs/Web/CSS/line-height#Values.
+     */
+    const lineHeight = parseInt(computedStyle.lineHeight, 10);
+    const lineHeightFalback = parseInt(computedStyle.fontSize, 10) * 1.2;
+
+    this.browserLineHeight = lineHeight || lineHeightFalback;
   }
 
   /**
@@ -172,7 +190,7 @@ class Overlays {
     this.wot.draw(true);
 
     if (this.verticalScrolling) {
-      this.leftOverlay.onScroll();
+      this.leftOverlay.onScroll(); // todo the leftOverlay.onScroll() fires hook. Why is it needed there, not in any another place?
     }
 
     if (this.horizontalScrolling) {
@@ -196,7 +214,8 @@ class Overlays {
     this.eventManager.addEventListener(rootDocument, 'visibilitychange', () => this.onKeyUp());
     this.eventManager.addEventListener(
       topOverlayScrollableElement,
-      'scroll', event => this.onTableScroll(event),
+      'scroll',
+      event => this.onTableScroll(event),
       { passive: true }
     );
 
@@ -345,14 +364,12 @@ class Overlays {
    * @returns {boolean}
    */
   translateMouseWheelToScroll(event) {
-    const browserLineHeight = this.browserLineHeight;
-
     let deltaY = isNaN(event.deltaY) ? (-1) * event.wheelDeltaY : event.deltaY;
     let deltaX = isNaN(event.deltaX) ? (-1) * event.wheelDeltaX : event.deltaX;
 
     if (event.deltaMode === 1) {
-      deltaX += deltaX * browserLineHeight;
-      deltaY += deltaY * browserLineHeight;
+      deltaX += deltaX * this.browserLineHeight;
+      deltaY += deltaY * this.browserLineHeight;
     }
 
     const isScrollVerticallyPossible = this.scrollVertically(deltaY);
@@ -539,7 +556,7 @@ class Overlays {
     hiderStyle.width = `${headerRowSize + this.leftOverlay.sumCellSizes(0, totalColumns)}px`;
     hiderStyle.height = `${headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1}px`;
 
-    if (this.scrollbarSize > 0) {
+    if (this.scrollbarSize > 0) { // todo refactoring, looking as a part of logic which should be moved outside the class
       const {
         scrollHeight: rootElemScrollHeight,
         scrollWidth: rootElemScrollWidth,
