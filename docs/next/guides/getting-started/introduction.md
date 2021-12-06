@@ -33,6 +33,11 @@ Welcome 👋&nbsp; to Handsontable's Guides. Here you will learn how Handsontabl
     <img class="integration-framework-logo" src="/docs/next/img/pages/introduction/vue.svg" alt="Vue logo" />
     <h3>Vue 2</h3>
    </a>
+
+   <a href="/docs/next/guides/integrate-with-vue3/vue-simple-example" class="row-item">
+    <img class="integration-framework-logo" src="/docs/next/img/pages/introduction/vue.svg" alt="Vue logo" />
+    <h3>Vue 3</h3>
+   </a>
 </div>
 
 ## What's new
