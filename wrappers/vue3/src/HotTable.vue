@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, VNode } from 'vue';
+import { defineComponent, VNode, markRaw } from 'vue';
 import Handsontable from 'handsontable/base';
 import {
   HOT_DESTROYED_WARNING,
@@ -101,7 +101,7 @@ const HotTable = defineComponent({
 
       newSettings.columns = this.columnSettings ? this.columnSettings : newSettings.columns;
 
-      this.hotInstance = new Handsontable.Core(this.$el, newSettings);
+      this.hotInstance = markRaw<Handsontable>(new Handsontable.Core(this.$el, newSettings));
       this.hotInstance.init();
 
       this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();

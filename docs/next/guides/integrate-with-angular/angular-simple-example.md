@@ -1,11 +1,11 @@
 ---
-title: Basic example in Angular
-metaTitle: Basic example in Angular - Guide - Handsontable Documentation
+title: 'Angular: Basic example'
+metaTitle: 'Angular: Basic example - Guide - Handsontable Documentation'
 permalink: /next/angular-simple-example
 canonicalUrl: /angular-simple-example
 ---
 
-# Angular basic example
+# Angular: Basic example
 
 ## Overview
 The following example is a basic implementation of the `@handsontable/angular` wrapper.

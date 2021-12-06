@@ -1,11 +1,11 @@
 ---
-title: React installation
-metaTitle: React installation - Guide - Handsontable Documentation
+title: 'React: Installation'
+metaTitle: 'React: Installation - Guide - Handsontable Documentation'
 permalink: /11.0/react-installation
 canonicalUrl: /react-installation
 ---
 
-# Installation
+# React: Installation
 
 [[toc]]
 

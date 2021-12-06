@@ -1,11 +1,11 @@
 ---
-title: Language change example
-metaTitle: Language change example - Guide - Handsontable Documentation
+title: 'React: Language change example'
+metaTitle: 'React: Language change example - Guide - Handsontable Documentation'
 permalink: /11.0/react-language-change-example
 canonicalUrl: /react-language-change-example
 ---
 
-# Language change example
+# React: Language change example
 
 ## Overview
 
