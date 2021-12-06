@@ -179,10 +179,6 @@ export class TextEditor extends BaseEditor {
         this.focus();
       }
     }
-
-    if (cellProperties.type === 'time') {
-      this.TEXTAREA.dir = 'ltr';
-    }
   }
 
   /**
