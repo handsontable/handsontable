@@ -111,8 +111,8 @@ export function rangeEachReverse(rangeFrom, rangeTo, iteratee) {
  * @returns {number}
  */
 export function valueAccordingPercent(value, percent) {
-  percent = parseInt(percent.tostring().replace('%', ''), 10);
-  percent = parseInt(value * percent / 100, 10);
+  percent = parseInt(percent.toString().replace('%', ''), 10);
+  percent = isNaN(percent) ? 0 : percent;
 
-  return percent;
+  return parseInt(value * percent / 100, 10);
 }

@@ -3,6 +3,7 @@ import {
   rangeEachReverse,
   isNumeric,
   isNumericLike,
+  valueAccordingPercent,
 } from 'handsontable/helpers/number';
 
 describe('Number helper', () => {
@@ -277,6 +278,50 @@ describe('Number helper', () => {
       expect(isNumericLike('   .2e+26   ')).toBeTruthy();
       expect(isNumericLike('   0,2e+26   ')).toBeTruthy();
       expect(isNumericLike('   ,2e+26   ')).toBeTruthy();
+    });
+  });
+
+  //
+  // Handsontable.helper.valueAccordingPercent
+  //
+  describe('valueAccordingPercent', () => {
+    it('should correctly calculate value when the percent (the second argument) is passed as number', () => {
+      expect(valueAccordingPercent(100, 0)).toBe(0);
+      expect(valueAccordingPercent(200, 0)).toBe(0);
+      expect(valueAccordingPercent(1000, 1)).toBe(10);
+      expect(valueAccordingPercent(1000, 2)).toBe(20);
+      expect(valueAccordingPercent(1000, 20)).toBe(200);
+      expect(valueAccordingPercent(1000, 80)).toBe(800);
+      expect(valueAccordingPercent(1000, 99)).toBe(990);
+      expect(valueAccordingPercent(1000, 100)).toBe(1000);
+      expect(valueAccordingPercent(1000, 101)).toBe(1010);
+      expect(valueAccordingPercent(1000, 199)).toBe(1990);
+    });
+
+    it('should correctly calculate value when the percent (the second argument) is passed as string', () => {
+      expect(valueAccordingPercent(100, '0')).toBe(0);
+      expect(valueAccordingPercent(200, '0')).toBe(0);
+      expect(valueAccordingPercent(1000, '1')).toBe(10);
+      expect(valueAccordingPercent(1000, '2')).toBe(20);
+      expect(valueAccordingPercent(1000, '20')).toBe(200);
+      expect(valueAccordingPercent(1000, '80')).toBe(800);
+      expect(valueAccordingPercent(1000, '99')).toBe(990);
+      expect(valueAccordingPercent(1000, '100')).toBe(1000);
+      expect(valueAccordingPercent(1000, '101')).toBe(1010);
+      expect(valueAccordingPercent(1000, '199')).toBe(1990);
+    });
+
+    it('should correctly calculate value when the percent (the second argument) is passed as string with percent sign at the end', () => {
+      expect(valueAccordingPercent(100, '0%')).toBe(0);
+      expect(valueAccordingPercent(200, '0%')).toBe(0);
+      expect(valueAccordingPercent(1000, '1%')).toBe(10);
+      expect(valueAccordingPercent(1000, '2%')).toBe(20);
+      expect(valueAccordingPercent(1000, '20%')).toBe(200);
+      expect(valueAccordingPercent(1000, '80%')).toBe(800);
+      expect(valueAccordingPercent(1000, '99%')).toBe(990);
+      expect(valueAccordingPercent(1000, '100%')).toBe(1000);
+      expect(valueAccordingPercent(1000, '101%')).toBe(1010);
+      expect(valueAccordingPercent(1000, '199%')).toBe(1990);
     });
   });
 });
