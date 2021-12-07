@@ -1,0 +1,7 @@
+{
+  "title": "Fixed return type in React wrapper",
+  "type": "fixed",
+  "issue": 9000,
+  "breaking": false,
+  "framework": "react"
+}

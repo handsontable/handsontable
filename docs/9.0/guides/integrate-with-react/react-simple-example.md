@@ -1,11 +1,11 @@
 ---
-title: Basic example in React
-metaTitle: Basic example in React - Guide - Handsontable Documentation
+title: 'React: Basic example'
+metaTitle: 'React: Basic example - Guide - Handsontable Documentation'
 permalink: /9.0/react-simple-example
 canonicalUrl: /react-simple-example
 ---
 
-# Basic examples
+# React: Basic examples
 
 [[toc]]
 

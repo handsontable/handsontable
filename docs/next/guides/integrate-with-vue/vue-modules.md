@@ -1,11 +1,11 @@
 ---
-title: Using modules with Vue
-metaTitle: Using modules with Vue - Guide - Handsontable Documentation
+title: 'Vue 2: Modules'
+metaTitle: 'Vue 2: Modules - Guide - Handsontable Documentation'
 permalink: /next/vue-modules
 canonicalUrl: /vue-modules
 ---
 
-# Using modules with Vue
+# Vue 2: Modules
 
 [[toc]]
 

@@ -1,11 +1,11 @@
 ---
-title: Language change example
-metaTitle: Language change example - Guide - Handsontable Documentation
+title: 'Angular: Language change example'
+metaTitle: 'Angular: Language change example - Guide - Handsontable Documentation'
 permalink: /11.0/angular-language-change-example
 canonicalUrl: /angular-language-change-example
 ---
 
-# Language change example
+# Angular: Language change example
 
 ## Overview
 The following example is an implementation of the `@handsontable/angular` component with an option to change the Context Menu language.
