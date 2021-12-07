@@ -13,7 +13,7 @@ canonicalUrl: /vue3-modules
 
 To reduce the size of your app, you can use Handsontable by importing individual [modules](@/guides/building-and-testing/modules.md).
 
-## Using modules with Vue
+## Using modules with Vue 3
 
 To use modules with Handsontable's [Vue 3 wrapper](@/guides/integrate-with-vue3/vue-installation.md), follow the steps below:
 
