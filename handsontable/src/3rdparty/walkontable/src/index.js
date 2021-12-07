@@ -23,6 +23,6 @@ export {
   Renderer,
   OrderView,
   SharedOrderView,
-  
+
   getListenersCounter
 };

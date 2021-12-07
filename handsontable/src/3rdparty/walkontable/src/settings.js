@@ -1,16 +1,124 @@
-import { fastInnerText } from './../../../helpers/dom/element';
-import { objectEach } from './../../../helpers/object';
+import { fastInnerText } from '../../../helpers/dom/element';
+import { objectEach } from '../../../helpers/object';
+/**
+ * @todo Describe options.
+ * @typedef SettingsPure
+ *
+ * @property {Option} cellRenderer Option `cellRenderer`.
+ * @property {Option} columnHeaders Option `columnHeaders`.
+ * @property {Option} columnWidth Option `columnWidth`.
+ * @property {Option} currentRowClassName Option `currentRowClassName`.
+ * @property {Option} data Option `data`.
+ * @property {Option} defaultColumnWidth Option `defaultColumnWidth`.
+ * @property {Option} defaultRowHeight Option `defaultRowHeight`.
+ * @property {Option} externalRowCalculator Option `externalRowCalculator`.
+ * @property {Option} fixedColumnsLeft Option `fixedColumnsLeft`.
+ * @property {Option} fixedRowsBottom Option `fixedRowsBottom`.
+ * @property {Option} fixedRowsTop Option `fixedRowsTop`.
+ * @property {Option} freezeOverlays Option `freezeOverlays`.
+ * @property {Option} groups Option `groups`.
+ * @property {Option} hideBorderOnMouseDownOver Option `hideBorderOnMouseDownOver`.
+ * @property {Option} isDataViewInstance Option `isDataViewInstance`.
+ * @property {Option} minSpareRows Option `minSpareRows`.
+ * @property {Option} onBeforeHighlightingColumnHeader Option `onBeforeHighlightingColumnHeader`.
+ * @property {Option} onBeforeHighlightingRowHeader Option `onBeforeHighlightingRowHeader`.
+ * @property {Option} onBeforeRemoveCellClassNames Option `onBeforeRemoveCellClassNames`.
+ * @property {Option} onBeforeStretchingColumnWidth Option `onBeforeStretchingColumnWidth`.
+ * @property {Option} preventOverflow Option `preventOverflow`.
+ * @property {Option} preventWheel Option `preventWheel`.
+ * @property {Option} renderAllRows Option `renderAllRows`.
+ * @property {Option} rowHeaders Option `rowHeaders`.
+ * @property {Option} rowHeight Option `,`.
+ * @property {Option} scrollbarHeight Option `scrollbarHeight`.
+ * @property {Option} scrollbarWidth Option `scrollbarWidth`.
+ * @property {Option} shouldRenderBottomOverlay Option `shouldRenderBottomOverlay`.
+ * @property {Option} shouldRenderLeftOverlay Option `shouldRenderLeftOverlay`.
+ * @property {Option} shouldRenderTopOverlay Option `shouldRenderTopOverlay`.
+ * @property {Option} stretchH Option `stretchH`.
+ * @property {Option} table Option `table`.
+ * @property {Option} totalColumns Option `totalColumns`.
+ * @property {Option} totalRows Option `totalRows`.
+ * @property {?Option} beforeDraw Option `beforeDraw`.
+ * @property {?Option} columnHeaderHeight Option `columnHeaderHeight`.
+ * @property {?Option} currentColumnClassName Option `currentColumnClassName`.
+ * @property {?Option} headerClassName Option `headerClassName`.
+ * @property {?Option} onAfterDrawSelection Option `onAfterDrawSelection`.
+ * @property {?Option} onAfterMomentumScroll Option `onAfterMomentumScroll`.
+ * @property {?Option} onBeforeDrawBorders Option `onBeforeDrawBorders`.
+ * @property {?Option} onBeforeTouchScroll Option `onBeforeTouchScroll`.
+ * @property {?Option} onCellContextMenu Option `onCellContextMenu`.
+ * @property {?Option} onCellCornerDblClick Option `onCellCornerDblClick`.
+ * @property {?Option} onCellCornerMouseDown Option `onCellCornerMouseDown`.
+ * @property {?Option} onCellDblClick Option `onCellDblClick`.
+ * @property {?Option} onCellMouseDown Option `onCellMouseDown`.
+ * @property {?Option} onCellMouseOut Option `onCellMouseOut`.
+ * @property {?Option} onCellMouseOver Option `onCellMouseOver`.
+ * @property {?Option} onCellMouseUp Option `onCellMouseUp`.
+ * @property {?Option} onDraw Option `onDraw`.
+ * @property {?Option} onModifyGetCellCoords Option `onModifyGetCellCoords`.
+ * @property {?Option} onModifyRowHeaderWidth Option `onModifyRowHeaderWidth`.
+ * @property {?Option} onScrollHorizontally Option `onScrollHorizontally`.
+ * @property {?Option} onScrollVertically Option `onScrollVertically`.
+ * @property {?Option} onWindowResize Option `onWindowResize`.
+ * @property {?Option} rowHeaderWidth Option `rowHeaderWidth`.
+ * @property {?Option} selections Option `selections`.
+ * @property {?Option} viewportColumnCalculatorOverride Option `viewportColumnCalculatorOverride`.
+ * @property {?Option} viewportRowCalculatorOverride Option `viewportRowCalculatorOverride`.
+ */
+
+/**
+ * @template TValue.
+ * @typedef { TValue | Array.<TValue> | (function(...*): TValue) } Option
+ */
 
 /**
  * @class Settings
  */
 export default class Settings {
+
   /**
-   * @param {Settings} settings The user defined settings.
+   * Reference to settings.
+   *
+   * @protected
+   * @type {SettingsPure}
+   */
+  settings = {};
+
+  /**
+   * The defaults values of settings.
+   * Void 0 means it is required, null means it can be empty.
+   *
+   * @public
+   * @type {Readonly<SettingsPure>}
+   */
+  defaults = Object.freeze(this.getDefaults());
+
+  /**
+   * @param {SettingsPure} settings The user defined settings.
    */
   constructor(settings) {
-    // default settings. void 0 means it is required, null means it can be empty
-    this.defaults = {
+    objectEach(this.defaults, (value, key) => {
+      if (settings[key] !== void 0) {
+        this.settings[key] = settings[key];
+
+      } else if (value === void 0) {
+        throw new Error(`A required setting "${key}" was not provided`);
+
+      } else {
+        this.settings[key] = value;
+      }
+    });
+  }
+
+  /**
+   * Generate defaults for a settings.
+   * Void 0 means it is required, null means it can be empty.
+   *
+   * @private
+   * @returns {SettingsPure}
+   */
+  getDefaults() {
+    return {
       table: void 0,
 
       // Determines whether the Walkontable instance is used as dataset viewer. When its instance is used as
@@ -118,21 +226,6 @@ export default class Settings {
       columnHeaderHeight: null,
       headerClassName: null
     };
-
-    // reference to settings
-    this.settings = {};
-
-    objectEach(this.defaults, (value, key) => {
-      if (settings[key] !== void 0) {
-        this.settings[key] = settings[key];
-
-      } else if (value === void 0) {
-        throw new Error(`A required setting "${key}" was not provided`);
-
-      } else {
-        this.settings[key] = value;
-      }
-    });
   }
 
   /**
@@ -173,6 +266,16 @@ export default class Settings {
 
     }
 
+    return this.settings[key];
+  }
+
+  /**
+   * Get a setting value without any evaluation.
+   *
+   * @param {string} key The settings key to retrieve.
+   * @returns {*}
+   */
+  getSettingPure(key) {
     return this.settings[key];
   }
 

@@ -2,9 +2,9 @@ import {
   addClass,
   fastInnerText,
   removeClass,
-} from './../../../helpers/dom/element';
-import { objectEach } from './../../../helpers/object';
-import { randomString } from './../../../helpers/string';
+} from '../../../helpers/dom/element';
+import { objectEach } from '../../../helpers/object';
+import { randomString } from '../../../helpers/string';
 import Event from './event';
 import Overlays from './overlays';
 import Scroll from './scroll';
@@ -17,7 +17,7 @@ import Viewport from './viewport';
  */
 class Walkontable {
   /**
-   * @param {Settings} settings The Walkontable settings.
+   * @param {SettingsPure} settings The Walkontable settings.
    */
   constructor(settings) {
     const originalHeaders = [];
@@ -54,7 +54,7 @@ class Walkontable {
         originalHeaders.push(this.wtTable.THEAD.childNodes[0].childNodes[c].innerHTML);
       }
       if (!this.wtSettings.getSetting('columnHeaders').length) {
-        this.update('columnHeaders', [
+        this.wtSettings.update('columnHeaders', [
           function(column, TH) {
             fastInnerText(TH, originalHeaders[column]);
           }
@@ -83,7 +83,7 @@ class Walkontable {
       this.wtTable.draw(fastDraw);
     }
 
-    return this; 
+    return this;
   }
 
   /**
@@ -128,15 +128,6 @@ class Walkontable {
     }
 
     return this.wtTable.getCell(coords);
-  }
-
-  /**
-   * @param {object} settings The singular settings to update or if passed as object to merge with.
-   * @param {*} value The value to set if the first argument is passed as string.
-   * @returns {Walkontable}
-   */
-  update(settings, value) {
-    return this.wtSettings.update(settings, value);
   }
 
   /**
@@ -229,6 +220,16 @@ class Walkontable {
     });
     removeClass(this.wtTable.wtRootElement.parentNode, allClassNames);
     addClass(this.wtTable.wtRootElement.parentNode, newClassNames);
+  }
+
+  /**
+   * @param {object} settings The singular settings to update or if passed as object to merge with.
+   * @param {*} value The value to set if the first argument is passed as string.
+   * @returns {Walkontable}
+   */
+  update(settings, value) {
+     this.wtSettings.update(settings, value);
+     return this;
   }
 
   /**

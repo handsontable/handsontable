@@ -20,16 +20,8 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getWidth(sourceIndex) {
-    let width = this.wot.wtSettings.settings.columnWidth;
-
-    if (typeof width === 'function') {
-      width = width(sourceIndex);
-
-    } else if (typeof width === 'object') {
-      width = width[sourceIndex];
-    }
-
-    return width || this.wot.wtSettings.settings.defaultColumnWidth;
+    return this.wot.wtSettings.getSetting('columnWidth', sourceIndex)
+      || this.wot.wtSettings.getSetting('defaultColumnWidth');
   }
 
   /**
@@ -39,9 +31,8 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getStretchedColumnWidth(sourceIndex) {
-    const columnWidth = this.getWidth(sourceIndex);
     const calculator = this.wot.wtViewport.columnsRenderCalculator;
-    let width = columnWidth ?? this.wot.wtSettings.settings.defaultColumnWidth;
+    let width = this.getWidth(sourceIndex);
 
     if (calculator) {
       const stretchedWidth = calculator.getStretchedColumnWidth(sourceIndex, width);
@@ -61,7 +52,7 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getHeaderHeight(level) {
-    let height = this.wot.wtSettings.settings.defaultRowHeight;
+    let height = this.wot.wtSettings.getSetting('defaultRowHeight');
     const oversizedHeight = this.wot.wtViewport.oversizedColumnHeaders[level];
 
     if (oversizedHeight !== void 0) {

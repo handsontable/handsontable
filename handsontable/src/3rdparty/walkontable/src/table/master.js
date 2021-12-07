@@ -18,7 +18,7 @@ class MasterTable extends Table {
     const { rootWindow } = this.wot;
 
     if (trimmingElement === rootWindow) {
-      const preventOverflow = this.settings.getSetting('preventOverflow');
+      const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
       if (!preventOverflow) {
         this.holder.style.overflow = 'visible';
@@ -71,13 +71,13 @@ class MasterTable extends Table {
   }
 
   markOversizedColumnHeaders() {
-    const { wot, settings } = this;
+    const { wot, wtSettings } = this;
     const overlayName = wot.getOverlayName();
-    const columnHeaders = settings.getSetting('columnHeaders');
+    const columnHeaders = wtSettings.getSetting('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
 
     if (columnHeadersCount && !wot.wtViewport.hasOversizedColumnHeadersMarked[overlayName]) {
-      const rowHeaders = settings.getSetting('rowHeaders');
+      const rowHeaders = wtSettings.getSetting('rowHeaders');
       const rowHeaderCount = rowHeaders.length;
       const columnCount = this.getRenderedColumnsCount();
 

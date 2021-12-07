@@ -314,7 +314,7 @@ class Viewport {
 
     this.rowHeaderWidth = NaN;
 
-    if (wtSettings.settings.renderAllRows && calculationType === RENDER_TYPE) {
+    if (wtSettings.getSetting('renderAllRows') && calculationType === RENDER_TYPE) {
       height = Infinity;
     } else {
       height = this.getViewportHeight();
@@ -353,7 +353,7 @@ class Viewport {
       scrollOffset: pos,
       totalItems: wot.getSetting('totalRows'),
       itemSizeFn: sourceRow => wtTable.getRowHeight(sourceRow),
-      overrideFn: wtSettings.settings.viewportRowCalculatorOverride,
+      overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride'),
       calculationType,
       scrollbarHeight,
     });
@@ -397,7 +397,7 @@ class Viewport {
       scrollOffset: pos,
       totalItems: wot.getSetting('totalColumns'),
       itemSizeFn: sourceCol => wot.wtTable.getColumnWidth(sourceCol),
-      overrideFn: wtSettings.settings.viewportColumnCalculatorOverride,
+      overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
       calculationType,
       stretchMode: wot.getSetting('stretchH'),
       stretchingItemWidthFn: (stretchedWidth, column) => {

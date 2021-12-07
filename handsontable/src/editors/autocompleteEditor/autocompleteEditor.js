@@ -14,7 +14,7 @@ import {
 import { isDefined, stringify } from '../../helpers/mixed';
 import { stripTags } from '../../helpers/string';
 import { KEY_CODES, isPrintableChar } from '../../helpers/unicode';
-import { textRenderer } from '../../renderers/textRenderer';
+import { textRenderer } from '../../renderers';
 
 const privatePool = new WeakMap();
 
@@ -300,7 +300,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       let height = null;
 
       do {
-        lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.wt.wtSettings.settings.defaultRowHeight;
+        lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.wt.getSetting('defaultRowHeight');
         tempHeight += lastRowHeight;
         i += 1;
       } while (tempHeight < spaceAvailable);

@@ -1,11 +1,11 @@
 import {
   getScrollableElement,
   getScrollbarWidth,
-} from './../../../helpers/dom/element';
-import { arrayEach } from './../../../helpers/array';
-import { isKey } from './../../../helpers/unicode';
-import { isChrome } from './../../../helpers/browser';
-import EventManager from './../../../eventManager';
+} from '../../../helpers/dom/element';
+import { arrayEach } from '../../../helpers/array';
+import { isKey } from '../../../helpers/unicode';
+import { isChrome } from '../../../helpers/browser';
+import EventManager from '../../../eventManager';
 import {
   LeftOverlay,
   TopOverlay,
@@ -85,6 +85,7 @@ class Overlays {
     this.instance = this.wot;
     this.eventManager = new EventManager(this.wot);
 
+    // TODO refactoring: probably invalid place to this logic
     this.scrollbarSize = getScrollbarWidth(rootDocument);
     this.wot.update('scrollbarWidth', this.scrollbarSize);
     this.wot.update('scrollbarHeight', this.scrollbarSize);

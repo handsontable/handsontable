@@ -15,7 +15,7 @@ export default class RowUtils {
    * @returns {number}
    */
   getHeight(sourceIndex) {
-    let height = this.wot.wtSettings.settings.rowHeight(sourceIndex);
+    let height = this.wot.wtSettings.getSetting('rowHeight', sourceIndex);
     const oversizedHeight = this.wot.wtViewport.oversizedRows[sourceIndex];
 
     if (oversizedHeight !== void 0) {

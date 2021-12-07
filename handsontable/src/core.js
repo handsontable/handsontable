@@ -1301,7 +1301,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         const renderableRow = instance.rowIndexMapper.getRenderableFromVisualIndex(row);
         const renderableColumn = instance.columnIndexMapper.getRenderableFromVisualIndex(col);
 
-        instance.view.wt.wtSettings.settings.cellRenderer(renderableRow, renderableColumn, td);
+        instance.view.wt.getSetting('cellRenderer', renderableRow, renderableColumn, td);
       }
 
       callback(valid);
