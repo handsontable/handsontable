@@ -1,11 +1,11 @@
 ---
-title: Referencing the Handsontable instance
-metaTitle: Referencing the Handsontable instance - Guide - Handsontable Documentation
+title: 'Angular: Referencing the Handsontable instance'
+metaTitle: 'Angular: Referencing the Handsontable instance - Guide - Handsontable Documentation'
 permalink: /next/angular-hot-reference
 canonicalUrl: /angular-hot-reference
 ---
 
-# Referencing the Handsontable instance
+# Angular: Referencing the Handsontable instance
 
 ## Overview
 The following example is an implementation of `@handsontable/angular`, which shows you how to reference the Handsontable instance from the wrapper component.

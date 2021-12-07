@@ -1,11 +1,11 @@
 ---
-title: Custom ID
-metaTitle: Custom ID - Guide - Handsontable Documentation
+title: 'Angular: Custom ID'
+metaTitle: 'Angular: Custom ID - Guide - Handsontable Documentation'
 permalink: /next/angular-custom-id
 canonicalUrl: /angular-custom-id
 ---
 
-# Custom ID
+# Angular: Custom ID
 
 ## Overview
 A custom `id` can be passed in together with other attributes to the `hot-table` wrapper element. It will be applied to the root Handsontable element, allowing further customization of the table.
