@@ -6,7 +6,7 @@ import {
   hasClass,
   outerHeight,
   removeClass,
-} from './../../../../helpers/dom/element';
+} from '../../../../helpers/dom/element';
 import BottomOverlayTable from './../table/bottom';
 import { Overlay } from './_base';
 import {
@@ -27,10 +27,11 @@ export class BottomOverlay extends Overlay {
 
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(wotInstance) {
-    super(wotInstance, CLONE_BOTTOM);
-    this.cachedFixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
+  constructor(wotInstance, wtSettings) {
+    super(wotInstance, CLONE_BOTTOM, wtSettings);
+    this.cachedFixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
   }
 
   /**
@@ -38,7 +39,7 @@ export class BottomOverlay extends Overlay {
    *
    * @see Table#constructor
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
-   * @returns {Table}
+   * @returns {BottomOverlayTable}
    */
   createTable(...args) {
     return new BottomOverlayTable(...args);
@@ -50,7 +51,7 @@ export class BottomOverlay extends Overlay {
    * @returns {boolean}
    */
   shouldBeRendered() {
-    return this.wot.getSetting('shouldRenderBottomOverlay');
+    return this.wtSettings.getSetting('shouldRenderBottomOverlay');
   }
 
   /**
@@ -61,7 +62,7 @@ export class BottomOverlay extends Overlay {
   resetFixedPosition() {
     if (!this.needFullRender || !this.wot.wtTable.holder.parentNode) {
       // removed from DOM
-      return;
+      return false;
     }
 
     const overlayRoot = this.clone.wtTable.holder.parentNode;
@@ -69,7 +70,7 @@ export class BottomOverlay extends Overlay {
     overlayRoot.style.top = '';
 
     let headerPosition = 0;
-    const preventOverflow = this.wot.getSetting('preventOverflow');
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const { rootDocument, wtTable } = this.wot;
@@ -147,7 +148,7 @@ export class BottomOverlay extends Overlay {
    * Triggers onScroll hook callback.
    */
   onScroll() {
-    this.wot.getSetting('onScrollHorizontally');
+    this.wtSettings.getSetting('onScrollHorizontally');
   }
 
   /**
@@ -195,7 +196,7 @@ export class BottomOverlay extends Overlay {
     const scrollbarWidth = getScrollbarWidth(this.wot.rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
-    const preventOverflow = this.wot.getSetting('preventOverflow');
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal') {
       let width = wtViewport.getWorkspaceWidth();
@@ -237,7 +238,7 @@ export class BottomOverlay extends Overlay {
    * Adjust the overlay dimensions and position.
    */
   applyToDOM() {
-    const total = this.wot.getSetting('totalRows');
+    const total = this.wtSettings.getSetting('totalRows');
 
     if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
       this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
@@ -292,7 +293,7 @@ export class BottomOverlay extends Overlay {
       newY += 1;
 
     } else {
-      newY += this.sumCellSizes(this.wot.getSetting('fixedRowsBottom'), sourceRow);
+      newY += this.sumCellSizes(this.wtSettings.getSetting('fixedRowsBottom'), sourceRow);
     }
     newY += scrollbarCompensation;
 
@@ -328,18 +329,18 @@ export class BottomOverlay extends Overlay {
    * @returns {boolean}
    */
   adjustHeaderBordersPosition(position) {
-    const fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
+    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
     const areFixedRowsBottomChanged = this.cachedFixedRowsBottom !== fixedRowsBottom;
-    const columnHeaders = this.wot.getSetting('columnHeaders');
+    const columnHeaders = this.wtSettings.getSetting('columnHeaders');
     let positionChanged = false;
 
     if ((areFixedRowsBottomChanged || fixedRowsBottom === 0) && columnHeaders.length > 0) {
       const masterParent = this.wot.wtTable.holder.parentNode;
       const previousState = hasClass(masterParent, 'innerBorderBottom');
 
-      this.cachedFixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
+      this.cachedFixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
 
-      if (position || this.wot.getSetting('totalRows') === 0) {
+      if (position || this.wtSettings.getSetting('totalRows') === 0) {
         addClass(masterParent, 'innerBorderBottom');
         positionChanged = !previousState;
       } else {

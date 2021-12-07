@@ -73,22 +73,33 @@ class Overlays {
    * @type {number}
    */
   browserLineHeight = undefined;
+
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * The walkontable settings.
+   *
+   * @protected
+   * @type {Settings}
    */
-  constructor(wotInstance) {
+  wtSettings = null;
+
+  /**
+   * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring remove.
+   * @param {Settings} wtSettings The Walkontable settings.
+   */
+  constructor(wotInstance, wtSettings) {
     this.wot = wotInstance;
+    this.wtSettings = wtSettings;
 
     const { rootDocument, rootWindow, wtTable } = this.wot;
 
     // legacy support
-    this.instance = this.wot;
+    this.instance = this.wot; // todo refactoring: move to facade
     this.eventManager = new EventManager(this.wot);
 
     // TODO refactoring: probably invalid place to this logic
     this.scrollbarSize = getScrollbarWidth(rootDocument);
-    this.wot.update('scrollbarWidth', this.scrollbarSize);
-    this.wot.update('scrollbarHeight', this.scrollbarSize);
+    this.wtSettings.update('scrollbarWidth', this.scrollbarSize);
+    this.wtSettings.update('scrollbarHeight', this.scrollbarSize);
 
     const isOverflowHidden = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode)
       .getPropertyValue('overflow') === 'hidden';
@@ -141,14 +152,14 @@ class Overlays {
    */
   initOverlays() {
     // TODO refactoring, conceive about using generic collection of overlays
-    this.topOverlay = new TopOverlay(this.wot);
-    this.bottomOverlay = new BottomOverlay(this.wot);
-    this.leftOverlay = new LeftOverlay(this.wot);
+    this.topOverlay = new TopOverlay(this.wot, this.wtSettings);
+    this.bottomOverlay = new BottomOverlay(this.wot, this.wtSettings);
+    this.leftOverlay = new LeftOverlay(this.wot, this.wtSettings);
 
     // TODO discuss, the controversial here would be removing the lazy creation mechanism for corners.
     // TODO cond. Has no any visual impact. They're initially hidden in same way like left, tob, and bottom overlays
-    this.topLeftCornerOverlay = new TopLeftCornerOverlay(this.wot);
-    this.bottomLeftCornerOverlay = new BottomLeftCornerOverlay(this.wot);
+    this.topLeftCornerOverlay = new TopLeftCornerOverlay(this.wot, this.wtSettings);
+    this.bottomLeftCornerOverlay = new BottomLeftCornerOverlay(this.wot, this.wtSettings);
   }
 
   /**
@@ -231,7 +242,7 @@ class Overlays {
 
     const isHighPixelRatio = rootWindow.devicePixelRatio && rootWindow.devicePixelRatio > 1;
     const isScrollOnWindow = this.scrollableElement === rootWindow;
-    const preventWheel = this.wot.wtSettings.getSetting('preventWheel');
+    const preventWheel = this.wtSettings.getSetting('preventWheel');
     const wheelEventOptions = { passive: isScrollOnWindow };
 
     if (preventWheel || isHighPixelRatio || !isChrome()) {
@@ -270,7 +281,7 @@ class Overlays {
       clearTimeout(resizeTimeout);
 
       resizeTimeout = setTimeout(() => {
-        this.wot.getSetting('onWindowResize');
+        this.wtSettings.getSetting('onWindowResize');
       }, 200);
     });
   }
@@ -548,8 +559,8 @@ class Overlays {
    */
   adjustElementsSize(force = false) {
     const { wtViewport, wtTable } = this.wot;
-    const totalColumns = this.wot.getSetting('totalColumns');
-    const totalRows = this.wot.getSetting('totalRows');
+    const totalColumns = this.wtSettings.getSetting('totalColumns');
+    const totalRows = this.wtSettings.getSetting('totalRows');
     const headerRowSize = wtViewport.getRowHeaderWidth();
     const headerColumnSize = wtViewport.getColumnHeaderHeight();
     const hiderStyle = wtTable.hider.style;

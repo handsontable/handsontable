@@ -44,7 +44,7 @@ class Walkontable {
       this.wtViewport = new Viewport(this);
       this.wtEvent = new Event(this);
       this.selections = this.wtSettings.getSetting('selections');
-      this.wtOverlays = new Overlays(this);
+      this.wtOverlays = new Overlays(this, this.wtSettings);
       this.exportSettingsAsClassNames();
     }
 
@@ -228,8 +228,9 @@ class Walkontable {
    * @returns {Walkontable}
    */
   update(settings, value) {
-     this.wtSettings.update(settings, value);
-     return this;
+    this.wtSettings.update(settings, value);
+
+    return this;
   }
 
   /**

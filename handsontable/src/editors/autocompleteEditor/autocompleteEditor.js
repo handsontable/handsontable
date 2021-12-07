@@ -14,7 +14,7 @@ import {
 import { isDefined, stringify } from '../../helpers/mixed';
 import { stripTags } from '../../helpers/string';
 import { KEY_CODES, isPrintableChar } from '../../helpers/unicode';
-import { textRenderer } from '../../renderers';
+import { textRenderer } from '../../renderers/textRenderer';
 
 const privatePool = new WeakMap();
 

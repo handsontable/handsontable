@@ -40,9 +40,9 @@ class Table {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @todo remove.
    * @param {HTMLTableElement} table An element to the Walkontable generated table is injected.
-   * @param settings The Walkontable settings.
+   * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(wotInstance, table, settings) {
+  constructor(wotInstance, table, wtSettings) {
     /**
      * Indicates if this instance is of type `MasterTable` (i.e. It is NOT an overlay).
      *
@@ -50,7 +50,7 @@ class Table {
      */
     this.isMaster = !wotInstance.cloneOverlay; // "instanceof" operator isn't used, because it caused a circular reference in Webpack
     this.wot = wotInstance;
-    this.wtSettings = settings;
+    this.wtSettings = wtSettings;
 
     // legacy support
     this.instance = this.wot;

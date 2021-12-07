@@ -8,7 +8,7 @@ import {
   removeClass,
   setOverlayPosition,
   resetCssTransform,
-} from './../../../../helpers/dom/element';
+} from '../../../../helpers/dom/element';
 import LeftOverlayTable from './../table/left';
 import { Overlay } from './_base';
 import {
@@ -21,9 +21,10 @@ import {
 export class LeftOverlay extends Overlay {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(wotInstance) {
-    super(wotInstance, CLONE_LEFT);
+  constructor(wotInstance, wtSettings) {
+    super(wotInstance, CLONE_LEFT, wtSettings);
   }
 
   /**
@@ -31,7 +32,7 @@ export class LeftOverlay extends Overlay {
    *
    * @see Table#constructor
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
-   * @returns {Table}
+   * @returns {LeftOverlayTable}
    */
   createTable(...args) {
     return new LeftOverlayTable(...args);
@@ -43,7 +44,7 @@ export class LeftOverlay extends Overlay {
    * @returns {boolean}
    */
   shouldBeRendered() {
-    return this.wot.getSetting('shouldRenderLeftOverlay');
+    return this.wtSettings.getSetting('shouldRenderLeftOverlay');
   }
 
   /**
@@ -56,12 +57,12 @@ export class LeftOverlay extends Overlay {
 
     if (!this.needFullRender || !wtTable.holder.parentNode) {
       // removed from DOM
-      return;
+      return false;
     }
 
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     let headerPosition = 0;
-    const preventOverflow = this.wot.getSetting('preventOverflow');
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
       const hiderRect = wtTable.hider.getBoundingClientRect();
@@ -122,7 +123,7 @@ export class LeftOverlay extends Overlay {
    * Triggers onScroll hook callback.
    */
   onScroll() {
-    this.wot.getSetting('onScrollVertically');
+    this.wtSettings.getSetting('onScrollVertically');
   }
 
   /**
@@ -133,7 +134,7 @@ export class LeftOverlay extends Overlay {
    * @returns {number} Width sum.
    */
   sumCellSizes(from, to) {
-    const defaultColumnWidth = this.wot.wtSettings.defaultColumnWidth;
+    const defaultColumnWidth = this.wtSettings.getSetting('defaultColumnWidth');
     let column = from;
     let sum = 0;
 
@@ -167,7 +168,7 @@ export class LeftOverlay extends Overlay {
     const scrollbarHeight = getScrollbarWidth(rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
-    const preventOverflow = this.wot.getSetting('preventOverflow');
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer !== rootWindow || preventOverflow === 'vertical') {
       let height = this.wot.wtViewport.getWorkspaceHeight();
@@ -209,7 +210,7 @@ export class LeftOverlay extends Overlay {
    * Adjust the overlay dimensions and position.
    */
   applyToDOM() {
-    const total = this.wot.getSetting('totalColumns');
+    const total = this.wtSettings.getSetting('totalColumns');
 
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
       this.spreader.style.left = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
@@ -261,7 +262,7 @@ export class LeftOverlay extends Overlay {
       newX -= this.wot.wtViewport.getViewportWidth();
 
     } else {
-      newX += this.sumCellSizes(this.wot.getSetting('fixedColumnsLeft'), sourceCol);
+      newX += this.sumCellSizes(this.wtSettings.getSetting('fixedColumnsLeft'), sourceCol);
     }
 
     newX += scrollbarCompensation;
@@ -275,7 +276,7 @@ export class LeftOverlay extends Overlay {
    * @returns {number}
    */
   getTableParentOffset() {
-    const preventOverflow = this.wot.getSetting('preventOverflow');
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let offset = 0;
 
     if (!preventOverflow && this.trimmingContainer === this.wot.rootWindow) {
@@ -302,9 +303,9 @@ export class LeftOverlay extends Overlay {
    */
   adjustHeaderBordersPosition(position) {
     const masterParent = this.wot.wtTable.holder.parentNode;
-    const rowHeaders = this.wot.getSetting('rowHeaders');
-    const fixedColumnsLeft = this.wot.getSetting('fixedColumnsLeft');
-    const totalRows = this.wot.getSetting('totalRows');
+    const rowHeaders = this.wtSettings.getSetting('rowHeaders');
+    const fixedColumnsLeft = this.wtSettings.getSetting('fixedColumnsLeft');
+    const totalRows = this.wtSettings.getSetting('totalRows');
 
     if (totalRows) {
       removeClass(masterParent, 'emptyRows');

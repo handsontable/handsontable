@@ -1,10 +1,10 @@
 import {
   getScrollableElement,
   getTrimmingContainer
-} from './../../../../helpers/dom/element';
-import { defineGetter } from './../../../../helpers/object';
-import { arrayEach } from './../../../../helpers/array';
-import { warn } from './../../../../helpers/console';
+} from '../../../../helpers/dom/element';
+import { defineGetter } from '../../../../helpers/object';
+import { arrayEach } from '../../../../helpers/array';
+import { warn } from '../../../../helpers/console';
 import EventManager from './../../../../eventManager';
 import {
   CLONE_TYPES,
@@ -16,17 +16,30 @@ import {
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
  * and (optionally) implements behavior needed for native horizontal and vertical scrolling.
  *
+ * @abstract
  * @class Overlay
+ * @property {Walkontable} wot The Walkontable instance.
  */
 export class Overlay {
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
-   * @param {CLONE_TYPES_ENUM} type The overlay type name (clone name).
+   *  The Walkontable settings.
+   *
+   * @private
+   * @type {Settings}
    */
-  constructor(wotInstance, type) {
+  wtSettings = null;
+
+  /**
+   * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring: check if can be deleted.
+   * @param {CLONE_TYPES_ENUM} type The overlay type name (clone name).
+   * @param {Settings} wtSettings The Walkontable settings.
+   */
+  constructor(wotInstance, type, wtSettings) {
     defineGetter(this, 'wot', wotInstance, {
       writable: false,
     });
+
+    this.wtSettings = wtSettings;
 
     const {
       TABLE,
@@ -117,9 +130,10 @@ export class Overlay {
       return;
     }
     const windowScroll = this.mainTableScrollableElement === this.wot.rootWindow;
-    const fixedColumn = columnIndex < this.wot.getSetting('fixedColumnsLeft');
-    const fixedRowTop = rowIndex < this.wot.getSetting('fixedRowsTop');
-    const fixedRowBottom = rowIndex >= this.wot.getSetting('totalRows') - this.wot.getSetting('fixedRowsBottom');
+    const fixedColumn = columnIndex < this.wtSettings.getSetting('fixedColumnsLeft');
+    const fixedRowTop = rowIndex < this.wtSettings.getSetting('fixedRowsTop');
+    const fixedRowBottom =
+      rowIndex >= this.wtSettings.getSetting('totalRows') - this.wtSettings.getSetting('fixedRowsBottom');
 
     const spreaderOffset = {
       left: this.clone.wtTable.spreader.offsetLeft,
@@ -245,7 +259,7 @@ export class Overlay {
 
     tableParent.appendChild(clone);
 
-    const preventOverflow = this.wot.getSetting('preventOverflow');
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (preventOverflow === true ||
       preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
