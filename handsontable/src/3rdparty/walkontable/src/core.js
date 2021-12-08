@@ -33,7 +33,7 @@ class Walkontable {
       this.cloneSource = settings.cloneSource;
       this.cloneOverlay = settings.cloneOverlay;
       this.wtSettings = settings.cloneSource.wtSettings; //todo refactoring settings.cloneWtSettings
-      this.wtTable = this.cloneOverlay.createTable(this, this.wtSettings.getSettingPure('table'), this.wtSettings);
+      this.wtTable = this.cloneOverlay.createTable(this, settings.table, this.wtSettings); //  //todo refactoring settings.cloneTable
       this.wtScroll = new Scroll(this.createScrollDao());
       this.wtViewport = settings.cloneSource.wtViewport; //todo refactoring settings.cloneWtViewport
       this.wtEvent = new Event(this);
