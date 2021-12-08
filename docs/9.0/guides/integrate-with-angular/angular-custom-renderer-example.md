@@ -1,11 +1,11 @@
 ---
-title: 'Angular: Custom renderer example'
-metaTitle: 'Angular: Custom renderer example - Guide - Handsontable Documentation'
+title: 'Custom renderer in Angular'
+metaTitle: 'Custom renderer in Angular - Guide - Handsontable Documentation'
 permalink: /9.0/angular-custom-renderer-example
 canonicalUrl: /angular-custom-renderer-example
 ---
 
-# Angular: Custom renderer example
+# Custom renderer in Angular
 
 ## Overview
 The following example is an implementation of `@handsontable/angular` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
