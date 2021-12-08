@@ -4393,8 +4393,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (instance.getActiveEditor().isOpened()) {
       return;
     }
-    
-    debugger;
 
     instance.selectAll();
     event.preventDefault();
