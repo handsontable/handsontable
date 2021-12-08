@@ -100,18 +100,18 @@ class Table {
     const origRowHeaderWidth = this.wtSettings.getSettingPure('rowHeaderWidth');
 
     // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
-    this.wot.wtSettings.update('rowHeaderWidth', () => this._modifyRowHeaderWidth(origRowHeaderWidth));
+    this.wtSettings.update('rowHeaderWidth', () => this._modifyRowHeaderWidth(origRowHeaderWidth));
 
-    this.rowUtils = new RowUtils(this.wot);
-    this.columnUtils = new ColumnUtils(this.wot);
-    this.tableRenderer = new Renderer({
+    this.rowUtils = new RowUtils(this.wot); //todo ioc
+    this.columnUtils = new ColumnUtils(this.wot); //todo ioc
+    this.tableRenderer = new Renderer({ //todo ioc
       TABLE: this.TABLE,
       THEAD: this.THEAD,
       COLGROUP: this.COLGROUP,
       TBODY: this.TBODY,
       rowUtils: this.rowUtils,
       columnUtils: this.columnUtils,
-      cellRenderer: this.wot.wtSettings.getSettingPure('cellRenderer'),
+      cellRenderer: this.wtSettings.getSettingPure('cellRenderer'),
     });
   }
 
