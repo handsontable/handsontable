@@ -27,6 +27,14 @@ export class BasePlugin {
     return PLUGIN_KEY;
   }
 
+  static get CONFIG_KEYS() {
+    return [];
+  }
+
+  static get ALWAYS_UPDATE() {
+    return false;
+  }
+
   /**
    * @param {object} hotInstance Handsontable instance.
    */
@@ -211,13 +219,39 @@ export class BasePlugin {
    */
   onUpdateSettings(newSettings) {
     if (this.isEnabled) {
+      const hasEntryInSettings = ((settings) => {
+        if (!settings) {
+          return false;
+        }
+
+        if (settings[this.constructor.PLUGIN_KEY] !== void 0) {
+          return true;
+        }
+
+        const additionalConfigKeys = this.constructor.CONFIG_KEYS;
+
+        for (let i = 0; i < additionalConfigKeys.length; i++) {
+          if (settings[additionalConfigKeys[i]]) {
+            return true;
+          }
+        }
+      })(newSettings);
+
       if (this.enabled && !this.isEnabled()) {
         this.disablePlugin();
       }
+
       if (!this.enabled && this.isEnabled()) {
         this.enablePlugin();
       }
-      if (this.enabled && this.isEnabled()) {
+
+      if (
+        (
+          this.enabled &&
+          this.isEnabled() &&
+          hasEntryInSettings
+        ) || this.constructor.ALWAYS_UPDATE === true
+      ) {
         this.updatePlugin(newSettings);
       }
     }

@@ -169,6 +169,11 @@ export class CollapsibleColumns extends BasePlugin {
         });
 
       } else if (Array.isArray(collapsibleColumns)) {
+
+        this.headerStateManager.mapState(() => {
+          return { collapsible: false };
+        });
+
         this.headerStateManager.mergeStateWith(collapsibleColumns);
       }
     }

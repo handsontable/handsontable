@@ -12,6 +12,7 @@ Hooks.getSingleton().register('afterAutofill');
 
 export const PLUGIN_KEY = 'autofill';
 export const PLUGIN_PRIORITY = 20;
+const CONFIG_KEYS = ['fillHandle'];
 const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
 const INTERVAL_FOR_ADDING_ROW = 200;
 
@@ -35,6 +36,10 @@ export class Autofill extends BasePlugin {
 
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  static get CONFIG_KEYS() {
+    return CONFIG_KEYS;
   }
 
   constructor(hotInstance) {
