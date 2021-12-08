@@ -1,10 +1,10 @@
 <div align="center">
 
-<a href="https://handsontable.com" rel="nofollow"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-blue.svg" alt="Handsontable - data grid for Vue" width="300"></a>
+<a href="https://handsontable.com" rel="nofollow"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-blue.svg" alt="Handsontable - data grid for Vue 3" width="300"></a>
 
-# Data Grid for Vue <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="22" height="22">
+# Data Grid for Vue 3<img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="22" height="22">
 
-Handsontable's wrapper for Vue combines data grid features with spreadsheet-like UX. <br>
+Handsontable's wrapper for Vue 3 combines data grid features with spreadsheet-like UX. <br>
 It provides data binding, data validation, filtering, sorting, and CRUD operations.
 
 [![npm](https://img.shields.io/npm/dt/@handsontable/vue.svg)](https://npmjs.com/package/@handsontable/vue)
@@ -15,13 +15,13 @@ It provides data binding, data validation, filtering, sorting, and CRUD operatio
 
 ---
 
-<a href="https://handsontable.com/examples"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-github-preview.png" alt="Handsontable data grid for Vue" width="805"/></a>
+<a href="https://handsontable.com/examples"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-github-preview.png" alt="Handsontable data grid for Vue 3" width="805"/></a>
 
 </div>
 
 ## Features
 
-The most popular features of Handsontable for Vue:
+The most popular features of Handsontable for Vue 3:
 
 &nbsp;&nbsp;✓&nbsp; Multiple column sorting <br>
 &nbsp;&nbsp;✓&nbsp; Non-contiguous selection <br>
@@ -51,10 +51,10 @@ The most popular features of Handsontable for Vue:
 
 Run the following command in your terminal
 ```
-npm install handsontable @handsontable/vue
+npm install handsontable @handsontable/vue3
 ```
 
-You can load it directly from [jsDelivr](//jsdelivr.com/package/npm/@handsontable/vue) as well.
+You can load it directly from [jsDelivr](//jsdelivr.com/package/npm/@handsontable/vue3) as well.
 ```html
 <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@handsontable/vue/dist/vue-handsontable.min.js"></script>
@@ -73,14 +73,14 @@ Use this data grid as you would any other component in your application. [Option
 @import '~handsontable/dist/handsontable.full.css';
 ```
 
-**Vue Component**
+**Vue 3 Component**
 ```vue
 <template>
   <hot-table :data="data" colHeaders="true" rowHeaders="true" width="600" height="300"></hot-table>
 </template>
 
 <script>
-  import { HotTable } from '@handsontable/vue';
+  import { HotTable } from '@handsontable/vue3';
 
   export default {
     data: function() {
@@ -117,7 +117,7 @@ Handsontable is a commercial software with two licenses available:
 
 ## License key
 
-If you use Handsontable for Vue in a project that supports your commercial activity, then you must purchase the license key at [handsontable.com](https://handsontable.com/pricing).
+If you use Handsontable for Vue 3 in a project that supports your commercial activity, then you must purchase the license key at [handsontable.com](https://handsontable.com/pricing).
 
 If you use the free for non-commercial license of Handsontable, then pass the phrase `'non-commercial-and-evaluation'`, as described in [this documentation](https://handsontable.com/docs/tutorial-license-key.html).
 
