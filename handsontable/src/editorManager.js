@@ -122,6 +122,7 @@ class EditorManager {
       (event, keys) => {
         if (this.isEditorOpened()) {
           if (this.activeEditor && this.activeEditor.state !== EDITOR_STATE.WAITING) {
+            // TODO: Probably it should be placed in editor's context.
             this.closeEditorAndSaveChanges(keys.includes('control'));
           }
           this.moveSelectionAfterEnter(keys.includes('shift'));

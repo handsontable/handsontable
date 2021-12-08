@@ -12,6 +12,39 @@ export function useRecorder(frame, invokeClbck) {
   const keysController = createKeysController();
 
   /**
+   * Get every pressed key (including meta keys) from performed KeyboardEvent.
+   *
+   * @private
+   * @param {KeyboardEvent} event The event object.
+   * @returns {Array}
+   */
+  const getEveryPressedKey = (event) => {
+    const pressedKey = normalizeEventKey(event.key);
+    const isMetaKey = ['meta', 'control', 'alt', 'shift'].includes(pressedKey);
+    const pressedKeys = [pressedKey];
+
+    if (isMetaKey === false) {
+      if (event.altKey) {
+        pressedKeys.push('alt');
+      }
+
+      if (event.ctrlKey) {
+        pressedKeys.push('control');
+      }
+
+      if (event.metaKey) {
+        pressedKeys.push('meta');
+      }
+
+      if (event.shiftKey) {
+        pressedKeys.push('shift');
+      }
+    }
+
+    return pressedKeys;
+  };
+
+  /**
    * KeyboardEvent's callback.
    *
    * @private
@@ -22,9 +55,8 @@ export function useRecorder(frame, invokeClbck) {
       return;
     }
 
-    keysController.press(normalizeEventKey(event.key));
-
-    const nextCombination = keysController.getPressed().sort().join('+');
+    const pressedKeys = getEveryPressedKey(event);
+    const nextCombination = pressedKeys.sort().join('+');
 
     invokeClbck(event, nextCombination);
   };
