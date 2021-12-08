@@ -4387,7 +4387,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   const gridContext = shortcutManager.addContext('grid');
 
-  shortcutManager.setActiveContexts(['grid', EDITORMANAGER_CONTEXT]);
+  shortcutManager.setActiveContexts(['grid']);
 
   gridContext.addShortcut([['Control', 'A'], ['Meta', 'A']], (event) => {
     if (instance.getActiveEditor().isOpened()) {

@@ -5,7 +5,6 @@ import EventManager from './eventManager';
 import { EDITOR_STATE } from './editors/baseEditor';
 import { getParentWindow } from './helpers/dom/element';
 
-export const EDITORMANAGER_CONTEXT = 'editorManager';
 class EditorManager {
   /**
    * @param {Core} instance The Handsontable instance.
@@ -103,7 +102,7 @@ class EditorManager {
 
   registerShortcuts() {
     const shortcutManager = this.instance.getShortcutManager();
-    const shortcutsContext = shortcutManager.addContext(EDITORMANAGER_CONTEXT);
+    const shortcutsContext = shortcutManager.getContext('grid');
 
     shortcutsContext.addShortcut([['F2']], (event) => {
       if (this.activeEditor) {
