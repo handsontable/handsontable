@@ -69,7 +69,7 @@
     "core-js": "^2.5.4",
     "handsontable": "^11.0.0",
     "rxjs": "~6.5.2",
-    "zone.js": "~0.10.3"
+    "zone.js": "~0.11.4"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~0.901.13",
