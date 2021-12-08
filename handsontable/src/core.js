@@ -2,7 +2,7 @@ import { addClass, empty, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
-import EditorManager, { EDITORMANAGER_CONTEXT } from './editorManager';
+import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {
   deepClone,
@@ -4393,6 +4393,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (instance.getActiveEditor().isOpened()) {
       return;
     }
+    
+    debugger;
 
     instance.selectAll();
     event.preventDefault();

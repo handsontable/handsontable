@@ -94,6 +94,7 @@ export const createShortcutManager = ({ isActive, frame }) => {
         if (preventDefault) {
           event.preventDefault();
         }
+
         if (stopPropagation) {
           event.stopPropagation();
         }
