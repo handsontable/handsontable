@@ -79,7 +79,7 @@
     "@types/pikaday": "1.7.4",
     "core-js": "^3.0.0",
     "dompurify": "^2.1.1",
-    "moment": "2.24.0",
+    "moment": "2.29.1",
     "numbro": "2.1.2",
     "pikaday": "1.8.0"
   },
