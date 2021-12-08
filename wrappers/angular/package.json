@@ -68,7 +68,7 @@
     "@angular/router": "^9.0.0",
     "core-js": "^2.5.4",
     "handsontable": "^11.0.0",
-    "rxjs": "~6.5.2",
+    "rxjs": "~6.6.7",
     "zone.js": "~0.10.3"
   },
   "devDependencies": {
