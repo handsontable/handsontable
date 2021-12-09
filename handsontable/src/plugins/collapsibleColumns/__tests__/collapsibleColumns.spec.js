@@ -3119,7 +3119,7 @@ describe('CollapsibleColumns', () => {
 
     it('should expand all collapsed headers', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 8 }, 'J1'],
           ['A2', { label: 'B2', colspan: 4 }, { label: 'F2', colspan: 4 }, 'J2'],
@@ -3130,8 +3130,6 @@ describe('CollapsibleColumns', () => {
       });
 
       const plugin = getPlugin('collapsibleColumns');
-
-      spyOn(plugin, 'toggleCollapsibleSection');
 
       plugin.collapseAll();
       plugin.expandAll();
