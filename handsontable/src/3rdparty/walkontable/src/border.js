@@ -21,7 +21,7 @@ import CellCoords from './cell/coords';
  */
 class Border {
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {WalkontableFacade} wotInstance The Walkontable instance. @todo consider about renaming WalkontableFacade->Walkontable; Walkontable->WalkontableCore||Walkontable2
    * @param {object} settings The border settings.
    */
   constructor(wotInstance, settings) {

@@ -19,7 +19,8 @@ class Event {
   /**
    * @param {*} instance Walkontable instance.
    */
-  constructor(instance) {
+  constructor(instance, domBindings) {
+    this.domBindings =  domBindings
     /**
      * Instance of {@link Walkontable}.
      *
@@ -156,7 +157,7 @@ class Event {
    */
   onMouseDown(event) {
     const priv = privatePool.get(this);
-    const activeElement = this.instance.rootDocument.activeElement;
+    const activeElement = this.domBindings.rootDocument.activeElement;
     const getParentNode = partial(getParent, event.target);
     const realTarget = event.target;
 
@@ -172,7 +173,8 @@ class Event {
     if (hasClass(realTarget, 'corner')) {
       this.instance.getSetting('onCellCornerMouseDown', event, realTarget);
     } else if (cell.TD && this.instance.hasSetting('onCellMouseDown')) {
-      this.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, this.instance);
+      const emmiter = this.instance.wtSettings.getSettingPure('facadeCurring');
+      emmiter(this.instance.wtSettings.getSettingPure('onCellMouseDown'), 3, event, cell.coords, cell.TD);
     }
 
     // doubleclick reacts only for left mouse button or from touch events
@@ -198,7 +200,8 @@ class Event {
       const cell = this.parentCell(event.target);
 
       if (cell.TD) {
-        this.instance.getSetting('onCellContextMenu', event, cell.coords, cell.TD, this.instance);
+        const emmiter = this.instance.wtSettings.getSettingPure('facadeCurring');
+        emmiter(this.instance.wtSettings.getSettingPure('onCellContextMenu'), 3, event, cell.coords, cell.TD);
       }
     }
   }
@@ -221,7 +224,8 @@ class Event {
     if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
       mainWOT.lastMouseOver = td;
 
-      this.instance.getSetting('onCellMouseOver', event, this.instance.wtTable.getCoords(td), td, this.instance);
+      const emmiter = this.instance.wtSettings.getSettingPure('facadeCurring');
+      emmiter(this.instance.wtSettings.getSettingPure('onCellMouseOver'), 3, event, this.instance.wtTable.getCoords(td), td);
     }
   }
 
@@ -241,7 +245,8 @@ class Event {
     const nextTD = closestDown(event.relatedTarget, ['TD', 'TH'], table);
 
     if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
-      this.instance.getSetting('onCellMouseOut', event, this.instance.wtTable.getCoords(lastTD), lastTD, this.instance);
+      const emmiter = this.instance.wtSettings.getSettingPure('facadeCurring');
+      emmiter(this.instance.wtSettings.getSettingPure('onCellMouseOut'), 3, event, this.instance.wtTable.getCoords(lastTD), lastTD);
     }
   }
 
@@ -256,7 +261,8 @@ class Event {
     const cell = this.parentCell(event.target);
 
     if (cell.TD && this.instance.hasSetting('onCellMouseUp')) {
-      this.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, this.instance);
+      const emmiter = this.instance.wtSettings.getSettingPure('facadeCurring');
+      emmiter(this.instance.wtSettings.getSettingPure('onCellMouseUp'), 3, event, cell.coords, cell.TD);
     }
 
     // if not left mouse button, and the origin event is not comes from touch
@@ -266,9 +272,11 @@ class Event {
 
     if (cell.TD === priv.dblClickOrigin[0] && cell.TD === priv.dblClickOrigin[1]) {
       if (hasClass(event.target, 'corner')) {
-        this.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD, this.instance);
+        const emmiter = this.instance.wtSettings.getSettingPure('facadeCurring');
+        emmiter(this.instance.wtSettings.getSettingPure('onCellCornerDblClick'), 3, event, cell.coords, cell.TD);
       } else {
-        this.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, this.instance);
+        const emmiter = this.instance.wtSettings.getSettingPure('facadeCurring');
+        emmiter(this.instance.wtSettings.getSettingPure('onCellDblClick'), 3, event, cell.coords, cell.TD);
       }
 
       priv.dblClickOrigin[0] = null;

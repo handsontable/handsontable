@@ -16,36 +16,62 @@ import Viewport from './viewport';
 /**
  * @class Walkontable
  */
-class Walkontable {
+export default class Walkontable {
   /**
-   * @param {SettingsPure} settings The Walkontable settings.
+   * The walkontable instance id.
+   *
+   * @public
+   * @type {Readonly<string>}
    */
-  constructor(settings) {
+  guid = `wt_${randomString()}`;
+
+  /**
+   * The DOM bindings.
+   *
+   * @public
+   */
+  domBindings;
+
+  /**
+   * Settings.
+   *
+   * @public
+   * @type {Settings}
+   */
+  wtSettings;
+  
+  /**
+   * @param {HTMLTableElement} table Main table.
+   * @param {SettingsPure|Settings} settings The Walkontable settings.
+   * @param {?{selections: *, overlay: Overlay, viewport: (Viewport|*), source: Walkontable, event: Event}} clone clone data. @todo extract type
+   */
+  constructor(table, settings, clone=undefined) {
     const originalHeaders = [];
 
-    // this is the namespace for global events
-    this.guid = `wt_${randomString()}`;
-    this.rootDocument = settings.table.ownerDocument;
-    this.rootWindow = this.rootDocument.defaultView;
+    this.domBindings = {
+      rootTable: table,
+      rootDocument: table.ownerDocument,
+      rootWindow: table.ownerDocument.defaultView,
+    }
 
+    this.wtSettings = settings instanceof Settings ? settings : new Settings(settings);
+    
     // bootstrap from settings
-    if (settings.cloneSource) { // todo refactoring extract to another class, maybe with same base class
-      this.cloneSource = settings.cloneSource;
-      this.cloneOverlay = settings.cloneOverlay;
-      this.wtSettings = settings.cloneSource.wtSettings; //todo refactoring settings.cloneWtSettings
-      this.wtTable = this.cloneOverlay.createTable(this, settings.table, this.wtSettings); //  //todo refactoring settings.cloneTable
-      this.wtScroll = new Scroll(this.createScrollDao());
-      this.wtViewport = settings.cloneSource.wtViewport; //todo refactoring settings.cloneWtViewport
-      this.wtEvent = new Event(this);
-      this.selections = this.cloneSource.selections; //todo refactoring settings.cloneWtSelections
-    } else {
-      this.wtSettings = new Settings(settings);
-      this.wtTable = new MasterTable(this, this.wtSettings.getSettingPure('table'), this.wtSettings); //todo refactoring remove passing this into Table - potentially breaks many things.
+    if (clone) { // todo refactoring extract to another class, maybe with same base class
+      this.cloneSource = clone.source;
+      this.cloneOverlay = clone.overlay;
+      this.wtTable = this.cloneOverlay.createTable(this, this.domBindings.rootTable , this.wtSettings, this.domBindings);
       this.wtScroll = new Scroll(this.createScrollDao()); // todo refactoring: consider about IOC: it requires wtSettings, topOverlay, leftOverlay, wtTable, wtViewport, rootWindow
-      this.wtViewport = new Viewport(this);
-      this.wtEvent = new Event(this);
+      this.wtViewport = clone.viewport;
+      this.wtEvent = new Event(this, this.domBindings);
+      this.selections = clone.selections;
+    } else {
+      this.wtTable = new MasterTable(this, this.domBindings.rootTable, this.wtSettings, this.domBindings); //todo refactoring remove passing this into Table - potentially breaks many things. 
+      this.wtScroll = new Scroll(this.createScrollDao()); // todo refactoring: consider about IOC: it requires wtSettings, topOverlay, leftOverlay, wtTable, wtViewport, rootWindow
+      this.wtViewport = new Viewport(this, this.domBindings);
+      this.wtEvent = new Event(this, this.domBindings);
       this.selections = this.wtSettings.getSetting('selections');
-      this.wtOverlays = new Overlays(this, this.wtSettings);
+      this.wtOverlays = new Overlays(this, this.wtSettings, this.domBindings);
       this.exportSettingsAsClassNames();
     }
 
@@ -313,5 +339,3 @@ class Walkontable {
       };
   }
 }
-
-export default Walkontable;

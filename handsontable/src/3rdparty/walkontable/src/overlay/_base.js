@@ -11,6 +11,7 @@ import {
   CLONE_TOP,
   CLONE_LEFT,
 } from './constants';
+import Walkontable from "../core";
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
@@ -34,10 +35,11 @@ export class Overlay {
    * @param {CLONE_TYPES_ENUM} type The overlay type name (clone name).
    * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(wotInstance, type, wtSettings) {
+  constructor(wotInstance, type, wtSettings, domBindings) {
     defineGetter(this, 'wot', wotInstance, {
       writable: false,
     });
+    this.domBindings = domBindings;
 
     this.wtSettings = wtSettings;
 
@@ -47,7 +49,7 @@ export class Overlay {
       spreader,
       holder,
       wtRootElement,
-    } = this.wot.wtTable;
+    } = this.wot.wtTable; //todo ioc
 
     // legacy support, deprecated in the future
     this.instance = this.wot;
@@ -105,7 +107,8 @@ export class Overlay {
    * Update the main scrollable element.
    */
   updateMainScrollableElement() {
-    const { wtTable, rootWindow } = this.wot;
+    const { wtTable } = this.wot;
+    const { rootWindow } = this.domBindings;
 
     if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
       this.mainTableScrollableElement = this.wot.wtTable.holder;
@@ -129,7 +132,7 @@ export class Overlay {
 
       return;
     }
-    const windowScroll = this.mainTableScrollableElement === this.wot.rootWindow;
+    const windowScroll = this.mainTableScrollableElement === this.domBindings.rootWindow;
     const fixedColumn = columnIndex < this.wtSettings.getSetting('fixedColumnsLeft');
     const fixedRowTop = rowIndex < this.wtSettings.getSetting('fixedRowsTop');
     const fixedRowBottom =
@@ -168,7 +171,7 @@ export class Overlay {
    * @returns {{top: number, left: number}}
    */
   getRelativeCellPositionWithinWindow(onFixedRowTop, onFixedColumn, elementOffset, spreaderOffset) {
-    const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
+    const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect(); //todo refactoring: DEMETER
     let horizontalOffset = 0;
     let verticalOffset = 0;
 
@@ -219,8 +222,8 @@ export class Overlay {
     }
 
     if (onFixedRowBottom) {
-      const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
-      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
+      const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();//todo refactoring: DEMETER
+      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();//todo refactoring: DEMETER
 
       verticalOffset = (absoluteOverlayPosition.top * (-1)) + absoluteRootElementPosition.top;
 
@@ -243,7 +246,8 @@ export class Overlay {
     if (CLONE_TYPES.indexOf(this.type) === -1) {
       throw new Error(`Clone type "${this.type}" is not supported.`);
     }
-    const { wtTable, rootDocument, rootWindow } = this.wot;
+    const { wtTable } = this.wot;
+    const { rootDocument, rootWindow } = this.domBindings;
     const clone = rootDocument.createElement('DIV');
     const clonedTable = rootDocument.createElement('TABLE');
     const tableParent = wtTable.wtRootElement.parentNode;
@@ -273,10 +277,12 @@ export class Overlay {
     }
 
     // Create a new instance of the Walkontable class
-    return new this.wot.constructor({
-      cloneSource: this.wot,
-      cloneOverlay: this,
-      table: clonedTable,
+    return new Walkontable(clonedTable, this.wtSettings, { //todo ioc factory
+      source: this.wot,
+      overlay: this,
+      viewport: this.wot.wtViewport, //todo ioc , or factor func if used only here
+      event: this.wot.wtEvent, //todo ioc , or factory func if used only here
+      selections: this.wot.selections, //todo ioc , or factory func if used only here
     });
   }
 
@@ -304,8 +310,8 @@ export class Overlay {
     if (!this.clone) {
       return;
     }
-    const holder = this.clone.wtTable.holder;
-    const hider = this.clone.wtTable.hider;
+    const holder = this.clone.wtTable.holder; // todo refactoring: DEMETER
+    const hider = this.clone.wtTable.hider; // todo refactoring: DEMETER
     const holderStyle = holder.style;
     const hidderStyle = hider.style;
     const rootStyle = holder.parentNode.style;

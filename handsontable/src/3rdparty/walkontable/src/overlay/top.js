@@ -31,8 +31,8 @@ export class TopOverlay extends Overlay {
    * @param {Walkontable} wotInstance The Walkontable instance.
    * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(wotInstance, wtSettings) {
-    super(wotInstance, CLONE_TOP, wtSettings);
+  constructor(wotInstance, wtSettings, domBindings) {
+    super(wotInstance, CLONE_TOP, wtSettings, domBindings);
     this.cachedFixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
   }
 
@@ -227,7 +227,8 @@ export class TopOverlay extends Overlay {
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
     const { selections } = this.wot;
-    const selectionCornerOffset = Math.abs(selections?.getCell().getBorder(this.wot).cornerCenterPointOffset ?? 0);
+    const selectionsCellBorderGetter = this.wtSettings.getSettingPure('selectionsCellBorderGetter');
+    const selectionCornerOffset = Math.abs(selectionsCellBorderGetter(selections)?.cornerCenterPointOffset ?? 0);
 
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     holder.style.width = holder.parentNode.style.width;

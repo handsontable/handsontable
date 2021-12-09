@@ -8,7 +8,7 @@ import CellRange from './cell/range';
  */
 class Selection {
   /**
-   * @param {object} settings The selection settings object.
+   * @param {object} settings The selection settings object. @todo type
    * @param {CellRange} cellRange The cell range instance.
    */
   constructor(settings, cellRange) {
@@ -23,12 +23,12 @@ class Selection {
    * Each Walkontable clone requires it's own border for every selection. This method creates and returns selection
    * borders per instance.
    *
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {WalkontableFacade} wotInstance The Walkontable instance.
    * @returns {Border}
    */
   getBorder(wotInstance) {
     if (!this.instanceBorders[wotInstance.guid]) {
-      this.instanceBorders[wotInstance.guid] = new Border(wotInstance, this.settings);
+      this.instanceBorders[wotInstance.guid] = new  Border(wotInstance, this.settings);
     }
 
     return this.instanceBorders[wotInstance.guid];
@@ -116,7 +116,7 @@ class Selection {
   /**
    * Adds class name to cell element at given coords.
    *
-   * @param {Walkontable} wotInstance Walkontable instance.
+   * @param {WalkontableFacade} wotInstance Walkontable instance.
    * @param {number} sourceRow Cell row coord.
    * @param {number} sourceColumn Cell column coord.
    * @param {string} className Class name.
@@ -182,7 +182,7 @@ class Selection {
   }
 
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {WalkontableFacade} wotInstance The Walkontable instance.
    */
   draw(wotInstance) {
     if (this.isEmpty()) {

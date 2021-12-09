@@ -21,10 +21,11 @@ class Viewport {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
-  constructor(wotInstance) {
+  constructor(wotInstance, domBindings) {
     this.wot = wotInstance;
     // legacy support
     this.instance = this.wot;
+    this.domBindings = domBindings;
 
     this.oversizedRows = [];
     this.oversizedColumnHeaders = [];
@@ -35,8 +36,8 @@ class Viewport {
     this.rowsVisibleCalculator = null;
     this.columnsVisibleCalculator = null;
 
-    this.eventManager = new EventManager(this.wot);
-    this.eventManager.addEventListener(this.wot.rootWindow, 'resize', () => {
+    this.eventManager = new EventManager(this.wot); //todo ioc
+    this.eventManager.addEventListener(this.domBindings.rootWindow, 'resize', () => {
       this.clientHeight = this.getWorkspaceHeight();
     });
   }
@@ -45,11 +46,11 @@ class Viewport {
    * @returns {number}
    */
   getWorkspaceHeight() {
-    const currentDocument = this.wot.rootDocument;
+    const currentDocument = this.domBindings.rootDocument;
     const trimmingContainer = this.instance.wtOverlays.topOverlay.trimmingContainer;
     let height = 0;
 
-    if (trimmingContainer === this.wot.rootWindow) {
+    if (trimmingContainer === this.domBindings.rootWindow) {
       height = currentDocument.documentElement.clientHeight;
 
     } else {
@@ -64,7 +65,7 @@ class Viewport {
 
   getWorkspaceWidth() {
     const { wot } = this;
-    const { rootDocument, rootWindow } = wot;
+    const { rootDocument, rootWindow } = this.domBindings;
     const trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
     const docOffsetWidth = rootDocument.documentElement.offsetWidth;
     const totalColumns = wot.getSetting('totalColumns');
@@ -156,7 +157,7 @@ class Viewport {
     }
 
     const mainContainer = this.instance.wtTable.holder;
-    const dummyElement = this.wot.rootDocument.createElement('div');
+    const dummyElement = this.domBindings.rootDocument.createElement('div');
 
     dummyElement.style.width = '100%';
     dummyElement.style.height = '1px';
@@ -307,7 +308,7 @@ class Viewport {
    */
   createRowsCalculator(calculationType = RENDER_TYPE) {
     const { wot } = this;
-    const { wtSettings, wtOverlays, wtTable, rootDocument } = wot;
+    const { wtSettings, wtOverlays, wtTable } = wot;
     let height;
     let scrollbarHeight;
     let fixedRowsHeight;
@@ -345,7 +346,7 @@ class Viewport {
     if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
       scrollbarHeight = 0;
     } else {
-      scrollbarHeight = getScrollbarWidth(rootDocument);
+      scrollbarHeight = getScrollbarWidth(this.domBindings.rootDocument);
     }
 
     return new ViewportRowsCalculator({
@@ -370,7 +371,7 @@ class Viewport {
    */
   createColumnsCalculator(calculationType = RENDER_TYPE) {
     const { wot } = this;
-    const { wtSettings, wtOverlays, wtTable, rootDocument } = wot;
+    const { wtSettings, wtOverlays, wtTable } = wot;
     let width = this.getViewportWidth();
     let pos = wtOverlays.leftOverlay.getScrollPosition() - wtOverlays.leftOverlay.getTableParentOffset();
 
@@ -389,7 +390,7 @@ class Viewport {
       width -= fixedColumnsWidth;
     }
     if (wtTable.holder.clientWidth !== wtTable.holder.offsetWidth) {
-      width -= getScrollbarWidth(rootDocument);
+      width -= getScrollbarWidth(this.domBindings.rootDocument);
     }
 
     return new ViewportColumnsCalculator({

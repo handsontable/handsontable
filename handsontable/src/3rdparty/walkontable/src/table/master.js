@@ -15,7 +15,7 @@ import { mixin } from './../../../../helpers/object';
 class MasterTable extends Table {
   alignOverlaysWithTrimmingContainer() {
     const trimmingElement = getTrimmingContainer(this.wtRootElement);
-    const { rootWindow } = this.wot;
+    const { rootWindow } = this.domBindings;
 
     if (trimmingElement === rootWindow) {
       const preventOverflow = this.wtSettings.getSetting('preventOverflow');

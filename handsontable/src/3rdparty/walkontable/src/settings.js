@@ -119,6 +119,9 @@ export default class Settings {
    */
   getDefaults() {
     return {
+      selectionDraw: void 0, //todo temporary to handle backward compatibility 
+      selectionsCellBorderGetter: void 0, //todo temporary to handle backward compatibility
+      facadeCurring: void 0, //todo rethink that
       table: void 0,
 
       // Determines whether the Walkontable instance is used as dataset viewer. When its instance is used as

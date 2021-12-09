@@ -36,13 +36,16 @@ class Table {
    * @type {Settings}
    */
   wtSettings = null;
+  domBindings;
 
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @todo remove.
    * @param {HTMLTableElement} table An element to the Walkontable generated table is injected.
    * @param {Settings} wtSettings The Walkontable settings.
+   * @param {*} domBindings @todo type and description
    */
-  constructor(wotInstance, table, wtSettings) {
+  constructor(wotInstance, table, wtSettings, domBindings) {
+    this.domBindings = domBindings;
     /**
      * Indicates if this instance is of type `MasterTable` (i.e. It is NOT an overlay).
      *
@@ -82,10 +85,10 @@ class Table {
 
     removeTextNodes(this.TABLE);
 
+    // TODO refactoring, to recognize the legitimacy of moving them into domBidings 
     this.spreader = this.createSpreader(this.TABLE);
     this.hider = this.createHider(this.spreader);
     this.holder = this.createHolder(this.hider);
-
     this.wtRootElement = this.holder.parentNode;
 
     if (this.isMaster) {
@@ -130,7 +133,7 @@ class Table {
    *
    */
   fixTableDomTree() {
-    const rootDocument = this.wot.rootDocument;
+    const rootDocument = this.domBindings.rootDocument;
 
     this.TBODY = this.TABLE.querySelector('tbody');
 
@@ -149,7 +152,7 @@ class Table {
     if (!this.COLGROUP) {
       this.COLGROUP = rootDocument.createElement('colgroup');
       this.TABLE.insertBefore(this.COLGROUP, this.THEAD);
-    }
+    } 
 
     if (this.wtSettings.getSetting('columnHeaders').length && !this.THEAD.childNodes.length) {
       this.THEAD.appendChild(rootDocument.createElement('TR'));
@@ -165,7 +168,7 @@ class Table {
     let spreader;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE || !hasClass(parent, 'wtHolder')) {
-      spreader = this.wot.rootDocument.createElement('div');
+      spreader = this.domBindings.rootDocument.createElement('div');
       spreader.className = 'wtSpreader';
 
       if (parent) {
@@ -188,7 +191,7 @@ class Table {
     let hider;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE || !hasClass(parent, 'wtHolder')) {
-      hider = this.wot.rootDocument.createElement('div');
+      hider = this.domBindings.rootDocument.createElement('div');
       hider.className = 'wtHider';
 
       if (parent) {
@@ -211,7 +214,7 @@ class Table {
     let holder;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE || !hasClass(parent, 'wtHolder')) {
-      holder = this.wot.rootDocument.createElement('div');
+      holder = this.domBindings.rootDocument.createElement('div');
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
 
@@ -501,6 +504,7 @@ class Table {
    */
   refreshSelections(fastDraw) {
     const { wot, wtSettings } = this;
+    const selectionDraw = this.wtSettings.getSettingPure('selectionDraw');
 
     if (!wot.selections) {
       return;
@@ -554,7 +558,7 @@ class Table {
     }
 
     for (let i = 0; i < len; i++) {
-      highlights[i].draw(wot, fastDraw);
+      selectionDraw(highlights[i], fastDraw);
     }
   }
 

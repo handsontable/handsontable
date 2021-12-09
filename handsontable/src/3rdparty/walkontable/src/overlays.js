@@ -86,15 +86,16 @@ class Overlays {
    * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring remove.
    * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(wotInstance, wtSettings) {
+  constructor(wotInstance, wtSettings, domBindings) {
     this.wot = wotInstance;
     this.wtSettings = wtSettings;
-
-    const { rootDocument, rootWindow, wtTable } = this.wot;
+    this.domBindings = domBindings;
+    const { wtTable }=this.wot // todo ioc
+    const { rootDocument, rootWindow } = this.domBindings;
 
     // legacy support
     this.instance = this.wot; // todo refactoring: move to facade
-    this.eventManager = new EventManager(this.wot);
+    this.eventManager = new EventManager(this.wot); //todo refactoring: ioc
 
     // TODO refactoring: probably invalid place to this logic
     this.scrollbarSize = getScrollbarWidth(rootDocument);
@@ -133,7 +134,7 @@ class Overlays {
    * @private
    */
   initBrowserLineHeight() {
-    const { rootWindow, rootDocument } = this.wot;
+    const { rootWindow, rootDocument } = this.domBindings;
     const computedStyle = rootWindow.getComputedStyle(rootDocument.body);
     /**
      * Sometimes `line-height` might be set to 'normal'. In that case, a default `font-size` should be multiplied by roughly 1.2.
@@ -151,15 +152,16 @@ class Overlays {
    * @private
    */
   initOverlays() {
+    //todo refactoring: IOC, collection or factories.
     // TODO refactoring, conceive about using generic collection of overlays
-    this.topOverlay = new TopOverlay(this.wot, this.wtSettings);
-    this.bottomOverlay = new BottomOverlay(this.wot, this.wtSettings);
-    this.leftOverlay = new LeftOverlay(this.wot, this.wtSettings);
+    this.topOverlay = new TopOverlay(this.wot, this.wtSettings, this.domBindings);
+    this.bottomOverlay = new BottomOverlay(this.wot, this.wtSettings, this.domBindings);
+    this.leftOverlay = new LeftOverlay(this.wot, this.wtSettings, this.domBindings);
 
     // TODO discuss, the controversial here would be removing the lazy creation mechanism for corners.
     // TODO cond. Has no any visual impact. They're initially hidden in same way like left, tob, and bottom overlays
-    this.topLeftCornerOverlay = new TopLeftCornerOverlay(this.wot, this.wtSettings);
-    this.bottomLeftCornerOverlay = new BottomLeftCornerOverlay(this.wot, this.wtSettings);
+    this.topLeftCornerOverlay = new TopLeftCornerOverlay(this.wot, this.wtSettings, this.domBindings);
+    this.bottomLeftCornerOverlay = new BottomLeftCornerOverlay(this.wot, this.wtSettings, this.domBindings);
   }
 
   /**
@@ -217,7 +219,7 @@ class Overlays {
    * Register all necessary event listeners.
    */
   registerListeners() {
-    const { rootDocument, rootWindow } = this.wot;
+    const { rootDocument, rootWindow } = this.domBindings;
     const { mainTableScrollableElement: topOverlayScrollableElement } = this.topOverlay;
     const { mainTableScrollableElement: leftOverlayScrollableElement } = this.leftOverlay;
 
@@ -301,7 +303,7 @@ class Overlays {
   onTableScroll(event) {
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
     // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
-    const rootWindow = this.wot.rootWindow;
+    const rootWindow = this.domBindings.rootWindow;
     const masterHorizontal = this.leftOverlay.mainTableScrollableElement;
     const masterVertical = this.topOverlay.mainTableScrollableElement;
     const target = event.target;
@@ -325,7 +327,7 @@ class Overlays {
    * @param {boolean} preventDefault If `true`, the `preventDefault` will be called on event object.
    */
   onCloneWheel(event, preventDefault) {
-    const { rootWindow } = this.wot;
+    const { rootWindow } = this.domBindings;
 
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
     // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
@@ -428,7 +430,7 @@ class Overlays {
       return;
     }
 
-    const { rootWindow } = this.wot;
+    const { rootWindow } = this.domBindings;
     const topHolder = this.topOverlay.clone.wtTable.holder;
     const leftHolder = this.leftOverlay.clone.wtTable.holder;
 
@@ -486,7 +488,7 @@ class Overlays {
     if (this.bottomOverlay.needFullRender) {
       this.bottomOverlay.updateMainScrollableElement();
     }
-    const { rootWindow, wtTable } = this.wot;
+    const { rootWindow, wtTable } = this.domBindings;
 
     if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
       this.scrollableElement = wtTable.holder;
