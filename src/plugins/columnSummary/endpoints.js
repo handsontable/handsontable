@@ -532,7 +532,7 @@ class Endpoints {
     const reverseColOffset = (-1) * endpoint.alterColumnOffset || 0;
     const visualEndpointRowIndex = this.hot.toVisualRow(endpoint.destinationRow);
 
-    if (endpoint.destinationRow >= this.hot.countRows() || endpoint.destinationColumn >= this.hot.countCols()) {
+    if (visualEndpointRowIndex >= this.hot.countRows() || endpoint.destinationColumn >= this.hot.countCols()) {
       this.throwOutOfBoundsWarning();
 
       return;
