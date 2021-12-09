@@ -20,6 +20,10 @@ export class TouchScroll extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get ALWAYS_UPDATE() {
+    return true;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
