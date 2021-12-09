@@ -898,16 +898,14 @@ describe('NestedRows', () => {
   });
 
   describe('Core HOT API', () => {
-    it('should recreate the nested structure when updating the data with the `updateSettings` method', () => {
+    it('should recreate the nested structure when updating the data with the `setData` method', () => {
       handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,
         contextMenu: true
       });
 
-      updateSettings({
-        data: getMoreComplexNestedData()
-      });
+      setData(getMoreComplexNestedData());
 
       const nrPlugin = getPlugin('nestedRows');
 

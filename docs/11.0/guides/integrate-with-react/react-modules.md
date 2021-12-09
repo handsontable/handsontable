@@ -1,11 +1,11 @@
 ---
-title: Using modules with React
-metaTitle: Using modules with React - Guide - Handsontable Documentation
+title: 'Modules in React'
+metaTitle: 'Modules in React - Guide - Handsontable Documentation'
 permalink: /11.0/react-modules
 canonicalUrl: /react-modules
 ---
 
-# Using modules with React
+# Modules in React
 
 [[toc]]
 
@@ -13,7 +13,7 @@ canonicalUrl: /react-modules
 
 To reduce the size of your app, you can use Handsontable by importing individual [modules](@/guides/building-and-testing/modules.md).
 
-## Using modules with React
+## Using modules in React
 
 To use modules with Handsontable's [React wrapper](@/guides/integrate-with-react/react-installation.md), follow the steps below:
 

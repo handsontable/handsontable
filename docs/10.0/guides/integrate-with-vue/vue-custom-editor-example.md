@@ -1,11 +1,11 @@
 ---
-title: Custom editor example
-metaTitle: Custom editor example - Guide - Handsontable Documentation
+title: 'Custom editor in Vue 2'
+metaTitle: 'Custom editor in Vue 2 - Guide - Handsontable Documentation'
 permalink: /10.0/vue-custom-editor-example
 canonicalUrl: /vue-custom-editor-example
 ---
 
-# Custom editor example
+# Custom editor in Vue 2
 
 [[toc]]
 

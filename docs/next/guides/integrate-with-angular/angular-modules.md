@@ -1,11 +1,11 @@
 ---
-title: Using modules with Angular
-metaTitle: Using modules with Angular - Guide - Handsontable Documentation
+title: 'Modules in Angular'
+metaTitle: 'Modules in Angular - Guide - Handsontable Documentation'
 permalink: /next/angular-modules
 canonicalUrl: /angular-modules
 ---
 
-# Using modules with Angular
+# Modules in Angular
 
 [[toc]]
 
@@ -13,7 +13,7 @@ canonicalUrl: /angular-modules
 
 To reduce the size of your app, you can use Handsontable by importing individual [modules](@/guides/building-and-testing/modules.md).
 
-## Using modules with Angular
+## Using modules in Angular
 
 To use modules with Handsontable's [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md), follow the steps below:
 

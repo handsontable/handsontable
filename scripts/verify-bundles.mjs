@@ -34,6 +34,9 @@ async function verifyBundles() {
     },
     '@handsontable/vue': {
       className: 'HotTable'
+    },
+    '@handsontable/vue3': {
+      className: 'HotTable'
     }
   };
   const { default: mainPackageJson } = await import('../package.json');

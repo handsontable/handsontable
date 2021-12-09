@@ -12,7 +12,7 @@ describe('Core_datachange', () => {
     }
   });
 
-  it('should call onChange callback', () => {
+  it('should call afterChange callback', () => {
     let output = null;
 
     handsontable({
@@ -89,7 +89,7 @@ describe('Core_datachange', () => {
     expect(output).toEqual($container[0]);
   });
 
-  it('onChange should be triggered after data is rendered to DOM (init)', () => {
+  it('afterChange should be triggered after data is rendered to DOM (init)', () => {
     const $container = spec().$container;
     let output = null;
 
@@ -107,7 +107,7 @@ describe('Core_datachange', () => {
     expect(output).toEqual('Joe Red');
   });
 
-  it('onChange should be triggered after data is rendered to DOM (setDataAtCell)', () => {
+  it('afterChange should be triggered after data is rendered to DOM (setDataAtCell)', () => {
     const $container = spec().$container;
     let output = null;
 
@@ -126,7 +126,7 @@ describe('Core_datachange', () => {
     expect(output).toEqual('Alice Red');
   });
 
-  it('onChange event object should contain documented keys and values when triggered by edit', () => {
+  it('afterChange event object should contain documented keys and values when triggered by edit', () => {
     const sampleData = [
       {
         col1: 'a',

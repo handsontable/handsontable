@@ -42,8 +42,15 @@ if (argv._.length === 0) {
     }
     case 'all': {
       const [command] = argv._;
-      let workspacesCommandList = '-w handsontable -w @handsontable/angular -w @handsontable/react -w' +
-        ' @handsontable/vue -w examples';
+      // eslint-disable-next-line prefer-template
+      let workspacesCommandList = '-w ' + [
+        'handsontable',
+        '@handsontable/angular',
+        '@handsontable/react',
+        '@handsontable/vue',
+        '@handsontable/vue3',
+        'examples',
+      ].join(' -w ');
 
       if (argv.exclude) {
         argv.exclude.forEach((packageName) => {
