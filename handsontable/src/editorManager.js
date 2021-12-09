@@ -144,6 +144,7 @@ class EditorManager {
       });
 
     shortcutsContext.addShortcut([['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']], (event, keys) => {
+      // TODO: Probably it should be placed in editor's context.
       if (this.isEditorOpened()) {
         this.closeEditorAndRestoreOriginalValue(keys.includes('control') || keys.includes('meta'));
 

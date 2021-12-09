@@ -99,7 +99,7 @@ function triggerKeys(type) {
 
     variants.forEach((key) => {
       extend.ctrlKey = isKeyUp && key === 'control' ? false : keys.includes('control');
-      extend.metaKey = isKeyUp && key === 'control' ? false : keys.includes('control');
+      extend.metaKey = isKeyUp && key === 'meta' ? false : keys.includes('meta');
       extend.shiftKey = isKeyUp && key === 'shift' ? false : keys.includes('shift');
       extend.altKey = isKeyUp && key === 'alt' ? false : keys.includes('alt');
 
