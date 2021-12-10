@@ -19,7 +19,7 @@ class Event {
   /**
    * @param {*} instance Walkontable instance.
    */
-  constructor(instance, wtSettings, domBindings, facadeInjector) {
+  constructor(instance, wtSettings, domBindings, facadeGetter) {
     this.wtSettings = wtSettings;
     this.domBindings =  domBindings
     /**
@@ -36,8 +36,17 @@ class Event {
      * @type {EventManager}
      */
     this.eventManager = new EventManager(instance);
-    
-    this.facadeInjector = facadeInjector;
+
+    /**
+     * Should be use only for passing face called external origin methods, like registered event listeners. 
+     * It provides backward compatibility by getting instance facade.
+     * @todo consider about removing this from Event class, because it make relationship into facade (implicit circular dependency).
+     * @todo con. maybe passing listener caller as an ioc from faced resolves this issue. To rethink later.
+     * 
+     * @type {function():WalkontableFacade}
+     * @private
+     */
+    this.facadeGetter = facadeGetter;
 
     privatePool.set(this, {
       selectedCellBeforeTouchEnd: void 0,
@@ -357,11 +366,9 @@ class Event {
    */
   callListener(name, event, cords, target) {
     const listener = this.wtSettings.getSettingPure(name);
-    if(!listener){
-      return;
+    if(listener){
+      listener(event, cords, target, this.facadeGetter());
     }
-    // push instance as a 4th param, it keeps backward compatibility.
-    this.facadeInjector(listener, 3, event, cords, target);
   }
   
   /**

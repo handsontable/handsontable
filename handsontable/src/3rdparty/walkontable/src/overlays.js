@@ -86,10 +86,11 @@ class Overlays {
    * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring remove.
    * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(wotInstance, wtSettings, domBindings) {
+  constructor(wotInstance,facadeGetter, wtSettings, domBindings) {
     this.wot = wotInstance;
     this.wtSettings = wtSettings;
     this.domBindings = domBindings;
+    this.facadeGetter = facadeGetter;
     const { wtTable }=this.wot // todo ioc
     const { rootDocument, rootWindow } = this.domBindings;
 
@@ -154,14 +155,14 @@ class Overlays {
   initOverlays() {
     //todo refactoring: IOC, collection or factories.
     // TODO refactoring, conceive about using generic collection of overlays
-    this.topOverlay = new TopOverlay(this.wot, this.wtSettings, this.domBindings);
-    this.bottomOverlay = new BottomOverlay(this.wot, this.wtSettings, this.domBindings);
-    this.leftOverlay = new LeftOverlay(this.wot, this.wtSettings, this.domBindings);
+    this.topOverlay = new TopOverlay(this.wot, this.facadeGetter, this.wtSettings, this.domBindings);
+    this.bottomOverlay = new BottomOverlay(this.wot, this.facadeGetter,  this.wtSettings, this.domBindings);
+    this.leftOverlay = new LeftOverlay(this.wot, this.facadeGetter,  this.wtSettings, this.domBindings);
 
     // TODO discuss, the controversial here would be removing the lazy creation mechanism for corners.
     // TODO cond. Has no any visual impact. They're initially hidden in same way like left, tob, and bottom overlays
-    this.topLeftCornerOverlay = new TopLeftCornerOverlay(this.wot, this.wtSettings, this.domBindings);
-    this.bottomLeftCornerOverlay = new BottomLeftCornerOverlay(this.wot, this.wtSettings, this.domBindings);
+    this.topLeftCornerOverlay = new TopLeftCornerOverlay(this.wot, this.facadeGetter,  this.wtSettings, this.domBindings);
+    this.bottomLeftCornerOverlay = new BottomLeftCornerOverlay(this.wot,  this.facadeGetter, this.wtSettings, this.domBindings);
   }
 
   /**

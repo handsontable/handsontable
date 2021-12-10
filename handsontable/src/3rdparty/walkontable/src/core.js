@@ -55,23 +55,23 @@ export default class Walkontable {
     }
 
     this.wtSettings = settings instanceof Settings ? settings : new Settings(settings);
-    const facadeInjector = this.wtSettings.getSettingPure('facadeInjector'); // todo refactoring ioc.
+    const facadeGetter = this.wtSettings.getSetting('facade', this); // todo rethink.
     // bootstrap from settings
     if (clone) { // todo refactoring extract to another class, maybe with same base class
       this.cloneSource = clone.source;
       this.cloneOverlay = clone.overlay;
-      this.wtTable = this.cloneOverlay.createTable(this, this.domBindings.rootTable , this.wtSettings, this.domBindings);
+      this.wtTable = this.cloneOverlay.createTable(this, facadeGetter, this.domBindings.rootTable , this.wtSettings, this.domBindings);
       this.wtScroll = new Scroll(this.createScrollDao()); // todo refactoring: consider about IOC: it requires wtSettings, topOverlay, leftOverlay, wtTable, wtViewport, rootWindow
       this.wtViewport = clone.viewport;
-      this.wtEvent = new Event(this, this.wtSettings, this.domBindings, facadeInjector);
+      this.wtEvent = new Event(this, this.wtSettings, this.domBindings, facadeGetter);
       this.selections = clone.selections;
     } else {
-      this.wtTable = new MasterTable(this, this.domBindings.rootTable, this.wtSettings, this.domBindings); //todo refactoring remove passing this into Table - potentially breaks many things. 
+      this.wtTable = new MasterTable(this, facadeGetter, this.domBindings.rootTable, this.wtSettings, this.domBindings); //todo refactoring remove passing this into Table - potentially breaks many things. 
       this.wtScroll = new Scroll(this.createScrollDao()); // todo refactoring: consider about IOC: it requires wtSettings, topOverlay, leftOverlay, wtTable, wtViewport, rootWindow
       this.wtViewport = new Viewport(this, this.domBindings);
-      this.wtEvent = new Event(this, this.wtSettings, this.domBindings, facadeInjector);
+      this.wtEvent = new Event(this, this.wtSettings, this.domBindings, facadeGetter);
       this.selections = this.wtSettings.getSetting('selections');
-      this.wtOverlays = new Overlays(this, this.wtSettings, this.domBindings);
+      this.wtOverlays = new Overlays(this, facadeGetter, this.wtSettings, this.domBindings);
       this.exportSettingsAsClassNames();
     }
 

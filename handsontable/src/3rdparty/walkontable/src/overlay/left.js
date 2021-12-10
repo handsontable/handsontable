@@ -23,8 +23,8 @@ export class LeftOverlay extends Overlay {
    * @param {Walkontable} wotInstance The Walkontable instance.
    * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(wotInstance, wtSettings, domBindings) {
-    super(wotInstance, CLONE_LEFT, wtSettings, domBindings);
+  constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
+    super(wotInstance, facadeGetter, CLONE_LEFT, wtSettings, domBindings);
   }
 
   /**
@@ -197,8 +197,7 @@ export class LeftOverlay extends Overlay {
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
     const { selections } = this.wot;
-    const selectionsCellBorderGetter = this.wtSettings.getSettingPure('selectionsCellBorderGetter');
-    const selectionCornerOffset = Math.abs(selectionsCellBorderGetter(selections)?.cornerCenterPointOffset ?? 0);
+    const selectionCornerOffset = Math.abs(selections?.getCell().getBorder(this.facadeGetter()).cornerCenterPointOffset ?? 0);
 
     this.clone.wtTable.hider.style.height = this.hider.style.height;
     holder.style.height = holder.parentNode.style.height;

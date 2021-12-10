@@ -4,6 +4,9 @@ import { objectEach } from '../../../helpers/object';
  * @todo Describe options.
  * @typedef SettingsPure
  *
+ * @property {Option} selectionDraw @todo desc.
+ * @property {Option} selectionsCellBorderGetter @todo desc.
+ * @property {Option} facade @todo desc.
  * @property {Option} cellRenderer Option `cellRenderer`.
  * @property {Option} columnHeaders Option `columnHeaders`.
  * @property {Option} columnWidth Option `columnWidth`.
@@ -121,7 +124,7 @@ export default class Settings {
     return {
       selectionDraw: void 0, //todo temporary to handle backward compatibility 
       selectionsCellBorderGetter: void 0, //todo temporary to handle backward compatibility
-      facadeInjector: void 0,
+      facade: void 0,
       table: void 0,
 
       // Determines whether the Walkontable instance is used as dataset viewer. When its instance is used as

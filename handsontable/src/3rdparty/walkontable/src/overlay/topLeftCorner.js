@@ -18,8 +18,8 @@ export class TopLeftCornerOverlay extends Overlay {
    * @param {Walkontable} wotInstance The Walkontable instance.
    * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(wotInstance, wtSettings, domBindings) {
-    super(wotInstance, CLONE_TOP_LEFT_CORNER, wtSettings, domBindings);
+  constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
+    super(wotInstance, facadeGetter, CLONE_TOP_LEFT_CORNER, wtSettings, domBindings);
   }
 
   /**

@@ -31,8 +31,8 @@ export class TopOverlay extends Overlay {
    * @param {Walkontable} wotInstance The Walkontable instance.
    * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(wotInstance, wtSettings, domBindings) {
-    super(wotInstance, CLONE_TOP, wtSettings, domBindings);
+  constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
+    super(wotInstance, facadeGetter,  CLONE_TOP, wtSettings, domBindings);
     this.cachedFixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
   }
 

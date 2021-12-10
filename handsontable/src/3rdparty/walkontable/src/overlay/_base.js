@@ -35,12 +35,12 @@ export class Overlay {
    * @param {CLONE_TYPES_ENUM} type The overlay type name (clone name).
    * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(wotInstance, type, wtSettings, domBindings) {
+  constructor(wotInstance, facadeGetter, type, wtSettings, domBindings) {
     defineGetter(this, 'wot', wotInstance, {
       writable: false,
     });
     this.domBindings = domBindings;
-
+    this.facadeGetter = facadeGetter;
     this.wtSettings = wtSettings;
 
     const {

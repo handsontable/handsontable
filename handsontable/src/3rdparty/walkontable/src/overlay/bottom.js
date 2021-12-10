@@ -29,8 +29,8 @@ export class BottomOverlay extends Overlay {
    * @param {Walkontable} wotInstance The Walkontable instance.
    * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(wotInstance, wtSettings, domBindings) {
-    super(wotInstance, CLONE_BOTTOM, wtSettings, domBindings);
+  constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
+    super(wotInstance, facadeGetter, CLONE_BOTTOM, wtSettings, domBindings);
     this.cachedFixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
   }
 

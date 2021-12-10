@@ -44,7 +44,7 @@ class Table {
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {*} domBindings @todo type and description
    */
-  constructor(wotInstance, table, wtSettings, domBindings) {
+  constructor(wotInstance,facadeGetter, table, wtSettings, domBindings) {
     this.domBindings = domBindings;
     /**
      * Indicates if this instance is of type `MasterTable` (i.e. It is NOT an overlay).
@@ -53,6 +53,7 @@ class Table {
      */
     this.isMaster = !wotInstance.cloneOverlay; // "instanceof" operator isn't used, because it caused a circular reference in Webpack
     this.wot = wotInstance;
+    this.facadeGetter = facadeGetter;
     this.wtSettings = wtSettings;
 
     // legacy support
@@ -504,7 +505,6 @@ class Table {
    */
   refreshSelections(fastDraw) {
     const { wot, wtSettings } = this;
-    const selectionDraw = this.wtSettings.getSettingPure('selectionDraw');
 
     if (!wot.selections) {
       return;
@@ -558,7 +558,7 @@ class Table {
     }
 
     for (let i = 0; i < len; i++) {
-      selectionDraw(highlights[i], fastDraw);
+      highlights[i].draw(this.facadeGetter(), fastDraw);
     }
   }
 

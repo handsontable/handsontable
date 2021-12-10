@@ -7,13 +7,38 @@ import Walkontable from '../core';
  * @inheritDoc
  */
 export default class WalkontableFacade {
-  constructor(settings) {
-    settings.selectionDraw = (selection, fastDraw) => {selection.draw(this, fastDraw)} ;//todo pass not by settings, use ioc
-    settings.selectionsCellBorderGetter = (selection) => selection?.getCell().getBorder(this); //todo pass not by settings, use ioc
-    settings.facadeInjector = (action, instancePosition, ...params) => { //todo rethink
-      params.splice(instancePosition,0, this)
-      action(...params);
-    }; 
+  /**
+   * Facades pool.
+   *
+   * @type {{[string]:WalkontableFacade}}
+   * @private
+   */
+  _facades={};
+  /**
+   * 
+   * @param {SettingsPure|Walkontable} settingsOrInstance
+   */
+  constructor(settingsOrInstance) {
+    if(settingsOrInstance instanceof Walkontable) {
+      this._wot = settingsOrInstance
+    }else {
+      this._initFromSettings(settingsOrInstance);
+    }
+  }
+
+  _initFromSettings(settings) {
+    const self = this; // while debugging, I see that `this` for settings.facade is settings.
+    //todo pass not by settings, use ioc
+    settings.selectionDraw = (selection, fastDraw) => { selection.draw(this, fastDraw)};
+    //todo pass not by settings, use ioc
+    settings.selectionsCellBorderGetter = (selection) => selection?.getCell().getBorder(this); 
+    
+    settings.facade = (instance) => {
+      const facade = new WalkontableFacade(instance);
+      
+      return () => facade;
+    };
+    
     this._wot = new Walkontable(settings.table, settings);
   }
   
@@ -117,4 +142,5 @@ export default class WalkontableFacade {
   destroy() {
     this._wot.destroy();
   }
+
 }
