@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue where the rendered selection could be shifted by 1px.",
+  "type": "fixed",
+  "issue": 8756,
+  "breaking": false,
+  "framework": "none"
+}
