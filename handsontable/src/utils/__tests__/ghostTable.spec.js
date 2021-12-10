@@ -226,6 +226,27 @@ describe('GhostTable', () => {
       expect(widthSpy.calls.argsFor(2)[0]).toBe(2);
       expect(widthSpy.calls.argsFor(2)[1]).toBe(53);
     });
+
+    it('should get rounded up widths when the browser calculates the columns as a decimal values', () => {
+      const hot = handsontable(hotSettings);
+      const widthSpy = jasmine.createSpy();
+      const samples = new Map();
+
+      gt = new Handsontable.__GhostTable(hot);
+
+      samples.clear();
+      samples.set(0, { strings: [{ value: 'Foo', row: 0, col: 0 }] });
+
+      gt.addColumn(0, samples);
+      gt.injectTable();
+
+      gt.table.table.style.width = '75.44px';
+
+      gt.getWidths(widthSpy);
+
+      expect(widthSpy.calls.count()).toBe(1);
+      expect(widthSpy.calls.argsFor(0)).toEqual([0, 76]);
+    });
   });
 
   it('should reset internal state after call `clean` method', () => {
