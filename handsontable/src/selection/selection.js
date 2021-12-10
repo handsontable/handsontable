@@ -6,7 +6,6 @@ import {
 } from './highlight/constants';
 import SelectionRange from './range';
 import { CellCoords } from './../3rdparty/walkontable/src';
-import { isPressedCtrlKey } from './../utils/keyStateObserver';
 import { createObjectPropListener, mixin } from './../helpers/object';
 import { isUndefined } from './../helpers/mixed';
 import { arrayEach } from './../helpers/array';
@@ -157,7 +156,7 @@ class Selection {
    * @param {CellCoords} coords Visual coords.
    * @param {boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
    *                                      only when 'selectionMode' is set as 'multiple'. If the argument is not defined
-   *                                      the default trigger will be used (isPressedCtrlKey() helper).
+   *                                      the default trigger will be used.
    * @param {boolean} [fragment=false] If `true`, the selection will be treated as a partial selection where the
    *                                   `setRangeEnd` method won't be called on every `setRangeStart` call.
    */
@@ -205,7 +204,7 @@ class Selection {
    * @param {CellCoords} coords Visual coords.
    * @param {boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
    *                                      only when 'selectionMode' is set as 'multiple'. If the argument is not defined
-   *                                      the default trigger will be used (isPressedCtrlKey() helper).
+   *                                      the default trigger will be used.
    */
   setRangeStartOnly(coords, multipleSelection) {
     this.setRangeStart(coords, multipleSelection, true);

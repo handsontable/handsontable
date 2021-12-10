@@ -30,10 +30,6 @@ import { CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/sr
 import Hooks from './pluginHooks';
 import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
-import {
-  startObserving as keyStateStartObserving,
-  stopObserving as keyStateStopObserving
-} from './utils/keyStateObserver';
 import { Selection } from './selection';
 import { MetaManager, DynamicCellMetaMod, replaceData } from './dataMap';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
@@ -139,8 +135,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {number}
    */
   this.executionSuspendedCounter = 0;
-
-  keyStateStartObserving(this.rootDocument);
 
   const shortcutManager = createShortcutManager({
     isActive: () => this.isListening(),
@@ -4026,8 +4020,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     this.getShortcutManager().destroy();
     metaManager.clearCache();
-
-    keyStateStopObserving();
 
     if (isRootInstance(instance)) {
       const licenseInfo = this.rootDocument.querySelector('#hot-display-license-info');

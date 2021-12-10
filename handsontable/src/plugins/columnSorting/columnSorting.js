@@ -9,7 +9,6 @@ import { arrayMap } from '../../helpers/array';
 import { BasePlugin } from '../base';
 import { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import Hooks from '../../pluginHooks';
-import { isPressedCtrlKey } from '../../utils/keyStateObserver';
 import { ColumnStatesManager } from './columnStatesManager';
 import {
   getNextSortOrder,
@@ -780,7 +779,7 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    if (this.wasClickableHeaderClicked(event, coords.col) && isPressedCtrlKey()) {
+    if (this.wasClickableHeaderClicked(event, coords.col) && this.hot.getShortcutManager().isCtrlPressed()) {
       controller.column = true;
     }
   }
@@ -798,7 +797,7 @@ export class ColumnSorting extends BasePlugin {
     }
 
     if (this.wasClickableHeaderClicked(event, coords.col)) {
-      if (isPressedCtrlKey()) {
+      if (this.hot.getShortcutManager().isCtrlPressed()) {
         this.hot.deselectCell();
         this.hot.selectColumns(coords.col);
       }

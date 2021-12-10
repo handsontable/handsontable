@@ -1,7 +1,6 @@
 import { ColumnSorting } from '../columnSorting';
 import { registerRootComparator } from '../columnSorting/sortService';
 import { wasHeaderClickedProperly } from '../columnSorting/utils';
-import { isPressedCtrlKey } from '../../utils/keyStateObserver';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { rootComparator } from './rootComparator';
 import { warnAboutPluginsConflict } from './utils';
@@ -263,7 +262,7 @@ export class MultiColumnSorting extends ColumnSorting {
     }
 
     if (this.wasClickableHeaderClicked(event, coords.col)) {
-      if (isPressedCtrlKey()) {
+      if (this.hot.getShortcutManager().isCtrlPressed()) {
         this.hot.deselectCell();
         this.hot.selectColumns(coords.col);
 
