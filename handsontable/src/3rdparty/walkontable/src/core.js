@@ -317,7 +317,7 @@ export default class Walkontable {
           return wot.wtViewport; //todo refactoring: move outside dao, use IOC
         },
         get rootWindow(){
-          return wot.rootWindow; //todo refactoring: move outside dao
+          return wot.domBindings.rootWindow; //todo refactoring: move outside dao
         },
         //todo refactoring, consider about using injecting wtSettings into scroll (it'll enables remove dao layer)
         get totalRows(){ 

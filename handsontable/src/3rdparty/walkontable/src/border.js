@@ -156,7 +156,7 @@ class Border {
    */
   createBorders(settings) {
     const { rootDocument } = this.wot;
-
+    debugger;
     this.main = rootDocument.createElement('div');
 
     const borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
@@ -361,7 +361,7 @@ class Border {
       return;
     }
 
-    const { wtTable, rootDocument, rootWindow } = this.wot;
+    const { wtTable, rootDocument, rootWindow } = this.wot; // todo refactoring: consider about using internal facade (it is given by external code)
     let fromRow;
     let toRow;
     let fromColumn;

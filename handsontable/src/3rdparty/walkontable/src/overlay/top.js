@@ -72,7 +72,7 @@ export class TopOverlay extends Overlay {
     let headerPosition = 0;
     let skipInnerBorderAdjusting = false;
 
-    if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+    if (this.trimmingContainer === this.domBindings.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const { wtTable } = this.wot;
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const top = Math.ceil(hiderRect.top);
@@ -128,7 +128,7 @@ export class TopOverlay extends Overlay {
    * @returns {boolean}
    */
   setScrollPosition(pos) {
-    const rootWindow = this.wot.rootWindow;
+    const rootWindow = this.domBindings.rootWindow;
     let result = false;
 
     if (this.mainTableScrollableElement === rootWindow && rootWindow.scrollY !== pos) {
@@ -190,7 +190,8 @@ export class TopOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
-    const { wtTable, rootDocument, rootWindow } = this.wot;
+    const { wtTable} = this.wot;
+    const { rootDocument, rootWindow } = this.domBindings;
     const scrollbarWidth = getScrollbarWidth(rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
@@ -287,7 +288,7 @@ export class TopOverlay extends Overlay {
     let scrollbarCompensation = 0;
 
     if (bottomEdge && mainHolder.offsetHeight !== mainHolder.clientHeight) {
-      scrollbarCompensation = getScrollbarWidth(wot.rootDocument);
+      scrollbarCompensation = getScrollbarWidth(this.domBindings.rootDocument);
     }
 
     if (bottomEdge) {
@@ -313,7 +314,7 @@ export class TopOverlay extends Overlay {
    * @returns {number}
    */
   getTableParentOffset() {
-    if (this.mainTableScrollableElement === this.wot.rootWindow) {
+    if (this.mainTableScrollableElement === this.domBindings.rootWindow) {
       return this.wot.wtTable.holderOffset.top;
 
     }
@@ -328,7 +329,7 @@ export class TopOverlay extends Overlay {
    * @returns {number} Main table's vertical scroll position.
    */
   getScrollPosition() {
-    return getScrollTop(this.mainTableScrollableElement, this.wot.rootWindow);
+    return getScrollTop(this.mainTableScrollableElement, this.domBindings.rootWindow);
   }
 
   /**

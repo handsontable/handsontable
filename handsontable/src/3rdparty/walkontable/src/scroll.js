@@ -150,6 +150,7 @@ class Scroll {
     let firstVisibleRow = wtTable.getFirstVisibleRow();
 
     if (topOverlay.mainTableScrollableElement === rootWindow) {
+      debugger;
       const rootElementOffset = offset(wtTable.wtRootElement);
       const totalTableHeight = innerHeight(wtTable.hider);
       const windowHeight = innerHeight(rootWindow);
@@ -192,6 +193,7 @@ class Scroll {
     let lastVisibleRow = wtTable.getLastVisibleRow();
 
     if (topOverlay.mainTableScrollableElement === rootWindow) {
+      debugger;
       const rootElementOffset = offset(wtTable.wtRootElement);
       const windowScrollTop = getScrollTop(rootWindow, rootWindow);
 
@@ -232,6 +234,7 @@ class Scroll {
     let firstVisibleColumn = wtTable.getFirstVisibleColumn();
 
     if (leftOverlay.mainTableScrollableElement === rootWindow) {
+      debugger;
       const rootElementOffset = offset(wtTable.wtRootElement);
       const totalTableWidth = innerWidth(wtTable.hider);
       const windowWidth = innerWidth(rootWindow);
@@ -273,6 +276,7 @@ class Scroll {
     let lastVisibleColumn = wtTable.getLastVisibleColumn();
 
     if (leftOverlay.mainTableScrollableElement === rootWindow) {
+      debugger
       const rootElementOffset = offset(wtTable.wtRootElement);
       const windowScrollLeft = getScrollLeft(rootWindow, rootWindow);
 

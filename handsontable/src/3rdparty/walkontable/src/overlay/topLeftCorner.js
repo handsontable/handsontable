@@ -59,7 +59,7 @@ export class TopLeftCornerOverlay extends Overlay {
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === this.wot.rootWindow) {
+    if (this.trimmingContainer === this.domBindings.rootWindow) {
       const { wtTable } = this.wot;
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const top = Math.ceil(hiderRect.top);

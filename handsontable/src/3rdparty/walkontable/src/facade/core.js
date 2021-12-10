@@ -92,6 +92,33 @@ export default class WalkontableFacade {
   set drawInterrupted(value){
     this._wot.drawInterrupted = value;
   }
+  get lastMouseOver(){
+    return this._wot.lastMouseOver;
+  }
+  set lastMouseOver(value){
+    this._wot.lastMouseOver = value;
+  }
+  get momentumScrolling(){
+    return this._wot.momentumScrolling;
+  }
+  set momentumScrolling(value){
+    this._wot.momentumScrolling = value;
+  }
+  get touchApplied(){
+    return this._wot.touchApplied;
+  }
+  set touchApplied(value){
+    this._wot.touchApplied = value;
+  }
+  get domBindings(){
+    return this._wot.domBindings;
+  }
+  get eventListeners(){
+    return this._wot.eventListeners;
+  }
+  set eventListeners(value){
+    this._wot.eventListeners = value;
+  }
   
   draw(fastDraw = false) {
      this._wot.draw(fastDraw);

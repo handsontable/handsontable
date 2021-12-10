@@ -64,7 +64,7 @@ export class LeftOverlay extends Overlay {
     let headerPosition = 0;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
+    if (this.trimmingContainer === this.domBindings.rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const left = Math.ceil(hiderRect.left);
       const right = Math.ceil(hiderRect.right);
@@ -104,7 +104,7 @@ export class LeftOverlay extends Overlay {
    * @returns {boolean}
    */
   setScrollPosition(pos) {
-    const { rootWindow } = this.wot;
+    const { rootWindow } = this.domBindings;
     let result = false;
 
     if (this.mainTableScrollableElement === rootWindow && rootWindow.scrollX !== pos) {
@@ -164,7 +164,8 @@ export class LeftOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
-    const { wtTable, rootDocument, rootWindow } = this.wot;
+    const { wtTable } = this.wot;
+    const { rootDocument, rootWindow } = this.domBindings;
     const scrollbarHeight = getScrollbarWidth(rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
@@ -255,7 +256,7 @@ export class LeftOverlay extends Overlay {
     let scrollbarCompensation = 0;
 
     if (beyondRendered && mainHolder.offsetWidth !== mainHolder.clientWidth) {
-      scrollbarCompensation = getScrollbarWidth(this.wot.rootDocument);
+      scrollbarCompensation = getScrollbarWidth(this.domBindings.rootDocument);
     }
     if (beyondRendered) {
       newX += this.sumCellSizes(0, sourceCol + 1);
@@ -279,7 +280,7 @@ export class LeftOverlay extends Overlay {
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let offset = 0;
 
-    if (!preventOverflow && this.trimmingContainer === this.wot.rootWindow) {
+    if (!preventOverflow && this.trimmingContainer === this.domBindings.rootWindow) {
       offset = this.wot.wtTable.holderOffset.left;
     }
 
@@ -292,7 +293,7 @@ export class LeftOverlay extends Overlay {
    * @returns {number} Main table's vertical scroll position.
    */
   getScrollPosition() {
-    return getScrollLeft(this.mainTableScrollableElement, this.wot.rootWindow);
+    return getScrollLeft(this.mainTableScrollableElement, this.domBindings.rootWindow);
   }
 
   /**

@@ -47,6 +47,7 @@ class MasterTable extends Table {
           trimmingElementParent.appendChild(cloneNode);
         }
 
+        debugger;
         const cloneHeight = parseInt(getComputedStyle(cloneNode, rootWindow).height, 10);
 
         trimmingElementParent.removeChild(cloneNode);

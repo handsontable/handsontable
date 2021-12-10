@@ -72,8 +72,9 @@ export class BottomOverlay extends Overlay {
     let headerPosition = 0;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
-      const { rootDocument, wtTable } = this.wot;
+    if (this.trimmingContainer === this.domBindings.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+      const { wtTable } = this.wot;
+      const { rootDocument } = this.domBindings;
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(hiderRect.bottom);
       const bodyHeight = rootDocument.documentElement.clientHeight;
@@ -111,7 +112,8 @@ export class BottomOverlay extends Overlay {
    * Updates the bottom overlay position.
    */
   repositionOverlay() {
-    const { wtTable, rootDocument } = this.wot;
+    const { wtTable } = this.wot;
+    const { rootDocument } = this.domBindings;
     const cloneRoot = this.clone.wtTable.holder.parentNode;
     let scrollbarWidth = getScrollbarWidth(rootDocument);
 
@@ -129,7 +131,7 @@ export class BottomOverlay extends Overlay {
    * @returns {boolean}
    */
   setScrollPosition(pos) {
-    const { rootWindow } = this.wot;
+    const { rootWindow } = this.domBindings;
     let result = false;
 
     if (this.mainTableScrollableElement === rootWindow) {
@@ -192,8 +194,9 @@ export class BottomOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
-    const { wtTable, wtViewport, rootWindow } = this.wot;
-    const scrollbarWidth = getScrollbarWidth(this.wot.rootDocument);
+    const { wtTable, wtViewport } = this.wot;
+    const { rootDocument, rootWindow } = this.domBindings;
+    const scrollbarWidth = getScrollbarWidth(rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
@@ -283,7 +286,7 @@ export class BottomOverlay extends Overlay {
     let scrollbarCompensation = 0;
 
     if (bottomEdge && mainHolder.offsetHeight !== mainHolder.clientHeight) {
-      scrollbarCompensation = getScrollbarWidth(this.wot.rootDocument);
+      scrollbarCompensation = getScrollbarWidth(this.domBindings.rootDocument);
     }
 
     if (bottomEdge) {
@@ -306,7 +309,7 @@ export class BottomOverlay extends Overlay {
    * @returns {number}
    */
   getTableParentOffset() {
-    if (this.mainTableScrollableElement === this.wot.rootWindow) {
+    if (this.mainTableScrollableElement === this.domBindings.rootWindow) {
       return this.wot.wtTable.holderOffset.top;
     }
 
@@ -319,7 +322,7 @@ export class BottomOverlay extends Overlay {
    * @returns {number} Main table's vertical scroll position.
    */
   getScrollPosition() {
-    return getScrollTop(this.mainTableScrollableElement, this.wot.rootWindow);
+    return getScrollTop(this.mainTableScrollableElement, this.domBindings.rootWindow);
   }
 
   /**

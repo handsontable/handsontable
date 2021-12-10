@@ -62,8 +62,9 @@ export class BottomLeftCornerOverlay extends Overlay {
 
     overlayRoot.style.top = '';
 
-    if (this.trimmingContainer === wot.rootWindow) {
-      const { rootDocument, wtTable } = this.wot;
+    if (this.trimmingContainer === this.domBindings.rootWindow) {
+      const { wtTable } = this.wot;
+      const { rootDocument } = this.domBindings;
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(hiderRect.bottom);
       const left = Math.ceil(hiderRect.left);
@@ -111,7 +112,8 @@ export class BottomLeftCornerOverlay extends Overlay {
    * Reposition the overlay.
    */
   repositionOverlay() {
-    const { wtTable, rootDocument } = this.wot;
+    const { wtTable } = this.wot;
+    const { rootDocument } = this.domBindings;
     const cloneRoot = this.clone.wtTable.holder.parentNode;
     let scrollbarWidth = getScrollbarWidth(rootDocument);
 
