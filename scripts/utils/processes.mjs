@@ -5,6 +5,7 @@ import execa from 'execa';
  *
  * @param {string} command The command to spawn.
  * @param {object} [options] Options object to be passed to the child process.
+ * @returns {execa.ExecaChildProcess}
  */
 export async function spawnProcess(command, options = {}) {
   const cmdSplit = command.split(' ');

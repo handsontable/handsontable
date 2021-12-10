@@ -7,11 +7,11 @@ import path from 'path';
 import {
   displayConfirmationMessage,
   displayWarningMessage
-} from './utils/index.mjs';
+} from './utils/console.mjs';
 
 const [pkgName] = process.argv.slice(2);
 const PACKAGE_LOCATIONS = new Map([
-  ['handsontable', './tmp'],
+  ['handsontable', './handsontable/tmp'],
   ['@handsontable/angular', './wrappers/angular/dist/hot-table']
 ]);
 const linkPackage = (packageName, packageLocation) => {
@@ -23,6 +23,7 @@ const linkPackage = (packageName, packageLocation) => {
     fse.ensureSymlinkSync(
       path.resolve(`${packageLocation}`),
       path.resolve(`./node_modules/${packageName}`),
+      'junction',
     );
 
     displayConfirmationMessage(`Symlink created ${packageName} -> ${packageLocation}.`);

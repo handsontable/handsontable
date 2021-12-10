@@ -3,20 +3,15 @@ import {
   mount,
   ReactWrapper
 } from 'enzyme';
+import { HotTable } from '../src/hotTable';
+import { HotColumn } from '../src/hotColumn';
 import {
-  HotTable
-} from '../src/hotTable';
-import {
-  HotColumn
-} from '../src/hotColumn';
-import {
+  createSpreadsheetData,
   mockElementDimensions,
   sleep,
-  RendererComponent,
-  EditorComponent
 } from './_helpers';
+import { HOT_DESTROYED_WARNING } from "../src/helpers";
 import { BaseEditorComponent } from '../src/baseEditorComponent';
-import Handsontable from 'handsontable';
 
 beforeEach(() => {
   let container = document.createElement('DIV');
@@ -25,7 +20,7 @@ beforeEach(() => {
 });
 
 describe('Subcomponent state', () => {
-  it('should be possible to set the state of the renderer components passed to HotTable and HotColumn', async (done) => {
+  it('should be possible to set the state of the renderer components passed to HotTable and HotColumn', async () => {
     class RendererComponent2 extends React.Component<any, any, any> {
       constructor(props) {
         super(props);
@@ -49,7 +44,7 @@ describe('Subcomponent state', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -95,10 +90,9 @@ describe('Subcomponent state', () => {
     expect(hotInstance.getCell(0, 1).innerHTML).toEqual('<div>altered as well</div>');
 
     wrapper.detach();
-    done();
   });
 
-  it('should be possible to set the state of the editor components passed to HotTable and HotColumn', async (done) => {
+  it('should be possible to set the state of the editor components passed to HotTable and HotColumn', async () => {
     class RendererEditor2 extends BaseEditorComponent {
       constructor(props) {
         super(props);
@@ -122,7 +116,7 @@ describe('Subcomponent state', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -162,12 +156,11 @@ describe('Subcomponent state', () => {
     expect(document.querySelector('#second-editor').innerHTML).toEqual('altered as well');
 
     wrapper.detach();
-    done();
   });
 });
 
 describe('Component lifecyle', () => {
-  it('renderer components should trigger their lifecycle methods', async (done) => {
+  it('renderer components should trigger their lifecycle methods', async () => {
     class RendererComponent2 extends React.Component<any, any, any> {
       constructor(props) {
         super(props);
@@ -209,7 +202,7 @@ describe('Component lifecyle', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -258,10 +251,9 @@ describe('Component lifecyle', () => {
     });
 
     wrapper.detach();
-    done();
   });
 
-  it('editor components should trigger their lifecycle methods', async (done) => {
+  it('editor components should trigger their lifecycle methods', async () => {
     class EditorComponent2 extends BaseEditorComponent {
       constructor(props) {
         super(props);
@@ -310,7 +302,7 @@ describe('Component lifecyle', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 rowHeights={23}
@@ -345,6 +337,39 @@ describe('Component lifecyle', () => {
     });
 
     wrapper.detach();
-    done();
+  });
+
+  it('should display a warning and not throw any errors, when the underlying Handsontable instance ' +
+    'has been destroyed', async () => {
+    const warnFunc = console.warn;
+    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+      <HotTable
+        id="test-hot"
+        data={[[2]]}
+        licenseKey="non-commercial-and-evaluation"
+      />, {attachTo: document.body.querySelector('#hotContainer')}
+    );
+    const warnCalls = [];
+
+    await sleep(300);
+
+    console.warn = (warningMessage) => {
+      warnCalls.push(warningMessage);
+    };
+
+    expect(wrapper.instance().hotInstance.isDestroyed).toEqual(false);
+
+    wrapper.instance().hotInstance.destroy();
+
+    expect(wrapper.instance().hotInstance).toEqual(null);
+
+    expect(warnCalls.length).toBeGreaterThan(0);
+    warnCalls.forEach((message) => {
+      expect(message).toEqual(HOT_DESTROYED_WARNING);
+    });
+
+    wrapper.detach();
+
+    console.warn = warnFunc;
   });
 });

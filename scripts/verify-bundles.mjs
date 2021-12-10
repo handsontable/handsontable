@@ -5,6 +5,7 @@ import {
   displayConfirmationMessage,
   displayErrorMessage
 } from './utils/console.mjs';
+import hotConfig from '../hot.config.js';
 
 // TODO: The bundle verification script was moved to a separate file because of a problem with React and Node 15
 //  (https://github.com/facebook/react/issues/20756). Having this script in a separate file, allows killing its
@@ -33,21 +34,25 @@ async function verifyBundles() {
     },
     '@handsontable/vue': {
       className: 'HotTable'
+    },
+    '@handsontable/vue3': {
+      className: 'HotTable'
     }
   };
-  const {default: hotPackageJson} = await import('../package.json');
-  const workspacePackages = hotPackageJson.workspaces.packages;
+  const { default: mainPackageJson } = await import('../package.json');
+  const workspacePackages = mainPackageJson.workspaces;
   const mismatchedVersions = [];
+
   JSDOMGlobal();
 
-  console.log(`\nMain package.json version:\n${chalk.green(hotPackageJson.version)}\n`);
+  console.log(`\nHOT config version:\n${chalk.green(hotConfig.HOT_VERSION)}\n`);
 
   for (const packagesLocation of workspacePackages) {
     const subdirs = glob.sync(packagesLocation);
 
     for (const subdir of subdirs) {
       const packageJsonLocation = `../${subdir}/package.json`;
-      const {default: packageJson} = await import(packageJsonLocation);
+      const { default: packageJson } = await import(packageJsonLocation);
       const packageName = packageJson.name;
 
       if (packagesInfo[packageName]) {
@@ -55,7 +60,7 @@ async function verifyBundles() {
           packagesInfo[packageName].entryFile ?
             `../${subdir}/${packagesInfo[packageName].entryFile}` :
             packageName
-          );
+        );
         let defaultPackageVersion = null;
         let umdPackageVersion = null;
         let umdPackage = null;
@@ -65,7 +70,7 @@ async function verifyBundles() {
             packagesInfo[packageName].entryFile ?
               `../${subdir}/${packagesInfo[packageName].umd}` :
               `${packageName}/${packageJson.jsdelivr}`
-            );
+          );
           umdPackage = umdPackage.default;
         }
 
@@ -80,11 +85,11 @@ async function verifyBundles() {
           }
         }
 
-        if (hotPackageJson.version !== defaultPackageVersion) {
+        if (hotConfig.HOT_VERSION !== defaultPackageVersion) {
           mismatchedVersions.push(`${packageName} (default) - ${defaultPackageVersion}`);
         }
 
-        if (umdPackageVersion && (hotPackageJson.version !== umdPackageVersion)) {
+        if (umdPackageVersion && (hotConfig.HOT_VERSION !== umdPackageVersion)) {
           mismatchedVersions.push(`${packageName} (UMD) - ${umdPackageVersion}`);
         }
       }

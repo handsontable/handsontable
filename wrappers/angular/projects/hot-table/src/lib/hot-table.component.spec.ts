@@ -1,7 +1,15 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import { HotTableModule, HotTableRegisterer } from '@handsontable/angular';
+import { HOT_DESTROYED_WARNING } from '../lib/hot-table-registerer.service';
+import { createSpreadsheetData } from './helpers';
+import {
+  registerPlugin,
+  CopyPaste,
+} from 'handsontable/plugins';
+
+registerPlugin(CopyPaste);
 
 @Component({
   selector: 'hot-test-component',
@@ -59,7 +67,7 @@ describe('HotTableComponent', () => {
       const app = fixture.componentInstance;
 
       app.prop['settings'] = {
-        data: Handsontable.helper.createSpreadsheetData(5, 5)
+        data: createSpreadsheetData(5, 5)
       };
 
       fixture.detectChanges();
@@ -320,6 +328,46 @@ describe('HotTableComponent', () => {
         app.getHotInstance(app.id).setDataAtCell(0, 0, 'test');
 
         expect(afterChangeResult).toBe(false);
+      });
+    });
+  });
+
+  describe(`internal Handsontable instance`, () => {
+    it(`should display a warning and not throw any errors, when the underlying Handsontable instance ` +
+      `has been destroyed`, async() => {
+      const warnFunc = console.warn;
+      const warnCalls = [];
+      TestBed.overrideComponent(TestComponent, {
+        set: {
+          template: `<hot-table [hotId]="id" [settings]="prop.settings"></hot-table>`
+        }
+      });
+
+      console.warn = (warningMessage) => {
+        warnCalls.push(warningMessage);
+      };
+
+      await TestBed.compileComponents().then(() => {
+        fixture = TestBed.createComponent(TestComponent);
+        const app = fixture.componentInstance;
+
+        app.prop['settings'] = {
+          data: createSpreadsheetData(5, 5)
+        };
+
+        fixture.detectChanges();
+
+        expect(app.getHotInstance(app.id).isDestroyed).toEqual(false);
+
+        app.getHotInstance(app.id).destroy();
+
+        expect(app.getHotInstance(app.id)).toEqual(null);
+        expect(warnCalls.length).toBeGreaterThan(0);
+        warnCalls.forEach((message) => {
+          expect(message).toEqual(HOT_DESTROYED_WARNING);
+        });
+
+        console.warn = warnFunc;
       });
     });
   });

@@ -1,7 +1,0 @@
-{
-  "title": "Fix \"trimWhitespace\" tests on Firefox",
-  "type": "fixed",
-  "issue": 7593,
-  "breaking": false,
-  "framework": "none"
-}

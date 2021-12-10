@@ -1,13 +1,14 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import Vue, { VNode } from 'vue';
 import { ThisTypedComponentOptionsWithRecordProps } from 'vue/types/options';
 
 export interface HotTableData {
   __internalEdit: boolean,
+  __hotInstance: Handsontable | null,
   miscCache?: {
     currentSourceColumns?: number
   },
-  hotInstance?: Handsontable,
+  hotInstance?: Handsontable | null,
   columnSettings: HotTableProps[],
   rendererCache: any, // temporary `any`, TODO: use the LRU definition here
   editorCache: Map<string, EditorComponent>
@@ -20,7 +21,7 @@ export interface HotTableMethods {
   getGlobalEditorVNode: () => VNode | void,
   getRendererWrapper: (vNode: VNode, containerComponent: Vue) => (...args) => HTMLElement,
   getEditorClass: (vNode: VNode, containerComponent: Vue) => typeof Handsontable.editors.BaseEditor,
-  matchHotMappersSize: (data: any[][]) => void
+  matchHotMappersSize: () => void
 }
 
 export interface HotTableProps extends Handsontable.GridSettings {

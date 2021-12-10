@@ -31,7 +31,7 @@
     "puppeteer": "7.0.4",
     "react-app-rewired": "2.1.8"
   },
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE.txt",
   "eslintConfig": {
     "extends": [
       "react-app",

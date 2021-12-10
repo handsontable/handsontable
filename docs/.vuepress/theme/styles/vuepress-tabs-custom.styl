@@ -1,0 +1,74 @@
+/*
+  Customization of the VuePress Tabs plugin
+  https://www.npmjs.com/package/vuepress-plugin-tabs
+  Copyright (c) 2018 Panagiotis Skordilakis
+  The MIT license
+*/
+
+.tabs-component {
+  margin 1em 0;
+  border: 1px solid #cfdbe4;
+
+  ul.tabs-component-tabs {
+    margin: 0;
+    padding-left: 0;
+    border: none;
+    border-bottom: 1px solid #cfdbe4;
+    background-color: #fafbff;
+    overflow-x: auto;
+
+    /* overwrite default styles for all resolutions */
+    align-items: stretch;
+    display: flex;
+    justify-content: flex-start;
+    padding-inline-start: 0;
+    width: 100%;
+    border-radius: 0!important;
+
+    @media (max-width: $MQMobileNarrow) {
+      display: block;
+    }
+
+    li.tabs-component-tab {
+      margin-right: 0;
+      border-radius: 0;
+      border: none;
+      background: transparent;
+
+      a.tabs-component-tab-a {
+        padding: 0.5em 1.4em;
+        color: $textColor;
+
+        &:hover {
+          text-decoration: none;
+        }
+      }
+
+      &.is-disabled a {
+        color: #CFDBE4;
+      }
+
+      &.is-active {
+        border-bottom: 2px solid #104bcd;
+
+        &:hover a {
+          color: $textColor;
+        }
+      }
+    }
+  }
+
+  .tabs-component-panels {
+    // prevent Handsontable's container from expanding rapidly on load
+    //min-height: 180px;
+    padding: 10px;
+    box-shadow: none;
+    border: none;
+    background: transparent;
+
+    pre {
+      margin: 0;
+      border-radius: 0;
+    }
+  }
+}

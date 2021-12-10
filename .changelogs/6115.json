@@ -1,7 +1,0 @@
-{
-  "title": "Fixed bug where number of columns rendered in the viewport wasn't proper",
-  "type": "fixed",
-  "issue": 6115,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,0 +1,10 @@
+{
+  "name": "examples-react-9.0.0",
+  "version": "9.0.0",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "@(!(node_modules))/"
+    ]
+  }
+}

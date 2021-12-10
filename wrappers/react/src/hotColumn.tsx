@@ -6,11 +6,11 @@ import {
   getExtendedEditorElement
 } from './helpers';
 import { SettingsMapper } from './settingsMapper';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 
 class HotColumn extends React.Component<HotColumnProps, {}> {
   internalProps: string[];
-  columnSettings: Handsontable.GridSettings;
+  columnSettings: Handsontable.ColumnSettings;
 
   /**
    * Local editor portal cache.
@@ -86,7 +86,7 @@ class HotColumn extends React.Component<HotColumnProps, {}> {
    * @returns {React.ReactElement} React editor component element.
    */
   getLocalEditorElement(): React.ReactElement | null {
-    return getExtendedEditorElement(this.props.children, this.props._getEditorCache());
+    return getExtendedEditorElement(this.props.children, this.props._getEditorCache(), this.props._columnIndex);
   }
 
   /**
@@ -96,7 +96,7 @@ class HotColumn extends React.Component<HotColumnProps, {}> {
     const rendererElement: React.ReactElement = this.props._getChildElementByType(this.props.children, 'hot-renderer');
     const editorElement: React.ReactElement = this.getLocalEditorElement();
 
-    this.columnSettings = SettingsMapper.getSettings(this.getSettingsProps());
+    this.columnSettings = SettingsMapper.getSettings(this.getSettingsProps()) as unknown as Handsontable.ColumnSettings;
 
     if (rendererElement !== null) {
       this.columnSettings.renderer = this.props._getRendererWrapper(rendererElement);
@@ -110,7 +110,7 @@ class HotColumn extends React.Component<HotColumnProps, {}> {
     }
 
     if (editorElement !== null) {
-      this.columnSettings.editor = this.props._getEditorClass(editorElement);
+      this.columnSettings.editor = this.props._getEditorClass(editorElement, this.props._columnIndex);
 
     } else if (this.hasProp('editor')) {
       this.columnSettings.editor = this.props.editor;
@@ -127,7 +127,7 @@ class HotColumn extends React.Component<HotColumnProps, {}> {
    */
   createLocalEditorPortal(children = this.props.children): void {
     const editorCache = this.props._getEditorCache();
-    const localEditorElement: React.ReactElement = getExtendedEditorElement(children, editorCache);
+    const localEditorElement: React.ReactElement = getExtendedEditorElement(children, editorCache, this.props._columnIndex);
 
     if (localEditorElement) {
       this.setLocalEditorPortal(createEditorPortal(this.props._getOwnerDocument(), localEditorElement, editorCache));

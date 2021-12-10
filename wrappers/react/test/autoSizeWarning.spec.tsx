@@ -3,6 +3,7 @@ import {
   mount,
   ReactWrapper
 } from 'enzyme';
+import { registerAllModules } from 'handsontable/registry';
 import {
   HotTable
 } from '../src/hotTable';
@@ -10,13 +11,13 @@ import {
   HotColumn
 } from '../src/hotColumn';
 import {
+  createSpreadsheetData,
   mockElementDimensions,
   sleep
 } from './_helpers';
 import {
   AUTOSIZE_WARNING
 } from '../src/helpers';
-import Handsontable from 'handsontable';
 
 beforeEach(() => {
   let container = document.createElement('DIV');
@@ -24,9 +25,11 @@ beforeEach(() => {
   document.body.appendChild(container);
 });
 
+registerAllModules();
+
 describe('`autoRowSize`/`autoColumns` warning', () => {
   it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a global component-based renderer' +
-    'is defined (using the default Handsontable settings - autoColumnSize is enabled by default)', async (done) => {
+    'is defined (using the default Handsontable settings - autoColumnSize is enabled by default)', async () => {
     console.warn = jasmine.createSpy('warn');
 
     const RendererComponent = function (props) {
@@ -36,7 +39,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 init={function () {
@@ -51,11 +54,10 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
 
     wrapper.detach();
-    done();
   });
 
   it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a global component-based renderer' +
-    'is defined', async (done) => {
+    'is defined', async () => {
     console.warn = jasmine.createSpy('warn');
 
     const RendererComponent = function (props) {
@@ -65,7 +67,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 2)}
+                data={createSpreadsheetData(3, 2)}
                 width={300}
                 height={300}
                 autoRowSize={false}
@@ -82,11 +84,10 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
 
     wrapper.detach();
-    done();
   });
 
   it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a component-based renderer' +
-    'is defined for any column (using the default Handsontable settings - autoColumnSize enabled by default)', async (done) => {
+    'is defined for any column (using the default Handsontable settings - autoColumnSize enabled by default)', async () => {
     console.warn = jasmine.createSpy('warn');
 
     const RendererComponent = function (props) {
@@ -96,7 +97,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 init={function () {
@@ -115,11 +116,10 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
 
     wrapper.detach();
-    done();
   });
 
   it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a component-based renderer' +
-    'is defined for any column', async (done) => {
+    'is defined for any column', async () => {
     console.warn = jasmine.createSpy('warn');
 
     const RendererComponent = function (props) {
@@ -129,7 +129,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 autoColumnSize={false}
@@ -150,10 +150,9 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
 
     wrapper.detach();
-    done();
   });
 
-  it('should throw a warning, when `autoRowSize` or `autoColumnSize` is defined, and both function-based and component-based renderers are defined', async (done) => {
+  it('should throw a warning, when `autoRowSize` or `autoColumnSize` is defined, and both function-based and component-based renderers are defined', async () => {
     console.warn = jasmine.createSpy('warn');
 
     const RendererComponent = function (props) {
@@ -163,7 +162,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 autoRowSize={false}
@@ -189,16 +188,15 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
 
     wrapper.detach();
-    done();
   });
 
-  it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only global function-based renderers were defined', async (done) => {
+  it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only global function-based renderers were defined', async () => {
     console.warn = jasmine.createSpy('warn');
 
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 autoRowSize={true}
@@ -218,16 +216,15 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     expect(console.warn).not.toHaveBeenCalled();
 
     wrapper.detach();
-    done();
   });
 
-  it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only function-based renderers were defined for columns', async (done) => {
+  it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only function-based renderers were defined for columns', async () => {
     console.warn = jasmine.createSpy('warn');
 
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 autoRowSize={true}
@@ -247,17 +244,16 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     expect(console.warn).not.toHaveBeenCalled();
 
     wrapper.detach();
-    done();
   });
 
   it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only function-based renderers were defined for columns, when ' +
-    'the `columns` option is defined as a function', async (done) => {
+    'the `columns` option is defined as a function', async () => {
     console.warn = jasmine.createSpy('warn');
 
     const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
-                data={Handsontable.helper.createSpreadsheetData(3, 3)}
+                data={createSpreadsheetData(3, 3)}
                 width={300}
                 height={300}
                 autoRowSize={false}
@@ -281,6 +277,5 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     expect(console.warn).not.toHaveBeenCalled();
 
     wrapper.detach();
-    done();
   });
 });

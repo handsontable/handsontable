@@ -1,9 +1,15 @@
 import Vue, { VNode } from 'vue';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import { HotTableProps, VueProps, EditorComponent } from './types';
 
 const unassignedPropSymbol = Symbol('unassigned');
 let bulkComponentContainer = null;
+
+/**
+ * Message for the warning thrown if the Handsontable instance has been destroyed.
+ */
+export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' +
+  ' used properly.';
 
 /**
  * Rewrite the settings object passed to the watchers to be a clean array/object prepared to use within Handsontable config.
@@ -44,25 +50,27 @@ export function rewriteSettings(observerSettings): any[] | object {
  * @private
  */
 export function preventInternalEditWatch(component) {
-  component.hotInstance.addHook('beforeChange', () => {
-    component.__internalEdit = true;
-  });
+  if (component.hotInstance) {
+    component.hotInstance.addHook('beforeChange', () => {
+      component.__internalEdit = true;
+    });
 
-  component.hotInstance.addHook('beforeCreateRow', () => {
-    component.__internalEdit = true;
-  });
+    component.hotInstance.addHook('beforeCreateRow', () => {
+      component.__internalEdit = true;
+    });
 
-  component.hotInstance.addHook('beforeCreateCol', () => {
-    component.__internalEdit = true;
-  });
+    component.hotInstance.addHook('beforeCreateCol', () => {
+      component.__internalEdit = true;
+    });
 
-  component.hotInstance.addHook('beforeRemoveRow', () => {
-    component.__internalEdit = true;
-  });
+    component.hotInstance.addHook('beforeRemoveRow', () => {
+      component.__internalEdit = true;
+    });
 
-  component.hotInstance.addHook('beforeRemoveCol', () => {
-    component.__internalEdit = true;
-  });
+    component.hotInstance.addHook('beforeRemoveCol', () => {
+      component.__internalEdit = true;
+    });
+  }
 }
 
 /**

@@ -13,12 +13,11 @@ import {
   displayWarningMessage
 } from '../../scripts/utils/index.mjs';
 import examplesPackageJson from '../package.json';
-import hotPackageJson from '../../package.json';
+import mainPackageJson from '../../package.json';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const workspaces = examplesPackageJson.workspaces.packages;
-const hotWorkspaces = hotPackageJson.workspaces.packages;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const workspaces = examplesPackageJson.workspaces;
+const hotWorkspaces = mainPackageJson.workspaces;
 const isPackageRequired = (packageName, packageLocation) => {
   const frameworkName = packageName.split('/').pop() || null;
 
@@ -41,7 +40,8 @@ const linkPackage = (sourceLocation, linkLocation, packageName, exampleDir = fal
 
       fse.ensureSymlinkSync(
         path.resolve(`${sourceLocation}/${packageName}`),
-        path.resolve(`${linkLocation}/${packageName}`)
+        path.resolve(`${linkLocation}/${packageName}`),
+        'junction',
       );
 
     } catch (e) {
@@ -103,7 +103,7 @@ workspaces.forEach((packagesLocation) => {
       if (frameworkName === `angular`) {
         const angularPackageJson = fse.readJSONSync(`${packageLocation}/package.json`);
 
-        angularPackageJson?.workspaces?.packages.forEach((angularPackagesLocation) => {
+        angularPackageJson?.workspaces.forEach((angularPackagesLocation) => {
           const angularPackageDirs = glob.sync(`${packageLocation}/${angularPackagesLocation}`);
 
           angularPackageDirs.forEach((angularPackageLocation) => {

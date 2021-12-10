@@ -34,7 +34,7 @@
     "puppeteer": "7.1.0",
     "vue-template-compiler": "2.6.12"
   },
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE.txt",
   "eslintConfig": {
     "root": true,
     "env": {

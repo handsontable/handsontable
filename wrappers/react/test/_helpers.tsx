@@ -15,6 +15,50 @@ export function sleep(delay = 100) {
   });
 }
 
+/**
+ * Generates spreadsheet-like column names: A, B, C, ..., Z, AA, AB, etc.
+ *
+ * @param {number} index Column index.
+ * @returns {string}
+ */
+export function spreadsheetColumnLabel(index) {
+  let dividend = index + 1;
+  let columnLabel = '';
+  let modulo;
+
+  while (dividend > 0) {
+    modulo = (dividend - 1) % 26;
+    columnLabel = String.fromCharCode(65 + modulo) + columnLabel;
+    dividend = parseInt((dividend - modulo) / 26, 10);
+  }
+
+  return columnLabel;
+}
+
+/**
+ * Creates 2D array of Excel-like values "A1", "A2", ...
+ *
+ * @param {number} rows Number of rows to generate.
+ * @param {number} columns Number of columns to generate.
+ * @returns {Array}
+ */
+export function createSpreadsheetData(rows = 100, columns = 4) {
+  const _rows = [];
+  let i;
+  let j;
+
+  for (i = 0; i < rows; i++) {
+    const row = [];
+
+    for (j = 0; j < columns; j++) {
+      row.push(spreadsheetColumnLabel(j) + (i + 1));
+    }
+    _rows.push(row);
+  }
+
+  return _rows;
+}
+
 export function mockElementDimensions(element, width, height) {
   Object.defineProperty(element, 'clientWidth', {
     value: width
@@ -32,12 +76,30 @@ export function mockElementDimensions(element, width, height) {
 }
 
 export function simulateKeyboardEvent(type, keyCode) {
-  const event = document.createEvent('KeyboardEvent');
-  const init = (event as any).initKeyboardEvent !== void 0 ? 'initKeyboardEvent' : 'initKeyEvent';
+  const newEvent = document.createEvent('KeyboardEvent');
+  // const init = (event as any).initKeyboardEvent !== void 0 ? 'initKeyboardEvent' : 'initKeyEvent';
 
-  event[init](type, true, true, window, false, false, false, false, keyCode, 0);
+  // Chromium Hack
+  Object.defineProperty(newEvent, 'keyCode', {
+    get : function() {
+        return this.keyCodeVal;
+    }
+  });
+  Object.defineProperty(newEvent, 'which', {
+      get : function() {
+          return this.keyCodeVal;
+      }
+  });
 
-  document.activeElement.dispatchEvent(event);
+  if ((newEvent as any).initKeyboardEvent !== void 0) {
+    newEvent.initKeyboardEvent(type, true, true, window, keyCode, keyCode, '', '', false, '');
+  } else {
+    newEvent.initKeyEvent(type, true, true, window, false, false, false, false, keyCode, 0);
+  }
+
+  newEvent.keyCodeVal = keyCode;
+
+  document.activeElement.dispatchEvent(newEvent);
 }
 
 export function simulateMouseEvent(element, type) {

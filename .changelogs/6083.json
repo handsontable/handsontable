@@ -1,7 +1,0 @@
-{
-  "title": "The native selection won't be deselected anymore when `fragmentSelection` option is enabled",
-  "type": "fixed",
-  "issue": 6083,
-  "breaking": false,
-  "framework": "none"
-}

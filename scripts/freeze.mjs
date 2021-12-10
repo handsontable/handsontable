@@ -5,17 +5,30 @@
  * It takes extends the committed changes with a new version and release date, runs builds and tests and pushes the
  * changes to the release branch.
  */
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
 import inquirer from 'inquirer';
 import semver from 'semver';
 import {
   cleanNodeModules,
-  displayErrorMessage,
-  displaySeparator,
   scheduleRelease,
-  spawnProcess
+  spawnProcess,
+  displayErrorMessage,
+  displaySeparator
 } from './utils/index.mjs';
 
-const [version, releaseDate] = process.argv.slice(2);
+const argv = yargs(hideBin(process.argv))
+  .boolean('commit')
+  .default('commit', false)
+  .describe('commit', '`true` if the state of the repo should be committed automatically at the end of the freeze' +
+    ' process.')
+  .boolean('push')
+  .default('push', false)
+  .describe('push', '`true` if the state of the repo should be pushed to remote automatically at the end of the' +
+    ' freeze process.')
+  .argv;
+
+const [version, releaseDate] = argv._;
 
 displaySeparator();
 
@@ -39,8 +52,8 @@ displaySeparator();
     const processInfo = await spawnProcess('npm --version', { silent: true });
     const npmVersion = processInfo.stdout.toString();
 
-    if (!semver.satisfies(npmVersion, '>=7.2.0')) {
-      displayErrorMessage('The minimum required npm version is 7.2.0');
+    if (!semver.satisfies(npmVersion, '>=7.17.0')) {
+      displayErrorMessage('The minimum required npm version is 7.17.0');
       process.exit(1);
     }
   }
@@ -88,13 +101,19 @@ displaySeparator();
   cleanNodeModules();
 
   // Install fresh dependencies
-  await spawnProcess('npm i');
+  await spawnProcess('npm i --no-audit');
 
   // Clear old package builds.
-  await spawnProcess('npm run all clean');
+  await spawnProcess('npm run all clean -- --e examples');
 
-  // Build all packages.
-  await spawnProcess('npm run all build');
+  // Build all packages (except examples).
+  await spawnProcess('npm run all build -- --e examples');
+
+  // Install the "next" package for examples
+  await spawnProcess('npm run examples:install next');
+
+  // Build the examples/next directory.
+  await spawnProcess('npm run in examples build');
 
   // Test all packages.
   await spawnProcess('npm run all test');
@@ -105,13 +124,18 @@ displaySeparator();
   // Generate the CHANGELOG.md file.
   await spawnProcess('npm run changelog consume', { stdin: 'pipe' });
 
-  // Commit the changes to the release branch.
-  await spawnProcess('git add .');
+  // Create the examples/[version] directory.
+  await spawnProcess(`npm run examples:version ${finalVersion}`);
 
-  // Commit the changes to the release branch.
-  await spawnProcess('git add .');
+  if (argv.commit === true) {
+    // Commit the changes to the release branch.
+    await spawnProcess('git add .');
 
-  await spawnProcess(`git commit -m "${finalVersion}"`);
+    await spawnProcess(`git commit -m "${finalVersion}"`);
+  }
 
-  await spawnProcess(`git flow release publish ${finalVersion}`);
+  if (argv.push === true) {
+    // Push the changes to remote.
+    await spawnProcess(`git flow release publish ${finalVersion}`);
+  }
 })();

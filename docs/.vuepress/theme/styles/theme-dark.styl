@@ -1,0 +1,419 @@
+@import 'theme-dark-palette'
+
+html.theme-dark {
+
+  &,
+  div#app,
+  header,
+  div.links,
+  aside.sidebar {
+    background $backgroundColor
+  }
+
+  body {
+    color $fontColor
+  }
+
+  a {
+    color $linkFontColor
+  }
+
+  h1, h2, h3, h4, h5, h6, p {
+    border-bottom-color $sectionBorderColor
+  }
+
+  #handsontable-logo {
+    path {
+      fill #ffffff
+    }
+  }
+
+  /* Navbar */
+  header.navbar, aside.sidebar {
+    border-color $sectionBorderColor
+
+    /* Navbar links */
+    & .nav-link {
+      color $fontColor !important
+      &::after {
+        border-left-color $fontColor !important
+      }
+    }
+  }
+
+  /* Searchbox */
+  .search-box.search-box {
+    input {
+      background $searchBoxBackground url(/docs/img/search.svg) 0.6rem 0.5rem no-repeat
+      background-size 1rem
+      border-color $searchBoxInputBorderColor
+      color $fontColor
+
+      &:focus {
+        border-color $accentColor
+      }
+
+      @media (max-width: $MQNavbarNarrow) {
+        border-color transparent
+        background-color transparent
+
+      }
+    }
+
+    .searchbox-search-icon {
+      stroke $searchBoxIconColor
+    }
+
+    // results
+    ul.suggestions {
+      background-color $backgroundColor
+      border-color #2d2d30
+
+      li {
+        &:not(.suggestion) {
+          border-color #3e3e42
+
+        }
+        &.suggestion {
+          span {
+            color $fontColor
+          }
+          &.focused {
+            background-color $sidebarSelectedBackgroundColor
+            color $linkFontColor
+          }
+        }
+      }
+    }
+  }
+
+
+  /* Dropdown */
+  .dropdown-wrapper {
+    & .title {
+      color $fontColor
+    }
+    & .arrow.down {
+      border-top-color $fontColor
+    }
+    .nav-dropdown {
+      background-color $backgroundColor
+      border-color $sectionBorderColor
+    }
+  }
+
+  /* Scrollbar stylings */
+  scrollbar() {
+    // works on Chrome, Edge, and Safari
+    &::-webkit-scrollbar {
+      width 12px // width of the entire scrollbar
+    }
+
+    &::-webkit-scrollbar-track {
+      background $backgroundColor // color of the tracking area
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color $scrollbarThumb // color of the scroll thumb
+      border-radius 20px // roundness of the scroll thumb
+      border 2px solid $backgroundColor // creates padding around scroll thumb
+    }
+
+    &::-webkit-scrollbar-corner {
+      background $backgroundColor
+    }
+
+    // works on Firefox
+    & {
+      scrollbar-width thin
+      scrollbar-color $scrollbarThumb $backgroundColor
+    }
+  }
+
+  /* Sidebar */
+  .sidebar {
+    border-right-color $sectionBorderColor
+    scrollbar()
+
+    // sidebar collapsible headings
+    & .sidebar-heading {
+      color $fontColor
+
+      & .arrow,
+      & .arrow-down {
+        border-color $fontColor
+      }
+    }
+
+    // links in the sidebar
+    & a.sidebar-link {
+      color $fontColor
+
+      &:hover {
+        background $sidebarSelectedBackgroundColor
+      }
+
+      &.active {
+        background $sidebarSelectedBackgroundColor
+      }
+    }
+
+    .sidebar-group {
+      &:not(.collapsable) .sidebar-heading:not(.clickable) {
+        cursor auto
+        color $fontColor
+      }
+    }
+  }
+
+  /* Table of contents */
+  .table-of-contents {
+    border-left-color $sectionBorderColor
+    scrollbar()
+
+    .toc-container-header {
+      color $fontColor
+    }
+
+    a {
+      color $fontColor
+
+      &.active {
+        color: $fontColor
+        font-weight bold
+      }
+
+      &:hover {
+        color $fontColor
+      }
+    }
+  }
+
+  /* Tabs component */
+  .tabs-component {
+    border-color $tabsComponentBorderColor
+
+    ul.tabs-component-tabs {
+      border-bottom-color $tabsComponentBorderColor
+      background $tabsComponentBackgroundColor
+
+      .tabs-component-tab {
+        a {
+          color $fontColor
+
+          &:hover {
+            color $linkFontColor
+          }
+        }
+
+        &.is-disabled a {
+          color $fontColorDisabled
+        }
+      }
+    }
+
+    .tabs-component-panels {
+      background-color $tabsComponentPanels
+      border-radius 0
+
+      &.selected-preview {
+        color $tabsComponentBackgroundColor /* Related to issue #8355 */
+        background-color white; /* Related to issue #8355 */
+      }
+
+      section {
+        &[id*="preview-"] {
+          color $tabsComponentBackgroundColor /* Related to issue #8355 */
+          background-color white; /* Related to issue #8355 */
+        }
+
+        &#code {
+          pre {
+            padding 20px 24px
+
+            scrollbar()
+          }
+        }
+
+        &#html {
+          pre {
+            scrollbar()
+          }
+        }
+      }
+    }
+  }
+
+  /* A navigation element containing clickable fields (columns) */
+  .row-items-container {
+    .row-item {
+      border-color $rowItemBorderColor
+      color $fontColor
+
+      &:hover {
+        box-shadow 0 3px 12px $rowItemShadowColor
+      }
+    }
+  }
+
+  /* inline SVG icon  */
+  .icon.outbound {
+    color $fontColor
+  }
+
+  .icons-wrapper svg {
+    fill: $fontColor
+  }
+
+  /* Tip markdown component */
+  .custom-block.tip {
+    background-color $customBlockTipBackgroundColor
+  }
+
+  /* Every custom block component */
+  .custom-block {
+    color $fontColor
+  }
+
+  /* Details markdown component */
+  .custom-block.details {
+    background-color #111111
+  }
+
+  /* Code element */
+  code:not(.selected-preview *):not(pre *) {
+    color $codeFontColor
+    background $codeBackground
+  }
+
+  /* Language specific code blocks */
+  div[class*="language-"] {
+    pre {
+      scrollbar()
+    }
+  }
+
+  /* KBD element */
+  kbd {
+    color $kbdFontColor
+    background $kbdBackgroundColor
+    border-color $kbdBorderColor
+  }
+
+  /* Version alert badge */
+  .version-alert {
+    border-color $versionAlertBorderColor
+
+    p {
+      color $fontColor
+    }
+  }
+
+  /* Table styling starts */
+  .scrollable-table {
+    scrollbar()
+  }
+
+  table:not(.selected-preview *):not(.pika-table):not(.htCore) {
+    tr:nth-child(2n) {
+      background-color $tableEvenRowBackgroundColor
+    }
+
+    th, td {
+      border-bottom 1px solid $sectionBorderColor
+    }
+  }
+  /* Table styling ends */
+
+  /* Bottom navigation (below footer) */
+  .page-nav {
+    .inner {
+      border-color $sectionBorderColor
+    }
+  }
+
+  /* Footer */
+  footer.page-edit {
+    .edit-link {
+      a {
+        color $fontColor
+      }
+    }
+
+    .last-updated {
+      color $fontColor
+    }
+  }
+
+  /* Cookie Consent styling starts */
+  #CybotCookiebotDialog {
+    background $backgroundColor
+    color $fontColor
+    border-top 3px solid $sectionBorderColor
+
+    #CybotCookiebotDialogBodyContentTitle {
+      color $fontColor
+    }
+
+    .CybotCookiebotDialogBodyLink {
+      color $fontColor
+    }
+  }
+
+  #CybotCookiebotDialogDetailBodyContentTextOverview,
+  .CybotCookiebotDialogDetailBodyContentTab,
+  .CybotCookiebotDialogDetailBodyContentTabsItemSelected,
+  .CybotCookiebotDialogDetailBodyContentCookieContainerTypes,
+  .CybotCookiebotDialogDetailBodyContentCookieTypeTable thead th,
+  .CybotCookiebotDialogDetailBodyContentCookieTypeTable tbody td a,
+  .CybotCookiebotDialogDetailBodyContentTab,
+  #CybotCookiebotDialogDetailFooter,
+  #CybotCookiebotDialogDetailBodyContent,
+  #CybotCookiebotDialogDetail {
+    background $backgroundColor !important
+    color $fontColor !important
+    border-color $sectionBorderColor
+
+    &:hover {
+      color $fontColor !important
+      background $backgroundColor !important
+      border-color $sectionBorderColor
+    }
+  }
+
+  #CybotCookiebotDialogDetailBodyContentCookieContainerTypeDetails, #CybotCookiebotDialogDetailBodyContentTextAbout {
+    scrollbar()
+  }
+
+  .CybotCookiebotDialogDetailBodyContentCookieContainerTypes {
+    &:hover {
+      border-color $sectionBorderColor
+      color $fontColor !important
+      background $sidebarSelectedBackgroundColor !important
+    }
+  }
+
+  .CybotCookiebotDialogDetailBodyContentCookieContainerTypesSelected, .CybotCookiebotDialogDetailBodyContentTab.CybotCookiebotDialogDetailBodyContentTabsItemSelected {
+    background $sidebarSelectedBackgroundColor
+    border-color $sectionBorderColor
+    color $fontColor !important
+
+    &:hover, &:focus {
+      border-color $sectionBorderColor !important
+      color $fontColor !important
+      background $sidebarSelectedBackgroundColor !important
+    }
+  }
+
+  #CybotCookiebotDialogDetail {
+    table td {
+      color $fontColor !important
+      border-color $sectionBorderColor
+    }
+
+    .CybotCookiebotDialogDetailBodyContentTab {
+      border-color $sectionBorderColor
+    }
+  }
+  /* Cookie Consent styling ends */
+}

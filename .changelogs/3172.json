@@ -1,7 +1,0 @@
-{
-  "title": "Introduced `separated` attribute for label options (`label` DOM element may wrap `input` or be placed next to it)",
-  "type": "added",
-  "issue": 3172,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,5 +1,6 @@
 import HotTable from '../src/HotTable.vue';
 import BaseEditorComponent from '../src/BaseEditorComponent.vue';
+import { HOT_DESTROYED_WARNING } from '../src/helpers';
 import { mount } from '@vue/test-utils';
 import {
   createDomContainer,
@@ -26,7 +27,7 @@ describe('hotInit', () => {
 describe('Updating the Handsontable settings', () => {
   it('should update the previously initialized Handsontable instance with a single changed property', async() => {
     let updateSettingsCalls = 0;
-    let testWrapper = mount(HotTable, {
+    const testWrapper = mount(HotTable, {
       propsData: {
         data: createSampleData(1, 1),
         licenseKey: 'non-commercial-and-evaluation',
@@ -205,6 +206,13 @@ describe('Updating the Handsontable settings', () => {
     await Vue.nextTick();
 
     expect(testWrapper.vm.$children[0].hotInstance.getData()).toEqual([[22, 32, 42]]);
+    expect(newHotSettings).toBe(null);
+
+    testWrapper.vm.removeRow();
+
+    await Vue.nextTick();
+
+    expect(testWrapper.vm.$children[0].hotInstance.getData()).toEqual([]);
     expect(newHotSettings).toBe(null);
   });
 
@@ -604,4 +612,110 @@ it('should be possible to pass props to the editor and renderer components', () 
   expect(hotTableComponent.editorCache.get('EditorComponent').$props.testProp).toEqual('test-prop-value');
 
   testWrapper.destroy();
+});
+
+it('should display a warning and not throw any errors, when the underlying Handsontable instance ' +
+  'has been destroyed', () => {
+  const warnFunc = console.warn;
+  const testWrapper = mount(HotTable, {
+    propsData: {
+      data: [[1]],
+      licenseKey: 'non-commercial-and-evaluation',
+    }
+  });
+  const warnCalls = [];
+
+  console.warn = (warningMessage) => {
+    warnCalls.push(warningMessage);
+  }
+
+  expect(testWrapper.vm.hotInstance.isDestroyed).toEqual(false);
+
+  testWrapper.vm.hotInstance.destroy();
+
+  expect(testWrapper.vm.hotInstance).toEqual(null);
+
+  expect(warnCalls.length).toBeGreaterThan(0);
+  warnCalls.forEach((message) => {
+    expect(message).toEqual(HOT_DESTROYED_WARNING);
+  });
+
+  testWrapper.destroy();
+
+  console.warn = warnFunc;
+});
+
+describe('HOT-based CRUD actions', () => {
+  it('should should not add/remove any additional rows when calling `alter` on the HOT instance', async() => {
+    const testWrapper = mount(HotTable, {
+      propsData: {
+        data: createSampleData(4, 4),
+        rowHeaders: true,
+        colHeaders: true,
+      }
+    });
+    const hotInstance = testWrapper.vm.hotInstance;
+
+    hotInstance.alter('insert_row', 2, 2);
+    hotInstance.alter('insert_col', 2, 2);
+
+    await Vue.nextTick();
+
+    expect(hotInstance.countRows()).toEqual(6);
+    expect(hotInstance.countSourceRows()).toEqual(6);
+    expect(hotInstance.countCols()).toEqual(6);
+    expect(hotInstance.countSourceCols()).toEqual(6);
+    expect(hotInstance.getSourceData().length).toEqual(6);
+    expect(hotInstance.getSourceData()[0].length).toEqual(6);
+
+    hotInstance.alter('remove_row', 2, 2);
+    hotInstance.alter('remove_col', 2, 2);
+
+    expect(hotInstance.countRows()).toEqual(4);
+    expect(hotInstance.countSourceRows()).toEqual(4);
+    expect(hotInstance.countCols()).toEqual(4);
+    expect(hotInstance.countSourceCols()).toEqual(4);
+    expect(hotInstance.getSourceData().length).toEqual(4);
+    expect(hotInstance.getSourceData()[0].length).toEqual(4);
+  });
+});
+
+describe('Non-HOT based CRUD actions', () => {
+  it('should should not add/remove any additional rows when modifying a data array passed to the wrapper', async() => {
+    const externalData = createSampleData(4, 4);
+    const testWrapper = mount(HotTable, {
+      propsData: {
+        data: externalData,
+        rowHeaders: true,
+        colHeaders: true,
+      }
+    });
+    const hotInstance = testWrapper.vm.hotInstance;
+
+    externalData.push(externalData[0], externalData[0]);
+    externalData[0].push('test', 'test');
+
+    await Vue.nextTick();
+
+    expect(hotInstance.countRows()).toEqual(6);
+    expect(hotInstance.countSourceRows()).toEqual(6);
+    expect(hotInstance.countCols()).toEqual(6);
+    expect(hotInstance.countSourceCols()).toEqual(6);
+    expect(hotInstance.getSourceData().length).toEqual(6);
+    expect(hotInstance.getSourceData()[0].length).toEqual(6);
+
+    externalData.pop();
+    externalData.pop();
+    externalData[0].pop();
+    externalData[0].pop();
+
+    await Vue.nextTick();
+
+    expect(hotInstance.countRows()).toEqual(4);
+    expect(hotInstance.countSourceRows()).toEqual(4);
+    expect(hotInstance.countCols()).toEqual(4);
+    expect(hotInstance.countSourceCols()).toEqual(4);
+    expect(hotInstance.getSourceData().length).toEqual(4);
+    expect(hotInstance.getSourceData()[0].length).toEqual(4);
+  });
 });

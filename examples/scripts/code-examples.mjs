@@ -5,10 +5,13 @@ import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 import rimraf from 'rimraf';
 import { spawnProcess } from '../../scripts/utils/processes.mjs';
-import { displayInfoMessage, displayConfirmationMessage, displayErrorMessage } from '../../scripts/utils/console.mjs';
+import {
+  displayInfoMessage,
+  displayConfirmationMessage,
+  displayErrorMessage
+} from '../../scripts/utils/console.mjs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT_DIR = __dirname.split('examples')[0];
 const NEXT_EXAMPLES_DIR = path.join(REPO_ROOT_DIR, 'examples', 'next');
 const TMP_DIR_NAME = 'tmp';
@@ -64,8 +67,7 @@ const updatePackageJsonWithVersion = (projectDir, version) => {
   packageJson.dependencies.handsontable = version;
 
   if (wrapper) {
-    // TODO: uncomment it when wrappers will be using the same versioning as Handsontable
-    // packageJson.dependencies[wrapper] = version;
+    packageJson.dependencies[wrapper] = version;
   }
 
   fs.writeJsonSync(packageJsonPath, packageJson, { spaces: 2 });
@@ -127,15 +129,15 @@ switch (shellCommand) {
         displayInfoMessage(`Start copying examples to: "${versionedDir}"`);
         fs.copySync(NEXT_EXAMPLES_DIR, versionedDir);
         displayConfirmationMessage(`Examples copied to: "${versionedDir}"`);
-  
+
         const versionedExamplesFolders = getExamplesFolders(versionedDir);
         const workspaceConfigFolders = getWorkspaceConfigFolders(versionedDir);
-  
+
         versionedExamplesFolders.forEach((versionedExampleDir) => {
           updatePackageJsonWithVersion(versionedExampleDir, hotVersion);
         });
         displayConfirmationMessage('package.json updated for code examples');
-  
+
         workspaceConfigFolders.forEach((frameworkFolder) => {
           updateFrameworkWorkspacesNames(frameworkFolder, hotVersion);
         });

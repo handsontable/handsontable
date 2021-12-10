@@ -1,0 +1,50 @@
+{
+  "name": "angular-basic-example",
+  "private": true,
+  "version": "9.0.0",
+  "homepage": "https://handsontable.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/handsontable/handsontable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/handsontable/handsontable/issues"
+  },
+  "author": "Handsoncode <hello@handsontable.com>",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve --port 8080",
+    "build": "ng build",
+    "test": "node spec/support/jasmine.config.js"
+  },
+  "dependencies": {
+    "@angular/animations": "11.2.7",
+    "@angular/common": "11.2.7",
+    "@angular/compiler": "11.2.7",
+    "@angular/core": "11.2.7",
+    "@angular/forms": "11.2.7",
+    "@angular/platform-browser": "11.2.7",
+    "@angular/platform-browser-dynamic": "11.2.7",
+    "@angular/router": "11.2.7",
+    "@handsontable/angular": "9.0.0",
+    "handsontable": "9.0.0",
+    "rxjs": "6.6.7",
+    "tslib": "2.1.0",
+    "zone.js": "0.10.3"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "0.1102.7",
+    "@angular/localize": "11.2.7",
+    "@angular/service-worker": "11.2.7",
+    "@angular/cli": "11.2.7",
+    "@angular/compiler-cli": "11.2.7",
+    "@types/jasmine": "3.6.9",
+    "@types/node": "12.20.7",
+    "jasmine": "3.7.0",
+    "jasmine-console-reporter": "3.1.0",
+    "puppeteer": "7.1.0",
+    "ts-node": "8.3.0",
+    "typescript": "4.0.7"
+  },
+  "license": "SEE LICENSE IN LICENSE.txt"
+}

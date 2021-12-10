@@ -1,7 +1,0 @@
-{
-  "title": "Dropdown menu will open for Android devices",
-  "type": "fixed",
-  "issue": 6212,
-  "breaking": false,
-  "framework": "none"
-}
