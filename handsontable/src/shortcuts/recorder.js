@@ -5,43 +5,50 @@ import { normalizeEventKey } from './utils';
  * Keys recorder tracking key events.
  *
  * @param {EventTarget} frame The starting frame element.
- * @param {Function} invokeClbck The KeyEvent's listener callback.
+ * @param {Function} callback The KeyEvent's listener callback.
  * @returns {object}
  */
-export function useRecorder(frame, invokeClbck) {
-  const keysController = createKeysController();
+export function useRecorder(frame, callback) {
+  const observedKeysController = createKeysController();
+  const observedKeys = ['meta', 'alt', 'shift', 'control']; // some modifier keys
 
   /**
-   * Get every pressed key (including meta keys) from performed KeyboardEvent.
+   * Get whether pressed key is observed key.
+   *
+   * @param {string} pressedKey Pressed keyboard key.
+   * @returns {boolean}
+   */
+  const isObservedKey = (pressedKey) => {
+    return observedKeys.includes(pressedKey);
+  };
+
+  /**
+   * Get every pressed modifier key from performed KeyboardEvent.
    *
    * @private
    * @param {KeyboardEvent} event The event object.
    * @returns {Array}
    */
-  const getEveryPressedKey = (event) => {
-    const pressedKey = normalizeEventKey(event.key);
-    const isMetaKey = ['meta', 'control', 'alt', 'shift'].includes(pressedKey);
-    const pressedKeys = [pressedKey];
+  const getModifierKeys = (event) => {
+    const pressedModifierKeys = [];
 
-    if (isMetaKey === false) {
-      if (event.altKey) {
-        pressedKeys.push('alt');
-      }
-
-      if (event.ctrlKey) {
-        pressedKeys.push('control');
-      }
-
-      if (event.metaKey) {
-        pressedKeys.push('meta');
-      }
-
-      if (event.shiftKey) {
-        pressedKeys.push('shift');
-      }
+    if (event.altKey) {
+      pressedModifierKeys.push('alt');
     }
 
-    return pressedKeys;
+    if (event.ctrlKey) {
+      pressedModifierKeys.push('control');
+    }
+
+    if (event.metaKey) {
+      pressedModifierKeys.push('meta');
+    }
+
+    if (event.shiftKey) {
+      pressedModifierKeys.push('shift');
+    }
+
+    return pressedModifierKeys;
   };
 
   /**
@@ -55,10 +62,22 @@ export function useRecorder(frame, invokeClbck) {
       return;
     }
 
-    const pressedKeys = getEveryPressedKey(event);
+    const pressedKey = normalizeEventKey(event.key);
+    let extraModifierKeys = [];
+
+    // Don't duplicate observed keys in the stack.
+    if (isObservedKey(pressedKey) === false) {
+      extraModifierKeys = getModifierKeys(event);
+
+    } else {
+      // We store observed keys in the stack.
+      observedKeysController.press(normalizeEventKey(event.key));
+    }
+
+    const pressedKeys = [pressedKey].concat(extraModifierKeys);
     const nextCombination = pressedKeys.sort().join('+');
 
-    invokeClbck(event, nextCombination);
+    callback(event, nextCombination);
   };
 
   /**
@@ -72,7 +91,13 @@ export function useRecorder(frame, invokeClbck) {
       return;
     }
 
-    keysController.release(normalizeEventKey(event.key));
+    const pressedKey = normalizeEventKey(event.key);
+
+    if (isObservedKey(pressedKey) === false) {
+      return;
+    }
+
+    observedKeysController.release(pressedKey);
   };
 
   /**
@@ -81,7 +106,7 @@ export function useRecorder(frame, invokeClbck) {
    * @private
    */
   const onblur = () => {
-    keysController.releaseAll();
+    observedKeysController.releaseAll();
   };
 
   /**
@@ -117,7 +142,6 @@ export function useRecorder(frame, invokeClbck) {
   return {
     mount,
     unmount,
-    getPressed: () => keysController.getPressed(),
-    isPressed: key => keysController.isPressed(key),
+    isPressed: key => observedKeysController.isPressed(key)
   };
 }

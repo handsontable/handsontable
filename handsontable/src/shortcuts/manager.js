@@ -110,9 +110,7 @@ export const createShortcutManager = ({ isActive, frame }) => {
     getContext,
     hasContext,
     setActiveContexts,
-
-    isPressed: key => keyRecorder.isPressed(key),
-    getPressed: () => keyRecorder.getPressed(),
+    isCtrlPressed: () => keyRecorder.isPressed('control') || keyRecorder.isPressed('meta'),
     destroy: () => keyRecorder.unmount(),
   };
 };

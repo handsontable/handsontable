@@ -208,6 +208,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
     countColsTranslated: () => this.view.countRenderableColumns(),
     countRowsTranslated: () => this.view.countRenderableRows(),
+    getShortcutManager: () => instance.getShortcutManager(),
     visualToRenderableCoords,
     renderableToVisualCoords,
     isDisabledCellSelection: (visualRow, visualColumn) =>

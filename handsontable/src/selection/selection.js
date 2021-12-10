@@ -163,7 +163,8 @@ class Selection {
    */
   setRangeStart(coords, multipleSelection, fragment = false) {
     const isMultipleMode = this.settings.selectionMode === 'multiple';
-    const isMultipleSelection = isUndefined(multipleSelection) ? isPressedCtrlKey() : multipleSelection;
+    const isMultipleSelection = isUndefined(multipleSelection) ?
+      this.tableProps.getShortcutManager().isCtrlPressed() : multipleSelection;
     const isRowNegative = coords.row < 0;
     const isColumnNegative = coords.col < 0;
     const selectedByCorner = isRowNegative && isColumnNegative;
