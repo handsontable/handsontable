@@ -489,7 +489,8 @@ class Overlays {
     if (this.bottomOverlay.needFullRender) {
       this.bottomOverlay.updateMainScrollableElement();
     }
-    const { rootWindow, wtTable } = this.domBindings;
+    const { wtTable } = this.wot;
+    const { rootWindow } = this.domBindings;
 
     if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
       this.scrollableElement = wtTable.holder;

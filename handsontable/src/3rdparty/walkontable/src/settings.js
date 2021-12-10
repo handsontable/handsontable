@@ -4,8 +4,6 @@ import { objectEach } from '../../../helpers/object';
  * @todo Describe options.
  * @typedef SettingsPure
  *
- * @property {Option} selectionDraw @todo desc.
- * @property {Option} selectionsCellBorderGetter @todo desc.
  * @property {Option} facade @todo desc.
  * @property {Option} cellRenderer Option `cellRenderer`.
  * @property {Option} columnHeaders Option `columnHeaders`.
@@ -122,8 +120,6 @@ export default class Settings {
    */
   getDefaults() {
     return {
-      selectionDraw: void 0, //todo temporary to handle backward compatibility 
-      selectionsCellBorderGetter: void 0, //todo temporary to handle backward compatibility
       facade: void 0,
       table: void 0,
 
