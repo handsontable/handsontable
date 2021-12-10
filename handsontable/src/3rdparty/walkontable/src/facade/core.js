@@ -27,12 +27,6 @@ export default class WalkontableFacade {
   }
 
   _initFromSettings(settings) {
-    const self = this; // while debugging, I see that `this` for settings.facade is settings.
-    //todo pass not by settings, use ioc
-    settings.selectionDraw = (selection, fastDraw) => { selection.draw(this, fastDraw)};
-    //todo pass not by settings, use ioc
-    settings.selectionsCellBorderGetter = (selection) => selection?.getCell().getBorder(this); 
-    
     settings.facade = (instance) => {
       const facade = new WalkontableFacade(instance);
       
