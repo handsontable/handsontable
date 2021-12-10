@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
 import JasmineReporter from 'jasmine-terminal-reporter';
 
-const PORT = 8086+Math.round(Math.random()*100);
+const PORT = 8086;
 const DEFAULT_INACTIVITY_TIMEOUT = 10000;
 const IS_CI = process.env.CI;
 const CI_DOTS_PER_LINE = 120;
@@ -45,7 +45,7 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
 (async() => {
   const browser = await puppeteer.launch({
     timeout: DEFAULT_INACTIVITY_TIMEOUT,
-    devtools: true, // Turn it on to debug the tests.
+    // devtools: true, // Turn it on to debug the tests.
     headless: false,
     // Puppeteer by default hide the scrollbars in headless mode (https://github.com/GoogleChrome/puppeteer/blob/master/lib/Launcher.js#L86).
     // To prevent this the custom arguments are provided.
