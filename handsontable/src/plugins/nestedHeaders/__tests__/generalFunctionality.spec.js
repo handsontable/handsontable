@@ -241,6 +241,137 @@ describe('NestedHeaders', () => {
         `);
     });
 
+    it('should render headers till the virtual dataset limit ("columns" array defines more columns than dataset)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        // "columns" extends virtually the dataset to 8th columns.
+        columns: [{}, {}, {}, {}, {}, {}, {}, {}],
+        colHeaders: true,
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 3 }, 'E1', 'F1', 'G1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2']
+        ],
+      });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="" colspan="3">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">E1</th>
+            <th class="">F1</th>
+            <th class="">G1</th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="">B2</th>
+            <th class="">C2</th>
+            <th class="">D2</th>
+            <th class="">E2</th>
+            <th class="">F2</th>
+            <th class="">G2</th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">C1</td>
+            <td class=""></td>
+            <td class=""></td>
+            <td class=""></td>
+            <td class=""></td>
+            <td class=""></td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it('should render headers till the virtual dataset limit (only "columns" array is defined)', () => {
+      handsontable({
+        columns: [{}, {}, {}, {}, {}, {}, {}, {}],
+        colHeaders: true,
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 3 }, 'E1', 'F1', 'G1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2']
+        ],
+      });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="" colspan="3">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">E1</th>
+            <th class="">F1</th>
+            <th class="">G1</th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="">B2</th>
+            <th class="">C2</th>
+            <th class="">D2</th>
+            <th class="">E2</th>
+            <th class="">F2</th>
+            <th class="">G2</th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class=""></td>
+            <td class=""></td>
+            <td class=""></td>
+            <td class=""></td>
+            <td class=""></td>
+            <td class=""></td>
+            <td class=""></td>
+            <td class=""></td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it('should render headers till the virtual dataset limit (limit defined by the "startCols" option)', () => {
+      handsontable({
+        startCols: 3,
+        colHeaders: true,
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 3 }, 'E1', 'F1', 'G1'],
+          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2']
+        ],
+      });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="" colspan="2">B1</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="">B2</th>
+            <th class="">C2</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class=""></td>
+            <td class=""></td>
+            <td class=""></td>
+          </tr>
+        </tbody>
+        `);
+    });
+
     it('should allow creating a more complex nested setup when fixedColumnsLeft option is enabled', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
