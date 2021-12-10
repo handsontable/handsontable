@@ -3,9 +3,9 @@ import {
   hasClass,
   isChildOf,
   getParent,
-} from './../../../helpers/dom/element';
-import { partial } from './../../../helpers/function';
-import { isTouchSupported } from './../../../helpers/feature';
+} from '../../../helpers/dom/element';
+import { partial } from '../../../helpers/function';
+import { isTouchSupported } from '../../../helpers/feature';
 import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import { isDefined } from '../../../helpers/mixed';
@@ -19,7 +19,7 @@ class Event {
   /**
    * @param {*} instance Walkontable instance.
    */
-  constructor(instance, domBindings) {
+  constructor(instance, domBindings, facadeInjector) {
     this.domBindings =  domBindings
     /**
      * Instance of {@link Walkontable}.
@@ -35,6 +35,8 @@ class Event {
      * @type {EventManager}
      */
     this.eventManager = new EventManager(instance);
+    
+    this.facadeInjector = facadeInjector;
 
     privatePool.set(this, {
       selectedCellBeforeTouchEnd: void 0,
@@ -173,8 +175,7 @@ class Event {
     if (hasClass(realTarget, 'corner')) {
       this.instance.getSetting('onCellCornerMouseDown', event, realTarget);
     } else if (cell.TD && this.instance.hasSetting('onCellMouseDown')) {
-      const emmiter = this.instance.wtSettings.getSettingPure('facadeCurring');
-      emmiter(this.instance.wtSettings.getSettingPure('onCellMouseDown'), 3, event, cell.coords, cell.TD);
+      this.callListener('onCellMouseDown', event, cell.coords, cell.TD);
     }
 
     // doubleclick reacts only for left mouse button or from touch events
@@ -200,8 +201,7 @@ class Event {
       const cell = this.parentCell(event.target);
 
       if (cell.TD) {
-        const emmiter = this.instance.wtSettings.getSettingPure('facadeCurring');
-        emmiter(this.instance.wtSettings.getSettingPure('onCellContextMenu'), 3, event, cell.coords, cell.TD);
+        this.callListener('onCellContextMenu', event, cell.coords, cell.TD);
       }
     }
   }
@@ -224,8 +224,7 @@ class Event {
     if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
       mainWOT.lastMouseOver = td;
 
-      const emmiter = this.instance.wtSettings.getSettingPure('facadeCurring');
-      emmiter(this.instance.wtSettings.getSettingPure('onCellMouseOver'), 3, event, this.instance.wtTable.getCoords(td), td);
+      this.callListener('onCellMouseOver',  event, this.instance.wtTable.getCoords(td), td);
     }
   }
 
@@ -245,8 +244,7 @@ class Event {
     const nextTD = closestDown(event.relatedTarget, ['TD', 'TH'], table);
 
     if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
-      const emmiter = this.instance.wtSettings.getSettingPure('facadeCurring');
-      emmiter(this.instance.wtSettings.getSettingPure('onCellMouseOut'), 3, event, this.instance.wtTable.getCoords(lastTD), lastTD);
+      this.callListener('onCellMouseOut', event, this.instance.wtTable.getCoords(lastTD), lastTD);
     }
   }
 
@@ -261,8 +259,7 @@ class Event {
     const cell = this.parentCell(event.target);
 
     if (cell.TD && this.instance.hasSetting('onCellMouseUp')) {
-      const emmiter = this.instance.wtSettings.getSettingPure('facadeCurring');
-      emmiter(this.instance.wtSettings.getSettingPure('onCellMouseUp'), 3, event, cell.coords, cell.TD);
+      this.callListener('onCellMouseUp', event, cell.coords, cell.TD);
     }
 
     // if not left mouse button, and the origin event is not comes from touch
@@ -272,11 +269,9 @@ class Event {
 
     if (cell.TD === priv.dblClickOrigin[0] && cell.TD === priv.dblClickOrigin[1]) {
       if (hasClass(event.target, 'corner')) {
-        const emmiter = this.instance.wtSettings.getSettingPure('facadeCurring');
-        emmiter(this.instance.wtSettings.getSettingPure('onCellCornerDblClick'), 3, event, cell.coords, cell.TD);
+        this.callListener('onCellCornerDblClick', event, cell.coords, cell.TD);
       } else {
-        const emmiter = this.instance.wtSettings.getSettingPure('facadeCurring');
-        emmiter(this.instance.wtSettings.getSettingPure('onCellDblClick'), 3, event, cell.coords, cell.TD);
+        this.callListener('onCellDblClick', event, cell.coords, cell.TD);
       }
 
       priv.dblClickOrigin[0] = null;
@@ -351,6 +346,28 @@ class Event {
   }
 
   /**
+   * Call listener with backward compatibility.
+   *
+   * @private
+   * @param {string} name Name of listener.
+   * @param {MouseEvent} event The event object.
+   * @param {CellCoords} cords Coordinates.
+   * @param {HTMLElement} target Event target.
+   */
+  callListener(name, event, cords, target) {
+    const listener = this.instance.wtSettings.getSettingPure(name);
+    if(!listener){
+      return;
+    }
+    if(this.facadeInjector) {
+      // push WalkontableFacade as a 4th param, it keeps backward compatibility.
+      this.facadeInjector(listener, 3, event, cords, target);
+    }else{
+      listener(event, cords, target, this.instance);
+    }
+  }
+  
+  /**
    * Clears double-click timeouts and destroys the internal eventManager instance.
    */
   destroy() {
@@ -361,6 +378,7 @@ class Event {
 
     this.eventManager.destroy();
   }
+  
 }
 
 export default Event;

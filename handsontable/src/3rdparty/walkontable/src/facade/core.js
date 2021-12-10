@@ -10,8 +10,8 @@ export default class WalkontableFacade {
   constructor(settings) {
     settings.selectionDraw = (selection, fastDraw) => {selection.draw(this, fastDraw)} ;//todo pass not by settings, use ioc
     settings.selectionsCellBorderGetter = (selection) => selection?.getCell().getBorder(this); //todo pass not by settings, use ioc
-    settings.facadeCurring = (action, instancePosition, ...params) => { //todo rethink
-      params.splice(instancePosition,0,this)
+    settings.facadeInjector = (action, instancePosition, ...params) => { //todo rethink
+      params.splice(instancePosition,0, this)
       action(...params);
     }; 
     this._wot = new Walkontable(settings.table, settings);
