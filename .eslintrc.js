@@ -113,7 +113,6 @@ module.exports = {
           'core',
           'TODO',
           'category',
-          'internal',
           'template',
         ]
       }

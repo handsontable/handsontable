@@ -53,7 +53,6 @@ describe('WalkontableOverlay', () => {
   });
 
   it('should cloned overlays have to have proper dimensions (window object as scrollable element)', () => {
-    debugger;
     spec().$wrapper
       .css('overflow', '')
       .css('width', '')

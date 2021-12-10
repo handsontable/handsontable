@@ -11,7 +11,7 @@ import {
   CLONE_TOP,
   CLONE_LEFT,
 } from './constants';
-import Walkontable from "../core";
+import Walkontable from '../core';
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
@@ -31,9 +31,11 @@ export class Overlay {
   wtSettings = null;
 
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring: check if can be deleted.
+   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
+   * @param {FacadeGetter} facadeGetter Function which return proper facade.
    * @param {CLONE_TYPES_ENUM} type The overlay type name (clone name).
    * @param {Settings} wtSettings The Walkontable settings.
+   * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
   constructor(wotInstance, facadeGetter, type, wtSettings, domBindings) {
     defineGetter(this, 'wot', wotInstance, {
@@ -49,7 +51,7 @@ export class Overlay {
       spreader,
       holder,
       wtRootElement,
-    } = this.wot.wtTable; //todo ioc
+    } = this.wot.wtTable; // todo ioc
 
     // legacy support, deprecated in the future
     this.instance = this.wot;
@@ -171,7 +173,7 @@ export class Overlay {
    * @returns {{top: number, left: number}}
    */
   getRelativeCellPositionWithinWindow(onFixedRowTop, onFixedColumn, elementOffset, spreaderOffset) {
-    const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect(); //todo refactoring: DEMETER
+    const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect(); // todo refactoring: DEMETER
     let horizontalOffset = 0;
     let verticalOffset = 0;
 
@@ -222,8 +224,8 @@ export class Overlay {
     }
 
     if (onFixedRowBottom) {
-      const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();//todo refactoring: DEMETER
-      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();//todo refactoring: DEMETER
+      const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();// todo refactoring: DEMETER
+      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();// todo refactoring: DEMETER
 
       verticalOffset = (absoluteOverlayPosition.top * (-1)) + absoluteRootElementPosition.top;
 
@@ -277,12 +279,12 @@ export class Overlay {
     }
 
     // Create a new instance of the Walkontable class
-    return new Walkontable(clonedTable, this.wtSettings, { //todo ioc factory
+    return new Walkontable(clonedTable, this.wtSettings, { // todo ioc factory
       source: this.wot,
       overlay: this,
-      viewport: this.wot.wtViewport, //todo ioc , or factor func if used only here
-      event: this.wot.wtEvent, //todo ioc , or factory func if used only here
-      selections: this.wot.selections, //todo ioc , or factory func if used only here
+      viewport: this.wot.wtViewport, // todo ioc , or factor func if used only here
+      event: this.wot.wtEvent, // todo ioc , or factory func if used only here
+      selections: this.wot.selections, // todo ioc , or factory func if used only here
     });
   }
 

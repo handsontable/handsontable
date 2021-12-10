@@ -20,8 +20,10 @@ import {
  */
 export class LeftOverlay extends Overlay {
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
+   * @param {FacadeGetter} facadeGetter Function which return proper facade.
    * @param {Settings} wtSettings The Walkontable settings.
+   * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
   constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
     super(wotInstance, facadeGetter, CLONE_LEFT, wtSettings, domBindings);
@@ -60,11 +62,12 @@ export class LeftOverlay extends Overlay {
       return false;
     }
 
+    const { rootWindow } = this.domBindings;
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     let headerPosition = 0;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === this.domBindings.rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
+    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const left = Math.ceil(hiderRect.left);
       const right = Math.ceil(hiderRect.right);
@@ -198,7 +201,8 @@ export class LeftOverlay extends Overlay {
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
     const { selections } = this.wot;
-    const selectionCornerOffset = Math.abs(selections?.getCell().getBorder(this.facadeGetter()).cornerCenterPointOffset ?? 0);
+    const facade = this.facadeGetter();
+    const selectionCornerOffset = Math.abs(selections?.getCell().getBorder(facade).cornerCenterPointOffset ?? 0);
 
     this.clone.wtTable.hider.style.height = this.hider.style.height;
     holder.style.height = holder.parentNode.style.height;

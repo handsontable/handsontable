@@ -20,8 +20,11 @@ import CellCoords from './cell/coords';
  *
  */
 class Border {
+  // TODO As this is an internal class, should be designed for using {Walkontable}. It uses the facade,
+  // TODO Con. Because the class is created on place where the instance reference comes from external origin.
+  // TODO Imho, the discrimination for handling both, facade and non-facade should be handled.
   /**
-   * @param {WalkontableFacade} wotInstance The Walkontable instance. @todo consider about renaming WalkontableFacade->Walkontable; Walkontable->WalkontableCore||Walkontable2
+   * @param {WalkontableFacade} wotInstance The Walkontable instance.
    * @param {object} settings The border settings.
    */
   constructor(wotInstance, settings) {
@@ -156,7 +159,7 @@ class Border {
    */
   createBorders(settings) {
     const { rootDocument } = this.wot;
-    debugger;
+
     this.main = rootDocument.createElement('div');
 
     const borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];

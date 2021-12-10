@@ -84,19 +84,21 @@ class Overlays {
 
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring remove.
+   * @param {FacadeGetter} facadeGetter Function which return proper facade.
    * @param {Settings} wtSettings The Walkontable settings.
+   * @param {DomBindings} domBindings Bindings into DOM.
    */
-  constructor(wotInstance,facadeGetter, wtSettings, domBindings) {
+  constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
     this.wot = wotInstance;
     this.wtSettings = wtSettings;
     this.domBindings = domBindings;
     this.facadeGetter = facadeGetter;
-    const { wtTable }=this.wot // todo ioc
+    const { wtTable } = this.wot; // todo ioc
     const { rootDocument, rootWindow } = this.domBindings;
 
     // legacy support
     this.instance = this.wot; // todo refactoring: move to facade
-    this.eventManager = new EventManager(this.wot); //todo refactoring: ioc
+    this.eventManager = new EventManager(this.wot); // todo refactoring: ioc
 
     // TODO refactoring: probably invalid place to this logic
     this.scrollbarSize = getScrollbarWidth(rootDocument);
@@ -153,22 +155,24 @@ class Overlays {
    * @private
    */
   initOverlays() {
-    //todo refactoring: IOC, collection or factories.
-    // TODO refactoring, conceive about using generic collection of overlays
-    this.topOverlay = new TopOverlay(this.wot, this.facadeGetter, this.wtSettings, this.domBindings);
-    this.bottomOverlay = new BottomOverlay(this.wot, this.facadeGetter,  this.wtSettings, this.domBindings);
-    this.leftOverlay = new LeftOverlay(this.wot, this.facadeGetter,  this.wtSettings, this.domBindings);
+    const args = [this.wot, this.facadeGetter, this.wtSettings, this.domBindings];
+
+    // todo refactoring: IOC, collection or factories.
+    // TODO refactoring, conceive about using generic collection of overlays.
+    this.topOverlay = new TopOverlay(...args);
+    this.bottomOverlay = new BottomOverlay(...args);
+    this.leftOverlay = new LeftOverlay(...args);
 
     // TODO discuss, the controversial here would be removing the lazy creation mechanism for corners.
-    // TODO cond. Has no any visual impact. They're initially hidden in same way like left, tob, and bottom overlays
-    this.topLeftCornerOverlay = new TopLeftCornerOverlay(this.wot, this.facadeGetter,  this.wtSettings, this.domBindings);
-    this.bottomLeftCornerOverlay = new BottomLeftCornerOverlay(this.wot,  this.facadeGetter, this.wtSettings, this.domBindings);
+    // TODO cond. Has no any visual impact. They're initially hidden in same way like left, tob, and bottom overlays.
+    this.topLeftCornerOverlay = new TopLeftCornerOverlay(...args);
+    this.bottomLeftCornerOverlay = new BottomLeftCornerOverlay(...args);
   }
 
   /**
    * Update state of rendering, check if changed.
    *
-   * @internal
+   * @package
    * @returns {boolean} Returns `true` if changes applied to overlay needs scroll synchronization.
    */
   updateStateOfRendering() {
@@ -177,8 +181,9 @@ class Overlays {
     syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
     syncScroll = this.leftOverlay.updateStateOfRendering() || syncScroll;
 
+    // todo refactoring: move conditions into updateStateOfRendering(),
     if (this.leftOverlay.needFullRender) {
-      if (this.topOverlay.needFullRender) { // todo refactoring: conceive how to remove this ifs (first idea: move logic into overlays, then checking if related overlays needs to full render)
+      if (this.topOverlay.needFullRender) {
         syncScroll = this.topLeftCornerOverlay.updateStateOfRendering() || syncScroll;
       }
       if (this.bottomOverlay.needFullRender) {

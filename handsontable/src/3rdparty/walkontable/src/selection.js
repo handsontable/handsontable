@@ -8,7 +8,7 @@ import CellRange from './cell/range';
  */
 class Selection {
   /**
-   * @param {object} settings The selection settings object. @todo type
+   * @param {object} settings The selection settings object. @todo type.
    * @param {CellRange} cellRange The cell range instance.
    */
   constructor(settings, cellRange) {
@@ -28,7 +28,7 @@ class Selection {
    */
   getBorder(wotInstance) {
     if (!this.instanceBorders[wotInstance.guid]) {
-      this.instanceBorders[wotInstance.guid] = new  Border(wotInstance, this.settings);
+      this.instanceBorders[wotInstance.guid] = new Border(wotInstance, this.settings);
     }
 
     return this.instanceBorders[wotInstance.guid];

@@ -7,23 +7,6 @@ import {
 } from '../../../helpers/dom/element';
 
 /**
- * @todo write descriptions.
- *
- * @typedef ScrollDao
- *
- * @property {boolean} drawn is Walkontable drawn. 
- * @property {MasterTable} wtTable wtTable. 
- * @property LeftOverlay leftOverlay leftOverlay.
- * @property TopOverlay topOverlay topOverlay. 
- * @property {number} fixedColumnsLeft fixedColumnsLeft. 
- * @property {number} fixedRowsBottom fixedRowsBottom.
- * @property {number} fixedRowsTop fixedRowsTop. 
- * @property {number} totalColumns totalColumns. 
- * @property {number} totalRows totalRows.
- * @property {Window} rootWindow rootWindow.
- * @property {Viewport} wtViewport wtViewport. 
- */
-/**
  * @class Scroll
  */
 class Scroll {
@@ -34,7 +17,7 @@ class Scroll {
    * @type {ScrollDao}
    */
   dataAccessObject;
-  
+
   /**
    * @param {ScrollDao} dao Tha data access object.
    */
@@ -150,7 +133,6 @@ class Scroll {
     let firstVisibleRow = wtTable.getFirstVisibleRow();
 
     if (topOverlay.mainTableScrollableElement === rootWindow) {
-      debugger;
       const rootElementOffset = offset(wtTable.wtRootElement);
       const totalTableHeight = innerHeight(wtTable.hider);
       const windowHeight = innerHeight(rootWindow);
@@ -193,7 +175,6 @@ class Scroll {
     let lastVisibleRow = wtTable.getLastVisibleRow();
 
     if (topOverlay.mainTableScrollableElement === rootWindow) {
-      debugger;
       const rootElementOffset = offset(wtTable.wtRootElement);
       const windowScrollTop = getScrollTop(rootWindow, rootWindow);
 
@@ -234,7 +215,6 @@ class Scroll {
     let firstVisibleColumn = wtTable.getFirstVisibleColumn();
 
     if (leftOverlay.mainTableScrollableElement === rootWindow) {
-      debugger;
       const rootElementOffset = offset(wtTable.wtRootElement);
       const totalTableWidth = innerWidth(wtTable.hider);
       const windowWidth = innerWidth(rootWindow);
@@ -276,7 +256,6 @@ class Scroll {
     let lastVisibleColumn = wtTable.getLastVisibleColumn();
 
     if (leftOverlay.mainTableScrollableElement === rootWindow) {
-      debugger
       const rootElementOffset = offset(wtTable.wtRootElement);
       const windowScrollLeft = getScrollLeft(rootWindow, rootWindow);
 

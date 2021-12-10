@@ -28,11 +28,13 @@ export class TopOverlay extends Overlay {
   cachedFixedRowsTop = -1;
 
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
+   * @param {FacadeGetter} facadeGetter Function which return proper facade.
    * @param {Settings} wtSettings The Walkontable settings.
+   * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
   constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
-    super(wotInstance, facadeGetter,  CLONE_TOP, wtSettings, domBindings);
+    super(wotInstance, facadeGetter, CLONE_TOP, wtSettings, domBindings);
     this.cachedFixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
   }
 
@@ -67,12 +69,13 @@ export class TopOverlay extends Overlay {
       return false;
     }
 
+    const { rootWindow } = this.domBindings;
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let headerPosition = 0;
     let skipInnerBorderAdjusting = false;
 
-    if (this.trimmingContainer === this.domBindings.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const { wtTable } = this.wot;
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const top = Math.ceil(hiderRect.top);
@@ -190,7 +193,7 @@ export class TopOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
-    const { wtTable} = this.wot;
+    const { wtTable } = this.wot;
     const { rootDocument, rootWindow } = this.domBindings;
     const scrollbarWidth = getScrollbarWidth(rootDocument);
     const overlayRoot = this.clone.wtTable.holder.parentNode;
@@ -228,7 +231,8 @@ export class TopOverlay extends Overlay {
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
     const { selections } = this.wot;
-    const selectionCornerOffset = Math.abs(selections?.getCell().getBorder(this.facadeGetter()).cornerCenterPointOffset ?? 0);
+    const facade = this.facadeGetter();
+    const selectionCornerOffset = Math.abs(selections?.getCell().getBorder(facade).cornerCenterPointOffset ?? 0);
 
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     holder.style.width = holder.parentNode.style.width;

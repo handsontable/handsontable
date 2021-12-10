@@ -1,27 +1,18 @@
 import Walkontable from '../core';
 
-// todo refactoring (IMPORTANT): introduce facade pattern to keep backward compatibility
 /**
  * @class WalkontableFacade
- * @extends Walkontable
+ * @augments Walkontable
  * @inheritDoc
  */
 export default class WalkontableFacade {
   /**
-   * Facades pool.
-   *
-   * @type {{[string]:WalkontableFacade}}
-   * @private
-   */
-  _facades={};
-  /**
-   * 
-   * @param {SettingsPure|Walkontable} settingsOrInstance
+   * @param {SettingsPure|Walkontable} settingsOrInstance The Walkontable settings.
    */
   constructor(settingsOrInstance) {
-    if(settingsOrInstance instanceof Walkontable) {
-      this._wot = settingsOrInstance
-    }else {
+    if (settingsOrInstance instanceof Walkontable) {
+      this._wot = settingsOrInstance;
+    } else {
       this._initFromSettings(settingsOrInstance);
     }
   }
@@ -29,94 +20,95 @@ export default class WalkontableFacade {
   _initFromSettings(settings) {
     settings.facade = (instance) => {
       const facade = new WalkontableFacade(instance);
-      
+
       return () => facade;
     };
-    
+
     this._wot = new Walkontable(settings.table, settings);
   }
-  
-  get guid(){
+
+  get guid() {
     return this._wot.guid;
   }
-  
-  get rootDocument(){
+
+  get rootDocument() {
     return this._wot.domBindings.rootDocument;
   }
-  
-  get rootWindow(){
+
+  get rootWindow() {
     return this._wot.domBindings.rootWindow;
   }
-  get wtSettings(){
+  get wtSettings() {
     return this._wot.wtSettings; // todo create facade
   }
-  get cloneSource(){
+  get cloneSource() {
     return this._wot.cloneSource; // todo create facade
   }
-  get cloneOverlay(){
+  get cloneOverlay() {
     return this._wot.cloneOverlay; // todo create facade
   }
-  get selections(){
+  get selections() {
     return this._wot.selections; // todo create facade
   }
-  get wtViewport(){
+  get wtViewport() {
     return this._wot.wtViewport; // todo create facade
   }
-  get wtOverlays(){
+  get wtOverlays() {
     return this._wot.wtOverlays; // todo create facade
   }
-  get wtTable(){
+  get wtTable() {
     return this._wot.wtTable; // todo create facade
   }
-  get wtEvent(){
+  get wtEvent() {
     return this._wot.wtEvent; // todo create facade
   }
-  get wtScroll(){
+  get wtScroll() {
     return this._wot.wtScroll; // todo create facade
   }
-  get drawn(){
+  get drawn() {
     return this._wot.drawn;
   }
-  set drawn(value){
+  set drawn(value) {
     this._wot.drawn = value;
   }
-  get drawInterrupted(){
+  get drawInterrupted() {
     return this._wot.drawInterrupted;
   }
-  set drawInterrupted(value){
+  set drawInterrupted(value) {
     this._wot.drawInterrupted = value;
   }
-  get lastMouseOver(){
+  get lastMouseOver() {
     return this._wot.lastMouseOver;
   }
-  set lastMouseOver(value){
+  set lastMouseOver(value) {
     this._wot.lastMouseOver = value;
   }
-  get momentumScrolling(){
+  get momentumScrolling() {
     return this._wot.momentumScrolling;
   }
-  set momentumScrolling(value){
+  set momentumScrolling(value) {
     this._wot.momentumScrolling = value;
   }
-  get touchApplied(){
+  get touchApplied() {
     return this._wot.touchApplied;
   }
-  set touchApplied(value){
+  set touchApplied(value) {
     this._wot.touchApplied = value;
   }
-  get domBindings(){
+  get domBindings() {
     return this._wot.domBindings;
   }
-  get eventListeners(){
+  get eventListeners() {
     return this._wot.eventListeners;
   }
-  set eventListeners(value){
+  set eventListeners(value) {
     this._wot.eventListeners = value;
   }
-  
+
   draw(fastDraw = false) {
-     this._wot.draw(fastDraw);
-     return this;
+    this._wot.draw(fastDraw);
+
+    return this;
   }
 
   getCell(coords, topmost = false) {
@@ -128,7 +120,7 @@ export default class WalkontableFacade {
   }
 
   scrollViewportHorizontally(column, snapToRight, snapToLeft) {
-    return this._wot.scrollViewportHorizontally(column, snapToRight, snapToLeft) ;
+    return this._wot.scrollViewportHorizontally(column, snapToRight, snapToLeft);
   }
 
   scrollViewportVertically(row, snapToTop, snapToBottom) {
@@ -148,8 +140,9 @@ export default class WalkontableFacade {
   }
 
   update(settings, value) {
-     this._wot.update(settings, value);
-     return this;
+    this._wot.update(settings, value);
+
+    return this;
   }
 
   getSetting(key, param1, param2, param3, param4) {

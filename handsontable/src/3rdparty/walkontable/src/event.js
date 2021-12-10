@@ -17,11 +17,14 @@ const privatePool = new WeakMap();
  */
 class Event {
   /**
-   * @param {*} instance Walkontable instance.
+   * @param {Walkontable} instance Walkontable instance.
+   * @param {Settings} wtSettings The walkontable settings.
+   * @param {DomBindings} domBindings Bindings into dom.
+   * @param {FacadeGetter} facadeGetter Gets an instance facade.
    */
   constructor(instance, wtSettings, domBindings, facadeGetter) {
     this.wtSettings = wtSettings;
-    this.domBindings =  domBindings
+    this.domBindings = domBindings;
     /**
      * Instance of {@link Walkontable}.
      *
@@ -38,11 +41,12 @@ class Event {
     this.eventManager = new EventManager(instance);
 
     /**
-     * Should be use only for passing face called external origin methods, like registered event listeners. 
+     * Should be use only for passing face called external origin methods, like registered event listeners.
      * It provides backward compatibility by getting instance facade.
-     * @todo consider about removing this from Event class, because it make relationship into facade (implicit circular dependency).
-     * @todo con. maybe passing listener caller as an ioc from faced resolves this issue. To rethink later.
-     * 
+     *
+     * @todo Consider about removing this from Event class, because it make relationship into facade (implicit circular dependency).
+     * @todo Con. Maybe passing listener caller as an ioc from faced resolves this issue. To rethink later.
+     *
      * @type {function():WalkontableFacade}
      * @private
      */
@@ -229,12 +233,12 @@ class Event {
 
     const table = this.instance.wtTable.TABLE;
     const td = closestDown(event.target, ['TD', 'TH'], table);
-    const mainWOT = this.instance.cloneSource || this.instance
+    const mainWOT = this.instance.cloneSource || this.instance;
 
     if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
       mainWOT.lastMouseOver = td;
 
-      this.callListener('onCellMouseOver',  event, this.instance.wtTable.getCoords(td), td);
+      this.callListener('onCellMouseOver', event, this.instance.wtTable.getCoords(td), td);
     }
   }
 
@@ -366,11 +370,12 @@ class Event {
    */
   callListener(name, event, cords, target) {
     const listener = this.wtSettings.getSettingPure(name);
-    if(listener){
+
+    if (listener) {
       listener(event, cords, target, this.facadeGetter());
     }
   }
-  
+
   /**
    * Clears double-click timeouts and destroys the internal eventManager instance.
    */
@@ -382,7 +387,7 @@ class Event {
 
     this.eventManager.destroy();
   }
-  
+
 }
 
 export default Event;

@@ -15,8 +15,10 @@ import {
  */
 export class BottomLeftCornerOverlay extends Overlay {
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
+   * @param {FacadeGetter} facadeGetter Function which return proper facade.
    * @param {Settings} wtSettings The Walkontable settings.
+   * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
   constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
     super(wotInstance, facadeGetter, CLONE_BOTTOM_LEFT_CORNER, wtSettings, domBindings);

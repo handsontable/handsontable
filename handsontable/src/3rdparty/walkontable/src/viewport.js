@@ -20,6 +20,7 @@ import {
 class Viewport {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {DomBindings} domBindings Bindings into DOM.
    */
   constructor(wotInstance, domBindings) {
     this.wot = wotInstance;
@@ -36,7 +37,7 @@ class Viewport {
     this.rowsVisibleCalculator = null;
     this.columnsVisibleCalculator = null;
 
-    this.eventManager = new EventManager(this.wot); //todo ioc
+    this.eventManager = new EventManager(this.wot); // todo ioc
     this.eventManager.addEventListener(this.domBindings.rootWindow, 'resize', () => {
       this.clientHeight = this.getWorkspaceHeight();
     });

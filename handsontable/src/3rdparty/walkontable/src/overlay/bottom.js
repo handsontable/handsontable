@@ -26,8 +26,10 @@ export class BottomOverlay extends Overlay {
   cachedFixedRowsBottom = -1;
 
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
+   * @param {FacadeGetter} facadeGetter Function which return proper facade.
    * @param {Settings} wtSettings The Walkontable settings.
+   * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
   constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
     super(wotInstance, facadeGetter, CLONE_BOTTOM, wtSettings, domBindings);
@@ -64,6 +66,7 @@ export class BottomOverlay extends Overlay {
       // removed from DOM
       return false;
     }
+    const { rootDocument, rootWindow } = this.domBindings;
 
     const overlayRoot = this.clone.wtTable.holder.parentNode;
 
@@ -72,9 +75,8 @@ export class BottomOverlay extends Overlay {
     let headerPosition = 0;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === this.domBindings.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const { wtTable } = this.wot;
-      const { rootDocument } = this.domBindings;
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(hiderRect.bottom);
       const bodyHeight = rootDocument.documentElement.clientHeight;

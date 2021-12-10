@@ -40,26 +40,26 @@ class Table {
 
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @todo remove.
-   * @param {HTMLTableElement} table An element to the Walkontable generated table is injected.
+   * @param {FacadeGetter} facadeGetter Function which return proper facade.
+   * @param {DomBindings} domBindings Bindings into DOM.
    * @param {Settings} wtSettings The Walkontable settings.
-   * @param {*} domBindings @todo type and description
    */
-  constructor(wotInstance,facadeGetter, table, wtSettings, domBindings) {
+  constructor(wotInstance, facadeGetter, domBindings, wtSettings) {
     this.domBindings = domBindings;
     /**
      * Indicates if this instance is of type `MasterTable` (i.e. It is NOT an overlay).
      *
      * @type {boolean}
      */
-    this.isMaster = !wotInstance.cloneOverlay; // "instanceof" operator isn't used, because it caused a circular reference in Webpack
+    this.isMaster = !wotInstance.cloneOverlay; // TODO false, and set as true in MasteTable // "instanceof" operator isn't used, because it caused a circular reference in Webpack
     this.wot = wotInstance;
     this.facadeGetter = facadeGetter;
     this.wtSettings = wtSettings;
 
     // legacy support
     this.instance = this.wot;
-    this.TABLE = table;
-    this.TBODY = null;
+    this.TABLE = domBindings.rootTable;
+    this.TBODY = null; // todo should it be part of domBindings
     this.THEAD = null;
     this.COLGROUP = null;
     this.tableOffset = 0;
@@ -86,7 +86,7 @@ class Table {
 
     removeTextNodes(this.TABLE);
 
-    // TODO refactoring, to recognize the legitimacy of moving them into domBidings 
+    // TODO refactoring, to recognize the legitimacy of moving them into domBidings
     this.spreader = this.createSpreader(this.TABLE);
     this.hider = this.createHider(this.spreader);
     this.holder = this.createHolder(this.hider);
@@ -106,9 +106,9 @@ class Table {
     // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
     this.wtSettings.update('rowHeaderWidth', () => this._modifyRowHeaderWidth(origRowHeaderWidth));
 
-    this.rowUtils = new RowUtils(this.wot); //todo ioc
-    this.columnUtils = new ColumnUtils(this.wot); //todo ioc
-    this.tableRenderer = new Renderer({ //todo ioc
+    this.rowUtils = new RowUtils(this.wot); // todo ioc
+    this.columnUtils = new ColumnUtils(this.wot); // todo ioc
+    this.tableRenderer = new Renderer({ // todo ioc
       TABLE: this.TABLE,
       THEAD: this.THEAD,
       COLGROUP: this.COLGROUP,
@@ -153,7 +153,7 @@ class Table {
     if (!this.COLGROUP) {
       this.COLGROUP = rootDocument.createElement('colgroup');
       this.TABLE.insertBefore(this.COLGROUP, this.THEAD);
-    } 
+    }
 
     if (this.wtSettings.getSetting('columnHeaders').length && !this.THEAD.childNodes.length) {
       this.THEAD.appendChild(rootDocument.createElement('TR'));
