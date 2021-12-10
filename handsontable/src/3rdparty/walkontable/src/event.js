@@ -19,7 +19,8 @@ class Event {
   /**
    * @param {*} instance Walkontable instance.
    */
-  constructor(instance, domBindings, facadeInjector) {
+  constructor(instance, wtSettings, domBindings, facadeInjector) {
+    this.wtSettings = wtSettings;
     this.domBindings =  domBindings
     /**
      * Instance of {@link Walkontable}.
@@ -76,7 +77,7 @@ class Event {
           if (!this.instance.touchApplied) {
             this.instance.momentumScrolling.ongoing = false;
 
-            this.instance.getSetting('onAfterMomentumScroll');
+            this.wtSettings.getSetting('onAfterMomentumScroll');
           }
         }, 200);
       });
@@ -174,7 +175,7 @@ class Event {
 
     if (hasClass(realTarget, 'corner')) {
       this.instance.getSetting('onCellCornerMouseDown', event, realTarget);
-    } else if (cell.TD && this.instance.hasSetting('onCellMouseDown')) {
+    } else if (cell.TD && this.wtSettings.has('onCellMouseDown')) {
       this.callListener('onCellMouseDown', event, cell.coords, cell.TD);
     }
 
@@ -197,7 +198,7 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onContextMenu(event) {
-    if (this.instance.hasSetting('onCellContextMenu')) {
+    if (this.wtSettings.has('onCellContextMenu')) {
       const cell = this.parentCell(event.target);
 
       if (cell.TD) {
@@ -213,7 +214,7 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onMouseOver(event) {
-    if (!this.instance.hasSetting('onCellMouseOver')) {
+    if (!this.wtSettings.has('onCellMouseOver')) {
       return;
     }
 
@@ -235,7 +236,7 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onMouseOut(event) {
-    if (!this.instance.hasSetting('onCellMouseOut')) {
+    if (!this.wtSettings.has('onCellMouseOut')) {
       return;
     }
 
@@ -258,7 +259,7 @@ class Event {
     const priv = privatePool.get(this);
     const cell = this.parentCell(event.target);
 
-    if (cell.TD && this.instance.hasSetting('onCellMouseUp')) {
+    if (cell.TD && this.wtSettings.has('onCellMouseUp')) {
       this.callListener('onCellMouseUp', event, cell.coords, cell.TD);
     }
 
@@ -313,7 +314,7 @@ class Event {
     const target = event.target;
     const parentCellCoords = this.parentCell(target)?.coords;
     const isCellsRange = isDefined(parentCellCoords) && (parentCellCoords.row >= 0 && parentCellCoords.col >= 0);
-    const isEventCancelable = event.cancelable && isCellsRange && this.instance.getSetting('isDataViewInstance');
+    const isEventCancelable = event.cancelable && isCellsRange && this.wtSettings.getSetting('isDataViewInstance');
 
     // To prevent accidental redirects or other actions that the interactive elements (e.q "A" link) do
     // while the cell is highlighted, all touch events that are triggered on different cells are
@@ -355,16 +356,12 @@ class Event {
    * @param {HTMLElement} target Event target.
    */
   callListener(name, event, cords, target) {
-    const listener = this.instance.wtSettings.getSettingPure(name);
+    const listener = this.wtSettings.getSettingPure(name);
     if(!listener){
       return;
     }
-    if(this.facadeInjector) {
-      // push WalkontableFacade as a 4th param, it keeps backward compatibility.
-      this.facadeInjector(listener, 3, event, cords, target);
-    }else{
-      listener(event, cords, target, this.instance);
-    }
+    // push instance as a 4th param, it keeps backward compatibility.
+    this.facadeInjector(listener, 3, event, cords, target);
   }
   
   /**

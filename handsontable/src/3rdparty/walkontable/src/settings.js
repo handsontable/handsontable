@@ -121,7 +121,7 @@ export default class Settings {
     return {
       selectionDraw: void 0, //todo temporary to handle backward compatibility 
       selectionsCellBorderGetter: void 0, //todo temporary to handle backward compatibility
-      facadeInjector: null, //todo rethink that
+      facadeInjector: void 0,
       table: void 0,
 
       // Determines whether the Walkontable instance is used as dataset viewer. When its instance is used as
@@ -253,7 +253,7 @@ export default class Settings {
   /**
    * Get setting by name.
    *
-   * @param {string} key The settings key to retrieve.
+   * @param {$Keys<SettingsPure>} key The settings key to retrieve.
    * @param {*} [param1] Additional parameter passed to the options defined as function.
    * @param {*} [param2] Additional parameter passed to the options defined as function.
    * @param {*} [param3] Additional parameter passed to the options defined as function.
