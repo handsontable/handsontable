@@ -85,10 +85,10 @@ class Overlays {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring remove.
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
-   * @param {Settings} wtSettings The Walkontable settings.
    * @param {DomBindings} domBindings Bindings into DOM.
+   * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
+  constructor(wotInstance, facadeGetter, domBindings, wtSettings) {
     this.wot = wotInstance;
     this.wtSettings = wtSettings;
     this.domBindings = domBindings;

@@ -4,8 +4,13 @@
  * @class {RowUtils}
  */
 export default class RowUtils {
-  constructor(wot) {
+  /**
+   * @param {Walkontable} wot The walkontable instance. @todo remove.
+   * @param {Settings} wtSettings The walkontable settings.
+   */
+  constructor(wot, wtSettings) {
     this.wot = wot;
+    this.wtSettings = wtSettings;
   }
 
   /**
@@ -15,7 +20,7 @@ export default class RowUtils {
    * @returns {number}
    */
   getHeight(sourceIndex) {
-    let height = this.wot.wtSettings.getSetting('rowHeight', sourceIndex);
+    let height = this.wtSettings.getSetting('rowHeight', sourceIndex);
     const oversizedHeight = this.wot.wtViewport.oversizedRows[sourceIndex];
 
     if (oversizedHeight !== void 0) {

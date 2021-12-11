@@ -59,7 +59,7 @@ class Table {
     // legacy support
     this.instance = this.wot;
     this.TABLE = domBindings.rootTable;
-    this.TBODY = null; // todo should it be part of domBindings
+    this.TBODY = null; // todo should it be part of domBindings?
     this.THEAD = null;
     this.COLGROUP = null;
     this.tableOffset = 0;
@@ -106,8 +106,8 @@ class Table {
     // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
     this.wtSettings.update('rowHeaderWidth', () => this._modifyRowHeaderWidth(origRowHeaderWidth));
 
-    this.rowUtils = new RowUtils(this.wot); // todo ioc
-    this.columnUtils = new ColumnUtils(this.wot); // todo ioc
+    this.rowUtils = new RowUtils(this.wot, this.wtSettings); // todo ioc
+    this.columnUtils = new ColumnUtils(this.wot, this.wtSettings); // todo ioc
     this.tableRenderer = new Renderer({ // todo ioc
       TABLE: this.TABLE,
       THEAD: this.THEAD,

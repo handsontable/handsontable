@@ -14,6 +14,7 @@ import Viewport from './viewport';
 
 /**
  * @class Walkontable
+ * @TODO define explicitly fields.
  */
 export default class Walkontable {
   /**
@@ -64,15 +65,15 @@ export default class Walkontable {
       this.wtTable = this.cloneOverlay.createTable(this, facadeGetter, this.domBindings, this.wtSettings);
       this.wtScroll = new Scroll(this.createScrollDao()); // todo refactoring: consider about IOC: it requires wtSettings, topOverlay, leftOverlay, wtTable, wtViewport, rootWindow
       this.wtViewport = clone.viewport;
-      this.wtEvent = new Event(this, this.wtSettings, this.domBindings, facadeGetter);
+      this.wtEvent = new Event(this, facadeGetter, this.domBindings, this.wtSettings);
       this.selections = clone.selections;
     } else {
       this.wtTable = new MasterTable(this, facadeGetter, this.domBindings, this.wtSettings); // todo refactoring remove passing this into Table - potentially breaks many things.
       this.wtScroll = new Scroll(this.createScrollDao()); // todo refactoring: consider about IOC: it requires wtSettings, topOverlay, leftOverlay, wtTable, wtViewport, rootWindow
-      this.wtViewport = new Viewport(this, this.domBindings);
-      this.wtEvent = new Event(this, this.wtSettings, this.domBindings, facadeGetter);
+      this.wtViewport = new Viewport(this, this.domBindings, this.wtSettings);
+      this.wtEvent = new Event(this, facadeGetter, this.domBindings, this.wtSettings);
       this.selections = this.wtSettings.getSetting('selections');
-      this.wtOverlays = new Overlays(this, facadeGetter, this.wtSettings, this.domBindings);
+      this.wtOverlays = new Overlays(this, facadeGetter, this.domBindings, this.wtSettings);
       this.exportSettingsAsClassNames();
     }
 
@@ -251,41 +252,6 @@ export default class Walkontable {
   }
 
   /**
-   * @param {object} settings The singular settings to update or if passed as object to merge with.
-   * @param {*} value The value to set if the first argument is passed as string.
-   * @returns {Walkontable}
-   */
-  update(settings, value) {
-    this.wtSettings.update(settings, value);
-
-    return this;
-  }
-
-  /**
-   * Get/Set Walkontable instance setting.
-   *
-   * @param {string} key The settings key to retrieve.
-   * @param {*} [param1] Additional parameter passed to the options defined as function.
-   * @param {*} [param2] Additional parameter passed to the options defined as function.
-   * @param {*} [param3] Additional parameter passed to the options defined as function.
-   * @param {*} [param4] Additional parameter passed to the options defined as function.
-   * @returns {*}
-   */
-  getSetting(key, param1, param2, param3, param4) {
-    return this.wtSettings.getSetting(key, param1, param2, param3, param4);
-  }
-
-  /**
-   * Checks if setting exists.
-   *
-   * @param {string} key The settings key to check.
-   * @returns {boolean}
-   */
-  hasSetting(key) {
-    return this.wtSettings.has(key);
-  }
-
-  /**
    * Destroy instance.
    */
   destroy() {
@@ -322,19 +288,19 @@ export default class Walkontable {
       },
       // todo refactoring, consider about using injecting wtSettings into scroll (it'll enables remove dao layer)
       get totalRows() {
-        return wot.getSetting('totalRows');
+        return wot.wtSettings.getSetting('totalRows');
       },
       get totalColumns() {
-        return wot.getSetting('totalColumns');
+        return wot.wtSettings.getSetting('totalColumns');
       },
       get fixedRowsTop() {
-        return wot.getSetting('fixedRowsTop');
+        return wot.wtSettings.getSetting('fixedRowsTop');
       },
       get fixedRowsBottom() {
-        return wot.getSetting('fixedRowsBottom');
+        return wot.wtSettings.getSetting('fixedRowsBottom');
       },
       get fixedColumnsLeft() {
-        return wot.getSetting('fixedColumnsLeft');
+        return wot.wtSettings.getSetting('fixedColumnsLeft');
       },
 
     };

@@ -4,9 +4,9 @@ import {
   offset,
   outerHeight,
   outerWidth,
-} from './../../../helpers/dom/element';
-import { objectEach } from './../../../helpers/object';
-import EventManager from './../../../eventManager';
+} from '../../../helpers/dom/element';
+import { objectEach } from '../../../helpers/object';
+import EventManager from '../../../eventManager';
 import {
   RENDER_TYPE,
   FULLY_VISIBLE_TYPE,
@@ -21,13 +21,14 @@ class Viewport {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    * @param {DomBindings} domBindings Bindings into DOM.
+   * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(wotInstance, domBindings) {
+  constructor(wotInstance, domBindings, wtSettings) {
     this.wot = wotInstance;
     // legacy support
     this.instance = this.wot;
     this.domBindings = domBindings;
-
+    this.wtSettings = wtSettings;
     this.oversizedRows = [];
     this.oversizedColumnHeaders = [];
     this.hasOversizedColumnHeadersMarked = {};
@@ -65,12 +66,12 @@ class Viewport {
   }
 
   getWorkspaceWidth() {
-    const { wot } = this;
+    const { wtSettings } = this;
     const { rootDocument, rootWindow } = this.domBindings;
     const trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
     const docOffsetWidth = rootDocument.documentElement.offsetWidth;
-    const totalColumns = wot.getSetting('totalColumns');
-    const preventOverflow = wot.getSetting('preventOverflow');
+    const totalColumns = wtSettings.getSetting('totalColumns');
+    const preventOverflow = wtSettings.getSetting('preventOverflow');
     let width;
     let overflow;
 
@@ -78,7 +79,7 @@ class Viewport {
       return outerWidth(this.instance.wtTable.wtRootElement);
     }
 
-    if (wot.getSetting('freezeOverlays')) {
+    if (wtSettings.getSetting('freezeOverlays')) {
       width = Math.min(docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
     } else {
       width = Math.min(this.getContainerFillWidth(), docOffsetWidth - this.getWorkspaceOffset().left, docOffsetWidth);
@@ -102,7 +103,7 @@ class Viewport {
       }
     }
 
-    const stretchSetting = wot.getSetting('stretchH');
+    const stretchSetting = wtSettings.getSetting('stretchH');
 
     if (stretchSetting === 'none' || !stretchSetting) {
       // if no stretching is used, return the maximum used workspace width
@@ -201,7 +202,7 @@ class Viewport {
    * @returns {number}
    */
   getColumnHeaderHeight() {
-    const columnHeaders = this.instance.getSetting('columnHeaders');
+    const columnHeaders = this.wtSettings.getSetting('columnHeaders');
 
     if (!columnHeaders.length) {
       this.columnHeaderHeight = 0;
@@ -235,8 +236,8 @@ class Viewport {
    * @returns {number}
    */
   getRowHeaderWidth() {
-    const rowHeadersWidthSetting = this.instance.getSetting('rowHeaderWidth');
-    const rowHeaders = this.instance.getSetting('rowHeaders');
+    const rowHeadersWidthSetting = this.wtSettings.getSetting('rowHeaderWidth');
+    const rowHeaders = this.wtSettings.getSetting('rowHeaders');
 
     if (rowHeadersWidthSetting) {
       this.rowHeaderWidth = 0;
@@ -273,7 +274,7 @@ class Viewport {
       }
     }
 
-    this.rowHeaderWidth = this.instance
+    this.rowHeaderWidth = this.wtSettings
       .getSetting('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
 
     return this.rowHeaderWidth;
@@ -308,8 +309,8 @@ class Viewport {
    * @returns {ViewportRowsCalculator}
    */
   createRowsCalculator(calculationType = RENDER_TYPE) {
-    const { wot } = this;
-    const { wtSettings, wtOverlays, wtTable } = wot;
+    const { wot, wtSettings } = this;
+    const { wtOverlays, wtTable } = wot;
     let height;
     let scrollbarHeight;
     let fixedRowsHeight;
@@ -328,9 +329,9 @@ class Viewport {
       pos = 0;
     }
 
-    const fixedRowsTop = wot.getSetting('fixedRowsTop');
-    const fixedRowsBottom = wot.getSetting('fixedRowsBottom');
-    const totalRows = wot.getSetting('totalRows');
+    const fixedRowsTop = wtSettings.getSetting('fixedRowsTop');
+    const fixedRowsBottom = wtSettings.getSetting('fixedRowsBottom');
+    const totalRows = wtSettings.getSetting('totalRows');
 
     if (fixedRowsTop) {
       fixedRowsHeight = wtOverlays.topOverlay.sumCellSizes(0, fixedRowsTop);
@@ -353,7 +354,7 @@ class Viewport {
     return new ViewportRowsCalculator({
       viewportSize: height,
       scrollOffset: pos,
-      totalItems: wot.getSetting('totalRows'),
+      totalItems: wtSettings.getSetting('totalRows'),
       itemSizeFn: sourceRow => wtTable.getRowHeight(sourceRow),
       overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride'),
       calculationType,
@@ -371,8 +372,8 @@ class Viewport {
    * @returns {ViewportRowsCalculator}
    */
   createColumnsCalculator(calculationType = RENDER_TYPE) {
-    const { wot } = this;
-    const { wtSettings, wtOverlays, wtTable } = wot;
+    const { wot, wtSettings } = this;
+    const { wtOverlays, wtTable } = wot;
     let width = this.getViewportWidth();
     let pos = wtOverlays.leftOverlay.getScrollPosition() - wtOverlays.leftOverlay.getTableParentOffset();
 
@@ -382,7 +383,7 @@ class Viewport {
       pos = 0;
     }
 
-    const fixedColumnsLeft = wot.getSetting('fixedColumnsLeft');
+    const fixedColumnsLeft = wtSettings.getSetting('fixedColumnsLeft');
 
     if (fixedColumnsLeft) {
       const fixedColumnsWidth = wtOverlays.leftOverlay.sumCellSizes(0, fixedColumnsLeft);
@@ -397,13 +398,13 @@ class Viewport {
     return new ViewportColumnsCalculator({
       viewportSize: width,
       scrollOffset: pos,
-      totalItems: wot.getSetting('totalColumns'),
+      totalItems: wtSettings.getSetting('totalColumns'),
       itemSizeFn: sourceCol => wot.wtTable.getColumnWidth(sourceCol),
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
       calculationType,
-      stretchMode: wot.getSetting('stretchH'),
+      stretchMode: wtSettings.getSetting('stretchH'),
       stretchingItemWidthFn: (stretchedWidth, column) => {
-        return wot.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column);
+        return wtSettings.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column);
       },
     });
   }
@@ -469,7 +470,7 @@ class Viewport {
       return false;
 
     } else if (endRow > renderedEndRow ||
-              (endRow === renderedEndRow && endRow < this.wot.getSetting('totalRows') - 1)) {
+              (endRow === renderedEndRow && endRow < this.wtSettings.getSetting('totalRows') - 1)) {
       return false;
     }
 
@@ -496,7 +497,7 @@ class Viewport {
       return false;
 
     } else if (endColumn > renderedEndColumn ||
-              (endColumn === renderedEndColumn && endColumn < this.wot.getSetting('totalColumns') - 1)) {
+              (endColumn === renderedEndColumn && endColumn < this.wtSettings.getSetting('totalColumns') - 1)) {
       return false;
     }
 

@@ -18,11 +18,11 @@ const privatePool = new WeakMap();
 class Event {
   /**
    * @param {Walkontable} instance Walkontable instance.
-   * @param {Settings} wtSettings The walkontable settings.
-   * @param {DomBindings} domBindings Bindings into dom.
    * @param {FacadeGetter} facadeGetter Gets an instance facade.
+   * @param {DomBindings} domBindings Bindings into dom.
+   * @param {Settings} wtSettings The walkontable settings.
    */
-  constructor(instance, wtSettings, domBindings, facadeGetter) {
+  constructor(instance, facadeGetter, domBindings, wtSettings) {
     this.wtSettings = wtSettings;
     this.domBindings = domBindings;
     /**
@@ -82,7 +82,7 @@ class Event {
         clearTimeout(this.instance.momentumScrolling._timeout);
 
         if (!this.instance.momentumScrolling.ongoing) {
-          this.instance.getSetting('onBeforeTouchScroll');
+          this.wtSettings.getSetting('onBeforeTouchScroll');
         }
         this.instance.momentumScrolling.ongoing = true;
 
@@ -187,7 +187,7 @@ class Event {
     const cell = this.parentCell(realTarget);
 
     if (hasClass(realTarget, 'corner')) {
-      this.instance.getSetting('onCellCornerMouseDown', event, realTarget);
+      this.wtSettings.getSetting('onCellCornerMouseDown', event, realTarget);
     } else if (cell.TD && this.wtSettings.has('onCellMouseDown')) {
       this.callListener('onCellMouseDown', event, cell.coords, cell.TD);
     }

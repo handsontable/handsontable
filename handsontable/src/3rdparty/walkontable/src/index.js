@@ -8,7 +8,7 @@ import Walkontable from './facade/core';
 import Selection from './selection';
 import * as Renderer from './renderer';
 import { OrderView, SharedOrderView } from './utils/orderView';
-import { getListenersCounter } from './../../../eventManager';
+import { getListenersCounter } from '../../../eventManager';
 
 export {
   ViewportColumnsCalculator,

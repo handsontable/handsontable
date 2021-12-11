@@ -140,17 +140,17 @@ export default class WalkontableFacade {
   }
 
   update(settings, value) {
-    this._wot.update(settings, value);
+    this._wot.wtSettings.update(settings, value);
 
     return this;
   }
 
   getSetting(key, param1, param2, param3, param4) {
-    return this._wot.getSetting(key, param1, param2, param3, param4);
+    return this._wot.wtSettings.getSetting(key, param1, param2, param3, param4);
   }
 
   hasSetting(key) {
-    return this._wot.hasSetting(key);
+    return this._wot.wtSettings.hasSetting(key);
   }
 
   destroy() {
