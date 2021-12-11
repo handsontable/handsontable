@@ -1,11 +1,11 @@
 ---
-title: 'React: Using the `HotColumn` component'
-metaTitle: 'React: Using the HotColumn component - Guide - Handsontable Documentation'
+title: 'Using the `HotColumn` component in React'
+metaTitle: 'Using the HotColumn component in React - Guide - Handsontable Documentation'
 permalink: /10.0/react-hot-column
 canonicalUrl: /react-hot-column
 ---
 
-# React: Using the `HotColumn` component
+# Using the `HotColumn` component in React
 
 [[toc]]
 
@@ -83,7 +83,7 @@ The example below uses the [react-native-listener](https://www.npmjs.com/package
   allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
   sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
-## Using the renderer/editor components with React's Context
+## Using the renderer/editor components in React's Context
 
 In this example, React's Context is used to pass the information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with editors just as well.
 
@@ -93,7 +93,7 @@ In this example, React's Context is used to pass the information available in th
   border: 0;
   borderRadius: 4;
   overflow: hidden;"
-  title="Using the renderer component with React&#039;s Context" 
+  title="Using the renderer component in React&#039;s Context" 
   allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" 
   sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
