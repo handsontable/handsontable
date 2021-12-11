@@ -9,11 +9,10 @@ import {
   offset,
   outerHeight,
   outerWidth,
-} from './../../../helpers/dom/element';
-import { stopImmediatePropagation } from './../../../helpers/dom/event';
-import { objectEach } from './../../../helpers/object';
-import { isMobileBrowser } from './../../../helpers/browser';
-import EventManager from './../../../eventManager';
+} from '../../../helpers/dom/element';
+import { stopImmediatePropagation } from '../../../helpers/dom/event';
+import { objectEach } from '../../../helpers/object';
+import { isMobileBrowser } from '../../../helpers/browser';
 import CellCoords from './cell/coords';
 
 /**
@@ -31,7 +30,7 @@ class Border {
     if (!settings) {
       return;
     }
-    this.eventManager = new EventManager(wotInstance);
+    this.eventManager = wotInstance.eventManager;
     this.instance = wotInstance;
     this.wot = wotInstance;
     this.settings = settings;

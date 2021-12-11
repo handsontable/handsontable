@@ -5,7 +5,6 @@ import {
 import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { isChrome } from '../../../helpers/browser';
-import EventManager from '../../../eventManager';
 import {
   LeftOverlay,
   TopOverlay,
@@ -87,8 +86,9 @@ class Overlays {
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
    * @param {DomBindings} domBindings Bindings into DOM.
    * @param {Settings} wtSettings The Walkontable settings.
+   * @param {EventManager} eventManager The walkontable event manager.
    */
-  constructor(wotInstance, facadeGetter, domBindings, wtSettings) {
+  constructor(wotInstance, facadeGetter, domBindings, wtSettings, eventManager) {
     this.wot = wotInstance;
     this.wtSettings = wtSettings;
     this.domBindings = domBindings;
@@ -98,7 +98,7 @@ class Overlays {
 
     // legacy support
     this.instance = this.wot; // todo refactoring: move to facade
-    this.eventManager = new EventManager(this.wot); // todo refactoring: ioc
+    this.eventManager = eventManager;
 
     // TODO refactoring: probably invalid place to this logic
     this.scrollbarSize = getScrollbarWidth(rootDocument);

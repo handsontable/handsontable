@@ -11,6 +11,7 @@ import Scroll from './scroll';
 import Settings from './settings';
 import MasterTable from './table/master';
 import Viewport from './viewport';
+import EventManager from '../../../eventManager';
 
 /**
  * @class Walkontable
@@ -58,6 +59,8 @@ export default class Walkontable {
     this.wtSettings = settings instanceof Settings ? settings : new Settings(settings);
     const facadeGetter = this.wtSettings.getSetting('facade', this); // todo rethink.
 
+    this.eventManager = new EventManager(this);
+
     // bootstrap from settings
     if (clone) { // todo refactoring extract to another class, maybe with same base class
       this.cloneSource = clone.source;
@@ -65,15 +68,15 @@ export default class Walkontable {
       this.wtTable = this.cloneOverlay.createTable(this, facadeGetter, this.domBindings, this.wtSettings);
       this.wtScroll = new Scroll(this.createScrollDao()); // todo refactoring: consider about IOC: it requires wtSettings, topOverlay, leftOverlay, wtTable, wtViewport, rootWindow
       this.wtViewport = clone.viewport;
-      this.wtEvent = new Event(this, facadeGetter, this.domBindings, this.wtSettings);
+      this.wtEvent = new Event(this, facadeGetter, this.domBindings, this.wtSettings, this.eventManager);
       this.selections = clone.selections;
     } else {
-      this.wtTable = new MasterTable(this, facadeGetter, this.domBindings, this.wtSettings); // todo refactoring remove passing this into Table - potentially breaks many things.
+      this.wtTable = new MasterTable(this, facadeGetter, this.domBindings, this.wtSettings); // todo refactoring remove passing `this` into Table - potentially breaks many things.
       this.wtScroll = new Scroll(this.createScrollDao()); // todo refactoring: consider about IOC: it requires wtSettings, topOverlay, leftOverlay, wtTable, wtViewport, rootWindow
-      this.wtViewport = new Viewport(this, this.domBindings, this.wtSettings);
-      this.wtEvent = new Event(this, facadeGetter, this.domBindings, this.wtSettings);
+      this.wtViewport = new Viewport(this, this.domBindings, this.wtSettings, this.eventManager);
+      this.wtEvent = new Event(this, facadeGetter, this.domBindings, this.wtSettings, this.eventManager);
       this.selections = this.wtSettings.getSetting('selections');
-      this.wtOverlays = new Overlays(this, facadeGetter, this.domBindings, this.wtSettings);
+      this.wtOverlays = new Overlays(this, facadeGetter, this.domBindings, this.wtSettings, this.eventManager);
       this.exportSettingsAsClassNames();
     }
 

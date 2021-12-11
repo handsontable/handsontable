@@ -22,7 +22,7 @@ class EventManager {
   constructor(context = null) {
     this.context = context || this;
 
-    if (!this.context.eventListeners) {
+    if (!this.context.eventListeners) { // todo it modify external object. Rethink that.
       this.context.eventListeners = []; // TODO perf It would be more performant if every instance of EventManager tracked its own listeners only
     }
   }

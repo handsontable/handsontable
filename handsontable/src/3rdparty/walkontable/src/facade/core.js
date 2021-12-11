@@ -104,7 +104,9 @@ export default class WalkontableFacade {
   set eventListeners(value) {
     this._wot.eventListeners = value;
   }
-
+  get eventManager() {
+    return this._wot.eventManager;
+  }
   draw(fastDraw = false) {
     this._wot.draw(fastDraw);
 

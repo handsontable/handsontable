@@ -6,7 +6,6 @@ import {
   outerWidth,
 } from '../../../helpers/dom/element';
 import { objectEach } from '../../../helpers/object';
-import EventManager from '../../../eventManager';
 import {
   RENDER_TYPE,
   FULLY_VISIBLE_TYPE,
@@ -22,8 +21,9 @@ class Viewport {
    * @param {Walkontable} wotInstance The Walkontable instance.
    * @param {DomBindings} domBindings Bindings into DOM.
    * @param {Settings} wtSettings The Walkontable settings.
+   * @param {EventManager} eventManager The instance event manager.
    */
-  constructor(wotInstance, domBindings, wtSettings) {
+  constructor(wotInstance, domBindings, wtSettings, eventManager) {
     this.wot = wotInstance;
     // legacy support
     this.instance = this.wot;
@@ -38,7 +38,7 @@ class Viewport {
     this.rowsVisibleCalculator = null;
     this.columnsVisibleCalculator = null;
 
-    this.eventManager = new EventManager(this.wot); // todo ioc
+    this.eventManager = eventManager;
     this.eventManager.addEventListener(this.domBindings.rootWindow, 'resize', () => {
       this.clientHeight = this.getWorkspaceHeight();
     });

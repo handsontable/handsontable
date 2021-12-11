@@ -5,7 +5,6 @@ import {
 import { defineGetter } from '../../../../helpers/object';
 import { arrayEach } from '../../../../helpers/array';
 import { warn } from '../../../../helpers/console';
-import EventManager from './../../../../eventManager';
 import {
   CLONE_TYPES,
   CLONE_TOP,
@@ -328,6 +327,6 @@ export class Overlay {
    * Destroy overlay instance.
    */
   destroy() {
-    (new EventManager(this.clone)).destroy();
+    this.clone.eventManager.destroy(); // todo check if it is good place for that operation
   }
 }

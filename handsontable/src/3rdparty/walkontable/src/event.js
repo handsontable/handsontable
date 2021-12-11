@@ -7,7 +7,6 @@ import {
 import { partial } from '../../../helpers/function';
 import { isTouchSupported } from '../../../helpers/feature';
 import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from './../../../helpers/browser';
-import EventManager from './../../../eventManager';
 import { isDefined } from '../../../helpers/mixed';
 
 const privatePool = new WeakMap();
@@ -21,8 +20,9 @@ class Event {
    * @param {FacadeGetter} facadeGetter Gets an instance facade.
    * @param {DomBindings} domBindings Bindings into dom.
    * @param {Settings} wtSettings The walkontable settings.
+   * @param {EventManager} eventManager The walkontable event manager.
    */
-  constructor(instance, facadeGetter, domBindings, wtSettings) {
+  constructor(instance, facadeGetter, domBindings, wtSettings, eventManager) {
     this.wtSettings = wtSettings;
     this.domBindings = domBindings;
     /**
@@ -38,7 +38,7 @@ class Event {
      * @private
      * @type {EventManager}
      */
-    this.eventManager = new EventManager(instance);
+    this.eventManager = eventManager;
 
     /**
      * Should be use only for passing face called external origin methods, like registered event listeners.
@@ -47,7 +47,7 @@ class Event {
      * @todo Consider about removing this from Event class, because it make relationship into facade (implicit circular dependency).
      * @todo Con. Maybe passing listener caller as an ioc from faced resolves this issue. To rethink later.
      *
-     * @type {function():WalkontableFacade}
+     * @type {FacadeGetter}
      * @private
      */
     this.facadeGetter = facadeGetter;
