@@ -22,18 +22,16 @@ class Event {
    * @param {Settings} wtSettings The walkontable settings.
    * @param {EventManager} eventManager The walkontable event manager.
    * @param {Table} wtTable The table.
+   * @param {Selections} selections Selections.
+   * @param {Event} [parent=null] The main Event instance.
    */
-  constructor(instance, facadeGetter, domBindings, wtSettings, eventManager, wtTable) {
+  constructor(facadeGetter, domBindings, wtSettings, eventManager, wtTable, selections, parent=null) {
     this.wtSettings = wtSettings;
     this.domBindings = domBindings;
     this.wtTable = wtTable;
-    /**
-     * Instance of {@link Walkontable}.
-     *
-     * @private
-     * @type {Walkontable}
-     */
-    this.instance = instance;
+    this.selections = selections;
+    this.parent = parent;
+    
     /**
      * Instance of {@link EventManager}.
      *
@@ -77,20 +75,20 @@ class Event {
       this.eventManager.addEventListener(this.wtTable.holder, 'touchstart', event => this.onTouchStart(event));
       this.eventManager.addEventListener(this.wtTable.holder, 'touchend', event => this.onTouchEnd(event));
 
-      if (!this.instance.momentumScrolling) {
-        this.instance.momentumScrolling = {};
+      if (!this.momentumScrolling) {
+        this.momentumScrolling = {};
       }
       this.eventManager.addEventListener(this.wtTable.holder, 'scroll', () => {
-        clearTimeout(this.instance.momentumScrolling._timeout);
+        clearTimeout(this.momentumScrolling._timeout);
 
-        if (!this.instance.momentumScrolling.ongoing) {
+        if (!this.momentumScrolling.ongoing) {
           this.wtSettings.getSetting('onBeforeTouchScroll');
         }
-        this.instance.momentumScrolling.ongoing = true;
+        this.momentumScrolling.ongoing = true;
 
-        this.instance.momentumScrolling._timeout = setTimeout(() => {
-          if (!this.instance.touchApplied) {
-            this.instance.momentumScrolling.ongoing = false;
+        this.momentumScrolling._timeout = setTimeout(() => {
+          if (!this.touchApplied) {
+            this.momentumScrolling.ongoing = false;
 
             this.wtSettings.getSetting('onAfterMomentumScroll');
           }
@@ -154,12 +152,12 @@ class Event {
       cell.TD = TD;
 
     } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'current')) {
-      cell.coords = this.instance.selections.getCell().cellRange.highlight;
+      cell.coords = this.selections.getCell().cellRange.highlight;
       cell.TD = this.wtTable.getCell(cell.coords);
 
     } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'area')) {
-      if (this.instance.selections.createOrGetArea().cellRange) {
-        cell.coords = this.instance.selections.createOrGetArea().cellRange.to;
+      if (this.selections.createOrGetArea().cellRange) {
+        cell.coords = this.selections.createOrGetArea().cellRange.to;
         cell.TD = this.wtTable.getCell(cell.coords);
       }
     }
@@ -195,7 +193,7 @@ class Event {
     }
 
     // doubleclick reacts only for left mouse button or from touch events
-    if ((event.button === 0 || this.instance.touchApplied) && cell.TD) {
+    if ((event.button === 0 || this.touchApplied) && cell.TD) {
       priv.dblClickOrigin[0] = cell.TD;
 
       clearTimeout(priv.dblClickTimeout[0]);
@@ -235,10 +233,10 @@ class Event {
 
     const table = this.wtTable.TABLE;
     const td = closestDown(event.target, ['TD', 'TH'], table);
-    const mainWOT = this.instance.cloneSource || this.instance;
+    const parent = this.parent || this;
 
-    if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
-      mainWOT.lastMouseOver = td;
+    if (td && td !== parent.lastMouseOver && isChildOf(td, table)) {
+      parent.lastMouseOver = td;
 
       this.callListener('onCellMouseOver', event, this.wtTable.getCoords(td), td);
     }
@@ -279,7 +277,7 @@ class Event {
     }
 
     // if not left mouse button, and the origin event is not comes from touch
-    if (event.button !== 0 && !this.instance.touchApplied) {
+    if (event.button !== 0 && !this.touchApplied) {
       return;
     }
 
@@ -313,8 +311,8 @@ class Event {
   onTouchStart(event) {
     const priv = privatePool.get(this);
 
-    priv.selectedCellBeforeTouchEnd = this.instance.selections.getCell().cellRange;
-    this.instance.touchApplied = true;
+    priv.selectedCellBeforeTouchEnd = this.selections.getCell().cellRange;
+    this.touchApplied = true;
 
     this.onMouseDown(event);
   }
@@ -358,7 +356,7 @@ class Event {
 
     this.onMouseUp(event);
 
-    this.instance.touchApplied = false;
+    this.touchApplied = false;
   }
 
   /**
