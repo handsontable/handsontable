@@ -89,7 +89,7 @@ class EventManager {
         }
         // TODO rethink that, main bulk is that it needs multi instances to handle same context, but with a different scopes.
         // TODO I suppose much more efficient way will be comparing string with scope id, or any similar approach.
-        if (onlyOwnEvents && tmpEvent.eventManager !== this) { 
+        if (onlyOwnEvents && tmpEvent.eventManager !== this) {
           continue;
         }
         this.context.eventListeners.splice(len, 1);

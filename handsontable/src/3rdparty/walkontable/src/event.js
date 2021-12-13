@@ -16,7 +16,6 @@ const privatePool = new WeakMap();
  */
 class Event {
   /**
-   * @param {Walkontable} instance Walkontable instance.
    * @param {FacadeGetter} facadeGetter Gets an instance facade.
    * @param {DomBindings} domBindings Bindings into dom.
    * @param {Settings} wtSettings The walkontable settings.
@@ -25,13 +24,13 @@ class Event {
    * @param {Selections} selections Selections.
    * @param {Event} [parent=null] The main Event instance.
    */
-  constructor(facadeGetter, domBindings, wtSettings, eventManager, wtTable, selections, parent=null) {
+  constructor(facadeGetter, domBindings, wtSettings, eventManager, wtTable, selections, parent = null) {
     this.wtSettings = wtSettings;
     this.domBindings = domBindings;
     this.wtTable = wtTable;
     this.selections = selections;
     this.parent = parent;
-    
+
     /**
      * Instance of {@link EventManager}.
      *

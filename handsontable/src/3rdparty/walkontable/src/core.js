@@ -71,13 +71,17 @@ export default class Walkontable {
       this.wtScroll = new Scroll(this.createScrollDao()); // todo refactoring: consider about IOC: it requires wtSettings, topOverlay, leftOverlay, wtTable, wtViewport, rootWindow
       this.wtViewport = clone.viewport;
       this.selections = clone.selections;
-      this.wtEvent = new Event(facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selections, clone.event);
+      this.wtEvent = new Event(
+        facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selections, clone.event
+      );
     } else {
       this.wtTable = new MasterTable(this, facadeGetter, this.domBindings, this.wtSettings); // todo refactoring remove passing `this` into Table - potentially breaks many things.
       this.wtScroll = new Scroll(this.createScrollDao()); // todo refactoring: consider about IOC: it requires wtSettings, topOverlay, leftOverlay, wtTable, wtViewport, rootWindow
       this.wtViewport = new Viewport(this, this.domBindings, this.wtSettings, this.eventManager, this.wtTable);
       this.selections = this.wtSettings.getSetting('selections');
-      this.wtEvent = new Event(facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selections);
+      this.wtEvent = new Event(
+        facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selections
+      );
       this.wtOverlays = new Overlays(
         this, facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable
       );
