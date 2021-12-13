@@ -132,8 +132,9 @@ export default class Core {
   setCellMeta(row: number, col: number, key: string, val: any): void;
   setCellMeta<K extends keyof CellMeta>(row: number, col: number, key: K, val: CellMeta[K]): void;
   setCellMetaObject(row: number, col: number, prop: CellMeta): void;
-  setDataAtCell(changes: Array<[number, string | number, CellValue]>, source?: string): void;
-  setDataAtCell(row: number, col: string | number, value: CellValue, source?: string): void;
+  setData(data: CellValue[][] | RowObject[], source?: string): void;
+  setDataAtCell(changes: Array<[number, number, CellValue]>, source?: string): void;
+  setDataAtCell(row: number, col: number, value: CellValue, source?: string): void;
   setDataAtRowProp(changes: Array<[number, string | number, CellValue]>, source?: string): void;
   setDataAtRowProp(row: number, prop: string, value: CellValue, source?: string): void;
   setSourceDataAtCell(changes: Array<[number, string | number, CellValue]>): void;
@@ -151,6 +152,7 @@ export default class Core {
   toVisualRow(row: number): number;
   undo(): void;
   unlisten(): void;
+  updateData(data: CellValue[][] | RowObject[], source?: string): void;
   updateSettings(settings: GridSettings, init?: boolean): void;
   validateCell(value: any, cellProperties: CellProperties, callback: (valid: boolean) => void, source: string): void;
   validateCells(callback?: (valid: boolean) => void): void;

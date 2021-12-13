@@ -1,6 +1,6 @@
 ---
-title: Redux example
-metaTitle: Redux example - Guide - Handsontable Documentation
+title: 'Redux example'
+metaTitle: 'Redux example - Guide - Handsontable Documentation'
 permalink: /next/react-redux-example
 canonicalUrl: /react-redux-example
 ---

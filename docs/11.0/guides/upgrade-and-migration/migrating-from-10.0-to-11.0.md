@@ -18,7 +18,7 @@ Starting with Handsontable 11.0.0, the [React wrapper](@/guides/integrate-with-r
 
 If you don't use any of the wrappers, you don't need to change anything.
 
-#### Using all modules
+### Using all modules
 
 To continue using all Handsontable modules with your wrapper, register all modules with the new `registerAllModules()` method.
 
@@ -31,24 +31,63 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 ```
 
-#### Using individual modules
+### Using individual modules
 
 To start using individual Handsontable modules with your wrapper, see the following guides:
 - [Using modules with React](@/guides/integrate-with-react/react-modules.md)
 - [Using modules with Angular](@/guides/integrate-with-angular/angular-modules.md)
 - [Using modules with Vue](@/guides/integrate-with-vue/vue-modules.md)
 
-## Step 2: Adapt to the TypeScript definitions file changes
+## Step 2: Adapt to the type definition changes
 
-Before, all of Handsontable's TypeScript definitions were kept in one huge file, placed in the root directory: `./handsontable.d.ts`.
-
-Now, each module has its own TypeScript definitions file. They're all kept in a new `types` directory: [`./handsontable/types`](https://github.com/handsontable/handsontable/tree/master/handsontable/types).
+In Handsontable 11.0.0, we reorganized the TypeScript definitions files, and improved the overall consistency of Handsontable's types.
 
 For more details, see [this pull request](https://github.com/handsontable/handsontable/pull/8875).
+
+### TypeScript definitions files
+
+#### Before
+
+Before, all of Handsontable's TypeScript definitions were kept in one file, placed in the root directory: `./handsontable.d.ts`.
+
+The only way to import types was to get all of them by importing the `Handsontable` package:
+
+```ts
+import Handsontable from 'handsontable';
+```
+
+#### Now
+
+Now, each module has its own TypeScript definitions file. They're all kept in a new directory called `types`: [`./handsontable/types`](https://github.com/handsontable/handsontable/tree/master/handsontable/types).
+
+You can still import all of Handsontable's type definitions in the same as way as before. Additionally, you can also import individual modules from within the Handsontable package, with correct types:
+
+```ts
+import Handsontable from 'handsontable/base';
+import { registerPlugin, HiddenRows } from 'handsontable/plugins';
+```
+
+### Editors' interfaces
+
+When improving the consistency of Handsontable's types, we needed to change the editors' interfaces.
+
+#### Before
+
+```ts
+class CustomEditor extends Handsontable.editors.BaseEditor implements Handsontable._editors.Base ()
+```
+
+#### Now
+
+```ts
+class CustomEditor extends Handsontable.editors.BaseEditor implements Handsontable.editors.BaseEditor ()
+```
 
 ## Step 3: Adapt to the `populateFromArray()` method's changes
 
 The [`populateFromArray()`](@/api/core.md#populatefromarray) method works differently now, when its `method` argument is set to `shift_down` or `shift_right`.
+
+For more details, see [this pull request](https://github.com/handsontable/handsontable/pull/8867).
 
 #### Before
 
@@ -81,5 +120,3 @@ new Handsontable(element, {
   }
 });
 ```
-
-For more details, see [this pull request](https://github.com/handsontable/handsontable/pull/8867).

@@ -19,7 +19,7 @@
 
 .handsontable td.htInvalid {
   /*gives priority over td.area selection background*/
-  background-color: #ff4c42 !important; 
+  background-color: #ff4c42 !important;
 }
 
 .handsontable td.htNoWrap {
@@ -112,7 +112,7 @@
   /* Centering end */
 
   /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
-  padding-left: 8px; 
+  padding-left: 8px;
   position: absolute;
   right: -9px;
 
@@ -169,7 +169,7 @@
   right: 0;
   bottom: 0;
   /* Fix for IE9 to spread the ":before" pseudo element to 100% height of the parent element */
-  bottom: -100%\9; 
+  bottom: -100%\9;
   background: #005eff;
 }
 

@@ -35,6 +35,7 @@ jobs:
       test-angular: ${{ steps.path-filter.outputs.test-angular }}
       test-react: ${{ steps.path-filter.outputs.test-react }}
       test-vue: ${{ steps.path-filter.outputs.test-vue }}
+      test-vue3: ${{ steps.path-filter.outputs.test-vue3 }}
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
         if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
@@ -94,6 +95,9 @@ jobs:
             test-vue:
               - *hot-shared
               - 'wrappers/vue/**'
+            test-vue3:
+              - *hot-shared
+              - 'wrappers/vue3/**'
 
   build-handsontable-umd:
     name: "[BUILD] Handsontable: UMD"
@@ -341,3 +345,29 @@ jobs:
       - run: npm run swap-package-links
       - run: npm run in vue build
       - run: npm run in vue test
+
+  test-vue3:
+    name: "[TEST] Wrapper: Vue3"
+    runs-on: ubuntu-latest
+    needs: [ check-scope, build-handsontable-es-cjs ]
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.test-vue3 == 'true'
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+      - name: Download the Handsontable build artifact
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+        with:
+          name: handsontable-build-es-cjs
+          path: ./
+      - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
+      - run: cd handsontable
+      - run: npm run swap-package-links
+      - run: npm run in vue3 build
+      - run: npm run in vue3 test
