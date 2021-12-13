@@ -259,8 +259,17 @@ export class CollapsibleColumns extends BasePlugin {
    * @param {string} action 'collapse' or 'expand'.
    */
   toggleAllCollapsibleSections(action) {
-    const coords = this.headerStateManager.mapNodes(({ collapsible, origColspan, headerLevel, columnIndex }) => {
-      if (collapsible === true && origColspan > 1) {
+    const coords = this.headerStateManager.mapNodes((headerSettings) => {
+      const {
+        collapsible,
+        origColspan,
+        headerLevel,
+        columnIndex,
+        isCollapsed,
+      } = headerSettings;
+
+      if (collapsible === true && origColspan > 1
+          && (isCollapsed && action === 'expand' || !isCollapsed && action === 'collapse')) {
         return {
           row: this.headerStateManager.levelToRowCoords(headerLevel),
           col: columnIndex,
