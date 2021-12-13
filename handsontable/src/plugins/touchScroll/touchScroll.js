@@ -134,7 +134,7 @@ export class TouchScroll extends BasePlugin {
       this.scrollbars.push(bottomLeftCornerOverlay);
     }
 
-    this.clones.length = 0;
+    this.clones = [];
 
     if (topOverlay.needFullRender) {
       this.clones.push(topOverlay.clone.wtTable.holder.parentNode);
@@ -179,7 +179,7 @@ export class TouchScroll extends BasePlugin {
       addClass(clone, 'show-tween');
     });
 
-    setTimeout(() => {
+    this.hot._registerTimeout(() => {
       arrayEach(this.clones, (clone) => {
         removeClass(clone, 'show-tween');
       });

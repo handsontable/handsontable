@@ -1,11 +1,11 @@
 ---
-title: 'React: Using the `HotColumn` component'
-metaTitle: 'React: Using the HotColumn component - Guide - Handsontable Documentation'
+title: 'Using the `HotColumn` component in React'
+metaTitle: 'Using the HotColumn component in React - Guide - Handsontable Documentation'
 permalink: /10.0/react-hot-column
 canonicalUrl: /react-hot-column
 ---
 
-# React: Using the `HotColumn` component
+# Using the `HotColumn` component in React
 
 [[toc]]
 
@@ -348,7 +348,7 @@ ReactDOM.render(<App />, document.getElementById('example4'));
 ```
 :::
 
-## Using the renderer/editor components with React's Context
+## Using the renderer/editor components in React's Context
 
 In this example, React's Context is used to pass the information available in the main app component to the renderer. In this case, we're using just the renderer, but the same principle works with editors just as well.
 
