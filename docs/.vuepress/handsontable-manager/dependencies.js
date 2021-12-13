@@ -69,6 +69,9 @@ const buildDependencyGetter = (version) => {
       'hot-vue': [`https://cdn.jsdelivr.net/npm/@handsontable/vue@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */]],
       vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */]],
       vuex: ['https://unpkg.com/vuex@3/dist/vuex.js', [/* todo */]],
+      'vue-color': ['https://cdn.jsdelivr.net/npm/vue-color@2/dist/vue-color.min.js', [/* todo */]],
+      'vue-class-component': ['https://cdn.jsdelivr.net/npm/vue-class-component@7.1.0/dist/vue-class-component.min.js', [/* todo */]],
+      'vue-star-rating': ['https://cdn.jsdelivr.net/npm/vue-star-rating@1/dist/VueStarRating.umd.min.js', [/* todo */]],
       languages: [languagesJs, [/* todo */]],
     };
     /* eslint-enable max-len */
@@ -95,6 +98,7 @@ const presetMap = {
   'vue-numbro': ['hot', 'numbro', 'vue', 'hot-vue', 'fixer', 'helpers'],
   'vue-languages': ['hot', 'languages', 'vue', 'hot-vue', 'fixer', 'helpers'],
   'vue-vuex': ['hot', 'vue', 'vuex', 'hot-vue', 'fixer', 'helpers'],
+  'vue-advanced': ['hot', 'vue', 'vuex', 'hot-vue', 'vue-color', 'vue-class-component', 'vue-star-rating', 'fixer', 'helpers'],
   /* eslint-enable max-len */
 };
 

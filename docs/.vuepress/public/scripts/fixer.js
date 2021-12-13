@@ -98,6 +98,15 @@
       } else if (key === '@handsontable/vue') {
         ns = 'Handsontable.vue';
 
+      } else if (key === 'vue-color') {
+        ns = 'VueColor';
+
+      } else if (key === 'vue-star-rating') {
+        ns = 'VueStarRating';
+
+      } else if (key === 'vue-class-component') {
+        ns = 'VueClassComponent';
+
       } else if (/^handsontable\/dist\/.+\.css$/.test(key)) { // ignore CSS imports
         ns = '';
 
