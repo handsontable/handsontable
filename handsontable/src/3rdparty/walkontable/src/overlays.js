@@ -87,13 +87,14 @@ class Overlays {
    * @param {DomBindings} domBindings Bindings into DOM.
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {EventManager} eventManager The walkontable event manager.
+   * @param {MasterTable} wtTable The master table.
    */
-  constructor(wotInstance, facadeGetter, domBindings, wtSettings, eventManager) {
+  constructor(wotInstance, facadeGetter, domBindings, wtSettings, eventManager, wtTable) {
     this.wot = wotInstance;
     this.wtSettings = wtSettings;
     this.domBindings = domBindings;
     this.facadeGetter = facadeGetter;
-    const { wtTable } = this.wot; // todo ioc
+    this.wtTable = wtTable;
     const { rootDocument, rootWindow } = this.domBindings;
 
     // legacy support
@@ -201,7 +202,7 @@ class Overlays {
     if (!this.wot.drawn) {
       return;
     }
-    if (!this.wot.wtTable.holder.parentNode) {
+    if (!this.wtTable.holder.parentNode) {
       // Walkontable was detached from DOM, but this handler was not removed
       this.destroy();
 
@@ -255,7 +256,7 @@ class Overlays {
 
     if (preventWheel || isHighPixelRatio || !isChrome()) {
       this.eventManager.addEventListener(
-        this.wot.wtTable.wtRootElement,
+        this.wtTable.wtRootElement,
         'wheel',
         event => this.onCloneWheel(event, preventWheel),
         wheelEventOptions
@@ -272,7 +273,7 @@ class Overlays {
 
     overlays.forEach((overlay) => {
       if (overlay && overlay.needFullRender) {
-        const { holder } = overlay.clone.wtTable;
+        const { holder } = overlay.clone.wtTable; // todo rethink, maybe: overlay.getHolder()
 
         this.eventManager.addEventListener(
           holder,
@@ -437,8 +438,8 @@ class Overlays {
     }
 
     const { rootWindow } = this.domBindings;
-    const topHolder = this.topOverlay.clone.wtTable.holder;
-    const leftHolder = this.leftOverlay.clone.wtTable.holder;
+    const topHolder = this.topOverlay.clone.wtTable.holder; // todo rethink
+    const leftHolder = this.leftOverlay.clone.wtTable.holder; // todo rethink
 
     const [scrollLeft, scrollTop] = [this.scrollableElement.scrollLeft, this.scrollableElement.scrollTop];
 
@@ -450,7 +451,7 @@ class Overlays {
     if (this.horizontalScrolling) {
       topHolder.scrollLeft = scrollLeft;
 
-      const bottomHolder = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone.wtTable.holder : null;
+      const bottomHolder = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone.wtTable.holder : null; // todo rethink
 
       if (bottomHolder) {
         bottomHolder.scrollLeft = scrollLeft;
@@ -472,13 +473,13 @@ class Overlays {
     const { scrollLeft, scrollTop } = master;
 
     if (this.topOverlay.needFullRender) {
-      this.topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
+      this.topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft; // todo rethink, *overlay.setScroll*()
     }
     if (this.bottomOverlay.needFullRender) {
-      this.bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft;
+      this.bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft; // todo rethink, *overlay.setScroll*()
     }
     if (this.leftOverlay.needFullRender) {
-      this.leftOverlay.clone.wtTable.holder.scrollTop = scrollTop;
+      this.leftOverlay.clone.wtTable.holder.scrollTop = scrollTop; // todo rethink, *overlay.setScroll*()
     }
   }
 
@@ -494,7 +495,7 @@ class Overlays {
     if (this.bottomOverlay.needFullRender) {
       this.bottomOverlay.updateMainScrollableElement();
     }
-    const { wtTable } = this.wot;
+    const { wtTable } = this;
     const { rootWindow } = this.domBindings;
 
     if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
@@ -535,7 +536,7 @@ class Overlays {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    const spreader = this.wot.wtTable.spreader;
+    const spreader = this.wtTable.spreader;
     const width = spreader.clientWidth;
     const height = spreader.clientHeight;
 
@@ -567,7 +568,8 @@ class Overlays {
    * @param {boolean} [force=false] When `true`, it adjust the DOM nodes sizes for all overlays.
    */
   adjustElementsSize(force = false) {
-    const { wtViewport, wtTable } = this.wot;
+    const { wtViewport } = this.wot;
+    const { wtTable } = this;
     const totalColumns = this.wtSettings.getSetting('totalColumns');
     const totalRows = this.wtSettings.getSetting('totalRows');
     const headerRowSize = wtViewport.getRowHeaderWidth();
@@ -606,9 +608,7 @@ class Overlays {
    *
    */
   applyToDOM() {
-    const { wtTable } = this.wot;
-
-    if (!wtTable.isVisible()) {
+    if (!this.wtTable.isVisible()) {
       return;
     }
 
@@ -646,7 +646,7 @@ class Overlays {
         return;
       }
 
-      if (elem.clone && elem.clone.wtTable.TABLE.contains(element)) {
+      if (elem.clone && elem.clone.wtTable.TABLE.contains(element)) { // todo demeter
         result = elem.clone;
       }
     });
@@ -659,7 +659,7 @@ class Overlays {
    *
    */
   syncOverlayTableClassNames() {
-    const masterTable = this.instance.wtTable.TABLE;
+    const masterTable = this.wtTable.TABLE;
     const overlays = [
       this.topOverlay,
       this.leftOverlay,
@@ -673,7 +673,7 @@ class Overlays {
         return;
       }
 
-      elem.clone.wtTable.TABLE.className = masterTable.className;
+      elem.clone.wtTable.TABLE.className = masterTable.className; // todo demeter
     });
   }
 }

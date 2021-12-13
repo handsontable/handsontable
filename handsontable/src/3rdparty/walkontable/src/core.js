@@ -42,6 +42,10 @@ export default class Walkontable {
    */
   wtSettings;
 
+  get eventManager(){
+    return new EventManager(this);
+  }
+  
   /**
    * @param {HTMLTableElement} table Main table.
    * @param {SettingsPure|Settings} settings The Walkontable settings.
@@ -57,9 +61,7 @@ export default class Walkontable {
     };
 
     this.wtSettings = settings instanceof Settings ? settings : new Settings(settings);
-    const facadeGetter = this.wtSettings.getSetting('facade', this); // todo rethink.
-
-    this.eventManager = new EventManager(this);
+    const facadeGetter = this.wtSettings.getSetting('facade', this); // todo rethink. I would like to have no access to facade from the internal scope.
 
     // bootstrap from settings
     if (clone) { // todo refactoring extract to another class, maybe with same base class
@@ -68,15 +70,17 @@ export default class Walkontable {
       this.wtTable = this.cloneOverlay.createTable(this, facadeGetter, this.domBindings, this.wtSettings);
       this.wtScroll = new Scroll(this.createScrollDao()); // todo refactoring: consider about IOC: it requires wtSettings, topOverlay, leftOverlay, wtTable, wtViewport, rootWindow
       this.wtViewport = clone.viewport;
-      this.wtEvent = new Event(this, facadeGetter, this.domBindings, this.wtSettings, this.eventManager);
+      this.wtEvent = new Event(this, facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable);
       this.selections = clone.selections;
     } else {
       this.wtTable = new MasterTable(this, facadeGetter, this.domBindings, this.wtSettings); // todo refactoring remove passing `this` into Table - potentially breaks many things.
       this.wtScroll = new Scroll(this.createScrollDao()); // todo refactoring: consider about IOC: it requires wtSettings, topOverlay, leftOverlay, wtTable, wtViewport, rootWindow
-      this.wtViewport = new Viewport(this, this.domBindings, this.wtSettings, this.eventManager);
-      this.wtEvent = new Event(this, facadeGetter, this.domBindings, this.wtSettings, this.eventManager);
+      this.wtViewport = new Viewport(this, this.domBindings, this.wtSettings, this.eventManager, this.wtTable);
+      this.wtEvent = new Event(this, facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable);
       this.selections = this.wtSettings.getSetting('selections');
-      this.wtOverlays = new Overlays(this, facadeGetter, this.domBindings, this.wtSettings, this.eventManager);
+      this.wtOverlays = new Overlays(
+        this, facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable
+      );
       this.exportSettingsAsClassNames();
     }
 
@@ -265,6 +269,7 @@ export default class Walkontable {
   /**
    * Create data access object for scroll.
    *
+   * @private
    * @returns {ScrollDao}
    */
   createScrollDao() {

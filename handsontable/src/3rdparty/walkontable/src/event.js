@@ -6,7 +6,7 @@ import {
 } from '../../../helpers/dom/element';
 import { partial } from '../../../helpers/function';
 import { isTouchSupported } from '../../../helpers/feature';
-import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from './../../../helpers/browser';
+import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from '../../../helpers/browser';
 import { isDefined } from '../../../helpers/mixed';
 
 const privatePool = new WeakMap();
@@ -21,10 +21,12 @@ class Event {
    * @param {DomBindings} domBindings Bindings into dom.
    * @param {Settings} wtSettings The walkontable settings.
    * @param {EventManager} eventManager The walkontable event manager.
+   * @param {Table} wtTable The table.
    */
-  constructor(instance, facadeGetter, domBindings, wtSettings, eventManager) {
+  constructor(instance, facadeGetter, domBindings, wtSettings, eventManager, wtTable) {
     this.wtSettings = wtSettings;
     this.domBindings = domBindings;
+    this.wtTable = wtTable;
     /**
      * Instance of {@link Walkontable}.
      *
@@ -67,18 +69,18 @@ class Event {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(this.instance.wtTable.holder, 'contextmenu', event => this.onContextMenu(event));
-    this.eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseover', event => this.onMouseOver(event));
-    this.eventManager.addEventListener(this.instance.wtTable.TABLE, 'mouseout', event => this.onMouseOut(event));
+    this.eventManager.addEventListener(this.wtTable.holder, 'contextmenu', event => this.onContextMenu(event));
+    this.eventManager.addEventListener(this.wtTable.TABLE, 'mouseover', event => this.onMouseOver(event));
+    this.eventManager.addEventListener(this.wtTable.TABLE, 'mouseout', event => this.onMouseOut(event));
 
     const initTouchEvents = () => {
-      this.eventManager.addEventListener(this.instance.wtTable.holder, 'touchstart', event => this.onTouchStart(event));
-      this.eventManager.addEventListener(this.instance.wtTable.holder, 'touchend', event => this.onTouchEnd(event));
+      this.eventManager.addEventListener(this.wtTable.holder, 'touchstart', event => this.onTouchStart(event));
+      this.eventManager.addEventListener(this.wtTable.holder, 'touchend', event => this.onTouchEnd(event));
 
       if (!this.instance.momentumScrolling) {
         this.instance.momentumScrolling = {};
       }
-      this.eventManager.addEventListener(this.instance.wtTable.holder, 'scroll', () => {
+      this.eventManager.addEventListener(this.wtTable.holder, 'scroll', () => {
         clearTimeout(this.instance.momentumScrolling._timeout);
 
         if (!this.instance.momentumScrolling.ongoing) {
@@ -97,8 +99,8 @@ class Event {
     };
 
     const initMouseEvents = () => {
-      this.eventManager.addEventListener(this.instance.wtTable.holder, 'mouseup', event => this.onMouseUp(event));
-      this.eventManager.addEventListener(this.instance.wtTable.holder, 'mousedown', event => this.onMouseDown(event));
+      this.eventManager.addEventListener(this.wtTable.holder, 'mouseup', event => this.onMouseUp(event));
+      this.eventManager.addEventListener(this.wtTable.holder, 'mousedown', event => this.onMouseDown(event));
     };
 
     if (isMobileBrowser()) {
@@ -144,21 +146,21 @@ class Event {
    */
   parentCell(elem) {
     const cell = {};
-    const TABLE = this.instance.wtTable.TABLE;
+    const TABLE = this.wtTable.TABLE;
     const TD = closestDown(elem, ['TD', 'TH'], TABLE);
 
     if (TD) {
-      cell.coords = this.instance.wtTable.getCoords(TD);
+      cell.coords = this.wtTable.getCoords(TD);
       cell.TD = TD;
 
     } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'current')) {
       cell.coords = this.instance.selections.getCell().cellRange.highlight;
-      cell.TD = this.instance.wtTable.getCell(cell.coords);
+      cell.TD = this.wtTable.getCell(cell.coords);
 
     } else if (hasClass(elem, 'wtBorder') && hasClass(elem, 'area')) {
       if (this.instance.selections.createOrGetArea().cellRange) {
         cell.coords = this.instance.selections.createOrGetArea().cellRange.to;
-        cell.TD = this.instance.wtTable.getCell(cell.coords);
+        cell.TD = this.wtTable.getCell(cell.coords);
       }
     }
 
@@ -231,14 +233,14 @@ class Event {
       return;
     }
 
-    const table = this.instance.wtTable.TABLE;
+    const table = this.wtTable.TABLE;
     const td = closestDown(event.target, ['TD', 'TH'], table);
     const mainWOT = this.instance.cloneSource || this.instance;
 
     if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
       mainWOT.lastMouseOver = td;
 
-      this.callListener('onCellMouseOver', event, this.instance.wtTable.getCoords(td), td);
+      this.callListener('onCellMouseOver', event, this.wtTable.getCoords(td), td);
     }
   }
 
@@ -253,12 +255,12 @@ class Event {
       return;
     }
 
-    const table = this.instance.wtTable.TABLE;
+    const table = this.wtTable.TABLE;
     const lastTD = closestDown(event.target, ['TD', 'TH'], table);
     const nextTD = closestDown(event.relatedTarget, ['TD', 'TH'], table);
 
     if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
-      this.callListener('onCellMouseOut', event, this.instance.wtTable.getCoords(lastTD), lastTD);
+      this.callListener('onCellMouseOut', event, this.wtTable.getCoords(lastTD), lastTD);
     }
   }
 
