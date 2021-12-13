@@ -2290,7 +2290,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings, init = false) {
-    const dataUpdateFunction = (firstRun ? instance.setData : instance.updateData).bind(this);
+    // TODO: uncomment the next line with the next major version update
+    // const dataUpdateFunction = (firstRun ? instance.setData : instance.updateData).bind(this);
+    const dataUpdateFunction = instance.setData.bind(this);
     let columnsAsFunc = false;
     let i;
     let j;
