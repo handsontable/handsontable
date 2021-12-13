@@ -42,10 +42,10 @@ export default class Walkontable {
    */
   wtSettings;
 
-  get eventManager(){
+  get eventManager() {
     return new EventManager(this);
   }
-  
+
   /**
    * @param {HTMLTableElement} table Main table.
    * @param {SettingsPure|Settings} settings The Walkontable settings.
