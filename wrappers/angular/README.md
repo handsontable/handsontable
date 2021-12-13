@@ -9,7 +9,6 @@ It provides data binding, data validation, filtering, sorting, and CRUD operatio
 
 [![npm](https://img.shields.io/npm/dt/@handsontable/angular.svg)](https://npmjs.com/package/@handsontable/angular)
 [![npm](https://img.shields.io/npm/dm/@handsontable/angular.svg)](https://npmjs.com/package/@handsontable/angular)
-[![Build status](https://app.codeship.com/projects/1ec34290-ed0a-0131-911c-1a47c8fbcce0/status?branch=master)](https://app.codeship.com/projects/26649)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
 [![Known Vulnerabilities](https://snyk.io/test/github/handsontable/handsontable/badge.svg?targetFile=wrappers/angular/package.json)](https://snyk.io/test/github/handsontable/handsontable?targetFile=wrappers/angular/package.json)
 
