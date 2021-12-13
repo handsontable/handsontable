@@ -11,11 +11,6 @@ canonicalUrl: /api/
 
 Welcome to Handsontable API reference. Our goal is make it easy to dive in and start coding from day one.
 
-<<<<<<< HEAD
-However, data grids are rather complex libraries, so we assume that you possess a certain level of expertise in JavaScript before moving forward. If you want to grab some basics, we have provided a JavaScript example in the [Demo](@/guides/getting-started/demo.md) section.
-
-=======
->>>>>>> develop
 The API enables you to control the data grid programmatically. With this API, you can:
 
 -   Configure options

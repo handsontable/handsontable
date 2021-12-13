@@ -14,11 +14,7 @@ Welcome 👋&nbsp; to Handsontable's Guides. Here you will learn how Handsontabl
 ## Get started with sample apps
 
 <div class="row-items-container">
-<<<<<<< HEAD
-    <a href="/docs/9.0/demo" class="row-item">
-=======
     <a href="/docs/9.0/binding-to-data" class="row-item">
->>>>>>> develop
      <img class="integration-framework-logo" src="/docs/9.0/img/pages/introduction/javascript.svg" alt="JavaScript logo" />
      <h3>JavaScript</h3>
     </a>

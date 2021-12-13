@@ -1,9 +1,5 @@
 const gettingStartedItems = [
   'guides/getting-started/introduction',
-<<<<<<< HEAD
-  'guides/getting-started/demo',
-=======
->>>>>>> develop
   'guides/getting-started/installation',
   'guides/getting-started/binding-to-data',
   'guides/getting-started/saving-data',
