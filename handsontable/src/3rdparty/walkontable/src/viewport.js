@@ -246,10 +246,6 @@ class Viewport {
       }
     }
 
-    if (this.wot.cloneSource) {
-      return this.wot.cloneSource.wtViewport.getRowHeaderWidth();
-    }
-
     if (isNaN(this.rowHeaderWidth)) {
 
       if (rowHeaders.length) {
