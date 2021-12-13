@@ -103,8 +103,6 @@ class Overlays {
 
     // TODO refactoring: probably invalid place to this logic
     this.scrollbarSize = getScrollbarWidth(rootDocument);
-    this.wtSettings.update('scrollbarWidth', this.scrollbarSize);
-    this.wtSettings.update('scrollbarHeight', this.scrollbarSize);
 
     const isOverflowHidden = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode)
       .getPropertyValue('overflow') === 'hidden';

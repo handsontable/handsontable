@@ -30,8 +30,6 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} renderAllRows Option `renderAllRows`.
  * @property {Option} rowHeaders Option `rowHeaders`.
  * @property {Option} rowHeight Option `,`.
- * @property {Option} scrollbarHeight Option `scrollbarHeight`.
- * @property {Option} scrollbarWidth Option `scrollbarWidth`.
  * @property {Option} shouldRenderBottomOverlay Option `shouldRenderBottomOverlay`.
  * @property {Option} shouldRenderLeftOverlay Option `shouldRenderLeftOverlay`.
  * @property {Option} shouldRenderTopOverlay Option `shouldRenderTopOverlay`.
@@ -217,10 +215,6 @@ export default class Settings {
       onBeforeHighlightingColumnHeader: sourceCol => sourceCol,
 
       onWindowResize: null,
-
-      // constants
-      scrollbarWidth: 10,
-      scrollbarHeight: 10,
 
       renderAllRows: false,
       groups: false,
