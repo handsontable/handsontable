@@ -1,0 +1,13 @@
+{
+  "env": {
+    "test": {
+      "presets": [
+        "@babel/env",
+        "@babel/preset-typescript"
+      ],
+      "plugins": [
+        "@babel/transform-runtime"
+      ]
+    }
+  }
+}

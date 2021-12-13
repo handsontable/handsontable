@@ -1,11 +1,11 @@
 ---
-title: Custom Context Menu example
-metaTitle: Custom contest menu example - Guide - Handsontable Documentation
+title: 'Custom context menu in React'
+metaTitle: 'Custom context menu in React - Guide - Handsontable Documentation'
 permalink: /9.0/react-custom-context-menu-example
 canonicalUrl: /react-custom-context-menu-example
 ---
 
-# Custom context menu - example
+# Custom context menu in React
 
 ## Overview
 
