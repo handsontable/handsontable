@@ -1,17 +1,17 @@
 ---
-title: 'Using the `hot-column` component in Vue 3'
-metaTitle: 'Using the hot-column component in Vue 3 - Guide - Handsontable Documentation'
+title: 'Using the `HotColumn` component in Vue 3'
+metaTitle: 'Using the HotColumn component in Vue 3 - Guide - Handsontable Documentation'
 permalink: /next/vue3-hot-column
 canonicalUrl: /vue3-hot-column
 ---
 
-# Using the `hot-column` component in Vue 3
+# Using the `HotColumn` component in Vue 3
 
 [[toc]]
 
 ## Overview
 
-You can configure the column-related settings using the `hot-column` component's attributes. You can also create custom renderers and editors using Vue 3 components.
+You can configure the column-related settings using the `HotColumn` component's attributes. You can also create custom renderers and editors using Vue 3 components.
 
 ## Declaring column settings
 
