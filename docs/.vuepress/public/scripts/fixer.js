@@ -95,8 +95,11 @@
       } else if (key === '@handsontable/react') {
         ns = 'Handsontable.react';
 
-      } else if (key === '@handsontable/vue') {
+      } else if (key === '@handsontable/vue' || key === '@handsontable/vue3') {
         ns = 'Handsontable.vue';
+
+      } else if (key === 'vuex') {
+        ns = 'Vuex';
 
       } else if (key === 'vue-color') {
         ns = 'VueColor';

@@ -111,7 +111,7 @@ new Vue({
 
 ## Declaring a custom renderer as a component
 
-The wrapper allows creating custom renderers using Vue components. The data you would normally get as arguments of the rendering function will be injected into the rendering component's `$data` object.
+The wrapper allows creating custom renderers using Vue 2 components. The data you would normally get as arguments of the rendering function will be injected into the rendering component's `$data` object.
 
 To mark a component as a Handsontable renderer, simply add a `hot-renderer` attribute to it.
 
@@ -190,7 +190,7 @@ To prevent this problem, it is possible to pass the `wrapperRendererCacheSize` o
 
 ## Declaring a custom editor as a component
 
-You can also utilize the Vue components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/vue`.
+You can also utilize the Vue 2 components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/vue`.
 
 This will give you a solid base to build on. Note that the editor component needs to tick all of the boxes that a regular editor does, such as defining the `getValue`, `setValue`, `open`, `close`, and `focus` methods. These are abstract in the `BaseEditor`. For more info, check the documentation on [creating custom editors from scratch](@/guides/cell-functions/cell-editor.md#selecteditor-creating-editor-from-scratch).
 
@@ -323,7 +323,7 @@ const App = new Vue({
 
 ## Using the renderer/editor components with `v-model`
 
-You can also use Vue's `v-model` with the renderer and editor components.
+You can also use Vue 2's `v-model` with the renderer and editor components.
 
 In the example below, we're utilizing an input with `v-model` assigned and reading the bound property from the renderer component to highlight the rows entered into the input.
 
@@ -397,7 +397,7 @@ const App = new Vue({
 In this example, several capabilities of the wrapper are combined:
 
 1. Create a custom editor component with an external dependency that will act as both renderer and editor
-2. Declare settings for several columns using Vue's `v-for`
+2. Declare settings for several columns using Vue 2's `v-for`
 3. Create a component where the state will be bound by the data retrieved from the first component
 
 ::: example #advanced-editor-example :vue-advanced --html 1 --css 2 --js 3
