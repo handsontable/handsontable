@@ -4425,40 +4425,80 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   gridContext.addShortcut([['ArrowUp']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.transformStart(-1, 0);
   });
   gridContext.addShortcut([['ArrowUp', 'Shift']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.transformEnd(-1, 0);
   });
 
   gridContext.addShortcut([['ArrowDown']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.transformStart(1, 0);
   });
   gridContext.addShortcut([['ArrowDown', 'Shift']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.transformEnd(1, 0);
   });
 
   gridContext.addShortcut([['ArrowLeft']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.transformStart(0, -1 * instance.getDirectionFactor());
   });
   gridContext.addShortcut([['ArrowLeft', 'Shift']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.transformEnd(0, -1 * instance.getDirectionFactor());
   });
 
   gridContext.addShortcut([['ArrowRight']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.transformStart(0, instance.getDirectionFactor());
   });
   gridContext.addShortcut([['ArrowRight', 'Shift']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.transformEnd(0, instance.getDirectionFactor());
   });
 
   gridContext.addShortcut([['Home']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.setRangeStart(new CellCoords(
       selection.selectedRange.current().from.row,
       instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
     ));
   });
   gridContext.addShortcut([['Home', 'Shift']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.setRangeEnd(new CellCoords(
       selection.selectedRange.current().from.row,
       instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
@@ -4466,12 +4506,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   gridContext.addShortcut([['Home', 'Control'], ['Home', 'Meta']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.setRangeStart(new CellCoords(
       instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
       selection.selectedRange.current().from.col,
     ));
   });
   gridContext.addShortcut([['Home', 'Control', 'Shift'], ['Home', 'Meta', 'Shift']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.setRangeEnd(new CellCoords(
       instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
       selection.selectedRange.current().from.col,
@@ -4479,12 +4527,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   gridContext.addShortcut([['End']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.setRangeStart(new CellCoords(
       selection.selectedRange.current().from.row,
       instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
     ));
   });
   gridContext.addShortcut([['End', 'Shift']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     this.selection.setRangeEnd(new CellCoords(
       selection.selectedRange.current().from.row,
       instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
@@ -4492,12 +4548,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   gridContext.addShortcut([['End', 'Control'], ['End', 'Meta']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.setRangeStart(new CellCoords(
       instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
       selection.selectedRange.current().from.col,
     ));
   });
   gridContext.addShortcut([['End', 'Control', 'Shift'], ['End', 'Meta', 'Shift']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.setRangeEnd(new CellCoords(
       instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
       selection.selectedRange.current().from.col,
@@ -4505,14 +4569,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   gridContext.addShortcut([['PageUp']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.transformStart(-instance.countVisibleRows(), 0);
   });
 
   gridContext.addShortcut([['PageDown']], () => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     selection.transformStart(instance.countVisibleRows(), 0);
   });
 
   gridContext.addShortcut([['Tab']], (event) => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     const tabMoves = typeof tableMeta.tabMoves === 'function'
       ? tableMeta.tabMoves(event)
       : tableMeta.tabMoves;
@@ -4521,6 +4597,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   gridContext.addShortcut([['Shift', 'Tab']], (event) => {
+    if (isUndefined(instance.getSelected())) {
+      return;
+    }
+
     const tabMoves = typeof tableMeta.tabMoves === 'function'
       ? tableMeta.tabMoves(event)
       : tableMeta.tabMoves;
