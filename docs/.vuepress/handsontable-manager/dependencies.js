@@ -48,8 +48,8 @@ const buildDependencyGetter = (version) => {
       fixer,
       helpers,
       hot: [handsontableJs, ['Handsontable'], handsontableCss],
-      react: ['https://unpkg.com/react@17/umd/react.development.js', ['React']],
-      'react-dom': ['https://unpkg.com/react-dom@17/umd/react-dom.development.js', ['ReactDOM']],
+      react: ['https://cdn.jsdelivr.net/npm/react@17/umd/react.development.js', ['React']],
+      'react-dom': ['https://cdn.jsdelivr.net/npm/react-dom@17/umd/react-dom.development.js', ['ReactDOM']],
       'hot-react': [`https://cdn.jsdelivr.net/npm/@handsontable/react@${mappedVersion}/dist/react-handsontable.js`, ['Handsontable.react']],
       'react-redux': ['https://cdnjs.cloudflare.com/ajax/libs/react-redux/7.2.4/react-redux.min.js'],
       'react-colorful': ['https://cdn.jsdelivr.net/npm/react-colorful@5.5.1/dist/index.min.js'],
@@ -67,11 +67,14 @@ const buildDependencyGetter = (version) => {
       'angular-platform-browser-dynamic': ['https://cdn.jsdelivr.net/npm/@angular/platform-browser-dynamic@8/bundles/platform-browser-dynamic.umd.min.js', [/* todo */]],
       'hot-angular': [`https://cdn.jsdelivr.net/npm/@handsontable/angular@${mappedVersion}/bundles/handsontable-angular.umd.min.js`, [/* todo */]],
       'hot-vue': [`https://cdn.jsdelivr.net/npm/@handsontable/vue@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */]],
+      'hot-vue3': [`https://cdn.jsdelivr.net/npm/@handsontable/vue3@${mappedVersion}/dist/vue-handsontable.min.js`, [/* todo */]],
       vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */]],
-      vuex: ['https://unpkg.com/vuex@3/dist/vuex.js', [/* todo */]],
+      vuex: ['https://cdn.jsdelivr.net/npm/vuex@3/dist/vuex.min.js', [/* todo */]],
       'vue-color': ['https://cdn.jsdelivr.net/npm/vue-color@2/dist/vue-color.min.js', [/* todo */]],
       'vue-class-component': ['https://cdn.jsdelivr.net/npm/vue-class-component@7.1.0/dist/vue-class-component.min.js', [/* todo */]],
       'vue-star-rating': ['https://cdn.jsdelivr.net/npm/vue-star-rating@1/dist/VueStarRating.umd.min.js', [/* todo */]],
+      vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */]],
+      vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */]],
       languages: [languagesJs, [/* todo */]],
     };
     /* eslint-enable max-len */
@@ -99,11 +102,19 @@ const presetMap = {
   'vue-languages': ['hot', 'languages', 'vue', 'hot-vue', 'fixer', 'helpers'],
   'vue-vuex': ['hot', 'vue', 'vuex', 'hot-vue', 'fixer', 'helpers'],
   'vue-advanced': ['hot', 'vue', 'vuex', 'hot-vue', 'vue-color', 'vue-class-component', 'vue-star-rating', 'fixer', 'helpers'],
+  vue3: ['hot', 'vue3', 'hot-vue3', 'fixer', 'helpers'],
+  'vue3-numbro': ['hot', 'numbro', 'vue3', 'hot-vue3', 'fixer', 'helpers'],
+  'vue3-languages': ['hot', 'languages', 'vue3', 'hot-vue3', 'fixer', 'helpers'],
+  'vue3-vuex': ['hot', 'vue3', 'vuex4', 'hot-vue3', 'fixer', 'helpers'],
   /* eslint-enable max-len */
 };
 
 const getDependencies = (version, preset) => {
   const getter = buildDependencyGetter(version);
+
+  if (!Array.isArray(presetMap[preset])) {
+    throw new Error(`The preset "${preset}" was not found.`);
+  }
 
   return presetMap[preset].map(x => getter(x));
 };

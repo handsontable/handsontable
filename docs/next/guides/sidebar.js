@@ -52,6 +52,21 @@ const integrateWithVueItems = [
   'guides/integrate-with-vue/vue-hot-reference',
 ];
 
+const integrateWithVue3Items = [
+  'guides/integrate-with-vue3/vue-installation',
+  'guides/integrate-with-vue3/vue-simple-example',
+  'guides/integrate-with-vue3/vue-modules',
+  'guides/integrate-with-vue3/vue-hot-column',
+  'guides/integrate-with-vue3/vue-setting-up-a-language',
+  'guides/integrate-with-vue3/vue-custom-id-class-style',
+  'guides/integrate-with-vue3/vue-custom-context-menu-example',
+  'guides/integrate-with-vue3/vue-custom-editor-example',
+  'guides/integrate-with-vue3/vue-custom-renderer-example',
+  'guides/integrate-with-vue3/vue-language-change-example',
+  'guides/integrate-with-vue3/vue-vuex-example',
+  'guides/integrate-with-vue3/vue-hot-reference',
+];
+
 const columnsItems = [
   'guides/columns/column-header',
   'guides/columns/column-groups',
@@ -176,6 +191,7 @@ module.exports = {
     { title: 'Integrate with React', children: integrateWithReactItems },
     { title: 'Integrate with Angular', children: integrateWithAngularItems },
     { title: 'Integrate with Vue 2', children: integrateWithVueItems },
+    { title: 'Integrate with Vue 3', children: integrateWithVue3Items },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
     { title: 'Cell Features', children: cellFeaturesItems },
