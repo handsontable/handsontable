@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue where in the CollapsibleColumns plugin there was not possible to expand already collapsed columns by calling the `expandAll` method.",
+  "type": "fixed",
+  "issue": 8900,
+  "breaking": false,
+  "framework": "none"
+}

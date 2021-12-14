@@ -29,6 +29,7 @@ The [Handsontable repository](https://github.com/handsontable/handsontable) is a
 | `@handsontable/angular` | `./wrappers/angular` | [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md) |
 | `@handsontable/react`   | `./wrappers/react`   | [React wrapper](@/guides/integrate-with-react/react-installation.md)       |
 | `@handsontable/vue`     | `./wrappers/vue`     | [Vue 2 wrapper](@/guides/integrate-with-vue/vue-installation.md)           |
+| `@handsontable/vue3`    | `./wrappers/vue3`    | [Vue 3 wrapper](@/guides/integrate-with-vue3/vue-installation.md)          |
 
 All the projects are released together, under the same version number.
 But each project has its own [building](#building-processes) and [testing](@/guides/building-and-testing/testing.md) processes.
@@ -68,7 +69,8 @@ Each Handsontable [project](#about-building) has its own [building](#building-th
 | `./handsontable/package.json`     | The JavaScript package                              |
 | `./wrappers/angular/package.json` | The Angular package                                 |
 | `./wrappers/react/package.json`   | The React package                                   |
-| `./wrappers/vue/package.json`     | The Vue package                                     |
+| `./wrappers/vue/package.json`     | The Vue 2 package                                   |
+| `./wrappers/vue3/package.json`    | The Vue 3 package                                   |
 
 ## Running your first build
 
@@ -92,7 +94,8 @@ To build all the packages at once:
      - The JavaScript package
      - The Angular package
      - The React package
-     - The Vue package
+     - The Vue 2 package
+     - The Vue 3 package
      - A code examples package
 
 ### Building the JavaScript package
@@ -196,9 +199,7 @@ From the `./wrappers/react` directory, you can also run individual React `build`
 `npm run build:umd`
   - Creates the following bundles compatible with the Universal Module Definition:
     - `./wrappers/react/dist/react-handsontable.js`
-    - `./wrappers/react/dist/react-handsontable.css`
-    - `./wrappers/react/dist/react-handsontable.full.js`
-    - `./wrappers/react/dist/react-handsontable.full.css`
+    - `./wrappers/react/dist/react-handsontable.js.map`
 
 `npm run build:es`
   - Transpiles the files into the ESM format.
@@ -207,28 +208,26 @@ From the `./wrappers/react` directory, you can also run individual React `build`
 `npm run build:min`
   - Creates the minified bundles:
     - `./wrappers/react/dist/react-handsontable.min.js`
-    - `./wrappers/react/dist/react-handsontable.min.css`
-    - `./wrappers/react/dist/react-handsontable.min.full.js`
-    - `./wrappers/react/dist/react-handsontable.min.full.css`
+    - `./wrappers/react/dist/react-handsontable.min.js.map`
 :::
 
-### Building the Vue package
+### Building the Vue 2 package
 
-To build the Vue package:
+To build the Vue 2 package:
 1. Make sure you meet the [building requirements](#building-requirements).
 2. Go to `./wrappers/vue`.
-3. Run `npm run build`.<br>Only the Vue package builds.
+3. Run `npm run build`.<br>Only the Vue 2 package builds.
 
-To build the Vue package from the root directory:
+To build the Vue 2 package from the root directory:
 1. Make sure you meet the [building requirements](#building-requirements).
 2. Go to the root directory.
-3. Run `npm run in vue build`.<br>Only the Vue package builds.
+3. Run `npm run in vue build`.<br>Only the Vue 2 package builds.
 
-#### Vue build tasks
+#### Vue 2 build tasks
 
-From the `./wrappers/vue` directory, you can also run individual Vue `build` tasks:
+From the `./wrappers/vue` directory, you can also run individual Vue 2 `build` tasks:
 
-::: details Vue build tasks
+::: details Vue 2 build tasks
 `npm run build:commonjs`
   - Transpiles the files into the CommonJS format.
   - Places the output in `./wrappers/vue/commonjs/vue-handsontable.js`
@@ -236,9 +235,7 @@ From the `./wrappers/vue` directory, you can also run individual Vue `build` tas
 `npm run build:umd`
   - Creates the following bundles compatible with the Universal Module Definition:
     - `./wrappers/vue/dist/vue-handsontable.js`
-    - `./wrappers/vue/dist/vue-handsontable.css`
-    - `./wrappers/vue/dist/vue-handsontable.full.js`
-    - `./wrappers/vue/dist/vue-handsontable.full.css`
+    - `./wrappers/vue/dist/vue-handsontable.js.map`
 
 `npm run build:es`
   - Transpiles the files into the ESM format.
@@ -247,7 +244,41 @@ From the `./wrappers/vue` directory, you can also run individual Vue `build` tas
 `npm run build:min`
   - Creates the minified bundles:
     - `./wrappers/vue/dist/vue-handsontable.min.js`
-    - `./wrappers/vue/dist/vue-handsontable.min.css`
-    - `./wrappers/vue/dist/vue-handsontable.min.full.js`
-    - `./wrappers/vue/dist/vue-handsontable.min.full.css`
+    - `./wrappers/vue/dist/vue-handsontable.min.js.map`
+:::
+
+### Building the Vue 3 package
+
+To build the Vue 3 package:
+1. Make sure you meet the [building requirements](#building-requirements).
+2. Go to `./wrappers/vue3 `.
+3. Run `npm run build`.<br>Only the Vue 3 package builds.
+
+To build the Vue 3 package from the root directory:
+1. Make sure you meet the [building requirements](#building-requirements).
+2. Go to the root directory.
+3. Run `npm run in vue3 build`.<br>Only the Vue 3 package builds.
+
+#### Vue 3 build tasks
+
+From the `./wrappers/vue3` directory, you can also run individual Vue 3 `build` tasks:
+
+::: details Vue 3 build tasks
+`npm run build:commonjs`
+  - Transpiles the files into the CommonJS format.
+  - Places the output in `./wrappers/vue3/commonjs/vue-handsontable.js`
+
+`npm run build:umd`
+  - Creates the following bundles compatible with the Universal Module Definition:
+    - `./wrappers/vue3/dist/vue-handsontable.js`
+    - `./wrappers/vue3/dist/vue-handsontable.js.map`
+
+`npm run build:es`
+  - Transpiles the files into the ESM format.
+  - Places the output in `./wrappers/vue3/es/vue-handsontable.js`
+
+`npm run build:min`
+  - Creates the minified bundles:
+    - `./wrappers/vue3/dist/vue-handsontable.min.js`
+    - `./wrappers/vue3/dist/vue-handsontable.min.js.map`
 :::
