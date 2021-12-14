@@ -35,6 +35,7 @@ jobs:
           npm run docs:api
 
       - name: Docker build
+        working-directory: .
         run: |
           npm run docs:docker:build
 
