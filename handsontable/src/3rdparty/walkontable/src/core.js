@@ -233,15 +233,6 @@ export default class Walkontable {
   }
 
   /**
-   * Get overlay name.
-   *
-   * @returns {string}
-   */
-  getOverlayName() {
-    return this.cloneOverlay ? this.cloneOverlay.type : 'master';
-  }
-
-  /**
    * Export settings as class names added to the parent element of the table.
    */
   exportSettingsAsClassNames() {

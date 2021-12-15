@@ -26,7 +26,7 @@ import {
 } from './overlay';
 
 /**
- *
+ * @abstract
  */
 class Table {
   /**
@@ -37,52 +37,56 @@ class Table {
    */
   wtSettings = null;
   domBindings;
-
+  TBODY = null;
+  THEAD = null;
+  COLGROUP = null;
   /**
+   * Indicates if the table has height bigger than 0px.
+   *
+   * @type {boolean}
+   */
+  hasTableHeight = true;
+  /**
+   * Indicates if the table has width bigger than 0px.
+   *
+   * @type {boolean}
+   */
+  hasTableWidth = true;
+  /**
+   * Indicates if the table is visible. By visible, it means that the holder
+   * element has CSS 'display' property different than 'none'.
+   *
+   * @type {boolean}
+   */
+  isTableVisible = false;
+
+  tableOffset = 0;
+  holderOffset = 0;
+  /**
+   *
+   * @abstract
    * @param {Walkontable} wotInstance The Walkontable instance. @todo remove.
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
    * @param {DomBindings} domBindings Bindings into DOM.
    * @param {Settings} wtSettings The Walkontable settings.
+   * @param {'master'|CLONE_TYPES_ENUM} name Overlay name.
    */
-  constructor(wotInstance, facadeGetter, domBindings, wtSettings) {
+  constructor(wotInstance, facadeGetter, domBindings, wtSettings, name) {
     this.domBindings = domBindings;
     /**
      * Indicates if this instance is of type `MasterTable` (i.e. It is NOT an overlay).
      *
      * @type {boolean}
      */
-    this.isMaster = !wotInstance.cloneOverlay; // TODO false, and set as true in MasteTable // "instanceof" operator isn't used, because it caused a circular reference in Webpack
-    this.wot = wotInstance;
+    this.isMaster = name === 'master';
+    this.name = name;
+    this.wot = wotInstance; // todo remove
     this.facadeGetter = facadeGetter;
     this.wtSettings = wtSettings;
 
     // legacy support
     this.instance = this.wot;
     this.TABLE = domBindings.rootTable;
-    this.TBODY = null; // todo should it be part of domBindings?
-    this.THEAD = null;
-    this.COLGROUP = null;
-    this.tableOffset = 0;
-    this.holderOffset = 0;
-    /**
-     * Indicates if the table has height bigger than 0px.
-     *
-     * @type {boolean}
-     */
-    this.hasTableHeight = true;
-    /**
-     * Indicates if the table has width bigger than 0px.
-     *
-     * @type {boolean}
-     */
-    this.hasTableWidth = true;
-    /**
-     * Indicates if the table is visible. By visible, it means that the holder
-     * element has CSS 'display' property different than 'none'.
-     *
-     * @type {boolean}
-     */
-    this.isTableVisible = false;
 
     removeTextNodes(this.TABLE);
 
@@ -127,7 +131,7 @@ class Table {
    * @returns {boolean}
    */
   is(overlayTypeName) { // todo refactoring: eliminate all protected and private usages
-    return this.wot.cloneOverlay && this.wot.cloneOverlay.type === overlayTypeName;
+    return this.name === overlayTypeName;
   }
 
   /**

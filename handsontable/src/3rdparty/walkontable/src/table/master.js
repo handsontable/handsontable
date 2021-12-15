@@ -13,6 +13,16 @@ import { mixin } from './../../../../helpers/object';
  * Subclass of `Table` that provides the helper methods relevant to the master table (not overlays), implemented through mixins.
  */
 class MasterTable extends Table {
+  /**
+   * @param {Walkontable} wotInstance The Walkontable instance. @todo remove.
+   * @param {FacadeGetter} facadeGetter Function which return proper facade.
+   * @param {DomBindings} domBindings Bindings into DOM.
+   * @param {Settings} wtSettings The Walkontable settings.
+   */
+  constructor(wotInstance, facadeGetter, domBindings, wtSettings) {
+    super(wotInstance, facadeGetter, domBindings, wtSettings, 'master');
+  }
+
   alignOverlaysWithTrimmingContainer() {
     const trimmingElement = getTrimmingContainer(this.wtRootElement);
     const { rootWindow } = this.domBindings;

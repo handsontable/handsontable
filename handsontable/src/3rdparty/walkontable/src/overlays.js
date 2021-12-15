@@ -510,6 +510,7 @@ class Overlays {
    */
   destroy() {
     this.eventManager.destroy();
+    // todo, probably all below `destory` calls has no sense. To analyze
     this.topOverlay.destroy();
 
     if (this.bottomOverlay.clone) {

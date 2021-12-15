@@ -134,7 +134,7 @@ export default class WalkontableFacade {
   }
 
   getOverlayName() {
-    return this._wot.getOverlayName();
+    return this._wot.cloneOverlay ? this._wot.cloneOverlay.type : 'master';
   }
 
   exportSettingsAsClassNames() {
