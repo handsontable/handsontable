@@ -2291,6 +2291,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.updateSettings = function(settings, init = false) {
     // TODO: uncomment the next line with the next major version update
+    // Do not forget to re-enable the pending tests that cover the change:
+    //  * https://github.com/handsontable/handsontable/blob/9f62c282a1c951b27cd8406aa27105bd32b05bb6/handsontable/test/e2e/core/toPhysicalColumn.spec.js#L70
+    //  * https://github.com/handsontable/handsontable/blob/9f62c282a1c951b27cd8406aa27105bd32b05bb6/handsontable/test/e2e/core/toVisualColumn.spec.js#L70
     // const dataUpdateFunction = (firstRun ? instance.setData : instance.updateData).bind(this);
     const dataUpdateFunction = instance.setData.bind(this);
     let columnsAsFunc = false;
