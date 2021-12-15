@@ -225,21 +225,19 @@ export class BasePlugin {
 
     // If SETTING_KEYS is declared as `true` -> update the plugin regardless of the settings declared in
     // `updateSettings`.
-    if (settingKeys === true) {
-      return true;
-
     // If SETTING_KEYS is declared as `false` -> DON'T update the plugin regardless of the settings declared in
     // `updateSettings`.
-    } else if (settingKeys === false) {
-      return false;
+    if (typeof settingKeys === 'boolean') {
+      return settingKeys;
+    }
 
-    } else {
-      for (let i = 0; i < settingKeys.length; i++) {
-        if (settings[settingKeys[i]] !== void 0) {
-          return true;
-        }
+    for (let i = 0; i < settingKeys.length; i++) {
+      if (settings[settingKeys[i]] !== void 0) {
+        return true;
       }
     }
+
+    return false;
   }
 
   /**
