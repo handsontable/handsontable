@@ -44,9 +44,6 @@ export function textRenderer(instance, TD, row, col, prop, value, cellProperties
     // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
     fastInnerText(TD, escaped);
   }
-  if (cellProperties.type === 'time') {
-    TD.dir = 'ltr';
-  }
 }
 
 textRenderer.RENDERER_TYPE = RENDERER_TYPE;

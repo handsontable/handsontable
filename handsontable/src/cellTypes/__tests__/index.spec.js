@@ -124,7 +124,7 @@ describe('cellTypes', () => {
     expect(getCellType('text').validator).not.toBeDefined();
 
     expect(getCellType('time').editor).toBe(editors.TimeEditor);
-    expect(getCellType('time').renderer).toBe(renderers.TextRenderer);
+    expect(getCellType('time').renderer).toBe(renderers.TimeRenderer);
     expect(getCellType('time').validator).toBe(validators.TimeValidator);
   });
 
