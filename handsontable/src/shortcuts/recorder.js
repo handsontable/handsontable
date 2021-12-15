@@ -1,14 +1,16 @@
 import { createKeysController } from './keyController';
 import { normalizeEventKey } from './utils';
+import { isImmediatePropagationStopped } from '../helpers/dom/event';
 
 /**
  * Keys recorder tracking key events.
  *
  * @param {EventTarget} frame The starting frame element.
+ * @param {Function} beforeKeyDown Callback triggered AFTER key down, but BEFORE handling callback.
  * @param {Function} callback The KeyEvent's listener callback.
  * @returns {object}
  */
-export function useRecorder(frame, callback) {
+export function useRecorder(frame, beforeKeyDown, callback) {
   const observedKeysController = createKeysController();
   const observedKeys = ['meta', 'alt', 'shift', 'control']; // some modifier keys
 
@@ -59,6 +61,12 @@ export function useRecorder(frame, callback) {
    */
   const onkeydown = (event) => {
     if (event.key === void 0) {
+      return;
+    }
+
+    beforeKeyDown(event);
+
+    if (isImmediatePropagationStopped(event)) {
       return;
     }
 

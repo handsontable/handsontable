@@ -78,18 +78,6 @@ class EditorManager {
 
     this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
 
-    let frame = this.instance.rootWindow;
-
-    while (frame) {
-      this.eventManager.addEventListener(frame.document.documentElement, 'keydown', (event) => {
-        if (!this.destroyed) {
-          this.instance.runHooks('afterDocumentKeyDown', event);
-        }
-      });
-
-      frame = getParentWindow(frame);
-    }
-
     // Open editor when text composition is started (IME editor)
     this.eventManager.addEventListener(this.instance.rootDocument.documentElement, 'compositionstart', (event) => {
       if (!this.destroyed && this.activeEditor && !this.activeEditor.isOpened() && this.instance.isListening()) {

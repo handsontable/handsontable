@@ -137,6 +137,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.executionSuspendedCounter = 0;
 
   const shortcutManager = createShortcutManager({
+    beforeKeyDown: event => this.runHooks('afterDocumentKeyDown', event),
     isActive: () => this.isListening(),
     frame: this.rootWindow,
   });

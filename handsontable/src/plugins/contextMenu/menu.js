@@ -249,6 +249,12 @@ class Menu {
     this.hotMenu.init();
     this.hotMenu.listen();
 
+    const shortcutManager = this.hotMenu.getShortcutManager();
+
+    shortcutManager.addContext('menu');
+    // Default shortcuts for Handsontable should not be handled. Changing context will help with that.
+    shortcutManager.setActiveContexts(['menu']);
+
     this.blockMainTableCallbacks();
     this.runLocalHooks('afterOpen');
   }
