@@ -24,7 +24,7 @@ Hooks.getSingleton().register('afterCopy');
 
 export const PLUGIN_KEY = 'copyPaste';
 export const PLUGIN_PRIORITY = 80;
-const CONFIG_KEYS = ['fragmentSelection'];
+const SETTING_KEYS = ['fragmentSelection'];
 const ROWS_LIMIT = Infinity;
 const COLUMNS_LIMIT = Infinity;
 const privatePool = new WeakMap();
@@ -71,8 +71,11 @@ export class CopyPaste extends BasePlugin {
     return PLUGIN_KEY;
   }
 
-  static get CONFIG_KEYS() {
-    return CONFIG_KEYS;
+  static get SETTING_KEYS() {
+    return [
+      PLUGIN_KEY,
+      ...SETTING_KEYS
+    ];
   }
 
   static get PLUGIN_PRIORITY() {

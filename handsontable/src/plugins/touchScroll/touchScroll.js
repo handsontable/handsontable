@@ -20,7 +20,7 @@ export class TouchScroll extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  static get ALWAYS_UPDATE() {
+  static get SETTING_KEYS() {
     return true;
   }
 

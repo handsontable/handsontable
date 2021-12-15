@@ -12,6 +12,7 @@ import { stopImmediatePropagation } from '../../helpers/dom/event';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
+const SETTING_KEYS = ['nestedHeaders'];
 
 const actionDictionary = new Map([
   ['collapse', {
@@ -79,6 +80,13 @@ export class CollapsibleColumns extends BasePlugin {
   static get PLUGIN_DEPS() {
     return [
       'plugin:NestedHeaders',
+    ];
+  }
+
+  static get SETTING_KEYS() {
+    return [
+      PLUGIN_KEY,
+      ...SETTING_KEYS
     ];
   }
 

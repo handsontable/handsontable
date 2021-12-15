@@ -983,6 +983,6 @@ hook.register('beforeRedo');
 hook.register('afterRedo');
 
 UndoRedo.PLUGIN_KEY = PLUGIN_KEY;
-UndoRedo.ALWAYS_UPDATE = true;
+UndoRedo.SETTING_KEYS = true;
 
 export default UndoRedo;
