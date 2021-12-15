@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue where the nested headers are not rendered when the dataset is not defined.",
+  "type": "fixed",
+  "issue": 8589,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue where the NestedRows plugin could throw an TypeError after `updateSettings` call.",
+  "type": "fixed",
+  "issue": 9018,
+  "breaking": false,
+  "framework": "none"
+}
