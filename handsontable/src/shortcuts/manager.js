@@ -87,7 +87,11 @@ export const createShortcutManager = ({ isActive, frame, beforeKeyDown, afterKey
       const ctx = getContext(context);
 
       if (ctx.hasShortcut(keys)) {
-        const { callback, options: { preventDefault, stopPropagation } } = ctx.getShortcut(keys);
+        const { callback, options: { runAction, preventDefault, stopPropagation } } = ctx.getShortcut(keys);
+
+        if (runAction() === false) {
+          return;
+        }
 
         callback(event, keys);
 

@@ -4412,6 +4412,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   const gridContext = shortcutManager.addContext('grid');
+  const runOnlySelectedConfig = {
+    runAction: () => isDefined(instance.getSelected()),
+  };
 
   shortcutManager.setActiveContexts(['grid']);
 
@@ -4427,188 +4430,116 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   gridContext.addShortcut([['ArrowUp']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
-
     selection.transformStart(-1, 0);
-  });
-  gridContext.addShortcut([['ArrowUp', 'Shift']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
+  }, runOnlySelectedConfig);
 
+  gridContext.addShortcut([['ArrowUp', 'Shift']], () => {
     selection.transformEnd(-1, 0);
-  });
+  }, runOnlySelectedConfig);
 
   gridContext.addShortcut([['ArrowDown']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
-
     selection.transformStart(1, 0);
-  });
-  gridContext.addShortcut([['ArrowDown', 'Shift']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
+  }, runOnlySelectedConfig);
 
+  gridContext.addShortcut([['ArrowDown', 'Shift']], () => {
     selection.transformEnd(1, 0);
-  });
+  }, runOnlySelectedConfig);
 
   gridContext.addShortcut([['ArrowLeft']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
-
     selection.transformStart(0, -1 * instance.getDirectionFactor());
-  });
-  gridContext.addShortcut([['ArrowLeft', 'Shift']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
+  }, runOnlySelectedConfig);
 
+  gridContext.addShortcut([['ArrowLeft', 'Shift']], () => {
     selection.transformEnd(0, -1 * instance.getDirectionFactor());
-  });
+  }, runOnlySelectedConfig);
 
   gridContext.addShortcut([['ArrowRight']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
-
     selection.transformStart(0, instance.getDirectionFactor());
-  });
-  gridContext.addShortcut([['ArrowRight', 'Shift']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
+  }, runOnlySelectedConfig);
 
+  gridContext.addShortcut([['ArrowRight', 'Shift']], () => {
     selection.transformEnd(0, instance.getDirectionFactor());
-  });
+  }, runOnlySelectedConfig);
 
   gridContext.addShortcut([['Home']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
-
     selection.setRangeStart(new CellCoords(
       selection.selectedRange.current().from.row,
       instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
     ));
-  });
-  gridContext.addShortcut([['Home', 'Shift']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
+  }, runOnlySelectedConfig);
 
+  gridContext.addShortcut([['Home', 'Shift']], () => {
     selection.setRangeEnd(new CellCoords(
       selection.selectedRange.current().from.row,
       instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
     ));
-  });
+  }, runOnlySelectedConfig);
 
   gridContext.addShortcut([['Home', 'Control'], ['Home', 'Meta']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
-
     selection.setRangeStart(new CellCoords(
       instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
       selection.selectedRange.current().from.col,
     ));
-  });
-  gridContext.addShortcut([['Home', 'Control', 'Shift'], ['Home', 'Meta', 'Shift']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
+  }, runOnlySelectedConfig);
 
+  gridContext.addShortcut([['Home', 'Control', 'Shift'], ['Home', 'Meta', 'Shift']], () => {
     selection.setRangeEnd(new CellCoords(
       instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
       selection.selectedRange.current().from.col,
     ));
-  });
+  }, runOnlySelectedConfig);
 
   gridContext.addShortcut([['End']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
-
     selection.setRangeStart(new CellCoords(
       selection.selectedRange.current().from.row,
       instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
     ));
-  });
-  gridContext.addShortcut([['End', 'Shift']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
+  }, runOnlySelectedConfig);
 
+  gridContext.addShortcut([['End', 'Shift']], () => {
     this.selection.setRangeEnd(new CellCoords(
       selection.selectedRange.current().from.row,
       instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
     ));
-  });
+  }, runOnlySelectedConfig);
 
   gridContext.addShortcut([['End', 'Control'], ['End', 'Meta']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
-
     selection.setRangeStart(new CellCoords(
       instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
       selection.selectedRange.current().from.col,
     ));
-  });
-  gridContext.addShortcut([['End', 'Control', 'Shift'], ['End', 'Meta', 'Shift']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
+  }, runOnlySelectedConfig);
 
+  gridContext.addShortcut([['End', 'Control', 'Shift'], ['End', 'Meta', 'Shift']], () => {
     selection.setRangeEnd(new CellCoords(
       instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
       selection.selectedRange.current().from.col,
     ));
-  });
+  }, runOnlySelectedConfig);
 
   gridContext.addShortcut([['PageUp']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
-
     selection.transformStart(-instance.countVisibleRows(), 0);
-  });
+  }, runOnlySelectedConfig);
 
   gridContext.addShortcut([['PageDown']], () => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
-
     selection.transformStart(instance.countVisibleRows(), 0);
-  });
+  }, runOnlySelectedConfig);
 
   gridContext.addShortcut([['Tab']], (event) => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
-
     const tabMoves = typeof tableMeta.tabMoves === 'function'
       ? tableMeta.tabMoves(event)
       : tableMeta.tabMoves;
 
     selection.transformStart(tabMoves.row, tabMoves.col, true);
-  });
+  }, runOnlySelectedConfig);
 
   gridContext.addShortcut([['Shift', 'Tab']], (event) => {
-    if (isUndefined(instance.getSelected())) {
-      return;
-    }
-
     const tabMoves = typeof tableMeta.tabMoves === 'function'
       ? tableMeta.tabMoves(event)
       : tableMeta.tabMoves;
 
     selection.transformStart(-tabMoves.row, -tabMoves.col);
-  });
+  }, runOnlySelectedConfig);
 
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);

@@ -67,12 +67,6 @@ class EditorManager {
      * @type {object}
      */
     this.cellProperties = void 0;
-    /**
-     * Keeps last keyCode pressed from the keydown event.
-     *
-     * @type {number}
-     */
-    this.lastKeyCode = void 0;
 
     this.registerShortcuts();
 
@@ -346,8 +340,6 @@ class EditorManager {
     if (this.destroyed || keyCode === 229) {
       return;
     }
-
-    this.lastKeyCode = keyCode;
 
     if (!this.selection.isSelected()) {
       return;

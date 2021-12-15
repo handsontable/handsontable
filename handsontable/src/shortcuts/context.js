@@ -27,6 +27,7 @@ export const createContext = (name) => {
     callback,
     options = {
       description: '',
+      runAction: () => true,
       preventDefault: true,
       stopPropagation: false
     }) => {
