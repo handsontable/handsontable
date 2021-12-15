@@ -66,7 +66,8 @@ describe('Core.toPhysicalColumn', () => {
     });
   });
 
-  describe('should NOT reset physical indexes when user updates data', () => {
+  // TODO: uncomment with the next major version
+  xdescribe('should NOT reset physical indexes when user updates data', () => {
     it('by updating settings', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
