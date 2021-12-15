@@ -7,10 +7,11 @@ import { isImmediatePropagationStopped } from '../helpers/dom/event';
  *
  * @param {EventTarget} frame The starting frame element.
  * @param {Function} beforeKeyDown Callback triggered AFTER key down, but BEFORE handling callback.
+ * @param {Function} afterKeyDown Callback triggered after handling callback.
  * @param {Function} callback The KeyEvent's listener callback.
  * @returns {object}
  */
-export function useRecorder(frame, beforeKeyDown, callback) {
+export function useRecorder(frame, beforeKeyDown, afterKeyDown, callback) {
   const observedKeysController = createKeysController();
   const observedKeys = ['meta', 'alt', 'shift', 'control']; // some modifier keys
 
@@ -86,6 +87,8 @@ export function useRecorder(frame, beforeKeyDown, callback) {
     const nextCombination = pressedKeys.sort().join('+');
 
     callback(event, nextCombination);
+
+    afterKeyDown(event);
   };
 
   /**

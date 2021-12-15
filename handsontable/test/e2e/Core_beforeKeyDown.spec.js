@@ -44,7 +44,7 @@ describe('Core_beforeKeyDown', () => {
 
     keyDownUp('arrowright');
 
-    expect(called).toEqual(['afterDocumentKeyDown', 'beforeKeyDown']);
+    expect(called).toEqual(['beforeKeyDown', 'afterDocumentKeyDown']);
   });
 
   it('should prevent hook from running default action', () => {

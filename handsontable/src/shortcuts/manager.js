@@ -3,7 +3,7 @@ import { createUniqueSet } from '../utils/dataStructures/uniqueSet';
 import { createContext } from './context';
 import { useRecorder } from './recorder';
 
-export const createShortcutManager = ({ isActive, frame, beforeKeyDown }) => {
+export const createShortcutManager = ({ isActive, frame, beforeKeyDown, afterKeyDown }) => {
   /**
    * UniqueMap to storing contexts.
    *
@@ -78,7 +78,7 @@ export const createShortcutManager = ({ isActive, frame, beforeKeyDown }) => {
    *
    * @private
    */
-  const keyRecorder = useRecorder(frame, beforeKeyDown, (event, keys) => {
+  const keyRecorder = useRecorder(frame, beforeKeyDown, afterKeyDown, (event, keys) => {
     if (!isActive()) {
       return;
     }
