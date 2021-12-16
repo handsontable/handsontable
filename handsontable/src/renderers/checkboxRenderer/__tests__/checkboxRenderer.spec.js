@@ -1137,6 +1137,15 @@ describe('CheckboxRenderer', () => {
     window.onerror = prevError;
   });
 
+  it('should render the cell without messing with "dir" attribute', () => {
+    handsontable({
+      data: [['foo']],
+      renderer: 'checkbox'
+    });
+
+    expect(getCell(0, 0).getAttribute('dir')).toBeNull();
+  });
+
   describe('CheckboxRenderer with ContextMenu', () => {
     it('should add class name `htRight` after set align in contextMenu', (done) => {
       handsontable({

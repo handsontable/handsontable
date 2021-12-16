@@ -61,22 +61,18 @@ describe('TimeRenderer', () => {
     handsontable({
       renderer: 'time',
     });
-    /* eslint-disable wrap-iife */
-    setDataAtCell(2, 2, (function() {})());
+    setDataAtCell(2, 2, void 0);
 
     expect(getCell(2, 2).innerHTML).toEqual('');
   });
 
-  it('should render the cell with "dir" attribute set as "ltr"', () => {
-    const hot = handsontable({
-      renderer: 'time',
+  it('should render the cell without messing with "dir" attribute', () => {
+    handsontable({
+      data: [['foo']],
+      renderer: 'time'
     });
 
-    const td = document.createElement('td');
-
-    Handsontable.renderers.TimeRenderer(hot, td, 0, 0, 0, '', {});
-
-    expect(td.dir).toBe('ltr');
+    expect(getCell(0, 0).getAttribute('dir')).toBe('ltr');
   });
 
   it('should add class name `htDimmed` to a read only cell', () => {

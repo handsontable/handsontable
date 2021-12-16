@@ -1,9 +1,9 @@
-describe('TimeRenderer (RTL mode)', () => {
+describe('CheckboxRenderer (RTL mode)', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
     $('html').attr('dir', 'rtl');
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px;"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -18,9 +18,9 @@ describe('TimeRenderer (RTL mode)', () => {
   it('should render the cell without messing with "dir" attribute', () => {
     handsontable({
       data: [['foo']],
-      renderer: 'time'
+      renderer: 'checkbox'
     });
 
-    expect(getCell(0, 0).getAttribute('dir')).toBe('ltr');
+    expect(getCell(0, 0).getAttribute('dir')).toBeNull();
   });
 });

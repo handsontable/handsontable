@@ -1,4 +1,4 @@
-describe('TimeRenderer (RTL mode)', () => {
+describe('AutocompleteRenderer (RTL mode)', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -18,9 +18,9 @@ describe('TimeRenderer (RTL mode)', () => {
   it('should render the cell without messing with "dir" attribute', () => {
     handsontable({
       data: [['foo']],
-      renderer: 'time'
+      renderer: 'autocomplete'
     });
 
-    expect(getCell(0, 0).getAttribute('dir')).toBe('ltr');
+    expect(getCell(0, 0).getAttribute('dir')).toBeNull();
   });
 });

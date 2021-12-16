@@ -1,10 +1,9 @@
-describe('TimeEditor (RTL mode)', () => {
+describe('DropdownEditor (RTL mode)', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
     $('html').attr('dir', 'rtl');
-    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: hidden;"></div>`)
-      .appendTo('body');
+    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -16,16 +15,16 @@ describe('TimeEditor (RTL mode)', () => {
     }
   });
 
-  it('should render an editable editor\'s element with "dir" attribute set as "ltr"', () => {
+  it('should render an editable editor\'s element without messing with "dir" attribute', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 5),
-      editor: 'time',
+      editor: 'dropdown',
     });
 
     selectCell(0, 0);
 
     const editableElement = getActiveEditor().TEXTAREA;
 
-    expect(editableElement.getAttribute('dir')).toBe('ltr');
+    expect(editableElement.getAttribute('dir')).toBeNull();
   });
 });
