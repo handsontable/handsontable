@@ -344,6 +344,7 @@ class EditorManager {
     if (!this.selection.isSelected()) {
       return;
     }
+
     // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
     const isCtrlPressed = (event.ctrlKey || event.metaKey) && !event.altKey;
 
