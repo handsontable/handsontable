@@ -17,24 +17,28 @@ export const createContext = (name) => {
    *
    * @param {Array<Array<string>>} variants Shortcut's variants.
    * @param {Function} callback The callback.
-   * @param {object} options Additional options for shortcut's variants, such as:
-   *                         - preventDefault - to prevent default behavior,
-   *                         - stopPropagation - to stop event's propagation,
-   *                         - description - to describe what that shortcut is doing.
+   * @param {object} options Additional options for shortcut's variants.
+   * @param {object} options.preventDefault Option determine whether to prevent default behavior.
+   * @param {object} options.stopPropagation Option determine whether to stop event's propagation.
+   * @param {object} options.runAction  Option determine whether assigned callback should be performed.
+   * @param {object} options.description Option describe what that shortcut is doing.
+   *
    */
   const addShortcut = (
     variants,
     callback,
-    options = {
-      description: '',
-      runAction: () => true,
-      preventDefault: true,
-      stopPropagation: false
-    }) => {
+    {
+      description = '',
+      runAction = () => true,
+      preventDefault = true,
+      stopPropagation = false
+    } = {}) => {
+
     variants.forEach((variant) => {
       const normalizedVariant = normalizeKeys(variant);
 
-      SHORTCUTS.addItem(normalizedVariant, { callback, options });
+      SHORTCUTS.addItem(normalizedVariant, { callback,
+        options: { description, runAction, preventDefault, stopPropagation } });
     });
   };
 
