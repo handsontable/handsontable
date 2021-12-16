@@ -250,10 +250,91 @@ class Menu {
     this.hotMenu.listen();
 
     const shortcutManager = this.hotMenu.getShortcutManager();
-
-    shortcutManager.addContext('menu');
+    const menuContext = shortcutManager.addContext('menu');
     // Default shortcuts for Handsontable should not be handled. Changing context will help with that.
+
     shortcutManager.setActiveContexts(['menu']);
+
+    menuContext.addShortcut([['Escape']], () => {
+      this.keyEvent = true;
+      this.close();
+      this.keyEvent = false;
+    });
+
+    menuContext.addShortcut([['ArrowDown']], () => {
+      const selection = this.hotMenu.getSelectedLast();
+
+      this.keyEvent = true;
+
+      if (selection) {
+        this.selectNextCell(selection[0], selection[1]);
+
+      } else {
+        this.selectFirstCell();
+      }
+
+      this.keyEvent = false;
+    });
+
+    menuContext.addShortcut([['ArrowUp']], () => {
+      const selection = this.hotMenu.getSelectedLast();
+
+      this.keyEvent = true;
+
+      if (selection) {
+        this.selectPrevCell(selection[0], selection[1]);
+
+      } else {
+        this.selectLastCell();
+      }
+
+      this.keyEvent = false;
+    });
+
+    menuContext.addShortcut([['ArrowRight']], () => {
+      const selection = this.hotMenu.getSelectedLast();
+
+      this.keyEvent = true;
+
+      if (selection) {
+        const menu = this.openSubMenu(selection[0]);
+
+        if (menu) {
+          menu.selectFirstCell();
+        }
+      }
+
+      this.keyEvent = false;
+    });
+
+    menuContext.addShortcut([['ArrowLeft']], () => {
+      const selection = this.hotMenu.getSelectedLast();
+
+      this.keyEvent = true;
+
+      if (selection && this.isSubMenu()) {
+        this.close();
+
+        if (this.parentMenu) {
+          this.parentMenu.hotMenu.listen();
+        }
+      }
+
+      this.keyEvent = false;
+    });
+
+    menuContext.addShortcut([['Enter']], (event) => {
+      const selection = this.hotMenu.getSelectedLast();
+
+      this.keyEvent = true;
+
+      if (!this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
+        this.executeCommand(event);
+        this.close(true);
+      }
+
+      this.keyEvent = false;
+    });
 
     this.blockMainTableCallbacks();
     this.runLocalHooks('afterOpen');
@@ -718,81 +799,7 @@ class Menu {
     // element freely - without steeling the key events from the menu module (#6506, #6549).
     if (isInput(event.target) && this.container.contains(event.target)) {
       stopImmediatePropagation(event);
-
-      return;
     }
-
-    const selection = this.hotMenu.getSelectedLast();
-    let stopEvent = false;
-
-    this.keyEvent = true;
-
-    switch (event.keyCode) {
-      case KEY_CODES.ESCAPE:
-        this.close();
-        stopEvent = true;
-        break;
-
-      case KEY_CODES.ENTER:
-        if (selection) {
-          if (this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
-            stopEvent = true;
-          } else {
-            this.executeCommand(event);
-            this.close(true);
-          }
-        }
-        break;
-
-      case KEY_CODES.ARROW_DOWN:
-        if (selection) {
-          this.selectNextCell(selection[0], selection[1]);
-        } else {
-          this.selectFirstCell();
-        }
-        stopEvent = true;
-        break;
-
-      case KEY_CODES.ARROW_UP:
-        if (selection) {
-          this.selectPrevCell(selection[0], selection[1]);
-        } else {
-          this.selectLastCell();
-        }
-        stopEvent = true;
-        break;
-
-      case KEY_CODES.ARROW_RIGHT:
-        if (selection) {
-          const menu = this.openSubMenu(selection[0]);
-
-          if (menu) {
-            menu.selectFirstCell();
-          }
-        }
-        stopEvent = true;
-
-        break;
-
-      case KEY_CODES.ARROW_LEFT:
-        if (selection && this.isSubMenu()) {
-          this.close();
-
-          if (this.parentMenu) {
-            this.parentMenu.hotMenu.listen();
-          }
-          stopEvent = true;
-        }
-        break;
-      default:
-        break;
-    }
-    if (stopEvent) {
-      event.preventDefault();
-      stopImmediatePropagation(event);
-    }
-
-    this.keyEvent = false;
   }
 
   /**
