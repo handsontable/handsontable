@@ -329,15 +329,11 @@ class EditorManager {
    * @param {KeyboardEvent} event The keyboard event object.
    */
   onAfterDocumentKeyDown(event) {
-    if (!this.instance.isListening()) {
-      return;
-    }
-
     const { keyCode } = event;
 
     // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is produced when unfinished
     // character is entering (using IME editor). It is fired mainly on linux (ubuntu) with installed ibus-pinyin package.
-    if (this.destroyed || keyCode === 229) {
+    if (keyCode === 229) {
       return;
     }
 

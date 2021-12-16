@@ -139,7 +139,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const shortcutManager = createShortcutManager({
     beforeKeyDown: event => this.runHooks('beforeKeyDown', event),
     afterKeyDown: (event) => {
-      if (this.isDestroyed) {
+      if (this.isDestroyed || this.isListening() === false) {
         return false;
       }
 
