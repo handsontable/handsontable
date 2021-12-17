@@ -361,7 +361,7 @@ UndoRedo.prototype.enable = function() {
   this.enabled = true;
   exposeUndoRedoMethods(hot);
 
-  hot.addHook('beforeKeyDown', onBeforeKeyDown);
+  this.registerShortcuts();
   hot.addHook('afterChange', onAfterChange);
 };
 
@@ -381,7 +381,7 @@ UndoRedo.prototype.disable = function() {
   this.enabled = false;
   removeExposedUndoRedoMethods(hot);
 
-  hot.removeHook('beforeKeyDown', onBeforeKeyDown);
+  this.unregisterShortcuts();
   hot.removeHook('afterChange', onAfterChange);
 };
 
@@ -848,46 +848,50 @@ UndoRedo.prototype.init = function() {
 };
 
 /**
- * TODO: Can we move that shortcuts to the ShortcutManager flow?
+ * Registers shortcuts responsible for performing undo/redo.
  *
- * @param {Event} event The keyboard event object.
+ * @private
  */
-function onBeforeKeyDown(event) {
-  if (isImmediatePropagationStopped(event)) {
-    return;
-  }
+UndoRedo.prototype.registerShortcuts = function() {
+  const shortcutManager = this.instance.getShortcutManager();
+  const gridContext = shortcutManager.getContext('grid');
+  const runAction = (event) => {
+    // TODO: It could be removed after creating editor context.
+    const editor = this.instance.getActiveEditor();
 
-  const instance = this;
-  const editor = instance.getActiveEditor();
+    if (editor && editor.isOpened()) {
+      return false;
+    }
 
-  if (editor && editor.isOpened()) {
-    return;
-  }
+    return !event.altKey; // right ALT in some systems triggers ALT+CTR
+  };
 
-  const {
-    altKey,
-    ctrlKey,
-    keyCode,
-    metaKey,
-    shiftKey,
-  } = event;
-  const isCtrlDown = (ctrlKey || metaKey) && !altKey;
+  gridContext.addShortcut([['meta', 'z'], ['control', 'z']], () => {
+    this.undo();
+  }, {
+    runAction
+  });
 
-  if (!isCtrlDown) {
-    return;
-  }
+  gridContext.addShortcut([['control', 'y'], ['meta', 'y'],
+    ['control', 'shift', 'z'], ['meta', 'shift', 'z']], () => {
+    this.redo();
+  }, {
+    runAction
+  });
+};
 
-  const isRedoHotkey = keyCode === 89 || (shiftKey && keyCode === 90);
+/**
+ * Unregisters shortcut responsible for performing undo/redo.
+ *
+ * @private
+ */
+UndoRedo.prototype.unregisterShortcuts = function() {
+  const shortutManager = this.instance.getShortcutManager();
+  const gridContext = shortutManager.getContext('grid');
 
-  if (isRedoHotkey) { // CTRL + Y or CTRL + SHIFT + Z
-    instance.undoRedo.redo();
-    stopImmediatePropagation(event);
-
-  } else if (keyCode === 90) { // CTRL + Z
-    instance.undoRedo.undo();
-    stopImmediatePropagation(event);
-  }
-}
+  gridContext.removeShortcut([['control', 'z'], ['meta', 'z'], ['control', 'y'], ['meta', 'y'],
+    ['meta', 'shift', 'z'], ['control', 'shift', 'z']]);
+};
 
 /**
  * @param {Array} changes 2D array containing information about each of the edited cells.

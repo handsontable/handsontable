@@ -134,7 +134,7 @@ export class MergeCells extends BasePlugin {
       }
     });
 
-    this.addShortcut();
+    this.registerShortcut();
 
     super.enablePlugin();
   }
@@ -143,10 +143,8 @@ export class MergeCells extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const gridContext = this.hot.getShortcutManager().getContext('grid');
-
     this.clearCollections();
-    gridContext.removeShortcut([['control', 'm'], ['meta', 'm']]);
+    this.unregisterShortcut();
     this.hot.render();
     super.disablePlugin();
   }
@@ -530,18 +528,33 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Add shortcut responsible for toggling a merge.
+   * Registers shortcut responsible for toggling a merge.
+   *
+   * @private
    */
-  addShortcut() {
+  registerShortcut() {
     const shortcutManager = this.hot.getShortcutManager();
-    const shortcutsContext = shortcutManager.getContext('grid');
+    const gridContext = shortcutManager.getContext('grid');
 
-    shortcutsContext.addShortcut([['control', 'm'], ['meta', 'm']], () => {
+    gridContext.addShortcut([['control', 'm'], ['meta', 'm']], () => {
       this.toggleMerge(this.hot.getSelectedRangeLast());
       this.hot.render();
+
     }, {
       runAction: event => !event.altKey // right ALT in some systems triggers ALT+CTRL
     });
+  }
+
+  /**
+   * Unregisters shortcut responsible for toggling a merge.
+   *
+   * @private
+   */
+  unregisterShortcut() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const gridContext = shortcutManager.getContext('grid');
+
+    gridContext.removeShortcut([['control', 'm'], ['meta', 'm']]);
   }
 
   /**
