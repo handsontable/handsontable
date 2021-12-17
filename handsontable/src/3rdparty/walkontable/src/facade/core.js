@@ -1,5 +1,5 @@
 import Walkontable from '../core/core';
-import ACore from "../core/_base";
+import ACore from '../core/_base';
 
 /**
  * @class WalkontableFacade
