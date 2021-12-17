@@ -104,7 +104,6 @@ export class MergeCells extends BasePlugin {
     this.selectionCalculations = new SelectionCalculations(this);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
-    this.addHook('beforeKeyDown', (...args) => this.onBeforeKeyDown(...args));
     this.addHook('modifyTransformStart', (...args) => this.onModifyTransformStart(...args));
     this.addHook('afterModifyTransformStart', (...args) => this.onAfterModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.onModifyTransformEnd(...args));
@@ -135,6 +134,8 @@ export class MergeCells extends BasePlugin {
       }
     });
 
+    this.addShortcut();
+
     super.enablePlugin();
   }
 
@@ -142,7 +143,10 @@ export class MergeCells extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    const gridContext = this.hot.getShortcutManager().getContext('grid');
+
     this.clearCollections();
+    gridContext.removeShortcut([['control', 'm'], ['meta', 'm']]);
     this.hot.render();
     super.disablePlugin();
   }
@@ -526,20 +530,18 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * `beforeKeyDown` hook callback.
-   *
-   * @private
-   * @param {KeyboardEvent} event The `keydown` event object.
+   * Add shortcut responsible for toggling a merge.
    */
-  onBeforeKeyDown(event) {
-    const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+  addShortcut() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const shortcutsContext = shortcutManager.getContext('grid');
 
-    if (ctrlDown && event.keyCode === 77) { // CTRL + M
+    shortcutsContext.addShortcut([['control', 'm'], ['meta', 'm']], () => {
       this.toggleMerge(this.hot.getSelectedRangeLast());
-
       this.hot.render();
-      stopImmediatePropagation(event);
-    }
+    }, {
+      runAction: event => !event.altKey // right ALT in some systems triggers ALT+CTRL
+    });
   }
 
   /**
