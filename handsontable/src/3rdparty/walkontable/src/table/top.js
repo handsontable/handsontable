@@ -9,13 +9,13 @@ import { CLONE_TOP } from '../overlay';
  */
 class TopOverlayTable extends Table {
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance. @todo remove.
+   * @param {TableDao} dataAccessObject The data access object.
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
    * @param {DomBindings} domBindings Bindings into DOM.
    * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(wotInstance, facadeGetter, domBindings, wtSettings) {
-    super(wotInstance, facadeGetter, domBindings, wtSettings, CLONE_TOP);
+  constructor(dataAccessObject, facadeGetter, domBindings, wtSettings) {
+    super(dataAccessObject, facadeGetter, domBindings, wtSettings, CLONE_TOP);
   }
 }
 

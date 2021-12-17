@@ -9,11 +9,11 @@ import {
  */
 export default class ColumnUtils {
   /**
-   * @param {Walkontable} wot The walkontable instance. @todo remove.
+   * @param {TableDao} dataAccessObject The walkontable instance. @todo remove.
    * @param {Settings} wtSettings The walkontable settings.
    */
-  constructor(wot, wtSettings) {
-    this.wot = wot;
+  constructor(dataAccessObject, wtSettings) {
+    this.dataAccessObject = dataAccessObject;
     this.wtSettings = wtSettings;
     this.headerWidths = new Map();
   }
@@ -36,7 +36,7 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getStretchedColumnWidth(sourceIndex) {
-    const calculator = this.wot.wtViewport.columnsRenderCalculator;
+    const calculator = this.dataAccessObject.wtViewport.columnsRenderCalculator;
     let width = this.getWidth(sourceIndex);
 
     if (calculator) {
@@ -58,7 +58,7 @@ export default class ColumnUtils {
    */
   getHeaderHeight(level) {
     let height = this.wtSettings.getSetting('defaultRowHeight');
-    const oversizedHeight = this.wot.wtViewport.oversizedColumnHeaders[level];
+    const oversizedHeight = this.dataAccessObject.wtViewport.oversizedColumnHeaders[level];
 
     if (oversizedHeight !== void 0) {
       height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
@@ -74,15 +74,15 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getHeaderWidth(sourceIndex) {
-    return this.headerWidths.get(this.wot.wtTable.columnFilter.sourceToRendered(sourceIndex));
+    return this.headerWidths.get(this.dataAccessObject.wtTable.columnFilter.sourceToRendered(sourceIndex));
   }
 
   /**
    * Calculates column header widths that can be retrieved from the cache.
    */
   calculateWidths() {
-    const { wot, wtSettings } = this;
-    const { wtTable, wtViewport, cloneSource } = wot;
+    const { wtSettings } = this;
+    const { wtTable, wtViewport, cloneSource } = this.dataAccessObject;
     const mainHolder = cloneSource ? cloneSource.wtTable.holder : wtTable.holder;
     const scrollbarCompensation = mainHolder.offsetHeight < mainHolder.scrollHeight ? getScrollbarWidth() : 0;
     let rowHeaderWidthSetting = wtSettings.getSetting('rowHeaderWidth');

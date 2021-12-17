@@ -51,3 +51,31 @@
  * @property {Window} rootWindow RootWindow.
  * @property {Viewport} wtViewport WtViewport.
  */
+/**
+ * @todo Write descriptions.
+ *
+ * @typedef TableDao
+ *
+ * @property {boolean} drawn Is Walkontable drawn.
+ * @property {Table} wtTable WtTable.
+ * @property {Viewport} wtViewport WtViewport.
+ * @property {Overlays} wtOverlays WtOverlays.
+ * @property {Selections} selections Selections.
+ * @property {number|string} workspaceWidth WorkspaceWidth.
+ * @property {Walkontable} cloneSource CloneSource.
+ * @property {Walkontable} wot Wot.
+ * @property {number} parentTableOffset ParentTableOffset.
+ * @property {number|null} startColumnRendered StartColumnRendered.
+ * @property {number|null} startColumnVisible StartColumnVisible.
+ * @property {number|null} endColumnRendered EndColumnRendered.
+ * @property {number|null} endColumnVisible EndColumnVisible.
+ * @property {number|null} countColumnsRendered CountColumnsRendered.
+ * @property {number|null} countColumnsVisible CountColumnsVisible.
+ * @property {number|null} startRowRendered StartRowRendered.
+ * @property {number|null} startRowVisible StartRowVisible.
+ * @property {number|null} endRowRendered EndRowRendered.
+ * @property {number|null} endRowVisible EndRowVisible.
+ * @property {number|null} countRowsRendered CountRowsRendered.
+ * @property {number|null} countRowsVisible CountRowsVisible.
+ */
+

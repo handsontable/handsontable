@@ -1,9 +1,6 @@
 import {
-  addClass,
   fastInnerText,
-  removeClass,
 } from '../../../../helpers/dom/element';
-import { objectEach } from '../../../../helpers/object';
 import { randomString } from '../../../../helpers/string';
 import EventManager from '../../../../eventManager';
 import Scroll from '../scroll';
@@ -16,6 +13,7 @@ export default class ACore {
   wtTable;
   wtScroll;
   wtViewport;
+  wtOverlays;
   selections;
   wtEvent;
   /**
@@ -208,27 +206,6 @@ export default class ACore {
   }
 
   /**
-   * Export settings as class names added to the parent element of the table.
-   */
-  exportSettingsAsClassNames() {
-    const toExport = {
-      rowHeaders: 'htRowHeaders',
-      columnHeaders: 'htColumnHeaders'
-    };
-    const allClassNames = [];
-    const newClassNames = [];
-
-    objectEach(toExport, (className, key) => {
-      if (this.wtSettings.getSetting(key).length) {
-        newClassNames.push(className);
-      }
-      allClassNames.push(className);
-    });
-    removeClass(this.wtTable.wtRootElement.parentNode, allClassNames);
-    addClass(this.wtTable.wtRootElement.parentNode, newClassNames);
-  }
-
-  /**
    * Destroy instance.
    */
   destroy() {
@@ -239,7 +216,7 @@ export default class ACore {
   /**
    * Create data access object for scroll.
    *
-   * @private
+   * @protected
    * @returns {ScrollDao}
    */
   createScrollDao() {
@@ -280,7 +257,85 @@ export default class ACore {
       get fixedColumnsLeft() {
         return wot.wtSettings.getSetting('fixedColumnsLeft');
       },
+    };
+  }
+  // TODO refactoring: it will be much better to not use DAO objects. They are needed for now to provide dynamically access to related objects
+  /**
+   * Create data access object for wtTable.
+   *
+   * @protected
+   * @returns {TableDao}
+   */
+  getTableDao() {
+    const wot = this;
 
+    return {
+      get wot() {
+        return wot;
+      },
+      get parentTableOffset() {
+        return wot.cloneSource.wtTable.tableOffset; // TODO rethink: cloneSource exists only in Clone type.
+      },
+      get cloneSource() {
+        return wot.cloneSource; // TODO rethink: cloneSource exists only in Clone type.
+      },
+      get workspaceWidth() {
+        return wot.wtViewport.getWorkspaceWidth();
+      },
+      get wtViewport() {
+        return wot.wtViewport; // TODO refactoring: move outside dao, use IOC
+      },
+      get wtOverlays() {
+        return wot.wtOverlays; // TODO refactoring: move outside dao, use IOC
+      },
+      get selections() {
+        return wot.selections; // TODO refactoring: move outside dao, use IOC
+      },
+      get drawn() {
+        return wot.drawn;
+      },
+      set drawn(v) { // TODO rethink: this breaks assumes of data access object, however it is required until invent better way to handle WOT state.
+        wot.drawn = v;
+      },
+      get wtTable() {
+        return wot.wtTable; // TODO refactoring: it provides itself
+      },
+      get startColumnRendered() {
+        return wot.wtViewport.columnsRenderCalculator.startColumn;
+      },
+      get startColumnVisible() {
+        return wot.wtViewport.columnsVisibleCalculator.startColumn;
+      },
+      get endColumnRendered() {
+        return wot.wtViewport.columnsRenderCalculator.endColumn;
+      },
+      get endColumnVisible() {
+        return wot.wtViewport.columnsVisibleCalculator.endColumn;
+      },
+      get countColumnsRendered() {
+        return wot.wtViewport.columnsRenderCalculator.count;
+      },
+      get countColumnsVisible() {
+        return wot.wtViewport.columnsVisibleCalculator.count;
+      },
+      get startRowRendered() {
+        return wot.wtViewport.rowsRenderCalculator.startRow;
+      },
+      get startRowVisible() {
+        return wot.wtViewport.rowsVisibleCalculator.startRow;
+      },
+      get endRowRendered() {
+        return wot.wtViewport.rowsRenderCalculator.endRow;
+      },
+      get endRowVisible() {
+        return wot.wtViewport.rowsVisibleCalculator.endRow;
+      },
+      get countRowsRendered() {
+        return wot.wtViewport.rowsRenderCalculator.count;
+      },
+      get countRowsVisible() {
+        return wot.wtViewport.rowsVisibleCalculator.count;
+      },
     };
   }
 }

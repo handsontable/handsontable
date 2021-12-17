@@ -19,7 +19,7 @@ export default class Clone extends ACore {
 
     this.cloneSource = clone.source;
     this.cloneOverlay = clone.overlay;
-    this.wtTable = this.cloneOverlay.createTable(this, facadeGetter, this.domBindings, this.wtSettings);
+    this.wtTable = this.cloneOverlay.createTable(this.getTableDao(), facadeGetter, this.domBindings, this.wtSettings);
     this.wtViewport = clone.viewport;
     this.selections = clone.selections;
     this.wtEvent = new Event(

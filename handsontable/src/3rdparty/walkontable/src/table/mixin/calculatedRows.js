@@ -18,7 +18,7 @@ const calculatedRows = {
    * @this Table
    */
   getFirstRenderedRow() {
-    const startRow = this.wot.wtViewport.rowsRenderCalculator.startRow;
+    const startRow = this.dataAccessObject.startRowRendered;
 
     if (startRow === null) {
       return -1;
@@ -34,7 +34,7 @@ const calculatedRows = {
    * @this Table
    */
   getFirstVisibleRow() {
-    const startRow = this.wot.wtViewport.rowsVisibleCalculator.startRow;
+    const startRow = this.dataAccessObject.startRowVisible;
 
     if (startRow === null) {
       return -1;
@@ -50,7 +50,7 @@ const calculatedRows = {
    * @this Table
    */
   getLastRenderedRow() {
-    const endRow = this.wot.wtViewport.rowsRenderCalculator.endRow;
+    const endRow = this.dataAccessObject.endRowRendered;
 
     if (endRow === null) {
       return -1;
@@ -66,7 +66,7 @@ const calculatedRows = {
    * @this Table
    */
   getLastVisibleRow() {
-    const endRow = this.wot.wtViewport.rowsVisibleCalculator.endRow;
+    const endRow = this.dataAccessObject.endRowVisible;
 
     if (endRow === null) {
       return -1;
@@ -82,7 +82,7 @@ const calculatedRows = {
    * @this Table
    */
   getRenderedRowsCount() {
-    return this.wot.wtViewport.rowsRenderCalculator.count;
+    return this.dataAccessObject.countRowsRendered;
   },
 
   /**
@@ -92,7 +92,7 @@ const calculatedRows = {
    * @this Table
    */
   getVisibleRowsCount() {
-    return this.wot.wtViewport.rowsVisibleCalculator.count;
+    return this.dataAccessObject.countRowsVisible;
   }
 };
 

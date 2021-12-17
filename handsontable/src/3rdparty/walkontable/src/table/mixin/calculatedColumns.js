@@ -18,7 +18,7 @@ const calculatedColumns = {
    * @this Table
    */
   getFirstRenderedColumn() {
-    const startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
+    const startColumn = this.dataAccessObject.startColumnRendered;
 
     if (startColumn === null) {
       return -1;
@@ -34,7 +34,7 @@ const calculatedColumns = {
    * @this Table
    */
   getFirstVisibleColumn() {
-    const startColumn = this.wot.wtViewport.columnsVisibleCalculator.startColumn;
+    const startColumn = this.dataAccessObject.startColumnVisible;
 
     if (startColumn === null) {
       return -1;
@@ -50,7 +50,7 @@ const calculatedColumns = {
    * @this Table
    */
   getLastRenderedColumn() {
-    const endColumn = this.wot.wtViewport.columnsRenderCalculator.endColumn;
+    const endColumn = this.dataAccessObject.endColumnRendered;
 
     if (endColumn === null) {
       return -1;
@@ -66,7 +66,7 @@ const calculatedColumns = {
    * @this Table
    */
   getLastVisibleColumn() {
-    const endColumn = this.wot.wtViewport.columnsVisibleCalculator.endColumn;
+    const endColumn = this.dataAccessObject.endColumnVisible;
 
     if (endColumn === null) {
       return -1;
@@ -82,7 +82,7 @@ const calculatedColumns = {
    * @this Table
    */
   getRenderedColumnsCount() {
-    return this.wot.wtViewport.columnsRenderCalculator.count;
+    return this.dataAccessObject.countColumnsRendered;
   },
 
   /**
@@ -92,7 +92,7 @@ const calculatedColumns = {
    * @this Table
    */
   getVisibleColumnsCount() {
-    return this.wot.wtViewport.columnsVisibleCalculator.count;
+    return this.dataAccessObject.countColumnsVisible;
   }
 };
 
