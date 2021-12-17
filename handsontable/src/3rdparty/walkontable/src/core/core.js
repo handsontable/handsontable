@@ -20,13 +20,16 @@ export default class Walkontable extends ACore {
 
     const facadeGetter = this.wtSettings.getSetting('facade', this); // todo rethink. I would like to have no access to facade from the internal scope.
 
-    this.wtTable = new MasterTable(this.getTableDao(), facadeGetter, this.domBindings, this.wtSettings); // todo refactoring remove passing `this` into Table - potentially breaks many things.
-    this.wtViewport = new Viewport(this, this.domBindings, this.wtSettings, this.eventManager, this.wtTable);
+    this.wtTable = new MasterTable(this.getTableDao(), facadeGetter, this.domBindings, this.wtSettings);
+    this.wtViewport = new Viewport(
+      this.getViewportDao(), this.domBindings, this.wtSettings, this.eventManager, this.wtTable
+    );
     this.selections = this.wtSettings.getSetting('selections');
     this.wtEvent = new Event(
       facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selections
     );
     this.wtOverlays = new Overlays(
+      // TODO create DAO and remove reference to the Walkontable instance.
       this, facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable
     );
 
@@ -54,5 +57,45 @@ export default class Walkontable extends ACore {
     });
     removeClass(this.wtTable.wtRootElement.parentNode, allClassNames);
     addClass(this.wtTable.wtRootElement.parentNode, newClassNames);
+  }
+
+  /**
+   * @returns {ViewportDao}
+   */
+  getViewportDao() {
+    const wot = this;
+
+    return {
+      get wot() {
+        return wot;
+      },
+      get topOverlayTrimmingContainer() {
+        return wot.wtOverlays.topOverlay.trimmingContainer;
+      },
+      get leftOverlayTrimmingContainer() {
+        return wot.wtOverlays.leftOverlay.trimmingContainer;
+      },
+      get topScrollPosition() {
+        return wot.wtOverlays.topOverlay.getScrollPosition();
+      },
+      get topParentOffset() {
+        return wot.wtOverlays.topOverlay.getTableParentOffset();
+      },
+      get leftScrollPosition() {
+        return wot.wtOverlays.leftOverlay.getScrollPosition();
+      },
+      get leftParentOffset() {
+        return wot.wtOverlays.leftOverlay.getTableParentOffset();
+      },
+      get topOverlay() {
+        return wot.wtOverlays.topOverlay; // TODO refactoring: move outside dao, use IOC
+      },
+      get leftOverlay() {
+        return wot.wtOverlays.leftOverlay; // TODO refactoring: move outside dao, use IOC
+      },
+      get bottomOverlay() {
+        return wot.wtOverlays.bottomOverlay; // TODO refactoring: move outside dao, use IOC
+      }
+    };
   }
 }

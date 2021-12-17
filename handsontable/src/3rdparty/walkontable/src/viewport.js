@@ -18,15 +18,16 @@ import {
  */
 class Viewport {
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {ViewportDao} dataAccessObject The Walkontable instance.
    * @param {DomBindings} domBindings Bindings into DOM.
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {EventManager} eventManager The instance event manager.
    * @param {Table} wtTable The table.
    */
-  constructor(wotInstance, domBindings, wtSettings, eventManager, wtTable) {
-    this.wot = wotInstance;
+  constructor(dataAccessObject, domBindings, wtSettings, eventManager, wtTable) {
+    this.dataAccessObject = dataAccessObject;
     // legacy support
+    this.wot = dataAccessObject.wot;
     this.instance = this.wot;
     this.domBindings = domBindings;
     this.wtSettings = wtSettings;
@@ -51,7 +52,7 @@ class Viewport {
    */
   getWorkspaceHeight() {
     const currentDocument = this.domBindings.rootDocument;
-    const trimmingContainer = this.instance.wtOverlays.topOverlay.trimmingContainer;
+    const trimmingContainer = this.dataAccessObject.topOverlayTrimmingContainer;
     let height = 0;
 
     if (trimmingContainer === this.domBindings.rootWindow) {
@@ -70,7 +71,7 @@ class Viewport {
   getWorkspaceWidth() {
     const { wtSettings } = this;
     const { rootDocument, rootWindow } = this.domBindings;
-    const trimmingContainer = this.instance.wtOverlays.leftOverlay.trimmingContainer;
+    const trimmingContainer = this.dataAccessObject.leftOverlayTrimmingContainer;
     const docOffsetWidth = rootDocument.documentElement.offsetWidth;
     const totalColumns = wtSettings.getSetting('totalColumns');
     const preventOverflow = wtSettings.getSetting('preventOverflow');
@@ -96,7 +97,7 @@ class Viewport {
     }
 
     if (trimmingContainer !== rootWindow) {
-      overflow = getStyle(this.instance.wtOverlays.leftOverlay.trimmingContainer, 'overflow', rootWindow);
+      overflow = getStyle(this.dataAccessObject.leftOverlayTrimmingContainer, 'overflow', rootWindow);
 
       if (overflow === 'scroll' || overflow === 'hidden' || overflow === 'auto') {
         // this is used in `scroll.html`
@@ -304,8 +305,7 @@ class Viewport {
    * @returns {ViewportRowsCalculator}
    */
   createRowsCalculator(calculationType = RENDER_TYPE) {
-    const { wot, wtSettings, wtTable } = this;
-    const { wtOverlays } = wot;
+    const { wtSettings, wtTable } = this;
     let height;
     let scrollbarHeight;
     let fixedRowsHeight;
@@ -318,7 +318,7 @@ class Viewport {
       height = this.getViewportHeight();
     }
 
-    let pos = wtOverlays.topOverlay.getScrollPosition() - wtOverlays.topOverlay.getTableParentOffset();
+    let pos = this.dataAccessObject.topScrollPosition - this.dataAccessObject.topParentOffset;
 
     if (pos < 0) {
       pos = 0;
@@ -329,13 +329,13 @@ class Viewport {
     const totalRows = wtSettings.getSetting('totalRows');
 
     if (fixedRowsTop) {
-      fixedRowsHeight = wtOverlays.topOverlay.sumCellSizes(0, fixedRowsTop);
+      fixedRowsHeight = this.dataAccessObject.topOverlay.sumCellSizes(0, fixedRowsTop);
       pos += fixedRowsHeight;
       height -= fixedRowsHeight;
     }
 
-    if (fixedRowsBottom && wtOverlays.bottomOverlay.clone) {
-      fixedRowsHeight = wtOverlays.bottomOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
+    if (fixedRowsBottom && this.dataAccessObject.bottomOverlay.clone) {
+      fixedRowsHeight = this.dataAccessObject.bottomOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
 
       height -= fixedRowsHeight;
     }
@@ -367,10 +367,9 @@ class Viewport {
    * @returns {ViewportRowsCalculator}
    */
   createColumnsCalculator(calculationType = RENDER_TYPE) {
-    const { wot, wtSettings, wtTable } = this;
-    const { wtOverlays } = wot;
+    const { wtSettings, wtTable } = this;
     let width = this.getViewportWidth();
-    let pos = wtOverlays.leftOverlay.getScrollPosition() - wtOverlays.leftOverlay.getTableParentOffset();
+    let pos = this.dataAccessObject.leftScrollPosition - this.dataAccessObject.leftParentOffset;
 
     this.columnHeaderHeight = NaN;
 
@@ -381,7 +380,7 @@ class Viewport {
     const fixedColumnsLeft = wtSettings.getSetting('fixedColumnsLeft');
 
     if (fixedColumnsLeft) {
-      const fixedColumnsWidth = wtOverlays.leftOverlay.sumCellSizes(0, fixedColumnsLeft);
+      const fixedColumnsWidth = this.dataAccessObject.leftOverlay.sumCellSizes(0, fixedColumnsLeft);
 
       pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;
