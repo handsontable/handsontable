@@ -80,7 +80,7 @@ class Table {
      */
     this.isMaster = name === 'master';
     this.name = name;
-    this.wot = wotInstance; // todo remove
+    this.wot = wotInstance;
     this.facadeGetter = facadeGetter;
     this.wtSettings = wtSettings;
 

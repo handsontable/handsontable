@@ -1,4 +1,5 @@
-import Walkontable from '../core';
+import Walkontable from '../core/core';
+import ACore from "../core/_base";
 
 /**
  * @class WalkontableFacade
@@ -10,7 +11,7 @@ export default class WalkontableFacade {
    * @param {SettingsPure|Walkontable} settingsOrInstance The Walkontable settings.
    */
   constructor(settingsOrInstance) {
-    if (settingsOrInstance instanceof Walkontable) {
+    if (settingsOrInstance instanceof ACore) {
       this._wot = settingsOrInstance;
     } else {
       this._initFromSettings(settingsOrInstance);

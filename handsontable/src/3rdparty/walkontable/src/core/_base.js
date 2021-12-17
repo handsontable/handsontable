@@ -2,22 +2,22 @@ import {
   addClass,
   fastInnerText,
   removeClass,
-} from '../../../helpers/dom/element';
-import { objectEach } from '../../../helpers/object';
-import { randomString } from '../../../helpers/string';
-import Event from './event';
-import Overlays from './overlays';
-import Scroll from './scroll';
-import Settings from './settings';
-import MasterTable from './table/master';
-import Viewport from './viewport';
-import EventManager from '../../../eventManager';
+} from '../../../../helpers/dom/element';
+import { objectEach } from '../../../../helpers/object';
+import { randomString } from '../../../../helpers/string';
+import EventManager from '../../../../eventManager';
+import Scroll from '../scroll';
 
 /**
+ * @abstract
  * @class Walkontable
- * @TODO define explicitly fields.
  */
-export default class Walkontable {
+export default class ACore {
+  wtTable;
+  wtScroll;
+  wtViewport;
+  selections;
+  wtEvent;
   /**
    * The walkontable instance id.
    *
@@ -25,6 +25,8 @@ export default class Walkontable {
    * @type {Readonly<string>}
    */
   guid = `wt_${randomString()}`;
+  drawInterrupted = false;
+  drawn = false;
 
   /**
    * The DOM bindings.
@@ -48,45 +50,21 @@ export default class Walkontable {
 
   /**
    * @param {HTMLTableElement} table Main table.
-   * @param {SettingsPure|Settings} settings The Walkontable settings.
-   * @param {?WalkontableCloneOptions} clone Clone data. @todo extract type.
+   * @param {Settings} settings The Walkontable settings.
    */
-  constructor(table, settings, clone = undefined) {
-    const originalHeaders = [];
-
+  constructor(table, settings) {
     this.domBindings = {
       rootTable: table,
       rootDocument: table.ownerDocument,
       rootWindow: table.ownerDocument.defaultView,
     };
 
-    this.wtSettings = settings instanceof Settings ? settings : new Settings(settings);
-    const facadeGetter = this.wtSettings.getSetting('facade', this); // todo rethink. I would like to have no access to facade from the internal scope.
+    this.wtSettings = settings;
+    this.wtScroll = new Scroll(this.createScrollDao());
+  }
 
-    // bootstrap from settings
-    if (clone) { // todo refactoring extract to another class, maybe with same base class
-      this.cloneSource = clone.source;
-      this.cloneOverlay = clone.overlay;
-      this.wtTable = this.cloneOverlay.createTable(this, facadeGetter, this.domBindings, this.wtSettings);
-      this.wtScroll = new Scroll(this.createScrollDao()); // todo refactoring: consider about IOC: it requires wtSettings, topOverlay, leftOverlay, wtTable, wtViewport, rootWindow
-      this.wtViewport = clone.viewport;
-      this.selections = clone.selections;
-      this.wtEvent = new Event(
-        facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selections, clone.event
-      );
-    } else {
-      this.wtTable = new MasterTable(this, facadeGetter, this.domBindings, this.wtSettings); // todo refactoring remove passing `this` into Table - potentially breaks many things.
-      this.wtScroll = new Scroll(this.createScrollDao()); // todo refactoring: consider about IOC: it requires wtSettings, topOverlay, leftOverlay, wtTable, wtViewport, rootWindow
-      this.wtViewport = new Viewport(this, this.domBindings, this.wtSettings, this.eventManager, this.wtTable);
-      this.selections = this.wtSettings.getSetting('selections');
-      this.wtEvent = new Event(
-        facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selections
-      );
-      this.wtOverlays = new Overlays(
-        this, facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable
-      );
-      this.exportSettingsAsClassNames();
-    }
+  findOriginalHeaders() {
+    const originalHeaders = [];
 
     // find original headers
     if (this.wtTable.THEAD.childNodes.length && this.wtTable.THEAD.childNodes[0].childNodes.length) {
@@ -101,10 +79,7 @@ export default class Walkontable {
         ]);
       }
     }
-    this.drawn = false;
-    this.drawInterrupted = false;
   }
-
   /**
    * Force rerender of Walkontable.
    *
@@ -272,24 +247,24 @@ export default class Walkontable {
 
     return {
       get drawn() {
-        return wot.drawn; // todo refactoring: consider about injecting `isDrawn` function : ()=>return wot.drawn. (it'll enables remove dao layer)
+        return wot.drawn; // TODO refactoring: consider about injecting `isDrawn` function : ()=>return wot.drawn. (it'll enables remove dao layer)
       },
       get topOverlay() {
-        return wot.wtOverlays.topOverlay; // todo refactoring: move outside dao, use IOC
+        return wot.wtOverlays.topOverlay; // TODO refactoring: move outside dao, use IOC
       },
       get leftOverlay() {
-        return wot.wtOverlays.leftOverlay; // todo refactoring: move outside dao, use IOC
+        return wot.wtOverlays.leftOverlay; // TODO refactoring: move outside dao, use IOC
       },
       get wtTable() {
-        return wot.wtTable; // todo refactoring: move outside dao, use IOC
+        return wot.wtTable; // TODO refactoring: move outside dao, use IOC
       },
       get wtViewport() {
-        return wot.wtViewport; // todo refactoring: move outside dao, use IOC
+        return wot.wtViewport; // TODO refactoring: move outside dao, use IOC
       },
       get rootWindow() {
-        return wot.domBindings.rootWindow; // todo refactoring: move outside dao
+        return wot.domBindings.rootWindow; // TODO refactoring: move outside dao
       },
-      // todo refactoring, consider about using injecting wtSettings into scroll (it'll enables remove dao layer)
+      // TODO refactoring, consider about using injecting wtSettings into scroll (it'll enables remove dao layer)
       get totalRows() {
         return wot.wtSettings.getSetting('totalRows');
       },

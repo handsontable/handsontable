@@ -10,7 +10,7 @@ import {
   CLONE_TOP,
   CLONE_LEFT,
 } from './constants';
-import Walkontable from '../core';
+import Clone from '../core/clone';
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
@@ -241,7 +241,7 @@ export class Overlay {
   /**
    * Make a clone of table for overlay.
    *
-   * @returns {Walkontable}
+   * @returns {Clone}
    */
   makeClone() {
     if (CLONE_TYPES.indexOf(this.type) === -1) {
@@ -278,7 +278,7 @@ export class Overlay {
     }
 
     // Create a new instance of the Walkontable class
-    return new Walkontable(clonedTable, this.wtSettings, { // todo ioc factory
+    return new Clone(clonedTable, this.wtSettings, { // todo ioc factory
       source: this.wot,
       overlay: this,
       viewport: this.wot.wtViewport, // todo ioc , or factor func if used only here
