@@ -135,6 +135,13 @@ displaySeparator();
     });
   }
 
+  if (argv.commit === true) {
+    // Commit the changes to the release branch.
+    await spawnProcess('git add .');
+
+    await spawnProcess(`git commit -m "${finalVersion}"`);
+  }
+
   if (argv.push === true) {
     // Push the changes to remote.
     await spawnProcess(`git flow release publish ${finalVersion}`);
