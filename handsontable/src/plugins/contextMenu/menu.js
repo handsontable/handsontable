@@ -191,7 +191,6 @@ class Menu {
       fragmentSelection: false,
       outsideClickDeselects: false,
       disableVisualSelection: 'area',
-      beforeKeyDown: event => this.onBeforeKeyDown(event),
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
           delayedOpenSubMenu(coords.row);
@@ -251,8 +250,10 @@ class Menu {
 
     const shortcutManager = this.hotMenu.getShortcutManager();
     const menuContext = shortcutManager.addContext('menu');
-    // Default shortcuts for Handsontable should not be handled. Changing context will help with that.
+    const menuContextConfig = { runAction: event => isInput(event.target) === false
+      || this.container.contains(event.target) === false };
 
+    // Default shortcuts for Handsontable should not be handled. Changing context will help with that.
     shortcutManager.setActiveContexts(['menu']);
 
     menuContext.addShortcut([['Escape']], () => {
@@ -274,7 +275,7 @@ class Menu {
       }
 
       this.keyEvent = false;
-    });
+    }, menuContextConfig);
 
     menuContext.addShortcut([['ArrowUp']], () => {
       const selection = this.hotMenu.getSelectedLast();
@@ -289,7 +290,7 @@ class Menu {
       }
 
       this.keyEvent = false;
-    });
+    }, menuContextConfig);
 
     menuContext.addShortcut([['ArrowRight']], () => {
       const selection = this.hotMenu.getSelectedLast();
@@ -305,7 +306,7 @@ class Menu {
       }
 
       this.keyEvent = false;
-    });
+    }, menuContextConfig);
 
     menuContext.addShortcut([['ArrowLeft']], () => {
       const selection = this.hotMenu.getSelectedLast();
@@ -321,7 +322,7 @@ class Menu {
       }
 
       this.keyEvent = false;
-    });
+    }, menuContextConfig);
 
     menuContext.addShortcut([['Enter']], (event) => {
       const selection = this.hotMenu.getSelectedLast();
@@ -334,7 +335,7 @@ class Menu {
       }
 
       this.keyEvent = false;
-    });
+    }, menuContextConfig);
 
     this.blockMainTableCallbacks();
     this.runLocalHooks('afterOpen');
@@ -784,21 +785,6 @@ class Menu {
       this.hot.removeHook('afterScrollVertically', this._afterScrollCallback);
       this.hot.removeHook('afterScrollHorizontally', this._afterScrollCallback);
       this._afterScrollCallback = null;
-    }
-  }
-
-  /**
-   * On before key down listener.
-   * TODO: Can we move that shortcuts to the ShortcutManager flow?
-   *
-   * @private
-   * @param {Event} event The keyaboard event object.
-   */
-  onBeforeKeyDown(event) {
-    // For input elements, prevent event propagation. It allows entering text into an input
-    // element freely - without steeling the key events from the menu module (#6506, #6549).
-    if (isInput(event.target) && this.container.contains(event.target)) {
-      stopImmediatePropagation(event);
     }
   }
 
