@@ -3,35 +3,45 @@ const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
 const replaceInFiles = require('replace-in-files');
+const semver = require('semver');
 
 const { logger } = require('../utils');
+
+const [cliVersion] = process.argv.slice(2);
 
 const workingDir = path.resolve(__dirname, '../../../');
 
 logger.log('\n-----------------------------------------------------\n');
 
 (async() => {
-  const { continueApiGen } = await inquirer.prompt([
-    {
-      type: 'confirm',
-      name: 'continueApiGen',
-      message: 'This script will generate a new API and Guides. \nContinue?',
-      default: true,
+  let version = null;
+
+  if (!semver.valid(cliVersion)) {
+    const { continueApiGen } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'continueApiGen',
+        message: 'This script will generate a new API and Guides. \nContinue?',
+        default: true,
+      }
+    ]);
+
+    if (!continueApiGen) {
+      process.exit(0);
     }
-  ]);
 
-  if (!continueApiGen) {
-    process.exit(0);
+    ({ version } = await inquirer.prompt([
+      {
+        name: 'version',
+        type: 'input',
+        message: 'What version do you want to generate (required format "Major.Minor" e.g. 9.1)',
+        validate: s => (/^\d+.\d+$/.test(s) ? true : 'The provided version is not correct'),
+      },
+    ]));
+
+  } else {
+    version = `${semver.major(cliVersion)}.${semver.minor(cliVersion)}`;
   }
-
-  const { version } = await inquirer.prompt([
-    {
-      name: 'version',
-      type: 'input',
-      message: 'What version do you want to generate (required format "Major.Minor" e.g. 9.1)',
-      validate: s => (/^\d+.\d+$/.test(s) ? true : 'The provided version is not correct'),
-    },
-  ]);
 
   if (fs.existsSync(path.join(workingDir, version))) {
     logger.error(`This version of the documentation (${version}) is already generated.`);
