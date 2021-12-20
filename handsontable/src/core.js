@@ -35,7 +35,7 @@ import {
   stopObserving as keyStateStopObserving
 } from './utils/keyStateObserver';
 import { Selection } from './selection';
-import { MetaManager, DynamicCellMetaMod, DataMap } from './dataMap';
+import { MetaManager, DynamicCellMetaMod, replaceData } from './dataMap';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 
 let activeGuid = null;
@@ -2024,104 +2024,125 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * (for example, row/column sequence, column width, row height, frozen columns etc.).
    *
    * @memberof Core#
+   * @function setData
+   * @since 11.1.0
+   * @param {Array} data Array of arrays or array of objects containing data.
+   * @param {string} [source] Source of the `setData` call.
+   * @fires Hooks#beforeLoadData
+   * @fires Hooks#beforeSetData
+   * @fires Hooks#beforeUpdateData
+   * @fires Hooks#afterLoadData
+   * @fires Hooks#afterSetData
+   * @fires Hooks#afterUpdateData
+   * @fires Hooks#afterChange
+   */
+  this.setData = function(data, source) {
+    replaceData(
+      data,
+      (newDataMap) => {
+        datamap = newDataMap;
+      },
+      () => {
+        metaManager.clearCellsCache();
+        instance.initIndexMappers();
+        grid.adjustRowsAndCols();
+
+        if (firstRun) {
+          firstRun = [null, 'loadData'];
+        }
+      }, {
+        hotInstance: instance,
+        dataMap: datamap,
+        dataSource,
+        internalSource: 'setData',
+        source,
+        firstRun
+      });
+  };
+
+  /**
+   * Replaces the dataset with a new one. Unlike `setData` and the `loadData` methods, it doesn't reset the
+   * state of the table.
+   *
+   * @memberof Core#
+   * @function updateData
+   * @since 11.1.0
+   * @param {Array} data Array of arrays or array of objects containing data.
+   * @param {string} [source] Source of the `updateData` call.
+   * @fires Hooks#beforeUpdateData
+   * @fires Hooks#afterUpdateData
+   * @fires Hooks#afterChange
+   */
+  this.updateData = function(data, source) {
+    replaceData(
+      data,
+      (newDataMap) => {
+        datamap = newDataMap;
+      },
+      (newDataMap) => {
+        datamap = newDataMap;
+
+        instance.columnIndexMapper.fitToLength(this.getInitialColumnCount());
+        instance.rowIndexMapper.fitToLength(this.countSourceRows());
+
+        grid.adjustRowsAndCols();
+      }, {
+        hotInstance: instance,
+        dataMap: datamap,
+        dataSource,
+        internalSource: 'updateData',
+        source,
+        firstRun
+      });
+  };
+
+  /**
+   * Loads new data to Handsontable. Loading new data resets the cell meta.
+   * Since 8.0.0 loading new data also resets states corresponding to rows and columns
+   * (for example, row/column sequence, column width, row height, frozen columns etc.).
+   *
+   * @memberof Core#
    * @function loadData
    * @param {Array} data Array of arrays or array of objects containing data.
    * @param {string} [source] Source of the loadData call.
    * @fires Hooks#beforeLoadData
+   * @fires Hooks#beforeSetData
    * @fires Hooks#afterLoadData
+   * @fires Hooks#afterSetData
    * @fires Hooks#afterChange
    */
   this.loadData = function(data, source) {
-    if (Array.isArray(tableMeta.dataSchema)) {
-      instance.dataType = 'array';
-    } else if (isFunction(tableMeta.dataSchema)) {
-      instance.dataType = 'function';
-    } else {
-      instance.dataType = 'object';
-    }
+    // Legacy alias for `setData` - these two should be kept in sync.
+    replaceData(
+      data,
+      (newDataMap) => {
+        datamap = newDataMap;
+      },
+      () => {
+        metaManager.clearCellsCache();
+        instance.initIndexMappers();
+        grid.adjustRowsAndCols();
 
-    if (datamap) {
-      datamap.destroy();
-    }
-
-    data = instance.runHooks('beforeLoadData', data, firstRun, source);
-
-    datamap = new DataMap(instance, data, tableMeta);
-
-    if (typeof data === 'object' && data !== null) {
-      if (!(data.push && data.splice)) { // check if data is array. Must use duck-type check so Backbone Collections also pass it
-        // when data is not an array, attempt to make a single-row array of it
-        // eslint-disable-next-line no-param-reassign
-        data = [data];
-      }
-
-    } else if (data === null) {
-      const dataSchema = datamap.getSchema();
-
-      // eslint-disable-next-line no-param-reassign
-      data = [];
-      let row;
-      let r = 0;
-      let rlen = 0;
-
-      for (r = 0, rlen = tableMeta.startRows; r < rlen; r++) {
-        if ((instance.dataType === 'object' || instance.dataType === 'function') && tableMeta.dataSchema) {
-          row = deepClone(dataSchema);
-          data.push(row);
-
-        } else if (instance.dataType === 'array') {
-          row = deepClone(dataSchema[0]);
-          data.push(row);
-
-        } else {
-          row = [];
-
-          for (let c = 0, clen = tableMeta.startCols; c < clen; c++) {
-            row.push(null);
-          }
-
-          data.push(row);
+        if (firstRun) {
+          firstRun = [null, 'loadData'];
         }
-      }
-
-    } else {
-      throw new Error(`loadData only accepts array of objects or array of arrays (${typeof data} given)`);
-    }
-
-    if (Array.isArray(data[0])) {
-      instance.dataType = 'array';
-    }
-
-    tableMeta.data = data;
-
-    datamap.dataSource = data;
-    dataSource.data = data;
-    dataSource.dataType = instance.dataType;
-    dataSource.colToProp = datamap.colToProp.bind(datamap);
-    dataSource.propToCol = datamap.propToCol.bind(datamap);
-    dataSource.countCachedColumns = datamap.countCachedColumns.bind(datamap);
-
-    metaManager.clearCellsCache();
-    instance.initIndexMappers();
-
-    grid.adjustRowsAndCols();
-
-    instance.runHooks('afterLoadData', data, firstRun, source);
-
-    if (firstRun) {
-      firstRun = [null, 'loadData'];
-    } else {
-      instance.runHooks('afterChange', null, 'loadData');
-      instance.render();
-    }
+      }, {
+        hotInstance: instance,
+        dataMap: datamap,
+        dataSource,
+        internalSource: 'loadData',
+        source,
+        firstRun
+      });
   };
 
   /**
-   * Init index mapper which manage indexes assigned to the data.
+   * Gets the initial column count, calculated based on the `columns` setting.
    *
    * @private
+   * @returns {number} The calculated number of columns.
    */
-  this.initIndexMappers = function() {
+  this.getInitialColumnCount = function() {
     const columnsSettings = tableMeta.columns;
     let finalNrOfColumns = 0;
 
@@ -2157,7 +2178,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       finalNrOfColumns = this.countSourceCols();
     }
 
-    this.columnIndexMapper.initToLength(finalNrOfColumns);
+    return finalNrOfColumns;
+  };
+
+  /**
+   * Init index mapper which manage indexes assigned to the data.
+   *
+   * @private
+   */
+  this.initIndexMappers = function() {
+    this.columnIndexMapper.initToLength(this.getInitialColumnCount());
     this.rowIndexMapper.initToLength(this.countSourceRows());
   };
 
@@ -2260,6 +2290,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings, init = false) {
+    // TODO: uncomment the next line with the next major version update
+    // Do not forget to re-enable the pending tests that cover the change:
+    //  * https://github.com/handsontable/handsontable/blob/9f62c282a1c951b27cd8406aa27105bd32b05bb6/handsontable/test/e2e/core/toPhysicalColumn.spec.js#L70
+    //  * https://github.com/handsontable/handsontable/blob/9f62c282a1c951b27cd8406aa27105bd32b05bb6/handsontable/test/e2e/core/toVisualColumn.spec.js#L70
+    // const dataUpdateFunction = (firstRun ? instance.setData : instance.updateData).bind(this);
+    const dataUpdateFunction = instance.setData.bind(this);
     let columnsAsFunc = false;
     let i;
     let j;
@@ -2308,10 +2344,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     // Load data or create data map
     if (settings.data === void 0 && tableMeta.data === void 0) {
-      instance.loadData(null, 'updateSettings'); // data source created just now
+      dataUpdateFunction(null, 'updateSettings'); // data source created just now
 
     } else if (settings.data !== void 0) {
-      instance.loadData(settings.data, 'updateSettings'); // data source given as option
+      dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
 
     } else if (settings.columns !== void 0) {
       datamap.createMap();

@@ -1,8 +1,8 @@
-const puppeteer = require('puppeteer');
-const http = require('http');
-const path = require('path');
-const ecstatic = require('ecstatic');
-const JasmineReporter = require('jasmine-terminal-reporter');
+import puppeteer from 'puppeteer';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { createServer } from 'http-server';
+import JasmineReporter from 'jasmine-terminal-reporter';
 
 const PORT = 8086;
 const DEFAULT_INACTIVITY_TIMEOUT = 10000;
@@ -38,7 +38,7 @@ if (flags) {
 
 const cleanupFactory = (browser, server) => async(exitCode) => {
   await browser.close();
-  await new Promise(resolve => server.close(resolve));
+  server.close();
   process.exit(exitCode);
 };
 
@@ -63,13 +63,14 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
     height: 720,
   });
 
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const rootPath = path.resolve(`${__dirname}`, '../../..');
 
-  const server = http.createServer(ecstatic({
+  const server = createServer({
     root: rootPath,
     showDir: true,
     autoIndex: true,
-  }));
+  });
   const cleanup = cleanupFactory(browser, server);
 
   server.listen(PORT);

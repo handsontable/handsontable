@@ -51,8 +51,8 @@ Released on 1st of June, 2021
 
 **Changed**
 
-*   **Breaking change** New Formulas plugin, with an entirely different API. See the migration guide for a full list of changes. Removed the required `hot-formula-parser` dependency for the sake of an optional one, `hyperformula`. ([#6466](https://github.com/handsontable/handsontable/issues/6466))
-*   **Breaking change** Changed the `afterAutofill` and `beforeAutofill` hooks' signatures. ([#7987](https://github.com/handsontable/handsontable/issues/7987))
+*   **Breaking change**: New Formulas plugin, with an entirely different API. See the migration guide for a full list of changes. Removed the required `hot-formula-parser` dependency for the sake of an optional one, `hyperformula`. ([#6466](https://github.com/handsontable/handsontable/issues/6466))
+*   **Breaking change**: Changed the `afterAutofill` and `beforeAutofill` hooks' signatures. ([#7987](https://github.com/handsontable/handsontable/issues/7987))
 *   Upgraded `eslint` and eslint-related modules. ([#7531](https://github.com/handsontable/handsontable/issues/7531))
 *   Added `fit` & `fdescribe` to restricted globals in test files. ([#8088](https://github.com/handsontable/handsontable/issues/8088))
 
@@ -68,7 +68,7 @@ Released on 1st of June, 2021
 
 **Removed**
 
-*   **Breaking change** Removed the deprecated plugins - Header Tooltips and Observe Changes. ([#8083](https://github.com/handsontable/handsontable/issues/8083))
+*   **Breaking change**: Removed the deprecated plugins - Header Tooltips and Observe Changes. ([#8083](https://github.com/handsontable/handsontable/issues/8083))
 
 **Deprecated**
 

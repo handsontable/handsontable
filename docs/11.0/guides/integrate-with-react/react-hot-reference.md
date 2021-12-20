@@ -1,11 +1,11 @@
 ---
-title: Referencing the Handsontable instance
-metaTitle: Referencing the Handsontable instance - Guide - Handsontable Documentation
+title: 'Referencing the Handsontable instance in React'
+metaTitle: 'Referencing the Handsontable instance in React - Guide - Handsontable Documentation'
 permalink: /11.0/react-hot-reference
 canonicalUrl: /react-hot-reference
 ---
 
-# Referencing the Handsontable instance
+# Referencing the Handsontable instance in React
 
 ## Overview
 

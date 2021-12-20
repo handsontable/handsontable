@@ -118,7 +118,8 @@ export class ManualColumnMove extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
     this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('afterScrollVertically', () => this.onAfterScrollVertically());
-    this.addHook('afterLoadData', () => this.onAfterLoadData());
+    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
+    this.addHook('afterSetData', (...args) => this.onAfterSetData(...args));
 
     this.buildPluginUI();
     this.registerEvents();
@@ -713,12 +714,27 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Callback for the `afterLoadData` hook.
+   * Callback for the `afterSetData` hook.
    *
    * @private
    */
-  onAfterLoadData() {
+  onAfterSetData() {
     this.moveBySettingsOrLoad();
+  }
+
+  /**
+   * Alias for `onAfterSetData`.
+   *
+   * @private
+   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
+   *                              during the initialization.
+   * @param {string} source Source of the hook call.
+   */
+  onAfterLoadData(sourceData, initialLoad, source) {
+    if (source !== 'updateSettings') {
+      this.onAfterSetData(sourceData, initialLoad, source);
+    }
   }
 
   /**
