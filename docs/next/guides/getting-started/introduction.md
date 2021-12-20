@@ -9,7 +9,7 @@ canonicalUrl: /
 
 [[toc]]
 
-Welcome 👋&nbsp; to Handsontable's Guides. Here you will learn how Handsontable works and what you can build with it. Handsontable supports the most popular frameworks such as **[React](@/guides/integrate-with-react/react-simple-example.md)**, **[Angular](@/guides/integrate-with-angular/angular-simple-example.md)**, **[Vue 2](@/guides/integrate-with-vue/vue-simple-example.md)**, and **[Vue 3](@/guides/integrate-with-vue3/vue-simple-example.md)**.
+Welcome 👋&nbsp; to Handsontable's Guides. Here you will learn how Handsontable works and what you can build with it. Handsontable supports the most popular frameworks such as **[React](@/guides/integrate-with-react/react-simple-example.md)**, **[Angular](@/guides/integrate-with-angular/angular-simple-example.md)**, **[Vue 2](@/guides/integrate-with-vue/vue-simple-example.md)**, and **[Vue 3](@/guides/integrate-with-vue3/vue3-simple-example.md)**.
 
 ## Get started with sample apps
 
@@ -34,7 +34,7 @@ Welcome 👋&nbsp; to Handsontable's Guides. Here you will learn how Handsontabl
     <h3>Vue 2</h3>
    </a>
 
-   <a href="/docs/next/guides/integrate-with-vue3/vue-simple-example" class="row-item">
+   <a href="/docs/next/vue3-simple-example" class="row-item">
     <img class="integration-framework-logo" src="/docs/next/img/pages/introduction/vue.svg" alt="Vue logo" />
     <h3>Vue 3</h3>
    </a>
