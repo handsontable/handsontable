@@ -15,7 +15,7 @@ To reduce the size of your app, you can use Handsontable by importing individual
 
 ## Using modules with Vue 3
 
-To use modules with Handsontable's [Vue 3 wrapper](@/guides/integrate-with-vue3/vue-installation.md), follow the steps below:
+To use modules with Handsontable's [Vue 3 wrapper](@/guides/integrate-with-vue3/vue3-installation.md), follow the steps below:
 
 ### Step 1: Import the `handsontable/base` module
 In the entry point file of your application, import the `handsontable/base` module:
