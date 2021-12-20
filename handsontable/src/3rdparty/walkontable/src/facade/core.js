@@ -1,7 +1,9 @@
 import Walkontable from '../core/core';
-import ACore from '../core/_base';
+import CoreAbstract from '../core/_base';
 
 /**
+ * This layer cares about backward compatibility.
+ *
  * @class WalkontableFacade
  * @augments Walkontable
  * @inheritDoc
@@ -11,7 +13,7 @@ export default class WalkontableFacade {
    * @param {SettingsPure|Walkontable} settingsOrInstance The Walkontable settings.
    */
   constructor(settingsOrInstance) {
-    if (settingsOrInstance instanceof ACore) {
+    if (settingsOrInstance instanceof CoreAbstract) {
       this._wot = settingsOrInstance;
     } else {
       this._initFromSettings(settingsOrInstance);
@@ -108,6 +110,7 @@ export default class WalkontableFacade {
   get eventManager() {
     return this._wot.eventManager;
   }
+
   draw(fastDraw = false) {
     this._wot.draw(fastDraw);
 
@@ -159,5 +162,4 @@ export default class WalkontableFacade {
   destroy() {
     this._wot.destroy();
   }
-
 }

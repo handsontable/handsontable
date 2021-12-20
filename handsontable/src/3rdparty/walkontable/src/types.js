@@ -35,7 +35,7 @@
  * @todo I have no idea what it is, probably a class that implements an interface nowhere defined here.
  */
 /**
- * @todo Write descriptions.
+ * The Data Access Object for Scroll class.
  *
  * @typedef ScrollDao
  *
@@ -52,7 +52,7 @@
  * @property {Viewport} wtViewport WtViewport.
  */
 /**
- * @todo Write descriptions.
+ * The Data Access Object for Table class.
  *
  * @typedef TableDao
  *
@@ -80,7 +80,7 @@
  */
 
 /**
- * @todo Write descriptions.
+ * The Data Access Object for Viewport class.
  *
  * @typedef ViewportDao
  *
@@ -95,4 +95,3 @@
  * @property {Walkontable} wot Wot.
  * @property {number} topScrollPosition TopScrollPosition.
  */
-

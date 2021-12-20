@@ -3,14 +3,14 @@ import Overlays from '../overlays';
 import Settings from '../settings';
 import MasterTable from '../table/master';
 import Viewport from '../viewport';
-import ACore from './_base';
+import CoreAbstract from './_base';
 import { objectEach } from '../../../../helpers/object';
 import { addClass, removeClass } from '../../../../helpers/dom/element';
 
 /**
  * @class Walkontable
  */
-export default class Walkontable extends ACore {
+export default class Walkontable extends CoreAbstract {
   /**
    * @param {HTMLTableElement} table Main table.
    * @param {SettingsPure} settings The Walkontable settings.

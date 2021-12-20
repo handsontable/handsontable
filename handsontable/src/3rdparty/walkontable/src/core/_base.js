@@ -9,7 +9,7 @@ import Scroll from '../scroll';
  * @abstract
  * @class Walkontable
  */
-export default class ACore {
+export default class CoreAbstract {
   wtTable;
   wtScroll;
   wtViewport;
@@ -78,6 +78,7 @@ export default class ACore {
       }
     }
   }
+
   /**
    * Force rerender of Walkontable.
    *
@@ -259,7 +260,8 @@ export default class ACore {
       },
     };
   }
-  // TODO refactoring: it will be much better to not use DAO objects. They are needed for now to provide dynamically access to related objects
+  // TODO refactoring: it will be much better to not use DAO objects. They are needed for now to provide
+  // dynamically access to related objects
   /**
    * Create data access object for wtTable.
    *

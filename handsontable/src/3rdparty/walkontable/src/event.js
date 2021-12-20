@@ -364,14 +364,14 @@ class Event {
    * @private
    * @param {string} name Name of listener.
    * @param {MouseEvent} event The event object.
-   * @param {CellCoords} cords Coordinates.
+   * @param {CellCoords} coords Coordinates.
    * @param {HTMLElement} target Event target.
    */
-  callListener(name, event, cords, target) {
+  callListener(name, event, coords, target) {
     const listener = this.wtSettings.getSettingPure(name);
 
     if (listener) {
-      listener(event, cords, target, this.facadeGetter());
+      listener(event, coords, target, this.facadeGetter());
     }
   }
 
@@ -386,7 +386,6 @@ class Event {
 
     this.eventManager.destroy();
   }
-
 }
 
 export default Event;

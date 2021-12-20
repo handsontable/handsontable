@@ -19,10 +19,10 @@ class Scroll {
   dataAccessObject;
 
   /**
-   * @param {ScrollDao} dao Tha data access object.
+   * @param {ScrollDao} dataAccessObject Tha data access object.
    */
-  constructor(dao) {
-    this.dataAccessObject = dao;
+  constructor(dataAccessObject) {
+    this.dataAccessObject = dataAccessObject;
   }
 
   /**

@@ -9,7 +9,7 @@ import {
  */
 export default class ColumnUtils {
   /**
-   * @param {TableDao} dataAccessObject The walkontable instance. @todo remove.
+   * @param {TableDao} dataAccessObject The table Data Access Object.
    * @param {Settings} wtSettings The walkontable settings.
    */
   constructor(dataAccessObject, wtSettings) {

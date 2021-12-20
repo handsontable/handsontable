@@ -163,7 +163,7 @@ class Overlays {
     this.leftOverlay = new LeftOverlay(...args);
 
     // TODO discuss, the controversial here would be removing the lazy creation mechanism for corners.
-    // TODO cond. Has no any visual impact. They're initially hidden in same way like left, tob, and bottom overlays.
+    // TODO cond. Has no any visual impact. They're initially hidden in same way like left, top, and bottom overlays.
     this.topLeftCornerOverlay = new TopLeftCornerOverlay(...args);
     this.bottomLeftCornerOverlay = new BottomLeftCornerOverlay(...args);
   }

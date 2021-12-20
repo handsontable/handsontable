@@ -1,10 +1,10 @@
 import Event from '../event';
-import ACore from './_base';
+import CoreAbstract from './_base';
 
 /**
  * @class Walkontable
  */
-export default class Clone extends ACore {
+export default class Clone extends CoreAbstract {
   cloneSource;
   cloneOverlay;
 
@@ -15,6 +15,7 @@ export default class Clone extends ACore {
    */
   constructor(table, settings, clone) {
     super(table, settings);
+
     const facadeGetter = this.wtSettings.getSetting('facade', this);
 
     this.cloneSource = clone.source;
@@ -28,5 +29,4 @@ export default class Clone extends ACore {
 
     this.findOriginalHeaders();
   }
-
 }
