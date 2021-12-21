@@ -97,7 +97,7 @@ class HotApp extends React.Component {
 }
 ```
 
-### [View live demo](https:handsontable.com/docs/frameworks-wrapper-for-react-simple-examples.html)
+### [View live demo](https://handsontable.com/docs/frameworks-wrapper-for-react-simple-examples.html)
 
 ## Support
 

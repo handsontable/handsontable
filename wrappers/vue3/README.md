@@ -67,7 +67,7 @@ The component will be available as `Handsontable.vue.HotTable`.
 
 ### Usage
 
-Use this data grid as you would any other component in your application. [Options](https:handsontable.com/docs/Options.html) can be set as `HotTable` props.
+Use this data grid as you would any other component in your application. [Options](https://handsontable.com/docs/Options.html) can be set as `HotTable` props.
 
 **Styles**
 ```css
@@ -108,7 +108,7 @@ Use this data grid as you would any other component in your application. [Option
 <style src="handsontable/dist/handsontable.full.css"></style>
 ```
 
-### [View live demo](https:handsontable.com/docs/vue3-simple-example.html)
+### [View live demo](https://handsontable.com/docs/vue3-simple-example.html)
 
 ## Support
 
