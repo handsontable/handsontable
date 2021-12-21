@@ -16,7 +16,7 @@ It provides data binding, data validation, filtering, sorting, and CRUD operatio
 
 ---
 
-<a href="https://handsontable.com/examples"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-github-preview.png" alt="Handsontable data grid for Vue 3" width="805"/></a>
+<a href="https://handsontable.com/demo"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-github-preview.png" alt="Handsontable data grid for Vue 3" width="805"/></a>
 
 </div>
 
@@ -41,9 +41,9 @@ The most popular features of Handsontable for Vue 3:
 ## Documentation
 
 - [Developer guides](https://handsontable.com/docs/vue3-installation.html)
-- [API Reference](https://handsontable.com/docs/Core.html)
-- [Changelog](https://handsontable.com/docs/tutorial-release-notes.html)
-- [Demo](https://handsontable.com/examples)
+- [API Reference](https://handsontable.com/docs/api/core/)
+- [Changelog](https://handsontable.com/docs/release-notes/)
+- [Demo](https://handsontable.com/demo)
 
 <div id="installation"></div>
 
@@ -127,7 +127,7 @@ Handsontable is a commercial software with two licenses available:
 
 If you use Handsontable for Vue 3 in a project that supports your commercial activity, then you must purchase the license key at [handsontable.com](https://handsontable.com/pricing).
 
-If you use the free for non-commercial license of Handsontable, then pass the phrase `'non-commercial-and-evaluation'`, as described in [this documentation](https://handsontable.com/docs/tutorial-license-key.html).
+If you use the free for non-commercial license of Handsontable, then pass the phrase `'non-commercial-and-evaluation'`, as described in [this documentation](https://handsontable.com/docs/license-key/).
 
 <br>
 <br>
