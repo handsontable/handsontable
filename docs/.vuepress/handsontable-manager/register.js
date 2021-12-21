@@ -10,7 +10,10 @@
  */
 function createDestroyableResource(presetType, { rootExampleElement, hotInstance }) {
   return () => {
-    if (presetType.startsWith('vue')) {
+    if (presetType.startsWith('vue3')) {
+      rootExampleElement.firstChild.__vue_app__.unmount();
+
+    } else if (presetType.startsWith('vue')) {
       rootExampleElement.firstChild.__vue__.$root.$destroy();
 
     } else if (presetType.startsWith('react')) {

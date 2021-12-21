@@ -1,4 +1,4 @@
-import { addClass, outerHeight, outerWidth } from './../helpers/dom/element';
+import { addClass, outerHeight } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
 
 /**
@@ -163,7 +163,17 @@ class GhostTable {
       this.injectTable();
     }
     arrayEach(this.columns, (column) => {
-      callback(column.col, outerWidth(column.table));
+      // The GhostTable class is responsible for calculating the columns' width based on the
+      // contents rendered in the cells. In some cases, when the column's width calculated by
+      // the browser is a decimal point with a fractional component. For example, 35.32px.
+      // The usage of the `.offsetWidth` (or our helper `outerWidth`) is incorrect.
+      // The `outerWidth` in the mentioned example (35.32px) would return 35 pixels that
+      // would cause the text to not fit in the cell, thus increasing the row height.
+      // That's why the `getBoundingClientRect` method is used. The method returns the number
+      // that is rounded up to make sure that there will be a space for the cell's content.
+      const { width } = column.table.getBoundingClientRect();
+
+      callback(column.col, Math.ceil(width));
     });
   }
 
