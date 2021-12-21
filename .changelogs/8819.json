@@ -1,7 +1,0 @@
-{
-  "title": "Added support for the modularized React wrapper.",
-  "type": "added",
-  "issue": 8819,
-  "breaking": true,
-  "framework": "react"
-}
