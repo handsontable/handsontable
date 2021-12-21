@@ -1,9 +1,7 @@
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
-import { stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
+import { stopImmediatePropagation } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
-import { EDITOR_STATE } from './editors/baseEditor';
-import { getParentWindow } from './helpers/dom/element';
 
 class EditorManager {
   /**
@@ -68,6 +66,10 @@ class EditorManager {
      */
     this.cellProperties = void 0;
 
+    const shortcutManager = this.instance.getShortcutManager();
+
+    shortcutManager.addContext('editor');
+
     this.registerShortcuts();
 
     this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
@@ -84,9 +86,16 @@ class EditorManager {
 
   registerShortcuts() {
     const shortcutManager = this.instance.getShortcutManager();
-    const shortcutsContext = shortcutManager.getContext('grid');
+    const gridContext = shortcutManager.getContext('grid');
+    const editorContext = shortcutManager.getContext('editor');
 
-    shortcutsContext.addShortcut([['F2']], (event) => {
+    editorContext.addShortcut([['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'],
+      ['Enter', 'Control', 'Shift']], (event, keys) => {
+      this.closeEditorAndSaveChanges(keys.includes('control'));
+      this.moveSelectionAfterEnter(keys.includes('shift'));
+    });
+
+    gridContext.addShortcut([['F2']], (event) => {
       if (this.activeEditor) {
         this.activeEditor.enableFullEditMode();
       }
@@ -94,22 +103,15 @@ class EditorManager {
       this.openEditor(null, event);
     });
 
-    shortcutsContext.addShortcut([['Backspace'], ['Delete']], () => {
+    gridContext.addShortcut([['Backspace'], ['Delete']], () => {
       this.instance.emptySelectedCells();
       this.prepareEditor();
     });
 
-    shortcutsContext.addShortcut(
+    gridContext.addShortcut(
       [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
       (event, keys) => {
-        if (this.isEditorOpened()) {
-          if (this.activeEditor && this.activeEditor.state !== EDITOR_STATE.WAITING) {
-            // TODO: Probably it should be placed in editor's context.
-            this.closeEditorAndSaveChanges(keys.includes('control'));
-          }
-          this.moveSelectionAfterEnter(keys.includes('shift'));
-
-        } else if (this.instance.getSettings().enterBeginsEditing) {
+        if (this.instance.getSettings().enterBeginsEditing) {
           if (this.cellProperties.readOnly) {
             this.moveSelectionAfterEnter();
 
@@ -125,7 +127,7 @@ class EditorManager {
         stopImmediatePropagation(event); // required by HandsontableEditor
       });
 
-    shortcutsContext.addShortcut([['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']], (event, keys) => {
+    gridContext.addShortcut([['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']], (event, keys) => {
       // TODO: Probably it should be placed in editor's context.
       if (this.isEditorOpened()) {
         this.closeEditorAndRestoreOriginalValue(keys.includes('control') || keys.includes('meta'));

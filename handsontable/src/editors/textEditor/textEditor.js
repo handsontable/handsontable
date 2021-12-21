@@ -20,6 +20,7 @@ import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../h
 import { rangeEach } from '../../helpers/number';
 import { KEY_CODES } from '../../helpers/unicode';
 import { autoResize } from '../../3rdparty/autoResize';
+import { isDefined } from '../../helpers/mixed';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
@@ -121,6 +122,12 @@ export class TextEditor extends BaseEditor {
     this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
     this.showEditableElement();
 
+    const shortcutManager = this.hot.getShortcutManager();
+
+    shortcutManager.setActiveContexts(['editor']);
+
+    this.registerShortcuts();
+
     this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
   }
 
@@ -128,6 +135,8 @@ export class TextEditor extends BaseEditor {
    * Closes the editor.
    */
   close() {
+    const shortcutManager = this.hot.getShortcutManager();
+
     this.autoResize.unObserve();
 
     if (this.hot.rootDocument.activeElement === this.TEXTAREA) {
@@ -135,6 +144,8 @@ export class TextEditor extends BaseEditor {
     }
 
     this.hideEditableElement();
+    this.unregisterShortcuts();
+    shortcutManager.setActiveContexts(['grid']);
     this.removeHooksByKey('beforeKeyDown');
   }
 
@@ -484,6 +495,61 @@ export class TextEditor extends BaseEditor {
   }
 
   /**
+   * Registers shortcut responsible for handling editor.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
+
+    editorContext.addShortcut([['ArrowRight'], ['ArrowLeft'], ['ArrowUp'], ['ArrowDown']], (event) => {
+      if (this.isInFullEditMode()) {
+        if (!this.isWaiting() && !this.allowKeyEventPropagation(event.keyCode)) {
+          stopImmediatePropagation(event);
+        }
+      }
+    });
+
+    const runOnlySelectedConfig = {
+      runAction: () => isDefined(this.hot.getSelected()),
+    };
+
+    // TODO: Duplicated part of code.
+    editorContext.addShortcut([['Tab']], (event) => {
+      const tableMeta = this.hot.getSettings();
+      const tabMoves = typeof tableMeta.tabMoves === 'function'
+        ? tableMeta.tabMoves(event)
+        : tableMeta.tabMoves;
+
+      this.hot.selection.transformStart(tabMoves.row, tabMoves.col, true);
+    }, runOnlySelectedConfig);
+
+    // TODO: Duplicated part of code.
+    editorContext.addShortcut([['Shift', 'Tab']], (event) => {
+      const tableMeta = this.hot.getSettings();
+      const tabMoves = typeof tableMeta.tabMoves === 'function'
+        ? tableMeta.tabMoves(event)
+        : tableMeta.tabMoves;
+
+      this.hot.selection.transformStart(-tabMoves.row, -tabMoves.col);
+    }, runOnlySelectedConfig);
+  }
+
+  /**
+   * Unregisters shortcut responsible for handling editor.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
+
+    editorContext.removeShortcut([['ArrowRight'], ['ArrowLeft'], ['ArrowUp'], ['ArrowDown']]);
+    editorContext.removeShortcut([['Tab'], ['Shift', 'Tab']]);
+  }
+
+  /**
    * OnBeforeKeyDown callback.
    * TODO: Can we move that shortcuts to the ShortcutManager flow?
    *
@@ -499,31 +565,6 @@ export class TextEditor extends BaseEditor {
     }
 
     switch (event.keyCode) {
-      case KEY_CODES.ARROW_RIGHT:
-        if (this.isInFullEditMode()) {
-          if (!this.isWaiting() && !this.allowKeyEventPropagation(event.keyCode)) {
-            stopImmediatePropagation(event);
-          }
-        }
-        break;
-
-      case KEY_CODES.ARROW_LEFT:
-        if (this.isInFullEditMode()) {
-          if (!this.isWaiting() && !this.allowKeyEventPropagation(event.keyCode)) {
-            stopImmediatePropagation(event);
-          }
-        }
-        break;
-
-      case KEY_CODES.ARROW_UP:
-      case KEY_CODES.ARROW_DOWN:
-        if (this.isInFullEditMode()) {
-          if (!this.isWaiting() && !this.allowKeyEventPropagation(event.keyCode)) {
-            stopImmediatePropagation(event);
-          }
-        }
-        break;
-
       case KEY_CODES.ENTER: {
         const isMultipleSelection = this.hot.selection.isMultiple();
 
@@ -545,13 +586,6 @@ export class TextEditor extends BaseEditor {
         event.preventDefault(); // don't add newline to field
         break;
       }
-
-      case KEY_CODES.BACKSPACE:
-      case KEY_CODES.DELETE:
-      case KEY_CODES.HOME:
-      case KEY_CODES.END:
-        stopImmediatePropagation(event); // backspace, delete, home, end should only work locally when cell is edited (not in table context)
-        break;
 
       default:
         break;
