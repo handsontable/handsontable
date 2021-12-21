@@ -64,7 +64,7 @@ The most popular features of Handsontable:
 
 - [Developer guides](https://handsontable.com/docs)
 - [API Reference](https://handsontable.com/docs/Core.html)
-- [Change log](https://handsontable.com/docs/tutorial-release-notes.html)
+- [Changelog](https://handsontable.com/docs/tutorial-release-notes.html)
 - [Demo](https://handsontable.com/examples)
 
 <div id="installation"></div>

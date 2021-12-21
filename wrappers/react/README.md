@@ -42,7 +42,7 @@ The most popular features of Handsontable for React:
 
 - [Developer guides](https://handsontable.com/docs/frameworks-wrapper-for-react-installation.html)
 - [API Reference](https://handsontable.com/docs/Core.html)
-- [Change log](https://handsontable.com/docs/tutorial-release-notes.html)
+- [Changelog](https://handsontable.com/docs/tutorial-release-notes.html)
 - [Demo](https://handsontable.com/examples)
 
 <div id="installation"></div>
