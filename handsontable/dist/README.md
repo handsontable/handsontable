@@ -51,4 +51,4 @@ All the information about the API and additional options can be found at our [of
 
 ## Custom distribution
 
-If you want to build your own custom Handsontable package distribution check out our [guide](https://docs.handsontable.com/tutorial-custom-build.html) covering all the details.
+If you want to build your own custom Handsontable package distribution check out our [guide](https://handsontable.com/docs/building/) covering all the details.
