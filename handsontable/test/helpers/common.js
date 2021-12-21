@@ -303,6 +303,20 @@ export function contextMenu(cell, instance) {
 }
 
 /**
+ * Open the sub menu of the context menu.
+ *
+ * @param {string} submenuName The context menu item name (it has to be a submenu) to hover.
+ * @param {HTMLElement} [cell] The cell element to check.
+ */
+ export function openContextSubmenuOption(submenuName, cell) {
+  contextMenu(cell);
+
+  const item = $(`.htContextMenu .ht_master .htCore tbody td:contains(${submenuName})`);
+
+  item.simulate('mouseover');
+}
+
+/**
  * Shows context menu.
  *
  * @param {string} submenuName The context menu item name (it has to be a submenu) to hover.
@@ -310,11 +324,7 @@ export function contextMenu(cell, instance) {
  * @param {HTMLElement} [cell] The cell element to check.
  */
 export async function selectContextSubmenuOption(submenuName, optionName, cell) {
-  contextMenu(cell);
-
-  const item = $(`.htContextMenu .ht_master .htCore tbody td:contains(${submenuName})`);
-
-  item.simulate('mouseover');
+  openContextSubmenuOption(submenuName, optionName, cell);
 
   await sleep(300);
 

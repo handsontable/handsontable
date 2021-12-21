@@ -16,9 +16,12 @@
 }
 
 .htContextMenu .ht_master table.htCore {
-  border: 1px solid #ccc;
+  border-color: #ccc;
+  border-style: solid;
+  border-top-width: 1px;
   border-bottom-width: 2px;
-  border-right-width: 2px;
+  border-inline-start-width: 1px;
+  border-inline-end-width: 2px;
 }
 
 .htContextMenu .wtBorder {

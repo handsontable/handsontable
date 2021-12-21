@@ -438,8 +438,12 @@ class Menu {
     const cursor = new Cursor(coords, this.container.ownerDocument.defaultView);
 
     if (this.options.keepInViewport) {
-      if (cursor.fitsAbove(this.container)) {
+      if (cursor.fitsBelow(this.container)) {
+        this.setPositionBelowCursor(cursor);
+
+      } else if (cursor.fitsAbove(this.container)) {
         this.setPositionAboveCursor(cursor);
+
       } else {
         this.setPositionBelowCursor(cursor);
       }
