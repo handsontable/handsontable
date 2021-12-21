@@ -17,7 +17,6 @@ import {
   addClass,
   empty,
   fastInnerHTML,
-  getScrollbarWidth,
   isChildOf,
   isInput,
   removeClass,

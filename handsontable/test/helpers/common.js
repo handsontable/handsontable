@@ -303,12 +303,12 @@ export function contextMenu(cell, instance) {
 }
 
 /**
- * Open the sub menu of the context menu.
+ * Open (and not close) the sub menu of the context menu.
  *
  * @param {string} submenuName The context menu item name (it has to be a submenu) to hover.
  * @param {HTMLElement} [cell] The cell element to check.
  */
- export function openContextSubmenuOption(submenuName, cell) {
+export function openContextSubmenuOption(submenuName, cell) {
   contextMenu(cell);
 
   const item = $(`.htContextMenu .ht_master .htCore tbody td:contains(${submenuName})`);
@@ -317,7 +317,7 @@ export function contextMenu(cell, instance) {
 }
 
 /**
- * Shows context menu.
+ * Open, execute the sub menu action and close the context menu.
  *
  * @param {string} submenuName The context menu item name (it has to be a submenu) to hover.
  * @param {string} optionName The context menu subitem name to click.

@@ -77,7 +77,6 @@ describe('ContextMenu (RTL mode)', () => {
 
       const $contextMenu = $(document.body).find('.htContextMenu:visible');
       const menuOffset = $contextMenu.offset();
-      const menuWidth = $contextMenu.outerWidth();
 
       expect($contextMenu.length).toBe(1);
       expect(menuOffset.top).toBe(cellOffset.top + 1);
@@ -100,7 +99,6 @@ describe('ContextMenu (RTL mode)', () => {
 
       const $contextMenu = $(document.body).find('.htContextMenu:visible');
       const menuOffset = $contextMenu.offset();
-      const menuWidth = $contextMenu.outerWidth();
       const menuHeight = $contextMenu.outerHeight();
 
       expect($contextMenu.length).toBe(1);
