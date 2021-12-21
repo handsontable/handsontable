@@ -29,7 +29,7 @@ The [Handsontable repository](https://github.com/handsontable/handsontable) is a
 | `@handsontable/angular` | `./wrappers/angular` | [Angular wrapper](@/guides/integrate-with-angular/angular-installation.md) |
 | `@handsontable/react`   | `./wrappers/react`   | [React wrapper](@/guides/integrate-with-react/react-installation.md)       |
 | `@handsontable/vue`     | `./wrappers/vue`     | [Vue 2 wrapper](@/guides/integrate-with-vue/vue-installation.md)           |
-| `@handsontable/vue3`    | `./wrappers/vue3`    | [Vue 3 wrapper](@/guides/integrate-with-vue3/vue-installation.md)          |
+| `@handsontable/vue3`    | `./wrappers/vue3`    | [Vue 3 wrapper](@/guides/integrate-with-vue3/vue3-installation.md)          |
 
 All the projects are released together, under the same version number.
 But each project has its own [building](#building-processes) and [testing](@/guides/building-and-testing/testing.md) processes.
