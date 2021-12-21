@@ -449,10 +449,10 @@ class Menu {
       }
 
       if (this.hot.isLtr()) {
-        this.setHorizontalPossitionForLtr(cursor);
+        this.setHorizontalPositionForLtr(cursor);
 
       } else {
-        this.setHorizontalPossitionForRtl(cursor);
+        this.setHorizontalPositionForRtl(cursor);
       }
     } else {
       this.setPositionBelowCursor(cursor);
@@ -460,7 +460,7 @@ class Menu {
     }
   }
 
-  setHorizontalPossitionForRtl(cursor) {
+  setHorizontalPositionForRtl(cursor) {
     if (cursor.fitsOnLeft(this.container)) {
       this.setPositionOnLeftOfCursor(cursor);
 
@@ -469,7 +469,7 @@ class Menu {
     }
   }
 
-  setHorizontalPossitionForLtr(cursor) {
+  setHorizontalPositionForLtr(cursor) {
     if (cursor.fitsOnRight(this.container)) {
       this.setPositionOnRightOfCursor(cursor);
 
