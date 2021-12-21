@@ -1,6 +1,5 @@
 import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
-import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { CellCoords, CellRange } from '../../3rdparty/walkontable/src';
 import MergedCellsCollection from './cellsCollection';
 import MergedCellCoords from './cellCoords';

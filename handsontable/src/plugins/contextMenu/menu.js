@@ -24,11 +24,10 @@ import {
   getParentWindow,
   hasClass,
 } from '../../helpers/dom/element';
-import { stopImmediatePropagation, isRightClick } from '../../helpers/dom/event';
+import { isRightClick } from '../../helpers/dom/event';
 import { debounce, isFunction } from '../../helpers/function';
 import { isUndefined, isDefined } from '../../helpers/mixed';
 import { mixin, hasOwnProperty } from '../../helpers/object';
-import { KEY_CODES } from '../../helpers/unicode';
 import localHooks from '../../mixins/localHooks';
 
 const MIN_WIDTH = 215;

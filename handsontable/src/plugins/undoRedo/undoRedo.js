@@ -2,7 +2,6 @@ import Hooks from '../../pluginHooks';
 import { arrayMap, arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { inherit, deepClone } from '../../helpers/object';
-import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
 import { align } from '../contextMenu/utils';
 
 export const PLUGIN_KEY = 'undoRedo';
