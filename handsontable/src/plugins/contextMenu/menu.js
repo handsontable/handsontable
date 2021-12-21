@@ -438,19 +438,14 @@ class Menu {
     const cursor = new Cursor(coords, this.container.ownerDocument.defaultView);
 
     if (this.options.keepInViewport) {
-      if (cursor.fitsBelow(this.container)) {
-        this.setPositionBelowCursor(cursor);
-
-      } else if (cursor.fitsAbove(this.container)) {
+      if (cursor.fitsAbove(this.container)) {
         this.setPositionAboveCursor(cursor);
-
       } else {
         this.setPositionBelowCursor(cursor);
       }
 
       if (this.hot.isLtr()) {
         this.setHorizontalPositionForLtr(cursor);
-
       } else {
         this.setHorizontalPositionForRtl(cursor);
       }
@@ -460,19 +455,27 @@ class Menu {
     }
   }
 
+  /**
+   * Set menu horizontal position for RTL mode.
+   *
+   * @param {Cursor} cursor `Cursor` object.
+   */
   setHorizontalPositionForRtl(cursor) {
     if (cursor.fitsOnLeft(this.container)) {
       this.setPositionOnLeftOfCursor(cursor);
-
     } else {
       this.setPositionOnRightOfCursor(cursor);
     }
   }
 
+  /**
+   * Set menu horizontal position for LTR mode.
+   *
+   * @param {Cursor} cursor `Cursor` object.
+   */
   setHorizontalPositionForLtr(cursor) {
     if (cursor.fitsOnRight(this.container)) {
       this.setPositionOnRightOfCursor(cursor);
-
     } else {
       this.setPositionOnLeftOfCursor(cursor);
     }
@@ -529,8 +532,7 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
-    const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
-    const left = this.offset.left + cursor.left - this.container.offsetWidth + scrollbarWidth + 4;
+    const left = this.offset.left + cursor.left - this.container.offsetWidth;
 
     this.container.style.left = `${left}px`;
   }
