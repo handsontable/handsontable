@@ -55,7 +55,7 @@ Run the following command in your terminal
 npm install handsontable @handsontable/vue3
 ```
 
-You can load it directly from [jsDelivr](//jsdelivr.com/package/npm/@handsontable/vue3) as well.
+You can load it directly from [jsDelivr](https:jsdelivr.com/package/npm/@handsontable/vue3) as well.
 ```html
 <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@handsontable/vue3/dist/vue-handsontable.min.js"></script>
@@ -67,7 +67,7 @@ The component will be available as `Handsontable.vue.HotTable`.
 
 ### Usage
 
-Use this data grid as you would any other component in your application. [Options](//handsontable.com/docs/Options.html) can be set as `HotTable` props.
+Use this data grid as you would any other component in your application. [Options](https:handsontable.com/docs/Options.html) can be set as `HotTable` props.
 
 **Styles**
 ```css
@@ -108,7 +108,7 @@ Use this data grid as you would any other component in your application. [Option
 <style src="handsontable/dist/handsontable.full.css"></style>
 ```
 
-### [View live demo](//handsontable.com/docs/vue3-simple-example.html)
+### [View live demo](https:handsontable.com/docs/vue3-simple-example.html)
 
 ## Support
 
