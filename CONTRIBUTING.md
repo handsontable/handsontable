@@ -19,7 +19,7 @@ Your contributions to this project are very welcome. If you want to fix a bug or
     - `./wrappers/angular/projects/hot-table/src/`
     - `./wrappers/react/src/`
     - `./wrappers/vue/src/`
-7. **Important: For any change you make, please add at least one test case** in `test/e2e/` (for End-to-End tests), `test/unit/` or `src/3rdparty/walkontable/test/spec/`. That will help us understand the issue and make sure that it stays fixed forever. If you're making changes to the framework-specific wrappers, add tests to the test directories in their respective subdirectories. Read more about our [testing process](http://docs.handsontable.com/tutorial-testing.html).
+7. **Important: For any change you make, please add at least one test case** in `test/e2e/` (for End-to-End tests), `test/unit/` or `src/3rdparty/walkontable/test/spec/`. That will help us understand the issue and make sure that it stays fixed forever. If you're making changes to the framework-specific wrappers, add tests to the test directories in their respective subdirectories. Read more about our [testing process](https://handsontable.com/docs/testing/).
 8. Please lint the code, i.e. by `npm run lint` task. It should follow [our coding style](https://github.com/handsontable/handsontable/blob/master/.eslintrc.js), inspired by [Airbnb JavaScript Style](https://github.com/airbnb/javascript).
 9. Add a thorough description of all the changes.
 
