@@ -67,7 +67,7 @@ The component will be available as `Handsontable.react.HotTable`.
 
 ### Usage
 
-Use this data grid as you would any other component in your application. [Options](https://handsontable.com/docs/Options.html) can be set as `HotTable` props.
+Use this data grid as you would any other component in your application. [Options](https://handsontable.com/docs/api/options/) can be set as `HotTable` props.
 
 **Styles**
 ```css
