@@ -101,7 +101,7 @@ Use this data grid as you would any other component in your application. [Option
 </script>
 ```
 
-### [View live demo](https://handsontable.com/docs/frameworks-wrapper-for-vue-simple-example.html)
+### [View live demo](https://handsontable.com/docs/vue-simple-example/)
 
 ## Support
 

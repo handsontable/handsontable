@@ -40,7 +40,7 @@ The most popular features of Handsontable for Vue 3:
 
 ## Documentation
 
-- [Developer guides](https://handsontable.com/docs/vue3-installation.html)
+- [Developer guides](https://handsontable.com/docs/vue3-installation/)
 - [API Reference](https://handsontable.com/docs/api/core/)
 - [Changelog](https://handsontable.com/docs/release-notes/)
 - [Demo](https://handsontable.com/demo)
@@ -108,7 +108,7 @@ Use this data grid as you would any other component in your application. [Option
 <style src="handsontable/dist/handsontable.full.css"></style>
 ```
 
-### [View live demo](https://handsontable.com/docs/vue3-simple-example.html)
+### [View live demo](https://handsontable.com/docs/vue3-simple-example/)
 
 ## Support
 
