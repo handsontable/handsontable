@@ -24,8 +24,8 @@ To speed up the process of merging your changes, follow these rules:
     To check your changes, [make a build](https://handsontable.com/docs/building/), but don't commit your build files.
 7. For any change you make, add at least one test case. Your tests will help us understand the issue and make sure it stays fixed forever. Read more about our [testing process](https://handsontable.com/docs/testing/).<br>
    For the main Handsontable project, add your tests to one of the following directories:
-    - `test/e2e/`
-    - `test/unit/`
+    - `./handsontable/test/e2e/`
+    - `./handsontable/test/unit/`
     - `./handsontable/src/3rdparty/walkontable/test/spec/`<br>
    For framework wrapper projects, add your tests to their respective test directories.
 8. Lint your code. From the root directory, run: `npm run lint`.<br>
