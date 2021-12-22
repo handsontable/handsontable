@@ -173,7 +173,7 @@ We use the following Markdown containers:
 Using the `example` Markdown container, you can add code snippets that show the code's result:
 
 ```md
-::: example #exampleId .class :react-redux --html 1 --js 2 --css 3  --no-edit --tab preview
+::: example #exampleId .class :react-redux --html 1 --js 2 --css 3 --no-edit --tab preview
     ```html
     <div id="exampleId"></div>
     ```
