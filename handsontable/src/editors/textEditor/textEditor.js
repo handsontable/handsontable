@@ -500,14 +500,6 @@ export class TextEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.addShortcut([['ArrowRight'], ['ArrowLeft'], ['ArrowUp'], ['ArrowDown']], (event) => {
-      if (this.isInFullEditMode()) {
-        if (!this.isWaiting() && !this.allowKeyEventPropagation(event.keyCode)) {
-          stopImmediatePropagation(event);
-        }
-      }
-    });
-
     const runOnlySelectedConfig = {
       runAction: () => isDefined(this.hot.getSelected()),
     };

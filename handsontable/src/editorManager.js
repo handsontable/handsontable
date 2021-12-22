@@ -2,6 +2,7 @@ import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { stopImmediatePropagation } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
+import {isDefined} from "./helpers/mixed";
 
 class EditorManager {
   /**
@@ -267,6 +268,11 @@ class EditorManager {
    * @param {Function} callback The callback function, fired after editor closing.
    */
   closeEditor(restoreOriginalValue, isCtrlPressed, callback) {
+    const shortcutManager = this.instance.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
+
+    editorContext.removeShortcut([['ArrowRight'], ['ArrowLeft'], ['ArrowUp'], ['ArrowDown']]);
+
     if (this.activeEditor) {
       this.activeEditor.finishEditing(restoreOriginalValue, isCtrlPressed, callback);
 
@@ -346,6 +352,28 @@ class EditorManager {
     if (this.activeEditor && !this.activeEditor.isWaiting()) {
       if (!isFunctionKey(keyCode) && !isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
         this.openEditor('', event);
+
+        const shortcutManager = this.instance.getShortcutManager();
+        const editorContext = shortcutManager.getContext('editor');
+        const runOnlySelectedConfig = {
+          runAction: () => isDefined(this.instance.getSelected()),
+        };
+
+        editorContext.addShortcut([['ArrowUp']], () => {
+          this.instance.selection.transformStart(-1, 0);
+        }, runOnlySelectedConfig);
+
+        editorContext.addShortcut([['ArrowDown']], () => {
+          this.instance.selection.transformStart(1, 0);
+        }, runOnlySelectedConfig);
+
+        editorContext.addShortcut([['ArrowLeft']], () => {
+          this.instance.selection.transformStart(0, -1 * this.instance.getDirectionFactor());
+        }, runOnlySelectedConfig);
+
+        editorContext.addShortcut([['ArrowRight']], () => {
+          this.instance.selection.transformStart(0, this.instance.getDirectionFactor());
+        }, runOnlySelectedConfig);
       }
     }
   }
