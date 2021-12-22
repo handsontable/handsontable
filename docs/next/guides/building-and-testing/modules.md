@@ -9,7 +9,7 @@ tags:
 
 # Modules
 
-To reduce the size of your app, you can use Handsontable by importing individual [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+You can use Handsontable by importing individual [modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
 
 [[toc]]
 
