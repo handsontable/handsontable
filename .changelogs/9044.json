@@ -1,0 +1,7 @@
+{
+  "title": "Fix severe performance issue when removing events",
+  "type": "fixed",
+  "issue": 9044,
+  "breaking": false,
+  "framework": "none"
+}
