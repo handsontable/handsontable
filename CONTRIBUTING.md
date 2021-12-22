@@ -27,7 +27,7 @@ To speed up the process of merging your changes, follow these rules:
     - `test/e2e/`
     - `test/unit/`
     - `./handsontable/src/3rdparty/walkontable/test/spec/`<br>
-   For a framework wrapper project, add your tests to the respective wrapper's test directory.
+   For framework wrapper projects, add your tests to their respective test directories.
 8. Lint your code. From the root directory, run: `npm run lint`.<br>
    Your code should follow [our coding style](https://github.com/handsontable/handsontable/blob/master/.eslintrc.js), inspired by the [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript).
 9. Add a mandatory [changelog](https://github.com/handsontable/handsontable/blob/master/CHANGELOG.md) entry. From the root directory, run: `npm run changelog entry`.<br>
