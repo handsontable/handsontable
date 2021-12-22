@@ -2,11 +2,13 @@ describe('ContextMenu (RTL mode)', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
+    $('.jasmine_html-reporter').hide();
     $('html').attr('dir', 'rtl');
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
+    $('.jasmine_html-reporter').show();
     $('html').attr('dir', 'ltr');
 
     if (this.$container) {
@@ -33,8 +35,8 @@ describe('ContextMenu (RTL mode)', () => {
       const menuWidth = $contextMenu.outerWidth();
 
       expect($contextMenu.length).toBe(1);
-      expect(menuOffset.top).toBe(cellOffset.top + 1);
-      expect(menuOffset.left).toBe(cellOffset.left - menuWidth);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + 1, 0);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth - 1, 0);
     });
 
     it('should render context menu on the left-top position if on the right and bottom there is no space left', () => {
@@ -57,8 +59,8 @@ describe('ContextMenu (RTL mode)', () => {
       const menuWidth = $contextMenu.outerWidth();
 
       expect($contextMenu.length).toBe(1);
-      expect(menuOffset.top).toBe(cellOffset.top - menuHeight);
-      expect(menuOffset.left).toBe(cellOffset.left - menuWidth);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth - 1, 0);
     });
 
     it('should render context menu on the right-bottom position if on the left there is no space left', () => {
@@ -79,8 +81,8 @@ describe('ContextMenu (RTL mode)', () => {
       const menuOffset = $contextMenu.offset();
 
       expect($contextMenu.length).toBe(1);
-      expect(menuOffset.top).toBe(cellOffset.top + 1);
-      expect(menuOffset.left).toBe(cellOffset.left + 1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + 1, 0);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left + 1, 0);
     });
 
     it('should render context menu on the right-top position if on the left and bottom there is no space left', () => {
@@ -102,8 +104,8 @@ describe('ContextMenu (RTL mode)', () => {
       const menuHeight = $contextMenu.outerHeight();
 
       expect($contextMenu.length).toBe(1);
-      expect(menuOffset.top).toBe(cellOffset.top - menuHeight);
-      expect(menuOffset.left).toBe(cellOffset.left + 1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left + 1, 0);
     });
   });
 
@@ -126,8 +128,8 @@ describe('ContextMenu (RTL mode)', () => {
       const subMenuRoot = $('.htContextMenuSub_Alignment');
       const subMenuOffset = subMenuRoot.offset();
 
-      expect(subMenuOffset.top).toBe(subMenuItemOffset.top - 1);
-      expect(subMenuOffset.left).toBe(contextMenuOffset.left - contextMenuRoot.outerWidth() + 2);
+      expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
+      expect(subMenuOffset.left).toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1, 0);
     });
 
     it('should open subMenu on the left-top of the main menu if on the right and bottom there\'s no space left', async() => {
@@ -149,8 +151,10 @@ describe('ContextMenu (RTL mode)', () => {
       const subMenuOffset = subMenuRoot.offset();
 
       // 3px comes from bottom borders
-      expect(subMenuOffset.top).toBe(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() + 3);
-      expect(subMenuOffset.left).toBe(contextMenuOffset.left - contextMenuRoot.outerWidth() + 2);
+      expect(subMenuOffset.top)
+        .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() + 3, 0);
+      expect(subMenuOffset.left)
+        .toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1, 0);
     });
 
     it('should open subMenu on the right-bottom of the main menu if on the left there\'s no space left', async() => {
@@ -171,8 +175,8 @@ describe('ContextMenu (RTL mode)', () => {
       const subMenuRoot = $('.htContextMenuSub_Alignment');
       const subMenuOffset = subMenuRoot.offset();
 
-      expect(subMenuOffset.top).toBe(subMenuItemOffset.top - 1);
-      expect(subMenuOffset.left).toBe(contextMenuOffset.left + contextMenuRoot.outerWidth());
+      expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
+      expect(subMenuOffset.left).toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth(), 0);
     });
 
     it('should open subMenu on the right-top of the main menu if on the left and bottom there\'s no space left', async() => {
@@ -194,8 +198,10 @@ describe('ContextMenu (RTL mode)', () => {
       const subMenuOffset = subMenuRoot.offset();
 
       // 3px comes from bottom borders
-      expect(subMenuOffset.top).toBe(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() + 3);
-      expect(subMenuOffset.left).toBe(contextMenuOffset.left + contextMenuRoot.outerWidth());
+      expect(subMenuOffset.top)
+        .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() + 3, 0);
+      expect(subMenuOffset.left)
+        .toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth(), 0);
     });
   });
 });

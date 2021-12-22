@@ -39,7 +39,10 @@
 }
 
 .htContextMenu table tbody tr td:first-child {
-  border: 0;
+  border-top-width: 0;
+  border-bottom-width: 0;
+  border-inline-start-width: 0;
+  border-inline-end-width: 0;
 }
 
 .htContextMenu table tbody tr td.htDimmed {

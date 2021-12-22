@@ -2,10 +2,13 @@ describe('ContextMenu', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
+    $('.jasmine_html-reporter').hide();
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
+    $('.jasmine_html-reporter').show();
+
     if (this.$container) {
       destroy();
       this.$container.remove();
@@ -87,8 +90,8 @@ describe('ContextMenu', () => {
       const menuOffset = $contextMenu.offset();
 
       expect($contextMenu.length).toBe(1);
-      expect(menuOffset.top).toBe(cellOffset.top + 1);
-      expect(menuOffset.left).toBe(cellOffset.left + 1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + 1, 0);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left + 1, 0);
     });
 
     it('should render context menu on the right-top position if on the left and bottom there is no space left', () => {
@@ -110,8 +113,8 @@ describe('ContextMenu', () => {
       const menuHeight = $contextMenu.outerHeight();
 
       expect($contextMenu.length).toBe(1);
-      expect(menuOffset.top).toBe(cellOffset.top - menuHeight);
-      expect(menuOffset.left).toBe(cellOffset.left + 1);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left + 1, 0);
     });
 
     it('should render context menu on the left-bottom position if on the right there is no space left', () => {
@@ -133,8 +136,8 @@ describe('ContextMenu', () => {
       const menuWidth = $contextMenu.outerWidth();
 
       expect($contextMenu.length).toBe(1);
-      expect(menuOffset.top).toBe(cellOffset.top + 1);
-      expect(menuOffset.left).toBe(cellOffset.left - menuWidth);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top + 1, 0);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth - 1, 0);
     });
 
     it('should render context menu on the left-top position if on the right and bottom there is no space left', () => {
@@ -157,8 +160,8 @@ describe('ContextMenu', () => {
       const menuHeight = $contextMenu.outerHeight();
 
       expect($contextMenu.length).toBe(1);
-      expect(menuOffset.top).toBe(cellOffset.top - menuHeight);
-      expect(menuOffset.left).toBe(cellOffset.left - menuWidth);
+      expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
+      expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth - 1, 0);
     });
   });
 
@@ -181,8 +184,8 @@ describe('ContextMenu', () => {
       const subMenuRoot = $('.htContextMenuSub_Alignment');
       const subMenuOffset = subMenuRoot.offset();
 
-      expect(subMenuOffset.top).toBe(subMenuItemOffset.top - 1);
-      expect(subMenuOffset.left).toBe(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1);
+      expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
+      expect(subMenuOffset.left).toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
     });
 
     it('should open subMenu on the right-top of the main menu if on the left and bottom there\'s no space left', async() => {
@@ -204,8 +207,10 @@ describe('ContextMenu', () => {
       const subMenuOffset = subMenuRoot.offset();
 
       // 3px comes from bottom borders
-      expect(subMenuOffset.top).toBe(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() + 3);
-      expect(subMenuOffset.left).toBe(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1);
+      expect(subMenuOffset.top)
+        .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() + 3, 0);
+      expect(subMenuOffset.left)
+        .toBeCloseTo(contextMenuOffset.left + contextMenuRoot.outerWidth() - 1, 0);
     });
 
     it('should open subMenu on the left-bottom of the main menu if on the right there\'s no space left', async() => {
@@ -226,8 +231,8 @@ describe('ContextMenu', () => {
       const subMenuRoot = $('.htContextMenuSub_Alignment');
       const subMenuOffset = subMenuRoot.offset();
 
-      expect(subMenuOffset.top).toBe(subMenuItemOffset.top - 1);
-      expect(subMenuOffset.left).toBe(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1);
+      expect(subMenuOffset.top).toBeCloseTo(subMenuItemOffset.top - 1, 0);
+      expect(subMenuOffset.left).toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth(), 0);
     });
 
     it('should open subMenu on the left-top of the main menu if on the right and bottom there\'s no space left', async() => {
@@ -249,8 +254,10 @@ describe('ContextMenu', () => {
       const subMenuOffset = subMenuRoot.offset();
 
       // 3px comes from bottom borders
-      expect(subMenuOffset.top).toBe(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() + 3);
-      expect(subMenuOffset.left).toBe(contextMenuOffset.left - contextMenuRoot.outerWidth() + 1);
+      expect(subMenuOffset.top)
+        .toBeCloseTo(subMenuItemOffset.top - subMenuRoot.outerHeight() + subMenuItem.outerHeight() + 3, 0);
+      expect(subMenuOffset.left)
+        .toBeCloseTo(contextMenuOffset.left - contextMenuRoot.outerWidth(), 0);
     });
   });
 });

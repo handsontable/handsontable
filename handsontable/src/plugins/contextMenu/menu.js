@@ -521,6 +521,7 @@ class Menu {
     let left;
 
     if (this.isSubMenu()) {
+      // 1px - additional menu border that mimics the shadow
       left = 1 + cursor.left + cursor.cellWidth;
     } else {
       left = this.offset.right + 1 + cursor.left;
@@ -535,7 +536,8 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
-    const left = this.offset.left + cursor.left - this.container.offsetWidth;
+    // 1px - additional menu border that mimics the shadow
+    const left = this.offset.left + cursor.left - this.container.offsetWidth - 1;
 
     this.container.style.left = `${left}px`;
   }
