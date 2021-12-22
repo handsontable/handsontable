@@ -163,7 +163,7 @@ We use the following Markdown containers:
 
 | Container                    | Usage                                             |
 | -----------------------------|-------------------------------------------------- |
-| `::: tip [title]`            | Adds green tip note.                              |
+| `::: tip [title]`            | Adds a blue tip note.                             |
 | `::: warning [title]`        | Adds a yellow warning note.                       |
 | `::: danger [title]`         | Adds a red danger note.                           |
 | `::: details [title]`        | Adds an accordion with expandable content.        |
