@@ -324,11 +324,11 @@ export function openContextSubmenuOption(submenuName, cell) {
  * @param {HTMLElement} [cell] The cell element to check.
  */
 export async function selectContextSubmenuOption(submenuName, optionName, cell) {
-  openContextSubmenuOption(submenuName, optionName, cell);
+  openContextSubmenuOption(submenuName, cell);
 
   await sleep(300);
 
-  const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+  const contextSubMenu = $(`.htContextMenuSub_${submenuName}`);
   const button = contextSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
 
   button.simulate('mousedown').simulate('mouseup');
