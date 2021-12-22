@@ -149,7 +149,7 @@ To check for broken links:
 
 ## Markdown containers
 
-To render content in different ways, the documentation uses custom Markdown containers, for example:
+To render content in different ways, the documentation uses Markdown containers, for example:
 
 ```markdown
 ::: example #exampleId .class :preset --html 1 --js 2
@@ -163,10 +163,14 @@ We use the following Markdown containers:
 
 | Container                    | Usage                                             |
 | -----------------------------|-------------------------------------------------- |
-| `::: tip`                    | A note.                                           |
-| `::: example [options]`      | Renders a code example as specified in [options]. |
+| `::: tip [title]`            | Adds green tip note.                              |
+| `::: warning [title]`        | Adds a yellow warning note.                       |
+| `::: danger [title]`         | Adds a red danger note.                           |
+| `::: details [title]`        | Adds an accordion with expandable content.        |
 | `::: source-code-link <URL>` | Adds a source code link to the API ref header.    |
-| `::: details`                | Adds an accordion with collapsible content.       |
+| `::: example [options]`      | Renders a code example as specified in [options]. |
+
+For more information, see the [VuePress documentation](https://v1.vuepress.vuejs.org/guide/markdown.html#custom-containers).
 
 ### Adding code examples
 
