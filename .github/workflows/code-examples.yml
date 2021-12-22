@@ -18,7 +18,7 @@ env:
 
 jobs:
   prepare-matrix:
-    name: Prepare Matrix and cache dependencies.
+    name: Prepare the version Matrix and cache dependencies.
     runs-on: ubuntu-18.04
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     outputs:
