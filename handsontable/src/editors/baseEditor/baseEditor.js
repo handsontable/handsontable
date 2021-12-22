@@ -211,6 +211,10 @@ export class BaseEditor {
       [visualRowFrom, visualColumnFrom] = modifiedCellCoords;
     }
 
+    const shortcutManager = this.hot.getShortcutManager();
+
+    shortcutManager.setActiveContexts(['grid']);
+
     // Saving values using the modified coordinates.
     this.hot.populateFromArray(visualRowFrom, visualColumnFrom, value, visualRowTo, visualColumnTo, 'edit');
   }
@@ -343,6 +347,10 @@ export class BaseEditor {
     if (this.state !== EDITOR_STATE.FINISHED) {
       return;
     }
+
+    const shortcutManager = this.hot.getShortcutManager();
+
+    shortcutManager.setActiveContexts(['grid']);
 
     // validator was defined and failed
     if (result === false && this.cellProperties.allowInvalid !== true) {

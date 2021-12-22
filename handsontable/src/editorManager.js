@@ -95,6 +95,12 @@ class EditorManager {
       this.moveSelectionAfterEnter(keys.includes('shift'));
     });
 
+    editorContext.addShortcut([['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']],
+      (event, keys) => {
+        this.closeEditorAndRestoreOriginalValue(keys.includes('control') || keys.includes('meta'));
+        this.activeEditor.focus();
+      });
+
     gridContext.addShortcut([['F2']], (event) => {
       if (this.activeEditor) {
         this.activeEditor.enableFullEditMode();
@@ -126,15 +132,6 @@ class EditorManager {
 
         stopImmediatePropagation(event); // required by HandsontableEditor
       });
-
-    gridContext.addShortcut([['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']], (event, keys) => {
-      // TODO: Probably it should be placed in editor's context.
-      if (this.isEditorOpened()) {
-        this.closeEditorAndRestoreOriginalValue(keys.includes('control') || keys.includes('meta'));
-
-        this.activeEditor.focus();
-      }
-    });
   }
 
   /**

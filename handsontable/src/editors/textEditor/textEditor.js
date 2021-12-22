@@ -135,8 +135,6 @@ export class TextEditor extends BaseEditor {
    * Closes the editor.
    */
   close() {
-    const shortcutManager = this.hot.getShortcutManager();
-
     this.autoResize.unObserve();
 
     if (this.hot.rootDocument.activeElement === this.TEXTAREA) {
@@ -145,7 +143,6 @@ export class TextEditor extends BaseEditor {
 
     this.hideEditableElement();
     this.unregisterShortcuts();
-    shortcutManager.setActiveContexts(['grid']);
     this.removeHooksByKey('beforeKeyDown');
   }
 
