@@ -32,15 +32,18 @@ const isPackageRequired = (packageName, packageLocation) => {
 };
 const packagesToLink = [];
 const linkPackage = (sourceLocation, linkLocation, packageName, exampleDir = false) => {
-  if (isPackageRequired(packageName, linkLocation)) {
+  const mainDependencyLocationPath = `${sourceLocation}/${packageName}`;
+  const destinationDependencyLocationPath = `${linkLocation}/${packageName}`;
+
+  if (isPackageRequired(packageName, linkLocation) && fse.pathExistsSync(path.resolve(mainDependencyLocationPath))) {
     try {
       fse.removeSync(
-        path.resolve(`${linkLocation}/${packageName}`),
+        path.resolve(destinationDependencyLocationPath),
       );
 
       fse.ensureSymlinkSync(
-        path.resolve(`${sourceLocation}/${packageName}`),
-        path.resolve(`${linkLocation}/${packageName}`),
+        path.resolve(mainDependencyLocationPath),
+        path.resolve(destinationDependencyLocationPath),
         'junction',
       );
 
@@ -102,8 +105,9 @@ workspaces.forEach((packagesLocation) => {
       // Additional linking to all the examples for Angular (required to load css files from `angular.json`)
       if (frameworkName === `angular`) {
         const angularPackageJson = fse.readJSONSync(`${packageLocation}/package.json`);
+        const workspacesList = angularPackageJson?.workspaces.packages || angularPackageJson?.workspaces;
 
-        angularPackageJson?.workspaces.forEach((angularPackagesLocation) => {
+        workspacesList.workspaces.forEach((angularPackagesLocation) => {
           const angularPackageDirs = glob.sync(`${packageLocation}/${angularPackagesLocation}`);
 
           angularPackageDirs.forEach((angularPackageLocation) => {
