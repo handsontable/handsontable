@@ -33,7 +33,7 @@ To speed up the process of merging your changes, follow these rules:
    Your code should follow [our coding style](https://github.com/handsontable/handsontable/blob/master/.eslintrc.js), inspired by the [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript).
 9. Add a mandatory [changelog](https://github.com/handsontable/handsontable/blob/master/CHANGELOG.md) entry.<br>
    From the root directory, run: `npm run changelog entry`.
-10.   In your PR, add a thorough description of all the changes.
+10. In your PR, add a thorough description of all the changes.
 
 Thank you for your contribution!
 
