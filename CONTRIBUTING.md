@@ -2,6 +2,8 @@
 
 Your contribution to Handsontable's codebase is most welcome. To fix a bug or propose a new feature, open a new pull request (PR), targeted at the `develop` branch.
 
+## Contribution rules
+
 To speed up the process of merging your changes, follow these rules:
 
 1. Sign the [Contributor License Agreement](https://goo.gl/forms/yuutGuN0RjsikVpM2), to let us publish your changes.
@@ -35,6 +37,10 @@ To speed up the process of merging your changes, follow these rules:
 10. In your PR, add a thorough description of all the changes.
 
 Thank you for your contribution!
+
+## Contributing to the documentation
+
+To contribute to the Handsontable documentation, see the separate [documentation section](https://github.com/handsontable/handsontable/blob/master/docs/README.md).
 
 ## Team rules
 
