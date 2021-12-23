@@ -107,7 +107,7 @@ workspaces.forEach((packagesLocation) => {
         const angularPackageJson = fse.readJSONSync(`${packageLocation}/package.json`);
         const workspacesList = angularPackageJson?.workspaces.packages || angularPackageJson?.workspaces;
 
-        workspacesList.workspaces.forEach((angularPackagesLocation) => {
+        workspacesList.forEach((angularPackagesLocation) => {
           const angularPackageDirs = glob.sync(`${packageLocation}/${angularPackagesLocation}`);
 
           angularPackageDirs.forEach((angularPackageLocation) => {
