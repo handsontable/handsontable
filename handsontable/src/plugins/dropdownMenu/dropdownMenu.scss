@@ -36,9 +36,12 @@
 }
 
 .htDropdownMenu table.htCore {
-  border: 1px solid #bbb;
+  border-color: #ccc;
+  border-style: solid;
+  border-top-width: 1px;
   border-bottom-width: 2px;
-  border-right-width: 2px;
+  border-inline-start-width: 1px;
+  border-inline-end-width: 2px;
 }
 
 .htDropdownMenu .wtBorder {

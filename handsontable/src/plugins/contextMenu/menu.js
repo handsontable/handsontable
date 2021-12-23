@@ -518,13 +518,15 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnRightOfCursor(cursor) {
-    let left;
+    let left = cursor.left;
 
     if (this.isSubMenu()) {
-      // 1px - additional menu border that mimics the shadow
-      left = 1 + cursor.left + cursor.cellWidth;
+      const { right: parentMenuRight } = this.parentMenu.container.getBoundingClientRect();
+
+      // move the sub menu by the width of the parent's border (usually by 1-2 pixels)
+      left += cursor.cellWidth + parentMenuRight - (cursor.left + cursor.cellWidth);
     } else {
-      left = this.offset.right + 1 + cursor.left;
+      left += this.offset.right;
     }
 
     this.container.style.left = `${left}px`;
@@ -536,8 +538,14 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
-    // 1px - additional menu border that mimics the shadow
-    const left = this.offset.left + cursor.left - this.container.offsetWidth - 1;
+    let left = this.offset.left + cursor.left - this.container.offsetWidth;
+
+    if (this.isSubMenu()) {
+      const { left: parentMenuLeft } = this.parentMenu.container.getBoundingClientRect();
+
+      // move the sub menu by the width of the parent's border (usually by 1-2 pixels)
+      left -= cursor.left - parentMenuLeft;
+    }
 
     this.container.style.left = `${left}px`;
   }
