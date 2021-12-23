@@ -276,7 +276,7 @@ new Handsontable(container, {});
 ## Using modules
 
 To start using Handsontable modules:
-1. [Import the registering parts](#importing-registering-parts).
+1. [Import the required elements](#importing-required-elements).
 2. Use optional modules of your choice:
    - [Editor modules](#using-editor-modules)
    - [Renderer modules](#using-renderer-modules)
@@ -286,11 +286,11 @@ To start using Handsontable modules:
    - [Translation modules](#using-translation-modules)
 3. Use [tree shaking](#tree-shaking) to remove unused code.
 
-### Importing registering parts
+### Importing required elements
 
-The registering parts contain core elements of Handsontable. Without those modules, Handsontable doesn't work.
+Some parts of the code contain Handsontable's core functionalities. Handsontable wouldn't work without them.
 
-To import the registering parts, follow the steps below.
+To import the required elements, follow the steps below.
 
 #### Step 1: Remove the full Handsontable import
 
@@ -351,9 +351,9 @@ Each editor module contains a different type of [cell editor](@/guides/cell-func
 
 To start using an editor module, follow the steps below.
 
-#### Step 1: Import the registering parts
+#### Step 1: Import the required elements
 
-First, make sure to [import the registering parts](#importing-registering-parts):
+First, make sure to [import the required elements](#importing-required-elements):
 
 ```js
 // import the `handsontable/base` module
@@ -425,7 +425,7 @@ new Handsontable(container, {
 ::: tip
 #### Registering all editors at once
 
-If you import all of Handsonable's editor modules, register all of them at once with the `registerAllEditors()` method:
+If you import all of Handsonable's editor modules, register them with the `registerAllEditors()` method:
 
 ```js
 // import the `registerAllEditors()` method
@@ -452,9 +452,9 @@ Each renderer module contains a different type of [cell renderer](@/guides/cell-
 
 To start using a renderer module, follow the steps below.
 
-#### Step 1: Import the registering parts
+#### Step 1: Import the required elements
 
-First, make sure to [import the registering parts](#importing-registering-parts):
+First, make sure to [import the required elements](#importing-required-elements):
 
 ```js
 // import the `handsontable/base` module
@@ -526,7 +526,7 @@ new Handsontable(container, {
 ::: tip
 #### Registering all renderers at once
 
-If you import all of Handsonable's renderer modules, register all of them at once with the `registerAllRenderers()` method:
+If you import all of Handsonable's renderer modules, register them with the `registerAllRenderers()` method:
 
 ```js
 // import the `registerAllRenderers()` method
@@ -550,9 +550,9 @@ Each validator module contains a different type of [cell validator](@/guides/cel
 
 To start using a validator module, follow the steps below.
 
-#### Step 1: Import the registering parts
+#### Step 1: Import the required elements
 
-First, make sure to [import the registering parts](#importing-registering-parts):
+First, make sure to [import the required elements](#importing-required-elements):
 
 ```js
 // import the `handsontable/base` module
@@ -624,7 +624,7 @@ new Handsontable(container, {
 ::: tip
 #### Registering all validators at once
 
-If you import all of Handsonable's validator modules, register all of them at once with the `registerAllValidators()` method:
+If you import all of Handsonable's validator modules, register them with the `registerAllValidators()` method:
 
 ```js
 // import the `registerAllValidators()` method
@@ -653,9 +653,9 @@ Each cell type module contains a different [cell type](@/guides/cell-types/cell-
 
 To start using a cell type module, follow the steps below.
 
-#### Step 1: Import the registering parts
+#### Step 1: Import the required elements
 
-First, make sure to [import the registering parts](#importing-registering-parts):
+First, make sure to [import the required elements](#importing-required-elements):
 
 ```js
 // import the `handsontable/base` module
@@ -727,7 +727,7 @@ new Handsontable(container, {
 ::: tip
 #### Registering all cell types at once
 
-If you import all of Handsonable's cell type modules, register all of them at once with the `registerAllCellTypes()` method:
+If you import all of Handsonable's cell type modules, register them with the `registerAllCellTypes()` method:
 
 ```js
 // import the `registerAllCellTypes()` method
@@ -781,9 +781,9 @@ Each plugin module contains a different [plugin](@/api/plugins.md):
 
 To start using a plugin module, follow the steps below.
 
-#### Step 1: Import the registering parts
+#### Step 1: Import the required elements
 
-First, make sure to [import the registering parts](#importing-registering-parts):
+First, make sure to [import the required elements](#importing-required-elements):
 
 ```js
 // import the `handsontable/base` module
@@ -851,7 +851,7 @@ new Handsontable(container, {
 ::: tip
 #### Registering all plugins at once
 
-If you import all of Handsonable's plugin modules, register all of them at once with the `registerAllPlugins()` method:
+If you import all of Handsonable's plugin modules, register them with the `registerAllPlugins()` method:
 
 ```js
 // import the `registerAllPlugins()` method
