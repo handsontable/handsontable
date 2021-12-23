@@ -476,17 +476,17 @@ jobs:
         uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
         with:
           ref: gh-pages
-          path: './examples/tmp'
+          path: './tmp'
       - name: Download the artifacts
         uses: actions/download-artifact@f023be2c48cc18debc3bacd34cb396e0295e2869 # https://github.com/actions/download-artifact/releases/tag/v2.1.0
         with:
           path: ./artifacts/
-      - run: for f in ./artifacts/**/examples-build-*.tar.gz; do tar -zxf "$f" -C ./examples/tmp; done
+      - run: mkdir -p ./tmp/examples
+      - run: for f in ./artifacts/**/examples-build-*.tar.gz; do tar -zxf "$f" -C ./tmp/examples; done
       - run: rm -rf ./artifacts/
-      - run: cd examples/tmp && ls -la
       - name: Deploy to gh-pages.
         uses: peaceiris/actions-gh-pages@068dc23d9710f1ba62e86896f84735d869951305 # https://github.com/peaceiris/actions-gh-pages/releases/tag/v3.8.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./examples/tmp
+          publish_dir: ./tmp
           keep_files: true
