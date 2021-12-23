@@ -276,7 +276,7 @@ new Handsontable(container, {});
 ## Using modules
 
 To start using Handsontable modules:
-1. [Import the required modules](#importing-required-modules).
+1. [Import the registering parts](#importing-registering-parts).
 2. Use optional modules of your choice:
    - [Editor modules](#using-editor-modules)
    - [Renderer modules](#using-renderer-modules)
@@ -286,11 +286,11 @@ To start using Handsontable modules:
    - [Translation modules](#using-translation-modules)
 3. Use [tree shaking](#tree-shaking) to remove unused code.
 
-### Importing required modules
+### Importing registering parts
 
-The required modules contain core elements of Handsontable. Without those modules, Handsontable doesn't work.
+The registering parts contain core elements of Handsontable. Without those modules, Handsontable doesn't work.
 
-To import the required modules, follow the steps below.
+To import the registering parts, follow the steps below.
 
 #### Step 1: Remove the full Handsontable import
 
@@ -351,9 +351,9 @@ Each editor module contains a different type of [cell editor](@/guides/cell-func
 
 To start using an editor module, follow the steps below.
 
-#### Step 1: Import the required modules
+#### Step 1: Import the registering parts
 
-First, make sure to [import the required modules](#importing-required-modules):
+First, make sure to [import the registering parts](#importing-registering-parts):
 
 ```js
 // import the `handsontable/base` module
@@ -452,9 +452,9 @@ Each renderer module contains a different type of [cell renderer](@/guides/cell-
 
 To start using a renderer module, follow the steps below.
 
-#### Step 1: Import the required modules
+#### Step 1: Import the registering parts
 
-First, make sure to [import the required modules](#importing-required-modules):
+First, make sure to [import the registering parts](#importing-registering-parts):
 
 ```js
 // import the `handsontable/base` module
@@ -550,9 +550,9 @@ Each validator module contains a different type of [cell validator](@/guides/cel
 
 To start using a validator module, follow the steps below.
 
-#### Step 1: Import the required modules
+#### Step 1: Import the registering parts
 
-First, make sure to [import the required modules](#importing-required-modules):
+First, make sure to [import the registering parts](#importing-registering-parts):
 
 ```js
 // import the `handsontable/base` module
@@ -653,9 +653,9 @@ Each cell type module contains a different [cell type](@/guides/cell-types/cell-
 
 To start using a cell type module, follow the steps below.
 
-#### Step 1: Import the required modules
+#### Step 1: Import the registering parts
 
-First, make sure to [import the required modules](#importing-required-modules):
+First, make sure to [import the registering parts](#importing-registering-parts):
 
 ```js
 // import the `handsontable/base` module
@@ -781,9 +781,9 @@ Each plugin module contains a different [plugin](@/api/plugins.md):
 
 To start using a plugin module, follow the steps below.
 
-#### Step 1: Import the required modules
+#### Step 1: Import the registering parts
 
-First, make sure to [import the required modules](#importing-required-modules):
+First, make sure to [import the registering parts](#importing-registering-parts):
 
 ```js
 // import the `handsontable/base` module
