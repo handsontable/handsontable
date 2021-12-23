@@ -86,7 +86,6 @@ jobs:
           name: node_modules
           path: ./
       - run: tar -zxf node_modules.tar.gz && rm node_modules.tar.gz
-
       - name: Build
         run: |
           cd handsontable
@@ -168,7 +167,6 @@ jobs:
           name: angular-build
           path: |
             tmp.tar.gz
-
 
   build-react:
     name: "[BUILD] Wrapper: React"
