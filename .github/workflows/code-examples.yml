@@ -481,7 +481,6 @@ jobs:
         uses: actions/download-artifact@f023be2c48cc18debc3bacd34cb396e0295e2869 # https://github.com/actions/download-artifact/releases/tag/v2.1.0
         with:
           path: ./artifacts/
-      - run: mkdir -p ./examples/tmp
       - run: for f in ./artifacts/**/examples-build-*.tar.gz; do tar -zxf "$f" -C ./examples/tmp; done
       - run: rm -rf ./artifacts/
       - run: cd examples/tmp && ls -la
