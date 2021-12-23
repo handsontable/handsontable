@@ -232,6 +232,14 @@ export function countCells() {
 }
 
 /**
+ * @param {number} columnIndex Visual column index.
+ * @returns {HTMLTableCellElement}
+ */
+export function getColumnHeader(columnIndex = 0) {
+  return hot().view.wt.wtTable.getColumnHeader(columnIndex);
+}
+
+/**
  * @param {HTMLElement} editableElement The element to check.
  * @returns {boolean}
  */
@@ -345,11 +353,17 @@ export function closeContextMenu() {
 /**
  * Shows dropdown menu.
  *
- * @param {number} columnIndex The column index under which the dropdown menu is triggered.
+ * @param {number|HTMLTableCellElement} columnIndexOrCell The column index or TD element under which the dropdown menu is triggered.
  */
-export function dropdownMenu(columnIndex) {
-  const hotInstance = spec().$container.data('handsontable');
-  const th = hotInstance.view.wt.wtTable.getColumnHeader(columnIndex || 0);
+export function dropdownMenu(columnIndexOrCell) {
+  let th = columnIndexOrCell;
+
+  if (!(columnIndexOrCell instanceof HTMLTableCellElement)) {
+    const hotInstance = spec().$container.data('handsontable');
+
+    th = hotInstance.view.wt.wtTable.getColumnHeader(columnIndexOrCell || 0);
+  }
+
   const button = th.querySelector('.changeType');
 
   if (button) {
@@ -357,6 +371,20 @@ export function dropdownMenu(columnIndex) {
     $(button).simulate('mouseup');
     $(button).simulate('click');
   }
+}
+
+/**
+ * Open (and not close) the sub menu of the dropdown menu.
+ *
+ * @param {string} submenuName The dropdown menu item name (it has to be a submenu) to hover.
+ * @param {HTMLElement} [cell] The cell element to check.
+ */
+export function openDropdownSubmenuOption(submenuName, cell) {
+  dropdownMenu(cell);
+
+  const item = $(`.htDropdownMenu .ht_master .htCore tbody td:contains(${submenuName})`);
+
+  item.simulate('mouseover');
 }
 
 /**
