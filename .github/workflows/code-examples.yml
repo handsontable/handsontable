@@ -15,6 +15,13 @@ on:
 
 env:
   NODE_VERSION: 16.x
+  NODE_MODULES_PATHS: |
+    ./node_modules
+    ./handsontable/node_modules/
+    ./wrappers/angular/node_modules/
+    ./wrappers/react/node_modules/
+    ./wrappers/vue/node_modules/
+    ./wrappers/vue3/node_modules/
 
 jobs:
   prepare-matrix:
@@ -33,13 +40,12 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci --no-audit
-      - run: tar -zcf node_modules.tar.gz ./node_modules ./handsontable/node_modules/ ./wrappers/angular/node_modules/ ./wrappers/react/node_modules/ ./wrappers/vue/node_modules/ ./wrappers/vue3/node_modules/
-      - name: Upload node_modules
-        uses: actions/upload-artifact@27121b0bdffd731efa15d66772be8dc71245d074 # https://github.com/actions/upload-artifact/releases/tag/v2.2.4
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
         with:
-          name: node_modules
-          path: |
-            node_modules.tar.gz
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - id: get-dispatch-value
         run: echo "::set-output name=matrix::${{ format('[\"{0}\"]', github.event.inputs.hotVersion) }}"
         if: github.event_name == 'workflow_dispatch'
@@ -85,13 +91,12 @@ jobs:
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      - name: Download the cached dependencies
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
         with:
-          name: node_modules
-          path: ./
-      - run: tar -zxf node_modules.tar.gz && rm node_modules.tar.gz
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Build
         run: |
           cd handsontable
@@ -116,13 +121,12 @@ jobs:
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      - name: Download the cached dependencies
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
         with:
-          name: node_modules
-          path: ./
-      - run: tar -zxf node_modules.tar.gz && rm node_modules.tar.gz
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Build
         run: |
           cd handsontable
@@ -148,13 +152,12 @@ jobs:
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      - name: Download the cached dependencies
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
         with:
-          name: node_modules
-          path: ./
-      - run: tar -zxf node_modules.tar.gz && rm node_modules.tar.gz
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
         with:
@@ -185,13 +188,12 @@ jobs:
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      - name: Download the cached dependencies
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
         with:
-          name: node_modules
-          path: ./
-      - run: tar -zxf node_modules.tar.gz && rm node_modules.tar.gz
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
         with:
@@ -222,13 +224,12 @@ jobs:
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      - name: Download the cached dependencies
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
         with:
-          name: node_modules
-          path: ./
-      - run: tar -zxf node_modules.tar.gz && rm node_modules.tar.gz
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
         with:
@@ -259,13 +260,12 @@ jobs:
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      - name: Download the cached dependencies
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
         with:
-          name: node_modules
-          path: ./
-      - run: tar -zxf node_modules.tar.gz && rm node_modules.tar.gz
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
         with:
@@ -323,13 +323,12 @@ jobs:
         uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      - name: Download the cached dependencies
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # https://github.com/actions/download-artifact/releases/tag/v2.0.10
+      - uses: actions/cache@937d24475381cd9c75ae6db12cb4e79714b926ed # https://github.com/actions/cache/releases/tag/v2.1.7
         with:
-          name: node_modules
-          path: ./
-      - run: tar -zxf node_modules.tar.gz && rm node_modules.tar.gz
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
         if: steps.path-check.outputs.n-a != 'true'
 
       # ---------------------------------------------------------
