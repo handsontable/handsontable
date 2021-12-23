@@ -58,9 +58,15 @@ jobs:
           script: |
             return [...new Set(
               ${{steps.check-modified-paths.outputs.examples_files}}.map(
-                url => url.match(/examples\/(([0-9]+\.[0-9]+\.[0-9]+)|(next))\/*/i)[1]
+                url => {
+                  const match = url.match(/examples\/(([0-9]+\.[0-9]+\.[0-9]+)|(next))\/*/i);
+
+                  if (match) {
+                    return match[1];
+                  }
+                }
               )
-            )]
+            )].filter(n => n);
       - id: prepare-version-matrix
         if: github.event_name != 'workflow_dispatch'
         run: echo "::set-output name=matrix::${{ toJSON(steps.get-versions.outputs.result) }}"
@@ -283,7 +289,7 @@ jobs:
   # ------------------------ END --------------------------
 
   install-and-build:
-    name: ${{ matrix.version }} -> ${{ matrix.framework }}/ - Install and build
+    name: ${{ matrix.version }} -> ${{ matrix.framework }} - Install and build
     needs: [ prepare-matrix, build-handsontable-es-cjs, build-handsontable-umd, build-angular, build-react, build-vue, build-vue3 ]
     if: |
       always() &&
