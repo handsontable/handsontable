@@ -249,4 +249,21 @@ describe('EventManager', () => {
 
     expect(instance.eventListeners.length).toEqual(1);
   });
+
+  it('should not delegate to removeEventListener to clear multiple events', () => {
+    const instance = {};
+    const em = new EventManager(instance);
+
+    spyOn(em, 'removeEventListener');
+
+    const test = jasmine.createSpy('test');
+    const test1 = jasmine.createSpy('test1');
+
+    em.addEventListener(window, 'click', test);
+    em.addEventListener(window, 'click', test1);
+
+    em.clear();
+
+    expect(em.removeEventListener).not.toHaveBeenCalled();
+  });
 });
