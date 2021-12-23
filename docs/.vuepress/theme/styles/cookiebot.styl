@@ -1,16 +1,20 @@
 /*
-  related to issue #8987
+  a stylesheet to make sure that all cookiebot elements are visible in the dark theme
+  (related to issue #8987)
 */
 
+/* footer and navigation background color */
 .theme-dark #CybotCookiebotDialogFooter .CybotCookiebotDialogBodyButton, .theme-dark #CybotCookiebotDialogNav .CybotCookiebotDialogNavItemLink {
   background-color: #fff;
   border-color: #fff;
 }
 
+/* cookie providers' links' color */
 .theme-dark #CybotCookiebotDialogDetailBodyContentCookieContainerTypes .CybotCookiebotDialogDetailBodyContentCookieProvider:not(.CybotCookiebotDialogDetailBodyContentCookieInfoCount), .theme-dark #CybotCookiebotDialogDetailBulkConsentLink {
   color: #fff;
 }
 
+/* removing the fader */
 .CybotCookiebotFader {
   display: none!important
 }
