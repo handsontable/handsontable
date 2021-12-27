@@ -128,4 +128,13 @@ describe('CellDecorator', () => {
     expect(getCell(0, 0).className).toBe('First Second Third');
     expect(getCell(0, 1).className).toBe('First Second Third');
   });
+
+  it('should render the cell without messing with "dir" attribute', () => {
+    handsontable({
+      data: [['foo']],
+      renderer: 'base'
+    });
+
+    expect(getCell(0, 0).getAttribute('dir')).toBeNull();
+  });
 });

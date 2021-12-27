@@ -539,6 +539,19 @@ describe('SelectEditor', () => {
     expect(event.isDefaultPrevented()).toBe(false);
   });
 
+  it('should render an editable editor\'s element without messing with "dir" attribute', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      editor: 'select',
+    });
+
+    selectCell(0, 0);
+
+    const editableElement = getActiveEditor().select;
+
+    expect(editableElement.getAttribute('dir')).toBeNull();
+  });
+
   describe('IME support', () => {
     it('should focus editable element (from copyPaste plugin) after selecting the cell', async() => {
       handsontable({
