@@ -16,7 +16,7 @@ logger.log('\n-----------------------------------------------------\n');
 (async() => {
   let version = null;
 
-  if (!semver.valid(cliVersion)) {
+  if (!cliVersion) {
     const { continueApiGen } = await inquirer.prompt([
       {
         type: 'confirm',
@@ -39,8 +39,17 @@ logger.log('\n-----------------------------------------------------\n');
       },
     ]));
 
-  } else {
+  } else if (semver.valid(cliVersion)) {
     version = `${semver.major(cliVersion)}.${semver.minor(cliVersion)}`;
+
+  } else if (semver.valid(`${cliVersion}.0`)) {
+    version = cliVersion;
+
+  } else {
+    logger.error(
+      `This provided version number (${cliVersion}) is neither semver-compatible nor in a format of '[major].[minor]'.`
+    );
+    process.exit(1);
   }
 
   if (fs.existsSync(path.join(workingDir, version))) {
