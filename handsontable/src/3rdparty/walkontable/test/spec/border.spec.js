@@ -220,7 +220,7 @@ describe('WalkontableBorder', () => {
       data: getData,
       totalRows: 5,
       totalColumns: 5,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       selections: createSelectionController({
         current: new Walkontable.Selection({
           border: {
@@ -294,7 +294,7 @@ describe('WalkontableBorder', () => {
       data: getData,
       totalRows: 5,
       totalColumns: 5,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       selections: createSelectionController({
         current: new Walkontable.Selection({

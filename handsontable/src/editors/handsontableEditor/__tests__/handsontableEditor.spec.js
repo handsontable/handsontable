@@ -147,7 +147,7 @@ describe('HandsontableEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,
+      fixedColumnsStart: 3,
       type: 'handsontable',
       handsontable: {
         colHeaders: ['Marque', 'Country', 'Parent company'],
@@ -262,7 +262,7 @@ describe('HandsontableEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,
+      fixedColumnsStart: 3,
       hiddenColumns: {
         indicators: true,
         columns: [0],
@@ -698,6 +698,19 @@ describe('HandsontableEditor', () => {
       expect(hot.getActiveEditor().TEXTAREA.parentElement.style.zIndex).toEqual('');
       expect(hot.getActiveEditor().TEXTAREA.style.visibility).toEqual('');
     });
+  });
+
+  it('should render an editable editor\'s element without messing with "dir" attribute', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      editor: 'handsontable',
+    });
+
+    selectCell(0, 0);
+
+    const editableElement = getActiveEditor().TEXTAREA;
+
+    expect(editableElement.getAttribute('dir')).toBeNull();
   });
 
   describe('IME support', () => {

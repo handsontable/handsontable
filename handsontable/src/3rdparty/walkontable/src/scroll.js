@@ -51,7 +51,7 @@ class Scroll {
     }
 
     const {
-      fixedColumnsLeft,
+      fixedColumnsStart,
       leftOverlay,
       totalColumns,
     } = this._getVariables();
@@ -61,7 +61,7 @@ class Scroll {
       const firstVisibleColumn = this.getFirstVisibleColumn();
       const lastVisibleColumn = this.getLastVisibleColumn();
 
-      if (column >= fixedColumnsLeft && firstVisibleColumn > -1 && (column < firstVisibleColumn || snapToLeft)) {
+      if (column >= fixedColumnsStart && firstVisibleColumn > -1 && (column < firstVisibleColumn || snapToLeft)) {
         result = leftOverlay.scrollTo(column);
       } else if (lastVisibleColumn === -1 || lastVisibleColumn > -1 && (column > lastVisibleColumn || snapToRight)) {
         result = leftOverlay.scrollTo(column, true);
@@ -287,7 +287,7 @@ class Scroll {
     const totalColumns = wot.getSetting('totalColumns');
     const fixedRowsTop = wot.getSetting('fixedRowsTop');
     const fixedRowsBottom = wot.getSetting('fixedRowsBottom');
-    const fixedColumnsLeft = wot.getSetting('fixedColumnsLeft');
+    const fixedColumnsStart = wot.getSetting('fixedColumnsStart');
 
     return {
       topOverlay,
@@ -298,7 +298,7 @@ class Scroll {
       totalColumns,
       fixedRowsTop,
       fixedRowsBottom,
-      fixedColumnsLeft
+      fixedColumnsStart
     };
   }
 }

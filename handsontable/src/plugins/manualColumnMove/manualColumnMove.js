@@ -349,8 +349,8 @@ export class ManualColumnMove extends BasePlugin {
    * @param {number} column Visual column index to check.
    * @returns {boolean}
    */
-  isFixedColumnsLeft(column) {
-    return column < this.hot.getSettings().fixedColumnsLeft;
+  isFixedColumnsStart(column) {
+    return column < this.hot.getSettings().fixedColumnsStart;
   }
 
   /**
@@ -426,14 +426,14 @@ export class ManualColumnMove extends BasePlugin {
     if (priv.hasRowHeaders) {
       rowHeaderWidth = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
     }
-    if (this.isFixedColumnsLeft(priv.coords)) {
+    if (this.isFixedColumnsStart(priv.coords)) {
       tdOffsetLeft += scrollLeft;
     }
     tdOffsetLeft += rowHeaderWidth;
 
     if (priv.coords < 0) {
       // if hover on rowHeader
-      if (priv.fixedColumns > 0) {
+      if (priv.fixedColumnsStart > 0) {
         priv.target.col = 0;
       } else {
         priv.target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
@@ -455,12 +455,12 @@ export class ManualColumnMove extends BasePlugin {
       // elsewhere on table
       priv.target.col = priv.coords;
 
-      if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns && firstVisible > 0) {
+      if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumnsStart && firstVisible > 0) {
         this.hot.scrollViewportTo(void 0, firstVisible - 1);
       }
     }
 
-    if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumns && firstVisible > 0) {
+    if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumnsStart && firstVisible > 0) {
       this.hot.scrollViewportTo(void 0, firstVisible - 1);
     }
 
@@ -484,7 +484,7 @@ export class ManualColumnMove extends BasePlugin {
       // guideline has got `margin-left: -1px` as default
       guidelineLeft = 1;
 
-    } else if (scrollableElement.scrollX !== void 0 && priv.coords < priv.fixedColumns) {
+    } else if (scrollableElement.scrollX !== void 0 && priv.coords < priv.fixedColumnsStart) {
       guidelineLeft -= ((priv.rootElementOffset <= scrollableElement.scrollX) ? priv.rootElementOffset : 0);
     }
 
@@ -561,16 +561,16 @@ export class ManualColumnMove extends BasePlugin {
       priv.columnsToMove = this.prepareColumnsToMoving(start, end);
       priv.hasRowHeaders = !!this.hot.getSettings().rowHeaders;
       priv.countCols = this.hot.countCols();
-      priv.fixedColumns = this.hot.getSettings().fixedColumnsLeft;
+      priv.fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
       priv.rootElementOffset = offset(this.hot.rootElement).left;
 
       const countColumnsFrom = priv.hasRowHeaders ? -1 : 0;
       const topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
-      const fixedColumns = coords.col < priv.fixedColumns;
+      const fixedColumnsStart = coords.col < priv.fixedColumnsStart;
       const scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
       const wrapperIsWindow = scrollableElement.scrollX ? scrollableElement.scrollX - priv.rootElementOffset : 0;
 
-      const mouseOffset = event.offsetX - (fixedColumns ? wrapperIsWindow : 0);
+      const mouseOffset = event.offsetX - (fixedColumnsStart ? wrapperIsWindow : 0);
       const leftOffset = Math.abs(this.getColumnsWidth(start, coords.col - 1) + mouseOffset);
 
       this.backlight.setPosition(topPos, this.getColumnsWidth(countColumnsFrom, start - 1) + leftOffset);

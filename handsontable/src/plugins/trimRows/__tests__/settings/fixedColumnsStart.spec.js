@@ -25,14 +25,14 @@ describe('TrimRows', () => {
     }
   });
 
-  // TODO: Tests should be moved to Core.fixedColumnsLeft E2E tests as soon as the TrimmingMap can be
+  // TODO: Tests should be moved to Core.fixedColumnsStart E2E tests as soon as the TrimmingMap can be
   // available for UMD (browsers).
-  describe('fixedColumnsLeft', () => {
+  describe('fixedColumnsStart', () => {
     it('should render left overlay with the same amount of columns than a master overlay', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 5),
         colHeaders: true,
-        fixedColumnsLeft: 2,
+        fixedColumnsStart: 2,
         columns: [{}, {}],
       });
 
@@ -69,7 +69,7 @@ describe('TrimRows', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 5),
         colHeaders: true,
-        fixedColumnsLeft: 2,
+        fixedColumnsStart: 2,
         columns: [{}],
       });
 
@@ -102,7 +102,7 @@ describe('TrimRows', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 5),
         colHeaders: true,
-        fixedColumnsLeft: 2,
+        fixedColumnsStart: 2,
         columns: [],
       });
 

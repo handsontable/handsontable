@@ -27,7 +27,14 @@ import {
 } from './overlay/constants';
 
 /**
- *
+ * @todo These mixes are never added to the class Table, however their members are used here.
+ * @todo Continue: Potentially it works only, because some of these mixes are added to every inherited class.
+ * @todo Refactoring, move code from `if(this.isMaster)` into MasterTable, and others like that.
+ * @mixes stickyColumnsStart
+ * @mixes stickyRowsBottom
+ * @mixes stickyRowsTop
+ * @mixes calculatedRows
+ * @mixes calculatedColumns
  */
 class Table {
   /**
@@ -80,7 +87,7 @@ class Table {
     this.wtRootElement = this.holder.parentNode;
 
     if (this.isMaster) {
-      this.alignOverlaysWithTrimmingContainer();
+      this.alignOverlaysWithTrimmingContainer(); // todo wow, It calls method from child class (MasterTable).
     }
     this.fixTableDomTree();
 
@@ -242,7 +249,7 @@ class Table {
       this.holderOffset = offset(this.holder);
       runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
-      if (rowHeadersCount && !wot.getSetting('fixedColumnsLeft')) {
+      if (rowHeadersCount && !wot.getSetting('fixedColumnsStart')) {
         const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
         const previousState = this.correctHeaderWidth;
 
@@ -282,7 +289,7 @@ class Table {
 
       // Only master table rendering can be skipped
       if (this.isMaster) {
-        this.alignOverlaysWithTrimmingContainer();
+        this.alignOverlaysWithTrimmingContainer(); // todo It calls method from child class (MasterTable).
         const skipRender = {};
 
         this.wot.getSetting('beforeDraw', true, skipRender);
@@ -921,7 +928,7 @@ class Table {
    *
    * Negative column index is used to check the rows' headers.
    *
-   *                            For fixedColumnsLeft: 1 the master overlay
+   *                            For fixedColumnsStart: 1 the master overlay
    *                            do not render this first columns.
    *  Headers    -3   -2   -1    |
    *           +----+----+----║┄ ┄ +------+------+
@@ -965,7 +972,7 @@ class Table {
    * it is not possible to render headers partially. The "after" index can not be
    * lower than -1.
    *
-   *                            For fixedColumnsLeft: 1 the master overlay
+   *                            For fixedColumnsStart: 1 the master overlay
    *                            do not render this first columns.
    *  Headers    -3   -2   -1    |
    *           +----+----+----║┄ ┄ +------+------+

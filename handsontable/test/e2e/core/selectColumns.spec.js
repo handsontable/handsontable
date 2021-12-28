@@ -73,12 +73,12 @@ describe('Core.selectColumns', () => {
       `).toBeMatchToSelectionPattern();
   });
 
-  it('should mark single column visually (default selectionMode, fixedColumnsLeft enabled)', () => {
+  it('should mark single column visually (default selectionMode, fixedColumnsStart enabled)', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
       colHeaders: true,
       rowHeaders: true,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
     });
 
     selectColumns(1, 2);

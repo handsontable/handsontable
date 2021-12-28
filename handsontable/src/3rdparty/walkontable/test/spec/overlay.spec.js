@@ -31,7 +31,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });
@@ -62,7 +62,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });
@@ -92,7 +92,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });
@@ -126,7 +126,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });
@@ -159,7 +159,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });
@@ -226,7 +226,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });
@@ -285,7 +285,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });
@@ -350,7 +350,7 @@ describe('WalkontableOverlay', () => {
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2,
       fixedRowsBottom: 2,
     });

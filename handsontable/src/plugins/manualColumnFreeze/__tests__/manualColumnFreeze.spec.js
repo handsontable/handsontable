@@ -13,7 +13,7 @@ describe('manualColumnFreeze', () => {
   });
 
   describe('freezeColumn', () => {
-    it('should increase fixedColumnsLeft setting', () => {
+    it('should increase fixedColumnsStart setting', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true
@@ -22,7 +22,7 @@ describe('manualColumnFreeze', () => {
 
       plugin.freezeColumn(4);
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(1);
     });
 
     it('should freeze (make fixed) the column provided as an argument', () => {
@@ -53,30 +53,30 @@ describe('manualColumnFreeze', () => {
   });
 
   describe('unfreezeColumn', () => {
-    it('should decrease fixedColumnsLeft setting', () => {
+    it('should decrease fixedColumnsStart setting', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        fixedColumnsLeft: 1
+        fixedColumnsStart: 1
       });
       const plugin = hot.getPlugin('manualColumnFreeze');
 
       plugin.unfreezeColumn(0);
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(0);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(0);
     });
 
     it('should unfreeze (make non-fixed) the column provided as an argument', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        fixedColumnsLeft: 3
+        fixedColumnsStart: 3
       });
 
       const plugin = hot.getPlugin('manualColumnFreeze');
 
       plugin.unfreezeColumn(1);
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(2);
       expect(hot.toPhysicalColumn(0)).toEqual(0);
       expect(hot.toPhysicalColumn(1)).toEqual(2);
       expect(hot.toPhysicalColumn(2)).toEqual(1);
@@ -84,7 +84,7 @@ describe('manualColumnFreeze', () => {
 
       plugin.unfreezeColumn(0);
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(1);
       expect(hot.toPhysicalColumn(0)).toEqual(2);
       expect(hot.toPhysicalColumn(1)).toEqual(0);
       expect(hot.toPhysicalColumn(2)).toEqual(1);
@@ -92,7 +92,7 @@ describe('manualColumnFreeze', () => {
 
       plugin.unfreezeColumn(0);
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(0);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(0);
 
       expect(hot.toPhysicalColumn(0)).toEqual(2);
       expect(hot.toPhysicalColumn(1)).toEqual(0);
@@ -110,13 +110,13 @@ describe('manualColumnFreeze', () => {
 
       plugin.freezeColumn(9);
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(1);
       expect(hot.toPhysicalColumn(0)).toEqual(9);
       expect(hot.toPhysicalColumn(9)).toEqual(8);
 
       plugin.unfreezeColumn(0);
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(0);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(0);
       expect(hot.toPhysicalColumn(0)).toEqual(9);
       expect(hot.toPhysicalColumn(1)).toEqual(0);
       expect(hot.toPhysicalColumn(2)).toEqual(1);
@@ -149,7 +149,7 @@ describe('manualColumnFreeze', () => {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
         contextMenu: true,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       selectCell(1, 1);
@@ -167,7 +167,7 @@ describe('manualColumnFreeze', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        fixedColumnsLeft: 1,
+        fixedColumnsStart: 1,
         contextMenu: true
       });
 
@@ -188,7 +188,7 @@ describe('manualColumnFreeze', () => {
       expect(freezeEntry.size()).toEqual(1);
       freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(2);
       expect(hot.getDataAtCell(1, 1)).toEqual(dataAtCell);
 
     });
@@ -197,7 +197,7 @@ describe('manualColumnFreeze', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         manualColumnFreeze: true,
-        fixedColumnsLeft: 3,
+        fixedColumnsStart: 3,
         manualColumnMove: [0, 2, 5, 3, 4, 1, 6, 7, 8, 9],
         contextMenu: true,
         rowHeaders: true
@@ -214,7 +214,7 @@ describe('manualColumnFreeze', () => {
 
       freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(2);
       expect(getDataAtRow(1)).toEqual(['A2', 'F2', 'C2', 'D2', 'E2', 'B2', 'G2', 'H2', 'I2', 'J2']);
 
       selectCell(1, 0);
@@ -229,7 +229,7 @@ describe('manualColumnFreeze', () => {
       });
       freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(1);
       expect(getDataAtRow(1)).toEqual(['F2', 'A2', 'C2', 'D2', 'E2', 'B2', 'G2', 'H2', 'I2', 'J2']);
 
       selectCell(1, 2);
@@ -240,7 +240,7 @@ describe('manualColumnFreeze', () => {
 
       freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(2);
       expect(getDataAtRow(1)).toEqual(['F2', 'C2', 'A2', 'D2', 'E2', 'B2', 'G2', 'H2', 'I2', 'J2']);
 
       selectCell(1, 0);
@@ -251,7 +251,7 @@ describe('manualColumnFreeze', () => {
 
       freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');
 
-      expect(hot.getSettings().fixedColumnsLeft).toEqual(1);
+      expect(hot.getSettings().fixedColumnsStart).toEqual(1);
       expect(getDataAtRow(1)).toEqual(['C2', 'F2', 'A2', 'D2', 'E2', 'B2', 'G2', 'H2', 'I2', 'J2']);
     });
   });

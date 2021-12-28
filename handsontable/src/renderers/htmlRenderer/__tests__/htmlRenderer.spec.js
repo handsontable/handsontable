@@ -53,4 +53,13 @@ describe('HTMLRenderer', () => {
     expect(getMaster().find('table tr:last-child td:eq(2)').html())
       .toBe('<a href="#" target="_blank">baz</a>');
   });
+
+  it('should render the cell without messing with "dir" attribute', () => {
+    handsontable({
+      data: [['foo']],
+      renderer: 'html'
+    });
+
+    expect(getCell(0, 0).getAttribute('dir')).toBeNull();
+  });
 });

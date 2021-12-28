@@ -9,7 +9,7 @@ import {
   setOverlayPosition,
   resetCssTransform,
 } from './../../../../helpers/dom/element';
-import LeftOverlayTable from './../table/left';
+import InlineStartOverlayTable from './../table/inlineStart';
 import { Overlay } from './_base';
 import {
   CLONE_LEFT,
@@ -39,7 +39,7 @@ export class LeftOverlay extends Overlay {
    * @returns {Table}
    */
   createTable(...args) {
-    return new LeftOverlayTable(...args);
+    return new InlineStartOverlayTable(...args);
   }
 
   /**
@@ -266,7 +266,7 @@ export class LeftOverlay extends Overlay {
       newX -= this.wot.wtViewport.getViewportWidth();
 
     } else {
-      newX += this.sumCellSizes(this.wot.getSetting('fixedColumnsLeft'), sourceCol);
+      newX += this.sumCellSizes(this.wot.getSetting('fixedColumnsStart'), sourceCol);
     }
 
     newX += scrollbarCompensation;
@@ -308,7 +308,7 @@ export class LeftOverlay extends Overlay {
   adjustHeaderBordersPosition(position) {
     const masterParent = this.wot.wtTable.holder.parentNode;
     const rowHeaders = this.wot.getSetting('rowHeaders');
-    const fixedColumnsLeft = this.wot.getSetting('fixedColumnsLeft');
+    const fixedColumnsStart = this.wot.getSetting('fixedColumnsStart');
     const totalRows = this.wot.getSetting('totalRows');
 
     if (totalRows) {
@@ -319,10 +319,10 @@ export class LeftOverlay extends Overlay {
 
     let positionChanged = false;
 
-    if (fixedColumnsLeft && !rowHeaders.length) {
+    if (fixedColumnsStart && !rowHeaders.length) {
       addClass(masterParent, 'innerBorderLeft');
 
-    } else if (!fixedColumnsLeft && rowHeaders.length) {
+    } else if (!fixedColumnsStart && rowHeaders.length) {
       const previousState = hasClass(masterParent, 'innerBorderLeft');
 
       if (position) {

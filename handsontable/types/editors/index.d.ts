@@ -8,6 +8,7 @@ import { NumericEditor, EDITOR_TYPE as NUMERIC_EDITOR } from './numericEditor';
 import { PasswordEditor, EDITOR_TYPE as PASSWORD_EDITOR } from './passwordEditor';
 import { SelectEditor, EDITOR_TYPE as SELECT_EDITOR } from './selectEditor';
 import { TextEditor, EDITOR_TYPE as TEXT_EDITOR } from './textEditor';
+import { TimeEditor, EDITOR_TYPE as TIME_EDITOR } from './timeEditor';
 
 export function registerAllEditors(): void;
 
@@ -22,6 +23,7 @@ export interface Editors {
   password: typeof PasswordEditor;
   select: typeof SelectEditor;
   text: typeof TextEditor;
+  time: typeof TimeEditor;
 }
 
 /**
@@ -40,6 +42,7 @@ export {
   PasswordEditor, PASSWORD_EDITOR,
   SelectEditor, SELECT_EDITOR,
   TextEditor, TEXT_EDITOR,
+  TimeEditor, TIME_EDITOR,
 };
 export {
   RegisteredEditor,

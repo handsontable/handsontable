@@ -104,20 +104,20 @@ class Walkontable {
     const totalRows = this.wtSettings.getSetting('totalRows');
     const fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
     const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
-    const fixedColumns = this.wtSettings.getSetting('fixedColumnsLeft');
+    const fixedColumnsStart = this.wtSettings.getSetting('fixedColumnsStart');
 
-    if (coords.row < fixedRowsTop && coords.col < fixedColumns) {
+    if (coords.row < fixedRowsTop && coords.col < fixedColumnsStart) {
       return this.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell(coords);
 
     } else if (coords.row < fixedRowsTop) {
       return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
 
-    } else if (coords.col < fixedColumns && coords.row >= totalRows - fixedRowsBottom) {
+    } else if (coords.col < fixedColumnsStart && coords.row >= totalRows - fixedRowsBottom) {
       if (this.wtOverlays.bottomLeftCornerOverlay && this.wtOverlays.bottomLeftCornerOverlay.clone) {
         return this.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell(coords);
       }
 
-    } else if (coords.col < fixedColumns) {
+    } else if (coords.col < fixedColumnsStart) {
       return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
 
     } else if (coords.row < totalRows && coords.row >= totalRows - fixedRowsBottom) {

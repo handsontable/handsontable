@@ -40,6 +40,7 @@ import {
   PasswordEditor,
   SelectEditor,
   TextEditor,
+  TimeEditor,
   EditorType,
   getEditor,
   registerEditor,
@@ -53,6 +54,7 @@ import {
   numericRenderer,
   passwordRenderer,
   textRenderer,
+  timeRenderer,
   getRenderer,
   registerRenderer,
 } from './renderers';
@@ -301,6 +303,7 @@ declare namespace Handsontable {
     export { PasswordEditor };
     export { SelectEditor };
     export { TextEditor };
+    export { TimeEditor };
     export { registerEditor };
     export { getEditor };
   }
@@ -314,6 +317,7 @@ declare namespace Handsontable {
     export { numericRenderer as NumericRenderer };
     export { passwordRenderer as PasswordRenderer };
     export { textRenderer as TextRenderer };
+    export { timeRenderer as TimeRenderer };
     export { registerRenderer };
     export { getRenderer };
   }

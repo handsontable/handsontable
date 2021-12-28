@@ -366,7 +366,7 @@ class Viewport {
    *
    * @param {number} calculationType The render type ID, which determines for what type of
    *                                 calculation calculator is created.
-   * @returns {ViewportRowsCalculator}
+   * @returns {ViewportColumnsCalculator}
    */
   createColumnsCalculator(calculationType = RENDER_TYPE) {
     const { wot } = this;
@@ -380,10 +380,10 @@ class Viewport {
       pos = 0;
     }
 
-    const fixedColumnsLeft = wot.getSetting('fixedColumnsLeft');
+    const fixedColumnsStart = wot.getSetting('fixedColumnsStart');
 
-    if (fixedColumnsLeft) {
-      const fixedColumnsWidth = wtOverlays.leftOverlay.sumCellSizes(0, fixedColumnsLeft);
+    if (fixedColumnsStart) {
+      const fixedColumnsWidth = wtOverlays.leftOverlay.sumCellSizes(0, fixedColumnsStart);
 
       pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;

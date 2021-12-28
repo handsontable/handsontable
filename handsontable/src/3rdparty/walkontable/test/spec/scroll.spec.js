@@ -455,7 +455,7 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
@@ -478,7 +478,7 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedColumnsLeft: 2,
+        fixedColumnsStart: 2,
         fixedRowsTop: 2
       });
       const masterHolder = wt.wtTable.holder;
@@ -514,7 +514,7 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedColumnsLeft: 2,
+        fixedColumnsStart: 2,
         fixedRowsTop: 2,
         onScrollVertically: scrollVertically,
         onScrollHorizontally: scrollHorizontally,
@@ -542,7 +542,7 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedColumnsLeft: 2,
+        fixedColumnsStart: 2,
         fixedRowsTop: 2,
         onScrollVertically: scrollVertically,
         onScrollHorizontally: scrollHorizontally,
@@ -572,7 +572,7 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedColumnsLeft: 2,
+        fixedColumnsStart: 2,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
       });
@@ -630,7 +630,7 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedColumnsLeft: 2,
+        fixedColumnsStart: 2,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
       });
@@ -688,7 +688,7 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedColumnsLeft: 2,
+        fixedColumnsStart: 2,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
       });
@@ -745,7 +745,7 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedColumnsLeft: 2,
+        fixedColumnsStart: 2,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
       });
@@ -802,7 +802,7 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedColumnsLeft: 2,
+        fixedColumnsStart: 2,
         fixedRowsTop: 2,
         fixedRowsBottom: 2,
       });
@@ -1017,7 +1017,7 @@ describe('WalkontableScroll', () => {
       expect(wt.wtTable.getFirstVisibleColumn()).toEqual(3);
     });
 
-    xit('should scroll to a very wide column that is after viewport (with fixedColumnsLeft)', () => {
+    xit('should scroll to a very wide column that is after viewport (with fixedColumnsStart)', () => {
       spec().data = createSpreadsheetData(1, 10);
 
       const wt = walkontable({
@@ -1031,7 +1031,7 @@ describe('WalkontableScroll', () => {
 
           return 50;
         },
-        fixedColumnsLeft: 2
+        fixedColumnsStart: 2
       });
 
       wt.draw();
