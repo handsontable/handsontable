@@ -36,7 +36,10 @@
 }
 
 .htFiltersConditionsMenu table tbody tr td:first-child {
-  border: 0;
+  border-top-width: 0;
+  border-inline-end-width: 0;
+  border-bottom-width: 0;
+  border-inline-start-width: 0;
 }
 
 .htFiltersConditionsMenu table tbody tr td.htDimmed {
@@ -138,7 +141,8 @@
 }
 
 .handsontable .htUISelectAll {
-  margin-right: 10px;
+  margin-inline-start: 0;
+  margin-inline-end: 10px;
 }
 
 .handsontable .htUIClearAll, .handsontable .htUISelectAll {
@@ -150,7 +154,7 @@
 }
 
 .handsontable .htUISelectionControls {
-  text-align: right;
+  text-align: inline-end;
 }
 
 .handsontable .htCheckboxRendererInput {
@@ -200,7 +204,8 @@
 }
 
 .handsontable .htUIInput.htUIButtonOK {
-  margin-right: 10px;
+  margin-inline-start: 0;
+  margin-inline-end: 10px;
 }
 
 .handsontable .htUIInput.htUIButtonOK input {
@@ -265,7 +270,8 @@
 
 .handsontable .htUIRadio {
   display: inline-block;
-  margin-right: 5px;
+  margin-inline-start: 0;
+  margin-inline-end: 5px;
   height: 100%;
 }
 
@@ -274,7 +280,8 @@
 }
 
 .handsontable .htUIRadio > input[type=radio] {
-  margin-right: 0.5ex;
+  margin-inline-start: 0;
+  margin-inline-end: 0.5ex;
 }
 
 .handsontable .htUIRadio label {

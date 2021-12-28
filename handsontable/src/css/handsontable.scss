@@ -19,7 +19,7 @@
 
 .handsontable td.htInvalid {
   /*gives priority over td.area selection background*/
-  background-color: #ff4c42 !important; 
+  background-color: #ff4c42 !important;
 }
 
 .handsontable td.htNoWrap {
@@ -112,7 +112,7 @@
   /* Centering end */
 
   /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
-  padding-left: 8px; 
+  padding-left: 8px;
   position: absolute;
   right: -9px;
 
@@ -169,7 +169,7 @@
   right: 0;
   bottom: 0;
   /* Fix for IE9 to spread the ":before" pseudo element to 100% height of the parent element */
-  bottom: -100%\9; 
+  bottom: -100%\9;
   background: #005eff;
 }
 
@@ -273,7 +273,7 @@ TextRenderer readOnly cell
   position: relative;
 }
 
-.handsontable .htSubmenu :after{
+.handsontable .htSubmenu :after {
   content: '\25B6';
   color: #777;
   position: absolute;
@@ -281,32 +281,43 @@ TextRenderer readOnly cell
   font-size: 9px;
 }
 
+[dir=rtl] .handsontable .htSubmenu :after {
+  content: '';
+}
+
+[dir=rtl] .handsontable .htSubmenu :before {
+  content: '\25C0';
+  color: #777;
+  position: absolute;
+  left: 5px;
+  font-size: 9px;
+}
 
 /*
 TextRenderer horizontal alignment
 */
-.handsontable .htLeft{
+.handsontable .htLeft {
   text-align: left;
 }
-.handsontable .htCenter{
+.handsontable .htCenter {
   text-align: center;
 }
-.handsontable .htRight{
+.handsontable .htRight {
   text-align: right;
 }
-.handsontable .htJustify{
+.handsontable .htJustify {
   text-align: justify;
 }
 /*
 TextRenderer vertical alignment
 */
-.handsontable .htTop{
+.handsontable .htTop {
   vertical-align: top;
 }
-.handsontable .htMiddle{
+.handsontable .htMiddle {
   vertical-align: middle;
 }
-.handsontable .htBottom{
+.handsontable .htBottom {
   vertical-align: bottom;
 }
 

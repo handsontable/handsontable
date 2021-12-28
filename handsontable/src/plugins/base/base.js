@@ -21,6 +21,7 @@ let initializedPlugins = null;
 
 /**
  * @util
+ * @property {Core} hot Handsontable instance.
  */
 export class BasePlugin {
   static get PLUGIN_KEY() {

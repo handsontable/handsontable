@@ -12,6 +12,7 @@ import { unescapeRedundant } from './postProcessors/unescapeRedundant.mjs';
 import { jsdocLinksFixer } from './postProcessors/jsdocLinksFixer.mjs';
 import { isJsdocPlugin } from './predictors.mjs';
 import { buildHeaderWriter } from './seo.mjs';
+import { removeInternals } from './preProcessors/removeInternals.mjs';
 
 export const buildRenderer = ({ dist, generateMarkdown, configuration, logger }) =>
   (fileName, members, parsedTypes) => {
@@ -35,6 +36,7 @@ export const buildRenderer = ({ dist, generateMarkdown, configuration, logger })
     };
 
     const preProcessor = buildPreProcessor([
+      removeInternals,
       sortJsdocMembers,
       applyLinkToSource,
       ...applyOptionsToPlugins,
