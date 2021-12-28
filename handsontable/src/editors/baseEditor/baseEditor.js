@@ -445,19 +445,19 @@ export class BaseEditor {
     let section = '';
 
     if (this.row < this.hot.getSettings().fixedRowsTop) {
-      if (this.col < this.hot.getSettings().fixedColumnsLeft) {
+      if (this.col < this.hot.getSettings().fixedColumnsStart) {
         section = 'top-left-corner';
       } else {
         section = 'top';
       }
     } else if (this.hot.getSettings().fixedRowsBottom &&
                this.row >= totalRows - this.hot.getSettings().fixedRowsBottom) {
-      if (this.col < this.hot.getSettings().fixedColumnsLeft) {
+      if (this.col < this.hot.getSettings().fixedColumnsStart) {
         section = 'bottom-left-corner';
       } else {
         section = 'bottom';
       }
-    } else if (this.col < this.hot.getSettings().fixedColumnsLeft) {
+    } else if (this.col < this.hot.getSettings().fixedColumnsStart) {
       section = 'left';
     }
 

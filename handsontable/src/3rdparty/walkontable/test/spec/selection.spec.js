@@ -61,7 +61,7 @@ describe('Walkontable.Selection', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       selections: createSelectionController(),
-      fixedColumnsLeft: 2,
+      fixedColumnsStart: 2,
       fixedRowsTop: 2
     });
 

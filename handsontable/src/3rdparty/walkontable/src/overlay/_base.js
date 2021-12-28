@@ -113,7 +113,7 @@ export class Overlay {
       return;
     }
     const windowScroll = this.mainTableScrollableElement === this.wot.rootWindow;
-    const fixedColumn = columnIndex < this.wot.getSetting('fixedColumnsLeft');
+    const fixedColumnStart = columnIndex < this.wot.getSetting('fixedColumnsStart');
     const fixedRowTop = rowIndex < this.wot.getSetting('fixedRowsTop');
     const fixedRowBottom = rowIndex >= this.wot.getSetting('totalRows') - this.wot.getSetting('fixedRowsBottom');
 
@@ -128,11 +128,14 @@ export class Overlay {
     let offsetObject = null;
 
     if (windowScroll) {
-      offsetObject = this.getRelativeCellPositionWithinWindow(fixedRowTop, fixedColumn, elementOffset, spreaderOffset);
+      offsetObject = this.getRelativeCellPositionWithinWindow(
+        fixedRowTop, fixedColumnStart, elementOffset, spreaderOffset
+      );
 
     } else {
-      offsetObject = this.getRelativeCellPositionWithinHolder(fixedRowTop, fixedRowBottom, fixedColumn,
-        elementOffset, spreaderOffset);
+      offsetObject = this.getRelativeCellPositionWithinHolder(
+        fixedRowTop, fixedRowBottom, fixedColumnStart, elementOffset, spreaderOffset
+      );
     }
 
     return offsetObject;

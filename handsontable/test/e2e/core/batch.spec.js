@@ -122,7 +122,7 @@ describe('Core.batch', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       fixedRowsTop: 0,
-      fixedColumnsLeft: 0,
+      fixedColumnsStart: 0,
       fixedRowsBottom: 0,
     });
 
@@ -140,7 +140,7 @@ describe('Core.batch', () => {
     hot.batch(() => {
       hot.updateSettings({
         fixedRowsTop: 1,
-        fixedColumnsLeft: 1,
+        fixedColumnsStart: 1,
         fixedRowsBottom: 1,
       });
     });
@@ -159,7 +159,7 @@ describe('Core.batch', () => {
     hot.batch(() => {
       hot.updateSettings({
         fixedRowsTop: 0,
-        fixedColumnsLeft: 0,
+        fixedColumnsStart: 0,
         fixedRowsBottom: 0,
       });
     });

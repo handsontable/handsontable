@@ -1,6 +1,6 @@
 import { defineGetter } from '../../../../../helpers/object';
 
-const MIXIN_NAME = 'stickyColumnsLeft';
+const MIXIN_NAME = 'stickyColumnsStart';
 
 /**
  * Mixin for the subclasses of `Table` with implementations of
@@ -10,7 +10,7 @@ const MIXIN_NAME = 'stickyColumnsLeft';
  *
  * @type {object}
  */
-const stickyColumnsLeft = {
+const stickyColumnsStart = {
   /**
    * Get the source index of the first rendered column. If no columns are rendered, returns an error code: -1.
    *
@@ -63,7 +63,7 @@ const stickyColumnsLeft = {
   getRenderedColumnsCount() {
     const totalColumns = this.wot.getSetting('totalColumns');
 
-    return Math.min(this.wot.getSetting('fixedColumnsLeft'), totalColumns);
+    return Math.min(this.wot.getSetting('fixedColumnsStart'), totalColumns);
   },
 
   /**
@@ -77,9 +77,9 @@ const stickyColumnsLeft = {
   }
 };
 
-defineGetter(stickyColumnsLeft, 'MIXIN_NAME', MIXIN_NAME, {
+defineGetter(stickyColumnsStart, 'MIXIN_NAME', MIXIN_NAME, {
   writable: false,
   enumerable: false,
 });
 
-export default stickyColumnsLeft;
+export default stickyColumnsStart;

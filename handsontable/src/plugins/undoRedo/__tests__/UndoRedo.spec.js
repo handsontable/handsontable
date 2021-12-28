@@ -3126,13 +3126,13 @@ describe('UndoRedo', () => {
         data: Handsontable.helper.createSpreadsheetData(3, 3),
         colHeaders: true,
         rowHeaders: true,
-        fixedColumnsLeft: 1,
+        fixedColumnsStart: 1,
       });
 
       alter('remove_col', 0, 3);
       undo();
 
-      expect(hot.getSettings().fixedColumnsLeft).toBe(1);
+      expect(hot.getSettings().fixedColumnsStart).toBe(1);
     });
   });
 });

@@ -231,6 +231,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   filteringCaseSensitive: true,
   filters: false,
   fixedColumnsLeft: 123,
+  fixedColumnsStart: 123,
   fixedRowsBottom: 123,
   fixedRowsTop: 123,
   formulas: oneOf(
