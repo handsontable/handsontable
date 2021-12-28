@@ -4395,7 +4395,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.prepareEditor();
     }
   };
-  
+
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);
 
