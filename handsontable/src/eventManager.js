@@ -113,9 +113,12 @@ class EventManager {
       len -= 1;
       const event = this.context.eventListeners[len];
 
-      if (event) {
-        this.removeEventListener(event.element, event.event, event.callback, onlyOwnEvents);
+      if (onlyOwnEvents && event.eventManager !== this) {
+        continue;
       }
+      this.context.eventListeners.splice(len, 1);
+      event.element.removeEventListener(event.event, event.callbackProxy, event.options);
+      listenersCounter -= 1;
     }
   }
 

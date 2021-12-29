@@ -1,19 +1,19 @@
 ---
-title: 'Setting up a translation in Vue 2'
-metaTitle: 'Setting up a translation in Vue 2 - Guide - Handsontable Documentation'
-permalink: /next/vue-setting-up-a-language
-canonicalUrl: /vue-setting-up-a-language
+title: 'Setting up a translation in Vue 3'
+metaTitle: 'Setting up a translation in Vue 3 - Guide - Handsontable Documentation'
+permalink: /next/vue3-setting-up-a-language
+canonicalUrl: /vue3-setting-up-a-language
 ---
 
-# Setting up a translation in Vue 2
+# Setting up a translation in Vue 3
 
 ## Overview
 
-The following example shows a Handsontable instance with translations set up in Vue 2.
+The following example shows a Handsontable instance with translations set up in Vue 3.
 
 ## Example
 
-::: example #example1 :vue-numbro --html 1 --js 2
+::: example #example1 :vue3-numbro --html 1 --js 2
 ```html
 <div id="example1">
   <hot-table :data="hotData" :settings="settings">
@@ -42,8 +42,8 @@ The following example shows a Handsontable instance with translations set up in 
 ```
 
 ```js
-import Vue from 'vue';
-import { HotTable, HotColumn } from '@handsontable/vue';
+import { createApp } from 'vue';
+import { HotTable, HotColumn } from '@handsontable/vue3';
 import numbro from 'numbro';
 import languages from 'numbro/dist/languages.min.js';
 import { registerAllModules } from 'handsontable/registry';
@@ -57,8 +57,7 @@ registerAllModules();
 numbro.registerLanguage(languages['ja-JP']);
 numbro.registerLanguage(languages['tr-TR']);
 
-new Vue({
-  el: '#example1',
+const app = createApp({
   data() {
     return {
       formatJP: {
@@ -95,7 +94,9 @@ new Vue({
   components: {
     HotTable,
     HotColumn,
-  },
+  }
 });
+
+app.mount('#example1');
 ```
 :::

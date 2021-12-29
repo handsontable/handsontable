@@ -1,23 +1,23 @@
 ---
-title: 'Vuex example in Vue 2'
-metaTitle: 'Vuex example - Guide - Handsontable Documentation'
-permalink: /next/vue-vuex-example
-canonicalUrl: /vue-vuex-example
+title: 'Vuex in Vue 3'
+metaTitle: 'Vuex in Vue 3 - Guide - Handsontable Documentation'
+permalink: /next/vue3-vuex-example
+canonicalUrl: /vue3-vuex-example
 ---
 
-# Vuex example in Vue 2
+# Vuex in Vue 3
 
 [[toc]]
 
 ## Overview
 
-The following example implements the `@handsontable/vue` component with a `readOnly` toggle switch and the Vuex state manager.
+The following example implements the `@handsontable/vue3` component with a `readOnly` toggle switch and the Vuex state manager.
 
 ## Example - Vuex store dump:
 
 Toggle `readOnly` for the entire table.
 
-::: example #example1 :vue-vuex --html 1 --js 2
+::: example #example1 :vue3-vuex --html 1 --js 2
 ```html
 <div id="example1">
   <div id="example-preview">
@@ -36,16 +36,35 @@ Toggle `readOnly` for the entire table.
 </div>
 ```
 ```js
-import Vue from 'vue';
-import { HotTable } from '@handsontable/vue';
+import { createApp } from 'vue';
+import { createStore } from 'vuex';
+import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import { createSpreadsheetData } from './helpers';
 
 // register Handsontable's modules
 registerAllModules();
 
-new Vue({
-  el: "#example1",
+const store = createStore({
+  state() {
+    return {
+      hotData: null,
+      hotSettings: {
+        readOnly: false
+      }
+    };
+  },
+  mutations: {
+    updateData(state, hotData) {
+      state.hotData = hotData;
+    },
+    updateSettings(state, updateObj) {
+      state.hotSettings[updateObj.prop] = updateObj.value;
+    }
+  }
+});
+
+const app = createApp({
   data() {
     return {
       hotSettings: {
@@ -56,33 +75,32 @@ new Vue({
         height: 'auto',
         afterChange: () => {
           if (this.hotRef) {
-            this.$store.commit('updateData', this.hotRef.getSourceData());
+            store.commit('updateData', this.hotRef.getSourceData());
           }
         },
         licenseKey: 'non-commercial-and-evaluation'
       },
       hotRef: null
-    };
+    }
   },
   mounted() {
     this.hotRef = this.$refs.wrapper.hotInstance;
-    this.$store.subscribe((mutation, state) => {
+    store.subscribe((mutation, state) => {
       this.updateVuexPreview();
     });
-    this.$store.commit('updateData', this.hotRef.getSourceData());
+    store.commit('updateData', this.hotRef.getSourceData());
   },
   methods: {
     toggleReadOnly(event) {
       this.hotSettings.readOnly = event.target.checked;
-      this.$store.commit('updateSettings', {prop: 'readOnly', value: this.hotSettings.readOnly});
+      store.commit('updateSettings', {prop: 'readOnly', value: this.hotSettings.readOnly});
     },
     updateVuexPreview() {
       // This method serves only as a renderer for the Vuex's state dump.
-
       const previewTable = document.querySelector('#vuex-preview table');
       let newInnerHtml = '<tbody>';
 
-      for (const [key, value] of Object.entries(this.$store.state)) {
+      for (const [key, value] of Object.entries(store.state)) {
         newInnerHtml += `<tr><td class="table-container">`;
 
         if (key === 'hotData' && Array.isArray(value)) {
@@ -103,7 +121,7 @@ new Vue({
           newInnerHtml += `<strong>hotSettings:</strong> <ul>`;
 
           for (let settingsKey of Object.keys(value)) {
-            newInnerHtml += `<li>${settingsKey}: ${this.$store.state.hotSettings[settingsKey]}</li>`;
+            newInnerHtml += `<li>${settingsKey}: ${store.state.hotSettings[settingsKey]}</li>`;
           }
 
           newInnerHtml += `</ul>`;
@@ -117,24 +135,11 @@ new Vue({
     }
   },
   components: {
-    HotTable
-  },
-  store: new Vuex.Store({
-    state: {
-      hotData: null,
-      hotSettings: {
-        readOnly: false
-      }
-    },
-    mutations: {
-      updateData(state, hotData) {
-        state.hotData = hotData;
-      },
-      updateSettings(state, updateObj) {
-        state.hotSettings[updateObj.prop] = updateObj.value;
-      }
-    }
-  })
+    HotTable,
+  }
 });
+
+app.use(store);
+app.mount('#example1');
 ```
 :::

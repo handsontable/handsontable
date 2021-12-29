@@ -826,6 +826,7 @@ new Handsontable(container, {
 ## Using modules with frameworks
 
 You can also use modules with Handsontable's framework wrappers:
-- [Using modules in React](@/guides/integrate-with-react/react-modules.md)
-- [Using modules in Angular](@/guides/integrate-with-angular/angular-modules.md)
-- [Using modules in Vue](@/guides/integrate-with-vue/vue-modules.md)
+- [Using modules with React](@/guides/integrate-with-react/react-modules.md)
+- [Using modules with Angular](@/guides/integrate-with-angular/angular-modules.md)
+- [Using modules with Vue 2](@/guides/integrate-with-vue/vue-modules.md)
+- [Using modules with Vue 3](@/guides/integrate-with-vue3/vue3-modules.md)
