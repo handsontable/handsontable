@@ -26,15 +26,15 @@ Read more:
 
 Handsontable is made of the following modules:
 
-| Module types                                                               | Modules                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Required? |
-| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| Base                                                                       | `handsontable/base`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Required  |
-| [Cell editors](@/guides/cell-functions/cell-editor.md)                     | `AutocompleteEditor`<br>`BaseEditor`<br>`CheckboxEditor`<br>`DateEditor`<br>`DropdownEditor`<br>`HandsontableEditor`<br>`NumericEditor`<br>`PasswordEditor`<br>`SelectEditor`<br>`TextEditor`                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Optional  |
-| [Cell renderers](@/guides/cell-functions/cell-renderer.md)                 | `baseRenderer`<br>`autocompleteRenderer`<br>`checkboxRenderer`<br>`htmlRenderer`<br>`numericRenderer`<br>`passwordRenderer`<br>`textRenderer`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Optional  |
-| [Cell validators](@/guides/cell-functions/cell-validator.md)               | `autocompleteValidator`<br>`dateValidator`<br>`numericValidator`<br>`timeValidator`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Optional  |
-| [Cell types](@/guides/cell-types/cell-type.md)                             | `AutocompleteCellType`<br>`CheckboxCellType`<br>`DateCellType`<br>`DropdownCellType`<br>`HandsontableCellType`<br>`NumericCellType`<br>`PasswordCellType`<br>`TextCellType`<br>`TimeCellType`                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Optional  |
-| [Plugins](@/api/plugins.md)                                                | `AutoColumnSize`<br>`AutoRowSize`<br>`Autofill`<br>`BasePlugin`<br>`BindRowsWithHeaders`<br>`CollapsibleColumns`<br>`ColumnSorting`<br>`ColumnSummary`<br>`Comments`<br>`ContextMenu`<br>`CopyPaste`<br>`CustomBorders`<br>`DragToScroll`<br>`DropdownMenu`<br>`ExportFile`<br>`Filters`<br>`Formulas`<br>`HiddenColumns`<br>`HiddenRows`<br>`ManualColumnFreeze`<br>`ManualColumnMove`<br>`ManualColumnResize`<br>`ManualRowMove`<br>`ManualRowResize`<br>`MergeCells`<br>`MultiColumnSorting`<br>`MultipleSelectionHandles`<br>`NestedHeaders`<br>`NestedRows`<br>`PersistentState`<br>`Search`<br>`TouchScroll`<br>`TrimRows`<br>`UndoRedo` | Optional  |
-| [Translations](@/guides/internationalization/internationalization-i18n.md) | `deCH` `deDE` `enUS` `esMX`<br>`frFR` `itIT` `jaJP` `koKR`<br>`lvLV` `nbNO` `nlNL` `plPL`<br>`ptBR` `ruRU` `zhCN` `zhTW`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Optional  |
+| Module types                                                                        | Modules                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Required / Optional |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| Base                                                                                | `handsontable/base`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Required            |
+| [Cell editors](@/guides/cell-functions/cell-editor.md)                              | `AutocompleteEditor`<br>`BaseEditor`<br>`CheckboxEditor`<br>`DateEditor`<br>`DropdownEditor`<br>`HandsontableEditor`<br>`NumericEditor`<br>`PasswordEditor`<br>`SelectEditor`<br>`TextEditor`                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Optional            |
+| [Cell renderers](@/guides/cell-functions/cell-renderer.md)                          | `baseRenderer`<br>`autocompleteRenderer`<br>`checkboxRenderer`<br>`htmlRenderer`<br>`numericRenderer`<br>`passwordRenderer`<br>`textRenderer`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Optional            |
+| [Cell validators](@/guides/cell-functions/cell-validator.md)                        | `autocompleteValidator`<br>`dateValidator`<br>`numericValidator`<br>`timeValidator`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | Optional            |
+| [Cell types](@/guides/cell-types/cell-type.md)                                      | `AutocompleteCellType`<br>`CheckboxCellType`<br>`DateCellType`<br>`DropdownCellType`<br>`HandsontableCellType`<br>`NumericCellType`<br>`PasswordCellType`<br>`TextCellType`<br>`TimeCellType`                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Optional            |
+| [Plugins](@/api/plugins.md)                                                         | `AutoColumnSize`<br>`AutoRowSize`<br>`Autofill`<br>`BasePlugin`<br>`BindRowsWithHeaders`<br>`CollapsibleColumns`<br>`ColumnSorting`<br>`ColumnSummary`<br>`Comments`<br>`ContextMenu`<br>`CopyPaste`<br>`CustomBorders`<br>`DragToScroll`<br>`DropdownMenu`<br>`ExportFile`<br>`Filters`<br>`Formulas`<br>`HiddenColumns`<br>`HiddenRows`<br>`ManualColumnFreeze`<br>`ManualColumnMove`<br>`ManualColumnResize`<br>`ManualRowMove`<br>`ManualRowResize`<br>`MergeCells`<br>`MultiColumnSorting`<br>`MultipleSelectionHandles`<br>`NestedHeaders`<br>`NestedRows`<br>`PersistentState`<br>`Search`<br>`TouchScroll`<br>`TrimRows`<br>`UndoRedo` | Optional            |
+| [Translations](@/guides/internationalization/internationalization-i18n.md) | `deCH` `deDE` `enUS` `esMX`<br>`frFR` `itIT` `jaJP` `koKR`<br>`lvLV` `nbNO` `nlNL` `plPL`<br>`ptBR` `ruRU` `zhCN` `zhTW`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Optional            |
 
 To see how to import all the modules that Handsontable is made of, click below:
 
@@ -283,7 +283,7 @@ To start using Handsontable modules:
    - [Validator modules](#using-validator-modules)
    - [Cell type modules](#using-cell-type-modules)
    - [Plugin modules](#using-plugin-modules)
-   - [Translation modules](#using-translation-modules)
+   - [Translation modules](#using-internationalization-modules)
 3. Use [tree shaking](#tree-shaking) to remove unused code.
 
 ### Importing required elements
@@ -402,7 +402,7 @@ registerEditor(PasswordEditor);
 
 #### Step 5: Use your editor
 
-Now, you can start using your editor:
+Now, you can start using your editor, by setting the [`editor`](@/api/options.md#editor) [configuration option](@/guides/getting-started/setting-options.md):
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -503,7 +503,7 @@ registerRenderer(autocompleteRenderer);
 
 #### Step 5: Use your renderer
 
-Now, you can start using your renderer:
+Now, you can start using your renderer, by setting the [`renderer`](@/api/options.md#renderer) [configuration option](@/guides/getting-started/setting-options.md)::
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -601,7 +601,7 @@ registerValidator(numericValidator);
 
 #### Step 5: Use your validator
 
-Now, you can start using your validator:
+Now, you can start using your validator, by setting the [`validator`](@/api/options.md#validator) [configuration option](@/guides/getting-started/setting-options.md):
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -704,7 +704,7 @@ registerCellType(CheckboxCellType);
 
 #### Step 5: Use your cell type
 
-Now, you can start using your cell type:
+Now, you can start using your cell type, by setting the [`type`](@/api/options.md#type) [configuration option](@/guides/getting-started/setting-options.md):
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -864,70 +864,126 @@ registerAllPlugins();
 
 ### Using translation modules
 
-Importing translations works slightly different than in case of other elements. Let's try adding the `pl-PL` language.
+Each translation module contains a different [translation](@/guides/internationalization/internationalization-i18n.md) package:
 
-Start with importing the base and the language code:
+| Module | Translation                 |
+| ------ | --------------------------- |
+| `deCH` | German - Switzerland        |
+| `deDE` | German - Germany            |
+| `enUS` | English - United States     |
+| `esMX` | Spanish - Mexico            |
+| `frFR` | French - France             |
+| `itIT` | Italian - Italy             |
+| `jaJP` | Japanese - Japan            |
+| `koKR` | Korean - Korea              |
+| `lvLV` | Latvian - Latvia            |
+| `nbNO` | Norwegian (Bokmål) - Norway |
+| `nlNL` | Dutch - Netherlands         |
+| `plPL` | Polish - Poland             |
+| `ptBR` | Portuguese - Brazil         |
+| `ruRU` | Russian - Russia            |
+| `zhCN` | Chinese - China             |
+| `zhTW` | Chinese - Taiwan            |
+
+To start using a translation module, follow the steps below.
+
+#### Step 1: Import the required elements
+
+First, make sure to [import the required elements](#importing-required-elements):
 
 ```js
-// remember to have the base imported
+// import the `handsontable/base` module
 import Handsontable from 'handsontable/base';
 
-// import the language code and interface to register language
+// import Handsontable's CSS
+import 'handsontable/dist/handsontable.full.css';
+```
+
+#### Step 2: Import the translations' registering method
+
+Import the `registerLanguageDictionary()` method that lets you register your translation:
+
+```js
+import Handsontable from 'handsontable/base';
+import 'handsontable/dist/handsontable.full.css';
+
+// import the `registerLanguageDictionary()` method
+import { registerLanguageDictionary } from 'handsontable/i18n';
+```
+
+#### Step 3: Import your translation module
+
+Import a translation module of your choice. For example:
+
+```js
+import Handsontable from 'handsontable/base';
+import 'handsontable/dist/handsontable.full.css';
+
+// import the `plPL` module
 import { registerLanguageDictionary, plPL } from 'handsontable/i18n';
 ```
 
-Afterwards you need to register it:
+#### Step 4: Register your translation
+
+Register your translation, using the `registerLanguageDictionary()` method. For example:
 
 ```js
+import Handsontable from 'handsontable/base';
+import 'handsontable/dist/handsontable.full.css';
+import { registerLanguageDictionary, plPL } from 'handsontable/i18n';
+
+// register the `plPL` module
+registerLanguageDictionary(plPL.languageCode, plPL);
+```
+
+#### Step 5: Use your translation
+
+Now, you can start using your translation, by setting the [`language`](@/api/options.md#language) [configuration option](@/guides/getting-started/setting-options.md):
+
+```js
+import Handsontable from 'handsontable/base';
+import 'handsontable/dist/handsontable.full.css';
+import { registerLanguageDictionary, plPL } from 'handsontable/i18n';
+
 registerLanguageDictionary(plPL.languageCode, plPL);
 
-// or if the language dictionary object contains the "languageCode" property,
-// the registration can be simplified to something like this
-registerLanguageDictionary(plPL);
-```
-
-Now, you can use newly registered translation. The full example looks like this:
-
-```js
-import Handsontable from 'handsontable/base';
-import { registerLanguageDictionary, plPL } from 'handsontable/i18n';
-
-registerLanguageDictionary(plPL);
-
-// use the locales
+// set the `language` configuration option
 new Handsontable(container, {
   language: 'pl-PL',
-// rest of the settings
 });
 ```
 
-And that is all! You can use the PL-pl translation!
+:::tip
+#### Optimizing Moment.js locales
 
-#### Optimizing moment.js locales
+By default, [Moment.js](https://momentjs.com/) (Handsontable's dependency) comes with all possible locales, which increases the bundle size.
 
-If you want to decrease the bundle size even more you can also focus on optimizing moment.js locales. There are different methods of doing so but this guide focuses on using the webpack's [IgnorePlugin](https://webpack.js.org/plugins/ignore-plugin/). For another option, you can check [this tutorial](https://github.com/jmblog/how-to-optimize-momentjs-with-webpack) directly.
-
-Moment.js can be heavyweight because when you type `var moment = require('moment')` in the code you get all locales as default. To be more selective with your choice you can first, use the `IgnorePlugin` that removes all locales:
+To [optimize Moment.js locales](https://github.com/jmblog/how-to-optimize-momentjs-with-webpack), use [webpack's `IgnorePlugin`](https://webpack.js.org/plugins/ignore-plugin/):
 
 ```js
 const webpack = require('webpack');
 module.exports = {
   //...
   plugins: [
-    // Ignore all locale files of moment.js
+    // ignore all Moment.js locale files
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
   ],
 };
 ```
 
-And then explicitly load selected locales:
+And then explicitly load Moment.js, importing only those locales that you need:
 
 ```js
-import moment from 'moment';
-import 'moment/locale/ja';
 import Handsontable from 'handsontable/base';
+import 'handsontable/dist/handsontable.full.css';
 import { registerCellType, DateCellType } from 'handsontable/cellTypes';
 
+// explicitly import Moment.js
+import moment from 'moment';
+// explicitly import a Moment.js locale of your choice
+import 'moment/locale/ja';
+
+// register the Moment.js locale of your choice
 moment.locale('ja');
 registerCellType(DateCellType);
 
@@ -935,6 +991,7 @@ new Handsontable(container, {
   type: 'date',
 });
 ```
+:::
 
 ### Using modules with framework wrappers
 
