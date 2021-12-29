@@ -1,8 +1,9 @@
-*
+/*
 
 !.gitignore
 !CNAME
 !/demo/
+!/examples/
 !LICENSE
 !README.md
 !index.html
