@@ -464,7 +464,10 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     if (isPrintableChar(event.keyCode) || event.keyCode === KEY_CODES.BACKSPACE ||
       event.keyCode === KEY_CODES.DELETE || event.keyCode === KEY_CODES.INSERT) {
-      let timeOffset = 0;
+      // for Windows 10 + FF86 there is need to add delay to make sure that the value taken from
+      // the textarea is the freshed value. Otherwise the list of choices do not update correctly (see #7570).
+      // On the more modern version of the FF (~ >=91) it seems that the issue is not present.
+      let timeOffset = 10;
 
       // on ctl+c / cmd+c don't update suggestion list
       if (event.keyCode === KEY_CODES.C && (event.ctrlKey || event.metaKey)) {
