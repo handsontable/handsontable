@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
 
 const hot = new Handsontable(document.createElement('div'), {});
-const columnSorting = hot.getPlugin('columnSorting');
+const columnSorting = hot.getPlugin('multiColumnSorting');
 
 columnSorting.clearSort();
 
@@ -29,4 +29,4 @@ columnSorting.setSortConfig([]);
 columnSorting.isSorted();
 
 columnSorting.sort({ column: 0, sortOrder: 'asc' });
-columnSorting.sort([{ column: 0, sortOrder: 'asc' }]);
+columnSorting.sort([{ column: 1, sortOrder: 'desc' }, { column: 2, sortOrder: 'asc' }]);
