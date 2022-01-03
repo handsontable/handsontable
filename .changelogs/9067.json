@@ -1,0 +1,7 @@
+{
+  "title": "Fixed wrong typescript definition for `sort` method of the MultiColumnSorting plugin.",
+  "type": "fixed",
+  "issue": 9067,
+  "breaking": false,
+  "framework": "none"
+}
