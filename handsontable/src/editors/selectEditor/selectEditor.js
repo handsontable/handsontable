@@ -66,6 +66,11 @@ export class SelectEditor extends BaseEditor {
     this._opened = true;
     this.refreshDimensions();
     this.select.style.display = '';
+
+    const shortcutManager = this.hot.getShortcutManager();
+
+    shortcutManager.setActiveContexts(['editor']);
+
     this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
   }
 
