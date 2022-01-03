@@ -18,12 +18,12 @@ tags:
 Released on 29th of September, 2021
 
 **Changed**
-- Unified the naming and description of the fourth argument, `controller`, for selection manipulation in the [`beforeOnCellMouseDown`](@/api/hooks.md#beforeoncellmousedown) and [`beforeOnCellMouseOver`](@/api/hooks.md#beforeoncellmouseover) hooks. [#4996](https://github.com/handsontable/handsontable/issues/4996) **[breaking change]**
-- Changed what the [`beforeRender`](@/api/hooks.md#beforerender) and [`afterRender`](@/api/hooks.md#afterrender) hooks are, and when they are triggered. Added two new hooks: [`beforeViewRender`](@/api/hooks.md#beforeviewrender) and [`afterViewRender`](@/api/hooks.md#afterviewrender). [#6303](https://github.com/handsontable/handsontable/issues/6303) **[breaking change]**
-- Changed the optional [HyperFormula](https://github.com/handsontable/hyperformula) dependency from `0.6.2` to `^1.1.0`, which introduces breaking changes for the [`Formulas`](@/api/formulas.md) plugin users. [#8502](https://github.com/handsontable/handsontable/issues/8502) **[breaking change]**
-- Changed the default values for the [`rowsLimit`](@/api/copyPaste.md#rowslimit) and [`columnsLimit`](@/api/copyPaste.md#columnslimit) options of the [`CopyPaste`](@/api/copyPaste.md) plugin. [#8660](https://github.com/handsontable/handsontable/issues/8660) **[breaking change]**
-- Added a default font family, size, weight and color. [#8661](https://github.com/handsontable/handsontable/issues/8661) **[breaking change]**
-- Changed the [`autoWrapRow`](@/api/options.md#autowraprow) and [`autoWrapCol`](@/api/options.md#autowrapcol) options\` default values from `true` to `false`. [#8662](https://github.com/handsontable/handsontable/issues/8662) **[breaking change]**
+- **Breaking change**: Unified the naming and description of the fourth argument, `controller`, for selection manipulation in the [`beforeOnCellMouseDown`](@/api/hooks.md#beforeoncellmousedown) and [`beforeOnCellMouseOver`](@/api/hooks.md#beforeoncellmouseover) hooks. [#4996](https://github.com/handsontable/handsontable/issues/4996)
+- **Breaking change**: Changed what the [`beforeRender`](@/api/hooks.md#beforerender) and [`afterRender`](@/api/hooks.md#afterrender) hooks are, and when they are triggered. Added two new hooks: [`beforeViewRender`](@/api/hooks.md#beforeviewrender) and [`afterViewRender`](@/api/hooks.md#afterviewrender). [#6303](https://github.com/handsontable/handsontable/issues/6303)
+- **Breaking change**: Changed the optional [HyperFormula](https://github.com/handsontable/hyperformula) dependency from `0.6.2` to `^1.1.0`, which introduces breaking changes for the [`Formulas`](@/api/formulas.md) plugin users. [#8502](https://github.com/handsontable/handsontable/issues/8502)
+- **Breaking change**: Changed the default values for the [`rowsLimit`](@/api/copyPaste.md#rowslimit) and [`columnsLimit`](@/api/copyPaste.md#columnslimit) options of the [`CopyPaste`](@/api/copyPaste.md) plugin. [#8660](https://github.com/handsontable/handsontable/issues/8660)
+- **Breaking change**: Added a default font family, size, weight and color. [#8661](https://github.com/handsontable/handsontable/issues/8661)
+- **Breaking change**: Changed the [`autoWrapRow`](@/api/options.md#autowraprow) and [`autoWrapCol`](@/api/options.md#autowrapcol) options\` default values from `true` to `false`. [#8662](https://github.com/handsontable/handsontable/issues/8662)
 - Improved the performance of the [`getCellMeta()`](@/api/core.md#getcellmeta) method. [#6303](https://github.com/handsontable/handsontable/issues/6303)
 - Improved the documentation and TypeScript definition of the [`selectOptions`](@/api/options.md#selectoptions) option. [#8488](https://github.com/handsontable/handsontable/issues/8488)
 - Improved the arguments forwarding in the hooks [#8668](https://github.com/handsontable/handsontable/issues/8668)
@@ -81,8 +81,8 @@ Released on 1st of June, 2021
 
 **Changed**
 
-*   **Breaking change** New `Formulas` plugin, with an entirely different API. See the migration guide for a full list of changes. Removed the required `hot-formula-parser` dependency for the sake of an optional one, `hyperformula`. ([#6466](https://github.com/handsontable/handsontable/issues/6466))
-*   **Breaking change** Changed the `afterAutofill` and `beforeAutofill` hooks' signatures. ([#7987](https://github.com/handsontable/handsontable/issues/7987))
+*   **Breaking change**: New `Formulas` plugin, with an entirely different API. See the migration guide for a full list of changes. Removed the required `hot-formula-parser` dependency for the sake of an optional one, `hyperformula`. ([#6466](https://github.com/handsontable/handsontable/issues/6466))
+*   **Breaking change**: Changed the `afterAutofill` and `beforeAutofill` hooks' signatures. ([#7987](https://github.com/handsontable/handsontable/issues/7987))
 *   Upgraded `eslint` and eslint-related modules. ([#7531](https://github.com/handsontable/handsontable/issues/7531))
 *   Added `fit` & `fdescribe` to restricted globals in test files. ([#8088](https://github.com/handsontable/handsontable/issues/8088))
 
@@ -98,7 +98,7 @@ Released on 1st of June, 2021
 
 **Removed**
 
-*   **Breaking change** Removed the deprecated plugins - Header Tooltips and Observe Changes. ([#8083](https://github.com/handsontable/handsontable/issues/8083))
+*   **Breaking change**: Removed the deprecated plugins - Header Tooltips and Observe Changes. ([#8083](https://github.com/handsontable/handsontable/issues/8083))
 
 **Deprecated**
 
