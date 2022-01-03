@@ -93,7 +93,10 @@ class CommentEditor {
    * Hide the comments editor.
    */
   hide() {
-    this.editorStyle.display = 'none';
+    if (!this.hidden) {
+      this.editorStyle.display = 'none';
+    }
+
     this.hidden = true;
   }
 
@@ -150,6 +153,8 @@ class CommentEditor {
   createEditor() {
     const editor = this.rootDocument.createElement('div');
     const textArea = this.rootDocument.createElement('textarea');
+
+    editor.style.display = 'none';
 
     this.container = this.rootDocument.createElement('div');
     addClass(this.container, CommentEditor.CLASS_EDITOR_CONTAINER);
