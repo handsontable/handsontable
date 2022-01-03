@@ -464,6 +464,6 @@ For more information about named expressions, please refer to the [HyperFormula 
 
 ## Read more
 
-* [`Plugin API reference` &#8594;](@/api/formulas.md)
-* [`HyperFormula guides` &#8594;](https://handsontable.github.io/hyperformula/)
-* [`HyperFormula API reference` &#8594;](https://handsontable.github.io/hyperformula/api/)
+* [`Formulas` plugin API reference &#8594;](@/api/formulas.md)
+* [HyperFormula guides &#8594;](https://handsontable.github.io/hyperformula/)
+* [HyperFormula API reference &#8594;](https://handsontable.github.io/hyperformula/api/)
