@@ -9,15 +9,16 @@ canonicalUrl: /vue-modules
 
 [[toc]]
 
-## Overview
-
-To reduce the size of your app, you can use Handsontable by importing individual [modules](@/guides/building-and-testing/modules.md).
+To reduce the size of your Vue 2 app, use Handsontable [modules](@/guides/building-and-testing/modules.md).
 
 ## Using modules in Vue
 
 To use modules with Handsontable's [Vue 2 wrapper](@/guides/integrate-with-vue/vue-installation.md), follow the steps below:
 
-### Step 1: Import the `handsontable/base` module
+### Step 1: Import required modules
+
+No matter which [optional modules](@/guides/building-and-testing/modules.md#list-of-all-modules) you use, you need to [import the required modules](@/guides/building-and-testing/modules.md#importing-required-modules).
+
 In the entry point file of your application, import the `handsontable/base` module:
   ```js
   // your `main.js` file
@@ -28,10 +29,12 @@ In the entry point file of your application, import the `handsontable/base` modu
   import Handsontable from 'handsontable/base';
   ```
 
-### Step 2: Import modules and their registering functions
-Import the modules that you want to use (for the full list of Handsontable modules, see the [modules cheatsheet](@/guides/building-and-testing/modules.md#modules-cheatsheet)).
+### Step 2: Import optional modules
 
-Also, import those modules' registering functions.
+Import optional modules of your choice:
+
+- [List of all modules &#8594;](@/guides/building-and-testing/modules.md#list-of-all-modules)
+- [Importing and registering all modules &#8594;](@/guides/building-and-testing/modules.md#importing-and-registering-all-modules)
 
 For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type and the [`UndoRedo`](@/api/undoRedo.md) plugin:
   ```js
@@ -40,21 +43,47 @@ For example, to use the [`numeric`](@/guides/cell-types/numeric-cell-type.md) ce
 
   import Handsontable from 'handsontable/base';
 
-  // import the `NumericCellType` module and the `registerCellType()` function
   import {
-    registerCellType,
+    // import the `NumericCellType` module
     NumericCellType,
   } from 'handsontable/cellTypes';
 
-  // import the `UndoRedo` module and the `registerPlugin()` function
   import {
-    registerPlugin,
+    // import the `UndoRedo` module
     UndoRedo,
   } from 'handsontable/plugins';
   ```
 
-### Step 3: Register the modules
-Register your modules, using the registering functions that you imported (for the full list of Handsontable's registering functions, see the see the [modules cheatsheet](@/guides/building-and-testing/modules.md#modules-cheatsheet)):
+### Step 3: Import your modules' registering methods
+
+Import the registering methods that let you register your chosen modules:
+
+- [Importing and registering all modules &#8594;](@/guides/building-and-testing/modules.md#importing-and-registering-all-modules)
+
+For example, to import the registering methods of the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type and of the [`UndoRedo`](@/api/undoRedo.md) plugin:
+  ```js
+  import Vue from 'vue';
+  import App from './App.vue';
+
+  import Handsontable from 'handsontable/base';
+
+  import {
+    NumericCellType,
+    // import the `registerCellType()` method
+    registerCellType,
+  } from 'handsontable/cellTypes';
+
+  import {
+    UndoRedo,
+    // import the `registerPlugin()` method
+    registerPlugin,
+  } from 'handsontable/plugins';
+  ```
+
+### Step 4: Register your modules
+Register your chosen modules, using the registering methods.
+
+For example, to register the [`numeric`](@/guides/cell-types/numeric-cell-type.md) cell type and the [`UndoRedo`](@/api/undoRedo.md) plugin: 
   ```js
   import Vue from 'vue';
   import App from './App.vue';

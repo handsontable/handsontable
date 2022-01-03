@@ -36,11 +36,11 @@ Handsontable is made of the following modules:
 | [Plugins](@/api/plugins.md)                                                | `AutoColumnSize`<br>`AutoRowSize`<br>`Autofill`<br>`BasePlugin`<br>`BindRowsWithHeaders`<br>`CollapsibleColumns`<br>`ColumnSorting`<br>`ColumnSummary`<br>`Comments`<br>`ContextMenu`<br>`CopyPaste`<br>`CustomBorders`<br>`DragToScroll`<br>`DropdownMenu`<br>`ExportFile`<br>`Filters`<br>`Formulas`<br>`HiddenColumns`<br>`HiddenRows`<br>`ManualColumnFreeze`<br>`ManualColumnMove`<br>`ManualColumnResize`<br>`ManualRowMove`<br>`ManualRowResize`<br>`MergeCells`<br>`MultiColumnSorting`<br>`MultipleSelectionHandles`<br>`NestedHeaders`<br>`NestedRows`<br>`PersistentState`<br>`Search`<br>`TouchScroll`<br>`TrimRows`<br>`UndoRedo` | Optional            |
 | [Translations](@/guides/internationalization/internationalization-i18n.md) | `deCH` `deDE` `enUS` `esMX`<br>`frFR` `itIT` `jaJP` `koKR`<br>`lvLV` `nbNO` `nlNL` `plPL`<br>`ptBR` `ruRU` `zhCN` `zhTW`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Optional            |
 
-### Importing all modules
+### Importing and registering all modules
 
-To see how to import all Handsontable modules, click below:
+To see how to import and register all Handsontable modules, click below:
 
-::: details Importing all modules
+::: details Importing and registering all modules
 ```js
 // import the `handsontable/base` module
 import Handsontable from 'handsontable/base';
@@ -483,6 +483,20 @@ import { registerEditor, PasswordEditor } from 'handsontable/editors';
 registerEditor(PasswordEditor);
 ```
 
+::: tip
+#### Registering all editors at once
+
+If you import all of Handsonable's editor modules, register them all with the `registerAllEditors()` method:
+
+```js
+// import the `registerAllEditors()` method
+import { registerAllEditors } from 'handsontable/registry';
+
+// register all editors
+registerAllEditors();
+```
+:::
+
 #### Step 5: Use your editor
 
 Now, you can start using your editor, by setting the [`editor`](@/api/options.md#editor) [configuration option](@/guides/getting-started/setting-options.md):
@@ -504,20 +518,6 @@ new Handsontable(container, {
   ]
 });
 ```
-
-::: tip
-#### Registering all editors at once
-
-If you import all of Handsonable's editor modules, register them all with the `registerAllEditors()` method:
-
-```js
-// import the `registerAllEditors()` method
-import { registerAllEditors } from 'handsontable/registry';
-
-// register all editors
-registerAllEditors();
-```
-:::
 
 ### Using renderer modules
 
@@ -584,6 +584,20 @@ import { registerRenderer, autocompleteRenderer } from 'handsontable/renderers';
 registerRenderer(autocompleteRenderer);
 ```
 
+::: tip
+#### Registering all renderers at once
+
+If you import all of Handsonable's renderer modules, register them all with the `registerAllRenderers()` method:
+
+```js
+// import the `registerAllRenderers()` method
+import { registerAllRenderers } from 'handsontable/registry';
+
+// register all renderers
+registerAllRenderers();
+```
+:::
+
 #### Step 5: Use your renderer
 
 Now, you can start using your renderer, by setting the [`renderer`](@/api/options.md#renderer) [configuration option](@/guides/getting-started/setting-options.md)::
@@ -605,20 +619,6 @@ new Handsontable(container, {
   ]
 });
 ```
-
-::: tip
-#### Registering all renderers at once
-
-If you import all of Handsonable's renderer modules, register them all with the `registerAllRenderers()` method:
-
-```js
-// import the `registerAllRenderers()` method
-import { registerAllRenderers } from 'handsontable/registry';
-
-// register all renderers
-registerAllRenderers();
-```
-:::
 
 ### Using validator modules
 
@@ -682,6 +682,20 @@ import { registerValidator, numericValidator } from 'handsontable/validators';
 registerValidator(numericValidator);
 ```
 
+::: tip
+#### Registering all validators at once
+
+If you import all of Handsonable's validator modules, register them all with the `registerAllValidators()` method:
+
+```js
+// import the `registerAllValidators()` method
+import { registerAllValidators } from 'handsontable/registry';
+
+// register all validators
+registerAllValidators();
+```
+:::
+
 #### Step 5: Use your validator
 
 Now, you can start using your validator, by setting the [`validator`](@/api/options.md#validator) [configuration option](@/guides/getting-started/setting-options.md):
@@ -703,20 +717,6 @@ new Handsontable(container, {
   ]
 });
 ```
-
-::: tip
-#### Registering all validators at once
-
-If you import all of Handsonable's validator modules, register them all with the `registerAllValidators()` method:
-
-```js
-// import the `registerAllValidators()` method
-import { registerAllValidators } from 'handsontable/registry';
-
-// register all validators
-registerAllValidators();
-```
-:::
 
 ### Using cell type modules
 
@@ -785,6 +785,20 @@ import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
 registerCellType(CheckboxCellType);
 ```
 
+::: tip
+#### Registering all cell types at once
+
+If you import all of Handsonable's cell type modules, register them all with the `registerAllCellTypes()` method:
+
+```js
+// import the `registerAllCellTypes()` method
+import { registerAllCellTypes } from 'handsontable/registry';
+
+// register all cell types
+registerAllCellTypes();
+```
+:::
+
 #### Step 5: Use your cell type
 
 Now, you can start using your cell type, by setting the [`type`](@/api/options.md#type) [configuration option](@/guides/getting-started/setting-options.md):
@@ -806,20 +820,6 @@ new Handsontable(container, {
   ]
 });
 ```
-
-::: tip
-#### Registering all cell types at once
-
-If you import all of Handsonable's cell type modules, register them all with the `registerAllCellTypes()` method:
-
-```js
-// import the `registerAllCellTypes()` method
-import { registerAllCellTypes } from 'handsontable/registry';
-
-// register all cell types
-registerAllCellTypes();
-```
-:::
 
 ### Using plugin modules
 
@@ -913,6 +913,20 @@ import { registerPlugin, ContextMenu } from 'handsontable/plugins';
 registerPlugin(ContextMenu);
 ```
 
+::: tip
+#### Registering all plugins at once
+
+If you import all of Handsonable's plugin modules, register them all with the `registerAllPlugins()` method:
+
+```js
+// import the `registerAllPlugins()` method
+import { registerAllPlugins } from 'handsontable/registry';
+
+// register all plugins
+registerAllPlugins();
+```
+:::
+
 #### Step 5: Use your plugin
 
 Now, you can start using your plugin:
@@ -930,20 +944,6 @@ new Handsontable(container, {
   contextMenu: true,
 });
 ```
-
-::: tip
-#### Registering all plugins at once
-
-If you import all of Handsonable's plugin modules, register them all with the `registerAllPlugins()` method:
-
-```js
-// import the `registerAllPlugins()` method
-import { registerAllPlugins } from 'handsontable/registry';
-
-// register all plugins
-registerAllPlugins();
-```
-:::
 
 ### Using translation modules
 
