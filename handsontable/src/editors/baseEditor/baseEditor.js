@@ -1,5 +1,5 @@
 import { CellCoords } from '../../3rdparty/walkontable/src';
-import { stringify } from '../../helpers/mixed';
+import { isDefined, stringify } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 
@@ -212,8 +212,26 @@ export class BaseEditor {
     }
 
     const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
+    const runOnlySelectedConfig = {
+      runAction: () => isDefined(this.hot.getSelected()),
+    };
 
-    shortcutManager.setActiveContexts(['grid']);
+    editorContext.addShortcut([['ArrowUp']], () => {
+      this.hot.selection.transformStart(-1, 0);
+    }, runOnlySelectedConfig);
+
+    editorContext.addShortcut([['ArrowDown']], () => {
+      this.hot.selection.transformStart(1, 0);
+    }, runOnlySelectedConfig);
+
+    editorContext.addShortcut([['ArrowLeft']], () => {
+      this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
+    }, runOnlySelectedConfig);
+
+    editorContext.addShortcut([['ArrowRight']], () => {
+      this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
+    }, runOnlySelectedConfig);
 
     // Saving values using the modified coordinates.
     this.hot.populateFromArray(visualRowFrom, visualColumnFrom, value, visualRowTo, visualColumnTo, 'edit');
@@ -285,6 +303,11 @@ export class BaseEditor {
       return;
     }
 
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
+
+    editorContext.removeShortcut([['ArrowRight'], ['ArrowLeft'], ['ArrowUp'], ['ArrowDown']]);
+
     if (this.state === EDITOR_STATE.VIRGIN) {
       this.hot._registerTimeout(() => {
         this._fireCallbacks(true);
@@ -348,10 +371,6 @@ export class BaseEditor {
       return;
     }
 
-    const shortcutManager = this.hot.getShortcutManager();
-
-    shortcutManager.setActiveContexts(['grid']);
-
     // validator was defined and failed
     if (result === false && this.cellProperties.allowInvalid !== true) {
       this.hot.selectCell(this.row, this.col);
@@ -365,6 +384,10 @@ export class BaseEditor {
       this._fullEditMode = false;
       this.state = EDITOR_STATE.VIRGIN;
       this._fireCallbacks(true);
+
+      const shortcutManager = this.hot.getShortcutManager();
+
+      shortcutManager.setActiveContexts(['grid']);
     }
   }
 
