@@ -4,7 +4,7 @@
       <template #page-top>
         <div v-if="show" class="page-top">
           <div class="version-alert">
-            <p v-if="isNext">This documentation relates to a next version of Handsontable, and is not published yet.</p>
+            <p v-if="isNext">This documentation relates to Handsontable's next version, and is not published yet.</p>
             <p v-else-if="!isLatest">This documentation relates to a non-latest version of Handsontable.</p>
           </div>
         </div>
