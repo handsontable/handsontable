@@ -3428,7 +3428,7 @@ describe('AutocompleteEditor', () => {
 
     await sleep(100);
 
-    spyOn(hot, '_registerTimeout').and.callThrough;
+    spyOn(hot, '_registerTimeout');
 
     keyDownUp('x');
 
