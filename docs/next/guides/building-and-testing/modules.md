@@ -9,13 +9,13 @@ tags:
 
 # Modules
 
-You can use Handsontable through individual modules.
+To reduce the size of your app, use Handsontable modules.
 
 [[toc]]
 
 ## About modules
 
-With modules, you can pick and choose only those parts of Handsontable that you actually need. This can significantly reduce the size of your app.
+Modules let you pick and choose only those parts of Handsontable that you actually need. This can significantly reduce the size of your app.
 
 Read more:
 - [JavaScript modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)
@@ -38,7 +38,7 @@ Handsontable is made of the following modules:
 
 ### Importing all modules
 
-To see how to import all the modules that Handsontable is made of, click below:
+To see how to import all Handsontable modules, click below:
 
 ::: details Importing all modules
 ```js
@@ -74,16 +74,15 @@ import {
 
 // import validators
 import {
-  registerValidator,
   autocompleteValidator,
   dateValidator,
   numericValidator,
-  timeValidator, // validators' registering method
+  timeValidator,
+  registerValidator, // validators' registering method
 } from 'handsontable/validators';
 
 // import cell types
 import {
-  registerCellType,
   AutocompleteCellType,
   CheckboxCellType,
   DateCellType,
@@ -92,7 +91,8 @@ import {
   NumericCellType,
   PasswordCellType,
   TextCellType,
-  TimeCellType, // renderers' registering method
+  TimeCellType,
+  registerCellType, // cell types' registering method
 } from 'handsontable/cellTypes';
 
 // import plugins
@@ -277,7 +277,7 @@ new Handsontable(container, {});
 
 ::: tip
 When using [Parcel](https://parceljs.org/), [webpack 3](https://webpack.js.org/) (or older), and a few other bundlers,
-you need to import Handsontable's modules one by one, from their respective files of origin. For the full list of such imports, click below:
+you need to import modules one by one, from their respective files of origin. For the full list of such imports, click below:
 
 ::: details All imports
 ```js
@@ -358,7 +358,7 @@ import { registerLanguageDictionary } from 'handsontable/i18n/registry';
 
 ## Using modules
 
-To get the most out using Handsontable through modules:
+To get the most out of using Handsontable modules:
 1. [Import the required modules](#importing-required-modules).
 2. Use optional modules of your choice:
    - [Editor modules](#using-editor-modules)
@@ -366,7 +366,7 @@ To get the most out using Handsontable through modules:
    - [Validator modules](#using-validator-modules)
    - [Cell type modules](#using-cell-type-modules)
    - [Plugin modules](#using-plugin-modules)
-   - [Translation modules](#using-internationalization-modules)
+   - [Translation modules](#using-translation-modules)
 3. Remove redundant code, using [tree shaking](#tree-shaking).
 
 ### Importing required modules
@@ -404,7 +404,7 @@ import Handsontable from 'handsontable/base';
 
 #### Step 3: Import the CSS
 
-Handsontable's CSS file is not modularized, so you need to import it separately:
+Handsontable's CSS file is not modularized, so you need to import it:
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -413,7 +413,7 @@ import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 ```
 
-Now, you're ready to use [any optional modules](#all-modules) of your choice.
+Now, you're ready to use [any optional modules](#list-of-all-modules) of your choice.
 
 ### Using editor modules
 
@@ -1015,7 +1015,7 @@ import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 import { registerLanguageDictionary, plPL } from 'handsontable/i18n';
 
-// register the `plPL` module
+// register the `plPL` translation
 registerLanguageDictionary(plPL.languageCode, plPL);
 ```
 
