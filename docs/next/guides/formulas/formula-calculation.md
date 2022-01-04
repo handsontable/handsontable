@@ -114,8 +114,10 @@ const data2 = [
   ['Number of sheets in this workbook', '=SHEETS()'],
 ];
 
+// create an external HyperFormula instance
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // pass the `internal-use-in-handsontable` license key
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
   licenseKey: 'internal-use-in-handsontable',
 });
 
@@ -285,6 +287,19 @@ import { HyperFormula } from 'hyperformula';
 
 There are also other installation methods available. Check out [HyperFormula's installation documentation](https://handsontable.github.io/hyperformula/guide/client-side-installation.html).
 
+::: tip HyperFormula instance
+To use the `Formulas` plugin with an external HyperFormula instance,
+initialize HyperFormula with the `'internal-use-in-handsontable'` license key:
+
+```js
+// create an external HyperFormula instance
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
+```
+:::
+
 ### Passing the HyperFormula class/instance to Handsontable
 
 ```js
@@ -315,7 +330,11 @@ or
 ### Single Handsontable instance with an external HyperFormula instance
 
 ```js
-const hyperformulaInstance = HyperFormula.buildEmpty({})
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
 
 {
   formulas: {
@@ -369,7 +388,11 @@ const hyperformulaInstance = HyperFormula.buildEmpty({})
 ### Multiple Handsontable instances with an external shared HyperFormula instance
 
 ```js
-const hyperformulaInstance = HyperFormula.buildEmpty({});
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
 
 // Instance 1
 {
