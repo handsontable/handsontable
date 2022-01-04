@@ -1,15 +1,15 @@
 ---
-title: 'Vue 2: Setting up a translation'
-metaTitle: 'Vue 2: Setting up a translation - Guide - Handsontable Documentation'
+title: 'Setting up a translation in Vue 2'
+metaTitle: 'Setting up a translation in Vue 2 - Guide - Handsontable Documentation'
 permalink: /next/vue-setting-up-a-language
 canonicalUrl: /vue-setting-up-a-language
 ---
 
-# Vue 2: Setting up a translation
+# Setting up a translation in Vue 2
 
 ## Overview
 
-The following example shows a Handsontable instance with translations set up in Vue.
+The following example shows a Handsontable instance with translations set up in Vue 2.
 
 ## Example
 

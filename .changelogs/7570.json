@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue where the suggestion list of the autocomplete editor could be not correctly update.",
+  "type": "fixed",
+  "issue": 7570,
+  "breaking": false,
+  "framework": "none"
+}

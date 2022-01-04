@@ -768,6 +768,8 @@ function sendTouchEvent(x, y, element, eventType) {
     target: element,
     clientX: x,
     clientY: y,
+    screenX: x,
+    screenY: y,
     radiusX: 2.5,
     radiusY: 2.5,
   });

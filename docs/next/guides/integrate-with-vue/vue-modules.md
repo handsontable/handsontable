@@ -1,11 +1,11 @@
 ---
-title: 'Vue 2: Modules'
-metaTitle: 'Vue 2: Modules - Guide - Handsontable Documentation'
+title: 'Modules in Vue 2'
+metaTitle: 'Modules in Vue 2 - Guide - Handsontable Documentation'
 permalink: /next/vue-modules
 canonicalUrl: /vue-modules
 ---
 
-# Vue 2: Modules
+# Modules in Vue 2
 
 [[toc]]
 
@@ -13,7 +13,7 @@ canonicalUrl: /vue-modules
 
 To reduce the size of your app, you can use Handsontable by importing individual [modules](@/guides/building-and-testing/modules.md).
 
-## Using modules with Vue
+## Using modules in Vue
 
 To use modules with Handsontable's [Vue 2 wrapper](@/guides/integrate-with-vue/vue-installation.md), follow the steps below:
 

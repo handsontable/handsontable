@@ -3424,6 +3424,31 @@ describe('AutocompleteEditor', () => {
     expect(editableElement.getAttribute('dir')).toBeNull();
   });
 
+  it('should update the suggestion list after minimal delay (FF issue, see #9077)', async() => {
+    const hot = handsontable({
+      columns: [
+        {
+          type: 'autocomplete',
+          source: choices,
+        },
+        {}
+      ]
+    });
+
+    selectCell(1, 0);
+
+    keyDownUp('x'); // Trigger quick edit mode
+
+    await sleep(100);
+
+    spyOn(hot, '_registerTimeout');
+
+    keyDownUp('x');
+
+    expect(hot._registerTimeout).toHaveBeenCalledTimes(1);
+    expect(hot._registerTimeout).toHaveBeenCalledWith(jasmine.anything(), 10);
+  });
+
   describe('IME support', () => {
     it('should focus editable element after selecting the cell', async() => {
       handsontable({

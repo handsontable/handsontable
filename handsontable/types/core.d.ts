@@ -133,8 +133,8 @@ export default class Core {
   setCellMeta<K extends keyof CellMeta>(row: number, col: number, key: K, val: CellMeta[K]): void;
   setCellMetaObject(row: number, col: number, prop: CellMeta): void;
   setData(data: CellValue[][] | RowObject[], source?: string): void;
-  setDataAtCell(changes: Array<[number, string | number, CellValue]>, source?: string): void;
-  setDataAtCell(row: number, col: string | number, value: CellValue, source?: string): void;
+  setDataAtCell(changes: Array<[number, number, CellValue]>, source?: string): void;
+  setDataAtCell(row: number, col: number, value: CellValue, source?: string): void;
   setDataAtRowProp(changes: Array<[number, string | number, CellValue]>, source?: string): void;
   setDataAtRowProp(row: number, prop: string, value: CellValue, source?: string): void;
   setSourceDataAtCell(changes: Array<[number, string | number, CellValue]>): void;
