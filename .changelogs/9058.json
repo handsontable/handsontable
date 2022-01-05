@@ -1,7 +1,0 @@
-{
-  "title": "Extended the Github Actions workflow for deploying examples to gh-pages.",
-  "type": "changed",
-  "issue": 9058,
-  "breaking": false,
-  "framework": "none"
-}

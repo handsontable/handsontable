@@ -8,6 +8,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [11.1.0] - 2022-01-12
+
+### Added
+- Added a `setData` and `updateData` methods alonside the existing `loadData` method. The `updateData` method allows replacing the dataset without resetting the cell meta cache and index mapper configuration. [#7263](https://github.com/handsontable/handsontable/issues/7263)
+- *Vue:* Added support for Vue3 wrapper. [#7545](https://github.com/handsontable/handsontable/issues/7545)
+
+### Fixed
+- Fixed an issue where the suggestion list of the autocomplete editor could be not correctly update. [#7570](https://github.com/handsontable/handsontable/issues/7570)
+- Fixed an issue where the nested headers are not rendered when the dataset is not defined. [#8589](https://github.com/handsontable/handsontable/issues/8589)
+- Fixed some tests that fail on mobile devices. [#8749](https://github.com/handsontable/handsontable/issues/8749)
+- Fixed an issue where the rendered selection could be shifted by 1px. [#8756](https://github.com/handsontable/handsontable/issues/8756)
+- Fixed an issue with borders, especially the first column's border [#8767](https://github.com/handsontable/handsontable/issues/8767)
+- Fixed an issue where in the CollapsibleColumns plugin there was not possible to expand already collapsed columns by calling the `expandAll` method. [#8900](https://github.com/handsontable/handsontable/issues/8900)
+- Fix test scripts that have tended to crash. [#8961](https://github.com/handsontable/handsontable/issues/8961)
+- Fixed a typo in the `valueAccordingPercent` helper. [#9006](https://github.com/handsontable/handsontable/issues/9006)
+- Fixed an issue where the NestedRows plugin could throw an TypeError after `updateSettings` call. [#9018](https://github.com/handsontable/handsontable/issues/9018)
+- Fix severe performance issue when removing events [#9044](https://github.com/handsontable/handsontable/issues/9044)
+- Fixed wrong typescript definition for `sort` method of the MultiColumnSorting plugin. [#9067](https://github.com/handsontable/handsontable/issues/9067)
+- Fixed editor appearance stability for the Comments plugin. [#9075](https://github.com/handsontable/handsontable/issues/9075)
+- *React:* Fixed return type in React wrapper [#9000](https://github.com/handsontable/handsontable/issues/9000)
+
+### Changed
+- Updated the TypeScript definition for `setDataAtCell` method. [#8601](https://github.com/handsontable/handsontable/issues/8601)
+- Extended the Github Actions workflow for deploying examples to gh-pages. [#9058](https://github.com/handsontable/handsontable/issues/9058)
+
 ## [11.0.1] - 2021-11-17
 
 ### Fixed
