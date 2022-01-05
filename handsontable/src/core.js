@@ -94,7 +94,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {HTMLElement}
    */
   this.rootElement = rootElement;
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   /**
    * The nearest document over container.
    *
@@ -2019,15 +2018,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Loads new data to Handsontable. Loading new data resets the cell meta.
-   * Since 8.0.0 loading new data also resets states corresponding to rows and columns
-   * (for example, row/column sequence, column width, row height, frozen columns etc.).
+   * The `setData()` method:
+   * - Replaces Handsontable's [`data`](@/api/options.md#data)
+   * - Resets cells' [configuration options](@/guides/getting-started/setting-options.md)
+   * - Resets rows' and columns' states (e.g. row and column order, row and column height, frozen rows and columns etc.)
+   *
+   * Similar methods:
+   * - [`updateData()`](#updatedata): also replaces Handsontable's `data`, but doesn't reset cells' configuration options or rows' and columns' states
+   * - [`loadData()`](#loaddata): a direct alias of the `setData()` method, but fires different hooks
+   *
+   * Read more:
+   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
    *
    * @memberof Core#
    * @function setData
    * @since 11.1.0
-   * @param {Array} data Array of arrays or array of objects containing data.
-   * @param {string} [source] Source of the `setData` call.
+   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {string} [source] The source of the `setData()` call
    * @fires Hooks#beforeLoadData
    * @fires Hooks#beforeSetData
    * @fires Hooks#beforeUpdateData
@@ -2061,14 +2068,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Replaces the dataset with a new one. Unlike `setData` and the `loadData` methods, it doesn't reset the
-   * state of the table.
+   * The `updateData()` method:
+   * - Replaces Handsontable's [`data`](@/api/options.md#data)
+   * - Doesn't reset cells' [configuration options](@/guides/getting-started/setting-options.md)
+   * - Doesn't reset rows' and columns' states (e.g. row and column order, row and column height, frozen rows and columns etc.)
+   *
+   * Similar methods:
+   * - [`setData()`](#setdata): also replaces Handsontable's `data`, but resets cells' configuration options and rows' or columns' states
+   * - [`loadData()`](#loaddata): an alias of `setData()`, firing different hooks
+   *
+   * Read more:
+   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
    *
    * @memberof Core#
    * @function updateData
    * @since 11.1.0
-   * @param {Array} data Array of arrays or array of objects containing data.
-   * @param {string} [source] Source of the `updateData` call.
+   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {string} [source] The source of the `updateData()` call
    * @fires Hooks#beforeUpdateData
    * @fires Hooks#afterUpdateData
    * @fires Hooks#afterChange
@@ -2097,14 +2113,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Loads new data to Handsontable. Loading new data resets the cell meta.
-   * Since 8.0.0 loading new data also resets states corresponding to rows and columns
-   * (for example, row/column sequence, column width, row height, frozen columns etc.).
+   * The `loadData()` method is an alias of the [`setData()`](#setdata) method, kept for backward compatibility.
+   *
+   * The `loadData()` method:
+   * - Replaces Handsontable's [`data`](@/api/options.md#data)
+   * - Resets cells' [configuration options](@/guides/getting-started/setting-options.md)
+   * - Resets rows' and columns' states (e.g. row and column order, row and column height, frozen rows and columns etc.)
+   *
+   * Similar methods:
+   * - [`updateData()`](#updatedata): also replaces Handsontable's `data`, but doesn't reset cells' configuration options or rows' and columns' states
+   * - [`setData()`](#setdata): works the same as `loadData()`, firing different hooks
+   *
+   * Read more:
+   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
    *
    * @memberof Core#
    * @function loadData
-   * @param {Array} data Array of arrays or array of objects containing data.
-   * @param {string} [source] Source of the loadData call.
+   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {string} [source] The source of the `loadData()` call
    * @fires Hooks#beforeLoadData
    * @fires Hooks#beforeSetData
    * @fires Hooks#afterLoadData

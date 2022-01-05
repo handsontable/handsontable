@@ -54,6 +54,7 @@ import { fastCall } from './helpers/function';
 
 // @TODO: Move plugin description hooks to plugin?
 const REGISTERED_HOOKS = [
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Fired after resetting a cell's meta. This happens when the {@link Core#updateSettings} method is called.
    *
@@ -297,34 +298,48 @@ const REGISTERED_HOOKS = [
   'afterInit',
 
   /**
-   * Fired after new data is loaded (by `loadData` or `updateSettings` method) into the data source array.
+   * Fired after the [`loadData()`](@/api/core.md#loaddata) method,
+   * or the [`updateSettings()`](@/api/core.md#updatesettings) method,
+   * modifies Handsontable's [`data`](@/api/options.md#data).
+   *
+   * Read more:
+   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
    *
    * @event Hooks#afterLoadData
-   * @param {Array} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
-   * @param {string} source Source of the call.
+   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
+   * @param {string} source The source of the call
    */
   'afterLoadData',
 
   /**
-   * Fired after new data is loaded (by the `updateData` method) into the data source array.
+   * Fired after the [`updateData()`](@/api/core.md#updatedata) method
+   * modifies Handsontable's [`data`](@/api/options.md#data).
    *
-   * @since 11.1.0
+   * Read more:
+   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
+   *
    * @event Hooks#afterUpdateData
-   * @param {Array} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
-   * @param {string} source Source of the call.
+   * @since 11.1.0
+   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
+   * @param {string} source The source of the call
    */
   'afterUpdateData',
 
   /**
-   * Fired after new data is loaded (by `setData` or `updateSettings` method) into the data source array.
+   * Fired after the [`setData()`](@/api/core.md#setdata) method,
+   * or the [`updateSettings()`](@/api/core.md#updatesettings) method,
+   * modifies Handsontable's [`data`](@/api/options.md#data).
    *
-   * @since 11.1.0
+   * Read more:
+   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
+   *
    * @event Hooks#afterSetData
-   * @param {Array} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
-   * @param {string} source Source of the call.
+   * @since 11.1.0
+   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
+   * @param {string} source The source of the call
    */
   'afterSetData',
 
@@ -798,38 +813,52 @@ const REGISTERED_HOOKS = [
   'beforeInitWalkontable',
 
   /**
-   * Fired before new data is loaded (by `loadData` or `updateSettings` method) into the data source array.
+   * Fired before the [`loadData()`](@/api/core.md#loaddata) method,
+   * or the [`updateSettings()`](@/api/core.md#updatesettings) method,
+   * modifies Handsontable's [`data`](@/api/options.md#data).
+   *
+   * Read more:
+   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
    *
    * @event Hooks#beforeLoadData
    * @since 8.0.0
-   * @param {Array} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
-   * @param {string} source Source of the call.
-   * @returns {Array} The returned array will be used as new dataset.
+   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
+   * @param {string} source The source of the call
+   * @returns {Array} The returned array will be used as Handsontable's new dataset.
    */
   'beforeLoadData',
 
   /**
-   * Fired before new data is loaded (by the `beforeUpdateData` method) into the data source array.
+   * Fired before the [`updateData()`](@/api/core.md#updatedata) method
+   * modifies Handsontable's [`data`](@/api/options.md#data).
+   *
+   * Read more:
+   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
    *
    * @event Hooks#beforeUpdateData
    * @since 11.1.0
-   * @param {Array} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
-   * @param {string} source Source of the call.
-   * @returns {Array} The returned array will be used as new dataset.
+   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
+   * @param {string} source The source of the call
+   * @returns {Array} The returned array will be used as Handsontable's new dataset.
    */
   'beforeUpdateData',
 
   /**
-   * Fired before new data is loaded (by `setData` or `updateSettings` method) into the data source array.
+   * Fired before the [`setData()`](@/api/core.md#setdata) method,
+   * or the [`updateSettings()`](@/api/core.md#updatesettings) method,
+   * modifies Handsontable's [`data`](@/api/options.md#data).
+   *
+   * Read more:
+   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
    *
    * @event Hooks#beforeSetData
    * @since 11.1.0
-   * @param {Array} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
-   * @param {string} source Source of the call.
-   * @returns {Array} The returned array will be used as new dataset.
+   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
+   * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
+   * @param {string} source The source of the call
+   * @returns {Array} The returned array will be used as Handsontable's new dataset.
    */
   'beforeSetData',
 
@@ -953,7 +982,6 @@ const REGISTERED_HOOKS = [
    */
   'afterViewRender',
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Fired before Handsontable's view-rendering engine updates the view.
    *
@@ -966,7 +994,6 @@ const REGISTERED_HOOKS = [
    *                           data, or a logic that needs a full Handsontable render cycle.
    *                           If set to `false`, the rendering gets triggered by scrolling or moving the selection.
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   'beforeRender',
 
   /**
@@ -1521,7 +1548,6 @@ const REGISTERED_HOOKS = [
    */
   'beforeStretchingColumnWidth',
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Fired by {@link Filters} plugin before applying [filtering](@/guides/columns/column-filter.md).
    * This hook is fired when {@link Options#filters} option is enabled.
@@ -1551,9 +1577,6 @@ const REGISTERED_HOOKS = [
    */
   'beforeFilter',
 
-  /* eslint-enable jsdoc/require-description-complete-sentence */
-
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Fired by {@link Filters} plugin after applying [filtering](@/guides/columns/column-filter.md).
    * This hook is fired when {@link Options#filters} option is enabled.
@@ -1581,7 +1604,6 @@ const REGISTERED_HOOKS = [
    * ```
    */
   'afterFilter',
-  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Called when a value is updated in the engine.
