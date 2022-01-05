@@ -2102,14 +2102,17 @@ export default () => {
      * ```js
      * // either add the `HyperFormula` class
      * formulas: {
-     *   // set engine to `HyperFormula`
+     *   // set `engine` to `HyperFormula`
      *   engine: HyperFormula,
      *   sheetId: 1,
      *   sheetName: 'Sheet 1'
      * }
      *
      * // or, add a HyperFormula instance
-     * const hyperFormulaInstance = HyperFormula.buildEmpty({})
+     * // initialized with the `'internal-use-in-handsontable'` license key
+     * const hyperformulaInstance = HyperFormula.buildEmpty({
+     *   licenseKey: 'internal-use-in-handsontable',
+     * });
      *
      * formulas: {
      *   // set `engine` to a HyperFormula instance
