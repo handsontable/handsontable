@@ -2025,7 +2025,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * Similar methods:
    * - [`updateData()`](#updatedata): also replaces Handsontable's `data`, but doesn't reset cells' configuration options or rows' and columns' states
-   * - [`loadData()`](#loaddata): a direct alias of the `setData()` method, but fires different hooks
+   * - [`loadData()`](#loaddata): an alias of the `setData()` method, but firing different hooks
    *
    * Read more:
    * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
@@ -2075,7 +2075,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * Similar methods:
    * - [`setData()`](#setdata): also replaces Handsontable's `data`, but resets cells' configuration options and rows' or columns' states
-   * - [`loadData()`](#loaddata): an alias of `setData()`, firing different hooks
+   * - [`loadData()`](#loaddata): an alias of the `setData()` method, but firing different hooks
    *
    * Read more:
    * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
@@ -2122,7 +2122,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * Similar methods:
    * - [`updateData()`](#updatedata): also replaces Handsontable's `data`, but doesn't reset cells' configuration options or rows' and columns' states
-   * - [`setData()`](#setdata): works the same as `loadData()`, firing different hooks
+   * - [`setData()`](#setdata): works the same as the `loadData()` method, but fires different hooks
    *
    * Read more:
    * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
