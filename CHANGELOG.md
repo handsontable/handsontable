@@ -11,10 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [11.1.0] - 2022-01-12
 
 ### Added
-- Added a new method, `updateData()`, that lets you replace Handsontable's `data` without 
-resetting rows' and columns' states, and without resetting cells' configuration options. [#7263](https://github.com/handsontable/handsontable/issues/7263)
-- Added a new method, `setData()`, that lets you replace Handsontable's `data`, reset rows' and columns' states, and reset cells' configuration options. [#7263](https://github.com/handsontable/handsontable/issues/7263)
-- *Vue:* Added a new wrapper: Vue 3. [#7545](https://github.com/handsontable/handsontable/issues/7545)
+- Added `updateData()`, a new method that allows for replacing Handsontable's `data` without 
+resetting cells' configuration options, rows' states, and columns' states. [#7263](https://github.com/handsontable/handsontable/issues/7263)
+- Added `setData()`, a new method that allows for replacing Handsontable's `data` while resetting cells' configuration options, rows' states, and columns' states. [#7263](https://github.com/handsontable/handsontable/issues/7263)
+- *Vue:* Added Vue 3 support, by introducing a new wrapper. [#7545](https://github.com/handsontable/handsontable/issues/7545)
 
 ### Fixed
 - Fixed an issue where the `autocomplete` editor's suggestion list didn't update properly. [#7570](https://github.com/handsontable/handsontable/issues/7570)
@@ -33,7 +33,7 @@ resetting rows' and columns' states, and without resetting cells' configuration 
 
 ### Changed
 - Updated the TypeScript definition of the `setDataAtCell()` method. [#8601](https://github.com/handsontable/handsontable/issues/8601)
-- Extended the GitHub Actions workflow with deploying examples to GitHub Pages. [#9058](https://github.com/handsontable/handsontable/issues/9058)
+- Extended Handsontable's GitHub Actions workflow, to allow for deploying code examples to GitHub Pages. [#9058](https://github.com/handsontable/handsontable/issues/9058)
 
 ## [11.0.1] - 2021-11-17
 

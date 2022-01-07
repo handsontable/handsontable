@@ -13,6 +13,34 @@ tags:
 
 [[toc]]
 
+## 11.1.0
+
+Released on 12th of January, 2022
+
+**Added**
+- Added [`updateData()`](@/api/core.md#updatedata), a new method that lets you replace Handsontable's [`data`](@/api/options.md#data) without resetting cells' configuration options, rows' states, and columns' states. [#7263](https://github.com/handsontable/handsontable/issues/7263)
+- Added [`setData()`](@/api/core.md#setdata), a new method that lets you replace Handsontable's [`data`](@/api/options.md#data) while resetting cells' configuration options, rows' states, and columns' states. [#7263](https://github.com/handsontable/handsontable/issues/7263)
+- *Vue:* Added [Vue 3](https://v3.vuejs.org/guide/migration/introduction.html#overview) support, by introducing a [new wrapper](@/guides/integrate-with-vue3/vue3-simple-example.md). [#7545](https://github.com/handsontable/handsontable/issues/7545)
+
+**Changed**
+- Updated the TypeScript definition of the [`setDataAtCell()`](@/api/core.md#setdataatcell) method. [#8601](https://github.com/handsontable/handsontable/issues/8601)
+- Extended the [`Code Examples Deployment` GitHub Actions workflow](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml), to allow for deploying code examples to [GitHub Pages](https://pages.github.com/). [#9058](https://github.com/handsontable/handsontable/issues/9058)
+
+**Fixed**
+- Fixed an issue where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) editor's suggestion list didn't update properly. [#7570](https://github.com/handsontable/handsontable/issues/7570)
+- Fixed an issue where nested headers didn't render when [`data`](@/api/options.md#data) wasn't defined. [#8589](https://github.com/handsontable/handsontable/issues/8589)
+- Fixed some end-to-end tests that failed on mobile devices. [#8749](https://github.com/handsontable/handsontable/issues/8749)
+- Fixed an issue where the rendered selection could get shifted by 1px. [#8756](https://github.com/handsontable/handsontable/issues/8756)
+- Fixed an issue where the first column's border didn't display properly. [#8767](https://github.com/handsontable/handsontable/issues/8767)
+- Fixed an issue where the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin's [`expandAll()`](@/api/collapsibleColumns.md#expandall) method didn't expand collapsed columns. [#8900](https://github.com/handsontable/handsontable/issues/8900)
+- Fixed end-to-end test scripts that occasionally crashed. [#8961](https://github.com/handsontable/handsontable/issues/8961)
+- Fixed a typo in the `valueAccordingPercent()` helper. [#9006](https://github.com/handsontable/handsontable/issues/9006)
+- Fixed an issue where the [`NestedRows`](@/api/nestedRows.md) plugin could throw a type error after calling the [`updateSettings()`](@/api/core.md#updatesettings) method. [#9018](https://github.com/handsontable/handsontable/issues/9018)
+- Fixed an issue where performance was affected by removing events. [#9044](https://github.com/handsontable/handsontable/issues/9044)
+- Fixed a wrong TypeScript definition of the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin's [`sort()`](@/api/multiColumnSorting.md#sort) method. [#9067](https://github.com/handsontable/handsontable/issues/9067)
+- Fixed an issue where the [`Comments`](@/api/comments.md) plugin's editor disappeared after adding a comment. [#9075](https://github.com/handsontable/handsontable/issues/9075)
+- *React:* Fixed a wrong return type. [#9000](https://github.com/handsontable/handsontable/issues/9000)
+
 ## 11.0.1
 
 Released on 17th of November, 2021
