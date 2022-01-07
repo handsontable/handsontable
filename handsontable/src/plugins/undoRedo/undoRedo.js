@@ -855,13 +855,6 @@ UndoRedo.prototype.registerShortcuts = function() {
   const shortcutManager = this.instance.getShortcutManager();
   const gridContext = shortcutManager.getContext('grid');
   const runAction = (event) => {
-    // TODO: It could be removed after creating editor context.
-    const editor = this.instance.getActiveEditor();
-
-    if (editor && editor.isOpened()) {
-      return false;
-    }
-
     return !event.altKey; // right ALT in some systems triggers ALT+CTR
   };
 
