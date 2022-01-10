@@ -268,11 +268,14 @@ export class TopOverlay extends Overlay {
    * Synchronize calculated left position to an element.
    */
   syncOverlayOffset() {
+    const styleProperty = this.wtSettings.getSetting('isRtl') ? 'right' : 'left';
+    const { spreader } = this.clone.wtTable;
+
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
-      this.clone.wtTable.spreader.style.left = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
+      spreader.style[styleProperty] = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
 
     } else {
-      this.clone.wtTable.spreader.style.left = '';
+      spreader.style[styleProperty] = '';
     }
   }
 

@@ -259,8 +259,13 @@ export class Overlay {
     clone.className = `ht_clone_${this.type} handsontable`;
     clone.style.position = 'absolute';
     clone.style.top = 0;
-    clone.style.left = 0;
     clone.style.overflow = 'visible';
+
+    if (this.wtSettings.getSetting('isRtl')) {
+      clone.style.right = 0;
+    } else {
+      clone.style.left = 0;
+    }
 
     clonedTable.className = wtTable.TABLE.className;
     clone.appendChild(clonedTable);
@@ -317,10 +322,10 @@ export class Overlay {
     const holder = this.clone.wtTable.holder; // todo refactoring: DEMETER
     const hider = this.clone.wtTable.hider; // todo refactoring: DEMETER
     const holderStyle = holder.style;
-    const hidderStyle = hider.style;
+    const hiderStyle = hider.style;
     const rootStyle = holder.parentNode.style;
 
-    arrayEach([holderStyle, hidderStyle, rootStyle], (style) => {
+    arrayEach([holderStyle, hiderStyle, rootStyle], (style) => {
       style.width = '';
       style.height = '';
     });

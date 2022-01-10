@@ -216,17 +216,24 @@ export class LeftOverlay extends Overlay {
    */
   applyToDOM() {
     const total = this.wtSettings.getSetting('totalColumns');
+    const isRtl = this.wtSettings.getSetting('isRtl');
+    const styleProperty = isRtl ? 'right' : 'left';
 
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
-      this.spreader.style.left = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
+      this.spreader.style[styleProperty] = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
 
     } else if (total === 0) {
-      this.spreader.style.left = '0';
+      this.spreader.style[styleProperty] = '0';
 
     } else {
       throw new Error('Incorrect value of the columnsRenderCalculator');
     }
-    this.spreader.style.right = '';
+
+    if (isRtl) {
+      this.spreader.style.left = '';
+    } else {
+      this.spreader.style.right = '';
+    }
 
     if (this.needFullRender) {
       this.syncOverlayOffset();

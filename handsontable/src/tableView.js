@@ -522,6 +522,7 @@ class TableView {
       externalRowCalculator: this.instance.getPlugin('autoRowSize') &&
         this.instance.getPlugin('autoRowSize').isEnabled(),
       table: priv.table,
+      isRtl: () => this.instance.isRtl(),
       isDataViewInstance: () => isRootInstance(this.instance),
       preventOverflow: () => this.settings.preventOverflow,
       preventWheel: () => this.settings.preventWheel,
