@@ -15,9 +15,10 @@ const stickyColumnsStart = {
    * Get the source index of the first rendered column. If no columns are rendered, returns an error code: -1.
    *
    * @returns {number}
+   * @this Table
    */
   getFirstRenderedColumn() {
-    const totalColumns = this.wot.getSetting('totalColumns');
+    const totalColumns = this.wtSettings.getSetting('totalColumns');
 
     if (totalColumns === 0) {
       return -1;
@@ -31,6 +32,7 @@ const stickyColumnsStart = {
    * Assumes that all rendered columns are fully visible.
    *
    * @returns {number}
+   * @this Table
    */
   getFirstVisibleColumn() {
     return this.getFirstRenderedColumn();
@@ -40,6 +42,7 @@ const stickyColumnsStart = {
    * Get the source index of the last rendered column. If no columns are rendered, returns an error code: -1.
    *
    * @returns {number}
+   * @this Table
    */
   getLastRenderedColumn() {
     return this.getRenderedColumnsCount() - 1;
@@ -50,6 +53,7 @@ const stickyColumnsStart = {
    * Assumes that all rendered columns are fully visible.
    *
    * @returns {number}
+   * @this Table
    */
   getLastVisibleColumn() {
     return this.getLastRenderedColumn();
@@ -59,11 +63,12 @@ const stickyColumnsStart = {
    * Get the number of rendered columns.
    *
    * @returns {number}
+   * @this Table
    */
   getRenderedColumnsCount() {
-    const totalColumns = this.wot.getSetting('totalColumns');
+    const totalColumns = this.wtSettings.getSetting('totalColumns');
 
-    return Math.min(this.wot.getSetting('fixedColumnsStart'), totalColumns);
+    return Math.min(this.wtSettings.getSetting('fixedColumnsStart'), totalColumns);
   },
 
   /**
@@ -71,6 +76,7 @@ const stickyColumnsStart = {
    * Assumes that all rendered columns are fully visible.
    *
    * @returns {number}
+   * @this Table
    */
   getVisibleColumnsCount() {
     return this.getRenderedColumnsCount();

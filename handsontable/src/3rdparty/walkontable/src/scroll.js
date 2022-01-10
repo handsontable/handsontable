@@ -4,17 +4,25 @@ import {
   getScrollLeft,
   getScrollTop,
   offset,
-} from './../../../helpers/dom/element';
+} from '../../../helpers/dom/element';
 
 /**
  * @class Scroll
  */
 class Scroll {
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * Tha data access object.
+   *
+   * @protected
+   * @type {ScrollDao}
    */
-  constructor(wotInstance) {
-    this.wot = wotInstance;
+  dataAccessObject;
+
+  /**
+   * @param {ScrollDao} dataAccessObject Tha data access object.
+   */
+  constructor(dataAccessObject) {
+    this.dataAccessObject = dataAccessObject;
   }
 
   /**
@@ -46,7 +54,7 @@ class Scroll {
    * @returns {boolean}
    */
   scrollViewportHorizontally(column, snapToRight, snapToLeft) {
-    if (!this.wot.drawn) {
+    if (!this.dataAccessObject.drawn) {
       return false;
     }
 
@@ -54,7 +62,7 @@ class Scroll {
       fixedColumnsStart,
       leftOverlay,
       totalColumns,
-    } = this._getVariables();
+    } = this.dataAccessObject;
     let result = false;
 
     if (column >= 0 && column <= Math.max(totalColumns - 1, 0)) {
@@ -80,7 +88,7 @@ class Scroll {
    * @returns {boolean}
    */
   scrollViewportVertically(row, snapToTop, snapToBottom) {
-    if (!this.wot.drawn) {
+    if (!this.dataAccessObject.drawn) {
       return false;
     }
 
@@ -89,7 +97,7 @@ class Scroll {
       fixedRowsTop,
       topOverlay,
       totalRows,
-    } = this._getVariables();
+    } = this.dataAccessObject;
     let result = false;
 
     if (row >= 0 && row <= Math.max(totalRows - 1, 0)) {
@@ -119,8 +127,8 @@ class Scroll {
       wtViewport,
       totalRows,
       fixedRowsTop,
-    } = this._getVariables();
-    const rootWindow = this.wot.rootWindow;
+      rootWindow,
+    } = this.dataAccessObject;
 
     let firstVisibleRow = wtTable.getFirstVisibleRow();
 
@@ -162,8 +170,8 @@ class Scroll {
       wtTable,
       wtViewport,
       totalRows,
-    } = this._getVariables();
-    const rootWindow = this.wot.rootWindow;
+      rootWindow,
+    } = this.dataAccessObject;
     let lastVisibleRow = wtTable.getLastVisibleRow();
 
     if (topOverlay.mainTableScrollableElement === rootWindow) {
@@ -201,8 +209,8 @@ class Scroll {
       wtTable,
       wtViewport,
       totalColumns,
-    } = this._getVariables();
-    const rootWindow = this.wot.rootWindow;
+      rootWindow,
+    } = this.dataAccessObject;
 
     let firstVisibleColumn = wtTable.getFirstVisibleColumn();
 
@@ -242,8 +250,8 @@ class Scroll {
       wtTable,
       wtViewport,
       totalColumns,
-    } = this._getVariables();
-    const rootWindow = this.wot.rootWindow;
+      rootWindow,
+    } = this.dataAccessObject;
 
     let lastVisibleColumn = wtTable.getLastVisibleColumn();
 
@@ -269,37 +277,6 @@ class Scroll {
     }
 
     return lastVisibleColumn;
-  }
-
-  /**
-   * Returns collection of variables used to rows and columns visibility calculations.
-   *
-   * @returns {object}
-   * @private
-   */
-  _getVariables() {
-    const { wot } = this;
-    const topOverlay = wot.wtOverlays.topOverlay;
-    const leftOverlay = wot.wtOverlays.leftOverlay;
-    const wtTable = wot.wtTable;
-    const wtViewport = wot.wtViewport;
-    const totalRows = wot.getSetting('totalRows');
-    const totalColumns = wot.getSetting('totalColumns');
-    const fixedRowsTop = wot.getSetting('fixedRowsTop');
-    const fixedRowsBottom = wot.getSetting('fixedRowsBottom');
-    const fixedColumnsStart = wot.getSetting('fixedColumnsStart');
-
-    return {
-      topOverlay,
-      leftOverlay,
-      wtTable,
-      wtViewport,
-      totalRows,
-      totalColumns,
-      fixedRowsTop,
-      fixedRowsBottom,
-      fixedColumnsStart
-    };
   }
 }
 

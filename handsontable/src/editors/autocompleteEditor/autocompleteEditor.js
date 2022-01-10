@@ -300,7 +300,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       let height = null;
 
       do {
-        lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.wt.wtSettings.settings.defaultRowHeight;
+        lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.wt.getSetting('defaultRowHeight');
         tempHeight += lastRowHeight;
         i += 1;
       } while (tempHeight < spaceAvailable);

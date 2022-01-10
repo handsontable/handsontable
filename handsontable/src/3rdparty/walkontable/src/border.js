@@ -9,26 +9,28 @@ import {
   offset,
   outerHeight,
   outerWidth,
-} from './../../../helpers/dom/element';
-import { stopImmediatePropagation } from './../../../helpers/dom/event';
-import { objectEach } from './../../../helpers/object';
-import { isMobileBrowser } from './../../../helpers/browser';
-import EventManager from './../../../eventManager';
+} from '../../../helpers/dom/element';
+import { stopImmediatePropagation } from '../../../helpers/dom/event';
+import { objectEach } from '../../../helpers/object';
+import { isMobileBrowser } from '../../../helpers/browser';
 import CellCoords from './cell/coords';
 
 /**
  *
  */
 class Border {
+  // TODO As this is an internal class, should be designed for using {Walkontable}. It uses the facade,
+  // TODO Con. Because the class is created on place where the instance reference comes from external origin.
+  // TODO Imho, the discrimination for handling both, facade and non-facade should be handled.
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {WalkontableFacade} wotInstance The Walkontable instance.
    * @param {object} settings The border settings.
    */
   constructor(wotInstance, settings) {
     if (!settings) {
       return;
     }
-    this.eventManager = new EventManager(wotInstance);
+    this.eventManager = wotInstance.eventManager;
     this.instance = wotInstance;
     this.wot = wotInstance;
     this.settings = settings;
@@ -361,7 +363,7 @@ class Border {
       return;
     }
 
-    const { wtTable, rootDocument, rootWindow } = this.wot;
+    const { wtTable, rootDocument, rootWindow } = this.wot; // todo refactoring: consider about using internal facade (it is given by external code)
     let fromRow;
     let toRow;
     let fromColumn;

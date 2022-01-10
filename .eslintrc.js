@@ -113,7 +113,8 @@ module.exports = {
           'core',
           'TODO',
           'category',
-          'package'
+          'package',
+          'template',
         ]
       }
     ],

@@ -20,10 +20,8 @@ describe('settings', () => {
         tableClassName: 'foo'
       });
 
-      const possibleCounts = [3, 4]; // 3 for non-pro, 4 for pro (bottom overlay)
-
-      // all overlays is created anyway but without left-top corner
-      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.foo').length)).toBeGreaterThan(-1);
+      // all overlays is created anyway
+      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(6);
     });
 
     it('should add class name every table element inside handsontable wrapper element (as string, with overlays)', () => {
@@ -33,9 +31,7 @@ describe('settings', () => {
         tableClassName: 'foo'
       });
 
-      const possibleCounts = [4, 5]; // 4 for non-pro, 5 for pro (bottom overlay)
-
-      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.foo').length)).toBeGreaterThan(-1);
+      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(6);
     });
 
     it('should add class name every table element inside handsontable wrapper element (as string with spaces, without overlays)', () => {
@@ -45,11 +41,9 @@ describe('settings', () => {
         tableClassName: 'foo bar'
       });
 
-      const possibleCounts = [3, 4]; // 3 for non-pro, 4 for pro (bottom overlay)
-
-      // all overlays is created anyway but without left-top corner
-      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.foo').length)).toBeGreaterThan(-1);
-      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.bar').length)).toBeGreaterThan(-1);
+      // all overlays is created anyway
+      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(6);
+      expect(hot.rootElement.querySelectorAll('table.bar').length).toEqual(6);
     });
 
     it('should add class name every table element inside handsontable wrapper element (as string with spaces, with overlays)', () => {
@@ -59,10 +53,8 @@ describe('settings', () => {
         tableClassName: 'foo bar'
       });
 
-      const possibleCounts = [4, 5]; // 4 for non-pro, 5 for pro (bottom overlay)
-
-      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.foo').length)).toBeGreaterThan(-1);
-      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.bar').length)).toBeGreaterThan(-1);
+      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(6);
+      expect(hot.rootElement.querySelectorAll('table.bar').length).toEqual(6);
     });
 
     it('should add class name every table element inside handsontable wrapper element (as array, without overlays)', () => {
@@ -72,11 +64,9 @@ describe('settings', () => {
         tableClassName: ['foo', 'bar', 'baz']
       });
 
-      const possibleCounts = [3, 4]; // 3 for non-pro, 4 for pro (bottom overlay)
-
-      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.foo').length)).toBeGreaterThan(-1);
-      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.bar').length)).toBeGreaterThan(-1);
-      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.baz').length)).toBeGreaterThan(-1);
+      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(6);
+      expect(hot.rootElement.querySelectorAll('table.bar').length).toEqual(6);
+      expect(hot.rootElement.querySelectorAll('table.baz').length).toEqual(6);
     });
 
     it('should add class name every table element inside handsontable wrapper element (as array, with overlays)', () => {
@@ -86,11 +76,9 @@ describe('settings', () => {
         tableClassName: ['foo', 'bar', 'baz']
       });
 
-      const possibleCounts = [4, 5]; // 4 for non-pro, 5 for pro (bottom overlay)
-
-      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.foo').length)).toBeGreaterThan(-1);
-      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.bar').length)).toBeGreaterThan(-1);
-      expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.baz').length)).toBeGreaterThan(-1);
+      expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(6);
+      expect(hot.rootElement.querySelectorAll('table.bar').length).toEqual(6);
+      expect(hot.rootElement.querySelectorAll('table.baz').length).toEqual(6);
     });
 
     it('should update tableClassName in all tables accordingly', () => {

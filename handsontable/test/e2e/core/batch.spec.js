@@ -83,8 +83,8 @@ describe('Core.batch', () => {
 
     expect(getTopClone().width()).toBe(0);
     expect(getTopClone().height()).toBe(0);
-    expect(getTopLeftClone().width()).toBe(null);
-    expect(getTopLeftClone().height()).toBe(null);
+    expect(getTopLeftClone().width()).toBe(0);
+    expect(getTopLeftClone().height()).toBe(0);
     expect(getLeftClone().width()).toBe(0);
     expect(getLeftClone().height()).toBe(0);
 
@@ -128,12 +128,12 @@ describe('Core.batch', () => {
 
     expect(getTopClone().width()).toBe(0);
     expect(getTopClone().height()).toBe(0);
-    expect(getTopLeftClone().width()).toBe(null);
-    expect(getTopLeftClone().height()).toBe(null);
+    expect(getTopLeftClone().width()).toBe(0);
+    expect(getTopLeftClone().height()).toBe(0);
     expect(getLeftClone().width()).toBe(0);
     expect(getLeftClone().height()).toBe(0);
-    expect(getBottomLeftClone().width()).toBe(null);
-    expect(getBottomLeftClone().height()).toBe(null);
+    expect(getBottomLeftClone().width()).toBe(0);
+    expect(getBottomLeftClone().height()).toBe(0);
     expect(getBottomClone().width()).toBe(0);
     expect(getBottomClone().height()).toBe(0);
 
