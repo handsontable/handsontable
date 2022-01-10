@@ -15,7 +15,7 @@ tags:
 
 ## 11.1.0
 
-Released on 12th of January, 2022
+Released on 13th of January, 2022
 
 **Added**
 - Added [`updateData()`](@/api/core.md#updatedata), a new method that lets you replace Handsontable's [`data`](@/api/options.md#data) without resetting cells' configuration options, rows' states, and columns' states. [#7263](https://github.com/handsontable/handsontable/issues/7263)

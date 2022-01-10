@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
-## [11.1.0] - 2022-01-12
+## [11.1.0] - 2022-01-13
 
 ### Added
 - Added `updateData()`, a new method that allows for replacing Handsontable's `data` without 
