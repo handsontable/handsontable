@@ -1,3 +1,6 @@
+/**
+ * @typedef {'top'|'bottom'|'left'|'top_left_corner'|'bottom_left_corner'} CLONE_TYPES_ENUM
+ */
 export const CLONE_TOP = 'top';
 export const CLONE_BOTTOM = 'bottom';
 export const CLONE_LEFT = 'left';
@@ -10,3 +13,4 @@ export const CLONE_TYPES = [
   CLONE_TOP_LEFT_CORNER,
   CLONE_BOTTOM_LEFT_CORNER,
 ];
+

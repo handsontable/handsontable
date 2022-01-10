@@ -15,9 +15,10 @@ const calculatedColumns = {
    * Get the source index of the first rendered column. If no columns are rendered, returns an error code: -1.
    *
    * @returns {number}
+   * @this Table
    */
   getFirstRenderedColumn() {
-    const startColumn = this.wot.wtViewport.columnsRenderCalculator.startColumn;
+    const startColumn = this.dataAccessObject.startColumnRendered;
 
     if (startColumn === null) {
       return -1;
@@ -30,9 +31,10 @@ const calculatedColumns = {
    * Get the source index of the first column fully visible in the viewport. If no columns are fully visible, returns an error code: -1.
    *
    * @returns {number}
+   * @this Table
    */
   getFirstVisibleColumn() {
-    const startColumn = this.wot.wtViewport.columnsVisibleCalculator.startColumn;
+    const startColumn = this.dataAccessObject.startColumnVisible;
 
     if (startColumn === null) {
       return -1;
@@ -45,9 +47,10 @@ const calculatedColumns = {
    * Get the source index of the last rendered column. If no columns are rendered, returns an error code: -1.
    *
    * @returns {number}
+   * @this Table
    */
   getLastRenderedColumn() {
-    const endColumn = this.wot.wtViewport.columnsRenderCalculator.endColumn;
+    const endColumn = this.dataAccessObject.endColumnRendered;
 
     if (endColumn === null) {
       return -1;
@@ -60,9 +63,10 @@ const calculatedColumns = {
    * Get the source index of the last column fully visible in the viewport. If no columns are fully visible, returns an error code: -1.
    *
    * @returns {number}
+   * @this Table
    */
   getLastVisibleColumn() {
-    const endColumn = this.wot.wtViewport.columnsVisibleCalculator.endColumn;
+    const endColumn = this.dataAccessObject.endColumnVisible;
 
     if (endColumn === null) {
       return -1;
@@ -75,18 +79,20 @@ const calculatedColumns = {
    * Get the number of rendered columns.
    *
    * @returns {number}
+   * @this Table
    */
   getRenderedColumnsCount() {
-    return this.wot.wtViewport.columnsRenderCalculator.count;
+    return this.dataAccessObject.countColumnsRendered;
   },
 
   /**
    * Get the number of fully visible columns in the viewport.
    *
    * @returns {number}
+   * @this Table
    */
   getVisibleColumnsCount() {
-    return this.wot.wtViewport.columnsVisibleCalculator.count;
+    return this.dataAccessObject.countColumnsVisible;
   }
 };
 
