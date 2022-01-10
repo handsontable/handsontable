@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 resetting cells' configuration options, rows' states, and columns' states. [#7263](https://github.com/handsontable/handsontable/issues/7263)
 - *Vue:* Added Vue 3 support, by introducing a new wrapper. [#7545](https://github.com/handsontable/handsontable/issues/7545)
 
+### Changed
+- Updated the TypeScript definition of the `setDataAtCell()` method. [#8601](https://github.com/handsontable/handsontable/issues/8601)
+- Extended Handsontable's GitHub Actions workflow, to allow for deploying code examples to GitHub Pages. [#9058](https://github.com/handsontable/handsontable/issues/9058)
+
 ### Fixed
 - Fixed an issue where the `autocomplete` editor's suggestion list didn't update properly. [#7570](https://github.com/handsontable/handsontable/issues/7570)
 - Fixed an issue where nested headers didn't render when `data` wasn't defined. [#8589](https://github.com/handsontable/handsontable/issues/8589)
@@ -29,10 +33,6 @@ resetting cells' configuration options, rows' states, and columns' states. [#726
 - Fixed a wrong TypeScript definition of the `MultiColumnSorting` plugin's `sort()` method. [#9067](https://github.com/handsontable/handsontable/issues/9067)
 - Fixed an issue where the `Comments` plugin's editor disappeared after adding a comment. [#9075](https://github.com/handsontable/handsontable/issues/9075)
 - *React:* Fixed a wrong return type. [#9000](https://github.com/handsontable/handsontable/issues/9000)
-
-### Changed
-- Updated the TypeScript definition of the `setDataAtCell()` method. [#8601](https://github.com/handsontable/handsontable/issues/8601)
-- Extended Handsontable's GitHub Actions workflow, to allow for deploying code examples to GitHub Pages. [#9058](https://github.com/handsontable/handsontable/issues/9058)
 
 ## [11.0.1] - 2021-11-17
 
@@ -50,7 +50,6 @@ resetting cells' configuration options, rows' states, and columns' states. [#726
 - Added a new `locale` option, to properly handle locale-based data. [#8897](https://github.com/handsontable/handsontable/issues/8897)
 - Added a GitHub Actions workflow that covers testing Handsontable and the wrappers. [#8652](https://github.com/handsontable/handsontable/issues/8652)
 - Added new direction helpers (internal API) that lay ground for future RTL support. [#8868](https://github.com/handsontable/handsontable/issues/8868)
-
 
 ### Changed
 - **Breaking change**: Changed how the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888)
