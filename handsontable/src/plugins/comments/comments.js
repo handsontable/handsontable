@@ -16,7 +16,7 @@ import { checkSelectionConsistency, markLabelAsSelected } from '../contextMenu/u
 import DisplaySwitch from './displaySwitch';
 import * as C from '../../i18n/constants';
 
-import './comments.css';
+import './comments.scss';
 
 export const PLUGIN_KEY = 'comments';
 export const PLUGIN_PRIORITY = 60;
@@ -369,12 +369,9 @@ export class Comments extends BasePlugin {
 
     const meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
 
-    this.refreshEditor(true);
     this.editor.setValue(meta[META_COMMENT] ? meta[META_COMMENT][META_COMMENT_VALUE] : null || '');
-
-    if (this.editor.hidden) {
-      this.editor.show();
-    }
+    this.editor.show();
+    this.refreshEditor(true);
 
     return true;
   }
@@ -458,8 +455,14 @@ export class Comments extends BasePlugin {
       cellLeftOffset -= wtOverlays.leftOverlay.getScrollPosition();
     }
 
-    const x = cellLeftOffset + lastColWidth;
     const y = cellTopOffset + lastRowHeight;
+    let x = cellLeftOffset;
+
+    if (this.hot.isRtl()) {
+      x -= this.editor.getSize().width;
+    } else {
+      x += lastColWidth;
+    }
 
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
     const readOnly = this.getCommentMeta(visualRow, visualColumn, META_READONLY);
@@ -472,7 +475,6 @@ export class Comments extends BasePlugin {
     }
 
     this.editor.setReadOnlyState(readOnly);
-
     this.editor.setPosition(x, y);
   }
 
