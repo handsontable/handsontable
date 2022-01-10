@@ -1,11 +1,12 @@
 import moment from 'moment';
 import Pikaday from 'pikaday';
-import 'pikaday/css/pikaday.css';
 import { TextEditor } from '../textEditor';
 import EventManager from '../../eventManager';
-import { addClass, outerHeight } from '../../helpers/dom/element';
+import { addClass, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
+
+import 'pikaday/css/pikaday.css';
 
 export const EDITOR_TYPE = 'date';
 
@@ -159,11 +160,22 @@ export class DateEditor extends TextEditor {
     const isMeta = event ? isFunctionKey(event.keyCode) : false;
     let dateStr;
 
-    this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
-    this.datePickerStyle.left = `${this.hot.rootWindow.pageXOffset + offset.left}px`;
+    this.datePicker.style.display = 'block';
 
     this.$datePicker = new Pikaday(this.getDatePickerConfig());
     this.$datePicker._onInputFocus = function() {};
+
+    this.datePickerStyle.top = `${this.hot.rootWindow.pageYOffset + offset.top + outerHeight(this.TD)}px`;
+
+    let pickerLeftPosition = this.hot.rootWindow.pageXOffset;
+
+    if (this.hot.isRtl()) {
+      pickerLeftPosition = offset.right - outerWidth(this.datePicker);
+    } else {
+      pickerLeftPosition = offset.left;
+    }
+
+    this.datePickerStyle.left = `${pickerLeftPosition}px`;
 
     if (this.originalValue) {
       dateStr = this.originalValue;
@@ -196,8 +208,6 @@ export class DateEditor extends TextEditor {
       // datepicker, but don't fill the editor input
       this.$datePicker.gotoToday();
     }
-
-    this.datePickerStyle.display = 'block';
   }
 
   /**
@@ -229,6 +239,7 @@ export class DateEditor extends TextEditor {
     options.bound = false;
     options.format = options.format || this.defaultDateFormat;
     options.reposition = options.reposition || false;
+    options.isRTL = this.hot.isRtl();
     options.onSelect = (value) => {
       let dateStr = value;
 

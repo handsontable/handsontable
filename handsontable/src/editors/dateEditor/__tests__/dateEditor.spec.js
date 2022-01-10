@@ -293,7 +293,7 @@ describe('DateEditor', () => {
     expect(window.getComputedStyle(editor, 'focus').getPropertyValue('outline-style')).toBe('none');
   });
 
-  it('should display Pikday calendar', () => {
+  it('should display Pikaday calendar', () => {
     handsontable({
       data: getDates(),
       columns: [
@@ -311,7 +311,7 @@ describe('DateEditor', () => {
     expect($('.pika-single').is(':visible')).toBe(true);
   });
 
-  it('should pass date picker config object to Pikday', () => {
+  it('should pass date picker config object to Pikaday', () => {
     const onOpenSpy = jasmine.createSpy('open');
     const onCloseSpy = jasmine.createSpy('close');
     const hot = handsontable({
@@ -355,6 +355,28 @@ describe('DateEditor', () => {
     expect(config.i18n.nextMonth).toBe('Następny');
     expect(onOpenSpy).toHaveBeenCalled();
     expect(onCloseSpy).toHaveBeenCalled();
+  });
+
+  it('should set isRTL option as `false` when it\'s opened in LTR mode', () => {
+    handsontable({
+      data: getDates(),
+      columns: [
+        {
+          type: 'date',
+          datePickerConfig: {
+            isRTL: true, // read only - shouldn't overwrite
+          }
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+    keyDown('esc');
+
+    const config = getActiveEditor().$datePicker.config();
+
+    expect(config.isRTL).toBe(false);
   });
 
   it('should remove any HTML connected with Pikaday Calendar', () => {
@@ -668,8 +690,8 @@ describe('DateEditor', () => {
     expect(moment(resultDate).month()).toEqual(moment().month());
   });
 
-  it('should display Pikaday Calendar bottom of the selected cell', () => {
-    const hot = handsontable({
+  it('should display Pikaday Calendar right-bottom of the selected cell', () => {
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2),
       columns: [
         { type: 'date' },
@@ -680,7 +702,7 @@ describe('DateEditor', () => {
     selectCell(1, 1);
     keyDown('enter');
 
-    const cellOffset = $(hot.getActiveEditor().TD).offset();
+    const cellOffset = $(getActiveEditor().TD).offset();
     const datePickerOffset = $('.pika-single').offset();
 
     // 23 is a height of the editor cell
@@ -688,14 +710,14 @@ describe('DateEditor', () => {
     expect(cellOffset.left).toBeCloseTo(datePickerOffset.left, 0);
   });
 
-  it('should display Pikaday Calendar bottom of the selected cell when table have scrolls', () => {
+  it('should display Pikaday Calendar right-bottom of the selected cell when table have scrolls', () => {
     const container = $('#testContainer');
 
     container[0].style.height = '300px';
     container[0].style.width = '200px';
     container[0].style.overflow = 'hidden';
 
-    const hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(30, 10),
       colWidths: 60,
       columns: [
@@ -712,7 +734,7 @@ describe('DateEditor', () => {
     selectCell(20, 6);
     keyDown('enter');
 
-    const cellOffset = $(hot.getActiveEditor().TD).offset();
+    const cellOffset = $(getActiveEditor().TD).offset();
     const datePickerOffset = $('.pika-single').offset();
 
     expect(cellOffset.top + 23).toBeCloseTo(datePickerOffset.top, 0);
@@ -744,7 +766,7 @@ describe('DateEditor', () => {
     expect(editor.TEXTAREA.value).toEqual(cellValue);
   });
 
-  it('should use the default Pikaday\'s cofiguration if cell does not customize picker', async() => {
+  it('should use the default Pikaday\'s configuration if cell does not customize picker', async() => {
     handsontable({
       data: [['10/12/2020', '01/14/2017']],
       columns: [
