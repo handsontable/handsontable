@@ -1,5 +1,4 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
-import { createUniqueSet } from '../utils/dataStructures/uniqueSet';
 import { createContext } from './context';
 import { useRecorder } from './recorder';
 
@@ -13,11 +12,11 @@ export const createShortcutManager = ({ isActive, frame, beforeKeyDown, afterKey
     errorIdExists: keys => `The passed context name "${keys}" is already registered.`
   });
   /**
-   * UniqueSet to storing active contexts.
+   * Name of active context.
    *
-   * @type {UniqueSet}
+   * @type {string}
    */
-  const ACTIVE_CONTEXTS = createUniqueSet();
+  let ACTIVE_CONTEXT_NAME = 'grid';
 
   /**
    * Create a new context with a given name.
@@ -34,12 +33,12 @@ export const createShortcutManager = ({ isActive, frame, beforeKeyDown, afterKey
   };
 
   /**
-   * Get active contexts.
+   * Get ID of active context.
    *
-   * @returns {Array<string>}
+   * @returns {string}
    */
-  const getActiveContexts = () => {
-    return ACTIVE_CONTEXTS.getItems();
+  const getActiveContextName = () => {
+    return ACTIVE_CONTEXT_NAME;
   };
 
   /**
@@ -53,24 +52,12 @@ export const createShortcutManager = ({ isActive, frame, beforeKeyDown, afterKey
   };
 
   /**
-   * Check if specific context exists within this Shortcut Manager instance.
-   *
-   * @param {string} contextName Context's name to check.
-   * @returns {boolean}
-   */
-  const hasContext = (contextName) => {
-    return CONTEXTS.hasItem(contextName);
-  };
-
-  /**
    * Activate shortcuts' listening within given contexts.
    *
-   * @param {Array<string>} contexts Contexts' to activate.
+   * @param {string} context Context to activate.
    */
-  const setActiveContexts = (contexts) => {
-    ACTIVE_CONTEXTS.clear();
-
-    contexts.forEach(context => ACTIVE_CONTEXTS.addItem(context));
+  const setActiveContextName = (context) => {
+    ACTIVE_CONTEXT_NAME = context;
   };
 
   /**
@@ -83,37 +70,34 @@ export const createShortcutManager = ({ isActive, frame, beforeKeyDown, afterKey
       return;
     }
 
-    getActiveContexts().forEach((context) => {
-      const ctx = getContext(context);
+    const activeContext = getContext(getActiveContextName());
 
-      if (ctx.hasShortcut(keys)) {
-        const { callback, options: { runAction, preventDefault, stopPropagation } } = ctx.getShortcut(keys);
+    if (activeContext.hasShortcut(keys)) {
+      const { callback, options: { runAction, preventDefault, stopPropagation } } = activeContext.getShortcut(keys);
 
-        if (runAction(event) === false) {
-          return;
-        }
-
-        callback(event, keys);
-
-        if (preventDefault) {
-          event.preventDefault();
-        }
-
-        if (stopPropagation) {
-          event.stopPropagation();
-        }
+      if (runAction(event) === false) {
+        return;
       }
-    });
+
+      callback(event, keys);
+
+      if (preventDefault) {
+        event.preventDefault();
+      }
+
+      if (stopPropagation) {
+        event.stopPropagation();
+      }
+    }
   });
 
   keyRecorder.mount();
 
   return {
     addContext,
-    getActiveContexts,
+    getActiveContextName,
     getContext,
-    hasContext,
-    setActiveContexts,
+    setActiveContextName,
     isCtrlPressed: () => keyRecorder.isPressed('control') || keyRecorder.isPressed('meta'),
     destroy: () => keyRecorder.unmount(),
   };

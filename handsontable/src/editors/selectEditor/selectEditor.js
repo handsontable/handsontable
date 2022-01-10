@@ -69,7 +69,7 @@ export class SelectEditor extends BaseEditor {
 
     const shortcutManager = this.hot.getShortcutManager();
 
-    shortcutManager.setActiveContexts(['editor']);
+    shortcutManager.setActiveContextName('editor');
 
     this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
   }

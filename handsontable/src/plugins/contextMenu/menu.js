@@ -253,7 +253,7 @@ class Menu {
       || this.container.contains(event.target) === false };
 
     // Default shortcuts for Handsontable should not be handled. Changing context will help with that.
-    shortcutManager.setActiveContexts(['menu']);
+    shortcutManager.setActiveContextName('menu');
 
     menuContext.addShortcut([['Escape']], () => {
       this.keyEvent = true;

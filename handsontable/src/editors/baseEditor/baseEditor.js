@@ -387,7 +387,7 @@ export class BaseEditor {
 
       const shortcutManager = this.hot.getShortcutManager();
 
-      shortcutManager.setActiveContexts(['grid']);
+      shortcutManager.setActiveContextName('grid');
     }
   }
 
