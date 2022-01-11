@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [11.1.0] - 2022-01-12
 
 ### Added
-- Added a `setData` and `updateData` methods alonside the existing `loadData` method. The `updateData` method allows replacing the dataset without resetting the cell meta cache and index mapper configuration. [#7263](https://github.com/handsontable/handsontable/issues/7263)
+- Added a an `updateData` method alongside the existing `loadData` method. The `updateData` method allows replacing the dataset without resetting the cell meta cache and index mapper configuration. [#7263](https://github.com/handsontable/handsontable/issues/7263), [#9095](https://github.com/handsontable/handsontable/issues/9095)
 - *Vue:* Added support for Vue3 wrapper. [#7545](https://github.com/handsontable/handsontable/issues/7545)
 
 ### Fixed

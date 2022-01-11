@@ -126,8 +126,6 @@ hot.selectRows(1, 4);
 hot.selectRows(1);
 hot.setCellMeta(123, 123, 'foo', 'foo');
 hot.setCellMetaObject(123, 123, {});
-hot.setData([[1, 2, 3], [1, 2, 3]]);
-hot.setData([{ a: 'a', b: 2, c: '' }, { a: 'a', b: 2, c: '' }]);
 hot.setDataAtCell([[123, 123, 'foo'], [123, 123, {myProperty: 'foo'}]], 'foo');
 hot.setDataAtCell(123, 123, 'foo', 'foo');
 hot.setDataAtCell(123, 123, {myProperty: 'foo'}, 'foo');
