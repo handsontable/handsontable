@@ -30,31 +30,6 @@ describe('ColumnSorting (RTL)', () => {
     }
   });
 
-  const arrayOfObjects = () => [
-    { id: 1, name: 'Ted', lastName: 'Right' },
-    { id: 2, name: 'Frank', lastName: 'Honest' },
-    { id: 3, name: 'Joan', lastName: 'Well' },
-    { id: 4, name: 'Sid', lastName: 'Strong' },
-    { id: 5, name: 'Jane', lastName: 'Neat' },
-    { id: 6, name: 'Chuck', lastName: 'Jackson' },
-    { id: 7, name: 'Meg', lastName: 'Jansen' },
-    { id: 8, name: 'Rob', lastName: 'Norris' },
-    { id: 9, name: 'Sean', lastName: 'O\'Hara' },
-    { id: 10, name: 'Eve', lastName: 'Branson' }
-  ];
-
-  const arrayOfArrays = () => [
-    ['Mary', 'Brown', '01/14/2017', 6999.95, 'aa'],
-    ['Henry', 'Jones', '12/01/2018', 8330, 'aaa'],
-    ['Ann', 'Evans', '07/24/2021', 30500, null],
-    ['Robert', 'Evans', '07/24/2019', 12464, 'abaa'],
-    ['Ann', 'Williams', '01/14/2017', 33.9, 'aab'],
-    ['David', 'Taylor', '02/02/2020', 7000, 'bbbb'],
-    ['John', 'Brown', '07/24/2020', 2984, null],
-    ['Mary', 'Brown', '01/14/2017', 4000, ''],
-    ['Robert', 'Evans', '07/24/2020', 30500, undefined]
-  ];
-
   it('should display indicator properly after changing sorted column sequence', () => {
     const hot = handsontable({
       data: [
