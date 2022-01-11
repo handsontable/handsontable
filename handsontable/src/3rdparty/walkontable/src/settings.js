@@ -222,7 +222,7 @@ export default class Settings {
       rowHeaderWidth: null,
       columnHeaderHeight: null,
       headerClassName: null,
-      direction: 'ltr'
+      rtlMode: false
     };
   }
 

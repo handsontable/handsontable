@@ -519,7 +519,7 @@ class TableView {
   initializeWalkontable() {
     const priv = privatePool.get(this);
     const walkontableConfig = {
-      direction: () => (this.instance.isLtr() ? 'ltr' : 'rtl'),
+      rtlMode: () => this.instance.isRtl(),
       externalRowCalculator: this.instance.getPlugin('autoRowSize') &&
         this.instance.getPlugin('autoRowSize').isEnabled(),
       table: priv.table,
