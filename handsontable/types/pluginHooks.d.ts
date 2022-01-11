@@ -129,7 +129,6 @@ export interface Events {
   afterSelectionEnd?: (row: number, column: number, row2: number, column2: number, selectionLayerLevel: number) => void;
   afterSelectionEndByProp?: (row: number, prop: string, row2: number, prop2: string, selectionLayerLevel: number) => void;
   afterSetCellMeta?: (row: number, column: number, key: string, value: any) => void;
-  afterSetData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
   afterSetDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
   afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
   afterSetSourceDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
@@ -202,7 +201,6 @@ export interface Events {
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
   beforeSetCellMeta?: (row: number, col: number, key: string, value: any) => boolean | void;
-  beforeSetData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
   beforeSetRangeEnd?: (coords: CellCoords) => void;
   beforeSetRangeStart?: (coords: CellCoords) => void;
   beforeSetRangeStartOnly?: (coords: CellCoords) => void;
