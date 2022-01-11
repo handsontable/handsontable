@@ -6,11 +6,11 @@ import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { isChrome } from '../../../helpers/browser';
 import {
-  LeftOverlay,
+  InlineStartOverlay,
   TopOverlay,
-  TopLeftCornerOverlay,
+  TopInlineStartCornerOverlay,
   BottomOverlay,
-  BottomLeftCornerOverlay,
+  BottomInlineStartCornerOverlay,
 } from './overlay';
 
 /**
@@ -45,25 +45,25 @@ class Overlays {
    * Refer to the LeftOverlay instance.
    *
    * @protected
-   * @type {LeftOverlay}
+   * @type {InlineStartOverlay}
    */
   leftOverlay = null;
 
   /**
-   * Refer to the TopLeftCornerOverlay instance.
+   * Refer to the TopInlineStartCornerOverlay instance.
    *
    * @protected
-   * @type {TopLeftCornerOverlay}
+   * @type {TopInlineStartCornerOverlay}
    */
-  topLeftCornerOverlay = null;
+  topInlineStartCornerOverlay = null;
 
   /**
-   * Refer to the BottomLeftCornerOverlay instance.
+   * Refer to the BottomInlineStartCornerOverlay instance.
    *
    * @protected
-   * @type {BottomLeftCornerOverlay}
+   * @type {BottomInlineStartCornerOverlay}
    */
-  bottomLeftCornerOverlay = null;
+  bottomInlineStartCornerOverlay = null;
 
   /**
    * Browser line height for purposes of translating mouse wheel.
@@ -160,12 +160,12 @@ class Overlays {
     // TODO refactoring, conceive about using generic collection of overlays.
     this.topOverlay = new TopOverlay(...args);
     this.bottomOverlay = new BottomOverlay(...args);
-    this.leftOverlay = new LeftOverlay(...args);
+    this.leftOverlay = new InlineStartOverlay(...args);
 
     // TODO discuss, the controversial here would be removing the lazy creation mechanism for corners.
     // TODO cond. Has no any visual impact. They're initially hidden in same way like left, top, and bottom overlays.
-    this.topLeftCornerOverlay = new TopLeftCornerOverlay(...args);
-    this.bottomLeftCornerOverlay = new BottomLeftCornerOverlay(...args);
+    this.topLeftCornerOverlay = new TopInlineStartCornerOverlay(...args);
+    this.bottomLeftCornerOverlay = new BottomInlineStartCornerOverlay(...args);
   }
 
   /**

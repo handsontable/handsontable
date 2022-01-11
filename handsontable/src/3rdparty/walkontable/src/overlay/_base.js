@@ -8,7 +8,7 @@ import { warn } from '../../../../helpers/console';
 import {
   CLONE_TYPES,
   CLONE_TOP,
-  CLONE_LEFT,
+  CLONE_INLINE_START,
 } from './constants';
 import Clone from '../core/clone';
 
@@ -276,7 +276,7 @@ export class Overlay {
 
     if (preventOverflow === true ||
       preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
-      preventOverflow === 'vertical' && this.type === CLONE_LEFT) {
+      preventOverflow === 'vertical' && this.type === CLONE_INLINE_START) {
       this.mainTableScrollableElement = rootWindow;
 
     } else if (rootWindow.getComputedStyle(tableParent).getPropertyValue('overflow') === 'hidden') {

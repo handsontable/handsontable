@@ -4,16 +4,16 @@ import {
   outerWidth,
   resetCssTransform
 } from '../../../../helpers/dom/element';
-import BottomLeftCornerOverlayTable from './../table/bottomLeftCorner';
+import BottomInlineStartCornerOverlayTable from '../table/bottomInlineStartCorner';
 import { Overlay } from './_base';
 import {
-  CLONE_BOTTOM_LEFT_CORNER,
+  CLONE_BOTTOM_INLINE_START_CORNER,
 } from './constants';
 
 /**
- * @class TopLeftCornerOverlay
+ * @class BottomInlineStartCornerOverlay
  */
-export class BottomLeftCornerOverlay extends Overlay {
+export class BottomInlineStartCornerOverlay extends Overlay {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
@@ -21,7 +21,7 @@ export class BottomLeftCornerOverlay extends Overlay {
    * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
   constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
-    super(wotInstance, facadeGetter, CLONE_BOTTOM_LEFT_CORNER, wtSettings, domBindings);
+    super(wotInstance, facadeGetter, CLONE_BOTTOM_INLINE_START_CORNER, wtSettings, domBindings);
   }
 
   /**
@@ -29,10 +29,10 @@ export class BottomLeftCornerOverlay extends Overlay {
    *
    * @see Table#constructor
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
-   * @returns {BottomLeftCornerOverlayTable}
+   * @returns {BottomInlineStartCornerOverlayTable}
    */
   createTable(...args) {
-    return new BottomLeftCornerOverlayTable(...args);
+    return new BottomInlineStartCornerOverlayTable(...args);
   }
 
   /**
@@ -67,17 +67,29 @@ export class BottomLeftCornerOverlay extends Overlay {
     if (this.trimmingContainer === this.domBindings.rootWindow) {
       const { wtTable } = this.wot;
       const { rootDocument } = this.domBindings;
+      const isRtl = this.wtSettings.getSetting('isRtl');
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(hiderRect.bottom);
       const left = Math.ceil(hiderRect.left);
+      const right = Math.ceil(hiderRect.right);
       const bodyHeight = rootDocument.documentElement.clientHeight;
       let finalLeft;
       let finalBottom;
 
-      if (left < 0) {
-        finalLeft = -left;
+      if (isRtl) {
+        const documentWidth = rootDocument.documentElement.clientWidth;
+
+        if (right >= documentWidth) {
+          finalLeft = Math.abs(documentWidth - right);
+        } else {
+          finalLeft = 0;
+        }
       } else {
-        finalLeft = 0;
+        if (left < 0) {
+          finalLeft = -left;
+        } else {
+          finalLeft = 0;
+        }
       }
 
       if (bottom > bodyHeight) {
@@ -89,7 +101,12 @@ export class BottomLeftCornerOverlay extends Overlay {
       finalBottom += 'px';
       finalLeft += 'px';
 
-      overlayRoot.style.left = finalLeft;
+      if (isRtl) {
+        overlayRoot.style.right = finalLeft;
+      } else {
+        overlayRoot.style.left = finalLeft;
+      }
+
       overlayRoot.style.bottom = finalBottom;
 
     } else {

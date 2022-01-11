@@ -8,17 +8,17 @@ import {
   removeClass,
   setOverlayPosition,
   resetCssTransform,
-} from './../../../../helpers/dom/element';
-import InlineStartOverlayTable from './../table/inlineStart';
+} from '../../../../helpers/dom/element';
+import InlineStartOverlayTable from '../table/inlineStart';
 import { Overlay } from './_base';
 import {
-  CLONE_LEFT,
+  CLONE_INLINE_START,
 } from './constants';
 
 /**
- * @class LeftOverlay
+ * @class InlineStartOverlay
  */
-export class LeftOverlay extends Overlay {
+export class InlineStartOverlay extends Overlay {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
@@ -26,7 +26,7 @@ export class LeftOverlay extends Overlay {
    * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
   constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
-    super(wotInstance, facadeGetter, CLONE_LEFT, wtSettings, domBindings);
+    super(wotInstance, facadeGetter, CLONE_INLINE_START, wtSettings, domBindings);
   }
 
   /**
@@ -62,12 +62,13 @@ export class LeftOverlay extends Overlay {
       return false;
     }
 
-    const { rootWindow } = this.domBindings;
+    const { rootWindow, rootDocument } = this.domBindings;
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     let headerPosition = 0;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
+      const isRtl = this.wtSettings.getSetting('isRtl');
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const left = Math.ceil(hiderRect.left);
       const right = Math.ceil(hiderRect.right);
@@ -77,10 +78,20 @@ export class LeftOverlay extends Overlay {
       finalTop = wtTable.hider.style.top;
       finalTop = finalTop === '' ? 0 : finalTop;
 
-      if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
-        finalLeft = -left;
+      if (isRtl) {
+        const documentWidth = rootDocument.documentElement.clientWidth;
+
+        if (right >= documentWidth) {
+          finalLeft = documentWidth - right;
+        } else {
+          finalLeft = 0;
+        }
       } else {
-        finalLeft = 0;
+        if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
+          finalLeft = -left;
+        } else {
+          finalLeft = 0;
+        }
       }
 
       headerPosition = finalLeft;

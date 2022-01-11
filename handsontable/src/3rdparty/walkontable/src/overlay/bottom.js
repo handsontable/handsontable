@@ -76,6 +76,7 @@ export class BottomOverlay extends Overlay {
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+      const isRtl = this.wtSettings.getSetting('isRtl');
       const { wtTable } = this.wot;
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(hiderRect.bottom);
@@ -95,7 +96,12 @@ export class BottomOverlay extends Overlay {
       headerPosition = finalBottom;
       finalBottom += 'px';
 
-      overlayRoot.style.left = finalLeft;
+      if (isRtl) {
+        overlayRoot.style.right = finalLeft;
+      } else {
+        overlayRoot.style.left = finalLeft;
+      }
+
       overlayRoot.style.bottom = finalBottom;
 
     } else {
