@@ -1415,16 +1415,23 @@ in the right way.
 
 _core.loadData(data, [source])_
 
-Loads new data to Handsontable. Loading new data resets the cell meta.
-Since 8.0.0 loading new data also resets states corresponding to rows and columns
-(for example, row/column sequence, column width, row height, frozen columns etc.).
+The `loadData()` method:
+- Replaces Handsontable's [`data`](@/api/options.md#data)
+- Resets cells' [configuration options](@/guides/getting-started/setting-options.md)
+- Resets rows' and columns' states (e.g. [row height](@/guides/rows/row-height.md), [column width](@/guides/columns/column-width.md), frozen [rows](@/guides/rows/row-freezing.md) and [columns](@/guides/columns/column-freezing.md) etc.)
+
+To replace Handsontable's [`data`](@/api/options.md#data) without resetting states, use the [`updateData()`](#updatedata) method.
+
+Read more:
+- [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
+- [Saving data &#8594;](@/guides/getting-started/saving-data.md)
 
 **Emits**: [`Hooks#event:beforeLoadData`](@/api/hooks.md#beforeloaddata), [`Hooks#event:beforeSetData`](@/api/hooks.md#beforesetdata), [`Hooks#event:afterLoadData`](@/api/hooks.md#afterloaddata), [`Hooks#event:afterSetData`](@/api/hooks.md#aftersetdata), [`Hooks#event:afterChange`](@/api/hooks.md#afterchange)  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | `Array` | Array of arrays or array of objects containing data. |
-| [source] | `string` | `optional` Source of the loadData call. |
+| data | `Array` | An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data |
+| [source] | `string` | `optional` The source of the `loadData()` call |
 
 
 
@@ -1874,28 +1881,6 @@ Set cell meta data object defined by `prop` to the corresponding params `row` an
 
 
 
-### setData
-  
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/core.js#L2021
-
-:::
-
-_core.setData(data, [source])_
-
-Loads new data to Handsontable. Loading new data resets the cell meta.
-Since 8.0.0 loading new data also resets states corresponding to rows and columns
-(for example, row/column sequence, column width, row height, frozen columns etc.).
-
-**Emits**: [`Hooks#event:beforeLoadData`](@/api/hooks.md#beforeloaddata), [`Hooks#event:beforeSetData`](@/api/hooks.md#beforesetdata), [`Hooks#event:beforeUpdateData`](@/api/hooks.md#beforeupdatedata), [`Hooks#event:afterLoadData`](@/api/hooks.md#afterloaddata), [`Hooks#event:afterSetData`](@/api/hooks.md#aftersetdata), [`Hooks#event:afterUpdateData`](@/api/hooks.md#afterupdatedata), [`Hooks#event:afterChange`](@/api/hooks.md#afterchange)  
-**Since**: 11.1.0  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| data | `Array` | Array of arrays or array of objects containing data. |
-| [source] | `string` | `optional` Source of the `setData` call. |
-
-
-
 ### setDataAtCell
   
 ::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/core.js#L1362
@@ -2228,16 +2213,24 @@ any keyboard events.
 
 _core.updateData(data, [source])_
 
-Replaces the dataset with a new one. Unlike `setData` and the `loadData` methods, it doesn't reset the
-state of the table.
+The `updateData()` method:
+- Replaces Handsontable's [`data`](@/api/options.md#data)
+- Keeps cells' [configuration options](@/guides/getting-started/setting-options.md) unchanged
+- Keeps rows' and columns' states unchanged (e.g. [row height](@/guides/rows/row-height.md), [column width](@/guides/columns/column-width.md), frozen [rows](@/guides/rows/row-freezing.md) and [columns](@/guides/columns/column-freezing.md) etc.)
+
+To replace Handsontable's [`data`](@/api/options.md#data) and reset states, use the [`loadData()`](#loaddata) method.
+
+Read more:
+- [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
+- [Saving data &#8594;](@/guides/getting-started/saving-data.md)
 
 **Emits**: [`Hooks#event:beforeUpdateData`](@/api/hooks.md#beforeupdatedata), [`Hooks#event:afterUpdateData`](@/api/hooks.md#afterupdatedata), [`Hooks#event:afterChange`](@/api/hooks.md#afterchange)  
 **Since**: 11.1.0  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | `Array` | Array of arrays or array of objects containing data. |
-| [source] | `string` | `optional` Source of the `updateData` call. |
+| data | `Array` | An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data |
+| [source] | `string` | `optional` The source of the `updateData()` call |
 
 
 
