@@ -213,6 +213,7 @@ describe('ColumnSorting', () => {
     const sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('right')).toEqual('-9px');
   });
 
   it('should clear indicator after disabling plugin', () => {
