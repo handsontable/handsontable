@@ -182,7 +182,6 @@ export class AutoRowSize extends BasePlugin {
     this.setSamplingOptions();
 
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
-    this.addHook('afterSetData', (...args) => this.onAfterSetData(...args));
     this.addHook('beforeChange', changes => this.onBeforeChange(changes));
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
     this.addHook('beforeViewRender', force => this.onBeforeViewRender(force));
@@ -530,7 +529,7 @@ export class AutoRowSize extends BasePlugin {
    *
    * @private
    */
-  onAfterSetData() {
+  onAfterLoadData() {
     if (this.hot.view) {
       this.recalculateAllRowsHeight();
     } else {
@@ -540,21 +539,6 @@ export class AutoRowSize extends BasePlugin {
           this.recalculateAllRowsHeight();
         }
       }, 0);
-    }
-  }
-
-  /**
-   * Alias for `onAfterSetData`.
-   *
-   * @private
-   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-   *                              during the initialization.
-   * @param {string} source Source of the hook call.
-   */
-  onAfterLoadData(sourceData, initialLoad, source) {
-    if (source !== 'updateSettings') {
-      this.onAfterSetData(sourceData, initialLoad, source);
     }
   }
 
