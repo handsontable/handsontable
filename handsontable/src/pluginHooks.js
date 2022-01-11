@@ -298,9 +298,9 @@ const REGISTERED_HOOKS = [
   'afterInit',
 
   /**
-   * Fired after the [`loadData()`](@/api/core.md#loaddata) method
-   * or the [`updateSettings()`](@/api/core.md#updatesettings) method
-   * modifies Handsontable's [`data`](@/api/options.md#data).
+   * Fired after Handsontable's [`data`](@/api/options.md#data)
+   * gets modified by the [`loadData()`](@/api/core.md#loaddata) method
+   * or the [`updateSettings()`](@/api/core.md#updatesettings) method.
    *
    * Read more:
    * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
@@ -799,9 +799,9 @@ const REGISTERED_HOOKS = [
   'beforeInitWalkontable',
 
   /**
-   * Fired before the [`loadData()`](@/api/core.md#loaddata) method
-   * or the [`updateSettings()`](@/api/core.md#updatesettings) method
-   * modifies Handsontable's [`data`](@/api/options.md#data).
+   * Fired before Handsontable's [`data`](@/api/options.md#data)
+   * gets modified by the [`loadData()`](@/api/core.md#loaddata) method
+   * or the [`updateSettings()`](@/api/core.md#updatesettings) method.
    *
    * Read more:
    * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
