@@ -108,12 +108,9 @@ describe('Comments', () => {
   });
 
   describe('Displaying comment after `mouseover` event', () => {
-    it('should display comment after predefined delay when custom `displayDelay` ' +
-      'option of `comments` plugin wasn\'t set', (done) => {
-      const rows = 10;
-      const columns = 10;
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(rows, columns),
+    it('should display comment after predefined delay when custom `displayDelay` option of `comments` plugin is not set', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -132,21 +129,16 @@ describe('Comments', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      const plugin = hot.getPlugin('comments');
-      const editor = plugin.editor.getInputElement();
+      await sleep(300);
 
-      setTimeout(() => {
-        expect(editor.parentNode.style.display).toEqual('block');
-        done();
-      }, 300);
+      const editor = getPlugin('comments').editor.getInputElement();
+
+      expect(editor.parentNode.style.display).toBe('block');
     });
 
-    it('should display comment after defined delay when custom `displayDelay` ' +
-      'option of `comments` plugin was set', (done) => {
-      const rows = 10;
-      const columns = 10;
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(rows, columns),
+    it('should display comment after defined delay when custom `displayDelay` option of `comments` plugin is set', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
@@ -167,17 +159,15 @@ describe('Comments', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      const plugin = hot.getPlugin('comments');
-      const editor = plugin.editor.getInputElement();
+      await sleep(300);
 
-      setTimeout(() => {
-        expect(editor.parentNode.style.display).toEqual('none');
-      }, 300);
+      const editorStyle = getPlugin('comments').editor.editorStyle;
 
-      setTimeout(() => {
-        expect(editor.parentNode.style.display).toEqual('block');
-        done();
-      }, 450);
+      expect(editorStyle.display).toBe('none');
+
+      await sleep(150);
+
+      expect(editorStyle.display).toBe('block');
     });
   });
 
@@ -378,37 +368,38 @@ describe('Comments', () => {
   });
 
   it('should not close the comment editor immediately after opening #4323', async() => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+    handsontable({
+      data: createSpreadsheetData(4, 4),
       contextMenu: true,
-      comments: {
-        displayDelay: 0
-      }
+      comments: true
     });
 
     selectCell(1, 1);
     contextMenu();
 
-    const addCommentButton = $('.htItemWrapper').filter(function() {
-      return $(this).text() === 'Add comment';
-    })[0];
+    const addCommentButton = $('.htContextMenu .ht_master .htCore tbody td:contains(Add comment)');
 
-    $(addCommentButton).simulate('mouseover', {
-      clientX: Handsontable.dom.offset(addCommentButton).left + 5,
-      clientY: Handsontable.dom.offset(addCommentButton).top + 5,
-    });
+    $(addCommentButton)
+      .simulate('mouseover', {
+        clientX: addCommentButton.offset().left + 5,
+        clientY: addCommentButton.offset().top + 5,
+      })
+      .simulate('mousedown')
+      .simulate('mouseup');
+    // Mouse over on documentElement emulates the behavior of the context menu where clicking the menu
+    // action triggers the "mouseover" event with not the TD element of the menu but mentioned
+    // documentElement. It is caused that the menu is closed right after the "mouseup" event.
+    $(document.documentElement)
+      .simulate('mouseover', {
+        clientX: 1,
+        clientY: 1,
+      });
 
-    $(addCommentButton).simulate('mousedown').simulate('mouseup');
+    const editor = getPlugin('comments').editor.getInputElement();
 
-    const editor = hot.getPlugin('comments').editor.getInputElement();
+    await sleep(400);
 
-    await sleep(300);
-
-    expect($(editor).parents('.htComments')[0].style.display).toEqual('block');
-
-    // Call manually blur event on comment input. This prevents auto-triggering blur event
-    // when the instance is destroyed, which causes to call `getCellMeta` on the destroyed instance.
-    editor.blur();
+    expect(editor.parentNode.style.display).toBe('block');
   });
 
   describe('Using the Context Menu', () => {
@@ -509,9 +500,9 @@ describe('Comments', () => {
       expect(getCellMeta(3, 3).comment).toEqual(void 0);
     });
 
-    it('should make the comment editor\'s textarea read-only after clicking the "Read-only comment" entry', (done) => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+    it('should make the comment editor\'s textarea read-only after clicking the "Read-only comment" entry', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,
         cell: [
@@ -522,26 +513,22 @@ describe('Comments', () => {
       selectCell(1, 1);
       contextMenu();
 
-      const editor = hot.getPlugin('comments').editor.getInputElement();
+      const editor = getPlugin('comments').editor.getInputElement();
 
-      expect($(editor)[0].readOnly).toBe(false);
+      expect(editor.readOnly).toBe(false);
 
-      const readOnlyComment = $('.htItemWrapper').filter(function() {
-        return $(this).text() === 'Read-only comment';
-      })[0];
-
-      $(readOnlyComment).simulate('mousedown').simulate('mouseup');
-      $(document).simulate('mouseup');
+      $('.htContextMenu .ht_master .htCore tbody td:contains(Read-only comment)')
+        .simulate('mousedown')
+        .simulate('mouseup');
 
       $(getCell(1, 1)).simulate('mouseover', {
         clientX: Handsontable.dom.offset(getCell(1, 1)).left + 5,
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      setTimeout(() => {
-        expect($(editor)[0].readOnly).toBe(true);
-        done();
-      }, 550);
+      await sleep(550);
+
+      expect(editor.readOnly).toBe(true);
     });
 
     it('should make multiple comment editor\'s textarea read-only after clicking the "Read-only comment" ' +

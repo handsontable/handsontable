@@ -2018,56 +2018,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * The `setData()` method:
-   * - Replaces Handsontable's [`data`](@/api/options.md#data)
-   * - Resets cells' [configuration options](@/guides/getting-started/setting-options.md)
-   * - Resets rows' and columns' states (e.g. row and column order, row and column height, frozen rows and columns etc.)
-   *
-   * Similar methods:
-   * - [`updateData()`](#updatedata): also replaces Handsontable's `data`, but doesn't reset cells' configuration options or rows' and columns' states
-   * - [`loadData()`](#loaddata): an alias of the `setData()` method, but firing different hooks
-   *
-   * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   *
-   * @memberof Core#
-   * @function setData
-   * @since 11.1.0
-   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
-   * @param {string} [source] The source of the `setData()` call
-   * @fires Hooks#beforeLoadData
-   * @fires Hooks#beforeSetData
-   * @fires Hooks#beforeUpdateData
-   * @fires Hooks#afterLoadData
-   * @fires Hooks#afterSetData
-   * @fires Hooks#afterUpdateData
-   * @fires Hooks#afterChange
-   */
-  this.setData = function(data, source) {
-    replaceData(
-      data,
-      (newDataMap) => {
-        datamap = newDataMap;
-      },
-      () => {
-        metaManager.clearCellsCache();
-        instance.initIndexMappers();
-        grid.adjustRowsAndCols();
-
-        if (firstRun) {
-          firstRun = [null, 'loadData'];
-        }
-      }, {
-        hotInstance: instance,
-        dataMap: datamap,
-        dataSource,
-        internalSource: 'setData',
-        source,
-        firstRun
-      });
-  };
-
-  /**
    * The `updateData()` method:
    * - Replaces Handsontable's [`data`](@/api/options.md#data)
    * - Doesn't reset cells' [configuration options](@/guides/getting-started/setting-options.md)
@@ -2132,13 +2082,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
    * @param {string} [source] The source of the `loadData()` call
    * @fires Hooks#beforeLoadData
-   * @fires Hooks#beforeSetData
    * @fires Hooks#afterLoadData
-   * @fires Hooks#afterSetData
    * @fires Hooks#afterChange
    */
   this.loadData = function(data, source) {
-    // Legacy alias for `setData` - these two should be kept in sync.
     replaceData(
       data,
       (newDataMap) => {
@@ -2320,8 +2267,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     // Do not forget to re-enable the pending tests that cover the change:
     //  * https://github.com/handsontable/handsontable/blob/9f62c282a1c951b27cd8406aa27105bd32b05bb6/handsontable/test/e2e/core/toPhysicalColumn.spec.js#L70
     //  * https://github.com/handsontable/handsontable/blob/9f62c282a1c951b27cd8406aa27105bd32b05bb6/handsontable/test/e2e/core/toVisualColumn.spec.js#L70
-    // const dataUpdateFunction = (firstRun ? instance.setData : instance.updateData).bind(this);
-    const dataUpdateFunction = instance.setData.bind(this);
+    // const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(this);
+    const dataUpdateFunction = instance.loadData.bind(this);
     let columnsAsFunc = false;
     let i;
     let j;

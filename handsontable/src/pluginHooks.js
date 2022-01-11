@@ -328,22 +328,6 @@ const REGISTERED_HOOKS = [
   'afterUpdateData',
 
   /**
-   * Fired after the [`setData()`](@/api/core.md#setdata) method,
-   * or the [`updateSettings()`](@/api/core.md#updatesettings) method,
-   * modifies Handsontable's [`data`](@/api/options.md#data).
-   *
-   * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   *
-   * @event Hooks#afterSetData
-   * @since 11.1.0
-   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
-   * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
-   * @param {string} source The source of the call
-   */
-  'afterSetData',
-
-  /**
    * Fired after a scroll event, which is identified as a momentum scroll (e.g. On an iPad).
    *
    * @event Hooks#afterMomentumScroll
@@ -844,23 +828,6 @@ const REGISTERED_HOOKS = [
    * @returns {Array} The returned array will be used as Handsontable's new dataset.
    */
   'beforeUpdateData',
-
-  /**
-   * Fired before the [`setData()`](@/api/core.md#setdata) method,
-   * or the [`updateSettings()`](@/api/core.md#updatesettings) method,
-   * modifies Handsontable's [`data`](@/api/options.md#data).
-   *
-   * Read more:
-   * - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
-   *
-   * @event Hooks#beforeSetData
-   * @since 11.1.0
-   * @param {Array} sourceData An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data
-   * @param {boolean} initialLoad A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`)
-   * @param {string} source The source of the call
-   * @returns {Array} The returned array will be used as Handsontable's new dataset.
-   */
-  'beforeSetData',
 
   /**
    * Fired before keydown event is handled. It can be used to overwrite default key bindings.
