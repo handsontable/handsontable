@@ -68,36 +68,24 @@ export class InlineStartOverlay extends Overlay {
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
-      const isRtl = this.wtSettings.getSetting('isRtl');
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const left = Math.ceil(hiderRect.left);
       const right = Math.ceil(hiderRect.right);
-      let finalLeft;
-      let finalTop;
+      let finalLeft = 0;
 
-      finalTop = wtTable.hider.style.top;
-      finalTop = finalTop === '' ? 0 : finalTop;
-
-      if (isRtl) {
+      if (this.isRtl()) {
         const documentWidth = rootDocument.documentElement.clientWidth;
 
         if (right >= documentWidth) {
           finalLeft = documentWidth - right;
-        } else {
-          finalLeft = 0;
         }
-      } else {
-        if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
-          finalLeft = -left;
-        } else {
-          finalLeft = 0;
-        }
+
+      } else if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
+        finalLeft = -left;
       }
 
       headerPosition = finalLeft;
-      finalLeft += 'px';
-
-      setOverlayPosition(overlayRoot, finalLeft, finalTop);
+      setOverlayPosition(overlayRoot, `${finalLeft}px`, '0px');
 
     } else {
       headerPosition = this.getScrollPosition();
@@ -227,8 +215,7 @@ export class InlineStartOverlay extends Overlay {
    */
   applyToDOM() {
     const total = this.wtSettings.getSetting('totalColumns');
-    const isRtl = this.wtSettings.getSetting('isRtl');
-    const styleProperty = isRtl ? 'right' : 'left';
+    const styleProperty = this.isRtl() ? 'right' : 'left';
 
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
       this.spreader.style[styleProperty] = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
@@ -240,7 +227,7 @@ export class InlineStartOverlay extends Overlay {
       throw new Error('Incorrect value of the columnsRenderCalculator');
     }
 
-    if (isRtl) {
+    if (this.isRtl()) {
       this.spreader.style.left = '';
     } else {
       this.spreader.style.right = '';

@@ -76,39 +76,29 @@ export class BottomOverlay extends Overlay {
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
-      const isRtl = this.wtSettings.getSetting('isRtl');
       const { wtTable } = this.wot;
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(hiderRect.bottom);
       const bodyHeight = rootDocument.documentElement.clientHeight;
-      let finalLeft;
-      let finalBottom;
+      let finalLeft = 0;
+      let finalBottom = 0;
 
       finalLeft = wtTable.hider.style.left;
-      finalLeft = finalLeft === '' ? 0 : Number.parseInt(finalLeft, 10);
-
-      if (this.isRtl()) {
-        finalLeft = this.holder.getBoundingClientRect().width - hiderRect.width + finalLeft;
-      }
-
       finalLeft = finalLeft !== 0 ? `${finalLeft}px` : finalLeft;
 
       if (bottom > bodyHeight) {
         finalBottom = (bottom - bodyHeight);
-      } else {
-        finalBottom = 0;
       }
 
       headerPosition = finalBottom;
-      finalBottom += 'px';
 
-      if (isRtl) {
-        overlayRoot.style.right = finalLeft;
+      if (this.isRtl()) {
+        overlayRoot.style.right = `${finalLeft}px`;
       } else {
-        overlayRoot.style.left = finalLeft;
+        overlayRoot.style.left = `${finalLeft}px`;
       }
 
-      overlayRoot.style.bottom = finalBottom;
+      overlayRoot.style.bottom = `${finalBottom}px`;
 
     } else {
       headerPosition = this.getScrollPosition();
@@ -279,7 +269,7 @@ export class BottomOverlay extends Overlay {
    * Synchronize calculated left position to an element.
    */
   syncOverlayOffset() {
-    const styleProperty = this.wtSettings.getSetting('isRtl') ? 'right' : 'left';
+    const styleProperty = this.isRtl() ? 'right' : 'left';
     const { spreader } = this.clone.wtTable;
 
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {

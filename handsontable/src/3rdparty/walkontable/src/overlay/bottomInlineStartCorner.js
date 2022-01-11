@@ -67,47 +67,36 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     if (this.trimmingContainer === this.domBindings.rootWindow) {
       const { wtTable } = this.wot;
       const { rootDocument } = this.domBindings;
-      const isRtl = this.wtSettings.getSetting('isRtl');
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(hiderRect.bottom);
       const left = Math.ceil(hiderRect.left);
       const right = Math.ceil(hiderRect.right);
       const bodyHeight = rootDocument.documentElement.clientHeight;
-      let finalLeft;
-      let finalBottom;
+      let finalLeft = 0;
+      let finalBottom = 0;
 
-      if (isRtl) {
+      if (this.isRtl()) {
         const documentWidth = rootDocument.documentElement.clientWidth;
 
         if (right >= documentWidth) {
           finalLeft = Math.abs(documentWidth - right);
-        } else {
-          finalLeft = 0;
         }
-      } else {
-        if (left < 0) {
-          finalLeft = -left;
-        } else {
-          finalLeft = 0;
-        }
+
+      } else if (left < 0) {
+        finalLeft = -left;
       }
 
       if (bottom > bodyHeight) {
         finalBottom = (bottom - bodyHeight);
-      } else {
-        finalBottom = 0;
       }
 
-      finalBottom += 'px';
-      finalLeft += 'px';
-
-      if (isRtl) {
-        overlayRoot.style.right = finalLeft;
+      if (this.isRtl()) {
+        overlayRoot.style.right = `${finalLeft}px`;
       } else {
-        overlayRoot.style.left = finalLeft;
+        overlayRoot.style.left = `${finalLeft}px`;
       }
 
-      overlayRoot.style.bottom = finalBottom;
+      overlayRoot.style.bottom = `${finalBottom}px`;
 
     } else {
       resetCssTransform(overlayRoot);

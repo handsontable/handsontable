@@ -125,7 +125,6 @@ export default class Settings {
       // Determines whether the Walkontable instance is used as dataset viewer. When its instance is used as
       // a context menu, autocomplete list, etc, the returned value is `false`.
       isDataViewInstance: true,
-      isRtl: false,
       // presentation mode
       externalRowCalculator: false,
       stretchH: 'none', // values: all, last, none

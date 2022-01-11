@@ -261,7 +261,7 @@ export class Overlay {
     clone.style.top = 0;
     clone.style.overflow = 'visible';
 
-    if (this.wtSettings.getSetting('isRtl')) {
+    if (this.isRtl()) {
       clone.style.right = 0;
     } else {
       clone.style.left = 0;
@@ -337,7 +337,7 @@ export class Overlay {
    * @returns {boolean}
    */
   isRtl() {
-    return this.wot.getSetting('direction') === 'rtl';
+    return this.wtSettings.getSetting('direction') === 'rtl';
   }
 
   /**
