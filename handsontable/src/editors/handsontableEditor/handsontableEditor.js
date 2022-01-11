@@ -22,8 +22,6 @@ export class HandsontableEditor extends TextEditor {
    * Opens the editor and adjust its size.
    */
   open() {
-    // this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
-
     super.open();
 
     if (this.htEditor) {
@@ -46,6 +44,7 @@ export class HandsontableEditor extends TextEditor {
     }
 
     setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
+    this.refreshDimensions(); //todo, correct only left cords
   }
 
   /**
