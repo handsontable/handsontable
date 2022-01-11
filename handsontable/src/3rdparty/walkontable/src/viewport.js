@@ -378,7 +378,12 @@ class Viewport {
     if (fixedColumnsStart) {
       const fixedColumnsWidth = this.dataAccessObject.inlineStartOverlay.sumCellSizes(0, fixedColumnsStart);
 
-      pos += fixedColumnsWidth;
+      if (wtSettings.getSetting('rtlMode')) {
+        pos -= fixedColumnsWidth;
+      } else {
+        pos += fixedColumnsWidth;
+      }
+
       width -= fixedColumnsWidth;
     }
     if (wtTable.holder.clientWidth !== wtTable.holder.offsetWidth) {
