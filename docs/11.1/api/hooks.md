@@ -718,20 +718,26 @@ respond in the right way.
 
 ### afterLoadData
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/pluginHooks.js#L299
+::: source-code-link https://github.com/handsontable/handsontable/blob/5bef6a42994fcc395de546c0f8adbc297579650d/../handsontable/src/pluginHooks.js#L300
 
 :::
 
 _afterLoadData(sourceData, initialLoad, source)_
 
-Fired after new data is loaded (by `loadData` or `updateSettings` method) into the data source array.
+Fired after the [`loadData()`](@/api/core.md#loaddata) method
+or the [`updateSettings()`](@/api/core.md#updatesettings) method
+modifies Handsontable's [`data`](@/api/options.md#data).
+
+Read more:
+- [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
+- [Saving data &#8594;](@/guides/getting-started/saving-data.md)
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| sourceData | `Array` | Array of arrays or array of objects containing data. |
-| initialLoad | `boolean` | Flag that determines whether the data has been loaded during the initialization. |
-| source | `string` | Source of the call. |
+| sourceData | `Array` | An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data |
+| initialLoad | `boolean` | A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`) |
+| source | `string` | The source of the call |
 
 
 
@@ -1377,26 +1383,6 @@ Fired after cell meta is changed.
 
 
 
-### afterSetData
-  
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/pluginHooks.js#L320
-
-:::
-
-_afterSetData(sourceData, initialLoad, source)_
-
-Fired after new data is loaded (by `setData` or `updateSettings` method) into the data source array.
-
-**Since**: 11.1.0  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| sourceData | `Array` | Array of arrays or array of objects containing data. |
-| initialLoad | `boolean` | Flag that determines whether the data has been loaded during the initialization. |
-| source | `string` | Source of the call. |
-
-
-
 ### afterSetDataAtCell
   
 ::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/pluginHooks.js#L584
@@ -1662,21 +1648,26 @@ Fired by [TrimRows](@/api/trimRows.md) plugin after untrimming rows. This hook i
 
 ### afterUpdateData
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/pluginHooks.js#L309
+::: source-code-link https://github.com/handsontable/handsontable/blob/5bef6a42994fcc395de546c0f8adbc297579650d/../handsontable/src/pluginHooks.js#L316
 
 :::
 
 _afterUpdateData(sourceData, initialLoad, source)_
 
-Fired after new data is loaded (by the `updateData` method) into the data source array.
+Fired after the [`updateData()`](@/api/core.md#updatedata) method
+modifies Handsontable's [`data`](@/api/options.md#data).
+
+Read more:
+- [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
+- [Saving data &#8594;](@/guides/getting-started/saving-data.md)
 
 **Since**: 11.1.0  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| sourceData | `Array` | Array of arrays or array of objects containing data. |
-| initialLoad | `boolean` | Flag that determines whether the data has been loaded during the initialization. |
-| source | `string` | Source of the call. |
+| sourceData | `Array` | An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data |
+| initialLoad | `boolean` | A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`) |
+| source | `string` | The source of the call |
 
 
 
@@ -2467,24 +2458,30 @@ Fired before successful change of language (when proper language code was set).
 
 ### beforeLoadData
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/pluginHooks.js#L800
+::: source-code-link https://github.com/handsontable/handsontable/blob/5bef6a42994fcc395de546c0f8adbc297579650d/../handsontable/src/pluginHooks.js#L801
 
 :::
 
 _beforeLoadData(sourceData, initialLoad, source) ⇒ Array_
 
-Fired before new data is loaded (by `loadData` or `updateSettings` method) into the data source array.
+Fired before the [`loadData()`](@/api/core.md#loaddata) method
+or the [`updateSettings()`](@/api/core.md#updatesettings) method
+modifies Handsontable's [`data`](@/api/options.md#data).
+
+Read more:
+- [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
+- [Saving data &#8594;](@/guides/getting-started/saving-data.md)
 
 **Since**: 8.0.0  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| sourceData | `Array` | Array of arrays or array of objects containing data. |
-| initialLoad | `boolean` | Flag that determines whether the data has been loaded during the initialization. |
-| source | `string` | Source of the call. |
+| sourceData | `Array` | An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data |
+| initialLoad | `boolean` | A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`) |
+| source | `string` | The source of the call |
 
 
-**Returns**: `Array` - The returned array will be used as new dataset.  
+**Returns**: `Array` - The returned array will be used as Handsontable's new dataset.
 
 ### beforeMergeCells
   
@@ -2883,26 +2880,7 @@ Fired before cell meta is changed.
 
 **Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
-### beforeSetData
-  
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/pluginHooks.js#L824
 
-:::
-
-_beforeSetData(sourceData, initialLoad, source) ⇒ Array_
-
-Fired before new data is loaded (by `setData` or `updateSettings` method) into the data source array.
-
-**Since**: 11.1.0  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| sourceData | `Array` | Array of arrays or array of objects containing data. |
-| initialLoad | `boolean` | Flag that determines whether the data has been loaded during the initialization. |
-| source | `string` | Source of the call. |
-
-
-**Returns**: `Array` - The returned array will be used as new dataset.  
 
 ### beforeSetRangeEnd
   
@@ -3128,24 +3106,28 @@ Fired by [TrimRows](@/api/trimRows.md) plugin before untrimming rows. This hook 
 
 ### beforeUpdateData
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/pluginHooks.js#L812
+::: source-code-link https://github.com/handsontable/handsontable/blob/5bef6a42994fcc395de546c0f8adbc297579650d/../handsontable/src/pluginHooks.js#L819
 
 :::
 
 _beforeUpdateData(sourceData, initialLoad, source) ⇒ Array_
 
-Fired before new data is loaded (by the `beforeUpdateData` method) into the data source array.
+Fired before the [`updateData()`](@/api/core.md#updatedata) method
+modifies Handsontable's [`data`](@/api/options.md#data).
+
+Read more:
+- [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
+- [Saving data &#8594;](@/guides/getting-started/saving-data.md)
 
 **Since**: 11.1.0  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| sourceData | `Array` | Array of arrays or array of objects containing data. |
-| initialLoad | `boolean` | Flag that determines whether the data has been loaded during the initialization. |
-| source | `string` | Source of the call. |
+| sourceData | `Array` | An [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data.md#array-of-objects), that contains Handsontable's data |
+| initialLoad | `boolean` | A flag that indicates whether the data was loaded at Handsontable's initialization (`true`) or later (`false`) |
+| source | `string` | The source of the call |
 
-
-**Returns**: `Array` - The returned array will be used as new dataset.  
+**Returns**: `Array` - The returned array will be used as Handsontable's new dataset. 
 
 ### beforeValidate
   
