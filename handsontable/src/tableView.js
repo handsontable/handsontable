@@ -554,8 +554,8 @@ class TableView {
 
         return this.countNotHiddenRowIndexes(visualFixedRowsBottom, 1);
       },
-      // Enable the left overlay when conditions are met.
-      shouldRenderLeftOverlay: () => {
+      // Enable the inline start overlay when conditions are met.
+      shouldRenderInlineStartOverlay: () => {
         return this.settings.fixedColumnsStart > 0 || walkontableConfig.rowHeaders().length > 0;
       },
       // Enable the top overlay when conditions are met.

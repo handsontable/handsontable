@@ -243,7 +243,7 @@ export class ManualColumnResize extends BasePlugin {
     if (fixedColumn) {
       relativeHeaderPosition = wt
         .wtOverlays
-        .topLeftCornerOverlay
+        .topInlineStartCornerOverlay
         .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
     }
 

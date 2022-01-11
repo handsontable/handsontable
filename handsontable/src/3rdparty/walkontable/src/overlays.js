@@ -42,12 +42,12 @@ class Overlays {
   bottomOverlay = null;
 
   /**
-   * Refer to the LeftOverlay instance.
+   * Refer to the InlineStartOverlay or instance.
    *
    * @protected
    * @type {InlineStartOverlay}
    */
-  leftOverlay = null;
+  inlineStartOverlay = null;
 
   /**
    * Refer to the TopInlineStartCornerOverlay instance.
@@ -160,12 +160,12 @@ class Overlays {
     // TODO refactoring, conceive about using generic collection of overlays.
     this.topOverlay = new TopOverlay(...args);
     this.bottomOverlay = new BottomOverlay(...args);
-    this.leftOverlay = new InlineStartOverlay(...args);
+    this.inlineStartOverlay = new InlineStartOverlay(...args);
 
     // TODO discuss, the controversial here would be removing the lazy creation mechanism for corners.
     // TODO cond. Has no any visual impact. They're initially hidden in same way like left, top, and bottom overlays.
-    this.topLeftCornerOverlay = new TopInlineStartCornerOverlay(...args);
-    this.bottomLeftCornerOverlay = new BottomInlineStartCornerOverlay(...args);
+    this.topInlineStartCornerOverlay = new TopInlineStartCornerOverlay(...args);
+    this.bottomInlineStartCornerOverlay = new BottomInlineStartCornerOverlay(...args);
   }
 
   /**
@@ -178,15 +178,15 @@ class Overlays {
     let syncScroll = this.topOverlay.updateStateOfRendering();
 
     syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
-    syncScroll = this.leftOverlay.updateStateOfRendering() || syncScroll;
+    syncScroll = this.inlineStartOverlay.updateStateOfRendering() || syncScroll;
 
     // todo refactoring: move conditions into updateStateOfRendering(),
-    if (this.leftOverlay.needFullRender) {
+    if (this.inlineStartOverlay.needFullRender) {
       if (this.topOverlay.needFullRender) {
-        syncScroll = this.topLeftCornerOverlay.updateStateOfRendering() || syncScroll;
+        syncScroll = this.topInlineStartCornerOverlay.updateStateOfRendering() || syncScroll;
       }
       if (this.bottomOverlay.needFullRender) {
-        syncScroll = this.bottomLeftCornerOverlay.updateStateOfRendering() || syncScroll;
+        syncScroll = this.bottomInlineStartCornerOverlay.updateStateOfRendering() || syncScroll;
       }
     }
 
@@ -209,7 +209,7 @@ class Overlays {
     this.wot.draw(true);
 
     if (this.verticalScrolling) {
-      this.leftOverlay.onScroll(); // todo the leftOverlay.onScroll() fires hook. Why is it needed there, not in any another place?
+      this.inlineStartOverlay.onScroll(); // todo the inlineStartOverlay.onScroll() fires hook. Why is it needed there, not in any another place?
     }
 
     if (this.horizontalScrolling) {
@@ -226,7 +226,7 @@ class Overlays {
   registerListeners() {
     const { rootDocument, rootWindow } = this.domBindings;
     const { mainTableScrollableElement: topOverlayScrollableElement } = this.topOverlay;
-    const { mainTableScrollableElement: leftOverlayScrollableElement } = this.leftOverlay;
+    const { mainTableScrollableElement: inlineStartOverlayScrollableElement } = this.inlineStartOverlay;
 
     this.eventManager.addEventListener(rootDocument.documentElement, 'keydown', event => this.onKeyDown(event));
     this.eventManager.addEventListener(rootDocument.documentElement, 'keyup', () => this.onKeyUp());
@@ -238,9 +238,9 @@ class Overlays {
       { passive: true }
     );
 
-    if (topOverlayScrollableElement !== leftOverlayScrollableElement) {
+    if (topOverlayScrollableElement !== inlineStartOverlayScrollableElement) {
       this.eventManager.addEventListener(
-        leftOverlayScrollableElement,
+        inlineStartOverlayScrollableElement,
         'scroll',
         event => this.onTableScroll(event),
         { passive: true }
@@ -264,9 +264,9 @@ class Overlays {
     const overlays = [
       this.topOverlay,
       this.bottomOverlay,
-      this.leftOverlay,
-      this.topLeftCornerOverlay,
-      this.bottomLeftCornerOverlay,
+      this.inlineStartOverlay,
+      this.topInlineStartCornerOverlay,
+      this.bottomInlineStartCornerOverlay,
     ];
 
     overlays.forEach((overlay) => {
@@ -309,7 +309,7 @@ class Overlays {
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
     // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
     const rootWindow = this.domBindings.rootWindow;
-    const masterHorizontal = this.leftOverlay.mainTableScrollableElement;
+    const masterHorizontal = this.inlineStartOverlay.mainTableScrollableElement;
     const masterVertical = this.topOverlay.mainTableScrollableElement;
     const target = event.target;
 
@@ -337,7 +337,7 @@ class Overlays {
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
     // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
 
-    const masterHorizontal = this.leftOverlay.mainTableScrollableElement;
+    const masterHorizontal = this.inlineStartOverlay.mainTableScrollableElement;
     const masterVertical = this.topOverlay.mainTableScrollableElement;
     const target = event.target;
 
@@ -437,7 +437,7 @@ class Overlays {
 
     const { rootWindow } = this.domBindings;
     const topHolder = this.topOverlay.clone.wtTable.holder; // todo rethink
-    const leftHolder = this.leftOverlay.clone.wtTable.holder; // todo rethink
+    const leftHolder = this.inlineStartOverlay.clone.wtTable.holder; // todo rethink
 
     const [scrollLeft, scrollTop] = [this.scrollableElement.scrollLeft, this.scrollableElement.scrollTop];
 
@@ -476,8 +476,8 @@ class Overlays {
     if (this.bottomOverlay.needFullRender) {
       this.bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft; // todo rethink, *overlay.setScroll*()
     }
-    if (this.leftOverlay.needFullRender) {
-      this.leftOverlay.clone.wtTable.holder.scrollTop = scrollTop; // todo rethink, *overlay.setScroll*()
+    if (this.inlineStartOverlay.needFullRender) {
+      this.inlineStartOverlay.clone.wtTable.holder.scrollTop = scrollTop; // todo rethink, *overlay.setScroll*()
     }
   }
 
@@ -487,7 +487,7 @@ class Overlays {
   updateMainScrollableElements() {
     this.deregisterListeners();
 
-    this.leftOverlay.updateMainScrollableElement();
+    this.inlineStartOverlay.updateMainScrollableElement();
     this.topOverlay.updateMainScrollableElement();
 
     if (this.bottomOverlay.needFullRender) {
@@ -516,14 +516,14 @@ class Overlays {
     if (this.bottomOverlay.clone) {
       this.bottomOverlay.destroy();
     }
-    this.leftOverlay.destroy();
+    this.inlineStartOverlay.destroy();
 
-    if (this.topLeftCornerOverlay) {
-      this.topLeftCornerOverlay.destroy();
+    if (this.topInlineStartCornerOverlay) {
+      this.topInlineStartCornerOverlay.destroy();
     }
 
-    if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone) {
-      this.bottomLeftCornerOverlay.destroy();
+    if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
+      this.bottomInlineStartCornerOverlay.destroy();
     }
 
     this.destroyed = true;
@@ -549,15 +549,15 @@ class Overlays {
       this.bottomOverlay.refresh(fastDraw);
     }
 
-    this.leftOverlay.refresh(fastDraw);
+    this.inlineStartOverlay.refresh(fastDraw);
     this.topOverlay.refresh(fastDraw);
 
-    if (this.topLeftCornerOverlay) {
-      this.topLeftCornerOverlay.refresh(fastDraw);
+    if (this.topInlineStartCornerOverlay) {
+      this.topInlineStartCornerOverlay.refresh(fastDraw);
     }
 
-    if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone) {
-      this.bottomLeftCornerOverlay.refresh(fastDraw);
+    if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
+      this.bottomInlineStartCornerOverlay.refresh(fastDraw);
     }
   }
 
@@ -575,7 +575,7 @@ class Overlays {
     const headerColumnSize = wtViewport.getColumnHeaderHeight();
     const hiderStyle = wtTable.hider.style;
 
-    hiderStyle.width = `${headerRowSize + this.leftOverlay.sumCellSizes(0, totalColumns)}px`;
+    hiderStyle.width = `${headerRowSize + this.inlineStartOverlay.sumCellSizes(0, totalColumns)}px`;
     hiderStyle.height = `${headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1}px`;
 
     if (this.scrollbarSize > 0) { // todo refactoring, looking as a part of logic which should be moved outside the class
@@ -599,7 +599,7 @@ class Overlays {
     }
 
     this.topOverlay.adjustElementsSize(force);
-    this.leftOverlay.adjustElementsSize(force);
+    this.inlineStartOverlay.adjustElementsSize(force);
     this.bottomOverlay.adjustElementsSize(force);
   }
 
@@ -617,7 +617,7 @@ class Overlays {
       this.bottomOverlay.applyToDOM();
     }
 
-    this.leftOverlay.applyToDOM();
+    this.inlineStartOverlay.applyToDOM();
   }
 
   /**
@@ -633,10 +633,10 @@ class Overlays {
 
     const overlays = [
       this.topOverlay,
-      this.leftOverlay,
+      this.inlineStartOverlay,
       this.bottomOverlay,
-      this.topLeftCornerOverlay,
-      this.bottomLeftCornerOverlay
+      this.topInlineStartCornerOverlay,
+      this.bottomInlineStartCornerOverlay
     ];
     let result = null;
 
@@ -661,10 +661,10 @@ class Overlays {
     const masterTable = this.wtTable.TABLE;
     const overlays = [
       this.topOverlay,
-      this.leftOverlay,
+      this.inlineStartOverlay,
       this.bottomOverlay,
-      this.topLeftCornerOverlay,
-      this.bottomLeftCornerOverlay
+      this.topInlineStartCornerOverlay,
+      this.bottomInlineStartCornerOverlay
     ];
 
     arrayEach(overlays, (elem) => {

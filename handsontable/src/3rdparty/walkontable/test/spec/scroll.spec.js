@@ -482,7 +482,7 @@ describe('WalkontableScroll', () => {
         fixedRowsTop: 2
       });
       const masterHolder = wt.wtTable.holder;
-      const leftOverlayHolder = wt.wtOverlays.leftOverlay.clone.wtTable.holder;
+      const leftOverlayHolder = wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder;
       const topOverlayHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
 
       topOverlayHolder.addEventListener('scroll', topOverlayCallback);
@@ -579,10 +579,10 @@ describe('WalkontableScroll', () => {
 
       wt.draw();
 
-      const topLeftCornerOverlayHolder = wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder;
+      const topInlineStartCornerOverlayHolder = wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder;
       const topHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
       const bottomHolder = wt.wtOverlays.bottomOverlay.clone.wtTable.holder;
-      const leftHolder = wt.wtOverlays.leftOverlay.clone.wtTable.holder;
+      const leftHolder = wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder;
       const masterHolder = wt.wtTable.holder;
 
       masterHolder.addEventListener('scroll', masterCallback);
@@ -591,7 +591,7 @@ describe('WalkontableScroll', () => {
       leftHolder.addEventListener('scroll', leftCallback);
 
       // wheel + shift
-      wheelOnElement(topLeftCornerOverlayHolder, 400);
+      wheelOnElement(topInlineStartCornerOverlayHolder, 400);
       wt.draw();
 
       await sleep(200);
@@ -601,7 +601,7 @@ describe('WalkontableScroll', () => {
       expect(bottomCallback.calls.count()).toEqual(1);
       expect(leftCallback.calls.count()).toEqual(0);
 
-      wheelOnElement(topLeftCornerOverlayHolder, 0, 400);
+      wheelOnElement(topInlineStartCornerOverlayHolder, 0, 400);
       wt.draw();
 
       await sleep(200);
@@ -637,10 +637,10 @@ describe('WalkontableScroll', () => {
 
       wt.draw();
 
-      const bottomLeftCornerOverlayHolder = wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder;
+      const bottomInlineStartCornerOverlayHolder = wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder;
       const topHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
       const bottomHolder = wt.wtOverlays.bottomOverlay.clone.wtTable.holder;
-      const leftHolder = wt.wtOverlays.leftOverlay.clone.wtTable.holder;
+      const leftHolder = wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder;
       const masterHolder = wt.wtTable.holder;
 
       masterHolder.addEventListener('scroll', masterCallback);
@@ -649,7 +649,7 @@ describe('WalkontableScroll', () => {
       leftHolder.addEventListener('scroll', leftCallback);
 
       // wheel + shift
-      wheelOnElement(bottomLeftCornerOverlayHolder, 400);
+      wheelOnElement(bottomInlineStartCornerOverlayHolder, 400);
       wt.draw();
 
       await sleep(200);
@@ -659,7 +659,7 @@ describe('WalkontableScroll', () => {
       expect(bottomCallback.calls.count()).toEqual(1);
       expect(leftCallback.calls.count()).toEqual(0);
 
-      wheelOnElement(bottomLeftCornerOverlayHolder, 0, 400);
+      wheelOnElement(bottomInlineStartCornerOverlayHolder, 0, 400);
       wt.draw();
 
       await sleep(200);
@@ -697,7 +697,7 @@ describe('WalkontableScroll', () => {
 
       const topHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
       const bottomHolder = wt.wtOverlays.bottomOverlay.clone.wtTable.holder;
-      const leftHolder = wt.wtOverlays.leftOverlay.clone.wtTable.holder;
+      const leftHolder = wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder;
       const masterHolder = wt.wtTable.holder;
 
       masterHolder.addEventListener('scroll', masterCallback);
@@ -754,7 +754,7 @@ describe('WalkontableScroll', () => {
 
       const topHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
       const bottomHolder = wt.wtOverlays.bottomOverlay.clone.wtTable.holder;
-      const leftHolder = wt.wtOverlays.leftOverlay.clone.wtTable.holder;
+      const leftHolder = wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder;
       const masterHolder = wt.wtTable.holder;
 
       masterHolder.addEventListener('scroll', masterCallback);
@@ -811,7 +811,7 @@ describe('WalkontableScroll', () => {
 
       const topHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
       const bottomHolder = wt.wtOverlays.bottomOverlay.clone.wtTable.holder;
-      const leftHolder = wt.wtOverlays.leftOverlay.clone.wtTable.holder;
+      const leftHolder = wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder;
       const masterHolder = wt.wtTable.holder;
 
       masterHolder.addEventListener('scroll', masterCallback);

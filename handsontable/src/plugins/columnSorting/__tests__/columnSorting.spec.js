@@ -2305,7 +2305,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    hot.view.wt.wtOverlays.leftOverlay.scrollTo(15);
+    hot.view.wt.wtOverlays.inlineStartOverlay.scrollTo(15);
     render();
     getPlugin('columnSorting').sort({ column: 15, sortOrder: 'asc' });
 

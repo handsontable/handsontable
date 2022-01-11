@@ -5,7 +5,7 @@ import { mixin } from '../../../../helpers/object';
 import { CLONE_INLINE_START } from '../overlay';
 
 /**
- * Subclass of `Table` that provides the helper methods relevant to LeftOverlay, implemented through mixins.
+ * Subclass of `Table` that provides the helper methods relevant to InlineStartOverlayTable, implemented through mixins.
  */
 class InlineStartOverlayTable extends Table {
   /**

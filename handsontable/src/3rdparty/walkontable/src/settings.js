@@ -32,7 +32,7 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} rowHeaders Option `rowHeaders`.
  * @property {Option} rowHeight Option `,`.
  * @property {Option} shouldRenderBottomOverlay Option `shouldRenderBottomOverlay`.
- * @property {Option} shouldRenderLeftOverlay Option `shouldRenderLeftOverlay`.
+ * @property {Option} shouldRenderInlineStartOverlay Option `shouldRenderInlineStartOverlay`.
  * @property {Option} shouldRenderTopOverlay Option `shouldRenderTopOverlay`.
  * @property {Option} stretchH Option `stretchH`.
  * @property {Option} table Option `table`.
@@ -144,8 +144,8 @@ export default class Settings {
       fixedRowsTop: 0,
       // Number of renderable rows for the bottom overlay.
       fixedRowsBottom: 0,
-      // Enable the left overlay when conditions are met.
-      shouldRenderLeftOverlay: () => {
+      // Enable the inline start overlay when conditions are met (left for LTR and right for RTL document mode).
+      shouldRenderInlineStartOverlay: () => {
         return this.getSetting('fixedColumnsStart') > 0 || this.getSetting('rowHeaders').length > 0;
       },
       // Enable the top overlay when conditions are met.

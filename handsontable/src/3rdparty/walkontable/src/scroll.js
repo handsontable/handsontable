@@ -60,7 +60,7 @@ class Scroll {
 
     const {
       fixedColumnsStart,
-      leftOverlay,
+      inlineStartOverlay,
       totalColumns,
     } = this.dataAccessObject;
     let result = false;
@@ -70,9 +70,9 @@ class Scroll {
       const lastVisibleColumn = this.getLastVisibleColumn();
 
       if (column >= fixedColumnsStart && firstVisibleColumn > -1 && (column < firstVisibleColumn || snapToLeft)) {
-        result = leftOverlay.scrollTo(column);
+        result = inlineStartOverlay.scrollTo(column);
       } else if (lastVisibleColumn === -1 || lastVisibleColumn > -1 && (column > lastVisibleColumn || snapToRight)) {
-        result = leftOverlay.scrollTo(column, true);
+        result = inlineStartOverlay.scrollTo(column, true);
       }
     }
 
@@ -205,7 +205,7 @@ class Scroll {
    */
   getFirstVisibleColumn() {
     const {
-      leftOverlay,
+      inlineStartOverlay,
       wtTable,
       wtViewport,
       totalColumns,
@@ -214,7 +214,7 @@ class Scroll {
 
     let firstVisibleColumn = wtTable.getFirstVisibleColumn();
 
-    if (leftOverlay.mainTableScrollableElement === rootWindow) {
+    if (inlineStartOverlay.mainTableScrollableElement === rootWindow) {
       const rootElementOffset = offset(wtTable.wtRootElement);
       const totalTableWidth = innerWidth(wtTable.hider);
       const windowWidth = innerWidth(rootWindow);
@@ -225,7 +225,7 @@ class Scroll {
         let columnsWidth = wtViewport.getRowHeaderWidth();
 
         for (let column = totalColumns; column > 0; column--) {
-          columnsWidth += leftOverlay.sumCellSizes(column - 1, column);
+          columnsWidth += inlineStartOverlay.sumCellSizes(column - 1, column);
 
           if (rootElementOffset.left + totalTableWidth - columnsWidth <= windowScrollLeft) {
             // Return physical column + 1
@@ -246,7 +246,7 @@ class Scroll {
    */
   getLastVisibleColumn() {
     const {
-      leftOverlay,
+      inlineStartOverlay,
       wtTable,
       wtViewport,
       totalColumns,
@@ -255,7 +255,7 @@ class Scroll {
 
     let lastVisibleColumn = wtTable.getLastVisibleColumn();
 
-    if (leftOverlay.mainTableScrollableElement === rootWindow) {
+    if (inlineStartOverlay.mainTableScrollableElement === rootWindow) {
       const rootElementOffset = offset(wtTable.wtRootElement);
       const windowScrollLeft = getScrollLeft(rootWindow, rootWindow);
 
@@ -265,7 +265,7 @@ class Scroll {
         let columnsWidth = wtViewport.getRowHeaderWidth();
 
         for (let column = 1; column <= totalColumns; column++) {
-          columnsWidth += leftOverlay.sumCellSizes(column - 1, column);
+          columnsWidth += inlineStartOverlay.sumCellSizes(column - 1, column);
 
           if (rootElementOffset.left + columnsWidth - windowScrollLeft >= windowWidth) {
             // Return physical column - 1 (-2 because rangeEach gives column index + 1 - sumCellSizes requirements)

@@ -5,7 +5,7 @@ import { mixin } from '../../../../helpers/object';
 import { CLONE_TOP_INLINE_START_CORNER } from '../overlay';
 
 /**
- * Subclass of `Table` that provides the helper methods relevant to TopLeftCornerOverlay
+ * Subclass of `Table` that provides the helper methods relevant to topInlineStartCornerOverlay
  * (in RTL mode the overlay sits on the right of the screen), implemented through mixins.
  *
  * @mixes stickyRowsTop

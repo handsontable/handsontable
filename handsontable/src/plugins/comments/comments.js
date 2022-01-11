@@ -455,7 +455,7 @@ export class Comments extends BasePlugin {
     }
 
     if (wtViewport.hasHorizontalScroll() && scrollableElement !== rootWindow) {
-      cellLeftOffset -= wtOverlays.leftOverlay.getScrollPosition();
+      cellLeftOffset -= wtOverlays.inlineStartOverlay.getScrollPosition();
     }
 
     const x = cellLeftOffset + lastColWidth;

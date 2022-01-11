@@ -245,8 +245,8 @@ export class NestedHeaders extends BasePlugin {
     const headerLevels = wt.getSetting('columnHeaders').length;
     const mainHeaders = wt.wtTable.THEAD;
     const topHeaders = wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
-    const topLeftCornerHeaders = wt.wtOverlays.topLeftCornerOverlay ?
-      wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.THEAD : null;
+    const topLeftCornerHeaders = wt.wtOverlays.topInlineStartCornerOverlay ?
+      wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.THEAD : null;
 
     for (let i = 0; i < headerLevels; i++) {
       const masterLevel = mainHeaders.childNodes[i];
@@ -310,11 +310,12 @@ export class NestedHeaders extends BasePlugin {
         addClass(TH, 'hiddenHeader');
 
       } else if (colspan > 1) {
-        const isTopLeftOverlay = view.wt.wtOverlays.topLeftCornerOverlay?.clone.wtTable.THEAD.contains(TH);
-        const isLeftOverlay = view.wt.wtOverlays.leftOverlay?.clone.wtTable.THEAD.contains(TH);
+        const { wtOverlays } = view.wt;
+        const isTopInlineStartOverlay = wtOverlays.topInlineStartCornerOverlay?.clone.wtTable.THEAD.contains(TH);
+        const isInlineStartOverlay = wtOverlays.inlineStartOverlay?.clone.wtTable.THEAD.contains(TH);
 
         // Check if there is a fixed column enabled, if so then reduce colspan to fixed column width.
-        const correctedColspan = isTopLeftOverlay || isLeftOverlay ?
+        const correctedColspan = isTopInlineStartOverlay || isInlineStartOverlay ?
           Math.min(colspan, fixedColumnsStart - renderedColumnIndex) : colspan;
 
         if (correctedColspan > 1) {

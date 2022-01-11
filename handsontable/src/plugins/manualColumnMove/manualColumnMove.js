@@ -424,7 +424,7 @@ export class ManualColumnMove extends BasePlugin {
     }
 
     if (priv.hasRowHeaders) {
-      rowHeaderWidth = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
+      rowHeaderWidth = this.hot.view.wt.wtOverlays.inlineStartOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
     }
     if (this.isFixedColumnsStart(priv.coords)) {
       tdOffsetLeft += scrollLeft;

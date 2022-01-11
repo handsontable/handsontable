@@ -215,7 +215,7 @@ export class Overlay {
    */
   getRelativeCellPositionWithinHolder(onFixedRowTop, onFixedRowBottom, onFixedColumn, elementOffset, spreaderOffset) {
     const tableScrollPosition = {
-      horizontal: this.wot.wtOverlays.leftOverlay.getScrollPosition(),
+      horizontal: this.wot.wtOverlays.inlineStartOverlay.getScrollPosition(),
       vertical: this.wot.wtOverlays.topOverlay.getScrollPosition()
     };
     let horizontalOffset = 0;

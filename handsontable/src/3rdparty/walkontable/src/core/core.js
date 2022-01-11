@@ -72,8 +72,8 @@ export default class Walkontable extends CoreAbstract {
       get topOverlayTrimmingContainer() {
         return wot.wtOverlays.topOverlay.trimmingContainer;
       },
-      get leftOverlayTrimmingContainer() {
-        return wot.wtOverlays.leftOverlay.trimmingContainer;
+      get inlineStartOverlayTrimmingContainer() {
+        return wot.wtOverlays.inlineStartOverlay.trimmingContainer;
       },
       get topScrollPosition() {
         return wot.wtOverlays.topOverlay.getScrollPosition();
@@ -81,17 +81,17 @@ export default class Walkontable extends CoreAbstract {
       get topParentOffset() {
         return wot.wtOverlays.topOverlay.getTableParentOffset();
       },
-      get leftScrollPosition() {
-        return wot.wtOverlays.leftOverlay.getScrollPosition();
+      get inlineStartScrollPosition() {
+        return wot.wtOverlays.inlineStartOverlay.getScrollPosition();
       },
-      get leftParentOffset() {
-        return wot.wtOverlays.leftOverlay.getTableParentOffset();
+      get inlineStartParentOffset() {
+        return wot.wtOverlays.inlineStartOverlay.getTableParentOffset();
       },
       get topOverlay() {
         return wot.wtOverlays.topOverlay; // TODO refactoring: move outside dao, use IOC
       },
-      get leftOverlay() {
-        return wot.wtOverlays.leftOverlay; // TODO refactoring: move outside dao, use IOC
+      get inlineStartOverlay() {
+        return wot.wtOverlays.inlineStartOverlay; // TODO refactoring: move outside dao, use IOC
       },
       get bottomOverlay() {
         return wot.wtOverlays.bottomOverlay; // TODO refactoring: move outside dao, use IOC

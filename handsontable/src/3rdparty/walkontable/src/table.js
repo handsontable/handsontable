@@ -269,7 +269,7 @@ class Table {
       runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
       if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
-        const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
+        const leftScrollPos = wtOverlays.inlineStartOverlay.getScrollPosition();
         const previousState = this.correctHeaderWidth;
 
         this.correctHeaderWidth = leftScrollPos !== 0;
@@ -381,14 +381,14 @@ class Table {
         positionChanged = wtOverlays.bottomOverlay.resetFixedPosition() || positionChanged;
       }
 
-      positionChanged = wtOverlays.leftOverlay.resetFixedPosition() || positionChanged;
+      positionChanged = wtOverlays.inlineStartOverlay.resetFixedPosition() || positionChanged;
 
-      if (wtOverlays.topLeftCornerOverlay) {
-        wtOverlays.topLeftCornerOverlay.resetFixedPosition();
+      if (wtOverlays.topInlineStartCornerOverlay) {
+        wtOverlays.topInlineStartCornerOverlay.resetFixedPosition();
       }
 
-      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
-        wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
+      if (wtOverlays.bottomInlineStartCornerOverlay && wtOverlays.bottomInlineStartCornerOverlay.clone) {
+        wtOverlays.bottomInlineStartCornerOverlay.resetFixedPosition();
       }
 
       if (positionChanged) {

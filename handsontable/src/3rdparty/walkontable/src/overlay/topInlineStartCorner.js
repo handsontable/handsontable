@@ -42,7 +42,7 @@ export class TopInlineStartCornerOverlay extends Overlay {
    */
   shouldBeRendered() {
     return this.wtSettings.getSetting('shouldRenderTopOverlay')
-      && this.wtSettings.getSetting('shouldRenderLeftOverlay');
+      && this.wtSettings.getSetting('shouldRenderInlineStartOverlay');
   }
 
   /**

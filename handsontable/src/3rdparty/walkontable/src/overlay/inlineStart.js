@@ -34,7 +34,7 @@ export class InlineStartOverlay extends Overlay {
    *
    * @see Table#constructor
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
-   * @returns {LeftOverlayTable}
+   * @returns {InlineStartOverlayTable}
    */
   createTable(...args) {
     return new InlineStartOverlayTable(...args);
@@ -46,7 +46,7 @@ export class InlineStartOverlay extends Overlay {
    * @returns {boolean}
    */
   shouldBeRendered() {
-    return this.wtSettings.getSetting('shouldRenderLeftOverlay');
+    return this.wtSettings.getSetting('shouldRenderInlineStartOverlay');
   }
 
   /**

@@ -121,18 +121,18 @@ export default class CoreAbstract {
     const fixedColumnsStart = this.wtSettings.getSetting('fixedColumnsStart');
 
     if (coords.row < fixedRowsTop && coords.col < fixedColumnsStart) {
-      return this.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell(coords);
+      return this.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.getCell(coords);
 
     } else if (coords.row < fixedRowsTop) {
       return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
 
     } else if (coords.col < fixedColumnsStart && coords.row >= totalRows - fixedRowsBottom) {
-      if (this.wtOverlays.bottomLeftCornerOverlay && this.wtOverlays.bottomLeftCornerOverlay.clone) {
-        return this.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell(coords);
+      if (this.wtOverlays.bottomInlineStartCornerOverlay && this.wtOverlays.bottomInlineStartCornerOverlay.clone) {
+        return this.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.getCell(coords);
       }
 
     } else if (coords.col < fixedColumnsStart) {
-      return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
+      return this.wtOverlays.inlineStartOverlay.clone.wtTable.getCell(coords);
 
     } else if (coords.row < totalRows && coords.row >= totalRows - fixedRowsBottom) {
       if (this.wtOverlays.bottomOverlay && this.wtOverlays.bottomOverlay.clone) {
@@ -230,8 +230,8 @@ export default class CoreAbstract {
       get topOverlay() {
         return wot.wtOverlays.topOverlay; // TODO refactoring: move outside dao, use IOC
       },
-      get leftOverlay() {
-        return wot.wtOverlays.leftOverlay; // TODO refactoring: move outside dao, use IOC
+      get inlineStartOverlay() {
+        return wot.wtOverlays.inlineStartOverlay; // TODO refactoring: move outside dao, use IOC
       },
       get wtTable() {
         return wot.wtTable; // TODO refactoring: move outside dao, use IOC
