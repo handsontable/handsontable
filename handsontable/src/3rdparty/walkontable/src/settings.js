@@ -222,7 +222,8 @@ export default class Settings {
       groups: false,
       rowHeaderWidth: null,
       columnHeaderHeight: null,
-      headerClassName: null
+      headerClassName: null,
+      direction: 'ltr'
     };
   }
 
