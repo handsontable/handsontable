@@ -1415,10 +1415,12 @@ in the right way.
 
 _core.loadData(data, [source])_
 
-The `loadData()` method:
-- Replaces Handsontable's [`data`](@/api/options.md#data)
-- Resets cells' [configuration options](@/guides/getting-started/setting-options.md)
-- Resets rows' and columns' states (e.g. [row height](@/guides/rows/row-height.md), [column width](@/guides/columns/column-width.md), frozen [rows](@/guides/rows/row-freezing.md) and [columns](@/guides/columns/column-freezing.md) etc.)
+The `loadData()` method replaces Handsontable's [`data`](@/api/options.md#data) with a new dataset.
+
+Additionally, the `loadData()` method:
+- Resets cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
+- Resets rows' states (e.g. row order)
+- Resets columns' states (e.g. column order)
 
 To replace Handsontable's [`data`](@/api/options.md#data) without resetting states, use the [`updateData()`](#updatedata) method.
 
@@ -1426,7 +1428,7 @@ Read more:
 - [Binding to data &#8594;](@/guides/getting-started/binding-to-data.md)
 - [Saving data &#8594;](@/guides/getting-started/saving-data.md)
 
-**Emits**: [`Hooks#event:beforeLoadData`](@/api/hooks.md#beforeloaddata), [`Hooks#event:beforeSetData`](@/api/hooks.md#beforesetdata), [`Hooks#event:afterLoadData`](@/api/hooks.md#afterloaddata), [`Hooks#event:afterSetData`](@/api/hooks.md#aftersetdata), [`Hooks#event:afterChange`](@/api/hooks.md#afterchange)  
+**Emits**: [`Hooks#event:beforeLoadData`](@/api/hooks.md#beforeloaddata), [`Hooks#event:afterLoadData`](@/api/hooks.md#afterloaddata), [`Hooks#event:afterChange`](@/api/hooks.md#afterchange)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -2213,10 +2215,12 @@ any keyboard events.
 
 _core.updateData(data, [source])_
 
+The `updateData()` method replaces Handsontable's [`data`](@/api/options.md#data) with a new dataset.
+
 The `updateData()` method:
-- Replaces Handsontable's [`data`](@/api/options.md#data)
-- Keeps cells' [configuration options](@/guides/getting-started/setting-options.md) unchanged
-- Keeps rows' and columns' states unchanged (e.g. [row height](@/guides/rows/row-height.md), [column width](@/guides/columns/column-width.md), frozen [rows](@/guides/rows/row-freezing.md) and [columns](@/guides/columns/column-freezing.md) etc.)
+- Keeps cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
+- Keeps rows' states (e.g. row order)
+- Keeps columns' states (e.g. column order)
 
 To replace Handsontable's [`data`](@/api/options.md#data) and reset states, use the [`loadData()`](#loaddata) method.
 
