@@ -44,7 +44,7 @@ export class HandsontableEditor extends TextEditor {
     }
 
     setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
-    this.refreshDimensions(); //todo, correct only left cords
+    this.refreshDimensions();
   }
 
   /**

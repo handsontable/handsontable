@@ -407,7 +407,7 @@ export class TextEditor extends BaseEditor {
 
     this.textareaParentStyle.top = `${editTop}px`;
 
-    if (this.hot.isRtl()) { //todo consider about moving this correction into the handsontable editor class.
+    if (this.hot.isRtl()) {
       editLeft = editLeft - outerWidth(this.TEXTAREA_PARENT) + outerWidth(this.TEXTAREA) + 1;
     }
 
