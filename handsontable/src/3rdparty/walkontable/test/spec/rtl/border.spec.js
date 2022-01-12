@@ -1,7 +1,8 @@
-describe('WalkontableBorder', () => {
+describe('WalkontableBorder (RTL mode)', () => {
   const debug = false;
 
   beforeEach(function() {
+    $('html').attr('dir', 'rtl');
     this.$wrapper = $('<div></div>').addClass('handsontable');
     this.$container = $('<div></div>');
     this.$wrapper.width(100).height(200);
@@ -13,6 +14,8 @@ describe('WalkontableBorder', () => {
   });
 
   afterEach(function() {
+    $('html').attr('dir', 'ltr');
+
     if (!debug) {
       $('.wtHolder').remove();
     }
@@ -22,6 +25,7 @@ describe('WalkontableBorder', () => {
 
   it('should add/remove border to selection when cell is clicked', () => {
     const wt = walkontable({
+      rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 5,
@@ -53,36 +57,37 @@ describe('WalkontableBorder', () => {
     $td1.simulate('mousedown');
 
     expect($top.css('height')).toBe('1px');
-    expect($top.position().top).toBe(23);
-    expect($top.position().left).toBe(0);
+    expect($top.css('top')).toBe('23px');
+    expect($top.css('right')).toBe('0px');
     expect($inlineEnd.css('width')).toBe('1px');
-    expect($inlineEnd.position().top).toBe(23);
-    expect($inlineEnd.position().left).toBe(49);
+    expect($inlineEnd.css('top')).toBe('23px');
+    expect($inlineEnd.css('right')).toBe('49px');
     expect($bottom.css('height')).toBe('1px');
-    expect($bottom.position().top).toBe(46);
-    expect($bottom.position().left).toBe(0);
+    expect($bottom.css('top')).toBe('46px');
+    expect($bottom.css('right')).toBe('0px');
     expect($inlineStart.css('width')).toBe('1px');
-    expect($inlineStart.position().top).toBe(23);
-    expect($inlineStart.position().left).toBe(0);
+    expect($inlineStart.css('top')).toBe('23px');
+    expect($inlineStart.css('right')).toBe('0px');
 
     $td2.simulate('mousedown');
 
     expect($top.css('height')).toBe('1px');
-    expect($top.position().top).toBe(46);
-    expect($top.position().left).toBe(49);
+    expect($top.css('top')).toBe('46px');
+    expect($top.css('right')).toBe('49px');
     expect($inlineEnd.css('width')).toBe('1px');
-    expect($inlineEnd.position().top).toBe(46);
-    expect($inlineEnd.position().left).toBe(99);
+    expect($inlineEnd.css('top')).toBe('46px');
+    expect($inlineEnd.css('right')).toBe('99px');
     expect($bottom.css('height')).toBe('1px');
-    expect($bottom.position().top).toBe(69);
-    expect($bottom.position().left).toBe(49);
+    expect($bottom.css('top')).toBe('69px');
+    expect($bottom.css('right')).toBe('49px');
     expect($inlineStart.css('width')).toBe('1px');
-    expect($inlineStart.position().top).toBe(46);
-    expect($inlineStart.position().left).toBe(49);
+    expect($inlineStart.css('top')).toBe('46px');
+    expect($inlineStart.css('right')).toBe('49px');
   });
 
   it('should add/remove border to selection when cell is clicked and the table has only one column', () => {
     const wt = walkontable({
+      rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 1,
@@ -112,21 +117,22 @@ describe('WalkontableBorder', () => {
     $td1.simulate('mousedown');
 
     expect($top.css('height')).toBe('1px');
-    expect($top.position().top).toBe(23);
-    expect($top.position().left).toBe(0);
+    expect($top.css('top')).toBe('23px');
+    expect($top.css('right')).toBe('0px');
     expect($inlineEnd.css('width')).toBe('1px');
-    expect($inlineEnd.position().top).toBe(23);
-    expect($inlineEnd.position().left).toBe(49);
+    expect($inlineEnd.css('top')).toBe('23px');
+    expect($inlineEnd.css('right')).toBe('49px');
     expect($bottom.css('height')).toBe('1px');
-    expect($bottom.position().top).toBe(46);
-    expect($bottom.position().left).toBe(0);
+    expect($bottom.css('top')).toBe('46px');
+    expect($bottom.css('right')).toBe('0px');
     expect($inlineStart.css('width')).toBe('1px');
-    expect($inlineStart.position().top).toBe(23);
-    expect($inlineStart.position().left).toBe(0);
+    expect($inlineStart.css('top')).toBe('23px');
+    expect($inlineStart.css('right')).toBe('0px');
   });
 
   it('should properly add a selection border on an entirely selected column', () => {
     const wt = walkontable({
+      rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 2,
@@ -146,7 +152,6 @@ describe('WalkontableBorder', () => {
     });
 
     wt.draw();
-
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
     wt.selections.getCell().add(new Walkontable.CellCoords(4, 0));
     wt.draw(true);
@@ -157,21 +162,22 @@ describe('WalkontableBorder', () => {
     const $inlineStart = $(wt.selections.getCell().getBorder(wt).inlineStart);
 
     expect($top.css('height')).toBe('1px');
-    expect($top.position().top).toBe(0);
-    expect($top.position().left).toBe(0);
+    expect($top.css('top')).toBe('0px');
+    expect($top.css('right')).toBe('0px');
     expect($inlineEnd.css('width')).toBe('1px');
-    expect($inlineEnd.position().top).toBe(0);
-    expect($inlineEnd.position().left).toBe(49);
+    expect($inlineEnd.css('top')).toBe('0px');
+    expect($inlineEnd.css('right')).toBe('49px');
     expect($bottom.css('height')).toBe('1px');
-    expect($bottom.position().top).toBe(115);
-    expect($bottom.position().left).toBe(0);
+    expect($bottom.css('top')).toBe('115px');
+    expect($bottom.css('right')).toBe('0px');
     expect($inlineStart.css('width')).toBe('1px');
-    expect($inlineStart.position().top).toBe(0);
-    expect($inlineStart.position().left).toBe(0);
+    expect($inlineStart.css('top')).toBe('0px');
+    expect($inlineStart.css('right')).toBe('0px');
   });
 
   it('should add/remove corner to selection when cell is clicked', () => {
     const wt = walkontable({
+      rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 5,
@@ -204,19 +210,20 @@ describe('WalkontableBorder', () => {
 
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
-    expect($corner.position().top).toBe(42);
-    expect($corner.position().left).toBe(45);
+    expect($corner.css('top')).toBe('42px');
+    expect($corner.css('right')).toBe('45px');
 
     $td2.simulate('mousedown');
 
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
-    expect($corner.position().top).toBe(65);
-    expect($corner.position().left).toBe(95);
+    expect($corner.css('top')).toBe('65px');
+    expect($corner.css('right')).toBe('95px');
   });
 
   it('should render selection corner in the correct position', () => {
     const wt = walkontable({
+      rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 5,
@@ -249,11 +256,12 @@ describe('WalkontableBorder', () => {
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('top')).toBe('65px');
-    expect($corner.css('left')).toBe('95px');
+    expect($corner.css('right')).toBe('95px');
   });
 
   it('should properly render a selection corner on the edge of the left fixed column', () => {
     const wt = walkontable({
+      rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 5,
@@ -280,17 +288,17 @@ describe('WalkontableBorder', () => {
     wt.draw();
 
     const $td1 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
-    const $corner = $(wt.selections.getCell().getBorder(wt).corner);
-    const inlineStartOverlay = $(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder);
+    const $corner = wt.selections.getCell().getBorder(wt).corner;
+    const inlineStartOverlay = wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder;
 
     $td1.simulate('mousedown');
 
-    expect(inlineStartOverlay.position().left + inlineStartOverlay.outerWidth())
-      .toBe($corner.position().left + $corner.outerWidth());
+    expect(inlineStartOverlay.getBoundingClientRect().left).toBe($corner.getBoundingClientRect().left);
   });
 
   it('should properly render a selection corner on the edge of the top fixed row', () => {
     const wt = walkontable({
+      rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 5,
@@ -328,6 +336,7 @@ describe('WalkontableBorder', () => {
 
   it('should draw only one corner if selection is added between overlays', () => {
     const wt = walkontable({
+      rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 5,
@@ -365,6 +374,7 @@ describe('WalkontableBorder', () => {
       width: '200px',
     });
     const wt = walkontable({
+      rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 4,
@@ -398,24 +408,24 @@ describe('WalkontableBorder', () => {
 
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
-    expect($corner.position().top).toBe(42);
-    expect($corner.position().left).toBe(45);
+    expect($corner.css('top')).toBe('42px');
+    expect($corner.css('right')).toBe('45px');
     expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
 
     $td2.simulate('mousedown');
 
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
-    expect($corner.position().top).toBe(88);
-    expect($corner.position().left).toBe(193);
+    expect($corner.css('top')).toBe('88px');
+    expect($corner.css('right')).toBe('193px');
     expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
 
     $td3.simulate('mousedown');
 
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
-    expect($corner.position().top).toBe(65);
-    expect($corner.position().left).toBe(95);
+    expect($corner.css('top')).toBe('65px');
+    expect($corner.css('right')).toBe('95px');
     expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
   });
 
@@ -426,6 +436,7 @@ describe('WalkontableBorder', () => {
     });
 
     const wt = walkontable({
+      rtlMode: true,
       data: getData,
       totalRows: 5,
       totalColumns: 1,
@@ -460,20 +471,21 @@ describe('WalkontableBorder', () => {
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
     expect(spec().$table.css('height')).toBe('116px');
-    expect($corner.position().top).toBe(109); // table.height - corner.height - corner.borderTop
-    expect($corner.position().left).toBe(45);
+    expect($corner.css('top')).toBe('109px'); // table.height - corner.height - corner.borderTop
+    expect($corner.css('right')).toBe('45px');
     expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true);
   });
 
-  it('should move the corner border to the top-left, if is not enough area on the bottom-right corner of container', () => {
+  it('should move the corner border to the top-right, if is not enough area on the bottom-left corner of container', () => {
     spec().$wrapper.css({
       height: '',
       width: '50px',
       marginTop: '2000px',
-      marginLeft: '2000px',
+      marginRight: '2000px',
     });
 
     const wt = walkontable({
+      rtlMode: true,
       data: getData,
       totalRows: 1,
       totalColumns: 1,
@@ -508,8 +520,8 @@ describe('WalkontableBorder', () => {
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
     expect(spec().$table.css('height')).toBe('24px');
-    expect($corner.position().top).toBe(17); // table.height - corner.height - corner.borderTop
-    expect($corner.position().left).toBe(43);
+    expect($corner.css('top')).toBe('17px'); // table.height - corner.height - corner.borderTop
+    expect($corner.css('right')).toBe('43px');
     expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true);
     expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
   });

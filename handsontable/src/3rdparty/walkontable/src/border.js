@@ -38,14 +38,14 @@ class Border {
     this.main = null;
 
     this.top = null;
-    this.left = null;
+    this.inlineStart = null;
     this.bottom = null;
-    this.right = null;
+    this.inlineEnd = null;
 
     this.topStyle = null;
-    this.leftStyle = null;
+    this.inlineStartStyle = null;
     this.bottomStyle = null;
-    this.rightStyle = null;
+    this.inlineEndStyle = null;
 
     this.cornerDefaultStyle = {
       width: '6px',
@@ -188,14 +188,14 @@ class Border {
       this.main.appendChild(div);
     }
     this.top = this.main.childNodes[0];
-    this.left = this.main.childNodes[1];
+    this.inlineStart = this.main.childNodes[1];
     this.bottom = this.main.childNodes[2];
-    this.right = this.main.childNodes[3];
+    this.inlineEnd = this.main.childNodes[3];
 
     this.topStyle = this.top.style;
-    this.leftStyle = this.left.style;
+    this.inlineStartStyle = this.inlineStart.style;
     this.bottomStyle = this.bottom.style;
-    this.rightStyle = this.right.style;
+    this.inlineEndStyle = this.inlineEnd.style;
 
     this.corner = this.main.childNodes[4];
     this.corner.className += ' corner';
@@ -491,10 +491,10 @@ class Border {
     this.topStyle.width = `${width}px`;
     this.topStyle.display = 'block';
 
-    this.leftStyle.top = `${top}px`;
-    this.leftStyle[inlinePosProperty] = `${inlineStartPos}px`;
-    this.leftStyle.height = `${height}px`;
-    this.leftStyle.display = 'block';
+    this.inlineStartStyle.top = `${top}px`;
+    this.inlineStartStyle[inlinePosProperty] = `${inlineStartPos}px`;
+    this.inlineStartStyle.height = `${height}px`;
+    this.inlineStartStyle.display = 'block';
 
     const delta = Math.floor(this.settings.border.width / 2);
 
@@ -503,10 +503,10 @@ class Border {
     this.bottomStyle.width = `${width}px`;
     this.bottomStyle.display = 'block';
 
-    this.rightStyle.top = `${top}px`;
-    this.rightStyle[inlinePosProperty] = `${inlineStartPos + width - delta}px`;
-    this.rightStyle.height = `${height + 1}px`;
-    this.rightStyle.display = 'block';
+    this.inlineEndStyle.top = `${top}px`;
+    this.inlineEndStyle[inlinePosProperty] = `${inlineStartPos + width - delta}px`;
+    this.inlineEndStyle.height = `${height + 1}px`;
+    this.inlineEndStyle.display = 'block';
 
     let cornerVisibleSetting = this.settings.border.cornerVisible;
 
@@ -740,9 +740,9 @@ class Border {
    */
   disappear() {
     this.topStyle.display = 'none';
-    this.leftStyle.display = 'none';
+    this.inlineStartStyle.display = 'none';
     this.bottomStyle.display = 'none';
-    this.rightStyle.display = 'none';
+    this.inlineEndStyle.display = 'none';
     this.cornerStyle.display = 'none';
 
     if (isMobileBrowser()) {
