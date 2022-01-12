@@ -1,0 +1,7 @@
+{
+  "title": "Removed the redundant `setData` method - closely related to #7263.",
+  "type": "changed",
+  "issue": 9095,
+  "breaking": false,
+  "framework": "none"
+}

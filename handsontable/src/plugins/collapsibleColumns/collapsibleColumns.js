@@ -141,7 +141,6 @@ export class CollapsibleColumns extends BasePlugin {
 
     this.addHook('init', () => this.onInit());
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
-    this.addHook('afterSetData', (...args) => this.onAfterSetData(...args));
     this.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
     this.addHook('beforeOnCellMouseDown', (event, coords, TD) => this.onBeforeOnCellMouseDown(event, coords, TD));
 
@@ -489,24 +488,9 @@ export class CollapsibleColumns extends BasePlugin {
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded
    *                              during the initialization.
    */
-  onAfterSetData(sourceData, initialLoad) {
+  onAfterLoadData(sourceData, initialLoad) {
     if (!initialLoad) {
       this.updatePlugin();
-    }
-  }
-
-  /**
-   * Alias for `onAfterSetData`.
-   *
-   * @private
-   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-   *                              during the initialization.
-   * @param {string} source Source of the hook call.
-   */
-  onAfterLoadData(sourceData, initialLoad, source) {
-    if (source !== 'updateSettings') {
-      this.onAfterSetData(sourceData, initialLoad, source);
     }
   }
 
