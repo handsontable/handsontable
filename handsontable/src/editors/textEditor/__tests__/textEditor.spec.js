@@ -1077,7 +1077,7 @@ describe('TextEditor', () => {
 
     document.activeElement.value = 'Very very very very very very very very very very very very very ' +
       'very very very very long text';
-    keyDownUp('space'); // space - trigger textarea resize
+    keyDownUp(' '); // space - trigger textarea resize
 
     const $textarea = $(document.activeElement);
     const $wtHider = spec().$container.find('.wtHider');

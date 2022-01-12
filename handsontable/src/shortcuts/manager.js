@@ -73,21 +73,23 @@ export const createShortcutManager = ({ isActive, frame, beforeKeyDown, afterKey
     const activeContext = getContext(getActiveContextName());
 
     if (activeContext.hasShortcut(keys)) {
-      const { callback, options: { runAction, preventDefault, stopPropagation } } = activeContext.getShortcut(keys);
+      const shortcuts = activeContext.getShortcuts(keys);
 
-      if (runAction(event) === false) {
-        return;
-      }
+      shortcuts.forEach(({ callback, options: { runAction, preventDefault, stopPropagation } }) => {
+        if (runAction(event) === false) {
+          return;
+        }
 
-      callback(event, keys);
+        callback(event, keys);
 
-      if (preventDefault) {
-        event.preventDefault();
-      }
+        if (preventDefault) {
+          event.preventDefault();
+        }
 
-      if (stopPropagation) {
-        event.stopPropagation();
-      }
+        if (stopPropagation) {
+          event.stopPropagation();
+        }
+      });
     }
   });
 

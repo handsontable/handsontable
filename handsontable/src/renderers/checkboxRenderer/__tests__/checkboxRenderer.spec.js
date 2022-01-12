@@ -151,7 +151,7 @@ describe('CheckboxRenderer', () => {
     //  spec().$container.simulate('keydown',{
     //    keyCode: 32
     //  });
-    keyDownUp('space');
+    keyDownUp(' ');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -185,7 +185,7 @@ describe('CheckboxRenderer', () => {
 
     selectCell(0, 0);
 
-    keyDownUp('space');
+    keyDownUp(' ');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -206,13 +206,13 @@ describe('CheckboxRenderer', () => {
     });
 
     selectCell(0, 0);
-    keyDownUp('space');
+    keyDownUp(' ');
     selectCell(0, 1);
-    keyDownUp('space');
+    keyDownUp(' ');
     selectCell(1, 0);
-    keyDownUp('space');
+    keyDownUp(' ');
     selectCell(1, 1);
-    keyDownUp('space');
+    keyDownUp(' ');
 
     const checkboxes = spec().$container.find(':checkbox');
 
@@ -240,12 +240,12 @@ describe('CheckboxRenderer', () => {
     });
 
     selectCell(0, 0, 1, 0);
-    keyDownUp('space');
+    keyDownUp(' ');
 
     expect(getDataAtCol(0)).toEqual([true, true]);
 
     selectCell(0, 0, 1, 0);
-    keyDownUp('space');
+    keyDownUp(' ');
 
     expect(getDataAtCol(0)).toEqual([false, false]);
   });
@@ -262,7 +262,7 @@ describe('CheckboxRenderer', () => {
     });
 
     selectCell(0, 0, 199, 0);
-    keyDownUp('space');
+    keyDownUp(' ');
 
     expect(getDataAtCell(199, 0)).toEqual(true);
   });
@@ -288,7 +288,7 @@ describe('CheckboxRenderer', () => {
 
     selectCell(0, 0, 2, 0);
 
-    keyDownUp('space');
+    keyDownUp(' ');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -325,7 +325,7 @@ describe('CheckboxRenderer', () => {
 
     selectCells([[0, 0], [2, 0]]);
 
-    keyDownUp('space');
+    keyDownUp(' ');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -389,7 +389,7 @@ describe('CheckboxRenderer', () => {
 
     selectCell(2, 0, 0, 0); // selStart = [2,0], selEnd = [0,0]
 
-    keyDownUp('space');
+    keyDownUp(' ');
 
     checkboxes = spec().$container.find(':checkbox');
 
@@ -418,7 +418,7 @@ describe('CheckboxRenderer', () => {
 
     expect(getDataAtCell(0, 0)).toBe('true');
 
-    keyDownUp('space');
+    keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(false);
   });
@@ -772,7 +772,7 @@ describe('CheckboxRenderer', () => {
     expect(getDataAtCell(0, 0)).toBe('foo');
 
     selectCell(0, 0);
-    keyDownUp('space');
+    keyDownUp(' ');
     selectCell(0, 0);
     keyDownUp('c');
 
@@ -814,7 +814,7 @@ describe('CheckboxRenderer', () => {
     addHook('afterChange', afterChangeCallback);
 
     selectCell(0, 0);
-    keyDownUp('space');
+    keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(true);
 
@@ -838,7 +838,7 @@ describe('CheckboxRenderer', () => {
     addHook('afterChange', afterChangeCallback);
 
     selectCell(0, 0);
-    keyDownUp('space');
+    keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(false);
     expect(getDataAtCell(1, 0)).toBe(false);
@@ -883,7 +883,7 @@ describe('CheckboxRenderer', () => {
     addHook('afterChange', afterChangeCallback);
 
     selectCell(0, 0);
-    keyDownUp('space');
+    keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(false);
     expect(getDataAtCell(1, 0)).toBe(false);
@@ -905,7 +905,7 @@ describe('CheckboxRenderer', () => {
     addHook('afterChange', afterChangeCallback);
 
     selectCell(0, 0);
-    keyDownUp('space');
+    keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(false);
     expect(getDataAtCell(1, 0)).toBe(false);
@@ -926,7 +926,7 @@ describe('CheckboxRenderer', () => {
     addHook('afterChange', afterChangeCallback);
 
     selectCell(0, 0);
-    keyDownUp('space');
+    keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(false);
     expect(getDataAtCell(1, 0)).toBe(false);

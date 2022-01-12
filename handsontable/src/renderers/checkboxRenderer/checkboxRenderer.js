@@ -145,36 +145,32 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
   if (!isListeningKeyDownEvent.has(instance)) {
     isListeningKeyDownEvent.set(instance, true);
-    instance.addHook('beforeKeyDown', onBeforeKeyDown);
+    registerShortcuts();
   }
 
   /**
-   * On before key down DOM listener.
-   * TODO: Can we move that shortcuts to the ShortcutManager flow?
+   * Registers shortcut responsible for toggling checkbox state.
    *
    * @private
-   * @param {Event} event The keyboard event object.
    */
-  function onBeforeKeyDown(event) {
-    const toggleKeys = 'SPACE|ENTER';
-    const switchOffKeys = 'DELETE|BACKSPACE';
-    const isKeyCode = partial(isKey, event.keyCode);
+  function registerShortcuts() {
+    const shortcutManager = instance.getShortcutManager();
+    const gridContext = shortcutManager.getContext('grid');
 
-    if (!instance.getSettings().enterBeginsEditing && isKeyCode('ENTER')) {
-      return;
-    }
-    if (isKeyCode(`${toggleKeys}|${switchOffKeys}`) && !isImmediatePropagationStopped(event)) {
-      eachSelectedCheckboxCell(() => {
-        stopImmediatePropagation(event);
-        event.preventDefault();
-      });
-    }
-    if (isKeyCode(toggleKeys)) {
+    gridContext.addShortcut([[' ']], () => {
       changeSelectedCheckboxesState();
-    }
-    if (isKeyCode(switchOffKeys)) {
+    });
+
+    gridContext.addShortcut([['enter']], () => {
+      changeSelectedCheckboxesState();
+
+    }, {
+      runAction: () => instance.getSettings().enterBeginsEditing
+    });
+
+    gridContext.addShortcut([['delete'], ['backspace']], () => {
       changeSelectedCheckboxesState(true);
-    }
+    });
   }
 
   /**
