@@ -1,6 +1,7 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { createContext } from './context';
 import { useRecorder } from './recorder';
+import { arrayEach } from '../helpers/array';
 
 export const createShortcutManager = ({ isActive, frame, beforeKeyDown, afterKeyDown }) => {
   /**
@@ -75,12 +76,12 @@ export const createShortcutManager = ({ isActive, frame, beforeKeyDown, afterKey
     if (activeContext.hasShortcut(keys)) {
       const shortcuts = activeContext.getShortcuts(keys);
 
-      shortcuts.forEach(({ callback, options: { runAction, preventDefault, stopPropagation } }) => {
+      arrayEach(shortcuts, ({ callback, options: { runAction, preventDefault, stopPropagation } }) => {
         if (runAction(event) === false) {
           return;
         }
 
-        callback(event, keys);
+        const result = callback(event, keys);
 
         if (preventDefault) {
           event.preventDefault();
@@ -89,6 +90,8 @@ export const createShortcutManager = ({ isActive, frame, beforeKeyDown, afterKey
         if (stopPropagation) {
           event.stopPropagation();
         }
+
+        return result; // Will break loop (next callbacks execution) when some callback return `false`.
       });
     }
   });

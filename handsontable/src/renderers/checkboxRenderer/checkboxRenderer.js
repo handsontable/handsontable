@@ -1,13 +1,7 @@
 import { baseRenderer } from '../baseRenderer';
 import EventManager from '../../eventManager';
 import { empty, addClass } from '../../helpers/dom/element';
-import {
-  stopImmediatePropagation,
-  isImmediatePropagationStopped,
-} from '../../helpers/dom/event';
-import { partial } from '../../helpers/function';
 import { isEmpty, stringify } from '../../helpers/mixed';
-import { isKey } from '../../helpers/unicode';
 
 import './checkboxRenderer.css';
 import Hooks from '../../pluginHooks';
@@ -159,10 +153,14 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
     gridContext.addShortcut([[' ']], () => {
       changeSelectedCheckboxesState();
+
+      return eachSelectedCheckboxCell();
     });
 
     gridContext.addShortcut([['enter']], () => {
       changeSelectedCheckboxesState();
+
+      return eachSelectedCheckboxCell();
 
     }, {
       runAction: () => instance.getSettings().enterBeginsEditing
@@ -170,6 +168,8 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
     gridContext.addShortcut([['delete'], ['backspace']], () => {
       changeSelectedCheckboxesState(true);
+
+      return eachSelectedCheckboxCell();
     });
   }
 
@@ -239,7 +239,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
    * @private
    * @param {Function} callback The callback function.
    */
-  function eachSelectedCheckboxCell(callback) {
+  function eachSelectedCheckboxCell() {
     const selRange = instance.getSelectedRange();
 
     if (!selRange) {
@@ -255,19 +255,19 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
           const cachedCellProperties = instance.getCellMeta(visualRow, visualColumn);
 
           if (cachedCellProperties.type !== 'checkbox') {
-            return;
+            return true;
           }
 
           const cell = instance.getCell(visualRow, visualColumn);
 
           if (cell === null || cell === void 0) {
-            callback(visualRow, visualColumn, cachedCellProperties);
+            return false;
 
           } else {
             const checkboxes = cell.querySelectorAll('input[type=checkbox]');
 
             if (checkboxes.length > 0 && !cachedCellProperties.readOnly) {
-              callback(checkboxes);
+              return false;
             }
           }
         }

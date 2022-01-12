@@ -41,7 +41,7 @@ export const createContext = (name) => {
       if (hasVariant) {
         const shortcuts = SHORTCUTS.getItem(normalizedVariant);
 
-        shortcuts.push({ callback, options: { id, runAction, preventDefault, stopPropagation } });
+        shortcuts.unshift({ callback, options: { id, runAction, preventDefault, stopPropagation } });
 
       } else {
         SHORTCUTS.addItem(normalizedVariant,
