@@ -14,7 +14,8 @@ import {
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
   hasClass,
-  removeClass
+  removeClass,
+  outerWidth
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
@@ -405,6 +406,11 @@ export class TextEditor extends BaseEditor {
     }
 
     this.textareaParentStyle.top = `${editTop}px`;
+
+    if (this.hot.isRtl()) {
+      editLeft = editLeft - outerWidth(this.TEXTAREA_PARENT) + outerWidth(this.TEXTAREA) + 1;
+    }
+
     this.textareaParentStyle.left = `${editLeft}px`;
     this.showEditableElement();
 
