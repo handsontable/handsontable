@@ -2745,6 +2745,55 @@ describe('MultiColumnSorting', () => {
   });
 
   describe('Numbers presenting sorting sequence', () => {
+    it('should be properly position the number when multi columns are sorted', () => {
+      spec().$container[0].style.width = 'auto';
+      spec().$container[0].style.height = 'auto';
+
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        colHeaders: true,
+        multiColumnSorting: {
+          indicator: true,
+          initialConfig: [{
+            column: 1,
+            sortOrder: 'asc'
+          }, {
+            column: 0,
+            sortOrder: 'asc'
+          }, {
+            column: 2,
+            sortOrder: 'asc'
+          }, {
+            column: 3,
+            sortOrder: 'asc'
+          }, {
+            column: 4,
+            sortOrder: 'asc'
+          }, {
+            column: 5,
+            sortOrder: 'asc'
+          }, {
+            column: 6,
+            sortOrder: 'asc'
+          }, {
+            column: 7,
+            sortOrder: 'asc'
+          }, {
+            column: 8,
+            sortOrder: 'asc'
+          }, {
+            column: 9,
+            sortOrder: 'asc'
+          }]
+        }
+      });
+
+      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after')
+        .getPropertyValue('right')).toEqual('-15px');
+      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after')
+        .getPropertyValue('padding-left')).toEqual('5px');
+    });
+
     it('should be properly presented on the UI when more than 7 columns are sorted', () => {
       spec().$container[0].style.width = 'auto';
       spec().$container[0].style.height = 'auto';

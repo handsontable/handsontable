@@ -7,9 +7,11 @@
   /* Centering end */
 
   position: absolute;
-  right: -15px;
+  inline-end: -15px;
+  inline-start: unset;
   /* For purpose of continuous mouse over experience, when moving between the `::before` and the `::after` elements */
-  padding-left: 5px;
+  padding-inline-start: 5px;
+  padding-inline-end: unset;
 
   font-size: 8px;
   height: 8px;
