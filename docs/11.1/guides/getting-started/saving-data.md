@@ -77,6 +77,7 @@ Handsontable.dom.addEvent(load, 'click', () => {
     const data = JSON.parse(res.response);
 
     hot.loadData(data.data);
+    // or, use `updateData()` to replace `data` without resetting states
 
     exampleConsole.innerText = 'Data loaded';
   });
