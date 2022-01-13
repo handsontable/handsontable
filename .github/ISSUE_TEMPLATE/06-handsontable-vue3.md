@@ -1,8 +1,8 @@
 ---
-name: "Handsontable for React"
-about: Issues regarding the React wrapper for Handsontable.
+name: "Handsontable for Vue 3"
+about: Issues regarding the Vue 3 wrapper for Handsontable.
 title: ""
-labels: "react"
+labels: "vue 3"
 assignees: ""
 ---
 
@@ -17,10 +17,10 @@ assignees: ""
 
 ### Demo
 <!--- Provide a link to a live example on JSFiddle or CodePen or fill the following demo with your settings -->
-https://jsfiddle.net/handsoncode/c6rgz08x/
+https://jsfiddle.net/handsoncode/nL8sry9u/
 
 ### Your environment
-* React wrapper version:
+* Vue 3 wrapper version:
 * Handsontable version:
 * Browser name and version:
 * Operating system:
