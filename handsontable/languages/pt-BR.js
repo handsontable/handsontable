@@ -105,8 +105,7 @@ function _interopRequireDefault(obj) {
   };
 }
 
-module.exports = _interopRequireDefault;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _interopRequireDefault, module.exports.__esModule = true, module.exports["default"] = module.exports;
 
 /***/ }),
 
@@ -157,8 +156,7 @@ function _defineProperty(obj, key, value) {
   return obj;
 }
 
-module.exports = _defineProperty;
-module.exports["default"] = module.exports, module.exports.__esModule = true;
+module.exports = _defineProperty, module.exports.__esModule = true, module.exports["default"] = module.exports;
 
 /***/ }),
 
