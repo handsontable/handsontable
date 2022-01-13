@@ -12,6 +12,8 @@ canonicalUrl: /vue3-custom-id-class-style
 Custom `id`, `class`, `style`, and other attributes can be passed into the `hot-table` wrapper element.
 Each of them will be applied to the root Handsontable element, allowing further customization of the table.
 
+[Find out which Vue 3 versions are supported &#8594;](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
+
 ## Example
 
 ::: example #example1 :vue3 --html 1 --js 2

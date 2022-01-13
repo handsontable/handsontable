@@ -37,7 +37,7 @@ This plugin comes with a library of 386 functions grouped into categories, such 
 *   Online calculators
 *   Low connectivity apps
 
-### Version support
+### HyperFormula version support
 
 Different [versions of Handsontable](https://github.com/handsontable/handsontable/releases) support different [versions of HyperFormula](https://github.com/handsontable/hyperformula/releases).
 
