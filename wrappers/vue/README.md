@@ -9,13 +9,14 @@ It provides data binding, data validation, filtering, sorting, and CRUD operatio
 
 [![npm](https://img.shields.io/npm/dt/@handsontable/vue.svg)](https://npmjs.com/package/@handsontable/vue)
 [![npm](https://img.shields.io/npm/dm/@handsontable/vue.svg)](https://npmjs.com/package/@handsontable/vue)
-[![Build status](https://app.codeship.com/projects/1ec34290-ed0a-0131-911c-1a47c8fbcce0/status?branch=master)](https://app.codeship.com/projects/26649)
+[![CI status](https://github.com/handsontable/handsontable/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/handsontable/handsontable/actions/workflows/test.yml?query=branch%3Amaster)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
-[![Known Vulnerabilities](https://snyk.io/test/github/handsontable/handsontable/badge.svg?targetFile=package.json)](https://snyk.io/test/github/handsontable/handsontable?targetFile=package.json)
+[![Known Vulnerabilities](https://snyk.io/test/github/handsontable/handsontable/badge.svg?targetFile=wrappers/vue/package.json)](https://snyk.io/test/github/handsontable/handsontable?targetFile=wrappers/vue/package.json)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=handsontable_handsontable&metric=alert_status)](https://sonarcloud.io/dashboard?id=handsontable_handsontable)
 
 ---
 
-<a href="https://handsontable.com/examples"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-github-preview.png" alt="Handsontable data grid for Vue" width="805"/></a>
+<a href="https://handsontable.com/demo"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-github-preview.png" alt="Handsontable data grid for Vue" width="805"/></a>
 
 </div>
 
@@ -39,10 +40,10 @@ The most popular features of Handsontable for Vue:
 
 ## Documentation
 
-- [Developer guides](https://handsontable.com/docs/frameworks-wrapper-for-vue-installation.html)
-- [API Reference](https://handsontable.com/docs/Core.html)
-- [Change log](https://handsontable.com/docs/tutorial-release-notes.html)
-- [Demo](https://handsontable.com/examples)
+- [Developer guides](https://handsontable.com/docs/vue-installation/)
+- [API Reference](https://handsontable.com/docs/api/core/)
+- [Changelog](https://handsontable.com/docs/release-notes/)
+- [Demo](https://handsontable.com/demo)
 
 <div id="installation"></div>
 
@@ -54,7 +55,7 @@ Run the following command in your terminal
 npm install handsontable @handsontable/vue
 ```
 
-You can load it directly from [jsDelivr](//jsdelivr.com/package/npm/@handsontable/vue) as well.
+You can load it directly from [jsDelivr](https:jsdelivr.com/package/npm/@handsontable/vue) as well.
 ```html
 <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@handsontable/vue/dist/vue-handsontable.min.js"></script>
@@ -66,7 +67,7 @@ The component will be available as `Handsontable.vue.HotTable`.
 
 ### Usage
 
-Use this data grid as you would any other component in your application. [Options](//handsontable.com/docs/Options.html) can be set as `HotTable` props.
+Use this data grid as you would any other component in your application. [Options](https://handsontable.com/docs/api/options/) can be set as `HotTable` props.
 
 **Styles**
 ```css
@@ -100,7 +101,7 @@ Use this data grid as you would any other component in your application. [Option
 </script>
 ```
 
-### [View live demo](//handsontable.com/docs/frameworks-wrapper-for-vue-simple-example.html)
+### [View live demo](https://handsontable.com/docs/vue-simple-example/)
 
 ## Support
 
@@ -119,7 +120,7 @@ Handsontable is a commercial software with two licenses available:
 
 If you use Handsontable for Vue in a project that supports your commercial activity, then you must purchase the license key at [handsontable.com](https://handsontable.com/pricing).
 
-If you use the free for non-commercial license of Handsontable, then pass the phrase `'non-commercial-and-evaluation'`, as described in [this documentation](https://handsontable.com/docs/tutorial-license-key.html).
+If you use the free for non-commercial license of Handsontable, then pass the phrase `'non-commercial-and-evaluation'`, as described in [this documentation](https://handsontable.com/docs/license-key/).
 
 <br>
 <br>

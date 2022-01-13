@@ -144,6 +144,8 @@ hot.toVisualColumn(123) === 123;
 hot.toVisualRow(123) === 123;
 hot.undo();
 hot.unlisten();
+hot.updateData([[1, 2, 3], [1, 2, 3]]);
+hot.updateData([{ a: 'a', b: 2, c: '' }, { a: 'a', b: 2, c: '' }]);
 hot.updateSettings({}, true);
 hot.validateCell('test', cellProperties, (valid: boolean) => {}, 'sourceString');
 hot.validateCells((valid: boolean) => {});

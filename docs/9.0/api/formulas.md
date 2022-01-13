@@ -39,7 +39,10 @@ formulas: {
 }
 
 // or, add a HyperFormula instance
-const hyperformulaInstance = HyperFormula.buildEmpty({})
+// initialized with the `'internal-use-in-handsontable'` license key
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  licenseKey: 'internal-use-in-handsontable',
+});
 
 formulas: {
   engine: hyperformulaInstance,

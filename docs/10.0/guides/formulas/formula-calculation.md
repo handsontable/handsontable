@@ -37,6 +37,22 @@ This plugin comes with a library of 386 functions grouped into categories, such 
 *   Online calculators
 *   Low connectivity apps
 
+### Version support
+
+Different [versions of Handsontable](https://github.com/handsontable/handsontable/releases) support different [versions of HyperFormula](https://github.com/handsontable/hyperformula/releases).
+
+To find out which [HyperFormula](https://handsontable.github.io/hyperformula/) version to use, see the table below:
+
+::: details HyperFormula version support
+
+| Handsontable version                                                                    | HyperFormula version                                                                                           |
+| --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [`8.x.x`](https://github.com/handsontable/handsontable/releases/tag/8.0.0) and lower    | No HyperFormula support (old [Formulas](https://handsontable.com/docs/8.0.0/demo-formula-support.html) plugin) |
+| [`9.x.x`](https://github.com/handsontable/handsontable/releases/tag/9.0.0)              | [`0.6.2`](https://github.com/handsontable/hyperformula/releases/tag/0.6.2)                                     |
+| [`10.x.x`](https://github.com/handsontable/handsontable/releases/tag/10.0.0) and higher | [`^1.2.0`](https://github.com/handsontable/hyperformula/releases/tag/1.2.0)                                    |
+
+:::
+
 ## Features
 
 *   High-speed formula calculations
@@ -98,7 +114,11 @@ const data2 = [
   ['Number of sheets in this workbook', '=SHEETS()'],
 ];
 
-const hyperformulaInstance = HyperFormula.buildEmpty();
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
 
 const container1 = document.getElementById('example-basic-multi-sheet-1');
 new Handsontable(container1, {
@@ -266,6 +286,19 @@ import { HyperFormula } from 'hyperformula';
 
 There are also other installation methods available. Check out [HyperFormula's installation documentation](https://handsontable.github.io/hyperformula/guide/client-side-installation.html).
 
+::: tip HyperFormula instance
+To use the `Formulas` plugin with an external HyperFormula instance,
+initialize HyperFormula with the `'internal-use-in-handsontable'` license key:
+
+```js
+// create an external HyperFormula instance
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
+```
+:::
+
 ### Passing the HyperFormula class/instance to Handsontable
 
 ```js
@@ -296,7 +329,11 @@ or
 ### Single Handsontable instance with an external HyperFormula instance
 
 ```js
-const hyperformulaInstance = HyperFormula.buildEmpty({})
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
 
 {
   formulas: {
@@ -350,7 +387,11 @@ const hyperformulaInstance = HyperFormula.buildEmpty({})
 ### Multiple Handsontable instances with an external shared HyperFormula instance
 
 ```js
-const hyperformulaInstance = HyperFormula.buildEmpty({});
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
 
 // Instance 1
 {
@@ -446,8 +487,8 @@ For more information about named expressions, please refer to the [HyperFormula 
 
 <iframe width="100%" height="425px" src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
 
-## Learn more
+## Read more
 
-*   [Plugin API reference](@/api/formulas.md)
-*   [HyperFormula guides](https://handsontable.github.io/hyperformula/)
-*   [HyperFormula API reference](https://handsontable.github.io/hyperformula/api/)
+* [`Formulas` plugin API reference &#8594;](@/api/formulas.md)
+* [HyperFormula guides &#8594;](https://handsontable.github.io/hyperformula/)
+* [HyperFormula API reference &#8594;](https://handsontable.github.io/hyperformula/api/)

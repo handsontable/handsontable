@@ -140,7 +140,7 @@ export class NestedHeaders extends BasePlugin {
 
     const { nestedHeaders } = this.hot.getSettings();
 
-    this.#stateManager.setColumnsLimit(this.hot.countSourceCols());
+    this.#stateManager.setColumnsLimit(this.hot.countCols());
 
     if (Array.isArray(nestedHeaders)) {
       this.detectedOverlappedHeaders = this.#stateManager.setState(nestedHeaders);

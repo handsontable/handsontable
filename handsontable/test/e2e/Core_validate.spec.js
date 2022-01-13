@@ -532,9 +532,9 @@ describe('Core_validate', () => {
     await sleep(150);
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
-    hot.updateSettings({
-      data: Handsontable.helper.createSpreadsheetData(2, 2)
-    });
+
+    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+
     hot.validateRows([0], () => {
       hot.render();
     });
@@ -542,9 +542,9 @@ describe('Core_validate', () => {
     await sleep(150);
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
-    hot.updateSettings({
-      data: Handsontable.helper.createSpreadsheetData(2, 2)
-    });
+
+    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+
     hot.validateRows([1], () => {
       hot.render();
     });
@@ -552,9 +552,9 @@ describe('Core_validate', () => {
     await sleep(150);
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
-    hot.updateSettings({
-      data: Handsontable.helper.createSpreadsheetData(2, 2)
-    });
+
+    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+
     hot.validateRows([0, 1], () => {
       hot.render();
     });
@@ -562,9 +562,9 @@ describe('Core_validate', () => {
     await sleep(150);
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
-    hot.updateSettings({
-      data: Handsontable.helper.createSpreadsheetData(2, 2)
-    });
+
+    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+
     hot.validateRows([0, 1, 100], () => {
       hot.render();
     });
@@ -572,9 +572,9 @@ describe('Core_validate', () => {
     await sleep(150);
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
-    hot.updateSettings({
-      data: Handsontable.helper.createSpreadsheetData(2, 2)
-    });
+
+    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+
     hot.validateRows([100, 101], () => {
       hot.render();
     });
@@ -603,41 +603,36 @@ describe('Core_validate', () => {
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    hot.updateSettings({
-      data: Handsontable.helper.createSpreadsheetData(2, 2)
-    });
+    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+
     await promisfy(resolve => hot.validateColumns([0], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    hot.updateSettings({
-      data: Handsontable.helper.createSpreadsheetData(2, 2)
-    });
+    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+
     await promisfy(resolve => hot.validateColumns([1], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    hot.updateSettings({
-      data: Handsontable.helper.createSpreadsheetData(2, 2)
-    });
+    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+
     await promisfy(resolve => hot.validateColumns([0, 1], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    hot.updateSettings({
-      data: Handsontable.helper.createSpreadsheetData(2, 2)
-    });
+    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+
     await promisfy(resolve => hot.validateColumns([0, 1, 100], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    hot.updateSettings({
-      data: Handsontable.helper.createSpreadsheetData(2, 2)
-    });
+    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+
     await promisfy(resolve => hot.validateColumns([100, 101], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);

@@ -89,11 +89,26 @@
       } else if (key === 'react-dom') {
         ns = 'ReactDOM';
 
+      } else if (key === 'react-colorful') {
+        return window.exports;
+
       } else if (key === '@handsontable/react') {
         ns = 'Handsontable.react';
 
-      } else if (key === '@handsontable/vue') {
+      } else if (key === '@handsontable/vue' || key === '@handsontable/vue3') {
         ns = 'Handsontable.vue';
+
+      } else if (key === 'vuex') {
+        ns = 'Vuex';
+
+      } else if (key === 'vue-color') {
+        ns = 'VueColor';
+
+      } else if (key === 'vue-star-rating') {
+        ns = 'VueStarRating';
+
+      } else if (key === 'vue-class-component') {
+        ns = 'VueClassComponent';
 
       } else if (/^handsontable\/dist\/.+\.css$/.test(key)) { // ignore CSS imports
         ns = '';

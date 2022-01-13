@@ -118,7 +118,7 @@ export class ManualColumnMove extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
     this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('afterScrollVertically', () => this.onAfterScrollVertically());
-    this.addHook('afterLoadData', () => this.onAfterLoadData());
+    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
 
     this.buildPluginUI();
     this.registerEvents();

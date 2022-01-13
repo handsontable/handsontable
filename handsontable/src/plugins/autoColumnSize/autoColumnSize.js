@@ -205,7 +205,7 @@ export class AutoColumnSize extends BasePlugin {
 
     this.setSamplingOptions();
 
-    this.addHook('afterLoadData', () => this.onAfterLoadData());
+    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
     this.addHook('beforeChange', changes => this.onBeforeChange(changes));
     this.addHook('afterFormulasValuesUpdate', changes => this.onAfterFormulasValuesUpdate(changes));
     this.addHook('beforeViewRender', force => this.onBeforeViewRender(force));

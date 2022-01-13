@@ -459,6 +459,7 @@ export class NestedRows extends BasePlugin {
     if (!isArrayOfObjects(data)) {
       error(WRONG_DATA_TYPE_ERROR);
 
+      this.hot.getSettings()[PLUGIN_KEY] = false;
       this.disablePlugin();
 
       return;

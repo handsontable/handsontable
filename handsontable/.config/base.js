@@ -3,6 +3,7 @@ const ProgressBarPlugin = require('progress-bar-webpack-plugin');
 const path = require('path');
 const fs = require('fs');
 const webpack = require('webpack');
+const compilationDoneMarker = require('./plugin/webpack/compilation-done-marker');
 
 let licenseBody = fs.readFileSync(path.resolve(__dirname, '../../LICENSE.txt'), 'utf8');
 
@@ -32,10 +33,12 @@ module.exports.create = function create(envArgs) {
     module: {
       rules: [
         {
-          test: /\.css$/,
+          test: /\.(scss|css)$/,
           use: [
             { loader: MiniCssExtractPlugin.loader },
             { loader: 'css-loader' },
+            { loader: 'sass-loader'},
+            { loader: path.resolve(__dirname, 'loader/sass-rtl-loader.js')}
           ]
         },
         {
@@ -69,6 +72,7 @@ module.exports.create = function create(envArgs) {
       new webpack.DefinePlugin({
         '__ENV_ARGS__': JSON.stringify(envArgs),
       }),
+      compilationDoneMarker(),
     ],
     node: {
       global: false,

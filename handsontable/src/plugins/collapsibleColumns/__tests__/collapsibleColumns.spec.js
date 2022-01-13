@@ -3114,20 +3114,80 @@ describe('CollapsibleColumns', () => {
 
       plugin.expandAll();
 
-      expect(plugin.toggleCollapsibleSection).toHaveBeenCalledWith([
-        { row: -5, col: 1 },
-        { row: -4, col: 1 },
-        { row: -3, col: 1 },
-        { row: -3, col: 5 },
-        { row: -2, col: 1 },
-        { row: -2, col: 3 },
-        { row: -2, col: 5 },
-        { row: -2, col: 7 },
-        { row: -5, col: 10 },
-        { row: -4, col: 10 },
-        { row: -3, col: 10 },
-        { row: -2, col: 11 },
-      ], 'expand');
+      expect(plugin.toggleCollapsibleSection).toHaveBeenCalledWith([], 'expand');
+    });
+
+    it('should expand all collapsed headers', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 8 }, 'J1'],
+          ['A2', { label: 'B2', colspan: 4 }, { label: 'F2', colspan: 4 }, 'J2'],
+          ['A3', { label: 'B3', colspan: 2 }, { label: 'D3', colspan: 2 }, { label: 'F3', colspan: 2 },
+            { label: 'H3', colspan: 2 }, 'J3']
+        ],
+        collapsibleColumns: true
+      });
+
+      const plugin = getPlugin('collapsibleColumns');
+
+      plugin.collapseAll();
+      plugin.expandAll();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="collapsibleIndicator expanded" colspan="8">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J1</th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="collapsibleIndicator expanded" colspan="4">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="4">F2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J2</th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">B3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">D3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">F3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">H3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">J3</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">C1</td>
+            <td class="">D1</td>
+            <td class="">E1</td>
+            <td class="">F1</td>
+            <td class="">G1</td>
+            <td class="">H1</td>
+            <td class="">I1</td>
+            <td class="">J1</td>
+          </tr>
+        </tbody>
+        `);
     });
   });
 
@@ -3188,20 +3248,7 @@ describe('CollapsibleColumns', () => {
 
       plugin.toggleAllCollapsibleSections('expand');
 
-      expect(plugin.toggleCollapsibleSection).toHaveBeenCalledWith([
-        { row: -5, col: 1 },
-        { row: -4, col: 1 },
-        { row: -3, col: 1 },
-        { row: -3, col: 5 },
-        { row: -2, col: 1 },
-        { row: -2, col: 3 },
-        { row: -2, col: 5 },
-        { row: -2, col: 7 },
-        { row: -5, col: 10 },
-        { row: -4, col: 10 },
-        { row: -3, col: 10 },
-        { row: -2, col: 11 },
-      ], 'expand');
+      expect(plugin.toggleCollapsibleSection).toHaveBeenCalledWith([], 'expand');
     });
   });
 

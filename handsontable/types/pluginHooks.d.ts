@@ -143,6 +143,7 @@ export interface Events {
   afterUnlisten?: () => void;
   afterUnmergeCells?: (cellRange: CellRange, auto: boolean) => void;
   afterUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
+  afterUpdateData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
   afterUpdateSettings?: (newSettings: GridSettings) => void;
   afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number, source: ChangeSource) => void | boolean;
   afterViewportColumnCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
@@ -212,6 +213,7 @@ export interface Events {
   beforeUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
   beforeUnmergeCells?: (cellRange: CellRange, auto: boolean) => void;
   beforeUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void | boolean;
+  beforeUpdateData?: (sourceData: CellValue[], initialLoad: boolean, source: string | undefined) => void;
   beforeValidate?: (value: CellValue, row: number, prop: string | number, source?: ChangeSource) => void;
   beforeValueRender?: (value: CellValue, cellProperties: CellProperties) => void;
   beforeViewRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;

@@ -16,13 +16,13 @@ When adding new documentation files, check the documentation [directory structur
 
 Each Markdown file can start with the following frontmatter tags:
 
-| Tag            | Meaning                                                    | Default value           |
-|----------------|------------------------------------------------------------|-------------------------|
-| `title`        | The page's header. | If not set, gets generated from the page's parent's title.      |
-| `permalink`    | The page's **unique** URL. | If not set, gets generated from the Markdown file name. |
-| `canonicalUrl` | A canonical URL of the page's latest version.              | None (not required)     |
-| `metaTitle`    | The page's SEO meta title.                                 | None (not required)     |
-| `tags`         | Tags used by the documentation search engine.              | None (not required)     |
+| Tag            | Meaning                                       | Default value                                              |
+| -------------- | --------------------------------------------- | ---------------------------------------------------------- |
+| `title`        | The page's header.                            | If not set, gets generated from the page's parent's title. |
+| `permalink`    | The page's **unique** URL.                    | If not set, gets generated from the Markdown file name.    |
+| `canonicalUrl` | A canonical URL of the page's latest version. | None (not required)                                        |
+| `metaTitle`    | The page's SEO meta title.                    | None (not required)                                        |
+| `tags`         | Tags used by the documentation search engine. | None (not required)                                        |
 
 Frontmatter example:
 
@@ -89,7 +89,7 @@ To edit a published version's API reference:
 
 To create a new version of the Handsontable documentation:
 
-1. From the `handsontable/docs` directory, run:
+1. From the `docs` directory, run:
     ```bash
     npm run docs:api
     npm run docs:version
@@ -112,13 +112,13 @@ To link to another page in the same documentation version, use the following syn
 
 ```markdown
 [link_text](@/relative_file_path_from_this_version's_root/file_name.md#some-anchor)
-\```
+```
 
 For example, to link to a file called `core.md`, from anywhere in the same documentation version:
 
 ```markdown
 [Core](@/api/core.md)
-\```
+```
 
 Follow these rules:
 * After the `@` character, provide the target's relative file path (from the current version's root directory).<br>
@@ -133,9 +133,23 @@ Also, the following rules apply:
 * If generating a final URL link fails, the initial value gets output as a relative link.<br>
   The documentation's [link checker](./README.md#documentation-npm-scripts) catches such failed links.
 
+### Checking for broken links
+
+To check for broken links:
+
+1. Generate the Handsontable API reference. From the `docs` directory, run:
+    ```bash
+    npm run docs:api
+    ```
+2. Build the documentation output. From the `docs` directory, run:
+    ```bash
+    npm run docs:build
+    ```
+3. Open the broken links report: `./docs/report-check-links.xlsx`.
+
 ## Markdown containers
 
-To render content in different ways, the documentation uses custom Markdown containers, for example:
+To render content in different ways, the documentation uses Markdown containers, for example:
 
 ```markdown
 ::: example #exampleId .class :preset --html 1 --js 2
@@ -147,18 +161,23 @@ To render content in different ways, the documentation uses custom Markdown cont
 
 We use the following Markdown containers:
 
-| Container                    | Usage                                                      |
-|------------------------------|------------------------------------------------------------|
-| `::: tip`                    | A note.                                                    |
-| `::: example [options]`      | Renders a code example as specified in [options].          |
-| `::: source-code-link <URL>` | Adds a source code link to the API ref header. |
+| Container                    | Usage                                             |
+| -----------------------------|-------------------------------------------------- |
+| `::: tip [title]`            | Adds a blue tip note.                             |
+| `::: warning [title]`        | Adds a yellow warning note.                       |
+| `::: danger [title]`         | Adds a red danger note.                           |
+| `::: details [title]`        | Adds an accordion with expandable content.        |
+| `::: source-code-link <URL>` | Adds a source code link to the API ref header.    |
+| `::: example [options]`      | Renders a code example as specified in [options]. |
+
+For more information, see the [VuePress documentation](https://v1.vuepress.vuejs.org/guide/markdown.html#custom-containers).
 
 ### Adding code examples
 
 Using the `example` Markdown container, you can add code snippets that show the code's result:
 
 ```md
-::: example #exampleId .class :react-redux --html 1 --js 2 --css 3  --no-edit --tab preview
+::: example #exampleId .class :react-redux --html 1 --js 2 --css 3 --no-edit --tab preview
     ```html
     <div id="exampleId"></div>
     ```
@@ -173,13 +192,13 @@ Using the `example` Markdown container, you can add code snippets that show the 
 
 The `example` Markdown container offers the following options:
 
-| Option         | Required | Example         | Possible values                                            | Usage                                                                                                                     |
-|----------------|----------|-----------------|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| `#exampleId`   | No       | `#example1`     | String                                                     | Container's unique ID.                                                                                                    |
-| `.class`       | No       | `.new-class`    | String                                                     | Container's custom class.                                                                                                 |
-| `:preset`      | No       | `:hot`          | `:hot` \| `:hot-lang` \| `:hot-numbro` \| `:react` \| `:react-languages` \| `:react-numbro` \| `:react-redux` \| `:angular` \| `:angular-languages` \| `:angular-numbro` \| `:vue` \| `:vue-numbro` \| `:vue-languages` \| `:vue-vuex`  | Sets code dependencies. |
-| `--js <pos>`   | No       | `--js 1`        | Positive integer<br>(default `1`)                          | Sets the JS code snippet's position<br>in the markdown container.                                                         |
-| `--html <pos>` | No       | `--html 2`      | Positive integer<br>(default `0`)                          | Sets the HTML code snippet's position<br>in the markdown container.<br><br>`0` disables the HTML tab.                     |
-| `--css <pos>`  | No       | `--css 2`       | Positive integer<br>(default `0`)                          | Sets the CSS code snippet's position<br>in the markdown container.<br><br>`0` disables the CSS tab.                       |
-| `--no-edit`    | No       | `--no-edit`     | `--no-edit`                                                | Removes the **Edit** button.                                                                                              |
-| `--tab <tab>`  | No       | `--tab preview` | `code` \| `html` \| `css` \| `preview` | Sets a tab as open by default.  |
+| Option         | Required | Example         | Possible values                                                                                                                                                                                                                                             | Usage                                                                                                 |
+| -------------- | -------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `#exampleId`   | No       | `#example1`     | String                                                                                                                                                                                                                                                      | Container's unique ID.                                                                                |
+| `.class`       | No       | `.new-class`    | String                                                                                                                                                                                                                                                      | Container's custom class.                                                                             |
+| `:preset`      | No       | `:hot`          | `:hot` \| `:hot-lang` \| `:hot-numbro` \| `:react` \| `:react-languages` \| `:react-numbro` \| `:react-redux` \| `:react-advanced` \| `:angular` \| `:angular-languages` \| `:angular-numbro` \| `:vue` \| `:vue-numbro` \| `:vue-languages` \| `:vue-vuex` | Sets code dependencies.                                                                               |
+| `--js <pos>`   | No       | `--js 1`        | Positive integer<br>(default `1`)                                                                                                                                                                                                                           | Sets the JS code snippet's position<br>in the markdown container.                                     |
+| `--html <pos>` | No       | `--html 2`      | Positive integer<br>(default `0`)                                                                                                                                                                                                                           | Sets the HTML code snippet's position<br>in the markdown container.<br><br>`0` disables the HTML tab. |
+| `--css <pos>`  | No       | `--css 2`       | Positive integer<br>(default `0`)                                                                                                                                                                                                                           | Sets the CSS code snippet's position<br>in the markdown container.<br><br>`0` disables the CSS tab.   |
+| `--no-edit`    | No       | `--no-edit`     | `--no-edit`                                                                                                                                                                                                                                                 | Removes the **Edit** button.                                                                          |
+| `--tab <tab>`  | No       | `--tab preview` | `code` \| `html` \| `css` \| `preview`                                                                                                                                                                                                                      | Sets a tab as open by default.                                                                        |

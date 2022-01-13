@@ -53,7 +53,7 @@ describe('Selection', () => {
 
     expect(topLeftSelectionHandle.style.display).toBe('block');
     expect(bottomRightSelectionHandle.style.display).toBe('block');
-    expect(hot.getSelected()).toEqual([[1, 1, 1, 2]]);
+    expect(hot.getSelected()).toEqual([[1, 1, 1, 3]]);
   });
 
   it('should not call the `select` method on the "focusable" textarea when selecting a cell', async() => {
