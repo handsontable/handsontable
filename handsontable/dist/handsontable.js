@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 11.1.0
- * Release date: 12/01/2022 (built at 05/01/2022 09:03:51)
+ * Release date: 13/01/2022 (built at 13/01/2022 10:42:52)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3242,7 +3242,7 @@ function _injectProductInfo(key, element) {
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      var releaseDate = (0, _moment.default)("12/01/2022", 'DD/MM/YYYY');
+      var releaseDate = (0, _moment.default)("13/01/2022", 'DD/MM/YYYY');
       var releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
 
       var keyValidityDays = _extractTime(key);
@@ -5248,16 +5248,6 @@ var REGISTERED_HOOKS = [
  */
 'afterUpdateData',
 /**
- * Fired after new data is loaded (by `setData` or `updateSettings` method) into the data source array.
- *
- * @since 11.1.0
- * @event Hooks#afterSetData
- * @param {Array} sourceData Array of arrays or array of objects containing data.
- * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
- * @param {string} source Source of the call.
- */
-'afterSetData',
-/**
  * Fired after a scroll event, which is identified as a momentum scroll (e.g. On an iPad).
  *
  * @event Hooks#afterMomentumScroll
@@ -5711,17 +5701,6 @@ var REGISTERED_HOOKS = [
  * @returns {Array} The returned array will be used as new dataset.
  */
 'beforeUpdateData',
-/**
- * Fired before new data is loaded (by `setData` or `updateSettings` method) into the data source array.
- *
- * @event Hooks#beforeSetData
- * @since 11.1.0
- * @param {Array} sourceData Array of arrays or array of objects containing data.
- * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
- * @param {string} source Source of the call.
- * @returns {Array} The returned array will be used as new dataset.
- */
-'beforeSetData',
 /**
  * Fired before keydown event is handled. It can be used to overwrite default key bindings.
  *
@@ -21489,14 +21468,8 @@ var Formulas = /*#__PURE__*/function (_BasePlugin) {
       this.addHook('beforeLoadData', function () {
         return _this8.onBeforeLoadData.apply(_this8, arguments);
       });
-      this.addHook('beforeSetData', function () {
-        return _this8.onBeforeSetData.apply(_this8, arguments);
-      });
       this.addHook('afterLoadData', function () {
         return _this8.onAfterLoadData.apply(_this8, arguments);
-      });
-      this.addHook('afterSetData', function () {
-        return _this8.onAfterSetData.apply(_this8, arguments);
       });
       this.addHook('modifyData', function () {
         return _this8.onModifyData.apply(_this8, arguments);
@@ -22003,7 +21976,7 @@ var Formulas = /*#__PURE__*/function (_BasePlugin) {
       return this.engine.getFillRangeData(engineSourceRange, engineTargetRange);
     }
     /**
-     * `beforeSetData` hook callback.
+     * `beforeLoadData` hook callback.
      *
      * @param {Array} sourceData Array of arrays or array of objects containing data.
      * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
@@ -22012,8 +21985,8 @@ var Formulas = /*#__PURE__*/function (_BasePlugin) {
      */
 
   }, {
-    key: "onBeforeSetData",
-    value: function onBeforeSetData(sourceData, initialLoad) {
+    key: "onBeforeLoadData",
+    value: function onBeforeLoadData(sourceData, initialLoad) {
       var source = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
 
       if (source.includes((0, _string.toUpperCaseFirst)(PLUGIN_KEY))) {
@@ -22034,8 +22007,8 @@ var Formulas = /*#__PURE__*/function (_BasePlugin) {
      */
 
   }, {
-    key: "onAfterSetData",
-    value: function onAfterSetData(sourceData, initialLoad) {
+    key: "onAfterLoadData",
+    value: function onAfterLoadData(sourceData, initialLoad) {
       var source = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
 
       if (source.includes((0, _string.toUpperCaseFirst)(PLUGIN_KEY))) {
@@ -22055,40 +22028,6 @@ var Formulas = /*#__PURE__*/function (_BasePlugin) {
         }
       } else {
         this.switchSheet(this.sheetName);
-      }
-    }
-    /**
-     * Alias for `onAfterSetData`.
-     *
-     * @private
-     * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-     * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-     *                              during the initialization.
-     * @param {string} source Source of the hook call.
-     */
-
-  }, {
-    key: "onAfterLoadData",
-    value: function onAfterLoadData(sourceData, initialLoad, source) {
-      if (source !== 'updateSettings') {
-        this.onAfterSetData(sourceData, initialLoad, source);
-      }
-    }
-    /**
-     * Alias for `onAfterSetData`.
-     *
-     * @private
-     * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-     * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-     *                              during the initialization.
-     * @param {string} source Source of the hook call.
-     */
-
-  }, {
-    key: "onBeforeLoadData",
-    value: function onBeforeLoadData(sourceData, initialLoad, source) {
-      if (source !== 'updateSettings') {
-        this.onBeforeSetData(sourceData, initialLoad, source);
       }
     }
     /**
@@ -25804,47 +25743,7 @@ function Core(rootElement, userSettings) {
     }, isSizeChanged);
   };
   /**
-   * Loads new data to Handsontable. Loading new data resets the cell meta.
-   * Since 8.0.0 loading new data also resets states corresponding to rows and columns
-   * (for example, row/column sequence, column width, row height, frozen columns etc.).
-   *
-   * @memberof Core#
-   * @function setData
-   * @since 11.1.0
-   * @param {Array} data Array of arrays or array of objects containing data.
-   * @param {string} [source] Source of the `setData` call.
-   * @fires Hooks#beforeLoadData
-   * @fires Hooks#beforeSetData
-   * @fires Hooks#beforeUpdateData
-   * @fires Hooks#afterLoadData
-   * @fires Hooks#afterSetData
-   * @fires Hooks#afterUpdateData
-   * @fires Hooks#afterChange
-   */
-
-
-  this.setData = function (data, source) {
-    (0, _dataMap.replaceData)(data, function (newDataMap) {
-      datamap = newDataMap;
-    }, function () {
-      metaManager.clearCellsCache();
-      instance.initIndexMappers();
-      grid.adjustRowsAndCols();
-
-      if (firstRun) {
-        firstRun = [null, 'loadData'];
-      }
-    }, {
-      hotInstance: instance,
-      dataMap: datamap,
-      dataSource: dataSource,
-      internalSource: 'setData',
-      source: source,
-      firstRun: firstRun
-    });
-  };
-  /**
-   * Replaces the dataset with a new one. Unlike `setData` and the `loadData` methods, it doesn't reset the
+   * Replaces the dataset with a new one. Unlike the `loadData` method, it doesn't reset the
    * state of the table.
    *
    * @memberof Core#
@@ -25887,15 +25786,12 @@ function Core(rootElement, userSettings) {
    * @param {Array} data Array of arrays or array of objects containing data.
    * @param {string} [source] Source of the loadData call.
    * @fires Hooks#beforeLoadData
-   * @fires Hooks#beforeSetData
    * @fires Hooks#afterLoadData
-   * @fires Hooks#afterSetData
    * @fires Hooks#afterChange
    */
 
 
   this.loadData = function (data, source) {
-    // Legacy alias for `setData` - these two should be kept in sync.
     (0, _dataMap.replaceData)(data, function (newDataMap) {
       datamap = newDataMap;
     }, function () {
@@ -26076,8 +25972,8 @@ function Core(rootElement, userSettings) {
     // Do not forget to re-enable the pending tests that cover the change:
     //  * https://github.com/handsontable/handsontable/blob/9f62c282a1c951b27cd8406aa27105bd32b05bb6/handsontable/test/e2e/core/toPhysicalColumn.spec.js#L70
     //  * https://github.com/handsontable/handsontable/blob/9f62c282a1c951b27cd8406aa27105bd32b05bb6/handsontable/test/e2e/core/toVisualColumn.spec.js#L70
-    // const dataUpdateFunction = (firstRun ? instance.setData : instance.updateData).bind(this);
-    var dataUpdateFunction = instance.setData.bind(this);
+    // const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(this);
+    var dataUpdateFunction = instance.loadData.bind(this);
     var columnsAsFunc = false;
     var i;
     var j;
@@ -45289,7 +45185,7 @@ Handsontable.Core = function (rootElement) {
 Handsontable.DefaultSettings = (0, _dataMap.metaSchemaFactory)();
 Handsontable.hooks = _pluginHooks.default.getSingleton();
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "05/01/2022 09:03:51";
+Handsontable.buildDate = "13/01/2022 10:42:52";
 Handsontable.version = "11.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -58846,10 +58742,8 @@ var _object = __webpack_require__(9);
  * @param {string} config.source The source of the call.
  * @param {boolean} config.firstRun `true` if it's a first call in the Handsontable lifecycle, `false` otherwise.
  * @fires Hooks#beforeLoadData
- * @fires Hooks#beforeSetData
  * @fires Hooks#beforeUpdateData
  * @fires Hooks#afterLoadData
- * @fires Hooks#afterSetData
  * @fires Hooks#afterUpdateData
  * @fires Hooks#afterChange
  */
@@ -58875,7 +58769,7 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
     dataMap.destroy();
   }
 
-  data = hotInstance.runHooks("before".concat(capitalizedInternalSource), data, firstRun, source); // TODO: deprecated, will be eventually removed, leaving only the `beforeSetData` hook.
+  data = hotInstance.runHooks("before".concat(capitalizedInternalSource), data, firstRun, source); // TODO: deprecated, will be eventually removed, leaving only the `beforeUpdateData` hook.
   //  Triggers an additional `afterLoadData` hook for the `updateSettings` calls for backward compatibility.
 
   if (internalSource !== 'loadData' && source === 'updateSettings') {
@@ -58936,7 +58830,7 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
   dataSource.countCachedColumns = newDataMap.countCachedColumns.bind(newDataMap); // Run the logic for reassuring that the table structure fits the new dataset.
 
   callbackFunction(newDataMap);
-  hotInstance.runHooks("after".concat(capitalizedInternalSource), data, firstRun, source); // TODO: deprecated, will be eventually removed, leaving only the `afterSetData` hook.
+  hotInstance.runHooks("after".concat(capitalizedInternalSource), data, firstRun, source); // TODO: deprecated, will be eventually removed, leaving only the `afterUpdateData` hook.
   //  Triggers an additional `afterLoadData` hook for the `updateSettings` calls for backward compatibility.
 
   if (internalSource !== 'loadData' && source === 'updateSettings') {
@@ -64377,9 +64271,6 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
       this.addHook('afterLoadData', function () {
         return _this2.onAfterLoadData.apply(_this2, arguments);
       });
-      this.addHook('afterSetData', function () {
-        return _this2.onAfterSetData.apply(_this2, arguments);
-      });
       this.addHook('beforeChange', function (changes) {
         return _this2.onBeforeChange(changes);
       });
@@ -64822,8 +64713,8 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
      */
 
   }, {
-    key: "onAfterSetData",
-    value: function onAfterSetData() {
+    key: "onAfterLoadData",
+    value: function onAfterLoadData() {
       var _this7 = this;
 
       if (this.hot.view) {
@@ -64835,23 +64726,6 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
             _this7.recalculateAllColumnsWidth();
           }
         }, 0);
-      }
-    }
-    /**
-     * Alias for `onAfterSetData`.
-     *
-     * @private
-     * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-     * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-     *                              during the initialization.
-     * @param {string} source Source of the hook call.
-     */
-
-  }, {
-    key: "onAfterLoadData",
-    value: function onAfterLoadData(sourceData, initialLoad, source) {
-      if (source !== 'updateSettings') {
-        this.onAfterSetData(sourceData, initialLoad, source);
       }
     }
     /**
@@ -66485,9 +66359,6 @@ var AutoRowSize = /*#__PURE__*/function (_BasePlugin) {
       this.addHook('afterLoadData', function () {
         return _this2.onAfterLoadData.apply(_this2, arguments);
       });
-      this.addHook('afterSetData', function () {
-        return _this2.onAfterSetData.apply(_this2, arguments);
-      });
       this.addHook('beforeChange', function (changes) {
         return _this2.onBeforeChange(changes);
       });
@@ -66925,8 +66796,8 @@ var AutoRowSize = /*#__PURE__*/function (_BasePlugin) {
      */
 
   }, {
-    key: "onAfterSetData",
-    value: function onAfterSetData() {
+    key: "onAfterLoadData",
+    value: function onAfterLoadData() {
       var _this7 = this;
 
       if (this.hot.view) {
@@ -66938,23 +66809,6 @@ var AutoRowSize = /*#__PURE__*/function (_BasePlugin) {
             _this7.recalculateAllRowsHeight();
           }
         }, 0);
-      }
-    }
-    /**
-     * Alias for `onAfterSetData`.
-     *
-     * @private
-     * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-     * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-     *                              during the initialization.
-     * @param {string} source Source of the hook call.
-     */
-
-  }, {
-    key: "onAfterLoadData",
-    value: function onAfterLoadData(sourceData, initialLoad, source) {
-      if (source !== 'updateSettings') {
-        this.onAfterSetData(sourceData, initialLoad, source);
       }
     }
     /**
@@ -67627,9 +67481,6 @@ var CollapsibleColumns = /*#__PURE__*/function (_BasePlugin) {
       this.addHook('afterLoadData', function () {
         return _this2.onAfterLoadData.apply(_this2, arguments);
       });
-      this.addHook('afterSetData', function () {
-        return _this2.onAfterSetData.apply(_this2, arguments);
-      });
       this.addHook('afterGetColHeader', function (col, TH) {
         return _this2.onAfterGetColHeader(col, TH);
       });
@@ -68000,27 +67851,10 @@ var CollapsibleColumns = /*#__PURE__*/function (_BasePlugin) {
      */
 
   }, {
-    key: "onAfterSetData",
-    value: function onAfterSetData(sourceData, initialLoad) {
+    key: "onAfterLoadData",
+    value: function onAfterLoadData(sourceData, initialLoad) {
       if (!initialLoad) {
         this.updatePlugin();
-      }
-    }
-    /**
-     * Alias for `onAfterSetData`.
-     *
-     * @private
-     * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-     * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-     *                              during the initialization.
-     * @param {string} source Source of the hook call.
-     */
-
-  }, {
-    key: "onAfterLoadData",
-    value: function onAfterLoadData(sourceData, initialLoad, source) {
-      if (source !== 'updateSettings') {
-        this.onAfterSetData(sourceData, initialLoad, source);
       }
     }
     /**
@@ -68326,9 +68160,6 @@ var ColumnSorting = /*#__PURE__*/function (_BasePlugin) {
       });
       this.addHook('afterLoadData', function () {
         return _this2.onAfterLoadData.apply(_this2, arguments);
-      });
-      this.addHook('afterSetData', function (sourceData, initialLoad) {
-        return _this2.onAfterSetData(initialLoad);
       }); // TODO: Workaround? It should be refactored / described.
 
       if (this.hot.view) {
@@ -68923,37 +68754,20 @@ var ColumnSorting = /*#__PURE__*/function (_BasePlugin) {
       }
     }
     /**
-     * Callback for the `afterSetData` hook.
+     * Callback for the `afterLoadData` hook.
      *
      * @private
      * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
      */
 
   }, {
-    key: "onAfterSetData",
-    value: function onAfterSetData(initialLoad) {
+    key: "onAfterLoadData",
+    value: function onAfterLoadData(initialLoad) {
       if (initialLoad === true) {
         // TODO: Workaround? It should be refactored / described.
         if (this.hot.view) {
           this.loadOrSortBySettings();
         }
-      }
-    }
-    /**
-     * Alias for `onAfterSetData`.
-     *
-     * @private
-     * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-     * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-     *                              during the initialization.
-     * @param {string} source Source of the hook call.
-     */
-
-  }, {
-    key: "onAfterLoadData",
-    value: function onAfterLoadData(sourceData, initialLoad, source) {
-      if (source !== 'updateSettings') {
-        this.onAfterSetData(sourceData, initialLoad, source);
       }
     }
     /**
@@ -86604,9 +86418,6 @@ var ManualColumnMove = /*#__PURE__*/function (_BasePlugin) {
       this.addHook('afterLoadData', function () {
         return _this2.onAfterLoadData.apply(_this2, arguments);
       });
-      this.addHook('afterSetData', function () {
-        return _this2.onAfterSetData.apply(_this2, arguments);
-      });
       this.buildPluginUI();
       this.registerEvents(); // TODO: move adding plugin classname to BasePlugin.
 
@@ -87220,32 +87031,15 @@ var ManualColumnMove = /*#__PURE__*/function (_BasePlugin) {
       this.guideline.build();
     }
     /**
-     * Callback for the `afterSetData` hook.
+     * Callback for the `afterLoadData` hook.
      *
      * @private
-     */
-
-  }, {
-    key: "onAfterSetData",
-    value: function onAfterSetData() {
-      this.moveBySettingsOrLoad();
-    }
-    /**
-     * Alias for `onAfterSetData`.
-     *
-     * @private
-     * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-     * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-     *                              during the initialization.
-     * @param {string} source Source of the hook call.
      */
 
   }, {
     key: "onAfterLoadData",
-    value: function onAfterLoadData(sourceData, initialLoad, source) {
-      if (source !== 'updateSettings') {
-        this.onAfterSetData(sourceData, initialLoad, source);
-      }
+    value: function onAfterLoadData() {
+      this.moveBySettingsOrLoad();
     }
     /**
      * Destroys the plugin instance.
@@ -88393,9 +88187,6 @@ var ManualRowMove = /*#__PURE__*/function (_BasePlugin) {
       this.addHook('afterLoadData', function () {
         return _this2.onAfterLoadData.apply(_this2, arguments);
       });
-      this.addHook('afterSetData', function () {
-        return _this2.onAfterSetData.apply(_this2, arguments);
-      });
       this.buildPluginUI();
       this.registerEvents(); // TODO: move adding plugin classname to BasePlugin.
 
@@ -89005,32 +88796,15 @@ var ManualRowMove = /*#__PURE__*/function (_BasePlugin) {
       this.guideline.build();
     }
     /**
-     * Callback for the `afterSetData` hook.
+     * Callback for the `afterLoadData` hook.
      *
      * @private
-     */
-
-  }, {
-    key: "onAfterSetData",
-    value: function onAfterSetData() {
-      this.moveBySettingsOrLoad();
-    }
-    /**
-     * Alias for `onAfterSetData`.
-     *
-     * @private
-     * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-     * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-     *                              during the initialization.
-     * @param {string} source Source of the hook call.
      */
 
   }, {
     key: "onAfterLoadData",
-    value: function onAfterLoadData(sourceData, initialLoad, source) {
-      if (source !== 'updateSettings') {
-        this.onAfterSetData(sourceData, initialLoad, source);
-      }
+    value: function onAfterLoadData() {
+      this.moveBySettingsOrLoad();
     }
     /**
      * Destroys the plugin instance.
@@ -93814,9 +93588,6 @@ var NestedHeaders = /*#__PURE__*/function (_BasePlugin) {
       this.addHook('afterLoadData', function () {
         return _this2.onAfterLoadData.apply(_this2, arguments);
       });
-      this.addHook('afterSetData', function () {
-        return _this2.onAfterSetData.apply(_this2, arguments);
-      });
       this.addHook('beforeOnCellMouseDown', function () {
         return _this2.onBeforeOnCellMouseDown.apply(_this2, arguments);
       });
@@ -94306,27 +94077,10 @@ var NestedHeaders = /*#__PURE__*/function (_BasePlugin) {
      */
 
   }, {
-    key: "onAfterSetData",
-    value: function onAfterSetData(sourceData, initialLoad) {
+    key: "onAfterLoadData",
+    value: function onAfterLoadData(sourceData, initialLoad) {
       if (!initialLoad) {
         this.updatePlugin();
-      }
-    }
-    /**
-     * Alias for `onAfterSetData`.
-     *
-     * @private
-     * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-     * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-     *                              during the initialization.
-     * @param {string} source Source of the hook call.
-     */
-
-  }, {
-    key: "onAfterLoadData",
-    value: function onAfterLoadData(sourceData, initialLoad, source) {
-      if (source !== 'updateSettings') {
-        this.onAfterSetData(sourceData, initialLoad);
       }
     }
     /**
@@ -96660,9 +96414,6 @@ var NestedRows = /*#__PURE__*/function (_BasePlugin) {
       this.addHook('beforeLoadData', function (data) {
         return _this2.onBeforeLoadData(data);
       });
-      this.addHook('beforeSetData', function (data) {
-        return _this2.onBeforeSetData(data);
-      });
       (0, _get2.default)((0, _getPrototypeOf2.default)(NestedRows.prototype), "enablePlugin", this).call(this);
     }
     /**
@@ -97036,15 +96787,15 @@ var NestedRows = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(NestedRows.prototype), "destroy", this).call(this);
     }
     /**
-     * `beforeSetData` hook callback.
+     * `beforeLoadData` hook callback.
      *
      * @param {Array} data The source data.
      * @private
      */
 
   }, {
-    key: "onBeforeSetData",
-    value: function onBeforeSetData(data) {
+    key: "onBeforeLoadData",
+    value: function onBeforeLoadData(data) {
       if (!(0, _data.isArrayOfObjects)(data)) {
         (0, _console.error)(WRONG_DATA_TYPE_ERROR);
         this.hot.getSettings()[PLUGIN_KEY] = false;
@@ -97054,23 +96805,6 @@ var NestedRows = /*#__PURE__*/function (_BasePlugin) {
 
       this.dataManager.setData(data);
       this.dataManager.rewriteCache();
-    }
-    /**
-     * Alias for `onBeforeSetData`.
-     *
-     * @private
-     * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-     * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-     *                              during the initialization.
-     * @param {string} source Source of the hook call.
-     */
-
-  }, {
-    key: "onBeforeLoadData",
-    value: function onBeforeLoadData(sourceData, initialLoad, source) {
-      if (source !== 'updateSettings') {
-        this.onBeforeSetData(sourceData);
-      }
     }
   }], [{
     key: "PLUGIN_KEY",
