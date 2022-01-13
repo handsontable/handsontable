@@ -25,6 +25,7 @@ describe('HandsontableEditor (RTL mode)', () => {
       { name: 'Volvo', country: 'Sweden', owner: 'Zhejiang Geely Holding Group' }
     ];
   }
+  
   function offsetForRtl(cell, editorWidth) {
     const $cell = $(cell);
     const offset = $cell.offset();
@@ -33,6 +34,7 @@ describe('HandsontableEditor (RTL mode)', () => {
 
     return offset;
   }
+  
   it('should render an editable editor\'s element without messing with "dir" attribute', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 5),
