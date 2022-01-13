@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added `updateData()`, a new method that allows for replacing Handsontable's `data` without 
-resetting cells' configuration options, rows' states, and columns' states. [#7263](https://github.com/handsontable/handsontable/issues/7263)
+resetting the states of cells, rows and columns. [#7263](https://github.com/handsontable/handsontable/issues/7263)
 - *Vue:* Added Vue 3 support, by introducing a new wrapper. [#7545](https://github.com/handsontable/handsontable/issues/7545)
 
 ### Changed
