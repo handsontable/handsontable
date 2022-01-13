@@ -69,8 +69,6 @@ export const createContext = (name) => {
    * @param {string} namespace Namespace for shortcuts.
    */
   const removeShortcutByNamespace = (namespace) => {
-    // console.log('removeShortcutByNamespace', namespace);
-
     const shortcuts = SHORTCUTS.getItems();
 
     shortcuts.forEach(([keyCombination, actions]) => {

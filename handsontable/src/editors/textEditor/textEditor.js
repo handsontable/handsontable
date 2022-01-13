@@ -524,6 +524,28 @@ export class TextEditor extends BaseEditor {
 
       this.hot.selection.transformStart(-tabMoves.row, -tabMoves.col);
     }, contextConfig);
+
+    const setNewValue = () => {
+      const caretPosition = getCaretPosition(this.TEXTAREA);
+      const value = this.getValue();
+      const newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
+
+      this.setValue(newValue);
+
+      setCaretPosition(this.TEXTAREA, caretPosition + 1);
+    };
+
+    editorContext.addShortcut([['Control', 'Enter']], () => {
+      setNewValue();
+    }, {
+      runAction: event => !this.hot.selection.isMultiple() &&
+        // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
+        !event.altKey
+    });
+
+    editorContext.addShortcut([['Alt', 'Enter']], () => {
+      setNewValue();
+    });
   }
 
   /**
@@ -545,39 +567,9 @@ export class TextEditor extends BaseEditor {
    * @param {Event} event The keyboard event object.
    */
   onBeforeKeyDown(event) {
-    // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-    const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
-
     // Process only events that have been fired in the editor
     if (event.target !== this.TEXTAREA || isImmediatePropagationStopped(event)) {
       return;
-    }
-
-    switch (event.keyCode) {
-      case KEY_CODES.ENTER: {
-        const isMultipleSelection = this.hot.selection.isMultiple();
-
-        if ((ctrlDown && !isMultipleSelection) || event.altKey) { // if ctrl+enter or alt+enter, add new line
-          if (this.isOpened()) {
-            const caretPosition = getCaretPosition(this.TEXTAREA);
-            const value = this.getValue();
-            const newValue = `${value.slice(0, caretPosition)}\n${value.slice(caretPosition)}`;
-
-            this.setValue(newValue);
-
-            setCaretPosition(this.TEXTAREA, caretPosition + 1);
-
-          } else {
-            this.beginEditing(`${this.originalValue}\n`);
-          }
-          stopImmediatePropagation(event);
-        }
-        event.preventDefault(); // don't add newline to field
-        break;
-      }
-
-      default:
-        break;
     }
 
     const arrowKeyCodes = [KEY_CODES.ARROW_UP, KEY_CODES.ARROW_RIGHT, KEY_CODES.ARROW_DOWN, KEY_CODES.ARROW_LEFT];
