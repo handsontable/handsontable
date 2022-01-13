@@ -13,6 +13,8 @@ canonicalUrl: /vue3-vuex-example
 
 The following example implements the `@handsontable/vue3` component with a `readOnly` toggle switch and the Vuex state manager.
 
+[Find out which Vue 3 versions are supported &#8594;](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
+
 ## Example - Vuex store dump:
 
 Toggle `readOnly` for the entire table.
