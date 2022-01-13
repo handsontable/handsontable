@@ -213,25 +213,26 @@ export class BaseEditor {
 
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
-    const runOnlySelectedConfig = {
+    const contextConfig = {
       runAction: () => isDefined(this.hot.getSelected()),
+      namespace: 'baseEditor',
     };
 
     editorContext.addShortcut([['ArrowUp']], () => {
       this.hot.selection.transformStart(-1, 0);
-    }, runOnlySelectedConfig);
+    }, contextConfig);
 
     editorContext.addShortcut([['ArrowDown']], () => {
       this.hot.selection.transformStart(1, 0);
-    }, runOnlySelectedConfig);
+    }, contextConfig);
 
     editorContext.addShortcut([['ArrowLeft']], () => {
       this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
-    }, runOnlySelectedConfig);
+    }, contextConfig);
 
     editorContext.addShortcut([['ArrowRight']], () => {
       this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
-    }, runOnlySelectedConfig);
+    }, contextConfig);
 
     // Saving values using the modified coordinates.
     this.hot.populateFromArray(visualRowFrom, visualColumnFrom, value, visualRowTo, visualColumnTo, 'edit');
@@ -306,7 +307,7 @@ export class BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcut([['ArrowRight'], ['ArrowLeft'], ['ArrowUp'], ['ArrowDown']]);
+    editorContext.removeShortcutByNamespace('baseEditor');
 
     if (this.state === EDITOR_STATE.VIRGIN) {
       this.hot._registerTimeout(() => {

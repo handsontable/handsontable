@@ -18,7 +18,7 @@ export const createContext = (name) => {
    * @param {Array<Array<string>>} variants Shortcut's variants.
    * @param {Function} callback The callback.
    * @param {object} [options] Additional options for shortcut's variants.
-   * @param {object} options.id ID of shortcut.
+   * @param {object} options.namespace Namespace for shortcut.
    * @param {object} [options.preventDefault=true] Option determine whether to prevent default behavior.
    * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
    * @param {object} [options.runAction]  Option determine whether assigned callback should be performed.
@@ -28,7 +28,7 @@ export const createContext = (name) => {
     variants,
     callback,
     {
-      id,
+      namespace,
       runAction = () => true,
       preventDefault = true,
       stopPropagation = false
@@ -41,11 +41,11 @@ export const createContext = (name) => {
       if (hasVariant) {
         const shortcuts = SHORTCUTS.getItem(normalizedVariant);
 
-        shortcuts.unshift({ callback, options: { id, runAction, preventDefault, stopPropagation } });
+        shortcuts.unshift({ callback, options: { namespace, runAction, preventDefault, stopPropagation } });
 
       } else {
         SHORTCUTS.addItem(normalizedVariant,
-          [{ callback, options: { id, runAction, preventDefault, stopPropagation } }]);
+          [{ callback, options: { namespace, runAction, preventDefault, stopPropagation } }]);
       }
     });
   };
@@ -55,11 +55,35 @@ export const createContext = (name) => {
    *
    * @param {Array<Array<string>>} variants A shortcut variant.
    */
-  const removeShortcut = (variants) => {
+  const removeShortcutByVariants = (variants) => {
     variants.forEach((variant) => {
       const normalizedVariant = normalizeKeys(variant);
 
       SHORTCUTS.removeItem(normalizedVariant);
+    });
+  };
+
+  /**
+   * Removes shortcut from the context.
+   *
+   * @param {string} namespace Namespace for shortcuts.
+   */
+  const removeShortcutByNamespace = (namespace) => {
+    // console.log('removeShortcutByNamespace', namespace);
+
+    const shortcuts = SHORTCUTS.getItems();
+
+    shortcuts.forEach(([keyCombination, actions]) => {
+      const leftActions = actions.filter(action => action.options.namespace !== namespace);
+
+      if (leftActions.length === 0) {
+        removeShortcutByVariants([[keyCombination]]);
+
+      } else {
+        actions.length = 0;
+
+        actions.push(...leftActions);
+      }
     });
   };
 
@@ -83,6 +107,7 @@ export const createContext = (name) => {
     addShortcut,
     getShortcuts,
     hasShortcut,
-    removeShortcut,
+    removeShortcutByVariants,
+    removeShortcutByNamespace,
   };
 };

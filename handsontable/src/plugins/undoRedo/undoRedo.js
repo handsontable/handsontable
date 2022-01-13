@@ -861,14 +861,16 @@ UndoRedo.prototype.registerShortcuts = function() {
   gridContext.addShortcut([['meta', 'z'], ['control', 'z']], () => {
     this.undo();
   }, {
-    runAction
+    runAction,
+    namespace: 'undoRedo'
   });
 
   gridContext.addShortcut([['control', 'y'], ['meta', 'y'],
     ['control', 'shift', 'z'], ['meta', 'shift', 'z']], () => {
     this.redo();
   }, {
-    runAction
+    runAction,
+    namespace: 'undoRedo'
   });
 };
 
@@ -881,8 +883,7 @@ UndoRedo.prototype.unregisterShortcuts = function() {
   const shortutManager = this.instance.getShortcutManager();
   const gridContext = shortutManager.getContext('grid');
 
-  gridContext.removeShortcut([['control', 'z'], ['meta', 'z'], ['control', 'y'], ['meta', 'y'],
-    ['meta', 'shift', 'z'], ['control', 'shift', 'z']]);
+  gridContext.removeShortcutByNamespace('undoRedo');
 };
 
 /**

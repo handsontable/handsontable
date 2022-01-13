@@ -540,7 +540,8 @@ export class MergeCells extends BasePlugin {
       this.hot.render();
 
     }, {
-      runAction: event => !event.altKey // right ALT in some systems triggers ALT+CTRL
+      runAction: event => !event.altKey, // right ALT in some systems triggers ALT+CTRL
+      namespace: 'mergeCells',
     });
   }
 
@@ -553,7 +554,7 @@ export class MergeCells extends BasePlugin {
     const shortcutManager = this.hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
 
-    gridContext.removeShortcut([['control', 'm'], ['meta', 'm']]);
+    gridContext.removeShortcutByNamespace('mergeCells');
   }
 
   /**

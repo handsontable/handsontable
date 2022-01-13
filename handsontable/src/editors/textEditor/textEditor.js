@@ -500,8 +500,9 @@ export class TextEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    const runOnlySelectedConfig = {
+    const contextConfig = {
       runAction: () => isDefined(this.hot.getSelected()),
+      namespace: 'textEditor',
     };
 
     // TODO: Duplicated part of code.
@@ -512,7 +513,7 @@ export class TextEditor extends BaseEditor {
         : tableMeta.tabMoves;
 
       this.hot.selection.transformStart(tabMoves.row, tabMoves.col, true);
-    }, runOnlySelectedConfig);
+    }, contextConfig);
 
     // TODO: Duplicated part of code.
     editorContext.addShortcut([['Shift', 'Tab']], (event) => {
@@ -522,7 +523,7 @@ export class TextEditor extends BaseEditor {
         : tableMeta.tabMoves;
 
       this.hot.selection.transformStart(-tabMoves.row, -tabMoves.col);
-    }, runOnlySelectedConfig);
+    }, contextConfig);
   }
 
   /**
@@ -534,8 +535,7 @@ export class TextEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcut([['ArrowRight'], ['ArrowLeft'], ['ArrowUp'], ['ArrowDown']]);
-    editorContext.removeShortcut([['Tab'], ['Shift', 'Tab']]);
+    editorContext.removeShortcutByNamespace('textEditor');
   }
 
   /**
