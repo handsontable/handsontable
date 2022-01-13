@@ -31,7 +31,7 @@ resetting the states of cells, rows and columns. [#7263](https://github.com/hand
 - Fixed an issue where the `NestedRows` plugin could throw a type error after calling the `updateSettings()` method. [#9018](https://github.com/handsontable/handsontable/issues/9018)
 - Fixed an issue where performance was affected by removing events. [#9044](https://github.com/handsontable/handsontable/issues/9044)
 - Fixed a wrong TypeScript definition of the `MultiColumnSorting` plugin's `sort()` method. [#9067](https://github.com/handsontable/handsontable/issues/9067)
-- Fixed an issue where the `Comments` plugin's editor disappeared after adding a comment. [#9075](https://github.com/handsontable/handsontable/issues/9075)
+- Fixed an issue where the `Comments` plugin's editor disappeared after adding a comment. [#9075](https://github.com/handsontable/handsontable/issues/9075) [#6661](https://github.com/handsontable/handsontable/issues/6661)
 - *React:* Fixed a wrong return type. [#9000](https://github.com/handsontable/handsontable/issues/9000)
 
 ## [11.0.1] - 2021-11-17

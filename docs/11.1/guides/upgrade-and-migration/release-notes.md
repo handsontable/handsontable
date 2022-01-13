@@ -37,7 +37,7 @@ Released on 13th of January, 2022
 - Fixed an issue where the [`NestedRows`](@/api/nestedRows.md) plugin could throw a type error after calling the [`updateSettings()`](@/api/core.md#updatesettings) method. [#9018](https://github.com/handsontable/handsontable/issues/9018)
 - Fixed an issue where performance was affected by removing events. [#9044](https://github.com/handsontable/handsontable/issues/9044)
 - Fixed a wrong TypeScript definition of the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin's [`sort()`](@/api/multiColumnSorting.md#sort) method. [#9067](https://github.com/handsontable/handsontable/issues/9067)
-- Fixed an issue where the [`Comments`](@/api/comments.md) plugin's editor disappeared after adding a comment. [#9075](https://github.com/handsontable/handsontable/issues/9075)
+- Fixed an issue where the [`Comments`](@/api/comments.md) plugin's editor disappeared after adding a comment. [#9075](https://github.com/handsontable/handsontable/issues/9075) [#6661](https://github.com/handsontable/handsontable/issues/6661)
 - *React:* Fixed a wrong return type. [#9000](https://github.com/handsontable/handsontable/issues/9000)
 
 ## 11.0.1
