@@ -17,7 +17,7 @@ assignees: ""
 
 ### Demo
 <!--- Provide a link to a live example on JSFiddle or CodePen or fill the following demo with your settings -->
-https://jsfiddle.net/handsoncode/dezfbgjt/
+https://jsfiddle.net/handsoncode/nL8sry9u/
 
 ### Your environment
 * Vue 3 wrapper version:
