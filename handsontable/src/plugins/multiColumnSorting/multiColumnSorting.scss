@@ -7,8 +7,8 @@
   /* Centering end */
 
   position: absolute;
-  inline-end: -15px;
-  inline-start: unset;
+  inset-inline-end: -15px;
+  inset-inline-start: unset;
   /* For purpose of continuous mouse over experience, when moving between the `::before` and the `::after` elements */
   padding-inline-start: 5px;
   padding-inline-end: unset;

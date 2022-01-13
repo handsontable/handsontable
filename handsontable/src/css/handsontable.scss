@@ -115,8 +115,8 @@
   padding-inline-start: 8px;
   padding-inline-end: 0;
   position: absolute;
-  inline-end: -9px;
-  inline-start: unset;
+  inset-inline-end: -9px;
+  inset-inline-start: unset;
 
   content: '';
   height: 10px;
