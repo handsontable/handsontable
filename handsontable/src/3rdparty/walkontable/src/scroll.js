@@ -218,7 +218,7 @@ class Scroll {
       const rootElementOffset = offset(wtTable.wtRootElement);
       const totalTableWidth = innerWidth(wtTable.hider);
       const windowWidth = innerWidth(rootWindow);
-      const windowScrollLeft = getScrollLeft(rootWindow, rootWindow);
+      const windowScrollLeft = Math.abs(getScrollLeft(rootWindow, rootWindow));
 
       // Only calculate firstVisibleColumn when table didn't filled (from left) whole viewport space
       if (rootElementOffset.left + totalTableWidth - windowWidth <= windowScrollLeft) {
@@ -257,7 +257,7 @@ class Scroll {
 
     if (inlineStartOverlay.mainTableScrollableElement === rootWindow) {
       const rootElementOffset = offset(wtTable.wtRootElement);
-      const windowScrollLeft = getScrollLeft(rootWindow, rootWindow);
+      const windowScrollLeft = Math.abs(getScrollLeft(rootWindow, rootWindow));
 
       // Only calculate lastVisibleColumn when table didn't filled (from right) whole viewport space
       if (rootElementOffset.left > windowScrollLeft) {

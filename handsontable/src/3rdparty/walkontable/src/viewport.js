@@ -368,17 +368,22 @@ class Viewport {
    */
   createColumnsCalculator(calculationType = RENDER_TYPE) {
     const { wtSettings, wtTable } = this;
+    const isRtl = wtSettings.getSetting('rtlMode');
     let width = this.getViewportWidth();
-    let pos = this.dataAccessObject.inlineStartScrollPosition - this.dataAccessObject.inlineStartParentOffset;
+    let pos = Math.abs(this.dataAccessObject.inlineStartScrollPosition) - this.dataAccessObject.inlineStartParentOffset;
 
     this.columnHeaderHeight = NaN;
+
+    if (pos < 0) {
+      pos = 0;
+    }
 
     const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart');
 
     if (fixedColumnsStart) {
       const fixedColumnsWidth = this.dataAccessObject.inlineStartOverlay.sumCellSizes(0, fixedColumnsStart);
 
-      if (wtSettings.getSetting('rtlMode')) {
+      if (isRtl) {
         pos -= fixedColumnsWidth;
       } else {
         pos += fixedColumnsWidth;
@@ -392,7 +397,7 @@ class Viewport {
 
     return new ViewportColumnsCalculator({
       viewportSize: width,
-      scrollOffset: Math.abs(pos),
+      scrollOffset: pos,
       totalItems: wtSettings.getSetting('totalColumns'),
       itemSizeFn: sourceCol => wtTable.getColumnWidth(sourceCol),
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
