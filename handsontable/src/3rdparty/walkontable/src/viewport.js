@@ -368,7 +368,6 @@ class Viewport {
    */
   createColumnsCalculator(calculationType = RENDER_TYPE) {
     const { wtSettings, wtTable } = this;
-    const isRtl = wtSettings.getSetting('rtlMode');
     let width = this.getViewportWidth();
     let pos = Math.abs(this.dataAccessObject.inlineStartScrollPosition) - this.dataAccessObject.inlineStartParentOffset;
 
@@ -383,12 +382,7 @@ class Viewport {
     if (fixedColumnsStart) {
       const fixedColumnsWidth = this.dataAccessObject.inlineStartOverlay.sumCellSizes(0, fixedColumnsStart);
 
-      if (isRtl) {
-        pos -= fixedColumnsWidth;
-      } else {
-        pos += fixedColumnsWidth;
-      }
-
+      pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;
     }
     if (wtTable.holder.clientWidth !== wtTable.holder.offsetWidth) {
