@@ -5,20 +5,6 @@ describe('ColumnSorting (RTL)', () => {
     $('html').attr('dir', 'rtl');
 
     this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`).appendTo('body');
-
-    this.sortByClickOnColumnHeader = (columnIndex) => {
-      const hot = this.$container.data('handsontable');
-      const $columnHeader = $(hot.view.wt.wtTable.getColumnHeader(columnIndex));
-      const $spanInsideHeader = $columnHeader.find('.columnSorting');
-
-      if ($spanInsideHeader.length === 0) {
-        throw Error('Please check the test scenario. The header doesn\'t exist.');
-      }
-
-      $spanInsideHeader.simulate('mousedown');
-      $spanInsideHeader.simulate('mouseup');
-      $spanInsideHeader.simulate('click');
-    };
   });
 
   afterEach(function() {
