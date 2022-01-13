@@ -13,6 +13,8 @@ canonicalUrl: /vue3-hot-column
 
 You can configure the column-related settings using the `HotColumn` component's attributes. You can also create custom renderers and editors using Vue 3 components.
 
+[Find out which Vue 3 versions are supported &#8594;](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
+
 ## Declaring column settings
 
 To declare column-specific settings, pass the settings as `hot-column` properties, either separately or wrapped as a `settings` property, exactly as you would for `hot-table`.
