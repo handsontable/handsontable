@@ -113,9 +113,9 @@ export class TouchScroll extends BasePlugin {
     const {
       topOverlay,
       bottomOverlay,
-      leftOverlay,
-      topLeftCornerOverlay,
-      bottomLeftCornerOverlay
+      inlineStartOverlay,
+      topInlineStartCornerOverlay,
+      bottomInlineStartCornerOverlay
     } = this.hot.view.wt.wtOverlays;
 
     this.lockedCollection = true;
@@ -125,13 +125,14 @@ export class TouchScroll extends BasePlugin {
     if (bottomOverlay.clone) {
       this.scrollbars.push(bottomOverlay);
     }
-    this.scrollbars.push(leftOverlay);
 
-    if (topLeftCornerOverlay) {
-      this.scrollbars.push(topLeftCornerOverlay);
+    this.scrollbars.push(inlineStartOverlay);
+
+    if (topInlineStartCornerOverlay) {
+      this.scrollbars.push(topInlineStartCornerOverlay);
     }
-    if (bottomLeftCornerOverlay && bottomLeftCornerOverlay.clone) {
-      this.scrollbars.push(bottomLeftCornerOverlay);
+    if (bottomInlineStartCornerOverlay && bottomInlineStartCornerOverlay.clone) {
+      this.scrollbars.push(bottomInlineStartCornerOverlay);
     }
 
     this.clones = [];
@@ -142,14 +143,14 @@ export class TouchScroll extends BasePlugin {
     if (bottomOverlay.needFullRender) {
       this.clones.push(bottomOverlay.clone.wtTable.holder.parentNode);
     }
-    if (leftOverlay.needFullRender) {
-      this.clones.push(leftOverlay.clone.wtTable.holder.parentNode);
+    if (inlineStartOverlay.needFullRender) {
+      this.clones.push(inlineStartOverlay.clone.wtTable.holder.parentNode);
     }
-    if (topLeftCornerOverlay) {
-      this.clones.push(topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+    if (topInlineStartCornerOverlay) {
+      this.clones.push(topInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
     }
-    if (bottomLeftCornerOverlay && bottomLeftCornerOverlay.clone) {
-      this.clones.push(bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
+    if (bottomInlineStartCornerOverlay && bottomInlineStartCornerOverlay.clone) {
+      this.clones.push(bottomInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
     }
   }
 

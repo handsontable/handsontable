@@ -8,17 +8,17 @@ import {
   removeClass,
   setOverlayPosition,
   resetCssTransform,
-} from './../../../../helpers/dom/element';
-import InlineStartOverlayTable from './../table/inlineStart';
+} from '../../../../helpers/dom/element';
+import InlineStartOverlayTable from '../table/inlineStart';
 import { Overlay } from './_base';
 import {
-  CLONE_LEFT,
+  CLONE_INLINE_START,
 } from './constants';
 
 /**
- * @class LeftOverlay
+ * @class InlineStartOverlay
  */
-export class LeftOverlay extends Overlay {
+export class InlineStartOverlay extends Overlay {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
@@ -26,7 +26,7 @@ export class LeftOverlay extends Overlay {
    * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
   constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
-    super(wotInstance, facadeGetter, CLONE_LEFT, wtSettings, domBindings);
+    super(wotInstance, facadeGetter, CLONE_INLINE_START, wtSettings, domBindings);
   }
 
   /**
@@ -34,7 +34,7 @@ export class LeftOverlay extends Overlay {
    *
    * @see Table#constructor
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
-   * @returns {LeftOverlayTable}
+   * @returns {InlineStartOverlayTable}
    */
   createTable(...args) {
     return new InlineStartOverlayTable(...args);
@@ -46,7 +46,7 @@ export class LeftOverlay extends Overlay {
    * @returns {boolean}
    */
   shouldBeRendered() {
-    return this.wtSettings.getSetting('shouldRenderLeftOverlay');
+    return this.wtSettings.getSetting('shouldRenderInlineStartOverlay');
   }
 
   /**
@@ -62,7 +62,7 @@ export class LeftOverlay extends Overlay {
       return false;
     }
 
-    const { rootWindow } = this.domBindings;
+    const { rootWindow, rootDocument } = this.domBindings;
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     let headerPosition = 0;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
@@ -71,22 +71,21 @@ export class LeftOverlay extends Overlay {
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const left = Math.ceil(hiderRect.left);
       const right = Math.ceil(hiderRect.right);
-      let finalLeft;
-      let finalTop;
+      let finalLeft = 0;
 
-      finalTop = wtTable.hider.style.top;
-      finalTop = finalTop === '' ? 0 : finalTop;
+      if (this.isRtl()) {
+        const documentWidth = rootDocument.documentElement.clientWidth;
 
-      if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
+        if (right >= documentWidth) {
+          finalLeft = documentWidth - right;
+        }
+
+      } else if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
         finalLeft = -left;
-      } else {
-        finalLeft = 0;
       }
 
       headerPosition = finalLeft;
-      finalLeft += 'px';
-
-      setOverlayPosition(overlayRoot, finalLeft, finalTop);
+      setOverlayPosition(overlayRoot, `${finalLeft}px`, '0px');
 
     } else {
       headerPosition = this.getScrollPosition();
@@ -216,17 +215,23 @@ export class LeftOverlay extends Overlay {
    */
   applyToDOM() {
     const total = this.wtSettings.getSetting('totalColumns');
+    const styleProperty = this.isRtl() ? 'right' : 'left';
 
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
-      this.spreader.style.left = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
+      this.spreader.style[styleProperty] = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
 
     } else if (total === 0) {
-      this.spreader.style.left = '0';
+      this.spreader.style[styleProperty] = '0';
 
     } else {
       throw new Error('Incorrect value of the columnsRenderCalculator');
     }
-    this.spreader.style.right = '';
+
+    if (this.isRtl()) {
+      this.spreader.style.left = '';
+    } else {
+      this.spreader.style.right = '';
+    }
 
     if (this.needFullRender) {
       this.syncOverlayOffset();

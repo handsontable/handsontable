@@ -1118,7 +1118,7 @@ describe('Core_view', () => {
       });
       const rowHeaderWidth = hot.view.wt.wtViewport.getRowHeaderWidth();
 
-      expect(hot.view.wt.wtOverlays.leftOverlay.getScrollPosition()).toEqual(0);
+      expect(hot.view.wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toEqual(0);
 
       let expectedCellWidth = (parseInt(spec().$container[0].style.width, 10) - rowHeaderWidth) / 5;
 

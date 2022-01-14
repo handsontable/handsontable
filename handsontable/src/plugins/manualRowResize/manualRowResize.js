@@ -194,13 +194,13 @@ export class ManualRowResize extends BasePlugin {
     if (fixedRowTop) {
       relativeHeaderPosition = wt
         .wtOverlays
-        .topLeftCornerOverlay
+        .topInlineStartCornerOverlay
         .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
 
     } else if (fixedRowBottom) {
       relativeHeaderPosition = wt
         .wtOverlays
-        .bottomLeftCornerOverlay
+        .bottomInlineStartCornerOverlay
         .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
     }
 
@@ -209,7 +209,7 @@ export class ManualRowResize extends BasePlugin {
     if (!relativeHeaderPosition) {
       relativeHeaderPosition = wt
         .wtOverlays
-        .leftOverlay
+        .inlineStartOverlay
         .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
     }
 

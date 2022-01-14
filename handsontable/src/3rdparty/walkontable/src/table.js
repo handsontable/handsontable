@@ -20,9 +20,9 @@ import RowUtils from './utils/row';
 import {
   CLONE_TOP,
   CLONE_BOTTOM,
-  CLONE_LEFT,
-  CLONE_TOP_LEFT_CORNER,
-  CLONE_BOTTOM_LEFT_CORNER,
+  CLONE_INLINE_START,
+  CLONE_TOP_INLINE_START_CORNER,
+  CLONE_BOTTOM_INLINE_START_CORNER,
 } from './overlay';
 
 /**
@@ -269,10 +269,10 @@ class Table {
       runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
       if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
-        const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
+        const leftScrollPos = wtOverlays.inlineStartOverlay.getScrollPosition();
         const previousState = this.correctHeaderWidth;
 
-        this.correctHeaderWidth = leftScrollPos > 0;
+        this.correctHeaderWidth = leftScrollPos !== 0;
 
         if (previousState !== this.correctHeaderWidth) {
           runFastDraw = false;
@@ -319,7 +319,7 @@ class Table {
         this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
 
         if (this.is(CLONE_BOTTOM) ||
-            this.is(CLONE_BOTTOM_LEFT_CORNER)) {
+            this.is(CLONE_BOTTOM_INLINE_START_CORNER)) {
           // do NOT render headers on the bottom or bottom-left corner overlay
           this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
         }
@@ -381,14 +381,14 @@ class Table {
         positionChanged = wtOverlays.bottomOverlay.resetFixedPosition() || positionChanged;
       }
 
-      positionChanged = wtOverlays.leftOverlay.resetFixedPosition() || positionChanged;
+      positionChanged = wtOverlays.inlineStartOverlay.resetFixedPosition() || positionChanged;
 
-      if (wtOverlays.topLeftCornerOverlay) {
-        wtOverlays.topLeftCornerOverlay.resetFixedPosition();
+      if (wtOverlays.topInlineStartCornerOverlay) {
+        wtOverlays.topInlineStartCornerOverlay.resetFixedPosition();
       }
 
-      if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
-        wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
+      if (wtOverlays.bottomInlineStartCornerOverlay && wtOverlays.bottomInlineStartCornerOverlay.clone) {
+        wtOverlays.bottomInlineStartCornerOverlay.resetFixedPosition();
       }
 
       if (positionChanged) {
@@ -748,13 +748,13 @@ class Table {
     let row = index(TR);
     let col = cellElement.cellIndex;
 
-    if (overlayContainsElement(CLONE_TOP_LEFT_CORNER, cellElement, this.wtRootElement)
+    if (overlayContainsElement(CLONE_TOP_INLINE_START_CORNER, cellElement, this.wtRootElement)
       || overlayContainsElement(CLONE_TOP, cellElement, this.wtRootElement)) {
       if (CONTAINER.nodeName === 'THEAD') {
         row -= CONTAINER.childNodes.length;
       }
 
-    } else if (overlayContainsElement(CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement)
+    } else if (overlayContainsElement(CLONE_BOTTOM_INLINE_START_CORNER, cellElement, this.wtRootElement)
       || overlayContainsElement(CLONE_BOTTOM, cellElement, this.wtRootElement)) {
       const totalRows = this.wtSettings.getSetting('totalRows');
 
@@ -767,9 +767,9 @@ class Table {
       row = this.rowFilter.renderedToSource(row);
     }
 
-    if (overlayContainsElement(CLONE_TOP_LEFT_CORNER, cellElement, this.wtRootElement)
-      || overlayContainsElement(CLONE_LEFT, cellElement, this.wtRootElement)
-      || overlayContainsElement(CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement)) {
+    if (overlayContainsElement(CLONE_TOP_INLINE_START_CORNER, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_INLINE_START, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_BOTTOM_INLINE_START_CORNER, cellElement, this.wtRootElement)) {
       col = this.columnFilter.offsettedTH(col);
 
     } else {

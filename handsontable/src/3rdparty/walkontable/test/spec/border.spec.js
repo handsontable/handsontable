@@ -244,11 +244,11 @@ describe('WalkontableBorder', () => {
 
     const $td1 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
     const $corner = $(wt.selections.getCell().getBorder(wt).corner);
-    const leftOverlay = $(wt.wtOverlays.leftOverlay.clone.wtTable.holder);
+    const inlineStartOverlay = $(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder);
 
     $td1.simulate('mousedown');
 
-    expect(leftOverlay.position().left + leftOverlay.outerWidth())
+    expect(inlineStartOverlay.position().left + inlineStartOverlay.outerWidth())
       .toBe($corner.position().left + $corner.outerWidth());
   });
 

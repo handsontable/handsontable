@@ -95,22 +95,14 @@ export class TopOverlay extends Overlay {
       // frozen lines (no more `innerBorderTop` workaround).
       skipInnerBorderAdjusting = bottom === rootHeight;
 
-      let finalLeft;
-      let finalTop;
-
-      finalLeft = wtTable.hider.style.left;
-      finalLeft = finalLeft === '' ? 0 : finalLeft;
+      let finalTop = 0;
 
       if (top < 0 && (bottom - rootHeight) > 0) {
         finalTop = -top;
-      } else {
-        finalTop = 0;
       }
 
       headerPosition = finalTop;
-      finalTop += 'px';
-
-      setOverlayPosition(overlayRoot, finalLeft, finalTop);
+      setOverlayPosition(overlayRoot, '0px', `${finalTop}px`);
 
     } else {
       headerPosition = this.getScrollPosition();
@@ -268,11 +260,14 @@ export class TopOverlay extends Overlay {
    * Synchronize calculated left position to an element.
    */
   syncOverlayOffset() {
+    const styleProperty = this.isRtl() ? 'right' : 'left';
+    const { spreader } = this.clone.wtTable;
+
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
-      this.clone.wtTable.spreader.style.left = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
+      spreader.style[styleProperty] = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
 
     } else {
-      this.clone.wtTable.spreader.style.left = '';
+      spreader.style[styleProperty] = '';
     }
   }
 

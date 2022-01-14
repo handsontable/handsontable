@@ -90,6 +90,7 @@
 
 .handsontable th:last-child {
   /*Foundation framework fix*/
+  border-inline-start: none;
   border-inline-end: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
 }

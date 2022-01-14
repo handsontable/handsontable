@@ -19,6 +19,7 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} freezeOverlays Option `freezeOverlays`.
  * @property {Option} groups Option `groups`.
  * @property {Option} hideBorderOnMouseDownOver Option `hideBorderOnMouseDownOver`.
+ * @property {Option} isRtl Option `isRtl`.
  * @property {Option} isDataViewInstance Option `isDataViewInstance`.
  * @property {Option} minSpareRows Option `minSpareRows`.
  * @property {Option} onBeforeHighlightingColumnHeader Option `onBeforeHighlightingColumnHeader`.
@@ -31,7 +32,7 @@ import { objectEach } from '../../../helpers/object';
  * @property {Option} rowHeaders Option `rowHeaders`.
  * @property {Option} rowHeight Option `,`.
  * @property {Option} shouldRenderBottomOverlay Option `shouldRenderBottomOverlay`.
- * @property {Option} shouldRenderLeftOverlay Option `shouldRenderLeftOverlay`.
+ * @property {Option} shouldRenderInlineStartOverlay Option `shouldRenderInlineStartOverlay`.
  * @property {Option} shouldRenderTopOverlay Option `shouldRenderTopOverlay`.
  * @property {Option} stretchH Option `stretchH`.
  * @property {Option} table Option `table`.
@@ -143,8 +144,8 @@ export default class Settings {
       fixedRowsTop: 0,
       // Number of renderable rows for the bottom overlay.
       fixedRowsBottom: 0,
-      // Enable the left overlay when conditions are met.
-      shouldRenderLeftOverlay: () => {
+      // Enable the inline start overlay when conditions are met (left for LTR and right for RTL document mode).
+      shouldRenderInlineStartOverlay: () => {
         return this.getSetting('fixedColumnsStart') > 0 || this.getSetting('rowHeaders').length > 0;
       },
       // Enable the top overlay when conditions are met.
@@ -220,7 +221,8 @@ export default class Settings {
       groups: false,
       rowHeaderWidth: null,
       columnHeaderHeight: null,
-      headerClassName: null
+      headerClassName: null,
+      rtlMode: false
     };
   }
 

@@ -8,7 +8,7 @@ import { warn } from '../../../../helpers/console';
 import {
   CLONE_TYPES,
   CLONE_TOP,
-  CLONE_LEFT,
+  CLONE_INLINE_START,
 } from './constants';
 import Clone from '../core/clone';
 
@@ -215,7 +215,7 @@ export class Overlay {
    */
   getRelativeCellPositionWithinHolder(onFixedRowTop, onFixedRowBottom, onFixedColumn, elementOffset, spreaderOffset) {
     const tableScrollPosition = {
-      horizontal: this.wot.wtOverlays.leftOverlay.getScrollPosition(),
+      horizontal: this.wot.wtOverlays.inlineStartOverlay.getScrollPosition(),
       vertical: this.wot.wtOverlays.topOverlay.getScrollPosition()
     };
     let horizontalOffset = 0;
@@ -259,8 +259,13 @@ export class Overlay {
     clone.className = `ht_clone_${this.type} handsontable`;
     clone.style.position = 'absolute';
     clone.style.top = 0;
-    clone.style.left = 0;
     clone.style.overflow = 'visible';
+
+    if (this.isRtl()) {
+      clone.style.right = 0;
+    } else {
+      clone.style.left = 0;
+    }
 
     clonedTable.className = wtTable.TABLE.className;
     clone.appendChild(clonedTable);
@@ -271,7 +276,7 @@ export class Overlay {
 
     if (preventOverflow === true ||
       preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
-      preventOverflow === 'vertical' && this.type === CLONE_LEFT) {
+      preventOverflow === 'vertical' && this.type === CLONE_INLINE_START) {
       this.mainTableScrollableElement = rootWindow;
 
     } else if (rootWindow.getComputedStyle(tableParent).getPropertyValue('overflow') === 'hidden') {
@@ -317,13 +322,22 @@ export class Overlay {
     const holder = this.clone.wtTable.holder; // todo refactoring: DEMETER
     const hider = this.clone.wtTable.hider; // todo refactoring: DEMETER
     const holderStyle = holder.style;
-    const hidderStyle = hider.style;
+    const hiderStyle = hider.style;
     const rootStyle = holder.parentNode.style;
 
-    arrayEach([holderStyle, hidderStyle, rootStyle], (style) => {
+    arrayEach([holderStyle, hiderStyle, rootStyle], (style) => {
       style.width = '';
       style.height = '';
     });
+  }
+
+  /**
+   * Determine if Walkontable is running in RTL mode.
+   *
+   * @returns {boolean}
+   */
+  isRtl() {
+    return this.wtSettings.getSetting('rtlMode');
   }
 
   /**

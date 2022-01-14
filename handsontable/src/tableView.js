@@ -519,6 +519,7 @@ class TableView {
   initializeWalkontable() {
     const priv = privatePool.get(this);
     const walkontableConfig = {
+      rtlMode: () => this.instance.isRtl(),
       externalRowCalculator: this.instance.getPlugin('autoRowSize') &&
         this.instance.getPlugin('autoRowSize').isEnabled(),
       table: priv.table,
@@ -553,8 +554,8 @@ class TableView {
 
         return this.countNotHiddenRowIndexes(visualFixedRowsBottom, 1);
       },
-      // Enable the left overlay when conditions are met.
-      shouldRenderLeftOverlay: () => {
+      // Enable the inline start overlay when conditions are met.
+      shouldRenderInlineStartOverlay: () => {
         return this.settings.fixedColumnsStart > 0 || walkontableConfig.rowHeaders().length > 0;
       },
       // Enable the top overlay when conditions are met.
@@ -1201,17 +1202,7 @@ class TableView {
   }
 
   /**
-   * Checks if master overlay is active.
-   *
-   * @private
-   * @returns {boolean}
-   */
-  mainViewIsActive() {
-    return this.wt === this.activeWt;
-  }
-
-  /**
-   * Destroyes internal WalkOnTable's instance. Detaches all of the bonded listeners.
+   * Destroys internal WalkOnTable's instance. Detaches all of the bonded listeners.
    *
    * @private
    */

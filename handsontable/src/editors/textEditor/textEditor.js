@@ -346,7 +346,7 @@ export class TextEditor extends BaseEditor {
     const currentOffset = offset(this.TD);
     const containerOffset = offset(this.hot.rootElement);
     const scrollableContainerTop = wtOverlays.topOverlay.holder;
-    const scrollableContainerLeft = wtOverlays.leftOverlay.holder;
+    const scrollableContainerLeft = wtOverlays.inlineStartOverlay.holder;
     const containerScrollTop = scrollableContainerTop !== this.hot.rootWindow ?
       scrollableContainerTop.scrollTop : 0;
     const containerScrollLeft = scrollableContainerLeft !== this.hot.rootWindow ?
@@ -370,13 +370,13 @@ export class TextEditor extends BaseEditor {
         cssTransformOffset = getCssTransform(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'left':
-        cssTransformOffset = getCssTransform(wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(wtOverlays.inlineStartOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'top-left-corner':
-        cssTransformOffset = getCssTransform(wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'bottom-left-corner':
-        cssTransformOffset = getCssTransform(wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
+        cssTransformOffset = getCssTransform(wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'bottom':
         cssTransformOffset = getCssTransform(wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
@@ -416,7 +416,7 @@ export class TextEditor extends BaseEditor {
 
     const firstRowOffset = wtViewport.rowsRenderCalculator.startPosition;
     const firstColumnOffset = wtViewport.columnsRenderCalculator.startPosition;
-    const horizontalScrollPosition = wtOverlays.leftOverlay.getScrollPosition();
+    const horizontalScrollPosition = wtOverlays.inlineStartOverlay.getScrollPosition();
     const verticalScrollPosition = wtOverlays.topOverlay.getScrollPosition();
     const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
 

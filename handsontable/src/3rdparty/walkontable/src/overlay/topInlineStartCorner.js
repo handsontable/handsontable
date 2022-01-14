@@ -4,16 +4,16 @@ import {
   setOverlayPosition,
   resetCssTransform
 } from '../../../../helpers/dom/element';
-import TopLeftCornerOverlayTable from './../table/topLeftCorner';
+import TopInlineStartCornerOverlayTable from '../table/topInlineStartCorner';
 import { Overlay } from './_base';
 import {
-  CLONE_TOP_LEFT_CORNER,
+  CLONE_TOP_INLINE_START_CORNER,
 } from './constants';
 
 /**
- * @class TopLeftCornerOverlay
+ * @class TopInlineStartCornerOverlay
  */
-export class TopLeftCornerOverlay extends Overlay {
+export class TopInlineStartCornerOverlay extends Overlay {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
@@ -21,7 +21,7 @@ export class TopLeftCornerOverlay extends Overlay {
    * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
   constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
-    super(wotInstance, facadeGetter, CLONE_TOP_LEFT_CORNER, wtSettings, domBindings);
+    super(wotInstance, facadeGetter, CLONE_TOP_INLINE_START_CORNER, wtSettings, domBindings);
   }
 
   /**
@@ -29,10 +29,10 @@ export class TopLeftCornerOverlay extends Overlay {
    *
    * @see Table#constructor
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
-   * @returns {TopLeftCornerOverlayTable}
+   * @returns {TopInlineStartCornerOverlayTable}
    */
   createTable(...args) {
-    return new TopLeftCornerOverlayTable(...args);
+    return new TopInlineStartCornerOverlayTable(...args);
   }
 
   /**
@@ -42,7 +42,7 @@ export class TopLeftCornerOverlay extends Overlay {
    */
   shouldBeRendered() {
     return this.wtSettings.getSetting('shouldRenderTopOverlay')
-      && this.wtSettings.getSetting('shouldRenderLeftOverlay');
+      && this.wtSettings.getSetting('shouldRenderInlineStartOverlay');
   }
 
   /**
@@ -63,26 +63,35 @@ export class TopLeftCornerOverlay extends Overlay {
 
     if (this.trimmingContainer === this.domBindings.rootWindow) {
       const { wtTable } = this.wot;
+      const { rootDocument } = this.domBindings;
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const top = Math.ceil(hiderRect.top);
       const left = Math.ceil(hiderRect.left);
       const bottom = Math.ceil(hiderRect.bottom);
       const right = Math.ceil(hiderRect.right);
-      let finalLeft = '0';
-      let finalTop = '0';
+      let finalLeft = 0;
+      let finalTop = 0;
 
       if (!preventOverflow || preventOverflow === 'vertical') {
-        if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
-          finalLeft = `${-left}px`;
+        if (this.isRtl()) {
+          const documentWidth = rootDocument.documentElement.clientWidth;
+
+          if (right >= documentWidth) {
+            finalLeft = documentWidth - right;
+          }
+
+        } else if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
+          finalLeft = -left;
         }
       }
 
       if (!preventOverflow || preventOverflow === 'horizontal') {
         if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
-          finalTop = `${-top}px`;
+          finalTop = -top;
         }
       }
-      setOverlayPosition(overlayRoot, finalLeft, finalTop);
+
+      setOverlayPosition(overlayRoot, `${finalLeft}px`, `${finalTop}px`);
     } else {
       resetCssTransform(overlayRoot);
     }
