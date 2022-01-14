@@ -12,6 +12,8 @@ permalink: /next/vue3-hot-reference
 
 The following example implements the `@handsontable/vue3`, showing how to reference the Handsontable instance from the wrapper component.
 
+[Find out which Vue 3 versions are supported &#8594;](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
+
 ## Example
 
 ::: example #example1 :vue3 --html 1 --js 2

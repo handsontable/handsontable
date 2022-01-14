@@ -8,9 +8,13 @@ const trim = (properties) => {
 const polyfillDirection = (direction, source) => {
   switch (direction) {
     case 'ltr':
-      return source.replace(/inline-start/g, 'left').replace(/inline-end/g, 'right');
+      return source
+        .replace(/inset-inline-start/g, 'left').replace(/inset-inline-end/g, 'right')
+        .replace(/inline-start/g, 'left').replace(/inline-end/g, 'right');
     case 'rtl':
-      return source.replace(/inline-start/g, 'right').replace(/inline-end/g, 'left');
+      return source
+        .replace(/inset-inline-start/g, 'right').replace(/inset-inline-end/g, 'left')
+        .replace(/inline-start/g, 'right').replace(/inline-end/g, 'left');
     default:
       return source;
   }
@@ -26,7 +30,7 @@ ${polyfillDirection('rtl', `${selector}{${trim(properties)}}`)}
 
 const applyRtlStyles = (source) => {
   return source.replace(
-    /([^}/]*){([^{]*(inline-end|inline-start)[^}]*)}/gm, // detect ltr/rtl dependent properties
+    /([^}/]*){([^{]*(inset-inline-end|inset-inline-start|inline-end|inline-start)[^}]*)}/gm, // detect ltr/rtl dependent properties
     appendRtl
   );
 };

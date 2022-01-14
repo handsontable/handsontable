@@ -112,16 +112,18 @@
   /* Centering end */
 
   /* For purpose of continuous mouse over experience, when moving between the `span` and the `::before` elements */
-  padding-left: 8px;
+  padding-inline-start: 8px;
+  padding-inline-end: 0;
   position: absolute;
-  right: -9px;
+  inset-inline-end: -9px;
+  inset-inline-start: unset;
 
   content: '';
   height: 10px;
   width: 5px;
   background-size: contain;
   background-repeat: no-repeat;
-  background-position-x: right;
+  background-position-x: inline-end;
 }
 
 .handsontable span.colHeader.columnSorting.ascending::before {
