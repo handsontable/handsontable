@@ -373,11 +373,16 @@ class Viewport {
 
     this.columnHeaderHeight = NaN;
 
+    if (pos < 0) {
+      pos = 0;
+    }
+
     const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart');
 
     if (fixedColumnsStart) {
       const fixedColumnsWidth = this.dataAccessObject.inlineStartOverlay.sumCellSizes(0, fixedColumnsStart);
 
+      pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;
     }
     if (wtTable.holder.clientWidth !== wtTable.holder.offsetWidth) {
