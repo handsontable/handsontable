@@ -1,4 +1,4 @@
-import { addClass } from '../../helpers/dom/element';
+import { addClass, outerWidth, outerHeight } from '../../helpers/dom/element';
 
 /**
  * Comment editor for the Comments plugin.
@@ -58,6 +58,18 @@ class CommentEditor {
       input.style.width = `${width}px`;
       input.style.height = `${height}px`;
     }
+  }
+
+  /**
+   * Returns the size of the comments editor.
+   *
+   * @returns {{ width: number, height: number }}
+   */
+  getSize() {
+    return {
+      width: outerWidth(this.editor),
+      height: outerHeight(this.editor),
+    };
   }
 
   /**

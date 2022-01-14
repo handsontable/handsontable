@@ -28,4 +28,33 @@ describe('TextEditor (RTL mode)', () => {
 
     expect(editableElement.getAttribute('dir')).toBeNull();
   });
+
+  it('should change editor\'s CSS properties during switching to being visible', () => {
+    handsontable({
+      editor: 'text',
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    const cell = getCell(0, 0);
+    const master = getMaster();
+    const cellOffsetTop = cell.offsetTop;
+    const cellOffsetLeft = cell.offsetLeft + master.find('.wtHider').position().left;
+    const { left, right, position, top, zIndex, overflow } = spec().$container.find('.handsontableInputHolder').css([
+      'left',
+      'right',
+      'position',
+      'top',
+      'zIndex',
+      'overflow',
+    ]);
+
+    expect(parseInt(left, 10)).toBeAroundValue(cellOffsetLeft);
+    expect(parseInt(right, 10)).not.toBe(document.body.offsetWidth);
+    expect(position).toBe('absolute');
+    expect(parseInt(top, 10)).toBeAroundValue(cellOffsetTop);
+    expect(zIndex).not.toBe('-1');
+    expect(overflow).not.toBe('hidden');
+  });
 });

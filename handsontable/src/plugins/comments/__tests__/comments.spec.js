@@ -87,23 +87,34 @@ describe('Comments', () => {
         ]
       });
 
-      expect(getCell(1, 1).className.indexOf('htCommentCell')).toBeGreaterThan(-1);
-      expect(getCell(2, 2).className.indexOf('htCommentCell')).toBeGreaterThan(-1);
+      expect(getCell(1, 1).classList.contains('htCommentCell')).toBeTrue();
+      expect(getComputedStyle(getCell(1, 1), ':after').left).toBe('43px');
+      expect(getComputedStyle(getCell(1, 1), ':after').right).toBe('0px');
+      expect(getComputedStyle(getCell(1, 1), ':after').borderLeftWidth).toBe('6px');
+      expect(getComputedStyle(getCell(1, 1), ':after').borderRightWidth).toBe('0px');
+      expect(getCell(2, 2).classList.contains('htCommentCell')).toBeTrue();
+      expect(getComputedStyle(getCell(1, 1), ':after').left).toBe('43px');
+      expect(getComputedStyle(getCell(1, 1), ':after').right).toBe('0px');
+      expect(getComputedStyle(getCell(2, 2), ':after').borderLeftWidth).toBe('6px');
+      expect(getComputedStyle(getCell(2, 2), ':after').borderRightWidth).toBe('0px');
     });
 
     it('should display the comment editor in the correct place', () => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
       });
 
-      const plugin = hot.getPlugin('comments');
-      const editor = plugin.editor.getInputElement();
+      const plugin = getPlugin('comments');
+      const $editor = $(plugin.editor.getInputElement());
 
       plugin.showAtCell(0, 1);
 
-      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(0, 2)).offset().top, 0);
-      expect($(editor.parentNode).offset().left).toBeCloseTo($(getCell(0, 2)).offset().left, 0);
+      const cellOffset = $(getCell(0, 2)).offset();
+      const editorOffset = $editor.offset();
+
+      expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
+      expect(editorOffset.left).toBeCloseTo(cellOffset.left, 0);
     });
   });
 

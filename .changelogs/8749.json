@@ -1,7 +1,0 @@
-{
-  "title": "Fixed some tests that fail on mobile devices.",
-  "type": "fixed",
-  "issue": 8749,
-  "breaking": false,
-  "framework": "none"
-}

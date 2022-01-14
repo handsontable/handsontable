@@ -1,7 +1,0 @@
-{
-  "title": "Added support for Vue3 wrapper.",
-  "type": "added",
-  "issue": 7545,
-  "breaking": false,
-  "framework": "vue"
-}

@@ -1,7 +1,0 @@
-{
-  "title": "Updated the TypeScript definition for `setDataAtCell` method.",
-  "type": "changed",
-  "issue": 8601,
-  "breaking": false,
-  "framework": "none"
-}
