@@ -369,21 +369,20 @@ class Viewport {
   createColumnsCalculator(calculationType = RENDER_TYPE) {
     const { wtSettings, wtTable } = this;
     let width = this.getViewportWidth();
-    let pos = this.dataAccessObject.inlineStartScrollPosition - this.dataAccessObject.inlineStartParentOffset;
+    let pos = Math.abs(this.dataAccessObject.inlineStartScrollPosition) - this.dataAccessObject.inlineStartParentOffset;
 
     this.columnHeaderHeight = NaN;
+
+    if (pos < 0) {
+      pos = 0;
+    }
 
     const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart');
 
     if (fixedColumnsStart) {
       const fixedColumnsWidth = this.dataAccessObject.inlineStartOverlay.sumCellSizes(0, fixedColumnsStart);
 
-      if (wtSettings.getSetting('rtlMode')) {
-        pos -= fixedColumnsWidth;
-      } else {
-        pos += fixedColumnsWidth;
-      }
-
+      pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;
     }
     if (wtTable.holder.clientWidth !== wtTable.holder.offsetWidth) {

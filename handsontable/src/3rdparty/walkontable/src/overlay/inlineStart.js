@@ -109,6 +109,10 @@ export class InlineStartOverlay extends Overlay {
     const { rootWindow } = this.domBindings;
     let result = false;
 
+    if (this.isRtl()) {
+      pos = -pos;
+    }
+
     if (this.mainTableScrollableElement === rootWindow && rootWindow.scrollX !== pos) {
       rootWindow.scrollTo(pos, getWindowScrollTop(rootWindow));
       result = true;

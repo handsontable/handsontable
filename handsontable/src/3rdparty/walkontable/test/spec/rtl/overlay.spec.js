@@ -537,7 +537,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     const clientWidth = document.body.clientWidth;
     const clientHeight = document.body.clientHeight;
     // total columns * 50px (cell width) + 50px (row header)
-    const totalColumnsWidth = (getTotalColumns() * 50) + 50;
+    const totalColumnsWidth = (getTotalColumns() * 50) + 50 + 1;
 
     expect($(wt.wtTable.holder).width()).toBe(clientWidth);
     expect($(wt.wtTable.holder).height()).toBe(clientHeight);
