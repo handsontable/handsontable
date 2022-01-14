@@ -373,16 +373,11 @@ class Viewport {
 
     this.columnHeaderHeight = NaN;
 
-    if (pos < 0) {
-      pos = 0;
-    }
-
     const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart');
 
     if (fixedColumnsStart) {
       const fixedColumnsWidth = this.dataAccessObject.inlineStartOverlay.sumCellSizes(0, fixedColumnsStart);
 
-      pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;
     }
     if (wtTable.holder.clientWidth !== wtTable.holder.offsetWidth) {
@@ -391,7 +386,7 @@ class Viewport {
 
     return new ViewportColumnsCalculator({
       viewportSize: width,
-      scrollOffset: pos,
+      scrollOffset: Math.abs(pos),
       totalItems: wtSettings.getSetting('totalColumns'),
       itemSizeFn: sourceCol => wtTable.getColumnWidth(sourceCol),
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
