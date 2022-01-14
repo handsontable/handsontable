@@ -38,14 +38,14 @@ class Border {
     this.main = null;
 
     this.top = null;
-    this.left = null;
+    this.inlineStart = null;
     this.bottom = null;
-    this.right = null;
+    this.inlineEnd = null;
 
     this.topStyle = null;
-    this.leftStyle = null;
+    this.inlineStartStyle = null;
     this.bottomStyle = null;
-    this.rightStyle = null;
+    this.inlineEndStyle = null;
 
     this.cornerDefaultStyle = {
       width: '6px',
@@ -188,14 +188,14 @@ class Border {
       this.main.appendChild(div);
     }
     this.top = this.main.childNodes[0];
-    this.left = this.main.childNodes[1];
+    this.inlineStart = this.main.childNodes[1];
     this.bottom = this.main.childNodes[2];
-    this.right = this.main.childNodes[3];
+    this.inlineEnd = this.main.childNodes[3];
 
     this.topStyle = this.top.style;
-    this.leftStyle = this.left.style;
+    this.inlineStartStyle = this.inlineStart.style;
     this.bottomStyle = this.bottom.style;
-    this.rightStyle = this.right.style;
+    this.inlineEndStyle = this.inlineEnd.style;
 
     this.corner = this.main.childNodes[4];
     this.corner.className += ' corner';
@@ -424,18 +424,32 @@ class Border {
     const fromOffset = offset(fromTD);
     const toOffset = isMultiple ? offset(toTD) : fromOffset;
     const containerOffset = offset(wtTable.TABLE);
+    const containerWidth = outerWidth(wtTable.TABLE);
     const minTop = fromOffset.top;
     const minLeft = fromOffset.left;
+    const isRtl = this.wot.wtSettings.getSetting('rtlMode');
 
-    let left = minLeft - containerOffset.left - 1;
-    let width = toOffset.left + outerWidth(toTD) - minLeft;
+    let inlineStartPos = 0;
+    let width = 0;
+
+    if (isRtl) {
+      const fromWidth = outerWidth(fromTD);
+      const gridRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
+
+      width = minLeft + fromWidth - toOffset.left;
+      inlineStartPos = rootWindow.innerWidth - minLeft - fromWidth - gridRightPos - 1;
+
+    } else {
+      width = toOffset.left + outerWidth(toTD) - minLeft;
+      inlineStartPos = minLeft - containerOffset.left - 1;
+    }
 
     if (this.isEntireColumnSelected(fromRow, toRow)) {
       const modifiedValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, rowHeader, containerOffset);
       let fromTH = null;
 
       if (modifiedValues) {
-        [fromTH, left, width] = modifiedValues;
+        [fromTH, inlineStartPos, width] = modifiedValues;
       }
 
       if (fromTH) {
@@ -465,32 +479,34 @@ class Border {
       top += 1;
       height = height > 0 ? height - 1 : 0;
     }
-    if (parseInt(style.borderLeftWidth, 10) > 0) {
-      left += 1;
+    if (parseInt(style[isRtl ? 'borderRightWidth' : 'borderLeftWidth'], 10) > 0) {
+      inlineStartPos += 1;
       width = width > 0 ? width - 1 : 0;
     }
 
+    const inlinePosProperty = isRtl ? 'right' : 'left';
+
     this.topStyle.top = `${top}px`;
-    this.topStyle.left = `${left}px`;
+    this.topStyle[inlinePosProperty] = `${inlineStartPos}px`;
     this.topStyle.width = `${width}px`;
     this.topStyle.display = 'block';
 
-    this.leftStyle.top = `${top}px`;
-    this.leftStyle.left = `${left}px`;
-    this.leftStyle.height = `${height}px`;
-    this.leftStyle.display = 'block';
+    this.inlineStartStyle.top = `${top}px`;
+    this.inlineStartStyle[inlinePosProperty] = `${inlineStartPos}px`;
+    this.inlineStartStyle.height = `${height}px`;
+    this.inlineStartStyle.display = 'block';
 
     const delta = Math.floor(this.settings.border.width / 2);
 
     this.bottomStyle.top = `${top + height - delta}px`;
-    this.bottomStyle.left = `${left}px`;
+    this.bottomStyle[inlinePosProperty] = `${inlineStartPos}px`;
     this.bottomStyle.width = `${width}px`;
     this.bottomStyle.display = 'block';
 
-    this.rightStyle.top = `${top}px`;
-    this.rightStyle.left = `${left + width - delta}px`;
-    this.rightStyle.height = `${height + 1}px`;
-    this.rightStyle.display = 'block';
+    this.inlineEndStyle.top = `${top}px`;
+    this.inlineEndStyle[inlinePosProperty] = `${inlineStartPos + width - delta}px`;
+    this.inlineEndStyle.height = `${height + 1}px`;
+    this.inlineEndStyle.display = 'block';
 
     let cornerVisibleSetting = this.settings.border.cornerVisible;
 
@@ -509,7 +525,7 @@ class Border {
 
     } else {
       this.cornerStyle.top = `${top + height + this.cornerCenterPointOffset - 1}px`;
-      this.cornerStyle.left = `${left + width + this.cornerCenterPointOffset - 1}px`;
+      this.cornerStyle[inlinePosProperty] = `${inlineStartPos + width + this.cornerCenterPointOffset - 1}px`;
       this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
       this.cornerStyle.width = this.cornerDefaultStyle.width;
 
@@ -525,12 +541,21 @@ class Border {
 
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
         const toTdOffsetLeft = trimToWindow ? toTD.getBoundingClientRect().left : toTD.offsetLeft;
-        const cornerRightEdge = toTdOffsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2);
-        const cornerOverlappingContainer = cornerRightEdge >= innerWidth(trimmingContainer);
+        let cornerOverlappingContainer = false;
+        let cornerEdge = 0;
+
+        if (isRtl) {
+          cornerEdge = toTdOffsetLeft - (parseInt(this.cornerDefaultStyle.width, 10) / 2);
+          cornerOverlappingContainer = cornerEdge < 0;
+
+        } else {
+          cornerEdge = toTdOffsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2);
+          cornerOverlappingContainer = cornerEdge >= innerWidth(trimmingContainer);
+        }
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle.left = `${Math.floor(left + width + this.cornerCenterPointOffset - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`; // eslint-disable-line max-len
-          this.cornerStyle.borderRightWidth = 0;
+          this.cornerStyle[inlinePosProperty] = `${Math.floor(inlineStartPos + width + this.cornerCenterPointOffset - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`; // eslint-disable-line max-len
+          this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
         }
       }
 
@@ -549,7 +574,7 @@ class Border {
     }
 
     if (isMobileBrowser()) {
-      this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, left, width, height);
+      this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, inlineStartPos, width, height);
     }
   }
 
@@ -715,9 +740,9 @@ class Border {
    */
   disappear() {
     this.topStyle.display = 'none';
-    this.leftStyle.display = 'none';
+    this.inlineStartStyle.display = 'none';
     this.bottomStyle.display = 'none';
-    this.rightStyle.display = 'none';
+    this.inlineEndStyle.display = 'none';
     this.cornerStyle.display = 'none';
 
     if (isMobileBrowser()) {
