@@ -23,5 +23,5 @@ https://stackblitz.com/edit/handsontable-angular
 * Angular version:
 * Handsontable version:
 * Wrapper version:
-* Browser Name and version:
-* Operating System:
+* Browser name and version:
+* Operating system:

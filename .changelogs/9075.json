@@ -1,7 +1,0 @@
-{
-  "title": "Fixed editor appearance stability for the Comments plugin.",
-  "type": "fixed",
-  "issue": 9075,
-  "breaking": false,
-  "framework": "none"
-}
