@@ -139,9 +139,7 @@ export class Overlay {
     const fixedRowBottom =
       rowIndex >= this.wtSettings.getSetting('totalRows') - this.wtSettings.getSetting('fixedRowsBottom');
     const spreader = this.clone.wtTable.spreader;
-    
-    
-    
+
     const spreaderOffset = {
       start: this.getStart(spreader),
       top: spreader.offsetTop
@@ -167,14 +165,14 @@ export class Overlay {
   }
 
   /**
-   * Get inline start value depending of direction
+   * Get inline start value depending of direction.
    *
-   * @param {HTMLElement} el Element. 
+   * @param {HTMLElement} el Element.
    * @returns {number|number|number|*}
    */
   getStart(el) {
     return this.isRtl()
-      ? el.offsetParent.offsetWidth - el.offsetLeft - el.offsetWidth 
+      ? el.offsetParent.offsetWidth - el.offsetLeft - el.offsetWidth
       : el.offsetLeft;
   }
 

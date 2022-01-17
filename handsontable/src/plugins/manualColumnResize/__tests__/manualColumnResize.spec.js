@@ -211,7 +211,7 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(4).width()).toBe(126);
   });
 
-  it('should resize (narrowing) selected columns', async() => {
+  it('should resize (narrowing) selected columns', async() => { // sss
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -244,7 +244,7 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(3).width()).toBe(34);
   });
 
-  it('should resize (expanding) selected columns', async() => {
+  it('should resize (expanding) selected columns', async() => { // sss
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 20),
       colHeaders: true,

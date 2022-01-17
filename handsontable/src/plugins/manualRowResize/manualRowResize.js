@@ -243,7 +243,7 @@ export class ManualRowResize extends BasePlugin {
     this.startHeight = parseInt(box.height, 10);
 
     this.handle.style.top = `${this.startOffset + this.startHeight}px`;
-    this.handle.style[this.hot.isRtl() ? 'right' : 'left'] = `${relativeHeaderPosition.start}px`;
+    this.handle.style.left = `${relativeHeaderPosition.start}px`; // TODO RTL: check how it works in rtl
 
     this.handle.style.width = `${headerWidth}px`;
     this.hot.rootElement.appendChild(this.handle);

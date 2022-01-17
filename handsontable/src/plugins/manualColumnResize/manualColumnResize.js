@@ -485,7 +485,9 @@ export class ManualColumnResize extends BasePlugin {
    */
   onMouseMove(event) {
     if (this.pressed) {
-      this.currentWidth = this.startWidth + (event.pageX - this.startX) * this.hot.getDirectionFactor();
+      const change = (event.pageX - this.startX) * this.hot.getDirectionFactor();
+
+      this.currentWidth = this.startWidth + change;
 
       arrayEach(this.selectedCols, (selectedCol) => {
         this.newSize = this.setManualSize(selectedCol, this.currentWidth);
