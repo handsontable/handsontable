@@ -15,6 +15,7 @@ import {
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { objectEach } from '../../helpers/object';
 import { KEY_CODES } from '../../helpers/unicode';
+import {isDefined} from "../../helpers/mixed";
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 
@@ -71,7 +72,7 @@ export class SelectEditor extends BaseEditor {
 
     shortcutManager.setActiveContextName('editor');
 
-    this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
+    this.registerShortcuts();
   }
 
   /**
@@ -84,6 +85,8 @@ export class SelectEditor extends BaseEditor {
     if (hasClass(this.select, EDITOR_VISIBLE_CLASS_NAME)) {
       removeClass(this.select, EDITOR_VISIBLE_CLASS_NAME);
     }
+
+    this.unregisterShortcuts();
     this.clearHooks();
   }
 
@@ -266,35 +269,44 @@ export class SelectEditor extends BaseEditor {
   }
 
   /**
-   * OnBeforeKeyDown callback.
+   * Registers shortcut responsible for handling editor.
    *
    * @private
    */
-  onBeforeKeyDown() {
-    const previousOptionIndex = this.select.selectedIndex - 1;
-    const nextOptionIndex = this.select.selectedIndex + 1;
+  registerShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
 
-    switch (event.keyCode) {
-      case KEY_CODES.ARROW_UP:
-        if (previousOptionIndex >= 0) {
-          this.select[previousOptionIndex].selected = true;
-        }
+    const contextConfig = {
+      namespace: 'selectEditor',
+    };
 
-        stopImmediatePropagation(event);
-        event.preventDefault();
-        break;
+    editorContext.addShortcut([['ArrowUp']], () => {
+      const previousOptionIndex = this.select.selectedIndex - 1;
 
-      case KEY_CODES.ARROW_DOWN:
-        if (nextOptionIndex <= this.select.length - 1) {
-          this.select[nextOptionIndex].selected = true;
-        }
+      if (previousOptionIndex >= 0) {
+        this.select[previousOptionIndex].selected = true;
+      }
+    }, contextConfig);
 
-        stopImmediatePropagation(event);
-        event.preventDefault();
-        break;
+    editorContext.addShortcut([['ArrowDown']], () => {
+      const nextOptionIndex = this.select.selectedIndex + 1;
 
-      default:
-        break;
-    }
+      if (nextOptionIndex <= this.select.length - 1) {
+        this.select[nextOptionIndex].selected = true;
+      }
+    }, contextConfig);
+  }
+
+  /**
+   * Unregisters shortcut responsible for handling editor.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
+
+    editorContext.removeShortcutByNamespace('selectEditor');
   }
 }
