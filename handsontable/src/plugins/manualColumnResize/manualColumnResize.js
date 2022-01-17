@@ -71,6 +71,10 @@ export class ManualColumnResize extends BasePlugin {
     addClass(this.guide, 'manualColumnResizerGuide');
   }
 
+  get inlineDir() {
+    return this.hot.isRtl() ? 'right' : 'left';
+  }
+
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ManualColumnResize#enablePlugin} method is called.
@@ -287,7 +291,7 @@ export class ManualColumnResize extends BasePlugin {
     this.startWidth = parseInt(box.width, 10);
 
     this.handle.style.top = `${relativeHeaderPosition.top}px`;
-    this.handle.style[this.hot.isRtl() ? 'right' : 'left'] = `${this.startOffset + this.startWidth}px`;
+    this.handle.style[this.inlineDir] = `${this.startOffset + this.startWidth}px`;
 
     this.handle.style.height = `${headerHeight}px`;
     this.hot.rootElement.appendChild(this.handle);
@@ -299,7 +303,7 @@ export class ManualColumnResize extends BasePlugin {
    * @private
    */
   refreshHandlePosition() {
-    this.handle.style[this.hot.isRtl() ? 'right' : 'left'] = `${this.startOffset + this.currentWidth}px`;
+    this.handle.style[this.inlineDir] = `${this.startOffset + this.currentWidth}px`;
   }
 
   /**
@@ -316,7 +320,7 @@ export class ManualColumnResize extends BasePlugin {
     addClass(this.guide, 'active');
 
     this.guide.style.top = `${handleBottomPosition}px`;
-    this.guide.style[this.hot.isRtl() ? 'right' : 'left'] = this.handle.style[this.hot.isRtl() ? 'right' : 'left'];
+    this.guide.style[this.inlineDir] = this.handle.style[this.inlineDir];
     this.guide.style.height = `${maximumVisibleElementHeight - handleHeight}px`;
     this.hot.rootElement.appendChild(this.guide);
   }
@@ -327,7 +331,7 @@ export class ManualColumnResize extends BasePlugin {
    * @private
    */
   refreshGuidePosition() {
-    this.guide.style[this.hot.isRtl() ? 'right' : 'left'] = this.handle.style[this.hot.isRtl() ? 'right' : 'left'];
+    this.guide.style[this.inlineDir] = this.handle.style[this.inlineDir];
   }
 
   /**
