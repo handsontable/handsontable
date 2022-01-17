@@ -431,7 +431,8 @@ export class TextEditor extends BaseEditor {
     let cellStartOffset = 0;
 
     if (this.hot.isRtl()) {
-      cellStartOffset = wtTable.getWidth() - this.TD.offsetLeft - cellWidth + firstColumnOffset - horizontalScrollPosition;
+      cellStartOffset = wtTable.getWidth() - this.TD.offsetLeft - cellWidth +
+        firstColumnOffset - horizontalScrollPosition;
     } else {
       cellStartOffset = this.TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
     }
