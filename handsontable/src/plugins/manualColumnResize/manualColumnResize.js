@@ -283,11 +283,11 @@ export class ManualColumnResize extends BasePlugin {
       this.selectedCols = [this.currentCol];
     }
 
-    this.startOffset = relativeHeaderPosition.left - 6;
+    this.startOffset = relativeHeaderPosition.start - 6;
     this.startWidth = parseInt(box.width, 10);
 
     this.handle.style.top = `${relativeHeaderPosition.top}px`;
-    this.handle.style.left = `${this.startOffset + this.startWidth}px`;
+    this.handle.style[this.hot.isRtl() ? 'right' : 'left'] = `${this.startOffset + this.startWidth}px`;
 
     this.handle.style.height = `${headerHeight}px`;
     this.hot.rootElement.appendChild(this.handle);
@@ -299,7 +299,7 @@ export class ManualColumnResize extends BasePlugin {
    * @private
    */
   refreshHandlePosition() {
-    this.handle.style.left = `${this.startOffset + this.currentWidth}px`;
+    this.handle.style[this.hot.isRtl() ? 'right' : 'left'] = `${this.startOffset + this.currentWidth}px`;
   }
 
   /**
@@ -316,7 +316,7 @@ export class ManualColumnResize extends BasePlugin {
     addClass(this.guide, 'active');
 
     this.guide.style.top = `${handleBottomPosition}px`;
-    this.guide.style.left = this.handle.style.left;
+    this.guide.style[this.hot.isRtl() ? 'right' : 'left'] = this.handle.style[this.hot.isRtl() ? 'right' : 'left'];
     this.guide.style.height = `${maximumVisibleElementHeight - handleHeight}px`;
     this.hot.rootElement.appendChild(this.guide);
   }
@@ -327,7 +327,7 @@ export class ManualColumnResize extends BasePlugin {
    * @private
    */
   refreshGuidePosition() {
-    this.guide.style.left = this.handle.style.left;
+    this.guide.style[this.hot.isRtl() ? 'right' : 'left'] = this.handle.style[this.hot.isRtl() ? 'right' : 'left'];
   }
 
   /**
@@ -485,7 +485,7 @@ export class ManualColumnResize extends BasePlugin {
    */
   onMouseMove(event) {
     if (this.pressed) {
-      this.currentWidth = this.startWidth + (event.pageX - this.startX);
+      this.currentWidth = this.startWidth + (event.pageX - this.startX) * this.hot.getDirectionFactor();
 
       arrayEach(this.selectedCols, (selectedCol) => {
         this.newSize = this.setManualSize(selectedCol, this.currentWidth);

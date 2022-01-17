@@ -125,7 +125,7 @@ export class Overlay {
    * @param {HTMLElement} element The cell element to calculate the position for.
    * @param {number} rowIndex Visual row index.
    * @param {number} columnIndex Visual column index.
-   * @returns {{top: number, left: number}|undefined}
+   * @returns {{top: number, start: number}|undefined}
    */
   getRelativeCellPosition(element, rowIndex, columnIndex) {
     if (this.clone.wtTable.holder.contains(element) === false) {
@@ -138,13 +138,16 @@ export class Overlay {
     const fixedRowTop = rowIndex < this.wtSettings.getSetting('fixedRowsTop');
     const fixedRowBottom =
       rowIndex >= this.wtSettings.getSetting('totalRows') - this.wtSettings.getSetting('fixedRowsBottom');
-
+    const spreader = this.clone.wtTable.spreader;
+    
+    
+    
     const spreaderOffset = {
-      left: this.clone.wtTable.spreader.offsetLeft,
-      top: this.clone.wtTable.spreader.offsetTop
+      start: this.getStart(spreader),
+      top: spreader.offsetTop
     };
     const elementOffset = {
-      left: element.offsetLeft,
+      start: this.getStart(element),
       top: element.offsetTop
     };
     let offsetObject = null;
@@ -164,6 +167,18 @@ export class Overlay {
   }
 
   /**
+   * Get inline start value depending of direction
+   *
+   * @param {HTMLElement} el Element. 
+   * @returns {number|number|number|*}
+   */
+  getStart(el) {
+    return this.isRtl()
+      ? el.offsetParent.offsetWidth - el.offsetLeft - el.offsetWidth 
+      : el.offsetLeft;
+  }
+
+  /**
    * Calculates coordinates of the provided element, relative to the root Handsontable element within a table with window
    * as a scrollable element.
    *
@@ -180,10 +195,10 @@ export class Overlay {
     let verticalOffset = 0;
 
     if (!onFixedColumn) {
-      horizontalOffset = spreaderOffset.left;
+      horizontalOffset = spreaderOffset.start;
 
     } else {
-      horizontalOffset = absoluteRootElementPosition.left <= 0 ? (-1) * absoluteRootElementPosition.left : 0;
+      horizontalOffset = absoluteRootElementPosition.start <= 0 ? (-1) * absoluteRootElementPosition.start : 0;
     }
 
     if (onFixedRowTop) {
@@ -196,7 +211,7 @@ export class Overlay {
     }
 
     return {
-      left: elementOffset.left + horizontalOffset,
+      start: elementOffset.start + horizontalOffset,
       top: elementOffset.top + verticalOffset
     };
   }
@@ -222,7 +237,7 @@ export class Overlay {
     let verticalOffset = 0;
 
     if (!onFixedColumn) {
-      horizontalOffset = tableScrollPosition.horizontal - spreaderOffset.left;
+      horizontalOffset = tableScrollPosition.horizontal - spreaderOffset.start;
     }
 
     if (onFixedRowBottom) {
@@ -236,7 +251,7 @@ export class Overlay {
     }
 
     return {
-      left: elementOffset.left - horizontalOffset,
+      start: elementOffset.start - horizontalOffset,
       top: elementOffset.top - verticalOffset,
     };
   }
