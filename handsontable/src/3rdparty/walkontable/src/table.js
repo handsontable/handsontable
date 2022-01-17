@@ -1092,6 +1092,15 @@ class Table {
   }
 
   /**
+   * Gets table's width.
+   *
+   * @returns {number}
+   */
+  getWidth() {
+    return outerWidth(this.TABLE);
+  }
+
+  /**
    * Checks if the table is visible. It returns `true` when the holder element (or its parents)
    * has CSS 'display' property different than 'none'.
    *
