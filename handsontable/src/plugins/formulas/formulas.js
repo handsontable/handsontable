@@ -157,9 +157,7 @@ export class Formulas extends BasePlugin {
     }
 
     this.addHook('beforeLoadData', (...args) => this.onBeforeLoadData(...args));
-    this.addHook('beforeSetData', (...args) => this.onBeforeSetData(...args));
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
-    this.addHook('afterSetData', (...args) => this.onAfterSetData(...args));
     this.addHook('modifyData', (...args) => this.onModifyData(...args));
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
     this.addHook('beforeValidate', (...args) => this.onBeforeValidate(...args));
@@ -610,14 +608,14 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * `beforeSetData` hook callback.
+   * `beforeLoadData` hook callback.
    *
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    * @param {string} [source] Source of the call.
    * @private
    */
-  onBeforeSetData(sourceData, initialLoad, source = '') {
+  onBeforeLoadData(sourceData, initialLoad, source = '') {
     if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
       return;
     }
@@ -635,7 +633,7 @@ export class Formulas extends BasePlugin {
    * @param {string} [source] Source of the call.
    * @private
    */
-  onAfterSetData(sourceData, initialLoad, source = '') {
+  onAfterLoadData(sourceData, initialLoad, source = '') {
     if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
       return;
     }
@@ -657,36 +655,6 @@ export class Formulas extends BasePlugin {
 
     } else {
       this.switchSheet(this.sheetName);
-    }
-  }
-
-  /**
-   * Alias for `onAfterSetData`.
-   *
-   * @private
-   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-   *                              during the initialization.
-   * @param {string} source Source of the hook call.
-   */
-  onAfterLoadData(sourceData, initialLoad, source) {
-    if (source !== 'updateSettings') {
-      this.onAfterSetData(sourceData, initialLoad, source);
-    }
-  }
-
-  /**
-   * Alias for `onAfterSetData`.
-   *
-   * @private
-   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-   *                              during the initialization.
-   * @param {string} source Source of the hook call.
-   */
-  onBeforeLoadData(sourceData, initialLoad, source) {
-    if (source !== 'updateSettings') {
-      this.onBeforeSetData(sourceData, initialLoad, source);
     }
   }
 

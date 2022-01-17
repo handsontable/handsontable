@@ -3,7 +3,7 @@ import {
   outerHeight,
   outerWidth,
   resetCssTransform
-} from './../../../../helpers/dom/element';
+} from '../../../../helpers/dom/element';
 import BottomLeftCornerOverlayTable from './../table/bottomLeftCorner';
 import { Overlay } from './_base';
 import {
@@ -14,16 +14,14 @@ import {
  * @class TopLeftCornerOverlay
  */
 export class BottomLeftCornerOverlay extends Overlay {
-  static get OVERLAY_NAME() {
-    return CLONE_BOTTOM_LEFT_CORNER;
-  }
-
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
+   * @param {FacadeGetter} facadeGetter Function which return proper facade.
+   * @param {Settings} wtSettings The Walkontable settings.
+   * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
-  constructor(wotInstance) {
-    super(wotInstance);
-    this.clone = this.makeClone(CLONE_BOTTOM_LEFT_CORNER);
+  constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
+    super(wotInstance, facadeGetter, CLONE_BOTTOM_LEFT_CORNER, wtSettings, domBindings);
   }
 
   /**
@@ -31,7 +29,7 @@ export class BottomLeftCornerOverlay extends Overlay {
    *
    * @see Table#constructor
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
-   * @returns {Table}
+   * @returns {BottomLeftCornerOverlayTable}
    */
   createTable(...args) {
     return new BottomLeftCornerOverlayTable(...args);
@@ -43,9 +41,8 @@ export class BottomLeftCornerOverlay extends Overlay {
    * @returns {boolean}
    */
   shouldBeRendered() {
-    const { wot } = this;
-
-    return wot.getSetting('shouldRenderBottomOverlay') && wot.getSetting('shouldRenderLeftOverlay');
+    return this.wtSettings.getSetting('shouldRenderBottomOverlay')
+      && this.wtSettings.getSetting('shouldRenderLeftOverlay');
   }
 
   /**
@@ -60,15 +57,16 @@ export class BottomLeftCornerOverlay extends Overlay {
 
     if (!wot.wtTable.holder.parentNode) {
       // removed from DOM
-      return;
+      return false;
     }
 
     const overlayRoot = this.clone.wtTable.holder.parentNode;
 
     overlayRoot.style.top = '';
 
-    if (this.trimmingContainer === wot.rootWindow) {
-      const { rootDocument, wtTable } = this.wot;
+    if (this.trimmingContainer === this.domBindings.rootWindow) {
+      const { wtTable } = this.wot;
+      const { rootDocument } = this.domBindings;
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(hiderRect.bottom);
       const left = Math.ceil(hiderRect.left);
@@ -116,7 +114,8 @@ export class BottomLeftCornerOverlay extends Overlay {
    * Reposition the overlay.
    */
   repositionOverlay() {
-    const { wtTable, rootDocument } = this.wot;
+    const { wtTable } = this.wot;
+    const { rootDocument } = this.domBindings;
     const cloneRoot = this.clone.wtTable.holder.parentNode;
     let scrollbarWidth = getScrollbarWidth(rootDocument);
 

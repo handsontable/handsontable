@@ -9,74 +9,92 @@ import {
   outerWidth,
   innerHeight,
   isVisible,
-} from './../../../helpers/dom/element';
-import { isFunction } from './../../../helpers/function';
+} from '../../../helpers/dom/element';
+import { isFunction } from '../../../helpers/function';
 import CellCoords from './cell/coords';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 import { Renderer } from './renderer';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
-import { isOverlayTypeOf } from './overlay/registerer';
 import {
   CLONE_TOP,
   CLONE_BOTTOM,
   CLONE_LEFT,
   CLONE_TOP_LEFT_CORNER,
   CLONE_BOTTOM_LEFT_CORNER,
-} from './overlay/constants';
+} from './overlay';
 
 /**
- *
+ * @abstract
  */
 class Table {
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
-   * @param {HTMLTableElement} table An element to the Walkontable generated table is injected.
+   * The walkontable settings.
+   *
+   * @protected
+   * @type {Settings}
    */
-  constructor(wotInstance, table) {
+  wtSettings = null;
+  domBindings;
+  TBODY = null;
+  THEAD = null;
+  COLGROUP = null;
+  /**
+   * Indicates if the table has height bigger than 0px.
+   *
+   * @type {boolean}
+   */
+  hasTableHeight = true;
+  /**
+   * Indicates if the table has width bigger than 0px.
+   *
+   * @type {boolean}
+   */
+  hasTableWidth = true;
+  /**
+   * Indicates if the table is visible. By visible, it means that the holder
+   * element has CSS 'display' property different than 'none'.
+   *
+   * @type {boolean}
+   */
+  isTableVisible = false;
+
+  tableOffset = 0;
+  holderOffset = 0;
+  /**
+   *
+   * @abstract
+   * @param {TableDao} dataAccessObject The data access object.
+   * @param {FacadeGetter} facadeGetter Function which return proper facade.
+   * @param {DomBindings} domBindings Bindings into DOM.
+   * @param {Settings} wtSettings The Walkontable settings.
+   * @param {'master'|CLONE_TYPES_ENUM} name Overlay name.
+   */
+  constructor(dataAccessObject, facadeGetter, domBindings, wtSettings, name) {
+    this.domBindings = domBindings;
     /**
      * Indicates if this instance is of type `MasterTable` (i.e. It is NOT an overlay).
      *
      * @type {boolean}
      */
-    this.isMaster = !wotInstance.cloneOverlay; // "instanceof" operator isn't used, because it caused a circular reference in Webpack
-    this.wot = wotInstance;
+    this.isMaster = name === 'master';
+    this.name = name;
+    this.dataAccessObject = dataAccessObject;
+    this.facadeGetter = facadeGetter;
+    this.wtSettings = wtSettings;
 
     // legacy support
-    this.instance = this.wot;
-    this.TABLE = table;
-    this.TBODY = null;
-    this.THEAD = null;
-    this.COLGROUP = null;
-    this.tableOffset = 0;
-    this.holderOffset = 0;
-    /**
-     * Indicates if the table has height bigger than 0px.
-     *
-     * @type {boolean}
-     */
-    this.hasTableHeight = true;
-    /**
-     * Indicates if the table has width bigger than 0px.
-     *
-     * @type {boolean}
-     */
-    this.hasTableWidth = true;
-    /**
-     * Indicates if the table is visible. By visible, it means that the holder
-     * element has CSS 'display' property different than 'none'.
-     *
-     * @type {boolean}
-     */
-    this.isTableVisible = false;
+    this.instance = this.dataAccessObject.wot; // TODO refactoring: it might be removed here, and provides legacy support through facade.
+    this.wot = this.dataAccessObject.wot;
+    this.TABLE = domBindings.rootTable;
 
     removeTextNodes(this.TABLE);
 
+    // TODO refactoring, to recognize the legitimacy of moving them into domBidings
     this.spreader = this.createSpreader(this.TABLE);
     this.hider = this.createHider(this.spreader);
     this.holder = this.createHolder(this.hider);
-
     this.wtRootElement = this.holder.parentNode;
 
     if (this.isMaster) {
@@ -84,44 +102,44 @@ class Table {
     }
     this.fixTableDomTree();
 
-    this.rowFilter = null;
-    this.columnFilter = null;
+    this.rowFilter = null; // TODO refactoring, eliminate all (re)creations of this object, then updates state when needed.
+    this.columnFilter = null; // TODO refactoring, eliminate all (re)creations of this object, then updates state when needed.
     this.correctHeaderWidth = false;
 
-    const origRowHeaderWidth = this.wot.wtSettings.settings.rowHeaderWidth;
+    const origRowHeaderWidth = this.wtSettings.getSettingPure('rowHeaderWidth');
 
     // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
-    this.wot.wtSettings.settings.rowHeaderWidth = () => this._modifyRowHeaderWidth(origRowHeaderWidth);
+    this.wtSettings.update('rowHeaderWidth', () => this._modifyRowHeaderWidth(origRowHeaderWidth));
 
-    this.rowUtils = new RowUtils(this.wot);
-    this.columnUtils = new ColumnUtils(this.wot);
-    this.tableRenderer = new Renderer({
+    this.rowUtils = new RowUtils(this.dataAccessObject, this.wtSettings); // TODO refactoring, It can be passed through IOC.
+    this.columnUtils = new ColumnUtils(this.dataAccessObject, this.wtSettings); // TODO refactoring, It can be passed through IOC.
+    this.tableRenderer = new Renderer({ // TODO refactoring, It can be passed through IOC.
       TABLE: this.TABLE,
       THEAD: this.THEAD,
       COLGROUP: this.COLGROUP,
       TBODY: this.TBODY,
       rowUtils: this.rowUtils,
       columnUtils: this.columnUtils,
-      cellRenderer: this.wot.wtSettings.settings.cellRenderer,
+      cellRenderer: this.wtSettings.getSettingPure('cellRenderer'),
     });
   }
 
   /**
-   * Returns a boolean that is true if this intance of Table represents a specific overlay, identified by the overlay name.
+   * Returns a boolean that is true if this Table represents a specific overlay, identified by the overlay name.
    * For MasterTable, it returns false.
    *
    * @param {string} overlayTypeName The overlay type.
    * @returns {boolean}
    */
-  is(overlayTypeName) {
-    return isOverlayTypeOf(this.wot.cloneOverlay, overlayTypeName);
+  is(overlayTypeName) { // todo refactoring: eliminate all protected and private usages
+    return this.name === overlayTypeName;
   }
 
   /**
    *
    */
   fixTableDomTree() {
-    const rootDocument = this.wot.rootDocument;
+    const rootDocument = this.domBindings.rootDocument;
 
     this.TBODY = this.TABLE.querySelector('tbody');
 
@@ -142,7 +160,7 @@ class Table {
       this.TABLE.insertBefore(this.COLGROUP, this.THEAD);
     }
 
-    if (this.wot.getSetting('columnHeaders').length && !this.THEAD.childNodes.length) {
+    if (this.wtSettings.getSetting('columnHeaders').length && !this.THEAD.childNodes.length) {
       this.THEAD.appendChild(rootDocument.createElement('TR'));
     }
   }
@@ -156,7 +174,7 @@ class Table {
     let spreader;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE || !hasClass(parent, 'wtHolder')) {
-      spreader = this.wot.rootDocument.createElement('div');
+      spreader = this.domBindings.rootDocument.createElement('div');
       spreader.className = 'wtSpreader';
 
       if (parent) {
@@ -179,7 +197,7 @@ class Table {
     let hider;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE || !hasClass(parent, 'wtHolder')) {
-      hider = this.wot.rootDocument.createElement('div');
+      hider = this.domBindings.rootDocument.createElement('div');
       hider.className = 'wtHider';
 
       if (parent) {
@@ -202,7 +220,7 @@ class Table {
     let holder;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE || !hasClass(parent, 'wtHolder')) {
-      holder = this.wot.rootDocument.createElement('div');
+      holder = this.domBindings.rootDocument.createElement('div');
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
 
@@ -227,13 +245,13 @@ class Table {
    * @returns {Table}
    */
   draw(fastDraw = false) {
-    const { wot } = this;
-    const { wtOverlays, wtViewport } = wot;
-    const totalRows = wot.getSetting('totalRows');
-    const totalColumns = wot.getSetting('totalColumns');
-    const rowHeaders = wot.getSetting('rowHeaders');
+    const { wtSettings } = this;
+    const { wtOverlays, wtViewport } = this.dataAccessObject;
+    const totalRows = wtSettings.getSetting('totalRows');
+    const totalColumns = wtSettings.getSetting('totalColumns');
+    const rowHeaders = wtSettings.getSetting('rowHeaders');
     const rowHeadersCount = rowHeaders.length;
-    const columnHeaders = wot.getSetting('columnHeaders');
+    const columnHeaders = wtSettings.getSetting('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
     let syncScroll = false;
     let runFastDraw = fastDraw;
@@ -242,7 +260,7 @@ class Table {
       this.holderOffset = offset(this.holder);
       runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
-      if (rowHeadersCount && !wot.getSetting('fixedColumnsLeft')) {
+      if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsLeft')) {
         const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
         const previousState = this.correctHeaderWidth;
 
@@ -255,7 +273,7 @@ class Table {
     }
 
     if (this.isMaster) {
-      syncScroll = wtOverlays.prepareOverlays();
+      syncScroll = wtOverlays.updateStateOfRendering();
     }
 
     if (runFastDraw) {
@@ -270,7 +288,7 @@ class Table {
       if (this.isMaster) {
         this.tableOffset = offset(this.TABLE);
       } else {
-        this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
+        this.tableOffset = this.dataAccessObject.parentTableOffset;
       }
       const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
       const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
@@ -285,7 +303,7 @@ class Table {
         this.alignOverlaysWithTrimmingContainer();
         const skipRender = {};
 
-        this.wot.getSetting('beforeDraw', true, skipRender);
+        this.wtSettings.getSetting('beforeDraw', true, skipRender);
         performRedraw = skipRender.skipRender !== true;
       }
 
@@ -308,8 +326,8 @@ class Table {
         let workspaceWidth;
 
         if (this.isMaster) {
-          workspaceWidth = this.wot.wtViewport.getWorkspaceWidth();
-          this.wot.wtViewport.containerWidth = null;
+          workspaceWidth = this.dataAccessObject.workspaceWidth;
+          this.dataAccessObject.wtViewport.containerWidth = null;
           this.markOversizedColumnHeaders();
         }
 
@@ -320,9 +338,9 @@ class Table {
         }
 
         if (this.isMaster) {
-          this.wot.wtViewport.createVisibleCalculators();
-          this.wot.wtOverlays.refresh(false);
-          this.wot.wtOverlays.applyToDOM();
+          this.dataAccessObject.wtViewport.createVisibleCalculators();
+          this.dataAccessObject.wtOverlays.refresh(false);
+          this.dataAccessObject.wtOverlays.applyToDOM();
 
           const hiderWidth = outerWidth(this.hider);
           const tableWidth = outerWidth(this.TABLE);
@@ -333,17 +351,17 @@ class Table {
             this.tableRenderer.renderer.colGroup.render();
           }
 
-          if (workspaceWidth !== this.wot.wtViewport.getWorkspaceWidth()) {
+          if (workspaceWidth !== this.dataAccessObject.wtViewport.getWorkspaceWidth()) {
             // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
-            this.wot.wtViewport.containerWidth = null;
+            this.dataAccessObject.wtViewport.containerWidth = null;
             this.columnUtils.calculateWidths();
             this.tableRenderer.renderer.colGroup.render();
           }
 
-          this.wot.getSetting('onDraw', true);
+          this.wtSettings.getSetting('onDraw', true);
 
         } else if (this.is(CLONE_BOTTOM)) {
-          this.wot.cloneSource.wtOverlays.adjustElementsSize();
+          this.dataAccessObject.cloneSource.wtOverlays.adjustElementsSize();
         }
       }
     }
@@ -380,7 +398,7 @@ class Table {
       wtOverlays.syncScrollWithMaster();
     }
 
-    wot.drawn = true;
+    this.dataAccessObject.drawn = true;
 
     return this;
   }
@@ -389,19 +407,19 @@ class Table {
    * @param {number} col The visual column index.
    */
   markIfOversizedColumnHeader(col) {
-    const sourceColIndex = this.wot.wtTable.columnFilter.renderedToSource(col);
-    let level = this.wot.getSetting('columnHeaders').length;
-    const defaultRowHeight = this.wot.wtSettings.settings.defaultRowHeight;
+    const sourceColIndex = this.columnFilter.renderedToSource(col);
+    let level = this.wtSettings.getSetting('columnHeaders').length;
+    const defaultRowHeight = this.wtSettings.getSetting('defaultRowHeight');
     let previousColHeaderHeight;
     let currentHeader;
     let currentHeaderHeight;
-    const columnHeaderHeightSetting = this.wot.getSetting('columnHeaderHeight') || [];
+    const columnHeaderHeightSetting = this.wtSettings.getSetting('columnHeaderHeight') || [];
 
     while (level) {
       level -= 1;
 
-      previousColHeaderHeight = this.wot.wtTable.getColumnHeaderHeight(level);
-      currentHeader = this.wot.wtTable.getColumnHeader(sourceColIndex, level);
+      previousColHeaderHeight = this.getColumnHeaderHeight(level);
+      currentHeader = this.getColumnHeader(sourceColIndex, level);
 
       if (!currentHeader) {
         /* eslint-disable no-continue */
@@ -411,21 +429,21 @@ class Table {
 
       if (!previousColHeaderHeight &&
           defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
-        this.wot.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
+        this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
       }
 
       if (Array.isArray(columnHeaderHeightSetting)) {
         if (columnHeaderHeightSetting[level] !== null && columnHeaderHeightSetting[level] !== void 0) {
-          this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
+          this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
         }
 
       } else if (!isNaN(columnHeaderHeightSetting)) {
-        this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting;
+        this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting;
       }
 
-      if (this.wot.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] ||
+      if (this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] ||
           columnHeaderHeightSetting)) {
-        this.wot.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting); // eslint-disable-line max-len
+        this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting); // eslint-disable-line max-len
       }
     }
   }
@@ -434,10 +452,10 @@ class Table {
    *
    */
   adjustColumnHeaderHeights() {
-    const { wot } = this;
-    const children = wot.wtTable.THEAD.childNodes;
-    const oversizedColumnHeaders = wot.wtViewport.oversizedColumnHeaders;
-    const columnHeaders = wot.getSetting('columnHeaders');
+    const { wtSettings } = this;
+    const children = this.THEAD.childNodes;
+    const oversizedColumnHeaders = this.dataAccessObject.wtViewport.oversizedColumnHeaders;
+    const columnHeaders = wtSettings.getSetting('columnHeaders');
 
     for (let i = 0, len = columnHeaders.length; i < len; i++) {
       if (oversizedColumnHeaders[i]) {
@@ -454,21 +472,22 @@ class Table {
    * when new cell values have content which increases/decreases cell height.
    */
   resetOversizedRows() {
-    const { wot } = this;
+    const { wtSettings } = this;
+    const { wtViewport } = this.dataAccessObject;
 
     if (!this.isMaster && !this.is(CLONE_BOTTOM)) {
       return;
     }
 
-    if (!wot.getSetting('externalRowCalculator')) {
+    if (!wtSettings.getSetting('externalRowCalculator')) {
       const rowsToRender = this.getRenderedRowsCount();
 
       // Reset the oversized row cache for rendered rows
       for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
         const sourceRow = this.rowFilter.renderedToSource(visibleRowIndex);
 
-        if (wot.wtViewport.oversizedRows && wot.wtViewport.oversizedRows[sourceRow]) {
-          wot.wtViewport.oversizedRows[sourceRow] = void 0;
+        if (wtViewport.oversizedRows && wtViewport.oversizedRows[sourceRow]) {
+          wtViewport.oversizedRows[sourceRow] = void 0;
         }
       }
     }
@@ -491,12 +510,13 @@ class Table {
    * @param {boolean} fastDraw If fast drawing is enabled than additionally className clearing is applied.
    */
   refreshSelections(fastDraw) {
-    const { wot } = this;
+    const { wtSettings } = this;
+    const { selections } = this.dataAccessObject;
 
-    if (!wot.selections) {
+    if (!selections) {
       return;
     }
-    const highlights = Array.from(wot.selections);
+    const highlights = Array.from(selections);
     const len = highlights.length;
 
     if (fastDraw) {
@@ -528,7 +548,7 @@ class Table {
         }
       }
 
-      const additionalClassesToRemove = wot.getSetting('onBeforeRemoveCellClassNames');
+      const additionalClassesToRemove = wtSettings.getSetting('onBeforeRemoveCellClassNames');
 
       if (Array.isArray(additionalClassesToRemove)) {
         for (let i = 0; i < additionalClassesToRemove.length; i++) {
@@ -545,7 +565,7 @@ class Table {
     }
 
     for (let i = 0; i < len; i++) {
-      highlights[i].draw(wot, fastDraw);
+      highlights[i].draw(this.facadeGetter(), fastDraw);
     }
   }
 
@@ -571,7 +591,7 @@ class Table {
   getCell(coords) {
     let row = coords.row;
     let column = coords.col;
-    const hookResult = this.wot.getSetting('onModifyGetCellCoords', row, column);
+    const hookResult = this.wtSettings.getSetting('onModifyGetCellCoords', row, column);
 
     if (hookResult && Array.isArray(hookResult)) {
       [row, column] = hookResult;
@@ -661,7 +681,7 @@ class Table {
       return;
     }
 
-    const rowHeadersCount = this.wot.getSetting('rowHeaders').length;
+    const rowHeadersCount = this.wtSettings.getSetting('rowHeaders').length;
 
     if (level >= rowHeadersCount) {
       return;
@@ -684,7 +704,7 @@ class Table {
     }
 
     const THs = [];
-    const rowHeadersCount = this.wot.getSetting('rowHeaders').length;
+    const rowHeadersCount = this.wtSettings.getSetting('rowHeaders').length;
 
     for (let renderedRowIndex = 0; renderedRowIndex < rowHeadersCount; renderedRowIndex++) {
       const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
@@ -728,7 +748,7 @@ class Table {
 
     } else if (overlayContainsElement(CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement)
       || overlayContainsElement(CLONE_BOTTOM, cellElement, this.wtRootElement)) {
-      const totalRows = this.wot.getSetting('totalRows');
+      const totalRows = this.wtSettings.getSetting('totalRows');
 
       row = totalRows - CONTAINER.childNodes.length + row;
 
@@ -755,11 +775,11 @@ class Table {
    * Check if any of the rendered rows is higher than expected, and if so, cache them.
    */
   markOversizedRows() {
-    if (this.wot.getSetting('externalRowCalculator')) {
+    if (this.wtSettings.getSetting('externalRowCalculator')) {
       return;
     }
     let rowCount = this.TBODY.childNodes.length;
-    const expectedTableHeight = rowCount * this.wot.wtSettings.settings.defaultRowHeight;
+    const expectedTableHeight = rowCount * this.wtSettings.getSetting('defaultRowHeight');
     const actualTableHeight = innerHeight(this.TBODY) - 1;
     let previousRowHeight;
     let rowInnerHeight;
@@ -767,7 +787,7 @@ class Table {
     let currentTr;
     let rowHeader;
 
-    if (expectedTableHeight === actualTableHeight && !this.wot.getSetting('fixedRowsBottom')) {
+    if (expectedTableHeight === actualTableHeight && !this.wtSettings.getSetting('fixedRowsBottom')) {
       // If the actual table height equals rowCount * default single row height, no row is oversized -> no need to iterate over them
       return;
     }
@@ -785,10 +805,10 @@ class Table {
         rowInnerHeight = innerHeight(currentTr) - 1;
       }
 
-      if ((!previousRowHeight && this.wot.wtSettings.settings.defaultRowHeight < rowInnerHeight ||
+      if ((!previousRowHeight && this.wtSettings.getSetting('defaultRowHeight') < rowInnerHeight ||
           previousRowHeight < rowInnerHeight)) {
         rowInnerHeight += 1;
-        this.wot.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
+        this.dataAccessObject.wtViewport.oversizedRows[sourceRowIndex] = rowInnerHeight;
       }
     }
   }
@@ -812,7 +832,7 @@ class Table {
       return false;
     }
 
-    const rowHeaders = this.wot.getSetting('rowHeaders');
+    const rowHeaders = this.wtSettings.getSetting('rowHeaders');
     const rowHeadersCount = rowHeaders.length;
 
     return Math.abs(column) <= rowHeadersCount;
@@ -829,7 +849,7 @@ class Table {
       return false;
     }
 
-    const columnHeaders = this.wot.getSetting('columnHeaders');
+    const columnHeaders = this.wtSettings.getSetting('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
 
     return Math.abs(row) <= columnHeadersCount;
@@ -1012,11 +1032,11 @@ class Table {
   }
 
   allRowsInViewport() {
-    return this.wot.getSetting('totalRows') === this.getVisibleRowsCount();
+    return this.wtSettings.getSetting('totalRows') === this.getVisibleRowsCount();
   }
 
   allColumnsInViewport() {
-    return this.wot.getSetting('totalColumns') === this.getVisibleColumnsCount();
+    return this.wtSettings.getSetting('totalColumns') === this.getVisibleColumnsCount();
   }
 
   /**
@@ -1104,7 +1124,7 @@ class Table {
     let rowHeaderWidth = width;
 
     if (typeof width !== 'number') {
-      rowHeaderWidth = this.wot.getSetting('defaultColumnWidth');
+      rowHeaderWidth = this.wtSettings.getSetting('defaultColumnWidth');
     }
     if (this.correctHeaderWidth) {
       rowHeaderWidth += 1;

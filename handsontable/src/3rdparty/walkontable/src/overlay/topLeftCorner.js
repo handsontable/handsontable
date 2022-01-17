@@ -3,7 +3,7 @@ import {
   outerWidth,
   setOverlayPosition,
   resetCssTransform
-} from './../../../../helpers/dom/element';
+} from '../../../../helpers/dom/element';
 import TopLeftCornerOverlayTable from './../table/topLeftCorner';
 import { Overlay } from './_base';
 import {
@@ -14,16 +14,14 @@ import {
  * @class TopLeftCornerOverlay
  */
 export class TopLeftCornerOverlay extends Overlay {
-  static get OVERLAY_NAME() {
-    return CLONE_TOP_LEFT_CORNER;
-  }
-
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
+   * @param {FacadeGetter} facadeGetter Function which return proper facade.
+   * @param {Settings} wtSettings The Walkontable settings.
+   * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
-  constructor(wotInstance) {
-    super(wotInstance);
-    this.clone = this.makeClone(CLONE_TOP_LEFT_CORNER);
+  constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
+    super(wotInstance, facadeGetter, CLONE_TOP_LEFT_CORNER, wtSettings, domBindings);
   }
 
   /**
@@ -31,7 +29,7 @@ export class TopLeftCornerOverlay extends Overlay {
    *
    * @see Table#constructor
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
-   * @returns {Table}
+   * @returns {TopLeftCornerOverlayTable}
    */
   createTable(...args) {
     return new TopLeftCornerOverlayTable(...args);
@@ -43,9 +41,8 @@ export class TopLeftCornerOverlay extends Overlay {
    * @returns {boolean}
    */
   shouldBeRendered() {
-    const { wot } = this;
-
-    return wot.getSetting('shouldRenderTopOverlay') && wot.getSetting('shouldRenderLeftOverlay');
+    return this.wtSettings.getSetting('shouldRenderTopOverlay')
+      && this.wtSettings.getSetting('shouldRenderLeftOverlay');
   }
 
   /**
@@ -58,13 +55,13 @@ export class TopLeftCornerOverlay extends Overlay {
 
     if (!this.wot.wtTable.holder.parentNode) {
       // removed from DOM
-      return;
+      return false;
     }
 
     const overlayRoot = this.clone.wtTable.holder.parentNode;
-    const preventOverflow = this.wot.getSetting('preventOverflow');
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === this.wot.rootWindow) {
+    if (this.trimmingContainer === this.domBindings.rootWindow) {
       const { wtTable } = this.wot;
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const top = Math.ceil(hiderRect.top);

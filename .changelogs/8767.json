@@ -1,7 +1,0 @@
-{
-  "title": "Fixed an issue with borders, especially the first column's border",
-  "type": "fixed",
-  "issue": 8767,
-  "breaking": false,
-  "framework": "none"
-}
