@@ -232,24 +232,24 @@ class Border {
     const { rootDocument } = this.wot;
 
     this.selectionHandles = {
-      topLeft: rootDocument.createElement('DIV'),
-      topLeftHitArea: rootDocument.createElement('DIV'),
-      bottomRight: rootDocument.createElement('DIV'),
-      bottomRightHitArea: rootDocument.createElement('DIV')
+      topStart: rootDocument.createElement('DIV'),
+      topStartHitArea: rootDocument.createElement('DIV'),
+      bottomEnd: rootDocument.createElement('DIV'),
+      bottomEndHitArea: rootDocument.createElement('DIV')
     };
     const width = 10;
     const hitAreaWidth = 40;
 
-    this.selectionHandles.topLeft.className = 'topLeftSelectionHandle';
-    this.selectionHandles.topLeftHitArea.className = 'topLeftSelectionHandle-HitArea';
-    this.selectionHandles.bottomRight.className = 'bottomRightSelectionHandle';
-    this.selectionHandles.bottomRightHitArea.className = 'bottomRightSelectionHandle-HitArea';
+    this.selectionHandles.topStart.className = 'topLeftSelectionHandle';
+    this.selectionHandles.topStartHitArea.className = 'topLeftSelectionHandle-HitArea';
+    this.selectionHandles.bottomEnd.className = 'bottomRightSelectionHandle';
+    this.selectionHandles.bottomEndHitArea.className = 'bottomRightSelectionHandle-HitArea';
 
     this.selectionHandles.styles = {
-      topLeft: this.selectionHandles.topLeft.style,
-      topLeftHitArea: this.selectionHandles.topLeftHitArea.style,
-      bottomRight: this.selectionHandles.bottomRight.style,
-      bottomRightHitArea: this.selectionHandles.bottomRightHitArea.style
+      topLeft: this.selectionHandles.topStart.style,
+      topLeftHitArea: this.selectionHandles.topStartHitArea.style,
+      bottomRight: this.selectionHandles.bottomEnd.style,
+      bottomRightHitArea: this.selectionHandles.bottomEndHitArea.style
     };
 
     const hitAreaStyle = {
@@ -278,10 +278,10 @@ class Border {
       this.selectionHandles.styles.topLeft[key] = value;
     });
 
-    this.main.appendChild(this.selectionHandles.topLeft);
-    this.main.appendChild(this.selectionHandles.bottomRight);
-    this.main.appendChild(this.selectionHandles.topLeftHitArea);
-    this.main.appendChild(this.selectionHandles.bottomRightHitArea);
+    this.main.appendChild(this.selectionHandles.topStart);
+    this.main.appendChild(this.selectionHandles.bottomEnd);
+    this.main.appendChild(this.selectionHandles.topStartHitArea);
+    this.main.appendChild(this.selectionHandles.bottomEndHitArea);
   }
 
   /**
