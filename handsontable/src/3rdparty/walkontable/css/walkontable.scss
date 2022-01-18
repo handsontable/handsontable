@@ -220,17 +220,6 @@ innerBorderBottom - Property controlled by bottom overlay
   z-index: 180;
 }
 
-/*
-  Cell borders
-  */
-.handsontable tbody tr th:nth-last-child(2) {
-  border-inline-end: 1px solid #ccc;
-}
-
-.ht_clone_top_left_corner thead tr th:nth-last-child(2) {
-  border-inline-end: 1px solid #ccc;
-}
-
 .handsontable col.hidden {
   width: 0 !important;
 }

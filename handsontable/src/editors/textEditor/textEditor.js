@@ -342,7 +342,7 @@ export class TextEditor extends BaseEditor {
       return;
     }
 
-    const { wtOverlays, wtViewport, wtTable } = this.hot.view.wt;
+    const { wtOverlays, wtViewport } = this.hot.view.wt;
     const rootWindow = this.hot.rootWindow;
     const currentOffset = offset(this.TD);
     const cellWidth = outerWidth(this.TD);
@@ -373,29 +373,30 @@ export class TextEditor extends BaseEditor {
       inlineStartPos = currentOffset.left - containerOffset.left - 1 - scrollLeft;
     }
 
-    let cssTransformOffset;
+    let wtTable = this.hot.view.wt.wtTable;
 
     // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
     switch (editorSection) {
       case 'top':
-        cssTransformOffset = getCssTransform(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
+        wtTable = wtOverlays.topOverlay.clone.wtTable;
         break;
       case 'left':
-        cssTransformOffset = getCssTransform(wtOverlays.inlineStartOverlay.clone.wtTable.holder.parentNode);
+        wtTable = wtOverlays.inlineStartOverlay.clone.wtTable;
         break;
       case 'top-left-corner':
-        cssTransformOffset = getCssTransform(wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
+        wtTable = wtOverlays.topInlineStartCornerOverlay.clone.wtTable;
         break;
       case 'bottom-left-corner':
-        cssTransformOffset = getCssTransform(wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
+        wtTable = wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable;
         break;
       case 'bottom':
-        cssTransformOffset = getCssTransform(wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
+        wtTable = wtOverlays.bottomOverlay.clone.wtTable;
         break;
       default:
         break;
     }
 
+    const cssTransformOffset = getCssTransform(wtTable.holder.parentNode);
     const hasColumnHeaders = this.hot.hasColHeaders();
     const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
@@ -431,8 +432,18 @@ export class TextEditor extends BaseEditor {
     let cellStartOffset = 0;
 
     if (this.hot.isRtl()) {
-      cellStartOffset = wtTable.getWidth() - this.TD.offsetLeft - cellWidth +
-        firstColumnOffset - horizontalScrollPosition;
+      const cellOffset = this.TD.offsetLeft;
+
+      if (cellOffset >= 0) {
+        cellStartOffset = wtTable.getWidth() - this.TD.offsetLeft;
+      } else {
+        // The `offsetLeft` returns negative values when the parent offset element has position relative
+        // (it happens when on the cell the selection is applied - the `area` CSS class).
+        // When it happens the `offsetLeft` value is calculated from the right edge of the parent element.
+        cellStartOffset = Math.abs(cellOffset);
+      }
+
+      cellStartOffset += firstColumnOffset - horizontalScrollPosition - cellWidth;
     } else {
       cellStartOffset = this.TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
     }
