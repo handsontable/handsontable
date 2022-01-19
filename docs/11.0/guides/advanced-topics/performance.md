@@ -72,6 +72,26 @@ See the [batch operations](@/guides/advanced-topics/batch-operations.md) page to
 
 ## Use modules
 
-To make your grid lighter:
-- [Use Handsontable modules &#8594;](@/guides/building-and-testing/modules.md#using-modules)
-- [Optimize Moment.js locales &#8594;](@/guides/building-and-testing/modules.md#optimizing-moment-js-locales)
+If you need only a few parts of Handsontable, you can think of importing them as **modules**. Eventually, this can lead to lowering the bundle size. This can be done in several steps:
+
+- import the base
+- import the module you want to use and its registering method
+- register it
+- use it
+
+The following example shows you how to import and register the `ContextMenu`
+
+```js
+import Handsontable from 'handsontable/base';
+import { registerPlugin, ContextMenu } from 'handsontable/plugins';
+
+registerPlugin(ContextMenu);
+
+// switch the context menu on
+new Handsontable(container, {
+  contextMenu: true,
+  // other settings
+});
+```
+
+You can also optimize the use of **moment.js**. To find out more about this topic, see the [modules page](@/guides/building-and-testing/modules.md).
