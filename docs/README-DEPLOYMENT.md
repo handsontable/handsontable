@@ -4,19 +4,19 @@ This page covers guidelines for deploying the [Handsontable documentation](https
 
 ## About documentation deployment
 
-A [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure) with the largest version number gets automatically tagged as the documentation' `:latest` version.
+A [`<semver.version>` directory](./README.md#handsontable-docs-directory-structure) with the largest version number gets automatically tagged as the documentation's `:latest` version.
 
 Our server configuration watches for images tagged as [`:latest`](./README-EDITING.md#editing-the-latest-docs-version), and automatically refreshes after detecting a newer version.
 
-## Docker settings
+### Docker settings
 
 Before generating the documentation, set [Docker's runtime memory limit](https://docs.docker.com/docker-for-mac/).
 
 The recommended runtime memory limit is 8 GB. It allows us to generate 4 documentation versions at a time.
 
-## Deploying the documentation using the command line
+## Deploying the documentation from the command line
 
-To deploy the documentation using the command line:
+To deploy the documentation from the command line:
 
 1. When deploying for the first time, log in to the GitHub Container Registry (ghcr.io):
     ```bash
@@ -42,16 +42,22 @@ GitHub Actions pushes the following tags to the GitHub Container Registry:
 * `:latest` - the server configuration watches for images with this tag.
 * `:[COMMIT_HASH]` - a backup.
 
-### Manually deploying the documentation from GitHub Actions
+### Deploying the documentation to the staging environment
 
-You can deploy the documentation manually, from any branch:
+To deploy the documentation to the staging environment:
 
-1. On a GitHub repository, select the **Actions** tab.
-2. On the left, select **Documentation**.
-3. On the right, select **Run workflow**.
-4. Select the required branch.
-5. Run the workflow.
+1. Go to [github.com/handsontable/handsontable/actions](https://github.com/handsontable/handsontable/actions).
+2. Select the **Docs Staging Deployment** workflow.
+3. Select the **Run workflow** drop-down.
+4. Select the branch that you want to deploy.
+5. Select **Run workflow**.
 
-## Production environment
+### Deploying the documentation to the production environment
 
-Coming soon.
+To deploy the documentation to the production environment:
+
+1. Go to [github.com/handsontable/handsontable/actions](https://github.com/handsontable/handsontable/actions).
+2. Select the **Docs Production Deployment** workflow.
+3. Select the **Run workflow** drop-down.
+4. Select the branch that you want to deploy.
+5. Select **Run workflow**.
