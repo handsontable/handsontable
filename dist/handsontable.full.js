@@ -51039,6 +51039,8 @@ DataMap.prototype.createRow = function (index) {
       }
     } else if (_this3.instance.dataType === 'function') {
       row = _this3.instance.getSettings().dataSchema(rowIndex);
+    } else if (_this3.instance.getSettings().rowConstructor) {
+      row = new (_this3.instance.getSettings().rowConstructor)();
     } else {
       row = {};
       (0, _object.deepExtend)(row, _this3.getSchema());
