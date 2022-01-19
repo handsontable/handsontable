@@ -1,5 +1,5 @@
 {
-  "title": "Changed the way `updateSettings` handles data buy introducing `updateData` instead of `loadData` in the majority of cases.",
+  "title": "Changed the way `updateSettings` handles data by introducing `updateData` instead of `loadData` in the majority of cases.",
   "type": "changed",
   "issue": 7263,
   "breaking": true,
