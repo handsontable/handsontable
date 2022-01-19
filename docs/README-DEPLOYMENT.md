@@ -61,3 +61,20 @@ To deploy the documentation to the production environment:
 3. Select the **Run workflow** drop-down.
 4. Select the branch that you want to deploy.
 5. Select **Run workflow**.
+
+### Reverting a production deployment
+
+To revert a production deployment to a previous version:
+
+1. Pull a previously-deployed Docker image of your choice, tagged with `[COMMIT_HASH]`:
+    ```bash
+    docker pull docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH]
+    ```
+2. Make the `latest` Docker tag refer to your `[COMMIT_HASH]` version:
+    ```bash
+    docker tag docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH] docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
+    ```
+3. Push the `latest` Docker image (which is your `[COMMIT_HASH]` version now) back to the registry:
+    ```bash
+    docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
+    ```
