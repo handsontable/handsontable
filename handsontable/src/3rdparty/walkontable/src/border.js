@@ -315,8 +315,8 @@ class Border {
     const handleWidth = parseInt(this.selectionHandles.styles.top.width, 10);
     const hitAreaWidth = parseInt(this.selectionHandles.styles.topHitArea.width, 10);
 
-    this.selectionHandles.styles.top.top = `${parseInt(top - handleWidth, 10)}px`;
-    this.selectionHandles.styles.top[inlinePosProperty] = `${parseInt(left - handleWidth, 10)}px`;
+    this.selectionHandles.styles.top.top = `${parseInt(top - handleWidth - 1, 10)}px`;
+    this.selectionHandles.styles.top[inlinePosProperty] = `${parseInt(left - handleWidth - 1, 10)}px`;
 
     this.selectionHandles.styles.topHitArea.top = `${parseInt(top - ((hitAreaWidth / 4) * 3), 10)}px`;
     this.selectionHandles.styles.topHitArea[inlinePosProperty] = `${parseInt(left - ((hitAreaWidth / 4) * 3), 10)}px`;
