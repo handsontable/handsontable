@@ -72,6 +72,7 @@ See the [batch operations](@/guides/advanced-topics/batch-operations.md) page to
 
 ## Use modules
 
-To make your grid lighter:
-- [Use Handsontable modules &#8594;](@/guides/building-and-testing/modules.md#using-modules)
-- [Optimize Moment.js locales &#8594;](@/guides/building-and-testing/modules.md#optimizing-moment-js-locales)
+To reduce the bundle size and JavaScript parsing time, import only those [Handsontable modules](@/guides/building-and-testing/modules.md#list-of-all-modules) that you actually use, instead of importing the complete package.
+
+Read more:
+- [Modules &#8594;](@/guides/building-and-testing/modules.md)
