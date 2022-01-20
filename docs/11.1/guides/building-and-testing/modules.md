@@ -9,7 +9,7 @@ tags:
 
 # Modules
 
-To reduce the size of your app, use Handsontable modules.
+To reduce Handsontable's impact on the size of your app, import only the modules that you actually use.
 
 [[toc]]
 

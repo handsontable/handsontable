@@ -9,7 +9,7 @@ canonicalUrl: /vue3-modules
 
 [[toc]]
 
-To reduce the size of your Vue 3 app, use Handsontable [modules](@/guides/building-and-testing/modules.md).
+To reduce Handsontable's impact on the size of your Vue 3 app, import only the [modules](@/guides/building-and-testing/modules.md) that you actually use.
 
 [Find out which Vue 3 versions are supported &#8594;](@/guides/integrate-with-vue3/vue3-installation.md#vue-3-version-support)
 

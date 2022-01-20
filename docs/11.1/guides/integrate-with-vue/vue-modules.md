@@ -9,7 +9,7 @@ canonicalUrl: /vue-modules
 
 [[toc]]
 
-To reduce the size of your Vue 2 app, use Handsontable [modules](@/guides/building-and-testing/modules.md).
+To reduce Handsontable's impact on the size of your Vue 2 app, import only the [modules](@/guides/building-and-testing/modules.md) that you actually use.
 
 ## Using modules in Vue
 

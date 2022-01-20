@@ -9,7 +9,7 @@ canonicalUrl: /react-modules
 
 [[toc]]
 
-To reduce the size of your React app, use Handsontable [modules](@/guides/building-and-testing/modules.md).
+To reduce Handsontable's impact on the size of your React app, import only the [modules](@/guides/building-and-testing/modules.md) that you actually use.
 
 ## Using modules in React
 
