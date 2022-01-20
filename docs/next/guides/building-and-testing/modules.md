@@ -18,9 +18,9 @@ To reduce Handsontable's impact on the size of your app, import only the modules
 Modules let you pick and choose only those parts of Handsontable that you actually need. This can significantly reduce the size of your app.
 
 Read more:
-- [JavaScript modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)
-- [Modularizing to improve the developer experience](https://handsontable.com/blog/articles/2021/2/modularizing-to-improve-the-developer-experience)
-- [Handsontable 11.0.0: modularization for React, Angular, and Vue](https://handsontable.com/blog/articles/2021/11/handsontable-11.0.0-modularization-for-react-angular-and-vue)
+- MDN Web Docs: [JavaScript modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)
+- Handsontable blog: [Modularizing to improve the developer experience](https://handsontable.com/blog/articles/2021/2/modularizing-to-improve-the-developer-experience)
+- Handsontable blog: [Modularization for React, Angular, and Vue](https://handsontable.com/blog/articles/2021/11/handsontable-11.0.0-modularization-for-react-angular-and-vue)
 
 ### List of all modules
 
