@@ -232,24 +232,24 @@ class Border {
     const { rootDocument } = this.wot;
 
     this.selectionHandles = {
-      topStart: rootDocument.createElement('DIV'),
-      topStartHitArea: rootDocument.createElement('DIV'),
-      bottomEnd: rootDocument.createElement('DIV'),
-      bottomEndHitArea: rootDocument.createElement('DIV')
+      top: rootDocument.createElement('DIV'),
+      topHitArea: rootDocument.createElement('DIV'),
+      bottom: rootDocument.createElement('DIV'),
+      bottomHitArea: rootDocument.createElement('DIV')
     };
     const width = 10;
     const hitAreaWidth = 40;
 
-    this.selectionHandles.topStart.className = 'topLeftSelectionHandle';
-    this.selectionHandles.topStartHitArea.className = 'topLeftSelectionHandle-HitArea';
-    this.selectionHandles.bottomEnd.className = 'bottomRightSelectionHandle';
-    this.selectionHandles.bottomEndHitArea.className = 'bottomRightSelectionHandle-HitArea';
+    this.selectionHandles.top.className = 'topSelectionHandle';
+    this.selectionHandles.topHitArea.className = 'topSelectionHandle-HitArea';
+    this.selectionHandles.bottom.className = 'bottomSelectionHandle';
+    this.selectionHandles.bottomHitArea.className = 'bottomSelectionHandle-HitArea';
 
     this.selectionHandles.styles = {
-      topLeft: this.selectionHandles.topStart.style,
-      topLeftHitArea: this.selectionHandles.topStartHitArea.style,
-      bottomRight: this.selectionHandles.bottomEnd.style,
-      bottomRightHitArea: this.selectionHandles.bottomEndHitArea.style
+      top: this.selectionHandles.top.style,
+      topHitArea: this.selectionHandles.topHitArea.style,
+      bottom: this.selectionHandles.bottom.style,
+      bottomHitArea: this.selectionHandles.bottomHitArea.style
     };
 
     const hitAreaStyle = {
@@ -260,8 +260,8 @@ class Border {
     };
 
     objectEach(hitAreaStyle, (value, key) => {
-      this.selectionHandles.styles.bottomRightHitArea[key] = value;
-      this.selectionHandles.styles.topLeftHitArea[key] = value;
+      this.selectionHandles.styles.bottomHitArea[key] = value;
+      this.selectionHandles.styles.topHitArea[key] = value;
     });
 
     const handleStyle = {
@@ -274,14 +274,14 @@ class Border {
     };
 
     objectEach(handleStyle, (value, key) => {
-      this.selectionHandles.styles.bottomRight[key] = value;
-      this.selectionHandles.styles.topLeft[key] = value;
+      this.selectionHandles.styles.bottom[key] = value;
+      this.selectionHandles.styles.top[key] = value;
     });
 
-    this.main.appendChild(this.selectionHandles.topStart);
-    this.main.appendChild(this.selectionHandles.bottomEnd);
-    this.main.appendChild(this.selectionHandles.topStartHitArea);
-    this.main.appendChild(this.selectionHandles.bottomEndHitArea);
+    this.main.appendChild(this.selectionHandles.top);
+    this.main.appendChild(this.selectionHandles.bottom);
+    this.main.appendChild(this.selectionHandles.topHitArea);
+    this.main.appendChild(this.selectionHandles.bottomHitArea);
   }
 
   /**
@@ -310,46 +310,49 @@ class Border {
    * @param {number} height The height of the handler.
    */
   updateMultipleSelectionHandlesPosition(row, col, top, left, width, height) {
-    const handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10);
-    const hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
+    const isRtl = this.wot.wtSettings.getSetting('rtlMode');
+    const inlinePosProperty = isRtl ? 'right' : 'left';
+    const handleWidth = parseInt(this.selectionHandles.styles.top.width, 10);
+    const hitAreaWidth = parseInt(this.selectionHandles.styles.topHitArea.width, 10);
 
-    this.selectionHandles.styles.topLeft.top = `${parseInt(top - handleWidth, 10)}px`;
-    this.selectionHandles.styles.topLeft.left = `${parseInt(left - handleWidth, 10)}px`;
+    this.selectionHandles.styles.top.top = `${parseInt(top - handleWidth, 10)}px`;
+    this.selectionHandles.styles.top[inlinePosProperty] = `${parseInt(left - handleWidth, 10)}px`;
 
-    this.selectionHandles.styles.topLeftHitArea.top = `${parseInt(top - ((hitAreaWidth / 4) * 3), 10)}px`;
-    this.selectionHandles.styles.topLeftHitArea.left = `${parseInt(left - ((hitAreaWidth / 4) * 3), 10)}px`;
+    this.selectionHandles.styles.topHitArea.top = `${parseInt(top - ((hitAreaWidth / 4) * 3), 10)}px`;
+    this.selectionHandles.styles.topHitArea[inlinePosProperty] = `${parseInt(left - ((hitAreaWidth / 4) * 3), 10)}px`;
 
-    this.selectionHandles.styles.bottomRight.top = `${parseInt(top + height, 10)}px`;
-    this.selectionHandles.styles.bottomRight.left = `${parseInt(left + width, 10)}px`;
+    this.selectionHandles.styles.bottom.top = `${parseInt(top + height, 10)}px`;
+    this.selectionHandles.styles.bottom[inlinePosProperty] = `${parseInt(left + width, 10)}px`;
 
-    this.selectionHandles.styles.bottomRightHitArea.top = `${parseInt(top + height - (hitAreaWidth / 4), 10)}px`;
-    this.selectionHandles.styles.bottomRightHitArea.left = `${parseInt(left + width - (hitAreaWidth / 4), 10)}px`;
+    this.selectionHandles.styles.bottomHitArea.top = `${parseInt(top + height - (hitAreaWidth / 4), 10)}px`;
+    this.selectionHandles.styles
+      .bottomHitArea[inlinePosProperty] = `${parseInt(left + width - (hitAreaWidth / 4), 10)}px`;
 
     if (this.settings.border.cornerVisible && this.settings.border.cornerVisible()) {
-      this.selectionHandles.styles.topLeft.display = 'block';
-      this.selectionHandles.styles.topLeftHitArea.display = 'block';
+      this.selectionHandles.styles.top.display = 'block';
+      this.selectionHandles.styles.topHitArea.display = 'block';
 
       if (this.isPartRange(row, col)) {
-        this.selectionHandles.styles.bottomRight.display = 'none';
-        this.selectionHandles.styles.bottomRightHitArea.display = 'none';
+        this.selectionHandles.styles.bottom.display = 'none';
+        this.selectionHandles.styles.bottomHitArea.display = 'none';
       } else {
-        this.selectionHandles.styles.bottomRight.display = 'block';
-        this.selectionHandles.styles.bottomRightHitArea.display = 'block';
+        this.selectionHandles.styles.bottom.display = 'block';
+        this.selectionHandles.styles.bottomHitArea.display = 'block';
       }
     } else {
-      this.selectionHandles.styles.topLeft.display = 'none';
-      this.selectionHandles.styles.bottomRight.display = 'none';
-      this.selectionHandles.styles.topLeftHitArea.display = 'none';
-      this.selectionHandles.styles.bottomRightHitArea.display = 'none';
+      this.selectionHandles.styles.top.display = 'none';
+      this.selectionHandles.styles.bottom.display = 'none';
+      this.selectionHandles.styles.topHitArea.display = 'none';
+      this.selectionHandles.styles.bottomHitArea.display = 'none';
     }
 
     if (row === this.wot.wtSettings.getSetting('fixedRowsTop') ||
         col === this.wot.wtSettings.getSetting('fixedColumnsStart')) {
-      this.selectionHandles.styles.topLeft.zIndex = '9999';
-      this.selectionHandles.styles.topLeftHitArea.zIndex = '9999';
+      this.selectionHandles.styles.top.zIndex = '9999';
+      this.selectionHandles.styles.topHitArea.zIndex = '9999';
     } else {
-      this.selectionHandles.styles.topLeft.zIndex = '';
-      this.selectionHandles.styles.topLeftHitArea.zIndex = '';
+      this.selectionHandles.styles.top.zIndex = '';
+      this.selectionHandles.styles.topHitArea.zIndex = '';
     }
   }
 
@@ -746,8 +749,8 @@ class Border {
     this.cornerStyle.display = 'none';
 
     if (isMobileBrowser()) {
-      this.selectionHandles.styles.topLeft.display = 'none';
-      this.selectionHandles.styles.bottomRight.display = 'none';
+      this.selectionHandles.styles.top.display = 'none';
+      this.selectionHandles.styles.bottom.display = 'none';
     }
   }
 
