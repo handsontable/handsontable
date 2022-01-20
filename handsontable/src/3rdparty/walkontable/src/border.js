@@ -240,10 +240,10 @@ class Border {
     const width = 10;
     const hitAreaWidth = 40;
 
-    this.selectionHandles.top.className = 'topSelectionHandle';
-    this.selectionHandles.topHitArea.className = 'topSelectionHandle-HitArea';
-    this.selectionHandles.bottom.className = 'bottomSelectionHandle';
-    this.selectionHandles.bottomHitArea.className = 'bottomSelectionHandle-HitArea';
+    this.selectionHandles.top.className = 'topSelectionHandle topLeftSelectionHandle';
+    this.selectionHandles.topHitArea.className = 'topSelectionHandle-HitArea topLeftSelectionHandle-HitArea';
+    this.selectionHandles.bottom.className = 'bottomSelectionHandle bottomRightSelectionHandle';
+    this.selectionHandles.bottomHitArea.className = 'bottomSelectionHandle-HitArea bottomRightSelectionHandle-HitArea';
 
     this.selectionHandles.styles = {
       top: this.selectionHandles.top.style,

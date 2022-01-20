@@ -12,30 +12,33 @@ describe('Text Editor', () => {
     }
   });
 
-  if (Handsontable.helper.isIOS()) {
-    it('should save text value after click "Done" on iOS (focusout event)', async() => {
-      const hot = handsontable({
-        columns: [
-          {
-            type: 'text',
-          }
-        ]
-      });
+  it('should save text value after click "Done" on iOS (focusout event)', async() => {
+    if (!Handsontable.helper.isIOS()) {
+      expect(true).toBe(true);
+      return;
+    }
 
-      const cell = hot.getCell(0, 0);
-
-      selectCell(0, 0);
-
-      keyDown('enter');
-
-      const editor = getActiveEditor();
-
-      editor.setValue('test');
-
-      // simulate "Done" click on iOS keyboard
-      editor.eventManager.fireEvent(editor.TEXTAREA, 'focusout');
-
-      expect(cell.textContent).toBe('test');
+    const hot = handsontable({
+      columns: [
+        {
+          type: 'text',
+        }
+      ]
     });
-  }
+
+    const cell = hot.getCell(0, 0);
+
+    selectCell(0, 0);
+
+    keyDown('enter');
+
+    const editor = getActiveEditor();
+
+    editor.setValue('test');
+
+    // simulate "Done" click on iOS keyboard
+    editor.eventManager.fireEvent(editor.TEXTAREA, 'focusout');
+
+    expect(cell.textContent).toBe('test');
+  });
 });
