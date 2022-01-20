@@ -271,7 +271,7 @@ export class TextEditor extends BaseEditor {
     this.textareaParentStyle.height = '';
     this.textareaParentStyle.overflow = '';
     this.textareaParentStyle.position = '';
-    this.textareaParentStyle.right = 'auto';
+    this.textareaParentStyle[this.hot.isRtl() ? 'left' : 'right'] = 'auto';
     this.textareaParentStyle.opacity = '1';
 
     this.textareaStyle.textIndent = '';
@@ -343,14 +343,18 @@ export class TextEditor extends BaseEditor {
     }
 
     const { wtOverlays, wtViewport } = this.hot.view.wt;
+    const rootWindow = this.hot.rootWindow;
     const currentOffset = offset(this.TD);
+    const cellWidth = outerWidth(this.TD);
     const containerOffset = offset(this.hot.rootElement);
+    const containerWidth = outerWidth(this.hot.rootElement);
     const scrollableContainerTop = wtOverlays.topOverlay.holder;
     const scrollableContainerLeft = wtOverlays.inlineStartOverlay.holder;
-    const containerScrollTop = scrollableContainerTop !== this.hot.rootWindow ?
+    const containerScrollTop = scrollableContainerTop !== rootWindow ?
       scrollableContainerTop.scrollTop : 0;
-    const containerScrollLeft = scrollableContainerLeft !== this.hot.rootWindow ?
+    const containerScrollLeft = scrollableContainerLeft !== rootWindow ?
       scrollableContainerLeft.scrollLeft : 0;
+    const gridMostRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
     const editorSection = this.checkEditorSection();
 
     const scrollTop = ['', 'left'].includes(editorSection) ? containerScrollTop : 0;
@@ -361,30 +365,38 @@ export class TextEditor extends BaseEditor {
     const backgroundColor = this.TD.style.backgroundColor;
 
     let editTop = currentOffset.top - containerOffset.top - editTopModifier - scrollTop;
-    let editLeft = currentOffset.left - containerOffset.left - 1 - scrollLeft;
-    let cssTransformOffset;
+    let inlineStartPos = 0;
+
+    if (this.hot.isRtl()) {
+      inlineStartPos = rootWindow.innerWidth - currentOffset.left - cellWidth - gridMostRightPos - 1 + scrollLeft;
+    } else {
+      inlineStartPos = currentOffset.left - containerOffset.left - 1 - scrollLeft;
+    }
+
+    let wtTable = this.hot.view.wt.wtTable;
 
     // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
     switch (editorSection) {
       case 'top':
-        cssTransformOffset = getCssTransform(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
+        wtTable = wtOverlays.topOverlay.clone.wtTable;
         break;
       case 'left':
-        cssTransformOffset = getCssTransform(wtOverlays.inlineStartOverlay.clone.wtTable.holder.parentNode);
+        wtTable = wtOverlays.inlineStartOverlay.clone.wtTable;
         break;
       case 'top-left-corner':
-        cssTransformOffset = getCssTransform(wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
+        wtTable = wtOverlays.topInlineStartCornerOverlay.clone.wtTable;
         break;
       case 'bottom-left-corner':
-        cssTransformOffset = getCssTransform(wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
+        wtTable = wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable;
         break;
       case 'bottom':
-        cssTransformOffset = getCssTransform(wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
+        wtTable = wtOverlays.bottomOverlay.clone.wtTable;
         break;
       default:
         break;
     }
 
+    const cssTransformOffset = getCssTransform(wtTable.holder.parentNode);
     const hasColumnHeaders = this.hot.hasColHeaders();
     const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
@@ -396,7 +408,7 @@ export class TextEditor extends BaseEditor {
     }
 
     if (renderableColumn <= 0) {
-      editLeft += 1;
+      inlineStartPos += 1;
     }
 
     if (cssTransformOffset && cssTransformOffset !== -1) {
@@ -406,27 +418,40 @@ export class TextEditor extends BaseEditor {
     }
 
     this.textareaParentStyle.top = `${editTop}px`;
-
-    if (this.hot.isRtl()) {
-      editLeft = editLeft - outerWidth(this.TEXTAREA_PARENT) + outerWidth(this.TEXTAREA) + 1;
-    }
-
-    this.textareaParentStyle.left = `${editLeft}px`;
+    this.textareaParentStyle[this.hot.isRtl() ? 'right' : 'left'] = `${inlineStartPos}px`;
     this.showEditableElement();
 
     const firstRowOffset = wtViewport.rowsRenderCalculator.startPosition;
     const firstColumnOffset = wtViewport.columnsRenderCalculator.startPosition;
-    const horizontalScrollPosition = wtOverlays.inlineStartOverlay.getScrollPosition();
+    const horizontalScrollPosition = Math.abs(wtOverlays.inlineStartOverlay.getScrollPosition());
     const verticalScrollPosition = wtOverlays.topOverlay.getScrollPosition();
     const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
 
     const cellTopOffset = this.TD.offsetTop + firstRowOffset - verticalScrollPosition;
-    const cellLeftOffset = this.TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
 
-    const width = innerWidth(this.TD) - 8;
+    let cellStartOffset = 0;
+
+    if (this.hot.isRtl()) {
+      const cellOffset = this.TD.offsetLeft;
+
+      if (cellOffset >= 0) {
+        cellStartOffset = wtTable.getWidth() - this.TD.offsetLeft;
+      } else {
+        // The `offsetLeft` returns negative values when the parent offset element has position relative
+        // (it happens when on the cell the selection is applied - the `area` CSS class).
+        // When it happens the `offsetLeft` value is calculated from the right edge of the parent element.
+        cellStartOffset = Math.abs(cellOffset);
+      }
+
+      cellStartOffset += firstColumnOffset - horizontalScrollPosition - cellWidth;
+    } else {
+      cellStartOffset = this.TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
+    }
+
     const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainerTop) ? scrollbarWidth : 0;
     const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
-    const maxWidth = this.hot.view.maximumVisibleElementWidth(cellLeftOffset) - 9 - actualVerticalScrollbarWidth;
+    const width = innerWidth(this.TD) - 8;
+    const maxWidth = this.hot.view.maximumVisibleElementWidth(cellStartOffset) - 9 - actualVerticalScrollbarWidth;
     const height = this.TD.scrollHeight + 1;
     const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23); // eslint-disable-line max-len
 
