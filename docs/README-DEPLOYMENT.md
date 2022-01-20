@@ -72,7 +72,7 @@ To revert a production deployment to a previous version:
     ```
 2. Make the `latest` Docker tag refer to your `[COMMIT_HASH]` version:
     ```bash
-    docker tag docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH] docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
+    docker tag docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:prod-[COMMIT_HASH] docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:production
     ```
 3. Push the `latest` Docker image (which is your `[COMMIT_HASH]` version now) back to the registry:
     ```bash
