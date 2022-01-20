@@ -1,6 +1,6 @@
-const id = 'testContainer';
-
 describe('Text Editor', () => {
+  const id = 'testContainer';
+
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
@@ -15,6 +15,7 @@ describe('Text Editor', () => {
   it('should save text value after click "Done" on iOS (focusout event)', async() => {
     if (!Handsontable.helper.isIOS()) {
       expect(true).toBe(true);
+
       return;
     }
 

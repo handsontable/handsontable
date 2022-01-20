@@ -29,6 +29,7 @@ describe('MultipleSelectionHandles', () => {
     const bottomSelectionHandleHitArea = spec().$container
       .find('.ht_master .htBorders div:first-child .bottomSelectionHandle-HitArea');
 
+    // legacy CSS classes
     expect(topSelectionHandle[0]).toHaveClass('topLeftSelectionHandle');
     expect(bottomSelectionHandle[0]).toHaveClass('bottomRightSelectionHandle');
     expect(topSelectionHandleHitArea[0]).toHaveClass('topLeftSelectionHandle-HitArea');
