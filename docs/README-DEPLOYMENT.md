@@ -76,5 +76,5 @@ To revert a production deployment to a previous version:
     ```
 3. Push the `latest` Docker image (which is your `[COMMIT_HASH]` version now) back to the registry:
     ```bash
-    docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
+    docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:production
     ```
