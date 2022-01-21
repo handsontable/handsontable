@@ -40,7 +40,7 @@ canonicalUrl: /third-party-licenses
 - **dataMap.js** (implementation of functional dataSchema and data prop)<br>
     Author: Nicholas Bollweg<br>
     License: Open source (MIT)<br>
-    [https://github.com/handsontable/handsontable/blob/master/src/dataMap.js](https://github.com/handsontable/handsontable/blob/master/src/dataMap.js)
+    [https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap.js](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap.js)
 
 - **DOMPurify** (an XSS sanitizer for HTML)<br>
     Author: Mario Heiderich<br>
