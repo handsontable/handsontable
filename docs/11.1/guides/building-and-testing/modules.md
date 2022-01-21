@@ -381,17 +381,17 @@ No matter which of the [optional modules](#list-of-all-modules) you use, the fol
 - Handsontable's CSS
 
 To import the required modules:
-1. Import the `handsontable/base` module (instead of importing the [full bundle](@/guides/building-and-testing/packages.md) of Handsontable).
+1. Import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the [full bundle](@/guides/building-and-testing/packages.md)).
 2. Import Handsontable's CSS file as a whole (just like at [installation](@/guides/getting-started/installation.md)).
 
 ```js
 import Handsontable from 'handsontable/base';
 
-// if you bundler allows it, import Handsontable's CSS
-import 'handsontable/dist/handsontable.full.css';
-
 // if you have the full bundle import, remove it
 import Handsontable from 'handsontable';
+
+// if you bundler allows it, import Handsontable's CSS
+import 'handsontable/dist/handsontable.full.css';
 ```
 
 Now, you're ready to use any [optional modules](#list-of-all-modules) of your choice.
