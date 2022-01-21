@@ -55,4 +55,5 @@
 .handsontable.innerBorderLeft th div.ht_nestingButton,
 .handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingButton {
   inset-inline-end: 0;
+  inset-inline-start: unset;
 }
