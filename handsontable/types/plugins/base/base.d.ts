@@ -3,6 +3,9 @@ import Core from '../../core';
 export class BasePlugin {
   constructor(hotInstance: Core);
 
+  static get PLUGIN_KEY(): string;
+  static get SETTING_KEYS(): string[] | boolean;
+
   pluginName: string;
   pluginsInitializedCallbacks: string[];
   isPluginsReady: boolean;
