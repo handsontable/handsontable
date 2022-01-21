@@ -3870,4 +3870,17 @@ describe('ContextMenu', () => {
 
     expect(errorSpy).not.toHaveBeenCalled();
   });
+
+  it('should inherit the actual layout direction option from the root Handsontable instance', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true,
+      height: 400,
+      layoutDirection: 'inherit',
+    });
+
+    contextMenu();
+
+    expect(getPlugin('contextMenu').menu.hotMenu.getSettings().layoutDirection).toBe('ltr');
+  });
 });
