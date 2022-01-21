@@ -352,6 +352,7 @@ class EditorManager {
         const editorContext = shortcutManager.getContext('editor');
         const runOnlySelectedConfig = {
           runAction: () => isDefined(this.instance.getSelected()),
+          namespace: 'editorManager'
         };
 
         editorContext.addShortcut([['ArrowUp']], () => {
