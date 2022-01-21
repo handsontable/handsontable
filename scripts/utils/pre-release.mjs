@@ -17,6 +17,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const workspacePackages = mainPackageJson.workspaces;
 
 /**
+ * Current version of the monorepo (before updating).
+ *
+ * @type {string}
+ */
+export const CURRENT_VERSION = hotConfig.HOT_VERSION;
+
+/**
  * Check if the provided version number is a valid semver version number.
  *
  * @param {string} version Version number.

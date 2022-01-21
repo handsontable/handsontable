@@ -1,7 +1,0 @@
-{
-  "title": "Fix test scripts that have tended to crash.",
-  "type": "fixed",
-  "issue": 8961,
-  "breaking": false,
-  "framework": "none"
-}

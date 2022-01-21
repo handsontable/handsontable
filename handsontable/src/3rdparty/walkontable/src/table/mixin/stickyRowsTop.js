@@ -15,9 +15,10 @@ const stickyRowsTop = {
    * Get the source index of the first rendered row. If no rows are rendered, returns an error code: -1.
    *
    * @returns {number}
+   * @this Table
    */
   getFirstRenderedRow() {
-    const totalRows = this.wot.getSetting('totalRows');
+    const totalRows = this.wtSettings.getSetting('totalRows');
 
     if (totalRows === 0) {
       return -1;
@@ -31,6 +32,7 @@ const stickyRowsTop = {
    * Assumes that all rendered rows are fully visible.
    *
    * @returns {number}
+   * @this Table
    */
   getFirstVisibleRow() {
     return this.getFirstRenderedRow();
@@ -40,6 +42,7 @@ const stickyRowsTop = {
    * Get the source index of the last rendered row. If no rows are rendered, returns an error code: -1.
    *
    * @returns {number}
+   * @this Table
    */
   getLastRenderedRow() {
     return this.getRenderedRowsCount() - 1;
@@ -50,6 +53,7 @@ const stickyRowsTop = {
    * Assumes that all rendered rows are fully visible.
    *
    * @returns {number}
+   * @this Table
    */
   getLastVisibleRow() {
     return this.getLastRenderedRow();
@@ -59,11 +63,12 @@ const stickyRowsTop = {
    * Get the number of rendered rows.
    *
    * @returns {number}
+   * @this Table
    */
   getRenderedRowsCount() {
-    const totalRows = this.wot.getSetting('totalRows');
+    const totalRows = this.wtSettings.getSetting('totalRows');
 
-    return Math.min(this.wot.getSetting('fixedRowsTop'), totalRows);
+    return Math.min(this.wtSettings.getSetting('fixedRowsTop'), totalRows);
   },
 
   /**
@@ -71,6 +76,7 @@ const stickyRowsTop = {
    * Assumes that all rendered rows are fully visible.
    *
    * @returns {number}
+   * @this Table
    */
   getVisibleRowsCount() {
     return this.getRenderedRowsCount();
