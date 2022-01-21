@@ -380,40 +380,21 @@ No matter which of the [optional modules](#list-of-all-modules) you use, the fol
 - [core-js](https://www.npmjs.com/package/core-js)
 - Handsontable's CSS
 
-To import the required modules, follow the steps below.
-
-#### Step 1: Remove the full Handsontable import
-
-When using modules, you no longer need to import the full version of Handsontable.
-
-Remove the `handsontable` import:
+To import the required modules:
+1. Import the `handsontable/base` module (instead of importing the [full bundle](@/guides/building-and-testing/packages.md) of Handsontable).
+2. Import Handsontable's CSS file as a whole (just like at [installation](@/guides/getting-started/installation.md)).
 
 ```js
-// remove this line
+import Handsontable from 'handsontable/base';
+
+// if you bundler allows it, import Handsontable's CSS
+import 'handsontable/dist/handsontable.full.css';
+
+// if you have the full bundle import, remove it
 import Handsontable from 'handsontable';
 ```
 
-#### Step 2: Import the `handsontable/base` module
-
-Instead of the full Handsontable version, import the `handsontable/base` module.
-
-```js
-// import the `handsontable/base` module
-import Handsontable from 'handsontable/base';
-```
-
-#### Step 3: Import the CSS
-
-Handsontable's CSS file is not modularized, so you need to import it:
-
-```js
-import Handsontable from 'handsontable/base';
-
-// import Handsontable's CSS
-import 'handsontable/dist/handsontable.full.css';
-```
-
-Now, you're ready to use [any optional modules](#list-of-all-modules) of your choice.
+Now, you're ready to use any [optional modules](#list-of-all-modules) of your choice.
 
 ### Using editor modules
 
