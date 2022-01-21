@@ -467,11 +467,11 @@ registerEditor(PasswordEditor);
 ::: tip
 #### Registering all editors at once
 
-If you import all of Handsonable's editor modules, register them all with the `registerAllEditors()` method:
+If you're importing [all editor modules](#list-of-all-modules), call the `registerAllEditors()` function to register them all at once:
 
 ```js
-// import the `registerAllEditors()` method
-import { registerAllEditors } from 'handsontable/registry';
+// import the `registerAllEditors()` function
+import { registerAllEditors } from 'handsontable/editors';
 
 // register all editors
 registerAllEditors();
@@ -568,11 +568,11 @@ registerRenderer(autocompleteRenderer);
 ::: tip
 #### Registering all renderers at once
 
-If you import all of Handsonable's renderer modules, register them all with the `registerAllRenderers()` method:
+If you're importing [all renderer modules](#list-of-all-modules), call the `registerAllRenderers()` function to register them all at once:
 
 ```js
-// import the `registerAllRenderers()` method
-import { registerAllRenderers } from 'handsontable/registry';
+// import the `registerAllRenderers()` function
+import { registerAllRenderers } from 'handsontable/renderers';
 
 // register all renderers
 registerAllRenderers();
@@ -666,11 +666,11 @@ registerValidator(numericValidator);
 ::: tip
 #### Registering all validators at once
 
-If you import all of Handsonable's validator modules, register them all with the `registerAllValidators()` method:
+If you're importing [all validator modules](#list-of-all-modules), call the `registerAllValidators()` function to register them all at once:
 
 ```js
-// import the `registerAllValidators()` method
-import { registerAllValidators } from 'handsontable/registry';
+// import the `registerAllValidators()` function
+import { registerAllValidators } from 'handsontable/validators';
 
 // register all validators
 registerAllValidators();
@@ -769,11 +769,11 @@ registerCellType(CheckboxCellType);
 ::: tip
 #### Registering all cell types at once
 
-If you import all of Handsonable's cell type modules, register them all with the `registerAllCellTypes()` method:
+If you're importing [all cell type modules](#list-of-all-modules), call the `registerAllCellTypes()` function to register them all at once:
 
 ```js
-// import the `registerAllCellTypes()` method
-import { registerAllCellTypes } from 'handsontable/registry';
+// import the `registerAllCellTypes()` function
+import { registerAllCellTypes } from 'handsontable/cellTypes';
 
 // register all cell types
 registerAllCellTypes();
@@ -897,11 +897,11 @@ registerPlugin(ContextMenu);
 ::: tip
 #### Registering all plugins at once
 
-If you import all of Handsonable's plugin modules, register them all with the `registerAllPlugins()` method:
+If you're importing [all plugin modules](#list-of-all-modules), call the `registerAllPlugins()` function to register them all at once:
 
 ```js
-// import the `registerAllPlugins()` method
-import { registerAllPlugins } from 'handsontable/registry';
+// import the `registerAllPlugins()` function
+import { registerAllPlugins } from 'handsontable/plugins';
 
 // register all plugins
 registerAllPlugins();
