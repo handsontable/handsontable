@@ -51,9 +51,9 @@ For the full list of available configuration options, see the [configuration opt
 ### Cascading configuration
 
 Handsontable's configuration cascades down:
-- From the top-level [grid options](#setting-grid-options) ([`GlobalMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/globalMeta.js))
-- Through the mid-level [column options](#setting-column-options) ([`ColumnMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/columnMeta.js))
-- To the bottom-level [cell options](#setting-cell-options) ([`CellMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/cellMeta.js))
+- From the top-level [grid options](#setting-grid-options) ([`GlobalMeta`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/metaLayers/globalMeta.js))
+- Through the mid-level [column options](#setting-column-options) ([`ColumnMeta`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/metaLayers/columnMeta.js))
+- To the bottom-level [cell options](#setting-cell-options) ([`CellMeta`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/metaLayers/cellMeta.js))
 
 When you modify the mid-level [column options](#setting-column-options) (using the [`columns`](@/api/options.md#columns) option):
 - The options that you change overwrite the top-level [grid options](#setting-grid-options).
@@ -70,7 +70,7 @@ When you modify any options with the [`cells`](@/api/options.md#cells) function,
 The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/advanced-topics/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#changing-cell-options) method don't meet your needs.
 :::
 
-For more details on Handsontable's cascading configuration, see the [MetaManager class](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/index.js).
+For more details on Handsontable's cascading configuration, see the [MetaManager class](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/index.js).
 
 ### Plugin options
 
@@ -431,7 +431,7 @@ hot.getCellMeta(0, 1).readOnly;
 When Handsontable is running, you can check a cell's current options, using the [`getCellMeta()`](@/api/core.md#getcellmeta) method.
 
 The [`getCellMeta()`](@/api/core.md#getcellmeta) method returns an object with:
-- All built-in options (stored in the [`CellMeta`](https://github.com/handsontable/handsontable/blob/master/src/dataMap/metaManager/metaLayers/cellMeta.js) [prototype](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object_prototypes))
+- All built-in options (stored in the [`CellMeta`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/metaLayers/cellMeta.js) [prototype](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object_prototypes))
 - Any options you add
 
 For example:
