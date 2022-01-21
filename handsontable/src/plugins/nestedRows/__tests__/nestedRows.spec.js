@@ -72,6 +72,18 @@ describe('NestedRows', () => {
 
       expect(errors.length).toEqual(0);
     });
+
+    it('should display indicators properly located', () => {
+      const hot = handsontable({
+        data: getMoreComplexNestedData(),
+        nestedRows: true,
+        rowHeaders: true
+      });
+
+      expect(hot.countRows()).toEqual(13);
+      expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).float).toEqual('left');
+      expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).right).toEqual('-2px');
+    });
   });
 
   describe('integration', () => {
