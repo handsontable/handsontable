@@ -42,7 +42,7 @@ To see how to import and register all Handsontable modules, click below:
 
 ::: details Importing and registering all modules
 ```js
-// import the `handsontable/base` module
+// import the required modules
 import Handsontable from 'handsontable/base';
 
 // import editors
@@ -420,10 +420,7 @@ To start using an editor module, follow the steps below.
 First, make sure to [import the required modules](#importing-required-modules):
 
 ```js
-// import the `handsontable/base` module
 import Handsontable from 'handsontable/base';
-
-// import Handsontable's CSS
 import 'handsontable/dist/handsontable.full.css';
 ```
 
@@ -435,7 +432,6 @@ Import the `registerEditor()` method that lets you register your chosen editor:
 import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 
-// import the `registerEditor()` method
 import { registerEditor } from 'handsontable/editors';
 ```
 
@@ -447,7 +443,6 @@ Import an editor module of your choice. For example:
 import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 
-// import the `PasswordEditor` module
 import { registerEditor, PasswordEditor } from 'handsontable/editors';
 ```
 
@@ -470,7 +465,6 @@ registerEditor(PasswordEditor);
 If you're importing [all editor modules](#list-of-all-modules), call the `registerAllEditors()` function to register them all at once:
 
 ```js
-// import the `registerAllEditors()` function
 import { registerAllEditors } from 'handsontable/editors';
 
 // register all editors
@@ -521,10 +515,7 @@ To start using a renderer module, follow the steps below.
 First, make sure to [import the required modules](#importing-required-modules):
 
 ```js
-// import the `handsontable/base` module
 import Handsontable from 'handsontable/base';
-
-// import Handsontable's CSS
 import 'handsontable/dist/handsontable.full.css';
 ```
 
@@ -536,7 +527,6 @@ Import the `registerRenderer()` method that lets you register your chosen render
 import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 
-// import the `registerRenderer()` method
 import { registerRenderer } from 'handsontable/renderers';
 ```
 
@@ -571,7 +561,6 @@ registerRenderer(autocompleteRenderer);
 If you're importing [all renderer modules](#list-of-all-modules), call the `registerAllRenderers()` function to register them all at once:
 
 ```js
-// import the `registerAllRenderers()` function
 import { registerAllRenderers } from 'handsontable/renderers';
 
 // register all renderers
@@ -619,10 +608,7 @@ To start using a validator module, follow the steps below.
 First, make sure to [import the required modules](#importing-required-modules):
 
 ```js
-// import the `handsontable/base` module
 import Handsontable from 'handsontable/base';
-
-// import Handsontable's CSS
 import 'handsontable/dist/handsontable.full.css';
 ```
 
@@ -634,7 +620,6 @@ Import the `registerValidator()` method that lets you register your chosen valid
 import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 
-// import the `registerValidator()` method
 import { registerValidator } from 'handsontable/validators';
 ```
 
@@ -669,7 +654,6 @@ registerValidator(numericValidator);
 If you're importing [all validator modules](#list-of-all-modules), call the `registerAllValidators()` function to register them all at once:
 
 ```js
-// import the `registerAllValidators()` function
 import { registerAllValidators } from 'handsontable/validators';
 
 // register all validators
@@ -722,10 +706,7 @@ To start using a cell type module, follow the steps below.
 First, make sure to [import the required modules](#importing-required-modules):
 
 ```js
-// import the `handsontable/base` module
 import Handsontable from 'handsontable/base';
-
-// import Handsontable's CSS
 import 'handsontable/dist/handsontable.full.css';
 ```
 
@@ -737,7 +718,6 @@ Import the `registerCellType()` method that lets you register your cell type:
 import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 
-// import the `registerCellType()` method
 import { registerCellType } from 'handsontable/cellTypes';
 ```
 
@@ -772,7 +752,6 @@ registerCellType(CheckboxCellType);
 If you're importing [all cell type modules](#list-of-all-modules), call the `registerAllCellTypes()` function to register them all at once:
 
 ```js
-// import the `registerAllCellTypes()` function
 import { registerAllCellTypes } from 'handsontable/cellTypes';
 
 // register all cell types
@@ -850,10 +829,7 @@ To start using a plugin module, follow the steps below.
 First, make sure to [import the required modules](#importing-required-modules):
 
 ```js
-// import the `handsontable/base` module
 import Handsontable from 'handsontable/base';
-
-// import Handsontable's CSS
 import 'handsontable/dist/handsontable.full.css';
 ```
 
@@ -865,7 +841,6 @@ Import the `registerPlugin()` method that lets you register your plugin:
 import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 
-// import the `registerPlugin()` method
 import { registerPlugin } from 'handsontable/plugins';
 ```
 
@@ -900,7 +875,6 @@ registerPlugin(ContextMenu);
 If you're importing [all plugin modules](#list-of-all-modules), call the `registerAllPlugins()` function to register them all at once:
 
 ```js
-// import the `registerAllPlugins()` function
 import { registerAllPlugins } from 'handsontable/plugins';
 
 // register all plugins
@@ -956,10 +930,7 @@ To start using a translation module, follow the steps below.
 First, make sure to [import the required modules](#importing-required-modules):
 
 ```js
-// import the `handsontable/base` module
 import Handsontable from 'handsontable/base';
-
-// import Handsontable's CSS
 import 'handsontable/dist/handsontable.full.css';
 ```
 
@@ -971,7 +942,6 @@ Import the `registerLanguageDictionary()` method that lets you register your tra
 import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 
-// import the `registerLanguageDictionary()` method
 import { registerLanguageDictionary } from 'handsontable/i18n';
 ```
 
