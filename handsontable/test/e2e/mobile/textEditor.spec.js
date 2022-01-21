@@ -1,6 +1,6 @@
-const id = 'testContainer';
-
 describe('Text Editor', () => {
+  const id = 'testContainer';
+
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
@@ -12,30 +12,34 @@ describe('Text Editor', () => {
     }
   });
 
-  if (Handsontable.helper.isIOS()) {
-    it('should save text value after click "Done" on iOS (focusout event)', async() => {
-      const hot = handsontable({
-        columns: [
-          {
-            type: 'text',
-          }
-        ]
-      });
+  it('should save text value after click "Done" on iOS (focusout event)', async() => {
+    if (!Handsontable.helper.isIOS()) {
+      expect(true).toBe(true);
 
-      const cell = hot.getCell(0, 0);
+      return;
+    }
 
-      selectCell(0, 0);
-
-      keyDown('enter');
-
-      const editor = getActiveEditor();
-
-      editor.setValue('test');
-
-      // simulate "Done" click on iOS keyboard
-      editor.eventManager.fireEvent(editor.TEXTAREA, 'focusout');
-
-      expect(cell.textContent).toBe('test');
+    const hot = handsontable({
+      columns: [
+        {
+          type: 'text',
+        }
+      ]
     });
-  }
+
+    const cell = hot.getCell(0, 0);
+
+    selectCell(0, 0);
+
+    keyDown('enter');
+
+    const editor = getActiveEditor();
+
+    editor.setValue('test');
+
+    // simulate "Done" click on iOS keyboard
+    editor.eventManager.fireEvent(editor.TEXTAREA, 'focusout');
+
+    expect(cell.textContent).toBe('test');
+  });
 });

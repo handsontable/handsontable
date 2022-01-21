@@ -13,7 +13,8 @@ if (typeof __ENV_ARGS__ === 'object' && __ENV_ARGS__.testPathPattern) {
 }
 
 [
-  require.context('.', true, /\.spec\.js$/)
+  require.context('.', true, /\.spec\.js$/),
+  require.context('./../../../src/', true, /.*\/mobile\/.*\.spec\.js$/),
 ].forEach((req) => {
   req.keys().forEach((filePath) => {
     if (testPathRegExp === null || (testPathRegExp instanceof RegExp && testPathRegExp.test(filePath))) {
