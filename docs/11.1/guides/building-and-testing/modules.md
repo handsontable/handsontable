@@ -57,7 +57,7 @@ import {
   PasswordEditor,
   SelectEditor,
   TextEditor,
-  registerEditor, // editors' registering method
+  registerEditor, // editors' registering function
 } from 'handsontable/editors';
 
 // import renderers
@@ -69,7 +69,7 @@ import {
   numericRenderer,
   passwordRenderer,
   textRenderer,
-  registerRenderer, // renderers' registering method
+  registerRenderer, // renderers' registering function
 } from 'handsontable/renderers';
 
 // import validators
@@ -78,7 +78,7 @@ import {
   dateValidator,
   numericValidator,
   timeValidator,
-  registerValidator, // validators' registering method
+  registerValidator, // validators' registering function
 } from 'handsontable/validators';
 
 // import cell types
@@ -92,7 +92,7 @@ import {
   PasswordCellType,
   TextCellType,
   TimeCellType,
-  registerCellType, // cell types' registering method
+  registerCellType, // cell types' registering function
 } from 'handsontable/cellTypes';
 
 // import plugins
@@ -131,7 +131,7 @@ import {
   TouchScroll,
   TrimRows,
   UndoRedo,
-  registerPlugin, // plugins' registering method
+  registerPlugin, // plugins' registering function
 } from 'handsontable/plugins';
 
 // import translations
@@ -152,10 +152,10 @@ import {
   ruRU,
   zhCN,
   zhTW,
-  registerLanguageDictionary, // translations' registering method
+  registerLanguageDictionary, // translations' registering function
 } from 'handsontable/i18n';
 
-// optionally, import registering methods
+// optionally, import registering functions
 // that let you quickly register all modules at once
 import {
   registerAllEditors,
@@ -424,9 +424,9 @@ import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 ```
 
-#### Step 2: Import the editors' registering method
+#### Step 2: Import the editors' registering function
 
-Import the `registerEditor()` method that lets you register your chosen editor:
+Import the `registerEditor()` function that lets you register your chosen editor:
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -448,7 +448,7 @@ import { registerEditor, PasswordEditor } from 'handsontable/editors';
 
 #### Step 4: Register your editor
 
-Register your editor, using the `registerEditor()` method. For example:
+Register your editor, using the `registerEditor()` function. For example:
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -519,9 +519,9 @@ import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 ```
 
-#### Step 2: Import the renderers' registering method
+#### Step 2: Import the renderers' registering function
 
-Import the `registerRenderer()` method that lets you register your chosen renderer:
+Import the `registerRenderer()` function that lets you register your chosen renderer:
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -544,7 +544,7 @@ import { registerRenderer, autocompleteRenderer } from 'handsontable/renderers';
 
 #### Step 4: Register your renderer
 
-Register your renderer, using the `registerRenderer()` method. For example:
+Register your renderer, using the `registerRenderer()` function. For example:
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -612,9 +612,9 @@ import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 ```
 
-#### Step 2: Import the validators' registering method
+#### Step 2: Import the validators' registering function
 
-Import the `registerValidator()` method that lets you register your chosen validator:
+Import the `registerValidator()` function that lets you register your chosen validator:
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -637,7 +637,7 @@ import { registerValidator, numericValidator } from 'handsontable/validators';
 
 #### Step 4: Register your validator
 
-Register your validator, using the `registerValidator()` method. For example:
+Register your validator, using the `registerValidator()` function. For example:
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -710,9 +710,9 @@ import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 ```
 
-#### Step 2: Import the cell types' registering method
+#### Step 2: Import the cell types' registering function
 
-Import the `registerCellType()` method that lets you register your cell type:
+Import the `registerCellType()` function that lets you register your cell type:
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -735,7 +735,7 @@ import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
 
 #### Step 4: Register your cell type
 
-Register your cell type, using the `registerCellType()` method. For example:
+Register your cell type, using the `registerCellType()` function. For example:
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -833,9 +833,9 @@ import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 ```
 
-#### Step 2: Import the plugins' registering method
+#### Step 2: Import the plugins' registering function
 
-Import the `registerPlugin()` method that lets you register your plugin:
+Import the `registerPlugin()` function that lets you register your plugin:
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -858,7 +858,7 @@ import { registerPlugin, ContextMenu } from 'handsontable/plugins';
 
 #### Step 4: Register your plugin
 
-Register your plugin, using the `registerPlugin()` method. For example:
+Register your plugin, using the `registerPlugin()` function. For example:
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -934,9 +934,9 @@ import Handsontable from 'handsontable/base';
 import 'handsontable/dist/handsontable.full.css';
 ```
 
-#### Step 2: Import the translations' registering method
+#### Step 2: Import the translations' registering function
 
-Import the `registerLanguageDictionary()` method that lets you register your translation:
+Import the `registerLanguageDictionary()` function that lets you register your translation:
 
 ```js
 import Handsontable from 'handsontable/base';
@@ -959,7 +959,7 @@ import { registerLanguageDictionary, plPL } from 'handsontable/i18n';
 
 #### Step 4: Register your translation
 
-Register your translation, using the `registerLanguageDictionary()` method. For example:
+Register your translation, using the `registerLanguageDictionary()` function. For example:
 
 ```js
 import Handsontable from 'handsontable/base';
