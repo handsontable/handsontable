@@ -474,7 +474,7 @@ registerEditor(PasswordEditor);
 ::: tip
 #### Registering all editors at once
 
-If you're importing [all editor modules](#list-of-all-modules), call the `registerAllEditors()` function to register them all at once:
+If you're importing [all editor modules](#list-of-all-modules), call the `registerAllEditors()` function to to register all of them at once:
 
 ```js
 import { registerAllEditors } from 'handsontable/editors';
@@ -570,7 +570,7 @@ registerRenderer(autocompleteRenderer);
 ::: tip
 #### Registering all renderers at once
 
-If you're importing [all renderer modules](#list-of-all-modules), call the `registerAllRenderers()` function to register them all at once:
+If you're importing [all renderer modules](#list-of-all-modules), call the `registerAllRenderers()` function to to register all of them at once:
 
 ```js
 import { registerAllRenderers } from 'handsontable/renderers';
@@ -663,7 +663,7 @@ registerValidator(numericValidator);
 ::: tip
 #### Registering all validators at once
 
-If you're importing [all validator modules](#list-of-all-modules), call the `registerAllValidators()` function to register them all at once:
+If you're importing [all validator modules](#list-of-all-modules), call the `registerAllValidators()` function to to register all of them at once:
 
 ```js
 import { registerAllValidators } from 'handsontable/validators';
@@ -761,7 +761,7 @@ registerCellType(CheckboxCellType);
 ::: tip
 #### Registering all cell types at once
 
-If you're importing [all cell type modules](#list-of-all-modules), call the `registerAllCellTypes()` function to register them all at once:
+If you're importing [all cell type modules](#list-of-all-modules), call the `registerAllCellTypes()` function to to register all of them at once:
 
 ```js
 import { registerAllCellTypes } from 'handsontable/cellTypes';
@@ -884,7 +884,7 @@ registerPlugin(ContextMenu);
 ::: tip
 #### Registering all plugins at once
 
-If you're importing [all plugin modules](#list-of-all-modules), call the `registerAllPlugins()` function to register them all at once:
+If you're importing [all plugin modules](#list-of-all-modules), call the `registerAllPlugins()` function to to register all of them at once:
 
 ```js
 import { registerAllPlugins } from 'handsontable/plugins';
