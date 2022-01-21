@@ -24,6 +24,16 @@ Learn more about JavaScript modules:
 - Handsontable blog: [Modularizing to improve the developer experience](https://handsontable.com/blog/articles/2021/2/modularizing-to-improve-the-developer-experience)
 - Handsontable blog: [Modularization for React, Angular, and Vue](https://handsontable.com/blog/articles/2021/11/handsontable-11.0.0-modularization-for-react-angular-and-vue)
 
+#### Bundler support
+
+To use Handsontable modules, your environment has to support the `import` syntax.
+
+We recommend the following bundlers:
+- [webpack](https://webpack.js.org)
+- [Parcel](https://parceljs.org)
+
+If Handsontable modules don't work with your bundler, [report it as a bug](https://github.com/handsontable/handsontable/issues/new?assignees=&labels=&template=01-handsontable.md&title=).
+
 ### List of all modules
 
 Handsontable is made of the following modules:
@@ -369,7 +379,7 @@ To get the most out of using Handsontable modules:
    - [Cell type modules](#using-cell-type-modules)
    - [Plugin modules](#using-plugin-modules)
    - [Translation modules](#using-translation-modules)
-3. Remove redundant code, using [tree shaking](#tree-shaking).
+3. Remove redundant code, using [tree shaking](https://developer.mozilla.org/en-US/docs/Glossary/Tree_shaking).
 
 ### Importing required modules
 
@@ -1036,14 +1046,3 @@ You can use modules with Handsontable's framework wrappers:
 - [Using modules with Angular](@/guides/integrate-with-angular/angular-modules.md)
 - [Using modules with Vue 2](@/guides/integrate-with-vue/vue-modules.md)
 - [Using modules with Vue 3](@/guides/integrate-with-vue3/vue3-modules.md)
-
-### Tree shaking
-
-[Tree shaking](https://webpack.js.org/guides/tree-shaking/) lets you remove unused code during the build process.
-
-To learn more, see the documentation of the bundler that you use:
-- [webpack](https://webpack.js.org/guides/tree-shaking/)
-- [Parcel](https://parceljs.org/features/production/#tree-shaking)
-- [rollup.js](https://rollupjs.org/guide/en/#tree-shaking)
-- [browserify](https://github.com/browserify/browserify)
-- [FuseBox](https://github.com/fuse-box/fuse-box)
