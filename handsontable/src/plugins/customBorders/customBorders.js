@@ -10,7 +10,11 @@ import {
   createDefaultCustomBorder,
   createSingleEmptyBorder,
   createEmptyBorders,
-  extendDefaultBorder
+  extendDefaultBorder,
+  hasLeftRightTypeOptions,
+  hasStartEndTypeOptions,
+  toInlinePropName,
+  createInlinePropNamesMap,
 } from './utils';
 import { detectSelectionType, normalizeSelectionFactory } from '../../selection';
 
@@ -44,8 +48,8 @@ export const PLUGIN_PRIORITY = 90;
  *        col: 4
  *      },
  *    },
- *    left: {},
- *    right: {},
+ *    start: {},
+ *    end: {},
  *    top: {},
  *    bottom: {},
  *   },
@@ -55,11 +59,11 @@ export const PLUGIN_PRIORITY = 90;
  * customBorders: [
  *   { row: 2,
  *     col: 2,
- *     left: {
+ *     start: {
  *       width: 2,
  *       color: 'red',
  *     },
- *     right: {
+ *     end: {
  *       width: 1,
  *       color: 'green',
  *     },
@@ -78,16 +82,39 @@ export class CustomBorders extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  constructor(hotInstance) {
-    super(hotInstance);
+  /**
+   * Saved borders.
+   *
+   * @private
+   * @type {Array}
+   */
+  savedBorders = [];
+  /**
+   * The plugin allows describing border properties using the "left"/"right" (deprecated) and
+   * "start"/"end" names. The map allows using one variant of the naming no matter what naming
+   * the user chooses.
+   *
+   * @private
+   * @type {{start: string, end: string}}
+   */
+  #inlineProps = createInlinePropNamesMap();
 
-    /**
-     * Saved borders.
-     *
-     * @private
-     * @type {Array}
-     */
-    this.savedBorders = [];
+  /**
+   * Returns the property name that identifies the most left border position.
+   *
+   * @private
+   */
+  get inlineStartProp() {
+    return this.#inlineProps.start;
+  }
+
+  /**
+   * Returns the property name that identifies the most right border position.
+   *
+   * @private
+   */
+  get inlineEndProp() {
+    return this.#inlineProps.end;
   }
 
   /**
@@ -143,21 +170,20 @@ export class CustomBorders extends BasePlugin {
    * const customBordersPlugin = hot.getPlugin('customBorders');
    *
    * // Using an array of arrays (produced by `.getSelected()` method).
-   * customBordersPlugin.setBorders([[1, 1, 2, 2], [6, 2, 0, 2]], {left: {width: 2, color: 'blue'}});
+   * customBordersPlugin.setBorders([[1, 1, 2, 2], [6, 2, 0, 2]], {start: {width: 2, color: 'blue'}});
    *
    * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
    * //  Selecting a cell range.
    * hot.selectCell(0, 0, 2, 2);
    * // Returning selected cells' range with the getSelectedRange method.
-   * customBordersPlugin.setBorders(hot.getSelectedRange(), {left: {hide: false, width: 2, color: 'blue'}});
+   * customBordersPlugin.setBorders(hot.getSelectedRange(), {start: {hide: false, width: 2, color: 'blue'}});
    * ```
    *
    * @param {Array[]|CellRange[]} selectionRanges Array of selection ranges.
-   * @param {object} borderObject Object with `top`, `right`, `bottom` and `left` properties.
+   * @param {object} borderObject Object with `top`, `right`, `bottom` and `start` properties.
    */
   setBorders(selectionRanges, borderObject) {
-    const defaultBorderKeys = ['top', 'right', 'bottom', 'left'];
-    const borderKeys = borderObject ? Object.keys(borderObject) : defaultBorderKeys;
+    const borderKeys = Object.keys(borderObject);
     const selectionType = detectSelectionType(selectionRanges);
     const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
 
@@ -263,11 +289,21 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
+   * Checks if the plugin is initialized using the backward compatible setting options ("left"/"right" props).
+   *
+   * @private
+   * @returns boolean
+   */
+  isStartEndPropsMode() {
+    return this.inlineStartProp === 'start' && this.inlineEndProp === 'end';
+  }
+
+  /**
    * Insert WalkontableSelection instance into Walkontable settings.
    *
    * @private
-   * @param {object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
-   * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
+   * @param {object} border Object with `row` and `col`, `start`, `end`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+   * @param {string} [place] Coordinate where add/remove border - `top`, `bottom`, `start`, `end`.
    */
   insertBorderIntoSettings(border, place) {
     const hasSavedBorders = this.checkSavedBorders(border);
@@ -280,7 +316,17 @@ export class CustomBorders extends BasePlugin {
     const hasCustomSelections = this.checkCustomSelections(border, visualCellRange, place);
 
     if (!hasCustomSelections) {
-      this.hot.selection.highlight.addCustomSelection({ border, visualCellRange });
+      const borderObj = {};
+
+      Object.assign(
+        borderObj,
+        border[this.inlineStartProp] ? { start: border[this.inlineStartProp] } : {},
+        border[this.inlineEndProp] ? { end: border[this.inlineEndProp] } : {},
+        border.top ? { top: border.top } : {},
+        border.bottom ? { bottom: border.bottom } : {},
+      );
+
+      this.hot.selection.highlight.addCustomSelection({ border: borderObj, visualCellRange });
     }
   }
 
@@ -290,8 +336,8 @@ export class CustomBorders extends BasePlugin {
    * @private
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
-   * @param {object} borderDescriptor Object with `row` and `col`, `left`, `right`, `top` and `bottom` properties.
-   * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
+   * @param {object} borderDescriptor Object with `row` and `col`, `start`, `end`, `top` and `bottom` properties.
+   * @param {string} [place] Coordinate where add/remove border - `top`, `bottom`, `start`, `end`.
    */
   prepareBorderFromCustomAdded(row, column, borderDescriptor, place) {
     const nrOfRows = this.hot.countRows();
@@ -301,20 +347,20 @@ export class CustomBorders extends BasePlugin {
       return;
     }
 
-    let border = createEmptyBorders(row, column);
+    let border = createEmptyBorders(row, column, this.#inlineProps);
 
     if (borderDescriptor) {
-      border = extendDefaultBorder(border, borderDescriptor);
+      border = extendDefaultBorder(border, borderDescriptor, this.#inlineProps);
 
       arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
         if (border.id === customSelection.settings.id) {
-          Object.assign(customSelection.settings, borderDescriptor);
-
-          border.id = customSelection.settings.id;
-          border.left = customSelection.settings.left;
-          border.right = customSelection.settings.right;
-          border.top = customSelection.settings.top;
-          border.bottom = customSelection.settings.bottom;
+          Object.assign(
+            customSelection.settings,
+            borderDescriptor[this.inlineStartProp] ? { start: borderDescriptor[this.inlineStartProp] } : {},
+            borderDescriptor[this.inlineEndProp] ? { end: borderDescriptor[this.inlineEndProp] } : {},
+            borderDescriptor.top ? { top: borderDescriptor.top } : {},
+            borderDescriptor.bottom ? { bottom: borderDescriptor.bottom } : {},
+          );
 
           return false; // breaks forAll
         }
@@ -322,7 +368,6 @@ export class CustomBorders extends BasePlugin {
     }
 
     this.hot.setCellMeta(row, column, 'borders', border);
-
     this.insertBorderIntoSettings(border, place);
   }
 
@@ -330,49 +375,54 @@ export class CustomBorders extends BasePlugin {
    * Prepare borders from setting (object).
    *
    * @private
-   * @param {object} rowDecriptor Object with `range`, `left`, `right`, `top` and `bottom` properties.
+   * @param {object} rowDescriptor Object with `range`, `start`, `end`, `top` and `bottom` properties.
    */
-  prepareBorderFromCustomAddedRange(rowDecriptor) {
-    const range = rowDecriptor.range;
+  prepareBorderFromCustomAddedRange(rowDescriptor) {
+    const range = rowDescriptor.range;
     const lastRowIndex = Math.min(range.to.row, this.hot.countRows() - 1);
     const lastColumnIndex = Math.min(range.to.col, this.hot.countCols() - 1);
 
     rangeEach(range.from.row, lastRowIndex, (rowIndex) => {
       rangeEach(range.from.col, lastColumnIndex, (colIndex) => {
-        const border = createEmptyBorders(rowIndex, colIndex);
+        const border = createEmptyBorders(rowIndex, colIndex, this.#inlineProps);
         let add = 0;
 
         if (rowIndex === range.from.row) {
-          if (hasOwnProperty(rowDecriptor, 'top')) {
+          if (hasOwnProperty(rowDescriptor, 'top')) {
             add += 1;
-            border.top = rowDecriptor.top;
+            border.top = rowDescriptor.top;
           }
         }
 
         // Please keep in mind that `range.to.row` may be beyond the table boundaries. The border won't be rendered.
         if (rowIndex === range.to.row) {
-          if (hasOwnProperty(rowDecriptor, 'bottom')) {
+          if (hasOwnProperty(rowDescriptor, 'bottom')) {
             add += 1;
-            border.bottom = rowDecriptor.bottom;
+            border.bottom = rowDescriptor.bottom;
           }
         }
 
         if (colIndex === range.from.col) {
-          if (hasOwnProperty(rowDecriptor, 'left')) {
+          if (hasOwnProperty(rowDescriptor, this.inlineStartProp)) {
             add += 1;
-            border.left = rowDecriptor.left;
+            border[this.inlineStartProp] = rowDescriptor[this.inlineStartProp];
           }
         }
 
         // Please keep in mind that `range.to.col` may be beyond the table boundaries. The border won't be rendered.
         if (colIndex === range.to.col) {
-          if (hasOwnProperty(rowDecriptor, 'right')) {
+          if (hasOwnProperty(rowDescriptor, this.inlineEndProp)) {
             add += 1;
-            border.right = rowDecriptor.right;
+            border[this.inlineEndProp] = rowDescriptor[this.inlineEndProp];
           }
         }
 
         if (add > 0) {
+          // if (!this.isStartEndPropsMode()) {
+          //   border.start = border.left;
+          //   border.end = border.right;
+          // }
+
           this.hot.setCellMeta(rowIndex, colIndex, 'borders', border);
           this.insertBorderIntoSettings(border);
         } else {
@@ -406,14 +456,14 @@ export class CustomBorders extends BasePlugin {
    * @private
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
-   * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right` and `noBorders`.
+   * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `start`, `end` and `noBorders`.
    * @param {boolean} remove True when remove borders, and false when add borders.
    */
   setBorder(row, column, place, remove) {
     let bordersMeta = this.hot.getCellMeta(row, column).borders;
 
     if (!bordersMeta || bordersMeta.border === void 0) {
-      bordersMeta = createEmptyBorders(row, column);
+      bordersMeta = createEmptyBorders(row, column, this.#inlineProps);
     }
 
     if (remove) {
@@ -480,9 +530,9 @@ export class CustomBorders extends BasePlugin {
             });
             break;
 
-          case 'right':
-            rangeEach(start.row, end.row, (rowRight) => {
-              this.setBorder(rowRight, end.col, place, remove);
+          case this.inlineEndProp:
+            rangeEach(start.row, end.row, (rowEnd) => {
+              this.setBorder(rowEnd, end.col, place, remove);
             });
             break;
 
@@ -492,9 +542,9 @@ export class CustomBorders extends BasePlugin {
             });
             break;
 
-          case 'left':
-            rangeEach(start.row, end.row, (rowLeft) => {
-              this.setBorder(rowLeft, start.col, place, remove);
+          case this.inlineStartProp:
+            rangeEach(start.row, end.row, (rowStart) => {
+              this.setBorder(rowStart, start.col, place, remove);
             });
             break;
           default:
@@ -508,7 +558,7 @@ export class CustomBorders extends BasePlugin {
    * Create borders from settings.
    *
    * @private
-   * @param {Array} customBorders Object with `row` and `col`, `left`, `right`, `top` and `bottom` properties.
+   * @param {Array} customBorders Object with `row` and `col`, `start`, `end`, `top` and `bottom` properties.
    */
   createCustomBorders(customBorders) {
     arrayEach(customBorders, (customBorder) => {
@@ -525,16 +575,17 @@ export class CustomBorders extends BasePlugin {
    * Count hide property in border object.
    *
    * @private
-   * @param {object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+   * @param {object} border Object with `row` and `col`, `start`, `end`, `top` and `bottom`, `id` and
+   *                        `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    * @returns {number}
    */
-  countHide(border) {
-    const values = Object.values(border);
+  countHide({ top, bottom, start, end }) {
+    const values = [top, bottom, start, end];
 
     return arrayReduce(values, (accumulator, value) => {
       let result = accumulator;
 
-      if (value.hide) {
+      if (value && value.hide) {
         result += 1;
       }
 
@@ -605,7 +656,8 @@ export class CustomBorders extends BasePlugin {
    * Check if an border already exists in the savedBorders array, and if true update border in savedBorders.
    *
    * @private
-   * @param {object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+   * @param {object} border Object with `row` and `col`, `start`, `end`, `top` and `bottom`, `id` and
+   *                        `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    *
    * @returns {boolean}
    */
@@ -636,8 +688,9 @@ export class CustomBorders extends BasePlugin {
    * Check if an border already exists in the customSelections, and if true call toggleHiddenClass method.
    *
    * @private
-   * @param {object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
-   * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right` and `noBorders`.
+   * @param {object} border Object with `row` and `col`, `start`, `end`, `top` and `bottom`, `id` and
+   *                        `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+   * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `start`, `end` and `noBorders`.
    * @param {boolean} remove True when remove borders, and false when add borders.
    *
    * @returns {boolean}
@@ -648,7 +701,7 @@ export class CustomBorders extends BasePlugin {
     arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
       if (border.id === customSelection.settings.id) {
         objectEach(customSelection.instanceBorders, (borderObject) => {
-          borderObject.toggleHiddenClass(place, remove); // TODO this also bad?
+          borderObject.toggleHiddenClass(toInlinePropName(place), remove); // TODO this also bad?
         });
 
         check = true;
@@ -664,9 +717,10 @@ export class CustomBorders extends BasePlugin {
    * Check if an border already exists in the customSelections, and if true reset cellRange.
    *
    * @private
-   * @param {object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+   * @param {object} border Object with `row` and `col`, `start`, `end`, `top` and `bottom`, `id` and
+   *                        `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    * @param {CellRange} cellRange The selection range to check.
-   * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
+   * @param {string} [place] Coordinate where add/remove border - `top`, `bottom`, `start`, `end`.
    * @returns {boolean}
    */
   checkCustomSelections(border, cellRange, place) {
@@ -685,7 +739,17 @@ export class CustomBorders extends BasePlugin {
 
           if (place) {
             objectEach(customSelection.instanceBorders, (borderObject) => {
-              borderObject.changeBorderStyle(place, border);
+              const borderObj = {};
+
+              Object.assign(
+                borderObj,
+                border[this.inlineStartProp] ? { start: border[this.inlineStartProp] } : {},
+                border[this.inlineEndProp] ? { end: border[this.inlineEndProp] } : {},
+                border.top ? { top: border.top } : {},
+                border.bottom ? { bottom: border.bottom } : {},
+              );
+
+              borderObject.changeBorderStyle(toInlinePropName(place), borderObj);
             });
           }
 
@@ -708,6 +772,10 @@ export class CustomBorders extends BasePlugin {
     const customBorders = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(customBorders)) {
+      this.checkSettingsCohesion(customBorders);
+
+      this.#inlineProps = createInlinePropNamesMap(hasLeftRightTypeOptions(customBorders));
+
       if (!customBorders.length) {
         this.savedBorders = customBorders;
       }
@@ -716,6 +784,25 @@ export class CustomBorders extends BasePlugin {
 
     } else if (customBorders !== void 0) {
       this.createCustomBorders(this.savedBorders);
+    }
+  }
+
+  /**
+   * Checks the settings cohesion. The properties such like "left"/"right" are supported only
+   * in the LTR mode and the "left"/"right" options can not be used together with "start"/"end" properties.
+   *
+   * @private
+   */
+  checkSettingsCohesion(customBorders) {
+    const hasLeftOrRight = hasLeftRightTypeOptions(customBorders);
+    const hasStartOrEnd = hasStartEndTypeOptions(customBorders);
+
+    if (hasLeftOrRight && hasStartOrEnd) {
+      throw new Error('The "left"/"right" and "start"/"end" options should not be used together. Please use only the option "start"/"end".');
+    }
+
+    if (this.hot.isRtl() && hasLeftOrRight) {
+      throw new Error('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".');
     }
   }
 

@@ -53,28 +53,30 @@ export function createDefaultHtBorder() {
  *
  * @param {number} row Visual row index.
  * @param {number} col Visual column index.
+ * @param {object} inlinePropMap The map that gives the translation for horizontal direction naming.
  * @returns {object} Returns border configuration containing visual indexes. Example of an object defining it:
  * `{{id: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`.
  */
-export function createEmptyBorders(row, col) {
+export function createEmptyBorders(row, col, { start: startProp, end: endProp }) {
   return {
     id: createId(row, col),
     border: createDefaultHtBorder(),
     row,
     col,
     top: createSingleEmptyBorder(),
-    right: createSingleEmptyBorder(),
     bottom: createSingleEmptyBorder(),
-    left: createSingleEmptyBorder(),
+    [startProp]: createSingleEmptyBorder(),
+    [endProp]: createSingleEmptyBorder(),
   };
 }
 
 /**
  * @param {object} defaultBorder The default border object.
  * @param {object} customBorder The border object with custom settings.
+ * @param {object} inlinePropMap The map that gives the translation for horizontal direction naming.
  * @returns {object}
  */
-export function extendDefaultBorder(defaultBorder, customBorder) {
+export function extendDefaultBorder(defaultBorder, customBorder, { start: startProp, end: endProp }) {
   if (hasOwnProperty(customBorder, 'border')) {
     defaultBorder.border = customBorder.border;
   }
@@ -93,17 +95,19 @@ export function extendDefaultBorder(defaultBorder, customBorder) {
     }
   }
 
-  if (hasOwnProperty(customBorder, 'right')) {
-    if (customBorder.right) {
-      if (!isObject(customBorder.right)) {
-        customBorder.right = createDefaultCustomBorder();
+  if (hasOwnProperty(customBorder, endProp)) {
+    if (customBorder[endProp]) {
+
+      if (!isObject(customBorder[endProp])) {
+        customBorder[endProp] = createDefaultCustomBorder();
       }
 
-      defaultBorder.right = customBorder.right;
+
+      defaultBorder[endProp] = customBorder[endProp];
 
     } else {
-      customBorder.right = createSingleEmptyBorder();
-      defaultBorder.right = customBorder.right;
+      customBorder[endProp] = createSingleEmptyBorder();
+      defaultBorder[endProp] = customBorder[endProp];
     }
   }
 
@@ -121,17 +125,17 @@ export function extendDefaultBorder(defaultBorder, customBorder) {
     }
   }
 
-  if (hasOwnProperty(customBorder, 'left')) {
-    if (customBorder.left) {
-      if (!isObject(customBorder.left)) {
-        customBorder.left = createDefaultCustomBorder();
+  if (hasOwnProperty(customBorder, startProp)) {
+    if (customBorder[startProp]) {
+      if (!isObject(customBorder[startProp])) {
+        customBorder[startProp] = createDefaultCustomBorder();
       }
 
-      defaultBorder.left = customBorder.left;
+      defaultBorder[startProp] = customBorder[startProp];
 
     } else {
-      customBorder.left = createSingleEmptyBorder();
-      defaultBorder.left = customBorder.left;
+      customBorder[startProp] = createSingleEmptyBorder();
+      defaultBorder[startProp] = customBorder[startProp];
     }
   }
 
@@ -183,4 +187,53 @@ export function checkSelectionBorders(hot, direction) {
  */
 export function markSelected(label) {
   return `<span class="selected">${String.fromCharCode(10003)}</span>${label}`; // workaround for https://github.com/handsontable/handsontable/issues/1946
+}
+
+/**
+ * Checks if in the borders config there are defined "left" or "right" border properties.
+ *
+ * @param {object[]} borders The custom border plugin's options.
+ * @returns {boolean}
+ */
+export function hasLeftRightTypeOptions(borders) {
+  return borders.some(border => hasOwnProperty(border, 'left') || hasOwnProperty(border, 'right'));
+}
+
+/**
+ * Checks if in the borders config there are defined "start" or "end" border properties.
+ *
+ * @param {object[]} borders The custom border plugin's options.
+ * @returns {boolean}
+ */
+export function hasStartEndTypeOptions(borders) {
+  return borders.some(border => hasOwnProperty(border, 'start') || hasOwnProperty(border, 'end'));
+}
+
+/**
+ * Creates an object that allows translating the border inline direction names to names that are
+ * backward compatible ("left"/"right") or non-backward compatible ("start"/"end").
+ *
+ * @param {boolean} [backwardCompatibleMode=true] If `true` the direction will be translated to physical values.
+ * @returns {{start: string, end: string}}
+ */
+export function createInlinePropNamesMap(backwardCompatibleMode = true) {
+  return {
+    start: backwardCompatibleMode ? 'left' : 'start',
+    end: backwardCompatibleMode ? 'right' : 'end',
+  };
+}
+
+const physicalToInlinePropNames = new Map([
+  ['left', 'start'],
+  ['right', 'end'],
+]);
+
+/**
+ * Translates the physical horizontal direction to logical ones.
+ *
+ * @param {string} propName The physical direction property name ("left" or "right").
+ * @returns {string}
+ */
+export function toInlinePropName(propName) {
+  return physicalToInlinePropNames.get(propName) ?? propName;
 }
