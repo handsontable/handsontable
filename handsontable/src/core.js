@@ -2263,12 +2263,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings, init = false) {
-    // TODO: uncomment the next line with the next major version update
-    // Do not forget to re-enable the pending tests that cover the change:
-    //  * https://github.com/handsontable/handsontable/blob/9f62c282a1c951b27cd8406aa27105bd32b05bb6/handsontable/test/e2e/core/toPhysicalColumn.spec.js#L70
-    //  * https://github.com/handsontable/handsontable/blob/9f62c282a1c951b27cd8406aa27105bd32b05bb6/handsontable/test/e2e/core/toVisualColumn.spec.js#L70
-    // const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(this);
-    const dataUpdateFunction = instance.loadData.bind(this);
+    const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(this);
     let columnsAsFunc = false;
     let i;
     let j;
