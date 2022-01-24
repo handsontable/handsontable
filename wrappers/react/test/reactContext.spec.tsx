@@ -1,9 +1,5 @@
 import React from 'react';
 import {
-  mount,
-  ReactWrapper
-} from 'enzyme';
-import {
   HotTable
 } from '../src/hotTable';
 import {
@@ -11,15 +7,29 @@ import {
 } from '../src/hotColumn';
 import {
   createSpreadsheetData,
-  mockElementDimensions,
+  mockElementDimensions, mountComponent,
   sleep
 } from './_helpers';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
+
+// TODO move this to a shared place
+const SPEC = {
+  container: null
+};
 
 beforeEach(() => {
   let container = document.createElement('DIV');
   container.id = 'hotContainer';
   document.body.appendChild(container);
+
+  SPEC.container = container;
+});
+
+afterEach(() => {
+  const container = document.querySelector('#hotContainer');
+  container.parentNode.removeChild(container);
+
+  SPEC.container = null;
 });
 
 describe('React Context', () => {
@@ -67,7 +77,7 @@ describe('React Context', () => {
     }
     EditorComponent3.contextType = TestContext;
 
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+    mountComponent((
       <TestContext.Provider value={'testContextValue'}>
         <HotTable licenseKey="non-commercial-and-evaluation"
                   id="test-hot"
@@ -93,10 +103,8 @@ describe('React Context', () => {
             <EditorComponent3 hot-editor className="ec3"/>
           </HotColumn>
         </HotTable>
-      </TestContext.Provider>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
+      </TestContext.Provider>
+    ), SPEC.container);
 
     const hotInstance = hotTableInstance.hotInstance;
 
@@ -109,7 +117,5 @@ describe('React Context', () => {
     expect(hotInstance.getCell(1, 1).innerHTML).toEqual('<div>testContextValue</div>');
 
     expect(document.querySelector('.ec3').innerHTML).toEqual('testContextValue');
-
-    wrapper.detach();
   });
 });

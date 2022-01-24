@@ -52,8 +52,6 @@
     "@babel/preset-react": "^7.9.4",
     "@babel/preset-typescript": "^7.9.0",
     "@babel/runtime": "^7.9.2",
-    "@types/enzyme": "^3.1.15",
-    "@types/enzyme-adapter-react-16": "^1.0.3",
     "@types/react": "^16.9.5",
     "@types/react-dom": "^16.9.1",
     "@types/react-redux": "^7.1.7",
@@ -61,9 +59,6 @@
     "cpy-cli": "^3.1.1",
     "cross-env": "^5.2.0",
     "del-cli": "^3.0.1",
-    "enzyme": "^3.10.0",
-    "enzyme-adapter-react-16": "^1.14.0",
-    "enzyme-to-json": "^3.4.0",
     "handsontable": "^11.0.0",
     "jest": "^25.1.0",
     "prop-types": "^15.7.2",
@@ -102,9 +97,6 @@
     "testURL": "http://localhost/",
     "setupFiles": [
       "./test/jestsetup.ts"
-    ],
-    "snapshotSerializers": [
-      "enzyme-to-json/serializer"
     ],
     "transform": {
       "^.+\\.tsx?$": "babel-jest",

@@ -1,21 +1,31 @@
 import React, { Suspense, lazy } from 'react';
 import {
-  mount,
-  ReactWrapper
-} from 'enzyme';
-import {
   HotTable
 } from '../src/hotTable';
 import {
   createSpreadsheetData,
-  mockElementDimensions,
+  mockElementDimensions, mountComponent,
   sleep,
 } from './_helpers';
+
+// TODO move this to a shared place
+const SPEC = {
+  container: null
+};
 
 beforeEach(() => {
   let container = document.createElement('DIV');
   container.id = 'hotContainer';
   document.body.appendChild(container);
+
+  SPEC.container = container;
+});
+
+afterEach(() => {
+  const container = document.querySelector('#hotContainer');
+  container.parentNode.removeChild(container);
+
+  SPEC.container = null;
 });
 
 describe('React.lazy', () => {
@@ -45,7 +55,7 @@ describe('React.lazy', () => {
       )
     }
 
-    const wrapper: ReactWrapper<{}, {}, any> = mount(
+    const hotInstance = mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(1, 1)}
@@ -59,13 +69,8 @@ describe('React.lazy', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}>
         <SuspendedRenderer hot-renderer/>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
-
-    const hotTableInstance = wrapper.instance();
-    const hotInstance = hotTableInstance.hotInstance;
+      </HotTable>
+    ), SPEC.container).hotInstance;
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>loading-message</div>');
 
@@ -77,7 +82,5 @@ describe('React.lazy', () => {
     await sleep(40);
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>lazy value: A1</div>');
-
-    wrapper.detach();
   });
 });

@@ -1,7 +1,84 @@
-import React from 'react';
-import { HotTable } from '../src/hotTable';
+import React, { useRef } from 'react';
+import { render } from 'react-dom';
+import { act } from 'react-dom/test-utils';
+import { HotTable, HotColumn } from '../src/hotTable';
 import { addUnsafePrefixes } from '../src/helpers';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
+import { getHotColumnComponents } from "@handsontable/vue/helpers";
+
+export function mountComponent(Component, container) {
+  let hotTableComponent = null;
+
+  const App = () => {
+    hotTableComponent = useRef(null);
+
+    if (!Component.type.prototype || !Component.type.prototype.isReactComponent) {
+      return (
+        <Component.type {...Component.props}></Component.type>
+      );
+    }
+
+    return (
+      <Component.type {...Component.props} ref={hotTableComponent}></Component.type>
+    );
+  }
+
+  act(() => {
+    render(<App/>, container);
+  });
+
+  return hotTableComponent?.current;
+}
+
+// export function getWrappingApp(config, hotTableRef) {
+//   const components = {
+//     HotTable,
+//     HotColumn
+//   }
+//   // let hotTableRef = null;
+//   // const HotTableComponent = () => {
+//   //   hotTableRef = useRef(null);
+//   //
+//   //   return (
+//   //     <HotTable ref={hotTableRef} {...config.HotTable}>
+//   //     </HotTable>
+//   //   );
+//   // }
+//   let ColumnComponent = null;
+//   // const hotTableComponent = null;
+//
+//   // if (config.HotTable) {
+//   //   HotTableComponent = </>;
+//   // }
+//
+//   // Object.keys(config).forEach((componentName) => {
+//   //
+//   // });
+//
+//   // console.log(<Component ref={hotTableComponent}/>);
+//   //
+//   // // component.props.ref = hotTableComponent;
+//   //
+//   const App = () => {
+//     // hotTableComponent = useRef(null);
+//     hotTableRef = useRef(null);
+//
+//     return (
+//       <React.Fragment>
+//         <HotTable {...config.HotTable}>
+//
+//         </HotTable>
+//       </React.Fragment>
+//     );
+//   }
+//
+//   return {
+//     hotTableRef,
+//     App
+//   };
+// }
+
+
 
 export function sleep(delay = 100) {
   return Promise.resolve({
