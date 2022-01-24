@@ -1,11 +1,13 @@
 ---
-title: Internationalization (i18n)
-metaTitle: Internationalization (i18n) - Guide - Handsontable Documentation
+title: Internationalization
+metaTitle: Internationalization - Guide - Handsontable Documentation
 permalink: /next/internationalization-i18n
 canonicalUrl: /internationalization-i18n
+tags:
+  - i18n
 ---
 
-# Internationalization (i18n)
+# Internationalization
 
 [[toc]]
 
