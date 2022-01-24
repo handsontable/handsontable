@@ -5,8 +5,7 @@ permalink: /next/layout-direction
 canonicalUrl: /layout-direction
 tags:
   - rtl
-  - rtl support
-  - right-to-left mode
+  - right-to-left
   - arabic
   - hebrew
   - persian
@@ -19,15 +18,18 @@ tags:
 
 # Layout direction
 
-You can set Handsontable's layout direction as right-to-left, to easily support RTL [languages](@/guides/internationalization/language.md).
+You can set Handsontable's layout direction support right-to-left (RTL) [languages](@/guides/internationalization/language.md).
 
 [[toc]]
 
 ## About layout direction
 
-For smooth RTL support, Handsontable offers a dedicated [configuration option](@/guides/getting-started/setting-options.md): [`layoutDirection`](@/api/options.md#layoutdirection). 
+To properly display your data and UI text in RTL [languages](@/guides/internationalization/language.md) (such as Hebrew or Arabic), 
+you need to configure your grid's layout direction.
 
-You can set the [`layoutDirection`](@/api/options.md#layoutdirection) option to one of the following:
+Handsontable lets you do this with a dedicated [configuration option](@/guides/getting-started/setting-options.md), called [`layoutDirection`](@/api/options.md#layoutdirection).
+
+You can set the [`layoutDirection`](@/api/options.md#layoutdirection) option to one of the following strings:
 
 | Setting             | Description                                                                                                                                                               |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -45,7 +47,9 @@ PLACEHOLDER
 
 Setting a different layout direction affects the following elements of Handsontable:
 
-PLACEHOLDER
+::: details PLACEHOLDER
+[table]
+:::
 
 ## Setting the layout direction
 
@@ -66,7 +70,7 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   rowHeaders: true,
   // set Handsontable's layout direction as right-to-left
-  layoutDirection: `rtl`,
+  layoutDirection: 'rtl',
 });
 ```
 :::

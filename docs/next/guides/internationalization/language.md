@@ -13,7 +13,7 @@ tags:
 
 # Language settings
 
-You can display Handsontable's UI text in different languages.
+You can display Handsontable's UI text in other languages.
 
 [[toc]]
 
