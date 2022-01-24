@@ -14,7 +14,7 @@ editLink: false
 
 ### getTrimmedIndexes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/translations/maps/trimmingMap.js#L20
+::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/handsontable/src/translations/maps/trimmingMap.js#L20
 
 :::
 
