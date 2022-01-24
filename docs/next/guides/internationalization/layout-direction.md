@@ -6,6 +6,10 @@ canonicalUrl: /layout-direction
 tags:
   - rtl
   - right-to-left mode
+  - arabic
+  - hebrew
+  - persian
+  - farsi
 ---
 
 # Layout direction
