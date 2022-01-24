@@ -2473,7 +2473,7 @@ export default () => {
      * | `'zh-TW'`           | Chinese - Taiwan            |
      *
      * Read more:
-     * - [Internationalization (i18n) &#8594;](@/guides/internationalization/internationalization-i18n.md)
+     * - [Language settings &#8594;](@/guides/internationalization/language.md)
      * - [`locale`](#locale)
      *
      * @memberof Options#
@@ -2525,7 +2525,7 @@ export default () => {
      * both for the entire grid, and for individual columns.
      *
      * Read more:
-     * - [Internationalization (i18n) &#8594;](@/guides/internationalization/internationalization-i18n.md)
+     * - [Locale settings &#8594;](@/guides/internationalization/locale.md)
      * - [`language`](#language)
      *
      * @memberof Options#

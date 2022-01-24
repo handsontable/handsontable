@@ -11,11 +11,15 @@ tags:
   - hebrew
   - persian
   - farsi
+  - internationalization
+  - localization
+  - L10n
+  - i18n
 ---
 
 # Layout direction
 
-You can set Handsontable's layout direction as right-to-left, to easily support RTL languages.
+You can set Handsontable's layout direction as right-to-left, to easily support RTL [languages](@/guides/internationalization/language.md).
 
 [[toc]]
 
@@ -39,22 +43,17 @@ PLACEHOLDER
 
 ### List of layout direction elements
 
-Setting a different layout direction affects the following aspects of Handsontable:
+Setting a different layout direction affects the following elements of Handsontable:
 
 PLACEHOLDER
 
 ## Setting the layout direction
 
-You can set Handsontable's layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid).
+To set your grid's layout direction, set the [`layoutDirection`](@/api/options.md#layoutdirection) [configuration option](@/guides/getting-started/setting-options.md) at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid):
 
-You can't change the layout direction using the [`updateSettings()`](@/api/core.md#updatesettings) method.
-To change the layout direction at Handsontable's runtime, you need to initialize Handsontable once again.
-
-To set Handsontable's layout direction, use the [`layoutDirection`](@/api/options.md#layoutdirection) [configuration option](@/guides/getting-started/setting-options.md):
-
-::: example #example1
+::: example #example2
 ```js
-const container = document.querySelector('#example1');
+const container = document.querySelector('#example2');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
@@ -70,4 +69,8 @@ const hot = new Handsontable(container, {
   layoutDirection: `rtl`,
 });
 ```
+:::
+
+::: tip
+You can't change the layout direction at Handsontable's runtime.
 :::

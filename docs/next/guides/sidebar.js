@@ -141,7 +141,8 @@ const accessoriesAndMenusItems = [
 ];
 
 const internationalizationItems = [
-  'guides/internationalization/internationalization-i18n',
+  'guides/internationalization/language',
+  'guides/internationalization/locale',
   'guides/internationalization/layout-direction',
   'guides/internationalization/ime-support',
 ];

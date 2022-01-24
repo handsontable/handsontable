@@ -139,16 +139,16 @@ From the `./handsontable` directory, you can also run individual JavaScript `bui
   - Builds Walkontable, an essential part of Handsontable that's responsible for the rendering process.
 
 `npm run build:languages`
-  - Creates the [language](@/guides/internationalization/internationalization-i18n.md) bundles compatible with the Universal Module Definition, for example:
+  - Creates the [language](@/guides/internationalization/language.md) bundles compatible with the Universal Module Definition, for example:
     - `./handsontable/dist/languages/de-DE.js`
     - `./handsontable/dist/languages/all.js`
 
 `build:languages.es`
-  - Creates the [language](@/guides/internationalization/internationalization-i18n.md) bundles compatible with the ESM format, for example:
+  - Creates the [language](@/guides/internationalization/language.md) bundles compatible with the ESM format, for example:
     - `languages/en-US.mjs`
 
 `npm run build:languages.min`
-   - Creates the minified [language](@/guides/internationalization/internationalization-i18n.md) bundles compatible with the Universal Module Definition, for example:
+   - Creates the minified [language](@/guides/internationalization/language.md) bundles compatible with the Universal Module Definition, for example:
      - `./handsontable/dist/languages/de-DE.min.js`
      - `./handsontable/dist/languages/all.min.js`
 :::
