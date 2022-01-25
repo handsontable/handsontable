@@ -308,6 +308,7 @@ export class BaseEditor {
     const editorContext = shortcutManager.getContext('editor');
 
     editorContext.removeShortcutByNamespace('baseEditor');
+    editorContext.removeShortcutByNamespace('editorManager');
 
     if (this.state === EDITOR_STATE.VIRGIN) {
       this.hot._registerTimeout(() => {

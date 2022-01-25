@@ -281,6 +281,10 @@ export class SelectEditor extends BaseEditor {
       namespace: 'selectEditor',
     };
 
+    if (this.isInFullEditMode() === false) {
+      return;
+    }
+
     editorContext.addShortcut([['ArrowUp']], () => {
       const previousOptionIndex = this.select.selectedIndex - 1;
 

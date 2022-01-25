@@ -2,9 +2,7 @@ import { TextEditor } from '../textEditor';
 import { setCaretPosition } from '../../helpers/dom/element';
 import {
   stopImmediatePropagation,
-  isImmediatePropagationStopped,
 } from '../../helpers/dom/event';
-import { KEY_CODES } from '../../helpers/unicode';
 import { extend } from '../../helpers/object';
 
 export const EDITOR_TYPE = 'handsontable';
@@ -173,23 +171,63 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
-   * OnBeforeKeyDown callback.
-   * TODO: Can we move that shortcuts to the ShortcutManager flow?
+   * Registers shortcut responsible for handling editor.
    *
    * @private
-   * @param {Event} event The keyboard event object.
    */
-  onBeforeKeyDown(event) {
-    if (isImmediatePropagationStopped(event)) {
-      return;
-    }
+  registerShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
 
-    const innerHOT = this.htEditor.getInstance();
+    const contextConfig = {
+      namespace: 'handsontableEditor',
+    };
 
-    let rowToSelect;
-    let selectedRow;
+    const action = (rowToSelect, event) => {
+      const innerHOT = this.htEditor.getInstance();
 
-    if (event.keyCode === KEY_CODES.ARROW_DOWN) {
+      if (rowToSelect !== void 0) {
+        if (rowToSelect < 0 || (innerHOT.flipped && rowToSelect > innerHOT.countRows() - 1)) {
+          innerHOT.deselectCell();
+        } else {
+          innerHOT.selectCell(rowToSelect, 0);
+        }
+        if (innerHOT.getData().length) {
+          event.preventDefault();
+          stopImmediatePropagation(event);
+
+          this.hot.listen();
+          this.TEXTAREA.focus();
+        }
+      }
+    };
+
+    editorContext.addShortcut([['ArrowUp']], (event) => {
+      const innerHOT = this.htEditor.getInstance();
+      let rowToSelect;
+      let selectedRow;
+
+      if (!innerHOT.getSelectedLast() && innerHOT.flipped) {
+        rowToSelect = innerHOT.countRows() - 1;
+
+      } else if (innerHOT.getSelectedLast()) {
+        if (innerHOT.flipped) {
+          selectedRow = innerHOT.getSelectedLast()[0];
+          rowToSelect = Math.max(0, selectedRow - 1);
+        } else {
+          selectedRow = innerHOT.getSelectedLast()[0];
+          rowToSelect = selectedRow - 1;
+        }
+      }
+
+      action(rowToSelect, event);
+    }, contextConfig);
+
+    editorContext.addShortcut([['ArrowDown']], (event) => {
+      const innerHOT = this.htEditor.getInstance();
+      let rowToSelect;
+      let selectedRow;
+
       if (!innerHOT.getSelectedLast() && !innerHOT.flipped) {
         rowToSelect = 0;
 
@@ -205,36 +243,19 @@ export class HandsontableEditor extends TextEditor {
         }
       }
 
-    } else if (event.keyCode === KEY_CODES.ARROW_UP) {
-      if (!innerHOT.getSelectedLast() && innerHOT.flipped) {
-        rowToSelect = innerHOT.countRows() - 1;
+      action(rowToSelect, event);
+    }, contextConfig);
+  }
 
-      } else if (innerHOT.getSelectedLast()) {
-        if (innerHOT.flipped) {
-          selectedRow = innerHOT.getSelectedLast()[0];
-          rowToSelect = Math.max(0, selectedRow - 1);
-        } else {
-          selectedRow = innerHOT.getSelectedLast()[0];
-          rowToSelect = selectedRow - 1;
-        }
-      }
-    }
+  /**
+   * Unregisters shortcut responsible for handling editor.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
 
-    if (rowToSelect !== void 0) {
-      if (rowToSelect < 0 || (innerHOT.flipped && rowToSelect > innerHOT.countRows() - 1)) {
-        innerHOT.deselectCell();
-      } else {
-        innerHOT.selectCell(rowToSelect, 0);
-      }
-      if (innerHOT.getData().length) {
-        event.preventDefault();
-        stopImmediatePropagation(event);
-
-        this.hot.listen();
-        this.TEXTAREA.focus();
-      }
-    }
-
-    super.onBeforeKeyDown(event);
+    editorContext.removeShortcutByNamespace('handsontableEditor');
   }
 }
