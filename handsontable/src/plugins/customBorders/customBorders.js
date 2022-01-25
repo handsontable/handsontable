@@ -14,7 +14,7 @@ import {
   hasLeftRightTypeOptions,
   hasStartEndTypeOptions,
   toInlinePropName,
-  createInlinePropNamesMap,
+  createBorderNormalizer,
 } from './utils';
 import { detectSelectionType, normalizeSelectionFactory } from '../../selection';
 
@@ -97,25 +97,7 @@ export class CustomBorders extends BasePlugin {
    * @private
    * @type {{start: string, end: string}}
    */
-  #inlineProps = createInlinePropNamesMap();
-
-  /**
-   * Returns the property name that identifies the most left border position.
-   *
-   * @private
-   */
-  get inlineStartProp() {
-    return this.#inlineProps.start;
-  }
-
-  /**
-   * Returns the property name that identifies the most right border position.
-   *
-   * @private
-   */
-  get inlineEndProp() {
-    return this.#inlineProps.end;
-  }
+  #borderNormalizer = createBorderNormalizer();
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -183,7 +165,16 @@ export class CustomBorders extends BasePlugin {
    * @param {object} borderObject Object with `top`, `right`, `bottom` and `start` properties.
    */
   setBorders(selectionRanges, borderObject) {
-    const borderKeys = Object.keys(borderObject);
+    let borderKeys = ['top', 'bottom', 'start', 'end'];
+    let normBorder = null;
+
+    if (borderObject) {
+      this.checkSettingsCohesion([borderObject]);
+
+      borderKeys = Object.keys(borderObject);
+      normBorder = this.#borderNormalizer.normalize(borderObject);
+    }
+
     const selectionType = detectSelectionType(selectionRanges);
     const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType);
 
@@ -193,7 +184,7 @@ export class CustomBorders extends BasePlugin {
       for (let row = rowStart; row <= rowEnd; row += 1) {
         for (let col = columnStart; col <= columnEnd; col += 1) {
           arrayEach(borderKeys, (borderKey) => {
-            this.prepareBorderFromCustomAdded(row, col, borderObject, borderKey);
+            this.prepareBorderFromCustomAdded(row, col, normBorder, toInlinePropName(borderKey));
           });
         }
       }
@@ -246,7 +237,7 @@ export class CustomBorders extends BasePlugin {
         for (let col = columnStart; col <= columnEnd; col += 1) {
           arrayEach(this.savedBorders, (border) => {
             if (border.row === row && border.col === col) {
-              selectedBorders.push(border);
+              selectedBorders.push(this.#borderNormalizer.denormalize(border));
             }
           });
         }
@@ -289,16 +280,6 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Checks if the plugin is initialized using the backward compatible setting options ("left"/"right" props).
-   *
-   * @private
-   * @returns boolean
-   */
-  isStartEndPropsMode() {
-    return this.inlineStartProp === 'start' && this.inlineEndProp === 'end';
-  }
-
-  /**
    * Insert WalkontableSelection instance into Walkontable settings.
    *
    * @private
@@ -316,17 +297,7 @@ export class CustomBorders extends BasePlugin {
     const hasCustomSelections = this.checkCustomSelections(border, visualCellRange, place);
 
     if (!hasCustomSelections) {
-      const borderObj = {};
-
-      Object.assign(
-        borderObj,
-        border[this.inlineStartProp] ? { start: border[this.inlineStartProp] } : {},
-        border[this.inlineEndProp] ? { end: border[this.inlineEndProp] } : {},
-        border.top ? { top: border.top } : {},
-        border.bottom ? { bottom: border.bottom } : {},
-      );
-
-      this.hot.selection.highlight.addCustomSelection({ border: borderObj, visualCellRange });
+      this.hot.selection.highlight.addCustomSelection({ border, visualCellRange });
     }
   }
 
@@ -347,27 +318,27 @@ export class CustomBorders extends BasePlugin {
       return;
     }
 
-    let border = createEmptyBorders(row, column, this.#inlineProps);
+    let border = createEmptyBorders(row, column);
 
     if (borderDescriptor) {
-      border = extendDefaultBorder(border, borderDescriptor, this.#inlineProps);
+      border = extendDefaultBorder(border, borderDescriptor);
 
       arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
         if (border.id === customSelection.settings.id) {
-          Object.assign(
-            customSelection.settings,
-            borderDescriptor[this.inlineStartProp] ? { start: borderDescriptor[this.inlineStartProp] } : {},
-            borderDescriptor[this.inlineEndProp] ? { end: borderDescriptor[this.inlineEndProp] } : {},
-            borderDescriptor.top ? { top: borderDescriptor.top } : {},
-            borderDescriptor.bottom ? { bottom: borderDescriptor.bottom } : {},
-          );
+          Object.assign(customSelection.settings, borderDescriptor);
+
+          border.id = customSelection.settings.id;
+          border.top = customSelection.settings.top;
+          border.bottom = customSelection.settings.bottom;
+          border.start = customSelection.settings.start;
+          border.end = customSelection.settings.end;
 
           return false; // breaks forAll
         }
       });
     }
 
-    this.hot.setCellMeta(row, column, 'borders', border);
+    this.hot.setCellMeta(row, column, 'borders', this.#borderNormalizer.denormalize(border));
     this.insertBorderIntoSettings(border, place);
   }
 
@@ -375,55 +346,49 @@ export class CustomBorders extends BasePlugin {
    * Prepare borders from setting (object).
    *
    * @private
-   * @param {object} rowDescriptor Object with `range`, `start`, `end`, `top` and `bottom` properties.
+   * @param {object} customBorder Object with `range`, `start`, `end`, `top` and `bottom` properties.
    */
-  prepareBorderFromCustomAddedRange(rowDescriptor) {
-    const range = rowDescriptor.range;
+  prepareBorderFromCustomAddedRange(range, customBorder) {
     const lastRowIndex = Math.min(range.to.row, this.hot.countRows() - 1);
     const lastColumnIndex = Math.min(range.to.col, this.hot.countCols() - 1);
 
     rangeEach(range.from.row, lastRowIndex, (rowIndex) => {
       rangeEach(range.from.col, lastColumnIndex, (colIndex) => {
-        const border = createEmptyBorders(rowIndex, colIndex, this.#inlineProps);
+        const border = createEmptyBorders(rowIndex, colIndex);
         let add = 0;
 
         if (rowIndex === range.from.row) {
-          if (hasOwnProperty(rowDescriptor, 'top')) {
+          if (hasOwnProperty(customBorder, 'top')) {
             add += 1;
-            border.top = rowDescriptor.top;
+            border.top = customBorder.top;
           }
         }
 
         // Please keep in mind that `range.to.row` may be beyond the table boundaries. The border won't be rendered.
         if (rowIndex === range.to.row) {
-          if (hasOwnProperty(rowDescriptor, 'bottom')) {
+          if (hasOwnProperty(customBorder, 'bottom')) {
             add += 1;
-            border.bottom = rowDescriptor.bottom;
+            border.bottom = customBorder.bottom;
           }
         }
 
         if (colIndex === range.from.col) {
-          if (hasOwnProperty(rowDescriptor, this.inlineStartProp)) {
+          if (hasOwnProperty(customBorder, 'start')) {
             add += 1;
-            border[this.inlineStartProp] = rowDescriptor[this.inlineStartProp];
+            border.start = customBorder.start;
           }
         }
 
         // Please keep in mind that `range.to.col` may be beyond the table boundaries. The border won't be rendered.
         if (colIndex === range.to.col) {
-          if (hasOwnProperty(rowDescriptor, this.inlineEndProp)) {
+          if (hasOwnProperty(customBorder, 'end')) {
             add += 1;
-            border[this.inlineEndProp] = rowDescriptor[this.inlineEndProp];
+            border.end = customBorder.end;
           }
         }
 
         if (add > 0) {
-          // if (!this.isStartEndPropsMode()) {
-          //   border.start = border.left;
-          //   border.end = border.right;
-          // }
-
-          this.hot.setCellMeta(rowIndex, colIndex, 'borders', border);
+          this.hot.setCellMeta(rowIndex, colIndex, 'borders', this.#borderNormalizer.denormalize(border));
           this.insertBorderIntoSettings(border);
         } else {
           // TODO sometimes it enters here. Why?
@@ -463,7 +428,9 @@ export class CustomBorders extends BasePlugin {
     let bordersMeta = this.hot.getCellMeta(row, column).borders;
 
     if (!bordersMeta || bordersMeta.border === void 0) {
-      bordersMeta = createEmptyBorders(row, column, this.#inlineProps);
+      bordersMeta = createEmptyBorders(row, column);
+    } else {
+      bordersMeta = this.#borderNormalizer.normalize(bordersMeta);
     }
 
     if (remove) {
@@ -481,7 +448,7 @@ export class CustomBorders extends BasePlugin {
           this.insertBorderIntoSettings(bordersMeta);
         }
 
-        this.hot.setCellMeta(row, column, 'borders', bordersMeta);
+        this.hot.setCellMeta(row, column, 'borders', this.#borderNormalizer.denormalize(bordersMeta));
       }
 
     } else {
@@ -493,7 +460,7 @@ export class CustomBorders extends BasePlugin {
         this.insertBorderIntoSettings(bordersMeta);
       }
 
-      this.hot.setCellMeta(row, column, 'borders', bordersMeta);
+      this.hot.setCellMeta(row, column, 'borders', this.#borderNormalizer.denormalize(bordersMeta));
     }
   }
 
@@ -530,21 +497,21 @@ export class CustomBorders extends BasePlugin {
             });
             break;
 
-          case this.inlineEndProp:
-            rangeEach(start.row, end.row, (rowEnd) => {
-              this.setBorder(rowEnd, end.col, place, remove);
-            });
-            break;
-
           case 'bottom':
             rangeEach(start.col, end.col, (bottomCol) => {
               this.setBorder(end.row, bottomCol, place, remove);
             });
             break;
 
-          case this.inlineStartProp:
+          case 'start':
             rangeEach(start.row, end.row, (rowStart) => {
               this.setBorder(rowStart, start.col, place, remove);
+            });
+            break;
+
+          case 'end':
+            rangeEach(start.row, end.row, (rowEnd) => {
+              this.setBorder(rowEnd, end.col, place, remove);
             });
             break;
           default:
@@ -562,11 +529,13 @@ export class CustomBorders extends BasePlugin {
    */
   createCustomBorders(customBorders) {
     arrayEach(customBorders, (customBorder) => {
+      const normCustomBorder = this.#borderNormalizer.normalize(customBorder);
+
       if (customBorder.range) {
-        this.prepareBorderFromCustomAddedRange(customBorder);
+        this.prepareBorderFromCustomAddedRange(customBorder.range, normCustomBorder);
 
       } else {
-        this.prepareBorderFromCustomAdded(customBorder.row, customBorder.col, customBorder);
+        this.prepareBorderFromCustomAdded(customBorder.row, customBorder.col, normCustomBorder);
       }
     });
   }
@@ -701,7 +670,7 @@ export class CustomBorders extends BasePlugin {
     arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
       if (border.id === customSelection.settings.id) {
         objectEach(customSelection.instanceBorders, (borderObject) => {
-          borderObject.toggleHiddenClass(toInlinePropName(place), remove); // TODO this also bad?
+          borderObject.toggleHiddenClass(place, remove); // TODO this also bad?
         });
 
         check = true;
@@ -739,17 +708,7 @@ export class CustomBorders extends BasePlugin {
 
           if (place) {
             objectEach(customSelection.instanceBorders, (borderObject) => {
-              const borderObj = {};
-
-              Object.assign(
-                borderObj,
-                border[this.inlineStartProp] ? { start: border[this.inlineStartProp] } : {},
-                border[this.inlineEndProp] ? { end: border[this.inlineEndProp] } : {},
-                border.top ? { top: border.top } : {},
-                border.bottom ? { bottom: border.bottom } : {},
-              );
-
-              borderObject.changeBorderStyle(toInlinePropName(place), borderObj);
+              borderObject.changeBorderStyle(place, border);
             });
           }
 
@@ -774,7 +733,7 @@ export class CustomBorders extends BasePlugin {
     if (Array.isArray(customBorders)) {
       this.checkSettingsCohesion(customBorders);
 
-      this.#inlineProps = createInlinePropNamesMap(hasLeftRightTypeOptions(customBorders));
+      this.#borderNormalizer = createBorderNormalizer();
 
       if (!customBorders.length) {
         this.savedBorders = customBorders;
