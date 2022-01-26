@@ -22,7 +22,7 @@ Display Handsontable's UI text in other languages, and add your own translations
 You can easily change the text of the UI for the purpose of translating it to specific languages. We provide the developer with predefined languages, which can be applied by loading the language set and changing just one setting, and an ability to use their own language sets, created using templates of existing language files.
 
 ::: tip
-To easily support RTL languages, configure Handsontable's [layout direction](@/guides/internationalization/layout-direction.md).
+To properly display RTL languages, configure Handsontable's [layout direction](@/guides/internationalization/layout-direction.md).
 :::
 
 ## Loading the prepared language files
