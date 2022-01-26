@@ -141,11 +141,11 @@ export class Overlay {
     const spreader = this.clone.wtTable.spreader;
 
     const spreaderOffset = {
-      start: this.getStart(spreader),
+      start: this.getRelativeStartPosition(spreader),
       top: spreader.offsetTop
     };
     const elementOffset = {
-      start: this.getStart(element),
+      start: this.getRelativeStartPosition(element),
       top: element.offsetTop
     };
     let offsetObject = null;
@@ -170,7 +170,7 @@ export class Overlay {
    * @param {HTMLElement} el Element.
    * @returns {number|number|number|*}
    */
-  getStart(el) {
+  getRelativeStartPosition(el) {
     return this.isRtl()
       ? el.offsetParent.offsetWidth - el.offsetLeft - el.offsetWidth
       : el.offsetLeft;
