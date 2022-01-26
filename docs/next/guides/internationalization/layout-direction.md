@@ -18,7 +18,7 @@ tags:
 
 # Layout direction
 
-Configure Handsontable's layout direction, to easily display right-to-left (RTL) [languages](@/guides/internationalization/language.md).
+Configure Handsontable's layout direction, to properly display right-to-left (RTL) [languages](@/guides/internationalization/language.md).
 
 [[toc]]
 
@@ -45,10 +45,16 @@ PLACEHOLDER
 
 ### List of layout direction elements
 
-Setting a different layout direction affects the following elements of Handsontable:
+Setting a different layout direction affects the behavior of the following areas of Handsontable:
 
-::: details PLACEHOLDER
-[table]
+::: details List of layout direction elements
+
+| Area of Handsontable                                                 | Affected elements                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Cell types](@/guides/cell-types/cell-type.md)                       | [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md)<br>[`checkbox`](@/guides/cell-types/checkbox-cell-type.md)<br>[`date`](@/guides/cell-types/date-cell-type.md)<br>[`dropdown`](@/guides/cell-types/dropdown-cell-type.md)<br>[`handsontable`](@/guides/cell-types/handsontable-cell-type.md)<br>[`numeric`](@/guides/cell-types/numeric-cell-type.md)<br>[`time`](@/guides/cell-types/time-cell-type.md)                                                                                                                                                       |
+| [Configuration options](@/guides/getting-started/setting-options.md) | [`colHeaders`](@/api/options.md#colheaders)<br>[`fixedColumnsLeft`](@/api/options.md#fixedcolumnsleft)<br>[`fixedRowsBottom`](@/api/options.md#fixedrowsbottom)<br>[`rowHeaders`](@/api/options.md#rowheaders)<br>[`selectionMode`](@/api/options.md#selectionmode)<br>                                                                                                                                                                                                                                                                                                       |
+| [Plugins](@/api/plugins.md)                                          | [`Autofill`](@/api/autofill.md)<br>[`CollapsibleColumns`](@/api/collapsiblecolumns.md)<br>[`ColumnSorting`](@/api/columnsorting.md)<br>[`Comments`](@/api/comments.md)<br>[`ContextMenu`](@/api/contextmenu.md)<br>[`CustomBorders`](@/api/customborders.md)<br>[`DropdownMenu`](@/api/dropdownmenu.md)<br>[`Filters`](@/api/filters.md)<br>[`HiddenColumns`](@/api/hiddencolumns.md)<br>[`HiddenRows`](@/api/hiddenrows.md)<br>[`ManualColumnMove`](@/api/manualcolumnmove.md)<br>[`ManualColumnResize`](@/api/manualcolumnresize.md)<br>[`NestedRows`](@/api/nestedrows.md) |
+| Other                                                                | Horizontal scroll<br>[Selection](@/guides/cell-features/selection.md)<br>Vertical scroll                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 :::
 
 ## Setting the layout direction
@@ -76,5 +82,5 @@ const hot = new Handsontable(container, {
 :::
 
 ::: tip
-You can't change the layout direction at Handsontable's runtime.
+You can't change the layout direction at Handsontable's runtime (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method).
 :::
