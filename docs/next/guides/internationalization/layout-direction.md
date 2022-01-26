@@ -41,7 +41,25 @@ You can set the [`layoutDirection`](@/api/options.md#layoutdirection) option to 
 
 To try out Handsontable's RTL support, check out the demo below:
 
-PLACEHOLDER
+::: example #example1
+```js
+const container = document.querySelector('#example1');
+
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+  ['2019', 10, 11, 12, 13],
+  ['2020', 20, 11, 14, 13],
+  ['2021', 30, 15, 12, 13]
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  // set Handsontable's layout direction as right-to-left
+  layoutDirection: 'rtl',
+});
+```
+:::
 
 ### List of layout direction elements
 
