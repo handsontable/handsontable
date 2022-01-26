@@ -4,7 +4,13 @@ import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayReduce, arrayMap } from '../../helpers/array';
 import { CellRange, CellCoords } from '../../3rdparty/walkontable/src';
 import * as C from '../../i18n/constants';
-import { bottom, left, noBorders, right, top } from './contextMenuItem';
+import {
+  top as menuItemTop,
+  bottom as menuItemBottom,
+  left as menuItemLeft,
+  right as menuItemRight,
+  noBorders as menuItemNoBorders,
+} from './contextMenuItem';
 import {
   createId,
   createDefaultCustomBorder,
@@ -14,7 +20,8 @@ import {
   hasLeftRightTypeOptions,
   hasStartEndTypeOptions,
   toInlinePropName,
-  createBorderNormalizer,
+  normalizeBorder,
+  denormalizeBorder,
 } from './utils';
 import { detectSelectionType, normalizeSelectionFactory } from '../../selection';
 
@@ -89,15 +96,6 @@ export class CustomBorders extends BasePlugin {
    * @type {Array}
    */
   savedBorders = [];
-  /**
-   * The plugin allows describing border properties using the "left"/"right" (deprecated) and
-   * "start"/"end" names. The map allows using one variant of the naming no matter what naming
-   * the user chooses.
-   *
-   * @private
-   * @type {{start: string, end: string}}
-   */
-  #borderNormalizer = createBorderNormalizer();
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -172,7 +170,7 @@ export class CustomBorders extends BasePlugin {
       this.checkSettingsCohesion([borderObject]);
 
       borderKeys = Object.keys(borderObject);
-      normBorder = this.#borderNormalizer.normalize(borderObject);
+      normBorder = normalizeBorder(borderObject);
     }
 
     const selectionType = detectSelectionType(selectionRanges);
@@ -237,7 +235,7 @@ export class CustomBorders extends BasePlugin {
         for (let col = columnStart; col <= columnEnd; col += 1) {
           arrayEach(this.savedBorders, (border) => {
             if (border.row === row && border.col === col) {
-              selectedBorders.push(this.#borderNormalizer.denormalize(border));
+              selectedBorders.push(denormalizeBorder(border));
             }
           });
         }
@@ -338,7 +336,7 @@ export class CustomBorders extends BasePlugin {
       });
     }
 
-    this.hot.setCellMeta(row, column, 'borders', this.#borderNormalizer.denormalize(border));
+    this.hot.setCellMeta(row, column, 'borders', denormalizeBorder(border));
     this.insertBorderIntoSettings(border, place);
   }
 
@@ -346,7 +344,8 @@ export class CustomBorders extends BasePlugin {
    * Prepare borders from setting (object).
    *
    * @private
-   * @param {object} customBorder Object with `range`, `start`, `end`, `top` and `bottom` properties.
+   * @param {object} range {CellRange} The CellRange object.
+   * @param {object} customBorder Object with `start`, `end`, `top` and `bottom` properties.
    */
   prepareBorderFromCustomAddedRange(range, customBorder) {
     const lastRowIndex = Math.min(range.to.row, this.hot.countRows() - 1);
@@ -388,7 +387,7 @@ export class CustomBorders extends BasePlugin {
         }
 
         if (add > 0) {
-          this.hot.setCellMeta(rowIndex, colIndex, 'borders', this.#borderNormalizer.denormalize(border));
+          this.hot.setCellMeta(rowIndex, colIndex, 'borders', denormalizeBorder(border));
           this.insertBorderIntoSettings(border);
         } else {
           // TODO sometimes it enters here. Why?
@@ -430,7 +429,7 @@ export class CustomBorders extends BasePlugin {
     if (!bordersMeta || bordersMeta.border === void 0) {
       bordersMeta = createEmptyBorders(row, column);
     } else {
-      bordersMeta = this.#borderNormalizer.normalize(bordersMeta);
+      bordersMeta = normalizeBorder(bordersMeta);
     }
 
     if (remove) {
@@ -448,7 +447,7 @@ export class CustomBorders extends BasePlugin {
           this.insertBorderIntoSettings(bordersMeta);
         }
 
-        this.hot.setCellMeta(row, column, 'borders', this.#borderNormalizer.denormalize(bordersMeta));
+        this.hot.setCellMeta(row, column, 'borders', denormalizeBorder(bordersMeta));
       }
 
     } else {
@@ -460,7 +459,7 @@ export class CustomBorders extends BasePlugin {
         this.insertBorderIntoSettings(bordersMeta);
       }
 
-      this.hot.setCellMeta(row, column, 'borders', this.#borderNormalizer.denormalize(bordersMeta));
+      this.hot.setCellMeta(row, column, 'borders', denormalizeBorder(bordersMeta));
     }
   }
 
@@ -529,7 +528,7 @@ export class CustomBorders extends BasePlugin {
    */
   createCustomBorders(customBorders) {
     arrayEach(customBorders, (customBorder) => {
-      const normCustomBorder = this.#borderNormalizer.normalize(customBorder);
+      const normCustomBorder = normalizeBorder(customBorder);
 
       if (customBorder.range) {
         this.prepareBorderFromCustomAddedRange(customBorder.range, normCustomBorder);
@@ -548,7 +547,8 @@ export class CustomBorders extends BasePlugin {
    *                        `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    * @returns {number}
    */
-  countHide({ top, bottom, start, end }) {
+  countHide(border) {
+    const { top, bottom, start, end } = border;
     const values = [top, bottom, start, end];
 
     return arrayReduce(values, (accumulator, value) => {
@@ -733,8 +733,6 @@ export class CustomBorders extends BasePlugin {
     if (Array.isArray(customBorders)) {
       this.checkSettingsCohesion(customBorders);
 
-      this.#borderNormalizer = createBorderNormalizer();
-
       if (!customBorders.length) {
         this.savedBorders = customBorders;
       }
@@ -751,13 +749,15 @@ export class CustomBorders extends BasePlugin {
    * in the LTR mode and the "left"/"right" options can not be used together with "start"/"end" properties.
    *
    * @private
+   * @param {object[]} customBorders The user defined custom border objects array.
    */
   checkSettingsCohesion(customBorders) {
     const hasLeftOrRight = hasLeftRightTypeOptions(customBorders);
     const hasStartOrEnd = hasStartEndTypeOptions(customBorders);
 
     if (hasLeftOrRight && hasStartOrEnd) {
-      throw new Error('The "left"/"right" and "start"/"end" options should not be used together. Please use only the option "start"/"end".');
+      throw new Error('The "left"/"right" and "start"/"end" options should not be used together. ' +
+                      'Please use only the option "start"/"end".');
     }
 
     if (this.hot.isRtl() && hasLeftOrRight) {
@@ -788,11 +788,11 @@ export class CustomBorders extends BasePlugin {
       },
       submenu: {
         items: [
-          top(this),
-          right(this),
-          bottom(this),
-          left(this),
-          noBorders(this)
+          menuItemTop(this),
+          menuItemRight(this),
+          menuItemBottom(this),
+          menuItemLeft(this),
+          menuItemNoBorders(this)
         ]
       }
     });

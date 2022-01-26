@@ -184,7 +184,8 @@ describe('CustomBorders', () => {
             top: GREEN_BORDER
           }]
         });
-      }).toThrowError('The "left"/"right" and "start"/"end" options should not be used together. Please use only the option "start"/"end".');
+      }).toThrowError('The "left"/"right" and "start"/"end" options should not be used together. ' +
+                      'Please use only the option "start"/"end".');
     });
 
     it('should throw an error while calling the `updateSettings` method when the mixed API is used ("start"/"end" and "left"/"right")', () => {
@@ -206,7 +207,8 @@ describe('CustomBorders', () => {
             right: RED_BORDER,
           }]
         });
-      }).toThrowError('The "left"/"right" and "start"/"end" options should not be used together. Please use only the option "start"/"end".');
+      }).toThrowError('The "left"/"right" and "start"/"end" options should not be used together. ' +
+                      'Please use only the option "start"/"end".');
     });
 
     it('should be possible to update borders using backward compatible API ("left"/"right") even when Handsontable was initialized using new API ("start"/"end")', () => {

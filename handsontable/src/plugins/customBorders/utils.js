@@ -50,41 +50,45 @@ export function createDefaultHtBorder() {
   };
 }
 
-export function createBorderNormalizer() {
-  function normalize(border) {
-    return Object.assign(
-      {
-        row: border.row,
-        col: border.col,
-      },
-      isDefined(border.id) ? { id: border.id } : {},
-      isDefined(border.border) ? { border: border.border } : {},
-      isDefined(border.top) ? { top: border.top } : {},
-      isDefined(border.bottom) ? { bottom: border.bottom } : {},
-      isDefined(border.start) || isDefined(border.left) ? { start: border.start ?? border.left } : {},
-      isDefined(border.end) || isDefined(border.right) ? { end: border.end ?? border.right } : {},
-    );
-  }
-
-  function denormalize(border) {
-    return Object.assign(
-      {
-        row: border.row,
-        col: border.col,
-      },
-      isDefined(border.id) ? { id: border.id } : {},
-      isDefined(border.border) ? { border: border.border } : {},
-      isDefined(border.top) ? { top: border.top } : {},
-      isDefined(border.bottom) ? { bottom: border.bottom } : {},
-      isDefined(border.start) ? { start: border.start, left: border.start } : {},
-      isDefined(border.end) ? { end: border.end, right: border.end } : {},
-    );
-  }
-
+/**
+ * Normalizes the border object to be compatible with the Border API from the Walkontable.
+ * The function translates the "left"/"right" properties to "start"/"end" prop names.
+ *
+ * @param {object} border The configuration object of the border.
+ * @returns {object}
+ */
+export function normalizeBorder(border) {
   return {
-    normalize,
-    denormalize,
-  }
+    row: border.row,
+    col: border.col,
+    ...(isDefined(border.id) ? { id: border.id } : null),
+    ...(isDefined(border.border) ? { border: border.border } : null),
+    ...(isDefined(border.top) ? { top: border.top } : null),
+    ...(isDefined(border.bottom) ? { bottom: border.bottom } : null),
+    ...(isDefined(border.start) || isDefined(border.left) ? { start: border.start ?? border.left } : null),
+    ...(isDefined(border.end) || isDefined(border.right) ? { end: border.end ?? border.right } : null),
+  };
+}
+
+/**
+ * Denormalizes the border object to be backward compatible with the previous version of the CustomBorders
+ * plugin API. The function extends the border configuration object for the backward compatible "left"/"right"
+ * properties.
+ *
+ * @param {object} border The configuration object of the border.
+ * @returns {object}
+ */
+export function denormalizeBorder(border) {
+  return {
+    row: border.row,
+    col: border.col,
+    ...(isDefined(border.id) ? { id: border.id } : {}),
+    ...(isDefined(border.border) ? { border: border.border } : {}),
+    ...(isDefined(border.top) ? { top: border.top } : {}),
+    ...(isDefined(border.bottom) ? { bottom: border.bottom } : {}),
+    ...(isDefined(border.start) ? { start: border.start, left: border.start } : {}),
+    ...(isDefined(border.end) ? { end: border.end, right: border.end } : {}),
+  };
 }
 
 /**

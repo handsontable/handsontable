@@ -98,6 +98,29 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     });
   });
 
+  it('should translate borders declared using new "start"/"end" API to backward compatible format', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      customBorders: [{
+        row: 2,
+        col: 2,
+        start: RED_BORDER,
+        end: RED_BORDER,
+        top: GREEN_BORDER
+      }]
+    });
+
+    expect(getCellMeta(2, 2).borders.top).toEqual(GREEN_BORDER);
+    expect(getCellMeta(2, 2).borders.bottom).toEqual(EMPTY);
+    expect(getCellMeta(2, 2).borders.start).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.left).toEqual(RED_BORDER); // The same as "start"
+    expect(getCellMeta(2, 2).borders.end).toEqual(RED_BORDER);
+    expect(getCellMeta(2, 2).borders.right).toEqual(RED_BORDER); // The same as "end"
+
+    expect(countVisibleCustomBorders()).toBe(3);
+    expect(countCustomBorders()).toBe(5);
+  });
+
   it('should render specific borders provided in the configuration', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),

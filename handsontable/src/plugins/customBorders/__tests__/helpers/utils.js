@@ -14,6 +14,8 @@ export const CUSTOM_BORDER_SELECTOR = '.wtBorder:not(.fill, .current, .area)';
  * Returns number of custom borders in DOM. There are 5 borders per
  * cell (top, left, bottom right, corner), some of which are hidden
  * TODO this seems redundant that we always render borders that are not visible.
+ *
+ * @returns {number}
  */
 export function countCustomBorders() {
   return $(CUSTOM_BORDER_SELECTOR).length;
@@ -21,15 +23,18 @@ export function countCustomBorders() {
 
 /**
  * Returns number of visible custom borders in DOM.
+ *
+ * @returns {number}
  */
- export function countVisibleCustomBorders() {
+export function countVisibleCustomBorders() {
   return $(`${CUSTOM_BORDER_SELECTOR}:visible`).length;
 }
 
 /**
- * @param numRows
+ * @param {number} numRows The number of rows to generate.
+ * @returns {{row: number, col: number, top: any}[]}
  */
- export function generateCustomBordersForAllRows(numRows) {
+export function generateCustomBordersForAllRows(numRows) {
   const bordersConfig = [];
 
   for (let i = 0; i < numRows; i++) {

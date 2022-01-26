@@ -6,7 +6,7 @@ import { checkSelectionBorders, markSelected } from '../utils';
  * @returns {object}
  */
 export default function left(customBordersPlugin) {
-  const borderDirection = customBordersPlugin.hot.isRtl() ? 'end': 'start';
+  const borderDirection = customBordersPlugin.hot.isRtl() ? 'end' : 'start';
 
   return {
     key: 'borders:left',

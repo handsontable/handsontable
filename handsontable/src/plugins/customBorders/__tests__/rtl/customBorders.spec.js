@@ -35,7 +35,8 @@ describe('CustomBorders (RTL mode)', () => {
             top: GREEN_BORDER
           }]
         });
-      }).toThrowError('The "left"/"right" and "start"/"end" options should not be used together. Please use only the option "start"/"end".');
+      }).toThrowError('The "left"/"right" and "start"/"end" options should not be used together. ' +
+                      'Please use only the option "start"/"end".');
     });
 
     it('should not be possible to use backward compatible API ("left"/"right") in RTL mode (initialization)', () => {
