@@ -29,56 +29,6 @@ export function mountComponent(Component, container) {
   return hotTableComponent?.current;
 }
 
-// export function getWrappingApp(config, hotTableRef) {
-//   const components = {
-//     HotTable,
-//     HotColumn
-//   }
-//   // let hotTableRef = null;
-//   // const HotTableComponent = () => {
-//   //   hotTableRef = useRef(null);
-//   //
-//   //   return (
-//   //     <HotTable ref={hotTableRef} {...config.HotTable}>
-//   //     </HotTable>
-//   //   );
-//   // }
-//   let ColumnComponent = null;
-//   // const hotTableComponent = null;
-//
-//   // if (config.HotTable) {
-//   //   HotTableComponent = </>;
-//   // }
-//
-//   // Object.keys(config).forEach((componentName) => {
-//   //
-//   // });
-//
-//   // console.log(<Component ref={hotTableComponent}/>);
-//   //
-//   // // component.props.ref = hotTableComponent;
-//   //
-//   const App = () => {
-//     // hotTableComponent = useRef(null);
-//     hotTableRef = useRef(null);
-//
-//     return (
-//       <React.Fragment>
-//         <HotTable {...config.HotTable}>
-//
-//         </HotTable>
-//       </React.Fragment>
-//     );
-//   }
-//
-//   return {
-//     hotTableRef,
-//     App
-//   };
-// }
-
-
-
 export function sleep(delay = 100) {
   return Promise.resolve({
     then(resolve) {
