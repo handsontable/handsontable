@@ -141,7 +141,6 @@ const buildingAndTestingItems = [
 ];
 
 const advancedTopicsItems = [
-  // TODO 'guides/advanced-topics/accessibility',
   'guides/advanced-topics/batch-operations',
   // TODO 'guides/advanced-topics/touch-events',
   'guides/advanced-topics/performance',
