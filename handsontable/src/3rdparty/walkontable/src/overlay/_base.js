@@ -168,7 +168,7 @@ export class Overlay {
    * Get inline start value depending of direction.
    *
    * @param {HTMLElement} el Element.
-   * @returns {number|number|number|*}
+   * @returns {number}
    */
   getRelativeStartPosition(el) {
     return this.isRtl()
