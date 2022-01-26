@@ -9,7 +9,6 @@ import {
 import { HOT_DESTROYED_WARNING } from "../src/helpers";
 import { BaseEditorComponent } from '../src/baseEditorComponent';
 
-// TODO move this to a shared place
 const SPEC = {
   container: null
 };

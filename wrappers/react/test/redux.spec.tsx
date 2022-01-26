@@ -9,7 +9,8 @@ import {
   mockElementDimensions,
   sleep,
   RendererComponent,
-  EditorComponent, mountComponent
+  EditorComponent,
+  mountComponent
 } from './_helpers';
 
 const initialReduxStoreState = {
@@ -31,7 +32,6 @@ const appReducer = (state = initialReduxStoreState, action) => {
 const actionReducers = combineReducers({appReducer});
 const reduxStore = createStore(actionReducers);
 
-// TODO move this to a shared place
 const SPEC = {
   container: null
 };

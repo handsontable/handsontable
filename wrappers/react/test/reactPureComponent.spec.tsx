@@ -4,11 +4,10 @@ import {
 } from '../src/hotTable';
 import {
   createSpreadsheetData,
-  mockElementDimensions, mountComponent,
-  sleep,
+  mockElementDimensions,
+  mountComponent
 } from './_helpers';
 
-// TODO move this to a shared place
 const SPEC = {
   container: null
 };

@@ -9,14 +9,12 @@ import {
 import {
   createSpreadsheetData,
   mockElementDimensions,
-  sleep,
   mountComponent
 } from './_helpers';
 import {
   AUTOSIZE_WARNING
 } from '../src/helpers';
 
-// TODO move this to a shared place
 const SPEC = {
   container: null
 };

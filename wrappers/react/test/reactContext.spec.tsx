@@ -7,12 +7,11 @@ import {
 } from '../src/hotColumn';
 import {
   createSpreadsheetData,
-  mockElementDimensions, mountComponent,
-  sleep
+  mockElementDimensions,
+  mountComponent
 } from './_helpers';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
 
-// TODO move this to a shared place
 const SPEC = {
   container: null
 };

@@ -8,7 +8,6 @@ import {
   sleep,
 } from './_helpers';
 
-// TODO move this to a shared place
 const SPEC = {
   container: null
 };

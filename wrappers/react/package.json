@@ -95,9 +95,6 @@
   },
   "jest": {
     "testURL": "http://localhost/",
-    "setupFiles": [
-      "./test/jestsetup.ts"
-    ],
     "transform": {
       "^.+\\.tsx?$": "babel-jest",
       "^.+\\.js$": "babel-jest"

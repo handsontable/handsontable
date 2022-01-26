@@ -5,12 +5,10 @@ import {
 import {
   createSpreadsheetData,
   mockElementDimensions,
-  sleep,
-  simulateMouseEvent, mountComponent
+  simulateMouseEvent,
+  mountComponent
 } from './_helpers';
-import { HotColumn } from "../src";
 
-// TODO move this to a shared place
 const SPEC = {
   container: null
 };
