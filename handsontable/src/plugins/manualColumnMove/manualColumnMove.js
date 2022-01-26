@@ -1,7 +1,7 @@
 import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { arrayReduce } from '../../helpers/array';
-import { addClass, removeClass, offset, hasClass } from '../../helpers/dom/element';
+import { addClass, removeClass, offset, hasClass, outerWidth } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import EventManager from '../../eventManager';
 import BacklightUI from './ui/backlight';
@@ -408,13 +408,24 @@ export class ManualColumnMove extends BasePlugin {
     const scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
     const scrollLeft = typeof scrollableElement.scrollX === 'number' ?
       scrollableElement.scrollX : scrollableElement.scrollLeft;
+    const horizontalScrollPosition = Math.abs(this.hot.view.wt.wtOverlays.inlineStartOverlay.getScrollPosition());
     let tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, priv.coords - 1);
-    const mouseOffsetLeft = priv.target.eventPageX - (priv.rootElementOffset - (scrollableElement.scrollX === void 0 ? scrollLeft : 0)); // eslint-disable-line max-len
     const hiderWidth = wtTable.hider.offsetWidth;
     const tbodyOffsetLeft = wtTable.TBODY.offsetLeft;
-    const backlightElemMarginLeft = this.backlight.getOffset().left;
+    const backlightElemMarginStart = this.backlight.getOffset().start;
     const backlightElemWidth = this.backlight.getSize().width;
     let rowHeaderWidth = 0;
+    let mouseOffsetStart = 0;
+
+    if (this.hot.isRtl()) {
+      const containerOffset = offset(this.hot.rootElement);
+      const containerWidth = outerWidth(this.hot.rootElement);
+      const gridMostRightPos = this.hot.rootWindow.innerWidth - containerOffset.left - containerWidth;
+
+      mouseOffsetStart = this.hot.rootWindow.innerWidth - priv.target.eventPageX - gridMostRightPos + horizontalScrollPosition;
+    } else {
+      mouseOffsetStart = priv.target.eventPageX - priv.rootElementOffset + horizontalScrollPosition;
+    }
 
     if ((priv.rootElementOffset + wtTable.holder.offsetWidth + scrollLeft) < priv.target.eventPageX) {
       if (priv.coords < priv.countCols) {
@@ -438,7 +449,7 @@ export class ManualColumnMove extends BasePlugin {
         priv.target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
       }
 
-    } else if (((priv.target.TD.offsetWidth / 2) + tdOffsetLeft) <= mouseOffsetLeft) {
+    } else if (((priv.target.TD.offsetWidth / 2) + tdOffsetLeft) <= mouseOffsetStart) {
       const newCoordsCol = priv.coords >= priv.countCols ? priv.countCols - 1 : priv.coords;
 
       // if hover on right part of TD
@@ -463,32 +474,33 @@ export class ManualColumnMove extends BasePlugin {
       this.hot.scrollViewportTo(void 0, firstVisible - 1);
     }
 
-    let backlightLeft = mouseOffsetLeft;
-    let guidelineLeft = tdOffsetLeft;
+    let backlightStart = mouseOffsetStart;
+    let guidelineStart = tdOffsetLeft;
 
-    if (mouseOffsetLeft + backlightElemWidth + backlightElemMarginLeft >= hiderWidth) {
+    if (mouseOffsetStart + backlightElemWidth + backlightElemMarginStart >= hiderWidth) {
       // prevent display backlight on the right side of the table
-      backlightLeft = hiderWidth - backlightElemWidth - backlightElemMarginLeft;
+      backlightStart = hiderWidth - backlightElemWidth - backlightElemMarginStart;
 
-    } else if (mouseOffsetLeft + backlightElemMarginLeft < tbodyOffsetLeft + rowHeaderWidth) {
+    } else if (mouseOffsetStart + backlightElemMarginStart < tbodyOffsetLeft + rowHeaderWidth) {
       // prevent display backlight on the left side of the table
-      backlightLeft = tbodyOffsetLeft + rowHeaderWidth + Math.abs(backlightElemMarginLeft);
+      backlightStart = tbodyOffsetLeft + rowHeaderWidth + Math.abs(backlightElemMarginStart);
     }
 
     if (tdOffsetLeft >= hiderWidth - 1) {
       // prevent display guideline outside the table
-      guidelineLeft = hiderWidth - 1;
+      guidelineStart = hiderWidth - 1;
 
-    } else if (guidelineLeft === 0) {
+    } else if (guidelineStart === 0) {
       // guideline has got `margin-left: -1px` as default
-      guidelineLeft = 1;
+      guidelineStart = 1;
 
     } else if (scrollableElement.scrollX !== void 0 && priv.coords < priv.fixedColumnsStart) {
-      guidelineLeft -= ((priv.rootElementOffset <= scrollableElement.scrollX) ? priv.rootElementOffset : 0);
+      guidelineStart -= ((priv.rootElementOffset <= scrollableElement.scrollX) ? priv.rootElementOffset : 0);
     }
 
-    this.backlight.setPosition(null, backlightLeft);
-    this.guideline.setPosition(null, guidelineLeft);
+
+    this.backlight.setPosition(null, backlightStart);
+    this.guideline.setPosition(null, guidelineStart);
   }
 
   /**
@@ -554,6 +566,7 @@ export class ManualColumnMove extends BasePlugin {
       controller.column = true;
       priv.pressed = true;
       priv.target.eventPageX = event.pageX;
+      priv.target.eventOffsetX = event.offsetX;
       priv.coords = coords.col;
       priv.target.TD = TD;
       priv.target.col = coords.col;
@@ -566,15 +579,15 @@ export class ManualColumnMove extends BasePlugin {
       const countColumnsFrom = priv.hasRowHeaders ? -1 : 0;
       const topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
       const fixedColumnsStart = coords.col < priv.fixedColumnsStart;
-      const scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
-      const wrapperIsWindow = scrollableElement.scrollX ? scrollableElement.scrollX - priv.rootElementOffset : 0;
+      const horizontalScrollPosition = Math.abs(this.hot.view.wt.wtOverlays.inlineStartOverlay.getScrollPosition());
+      const offsetX = Math.abs(event.offsetX - (this.hot.isRtl() ? event.target.offsetWidth : 0));
+      const inlineOffset = this.getColumnsWidth(start, coords.col - 1) + offsetX;
+      const inlinePos = this.getColumnsWidth(countColumnsFrom, start - 1) +
+        (fixedColumnsStart ? horizontalScrollPosition : 0) + inlineOffset;
 
-      const mouseOffset = event.offsetX - (fixedColumnsStart ? wrapperIsWindow : 0);
-      const leftOffset = Math.abs(this.getColumnsWidth(start, coords.col - 1) + mouseOffset);
-
-      this.backlight.setPosition(topPos, this.getColumnsWidth(countColumnsFrom, start - 1) + leftOffset);
+      this.backlight.setPosition(topPos, inlinePos);
       this.backlight.setSize(this.getColumnsWidth(start, end), wtTable.hider.offsetHeight - topPos);
-      this.backlight.setOffset(null, leftOffset * -1);
+      this.backlight.setOffset(null, -inlineOffset);
 
       addClass(this.hot.rootElement, CSS_ON_MOVING);
 
