@@ -346,8 +346,6 @@ class EditorManager {
 
     if (this.activeEditor && !this.activeEditor.isWaiting()) {
       if (!isFunctionKey(keyCode) && !isCtrlMetaKey(keyCode) && !isCtrlPressed && !this.isEditorOpened()) {
-        this.openEditor('', event);
-
         const shortcutManager = this.instance.getShortcutManager();
         const editorContext = shortcutManager.getContext('editor');
         const runOnlySelectedConfig = {
@@ -370,6 +368,8 @@ class EditorManager {
         editorContext.addShortcut([['ArrowRight']], () => {
           this.instance.selection.transformStart(0, this.instance.getDirectionFactor());
         }, runOnlySelectedConfig);
+
+        this.openEditor('', event);
       }
     }
   }

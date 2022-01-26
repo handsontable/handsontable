@@ -198,6 +198,8 @@ export class HandsontableEditor extends TextEditor {
 
           this.hot.listen();
           this.TEXTAREA.focus();
+
+          return false;
         }
       }
     };
@@ -220,7 +222,7 @@ export class HandsontableEditor extends TextEditor {
         }
       }
 
-      action(rowToSelect, event);
+      return action(rowToSelect, event);
     }, contextConfig);
 
     editorContext.addShortcut([['ArrowDown']], (event) => {
@@ -243,7 +245,7 @@ export class HandsontableEditor extends TextEditor {
         }
       }
 
-      action(rowToSelect, event);
+      return action(rowToSelect, event);
     }, contextConfig);
   }
 
