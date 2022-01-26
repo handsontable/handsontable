@@ -3,7 +3,8 @@ import { HotTable } from '../src/hotTable';
 import { HotColumn } from '../src/hotColumn';
 import {
   createSpreadsheetData,
-  mockElementDimensions, mountComponent,
+  mockElementDimensions,
+  mountComponent,
   sleep,
 } from './_helpers';
 import { HOT_DESTROYED_WARNING } from "../src/helpers";

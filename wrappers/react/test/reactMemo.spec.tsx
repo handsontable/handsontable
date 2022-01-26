@@ -4,7 +4,8 @@ import {
 } from '../src/hotTable';
 import {
   createSpreadsheetData,
-  mockElementDimensions, mountComponent,
+  mockElementDimensions,
+  mountComponent,
   sleep,
 } from './_helpers';
 
