@@ -4,7 +4,6 @@ import { act } from 'react-dom/test-utils';
 import { HotTable, HotColumn } from '../src/hotTable';
 import { addUnsafePrefixes } from '../src/helpers';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
-import { getHotColumnComponents } from "@handsontable/vue/helpers";
 
 export function mountComponent(Component, container) {
   let hotTableComponent = null;
