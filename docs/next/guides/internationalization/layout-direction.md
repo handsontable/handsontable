@@ -101,4 +101,11 @@ const hot = new Handsontable(container, {
 
 ::: tip
 You can't change the layout direction at Handsontable's runtime (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method).
+
+```js
+hot.updateSettings({
+  // this won't work
+  layoutDirection: 'rtl',
+});
+```
 :::
