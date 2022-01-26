@@ -154,7 +154,7 @@ export function hot() {
 /**
  * Creates the Handsontable instance.
  *
- * @param {object} options The Handsontale options.
+ * @param {object} options The Handsontable options.
  * @returns {Handsontable}
  */
 export function handsontable(options) {

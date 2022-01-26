@@ -32,7 +32,7 @@ export class HandsontableEditor extends TextEditor {
       this.htContainer.style.display = '';
     }
 
-    // Construct and initialise a new Handsontable
+    // Constructs and initializes a new Handsontable instance
     this.htEditor = new this.hot.constructor(this.htContainer, this.htOptions);
     this.htEditor.init();
     this.htEditor.rootElement.style.display = '';
@@ -96,6 +96,7 @@ export class HandsontableEditor extends TextEditor {
         parent.instance.destroyEditor();
       },
       preventWheel: true,
+      layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
     };
 
     if (this.cellProperties.handsontable) {
