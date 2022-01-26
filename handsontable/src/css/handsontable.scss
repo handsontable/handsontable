@@ -70,13 +70,15 @@
 
 .handsontable .manualColumnResizerGuide {
   position: absolute;
-  right: 0;
+  inset-inline-end: unset;
   top: 0;
   background-color: #34a9db;
   display: none;
   width: 0;
-  border-right: 1px dashed #777;
-  margin-left: 5px;
+  border-inline-end: 1px dashed #777;
+  border-inline-start: none;
+  margin-inline-start: 5px;
+  margin-inline-end: unset;
 }
 
 .handsontable .manualRowResizerGuide {

@@ -71,6 +71,10 @@ export class ManualColumnResize extends BasePlugin {
     addClass(this.guide, 'manualColumnResizerGuide');
   }
 
+  /**
+   * @private
+   * @returns {string}
+   */
   get inlineDir() {
     return this.hot.isRtl() ? 'right' : 'left';
   }
@@ -320,7 +324,7 @@ export class ManualColumnResize extends BasePlugin {
     addClass(this.guide, 'active');
 
     this.guide.style.top = `${handleBottomPosition}px`;
-    this.guide.style[this.inlineDir] = this.handle.style[this.inlineDir];
+    this.refreshGuidePosition();
     this.guide.style.height = `${maximumVisibleElementHeight - handleHeight}px`;
     this.hot.rootElement.appendChild(this.guide);
   }
