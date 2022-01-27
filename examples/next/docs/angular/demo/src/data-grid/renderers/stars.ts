@@ -1,6 +1,7 @@
 import Handsontable from "handsontable";
+import { baseRenderer } from 'handsontable/renderers/baseRenderer';
 
-export const starsRenderer: Handsontable.renderers.Base = (
+export const starsRenderer: typeof baseRenderer = (
   instance,
   td,
   row,
