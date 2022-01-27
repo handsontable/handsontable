@@ -40,7 +40,7 @@ Handsontable's [GitHub Actions setup](https://github.com/handsontable/handsontab
 GitHub Actions pushes the following tags to the GitHub Container Registry:
 
 * `:latest` - the staging server configuration watches for images with this tag.
-* `:[COMMIT_HASH]` - docker image created each time when pushed to `/docs/**`.
+* `:[COMMIT_HASH]` - a docker image created each time when pushed to `docs/**` subdirectories.
 * `:production` - the production server configuration watches for images with this tag.
 * `:prod-[COMMIT_HASH]` - a production build backup, created only when pushed to the `develop` branch.
 

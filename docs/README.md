@@ -49,7 +49,7 @@ You can review the documentation output in one of the following ways:
 
 ### Starting a local documentation server at a specific commit
 
-On each commit that modifies the `docs/` directory, Handsontable's [GithHub Actions setup](https://github.com/handsontable/handsontable/actions) pushes a `:[COMMIT_HASH]` tag to the GitHub Container Registry. 
+On each commit pushed to `docs/**` subdirectories, Handsontable's [GithHub Actions setup](https://github.com/handsontable/handsontable/actions) pushes a `:[COMMIT_HASH]` tag to the GitHub Container Registry. 
 
 This lets you view the documentation output at a specific commit, by running the following commands:
 
