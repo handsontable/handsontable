@@ -131,8 +131,7 @@ const internationalizationItems = [
 ];
 
 const accessibilityItems = [
-  'guides/accessibility/keyboard-navigation',
-  'guides/accessibility/shortcut-manager',
+  'guides/accessibility/keyboard-shortcuts',
 ];
 
 const buildingAndTestingItems = [
