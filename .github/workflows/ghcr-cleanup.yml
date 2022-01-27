@@ -20,4 +20,4 @@ jobs:
           account-type: org
           org-name: handsontable
           skip-tags: latest, production
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.WARPECH_PAT_DELETE_PACKAGES }}
