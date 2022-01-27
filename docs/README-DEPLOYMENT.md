@@ -27,7 +27,7 @@ To deploy the documentation from the command line:
 
 2. Deploy the documentation:
     ```bash
-    npm run docs:docker:build
+    npm run docs:docker:build # Staging build
     # npm run docs:docker:build:production # Production build
 
     docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
@@ -35,18 +35,20 @@ To deploy the documentation from the command line:
 
 ## Deploying the documentation from GitHub Actions
 
-GitHub Actions deploys the documentation automatically after each commit pushed to the `develop` branch.
+GitHub Actions pushes the Docker images with a build of the docs automatically to GitHub Container Registry. Some of these images are automatically deployed.
 
-GitHub Actions pushes the following tags to the GitHub Container Registry:
+The list of the image tags used:
 
-* `:latest` - the staging server configuration watches for images with this tag.
-* `:[COMMIT_HASH]` - docker image created each time when pushed to the `/docs/**`.
-* `:production` - the production server configuration watches for images with this tag.
-* `:prod-[COMMIT_HASH]` - a production build backup, created only when pushed to the `develop` branch.
+| Docker image tag      | Type of build | Triggered by                              | Used for                                                        |
+|-----------------------|---------------|-------------------------------------------|-----------------------------------------------------------------|
+| `:latest`             | Staging       | Push to `develop` that changes 'docs/**'  | Deployments to the staging server, that listens to this tag    |
+| `:[COMMIT_HASH]`      | Staging       | Push to any branch that changes 'docs/**' | Local test deployments                                          |
+| `:production`         | Production    | Push to `develop`                         | Deployments to the production server, that listens to this tag |
+| `:prod-[COMMIT_HASH]` | Production    | Push to `develop`                         | Backups of the production server                                |
 
 ### Launching local version for indeed commit
 
-While GithHub Actions pushes `:[COMMIT_HASH]` to the GitHub Container Registry each time when modified the `/docs/**`
+While GitHub Actions pushes `:[COMMIT_HASH]` to the GitHub Container Registry each time when modified the `/docs/**`
 path. It is available to review these changes locally by launching local version:
 
 ```bash
