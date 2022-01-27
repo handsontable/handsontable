@@ -1,4 +1,5 @@
 import Handsontable from "handsontable";
+import { baseRenderer } from "handsontable/renderers";
 
 type AddClassWhenNeeded = (
   td: HTMLTableCellElement,
@@ -13,7 +14,7 @@ const addClassWhenNeeded: AddClassWhenNeeded = (td, cellProperties) => {
   }
 };
 
-export const progressBarRenderer: Handsontable.renderers.Base = (
+export const progressBarRenderer: typeof baseRenderer = (
   instance,
   td,
   row,
