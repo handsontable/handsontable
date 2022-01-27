@@ -5,7 +5,7 @@ permalink: /next/
 canonicalUrl: /
 ---
 
-# Handsontable Guides
+# Marcin's edit that will be reverted
 
 [[toc]]
 
