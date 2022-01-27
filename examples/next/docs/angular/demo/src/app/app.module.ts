@@ -1,18 +1,17 @@
-import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
-
-import { AppComponent } from './app.component';
+import { DataGridComponent } from '../data-grid/data-grid.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    DataGridComponent
   ],
   imports: [
     BrowserModule,
     HotTableModule
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [DataGridComponent]
 })
 export class AppModule { }
