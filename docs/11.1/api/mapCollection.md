@@ -14,7 +14,7 @@ editLink: false
 
 ### collection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/translations/mapCollections/mapCollection.js#L18
+::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/handsontable/src/translations/mapCollections/mapCollection.js#L18
 
 :::
 
@@ -27,7 +27,7 @@ Collection of index maps.
 
 ### get
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/translations/mapCollections/mapCollection.js#L69
+::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/handsontable/src/translations/mapCollections/mapCollection.js#L69
 
 :::
 
@@ -44,7 +44,7 @@ Get index map for the provided name.
 
 ### getLength
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/translations/mapCollections/mapCollection.js#L82
+::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/handsontable/src/translations/mapCollections/mapCollection.js#L82
 
 :::
 
@@ -56,7 +56,7 @@ Get collection size.
 
 ### initEvery
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/translations/mapCollections/mapCollection.js#L116
+::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/handsontable/src/translations/mapCollections/mapCollection.js#L116
 
 :::
 
@@ -73,7 +73,7 @@ Set default values to index maps within collection.
 
 ### register
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/translations/mapCollections/mapCollection.js#L27
+::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/handsontable/src/translations/mapCollections/mapCollection.js#L27
 
 :::
 
@@ -91,7 +91,7 @@ Register custom index map.
 
 ### unregister
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/translations/mapCollections/mapCollection.js#L42
+::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/handsontable/src/translations/mapCollections/mapCollection.js#L42
 
 :::
 
@@ -108,7 +108,7 @@ Unregister custom index map.
 
 ### unregisterAll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/translations/mapCollections/mapCollection.js#L58
+::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/handsontable/src/translations/mapCollections/mapCollection.js#L58
 
 :::
 
