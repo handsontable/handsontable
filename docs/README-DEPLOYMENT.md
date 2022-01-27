@@ -41,7 +41,7 @@ start http://localhost:8000/docs/index.html                           # opens de
 
 ### Deploying the documentation to the staging environment
 
-To deploy the documentation to the staging environment, from GitHub Actions:
+To deploy the documentation to the [staging environment](https://dev.handsontable.com/docs), from GitHub Actions:
 
 1. Go to [github.com/handsontable/handsontable/actions](https://github.com/handsontable/handsontable/actions).
 2. Select the **Docs Staging Deployment** workflow.
@@ -49,7 +49,7 @@ To deploy the documentation to the staging environment, from GitHub Actions:
 4. Select the branch that you want to deploy.
 5. Select **Run workflow**.
 
-To deploy the documentation to the staging environment, from the command line:
+To deploy the documentation to the [staging environment](https://dev.handsontable.com/docs), from the command line:
 
 1. When deploying for the first time, log in to the GitHub Container Registry (ghcr.io):
     ```bash
@@ -66,7 +66,7 @@ To deploy the documentation to the staging environment, from the command line:
 
 ### Deploying the documentation to the production environment
 
-To deploy the documentation to the production environment, from GitHub Actions:
+To deploy the documentation to the [production environment](https://handsontable.com/docs), from GitHub Actions:
 
 1. Go to [github.com/handsontable/handsontable/actions](https://github.com/handsontable/handsontable/actions).
 2. Select the **Docs Production Deployment** workflow.
@@ -74,7 +74,7 @@ To deploy the documentation to the production environment, from GitHub Actions:
 4. Select the branch that you want to deploy.
 5. Select **Run workflow**.
 
-To deploy the documentation to the production environment, from the command line:
+To deploy the documentation to the [production environment](https://handsontable.com/docs), from the command line:
 
 1. When deploying for the first time, log in to the GitHub Container Registry (ghcr.io):
     ```bash
