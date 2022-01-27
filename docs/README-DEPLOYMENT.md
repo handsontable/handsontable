@@ -35,26 +35,14 @@ To deploy the documentation from the command line:
 
 ## Deploying the documentation from GitHub Actions
 
-GitHub Actions deploys the documentation automatically after each commit pushed to the `develop` branch.
+Handsontable's [GitHub Actions setup](https://github.com/handsontable/handsontable/actions) deploys the documentation automatically after each commit pushed to the `develop` branch.
 
 GitHub Actions pushes the following tags to the GitHub Container Registry:
 
 * `:latest` - the staging server configuration watches for images with this tag.
-* `:[COMMIT_HASH]` - docker image created each time when pushed to the `/docs/**`.
+* `:[COMMIT_HASH]` - docker image created each time when pushed to `/docs/**`.
 * `:production` - the production server configuration watches for images with this tag.
 * `:prod-[COMMIT_HASH]` - a production build backup, created only when pushed to the `develop` branch.
-
-### Launching local version for indeed commit
-
-While GithHub Actions pushes `:[COMMIT_HASH]` to the GitHub Container Registry each time when modified the `/docs/**`
-path. It is available to review these changes locally by launching local version:
-
-```bash
-docker create -p 8000:80 --name docs ghcr.io/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH]
-docker start docs
-docker exec docs sh -c 'mv html docs && mkdir html && mv docs html'   # needed to fix paths for Nginx
-start http://localhost:8000/docs/index.html                           # opens default browser
-```
 
 ### Deploying the documentation to the staging environment
 
