@@ -75,7 +75,7 @@ If you're editing the `latest` version (a version with the largest `<semver.vers
 When reviewing documentation changes, you can view the documentation output in one of the following ways:
 - Switch to the review branch, and [start a local documentation server](./README.md#getting-started-with-handsontable-documentation) ([link redirects](./docker/redirects.conf) won't work, though).
 - [Deploy the documentation locally at a specific commit](./README-DEPLOYMENT.md#deploying-the-documentation-locally-at-a-specific-commit).
-- [Deploy the documentation to the staging environment](./README-DEPLOYMENT.md#deploying-the-documentation-to-the-staging-environment) (dev.handsontable.com/docs).
+- [Deploy the documentation to the staging environment](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment) (dev.handsontable.com/docs).
 
 ## Editing the API reference
 
