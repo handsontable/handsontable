@@ -58,16 +58,17 @@ export function createDefaultHtBorder() {
  * @returns {object}
  */
 export function normalizeBorder(border) {
-  return {
-    row: border.row,
-    col: border.col,
-    ...(isDefined(border.id) ? { id: border.id } : null),
-    ...(isDefined(border.border) ? { border: border.border } : null),
-    ...(isDefined(border.top) ? { top: border.top } : null),
-    ...(isDefined(border.bottom) ? { bottom: border.bottom } : null),
-    ...(isDefined(border.start) || isDefined(border.left) ? { start: border.start ?? border.left } : null),
-    ...(isDefined(border.end) || isDefined(border.right) ? { end: border.end ?? border.right } : null),
-  };
+  if (isDefined(border.start) || isDefined(border.left)) {
+    border.start = border.start ?? border.left;
+  }
+  if (isDefined(border.end) || isDefined(border.right)) {
+    border.end = border.end ?? border.right;
+  }
+
+  delete border.left;
+  delete border.right;
+
+  return border;
 }
 
 /**
@@ -79,16 +80,14 @@ export function normalizeBorder(border) {
  * @returns {object}
  */
 export function denormalizeBorder(border) {
-  return {
-    row: border.row,
-    col: border.col,
-    ...(isDefined(border.id) ? { id: border.id } : {}),
-    ...(isDefined(border.border) ? { border: border.border } : {}),
-    ...(isDefined(border.top) ? { top: border.top } : {}),
-    ...(isDefined(border.bottom) ? { bottom: border.bottom } : {}),
-    ...(isDefined(border.start) ? { start: border.start, left: border.start } : {}),
-    ...(isDefined(border.end) ? { end: border.end, right: border.end } : {}),
-  };
+  if (isDefined(border.start)) {
+    border.left = border.start;
+  }
+  if (isDefined(border.end)) {
+    border.right = border.end;
+  }
+
+  return border;
 }
 
 /**
