@@ -18,8 +18,22 @@ describe('Smoke check', () => {
         await browser.close();
     });
 
-    it('should fail', async () => {
-      // failing assertion, this should encourage developers to write tests for new code snippets
-      await expect(false).toBeTruthy();
+    it('should render Handsontable', async () => {
+      const hotCell = await page.$('.handsontable td');
+
+      // assertion
+      await expect(hotCell).toBeTruthy();
+    });
+
+    it('should use progressBarRenderer', async () => {
+      const progressBarRendererCell = await page.$('.handsontable tbody tr td:nth-child(9) .progressBar');
+      const progressBarRendererCellContent = await progressBarRendererCell.evaluate(el => el.getAttribute('style'));
+      await expect(progressBarRendererCellContent).toBe('width: 20px;');
+    });
+
+    it('should use startRenderer', async () => {
+      const startRendererCell = await page.$('.handsontable tbody tr td:nth-child(10)');
+      const startRendererCellContent = await startRendererCell.evaluate(el => el.textContent);
+      await expect(startRendererCellContent).toBe('★★');      
     });
 });
