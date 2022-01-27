@@ -406,10 +406,10 @@ export class ManualColumnMove extends BasePlugin {
     const lastVisible = this.hot.view.wt.wtTable.getLastVisibleColumn();
     const wtTable = this.hot.view.wt.wtTable;
     const scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
-    const scrollLeft = typeof scrollableElement.scrollX === 'number' ?
-      scrollableElement.scrollX : scrollableElement.scrollLeft;
+    const scrollStart = Math.abs(typeof scrollableElement.scrollX === 'number' ?
+      scrollableElement.scrollX : scrollableElement.scrollLeft);
     const horizontalScrollPosition = Math.abs(this.hot.view.wt.wtOverlays.inlineStartOverlay.getScrollPosition());
-    let tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, priv.coords - 1);
+    let tdOffsetStart = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, priv.hoveredColumn - 1);
     const hiderWidth = wtTable.hider.offsetWidth;
     const tbodyOffsetLeft = wtTable.TBODY.offsetLeft;
     const backlightElemMarginStart = this.backlight.getOffset().start;
@@ -418,30 +418,30 @@ export class ManualColumnMove extends BasePlugin {
     let mouseOffsetStart = 0;
 
     if (this.hot.isRtl()) {
-      const containerOffset = offset(this.hot.rootElement);
+      const rootWindow = this.hot.rootWindow;
       const containerWidth = outerWidth(this.hot.rootElement);
-      const gridMostRightPos = this.hot.rootWindow.innerWidth - containerOffset.left - containerWidth;
+      const gridMostRightPos = rootWindow.innerWidth - priv.rootElementOffset - containerWidth;
 
-      mouseOffsetStart = this.hot.rootWindow.innerWidth - priv.target.eventPageX - gridMostRightPos + horizontalScrollPosition;
+      mouseOffsetStart = rootWindow.innerWidth - priv.target.eventPageX - gridMostRightPos + horizontalScrollPosition;
     } else {
       mouseOffsetStart = priv.target.eventPageX - priv.rootElementOffset + horizontalScrollPosition;
     }
 
-    if ((priv.rootElementOffset + wtTable.holder.offsetWidth + scrollLeft) < priv.target.eventPageX) {
-      if (priv.coords < priv.countCols) {
-        priv.coords += 1;
-      }
-    }
+    // if ((priv.rootElementOffset + wtTable.holder.offsetWidth + scrollStart) < priv.target.eventPageX) {
+    //   if (priv.hoveredColumn < priv.countCols) {
+    //     priv.hoveredColumn += 1;
+    //   }
+    // }
 
     if (priv.hasRowHeaders) {
       rowHeaderWidth = this.hot.view.wt.wtOverlays.inlineStartOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
     }
-    if (this.isFixedColumnsStart(priv.coords)) {
-      tdOffsetLeft += scrollLeft;
+    if (this.isFixedColumnsStart(priv.hoveredColumn)) {
+      tdOffsetStart += scrollStart;
     }
-    tdOffsetLeft += rowHeaderWidth;
+    tdOffsetStart += rowHeaderWidth;
 
-    if (priv.coords < 0) {
+    if (priv.hoveredColumn < 0) {
       // if hover on rowHeader
       if (priv.fixedColumnsStart > 0) {
         priv.target.col = 0;
@@ -449,13 +449,13 @@ export class ManualColumnMove extends BasePlugin {
         priv.target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
       }
 
-    } else if (((priv.target.TD.offsetWidth / 2) + tdOffsetLeft) <= mouseOffsetStart) {
-      const newCoordsCol = priv.coords >= priv.countCols ? priv.countCols - 1 : priv.coords;
+    } else if (((priv.target.TD.offsetWidth / 2) + tdOffsetStart) <= mouseOffsetStart) {
+      const newCoordsCol = priv.hoveredColumn >= priv.countCols ? priv.countCols - 1 : priv.hoveredColumn;
 
       // if hover on right part of TD
       priv.target.col = newCoordsCol + 1;
       // unfortunately first column is bigger than rest
-      tdOffsetLeft += priv.target.TD.offsetWidth;
+      tdOffsetStart += priv.target.TD.offsetWidth;
 
       if (priv.target.col > lastVisible && lastVisible < priv.countCols) {
         this.hot.scrollViewportTo(void 0, lastVisible + 1, void 0, true);
@@ -463,7 +463,7 @@ export class ManualColumnMove extends BasePlugin {
 
     } else {
       // elsewhere on table
-      priv.target.col = priv.coords;
+      priv.target.col = priv.hoveredColumn;
 
       if (priv.target.col <= firstVisible && priv.target.col >= priv.fixedColumnsStart && firstVisible > 0) {
         this.hot.scrollViewportTo(void 0, firstVisible - 1);
@@ -475,7 +475,7 @@ export class ManualColumnMove extends BasePlugin {
     }
 
     let backlightStart = mouseOffsetStart;
-    let guidelineStart = tdOffsetLeft;
+    let guidelineStart = tdOffsetStart;
 
     if (mouseOffsetStart + backlightElemWidth + backlightElemMarginStart >= hiderWidth) {
       // prevent display backlight on the right side of the table
@@ -486,7 +486,7 @@ export class ManualColumnMove extends BasePlugin {
       backlightStart = tbodyOffsetLeft + rowHeaderWidth + Math.abs(backlightElemMarginStart);
     }
 
-    if (tdOffsetLeft >= hiderWidth - 1) {
+    if (tdOffsetStart >= hiderWidth - 1) {
       // prevent display guideline outside the table
       guidelineStart = hiderWidth - 1;
 
@@ -494,10 +494,9 @@ export class ManualColumnMove extends BasePlugin {
       // guideline has got `margin-left: -1px` as default
       guidelineStart = 1;
 
-    } else if (scrollableElement.scrollX !== void 0 && priv.coords < priv.fixedColumnsStart) {
+    } else if (scrollableElement.scrollX !== void 0 && priv.hoveredColumn < priv.fixedColumnsStart) {
       guidelineStart -= ((priv.rootElementOffset <= scrollableElement.scrollX) ? priv.rootElementOffset : 0);
     }
-
 
     this.backlight.setPosition(null, backlightStart);
     this.guideline.setPosition(null, guidelineStart);
@@ -567,7 +566,7 @@ export class ManualColumnMove extends BasePlugin {
       priv.pressed = true;
       priv.target.eventPageX = event.pageX;
       priv.target.eventOffsetX = event.offsetX;
-      priv.coords = coords.col;
+      priv.hoveredColumn = coords.col;
       priv.target.TD = TD;
       priv.target.col = coords.col;
       priv.columnsToMove = this.prepareColumnsToMoving(start, end);
@@ -654,7 +653,7 @@ export class ManualColumnMove extends BasePlugin {
     controller.row = true;
     controller.column = true;
     controller.cell = true;
-    priv.coords = coords.col;
+    priv.hoveredColumn = coords.col;
     priv.target.TD = TD;
   }
 
@@ -668,7 +667,7 @@ export class ManualColumnMove extends BasePlugin {
     const target = priv.target.col;
     const columnsLen = priv.columnsToMove.length;
 
-    priv.coords = void 0;
+    priv.hoveredColumn = void 0;
     priv.pressed = false;
     priv.backlightWidth = 0;
 
