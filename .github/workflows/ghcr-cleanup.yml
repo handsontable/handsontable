@@ -2,7 +2,10 @@ name: GHCR cleanup
 
 on:
   schedule:
-    - cron: '0 * * * *'  # every day at midnight
+    - cron: '0 0 * * *'  # every day at midnight
+  push:
+    branches:
+      - feature/issue-9123
 
 jobs:
   clean-ghcr:
