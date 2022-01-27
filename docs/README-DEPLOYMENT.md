@@ -18,12 +18,12 @@ The recommended runtime memory limit is 8 GB. It allows us to generate 4 documen
 
 Handsontable's [GitHub Actions setup](https://github.com/handsontable/handsontable/actions) deploys the documentation based on the following Docker image tags:
 
-| Docker image tag      | Type of build | Triggered by                                            | Used for                                                                                                                |
-| --------------------- | ------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `:latest`             | Staging       | Any push to the `develop` branch that changes `docs/**` | [Deploying the documentation to the staging environment](#deploying-the-documentation-to-the-staging-environment)       |
-| `:[COMMIT_HASH]`      | Staging       | Any push to any branch that changes `docs/**`           | [Deploying the documentation locally at a specific commit](#deploying-the-documentation-locally-at-a-specific-commit)   |
-| `:production`         | Production    | Any push to the `develop` branch                        | [Deploying the documentation to the production environment](#deploying-the-documentation-to-the-production-environment) |
-| `:prod-[COMMIT_HASH]` | Production    | Any push to the `develop` branch                        | Production deployment backup                                                                                            |
+| Docker image tag      | Build type | Triggered by                                          | Used for                                                                                                                                   |
+| --------------------- | ---------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `:[COMMIT_HASH]`      | Staging    | A push that changes `docs/**` on any branch           | [Manual local deployment](#deploying-the-documentation-locally-at-a-specific-commit)                                                       |
+| `:latest`             | Staging    | A push that changes `docs/**` on the `develop` branch | Automatic staging deployment<br><br>[Manual staging deployment](#manually-deploying-the-documentation-to-the-staging-environment)          |
+| `:production`         | Production | A push that changes `docs/**` on the `develop` branch | Automatic production deployment<br><br>[Manual production deployment](#manually-deploying-the-documentation-to-the-production-environment) |
+| `:prod-[COMMIT_HASH]` | Production | A push that changes `docs/**` on the `develop` branch | Automatic production deployment backup                                                                                                     |
 
 ### Deploying the documentation locally at a specific commit
 
@@ -39,7 +39,7 @@ docker exec docs sh -c 'mv html docs && mkdir html && mv docs html'   # fixes pa
 start http://localhost:8000/docs/index.html                           # opens default browser
 ```
 
-### Deploying the documentation to the staging environment
+### Manually deploying the documentation to the staging environment
 
 To deploy the documentation to the [staging environment](https://dev.handsontable.com/docs), from GitHub Actions:
 
@@ -64,7 +64,7 @@ To deploy the documentation to the [staging environment](https://dev.handsontabl
     docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
     ```
 
-### Deploying the documentation to the production environment
+### Manually deploying the documentation to the production environment
 
 To deploy the documentation to the [production environment](https://handsontable.com/docs), from GitHub Actions:
 
