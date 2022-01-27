@@ -45,20 +45,7 @@ To start a local Handsontable documentation server:
 You can view the documentation output in one of the following ways:
 - Switch to the reviewed branch, and [start a local documentation server](#getting-started-with-handsontable-documentation) ([link redirects](./docker/redirects.conf) won't work, though).
 - [Deploy the documentation to the staging environment](./README-DEPLOYMENT.md#deploying-the-documentation-to-the-staging-environment).
-- [Start a local documentation server at a specific commit](#starting-a-local-documentation-server-at-a-specific-commit).
-
-### Starting a local documentation server at a specific commit
-
-On each commit pushed to `docs/**` subdirectories, Handsontable's [GithHub Actions setup](https://github.com/handsontable/handsontable/actions) pushes a `:[COMMIT_HASH]` tag to the GitHub Container Registry. 
-
-This lets you view the documentation output at a specific commit, by running the following commands:
-
-```bash
-docker create -p 8000:80 --name docs ghcr.io/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH]
-docker start docs
-docker exec docs sh -c 'mv html docs && mkdir html && mv docs html'   # fixes paths for Nginx
-start http://localhost:8000/docs/index.html                           # opens default browser
-```
+- [Deploy the documentation locally at a specific commit](./README-DEPLOYMENT.md#deploying-the-documentation-locally-at-a-specific-commit).
 
 ## Documentation npm scripts:
 
