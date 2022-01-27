@@ -43,7 +43,7 @@ To start a local Handsontable documentation server:
 ## Reviewing the documentation output
 
 You can review the documentation output in one of the following ways:
-- Switch to the reviewed branch, and  [start a local documentation server](#getting-started-with-handsontable-documentation) ([link redirects](./docker/redirects.conf) won't work, though).
+- Switch to the reviewed branch, and [start a local documentation server](#getting-started-with-handsontable-documentation) ([link redirects](./docker/redirects.conf) won't work, though).
 - [Deploy the documentation to the staging environment](./README-DEPLOYMENT.md#deploying-the-documentation-to-the-staging-environment).
 - [Start a local documentation server at a specific commit](#starting-a-local-documentation-server-at-a-specific-commit).
 
