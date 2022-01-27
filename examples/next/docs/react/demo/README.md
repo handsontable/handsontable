@@ -1,8 +1,8 @@
-# {{ YOUR TITLE GOES HERE }}
+# Demo
 
 ## Description
 
-{{ YOUR DESCRIPTION GOES HERE }}
+This is a general purpose demo that showcases the most popular features of Handsontable in React.
 
 ## Live preview
 
