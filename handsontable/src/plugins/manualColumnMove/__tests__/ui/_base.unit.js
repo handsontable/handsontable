@@ -7,6 +7,7 @@ describe('manualColumnMove', () => {
 
   it('should not rebuild UI elements unnecessarily', () => {
     const hotMock = {
+      isRtl() {},
       rootDocument: {
         createElement() {}
       }
@@ -25,5 +26,35 @@ describe('manualColumnMove', () => {
     baseUI.build();
 
     expect(baseUI.state).toBe(STATE_APPENDED);
+  });
+
+  it('should set "left" physical CSS property for LTR mode', () => {
+    const hotMock = {
+      isRtl() {
+        return false;
+      },
+      rootDocument: {
+        createElement() {}
+      }
+    };
+
+    const baseUI = new BaseUI(hotMock);
+
+    expect(baseUI.inlineProperty).toBe('left');
+  });
+
+  it('should set "right" physical CSS property for RTL mode', () => {
+    const hotMock = {
+      isRtl() {
+        return true;
+      },
+      rootDocument: {
+        createElement() {}
+      }
+    };
+
+    const baseUI = new BaseUI(hotMock);
+
+    expect(baseUI.inlineProperty).toBe('right');
   });
 });

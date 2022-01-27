@@ -31,6 +31,12 @@ class BaseUI {
      * @type {number}
      */
     this.state = STATE_INITIALIZED;
+    /**
+     * Defines the "start" physical CSS property name used within the class depending on what document
+     * layout direction the library runs.
+     *
+     * @type {string}
+     */
     this.inlineProperty = hotInstance.isRtl() ? 'right' : 'left';
   }
 
