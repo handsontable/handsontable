@@ -126,6 +126,8 @@ export class TextEditor extends BaseEditor {
 
     shortcutManager.setActiveContextName('editor');
 
+    console.log('opened');
+
     this.registerShortcuts();
 
     this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
@@ -497,6 +499,7 @@ export class TextEditor extends BaseEditor {
    * @private
    */
   registerShortcuts() {
+    console.log('registerShortcuts');
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
@@ -540,11 +543,14 @@ export class TextEditor extends BaseEditor {
     }, {
       runAction: event => !this.hot.selection.isMultiple() &&
         // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-        !event.altKey
+        !event.altKey,
+      namespace: 'textEditor',
     });
 
     editorContext.addShortcut([['Alt', 'Enter']], () => {
       setNewValue();
+    }, {
+      namespace: 'textEditor'
     });
   }
 
@@ -554,6 +560,7 @@ export class TextEditor extends BaseEditor {
    * @private
    */
   unregisterShortcuts() {
+    console.log('unregisterShortcuts');
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
