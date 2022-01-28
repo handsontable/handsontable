@@ -50,3 +50,21 @@ jobs:
       - name: Docker push SHA tagged into GHCR
         run: |
           docker push ${GHA_DOCKER_TAG_SHA}
+
+      - name: Find PR
+        uses: jwalton/gh-find-current-pr@b6f8d7342efe4913388d5d1ac7f4b956caa5db52 # https://github.com/jwalton/gh-find-current-pr/tree/v1
+        id: pr-finder
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+  
+      - name: Publish sticky comment in PR
+        uses: marocchino/sticky-pull-request-comment@6804b5ad49d19c10c9ae7cf5057352f7ff333f31 # https://github.com/marocchino/sticky-pull-request-comment/tree/v1.6.0
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          number: ${{ steps.pr-finder.outputs.pr }}
+          message: |
+            Launch local documentation version by running: 
+            ```bash
+            npm run docs:review ${{ github.sha }}
+            ```
+            
