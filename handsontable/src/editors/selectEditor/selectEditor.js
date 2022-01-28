@@ -12,10 +12,7 @@ import {
   removeClass,
   resetCssTransform,
 } from '../../helpers/dom/element';
-import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { objectEach } from '../../helpers/object';
-import { KEY_CODES } from '../../helpers/unicode';
-import {isDefined} from "../../helpers/mixed";
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 
