@@ -46,39 +46,39 @@ describe('WalkontableBorder', () => {
 
     const $td2 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
     const $top = $(wt.selections.getCell().getBorder(wt).top);
-    const $inlineEnd = $(wt.selections.getCell().getBorder(wt).inlineEnd);
+    const $end = $(wt.selections.getCell().getBorder(wt).end);
     const $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
-    const $inlineStart = $(wt.selections.getCell().getBorder(wt).inlineStart);
+    const $start = $(wt.selections.getCell().getBorder(wt).start);
 
     $td1.simulate('mousedown');
 
     expect($top.css('height')).toBe('1px');
     expect($top.position().top).toBe(23);
     expect($top.position().left).toBe(0);
-    expect($inlineEnd.css('width')).toBe('1px');
-    expect($inlineEnd.position().top).toBe(23);
-    expect($inlineEnd.position().left).toBe(49);
+    expect($end.css('width')).toBe('1px');
+    expect($end.position().top).toBe(23);
+    expect($end.position().left).toBe(49);
     expect($bottom.css('height')).toBe('1px');
     expect($bottom.position().top).toBe(46);
     expect($bottom.position().left).toBe(0);
-    expect($inlineStart.css('width')).toBe('1px');
-    expect($inlineStart.position().top).toBe(23);
-    expect($inlineStart.position().left).toBe(0);
+    expect($start.css('width')).toBe('1px');
+    expect($start.position().top).toBe(23);
+    expect($start.position().left).toBe(0);
 
     $td2.simulate('mousedown');
 
     expect($top.css('height')).toBe('1px');
     expect($top.position().top).toBe(46);
     expect($top.position().left).toBe(49);
-    expect($inlineEnd.css('width')).toBe('1px');
-    expect($inlineEnd.position().top).toBe(46);
-    expect($inlineEnd.position().left).toBe(99);
+    expect($end.css('width')).toBe('1px');
+    expect($end.position().top).toBe(46);
+    expect($end.position().left).toBe(99);
     expect($bottom.css('height')).toBe('1px');
     expect($bottom.position().top).toBe(69);
     expect($bottom.position().left).toBe(49);
-    expect($inlineStart.css('width')).toBe('1px');
-    expect($inlineStart.position().top).toBe(46);
-    expect($inlineStart.position().left).toBe(49);
+    expect($start.css('width')).toBe('1px');
+    expect($start.position().top).toBe(46);
+    expect($start.position().left).toBe(49);
   });
 
   it('should add/remove border to selection when cell is clicked and the table has only one column', () => {
@@ -105,24 +105,24 @@ describe('WalkontableBorder', () => {
 
     const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(0)');
     const $top = $(wt.selections.getCell().getBorder(wt).top);
-    const $inlineEnd = $(wt.selections.getCell().getBorder(wt).inlineEnd);
+    const $end = $(wt.selections.getCell().getBorder(wt).end);
     const $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
-    const $inlineStart = $(wt.selections.getCell().getBorder(wt).inlineStart);
+    const $start = $(wt.selections.getCell().getBorder(wt).start);
 
     $td1.simulate('mousedown');
 
     expect($top.css('height')).toBe('1px');
     expect($top.position().top).toBe(23);
     expect($top.position().left).toBe(0);
-    expect($inlineEnd.css('width')).toBe('1px');
-    expect($inlineEnd.position().top).toBe(23);
-    expect($inlineEnd.position().left).toBe(49);
+    expect($end.css('width')).toBe('1px');
+    expect($end.position().top).toBe(23);
+    expect($end.position().left).toBe(49);
     expect($bottom.css('height')).toBe('1px');
     expect($bottom.position().top).toBe(46);
     expect($bottom.position().left).toBe(0);
-    expect($inlineStart.css('width')).toBe('1px');
-    expect($inlineStart.position().top).toBe(23);
-    expect($inlineStart.position().left).toBe(0);
+    expect($start.css('width')).toBe('1px');
+    expect($start.position().top).toBe(23);
+    expect($start.position().left).toBe(0);
   });
 
   it('should properly add a selection border on an entirely selected column', () => {
@@ -152,22 +152,22 @@ describe('WalkontableBorder', () => {
     wt.draw(true);
 
     const $top = $(wt.selections.getCell().getBorder(wt).top);
-    const $inlineEnd = $(wt.selections.getCell().getBorder(wt).inlineEnd);
+    const $end = $(wt.selections.getCell().getBorder(wt).end);
     const $bottom = $(wt.selections.getCell().getBorder(wt).bottom);
-    const $inlineStart = $(wt.selections.getCell().getBorder(wt).inlineStart);
+    const $start = $(wt.selections.getCell().getBorder(wt).start);
 
     expect($top.css('height')).toBe('1px');
     expect($top.position().top).toBe(0);
     expect($top.position().left).toBe(0);
-    expect($inlineEnd.css('width')).toBe('1px');
-    expect($inlineEnd.position().top).toBe(0);
-    expect($inlineEnd.position().left).toBe(49);
+    expect($end.css('width')).toBe('1px');
+    expect($end.position().top).toBe(0);
+    expect($end.position().left).toBe(49);
     expect($bottom.css('height')).toBe('1px');
     expect($bottom.position().top).toBe(115);
     expect($bottom.position().left).toBe(0);
-    expect($inlineStart.css('width')).toBe('1px');
-    expect($inlineStart.position().top).toBe(0);
-    expect($inlineStart.position().left).toBe(0);
+    expect($start.css('width')).toBe('1px');
+    expect($start.position().top).toBe(0);
+    expect($start.position().left).toBe(0);
   });
 
   it('should add/remove corner to selection when cell is clicked', () => {
