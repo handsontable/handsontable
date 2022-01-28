@@ -63,7 +63,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.pr-finder.outputs.pr }}
           message: |
-            Launch local documentation version by running: 
+            Launch the local version of documentation by running: 
             ```bash
             npm run docs:review ${{ github.sha }}
             ```
