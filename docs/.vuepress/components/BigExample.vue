@@ -28,7 +28,10 @@
         sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
       ></iframe>
     </div>
-    <SvgFrameworkIcons></SvgFrameworkIcons>
+
+    <div hidden>
+      <SvgFrameworkIcons></SvgFrameworkIcons>
+    </div>
   </div> 
 </template>
 
