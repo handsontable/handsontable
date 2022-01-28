@@ -16,7 +16,6 @@ import {
   hasClass,
   removeClass
 } from '../../helpers/dom/element';
-import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import { KEY_CODES } from '../../helpers/unicode';
 import { autoResize } from '../../3rdparty/autoResize';
@@ -126,11 +125,9 @@ export class TextEditor extends BaseEditor {
 
     shortcutManager.setActiveContextName('editor');
 
-    console.log('opened');
+    this.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
 
     this.registerShortcuts();
-
-    this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
   }
 
   /**
@@ -145,7 +142,7 @@ export class TextEditor extends BaseEditor {
 
     this.hideEditableElement();
     this.unregisterShortcuts();
-    this.removeHooksByKey('beforeKeyDown');
+    this.removeHooksByKey('afterDocumentKeyDown');
   }
 
   /**
@@ -499,7 +496,6 @@ export class TextEditor extends BaseEditor {
    * @private
    */
   registerShortcuts() {
-    console.log('registerShortcuts');
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
@@ -560,7 +556,6 @@ export class TextEditor extends BaseEditor {
    * @private
    */
   unregisterShortcuts() {
-    console.log('unregisterShortcuts');
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
@@ -569,17 +564,12 @@ export class TextEditor extends BaseEditor {
   }
 
   /**
-   * OnBeforeKeyDown callback.
-   * TODO: Can we move that shortcuts to the ShortcutManager flow?
+   * OnAfterDocumentKeyDown callback.
    *
-   * @param {Event} event The keyboard event object.
+   * @private
+   * @param {KeyboardEvent} event The keyboard event object.
    */
-  onBeforeKeyDown(event) {
-    // Process only events that have been fired in the editor
-    if (event.target !== this.TEXTAREA || isImmediatePropagationStopped(event)) {
-      return;
-    }
-
+  onAfterDocumentKeyDown(event) {
     const arrowKeyCodes = [KEY_CODES.ARROW_UP, KEY_CODES.ARROW_RIGHT, KEY_CODES.ARROW_DOWN, KEY_CODES.ARROW_LEFT];
 
     if (arrowKeyCodes.indexOf(event.keyCode) === -1) {

@@ -104,6 +104,8 @@ export class AutocompleteEditor extends HandsontableEditor {
       scrollbarWidth += 15; // default scroll bar width if scroll bars are visible only when scrolling
     }
 
+    this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
+
     choicesListHot.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
       width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth : void 0,
@@ -481,8 +483,6 @@ export class AutocompleteEditor extends HandsontableEditor {
         }, timeOffset);
       }
     }
-
-    super.onBeforeKeyDown(event);
   }
 
   /**

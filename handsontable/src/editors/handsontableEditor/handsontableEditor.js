@@ -20,8 +20,6 @@ export class HandsontableEditor extends TextEditor {
    * Opens the editor and adjust its size.
    */
   open() {
-    // this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
-
     super.open();
 
     if (this.htEditor) {
