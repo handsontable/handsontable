@@ -1,6 +1,6 @@
 <template>
   <li>
-    <a :href="url" target="_blank"><svg>
+    <a :href="sourceUrl" target="_blank"><svg>
       <use :xlink:href="iconId"></use>
     </svg>{{ label }}</a>
   </li>
@@ -18,8 +18,14 @@ const iconLookup = {
 
 export default {
   name: 'BigExampleSource',
-  props: ['label', 'icon', 'url'],
+  props: ['label', 'icon', 'target'],
   computed: {
+    sourceUrl() {
+      if (!this.target.startsWith('/')) {
+        throw new Error("The target property of BigExampleSource should begin with /");
+      }
+      return `https://github.com/handsontable/handsontable/tree/develop${this.target}`;
+    },
     iconId() {
       const iconId = iconLookup[this.icon] || iconLookup['js'];
       return `#${iconId}`;

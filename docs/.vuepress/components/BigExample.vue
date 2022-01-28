@@ -21,7 +21,7 @@
 
     <div id="tab-content-preview" class="active">
       <iframe
-        :src="preview"
+        :src="previewUrl"
         class="bigPreviewExampleIframe"
         allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone;
           midi; payment; usb; vr; xr-spatial-tracking"
@@ -36,5 +36,13 @@
 export default {
   name: 'BigExample',
   props: ['preview'],
+  computed: {
+    previewUrl() {
+      if (!this.preview.startsWith('/')) {
+        throw new Error("The preview property of BigExample should begin with /");
+      }
+      return `https://handsontable.github.io/handsontable${this.preview}`;
+    }
+  }
 };
 </script>
