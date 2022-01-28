@@ -1,12 +1,10 @@
 # Code examples
 
-This folder contains all code examples, that Handsontable uses for myriad reasons, such as documentation, blog, etc. Each code example is a separate project that uses Handsontable to present certain features.
+This folder contains all code examples, that Handsontable uses for a myriad of reasons, such as documentation, blog, etc. Each code example is a separate project that uses Handsontable to present certain features.
 
 Code examples are structured by Handsontable version. Inside the version directory, examples are grouped by category, which can be anything. The most important category is "docs", which is used in the Handsontable documentation website.
 
 To see a deployed code example you can visit its URL. See [Live on production](#live-on-production) section to learn about the URL structure.
-
-To play around with the actual code for a specific code example you can open it on CodeSandbox. See [Preview on CodeSandbox](#preview-on-codesandbox) section to learn more.
 
 To run arbitrary code example locally on your machine see [How to run the arbitrary code example](#how-to-run-the-arbitrary-code-example) section.
 
@@ -14,7 +12,6 @@ To run arbitrary code example locally on your machine see [How to run the arbitr
 
 - [Folder structure](#folder-structure)
 - [Live on production](#live-on-production)
-- [Preview on CodeSandbox](#preview-on-codesandbox)
 - [Creating new examples](#creating-new-examples)
 - [Deployment](#deployment-of-the-new-code-examples)
 - [Editing existing examples](#editing-existing-examples)
@@ -41,21 +38,15 @@ It's worth noting, that the `examples` directory is defined as a `npm workspace`
 
 ### Live on production
 
-All code examples are available online. The base URL for the code examples is https://examples.handsontable.com/handsontable/ and after the slash comes the path to the built project. 
+All code examples are available online. The base URL for the code examples is `https://examples.handsontable.com/examples/` and after the slash comes the path to the built project. 
 
 URL to the specific project follow the undermentioned convention:
 
 `<version_number>/<category>/<framework>/<example_path>`
 
-An example URL to the live example: https://examples.handsontable.com/handsontable/8.1.0/docs/js/settings
+An example URL to the live example: https://examples.handsontable.com/examples/11.1.0/docs/js/basic-example/
 
 For more details see the [Folder structure](#folder-structure) section.
-
-### Preview on CodeSandbox
-
-To preview the arbitary code example on CodeSandbox you must get the link to the project folder in the Gihub repo. You will find all code examples in our repo https://github.com/handsontable/handsontable/tree/develop/examples.
-
-For example: if the URL to the project is: https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/js/basic-example  you can preview that project on CodeSandbox by adding the "box" word right after the "github" and before the ".com". The URL to the sandboxed project would be https://githubbox.com/handsontable/handsontable/tree/develop/examples/next/docs/js/basic-example .
 
 ### Creating new examples
 
@@ -75,8 +66,10 @@ Sometimes you want to edit existing code examples that is live in the `/examples
 
 1. Edit code examples within the `/examples/<version_number>` directory.
 2. Commit and push the code examples to the repo.
-3. In Github Actions run a manual workflow with the `<version_number>` input of the Handsontable and Handsontable's wrapper version.
 4. The code examples will be deployed to the Github Pages and will be available under the same URL as they already were.
+
+To deploy the existing examples without commiting any changes:
+1. In Github Actions run a manual workflow with the `<version_number>` input of the Handsontable and Handsontable's wrapper version.
 
 ### Development
 
