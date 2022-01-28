@@ -30,13 +30,7 @@ Handsontable's [GitHub Actions setup](https://github.com/handsontable/handsontab
 To deploy the documentation locally, at a specific commit:
 
 ```bash
-docker create -p 8000:80 --name docs ghcr.io/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH]
-
-docker start docs
-
-docker exec docs sh -c 'mv html docs && mkdir html && mv docs html'   # fixes paths for Nginx
-
-start http://localhost:8000/docs/index.html                           # opens default browser
+npm run docs:review [COMMIT_HASH]
 ```
 
 ### Manually deploying the documentation to the staging environment
