@@ -406,9 +406,8 @@ export class ManualColumnMove extends BasePlugin {
     const lastVisible = this.hot.view.wt.wtTable.getLastVisibleColumn();
     const wtTable = this.hot.view.wt.wtTable;
     const scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
-    const scrollStart = Math.abs(typeof scrollableElement.scrollX === 'number' ?
-      scrollableElement.scrollX : scrollableElement.scrollLeft);
-    const horizontalScrollPosition = Math.abs(this.hot.view.wt.wtOverlays.inlineStartOverlay.getScrollPosition());
+    const scrollStart = typeof scrollableElement.scrollX === 'number' ?
+      scrollableElement.scrollX : scrollableElement.scrollLeft;
     let tdOffsetStart = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, priv.hoveredColumn - 1);
     const hiderWidth = wtTable.hider.offsetWidth;
     const tbodyOffsetLeft = wtTable.TBODY.offsetLeft;
@@ -422,9 +421,11 @@ export class ManualColumnMove extends BasePlugin {
       const containerWidth = outerWidth(this.hot.rootElement);
       const gridMostRightPos = rootWindow.innerWidth - priv.rootElementOffset - containerWidth;
 
-      mouseOffsetStart = rootWindow.innerWidth - priv.target.eventPageX - gridMostRightPos + horizontalScrollPosition;
+      mouseOffsetStart = rootWindow.innerWidth - priv.target.eventPageX - gridMostRightPos -
+        (scrollableElement.scrollX === void 0 ? scrollStart : 0);
     } else {
-      mouseOffsetStart = priv.target.eventPageX - priv.rootElementOffset + horizontalScrollPosition;
+      mouseOffsetStart = priv.target.eventPageX -
+        (priv.rootElementOffset - (scrollableElement.scrollX === void 0 ? scrollStart : 0));
     }
 
     if (priv.hasRowHeaders) {
