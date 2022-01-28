@@ -21,35 +21,10 @@ Rather than display "Hello, World!", the demo contains 100 rows and 13 columns p
 
 Want to play with the code yourself? Select the button in the frame's bottom right corner.
 
-<HelloWorld :demos="[
-  {
-    name: 'JavaScript',
-    title: 'Handsontable JavaScript Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-javascript-data-grid-hello-world-app-1cc81',
-    selectedFile: '/src/index.js',
-  },
-  {
-    name: 'TypeScript',
-    title: 'Handsontable TypeScript Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-typescript-data-grid-hello-world-app-tbsul',
-    selectedFile: '/src/index.ts',
-  },
-  {
-    name: 'React',
-    title: 'Handsontable React Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-react-data-grid-hello-world-app-bhipr',
-    selectedFile: '/src/index.tsx',
-  },
-  {
-    name: 'Angular',
-    title: 'Handsontable Angular Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-angular-data-grid-hello-world-app-dhojw',
-    selectedFile: '/src/data-grid/data-grid.component.ts',
-  },
-  {
-    name: 'Vue 2',
-    title: 'Handsontable Vue Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-vue-data-grid-hello-world-app-5qgo7',
-    selectedFile: '/src/components/DataGrid.vue',
-  },
-]"></HelloWorld>
+<BigExample preview="https://handsontable.github.io/handsontable/examples/next/docs/js/basic-example/">
+  <BigExampleSource label="JavaScript" icon="js" url="https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/js/basic-example/"></BigExampleSource>
+  <BigExampleSource label="TypeScript" icon="ts" url="https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/ts/basic-example/"></BigExampleSource>
+  <BigExampleSource label="Angular" icon="angular" url="https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/angular/basic-example/"></BigExampleSource>
+  <BigExampleSource label="React" icon="react" url="https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/react/basic-example/"></BigExampleSource>
+  <BigExampleSource label="Vue" icon="vue" url="https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/vue/basic-example/"></BigExampleSource>
+</BigExample>
