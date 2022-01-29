@@ -8,13 +8,12 @@
 
 <script>
 const iconLookup = {
-  ts: "typescript",
-  angular: "angular",
-  react: "react-js",
-  vue: "vue-l",
-  js: "javascript",
-}
-
+  ts: 'typescript',
+  angular: 'angular',
+  react: 'react-js',
+  vue: 'vue-l',
+  js: 'javascript',
+};
 
 export default {
   name: 'BigExampleSource',
@@ -22,12 +21,14 @@ export default {
   computed: {
     sourceUrl() {
       if (!this.target.startsWith('/')) {
-        throw new Error("The target property of BigExampleSource should begin with /");
+        throw new Error('The target property of BigExampleSource should begin with /');
       }
+
       return `https://github.com/handsontable/handsontable/tree/develop${this.target}`;
     },
     iconId() {
-      const iconId = iconLookup[this.icon] || iconLookup['js'];
+      const iconId = iconLookup[this.icon] || iconLookup.js;
+
       return `#${iconId}`;
     }
   }

@@ -32,7 +32,7 @@
     <div hidden>
       <SvgFrameworkIcons></SvgFrameworkIcons>
     </div>
-  </div> 
+  </div>
 </template>
 
 <script>
@@ -42,8 +42,9 @@ export default {
   computed: {
     previewUrl() {
       if (!this.preview.startsWith('/')) {
-        throw new Error("The preview property of BigExample should begin with /");
+        throw new Error('The preview property of BigExample should begin with /');
       }
+
       return `https://handsontable.github.io/handsontable${this.preview}`;
     }
   }
