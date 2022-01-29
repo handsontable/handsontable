@@ -22,9 +22,24 @@ Rather than display "Hello, World!", the demo contains 100 rows and 13 columns p
 Want to play with the code yourself? Select the button in the frame's bottom right corner.
 
 <BigExample preview="/examples/11.1.0/docs/js/basic-example/">
-  <BigExampleSource label="JavaScript" icon="js"      target="/examples/11.1.0/docs/js/basic-example/"></BigExampleSource>
-  <BigExampleSource label="TypeScript" icon="ts"      target="/examples/11.1.0/docs/ts/basic-example/"></BigExampleSource>
-  <BigExampleSource label="Angular"    icon="angular" target="/examples/11.1.0/docs/angular/basic-example/"></BigExampleSource>
-  <BigExampleSource label="React"      icon="react"   target="/examples/11.1.0/docs/react/basic-example/"></BigExampleSource>
-  <BigExampleSource label="Vue"        icon="vue"     target="/examples/11.1.0/docs/vue/basic-example/"></BigExampleSource>
+  <BigExampleSource 
+    label="JavaScript"
+    icon="js"
+    target="/examples/11.1.0/docs/js/basic-example/"></BigExampleSource>
+  <BigExampleSource 
+    label="TypeScript"
+    icon="ts"
+    target="/examples/11.1.0/docs/ts/basic-example/"></BigExampleSource>
+  <BigExampleSource 
+    label="Angular"
+    icon="angular"
+    target="/examples/11.1.0/docs/angular/basic-example/"></BigExampleSource>
+  <BigExampleSource 
+    label="React"
+    icon="react"
+    target="/examples/11.1.0/docs/react/basic-example/"></BigExampleSource>
+  <BigExampleSource 
+    label="Vue"
+    icon="vue"
+    target="/examples/11.1.0/docs/vue/basic-example/"></BigExampleSource>
 </BigExample>
