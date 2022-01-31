@@ -25,14 +25,6 @@ Handsontable's [GitHub Actions setup](https://github.com/handsontable/handsontab
 | `:production`         | Production | A push that changes `docs/**` on the `develop` branch | Automatic production deployment<br><br>[Manual production deployment](#manually-deploying-the-documentation-to-the-production-environment) |
 | `:prod-[COMMIT_HASH]` | Production | A push that changes `docs/**` on the `develop` branch | Automatic production deployment backup                                                                                                     |
 
-### Deploying the documentation locally at a specific commit
-
-To deploy the documentation locally, at a specific commit:
-
-```bash
-npm run docs:review [COMMIT_HASH]
-```
-
 ### Manually deploying the documentation to the staging environment
 
 To deploy the documentation to the [staging environment](https://dev.handsontable.com/docs), from GitHub Actions:
