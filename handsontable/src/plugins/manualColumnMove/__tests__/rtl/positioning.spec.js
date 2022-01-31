@@ -15,7 +15,6 @@ describe('manualColumnMove (RTL mode)', () => {
     }
   });
 
-
   describe('positioning', () => {
     it('should draw backlight element properly using Handsontable default settings', () => {
       handsontable({
