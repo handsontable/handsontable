@@ -1,0 +1,34 @@
+name: TMP - Test the CI
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+  push:
+    branches:
+      - 'master'
+      - 'develop'
+      - 'release/**'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: 16.x
+
+jobs:
+  test-handsontable-e2e:
+    name: "[TEST] Handsontable: UMD"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@25316bbc1f10ac9d8798711f44914b1cf3c4e954 # https://github.com/actions/setup-node/releases/tag/v2.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci --no-audit
+      - name: Test
+        run: |
+          cd handsontable
+          npm run build && npm run test:e2e.dump && npm run test:e2e.puppeteer
