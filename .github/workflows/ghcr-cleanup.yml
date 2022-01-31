@@ -4,8 +4,8 @@ on:
   schedule:
     - cron: '0 0 * * *'  # every day at midnight
   push:
-    branches:
-      - feature/issue-9123
+    paths: 
+      - .github/workflows/ghcr-cleanup.yml
 
 jobs:
   clean-ghcr:
