@@ -39,6 +39,8 @@ An example path to the code example: `examples/8.1.0/docs/angular/custom-id`
 
 It's worth noting, that the `examples` directory is defined as a `npm workspace`, as well as each of the `<framework>` directories within it. This allows installing shared dependencies for all the framework-specific examples.
 
+Dependency sharing is defined by a shared lockfile (`/examples/<version_number>/<category>/<framework>/package-lock.json`) for all examples of each framework. The `examples:install` script bumps the dependency versions in shared lockfiles. A single example's lockfile (e.g. `/examples/<version_number>/<category>/<framework>/<example_path>/package-lock.json`) can still be created when you run `npm install` inside the example's folder, but is ignored in `/examples/.gitignore`.
+
 ### Live on production
 
 All code examples are available online. The base URL for the code examples is https://examples.handsontable.com/handsontable/ and after the slash comes the path to the built project. 
