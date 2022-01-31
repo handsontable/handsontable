@@ -150,12 +150,13 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
   function registerShortcuts() {
     const shortcutManager = instance.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
+    const config = { namespace: 'checkboxRenderer' };
 
     gridContext.addShortcut([[' ']], () => {
       changeSelectedCheckboxesState();
 
       return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
-    });
+    }, config);
 
     gridContext.addShortcut([['enter']], () => {
       changeSelectedCheckboxesState();
@@ -163,6 +164,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
       return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
 
     }, {
+      ...config,
       runAction: () => instance.getSettings().enterBeginsEditing
     });
 
@@ -170,7 +172,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
       changeSelectedCheckboxesState(true);
 
       return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
-    });
+    }, config);
   }
 
   /**

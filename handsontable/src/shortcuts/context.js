@@ -1,5 +1,6 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { normalizeKeys } from './utils';
+import { isUndefined } from '../helpers/mixed';
 
 /**
  * Create shortcuts' context.
@@ -33,6 +34,10 @@ export const createContext = (name) => {
       preventDefault = true,
       stopPropagation = false
     } = {}) => {
+
+    if (isUndefined(namespace)) {
+      throw new Error('Please define the namespace for added shortcut.');
+    }
 
     variants.forEach((variant) => {
       const normalizedVariant = normalizeKeys(variant);

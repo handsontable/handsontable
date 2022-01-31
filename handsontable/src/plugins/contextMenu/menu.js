@@ -249,8 +249,11 @@ class Menu {
 
     const shortcutManager = this.hotMenu.getShortcutManager();
     const menuContext = shortcutManager.addContext('menu');
-    const menuContextConfig = { runAction: event => isInput(event.target) === false
-      || this.container.contains(event.target) === false };
+    const config = { namespace: 'menu' };
+    const menuContextConfig = {
+      ...config,
+      runAction: event => isInput(event.target) === false || this.container.contains(event.target) === false,
+    };
 
     // Default shortcuts for Handsontable should not be handled. Changing context will help with that.
     shortcutManager.setActiveContextName('menu');
@@ -259,7 +262,7 @@ class Menu {
       this.keyEvent = true;
       this.close();
       this.keyEvent = false;
-    });
+    }, config);
 
     menuContext.addShortcut([['ArrowDown']], () => {
       const selection = this.hotMenu.getSelectedLast();

@@ -191,6 +191,7 @@ class MultipleSelectUI extends BaseUI {
       const shortcutManager = this.itemsBox.getShortcutManager();
       const gridContext = shortcutManager.getContext('grid');
 
+      // TODO: Are those shortcuts really needed?
       gridContext.addShortcut([['ArrowUp'], ['ArrowDown'], ['ArrowLeft'], ['ArrowRight'],
         ['Tab'], [' '], ['Enter']], (event) => {
         stopImmediatePropagation(event);
@@ -199,6 +200,7 @@ class MultipleSelectUI extends BaseUI {
         this.searchInput.focus();
       }, { namespace: 'itemBox' });
 
+      // TODO: Is this shortcut really needed? We have one test for that case, but focus is performed programmatically.
       gridContext.addShortcut([['Escape']], (event) => {
         this.runLocalHooks('keydown', event, this);
       }, { namespace: 'itemBox' });
