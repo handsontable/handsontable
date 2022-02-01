@@ -172,7 +172,11 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
       changeSelectedCheckboxesState(true);
 
       return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
-    }, config);
+    }, {
+      ...config,
+      relativeToNamespace: 'editorManager.handlingEditor',
+      position: 'before',
+    });
   }
 
   /**
