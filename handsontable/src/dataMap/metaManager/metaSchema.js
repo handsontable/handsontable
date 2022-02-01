@@ -2034,13 +2034,13 @@ export default () => {
      * layoutDirection: 'inherit',
      * fixedColumnsStart: 3,
      *
-     * // when `layoutDirection` is set to `rtl`,
+     * // when `layoutDirection` is set to `rtl`
      * // freeze the first 3 columns from the right
      * // regardless of your HTML document's `dir` attribute
      * layoutDirection: 'rtl',
      * fixedColumnsStart: 3,
      *
-     * // when `layoutDirection` is set to `ltr`,
+     * // when `layoutDirection` is set to `ltr`
      * // freeze the first 3 columns from the left
      * // regardless of your HTML document's `dir` attribute
      * layoutDirection: 'ltr',
