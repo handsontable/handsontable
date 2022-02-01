@@ -18,14 +18,16 @@ tags:
 
 # Layout direction
 
-Configure Handsontable's layout direction, to properly handle right-to-left (RTL) [languages](@/guides/internationalization/language.md).
+Configure Handsontable's layout direction, to properly handle right-to-left (RTL) and left-to-right (LTR) [languages](@/guides/internationalization/language.md).
 
 [[toc]]
 
 ## About layout direction
 
-To properly display Handsontable's UI and data in RTL [languages](@/guides/internationalization/language.md) (such as Hebrew or Arabic), 
-you need to configure your grid's layout direction.
+To properly display Handsontable's UI and data in LTR languages (such as English or German) and RTL languages (such as Hebrew or Arabic), 
+you can configure your grid's layout direction.
+
+By default, Handsontable's layout direction is set automatically, based on on the value of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute.
 
 You can:
 - [Set the layout direction automatically](#setting-the-layout-direction-automatically)
