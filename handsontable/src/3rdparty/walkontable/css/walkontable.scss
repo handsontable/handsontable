@@ -116,8 +116,8 @@
   border-top: 1px solid #ccc;
 }
 
-.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable tbody tr th,
-.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
+.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable tbody tr th,
+.ht_master:not(.innerBorderInlineStart):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
   border-inline-end-width: 0;
   border-inline-start: 1px solid #ccc;
 }
