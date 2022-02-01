@@ -96,7 +96,7 @@ class EditorManager {
       }
     });
 
-    this.instance.view.wt.update('onCellDblClick', (event, coords, elem) => this.onCellDblClick(event, coords, elem));
+    this.instance.view._wt.update('onCellDblClick', (event, coords, elem) => this.onCellDblClick(event, coords, elem));
   }
 
   /**

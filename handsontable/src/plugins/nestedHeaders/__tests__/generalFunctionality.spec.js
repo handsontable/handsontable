@@ -23,7 +23,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      expect(hot.view.wt.wtTable.THEAD.querySelectorAll('tr').length).toEqual(2);
+      expect(hot.view._wt.wtTable.THEAD.querySelectorAll('tr').length).toEqual(2);
     });
 
     it('should adjust headers widths', () => {
@@ -36,7 +36,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      const headers = hot.view.wt.wtTable.THEAD.querySelectorAll('tr:first-of-type th');
+      const headers = hot.view._wt.wtTable.THEAD.querySelectorAll('tr:first-of-type th');
 
       expect(hot.getColWidth(1)).toBeGreaterThan(50);
       expect(headers[1].offsetWidth).toBeGreaterThan(100);
@@ -486,7 +486,7 @@ describe('NestedHeaders', () => {
       });
 
       const allTHs = function allTHs(row) {
-        const headerRows = hot.view.wt.wtTable.THEAD.querySelectorAll('tr');
+        const headerRows = hot.view._wt.wtTable.THEAD.querySelectorAll('tr');
 
         return headerRows[row].querySelectorAll('th');
       };

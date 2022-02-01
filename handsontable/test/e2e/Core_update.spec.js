@@ -483,25 +483,25 @@ describe('Core_updateSettings', () => {
       stretchH: 'last'
     });
 
-    expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
+    expect(hot.view._wt.getSetting('stretchH')).toEqual('last');
 
     updateSettings({
       stretchH: 'all'
     });
 
-    expect(hot.view.wt.getSetting('stretchH')).toEqual('all');
+    expect(hot.view._wt.getSetting('stretchH')).toEqual('all');
 
     updateSettings({
       stretchH: 'none'
     });
 
-    expect(hot.view.wt.getSetting('stretchH')).toEqual('none');
+    expect(hot.view._wt.getSetting('stretchH')).toEqual('none');
 
     updateSettings({
       stretchH: 'last'
     });
 
-    expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
+    expect(hot.view._wt.getSetting('stretchH')).toEqual('last');
   });
 
   it('should change colHeader\'s row height if is needed', () => {

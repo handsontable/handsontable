@@ -432,7 +432,7 @@ export class Comments extends BasePlugin {
     renderableRow = renderableRow ?? 0;
     renderableColumn = renderableColumn ?? 0;
 
-    const { rootWindow, view: { wt } } = this.hot;
+    const { rootWindow, view: { _wt: wt } } = this.hot;
     const { wtTable, wtOverlays, wtViewport } = wt;
     const scrollableElement = wtOverlays.scrollableElement;
 
@@ -547,7 +547,7 @@ export class Comments extends BasePlugin {
    * @param {MouseEvent} event The `mousedown` event.
    */
   onMouseDown(event) {
-    if (!this.hot.view || !this.hot.view.wt) {
+    if (!this.hot.view || !this.hot.view._wt) {
       return;
     }
 

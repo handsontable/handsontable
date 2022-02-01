@@ -877,7 +877,7 @@ describe('AutocompleteEditor', () => {
       setDataAtCell(26, 0, 'b');
       selectCell(26, 0);
 
-      hot.view.wt.wtTable.holder.scrollTop = 999;
+      hot.view._wt.wtTable.holder.scrollTop = 999;
       mouseDoubleClick($(getCell(26, 0)));
 
       const autocompleteEditor = $('.autocompleteEditor');
@@ -2907,7 +2907,7 @@ describe('AutocompleteEditor', () => {
     selectCell(0, 0);
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
-    const dropdownHolder = hot.getActiveEditor().htEditor.view.wt.wtTable.holder;
+    const dropdownHolder = hot.getActiveEditor().htEditor.view._wt.wtTable.holder;
 
     await sleep(30);
 
@@ -2952,7 +2952,7 @@ describe('AutocompleteEditor', () => {
 
     const dropdown = hot.getActiveEditor().htContainer;
 
-    hot.view.wt.wtOverlays.topOverlay.scrollTo(1);
+    hot.view._wt.wtOverlays.topOverlay.scrollTo(1);
 
     await sleep(50);
 
@@ -2963,7 +2963,7 @@ describe('AutocompleteEditor', () => {
 
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
-    hot.view.wt.wtOverlays.topOverlay.scrollTo(3);
+    hot.view._wt.wtOverlays.topOverlay.scrollTo(3);
 
     await sleep(50);
 

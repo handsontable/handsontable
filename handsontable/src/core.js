@@ -269,10 +269,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('beforeSetRangeEnd', cellCoords);
 
     if (cellCoords.row < 0) {
-      cellCoords.row = this.view.wt.wtTable.getFirstVisibleRow();
+      cellCoords.row = this.view._wt.wtTable.getFirstVisibleRow();
     }
     if (cellCoords.col < 0) {
-      cellCoords.col = this.view.wt.wtTable.getFirstVisibleColumn();
+      cellCoords.col = this.view._wt.wtTable.getFirstVisibleColumn();
     }
   });
 
@@ -1339,7 +1339,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         const renderableRow = instance.rowIndexMapper.getRenderableFromVisualIndex(row);
         const renderableColumn = instance.columnIndexMapper.getRenderableFromVisualIndex(col);
 
-        instance.view.wt.getSetting('cellRenderer', renderableRow, renderableColumn, td);
+        instance.view._wt.getSetting('cellRenderer', renderableRow, renderableColumn, td);
       }
 
       callback(valid);
@@ -2043,7 +2043,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return;
     }
 
-    if (isSizeChanged || instance.view.wt.wtOverlays.scrollableElement === instance.rootWindow) {
+    if (isSizeChanged || instance.view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
       instance.view.setLastSize(width, height);
       instance.render();
     }
@@ -2330,7 +2330,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       } else if (i === 'tableClassName' && instance.table) {
         setClassName('tableClassName', settings.tableClassName);
 
-        instance.view.wt.wtOverlays.syncOverlayTableClassNames();
+        instance.view._wt.wtOverlays.syncOverlayTableClassNames();
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
 
@@ -2452,8 +2452,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     if (!init) {
       if (instance.view) {
-        instance.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
-        instance.view.wt.exportSettingsAsClassNames();
+        instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
+        instance.view._wt.exportSettingsAsClassNames();
       }
 
       instance.runHooks('afterUpdateSettings', settings);
@@ -2465,13 +2465,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.forceFullRender = true; // used when data was changed
       editorManager.lockEditor();
       instance._refreshBorders(null);
-      instance.view.wt.wtOverlays.adjustElementsSize();
+      instance.view._wt.wtOverlays.adjustElementsSize();
       editorManager.unlockEditor();
     }
 
     if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) &&
         currentHeight !== height) {
-      instance.view.wt.wtOverlays.updateMainScrollableElements();
+      instance.view._wt.wtOverlays.updateMainScrollableElements();
     }
   };
 
@@ -2605,7 +2605,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    */
   this.getCoords = function(element) {
-    const renderableCoords = this.view.wt.wtTable.getCoords(element);
+    const renderableCoords = this.view._wt.wtTable.getCoords(element);
 
     if (renderableCoords === null) {
       return null;
@@ -3670,7 +3670,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedRows = function() {
-    return instance.view.wt.drawn ? instance.view.wt.wtTable.getRenderedRowsCount() : -1;
+    return instance.view._wt.drawn ? instance.view._wt.wtTable.getRenderedRowsCount() : -1;
   };
 
   /**
@@ -3681,7 +3681,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number} Number of visible rows or -1.
    */
   this.countVisibleRows = function() {
-    return instance.view.wt.drawn ? instance.view.wt.wtTable.getVisibleRowsCount() : -1;
+    return instance.view._wt.drawn ? instance.view._wt.wtTable.getVisibleRowsCount() : -1;
   };
 
   /**
@@ -3692,7 +3692,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedCols = function() {
-    return instance.view.wt.drawn ? instance.view.wt.wtTable.getRenderedColumnsCount() : -1;
+    return instance.view._wt.drawn ? instance.view._wt.wtTable.getRenderedColumnsCount() : -1;
   };
 
   /**
@@ -3703,7 +3703,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number} Number of visible columns or -1.
    */
   this.countVisibleCols = function() {
-    return instance.view.wt.drawn ? instance.view.wt.wtTable.getVisibleColumnsCount() : -1;
+    return instance.view._wt.drawn ? instance.view._wt.wtTable.getVisibleColumnsCount() : -1;
   };
 
   /**

@@ -567,7 +567,7 @@ describe('TextEditor', () => {
     keyDown('enter');
     keyUp('enter');
 
-    const mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view._wt.wtTable.holder;
 
     mainHolder.scrollTop = 500;
     mainHolder.scrollLeft = 500;
@@ -590,7 +590,7 @@ describe('TextEditor', () => {
     keyDown('enter');
     keyUp('enter');
 
-    const mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view._wt.wtTable.holder;
 
     mainHolder.scrollTop = 150;
     mainHolder.scrollLeft = 100;
@@ -1292,7 +1292,7 @@ describe('TextEditor', () => {
       fixedRowsTop: 2
     });
 
-    const mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view._wt.wtTable.holder;
 
     // corner
     selectCell(1, 1);
@@ -1336,7 +1336,7 @@ describe('TextEditor', () => {
       height: 500,
     });
 
-    const $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view._wt.wtTable.holder);
 
     $holder.scrollTop(100);
     $holder.scrollLeft(100);
@@ -1428,7 +1428,7 @@ describe('TextEditor', () => {
       fixedRowsTop: 2
     });
 
-    const $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view._wt.wtTable.holder);
 
     $holder.scrollTop(100);
     $holder.scrollLeft(100);
@@ -1455,7 +1455,7 @@ describe('TextEditor', () => {
       fixedRowsTop: 2
     });
 
-    const $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view._wt.wtTable.holder);
 
     $holder[0].scrollTop = 500;
     await sleep(100);
@@ -1485,7 +1485,7 @@ describe('TextEditor', () => {
       fixedRowsTop: 2
     });
 
-    const $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view._wt.wtTable.holder);
 
     $holder.scrollTop(500);
     $holder.scrollLeft(500);
@@ -1514,7 +1514,7 @@ describe('TextEditor', () => {
       fixedRowsTop: 2
     });
 
-    const $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view._wt.wtTable.holder);
 
     $holder.scrollTop(500);
     $holder.scrollLeft(500);
@@ -1696,13 +1696,13 @@ describe('TextEditor', () => {
     const $editedCell = $(hot.getCell(1, 1));
 
     expect($editorInput.outerWidth())
-      .toEqual(hot.view.wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
+      .toEqual(hot.view._wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
 
     hot.scrollViewportTo(void 0, 3);
     hot.render();
 
     expect($editorInput.width() + $editorInput.offset().left)
-      .toBeLessThan(hot.view.wt.wtTable.holder.clientWidth);
+      .toBeLessThan(hot.view._wt.wtTable.holder.clientWidth);
   });
 
   it('should resize editor to properly size after focus', async() => {

@@ -339,7 +339,7 @@ export class TextEditor extends BaseEditor {
       return;
     }
 
-    const { wtOverlays, wtViewport } = this.hot.view.wt;
+    const { wtOverlays, wtViewport } = this.hot.view._wt;
     const rootWindow = this.hot.rootWindow;
     const currentOffset = offset(this.TD);
     const cellWidth = outerWidth(this.TD);
@@ -370,7 +370,7 @@ export class TextEditor extends BaseEditor {
       inlineStartPos = currentOffset.left - containerOffset.left - 1 - scrollLeft;
     }
 
-    let wtTable = this.hot.view.wt.wtTable;
+    let wtTable = this.hot.view._wt.wtTable;
 
     // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
     switch (editorSection) {
@@ -398,7 +398,7 @@ export class TextEditor extends BaseEditor {
     const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
     const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
-    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view.wt.getSetting('fixedRowsBottom');
+    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view._wt.getSetting('fixedRowsBottom');
 
     if (hasColumnHeaders && renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
       editTop += 1;

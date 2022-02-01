@@ -224,7 +224,7 @@ export class ManualColumnResize extends BasePlugin {
 
     this.currentTH = TH;
 
-    const { view: { wt } } = this.hot;
+    const { _wt: wt } = this.hot.view;
     const cellCoords = wt.wtTable.getCoords(this.currentTH);
     const col = cellCoords.col;
 
@@ -607,7 +607,7 @@ export class ManualColumnResize extends BasePlugin {
    */
   onBeforeColumnResize() {
     // clear the header height cache information
-    this.hot.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
+    this.hot.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
   }
 
   /**

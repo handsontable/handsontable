@@ -6,7 +6,7 @@ describe('MultiColumnSorting', () => {
 
     this.sortByClickOnColumnHeader = (columnIndex) => {
       const hot = this.$container.data('handsontable');
-      const $columnHeader = $(hot.view.wt.wtTable.getColumnHeader(columnIndex));
+      const $columnHeader = $(hot.view._wt.wtTable.getColumnHeader(columnIndex));
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
 
       if ($spanInsideHeader.length === 0) {
@@ -2288,7 +2288,7 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true
     });
 
-    hot.view.wt.wtOverlays.inlineStartOverlay.scrollTo(15);
+    hot.view._wt.wtOverlays.inlineStartOverlay.scrollTo(15);
     render();
     getPlugin('multiColumnSorting').sort({ column: 15, sortOrder: 'asc' });
 
@@ -3091,7 +3091,7 @@ describe('MultiColumnSorting', () => {
         columnSorting: true
       });
 
-      const $columnHeader = $(hot.view.wt.wtTable.getColumnHeader(0));
+      const $columnHeader = $(hot.view._wt.wtTable.getColumnHeader(0));
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
 
       $spanInsideHeader.simulate('mousedown', { button: 2 });

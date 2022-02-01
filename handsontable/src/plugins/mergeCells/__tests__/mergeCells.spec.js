@@ -662,7 +662,7 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      const mainHolder = hot.view.wt.wtTable.holder;
+      const mainHolder = hot.view._wt.wtTable.holder;
 
       mainHolder.scrollTop = 130;
       hot.render();
@@ -717,7 +717,7 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      const mainHolder = hot.view.wt.wtTable.holder;
+      const mainHolder = hot.view._wt.wtTable.holder;
 
       $(mainHolder).scrollTop(99999);
       hot.render();

@@ -1330,7 +1330,7 @@ describe('manualColumnMove', () => {
         hot.selectCell(19, 0);
 
         setTimeout(() => {
-          expect(hot.view.wt.wtTable.getFirstVisibleRow()).toBeGreaterThan(8);
+          expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBeGreaterThan(8);
 
           const $rowsHeaders = spec().$container.find('.ht_clone_inline_start tr th');
 
@@ -1343,7 +1343,7 @@ describe('manualColumnMove', () => {
         }, 50);
 
         setTimeout(() => {
-          expect(hot.view.wt.wtTable.getFirstVisibleRow()).toBeLessThan(8);
+          expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBeLessThan(8);
           done();
         }, 150);
       });

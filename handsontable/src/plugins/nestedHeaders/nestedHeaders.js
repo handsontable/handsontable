@@ -240,7 +240,7 @@ export class NestedHeaders extends BasePlugin {
       return;
     }
 
-    const { wt } = this.hot.view;
+    const { _wt: wt } = this.hot.view;
     const headerLevels = wt.getSetting('columnHeaders').length;
     const mainHeaders = wt.wtTable.THEAD;
     const topHeaders = wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
@@ -284,7 +284,7 @@ export class NestedHeaders extends BasePlugin {
    * @fires Hooks#afterGetColHeader
    */
   headerRendererFactory(headerLevel) {
-    const fixedColumnsStart = this.hot.view.wt.getSetting('fixedColumnsStart');
+    const fixedColumnsStart = this.hot.view._wt.getSetting('fixedColumnsStart');
 
     return (renderedColumnIndex, TH) => {
       const { rootDocument, columnIndexMapper, view } = this.hot;
@@ -309,7 +309,7 @@ export class NestedHeaders extends BasePlugin {
         addClass(TH, 'hiddenHeader');
 
       } else if (colspan > 1) {
-        const { wtOverlays } = view.wt;
+        const { wtOverlays } = view._wt;
         const isTopInlineStartOverlay = wtOverlays.topInlineStartCornerOverlay?.clone.wtTable.THEAD.contains(TH);
         const isInlineStartOverlay = wtOverlays.inlineStartOverlay?.clone.wtTable.THEAD.contains(TH);
 

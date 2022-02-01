@@ -235,7 +235,7 @@ export function countCells() {
  * @returns {HTMLTableCellElement}
  */
 export function getColumnHeader(columnIndex = 0) {
-  return hot().view.wt.wtTable.getColumnHeader(columnIndex);
+  return hot().view._wt.wtTable.getColumnHeader(columnIndex);
 }
 
 /**
@@ -360,7 +360,7 @@ export function dropdownMenu(columnIndexOrCell) {
   if (!(columnIndexOrCell instanceof HTMLTableCellElement)) {
     const hotInstance = spec().$container.data('handsontable');
 
-    th = hotInstance.view.wt.wtTable.getColumnHeader(columnIndexOrCell || 0);
+    th = hotInstance.view._wt.wtTable.getColumnHeader(columnIndexOrCell || 0);
   }
 
   const button = th.querySelector('.changeType');

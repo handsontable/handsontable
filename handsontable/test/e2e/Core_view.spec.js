@@ -45,7 +45,7 @@ describe('Core_view', () => {
 
     selectCell(0, 0);
 
-    const scrollableElement = hot.view.wt.wtOverlays.topOverlay.mainTableScrollableElement;
+    const scrollableElement = hot.view._wt.wtOverlays.topOverlay.mainTableScrollableElement;
     const initialScrollTop = scrollableElement.scrollTop;
 
     keyDown('arrow_down');
@@ -90,7 +90,7 @@ describe('Core_view', () => {
       colHeaders: true,
     });
 
-    const scrollbarSize = hot.view.wt.wtOverlays.scrollbarSize;
+    const scrollbarSize = hot.view._wt.wtOverlays.scrollbarSize;
     const {
       scrollWidth: masterScrollWidth,
       scrollHeight: masterScrollHeight
@@ -159,8 +159,8 @@ describe('Core_view', () => {
     await sleep(700);
     hot.scrollViewportTo(119, 199);
     await sleep(700);
-    expect(hot.view.wt.wtScroll.getLastVisibleColumn()).toEqual(199);
-    expect(hot.view.wt.wtScroll.getLastVisibleRow()).toEqual(119);
+    expect(hot.view._wt.wtScroll.getLastVisibleColumn()).toEqual(199);
+    expect(hot.view._wt.wtScroll.getLastVisibleRow()).toEqual(119);
   });
 
   it('should scroll viewport properly when there are hidden columns ' +
@@ -178,7 +178,7 @@ describe('Core_view', () => {
     hot.scrollViewportTo(0, 15);
     hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
 
-    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(15 - 3); // 3 hidden, not rendered elements.
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(15 - 3); // 3 hidden, not rendered elements.
   });
 
   it('should scroll viewport properly when there are hidden columns ' +
@@ -196,7 +196,7 @@ describe('Core_view', () => {
     hot.scrollViewportTo(void 0, 15);
     hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
 
-    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(15 - 3); // 3 hidden, not rendered elements before.
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(15 - 3); // 3 hidden, not rendered elements before.
   });
 
   it('should scroll viewport to the right site of the destination index when the column is hidden (basing on visual indexes)', () => {
@@ -215,28 +215,28 @@ describe('Core_view', () => {
     hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
 
     expect(scrollResult1).toBe(true);
-    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
 
     const scrollResult2 = hot.scrollViewportTo(0, 15);
 
     hot.render();
 
     expect(scrollResult2).toBe(true);
-    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(16 - 5); // 5 hidden, not rendered elements before.
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(16 - 5); // 5 hidden, not rendered elements before.
 
     const scrollResult3 = hot.scrollViewportTo(0, 7);
 
     hot.render();
 
     expect(scrollResult3).toBe(true);
-    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
 
     const scrollResult4 = hot.scrollViewportTo(0, 0);
 
     hot.render();
 
     expect(scrollResult4).toBe(true);
-    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(3 - 3); // 3 hidden, not rendered elements before.
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(3 - 3); // 3 hidden, not rendered elements before.
   });
 
   it('should scroll viewport to the left site of the destination index when the column is hidden and there are ' +
@@ -256,7 +256,7 @@ describe('Core_view', () => {
     hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
 
     expect(scrollResult1).toBe(true);
-    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
+    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
 
     hot.scrollViewportTo(0, 19);
     hot.render();
@@ -266,14 +266,14 @@ describe('Core_view', () => {
     hot.render();
 
     expect(scrollResult2).toBe(true);
-    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
+    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
 
     const scrollResult3 = hot.scrollViewportTo(0, 19);
 
     hot.render();
 
     expect(scrollResult3).toBe(true);
-    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
+    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
   });
 
   it('should scroll viewport to the the destination index when there are some hidden indexes (handling renderable indexes)', () => {
@@ -292,28 +292,28 @@ describe('Core_view', () => {
     hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
 
     expect(scrollResult1).toBe(true);
-    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(2);
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(2);
 
     const scrollResult2 = hot.scrollViewportTo(0, 14, false, false, false);
 
     hot.render();
 
     expect(scrollResult2).toBe(true);
-    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(14);
+    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(14);
 
     const scrollResult3 = hot.scrollViewportTo(0, 2, false, false, false);
 
     hot.render();
 
     expect(scrollResult3).toBe(true);
-    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(2);
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(2);
 
     const scrollResult4 = hot.scrollViewportTo(0, 0, false, false, false);
 
     hot.render();
 
     expect(scrollResult4).toBe(true);
-    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(0);
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(0);
   });
 
   it('should not scroll viewport when all columns are hidden (basing on visual indexes)', () => {
@@ -332,14 +332,14 @@ describe('Core_view', () => {
     hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
 
     expect(scrollResult1).toBe(false);
-    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(-1);
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(-1);
 
     const scrollResult2 = hot.scrollViewportTo(0, 5);
 
     hot.render();
 
     expect(scrollResult2).toBe(false);
-    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(-1);
+    expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(-1);
   });
 
   it('should not throw error while scrolling viewport to 0, 0 (empty data)', () => {
@@ -672,15 +672,15 @@ describe('Core_view', () => {
     });
 
     hot.addHook('afterViewRender', () => {
-      hot.view.wt.wtTable.holder.style.overflow = 'scroll';
-      hot.view.wt.wtTable.holder.style.width = '220px';
+      hot.view._wt.wtTable.holder.style.overflow = 'scroll';
+      hot.view._wt.wtTable.holder.style.width = '220px';
     });
     spec().$container.find('.ht_master .wtHolder').first().scrollTop(1000);
 
     await sleep(100);
     // after afterViewRender hook triggered element style shouldn't changed
-    expect(hot.view.wt.wtTable.holder.style.overflow).toBe('scroll');
-    expect(hot.view.wt.wtTable.holder.style.width).toBe('220px');
+    expect(hot.view._wt.wtTable.holder.style.overflow).toBe('scroll');
+    expect(hot.view._wt.wtTable.holder.style.width).toBe('220px');
   });
 
   describe('scroll', () => {
@@ -715,8 +715,8 @@ describe('Core_view', () => {
 
       // If run on a browser different than Chrome or a higher density display, the event is listened on a different element (https://github.com/handsontable/handsontable/pull/5921)
       if (!(/Chrome/.test(navigator.userAgent) && /Google/.test(navigator.vendor))
-        || hot.view.wt.rootWindow.devicePixelRatio && hot.view.wt.rootWindow.devicePixelRatio > 1) {
-        hot.view.wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
+        || hot.view._wt.rootWindow.devicePixelRatio && hot.view._wt.rootWindow.devicePixelRatio > 1) {
+        hot.view._wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
 
       } else {
         spec().$container.find('.ht_clone_top_inline_start_corner .wtHolder')[0].dispatchEvent(wheelEvt);
@@ -755,8 +755,8 @@ describe('Core_view', () => {
 
       // If run on a browser different than Chrome or a higher density display, the event is listened on a different element (https://github.com/handsontable/handsontable/pull/5921)
       if (!(/Chrome/.test(navigator.userAgent) && /Google/.test(navigator.vendor))
-        || hot.view.wt.rootWindow.devicePixelRatio && hot.view.wt.rootWindow.devicePixelRatio > 1) {
-        hot.view.wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
+        || hot.view._wt.rootWindow.devicePixelRatio && hot.view._wt.rootWindow.devicePixelRatio > 1) {
+        hot.view._wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
 
       } else {
         spec().$container.find('.ht_clone_top_inline_start_corner .wtHolder')[0].dispatchEvent(wheelEvt);
@@ -964,7 +964,7 @@ describe('Core_view', () => {
         height: 200
       });
 
-      const mainHolder = hot.view.wt.wtTable.holder;
+      const mainHolder = hot.view._wt.wtTable.holder;
 
       $(mainHolder).scrollTop(200);
       hot.render();
@@ -994,7 +994,7 @@ describe('Core_view', () => {
       });
 
       const rowHeight = hot.getCell(1, 3).clientHeight;
-      const mainHolder = hot.view.wt.wtTable.holder;
+      const mainHolder = hot.view._wt.wtTable.holder;
 
       expect(spec().$container.find('.ht_clone_top_inline_start_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
         .toEqual(rowHeight);
@@ -1116,9 +1116,9 @@ describe('Core_view', () => {
         colHeaders: true,
         stretchH: 'all'
       });
-      const rowHeaderWidth = hot.view.wt.wtViewport.getRowHeaderWidth();
+      const rowHeaderWidth = hot.view._wt.wtViewport.getRowHeaderWidth();
 
-      expect(hot.view.wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toEqual(0);
+      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toEqual(0);
 
       let expectedCellWidth = (parseInt(spec().$container[0].style.width, 10) - rowHeaderWidth) / 5;
 

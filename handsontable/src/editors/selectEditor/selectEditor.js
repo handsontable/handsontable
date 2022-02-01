@@ -190,7 +190,7 @@ export class SelectEditor extends BaseEditor {
       return;
     }
 
-    const { wtOverlays } = this.hot.view.wt;
+    const { wtOverlays } = this.hot.view._wt;
     const currentOffset = offset(this.TD);
     const containerOffset = offset(this.hot.rootElement);
     const scrollableContainer = wtOverlays.scrollableElement;
@@ -224,7 +224,7 @@ export class SelectEditor extends BaseEditor {
     const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
     const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
-    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view.wt.getSetting('fixedRowsBottom');
+    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view._wt.getSetting('fixedRowsBottom');
 
     if (renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
       editTop += 1;

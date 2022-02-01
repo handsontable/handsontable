@@ -1116,7 +1116,7 @@ describe('CustomBorders', () => {
         height: 100,
         viewportRowRenderingOffset: 0
       });
-      const mainHolder = instance.view.wt.wtTable.holder;
+      const mainHolder = instance.view._wt.wtTable.holder;
 
       $(mainHolder).scrollTop(400);
       await sleep(300);
