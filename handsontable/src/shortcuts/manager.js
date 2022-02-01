@@ -67,10 +67,6 @@ export const createShortcutManager = ({ isActive, frame, beforeKeyDown, afterKey
    * @private
    */
   const keyRecorder = useRecorder(frame, beforeKeyDown, afterKeyDown, (event, keys) => {
-    if (!isActive()) {
-      return;
-    }
-
     const activeContext = getContext(getActiveContextName());
 
     if (activeContext.hasShortcut(keys)) {

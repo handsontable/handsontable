@@ -137,21 +137,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   const shortcutManager = createShortcutManager({
     beforeKeyDown: (event) => {
-      if (this.isDestroyed || this.isListening() === false) {
+      if (this.isListening() === false) { // Performing action (executing a callback) and triggering hook only for listening Handsontable.
         return false;
       }
 
       this.runHooks('beforeKeyDown', event);
     },
     afterKeyDown: (event) => {
-      if (this.isDestroyed) {
+      if (this.isDestroyed) { // Handsontable could be destroyed after performing action (executing a callback).
         return false;
       }
 
       this.runHooks('afterDocumentKeyDown', event);
-    },
-    isActive: () => {
-      return !this.isDestroyed && this.isListening();
     },
     frame: this.rootWindow,
   });

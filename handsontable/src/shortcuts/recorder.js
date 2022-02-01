@@ -65,9 +65,9 @@ export function useRecorder(frame, beforeKeyDown, afterKeyDown, callback) {
       return;
     }
 
-    beforeKeyDown(event);
+    const result = beforeKeyDown(event);
 
-    if (isImmediatePropagationStopped(event)) {
+    if (result === false || isImmediatePropagationStopped(event)) {
       return;
     }
 
