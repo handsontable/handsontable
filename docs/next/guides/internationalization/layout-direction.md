@@ -18,24 +18,24 @@ tags:
 
 # Layout direction
 
-Configure Handsontable's layout direction, to properly display right-to-left (RTL) [languages](@/guides/internationalization/language.md).
+Configure Handsontable's layout direction, to properly handle right-to-left (RTL) [languages](@/guides/internationalization/language.md).
 
 [[toc]]
 
 ## About layout direction
 
-To properly display your data and UI text in RTL [languages](@/guides/internationalization/language.md) (such as Hebrew or Arabic), 
+To properly display Handosntable's data and UI in RTL [languages](@/guides/internationalization/language.md) (such as Hebrew or Arabic), 
 you need to configure your grid's layout direction.
 
 Handsontable lets you do this with a dedicated [configuration option](@/guides/getting-started/setting-options.md), called [`layoutDirection`](@/api/options.md#layoutdirection).
 
 You can set the [`layoutDirection`](@/api/options.md#layoutdirection) option to one of the following strings:
 
-| Setting             | Description                                                                                                                                                               |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `rtl`               | Set Handsontable's layout direction as right-to-left (RTL)                                                                                                                |
-| `ltr`               | Set Handsontable's layout direction as left-to-right (LTR)                                                                                                                |
-| `inherit` (default) | Set Handsontable's layout direction based on the value of your HTML document's [`dir` attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) |
+| Setting             | Description                                                                                                                                                                                  |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `inherit` (default) | Set Handsontable's layout direction automatically,<br>based on the value of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute  |
+| `rtl`               | Render Handsontable from the right to the left,<br>even when your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute is set to `ltr` |
+| `ltr`               | Render Handsontable from the left to the right,<br>even when your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute is set to `rtl` |
 
 ### RTL demo
 
@@ -55,7 +55,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
-  // set Handsontable's layout direction as right-to-left
+  // render Handsontable from the right to the left
   layoutDirection: 'rtl',
 });
 ```
@@ -93,7 +93,7 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
-  // set Handsontable's layout direction as right-to-left
+  // render Handsontable from the right to the left
   layoutDirection: 'rtl',
 });
 ```
@@ -103,8 +103,8 @@ const hot = new Handsontable(container, {
 You can't change the layout direction at Handsontable's runtime (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method).
 
 ```js
+// this won't work
 hot.updateSettings({
-  // this won't work
   layoutDirection: 'rtl',
 });
 ```

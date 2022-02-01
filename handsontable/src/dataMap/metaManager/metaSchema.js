@@ -2475,6 +2475,7 @@ export default () => {
      * Read more:
      * - [Language settings &#8594;](@/guides/internationalization/language.md)
      * - [`locale`](#locale)
+     * - [`layoutDirection`](#layoutdirection)
      *
      * @memberof Options#
      * @type {string}
@@ -2488,6 +2489,42 @@ export default () => {
      * ```
      */
     language: 'en-US',
+
+    /**
+     * The `layoutDirection` option configures whether Handsontable renders from the left to the right, or from the right to the left.
+     *
+     * You can set the `layoutDirection` option only at Handsontable's initialization.
+     * You can't set it at Handsontable's runtime (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method).
+     *
+     * You can set the `layoutDirection` option only as a [top-level grid option](@/guides/getting-started/setting-options.md#setting-grid-options).
+     * You can't set it for individual columns, rows, or cells.
+     *
+     * You can set the `layoutDirection` option to one of the following strings:
+     *
+     * | Setting             | Description                                                                                                                                                                                  |
+     * | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `inherit` (default) | Set Handsontable's layout direction automatically,<br>based on the value of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute  |
+     * | `rtl`               | Render Handsontable from the right to the left,<br>even when your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute is set to `ltr` |
+     * | `ltr`               | Render Handsontable from the left to the right,<br>even when your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute is set to `rtl` |
+     *
+     * Read more:
+     * - [Layout direction &#8594;](@/guides/internationalization/layout-direction.md)
+     * - [Language settings &#8594;](@/guides/internationalization/language.md)
+     * - [`language`](#language)
+     * - [`locale`](#locale)
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default 'inherit'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // render Handsontable from the right to the left
+     * layoutDirection: 'rtl',
+     * ```
+     */
+    layoutDirection: 'inherit',
 
     /**
      * The `licenseKey` option sets your Handsontable license key.
@@ -2528,6 +2565,7 @@ export default () => {
      * Read more:
      * - [Locale settings &#8594;](@/guides/internationalization/locale.md)
      * - [`language`](#language)
+     * - [`layoutDirection`](#layoutdirection)
      *
      * @memberof Options#
      * @type {string}
@@ -4539,32 +4577,6 @@ export default () => {
      * ```
      */
     wordWrap: true,
-
-    /**
-     * The `layoutDirection` option configures whether Handsontable should be rendered from Left-to-right or
-     * Right-to-left depending on the passed settings.
-     *
-     * __Warning:__ The `layoutDirection` option can only be passed when Handsontable is initialized. Nothing
-     * will happen when the option is passed to the `updateSettings` method. Every time the setting is passed
-     * to the method warning message is printed in the console to prevent confusion.
-     *
-     * | Setting          | Description                                             |
-     * | ---------------- | ------------------------------------------------------- |
-     * | `inherit` (default) | Handsontable detects automatically the document layout direction |
-     * | `rtl`            | Renders the table in Right-to-left mode even when the document is served as LTR |
-     * | `ltr`            | Renders the table in Left-to-right mode even when the document is served as RTL |
-     *
-     * @memberof Options#
-     * @type {string}
-     * @default 'inherit'
-     * @category Core
-     *
-     * @example
-     * ```js
-     * layoutDirection: 'rtl',
-     * ```
-     */
-    layoutDirection: 'inherit',
 
     /* eslint-enable jsdoc/require-description-complete-sentence */
   };
