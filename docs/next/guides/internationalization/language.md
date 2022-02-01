@@ -130,7 +130,7 @@ By default, Handsontable uses the **English - United States** language-country s
 
 ### Creating custom languages
 
-Yo can create custom language sets for your implementations, or share them, as they're easily appliable to any Handsontable implementation.
+You can create custom language sets for your implementations, or share them, as they're easily appliable to any Handsontable implementation.
 
 ## Language file
 
