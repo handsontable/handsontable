@@ -24,18 +24,13 @@ Configure Handsontable's layout direction, to properly handle right-to-left (RTL
 
 ## About layout direction
 
-To properly display Handosntable's data and UI in RTL [languages](@/guides/internationalization/language.md) (such as Hebrew or Arabic), 
+To properly display Handsontable's data and UI in RTL [languages](@/guides/internationalization/language.md) (such as Hebrew or Arabic), 
 you need to configure your grid's layout direction.
 
-Handsontable lets you do this with a dedicated [configuration option](@/guides/getting-started/setting-options.md), called [`layoutDirection`](@/api/options.md#layoutdirection).
-
-You can set the [`layoutDirection`](@/api/options.md#layoutdirection) option to one of the following strings:
-
-| Setting             | Description                                                                                                                                                                                  |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `inherit` (default) | Set Handsontable's layout direction automatically,<br>based on the value of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute  |
-| `rtl`               | Render Handsontable from the right to the left,<br>even when your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute is set to `ltr` |
-| `ltr`               | Render Handsontable from the left to the right,<br>even when your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute is set to `rtl` |
+You can:
+- [Set the layout direction automatically](#setting-the-layout-direction-automatically)
+- [Set the layout direction to RTL](#setting-the-layout-direction-to-rtl)
+- [Set the layout direction to LTR](#setting-the-layout-direction-to-ltr)
 
 ### RTL demo
 
@@ -77,7 +72,28 @@ Setting a different layout direction affects the behavior of the following areas
 
 ## Setting the layout direction
 
-To set your grid's layout direction, set the [`layoutDirection`](@/api/options.md#layoutdirection) [configuration option](@/guides/getting-started/setting-options.md) at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid):
+You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid).
+
+::: tip
+You can't change the layout direction at Handsontable's runtime (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method).
+
+```js
+// this won't work
+hot.updateSettings({
+  layoutDirection: 'rtl',
+});
+```
+:::
+
+### Setting the layout direction automatically
+
+You can set Handsontable's layout direction automatically, 
+based on on the value of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute.
+This is the default setting.
+
+At Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid),
+add [`layoutDirection`](@/api/options.md#layoutdirection) as a [top-level grid option](@/guides/getting-started/setting-options.md#setting-grid-options),
+and set it to `'inherit'`:
 
 ::: example #example2
 ```js
@@ -93,25 +109,67 @@ const hot = new Handsontable(container, {
   ],
   colHeaders: true,
   rowHeaders: true,
-  // render Handsontable from the right to the left
-  layoutDirection: 'rtl',
+  // inherit Handsontable's layout direction
+  // from the value of your HTML document's `dir` attribute
+  layoutDirection: 'inherit',
 });
 ```
 :::
 
-::: tip
-You can't change the layout direction at Handsontable's runtime (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method).
+### Setting the layout direction to RTL
 
+You can render Handsontable from the right to the left, regardless of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute.
+
+At Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid),
+add [`layoutDirection`](@/api/options.md#layoutdirection) as a [top-level grid option](@/guides/getting-started/setting-options.md#setting-grid-options),
+and set it to `'rtl'`:
+
+::: example #example3
 ```js
-// this won't work
-hot.updateSettings({
+const container = document.querySelector('#example3');
+
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+  ['2019', 10, 11, 12, 13],
+  ['2020', 20, 11, 14, 13],
+  ['2021', 30, 15, 12, 13]
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  // render Handsontable from the right to the left
+  // regardless of your HTML document's `dir`
   layoutDirection: 'rtl',
 });
 ```
 :::
 
-### Inheriting the HTML layout direction
+### Setting the layout direction to LTR
 
-### Setting the RTL layout direction
+You can render Handsontable from the left to the right, regardless of your HTML document's [`dir`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/dir) attribute.
 
-### Setting the LTR layout direction
+At Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid),
+add [`layoutDirection`](@/api/options.md#layoutdirection) as a [top-level grid option](@/guides/getting-started/setting-options.md#setting-grid-options),
+and set it to `'ltr'`:
+
+::: example #example4
+```js
+const container = document.querySelector('#example4');
+
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+  ['2019', 10, 11, 12, 13],
+  ['2020', 20, 11, 14, 13],
+  ['2021', 30, 15, 12, 13]
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  // render Handsontable from the left to the right
+  // regardless of your HTML document's `dir`
+  layoutDirection: 'ltr',
+});
+```
+:::

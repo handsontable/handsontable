@@ -2512,7 +2512,7 @@ export default () => {
      * You can set the `layoutDirection` option only at Handsontable's initialization.
      * You can't set it at Handsontable's runtime (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method).
      *
-     * You can set the `layoutDirection` option only as a [top-level grid option](@/guides/getting-started/setting-options.md#setting-grid-options).
+     * You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/setting-options.md#setting-grid-options).
      * You can't set it for individual columns, rows, or cells.
      *
      * You can set the `layoutDirection` option to one of the following strings:
@@ -2537,8 +2537,17 @@ export default () => {
      *
      * @example
      * ```js
+     * // inherit Handsontable's layout direction
+     * // from the value of your HTML document's `dir` attribute
+     * layoutDirection: 'inherit',
+     *
      * // render Handsontable from the right to the left
+     * // regardless of your HTML document's `dir`
      * layoutDirection: 'rtl',
+     *
+     * // render Handsontable from the left to the right
+     * // regardless of your HTML document's `dir`
+     * layoutDirection: 'ltr',
      * ```
      */
     layoutDirection: 'inherit',
