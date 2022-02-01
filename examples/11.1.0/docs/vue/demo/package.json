@@ -1,6 +1,6 @@
 {
   "name": "vue-template",
-  "version": "0.0.0",
+  "version": "11.1.0",
   "private": true,
   "homepage": "https://handsontable.com/.",
   "repository": {
@@ -17,9 +17,9 @@
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
-    "@handsontable/vue": "latest",
+    "@handsontable/vue": "11.1.0",
     "core-js": "3.9.1",
-    "handsontable": "latest",
+    "handsontable": "11.1.0",
     "vue": "2.6.12"
   },
   "devDependencies": {
