@@ -804,12 +804,12 @@ describe('manualColumnMove', () => {
             });
             $firstHeader.simulate('mouseup');
 
-            expect(finalIndex1).toEqual(0);
-            expect(dropIndex1).toEqual(0);
+            expect(finalIndex1).toBe(0);
+            expect(dropIndex1).toBe(0);
             expect(movePossible1).toBeTruthy();
 
-            expect(finalIndex2).toEqual(0);
-            expect(dropIndex2).toEqual(0);
+            expect(finalIndex2).toBe(0);
+            expect(dropIndex2).toBe(0);
             expect(movePossible2).toBeTruthy();
             expect(orderChanged).toBeTruthy();
           });
