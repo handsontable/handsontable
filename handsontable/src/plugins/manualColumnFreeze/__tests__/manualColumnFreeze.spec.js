@@ -13,6 +13,19 @@ describe('manualColumnFreeze', () => {
   });
 
   describe('freezeColumn', () => {
+    it('should not throw an exception when the "fixedColumnsLeft" option is used', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        fixedColumnsLeft: 2,
+        manualColumnFreeze: true
+      });
+      const plugin = getPlugin('manualColumnFreeze');
+
+      expect(() => {
+        plugin.freezeColumn(4);
+      }).not.toThrowError();
+    });
+
     it('should increase fixedColumnsStart setting', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -53,6 +66,19 @@ describe('manualColumnFreeze', () => {
   });
 
   describe('unfreezeColumn', () => {
+    it('should not throw an exception when the "fixedColumnsLeft" option is used', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        fixedColumnsLeft: 2,
+        manualColumnFreeze: true
+      });
+      const plugin = getPlugin('manualColumnFreeze');
+
+      expect(() => {
+        plugin.unfreezeColumn(0);
+      }).not.toThrowError();
+    });
+
     it('should decrease fixedColumnsStart setting', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),

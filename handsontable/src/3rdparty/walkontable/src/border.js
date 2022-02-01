@@ -38,14 +38,14 @@ class Border {
     this.main = null;
 
     this.top = null;
-    this.inlineStart = null;
     this.bottom = null;
-    this.inlineEnd = null;
+    this.start = null;
+    this.end = null;
 
     this.topStyle = null;
-    this.inlineStartStyle = null;
     this.bottomStyle = null;
-    this.inlineEndStyle = null;
+    this.startStyle = null;
+    this.endStyle = null;
 
     this.cornerDefaultStyle = {
       width: '6px',
@@ -161,7 +161,7 @@ class Border {
 
     this.main = rootDocument.createElement('div');
 
-    const borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
+    const borderDivs = ['top', 'start', 'bottom', 'end', 'corner'];
     let style = this.main.style;
 
     style.position = 'absolute';
@@ -188,14 +188,14 @@ class Border {
       this.main.appendChild(div);
     }
     this.top = this.main.childNodes[0];
-    this.inlineStart = this.main.childNodes[1];
+    this.start = this.main.childNodes[1];
     this.bottom = this.main.childNodes[2];
-    this.inlineEnd = this.main.childNodes[3];
+    this.end = this.main.childNodes[3];
 
     this.topStyle = this.top.style;
-    this.inlineStartStyle = this.inlineStart.style;
+    this.startStyle = this.start.style;
     this.bottomStyle = this.bottom.style;
-    this.inlineEndStyle = this.inlineEnd.style;
+    this.endStyle = this.end.style;
 
     this.corner = this.main.childNodes[4];
     this.corner.className += ' corner';
@@ -232,24 +232,24 @@ class Border {
     const { rootDocument } = this.wot;
 
     this.selectionHandles = {
-      topLeft: rootDocument.createElement('DIV'),
-      topLeftHitArea: rootDocument.createElement('DIV'),
-      bottomRight: rootDocument.createElement('DIV'),
-      bottomRightHitArea: rootDocument.createElement('DIV')
+      top: rootDocument.createElement('DIV'),
+      topHitArea: rootDocument.createElement('DIV'),
+      bottom: rootDocument.createElement('DIV'),
+      bottomHitArea: rootDocument.createElement('DIV')
     };
     const width = 10;
     const hitAreaWidth = 40;
 
-    this.selectionHandles.topLeft.className = 'topLeftSelectionHandle';
-    this.selectionHandles.topLeftHitArea.className = 'topLeftSelectionHandle-HitArea';
-    this.selectionHandles.bottomRight.className = 'bottomRightSelectionHandle';
-    this.selectionHandles.bottomRightHitArea.className = 'bottomRightSelectionHandle-HitArea';
+    this.selectionHandles.top.className = 'topSelectionHandle topLeftSelectionHandle';
+    this.selectionHandles.topHitArea.className = 'topSelectionHandle-HitArea topLeftSelectionHandle-HitArea';
+    this.selectionHandles.bottom.className = 'bottomSelectionHandle bottomRightSelectionHandle';
+    this.selectionHandles.bottomHitArea.className = 'bottomSelectionHandle-HitArea bottomRightSelectionHandle-HitArea';
 
     this.selectionHandles.styles = {
-      topLeft: this.selectionHandles.topLeft.style,
-      topLeftHitArea: this.selectionHandles.topLeftHitArea.style,
-      bottomRight: this.selectionHandles.bottomRight.style,
-      bottomRightHitArea: this.selectionHandles.bottomRightHitArea.style
+      top: this.selectionHandles.top.style,
+      topHitArea: this.selectionHandles.topHitArea.style,
+      bottom: this.selectionHandles.bottom.style,
+      bottomHitArea: this.selectionHandles.bottomHitArea.style
     };
 
     const hitAreaStyle = {
@@ -260,8 +260,8 @@ class Border {
     };
 
     objectEach(hitAreaStyle, (value, key) => {
-      this.selectionHandles.styles.bottomRightHitArea[key] = value;
-      this.selectionHandles.styles.topLeftHitArea[key] = value;
+      this.selectionHandles.styles.bottomHitArea[key] = value;
+      this.selectionHandles.styles.topHitArea[key] = value;
     });
 
     const handleStyle = {
@@ -274,14 +274,14 @@ class Border {
     };
 
     objectEach(handleStyle, (value, key) => {
-      this.selectionHandles.styles.bottomRight[key] = value;
-      this.selectionHandles.styles.topLeft[key] = value;
+      this.selectionHandles.styles.bottom[key] = value;
+      this.selectionHandles.styles.top[key] = value;
     });
 
-    this.main.appendChild(this.selectionHandles.topLeft);
-    this.main.appendChild(this.selectionHandles.bottomRight);
-    this.main.appendChild(this.selectionHandles.topLeftHitArea);
-    this.main.appendChild(this.selectionHandles.bottomRightHitArea);
+    this.main.appendChild(this.selectionHandles.top);
+    this.main.appendChild(this.selectionHandles.bottom);
+    this.main.appendChild(this.selectionHandles.topHitArea);
+    this.main.appendChild(this.selectionHandles.bottomHitArea);
   }
 
   /**
@@ -310,46 +310,49 @@ class Border {
    * @param {number} height The height of the handler.
    */
   updateMultipleSelectionHandlesPosition(row, col, top, left, width, height) {
-    const handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10);
-    const hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
+    const isRtl = this.wot.wtSettings.getSetting('rtlMode');
+    const inlinePosProperty = isRtl ? 'right' : 'left';
+    const handleWidth = parseInt(this.selectionHandles.styles.top.width, 10);
+    const hitAreaWidth = parseInt(this.selectionHandles.styles.topHitArea.width, 10);
 
-    this.selectionHandles.styles.topLeft.top = `${parseInt(top - handleWidth, 10)}px`;
-    this.selectionHandles.styles.topLeft.left = `${parseInt(left - handleWidth, 10)}px`;
+    this.selectionHandles.styles.top.top = `${parseInt(top - handleWidth - 1, 10)}px`;
+    this.selectionHandles.styles.top[inlinePosProperty] = `${parseInt(left - handleWidth - 1, 10)}px`;
 
-    this.selectionHandles.styles.topLeftHitArea.top = `${parseInt(top - ((hitAreaWidth / 4) * 3), 10)}px`;
-    this.selectionHandles.styles.topLeftHitArea.left = `${parseInt(left - ((hitAreaWidth / 4) * 3), 10)}px`;
+    this.selectionHandles.styles.topHitArea.top = `${parseInt(top - ((hitAreaWidth / 4) * 3), 10)}px`;
+    this.selectionHandles.styles.topHitArea[inlinePosProperty] = `${parseInt(left - ((hitAreaWidth / 4) * 3), 10)}px`;
 
-    this.selectionHandles.styles.bottomRight.top = `${parseInt(top + height, 10)}px`;
-    this.selectionHandles.styles.bottomRight.left = `${parseInt(left + width, 10)}px`;
+    this.selectionHandles.styles.bottom.top = `${parseInt(top + height, 10)}px`;
+    this.selectionHandles.styles.bottom[inlinePosProperty] = `${parseInt(left + width, 10)}px`;
 
-    this.selectionHandles.styles.bottomRightHitArea.top = `${parseInt(top + height - (hitAreaWidth / 4), 10)}px`;
-    this.selectionHandles.styles.bottomRightHitArea.left = `${parseInt(left + width - (hitAreaWidth / 4), 10)}px`;
+    this.selectionHandles.styles.bottomHitArea.top = `${parseInt(top + height - (hitAreaWidth / 4), 10)}px`;
+    this.selectionHandles.styles
+      .bottomHitArea[inlinePosProperty] = `${parseInt(left + width - (hitAreaWidth / 4), 10)}px`;
 
     if (this.settings.border.cornerVisible && this.settings.border.cornerVisible()) {
-      this.selectionHandles.styles.topLeft.display = 'block';
-      this.selectionHandles.styles.topLeftHitArea.display = 'block';
+      this.selectionHandles.styles.top.display = 'block';
+      this.selectionHandles.styles.topHitArea.display = 'block';
 
       if (this.isPartRange(row, col)) {
-        this.selectionHandles.styles.bottomRight.display = 'none';
-        this.selectionHandles.styles.bottomRightHitArea.display = 'none';
+        this.selectionHandles.styles.bottom.display = 'none';
+        this.selectionHandles.styles.bottomHitArea.display = 'none';
       } else {
-        this.selectionHandles.styles.bottomRight.display = 'block';
-        this.selectionHandles.styles.bottomRightHitArea.display = 'block';
+        this.selectionHandles.styles.bottom.display = 'block';
+        this.selectionHandles.styles.bottomHitArea.display = 'block';
       }
     } else {
-      this.selectionHandles.styles.topLeft.display = 'none';
-      this.selectionHandles.styles.bottomRight.display = 'none';
-      this.selectionHandles.styles.topLeftHitArea.display = 'none';
-      this.selectionHandles.styles.bottomRightHitArea.display = 'none';
+      this.selectionHandles.styles.top.display = 'none';
+      this.selectionHandles.styles.bottom.display = 'none';
+      this.selectionHandles.styles.topHitArea.display = 'none';
+      this.selectionHandles.styles.bottomHitArea.display = 'none';
     }
 
     if (row === this.wot.wtSettings.getSetting('fixedRowsTop') ||
         col === this.wot.wtSettings.getSetting('fixedColumnsStart')) {
-      this.selectionHandles.styles.topLeft.zIndex = '9999';
-      this.selectionHandles.styles.topLeftHitArea.zIndex = '9999';
+      this.selectionHandles.styles.top.zIndex = '9999';
+      this.selectionHandles.styles.topHitArea.zIndex = '9999';
     } else {
-      this.selectionHandles.styles.topLeft.zIndex = '';
-      this.selectionHandles.styles.topLeftHitArea.zIndex = '';
+      this.selectionHandles.styles.top.zIndex = '';
+      this.selectionHandles.styles.topHitArea.zIndex = '';
     }
   }
 
@@ -491,10 +494,10 @@ class Border {
     this.topStyle.width = `${width}px`;
     this.topStyle.display = 'block';
 
-    this.inlineStartStyle.top = `${top}px`;
-    this.inlineStartStyle[inlinePosProperty] = `${inlineStartPos}px`;
-    this.inlineStartStyle.height = `${height}px`;
-    this.inlineStartStyle.display = 'block';
+    this.startStyle.top = `${top}px`;
+    this.startStyle[inlinePosProperty] = `${inlineStartPos}px`;
+    this.startStyle.height = `${height}px`;
+    this.startStyle.display = 'block';
 
     const delta = Math.floor(this.settings.border.width / 2);
 
@@ -503,10 +506,10 @@ class Border {
     this.bottomStyle.width = `${width}px`;
     this.bottomStyle.display = 'block';
 
-    this.inlineEndStyle.top = `${top}px`;
-    this.inlineEndStyle[inlinePosProperty] = `${inlineStartPos + width - delta}px`;
-    this.inlineEndStyle.height = `${height + 1}px`;
-    this.inlineEndStyle.display = 'block';
+    this.endStyle.top = `${top}px`;
+    this.endStyle[inlinePosProperty] = `${inlineStartPos + width - delta}px`;
+    this.endStyle.height = `${height + 1}px`;
+    this.endStyle.display = 'block';
 
     let cornerVisibleSetting = this.settings.border.cornerVisible;
 
@@ -673,7 +676,7 @@ class Border {
    * Change border style.
    *
    * @private
-   * @param {string} borderElement Coordinate where add/remove border: top, right, bottom, left.
+   * @param {string} borderElement Coordinate where add/remove border: top, bottom, start, end.
    * @param {object} border The border object descriptor.
    */
   changeBorderStyle(borderElement, border) {
@@ -694,7 +697,7 @@ class Border {
         style.height = `${borderStyle.width}px`;
       }
 
-      if (borderElement === 'right' || borderElement === 'left') {
+      if (borderElement === 'start' || borderElement === 'end') {
         style.width = `${borderStyle.width}px`;
       }
     }
@@ -704,7 +707,7 @@ class Border {
    * Change border style to default.
    *
    * @private
-   * @param {string} position The position type ("top", "bottom", "left", "right") to change.
+   * @param {string} position The position type ("top", "bottom", "start", "end") to change.
    */
   changeBorderToDefaultStyle(position) {
     const defaultBorder = {
@@ -722,7 +725,7 @@ class Border {
    * Toggle class 'hidden' to element.
    *
    * @private
-   * @param {string} borderElement Coordinate where add/remove border: top, right, bottom, left.
+   * @param {string} borderElement Coordinate where add/remove border: top, bottom, start, end.
    * @param {boolean} [remove] Defines type of the action to perform.
    */
   toggleHiddenClass(borderElement, remove) {
@@ -740,14 +743,14 @@ class Border {
    */
   disappear() {
     this.topStyle.display = 'none';
-    this.inlineStartStyle.display = 'none';
     this.bottomStyle.display = 'none';
-    this.inlineEndStyle.display = 'none';
+    this.startStyle.display = 'none';
+    this.endStyle.display = 'none';
     this.cornerStyle.display = 'none';
 
     if (isMobileBrowser()) {
-      this.selectionHandles.styles.topLeft.display = 'none';
-      this.selectionHandles.styles.bottomRight.display = 'none';
+      this.selectionHandles.styles.top.display = 'none';
+      this.selectionHandles.styles.bottom.display = 'none';
     }
   }
 

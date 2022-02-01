@@ -166,7 +166,7 @@ class MultipleSelectUI extends BaseUI {
       }
 
       addClass(wrapper, 'htUIMultipleSelectHot');
-      // Construct and initialise a new Handsontable
+      // Constructs and initializes a new Handsontable instance
       this.itemsBox = new this.hot.constructor(wrapper, {
         data: this.items,
         columns: [
@@ -185,7 +185,8 @@ class MultipleSelectUI extends BaseUI {
         fillHandle: false,
         fragmentSelection: 'cell',
         tabMoves: { row: 1, col: 0 },
-        beforeKeyDown: event => this.onItemsBoxBeforeKeyDown(event)
+        beforeKeyDown: event => this.onItemsBoxBeforeKeyDown(event),
+        layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       });
       this.itemsBox.init();
     };

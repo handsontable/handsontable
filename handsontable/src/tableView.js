@@ -519,7 +519,7 @@ class TableView {
   initializeWalkontable() {
     const priv = privatePool.get(this);
     const walkontableConfig = {
-      rtlMode: () => this.instance.isRtl(),
+      rtlMode: this.instance.isRtl(),
       externalRowCalculator: this.instance.getPlugin('autoRowSize') &&
         this.instance.getPlugin('autoRowSize').isEnabled(),
       table: priv.table,
@@ -1149,16 +1149,16 @@ class TableView {
   }
 
   /**
-   * Given a element's left position relative to the viewport, returns maximum element width until the right
-   * edge of the viewport (before scrollbar).
+   * Given a element's left (or right in RTL mode) position relative to the viewport, returns maximum
+   * element width until the right (or left) edge of the viewport (before scrollbar).
    *
    * @private
-   * @param {number} leftOffset The left offset.
+   * @param {number} inlineOffset The left (or right in RTL mode) offset.
    * @returns {number}
    */
-  maximumVisibleElementWidth(leftOffset) {
+  maximumVisibleElementWidth(inlineOffset) {
     const workspaceWidth = this.wt.wtViewport.getWorkspaceWidth();
-    const maxWidth = workspaceWidth - leftOffset;
+    const maxWidth = workspaceWidth - inlineOffset;
 
     return maxWidth > 0 ? maxWidth : 0;
   }
