@@ -21,25 +21,25 @@ Rather than display "Hello, World!", the demo contains 100 rows and 13 columns p
 
 Want to play with the code yourself? Select the button in the frame's bottom right corner.
 
-<BigExample preview="/examples/next/docs/js/basic-example/">
+<BigExample preview="/examples/next/docs/js/demo/">
   <BigExampleSource 
   label="JavaScript"
   icon="js"
-  target="/examples/next/docs/js/basic-example/"></BigExampleSource>
+  target="/examples/next/docs/js/demo/"></BigExampleSource>
   <BigExampleSource 
   label="TypeScript"
   icon="ts"
-  target="/examples/next/docs/ts/basic-example/"></BigExampleSource>
+  target="/examples/next/docs/ts/demo/"></BigExampleSource>
   <BigExampleSource 
   label="Angular"    
   icon="angular"
-  target="/examples/next/docs/angular/basic-example/"></BigExampleSource>
+  target="/examples/next/docs/angular/demo/"></BigExampleSource>
   <BigExampleSource 
   label="React"
   icon="react"
-  target="/examples/next/docs/react/basic-example/"></BigExampleSource>
+  target="/examples/next/docs/react/demo/"></BigExampleSource>
   <BigExampleSource 
   label="Vue"
   icon="vue"
-  target="/examples/next/docs/vue/basic-example/"></BigExampleSource>
+  target="/examples/next/docs/vue/demo/"></BigExampleSource>
 </BigExample>
