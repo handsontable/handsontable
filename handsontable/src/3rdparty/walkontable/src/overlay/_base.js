@@ -1,6 +1,7 @@
 import {
   getScrollableElement,
-  getTrimmingContainer
+  getTrimmingContainer,
+  getScrollbarWidth,
 } from '../../../../helpers/dom/element';
 import { defineGetter } from '../../../../helpers/object';
 import { arrayEach } from '../../../../helpers/array';
@@ -196,7 +197,14 @@ export class Overlay {
       horizontalOffset = spreaderOffset.start;
 
     } else {
-      horizontalOffset = absoluteRootElementPosition.start <= 0 ? (-1) * absoluteRootElementPosition.start : 0;
+      let absoluteRootElementStartPosition = absoluteRootElementPosition.left;
+
+      if (this.isRtl()) {
+        absoluteRootElementStartPosition = this.domBindings.rootWindow.innerWidth -
+          (absoluteRootElementPosition.left + absoluteRootElementPosition.width + getScrollbarWidth());
+      }
+
+      horizontalOffset = absoluteRootElementStartPosition <= 0 ? (-1) * absoluteRootElementStartPosition : 0;
     }
 
     if (onFixedRowTop) {
