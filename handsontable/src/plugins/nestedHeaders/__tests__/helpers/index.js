@@ -20,7 +20,7 @@ export function extractDOMStructure(overlaysTHead, overlaysTBody) {
 }
 
 /**
- * Returns not hidden TR elements from the Handsontable main overlay.
+ * Returns not hidden TR elements from the Handosntable main overlay.
  *
  * @param {Handsontable} hot The HoT instance.
  * @param {number} row The header level.
