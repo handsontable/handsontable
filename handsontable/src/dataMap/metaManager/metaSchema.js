@@ -2473,7 +2473,7 @@ export default () => {
      * | `'zh-TW'`           | Chinese - Taiwan            |
      *
      * Read more:
-     * - [Locale settings &#8594;](@/guides/internationalization/locale.md)
+     * - [Language settings &#8594;](@/guides/internationalization/language.md)
      * - [`locale`](#locale)
      *
      * @memberof Options#
@@ -2526,7 +2526,7 @@ export default () => {
      * and for [individual columns](@/guides/internationalization/locale.md#setting-a-column-s-locale).
      *
      * Read more:
-     * - [Internationalization (i18n): Locale settings &#8594;](@/guides/internationalization/locale.md)
+     * - [Locale settings &#8594;](@/guides/internationalization/locale.md)
      * - [`language`](#language)
      *
      * @memberof Options#
