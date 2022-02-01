@@ -140,7 +140,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {boolean} True if RTL.
    */
   this.isRtl = function() {
-    return instance.rootWindow.getComputedStyle(instance.rootElement).direction === 'rtl';
+    return instance.rootElement.getAttribute('dir') === 'rtl';
   };
 
   /**
@@ -2302,12 +2302,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#afterUpdateSettings
    */
   this.updateSettings = function(settings, init = false) {
-    // TODO: uncomment the next line with the next major version update
-    // Do not forget to re-enable the pending tests that cover the change:
-    //  * https://github.com/handsontable/handsontable/blob/9f62c282a1c951b27cd8406aa27105bd32b05bb6/handsontable/test/e2e/core/toPhysicalColumn.spec.js#L70
-    //  * https://github.com/handsontable/handsontable/blob/9f62c282a1c951b27cd8406aa27105bd32b05bb6/handsontable/test/e2e/core/toVisualColumn.spec.js#L70
-    // const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(this);
-    const dataUpdateFunction = instance.loadData.bind(this);
+    const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(this);
     let columnsAsFunc = false;
     let i;
     let j;
@@ -2416,6 +2411,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if (initialStyle) {
         instance.rootElement.setAttribute('data-initialstyle', instance.rootElement.getAttribute('style'));
+      }
+
+      const layoutDirection = settings.layoutDirection;
+
+      if (['rtl', 'ltr', 'inherit'].includes(layoutDirection)) {
+        const direction = layoutDirection === 'inherit' ?
+          instance.rootWindow.getComputedStyle(instance.rootElement).direction :
+          layoutDirection;
+
+        instance.rootElement.setAttribute('dir', direction);
       }
     }
 

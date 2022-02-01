@@ -14,7 +14,7 @@ editLink: false
 
 ### aggregationFunction
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/translations/mapCollections/aggregatedCollection.js#L21
+::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/handsontable/src/translations/mapCollections/aggregatedCollection.js#L21
 
 :::
 
@@ -26,7 +26,7 @@ Function which do aggregation on the values for particular index.
 
 ### fallbackValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/translations/mapCollections/aggregatedCollection.js#L25
+::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/handsontable/src/translations/mapCollections/aggregatedCollection.js#L25
 
 :::
 
@@ -38,7 +38,7 @@ Fallback value when there is no calculated value for particular index.
 
 ### mergedValuesCache
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/translations/mapCollections/aggregatedCollection.js#L17
+::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/handsontable/src/translations/mapCollections/aggregatedCollection.js#L17
 
 :::
 
@@ -51,7 +51,7 @@ List of merged values. Value for each index is calculated using values inside re
 
 ### getMergedValueAtIndex
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/translations/mapCollections/aggregatedCollection.js#L92
+::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/handsontable/src/translations/mapCollections/aggregatedCollection.js#L92
 
 :::
 
@@ -69,7 +69,7 @@ Get merged value for particular index.
 
 ### getMergedValues
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/translations/mapCollections/aggregatedCollection.js#L34
+::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/handsontable/src/translations/mapCollections/aggregatedCollection.js#L34
 
 :::
 
@@ -86,7 +86,7 @@ Get merged values for all indexes.
 
 ### updateCache
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/../handsontable/src/translations/mapCollections/aggregatedCollection.js#L101
+::: source-code-link https://github.com/handsontable/handsontable/blob/0472af66268f29ceb64d1f046b74a05149cffe8d/handsontable/src/translations/mapCollections/aggregatedCollection.js#L101
 
 :::
 

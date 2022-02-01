@@ -2450,7 +2450,7 @@ export default () => {
     label: void 0,
 
     /**
-     * The `language` option configures Handsontable's language.
+     * The `language` option configures Handsontable's [language settings](@/guides/internationalization/internationalization-i18n.md#language-settings).
      *
      * You can set the `language` option to one of the following:
      *
@@ -2473,7 +2473,7 @@ export default () => {
      * | `'zh-TW'`           | Chinese - Taiwan            |
      *
      * Read more:
-     * - [Language settings &#8594;](@/guides/internationalization/language.md)
+     * - [Internationalization (i18n): Language settings &#8594;](@/guides/internationalization/internationalization-i18n.md#language-settings)
      * - [`locale`](#locale)
      *
      * @memberof Options#
@@ -2519,13 +2519,14 @@ export default () => {
     licenseKey: void 0,
 
     /**
-     * The `locale` option configures Handsontable's locale.
+     * The `locale` option configures Handsontable's [locale settings](@/guides/internationalization/internationalization-i18n.md#locale-settings).
      *
      * You can set the `locale` option to any valid and canonicalized Unicode BCP 47 locale tag,
-     * both for the entire grid, and for individual columns.
+     * both for the [entire grid](@/guides/internationalization/internationalization-i18n.md#setting-the-grid-s-locale),
+     * and for [individual columns](@/guides/internationalization/internationalization-i18n.md#setting-a-column-s-locale).
      *
      * Read more:
-     * - [Locale settings &#8594;](@/guides/internationalization/locale.md)
+     * - [Internationalization (i18n): Locale settings &#8594;](@/guides/internationalization/internationalization-i18n.md#locale-settings)
      * - [`language`](#language)
      *
      * @memberof Options#
@@ -4539,7 +4540,32 @@ export default () => {
      */
     wordWrap: true,
 
-    /* eslint-enable jsdoc/require-description-complete-sentence */
+    /**
+     * The `layoutDirection` option configures whether Handsontable should be rendered from Left-to-right or
+     * Right-to-left depending on the passed settings.
+     *
+     * __Warning:__ The `layoutDirection` option can only be passed when Handsontable is initialized. Nothing
+     * will happen when the option is passed to the `updateSettings` method. Every time the setting is passed
+     * to the method warning message is printed in the console to prevent confusion.
+     *
+     * | Setting          | Description                                             |
+     * | ---------------- | ------------------------------------------------------- |
+     * | `inherit` (default) | Handsontable detects automatically the document layout direction |
+     * | `rtl`            | Renders the table in Right-to-left mode even when the document is served as LTR |
+     * | `ltr`            | Renders the table in Left-to-right mode even when the document is served as RTL |
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default 'inherit'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * layoutDirection: 'rtl',
+     * ```
+     */
+    layoutDirection: 'inherit',
 
+    /* eslint-enable jsdoc/require-description-complete-sentence */
   };
 };

@@ -20,6 +20,10 @@ export class TouchScroll extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get SETTING_KEYS() {
+    return true;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 

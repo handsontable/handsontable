@@ -95,6 +95,10 @@ export class AutoColumnSize extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get SETTING_KEYS() {
+    return true;
+  }
+
   static get CALCULATION_STEP() {
     return 50;
   }

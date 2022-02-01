@@ -70,6 +70,19 @@ To display a published documentation version in a browser:
 
 If you're editing the `latest` version (a version with the largest `<semver.version>` number), remember to make the same edits to the `next` version as well.
 
+### Reviewing documentation changes
+
+When reviewing documentation changes, you can view the documentation output in one of the following ways:
+- Switch to the review branch, and [start a local documentation server](./README.md#getting-started-with-handsontable-documentation) ([link redirects](./docker/redirects.conf) won't work, though).
+- [Deploy the documentation to the staging environment](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment) (dev.handsontable.com/docs).
+- Deploy the documentation locally at a specific commit:
+
+```bash
+npm run docs:review [COMMIT_HASH]
+```
+
+_Docker Desktop is required, get it from the [official website](https://www.docker.com/products/docker-desktop)._
+
 ## Editing the API reference
 
 The `next` version's API reference is generated automatically from the source code, into the `/next/api/` directory.
