@@ -33,7 +33,7 @@ describe('Core_listen', () => {
       colHeaders: true,
     });
 
-    spec().$container.find('.ht_clone_top_left_corner thead tr:eq(0) th:eq(0)')
+    spec().$container.find('.ht_clone_top_inline_start_corner thead tr:eq(0) th:eq(0)')
       .simulate('mousedown')
       .simulate('mouseup')
       .simulate('click')

@@ -512,12 +512,12 @@ describe('Core_updateSettings', () => {
 
     const rowHeights = [];
 
-    rowHeights.push(spec().$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
+    rowHeights.push(spec().$container.find('.ht_clone_top_inline_start_corner thead th')[0].clientHeight);
     updateSettings({
       colHeaders: ['A<br/>A']
     });
 
-    rowHeights.push(spec().$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
+    rowHeights.push(spec().$container.find('.ht_clone_top_inline_start_corner thead th')[0].clientHeight);
 
     expect(rowHeights[0]).toBeLessThan(rowHeights[1]);
   });

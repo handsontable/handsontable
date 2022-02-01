@@ -343,7 +343,7 @@ describe('Core_selection', () => {
       colHeaders: true,
     });
 
-    simulateClick(spec().$container.find('.ht_clone_left tbody tr:eq(0) th'), 'RMB'); // Header "1"
+    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(0) th'), 'RMB'); // Header "1"
 
     expect(getSelected()).toEqual([[0, -1, 0, 4]]);
     expect(`
@@ -387,7 +387,7 @@ describe('Core_selection', () => {
     });
 
     selectCell(0, 0);
-    simulateClick(spec().$container.find('.ht_clone_left tbody tr:eq(0) th'), 'RMB'); // Header "1"
+    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(0) th'), 'RMB'); // Header "1"
 
     expect(getSelected()).toEqual([[0, -1, 0, 4]]);
     expect(`
@@ -443,7 +443,7 @@ describe('Core_selection', () => {
       columns: [], // The TrimmingMap should be used instead of the plugin.
     });
 
-    simulateClick(spec().$container.find('.ht_clone_left tr:eq(2) th:eq(0)'));
+    simulateClick(spec().$container.find('.ht_clone_inline_start tr:eq(2) th:eq(0)'));
 
     expect(getSelected()).toEqual([[1, -1, 1, -1]]);
     expect(`
@@ -551,11 +551,11 @@ describe('Core_selection', () => {
       startCols: 5,
     });
 
-    spec().$container.find('.ht_clone_left tr:eq(2) th:eq(0)').simulate('mousedown');
-    spec().$container.find('.ht_clone_left tr:eq(2) th:eq(0)').simulate('mouseup');
+    spec().$container.find('.ht_clone_inline_start tr:eq(2) th:eq(0)').simulate('mousedown');
+    spec().$container.find('.ht_clone_inline_start tr:eq(2) th:eq(0)').simulate('mouseup');
 
-    spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mousedown', { shiftKey: true });
-    spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mouseup');
+    spec().$container.find('.ht_clone_inline_start tr:eq(5) th:eq(0)').simulate('mousedown', { shiftKey: true });
+    spec().$container.find('.ht_clone_inline_start tr:eq(5) th:eq(0)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[1, -1, 4, 4]]);
     expect(`
@@ -604,8 +604,8 @@ describe('Core_selection', () => {
 
     selectCell(1, 1, 3, 3);
 
-    spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mousedown', { shiftKey: true });
-    spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mouseup');
+    spec().$container.find('.ht_clone_inline_start tr:eq(5) th:eq(0)').simulate('mousedown', { shiftKey: true });
+    spec().$container.find('.ht_clone_inline_start tr:eq(5) th:eq(0)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[1, -1, 4, 4]]);
     expect(`
@@ -630,8 +630,8 @@ describe('Core_selection', () => {
 
     selectCell(0, 0, 0, 0);
 
-    spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mousedown', { shiftKey: true });
-    spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mouseup');
+    spec().$container.find('.ht_clone_inline_start tr:eq(5) th:eq(0)').simulate('mousedown', { shiftKey: true });
+    spec().$container.find('.ht_clone_inline_start tr:eq(5) th:eq(0)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[0, -1, 4, 4]]);
     expect(`
@@ -658,8 +658,8 @@ describe('Core_selection', () => {
     | - ║ 0 : 0 : 0 : 0 : 0 |
     `).toBeMatchToSelectionPattern();
 
-    spec().$container.find('.ht_clone_left tr:eq(3) th:eq(0)').simulate('mousedown', { shiftKey: true });
-    spec().$container.find('.ht_clone_left tr:eq(3) th:eq(0)').simulate('mouseup');
+    spec().$container.find('.ht_clone_inline_start tr:eq(3) th:eq(0)').simulate('mousedown', { shiftKey: true });
+    spec().$container.find('.ht_clone_inline_start tr:eq(3) th:eq(0)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[0, -1, 2, 4]]);
     expect(`
@@ -719,11 +719,11 @@ describe('Core_selection', () => {
       fixedColumnsStart: 2
     });
 
-    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(2)').simulate('mousedown');
-    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(2)').simulate('mouseover');
+    spec().$container.find('.ht_clone_inline_start tr:eq(0) th:eq(2)').simulate('mousedown');
+    spec().$container.find('.ht_clone_inline_start tr:eq(0) th:eq(2)').simulate('mouseover');
     spec().$container.find('.ht_clone_top tr:eq(0) th:eq(3)').simulate('mouseover');
-    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(2)').simulate('mouseover');
-    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(2)').simulate('mouseup');
+    spec().$container.find('.ht_clone_inline_start tr:eq(0) th:eq(2)').simulate('mouseover');
+    spec().$container.find('.ht_clone_inline_start tr:eq(0) th:eq(2)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
     expect(`
@@ -887,7 +887,7 @@ describe('Core_selection', () => {
       fixedColumnsStart: 2
     });
 
-    spec().$container.find('.ht_clone_top_left_corner thead th:eq(1)').simulate('mousedown');
+    spec().$container.find('.ht_clone_top_inline_start_corner thead th:eq(1)').simulate('mousedown');
 
     expect(getSelected()).toEqual([[-1, 0, 9, 0]]);
     expect(`
@@ -1042,7 +1042,7 @@ describe('Core_selection', () => {
     await sleep(30);
 
     $(getCell(12, 11)).simulate('mousedown');
-    spec().$container.find('.ht_clone_left tbody th:eq(12)').simulate('mouseover');
+    spec().$container.find('.ht_clone_inline_start tbody th:eq(12)').simulate('mouseover');
 
     await sleep(30);
 
@@ -1596,7 +1596,7 @@ describe('Core_selection', () => {
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
   });
 
-  it('should redraw selection on `leftOverlay` when options `colHeaders` and `fixedColumnsStart` are set, and user scrolled', async() => {
+  it('should redraw selection on `inlineStartOverlay` when options `colHeaders` and `fixedColumnsStart` are set, and user scrolled', async() => {
     const hot = handsontable({
       fixedColumnsStart: 2,
       startRows: 20,

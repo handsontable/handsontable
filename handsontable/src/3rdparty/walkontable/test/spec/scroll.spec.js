@@ -472,7 +472,7 @@ describe('WalkontableScroll', () => {
       spec().$wrapper.width(260).height(201);
 
       const topOverlayCallback = jasmine.createSpy('topOverlayCallback');
-      const leftOverlayCallback = jasmine.createSpy('leftOverlayCallback');
+      const inlineStartOverlayCallback = jasmine.createSpy('inlineStartOverlayCallback');
 
       const wt = walkontable({
         data: getData,
@@ -482,11 +482,11 @@ describe('WalkontableScroll', () => {
         fixedRowsTop: 2
       });
       const masterHolder = wt.wtTable.holder;
-      const leftOverlayHolder = wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder;
+      const inlineStartOverlayHolder = wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder;
       const topOverlayHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
 
       topOverlayHolder.addEventListener('scroll', topOverlayCallback);
-      leftOverlayHolder.addEventListener('scroll', leftOverlayCallback);
+      inlineStartOverlayHolder.addEventListener('scroll', inlineStartOverlayCallback);
 
       wt.draw();
       wt.scrollViewport(new Walkontable.CellCoords(50, 50));
@@ -494,13 +494,13 @@ describe('WalkontableScroll', () => {
 
       await sleep(100);
       expect(topOverlayCallback.calls.count()).toEqual(1);
-      expect(leftOverlayCallback.calls.count()).toEqual(1);
+      expect(inlineStartOverlayCallback.calls.count()).toEqual(1);
 
       expect(topOverlayHolder.scrollLeft).toEqual(masterHolder.scrollLeft);
-      expect(leftOverlayHolder.scrollTop).toEqual(masterHolder.scrollTop);
+      expect(inlineStartOverlayHolder.scrollTop).toEqual(masterHolder.scrollTop);
 
       topOverlayHolder.removeEventListener('scroll', topOverlayCallback);
-      leftOverlayHolder.removeEventListener('scroll', leftOverlayCallback);
+      inlineStartOverlayHolder.removeEventListener('scroll', inlineStartOverlayCallback);
     });
 
     it('should call onScrollVertically hook, if scrollTop was changed', async() => {

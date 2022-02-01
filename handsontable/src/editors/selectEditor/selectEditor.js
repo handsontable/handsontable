@@ -205,13 +205,13 @@ export class SelectEditor extends BaseEditor {
       case 'top':
         cssTransformOffset = getCssTransform(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
         break;
-      case 'left':
+      case 'inline-start':
         cssTransformOffset = getCssTransform(wtOverlays.inlineStartOverlay.clone.wtTable.holder.parentNode);
         break;
-      case 'top-left-corner':
+      case 'top-inline-start-corner':
         cssTransformOffset = getCssTransform(wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
         break;
-      case 'bottom-left-corner':
+      case 'bottom-inline-start-corner':
         cssTransformOffset = getCssTransform(wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'bottom':

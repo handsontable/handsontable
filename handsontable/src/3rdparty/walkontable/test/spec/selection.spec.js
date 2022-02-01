@@ -324,8 +324,8 @@ describe('Walkontable.Selection', () => {
     expect(spec().$table.find('.highlightColumn').length).toEqual(14);
     expect(getTableTopClone().find('.highlightColumn').length).toEqual(2);
     expect(getTableTopClone().find('.highlightRow').length).toEqual(0);
-    expect(getTableLeftClone().find('.highlightColumn').length).toEqual(0);
-    expect(getTableLeftClone().find('.highlightRow').length).toEqual(2);
+    expect(getTableInlineStartClone().find('.highlightColumn').length).toEqual(0);
+    expect(getTableInlineStartClone().find('.highlightRow').length).toEqual(2);
 
     const $colHeaders = spec().$table.find('thead tr:first-child th');
     const $rowHeaders = spec().$table.find('tbody tr th:first-child');
@@ -343,8 +343,8 @@ describe('Walkontable.Selection', () => {
     expect(spec().$table.find('.highlightColumn').length).toEqual(0);
     expect(getTableTopClone().find('.highlightColumn').length).toEqual(0);
     expect(getTableTopClone().find('.highlightRow').length).toEqual(0);
-    expect(getTableLeftClone().find('.highlightColumn').length).toEqual(0);
-    expect(getTableLeftClone().find('.highlightRow').length).toEqual(0);
+    expect(getTableInlineStartClone().find('.highlightColumn').length).toEqual(0);
+    expect(getTableInlineStartClone().find('.highlightRow').length).toEqual(0);
   });
 
   it('should add/remove header classes only to the row/column headers closest to the cells when the ' +

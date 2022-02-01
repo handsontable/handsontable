@@ -96,7 +96,7 @@ describe('Core_view', () => {
       scrollHeight: masterScrollHeight
     } = spec().$container.find('.ht_master')[0];
     const topScrollWidth = spec().$container.find('.ht_clone_top')[0].scrollWidth;
-    const leftScrollHeight = spec().$container.find('.ht_clone_left')[0].scrollHeight;
+    const leftScrollHeight = spec().$container.find('.ht_clone_inline_start')[0].scrollHeight;
 
     expect(masterScrollWidth).toBe(250);
     expect(masterScrollHeight).toBe(200);
@@ -452,7 +452,7 @@ describe('Core_view', () => {
     });
 
     const htCore = getHtCore();
-    const leftClone = spec().$container.find('.ht_clone_left');
+    const leftClone = spec().$container.find('.ht_clone_inline_start');
 
     expect(leftClone.find('tr:eq(0) td').length).toEqual(1);
     expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
@@ -487,7 +487,7 @@ describe('Core_view', () => {
 
     selectCell(0, 0);
 
-    const leftClone = spec().$container.find('.ht_clone_left');
+    const leftClone = spec().$container.find('.ht_clone_inline_start');
 
     expect(leftClone.find('tr:eq(0) td').length).toEqual(1);
     expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
@@ -719,7 +719,7 @@ describe('Core_view', () => {
         hot.view.wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
 
       } else {
-        spec().$container.find('.ht_clone_top_left_corner .wtHolder')[0].dispatchEvent(wheelEvt);
+        spec().$container.find('.ht_clone_top_inline_start_corner .wtHolder')[0].dispatchEvent(wheelEvt);
       }
 
       await sleep(100);
@@ -759,7 +759,7 @@ describe('Core_view', () => {
         hot.view.wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
 
       } else {
-        spec().$container.find('.ht_clone_top_left_corner .wtHolder')[0].dispatchEvent(wheelEvt);
+        spec().$container.find('.ht_clone_top_inline_start_corner .wtHolder')[0].dispatchEvent(wheelEvt);
       }
 
       await sleep(100);
@@ -970,7 +970,7 @@ describe('Core_view', () => {
       hot.render();
 
       const masterTD = spec().$container.find('.ht_master tbody tr:eq(5) td:eq(1)')[0];
-      const cloneTD = spec().$container.find('.ht_clone_left tbody tr:eq(5) td:eq(1)')[0];
+      const cloneTD = spec().$container.find('.ht_clone_inline_start tbody tr:eq(5) td:eq(1)')[0];
 
       expect(cloneTD.clientHeight).toEqual(masterTD.clientHeight);
     });
@@ -996,13 +996,13 @@ describe('Core_view', () => {
       const rowHeight = hot.getCell(1, 3).clientHeight;
       const mainHolder = hot.view.wt.wtTable.holder;
 
-      expect(spec().$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
+      expect(spec().$container.find('.ht_clone_top_inline_start_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
         .toEqual(rowHeight);
 
       $(mainHolder).scrollTop(200);
       hot.render();
 
-      expect(spec().$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
+      expect(spec().$container.find('.ht_clone_top_inline_start_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
         .toEqual(rowHeight);
     });
   });
@@ -1029,7 +1029,7 @@ describe('Core_view', () => {
         }]
       });
 
-      const leftClone = spec().$container.find('.ht_clone_left');
+      const leftClone = spec().$container.find('.ht_clone_inline_start');
 
       expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(80);
 
@@ -1081,7 +1081,7 @@ describe('Core_view', () => {
         }
       });
 
-      const leftClone = spec().$container.find('.ht_clone_left');
+      const leftClone = spec().$container.find('.ht_clone_inline_start');
 
       expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(80);
 

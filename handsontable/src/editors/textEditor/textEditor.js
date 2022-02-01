@@ -163,7 +163,7 @@ export class TextEditor extends BaseEditor {
       } = cellProperties;
 
       if (allowInvalid) {
-        // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste
+        // Remove an empty space from textarea (added by copyPaste plugin to make copy/paste
         // functionality work with IME)
         this.TEXTAREA.value = '';
       }
@@ -193,7 +193,7 @@ export class TextEditor extends BaseEditor {
       return;
     }
 
-    this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME).
+    this.TEXTAREA.value = ''; // Remove an empty space from textarea (added by copyPaste plugin to make copy/paste functionality work with IME).
     super.beginEditing(newInitialValue, event);
   }
 
@@ -203,7 +203,7 @@ export class TextEditor extends BaseEditor {
   focus() {
     // For IME editor textarea element must be focused using ".select" method.
     // Using ".focus" browser automatically scroll into the focused element which
-    // is undesire effect.
+    // is undesired effect.
     this.TEXTAREA.select();
     setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
   }
@@ -255,10 +255,7 @@ export class TextEditor extends BaseEditor {
     this.textareaParentStyle.opacity = '0';
     this.textareaParentStyle.height = '1px';
 
-    if (hasClass(this.TEXTAREA_PARENT, this.layerClass)) {
-      removeClass(this.TEXTAREA_PARENT, this.layerClass);
-    }
-
+    removeClass(this.TEXTAREA_PARENT, this.layerClass);
     addClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME);
   }
 
@@ -357,7 +354,7 @@ export class TextEditor extends BaseEditor {
     const gridMostRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
     const editorSection = this.checkEditorSection();
 
-    const scrollTop = ['', 'left'].includes(editorSection) ? containerScrollTop : 0;
+    const scrollTop = ['', 'inline-start'].includes(editorSection) ? containerScrollTop : 0;
     const scrollLeft = ['', 'top', 'bottom'].includes(editorSection) ? containerScrollLeft : 0;
 
     // If colHeaders is disabled, cells in the first row have border-top
@@ -380,13 +377,13 @@ export class TextEditor extends BaseEditor {
       case 'top':
         wtTable = wtOverlays.topOverlay.clone.wtTable;
         break;
-      case 'left':
+      case 'inline-start':
         wtTable = wtOverlays.inlineStartOverlay.clone.wtTable;
         break;
-      case 'top-left-corner':
+      case 'top-inline-start-corner':
         wtTable = wtOverlays.topInlineStartCornerOverlay.clone.wtTable;
         break;
-      case 'bottom-left-corner':
+      case 'bottom-inline-start-corner':
         wtTable = wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable;
         break;
       case 'bottom':

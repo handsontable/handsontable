@@ -345,7 +345,7 @@ describe('ContextMenu', () => {
       expect(hot.getPlugin('contextMenu')).toBeDefined();
       expect($('.htContextMenu').is(':visible')).toBe(false);
 
-      contextMenu(hot.rootElement.querySelector('.ht_clone_left tbody tr:nth-child(3) th'));
+      contextMenu(hot.rootElement.querySelector('.ht_clone_inline_start tbody tr:nth-child(3) th'));
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
       expect(`
@@ -371,7 +371,7 @@ describe('ContextMenu', () => {
       expect(hot.getPlugin('contextMenu')).toBeDefined();
       expect($('.htContextMenu').is(':visible')).toBe(false);
 
-      contextMenu(hot.rootElement.querySelector('.ht_clone_top_left_corner thead th'));
+      contextMenu(hot.rootElement.querySelector('.ht_clone_top_inline_start_corner thead th'));
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
@@ -927,7 +927,7 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      const rowHeader = $('.ht_clone_left .htCore').eq(0).find('tbody').find('th').eq(0);
+      const rowHeader = $('.ht_clone_inline_start .htCore').eq(0).find('tbody').find('th').eq(0);
 
       simulateClick(rowHeader, 'RMB');
       contextMenu();
@@ -973,7 +973,7 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      const corner = $('.ht_clone_top_left_corner .htCore')
+      const corner = $('.ht_clone_top_inline_start_corner .htCore')
         .find('thead')
         .find('th')
         .eq(0);
@@ -998,7 +998,7 @@ describe('ContextMenu', () => {
         rowHeaders: true
       });
 
-      const header = $('.ht_clone_left .htCore')
+      const header = $('.ht_clone_inline_start .htCore')
         .find('tbody')
         .find('th')
         .eq(0);
@@ -1029,7 +1029,7 @@ describe('ContextMenu', () => {
           rowHeaders: true
         });
 
-        const corner = $('.ht_clone_top_left_corner .htCore')
+        const corner = $('.ht_clone_top_inline_start_corner .htCore')
           .find('thead')
           .find('th')
           .eq(0);
@@ -1059,7 +1059,7 @@ describe('ContextMenu', () => {
           rowHeaders: true
         });
 
-        const corner = $('.ht_clone_top_left_corner .htCore')
+        const corner = $('.ht_clone_top_inline_start_corner .htCore')
           .find('thead')
           .find('th')
           .eq(0);
@@ -1127,7 +1127,7 @@ describe('ContextMenu', () => {
 
       expect(countRows()).toEqual(0);
 
-      const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
+      const cell = $('.ht_clone_top_inline_start_corner .htCore').find('thead').find('th').eq(0);
 
       simulateClick(cell, 'RMB');
       contextMenu(cell[0]);
@@ -1322,7 +1322,7 @@ describe('ContextMenu', () => {
 
       expect(countCols()).toEqual(0);
 
-      const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
+      const cell = $('.ht_clone_top_inline_start_corner .htCore').find('thead').find('th').eq(0);
 
       simulateClick(cell, 'RMB');
       contextMenu(cell[0]);
@@ -1947,7 +1947,7 @@ describe('ContextMenu', () => {
         rowHeaders: true
       });
 
-      const $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
+      const $rowsHeaders = spec().$container.find('.ht_clone_inline_start tr th');
 
       $rowsHeaders.eq(1).simulate('mousedown');
       $rowsHeaders.eq(2).simulate('mouseover');
@@ -3768,7 +3768,7 @@ describe('ContextMenu', () => {
           colHeaders: true
         });
 
-        const header = $('.ht_clone_left .htCore')
+        const header = $('.ht_clone_inline_start .htCore')
           .find('tbody')
           .find('th')
           .eq(0);
@@ -3811,7 +3811,7 @@ describe('ContextMenu', () => {
           colHeaders: true
         });
 
-        const header = $('.ht_clone_left .htCore')
+        const header = $('.ht_clone_inline_start .htCore')
           .find('tbody')
           .find('th')
           .eq(0);

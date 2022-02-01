@@ -1089,7 +1089,7 @@ describe('manualRowMove', () => {
             manualRowMove: true
           });
 
-          const $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
+          const $rowsHeaders = spec().$container.find('.ht_clone_inline_start tr th');
 
           $rowsHeaders.eq(1).simulate('mousedown');
           $rowsHeaders.eq(1).simulate('mouseup');
@@ -1110,7 +1110,7 @@ describe('manualRowMove', () => {
             manualRowMove: true
           });
 
-          const $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
+          const $rowsHeaders = spec().$container.find('.ht_clone_inline_start tr th');
 
           $rowsHeaders.eq(1).simulate('mousedown');
           $rowsHeaders.eq(1).simulate('mouseup');
@@ -1239,7 +1239,7 @@ describe('manualRowMove', () => {
         setTimeout(() => {
           expect(hot.view.wt.wtTable.getFirstVisibleRow()).toBeGreaterThan(8);
 
-          const $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
+          const $rowsHeaders = spec().$container.find('.ht_clone_inline_start tr th');
 
           $rowsHeaders.eq(10).simulate('mousedown');
           $rowsHeaders.eq(10).simulate('mouseup');

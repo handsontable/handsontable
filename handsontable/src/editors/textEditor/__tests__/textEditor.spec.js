@@ -397,7 +397,7 @@ describe('TextEditor', () => {
       fixedColumnsStart: 2,
     });
 
-    // .ht_clone_top_left_corner
+    // .ht_clone_top_inline_start_corner
     selectCell(0, 0);
     keyDownUp('enter');
 
@@ -405,13 +405,13 @@ describe('TextEditor', () => {
 
     expect(handsontableInputHolder.css('zIndex')).toBe('180');
 
-    // .ht_clone_left
+    // .ht_clone_inline_start
     selectCell(5, 0);
     keyDownUp('enter');
 
     expect(handsontableInputHolder.css('zIndex')).toBe('120');
 
-    // .ht_clone_bottom_left_corner
+    // .ht_clone_bottom_inline_start_corner
     selectCell(9, 0);
     keyDownUp('enter');
 

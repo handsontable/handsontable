@@ -750,7 +750,7 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 3)).toBe(null);
           expect(getCell(0, 4)).toBe(null);
 
-          const header = $('.ht_clone_left .htCore')
+          const header = $('.ht_clone_inline_start .htCore')
             .find('tbody')
             .find('th')
             .eq(0);
@@ -869,7 +869,7 @@ describe('HiddenColumns', () => {
               },
             });
 
-            const header = $('.ht_clone_left .htCore')
+            const header = $('.ht_clone_inline_start .htCore')
               .find('tbody')
               .find('th')
               .eq(0);
@@ -913,7 +913,7 @@ describe('HiddenColumns', () => {
               },
             });
 
-            const header = $('.ht_clone_left .htCore')
+            const header = $('.ht_clone_inline_start .htCore')
               .find('tbody')
               .find('th')
               .eq(0);
@@ -959,7 +959,7 @@ describe('HiddenColumns', () => {
               },
             });
 
-            const header = $('.ht_clone_left .htCore')
+            const header = $('.ht_clone_inline_start .htCore')
               .find('tbody')
               .find('th')
               .eq(0);
@@ -1003,7 +1003,7 @@ describe('HiddenColumns', () => {
               },
             });
 
-            const header = $('.ht_clone_left .htCore')
+            const header = $('.ht_clone_inline_start .htCore')
               .find('tbody')
               .find('th')
               .eq(0);

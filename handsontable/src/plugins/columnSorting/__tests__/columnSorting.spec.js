@@ -315,9 +315,9 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    $('.ht_clone_top_left_corner .htCore span').simulate('mousedown');
-    $('.ht_clone_top_left_corner .htCore span').simulate('click');
-    $('.ht_clone_top_left_corner .htCore span').simulate('mouseup');
+    $('.ht_clone_top_inline_start_corner .htCore span').simulate('mousedown');
+    $('.ht_clone_top_inline_start_corner .htCore span').simulate('click');
+    $('.ht_clone_top_inline_start_corner .htCore span').simulate('mouseup');
 
     expect(onErrorSpy).not.toHaveBeenCalled();
   });

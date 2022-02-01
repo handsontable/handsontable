@@ -36,8 +36,8 @@ describe('HiddenColumns', () => {
         fixedColumnsStart: 6
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(6 - 2);
-      expect(getLeftClone().width()).toBe((4 * 50) + (2 * 15)); // 4 fixed, visible columns, with space for indicators.
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(6 - 2);
+      expect(getInlineStartClone().width()).toBe((4 * 50) + (2 * 15)); // 4 fixed, visible columns, with space for indicators.
       expect($(getCell(-1, 0).querySelector('span')).text()).toBe('A');
       expect($(getCell(-1, 1).querySelector('span')).text()).toBe('B');
       expect(getCell(-1, 2)).toBe(null);
@@ -57,8 +57,8 @@ describe('HiddenColumns', () => {
         fixedColumnsStart: 1
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(1);
-      expect(getLeftClone().width()).toBe(50 + 15); // 1 fixed, visible column, with space for indicator.
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(1);
+      expect(getInlineStartClone().width()).toBe(50 + 15); // 1 fixed, visible column, with space for indicator.
       expect($(getCell(-1, 0).querySelector('span')).text()).toBe('A');
       expect(getCell(-1, 1)).toBe(null);
       expect($(getCell(-1, 2).querySelector('span')).text()).toBe('C');
@@ -75,8 +75,8 @@ describe('HiddenColumns', () => {
         fixedColumnsStart: 6
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(6 - 3);
-      expect(getLeftClone().width()).toBe((3 * 50) + 15); // 3 fixed, visible columns, with space for indicator.
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(6 - 3);
+      expect(getInlineStartClone().width()).toBe((3 * 50) + 15); // 3 fixed, visible columns, with space for indicator.
       expect(getCell(-1, 0)).toBe(null);
       expect(getCell(-1, 1)).toBe(null);
       expect(getCell(-1, 2)).toBe(null);
@@ -96,8 +96,8 @@ describe('HiddenColumns', () => {
         fixedColumnsStart: 6
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(6 - 3);
-      expect(getLeftClone().width()).toBe((3 * 50) + 15); // 3 fixed, visible columns, with space for indicator.
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(6 - 3);
+      expect(getInlineStartClone().width()).toBe((3 * 50) + 15); // 3 fixed, visible columns, with space for indicator.
       expect($(getCell(-1, 0).querySelector('span')).text()).toBe('A');
       expect($(getCell(-1, 1).querySelector('span')).text()).toBe('B');
       expect($(getCell(-1, 2).querySelector('span')).text()).toBe('C');
@@ -117,8 +117,8 @@ describe('HiddenColumns', () => {
         fixedColumnsStart: 4
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(0);
-      expect(getLeftClone().width()).toBe(0);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(0);
+      expect(getInlineStartClone().width()).toBe(0);
     });
 
     it('should not display cells after API call hiding all columns', () => {
@@ -131,8 +131,8 @@ describe('HiddenColumns', () => {
       getPlugin('hiddenColumns').hideColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
       render();
 
-      expect(getLeftClone().find('tbody td').length).toBe(0);
-      expect(extractDOMStructure(getLeftClone())).toMatchHTML(`
+      expect(getInlineStartClone().find('tbody td').length).toBe(0);
+      expect(extractDOMStructure(getInlineStartClone())).toMatchHTML(`
         <tbody>
           <tr></tr>
         </tbody>

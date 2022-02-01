@@ -321,15 +321,15 @@ export function getTableTopClone() {
 /**
  * @returns {jQuery}
  */
-export function getTableLeftClone() {
-  return $('.ht_clone_left');
+export function getTableInlineStartClone() {
+  return $('.ht_clone_inline_start');
 }
 
 /**
  * @returns {jQuery}
  */
-export function getTableCornerClone() {
-  return $('.ht_clone_top_left_corner');
+export function getTableTopInlineStartCornerClone() {
+  return $('.ht_clone_top_inline_start_corner');
 }
 
 /**
