@@ -51,19 +51,6 @@ describe('Core.toVisualColumn', () => {
       expect(hot.toVisualColumn(1)).toBe(1);
       expect(hot.toVisualColumn(2)).toBe(null);
     });
-
-    it('by calling the `setData` function', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
-      });
-
-      hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-      hot.setData(Handsontable.helper.createSpreadsheetData(2, 2));
-
-      expect(hot.toVisualColumn(0)).toBe(0);
-      expect(hot.toVisualColumn(1)).toBe(1);
-      expect(hot.toVisualColumn(2)).toBe(null);
-    });
   });
 
   describe('should NOT reset visual indexes when user updates data', () => {

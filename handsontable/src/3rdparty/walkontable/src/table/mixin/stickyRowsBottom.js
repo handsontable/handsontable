@@ -15,10 +15,11 @@ const stickyRowsBottom = {
    * Get the source index of the first rendered row. If no rows are rendered, returns an error code: -1.
    *
    * @returns {number}
+   * @this Table
    */
   getFirstRenderedRow() {
-    const totalRows = this.wot.getSetting('totalRows');
-    const fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
+    const totalRows = this.wtSettings.getSetting('totalRows');
+    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
     const index = totalRows - fixedRowsBottom;
 
     if (totalRows === 0 || fixedRowsBottom === 0) {
@@ -37,6 +38,7 @@ const stickyRowsBottom = {
    * Assumes that all rendered rows are fully visible.
    *
    * @returns {number}
+   * @this Table
    */
   getFirstVisibleRow() {
     return this.getFirstRenderedRow();
@@ -46,9 +48,10 @@ const stickyRowsBottom = {
    * Get the source index of the last rendered row. If no rows are rendered, returns an error code: -1.
    *
    * @returns {number}
+   * @this Table
    */
   getLastRenderedRow() {
-    return this.wot.getSetting('totalRows') - 1;
+    return this.wtSettings.getSetting('totalRows') - 1;
   },
 
   /**
@@ -56,6 +59,7 @@ const stickyRowsBottom = {
    * Assumes that all rendered rows are fully visible.
    *
    * @returns {number}
+   * @this Table
    */
   getLastVisibleRow() {
     return this.getLastRenderedRow();
@@ -65,11 +69,12 @@ const stickyRowsBottom = {
    * Get the number of rendered rows.
    *
    * @returns {number}
+   * @this Table
    */
   getRenderedRowsCount() {
-    const totalRows = this.wot.getSetting('totalRows');
+    const totalRows = this.wtSettings.getSetting('totalRows');
 
-    return Math.min(this.wot.getSetting('fixedRowsBottom'), totalRows);
+    return Math.min(this.wtSettings.getSetting('fixedRowsBottom'), totalRows);
   },
 
   /**
@@ -77,6 +82,7 @@ const stickyRowsBottom = {
    * Assumes that all rendered rows are fully visible.
    *
    * @returns {number}
+   * @this Table
    */
   getVisibleRowsCount() {
     return this.getRenderedRowsCount();

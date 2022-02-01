@@ -8,6 +8,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [11.1.0] - 2022-01-13
+
+### Added
+- Added `updateData()`, a new method that allows for replacing Handsontable's `data` without 
+resetting the states of cells, rows and columns. [#7263](https://github.com/handsontable/handsontable/issues/7263)
+- *Vue:* Added Vue 3 support, by introducing a new wrapper. [#7545](https://github.com/handsontable/handsontable/issues/7545)
+
+### Changed
+- Updated the TypeScript definition of the `setDataAtCell()` method. [#8601](https://github.com/handsontable/handsontable/issues/8601)
+- Extended Handsontable's GitHub Actions workflow, to allow for deploying code examples to GitHub Pages. [#9058](https://github.com/handsontable/handsontable/issues/9058)
+
+### Fixed
+- Fixed an issue where the `autocomplete` editor's suggestion list didn't update properly. [#7570](https://github.com/handsontable/handsontable/issues/7570)
+- Fixed an issue where nested headers didn't render when `data` wasn't defined. [#8589](https://github.com/handsontable/handsontable/issues/8589)
+- Fixed some end-to-end tests that failed on mobile devices. [#8749](https://github.com/handsontable/handsontable/issues/8749)
+- Fixed an issue where the rendered selection could get shifted by 1px. [#8756](https://github.com/handsontable/handsontable/issues/8756)
+- Fixed an issue where the first column's border didn't display properly. [#8767](https://github.com/handsontable/handsontable/issues/8767)
+- Fixed an issue where the `CollapsibleColumns` plugin's `expandAll()` method didn't expand collapsed columns. [#8900](https://github.com/handsontable/handsontable/issues/8900)
+- Fixed end-to-end test scripts that occasionally crashed. [#8961](https://github.com/handsontable/handsontable/issues/8961)
+- Fixed a typo in the `valueAccordingPercent()` helper. [#9006](https://github.com/handsontable/handsontable/issues/9006)
+- Fixed an issue where the `NestedRows` plugin could throw a type error after calling the `updateSettings()` method. [#9018](https://github.com/handsontable/handsontable/issues/9018)
+- Fixed an issue where performance was affected by removing events. [#9044](https://github.com/handsontable/handsontable/issues/9044)
+- Fixed a wrong TypeScript definition of the `MultiColumnSorting` plugin's `sort()` method. [#9067](https://github.com/handsontable/handsontable/issues/9067)
+- Fixed an issue where the `Comments` plugin's editor disappeared after adding a comment. [#9075](https://github.com/handsontable/handsontable/issues/9075) [#6661](https://github.com/handsontable/handsontable/issues/6661)
+- *React:* Fixed a wrong return type. [#9000](https://github.com/handsontable/handsontable/issues/9000)
+
 ## [11.0.1] - 2021-11-17
 
 ### Fixed
@@ -16,18 +42,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [11.0.0] - 2021-11-17
 
 ### Added
-- Added TypeScript definition files for Handsontable's modularized version. [#7489](https://github.com/handsontable/handsontable/issues/7489) (**Breaking change**)
-- *Vue:* Added support for modularization to the Vue wrapper. [#8820](https://github.com/handsontable/handsontable/issues/8820) (**Breaking change**)
-- *React:* Added support for modularization to the React wrapper. [#8819](https://github.com/handsontable/handsontable/issues/8819) (**Breaking change**)
-- *Angular:* Added support for modularization to the Angular wrapper. [#8818](https://github.com/handsontable/handsontable/issues/8818) (**Breaking change**)
+-  **Breaking change**: Added TypeScript definition files for Handsontable's modularized version. [#7489](https://github.com/handsontable/handsontable/issues/7489)
+- **Breaking change (Vue)**: Added support for modularization to the Vue wrapper. [#8820](https://github.com/handsontable/handsontable/issues/8820)
+- **Breaking change (React)**: Added support for modularization to the React wrapper. [#8819](https://github.com/handsontable/handsontable/issues/8819)
+- **Breaking change (Angular)**: Added support for modularization to the Angular wrapper. [#8818](https://github.com/handsontable/handsontable/issues/8818)
 - Added a new package entry point that allows importing built-in modules in one function call: `import { registerAllEditors, registerAllRenderers, registerAllValidators, registerAllCellTypes, registerAllPlugins } from 'handsontable/registry'`. [#8816](https://github.com/handsontable/handsontable/issues/8816)
 - Added a new `locale` option, to properly handle locale-based data. [#8897](https://github.com/handsontable/handsontable/issues/8897)
 - Added a GitHub Actions workflow that covers testing Handsontable and the wrappers. [#8652](https://github.com/handsontable/handsontable/issues/8652)
 - Added new direction helpers (internal API) that lay ground for future RTL support. [#8868](https://github.com/handsontable/handsontable/issues/8868)
 
-
 ### Changed
-- Changed how the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888) (**Breaking change**)
+- **Breaking change**: Changed how the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888)
 - Moved the entire Handsontable package to its own, new subdirectory: `./handsontable`. [#8759](https://github.com/handsontable/handsontable/issues/8759) 
 - Replaced the license files with updated versions. [#8877](https://github.com/handsontable/handsontable/issues/8877)
 
@@ -43,12 +68,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [10.0.0] - 2021-09-29
 
 ### Changed
-- Unified the naming and description of the fourth argument, `controller`, for selection manipulation in the `beforeOnCellMouseDown` and `beforeOnCellMouseOver` hooks. [#4996](https://github.com/handsontable/handsontable/issues/4996) (**Breaking change**)
-- Changed what the `beforeRender` and `afterRender` hooks are, and when they are triggered. Added two new hooks: `beforeViewRender` and `afterViewRender`. [#6303](https://github.com/handsontable/handsontable/issues/6303) (**Breaking change**)
-- Changed the optional HyperFormula dependency from 0.6.2 to ^1.1.0, which introduces breaking changes for the `Formulas` plugin users. [#8502](https://github.com/handsontable/handsontable/issues/8502) (**Breaking change**)
-- Changed the default values for the `rowsLimit` and `columnsLimit` options of the `CopyPaste` plugin. [#8660](https://github.com/handsontable/handsontable/issues/8660) (**Breaking change**)
-- Added a default font family, size, weight and color. [#8661](https://github.com/handsontable/handsontable/issues/8661) (**Breaking change**)
-- Changed the `autoWrapRow` and `autoWrapCol` options\` default values from `true` to `false`. [#8662](https://github.com/handsontable/handsontable/issues/8662) (**Breaking change**)
+- **Breaking change**: Unified the naming and description of the fourth argument, `controller`, for selection manipulation in the `beforeOnCellMouseDown` and `beforeOnCellMouseOver` hooks. [#4996](https://github.com/handsontable/handsontable/issues/4996)
+- **Breaking change**: Changed what the `beforeRender` and `afterRender` hooks are, and when they are triggered. Added two new hooks: `beforeViewRender` and `afterViewRender`. [#6303](https://github.com/handsontable/handsontable/issues/6303)
+- **Breaking change**: Changed the optional HyperFormula dependency from 0.6.2 to ^1.1.0, which introduces breaking changes for the `Formulas` plugin users. [#8502](https://github.com/handsontable/handsontable/issues/8502)
+- **Breaking change**: Changed the default values for the `rowsLimit` and `columnsLimit` options of the `CopyPaste` plugin. [#8660](https://github.com/handsontable/handsontable/issues/8660)
+- **Breaking change**: Added a default font family, size, weight and color. [#8661](https://github.com/handsontable/handsontable/issues/8661)
+- **Breaking change**: Changed the `autoWrapRow` and `autoWrapCol` options\` default values from `true` to `false`. [#8662](https://github.com/handsontable/handsontable/issues/8662)
 - Improved the performance of the `getCellMeta()` method. [#6303](https://github.com/handsontable/handsontable/issues/6303)
 - Improved the documentation and TypeScript definition of the `selectOptions` option. [#8488](https://github.com/handsontable/handsontable/issues/8488)
 - Improved the arguments forwarding in the hooks [#8668](https://github.com/handsontable/handsontable/issues/8668)
@@ -97,8 +122,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [9.0.0] - 2021-06-01
 
 ### Changed
-- **Breaking change** New Formulas plugin, with an entirely different API. See the migration guide for a full list of changes. Removed the required `hot-formula-parser` dependency for the sake of an optional one, `hyperformula`. [#6466](https://github.com/handsontable/handsontable/issues/6466)
-- **Breaking change** Changed the `afterAutofill` and `beforeAutofill` hooks' signatures. [#7987](https://github.com/handsontable/handsontable/issues/7987)
+- **Breaking change**: New Formulas plugin, with an entirely different API. See the migration guide for a full list of changes. Removed the required `hot-formula-parser` dependency for the sake of an optional one, `hyperformula`. [#6466](https://github.com/handsontable/handsontable/issues/6466)
+- **Breaking change**: Changed the `afterAutofill` and `beforeAutofill` hooks' signatures. [#7987](https://github.com/handsontable/handsontable/issues/7987)
 - Upgraded `eslint` and eslint-related modules. [#7531](https://github.com/handsontable/handsontable/issues/7531)
 - Added `fit` & `fdescribe` to restricted globals in test files. [#8088](https://github.com/handsontable/handsontable/issues/8088)
 
@@ -107,7 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a problem with duplicated `afterCreateCol` hooks being triggered after undoing a removal of a column. [#8076](https://github.com/handsontable/handsontable/issues/8076)
 
 ### Removed
-- **Breaking change** Removed the deprecated plugins - Header Tooltips and Observe Changes. [#8083](https://github.com/handsontable/handsontable/issues/8083)
+- **Breaking change**: Removed the deprecated plugins - Header Tooltips and Observe Changes. [#8083](https://github.com/handsontable/handsontable/issues/8083)
 
 ### Deprecated
 - Deprecated the `beforeAutofillInsidePopulate` hook. It will be removed in the next major release. [#8095](https://github.com/handsontable/handsontable/issues/8095)

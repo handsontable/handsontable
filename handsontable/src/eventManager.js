@@ -22,6 +22,7 @@ class EventManager {
   constructor(context = null) {
     this.context = context || this;
 
+    // TODO it modify external object. Rethink that.
     if (!this.context.eventListeners) {
       this.context.eventListeners = []; // TODO perf It would be more performant if every instance of EventManager tracked its own listeners only
     }
@@ -86,6 +87,8 @@ class EventManager {
           /* eslint-disable no-continue */
           continue;
         }
+        // TODO rethink that, main bulk is that it needs multi instances to handle same context, but with a different scopes.
+        // TODO I suppose much more efficient way will be comparing string with scope id, or any similar approach.
         if (onlyOwnEvents && tmpEvent.eventManager !== this) {
           continue;
         }
@@ -113,9 +116,12 @@ class EventManager {
       len -= 1;
       const event = this.context.eventListeners[len];
 
-      if (event) {
-        this.removeEventListener(event.element, event.event, event.callback, onlyOwnEvents);
+      if (onlyOwnEvents && event.eventManager !== this) {
+        continue;
       }
+      this.context.eventListeners.splice(len, 1);
+      event.element.removeEventListener(event.event, event.callbackProxy, event.options);
+      listenersCounter -= 1;
     }
   }
 

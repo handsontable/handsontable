@@ -29,31 +29,6 @@ describe('NestedRows', () => {
     }
   });
 
-  describe('Initialization', () => {
-    it('should display an error and disable the plugin, when no data was provided', () => {
-      const errorSpy = spyOn(console, 'error');
-
-      handsontable({
-        nestedRows: true
-      });
-
-      expect(errorSpy).toHaveBeenCalledWith('The Nested Rows plugin requires an Array of Objects as a dataset to be' +
-        ' provided. The plugin has been disabled.');
-    });
-
-    it('should display an error and disable the plugin, when an array of arrays was provided as a dataset', () => {
-      const errorSpy = spyOn(console, 'error');
-
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
-        nestedRows: true
-      });
-
-      expect(errorSpy).toHaveBeenCalledWith('The Nested Rows plugin requires an Array of Objects as a dataset to be' +
-        ' provided. The plugin has been disabled.');
-    });
-  });
-
   describe('Displaying a nested structure', () => {
     it('should display as many rows as there are overall elements in a nested structure', () => {
       const hot = handsontable({
@@ -898,14 +873,14 @@ describe('NestedRows', () => {
   });
 
   describe('Core HOT API', () => {
-    it('should recreate the nested structure when updating the data with the `setData` method', () => {
+    it('should recreate the nested structure when updating the data with the `loadData` method', () => {
       handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,
         contextMenu: true
       });
 
-      setData(getMoreComplexNestedData());
+      loadData(getMoreComplexNestedData());
 
       const nrPlugin = getPlugin('nestedRows');
 

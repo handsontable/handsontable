@@ -192,6 +192,9 @@ To hide a single column, use the [`hideColumn()`](@/api/hiddenColumns.md#hidecol
 const plugin = hot.getPlugin('hiddenColumns');
 
 plugin.hideColumn(4);
+
+// re-render your Handsontable instance
+hot.render()
 ```
 
 ### Hiding multiple columns
@@ -206,6 +209,9 @@ const plugin = hot.getPlugin('hiddenColumns');
 plugin.hideColumn(0, 4, 6);
 // or
 plugin.hideColumns([0, 4, 6]);
+
+// re-render your Handsontable instance
+hot.render()
 ```
 
 ### Unhiding a single column
@@ -216,6 +222,9 @@ To unhide a single column, use the `showColumn()` method:
 const plugin = hot.getPlugin('hiddenColumns');
 
 plugin.showColumn(4);
+
+// re-render your Handsontable instance
+hot.render()
 ```
 
 ### Unhiding multiple columns
@@ -230,4 +239,7 @@ const plugin = hot.getPlugin('hiddenColumns');
 plugin.showColumn(0, 4, 6);
 // or
 plugin.showColumns([0, 4, 6]);
+
+// re-render your Handsontable instance
+hot.render()
 ```

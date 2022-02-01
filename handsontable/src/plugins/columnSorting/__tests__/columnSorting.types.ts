@@ -29,3 +29,4 @@ columnSorting.setSortConfig([]);
 columnSorting.isSorted();
 
 columnSorting.sort({ column: 0, sortOrder: 'asc' });
+columnSorting.sort([{ column: 0, sortOrder: 'asc' }]);

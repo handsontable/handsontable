@@ -13,6 +13,33 @@ tags:
 
 [[toc]]
 
+## 11.1.0
+
+Released on 13th of January, 2022
+
+**Added**
+- Added [`updateData()`](@/api/core.md#updatedata), a new method that lets you replace Handsontable's [`data`](@/api/options.md#data) without resetting the states of cells, rows and columns. [#7263](https://github.com/handsontable/handsontable/issues/7263)
+- *Vue:* Added [Vue 3](https://v3.vuejs.org/guide/migration/introduction.html#overview) support, by introducing a [new wrapper](@/guides/integrate-with-vue3/vue3-simple-example.md). [#7545](https://github.com/handsontable/handsontable/issues/7545)
+
+**Changed**
+- Updated the TypeScript definition of the [`setDataAtCell()`](@/api/core.md#setdataatcell) method. [#8601](https://github.com/handsontable/handsontable/issues/8601)
+- Extended the [`Code Examples Deployment` GitHub Actions workflow](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml), to allow for deploying code examples to [GitHub Pages](https://pages.github.com/). [#9058](https://github.com/handsontable/handsontable/issues/9058)
+
+**Fixed**
+- Fixed an issue where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type.md) editor's suggestion list didn't update properly. [#7570](https://github.com/handsontable/handsontable/issues/7570)
+- Fixed an issue where nested headers didn't render when [`data`](@/api/options.md#data) wasn't defined. [#8589](https://github.com/handsontable/handsontable/issues/8589)
+- Fixed some end-to-end tests that failed on mobile devices. [#8749](https://github.com/handsontable/handsontable/issues/8749)
+- Fixed an issue where the rendered selection could get shifted by 1px. [#8756](https://github.com/handsontable/handsontable/issues/8756)
+- Fixed an issue where the first column's border didn't display properly. [#8767](https://github.com/handsontable/handsontable/issues/8767)
+- Fixed an issue where the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin's [`expandAll()`](@/api/collapsibleColumns.md#expandall) method didn't expand collapsed columns. [#8900](https://github.com/handsontable/handsontable/issues/8900)
+- Fixed end-to-end test scripts that occasionally crashed. [#8961](https://github.com/handsontable/handsontable/issues/8961)
+- Fixed a typo in the `valueAccordingPercent()` helper. [#9006](https://github.com/handsontable/handsontable/issues/9006)
+- Fixed an issue where the [`NestedRows`](@/api/nestedRows.md) plugin could throw a type error after calling the [`updateSettings()`](@/api/core.md#updatesettings) method. [#9018](https://github.com/handsontable/handsontable/issues/9018)
+- Fixed an issue where performance was affected by removing events. [#9044](https://github.com/handsontable/handsontable/issues/9044)
+- Fixed a wrong TypeScript definition of the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin's [`sort()`](@/api/multiColumnSorting.md#sort) method. [#9067](https://github.com/handsontable/handsontable/issues/9067)
+- Fixed an issue where the [`Comments`](@/api/comments.md) plugin's editor disappeared after adding a comment. [#9075](https://github.com/handsontable/handsontable/issues/9075) [#6661](https://github.com/handsontable/handsontable/issues/6661)
+- *React:* Fixed a wrong return type. [#9000](https://github.com/handsontable/handsontable/issues/9000)
+
 ## 11.0.1
 
 Released on 17th of November, 2021
@@ -25,17 +52,17 @@ Released on 17th of November, 2021
 Released on 17th of November, 2021
 
 **Added**
-- Added TypeScript definition files for Handsontable's modularized version. [#7489](https://github.com/handsontable/handsontable/issues/7489) **[breaking change]**
-- *Vue:* Added support for modularization to the Vue wrapper. [#8820](https://github.com/handsontable/handsontable/issues/8820) **[breaking change]**
-- *React:* Added support for modularization to the React wrapper. [#8819](https://github.com/handsontable/handsontable/issues/8819) **[breaking change]**
-- *Angular:* Added support for modularization to the Angular wrapper. [#8818](https://github.com/handsontable/handsontable/issues/8818) **[breaking change]**
+- **Breaking change**: Added TypeScript definition files for Handsontable's modularized version. [#7489](https://github.com/handsontable/handsontable/issues/7489)
+- **Breaking change (Vue)**: Added support for modularization to the Vue wrapper. [#8820](https://github.com/handsontable/handsontable/issues/8820)
+- **Breaking change (React)**: Added support for modularization to the React wrapper. [#8819](https://github.com/handsontable/handsontable/issues/8819)
+- **Breaking change (Angular)**: Added support for modularization to the Angular wrapper. [#8818](https://github.com/handsontable/handsontable/issues/8818)
 - Added a new package entry point that allows importing built-in modules in one function call: `import { registerAllEditors, registerAllRenderers, registerAllValidators, registerAllCellTypes, registerAllPlugins } from 'handsontable/registry'`. [#8816](https://github.com/handsontable/handsontable/issues/8816)
 - Added a new `locale` option, to properly handle locale-based data. [#8897](https://github.com/handsontable/handsontable/issues/8897)
 - Added a GitHub Actions workflow that covers testing Handsontable and the wrappers. [#8652](https://github.com/handsontable/handsontable/issues/8652)
 - Added new direction helpers (internal API) that lay ground for future RTL support. [#8868](https://github.com/handsontable/handsontable/issues/8868)
 
 **Changed**
-- Changed how the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888) **[breaking change]**
+- **Breaking change**: Changed how the `populateFromArray()` method works with its `method` argument set to `shift_down` or `shift_right`. [#888](https://github.com/handsontable/handsontable/issues/888)
 - Moved the entire Handsontable package to its own, new subdirectory: `./handsontable`. [#8759](https://github.com/handsontable/handsontable/issues/8759) 
 - Replaced the license files with updated versions. [#8877](https://github.com/handsontable/handsontable/issues/8877)
 
@@ -53,12 +80,12 @@ Released on 17th of November, 2021
 Released on 29th of September, 2021
 
 **Changed**
-- Unified the naming and description of the fourth argument, `controller`, for selection manipulation in the [`beforeOnCellMouseDown`](@/api/hooks.md#beforeoncellmousedown) and [`beforeOnCellMouseOver`](@/api/hooks.md#beforeoncellmouseover) hooks. [#4996](https://github.com/handsontable/handsontable/issues/4996) **[breaking change]**
-- Changed what the [`beforeRender`](@/api/hooks.md#beforerender) and [`afterRender`](@/api/hooks.md#afterrender) hooks are, and when they are triggered. Added two new hooks: [`beforeViewRender`](@/api/hooks.md#beforeviewrender) and [`afterViewRender`](@/api/hooks.md#afterviewrender). [#6303](https://github.com/handsontable/handsontable/issues/6303) **[breaking change]**
-- Changed the optional [HyperFormula](https://github.com/handsontable/hyperformula) dependency from `0.6.2` to `^1.1.0`, which introduces breaking changes for the [`Formulas`](@/api/formulas.md) plugin users. [#8502](https://github.com/handsontable/handsontable/issues/8502) **[breaking change]**
-- Changed the default values for the [`rowsLimit`](@/api/copyPaste.md#rowslimit) and [`columnsLimit`](@/api/copyPaste.md#columnslimit) options of the [`CopyPaste`](@/api/copyPaste.md) plugin. [#8660](https://github.com/handsontable/handsontable/issues/8660) **[breaking change]**
-- Added a default font family, size, weight and color. [#8661](https://github.com/handsontable/handsontable/issues/8661) **[breaking change]**
-- Changed the [`autoWrapRow`](@/api/options.md#autowraprow) and [`autoWrapCol`](@/api/options.md#autowrapcol) options\` default values from `true` to `false`. [#8662](https://github.com/handsontable/handsontable/issues/8662) **[breaking change]**
+- **Breaking change**: Unified the naming and description of the fourth argument, `controller`, for selection manipulation in the [`beforeOnCellMouseDown`](@/api/hooks.md#beforeoncellmousedown) and [`beforeOnCellMouseOver`](@/api/hooks.md#beforeoncellmouseover) hooks. [#4996](https://github.com/handsontable/handsontable/issues/4996)
+- **Breaking change**: Changed what the [`beforeRender`](@/api/hooks.md#beforerender) and [`afterRender`](@/api/hooks.md#afterrender) hooks are, and when they are triggered. Added two new hooks: [`beforeViewRender`](@/api/hooks.md#beforeviewrender) and [`afterViewRender`](@/api/hooks.md#afterviewrender). [#6303](https://github.com/handsontable/handsontable/issues/6303)
+- **Breaking change**: Changed the optional [HyperFormula](https://github.com/handsontable/hyperformula) dependency from `0.6.2` to `^1.1.0`, which introduces breaking changes for the [`Formulas`](@/api/formulas.md) plugin users. [#8502](https://github.com/handsontable/handsontable/issues/8502)
+- **Breaking change**: Changed the default values for the [`rowsLimit`](@/api/copyPaste.md#rowslimit) and [`columnsLimit`](@/api/copyPaste.md#columnslimit) options of the [`CopyPaste`](@/api/copyPaste.md) plugin. [#8660](https://github.com/handsontable/handsontable/issues/8660)
+- **Breaking change**: Added a default font family, size, weight and color. [#8661](https://github.com/handsontable/handsontable/issues/8661)
+- **Breaking change**: Changed the [`autoWrapRow`](@/api/options.md#autowraprow) and [`autoWrapCol`](@/api/options.md#autowrapcol) options\` default values from `true` to `false`. [#8662](https://github.com/handsontable/handsontable/issues/8662)
 - Improved the performance of the [`getCellMeta()`](@/api/core.md#getcellmeta) method. [#6303](https://github.com/handsontable/handsontable/issues/6303)
 - Improved the documentation and TypeScript definition of the [`selectOptions`](@/api/options.md#selectoptions) option. [#8488](https://github.com/handsontable/handsontable/issues/8488)
 - Improved the arguments forwarding in the hooks [#8668](https://github.com/handsontable/handsontable/issues/8668)
@@ -116,8 +143,8 @@ Released on 1st of June, 2021
 
 **Changed**
 
-*   **Breaking change** New `Formulas` plugin, with an entirely different API. See the migration guide for a full list of changes. Removed the required `hot-formula-parser` dependency for the sake of an optional one, `hyperformula`. ([#6466](https://github.com/handsontable/handsontable/issues/6466))
-*   **Breaking change** Changed the `afterAutofill` and `beforeAutofill` hooks' signatures. ([#7987](https://github.com/handsontable/handsontable/issues/7987))
+*   **Breaking change**: New `Formulas` plugin, with an entirely different API. See the migration guide for a full list of changes. Removed the required `hot-formula-parser` dependency for the sake of an optional one, `hyperformula`. ([#6466](https://github.com/handsontable/handsontable/issues/6466))
+*   **Breaking change**: Changed the `afterAutofill` and `beforeAutofill` hooks' signatures. ([#7987](https://github.com/handsontable/handsontable/issues/7987))
 *   Upgraded `eslint` and eslint-related modules. ([#7531](https://github.com/handsontable/handsontable/issues/7531))
 *   Added `fit` & `fdescribe` to restricted globals in test files. ([#8088](https://github.com/handsontable/handsontable/issues/8088))
 
@@ -133,7 +160,7 @@ Released on 1st of June, 2021
 
 **Removed**
 
-*   **Breaking change** Removed the deprecated plugins - Header Tooltips and Observe Changes. ([#8083](https://github.com/handsontable/handsontable/issues/8083))
+*   **Breaking change**: Removed the deprecated plugins - Header Tooltips and Observe Changes. ([#8083](https://github.com/handsontable/handsontable/issues/8083))
 
 **Deprecated**
 

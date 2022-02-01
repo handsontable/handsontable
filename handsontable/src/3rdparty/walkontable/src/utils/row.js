@@ -4,8 +4,13 @@
  * @class {RowUtils}
  */
 export default class RowUtils {
-  constructor(wot) {
-    this.wot = wot;
+  /**
+   * @param {TableDao} dataAccessObject The table Data Access Object.
+   * @param {Settings} wtSettings The walkontable settings.
+   */
+  constructor(dataAccessObject, wtSettings) {
+    this.dataAccessObject = dataAccessObject;
+    this.wtSettings = wtSettings;
   }
 
   /**
@@ -15,8 +20,8 @@ export default class RowUtils {
    * @returns {number}
    */
   getHeight(sourceIndex) {
-    let height = this.wot.wtSettings.settings.rowHeight(sourceIndex);
-    const oversizedHeight = this.wot.wtViewport.oversizedRows[sourceIndex];
+    let height = this.wtSettings.getSetting('rowHeight', sourceIndex);
+    const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
 
     if (oversizedHeight !== void 0) {
       height = height === void 0 ? oversizedHeight : Math.max(height, oversizedHeight);
