@@ -205,6 +205,7 @@ class Menu {
       fragmentSelection: false,
       outsideClickDeselects: false,
       disableVisualSelection: 'area',
+      layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       beforeKeyDown: event => this.onBeforeKeyDown(event),
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {

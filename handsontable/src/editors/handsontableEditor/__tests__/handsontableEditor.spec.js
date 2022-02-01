@@ -713,6 +713,19 @@ describe('HandsontableEditor', () => {
     expect(editableElement.getAttribute('dir')).toBeNull();
   });
 
+  it('should inherit the actual layout direction option from the root Handsontable instance', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
+      editor: 'handsontable',
+      layoutDirection: 'inherit',
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    expect(getActiveEditor().htEditor.getSettings().layoutDirection).toBe('ltr');
+  });
+
   describe('IME support', () => {
     it('should focus editable element after selecting the cell', async() => {
       handsontable({

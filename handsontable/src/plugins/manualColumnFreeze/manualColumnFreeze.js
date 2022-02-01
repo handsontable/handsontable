@@ -106,7 +106,11 @@ export class ManualColumnFreeze extends BasePlugin {
 
     this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsStart);
 
-    settings.fixedColumnsStart += 1;
+    // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
+    // However, keeping the old name still in effect. When both option names are used together,
+    // the error is thrown. To prevent that, the plugin needs to modify the original option key
+    // to bypass the validation.
+    settings._fixedColumnsStart += 1;
   }
 
   /**
@@ -126,7 +130,11 @@ export class ManualColumnFreeze extends BasePlugin {
       return; // not fixed
     }
 
-    settings.fixedColumnsStart -= 1;
+    // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
+    // However, keeping the old name still in effect. When both option names are used together,
+    // the error is thrown. To prevent that, the plugin needs to modify the original option key
+    // to bypass the validation.
+    settings._fixedColumnsStart -= 1;
 
     this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsStart);
   }

@@ -30,24 +30,35 @@ export class ExtendMetaPropertiesMod {
           }
         }
       }],
+      ['layoutDirection', {
+        onChange(propName, value, isInitialChange) {
+          if (!isInitialChange) {
+            throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+          }
+        }
+      }],
     ]);
 
     this.extendMetaProps();
   }
 
   /**
-   * Extends the meta options based on the object descriptiors from the `propDescriptors` list.
+   * Extends the meta options based on the object descriptors from the `propDescriptors` list.
    */
   extendMetaProps() {
     this.propDescriptors.forEach((descriptor, alias) => {
       const { target, onChange = () => {} } = descriptor;
+      const hasTarget = typeof target === 'string';
+      const targetProp = hasTarget ? target : alias;
+      const origProp = `_${targetProp}`;
 
-      const origProp = `_${target}`;
-
-      this.metaManager.globalMeta.meta[origProp] = this.metaManager.globalMeta.meta[target];
+      this.metaManager.globalMeta.meta[origProp] = this.metaManager.globalMeta.meta[targetProp];
 
       this.installPropWatcher(alias, origProp, onChange);
-      this.installPropWatcher(target, origProp, onChange);
+
+      if (hasTarget) {
+        this.installPropWatcher(target, origProp, onChange);
+      }
     });
   }
 
@@ -67,9 +78,11 @@ export class ExtendMetaPropertiesMod {
         return this[origProp];
       },
       set(value) {
+        const isInitialChange = !self.usageTracker.has(propName);
+
         self.usageTracker.add(propName);
 
-        onChange.call(self, propName, value);
+        onChange.call(self, propName, value, isInitialChange);
 
         this[origProp] = value;
       },

@@ -140,7 +140,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {boolean} True if RTL.
    */
   this.isRtl = function() {
-    return instance.rootWindow.getComputedStyle(instance.rootElement).direction === 'rtl';
+    return instance.rootElement.getAttribute('dir') === 'rtl';
   };
 
   /**
@@ -2416,6 +2416,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if (initialStyle) {
         instance.rootElement.setAttribute('data-initialstyle', instance.rootElement.getAttribute('style'));
+      }
+
+      const layoutDirection = settings.layoutDirection;
+
+      if (['rtl', 'ltr', 'inherit'].includes(layoutDirection)) {
+        const direction = layoutDirection === 'inherit' ?
+          instance.rootWindow.getComputedStyle(instance.rootElement).direction :
+          layoutDirection;
+
+        instance.rootElement.setAttribute('dir', direction);
       }
     }
 

@@ -4539,7 +4539,32 @@ export default () => {
      */
     wordWrap: true,
 
-    /* eslint-enable jsdoc/require-description-complete-sentence */
+    /**
+     * The `layoutDirection` option configures whether Handsontable should be rendered from Left-to-right or
+     * Right-to-left depending on the passed settings.
+     *
+     * __Warning:__ The `layoutDirection` option can only be passed when Handsontable is initialized. Nothing
+     * will happen when the option is passed to the `updateSettings` method. Every time the setting is passed
+     * to the method warning message is printed in the console to prevent confusion.
+     *
+     * | Setting          | Description                                             |
+     * | ---------------- | ------------------------------------------------------- |
+     * | `inherit` (default) | Handsontable detects automatically the document layout direction |
+     * | `rtl`            | Renders the table in Right-to-left mode even when the document is served as LTR |
+     * | `ltr`            | Renders the table in Left-to-right mode even when the document is served as RTL |
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default 'inherit'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * layoutDirection: 'rtl',
+     * ```
+     */
+    layoutDirection: 'inherit',
 
+    /* eslint-enable jsdoc/require-description-complete-sentence */
   };
 };

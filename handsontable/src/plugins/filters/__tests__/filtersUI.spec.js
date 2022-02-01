@@ -4319,4 +4319,19 @@ describe('Filters UI', () => {
 
     expect(text).toEqual(['Furkan İnanç']);
   });
+
+  it('should inherit the actual layout direction option from the root Handsontable instance to the multiple ' +
+     'select component', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
+      colHeaders: true,
+      filters: true,
+      dropdownMenu: true,
+      layoutDirection: 'inherit',
+    });
+
+    dropdownMenu(0);
+
+    expect(byValueMultipleSelect().itemsBox.getSettings().layoutDirection).toBe('ltr');
+  });
 });

@@ -38,14 +38,14 @@ class Border {
     this.main = null;
 
     this.top = null;
-    this.inlineStart = null;
     this.bottom = null;
-    this.inlineEnd = null;
+    this.start = null;
+    this.end = null;
 
     this.topStyle = null;
-    this.inlineStartStyle = null;
     this.bottomStyle = null;
-    this.inlineEndStyle = null;
+    this.startStyle = null;
+    this.endStyle = null;
 
     this.cornerDefaultStyle = {
       width: '6px',
@@ -161,7 +161,7 @@ class Border {
 
     this.main = rootDocument.createElement('div');
 
-    const borderDivs = ['top', 'left', 'bottom', 'right', 'corner'];
+    const borderDivs = ['top', 'start', 'bottom', 'end', 'corner'];
     let style = this.main.style;
 
     style.position = 'absolute';
@@ -188,14 +188,14 @@ class Border {
       this.main.appendChild(div);
     }
     this.top = this.main.childNodes[0];
-    this.inlineStart = this.main.childNodes[1];
+    this.start = this.main.childNodes[1];
     this.bottom = this.main.childNodes[2];
-    this.inlineEnd = this.main.childNodes[3];
+    this.end = this.main.childNodes[3];
 
     this.topStyle = this.top.style;
-    this.inlineStartStyle = this.inlineStart.style;
+    this.startStyle = this.start.style;
     this.bottomStyle = this.bottom.style;
-    this.inlineEndStyle = this.inlineEnd.style;
+    this.endStyle = this.end.style;
 
     this.corner = this.main.childNodes[4];
     this.corner.className += ' corner';
@@ -494,10 +494,10 @@ class Border {
     this.topStyle.width = `${width}px`;
     this.topStyle.display = 'block';
 
-    this.inlineStartStyle.top = `${top}px`;
-    this.inlineStartStyle[inlinePosProperty] = `${inlineStartPos}px`;
-    this.inlineStartStyle.height = `${height}px`;
-    this.inlineStartStyle.display = 'block';
+    this.startStyle.top = `${top}px`;
+    this.startStyle[inlinePosProperty] = `${inlineStartPos}px`;
+    this.startStyle.height = `${height}px`;
+    this.startStyle.display = 'block';
 
     const delta = Math.floor(this.settings.border.width / 2);
 
@@ -506,10 +506,10 @@ class Border {
     this.bottomStyle.width = `${width}px`;
     this.bottomStyle.display = 'block';
 
-    this.inlineEndStyle.top = `${top}px`;
-    this.inlineEndStyle[inlinePosProperty] = `${inlineStartPos + width - delta}px`;
-    this.inlineEndStyle.height = `${height + 1}px`;
-    this.inlineEndStyle.display = 'block';
+    this.endStyle.top = `${top}px`;
+    this.endStyle[inlinePosProperty] = `${inlineStartPos + width - delta}px`;
+    this.endStyle.height = `${height + 1}px`;
+    this.endStyle.display = 'block';
 
     let cornerVisibleSetting = this.settings.border.cornerVisible;
 
@@ -676,7 +676,7 @@ class Border {
    * Change border style.
    *
    * @private
-   * @param {string} borderElement Coordinate where add/remove border: top, right, bottom, left.
+   * @param {string} borderElement Coordinate where add/remove border: top, bottom, start, end.
    * @param {object} border The border object descriptor.
    */
   changeBorderStyle(borderElement, border) {
@@ -697,7 +697,7 @@ class Border {
         style.height = `${borderStyle.width}px`;
       }
 
-      if (borderElement === 'right' || borderElement === 'left') {
+      if (borderElement === 'start' || borderElement === 'end') {
         style.width = `${borderStyle.width}px`;
       }
     }
@@ -707,7 +707,7 @@ class Border {
    * Change border style to default.
    *
    * @private
-   * @param {string} position The position type ("top", "bottom", "left", "right") to change.
+   * @param {string} position The position type ("top", "bottom", "start", "end") to change.
    */
   changeBorderToDefaultStyle(position) {
     const defaultBorder = {
@@ -725,7 +725,7 @@ class Border {
    * Toggle class 'hidden' to element.
    *
    * @private
-   * @param {string} borderElement Coordinate where add/remove border: top, right, bottom, left.
+   * @param {string} borderElement Coordinate where add/remove border: top, bottom, start, end.
    * @param {boolean} [remove] Defines type of the action to perform.
    */
   toggleHiddenClass(borderElement, remove) {
@@ -743,9 +743,9 @@ class Border {
    */
   disappear() {
     this.topStyle.display = 'none';
-    this.inlineStartStyle.display = 'none';
     this.bottomStyle.display = 'none';
-    this.inlineEndStyle.display = 'none';
+    this.startStyle.display = 'none';
+    this.endStyle.display = 'none';
     this.cornerStyle.display = 'none';
 
     if (isMobileBrowser()) {
