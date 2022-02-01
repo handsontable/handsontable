@@ -2450,7 +2450,7 @@ export default () => {
     label: void 0,
 
     /**
-     * The `language` option configures Handsontable's [language settings](@/guides/internationalization/internationalization-i18n.md#language-settings).
+     * The `language` option configures Handsontable's [language settings](@/guides/internationalization/language.md).
      *
      * You can set the `language` option to one of the following:
      *
@@ -2473,7 +2473,7 @@ export default () => {
      * | `'zh-TW'`           | Chinese - Taiwan            |
      *
      * Read more:
-     * - [Internationalization (i18n): Language settings &#8594;](@/guides/internationalization/internationalization-i18n.md#language-settings)
+     * - [Locale settings &#8594;](@/guides/internationalization/locale.md)
      * - [`locale`](#locale)
      *
      * @memberof Options#
@@ -2519,14 +2519,14 @@ export default () => {
     licenseKey: void 0,
 
     /**
-     * The `locale` option configures Handsontable's [locale settings](@/guides/internationalization/internationalization-i18n.md#locale-settings).
+     * The `locale` option configures Handsontable's [locale settings](@/guides/internationalization/locale.md).
      *
      * You can set the `locale` option to any valid and canonicalized Unicode BCP 47 locale tag,
-     * both for the [entire grid](@/guides/internationalization/internationalization-i18n.md#setting-the-grid-s-locale),
-     * and for [individual columns](@/guides/internationalization/internationalization-i18n.md#setting-a-column-s-locale).
+     * both for the [entire grid](@/guides/internationalization/locale.md#setting-the-grid-s-locale),
+     * and for [individual columns](@/guides/internationalization/locale.md#setting-a-column-s-locale).
      *
      * Read more:
-     * - [Internationalization (i18n): Locale settings &#8594;](@/guides/internationalization/internationalization-i18n.md#locale-settings)
+     * - [Internationalization (i18n): Locale settings &#8594;](@/guides/internationalization/locale.md)
      * - [`language`](#language)
      *
      * @memberof Options#
