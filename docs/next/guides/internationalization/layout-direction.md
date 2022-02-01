@@ -24,7 +24,7 @@ Configure Handsontable's layout direction, to properly handle right-to-left (RTL
 
 ## About layout direction
 
-To properly display Handsontable's data and UI in RTL [languages](@/guides/internationalization/language.md) (such as Hebrew or Arabic), 
+To properly display Handsontable's UI and data in RTL [languages](@/guides/internationalization/language.md) (such as Hebrew or Arabic), 
 you need to configure your grid's layout direction.
 
 You can:
@@ -74,16 +74,13 @@ Setting a different layout direction affects the behavior of the following areas
 
 You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid).
 
-::: tip
 You can't change the layout direction at Handsontable's runtime (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method).
-
 ```js
 // this won't work
 hot.updateSettings({
   layoutDirection: 'rtl',
 });
 ```
-:::
 
 ### Setting the layout direction automatically
 
