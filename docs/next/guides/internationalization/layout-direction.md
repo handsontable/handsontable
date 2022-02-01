@@ -109,3 +109,9 @@ hot.updateSettings({
 });
 ```
 :::
+
+### Inheriting the HTML layout direction
+
+### Setting the RTL layout direction
+
+### Setting the LTR layout direction

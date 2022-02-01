@@ -1993,12 +1993,10 @@ export default () => {
     filters: void 0,
 
     /**
-     * The `fixedColumnsLeft` option is an alias for the [`fixedColumnsStart`](#fixedColumnsStart) option.
-     *
-     * In the RTL mode, don't use the `fixedColumnsLeft` option: use the [`fixedColumnsStart`](#fixedColumnsStart) option instead.
+     * The `fixedColumnsLeft` option is an alias for the [`fixedColumnsStart`](#fixedColumnsStart) option, kept only for backward compatibility.
      *
      * Read more:
-     * - [Column freezing &#8594;](@/guides/columns/column-freezing.md)
+     * - [`fixedColumnsStart`](#fixedcolumnsstart)
      *
      * @memberof Options#
      * @type {number}
@@ -2015,10 +2013,13 @@ export default () => {
 
     /**
      * The `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the start edge of the grid.
-     * By default, the start edge is the left-hand edge. In the RTL mode, the start edge is the right-hand edge.
+     *
+     * Depending on your [`layoutDirection`](#layoutdirection) setting, your grid's start edge can be the left-hand edge or the right-hand edge.
      *
      * Read more:
      * - [Column freezing &#8594;](@/guides/columns/column-freezing.md)
+     * - [`fixedColumnsLeft`](#fixedcolumnsleft)
+     * - [`layoutDirection`](#layoutdirection)
      *
      * @memberof Options#
      * @type {number}
@@ -2027,7 +2028,22 @@ export default () => {
      *
      * @example
      * ```js
+     * // when `layoutDirection` is set to `inherit` (default)
+     * // freeze the first 3 columns from the left or from the right
+     * // depending on your HTML document's `dir` attribute
+     * layoutDirection: 'inherit',
+     * fixedColumnsStart: 3,
+     *
+     * // when `layoutDirection` is set to `rtl`,
+     * // freeze the first 3 columns from the right
+     * // regardless of your HTML document's `dir` attribute
+     * layoutDirection: 'rtl',
+     * fixedColumnsStart: 3,
+     *
+     * // when `layoutDirection` is set to `ltr`,
      * // freeze the first 3 columns from the left
+     * // regardless of your HTML document's `dir` attribute
+     * layoutDirection: 'ltr',
      * fixedColumnsStart: 3,
      * ```
      */
@@ -2512,6 +2528,7 @@ export default () => {
      * - [Language settings &#8594;](@/guides/internationalization/language.md)
      * - [`language`](#language)
      * - [`locale`](#locale)
+     * - [`fixedColumnsStart`](#fixedcolumnsstart)
      *
      * @memberof Options#
      * @type {string}
