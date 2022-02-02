@@ -467,7 +467,10 @@ jobs:
   gather-and-deploy-builds:
     name: Gather the builds and deploy them to gh-pages (only on develop or when manually dispatched).
     needs: install-and-build
-    if: (github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch') && needs.install-and-build.result == 'success'
+    if: |
+      always() &&
+      (github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch') &&
+      needs.install-and-build.result == 'success'
     runs-on: ubuntu-18.04
 
     steps:
