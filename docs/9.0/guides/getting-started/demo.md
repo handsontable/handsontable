@@ -39,7 +39,7 @@ Explore Handsontable's source code, in your favorite framework.
   target="/examples/next/docs/vue/demo/"></BigExampleSource>
 </BigExample>
 
-## Try out the features
+## Try the demo's features
 
 Play with the demo to explore Handsontable's most popular features:
 
@@ -52,7 +52,7 @@ Play with the demo to explore Handsontable's most popular features:
 - [Row sorting &#8594;](@/guides/rows/row-sorting.md)
 - And more...
 
-## View the source code
+## View the demo's source code
 
 You can:
 - View the complete source code behind your framework's demo
@@ -60,7 +60,7 @@ You can:
 
 Just select your framework's logo from the demo above.
 
-## Edit the source code
+## Edit the demo's source code
 
 You can: 
 - Run your framework's demo locally, on your machine
