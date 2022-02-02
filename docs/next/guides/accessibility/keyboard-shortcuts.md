@@ -11,11 +11,18 @@ tags:
 
 # Keyboard shortcuts
 
-Manage Handsontable's keyboard shortcuts.
+Use and manage Handsontable's keyboard shortcuts.
 
 [[toc]]
 
 ## About keyboard shortcuts
+
+You can intuitively navigate Handsontable with a keyboard, using the out-of-the-box [default keyboard shortcuts](#default-keyboard-shortcuts).
+
+You can also customize the entire set of keyboard shortcuts, by:
+- [Removing default keyboard shortcuts](#removing-default-keyboard-shortcuts)
+- [Replacing default keyboard shortcuts](#replacing-default-keyboard-shortcuts)
+- [Adding custom keyboard shortcuts](#adding-custom-keyboard-shortcuts)
 
 ## Default keyboard shortcuts
 
@@ -63,21 +70,21 @@ By default, Handsontable features the following keyboard shortcuts:
 
 #### EDITING
 
-| Windows                                                                      | macOS                               | Action                                                                                                 |
-| ---------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| <kbd>Enter</kbd>                                                             | <kbd>Enter</kbd>                    | Edit the current cell<br><br>When editing:<br>stop editing, save your changes, and move one cell below |
-| <kbd>Shift</kbd> + <kbd>Enter</kbd>                                          | <kbd>Shift</kbd> + <kbd>Enter</kbd> | Edit the current cell<br><br>When editing:<br>stop editing, save your changes, and move one cell above |
-| <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                                           | <kbd>Ctrl</kbd> + <kbd>Enter</kbd>  | Edit the current cell<br><br>When editing:<br>add a new line inside the cell                           |
-| <kbd>F2</kbd>                                                                | <kbd>F2</kbd>                       | Edit the current cell                                                                                  |
-| <kbd>Esc</kbd>                                                               | <kbd>Esc</kbd>                      | When editing:<br>stop editing, and cancel your changes                                                 |
-| <kbd>Backspace</kbd>                                                         | <kbd>Backspace</kbd>                | Clear the cell's contents                                                                              |
-| <kbd>Delete</kbd>                                                            | <kbd>Delete</kbd>                   | Clear the cell's contents                                                                              |
-| <kbd>Ctrl</kbd> + <kbd>C</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Insert</kbd>  | <kbd>Cmd</kbd> + <kbd>C</kbd>       | Copy the cell's contents                                                                               |
-| <kbd>Ctrl</kbd> + <kbd>X</kbd>                                               | <kbd>Cmd</kbd> + <kbd>X</kbd>       | Cut the cell's contents                                                                                |
-| <kbd>Ctrl</kbd> + <kbd>V</kbd><br>or<br><kbd>Shift</kbd> + <kbd>Insert</kbd> | <kbd>Cmd</kbd> + <kbd>V</kbd>       | Paste into the current cell                                                                            |
-| <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                                           | <kbd>Cmd</kbd> + <kbd>Enter</kbd>   | When editing:<br>fill all currently-selected cells with the contents of the currently-edited cell      |
-| <kbd>Ctrl</kbd> + <kbd>Z</kbd>                                               | <kbd>Cmd</kbd> + <kbd>Z</kbd>       | Undo                                                                                                   |
-| <kbd>Ctrl</kbd> + <kbd>Y</kbd>                                               | <kbd>Cmd</kbd> + <kbd>Y</kbd>       | Redo                                                                                                   |
+| Windows                                                                      | macOS                               | Action                                                                                                |
+| ---------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| <kbd>Enter</kbd>                                                             | <kbd>Enter</kbd>                    | Edit the current cell<br><br>When editing:<br>stop editing, save your changes, and move one cell down |
+| <kbd>Shift</kbd> + <kbd>Enter</kbd>                                          | <kbd>Shift</kbd> + <kbd>Enter</kbd> | Edit the current cell<br><br>When editing:<br>stop editing, save your changes, and move one cell up   |
+| <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                                           | <kbd>Ctrl</kbd> + <kbd>Enter</kbd>  | Edit the current cell<br><br>When editing:<br>add a new line inside the cell                          |
+| <kbd>F2</kbd>                                                                | <kbd>F2</kbd>                       | Edit the current cell                                                                                 |
+| <kbd>Esc</kbd>                                                               | <kbd>Esc</kbd>                      | When editing:<br>stop editing, and cancel your changes                                                |
+| <kbd>Backspace</kbd>                                                         | <kbd>Backspace</kbd>                | Clear the cell's contents                                                                             |
+| <kbd>Delete</kbd>                                                            | <kbd>Delete</kbd>                   | Clear the cell's contents                                                                             |
+| <kbd>Ctrl</kbd> + <kbd>C</kbd><br>or<br><kbd>Ctrl</kbd> + <kbd>Insert</kbd>  | <kbd>Cmd</kbd> + <kbd>C</kbd>       | Copy the cell's contents                                                                              |
+| <kbd>Ctrl</kbd> + <kbd>X</kbd>                                               | <kbd>Cmd</kbd> + <kbd>X</kbd>       | Cut the cell's contents                                                                               |
+| <kbd>Ctrl</kbd> + <kbd>V</kbd><br>or<br><kbd>Shift</kbd> + <kbd>Insert</kbd> | <kbd>Cmd</kbd> + <kbd>V</kbd>       | Paste into the current cell                                                                           |
+| <kbd>Ctrl</kbd> + <kbd>Enter</kbd>                                           | <kbd>Cmd</kbd> + <kbd>Enter</kbd>   | When editing:<br>fill all currently-selected cells with the contents of the currently-edited cell     |
+| <kbd>Ctrl</kbd> + <kbd>Z</kbd>                                               | <kbd>Cmd</kbd> + <kbd>Z</kbd>       | Undo                                                                                                  |
+| <kbd>Ctrl</kbd> + <kbd>Y</kbd>                                               | <kbd>Cmd</kbd> + <kbd>Y</kbd>       | Redo                                                                                                  |
 
 <br>
 <br>
