@@ -8,8 +8,8 @@ import { KEY as SEPARATOR } from './predefinedItems/separator';
  */
 export function normalizeSelection(selRanges) {
   return arrayMap(selRanges, range => ({
-    start: range.getTopLeftCorner(),
-    end: range.getBottomRightCorner(),
+    start: range.getTopStartCorner(),
+    end: range.getBottomEndCorner(),
   }));
 }
 

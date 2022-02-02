@@ -212,14 +212,14 @@ describe('CellRange', () => {
     });
   });
 
-  describe('getOuterTopLeftCorner()', () => {
+  describe('getOuterTopStartCorner()', () => {
     it('should return most top-left corner coordinates including headers - from top-left to bottom-right', () => {
       const highlight = new CellCoords(-1, -2);
       const from = new CellCoords(-1, -2);
       const to = new CellCoords(5, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterTopLeftCorner();
+      const topLeft = range.getOuterTopStartCorner();
 
       expect(topLeft.row).toBe(-1);
       expect(topLeft.col).toBe(-2);
@@ -231,7 +231,7 @@ describe('CellRange', () => {
       const to = new CellCoords(5, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterTopLeftCorner();
+      const topLeft = range.getOuterTopStartCorner();
 
       expect(topLeft.row).toBe(-1);
       expect(topLeft.col).toBe(-2);
@@ -243,7 +243,7 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterTopLeftCorner();
+      const topLeft = range.getOuterTopStartCorner();
 
       expect(topLeft.row).toBe(-1);
       expect(topLeft.col).toBe(-2);
@@ -255,21 +255,21 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterTopLeftCorner();
+      const topLeft = range.getOuterTopStartCorner();
 
       expect(topLeft.row).toBe(-1);
       expect(topLeft.col).toBe(-2);
     });
   });
 
-  describe('getOuterBottomRightCorner()', () => {
+  describe('getOuterBottomEndCorner()', () => {
     it('should return most top-left corner coordinates including headers - from top-left to bottom-right', () => {
       const highlight = new CellCoords(-1, -2);
       const from = new CellCoords(-1, -2);
       const to = new CellCoords(5, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterBottomRightCorner();
+      const topLeft = range.getOuterBottomEndCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(5);
@@ -281,7 +281,7 @@ describe('CellRange', () => {
       const to = new CellCoords(5, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterBottomRightCorner();
+      const topLeft = range.getOuterBottomEndCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(5);
@@ -293,7 +293,7 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterBottomRightCorner();
+      const topLeft = range.getOuterBottomEndCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(5);
@@ -305,21 +305,21 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterBottomRightCorner();
+      const topLeft = range.getOuterBottomEndCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(5);
     });
   });
 
-  describe('getOuterTopRightCorner()', () => {
+  describe('getOuterTopEndCorner()', () => {
     it('should return most top-left corner coordinates including headers - from top-left to bottom-right', () => {
       const highlight = new CellCoords(-1, -2);
       const from = new CellCoords(-1, -2);
       const to = new CellCoords(5, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterTopRightCorner();
+      const topLeft = range.getOuterTopEndCorner();
 
       expect(topLeft.row).toBe(-1);
       expect(topLeft.col).toBe(5);
@@ -331,7 +331,7 @@ describe('CellRange', () => {
       const to = new CellCoords(5, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterTopRightCorner();
+      const topLeft = range.getOuterTopEndCorner();
 
       expect(topLeft.row).toBe(-1);
       expect(topLeft.col).toBe(5);
@@ -343,7 +343,7 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterTopRightCorner();
+      const topLeft = range.getOuterTopEndCorner();
 
       expect(topLeft.row).toBe(-1);
       expect(topLeft.col).toBe(5);
@@ -355,21 +355,21 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterTopRightCorner();
+      const topLeft = range.getOuterTopEndCorner();
 
       expect(topLeft.row).toBe(-1);
       expect(topLeft.col).toBe(5);
     });
   });
 
-  describe('getOuterBottomLeftCorner()', () => {
+  describe('getOuterBottomStartCorner()', () => {
     it('should return most top-left corner coordinates including headers - from top-left to bottom-right', () => {
       const highlight = new CellCoords(-1, -2);
       const from = new CellCoords(-1, -2);
       const to = new CellCoords(5, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterBottomLeftCorner();
+      const topLeft = range.getOuterBottomStartCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(-2);
@@ -381,7 +381,7 @@ describe('CellRange', () => {
       const to = new CellCoords(5, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterBottomLeftCorner();
+      const topLeft = range.getOuterBottomStartCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(-2);
@@ -393,7 +393,7 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterBottomLeftCorner();
+      const topLeft = range.getOuterBottomStartCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(-2);
@@ -405,21 +405,21 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getOuterBottomLeftCorner();
+      const topLeft = range.getOuterBottomStartCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(-2);
     });
   });
 
-  describe('getTopLeftCorner()', () => {
+  describe('getTopStartCorner()', () => {
     it('should return most top-left corner coordinates including headers - from top-left to bottom-right', () => {
       const highlight = new CellCoords(-1, -2);
       const from = new CellCoords(-1, -2);
       const to = new CellCoords(5, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getTopLeftCorner();
+      const topLeft = range.getTopStartCorner();
 
       expect(topLeft.row).toBe(0);
       expect(topLeft.col).toBe(0);
@@ -431,7 +431,7 @@ describe('CellRange', () => {
       const to = new CellCoords(5, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getTopLeftCorner();
+      const topLeft = range.getTopStartCorner();
 
       expect(topLeft.row).toBe(0);
       expect(topLeft.col).toBe(0);
@@ -443,7 +443,7 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getTopLeftCorner();
+      const topLeft = range.getTopStartCorner();
 
       expect(topLeft.row).toBe(0);
       expect(topLeft.col).toBe(0);
@@ -455,21 +455,21 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getTopLeftCorner();
+      const topLeft = range.getTopStartCorner();
 
       expect(topLeft.row).toBe(0);
       expect(topLeft.col).toBe(0);
     });
   });
 
-  describe('getBottomRightCorner()', () => {
+  describe('getBottomEndCorner()', () => {
     it('should return most top-left corner coordinates including headers - from top-left to bottom-right', () => {
       const highlight = new CellCoords(-1, -2);
       const from = new CellCoords(-1, -2);
       const to = new CellCoords(5, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getBottomRightCorner();
+      const topLeft = range.getBottomEndCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(5);
@@ -481,7 +481,7 @@ describe('CellRange', () => {
       const to = new CellCoords(5, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getBottomRightCorner();
+      const topLeft = range.getBottomEndCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(5);
@@ -493,7 +493,7 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getBottomRightCorner();
+      const topLeft = range.getBottomEndCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(5);
@@ -505,21 +505,21 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getBottomRightCorner();
+      const topLeft = range.getBottomEndCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(5);
     });
   });
 
-  describe('getTopRightCorner()', () => {
+  describe('getTopEndCorner()', () => {
     it('should return most top-left corner coordinates including headers - from top-left to bottom-right', () => {
       const highlight = new CellCoords(-1, -2);
       const from = new CellCoords(-1, -2);
       const to = new CellCoords(5, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getTopRightCorner();
+      const topLeft = range.getTopEndCorner();
 
       expect(topLeft.row).toBe(0);
       expect(topLeft.col).toBe(5);
@@ -531,7 +531,7 @@ describe('CellRange', () => {
       const to = new CellCoords(5, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getTopRightCorner();
+      const topLeft = range.getTopEndCorner();
 
       expect(topLeft.row).toBe(0);
       expect(topLeft.col).toBe(5);
@@ -543,7 +543,7 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getTopRightCorner();
+      const topLeft = range.getTopEndCorner();
 
       expect(topLeft.row).toBe(0);
       expect(topLeft.col).toBe(5);
@@ -555,21 +555,21 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getTopRightCorner();
+      const topLeft = range.getTopEndCorner();
 
       expect(topLeft.row).toBe(0);
       expect(topLeft.col).toBe(5);
     });
   });
 
-  describe('getBottomLeftCorner()', () => {
+  describe('getBottomStartCorner()', () => {
     it('should return most top-left corner coordinates including headers - from top-left to bottom-right', () => {
       const highlight = new CellCoords(-1, -2);
       const from = new CellCoords(-1, -2);
       const to = new CellCoords(5, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getBottomLeftCorner();
+      const topLeft = range.getBottomStartCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(0);
@@ -581,7 +581,7 @@ describe('CellRange', () => {
       const to = new CellCoords(5, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getBottomLeftCorner();
+      const topLeft = range.getBottomStartCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(0);
@@ -593,7 +593,7 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, 5);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getBottomLeftCorner();
+      const topLeft = range.getBottomStartCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(0);
@@ -605,7 +605,7 @@ describe('CellRange', () => {
       const to = new CellCoords(-1, -2);
       const range = new CellRange(highlight, from, to);
 
-      const topLeft = range.getBottomLeftCorner();
+      const topLeft = range.getBottomStartCorner();
 
       expect(topLeft.row).toBe(5);
       expect(topLeft.col).toBe(0);

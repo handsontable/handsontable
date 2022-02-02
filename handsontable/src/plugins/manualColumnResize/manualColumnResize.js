@@ -266,8 +266,8 @@ export class ManualColumnResize extends BasePlugin {
       const selectionRanges = this.hot.getSelectedRange();
 
       arrayEach(selectionRanges, (selectionRange) => {
-        const fromColumn = selectionRange.getTopLeftCorner().col;
-        const toColumn = selectionRange.getBottomRightCorner().col;
+        const fromColumn = selectionRange.getTopStartCorner().col;
+        const toColumn = selectionRange.getBottomEndCorner().col;
 
         // Add every selected column for resize action.
         rangeEach(fromColumn, toColumn, (columnIndex) => {

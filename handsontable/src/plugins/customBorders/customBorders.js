@@ -2,7 +2,6 @@ import { BasePlugin } from '../base';
 import { hasOwnProperty, objectEach } from '../../helpers/object';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayReduce, arrayMap } from '../../helpers/array';
-import { CellRange, CellCoords } from '../../3rdparty/walkontable/src';
 import * as C from '../../i18n/constants';
 import {
   top as menuItemTop,
@@ -291,7 +290,7 @@ export class CustomBorders extends BasePlugin {
       this.savedBorders.push(border);
     }
 
-    const visualCellRange = new CellRange(new CellCoords(border.row, border.col));
+    const visualCellRange = this.hot._createCellRange(this.hot._createCellCoords(border.row, border.col));
     const hasCustomSelections = this.checkCustomSelections(border, visualCellRange, place);
 
     if (!hasCustomSelections) {

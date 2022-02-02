@@ -1,5 +1,4 @@
 import { isRightClick as isRightClickEvent, isLeftClick as isLeftClickEvent } from './../helpers/dom/event';
-import { CellCoords } from './../3rdparty/walkontable/src';
 
 /**
  * MouseDown handler.
@@ -12,8 +11,9 @@ import { CellCoords } from './../3rdparty/walkontable/src';
  * @param {Selection} options.selection The Selection class instance.
  * @param {object} options.controller An object with keys `row`, `column`, `cell` which indicate what
  *                                    operation will be performed in later selection stages.
+ * @param {Function} options.cellCoordsFactory The function factory for CellCoords objects.
  */
-export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selection, controller }) {
+export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selection, controller, cellCoordsFactory }) {
   const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
   const selectedCorner = selection.isSelectedByCorner();
   const selectedRow = selection.isSelectedByRowHeader();
@@ -23,13 +23,13 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
       selection.setRangeEnd(coords);
 
     } else if ((selectedCorner || selectedRow) && coords.row >= 0 && coords.col >= 0 && !controller.cell) {
-      selection.setRangeEnd(new CellCoords(coords.row, coords.col));
+      selection.setRangeEnd(cellCoordsFactory(coords.row, coords.col));
 
     } else if (selectedCorner && coords.row < 0 && !controller.column) {
-      selection.setRangeEnd(new CellCoords(currentSelection.to.row, coords.col));
+      selection.setRangeEnd(cellCoordsFactory(currentSelection.to.row, coords.col));
 
     } else if (selectedRow && coords.col < 0 && !controller.row) {
-      selection.setRangeEnd(new CellCoords(coords.row, currentSelection.to.col));
+      selection.setRangeEnd(cellCoordsFactory(coords.row, currentSelection.to.col));
 
     } else if (((!selectedCorner && !selectedRow && coords.col < 0) ||
                (selectedCorner && coords.col < 0)) && !controller.row) {
@@ -75,8 +75,9 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
  * @param {Selection} options.selection The Selection class instance.
  * @param {object} options.controller An object with keys `row`, `column`, `cell` which indicate what
  *                                    operation will be performed in later selection stages.
+ * @param {Function} options.cellCoordsFactory The function factory for CellCoords objects.
  */
-export function mouseOver({ isLeftClick, coords, selection, controller }) {
+export function mouseOver({ isLeftClick, coords, selection, controller, cellCoordsFactory }) {
   if (!isLeftClick) {
     return;
   }
@@ -87,10 +88,10 @@ export function mouseOver({ isLeftClick, coords, selection, controller }) {
   const countRows = selection.tableProps.countRows();
 
   if (selectedColumn && !controller.column) {
-    selection.setRangeEnd(new CellCoords(countRows - 1, coords.col));
+    selection.setRangeEnd(cellCoordsFactory(countRows - 1, coords.col));
 
   } else if (selectedRow && !controller.row) {
-    selection.setRangeEnd(new CellCoords(coords.row, countCols - 1));
+    selection.setRangeEnd(cellCoordsFactory(coords.row, countCols - 1));
 
   } else if (!controller.cell) {
     selection.setRangeEnd(coords);
@@ -112,12 +113,14 @@ const handlers = new Map([
  * @param {Selection} options.selection The Selection class instance.
  * @param {object} options.controller An object with keys `row`, `column`, `cell` which indicate what
  *                                    operation will be performed in later selection stages.
+ * @param {Function} options.cellCoordsFactory The function factory for CellCoords objects.
  */
-export function handleMouseEvent(event, { coords, selection, controller }) {
+export function handleMouseEvent(event, { coords, selection, controller, cellCoordsFactory }) {
   handlers.get(event.type)({
     coords,
     selection,
     controller,
+    cellCoordsFactory,
     isShiftKey: event.shiftKey,
     isLeftClick: isLeftClickEvent(event) || event.type === 'touchstart',
     isRightClick: isRightClickEvent(event),

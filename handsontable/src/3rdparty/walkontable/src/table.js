@@ -11,7 +11,6 @@ import {
   isVisible,
 } from '../../../helpers/dom/element';
 import { isFunction } from '../../../helpers/function';
-import CellCoords from './cell/coords';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 import { Renderer } from './renderer';
@@ -776,7 +775,7 @@ class Table {
       col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
     }
 
-    return new CellCoords(row, col);
+    return this.wot.createCellCoords(row, col);
   }
 
   /**

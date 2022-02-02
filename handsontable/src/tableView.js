@@ -12,7 +12,7 @@ import {
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
-import Walkontable, { CellCoords } from './3rdparty/walkontable/src';
+import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
 
@@ -386,7 +386,7 @@ class TableView {
    */
   translateFromRenderableToVisualCoords({ row, col }) {
     // TODO: To consider an idea to reusing the CellCoords instance instead creating new one.
-    return new CellCoords(...this.translateFromRenderableToVisualIndex(row, col));
+    return this.instance._createCellCoords(...this.translateFromRenderableToVisualIndex(row, col));
   }
 
   /**
@@ -686,6 +686,7 @@ class TableView {
           coords: visualCoords,
           selection: this.instance.selection,
           controller,
+          cellCoordsFactory: (row, column) => this.instance._createCellCoords(row, column),
         });
 
         this.instance.runHooks('afterOnCellMouseDown', event, visualCoords, TD);
@@ -745,6 +746,7 @@ class TableView {
             coords: visualCoords,
             selection: this.instance.selection,
             controller,
+            cellCoordsFactory: (row, column) => this.instance._createCellCoords(row, column),
           });
         }
 

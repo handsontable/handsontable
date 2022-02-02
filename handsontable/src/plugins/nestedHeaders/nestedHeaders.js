@@ -430,10 +430,10 @@ export class NestedHeaders extends BasePlugin {
 
     if (event.shiftKey && currentSelection) {
       if (coords.col < currentSelection.from.col) {
-        columnsToSelect.push(currentSelection.getTopRightCorner().col, columnIndex, coords.row);
+        columnsToSelect.push(currentSelection.getTopEndCorner().col, columnIndex, coords.row);
 
       } else if (coords.col > currentSelection.from.col) {
-        columnsToSelect.push(currentSelection.getTopLeftCorner().col, columnIndex + origColspan - 1, coords.row);
+        columnsToSelect.push(currentSelection.getTopStartCorner().col, columnIndex + origColspan - 1, coords.row);
 
       } else {
         columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
@@ -474,8 +474,8 @@ export class NestedHeaders extends BasePlugin {
     } = headerNodeData;
 
     const selectedRange = this.hot.getSelectedRangeLast();
-    const topLeftCoords = selectedRange.getTopLeftCorner();
-    const bottomRightCoords = selectedRange.getBottomRightCorner();
+    const topStartCoords = selectedRange.getTopStartCorner();
+    const bottomEndCoords = selectedRange.getBottomEndCorner();
     const { from } = selectedRange;
 
     // Block the Selection module in controlling how the columns and cells are selected.
@@ -486,10 +486,10 @@ export class NestedHeaders extends BasePlugin {
     const columnsToSelect = [];
 
     if (coords.col < from.col) {
-      columnsToSelect.push(bottomRightCoords.col, columnIndex);
+      columnsToSelect.push(bottomEndCoords.col, columnIndex);
 
     } else if (coords.col > from.col) {
-      columnsToSelect.push(topLeftCoords.col, columnIndex + origColspan - 1);
+      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1);
 
     } else {
       columnsToSelect.push(columnIndex, columnIndex + origColspan - 1);

@@ -1,5 +1,4 @@
 import { extend } from '../../../helpers/object';
-import { CellCoords, CellRange } from '../../../3rdparty/walkontable/src';
 import { arrayEach } from '../../../helpers/array';
 
 /**
@@ -425,9 +424,9 @@ class AutofillCalculations {
   dragAreaOverlapsCollections(baseArea, fullArea, direction) {
     const dragArea = this.getDragArea(baseArea, fullArea, direction);
     const [dragAreaStartRow, dragAreaStartColumn, dragAreaEndRow, dragAreaEndColumn] = dragArea;
-    const topLeft = new CellCoords(dragAreaStartRow, dragAreaStartColumn);
-    const bottomRight = new CellCoords(dragAreaEndRow, dragAreaEndColumn);
-    const dragRange = new CellRange(topLeft, topLeft, bottomRight);
+    const topLeft = this.plugin.hot._createCellCoords(dragAreaStartRow, dragAreaStartColumn);
+    const bottomRight = this.plugin.hot._createCellCoords(dragAreaEndRow, dragAreaEndColumn);
+    const dragRange = this.plugin.hot._createCellRange(topLeft, topLeft, bottomRight);
 
     return !!this.mergedCellsCollection.getWithinRange(dragRange, true);
   }

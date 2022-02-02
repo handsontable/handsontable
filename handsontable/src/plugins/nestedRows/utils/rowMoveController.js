@@ -1,7 +1,6 @@
 import { isUndefined } from '../../../helpers/mixed';
 import { warn } from '../../../helpers/console';
 import { toSingleLine } from '../../../helpers/templateLiteralTag';
-import { CellCoords } from '../../../3rdparty/walkontable/src';
 
 /**
  * Helper class for the row-move-related operations.
@@ -296,8 +295,8 @@ export default class RowMoveController {
     selection = this.hot.selection;
     lastColIndex = this.hot.countCols() - 1;
 
-    selection.setRangeStart(new CellCoords(startRow, 0));
-    selection.setRangeEnd(new CellCoords(endRow, lastColIndex), true);
+    selection.setRangeStart(this.hot._createCellCoords(startRow, 0));
+    selection.setRangeEnd(this.hot._createCellCoords(endRow, lastColIndex), true);
   }
 
   // TODO: Reimplementation of function which is inside the `ManualRowMove` plugin.

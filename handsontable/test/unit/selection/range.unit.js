@@ -5,7 +5,7 @@ describe('SelectionRange', () => {
   let selectionRange;
 
   beforeEach(() => {
-    selectionRange = new SelectionRange();
+    selectionRange = new SelectionRange((...args) => new CellRange(...args));
   });
 
   afterEach(() => {

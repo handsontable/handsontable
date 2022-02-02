@@ -222,8 +222,8 @@ export class ManualRowResize extends BasePlugin {
       const selectionRanges = this.hot.getSelectedRange();
 
       arrayEach(selectionRanges, (selectionRange) => {
-        const fromRow = selectionRange.getTopLeftCorner().row;
-        const toRow = selectionRange.getBottomLeftCorner().row;
+        const fromRow = selectionRange.getTopStartCorner().row;
+        const toRow = selectionRange.getBottomStartCorner().row;
 
         // Add every selected row for resize action.
         rangeEach(fromRow, toRow, (rowIndex) => {

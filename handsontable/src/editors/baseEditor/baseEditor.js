@@ -1,4 +1,3 @@
-import { CellCoords } from '../../3rdparty/walkontable/src';
 import { stringify } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
@@ -232,7 +231,7 @@ export class BaseEditor {
     const renderableRowIndex = hotInstance.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumnIndex = hotInstance.columnIndexMapper.getRenderableFromVisualIndex(this.col);
 
-    hotInstance.view.scrollViewport(new CellCoords(renderableRowIndex, renderableColumnIndex));
+    hotInstance.view.scrollViewport(hotInstance._createCellCoords(renderableRowIndex, renderableColumnIndex));
     this.state = EDITOR_STATE.EDITING;
 
     // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
