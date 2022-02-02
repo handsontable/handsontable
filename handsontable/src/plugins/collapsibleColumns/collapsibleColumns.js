@@ -12,6 +12,7 @@ import { stopImmediatePropagation } from '../../helpers/dom/event';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
+const SETTING_KEYS = ['nestedHeaders'];
 
 const actionDictionary = new Map([
   ['collapse', {
@@ -82,6 +83,13 @@ export class CollapsibleColumns extends BasePlugin {
     ];
   }
 
+  static get SETTING_KEYS() {
+    return [
+      PLUGIN_KEY,
+      ...SETTING_KEYS
+    ];
+  }
+
   /**
    * Cached reference to the NestedHeaders plugin.
    *
@@ -141,7 +149,6 @@ export class CollapsibleColumns extends BasePlugin {
 
     this.addHook('init', () => this.onInit());
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
-    this.addHook('afterSetData', (...args) => this.onAfterSetData(...args));
     this.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
     this.addHook('beforeOnCellMouseDown', (event, coords, TD) => this.onBeforeOnCellMouseDown(event, coords, TD));
 
@@ -169,6 +176,11 @@ export class CollapsibleColumns extends BasePlugin {
         });
 
       } else if (Array.isArray(collapsibleColumns)) {
+
+        this.headerStateManager.mapState(() => {
+          return { collapsible: false };
+        });
+
         this.headerStateManager.mergeStateWith(collapsibleColumns);
       }
     }
@@ -489,24 +501,9 @@ export class CollapsibleColumns extends BasePlugin {
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded
    *                              during the initialization.
    */
-  onAfterSetData(sourceData, initialLoad) {
+  onAfterLoadData(sourceData, initialLoad) {
     if (!initialLoad) {
       this.updatePlugin();
-    }
-  }
-
-  /**
-   * Alias for `onAfterSetData`.
-   *
-   * @private
-   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
-   *                              during the initialization.
-   * @param {string} source Source of the hook call.
-   */
-  onAfterLoadData(sourceData, initialLoad, source) {
-    if (source !== 'updateSettings') {
-      this.onAfterSetData(sourceData, initialLoad, source);
     }
   }
 

@@ -1,7 +1,7 @@
 {
-  "title": "Added a `setData` and `updateData` methods alonside the existing `loadData` method. The `updateData` method allows replacing the dataset without resetting the cell meta cache and index mapper configuration.",
-  "type": "added",
+  "title": "Changed the way `updateSettings` handles data by introducing `updateData` instead of `loadData` in the majority of cases.",
+  "type": "changed",
   "issue": 7263,
-  "breaking": false,
+  "breaking": true,
   "framework": "none"
 }

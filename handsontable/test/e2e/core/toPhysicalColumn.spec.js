@@ -51,23 +51,9 @@ describe('Core.toPhysicalColumn', () => {
       expect(hot.toPhysicalColumn(1)).toBe(1);
       expect(hot.toPhysicalColumn(2)).toBe(null);
     });
-
-    it('by calling the `setData` function', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
-      });
-
-      hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-      hot.setData(Handsontable.helper.createSpreadsheetData(2, 2));
-
-      expect(hot.toPhysicalColumn(0)).toBe(0);
-      expect(hot.toPhysicalColumn(1)).toBe(1);
-      expect(hot.toPhysicalColumn(2)).toBe(null);
-    });
   });
 
-  // TODO: uncomment with the next major version
-  xdescribe('should NOT reset physical indexes when user updates data', () => {
+  describe('should NOT reset physical indexes when user updates data', () => {
     it('by updating settings', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -83,7 +69,7 @@ describe('Core.toPhysicalColumn', () => {
 
     it('by calling the `updateData` function', () => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: Handsontable.helper.createSpreadsheetData(5, 5)
       });
 
       hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);

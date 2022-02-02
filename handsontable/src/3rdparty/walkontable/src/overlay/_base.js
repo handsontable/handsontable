@@ -1,31 +1,48 @@
 import {
   getScrollableElement,
   getTrimmingContainer
-} from './../../../../helpers/dom/element';
-import { defineGetter } from './../../../../helpers/object';
-import { arrayEach } from './../../../../helpers/array';
-import { warn } from './../../../../helpers/console';
-import EventManager from './../../../../eventManager';
+} from '../../../../helpers/dom/element';
+import { defineGetter } from '../../../../helpers/object';
+import { arrayEach } from '../../../../helpers/array';
+import { warn } from '../../../../helpers/console';
 import {
   CLONE_TYPES,
   CLONE_TOP,
   CLONE_LEFT,
 } from './constants';
+import Clone from '../core/clone';
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
  * and (optionally) implements behavior needed for native horizontal and vertical scrolling.
  *
+ * @abstract
  * @class Overlay
+ * @property {Walkontable} wot The Walkontable instance.
  */
 export class Overlay {
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   *  The Walkontable settings.
+   *
+   * @private
+   * @type {Settings}
    */
-  constructor(wotInstance) {
+  wtSettings = null;
+
+  /**
+   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
+   * @param {FacadeGetter} facadeGetter Function which return proper facade.
+   * @param {CLONE_TYPES_ENUM} type The overlay type name (clone name).
+   * @param {Settings} wtSettings The Walkontable settings.
+   * @param {DomBindings} domBindings Dom elements bound to the current instance.
+   */
+  constructor(wotInstance, facadeGetter, type, wtSettings, domBindings) {
     defineGetter(this, 'wot', wotInstance, {
       writable: false,
     });
+    this.domBindings = domBindings;
+    this.facadeGetter = facadeGetter;
+    this.wtSettings = wtSettings;
 
     const {
       TABLE,
@@ -33,12 +50,12 @@ export class Overlay {
       spreader,
       holder,
       wtRootElement,
-    } = this.wot.wtTable;
+    } = this.wot.wtTable; // todo ioc
 
     // legacy support, deprecated in the future
     this.instance = this.wot;
 
-    this.type = '';
+    this.type = type;
     this.mainTableScrollableElement = null;
     this.TABLE = TABLE;
     this.hider = hider;
@@ -47,6 +64,8 @@ export class Overlay {
     this.wtRootElement = wtRootElement;
     this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode);
     this.updateStateOfRendering();
+
+    this.clone = this.makeClone();
   }
 
   /**
@@ -55,6 +74,7 @@ export class Overlay {
    * @returns {boolean} Returns `true` if the state has changed since the last check.
    */
   updateStateOfRendering() {
+    // todo refactoring: conceive introducing final state machine, normal -> changed (once) -> needs-full-render -> ...? -> normal
     const previousState = this.needFullRender;
 
     this.needFullRender = this.shouldBeRendered();
@@ -88,7 +108,8 @@ export class Overlay {
    * Update the main scrollable element.
    */
   updateMainScrollableElement() {
-    const { wtTable, rootWindow } = this.wot;
+    const { wtTable } = this.wot;
+    const { rootWindow } = this.domBindings;
 
     if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
       this.mainTableScrollableElement = this.wot.wtTable.holder;
@@ -112,10 +133,11 @@ export class Overlay {
 
       return;
     }
-    const windowScroll = this.mainTableScrollableElement === this.wot.rootWindow;
-    const fixedColumn = columnIndex < this.wot.getSetting('fixedColumnsLeft');
-    const fixedRowTop = rowIndex < this.wot.getSetting('fixedRowsTop');
-    const fixedRowBottom = rowIndex >= this.wot.getSetting('totalRows') - this.wot.getSetting('fixedRowsBottom');
+    const windowScroll = this.mainTableScrollableElement === this.domBindings.rootWindow;
+    const fixedColumn = columnIndex < this.wtSettings.getSetting('fixedColumnsLeft');
+    const fixedRowTop = rowIndex < this.wtSettings.getSetting('fixedRowsTop');
+    const fixedRowBottom =
+      rowIndex >= this.wtSettings.getSetting('totalRows') - this.wtSettings.getSetting('fixedRowsBottom');
 
     const spreaderOffset = {
       left: this.clone.wtTable.spreader.offsetLeft,
@@ -150,7 +172,7 @@ export class Overlay {
    * @returns {{top: number, left: number}}
    */
   getRelativeCellPositionWithinWindow(onFixedRowTop, onFixedColumn, elementOffset, spreaderOffset) {
-    const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
+    const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect(); // todo refactoring: DEMETER
     let horizontalOffset = 0;
     let verticalOffset = 0;
 
@@ -190,8 +212,8 @@ export class Overlay {
    */
   getRelativeCellPositionWithinHolder(onFixedRowTop, onFixedRowBottom, onFixedColumn, elementOffset, spreaderOffset) {
     const tableScrollPosition = {
-      horizontal: this.clone.cloneSource.wtOverlays.leftOverlay.getScrollPosition(),
-      vertical: this.clone.cloneSource.wtOverlays.topOverlay.getScrollPosition()
+      horizontal: this.wot.wtOverlays.leftOverlay.getScrollPosition(),
+      vertical: this.wot.wtOverlays.topOverlay.getScrollPosition()
     };
     let horizontalOffset = 0;
     let verticalOffset = 0;
@@ -201,8 +223,8 @@ export class Overlay {
     }
 
     if (onFixedRowBottom) {
-      const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
-      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
+      const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();// todo refactoring: DEMETER
+      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();// todo refactoring: DEMETER
 
       verticalOffset = (absoluteOverlayPosition.top * (-1)) + absoluteRootElementPosition.top;
 
@@ -219,20 +241,19 @@ export class Overlay {
   /**
    * Make a clone of table for overlay.
    *
-   * @param {string} direction Can be `Overlay.CLONE_TOP`, `Overlay.CLONE_LEFT`,
-   *                           `Overlay.CLONE_TOP_LEFT_CORNER`.
-   * @returns {Walkontable}
+   * @returns {Clone}
    */
-  makeClone(direction) {
-    if (CLONE_TYPES.indexOf(direction) === -1) {
-      throw new Error(`Clone type "${direction}" is not supported.`);
+  makeClone() {
+    if (CLONE_TYPES.indexOf(this.type) === -1) {
+      throw new Error(`Clone type "${this.type}" is not supported.`);
     }
-    const { wtTable, rootDocument, rootWindow } = this.wot;
+    const { wtTable } = this.wot;
+    const { rootDocument, rootWindow } = this.domBindings;
     const clone = rootDocument.createElement('DIV');
     const clonedTable = rootDocument.createElement('TABLE');
     const tableParent = wtTable.wtRootElement.parentNode;
 
-    clone.className = `ht_clone_${direction} handsontable`;
+    clone.className = `ht_clone_${this.type} handsontable`;
     clone.style.position = 'absolute';
     clone.style.top = 0;
     clone.style.left = 0;
@@ -241,10 +262,9 @@ export class Overlay {
     clonedTable.className = wtTable.TABLE.className;
     clone.appendChild(clonedTable);
 
-    this.type = direction;
     tableParent.appendChild(clone);
 
-    const preventOverflow = this.wot.getSetting('preventOverflow');
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (preventOverflow === true ||
       preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
@@ -258,10 +278,12 @@ export class Overlay {
     }
 
     // Create a new instance of the Walkontable class
-    return new this.wot.constructor({
-      cloneSource: this.wot,
-      cloneOverlay: this,
-      table: clonedTable,
+    return new Clone(clonedTable, this.wtSettings, { // todo ioc factory
+      source: this.wot,
+      overlay: this,
+      viewport: this.wot.wtViewport, // todo ioc , or factor func if used only here
+      event: this.wot.wtEvent, // todo ioc , or factory func if used only here
+      selections: this.wot.selections, // todo ioc , or factory func if used only here
     });
   }
 
@@ -289,8 +311,8 @@ export class Overlay {
     if (!this.clone) {
       return;
     }
-    const holder = this.clone.wtTable.holder;
-    const hider = this.clone.wtTable.hider;
+    const holder = this.clone.wtTable.holder; // todo refactoring: DEMETER
+    const hider = this.clone.wtTable.hider; // todo refactoring: DEMETER
     const holderStyle = holder.style;
     const hidderStyle = hider.style;
     const rootStyle = holder.parentNode.style;
@@ -305,6 +327,6 @@ export class Overlay {
    * Destroy overlay instance.
    */
   destroy() {
-    (new EventManager(this.clone)).destroy();
+    this.clone.eventManager.destroy(); // todo check if it is good place for that operation
   }
 }
