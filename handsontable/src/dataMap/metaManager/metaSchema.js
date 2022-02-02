@@ -2081,14 +2081,17 @@ export default () => {
      * ```js
      * // either add the `HyperFormula` class
      * formulas: {
-     *   // set engine to `HyperFormula`
+     *   // set `engine` to `HyperFormula`
      *   engine: HyperFormula,
      *   sheetId: 1,
      *   sheetName: 'Sheet 1'
      * }
      *
      * // or, add a HyperFormula instance
-     * const hyperFormulaInstance = HyperFormula.buildEmpty({})
+     * // initialized with the `'internal-use-in-handsontable'` license key
+     * const hyperformulaInstance = HyperFormula.buildEmpty({
+     *   licenseKey: 'internal-use-in-handsontable',
+     * });
      *
      * formulas: {
      *   // set `engine` to a HyperFormula instance
@@ -2426,7 +2429,7 @@ export default () => {
     label: void 0,
 
     /**
-     * The `language` option configures Handsontable's language.
+     * The `language` option configures Handsontable's [language settings](@/guides/internationalization/internationalization-i18n.md#language-settings).
      *
      * You can set the `language` option to one of the following:
      *
@@ -2449,7 +2452,7 @@ export default () => {
      * | `'zh-TW'`           | Chinese - Taiwan            |
      *
      * Read more:
-     * - [Internationalization (i18n) &#8594;](@/guides/internationalization/internationalization-i18n.md)
+     * - [Internationalization (i18n): Language settings &#8594;](@/guides/internationalization/internationalization-i18n.md#language-settings)
      * - [`locale`](#locale)
      *
      * @memberof Options#
@@ -2495,13 +2498,14 @@ export default () => {
     licenseKey: void 0,
 
     /**
-     * The `locale` option configures Handsontable's locale.
+     * The `locale` option configures Handsontable's [locale settings](@/guides/internationalization/internationalization-i18n.md#locale-settings).
      *
      * You can set the `locale` option to any valid and canonicalized Unicode BCP 47 locale tag,
-     * both for the entire grid, and for individual columns.
+     * both for the [entire grid](@/guides/internationalization/internationalization-i18n.md#setting-the-grid-s-locale),
+     * and for [individual columns](@/guides/internationalization/internationalization-i18n.md#setting-a-column-s-locale).
      *
      * Read more:
-     * - [Internationalization (i18n) &#8594;](@/guides/internationalization/internationalization-i18n.md)
+     * - [Internationalization (i18n): Locale settings &#8594;](@/guides/internationalization/internationalization-i18n.md#locale-settings)
      * - [`language`](#language)
      *
      * @memberof Options#

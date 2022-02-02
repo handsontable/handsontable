@@ -33,7 +33,7 @@ To start a local Handsontable documentation server:
 2. Generate the API reference:
    ```bash
    npm run docs:api
-   ```   
+   ```
 3. Start your local documentation server:
    ```bash
    npm run docs:start
@@ -49,9 +49,9 @@ From the `docs` directory, you can run the following npm scripts:
 * `npm run docs:api` – Generates the Handsontable API reference into `/next/api`.
 * `npm run docs:build` – Builds the documentation output into `/.vuepress/dist` and checks for broken links.
 * `npm run docs:build:no-check-links` – Builds the documentation output into `/.vuepress/dist`, without checking for broken links.
-* `npm run docs:docker:build` – Builds a Docker image for the staging environment.
-* `npm run docs:docker:build:staging` – Builds a Docker image for the staging environment.
-* `npm run docs:docker:build:production` – Builds a Docker image for the production environment.
+* `npm run docs:docker:build` – Builds a Docker image for the staging environment (includes the docs for the `next` version).
+* `npm run docs:docker:build:staging` – Builds a Docker image for the staging environment (includes the docs for the `next` version).
+* `npm run docs:docker:build:production` – Builds a Docker image for the production environment (excludes the docs for the `next` version).
 * `npm run docs:version <semver.version>` – Creates a new documentation version in a new `/<semver.version>/` directory.
 * `npm run docs:check-links` – Checks for broken links (first, run `npm run docs:build:no-check-links`). You can also run it for a specific URL (e.g. `npm run docs:check-links https://handsontable.com`).
 * `npm run docs:lint` – Runs ESLint on the `/next/` directory's content.
@@ -68,6 +68,7 @@ docs                            # All documentation files
 │   │   ├── examples            # Code examples container
 │   │   └── sourceCodeLink.js   # `source-code-link` container.
 │   ├── handsontable-manager    # A module that runs Handsontable examples in different Handsontable versions
+│   ├── plugins                 # VuePress plugins
 │   ├── public                  # The documentation's public (static) assets
 │   ├── theme                   # Theme overwrites and customizations
 │   ├── tools                   # Our custom documentation tools
@@ -81,6 +82,8 @@ docs                            # All documentation files
 │   ├── helpers.js              # Common helpers that set up sidebars and the documentation version picker
 │   └── highlight.js            # Code highlight configuration
 ├── docker                      # Docker configuration
+│   ├── ...                     # Docker configuration files
+│   └── redirects.conf          # File that allows create custom redirects for documentation
 ├── next                        # The documentation's draft version, unavailable on the production environment
 │   ├── api                     # The API reference output, generated automatically from JSDoc. Do not edit!
 │   ├── examples                # The Handsontable examples

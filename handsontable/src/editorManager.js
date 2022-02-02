@@ -89,18 +89,19 @@ class EditorManager {
     const shortcutManager = this.instance.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
     const editorContext = shortcutManager.getContext('editor');
+    const config = { namespace: 'editorManager.handlingEditor' };
 
     editorContext.addShortcut([['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'],
       ['Enter', 'Control', 'Shift']], (event, keys) => {
       this.closeEditorAndSaveChanges(keys.includes('control'));
       this.moveSelectionAfterEnter(keys.includes('shift'));
-    });
+    }, config);
 
     editorContext.addShortcut([['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']],
       (event, keys) => {
         this.closeEditorAndRestoreOriginalValue(keys.includes('control') || keys.includes('meta'));
         this.activeEditor.focus();
-      });
+      }, config);
 
     gridContext.addShortcut([['F2']], (event) => {
       if (this.activeEditor) {
@@ -108,12 +109,12 @@ class EditorManager {
       }
 
       this.openEditor(null, event);
-    });
+    }, config);
 
     gridContext.addShortcut([['Backspace'], ['Delete']], () => {
       this.instance.emptySelectedCells();
       this.prepareEditor();
-    });
+    }, config);
 
     gridContext.addShortcut(
       [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
@@ -132,7 +133,7 @@ class EditorManager {
         }
 
         stopImmediatePropagation(event); // required by HandsontableEditor
-      });
+      }, config);
   }
 
   /**
@@ -329,6 +330,10 @@ class EditorManager {
    * @param {KeyboardEvent} event The keyboard event object.
    */
   onAfterDocumentKeyDown(event) {
+    if (!this.instance.isListening()) {
+      return;
+    }
+
     const { keyCode } = event;
 
     // keyCode 229 aka 'uninitialized' doesn't take into account with editors. This key code is produced when unfinished
@@ -350,7 +355,7 @@ class EditorManager {
         const editorContext = shortcutManager.getContext('editor');
         const runOnlySelectedConfig = {
           runAction: () => isDefined(this.instance.getSelected()),
-          namespace: 'editorManager'
+          namespace: 'editorManager.navigation'
         };
 
         editorContext.addShortcut([['ArrowUp']], () => {

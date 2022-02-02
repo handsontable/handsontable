@@ -1,5 +1,6 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { normalizeKeys } from './utils';
+import { isUndefined } from '../helpers/mixed';
 
 /**
  * Create shortcuts' context.
@@ -19,9 +20,12 @@ export const createContext = (name) => {
    * @param {Function} callback The callback.
    * @param {object} [options] Additional options for shortcut's variants.
    * @param {object} options.namespace Namespace for shortcut.
-   * @param {object} [options.preventDefault=true] Option determine whether to prevent default behavior.
-   * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
    * @param {object} [options.runAction]  Option determine whether assigned callback should be performed.
+   * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
+   * @param {object} [options.preventDefault=true] Option determine whether to prevent default behavior.
+   * @param {object} [options.relativeToNamespace] Namespace name, relative which the shortcut is placed.
+   * @param {object} [options.position='after'] Position where shortcut is placed. It may be added before or after
+   * another namespace.
    *
    */
   const addShortcut = (
@@ -31,8 +35,14 @@ export const createContext = (name) => {
       namespace,
       runAction = () => true,
       preventDefault = true,
-      stopPropagation = false
+      stopPropagation = false,
+      relativeToNamespace = '',
+      position = 'after',
     } = {}) => {
+
+    if (isUndefined(namespace)) {
+      throw new Error('Please define the namespace for added shortcut.');
+    }
 
     variants.forEach((variant) => {
       const normalizedVariant = normalizeKeys(variant);
@@ -40,12 +50,43 @@ export const createContext = (name) => {
 
       if (hasVariant) {
         const shortcuts = SHORTCUTS.getItem(normalizedVariant);
+        let insertionIndex = shortcuts.findIndex(shortcut => shortcut.options.namespace === relativeToNamespace);
 
-        shortcuts.unshift({ callback, options: { namespace, runAction, preventDefault, stopPropagation } });
+        if (insertionIndex !== -1) {
+          if (position === 'before') {
+            insertionIndex -= 1;
+
+          } else {
+            insertionIndex += 1;
+          }
+        }
+
+        shortcuts.splice(insertionIndex, 0, {
+          callback,
+          options: {
+            namespace,
+            runAction,
+            preventDefault,
+            stopPropagation,
+            relativeToNamespace,
+            position,
+          }
+        });
 
       } else {
-        SHORTCUTS.addItem(normalizedVariant,
-          [{ callback, options: { namespace, runAction, preventDefault, stopPropagation } }]);
+        SHORTCUTS.addItem(normalizedVariant, [
+          {
+            callback,
+            options: {
+              namespace,
+              runAction,
+              preventDefault,
+              stopPropagation,
+              relativeToNamespace,
+              position,
+            }
+          }
+        ]);
       }
     });
   };

@@ -9,7 +9,7 @@ import {
 } from '../../helpers/dom/element';
 import { deepClone, deepExtend, isObject } from '../../helpers/object';
 import EventManager from '../../eventManager';
-import { CellCoords } from '../../3rdparty/walkontable/src';
+import { CellCoords, CellRange } from '../../3rdparty/walkontable/src';
 import { BasePlugin } from '../base';
 import CommentEditor from './commentEditor';
 import { checkSelectionConsistency, markLabelAsSelected } from '../contextMenu/utils';
@@ -122,20 +122,12 @@ export class Comments extends BasePlugin {
      */
     this.range = {};
     /**
+     * Prevents showing/hiding editor that reacts on the logic triggered by the "mouseover" events.
+     *
      * @private
      * @type {boolean}
      */
-    this.mouseDown = false;
-    /**
-     * @private
-     * @type {boolean}
-     */
-    this.contextMenuEvent = false;
-    /**
-     * @private
-     * @type {*}
-     */
-    this.timer = null;
+    this.preventEditorAutoSwitch = false;
 
     privatePool.set(this, {
       tempEditorDimensions: {},
@@ -178,7 +170,7 @@ export class Comments extends BasePlugin {
       (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
     this.addHook('afterScrollHorizontally', () => this.hide());
     this.addHook('afterScrollVertically', () => this.hide());
-    this.addHook('afterBeginEditing', () => this.onAfterBeginEditing());
+    this.addHook('afterBeginEditing', () => this.hide());
 
     this.displaySwitch.addLocalHook('hide', () => this.hide());
     this.displaySwitch.addLocalHook('show', (row, col) => this.showAtCell(row, col));
@@ -367,7 +359,6 @@ export class Comments extends BasePlugin {
   show() {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
-
     }
 
     const { from: { row, col } } = this.range;
@@ -407,9 +398,7 @@ export class Comments extends BasePlugin {
    * Hides the comment editor.
    */
   hide() {
-    if (!this.editor.hidden) {
-      this.editor.hide();
-    }
+    this.editor.hide();
   }
 
   /**
@@ -556,22 +545,16 @@ export class Comments extends BasePlugin {
    * @param {MouseEvent} event The `mousedown` event.
    */
   onMouseDown(event) {
-    this.mouseDown = true;
-
     if (!this.hot.view || !this.hot.view.wt) {
       return;
     }
 
-    if (!this.contextMenuEvent && !this.targetIsCommentTextArea(event)) {
+    if (!this.preventEditorAutoSwitch && !this.targetIsCommentTextArea(event)) {
       const eventCell = closest(event.target, 'TD', 'TBODY');
       let coordinates = null;
 
       if (eventCell) {
-        coordinates = this.hot.view.wt.wtTable.getCoords(eventCell);
-        coordinates = {
-          row: this.hot.rowIndexMapper.getVisualFromRenderableIndex(coordinates.row),
-          col: this.hot.columnIndexMapper.getVisualFromRenderableIndex(coordinates.col)
-        };
+        coordinates = this.hot.getCoords(eventCell);
       }
 
       if (!eventCell || ((this.range.from && coordinates) &&
@@ -579,7 +562,6 @@ export class Comments extends BasePlugin {
         this.hide();
       }
     }
-    this.contextMenuEvent = false;
   }
 
   /**
@@ -592,21 +574,15 @@ export class Comments extends BasePlugin {
     const priv = privatePool.get(this);
     const { rootDocument } = this.hot;
 
-    priv.cellBelowCursor = rootDocument.elementFromPoint(event.clientX, event.clientY);
-
-    if (this.mouseDown || this.editor.isFocused() || hasClass(event.target, 'wtBorder')
-        || priv.cellBelowCursor !== event.target || !this.editor) {
+    if (this.preventEditorAutoSwitch || this.editor.isFocused() || hasClass(event.target, 'wtBorder')
+        || priv.cellBelowCursor === event.target || !this.editor) {
       return;
     }
 
+    priv.cellBelowCursor = rootDocument.elementFromPoint(event.clientX, event.clientY);
+
     if (this.targetIsCellWithComment(event)) {
-      const coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
-      const range = {
-        from: new CellCoords(
-          this.hot.rowIndexMapper.getVisualFromRenderableIndex(coordinates.row),
-          this.hot.columnIndexMapper.getVisualFromRenderableIndex(coordinates.col)
-        )
-      };
+      const range = new CellRange(this.hot.getCoords(event.target));
 
       this.displaySwitch.show(range);
 
@@ -621,7 +597,7 @@ export class Comments extends BasePlugin {
    * @private
    */
   onMouseUp() {
-    this.mouseDown = false;
+    this.preventEditorAutoSwitch = false;
   }
 
   /**
@@ -689,22 +665,17 @@ export class Comments extends BasePlugin {
    * @private
    */
   onContextMenuAddComment() {
-    this.displaySwitch.cancelHiding();
-
     const coords = this.hot.getSelectedRangeLast();
 
-    this.contextMenuEvent = true;
+    this.preventEditorAutoSwitch = true;
+    this.displaySwitch.cancelHiding();
+
     this.setRange({
       from: coords.highlight,
     });
     this.show();
-
-    setTimeout(() => {
-      if (this.hot) {
-        this.hot.deselectCell();
-        this.editor.focus();
-      }
-    }, 10);
+    this.hot.deselectCell();
+    this.editor.focus();
   }
 
   /**
@@ -715,7 +686,7 @@ export class Comments extends BasePlugin {
   onContextMenuRemoveComment() {
     const coords = this.hot.getSelectedRangeLast();
 
-    this.contextMenuEvent = true;
+    this.preventEditorAutoSwitch = true;
 
     coords.forAll((row, column) => {
       if (row >= 0 && column >= 0) {
@@ -734,7 +705,7 @@ export class Comments extends BasePlugin {
   onContextMenuMakeReadOnly() {
     const coords = this.hot.getSelectedRangeLast();
 
-    this.contextMenuEvent = true;
+    this.preventEditorAutoSwitch = true;
 
     coords.forAll((row, column) => {
       if (row >= 0 && column >= 0) {
@@ -840,17 +811,6 @@ export class Comments extends BasePlugin {
     if (isObject(commentSetting)) {
       return commentSetting.displayDelay;
     }
-
-    return void 0;
-  }
-
-  /**
-   * `afterBeginEditing` hook callback.
-   *
-   * @private
-   */
-  onAfterBeginEditing() {
-    this.hide();
   }
 
   /**

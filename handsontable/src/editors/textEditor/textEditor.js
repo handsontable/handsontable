@@ -559,7 +559,7 @@ export class TextEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutByNamespace('editorManager'); // TODO: ID shouldn't be known there?
+    editorContext.removeShortcutByNamespace('editorManager.navigation'); // TODO: ID shouldn't be known there?
     editorContext.removeShortcutByNamespace('textEditor');
   }
 

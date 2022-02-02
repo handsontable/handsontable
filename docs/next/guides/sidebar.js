@@ -1,6 +1,5 @@
 const gettingStartedItems = [
   'guides/getting-started/introduction',
-  'guides/getting-started/hello-world',
   'guides/getting-started/installation',
   'guides/getting-started/binding-to-data',
   'guides/getting-started/saving-data',
@@ -50,6 +49,21 @@ const integrateWithVueItems = [
   'guides/integrate-with-vue/vue-language-change-example',
   'guides/integrate-with-vue/vue-vuex-example',
   'guides/integrate-with-vue/vue-hot-reference',
+];
+
+const integrateWithVue3Items = [
+  'guides/integrate-with-vue3/vue3-installation',
+  'guides/integrate-with-vue3/vue3-simple-example',
+  'guides/integrate-with-vue3/vue3-modules',
+  'guides/integrate-with-vue3/vue3-hot-column',
+  'guides/integrate-with-vue3/vue3-setting-up-a-language',
+  'guides/integrate-with-vue3/vue3-custom-id-class-style',
+  'guides/integrate-with-vue3/vue3-custom-context-menu-example',
+  'guides/integrate-with-vue3/vue3-custom-editor-example',
+  'guides/integrate-with-vue3/vue3-custom-renderer-example',
+  'guides/integrate-with-vue3/vue3-language-change-example',
+  'guides/integrate-with-vue3/vue3-vuex-example',
+  'guides/integrate-with-vue3/vue3-hot-reference',
 ];
 
 const columnsItems = [
@@ -178,6 +192,7 @@ module.exports = {
     { title: 'Integrate with React', children: integrateWithReactItems },
     { title: 'Integrate with Angular', children: integrateWithAngularItems },
     { title: 'Integrate with Vue 2', children: integrateWithVueItems },
+    { title: 'Integrate with Vue 3', children: integrateWithVue3Items },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
     { title: 'Cell Features', children: cellFeaturesItems },

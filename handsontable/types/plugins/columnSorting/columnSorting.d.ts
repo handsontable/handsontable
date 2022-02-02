@@ -22,7 +22,7 @@ export type Settings = boolean | DetailedSettings;
 export class ColumnSorting extends BasePlugin {
   constructor(hotInstance: Core);
   isEnabled(): boolean;
-  sort(sortConfig: Config): void;
+  sort(sortConfig: Config | Config[]): void;
   clearSort(): void;
   isSorted(): boolean;
   getSortConfig(column?: number): Config | Config[];
