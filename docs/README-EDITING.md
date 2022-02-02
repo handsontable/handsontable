@@ -70,7 +70,7 @@ To display a published documentation version in a browser:
 
 If you're editing the `latest` version (a version with the largest `<semver.version>` number), remember to make the same edits to the `next` version as well.
 
-## Editing the API reference
+### Editing the API reference
 
 The `next` version's API reference is generated automatically from the source code, into the `/next/api/` directory.
 
