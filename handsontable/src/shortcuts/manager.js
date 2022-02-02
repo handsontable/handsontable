@@ -3,7 +3,7 @@ import { createContext } from './context';
 import { useRecorder } from './recorder';
 import { arrayEach } from '../helpers/array';
 
-export const createShortcutManager = ({ isActive, frame, beforeKeyDown, afterKeyDown }) => {
+export const createShortcutManager = ({ frame, beforeKeyDown, afterKeyDown }) => {
   /**
    * UniqueMap to storing contexts.
    *
