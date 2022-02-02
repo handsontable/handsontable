@@ -12,7 +12,7 @@ tags:
 
 [[toc]]
 
-Explore Handsontable's source code, in your favorite framework.
+Play around with Handsontable's source code, in your favorite framework.
 
 ---
 
@@ -39,9 +39,9 @@ Explore Handsontable's source code, in your favorite framework.
   target="/examples/next/docs/vue/demo/"></BigExampleSource>
 </BigExample>
 
-## Try the demo's features
+## Try out the demo's features
 
-Play with the demo to explore Handsontable's most popular features:
+Explore the demo, to discover Handsontable's most popular features:
 
 - [Context menu &#8594;](@/guides/accessories-and-menus/context-menu.md)
 - [Dropdown cell type &#8594;](@/guides/cell-types/dropdown-cell-type.md)
@@ -52,18 +52,11 @@ Play with the demo to explore Handsontable's most popular features:
 - [Row sorting &#8594;](@/guides/rows/row-sorting.md)
 - And more...
 
-## View the demo's source code
+## Edit the demo's source code
 
 You can:
 - View the complete source code behind your framework's demo
-- Run a live preview of your framework's demo, using CodeSandbox
-
-Just select your framework's logo from the demo above.
-
-## Edit the demo's source code
-
-You can: 
-- Run your framework's demo locally, on your machine
+- Run your framework's demo on your local machine
 - Fork the directory with your framework's demo, and add changes of your own
 
-Just select your framework's logo from the demo above, and follow the README instructions.
+Just select your framework's logo from the demo above.
