@@ -51,6 +51,7 @@ jobs:
         id: check-modified-paths
         if: github.event_name != 'workflow_dispatch'
         with:
+          base: 'develop'
           list-files: 'json'
           filters: |
             examples: &examples
