@@ -10,7 +10,11 @@ tags:
 
 # Demo
 
-Before you dive deep into Handsontable, check out our demo app.
+[[toc]]
+
+Explore Handsontable's source code, in your favorite framework.
+
+## Handsontable demo
 
 The demo lets you see the code behind features such as:
 
@@ -22,6 +26,8 @@ The demo lets you see the code behind features such as:
 - [Column hiding &#8594;](@/guides/columns/column-hiding.md)
 - [Row sorting &#8594;](@/guides/rows/row-sorting.md)
 - And way more than that!
+
+To play with the source code, select your framework.
 
 <BigExample preview="/examples/next/docs/js/demo/">
   <BigExampleSource 
