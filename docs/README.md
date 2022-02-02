@@ -57,7 +57,7 @@ From the `docs` directory, you can run the following npm scripts:
 * `npm run docs:lint` – Runs ESLint on the `/next/` directory's content.
 * `npm run docs:lint:fix` – Runs ESLint on the `/next/` directory's content and auto-fixes problems.
 * `npm run docs:assets:next` – Prepares the `next` documentation version's CSS and JavaScript.
-* `npm run docs:review [COMMIT_HASH]` – Deploys the documentation locally at a specific commit.
+* `npm run docs:review [COMMIT_HASH]` – Deploys the documentation locally at a `[COMMIT_HASH]` commit.
 
 ## Handsontable documentation directory structure
 
