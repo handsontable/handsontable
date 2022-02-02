@@ -88,21 +88,19 @@ To edit a published version's API reference:
 ## Reviewing the documentation
 
 When reviewing someone else's changes, you can see the documentation output in a few different ways:
-- Switch to the reviewed branch, and [start a local documentation server](./README.md#getting-started-with-handsontable-documentation) ([link redirects](./docker/redirects.conf) won't work, though).
+- Switch to the reviewed branch, pull the latest changes, and [start a local documentation server](./README.md#getting-started-with-handsontable-documentation) ([link redirects](./docker/redirects.conf) won't work, though).
 - [Deploy the documentation to the staging environment](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment) (https://dev.handsontable.com/docs).
 - [Deploy the documentation locally at a specific commit](#deploying-the-documentation-locally-at-a-specific-commit).
 
 ### Deploying the documentation locally at a specific commit
 
 To deploy the documentation locally at a `[COMMIT_HASH]` commit:
-1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop).
+1. If you don't have [Docker Desktop](https://www.docker.com/products/docker-desktop), install it.
 2. From the `docs` directory, run the following command:
    ```bash
    npm run docs:review [COMMIT_HASH]
    ```
 3. In your browser, go to: http://localhost:8000/docs/.
-
-_Docker Desktop is required, get it from the [official website](https://www.docker.com/products/docker-desktop)._
 
 ## Documentation versioning
 
