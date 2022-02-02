@@ -7,8 +7,6 @@ on:
         description: 'A valid Handsontable version (eg.: 11.0.0).'
         required: true
   push:
-    branches:
-      - develop
     paths:
       - examples/[0-9]*.[0-9]*.[0-9]*/**
       - examples/next/**
@@ -465,9 +463,9 @@ jobs:
             examples/tmp/${{ env.ARTIFACT_FILENAME }}
 
   gather-and-deploy-builds:
-    name: Gather the builds and deploy them to gh-pages.
+    name: Gather the builds and deploy them to gh-pages (only on develop or when manually dispatched).
     needs: install-and-build
-    if: always() && needs.install-and-build.result == 'success'
+    if: (github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch') && needs.install-and-build.result == 'success'
     runs-on: ubuntu-18.04
 
     steps:

@@ -1,0 +1,7 @@
+{
+  "title": "Changed the Code Examples Deployment workflow to make a dry-run on feature branches (without the actual deployment)",
+  "type": "changed",
+  "issue": 8980,
+  "breaking": false,
+  "framework": "none"
+}
