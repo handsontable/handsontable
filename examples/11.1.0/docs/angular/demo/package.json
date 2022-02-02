@@ -1,7 +1,7 @@
 {
   "name": "angular-demo",
   "private": true,
-  "version": "0.0.0",
+  "version": "11.1.0",
   "homepage": "https://handsontable.com/",
   "repository": {
     "type": "git",
@@ -26,8 +26,8 @@
     "@angular/platform-browser": "11.2.7",
     "@angular/platform-browser-dynamic": "11.2.7",
     "@angular/router": "11.2.7",
-    "@handsontable/angular": "latest",
-    "handsontable": "latest",
+    "@handsontable/angular": "11.1.0",
+    "handsontable": "11.1.0",
     "rxjs": "6.6.7",
     "tslib": "2.1.0",
     "zone.js": "0.10.3"

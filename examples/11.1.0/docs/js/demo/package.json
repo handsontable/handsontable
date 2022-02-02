@@ -1,7 +1,7 @@
 {
   "name": "vanilla-demo",
   "private": true,
-  "version": "0.0.0",
+  "version": "11.1.0",
   "description": "This is a general purpose demo that showcases the most popular features of Handsontable",
   "main": "index.html",
   "homepage": "https://handsontable.com/",
@@ -19,7 +19,7 @@
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
-    "handsontable": "latest"
+    "handsontable": "11.1.0"
   },
   "devDependencies": {
     "jasmine": "3.7.0",
