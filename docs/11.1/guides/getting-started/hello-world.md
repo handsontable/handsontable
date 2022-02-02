@@ -21,35 +21,25 @@ Rather than display "Hello, World!", the demo contains 100 rows and 13 columns p
 
 Want to play with the code yourself? Select the button in the frame's bottom right corner.
 
-<HelloWorld :demos="[
-  {
-    name: 'JavaScript',
-    title: 'Handsontable JavaScript Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-javascript-data-grid-hello-world-app-1cc81',
-    selectedFile: '/src/index.js',
-  },
-  {
-    name: 'TypeScript',
-    title: 'Handsontable TypeScript Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-typescript-data-grid-hello-world-app-tbsul',
-    selectedFile: '/src/index.ts',
-  },
-  {
-    name: 'React',
-    title: 'Handsontable React Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-react-data-grid-hello-world-app-bhipr',
-    selectedFile: '/src/index.tsx',
-  },
-  {
-    name: 'Angular',
-    title: 'Handsontable Angular Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-angular-data-grid-hello-world-app-dhojw',
-    selectedFile: '/src/data-grid/data-grid.component.ts',
-  },
-  {
-    name: 'Vue 2',
-    title: 'Handsontable Vue Data Grid - Hello World App',
-    codeSandboxId: 'handsontable-vue-data-grid-hello-world-app-5qgo7',
-    selectedFile: '/src/components/DataGrid.vue',
-  },
-]"></HelloWorld>
+<BigExample preview="/examples/11.1.0/docs/js/demo/">
+  <BigExampleSource 
+    label="JavaScript"
+    icon="js"
+    target="/examples/11.1.0/docs/js/demo/"></BigExampleSource>
+  <BigExampleSource 
+    label="TypeScript"
+    icon="ts"
+    target="/examples/11.1.0/docs/ts/demo/"></BigExampleSource>
+  <BigExampleSource 
+    label="Angular"
+    icon="angular"
+    target="/examples/11.1.0/docs/angular/demo/"></BigExampleSource>
+  <BigExampleSource 
+    label="React"
+    icon="react"
+    target="/examples/11.1.0/docs/react/demo/"></BigExampleSource>
+  <BigExampleSource 
+    label="Vue"
+    icon="vue"
+    target="/examples/11.1.0/docs/vue/demo/"></BigExampleSource>
+</BigExample>
