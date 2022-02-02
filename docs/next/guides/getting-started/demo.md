@@ -59,4 +59,4 @@ You can:
 - Run your framework's demo on your local machine
 - Fork the directory with your framework's demo, and add changes of your own
 
-Just select your framework's logo from the demo above.
+Just select your framework from the demo above.
