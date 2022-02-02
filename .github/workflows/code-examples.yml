@@ -445,7 +445,7 @@ jobs:
         if: steps.path-check.outputs.n-a != 'true'
         run: |
           mkdir -p ${{ env.TMP_FRAMEWORK_EXAMPLES_PATH }}
-          rsync -av --progress examples/next/docs/angular/ examples/tmp/next/docs/angular --exclude='node_modules' --include=/{,'*/'{,dist/{,'**'}}} --exclude='*'
+          rsync -av --progress ${{ env.FRAMEWORK_EXAMPLES_PATH }}/ ${{ env.TMP_FRAMEWORK_EXAMPLES_PATH }} --exclude='node_modules' --include=/{,'*/'{,dist/{,'**'}}} --exclude='*'
           cd ${{ env.TMP_FRAMEWORK_EXAMPLES_PATH }}
           for i in $(ls);do mv ./$i/dist/* ./$i && rm -rf ./$i/dist; done;
       - name: Create the artifact for ${{ matrix.framework }} (${{ matrix.version }})
