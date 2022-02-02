@@ -30,7 +30,7 @@ describe('WalkontableBorder (RTL mode)', () => {
       totalRows: 5,
       totalColumns: 5,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 1,
             color: 'red'
@@ -92,7 +92,7 @@ describe('WalkontableBorder (RTL mode)', () => {
       totalRows: 5,
       totalColumns: 1,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 1,
             color: 'red'
@@ -137,7 +137,7 @@ describe('WalkontableBorder (RTL mode)', () => {
       totalRows: 5,
       totalColumns: 2,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 1,
             color: 'red'
@@ -182,7 +182,7 @@ describe('WalkontableBorder (RTL mode)', () => {
       totalRows: 5,
       totalColumns: 5,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 2,
             color: 'green',
@@ -191,7 +191,7 @@ describe('WalkontableBorder (RTL mode)', () => {
             }
           }
         }),
-        area: new Walkontable.Selection({}),
+        area: createSelection({}),
       }),
       onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
@@ -228,7 +228,7 @@ describe('WalkontableBorder (RTL mode)', () => {
       totalRows: 5,
       totalColumns: 5,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 2,
             color: 'green',
@@ -237,7 +237,7 @@ describe('WalkontableBorder (RTL mode)', () => {
             }
           }
         }),
-        area: new Walkontable.Selection({}),
+        area: createSelection({}),
       }),
       onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
@@ -267,7 +267,7 @@ describe('WalkontableBorder (RTL mode)', () => {
       totalColumns: 5,
       fixedColumnsStart: 2,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 2,
             color: 'green',
@@ -276,7 +276,7 @@ describe('WalkontableBorder (RTL mode)', () => {
             }
           }
         }),
-        area: new Walkontable.Selection({}),
+        area: createSelection({}),
       }),
       onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
@@ -304,7 +304,7 @@ describe('WalkontableBorder (RTL mode)', () => {
       totalColumns: 5,
       fixedRowsTop: 2,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 2,
             color: 'green',
@@ -313,7 +313,7 @@ describe('WalkontableBorder (RTL mode)', () => {
             }
           }
         }),
-        area: new Walkontable.Selection({}),
+        area: createSelection({}),
       }),
       onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
@@ -343,11 +343,11 @@ describe('WalkontableBorder (RTL mode)', () => {
       fixedColumnsStart: 2,
       fixedRowsTop: 2,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           className: 'current',
           border: {},
         }),
-        area: new Walkontable.Selection({
+        area: createSelection({
           className: 'area',
           border: {
             cornerVisible() {
@@ -379,7 +379,7 @@ describe('WalkontableBorder (RTL mode)', () => {
       totalRows: 5,
       totalColumns: 4,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 2,
             color: 'green',
@@ -388,7 +388,7 @@ describe('WalkontableBorder (RTL mode)', () => {
             }
           }
         }),
-        area: new Walkontable.Selection({}),
+        area: createSelection({}),
       }),
       onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
@@ -441,7 +441,7 @@ describe('WalkontableBorder (RTL mode)', () => {
       totalRows: 5,
       totalColumns: 1,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 2,
             color: 'green',
@@ -450,7 +450,7 @@ describe('WalkontableBorder (RTL mode)', () => {
             }
           }
         }),
-        area: new Walkontable.Selection({}),
+        area: createSelection({}),
       }),
       onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();
@@ -490,7 +490,7 @@ describe('WalkontableBorder (RTL mode)', () => {
       totalRows: 1,
       totalColumns: 1,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           border: {
             width: 2,
             color: 'green',
@@ -499,7 +499,7 @@ describe('WalkontableBorder (RTL mode)', () => {
             }
           }
         }),
-        area: new Walkontable.Selection({}),
+        area: createSelection({}),
       }),
       onCellMouseDown(event, coords) {
         wt.selections.getCell().clear();

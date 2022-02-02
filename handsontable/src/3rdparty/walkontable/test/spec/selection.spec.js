@@ -201,7 +201,7 @@ describe('Walkontable.Selection', () => {
   it('should highlight cells in selected row & column', () => {
     spec().$wrapper.width(300);
 
-    const customSelection = new Walkontable.Selection({
+    const customSelection = createSelection({
       highlightRowClassName: 'highlightRow',
       highlightColumnClassName: 'highlightColumn'
     });
@@ -227,14 +227,14 @@ describe('Walkontable.Selection', () => {
   it('should highlight cells in selected row & column, when same class is shared between 2 selection definitions', () => {
     spec().$wrapper.width(300);
 
-    const customSelection1 = new Walkontable.Selection({
+    const customSelection1 = createSelection({
       highlightRowClassName: 'highlightRow',
       highlightColumnClassName: 'highlightColumn'
     });
 
     customSelection1.add(new Walkontable.CellCoords(0, 0));
 
-    const customSelection2 = new Walkontable.Selection({
+    const customSelection2 = createSelection({
       highlightRowClassName: 'highlightRow',
       highlightColumnClassName: 'highlightColumn'
     });
@@ -262,7 +262,7 @@ describe('Walkontable.Selection', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           highlightRowClassName: 'highlightRow',
           highlightColumnClassName: 'highlightColumn'
         }),
@@ -296,7 +296,7 @@ describe('Walkontable.Selection', () => {
         TH.innerHTML = row + 1;
       }],
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           highlightRowClassName: 'highlightRow',
           highlightColumnClassName: 'highlightColumn',
           border: {},
@@ -358,11 +358,11 @@ describe('Walkontable.Selection', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       selections: createSelectionController({
-        activeHeader: new Walkontable.Selection({
+        activeHeader: createSelection({
           highlightHeaderClassName: 'active_highlight',
           highlightOnlyClosestHeader: true,
         }),
-        header: new Walkontable.Selection({
+        header: createSelection({
           highlightHeaderClassName: 'highlight',
           highlightOnlyClosestHeader: true,
         }),

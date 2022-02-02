@@ -250,31 +250,31 @@ export function range(start, end) {
  * @returns {object} Selection controller.
  */
 export function createSelectionController({ current, area, fill, custom, activeHeader, header } = {}) {
-  const currentCtrl = current || new Walkontable.Selection({
+  const currentCtrl = current || createSelection({
     className: 'current',
     border: {
       width: 2,
       color: '#4b89ff',
     },
   });
-  const areaCtrl = area || new Walkontable.Selection({
+  const areaCtrl = area || createSelection({
     className: 'area',
     border: {
       width: 1,
       color: '#4b89ff',
     },
   });
-  const fillCtrl = fill || new Walkontable.Selection({
+  const fillCtrl = fill || createSelection({
     className: 'fill',
     border: {
       width: 1,
       color: '#ff0000',
     },
   });
-  const activeHeaderCtrl = activeHeader || new Walkontable.Selection({
+  const activeHeaderCtrl = activeHeader || createSelection({
     highlightHeaderClassName: 'active_highlight',
   });
-  const headerCtrl = header || new Walkontable.Selection({
+  const headerCtrl = header || createSelection({
     highlightHeaderClassName: 'highlight',
   });
   const customCtrl = custom || [];
@@ -309,6 +309,24 @@ export function createSelectionController({ current, area, fill, custom, activeH
       ][Symbol.iterator]();
     },
   };
+}
+
+/**
+ * Creates the individual selection for current selection, area selection, selection for autofill or custom borders.
+ *
+ * @param {object} options An object with custom selection options.
+ * @returns {Walkontable.Selection} The selection instance.
+ */
+export function createSelection(options) {
+  return new Walkontable.Selection({
+    createCellRange(highlight, from, to) {
+      return new Walkontable.CellRange(highlight, from, to);
+    },
+    createCellCoords(row, column) {
+      return new Walkontable.CellCoords(row, column);
+    },
+    ...options,
+  });
 }
 
 /**
