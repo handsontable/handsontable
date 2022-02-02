@@ -141,11 +141,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         return false;
       }
 
-      this.runHooks('beforeKeyDown', event);
+      return this.runHooks('beforeKeyDown', event);
     },
     afterKeyDown: (event) => {
       if (this.isDestroyed) { // Handsontable could be destroyed after performing action (executing a callback).
-        return false;
+        return;
       }
 
       this.runHooks('afterDocumentKeyDown', event);
