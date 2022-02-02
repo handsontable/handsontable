@@ -298,7 +298,8 @@ jobs:
       needs.build-angular.result != 'failure' &&
       needs.build-react.result != 'failure' &&
       needs.build-vue.result != 'failure' &&
-      needs.build-vue3.result != 'failure'
+      needs.build-vue3.result != 'failure' &&
+      needs.prepare-matrix.outputs.versions != '[]'
     runs-on: ubuntu-18.04
 
     strategy:
