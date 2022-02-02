@@ -1,7 +1,7 @@
 {
   "name": "ts-demo",
   "private": true,
-  "version": "1.0.0",
+  "version": "11.1.0",
   "description": "",
   "main": "index.html",
   "scripts": {
@@ -10,7 +10,7 @@
     "check-types": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
-    "handsontable": "latest",
+    "handsontable": "11.1.0",
     "parcel-bundler": "^1.6.1"
   },
   "devDependencies": {
