@@ -146,10 +146,10 @@ class CellRange {
    */
   includes(cellCoords) {
     const { row, col } = cellCoords;
-    const topLeft = this.getOuterTopLeftCorner();
-    const bottomRight = this.getOuterBottomRightCorner();
+    const topStart = this.getOuterTopStartCorner();
+    const bottomEnd = this.getOuterBottomEndCorner();
 
-    return topLeft.row <= row && bottomRight.row >= row && topLeft.col <= col && bottomRight.col >= col;
+    return topStart.row <= row && bottomEnd.row >= row && topStart.col <= col && bottomEnd.col >= col;
   }
 
   /**
@@ -159,8 +159,8 @@ class CellRange {
    * @returns {boolean}
    */
   includesRange(cellRange) {
-    return this.includes(cellRange.getOuterTopLeftCorner()) &&
-           this.includes(cellRange.getOuterBottomRightCorner());
+    return this.includes(cellRange.getOuterTopStartCorner()) &&
+           this.includes(cellRange.getOuterBottomEndCorner());
   }
 
   /**
