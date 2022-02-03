@@ -255,6 +255,8 @@ export class HandsontableEditor extends TextEditor {
    * @private
    */
   unregisterShortcuts() {
+    super.unregisterShortcuts();
+
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 

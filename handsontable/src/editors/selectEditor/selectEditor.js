@@ -278,6 +278,7 @@ export class SelectEditor extends BaseEditor {
       namespace: 'selectEditor',
     };
 
+    // Actions from fast edit works.
     if (this.isInFullEditMode() === false) {
       return;
     }
