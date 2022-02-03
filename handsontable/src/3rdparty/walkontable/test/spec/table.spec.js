@@ -2348,4 +2348,21 @@ describe('WalkontableTable', () => {
       expect(wt.wtTable.hasDefinedSize()).toBe(true);
     });
   });
+
+  it('should render a table with overlays with corresponding backward compatible CSS classes', () => {
+    const wt = walkontable({
+      data: getData,
+      fixedRowsTop: 2,
+      fixedRowsBottom: 2,
+      fixedColumnsStart: 2,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns
+    });
+
+    wt.draw();
+
+    expect($('.ht_clone_top_inline_start_corner')[0]).toHaveClass('ht_clone_top_left_corner');
+    expect($('.ht_clone_inline_start')[0]).toHaveClass('ht_clone_left');
+    expect($('.ht_clone_bottom_inline_start_corner')[0]).toHaveClass('ht_clone_bottom_left_corner');
+  });
 });
