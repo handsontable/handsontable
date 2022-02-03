@@ -1140,4 +1140,24 @@ describe('WalkontableScroll', () => {
       expect(spec().$table.find('tbody tr:eq(2) td:eq(0)').html()).toBe(txt);
     });
   });
+
+  it('should add the "innerBorderInlineStart" CSS class (compensation for 1px border bug) to the root element when' +
+     'the table is horizontally scrolled', () => {
+    spec().$wrapper.width(201).height(201);
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      rowHeaders: [(row, TH) => {
+        TH.innerHTML = row;
+      }],
+    });
+
+    wt.draw();
+    wt.scrollViewportHorizontally(getTotalColumns() - 1);
+    wt.draw();
+
+    expect(wt.wtTable.wtRootElement).toHaveClass('innerBorderInlineStart');
+    expect(wt.wtTable.wtRootElement).toHaveClass('innerBorderLeft'); // for backward compatibility support
+  });
 });
