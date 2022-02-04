@@ -148,7 +148,7 @@ export interface GridSettings extends Events {
   isEmptyRow?: (this: Core, row: number) => boolean;
   label?: LabelOptions;
   language?: string;
-  layoutDirection? : 'ltr' | 'rtl' | 'inherit';
+  layoutDirection?: 'ltr' | 'rtl' | 'inherit';
   licenseKey?: string | 'non-commercial-and-evaluation';
   manualColumnFreeze?: boolean;
   manualColumnMove?: boolean | number[];
