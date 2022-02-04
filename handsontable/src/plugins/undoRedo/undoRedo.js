@@ -4,6 +4,8 @@ import { rangeEach } from '../../helpers/number';
 import { inherit, deepClone } from '../../helpers/object';
 import { align } from '../contextMenu/utils';
 
+const SHORTCUTS_NAMESPACE = 'undoRedo';
+
 export const PLUGIN_KEY = 'undoRedo';
 
 /**
@@ -857,21 +859,19 @@ UndoRedo.prototype.registerShortcuts = function() {
   const runAction = (event) => {
     return !event.altKey; // right ALT in some systems triggers ALT+CTR
   };
+  const config = {
+    runAction,
+    namespace: SHORTCUTS_NAMESPACE,
+  };
 
   gridContext.addShortcut([['meta', 'z'], ['control', 'z']], () => {
     this.undo();
-  }, {
-    runAction,
-    namespace: 'undoRedo'
-  });
+  }, config);
 
   gridContext.addShortcut([['control', 'y'], ['meta', 'y'],
     ['control', 'shift', 'z'], ['meta', 'shift', 'z']], () => {
     this.redo();
-  }, {
-    runAction,
-    namespace: 'undoRedo'
-  });
+  }, config);
 };
 
 /**
@@ -883,7 +883,7 @@ UndoRedo.prototype.unregisterShortcuts = function() {
   const shortutManager = this.instance.getShortcutManager();
   const gridContext = shortutManager.getContext('grid');
 
-  gridContext.removeShortcutByNamespace('undoRedo');
+  gridContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE);
 };
 
 /**

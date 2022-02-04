@@ -15,6 +15,7 @@ import {
 import { objectEach } from '../../helpers/object';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
+const SHORTCUTS_NAMESPACE = 'selectEditor';
 
 export const EDITOR_TYPE = 'select';
 
@@ -275,7 +276,7 @@ export class SelectEditor extends BaseEditor {
     const editorContext = shortcutManager.getContext('editor');
 
     const contextConfig = {
-      namespace: 'selectEditor',
+      namespace: SHORTCUTS_NAMESPACE,
     };
 
     // Actions from fast edit works.
@@ -309,6 +310,6 @@ export class SelectEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutByNamespace('selectEditor');
+    editorContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE);
   }
 }

@@ -5,6 +5,8 @@ import {
 } from '../../helpers/dom/event';
 import { extend } from '../../helpers/object';
 
+const SHORTCUTS_NAMESPACE = 'handsontableEditor';
+
 export const EDITOR_TYPE = 'handsontable';
 
 /**
@@ -180,7 +182,7 @@ export class HandsontableEditor extends TextEditor {
     super.registerShortcuts();
 
     const contextConfig = {
-      namespace: 'handsontableEditor',
+      namespace: SHORTCUTS_NAMESPACE,
     };
 
     const action = (rowToSelect, event) => {
@@ -260,6 +262,6 @@ export class HandsontableEditor extends TextEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutByNamespace('handsontableEditor');
+    editorContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE);
   }
 }

@@ -4,6 +4,9 @@ import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
 import { isDefined } from './helpers/mixed';
 
+export const SHORTCUTS_NAMESPACE_NAVIGATION = 'editorManager.navigation';
+export const SHORTCUTS_NAMESPACE_EDITOR = 'editorManager.handlingEditor';
+
 class EditorManager {
   /**
    * @param {Core} instance The Handsontable instance.
@@ -89,7 +92,7 @@ class EditorManager {
     const shortcutManager = this.instance.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
     const editorContext = shortcutManager.getContext('editor');
-    const config = { namespace: 'editorManager.handlingEditor' };
+    const config = { namespace: SHORTCUTS_NAMESPACE_EDITOR };
 
     editorContext.addShortcut([['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'],
       ['Enter', 'Control', 'Shift']], (event, keys) => {
@@ -355,7 +358,7 @@ class EditorManager {
         const editorContext = shortcutManager.getContext('editor');
         const runOnlySelectedConfig = {
           runAction: () => isDefined(this.instance.getSelected()),
-          namespace: 'editorManager.navigation'
+          namespace: SHORTCUTS_NAMESPACE_NAVIGATION
         };
 
         editorContext.addShortcut([['ArrowUp']], () => {

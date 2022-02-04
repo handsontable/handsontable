@@ -2,6 +2,9 @@ import { CellCoords } from '../../3rdparty/walkontable/src';
 import { isDefined, stringify } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
+import { SHORTCUTS_NAMESPACE_NAVIGATION } from '../../editorManager';
+
+const SHORTCUTS_NAMESPACE_EDITOR = 'baseEditor';
 
 export const EDITOR_TYPE = 'base';
 export const EDITOR_STATE = Object.freeze({
@@ -215,7 +218,7 @@ export class BaseEditor {
     const editorContext = shortcutManager.getContext('editor');
     const contextConfig = {
       runAction: () => isDefined(this.hot.getSelected()),
-      namespace: 'baseEditor',
+      namespace: SHORTCUTS_NAMESPACE_EDITOR,
     };
 
     editorContext.addShortcut([['ArrowUp']], () => {
@@ -307,8 +310,8 @@ export class BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutByNamespace('baseEditor');
-    editorContext.removeShortcutByNamespace('editorManager.navigation');
+    editorContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE_EDITOR);
+    editorContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE_NAVIGATION);
 
     if (this.state === EDITOR_STATE.VIRGIN) {
       this.hot._registerTimeout(() => {
