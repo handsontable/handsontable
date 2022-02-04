@@ -18,9 +18,9 @@ tags:
 
 # Layout direction
 
-Configure Handsontable's layout direction, to properly handle right-to-left (RTL) and left-to-right (LTR) [languages](@/guides/internationalization/language.md).
-
 [[toc]]
+
+Configure Handsontable's layout direction, to properly handle right-to-left (RTL) and left-to-right (LTR) [languages](@/guides/internationalization/language.md).
 
 ## About layout direction
 

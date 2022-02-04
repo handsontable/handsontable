@@ -13,9 +13,9 @@ tags:
 
 # Language settings
 
-Display Handsontable's UI text in other languages, and add your own translations.
-
 [[toc]]
+
+Display Handsontable's UI text in other languages, and add your own translations.
 
 ## About language settings
 

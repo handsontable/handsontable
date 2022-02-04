@@ -12,9 +12,9 @@ tags:
 
 # Locale settings
 
-Configure Handsontable's locale settings, to properly handle locale-related data.
-
 [[toc]]
+
+Configure Handsontable's locale settings, to properly handle locale-related data.
 
 ## About locale settings
 
