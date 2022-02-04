@@ -14,8 +14,6 @@ tags:
 
 Play around with Handsontable's source code, in your favorite framework.
 
----
-
 <BigExample preview="/examples/next/docs/js/demo/">
   <BigExampleSource 
   label="JavaScript"
