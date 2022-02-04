@@ -1,0 +1,7 @@
+{
+  "title": "Wrong TypeScript definition in the BasePlugin class",
+  "type": "fixed",
+  "issue": 9175,
+  "breaking": false,
+  "framework": "none"
+}
