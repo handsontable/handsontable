@@ -15,16 +15,6 @@ describe('DateEditor (RTL mode)', () => {
     }
   });
 
-  function getDates() {
-    return [
-      ['01/14/2006'],
-      ['12/01/2008'],
-      ['11/19/2011'],
-      ['02/02/2004'],
-      ['07/24/2011']
-    ];
-  }
-
   it('should render an editable editor\'s element without messing with "dir" attribute', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(2, 5),
@@ -38,26 +28,25 @@ describe('DateEditor (RTL mode)', () => {
     expect(editableElement.getAttribute('dir')).toBeNull();
   });
 
-  it('should set isRTL option as `true` when it\'s opened in RTL mode', () => {
+  it('should render Pikaday within element that contains correct "dir" attribute value', () => {
     handsontable({
-      data: getDates(),
+      data: Handsontable.helper.createSpreadsheetData(5, 2),
       columns: [
-        {
-          type: 'date',
-          datePickerConfig: {
-            isRTL: false, // read only - shouldn't overwrite
-          }
-        }
+        { type: 'date' },
+        { type: 'date' }
       ]
     });
 
-    selectCell(0, 0);
+    selectCell(1, 1);
     keyDown('enter');
-    keyDown('esc');
 
+    const datePicker = getActiveEditor().datePicker;
     const config = getActiveEditor().$datePicker.config();
 
-    expect(config.isRTL).toBe(true);
+    expect(datePicker.getAttribute('dir')).toBe('rtl');
+    // it's set as `false` in RTL due to https://github.com/Pikaday/Pikaday/issues/647 bug. The Pikaday layout
+    // direction mode is controlled by above "dir" attribute.
+    expect(config.isRTL).toBe(false);
   });
 
   it('should display Pikaday Calendar left-bottom of the selected cell', () => {
