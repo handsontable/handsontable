@@ -132,7 +132,11 @@ export const createContext = (name) => {
    * @param {Array<string>} variant A shortcut variant.
    * @returns {object}
    */
-  const getShortcuts = variant => SHORTCUTS.getItem(variant);
+  const getShortcuts = (variant) => {
+    const normalizedVariant = normalizeKeys(variant);
+
+    return SHORTCUTS.getItem(normalizedVariant);
+  };
 
   /**
    * Check if given shortcut is added.
@@ -140,7 +144,11 @@ export const createContext = (name) => {
    * @param {Array<string>} variant A shortcut variant.
    * @returns {boolean}
    */
-  const hasShortcut = variant => SHORTCUTS.hasItem(variant);
+  const hasShortcut = (variant) => {
+    const normalizedVariant = normalizeKeys(variant);
+
+    return SHORTCUTS.hasItem(normalizedVariant);
+  };
 
   return {
     addShortcut,
