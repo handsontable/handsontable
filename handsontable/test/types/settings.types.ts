@@ -269,6 +269,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   isEmptyRow: (row) => row === 0,
   label: {property: 'name.last', position: 'after', value: oneOf('My label: ', () => 'My label')},
   language: 'foo',
+  layoutDirection: oneOf('rtl', 'ltr', 'inherit'),
   licenseKey: '',
   manualColumnFreeze: true,
   manualColumnMove: oneOf(true, [1, 4]),
