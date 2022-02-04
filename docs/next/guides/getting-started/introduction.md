@@ -5,16 +5,30 @@ permalink: /next/
 canonicalUrl: /
 ---
 
-# Handsontable Guides
+# Handsontable guides
 
 [[toc]]
 
-Welcome 👋&nbsp; to Handsontable's Guides. Here you will learn how Handsontable works and what you can build with it. Handsontable supports the most popular frameworks such as **[React](@/guides/integrate-with-react/react-simple-example.md)**, **[Angular](@/guides/integrate-with-angular/angular-simple-example.md)**, **[Vue 2](@/guides/integrate-with-vue/vue-simple-example.md)**, and **[Vue 3](@/guides/integrate-with-vue3/vue3-simple-example.md)**.
+Welcome to the Handsontable guides. 👋
 
-## Get started with sample apps
+Learn how Handsontable works and what you can do with it, through:
+- Code samples
+- Live examples
+- Step-by-step instructions
+- Real-life use cases
+- Overview diagrams
+- And much more
+
+## Demo
+
+Explore Handsontable's features and source code:
+
+- [Demo &#8594;](@/guides/getting-started/demo.md)
+
+## Guides for your framework
 
 <div class="row-items-container">
-    <a href="/docs/next/demo" class="row-item">
+    <a href="/docs/next/binding-to-data" class="row-item">
      <img class="integration-framework-logo" src="/docs/next/img/pages/introduction/javascript.svg" alt="JavaScript logo" />
      <h3>JavaScript</h3>
     </a>
@@ -46,9 +60,9 @@ Welcome 👋&nbsp; to Handsontable's Guides. Here you will learn how Handsontabl
 - [Blog](https://handsontable.com/blog)
 - [Twitter](https://twitter.com/handsontable)
 
-## Get support
+## Technical support
 
-- [Contact support team](https://handsontable.com/contact?category=technical_support)
-- [Ask a question on our forum](https://forum.handsontable.com)
+- [Contact technical support](https://handsontable.com/contact?category=technical_support)
+- [Ask a question on the Handsontable forum](https://forum.handsontable.com)
 - [Report an issue on GitHub](https://github.com/handsontable/handsontable/issues)
-- [Discuss on GitHub Discussions](https://github.com/handsontable/handsontable/discussions)
+- [Take part in GitHub Discussions](https://github.com/handsontable/handsontable/discussions)
