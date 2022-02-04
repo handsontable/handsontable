@@ -8,12 +8,13 @@ const pluginKey: string = BasePlugin.PLUGIN_KEY;
 const settingKeys: string[] | boolean = BasePlugin.SETTING_KEYS;
 
 const basePlugin = new BasePlugin(hot);
+const hotPlugin: Handsontable = basePlugin.hot;
 
 basePlugin.init();
 basePlugin.enablePlugin();
 basePlugin.disablePlugin();
-basePlugin.addHook('name', () => {});
-basePlugin.removeHooks('name');
+basePlugin.addHook('beforeKeyDown', (event: any) => false);
+basePlugin.removeHooks('beforeKeyDown');
 basePlugin.clearHooks();
 basePlugin.callOnPluginsReady(() => {});
 basePlugin.destroy();
