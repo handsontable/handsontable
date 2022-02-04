@@ -20,9 +20,11 @@ import { rangeEach } from '../../helpers/number';
 import { KEY_CODES } from '../../helpers/unicode';
 import { autoResize } from '../../3rdparty/autoResize';
 import { isDefined } from '../../helpers/mixed';
+import { SHORTCUTS_NAMESPACE_NAVIGATION } from '../../editorManager';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
+const SHORTCUTS_NAMESPACE = 'textEditor';
 
 export const EDITOR_TYPE = 'text';
 
@@ -501,7 +503,7 @@ export class TextEditor extends BaseEditor {
 
     const contextConfig = {
       runAction: () => isDefined(this.hot.getSelected()),
-      namespace: 'textEditor',
+      namespace: SHORTCUTS_NAMESPACE,
     };
 
     // TODO: Duplicated part of code.
@@ -540,13 +542,13 @@ export class TextEditor extends BaseEditor {
       runAction: event => !this.hot.selection.isMultiple() &&
         // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
         !event.altKey,
-      namespace: 'textEditor',
+      namespace: SHORTCUTS_NAMESPACE,
     });
 
     editorContext.addShortcut([['Alt', 'Enter']], () => {
       setNewValue();
     }, {
-      namespace: 'textEditor'
+      namespace: SHORTCUTS_NAMESPACE
     });
   }
 
@@ -559,8 +561,8 @@ export class TextEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutByNamespace('editorManager.navigation'); // TODO: ID shouldn't be known there?
-    editorContext.removeShortcutByNamespace('textEditor');
+    editorContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE_NAVIGATION);
+    editorContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE);
   }
 
   /**

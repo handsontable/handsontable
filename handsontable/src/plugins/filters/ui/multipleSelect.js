@@ -12,6 +12,7 @@ import LinkUI from './link';
 import { createArrayAssertion } from '../utils';
 
 const privatePool = new WeakMap();
+const SHORTCUTS_NAMESPACE = 'multipleSelect.itemBox';
 
 /**
  * @private
@@ -190,6 +191,7 @@ class MultipleSelectUI extends BaseUI {
 
       const shortcutManager = this.itemsBox.getShortcutManager();
       const gridContext = shortcutManager.getContext('grid');
+      const config = { namespace: SHORTCUTS_NAMESPACE };
 
       // TODO: Are those shortcuts really needed?
       gridContext.addShortcut([['ArrowUp'], ['ArrowDown'], ['ArrowLeft'], ['ArrowRight'],
@@ -198,12 +200,12 @@ class MultipleSelectUI extends BaseUI {
         this.itemsBox.unlisten();
         this.itemsBox.deselectCell();
         this.searchInput.focus();
-      }, { namespace: 'itemBox' });
+      }, config);
 
       // TODO: Is this shortcut really needed? We have one test for that case, but focus is performed programmatically.
       gridContext.addShortcut([['Escape']], (event) => {
         this.runLocalHooks('keydown', event, this);
-      }, { namespace: 'itemBox' });
+      }, config);
     };
 
     hotInitializer(itemsBoxWrapper);

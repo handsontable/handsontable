@@ -21,6 +21,7 @@ Hooks.getSingleton().register('afterUnmergeCells');
 export const PLUGIN_KEY = 'mergeCells';
 export const PLUGIN_PRIORITY = 150;
 const privatePool = new WeakMap();
+const SHORTCUTS_NAMESPACE = PLUGIN_KEY;
 
 /**
  * @plugin MergeCells
@@ -541,7 +542,7 @@ export class MergeCells extends BasePlugin {
 
     }, {
       runAction: event => !event.altKey, // right ALT in some systems triggers ALT+CTRL
-      namespace: 'mergeCells',
+      namespace: SHORTCUTS_NAMESPACE,
     });
   }
 
@@ -554,7 +555,7 @@ export class MergeCells extends BasePlugin {
     const shortcutManager = this.hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
 
-    gridContext.removeShortcutByNamespace('mergeCells');
+    gridContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE);
   }
 
   /**

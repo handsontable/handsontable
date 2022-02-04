@@ -84,9 +84,8 @@ export function useRecorder(frame, beforeKeyDown, afterKeyDown, callback) {
     }
 
     const pressedKeys = [pressedKey].concat(extraModifierKeys);
-    const nextCombination = pressedKeys.sort().join('+');
 
-    callback(event, nextCombination);
+    callback(event, pressedKeys);
 
     afterKeyDown(event);
   };

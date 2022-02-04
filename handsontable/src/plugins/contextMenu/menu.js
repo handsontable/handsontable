@@ -31,6 +31,8 @@ import { mixin, hasOwnProperty } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
 
 const MIN_WIDTH = 215;
+const SHORTCUTS_CONTEXT = 'menu';
+const SHORTCUTS_NAMESPACE = SHORTCUTS_CONTEXT;
 
 /**
  * @private
@@ -248,8 +250,8 @@ class Menu {
     this.hotMenu.listen();
 
     const shortcutManager = this.hotMenu.getShortcutManager();
-    const menuContext = shortcutManager.addContext('menu');
-    const config = { namespace: 'menu' };
+    const menuContext = shortcutManager.addContext(SHORTCUTS_NAMESPACE);
+    const config = { namespace: SHORTCUTS_CONTEXT };
     const menuContextConfig = {
       ...config,
       runAction: event => isInput(event.target) === false || this.container.contains(event.target) === false,

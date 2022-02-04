@@ -35,6 +35,7 @@ import { MetaManager, DynamicCellMetaMod, replaceData } from './dataMap';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 
+const SHORTCUTS_NAMESPACE = 'gridDefault';
 let activeGuid = null;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -141,11 +142,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         return false;
       }
 
-      this.runHooks('beforeKeyDown', event);
+      return this.runHooks('beforeKeyDown', event);
     },
     afterKeyDown: (event) => {
       if (this.isDestroyed) { // Handsontable could be destroyed after performing action (executing a callback).
-        return false;
+        return;
       }
 
       this.runHooks('afterDocumentKeyDown', event);
@@ -4398,7 +4399,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const gridContext = shortcutManager.addContext('grid');
   const gridConfig = {
     runAction: () => isDefined(instance.getSelected()),
-    namespace: 'gridDefault',
+    namespace: SHORTCUTS_NAMESPACE,
   };
 
   shortcutManager.setActiveContextName('grid');

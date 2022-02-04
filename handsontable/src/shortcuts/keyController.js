@@ -30,14 +30,6 @@ export function createKeysController() {
       PRESSED_KEYS.clear();
     },
     /**
-     * Get all pressed keys.
-     *
-     * @returns {Array<string>}
-     */
-    getPressed() {
-      return [...PRESSED_KEYS.values()].sort();
-    },
-    /**
      * Check if the given key is pressed.
      *
      * @param {string} key Key name based on `KeyboardEvent.key`.
