@@ -50,7 +50,7 @@ Explore the demo, to discover Handsontable's most popular features:
 - [Column filter &#8594;](@/guides/columns/column-filter.md)- 
 - [Column hiding &#8594;](@/guides/columns/column-hiding.md)
 - [Row sorting &#8594;](@/guides/rows/row-sorting.md)
-- And more...
+- And more!
 
 ## Edit the demo's source code
 
