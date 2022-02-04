@@ -76,7 +76,7 @@ export class ManualRowResize extends BasePlugin {
    * @private
    * @returns {string}
    */
-   get inlineDir() {
+  get inlineDir() {
     return this.hot.isRtl() ? 'right' : 'left';
   }
 
