@@ -7,6 +7,7 @@ tags:
   - key bindings
   - keymap
   - shortcut manager
+  - keyboard navigation
 ---
 
 # Keyboard shortcuts
