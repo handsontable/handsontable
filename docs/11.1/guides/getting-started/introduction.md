@@ -5,7 +5,7 @@ permalink: /11.1/
 canonicalUrl: /
 ---
 
-# Handsontable guides (revert me)
+# Handsontable guides
 
 [[toc]]
 
