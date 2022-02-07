@@ -25,6 +25,8 @@ This example is one of the projects in a [large monorepo](https://github.com/han
 But for some use cases, it will be desired to copy only one specific example into a new repository. To do it, simply extract this folder alone. You can do that by running all of the commands listed below while being in the folder of the example:
 
 ```bash
+# make a local clone of the repo, if you haven't already
+git clone https://github.com/handsontable/handsontable.git
 # verify that you are in the folder of the example by checking that the README.md file is the one that you are reading right now
 cat README.md
 # if it exists, delete the "node_modules" folder of the example, because our NPM workspace sets it up as a symlink in the monorepo (which will not be useful in your fork)
