@@ -375,7 +375,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const _c0 = function () { return [140, 126, 192, 100, 100, 90, 90, 110, 97]; };
+const _c0 = function () { return [140, 192, 100, 90, 90, 110, 97, 100, 126]; };
 class DataGridComponent {
     constructor() {
         this.dataset = Object(_utils_constants__WEBPACK_IMPORTED_MODULE_0__["getData"])();
@@ -387,14 +387,14 @@ class DataGridComponent {
         this.starsRenderer = _renderers_stars__WEBPACK_IMPORTED_MODULE_1__["starsRenderer"];
         this.colHeaders = [
             "Company name",
-            "Country",
             "Name",
             "Sell date",
-            "Order ID",
             "In stock",
             "Qty",
             "Progress",
-            "Rating"
+            "Rating",
+            "Order ID",
+            "Country"
         ];
         this.hiddenColumns = {
             indicators: true
@@ -403,7 +403,7 @@ class DataGridComponent {
     }
 }
 DataGridComponent.ɵfac = function DataGridComponent_Factory(t) { return new (t || DataGridComponent)(); };
-DataGridComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵdefineComponent"]({ type: DataGridComponent, selectors: [["data-grid"]], decls: 11, vars: 20, consts: [["height", "450", "licenseKey", "non-commercial-and-evaluation", 1, "hot", 3, "data", "colWidths", "afterGetColHeader", "colHeaders", "rowHeaders", "dropdownMenu", "hiddenColumns", "contextMenu", "multiColumnSorting", "filters", "afterOnCellMouseDown", "afterGetRowHeader", "beforeRenderer"], ["data", "1"], ["data", "2"], ["data", "3"], ["data", "4", "type", "date", 3, "allowInvalid"], ["data", "5"], ["data", "6", "type", "checkbox", "className", "htCenter"], ["data", "7", "type", "numeric"], ["data", "8", "className", "htMiddle", 3, "renderer", "readOnly"], ["data", "9", "className", "star htCenter", 3, "renderer", "readOnly"]], template: function DataGridComponent_Template(rf, ctx) { if (rf & 1) {
+DataGridComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵdefineComponent"]({ type: DataGridComponent, selectors: [["data-grid"]], decls: 11, vars: 20, consts: [["height", "450", "licenseKey", "non-commercial-and-evaluation", 1, "hot", 3, "data", "colWidths", "afterGetColHeader", "colHeaders", "rowHeaders", "dropdownMenu", "hiddenColumns", "contextMenu", "multiColumnSorting", "filters", "afterOnCellMouseDown", "afterGetRowHeader", "beforeRenderer"], ["data", "1"], ["data", "3"], ["data", "4", "type", "date", 3, "allowInvalid"], ["data", "6", "type", "checkbox", "className", "htCenter"], ["data", "7", "type", "numeric"], ["data", "8", "className", "htMiddle", 3, "renderer", "readOnly"], ["data", "9", "className", "star htCenter", 3, "renderer", "readOnly"], ["data", "5"], ["data", "2"]], template: function DataGridComponent_Template(rf, ctx) { if (rf & 1) {
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵelementStart"](0, "div");
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵelementStart"](1, "hot-table", 0);
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵelement"](2, "hot-column", 1);
@@ -420,9 +420,9 @@ DataGridComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵdefine
     } if (rf & 2) {
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵadvance"](1);
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵproperty"]("data", ctx.dataset)("colWidths", _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵpureFunction0"](19, _c0))("afterGetColHeader", ctx.alignHeaders)("colHeaders", ctx.colHeaders)("rowHeaders", true)("dropdownMenu", true)("hiddenColumns", ctx.hiddenColumns)("contextMenu", true)("multiColumnSorting", true)("filters", true)("afterOnCellMouseDown", ctx.changeCheckboxCell)("afterGetColHeader", ctx.alignHeaders)("afterGetRowHeader", ctx.drawCheckboxInRowHeaders)("beforeRenderer", ctx.addClassesToRows);
-        _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵadvance"](4);
+        _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵadvance"](3);
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵproperty"]("allowInvalid", false);
-        _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵadvance"](4);
+        _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵadvance"](3);
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵproperty"]("renderer", ctx.progressBarRenderer)("readOnly", true);
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵadvance"](1);
         _angular_core__WEBPACK_IMPORTED_MODULE_4__["ɵɵproperty"]("renderer", ctx.starsRenderer)("readOnly", true);
