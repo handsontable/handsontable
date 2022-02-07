@@ -45,6 +45,47 @@ export class TopInlineStartCornerOverlay extends Overlay {
       && this.wtSettings.getSetting('shouldRenderInlineStartOverlay');
   }
 
+  getOverlayPosition() {
+    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    let x = 0;
+    let y = 0;
+
+    if (this.trimmingContainer === this.domBindings.rootWindow) {
+      const { wtTable } = this.wot;
+      const { rootDocument } = this.domBindings;
+      const hiderRect = wtTable.hider.getBoundingClientRect();
+      const top = Math.ceil(hiderRect.top);
+      const left = Math.ceil(hiderRect.left);
+      const bottom = Math.ceil(hiderRect.bottom);
+      const right = Math.ceil(hiderRect.right);
+
+      if (!preventOverflow || preventOverflow === 'vertical') {
+        if (this.isRtl()) {
+          const documentWidth = rootDocument.documentElement.clientWidth;
+
+          if (right >= documentWidth) {
+            x = documentWidth - right;
+          }
+
+        } else if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
+          x = -left;
+        }
+      }
+
+      if (!preventOverflow || preventOverflow === 'horizontal') {
+        if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
+          y = -top;
+        }
+      }
+    }
+
+    return {
+      x,
+      y,
+    };
+  }
+
   /**
    * Updates the corner overlay position.
    *
@@ -59,39 +100,11 @@ export class TopInlineStartCornerOverlay extends Overlay {
     }
 
     const overlayRoot = this.clone.wtTable.holder.parentNode;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer === this.domBindings.rootWindow) {
-      const { wtTable } = this.wot;
-      const { rootDocument } = this.domBindings;
-      const hiderRect = wtTable.hider.getBoundingClientRect();
-      const top = Math.ceil(hiderRect.top);
-      const left = Math.ceil(hiderRect.left);
-      const bottom = Math.ceil(hiderRect.bottom);
-      const right = Math.ceil(hiderRect.right);
-      let finalLeft = 0;
-      let finalTop = 0;
+      const { x, y } = this.getOverlayPosition();
 
-      if (!preventOverflow || preventOverflow === 'vertical') {
-        if (this.isRtl()) {
-          const documentWidth = rootDocument.documentElement.clientWidth;
-
-          if (right >= documentWidth) {
-            finalLeft = documentWidth - right;
-          }
-
-        } else if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
-          finalLeft = -left;
-        }
-      }
-
-      if (!preventOverflow || preventOverflow === 'horizontal') {
-        if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
-          finalTop = -top;
-        }
-      }
-
-      setOverlayPosition(overlayRoot, `${finalLeft}px`, `${finalTop}px`);
+      setOverlayPosition(overlayRoot, `${x}px`, `${y}px`);
     } else {
       resetCssTransform(overlayRoot);
     }

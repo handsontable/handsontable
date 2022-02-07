@@ -1,6 +1,15 @@
 import { stringify } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
+import {
+  getScrollbarWidth,
+  innerWidth,
+  offset,
+  hasVerticalScrollbar,
+  hasHorizontalScrollbar,
+  outerWidth,
+  getCssTransform,
+} from '../../helpers/dom/element';
 
 export const EDITOR_TYPE = 'base';
 export const EDITOR_STATE = Object.freeze({
@@ -392,6 +401,130 @@ export class BaseEditor {
    */
   isWaiting() {
     return this.state === EDITOR_STATE.WAITING;
+  }
+
+  /**
+   *
+   */
+  getEditedCellRect() {
+    const TD = this.getEditedCell();
+
+    // TD is outside of the viewport.
+    if (!TD) {
+      return;
+    }
+
+    const { wtOverlays, wtViewport } = this.hot.view._wt;
+    const rootWindow = this.hot.rootWindow;
+    const currentOffset = offset(TD);
+    const cellWidth = outerWidth(TD);
+    const containerOffset = offset(this.hot.rootElement);
+    const containerWidth = outerWidth(this.hot.rootElement);
+    const scrollableContainerTop = wtOverlays.topOverlay.holder;
+    const scrollableContainerLeft = wtOverlays.inlineStartOverlay.holder;
+    const containerScrollTop = scrollableContainerTop !== rootWindow ?
+      scrollableContainerTop.scrollTop : 0;
+    const containerScrollLeft = scrollableContainerLeft !== rootWindow ?
+      scrollableContainerLeft.scrollLeft : 0;
+    const gridMostRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
+    const editorSection = this.checkEditorSection();
+
+    const scrollTop = ['', 'inline-start'].includes(editorSection) ? containerScrollTop : 0;
+    const scrollLeft = ['', 'top', 'bottom'].includes(editorSection) ? containerScrollLeft : 0;
+
+    // If colHeaders is disabled, cells in the first row have border-top
+    const editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
+
+    let topPos = currentOffset.top - containerOffset.top - editTopModifier - scrollTop;
+    let inlineStartPos = 0;
+
+    if (this.hot.isRtl()) {
+      inlineStartPos = rootWindow.innerWidth - currentOffset.left - cellWidth - gridMostRightPos - 1 + scrollLeft;
+    } else {
+      inlineStartPos = currentOffset.left - containerOffset.left - 1 - scrollLeft;
+    }
+
+    let wtTable = this.hot.view._wt.wtTable;
+
+    // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
+    switch (editorSection) {
+      case 'top':
+        wtTable = wtOverlays.topOverlay.clone.wtTable;
+        topPos += wtOverlays.topOverlay.getOverlayPosition().y;
+        break;
+      case 'inline-start':
+        wtTable = wtOverlays.inlineStartOverlay.clone.wtTable;
+        inlineStartPos += Math.abs(wtOverlays.inlineStartOverlay.getOverlayPosition().x);
+        break;
+      case 'top-inline-start-corner':
+        wtTable = wtOverlays.topInlineStartCornerOverlay.clone.wtTable;
+        inlineStartPos += wtOverlays.inlineStartOverlay.getOverlayPosition().x;
+        topPos += wtOverlays.topOverlay.getOverlayPosition().y;
+        break;
+      case 'bottom-inline-start-corner':
+        wtTable = wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable;
+        break;
+      case 'bottom':
+        wtTable = wtOverlays.bottomOverlay.clone.wtTable;
+        break;
+      default:
+        break;
+    }
+
+    const hasColumnHeaders = this.hot.hasColHeaders();
+    const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
+    const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
+    const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
+    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view._wt.getSetting('fixedRowsBottom');
+
+    if (hasColumnHeaders && renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
+      topPos += 1;
+    }
+
+    if (renderableColumn <= 0) {
+      inlineStartPos += 1;
+    }
+
+    const firstRowOffset = wtViewport.rowsRenderCalculator.startPosition;
+    const firstColumnOffset = wtViewport.columnsRenderCalculator.startPosition;
+    const horizontalScrollPosition = Math.abs(wtOverlays.inlineStartOverlay.getScrollPosition());
+    const verticalScrollPosition = wtOverlays.topOverlay.getScrollPosition();
+    const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
+    const cellTopOffset = TD.offsetTop + firstRowOffset - verticalScrollPosition;
+    let cellStartOffset = 0;
+
+    if (this.hot.isRtl()) {
+      const cellOffset = TD.offsetLeft;
+
+      if (cellOffset >= 0) {
+        cellStartOffset = wtTable.getWidth() - TD.offsetLeft;
+      } else {
+        // The `offsetLeft` returns negative values when the parent offset element has position relative
+        // (it happens when on the cell the selection is applied - the `area` CSS class).
+        // When it happens the `offsetLeft` value is calculated from the right edge of the parent element.
+        cellStartOffset = Math.abs(cellOffset);
+      }
+
+      cellStartOffset += firstColumnOffset - horizontalScrollPosition - cellWidth;
+    } else {
+      cellStartOffset = TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
+    }
+
+    const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainerTop) ? scrollbarWidth : 0;
+    const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
+    const width = innerWidth(TD) - 8;
+    const maxWidth = this.hot.view.maximumVisibleElementWidth(cellStartOffset) - 9 - actualVerticalScrollbarWidth;
+    const height = TD.scrollHeight + 1;
+    const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23); // eslint-disable-line max-len
+
+    return {
+      top: topPos,
+      start: inlineStartPos,
+      height,
+      maxHeight,
+      width,
+      maxWidth,
+    }
   }
 
   /**

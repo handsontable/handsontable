@@ -49,6 +49,36 @@ export class InlineStartOverlay extends Overlay {
     return this.wtSettings.getSetting('shouldRenderInlineStartOverlay');
   }
 
+  getOverlayPosition() {
+    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const { rootWindow, rootDocument } = this.domBindings;
+    const { wtTable } = this.wot;
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    let x = 0;
+
+    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
+      const hiderRect = wtTable.hider.getBoundingClientRect();
+      const left = Math.ceil(hiderRect.left);
+      const right = Math.ceil(hiderRect.right);
+
+      if (this.isRtl()) {
+        const documentWidth = rootDocument.documentElement.clientWidth;
+
+        if (right >= documentWidth) {
+          x = documentWidth - right;
+        }
+
+      } else if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
+        x = -left;
+      }
+    }
+
+    return {
+      x,
+      y: 0,
+    };
+  }
+
   /**
    * Updates the left overlay position.
    *
@@ -62,37 +92,21 @@ export class InlineStartOverlay extends Overlay {
       return false;
     }
 
-    const { rootWindow, rootDocument } = this.domBindings;
+    const { rootWindow } = this.domBindings;
     const overlayRoot = this.clone.wtTable.holder.parentNode;
-    let headerPosition = 0;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    let overlayPosition = 0;
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
-      const hiderRect = wtTable.hider.getBoundingClientRect();
-      const left = Math.ceil(hiderRect.left);
-      const right = Math.ceil(hiderRect.right);
-      let finalLeft = 0;
-
-      if (this.isRtl()) {
-        const documentWidth = rootDocument.documentElement.clientWidth;
-
-        if (right >= documentWidth) {
-          finalLeft = documentWidth - right;
-        }
-
-      } else if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
-        finalLeft = -left;
-      }
-
-      headerPosition = finalLeft;
-      setOverlayPosition(overlayRoot, `${finalLeft}px`, '0px');
+      overlayPosition = this.getOverlayPosition().x;
+      setOverlayPosition(overlayRoot, `${overlayPosition}px`, '0px');
 
     } else {
-      headerPosition = this.getScrollPosition();
+      overlayPosition = this.getScrollPosition();
       resetCssTransform(overlayRoot);
     }
 
-    const positionChanged = this.adjustHeaderBordersPosition(headerPosition);
+    const positionChanged = this.adjustHeaderBordersPosition(overlayPosition);
 
     this.adjustElementsSize();
 
