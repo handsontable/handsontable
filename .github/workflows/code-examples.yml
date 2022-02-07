@@ -51,6 +51,7 @@ jobs:
         id: check-modified-paths
         if: github.event_name != 'workflow_dispatch'
         with:
+          base: 'develop'
           list-files: 'json'
           filters: |
             examples: &examples
@@ -297,14 +298,15 @@ jobs:
       needs.build-angular.result != 'failure' &&
       needs.build-react.result != 'failure' &&
       needs.build-vue.result != 'failure' &&
-      needs.build-vue3.result != 'failure'
+      needs.build-vue3.result != 'failure' &&
+      needs.prepare-matrix.outputs.versions != '[]'
     runs-on: ubuntu-18.04
 
     strategy:
       fail-fast: false
       matrix:
         version: ${{fromJson(needs.prepare-matrix.outputs.versions)}}
-        framework: [angular, js, react, vue, vue3]
+        framework: [angular, js, react, vue, vue3, ts]
 
     env:
       FRAMEWORK_EXAMPLES_PATH: examples/${{ matrix.version }}/docs/${{ matrix.framework }}
@@ -445,7 +447,7 @@ jobs:
         if: steps.path-check.outputs.n-a != 'true'
         run: |
           mkdir -p ${{ env.TMP_FRAMEWORK_EXAMPLES_PATH }}
-          rsync -av --progress ${{ env.FRAMEWORK_EXAMPLES_PATH }}/ ${{ env.TMP_FRAMEWORK_EXAMPLES_PATH }} --include=/{,'[!node_modules]*/'{,dist/{,'**'}}} --exclude='*'
+          rsync -av --progress ${{ env.FRAMEWORK_EXAMPLES_PATH }}/ ${{ env.TMP_FRAMEWORK_EXAMPLES_PATH }} --exclude='node_modules' --include=/{,'*/'{,dist/{,'**'}}} --exclude='*'
           cd ${{ env.TMP_FRAMEWORK_EXAMPLES_PATH }}
           for i in $(ls);do mv ./$i/dist/* ./$i && rm -rf ./$i/dist; done;
       - name: Create the artifact for ${{ matrix.framework }} (${{ matrix.version }})
@@ -465,7 +467,10 @@ jobs:
   gather-and-deploy-builds:
     name: Gather the builds and deploy them to gh-pages (only on develop or when manually dispatched).
     needs: install-and-build
-    if: (github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch') && needs.install-and-build.result == 'success'
+    if: |
+      always() &&
+      (github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch') &&
+      needs.install-and-build.result == 'success'
     runs-on: ubuntu-18.04
 
     steps:
