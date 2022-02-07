@@ -61,6 +61,8 @@ export class DateEditor extends TextEditor {
     this.datePickerStyle.left = 0;
     this.datePickerStyle.zIndex = 9999;
 
+    this.datePicker.setAttribute('dir', this.hot.isRtl() ? 'rtl' : 'ltr');
+
     addClass(this.datePicker, 'htDatepickerHolder');
     this.hot.rootDocument.body.appendChild(this.datePicker);
 
@@ -239,7 +241,10 @@ export class DateEditor extends TextEditor {
     options.bound = false;
     options.format = options.format || this.defaultDateFormat;
     options.reposition = options.reposition || false;
-    options.isRTL = this.hot.isRtl();
+    // Set the RTL to `false`. Due to the https://github.com/Pikaday/Pikaday/issues/647 bug, the layout direction
+    // of the date picker is controlled by juggling the "dir" attribute of the root date picker element.
+    // See line @64 of this file.
+    options.isRTL = false;
     options.onSelect = (value) => {
       let dateStr = value;
 
