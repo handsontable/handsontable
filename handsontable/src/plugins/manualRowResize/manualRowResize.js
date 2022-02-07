@@ -73,6 +73,14 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
+   * @private
+   * @returns {string}
+   */
+  get inlineDir() {
+    return this.hot.isRtl() ? 'right' : 'left';
+  }
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ManualRowResize#enablePlugin} method is called.
    *
@@ -243,7 +251,7 @@ export class ManualRowResize extends BasePlugin {
     this.startHeight = parseInt(box.height, 10);
 
     this.handle.style.top = `${this.startOffset + this.startHeight}px`;
-    this.handle.style.left = `${relativeHeaderPosition.start}px`;
+    this.handle.style[this.inlineDir] = `${relativeHeaderPosition.start}px`;
 
     this.handle.style.width = `${headerWidth}px`;
     this.hot.rootElement.appendChild(this.handle);
@@ -265,14 +273,14 @@ export class ManualRowResize extends BasePlugin {
    */
   setupGuidePosition() {
     const handleWidth = parseInt(outerWidth(this.handle), 10);
-    const handleRightPosition = parseInt(this.handle.style.left, 10) + handleWidth;
+    const handleEndPosition = parseInt(this.handle.style[this.inlineDir], 10) + handleWidth;
     const maximumVisibleElementWidth = parseInt(this.hot.view.maximumVisibleElementWidth(0), 10);
 
     addClass(this.handle, 'active');
     addClass(this.guide, 'active');
 
     this.guide.style.top = this.handle.style.top;
-    this.guide.style.left = `${handleRightPosition}px`;
+    this.guide.style[this.inlineDir] = `${handleEndPosition}px`;
     this.guide.style.width = `${maximumVisibleElementWidth - handleWidth}px`;
     this.hot.rootElement.appendChild(this.guide);
   }
