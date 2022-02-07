@@ -1,4 +1,5 @@
 import { isNumeric } from '../../../helpers/number';
+import { toUpperCaseFirst } from '../../../helpers/string';
 
 const STATE_INITIALIZED = 0;
 const STATE_BUILT = 1;
@@ -30,6 +31,13 @@ class BaseUI {
      * @type {number}
      */
     this.state = STATE_INITIALIZED;
+    /**
+     * Defines the "start" physical CSS property name used within the class depending on what document
+     * layout direction the library runs.
+     *
+     * @type {string}
+     */
+    this.inlineProperty = hotInstance.isRtl() ? 'right' : 'left';
   }
 
   /**
@@ -89,14 +97,14 @@ class BaseUI {
    * Setter for position.
    *
    * @param {number} top New top position of the element.
-   * @param {number} left New left position of the element.
+   * @param {number} inlinePosition New left/right (depends on LTR/RTL document mode) position of the element.
    */
-  setPosition(top, left) {
+  setPosition(top, inlinePosition) {
     if (isNumeric(top)) {
       this._element.style.top = top + UNIT;
     }
-    if (isNumeric(left)) {
-      this._element.style.left = left + UNIT;
+    if (isNumeric(inlinePosition)) {
+      this._element.style[this.inlineProperty] = inlinePosition + UNIT;
     }
   }
 
@@ -106,9 +114,11 @@ class BaseUI {
    * @returns {object} Object contains left and top position of the element.
    */
   getPosition() {
+    const style = this._element.style;
+
     return {
-      top: this._element.style.top ? parseInt(this._element.style.top, 10) : 0,
-      left: this._element.style.left ? parseInt(this._element.style.left, 10) : 0
+      top: style.top ? parseInt(style.top, 10) : 0,
+      start: style[this.inlineProperty] ? parseInt(style[this.inlineProperty], 10) : 0
     };
   }
 
@@ -143,14 +153,14 @@ class BaseUI {
    * Setter for the element offset. Offset means marginTop and marginLeft of the element.
    *
    * @param {number} top New margin top of the element.
-   * @param {number} left New margin left of the element.
+   * @param {number} inlineOffset New margin left/right (depends on LTR/RTL document mode) of the element.
    */
-  setOffset(top, left) {
+  setOffset(top, inlineOffset) {
     if (isNumeric(top)) {
       this._element.style.marginTop = top + UNIT;
     }
-    if (isNumeric(left)) {
-      this._element.style.marginLeft = left + UNIT;
+    if (isNumeric(inlineOffset)) {
+      this._element.style[`margin${toUpperCaseFirst(this.inlineProperty)}`] = inlineOffset + UNIT;
     }
   }
 
@@ -160,9 +170,12 @@ class BaseUI {
    * @returns {object} Object contains top and left offset of the element.
    */
   getOffset() {
+    const style = this._element.style;
+    const inlineProp = `margin${toUpperCaseFirst(this.inlineProperty)}`;
+
     return {
-      top: this._element.style.marginTop ? parseInt(this._element.style.marginTop, 10) : 0,
-      left: this._element.style.marginLeft ? parseInt(this._element.style.marginLeft, 10) : 0
+      top: style.marginTop ? parseInt(style.marginTop, 10) : 0,
+      start: style[inlineProp] ? parseInt(style[inlineProp], 10) : 0
     };
   }
 }
