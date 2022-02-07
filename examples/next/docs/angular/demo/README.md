@@ -20,10 +20,10 @@ In order to run tests for this project call `npm run start` which will launch th
 
 ### Forking
 
-This example is one of many projects in a [common repository (monorepo)](https://github.com/handsontable/handsontable/). If you want to modify the example for your own needs by forking, you have two options:
+This example is one of many projects in a common repository (monorepo). If you want to modify it, you have two options of forking it:
 
-- you can fork this entire monorepo
-- you can copy the example into a new repo. We have created a detailed instructions for it [here](../../../../README.md#copying-an-example-to-a-separate-repo) ("Copying an example to a separate repo").
+1. you can fork this entire repository
+2. you can copy the example into a new repository. We have detailed instructions [here](../../../../README.md#copying-an-example-to-a-separate-repo) ("Copying an example to a separate repo").
 
 ## License
 
