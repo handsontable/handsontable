@@ -790,12 +790,12 @@ describe('manualRowResize', () => {
         manualRowResize: true
       });
 
-      selectRows(3);
+      simulateClick(getCell(3, -1));
 
       keyDown('control');
 
-      selectRows(7);
-      selectRows(10);
+      simulateClick(getCell(7, -1));
+      simulateClick(getCell(10, -1));
 
       keyUp('control');
 

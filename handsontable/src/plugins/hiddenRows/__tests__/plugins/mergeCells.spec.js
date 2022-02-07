@@ -1796,6 +1796,8 @@ describe('HiddenRows', () => {
       expect($(mergeArea).hasClass('fullySelectedMergedCell-7')).toBeFalse();
     });
 
+    // TODO: Before changes introduced in Handsontable 12.0.0 also hidden cells have been selected using API.
+    // However, the API method hasn't been setting HOT for listening state due a bug described within #7290.
     it('should add proper highlight to an area of merged cells when selected every cell ' +
       '(few layers, every layer contain part of merge area)', () => {
       handsontable({
@@ -1804,29 +1806,29 @@ describe('HiddenRows', () => {
         colHeaders: true,
         contextMenu: true,
         hiddenRows: {
-          rows: [1],
+          rows: [0],
           indicators: true
         },
         mergeCells: [{ row: 1, col: 1, rowspan: 3, colspan: 1 }]
       });
 
-      const mergeArea = spec().$container.find('tr:eq(2) td:eq(1)');
+      const mergeArea = spec().$container.find('tr:eq(1) td:eq(1)');
 
       // Selected 2 ranges containing together merged area.
-      selectRows(1);
+      simulateClick(getCell(1, -1));
 
       keyDown('control');
 
-      selectRows(3);
-      selectRows(2);
+      simulateClick(getCell(3, -1));
+      simulateClick(getCell(2, -1));
 
       keyUp('control');
 
       expect(`
       |   ║ - : - : - : - : - |
       |===:===:===:===:===:===|
-      |   ║   :   :   :   :   |
-      | * ║ A : 1 : 0 : 0 : 0 |
+      | * ║ 0 : 2 : 0 : 0 : 0 |
+      | * ║ A :   : 0 : 0 : 0 |
       | * ║ 0 :   : 0 : 0 : 0 |
       |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();

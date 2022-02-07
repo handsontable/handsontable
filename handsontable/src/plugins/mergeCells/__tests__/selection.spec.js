@@ -38,10 +38,14 @@ describe('MergeCells Selection', () => {
       mergeCells: [
         { row: 0, col: 0, rowspan: 3, colspan: 3 }
       ],
-      rowHeaders: true
+      rowHeaders: true,
+      colHeaders: true,
     });
 
-    selectColumns(0, 2);
+    $(getCell(-1, 0)).simulate('mousedown');
+    $(getCell(-1, 1)).simulate('mouseover');
+    $(getCell(-1, 2)).simulate('mouseover');
+    $(getCell(-1, 2)).simulate('mouseup');
 
     const mergedCell = getCell(0, 0);
     const selectedCellBackground = getComputedStyle(mergedCell, ':before').backgroundColor;
