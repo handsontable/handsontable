@@ -94,8 +94,21 @@ To enable the custom borders feature, set the `customBorders` option. This can e
 
 To initialize Handsontable with predefined custom borders, provide the cell coordinates and border styles in form of an array:
 
-- with row/col pairs: `{ row: 2, col: 2, left: { /*...*/ } }`
-- or with range details: `{ range: { from: { row: 1, col: 1 }, to: { row: 3, col: 4 } }, left: { /*...*/ } }`
+- with row/col pairs: `{ row: 2, col: 2, start: { /*...*/ } }`
+- or with range details: `{ range: { from: { row: 1, col: 1 }, to: { row: 3, col: 4 } }, start: { /*...*/ } }`
+
+Depending on the form of the cell coordinates you picked, you can use the following options to change the border styles:
+
+::: warning
+The `left` and `right` object keys are renamed to `start` and `end`. The change allows defining border styles using the same API for both [layout direction](@/guides/internationalization/layout-direction.md) modes - left to right or right to left. The keys `left` and `right` will still work for backward compatibility. However, they can work only in LTR and cannot be mixed with keys `start` and `end`.
+:::
+
+| Option | Description |
+| --- | --- |
+| `start: { color: String, width: Number }` | Defines the border style of the _left_ border or the _right_ border when the table is configured to work with [RTL layout direction](@/guides/internationalization/layout-direction.md) mode. |
+| `end: { color: String, width: Number `    | Defines the border style of the _right_ border or the _left_ border when the table is configured to work with [RTL layout direction](@/guides/internationalization/layout-direction.md) mode. |
+| `top: { color: String, width: Number `    | Defines the border style of the top border.    |
+| `bottom: { color: String, width: Number ` | Defines the border style of the bottom border. |
 
 ::: example #example3
 ```js
@@ -124,15 +137,15 @@ const hot = Handsontable(container, {
         width: 2,
         color: '#5292F7'
       },
-      left: {
-        width: 2,
-        color: 'orange'
-      },
       bottom: {
         width: 2,
         color: 'red'
       },
-      right: {
+      start: {
+        width: 2,
+        color: 'orange'
+      },
+      end: {
         width: 2,
         color: 'magenta'
       }
@@ -140,11 +153,11 @@ const hot = Handsontable(container, {
     {
       row: 2,
       col: 2,
-      left: {
+      start: {
         width: 2,
         color: 'red'
       },
-      right: {
+      end: {
         width: 1,
         color: 'green'
       }
