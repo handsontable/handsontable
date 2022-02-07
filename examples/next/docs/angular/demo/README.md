@@ -20,29 +20,10 @@ In order to run tests for this project call `npm run start` which will launch th
 
 ### Forking
 
-This example is one of the projects in a [large monorepo](https://github.com/handsontable/handsontable/). If you want to modify it, you can fork the entire monorepo on GitHub. 
+This example is one of many projects in a [common repository (monorepo)](https://github.com/handsontable/handsontable/). If you want to modify the example for your own needs by forking, you have two options:
 
-But for some use cases, it will be desired to copy only one specific example into a new repository. To do it, simply extract this folder alone. You can do that by running all of the commands listed below while being in the folder of the example:
-
-```bash
-# make a local clone of the repo, if you haven't already
-git clone https://github.com/handsontable/handsontable.git
-# verify that you are in the folder of the example by checking that the README.md file is the one that you are reading right now
-cat README.md
-# if it exists, delete the "node_modules" folder of the example, because our NPM workspace sets it up as a symlink in the monorepo (which will not be useful in your fork)
-rm -rf node_modules
-# copy the example into a new folder called "forked-example" that is a sibling folder of the monorepo
-cp -r . ../../../../../../forked-example
-# go to your fork
-cd ../../../../../../forked-example
-# if you want, initiate a new Git repository there
-git init
-git add .
-git commit -m "initial commit in my fork of the Handsontable example"
-# install dependencies and start the example
-npm install
-npm run start
-```
+- you can fork this entire monorepo
+- you can copy the example into a new repo. We have created a detailed instructions for it [here](../../../../README.md#copying-an-example-to-a-separate-repo) ("Copying an example to a separate repo").
 
 ## License
 
