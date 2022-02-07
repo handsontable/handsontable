@@ -459,16 +459,17 @@ export class Filters extends BasePlugin {
    * @returns {Array} Returns array of objects where keys as row index.
    */
   getDataMapAtColumn(column) {
-    const visualIndex = this.hot.toVisualColumn(column);
+    const visualColumn = this.hot.toVisualColumn(column);
     const data = [];
 
-    arrayEach(this.hot.getSourceDataAtCol(visualIndex), (value, rowIndex) => {
+    arrayEach(this.hot.getSourceDataAtCol(visualColumn), (value, rowIndex) => {
       const { row, col, visualCol, visualRow, type, instance, dateFormat, locale } = this.hot
-        .getCellMeta(rowIndex, visualIndex);
+        .getCellMeta(rowIndex, visualColumn);
+      const dataValue = this.hot.getDataAtCell(this.hot.toVisualRow(rowIndex), visualColumn) ?? value;
 
       data.push({
         meta: { row, col, visualCol, visualRow, type, instance, dateFormat, locale },
-        value: toEmptyString(value),
+        value: toEmptyString(dataValue),
       });
     });
 

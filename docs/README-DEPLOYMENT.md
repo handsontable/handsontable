@@ -14,9 +14,53 @@ Before generating the documentation, set [Docker's runtime memory limit](https:/
 
 The recommended runtime memory limit is 8 GB. It allows us to generate 4 documentation versions at a time.
 
-## Deploying the documentation from the command line
+## Deploying the documentation
 
-To deploy the documentation from the command line:
+Handsontable's [GitHub Actions setup](https://github.com/handsontable/handsontable/actions) deploys the documentation based on the following Docker image tags:
+
+| Docker image tag      | Build type | Triggered by                                          | Used for                                                                                                                                   |
+| --------------------- | ---------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `:[COMMIT_HASH]`      | Staging    | A push that changes `docs/**` on any branch           | [Manual local deployment](#deploying-the-documentation-locally-at-a-specific-commit)                                                       |
+| `:latest`             | Staging    | A push that changes `docs/**` on the `develop` branch | Automatic staging deployment<br><br>[Manual staging deployment](#manually-deploying-the-documentation-to-the-staging-environment)          |
+| `:production`         | Production | A push that changes `docs/**` on the `develop` branch | Automatic production deployment<br><br>[Manual production deployment](#manually-deploying-the-documentation-to-the-production-environment) |
+| `:prod-[COMMIT_HASH]` | Production | A push that changes `docs/**` on the `develop` branch | Automatic production deployment backup                                                                                                     |
+
+### Manually deploying the documentation to the staging environment
+
+To deploy the documentation to the [staging environment](https://dev.handsontable.com/docs), from GitHub Actions:
+
+1. Go to [github.com/handsontable/handsontable/actions](https://github.com/handsontable/handsontable/actions).
+2. Select the **Docs Staging Deployment** workflow.
+3. Select the **Run workflow** drop-down.
+4. Select the branch that you want to deploy.
+5. Select **Run workflow**.
+
+To deploy the documentation to the [staging environment](https://dev.handsontable.com/docs), from the command line:
+
+1. When deploying for the first time, log in to the GitHub Container Registry (ghcr.io):
+    ```bash
+    docker login --registry docker.pkg.github.com
+    ```
+    * Login: Your GitHub account email
+    * Password: PAT with the `write:packages` permission: https://github.com/settings/tokens/new
+2. Deploy the documentation:
+    ```bash
+    npm run docs:docker:build
+
+    docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
+    ```
+
+### Manually deploying the documentation to the production environment
+
+To deploy the documentation to the [production environment](https://handsontable.com/docs), from GitHub Actions:
+
+1. Go to [github.com/handsontable/handsontable/actions](https://github.com/handsontable/handsontable/actions).
+2. Select the **Docs Production Deployment** workflow.
+3. Select the **Run workflow** drop-down.
+4. Select the branch that you want to deploy.
+5. Select **Run workflow**.
+
+To deploy the documentation to the [production environment](https://handsontable.com/docs), from the command line:
 
 1. When deploying for the first time, log in to the GitHub Container Registry (ghcr.io):
     ```bash
@@ -27,40 +71,10 @@ To deploy the documentation from the command line:
 
 2. Deploy the documentation:
     ```bash
-    npm run docs:docker:build
-    # npm run docs:docker:build:production # Production build
+    npm run docs:docker:build:production
 
     docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
     ```
-
-## Deploying the documentation from GitHub Actions
-
-GitHub Actions deploys the documentation automatically after each commit pushed to the `develop` branch.
-
-GitHub Actions pushes the following tags to the GitHub Container Registry:
-
-* `:latest` - the server configuration watches for images with this tag.
-* `:[COMMIT_HASH]` - a backup.
-
-### Deploying the documentation to the staging environment
-
-To deploy the documentation to the staging environment:
-
-1. Go to [github.com/handsontable/handsontable/actions](https://github.com/handsontable/handsontable/actions).
-2. Select the **Docs Staging Deployment** workflow.
-3. Select the **Run workflow** drop-down.
-4. Select the branch that you want to deploy.
-5. Select **Run workflow**.
-
-### Deploying the documentation to the production environment
-
-To deploy the documentation to the production environment:
-
-1. Go to [github.com/handsontable/handsontable/actions](https://github.com/handsontable/handsontable/actions).
-2. Select the **Docs Production Deployment** workflow.
-3. Select the **Run workflow** drop-down.
-4. Select the branch that you want to deploy.
-5. Select **Run workflow**.
 
 ### Reverting a production deployment
 
