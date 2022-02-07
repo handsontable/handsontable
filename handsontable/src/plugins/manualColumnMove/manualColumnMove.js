@@ -423,6 +423,7 @@ export class ManualColumnMove extends BasePlugin {
 
       mouseOffsetStart = rootWindow.innerWidth - priv.target.eventPageX - gridMostRightPos -
         (scrollableElement.scrollX === void 0 ? scrollStart : 0);
+
     } else {
       mouseOffsetStart = priv.target.eventPageX -
         (priv.rootElementOffset - (scrollableElement.scrollX === void 0 ? scrollStart : 0));
@@ -431,9 +432,11 @@ export class ManualColumnMove extends BasePlugin {
     if (priv.hasRowHeaders) {
       rowHeaderWidth = this.hot.view.wt.wtOverlays.inlineStartOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
     }
+
     if (this.isFixedColumnsStart(priv.hoveredColumn)) {
       tdOffsetStart += scrollStart;
     }
+
     tdOffsetStart += rowHeaderWidth;
 
     if (priv.hoveredColumn < 0) {
