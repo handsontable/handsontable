@@ -15,6 +15,7 @@ To run arbitrary code example locally on your machine see [How to run the arbitr
 - [Creating new examples](#creating-new-examples)
 - [Deployment](#deployment-of-the-new-code-examples)
 - [Editing existing examples](#editing-existing-examples)
+- [Copying an example to a separate repo](#copying-an-example-to-a-separate-repo)
 - [Development](#development)
   - [How to run the arbitrary code example](#how-to-run-the-arbitrary-code-example)
 - [Testing](#testing)
@@ -35,6 +36,8 @@ Within the `/examples` directory, there are all the code examples created for sp
 An example path to the code example: `examples/8.1.0/docs/angular/custom-id`
 
 It's worth noting, that the `examples` directory is defined as a `npm workspace`, as well as each of the `<framework>` directories within it. This allows installing shared dependencies for all the framework-specific examples.
+
+Dependency sharing is defined by a shared lockfile (`/examples/<version_number>/<category>/<framework>/package-lock.json`) for all examples of each framework. The `examples:install` script bumps the dependency versions in shared lockfiles. A single example's lockfile (e.g. `/examples/<version_number>/<category>/<framework>/<example_path>/package-lock.json`) can still be created when you run `npm install` inside the example's folder, but is ignored in `/examples/.gitignore`.
 
 ### Live on production
 
@@ -72,6 +75,40 @@ Sometimes you want to edit existing code examples that is live in the `/examples
 
 You can also deploy examples without committing anything by using the ["Code Examples Deployment" workflow](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml). See the [Deployment of the new code examples](#deployment-of-the-new-code-examples) section for more details.
 <br>Note that dispatching the workflow will overwrite the already-existing examples from the `gh-pages` branch (even when they're based on a branch different from `develop`).
+
+### Copying an example to a separate repo
+
+It is possible to copy an example into a new Git repo. Doing it is as simple as making a copy of the example folder. 
+
+When making a copy, keep in might that the `node_modules` folder in our monorepo workspace might contain symbolic links. For a clean slate, it is a good idea to remove this folder altogether it and regenerate it in the copied folder. 
+
+The below commands present how to copy an example with the above advice in mind:
+
+```bash
+# make a local clone of the repo, if you haven't already
+git clone https://github.com/handsontable/handsontable.git
+
+# verify that you are in the folder of the example by checking that the README.md file is the one that you are reading right now
+cat README.md
+
+# if it exists, delete the "node_modules" folder of the example, because our NPM workspace sets it up as a symlink in the monorepo (which will not be useful in your fork)
+rm -rf node_modules
+
+# copy the example into a new folder called "forked-example" that is a sibling folder of the monorepo
+cp -r . ../../../../../../forked-example
+
+# go to your fork
+cd ../../../../../../forked-example
+
+# if you want, initiate a new Git repo there
+git init
+git add .
+git commit -m "initial commit in my fork of the Handsontable example"
+
+# install dependencies and start the example
+npm install
+npm run start
+```
 
 ### Development
 
