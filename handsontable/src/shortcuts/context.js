@@ -59,6 +59,9 @@ export const createContext = (name) => {
           } else {
             insertionIndex += 1;
           }
+
+        } else {
+          insertionIndex = shortcuts.length;
         }
 
         shortcuts.splice(insertionIndex, 0, {
