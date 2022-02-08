@@ -36,7 +36,7 @@ describe('TrimRows', () => {
         columns: [{}, {}],
       });
 
-      expect(extractDOMStructure(getLeftClone())).toMatchHTML(`
+      expect(extractDOMStructure(getInlineStartClone())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A</th>
@@ -54,7 +54,7 @@ describe('TrimRows', () => {
           </tr>
         </tbody>
         `);
-      expect(extractDOMStructure(getTopLeftClone())).toMatchHTML(`
+      expect(extractDOMStructure(getTopInlineStartClone())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A</th>
@@ -73,7 +73,7 @@ describe('TrimRows', () => {
         columns: [{}],
       });
 
-      expect(extractDOMStructure(getLeftClone())).toMatchHTML(`
+      expect(extractDOMStructure(getInlineStartClone())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A</th>
@@ -88,7 +88,7 @@ describe('TrimRows', () => {
           </tr>
         </tbody>
         `);
-      expect(extractDOMStructure(getTopLeftClone())).toMatchHTML(`
+      expect(extractDOMStructure(getTopInlineStartClone())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A</th>
@@ -106,7 +106,7 @@ describe('TrimRows', () => {
         columns: [],
       });
 
-      expect(extractDOMStructure(getLeftClone())).toMatchHTML(`
+      expect(extractDOMStructure(getInlineStartClone())).toMatchHTML(`
         <thead>
           <tr></tr>
         </thead>
@@ -115,7 +115,7 @@ describe('TrimRows', () => {
           <tr></tr>
         </tbody>
         `);
-      expect(extractDOMStructure(getTopLeftClone())).toMatchHTML(`
+      expect(extractDOMStructure(getTopInlineStartClone())).toMatchHTML(`
         <thead>
           <tr></tr>
         </thead>

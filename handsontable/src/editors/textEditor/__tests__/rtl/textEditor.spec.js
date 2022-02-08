@@ -502,7 +502,7 @@ describe('TextEditor (RTL mode)', () => {
       fixedRowsTop: 2
     });
 
-    const mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view._wt.wtTable.holder;
 
     // corner
     selectCell(1, 1);
@@ -546,7 +546,7 @@ describe('TextEditor (RTL mode)', () => {
       height: 500,
     });
 
-    const $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view._wt.wtTable.holder);
 
     $holder.scrollTop(100);
     $holder.scrollLeft(-100);
@@ -588,7 +588,7 @@ describe('TextEditor (RTL mode)', () => {
       fixedRowsTop: 2
     });
 
-    const $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view._wt.wtTable.holder);
 
     $holder.scrollTop(100);
     $holder.scrollLeft(-100);
@@ -615,7 +615,7 @@ describe('TextEditor (RTL mode)', () => {
       fixedRowsTop: 2
     });
 
-    const $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view._wt.wtTable.holder);
 
     $holder[0].scrollTop = 500;
     await sleep(100);
@@ -645,7 +645,7 @@ describe('TextEditor (RTL mode)', () => {
       fixedRowsTop: 2
     });
 
-    const $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view._wt.wtTable.holder);
 
     $holder.scrollTop(500);
     $holder.scrollLeft(-500);
@@ -674,7 +674,7 @@ describe('TextEditor (RTL mode)', () => {
       fixedRowsTop: 2
     });
 
-    const $holder = $(hot.view.wt.wtTable.holder);
+    const $holder = $(hot.view._wt.wtTable.holder);
 
     $holder.scrollTop(500);
     $holder.scrollLeft(-500);

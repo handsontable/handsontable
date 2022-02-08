@@ -22,7 +22,7 @@ describe('Core.getCell', () => {
     });
 
     expect(getCell(-1, -1)).toBe(getMaster().find('thead tr:eq(0) th:eq(0)')[0]);
-    expect(getCell(-1, -1, true)).toBe(getTopLeftClone().find('thead tr:eq(0) th:eq(0)')[0]);
+    expect(getCell(-1, -1, true)).toBe(getTopInlineStartClone().find('thead tr:eq(0) th:eq(0)')[0]);
   });
 
   it('should return corner TH element from the correct overlay when all columns are hidden', () => {
@@ -37,7 +37,7 @@ describe('Core.getCell', () => {
     });
 
     expect(getCell(-1, -1)).toBe(getMaster().find('thead tr:eq(0) th:eq(0)')[0]);
-    expect(getCell(-1, -1, true)).toBe(getTopLeftClone().find('thead tr:eq(0) th:eq(0)')[0]);
+    expect(getCell(-1, -1, true)).toBe(getTopInlineStartClone().find('thead tr:eq(0) th:eq(0)')[0]);
   });
 
   it('should return corner TH element from the correct overlay when all indexes are hidden', () => {
@@ -56,7 +56,7 @@ describe('Core.getCell', () => {
     });
 
     expect(getCell(-1, -1)).toBe(getMaster().find('thead tr:eq(0) th:eq(0)')[0]);
-    expect(getCell(-1, -1, true)).toBe(getTopLeftClone().find('thead tr:eq(0) th:eq(0)')[0]);
+    expect(getCell(-1, -1, true)).toBe(getTopInlineStartClone().find('thead tr:eq(0) th:eq(0)')[0]);
   });
 
   it('should return row header TH element when all columns are hidden', () => {
@@ -71,7 +71,7 @@ describe('Core.getCell', () => {
     });
 
     expect(getCell(2, -1)).toBe(getMaster().find('tbody tr:eq(2) th:eq(0)')[0]);
-    expect(getCell(2, -1, true)).toBe(getLeftClone().find('tbody tr:eq(2) th:eq(0)')[0]);
+    expect(getCell(2, -1, true)).toBe(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)')[0]);
   });
 
   it('should return row header TH element when all rows are hidden', () => {

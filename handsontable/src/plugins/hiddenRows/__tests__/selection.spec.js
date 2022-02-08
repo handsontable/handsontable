@@ -114,7 +114,7 @@ describe('HiddenRows', () => {
         },
       });
 
-      const header = $('.ht_clone_left .htCore thead tr th').eq(0); // The corner
+      const header = $('.ht_clone_inline_start .htCore thead tr th').eq(0); // The corner
 
       simulateClick(header, 'LMB');
 
@@ -316,7 +316,7 @@ describe('HiddenRows', () => {
           },
         });
 
-        const corner = $('.ht_clone_top_left_corner .htCore thead th').eq(0);
+        const corner = $('.ht_clone_top_inline_start_corner .htCore thead th').eq(0);
 
         simulateClick(corner, 'LMB');
 
@@ -339,7 +339,7 @@ describe('HiddenRows', () => {
           },
         });
 
-        const corner = $('.ht_clone_top_left_corner .htCore thead th').eq(0);
+        const corner = $('.ht_clone_top_inline_start_corner .htCore thead th').eq(0);
 
         simulateClick(corner, 'LMB');
 

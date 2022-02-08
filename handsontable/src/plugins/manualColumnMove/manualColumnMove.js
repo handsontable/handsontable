@@ -311,10 +311,10 @@ export class ManualColumnMove extends BasePlugin {
       const renderableIndex = columnMapper.getRenderableFromVisualIndex(visualColumnIndex);
 
       if (visualColumnIndex < 0) {
-        columnsWidth += this.hot.view.wt.wtViewport.getRowHeaderWidth() || 0;
+        columnsWidth += this.hot.view._wt.wtViewport.getRowHeaderWidth() || 0;
 
       } else if (renderableIndex !== null) {
-        columnsWidth += this.hot.view.wt.wtTable.getStretchedColumnWidth(renderableIndex) || 0;
+        columnsWidth += this.hot.view._wt.wtTable.getStretchedColumnWidth(renderableIndex) || 0;
       }
     }
 
@@ -402,10 +402,10 @@ export class ManualColumnMove extends BasePlugin {
    */
   refreshPositions() {
     const priv = privatePool.get(this);
-    const firstVisible = this.hot.view.wt.wtTable.getFirstVisibleColumn();
-    const lastVisible = this.hot.view.wt.wtTable.getLastVisibleColumn();
-    const wtTable = this.hot.view.wt.wtTable;
-    const scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
+    const firstVisible = this.hot.view._wt.wtTable.getFirstVisibleColumn();
+    const lastVisible = this.hot.view._wt.wtTable.getLastVisibleColumn();
+    const wtTable = this.hot.view._wt.wtTable;
+    const scrollableElement = this.hot.view._wt.wtOverlays.scrollableElement;
     const scrollStart = typeof scrollableElement.scrollX === 'number' ?
       scrollableElement.scrollX : scrollableElement.scrollLeft;
     let tdOffsetStart = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, priv.hoveredColumn - 1);
@@ -430,7 +430,7 @@ export class ManualColumnMove extends BasePlugin {
     }
 
     if (priv.hasRowHeaders) {
-      rowHeaderWidth = this.hot.view.wt.wtOverlays.inlineStartOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
+      rowHeaderWidth = this.hot.view._wt.wtOverlays.inlineStartOverlay.clone.wtTable.getColumnHeader(-1).offsetWidth;
     }
 
     if (this.isFixedColumnsStart(priv.hoveredColumn)) {
@@ -532,7 +532,7 @@ export class ManualColumnMove extends BasePlugin {
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   onBeforeOnCellMouseDown(event, coords, TD, controller) {
-    const wtTable = this.hot.view.wt.wtTable;
+    const wtTable = this.hot.view._wt.wtTable;
     const isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
     const selection = this.hot.getSelectedRangeLast();
     const priv = privatePool.get(this);
@@ -576,7 +576,7 @@ export class ManualColumnMove extends BasePlugin {
       const countColumnsFrom = priv.hasRowHeaders ? -1 : 0;
       const topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
       const fixedColumnsStart = coords.col < priv.fixedColumnsStart;
-      const horizontalScrollPosition = Math.abs(this.hot.view.wt.wtOverlays.inlineStartOverlay.getScrollPosition());
+      const horizontalScrollPosition = Math.abs(this.hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition());
       const offsetX = Math.abs(event.offsetX - (this.hot.isRtl() ? event.target.offsetWidth : 0));
       const inlineOffset = this.getColumnsWidth(start, coords.col - 1) + offsetX;
       const inlinePos = this.getColumnsWidth(countColumnsFrom, start - 1) +
@@ -703,7 +703,7 @@ export class ManualColumnMove extends BasePlugin {
    * @private
    */
   onAfterScrollVertically() {
-    const wtTable = this.hot.view.wt.wtTable;
+    const wtTable = this.hot.view._wt.wtTable;
     const headerHeight = wtTable.getColumnHeaderHeight(0) + 1;
     const scrollTop = wtTable.holder.scrollTop;
     const posTop = headerHeight + scrollTop;

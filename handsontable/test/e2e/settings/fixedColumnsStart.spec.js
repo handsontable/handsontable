@@ -19,7 +19,7 @@ describe('settings', () => {
           fixedColumnsStart: 3
         });
 
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(3);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(3);
       });
 
       it('should show columns headers when headers are enabled', () => {
@@ -29,8 +29,8 @@ describe('settings', () => {
           fixedColumnsStart: 2
         });
 
-        expect(getLeftClone().find('thead tr th').length).toEqual(3);
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(2);
+        expect(getInlineStartClone().find('thead tr th').length).toEqual(3);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(2);
       });
     });
 
@@ -44,7 +44,7 @@ describe('settings', () => {
           fixedColumnsStart: 4
         });
 
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(4);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(4);
       });
 
       it('should decrease fixed columns', () => {
@@ -56,7 +56,7 @@ describe('settings', () => {
           fixedColumnsStart: 2
         });
 
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(2);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(2);
       });
 
       it('should create fixed columns when they are disabled eariler', () => {
@@ -68,7 +68,7 @@ describe('settings', () => {
           fixedColumnsStart: 2
         });
 
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(2);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(2);
       });
 
       it('should disable fixed columns', () => {
@@ -80,8 +80,8 @@ describe('settings', () => {
           fixedColumnsStart: 0
         });
 
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(2);
-        expect(getLeftClone().width()).toBe(0);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(2);
+        expect(getInlineStartClone().width()).toBe(0);
       });
 
       it('should not throw errors while scrolling horizontally when fixed columns was set', (done) => {
@@ -127,7 +127,7 @@ describe('settings', () => {
 
         await sleep(10);
 
-        expect(getLeftClone().find('.wtHolder').scrollTop()).toBe(getMaster().find('.wtHolder').scrollTop());
+        expect(getInlineStartClone().find('.wtHolder').scrollTop()).toBe(getMaster().find('.wtHolder').scrollTop());
       });
     });
 
@@ -137,49 +137,49 @@ describe('settings', () => {
         fixedColumnsStart: 3
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(3);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
 
       updateSettings({
         data: Handsontable.helper.createSpreadsheetData(3, 2),
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(2);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(2);
 
       updateSettings({
         data: Handsontable.helper.createSpreadsheetData(3, 1),
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(1);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(1);
 
       updateSettings({
         data: Handsontable.helper.createSpreadsheetData(3, 0),
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(0);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(0);
 
       updateSettings({
         data: Handsontable.helper.createSpreadsheetData(3, 1),
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(1);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(1);
 
       updateSettings({
         data: Handsontable.helper.createSpreadsheetData(3, 2),
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(2);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(2);
 
       updateSettings({
         data: Handsontable.helper.createSpreadsheetData(3, 3),
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(3);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
 
       updateSettings({
         data: Handsontable.helper.createSpreadsheetData(3, 4),
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(3);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
     });
   });
 
@@ -203,7 +203,7 @@ describe('settings', () => {
           fixedColumnsLeft: 3
         });
 
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(3);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(3);
       });
 
       it('should show columns headers when headers are enabled', () => {
@@ -213,8 +213,8 @@ describe('settings', () => {
           fixedColumnsLeft: 2
         });
 
-        expect(getLeftClone().find('thead tr th').length).toEqual(3);
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(2);
+        expect(getInlineStartClone().find('thead tr th').length).toEqual(3);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(2);
       });
     });
 
@@ -228,7 +228,7 @@ describe('settings', () => {
           fixedColumnsLeft: 4
         });
 
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(4);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(4);
       });
 
       it('should decrease fixed columns', () => {
@@ -240,7 +240,7 @@ describe('settings', () => {
           fixedColumnsLeft: 2
         });
 
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(2);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(2);
       });
 
       it('should create fixed columns when they are disabled eariler', () => {
@@ -252,7 +252,7 @@ describe('settings', () => {
           fixedColumnsLeft: 2
         });
 
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(2);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(2);
       });
 
       it('should disable fixed columns', () => {
@@ -264,8 +264,8 @@ describe('settings', () => {
           fixedColumnsLeft: 0
         });
 
-        expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(2);
-        expect(getLeftClone().width()).toBe(0);
+        expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(2);
+        expect(getInlineStartClone().width()).toBe(0);
       });
 
       it('should not throw errors while scrolling horizontally when fixed columns was set', (done) => {
@@ -311,7 +311,7 @@ describe('settings', () => {
 
         await sleep(10);
 
-        expect(getLeftClone().find('.wtHolder').scrollTop()).toBe(getMaster().find('.wtHolder').scrollTop());
+        expect(getInlineStartClone().find('.wtHolder').scrollTop()).toBe(getMaster().find('.wtHolder').scrollTop());
       });
     });
 
@@ -321,49 +321,49 @@ describe('settings', () => {
         fixedColumnsLeft: 3
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(3);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
 
       updateSettings({
         data: Handsontable.helper.createSpreadsheetData(3, 2),
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(2);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(2);
 
       updateSettings({
         data: Handsontable.helper.createSpreadsheetData(3, 1),
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(1);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(1);
 
       updateSettings({
         data: Handsontable.helper.createSpreadsheetData(3, 0),
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(0);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(0);
 
       updateSettings({
         data: Handsontable.helper.createSpreadsheetData(3, 1),
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(1);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(1);
 
       updateSettings({
         data: Handsontable.helper.createSpreadsheetData(3, 2),
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(2);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(2);
 
       updateSettings({
         data: Handsontable.helper.createSpreadsheetData(3, 3),
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(3);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
 
       updateSettings({
         data: Handsontable.helper.createSpreadsheetData(3, 4),
       });
 
-      expect(getLeftClone().find('tbody tr:eq(0) td').length).toBe(3);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
     });
   });
 

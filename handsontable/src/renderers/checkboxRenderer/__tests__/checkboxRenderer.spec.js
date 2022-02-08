@@ -1125,7 +1125,7 @@ describe('CheckboxRenderer', () => {
       rowHeaders: ['<input type="checkbox"/> 1'],
     });
 
-    const headerCheckbox = getLeftClone().find('input[type="checkbox"]')[0];
+    const headerCheckbox = getInlineStartClone().find('input[type="checkbox"]')[0];
 
     expect(headerCheckbox.checked).toBe(false);
 

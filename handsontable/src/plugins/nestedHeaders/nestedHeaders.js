@@ -240,7 +240,7 @@ export class NestedHeaders extends BasePlugin {
       return;
     }
 
-    const { wt } = this.hot.view;
+    const { _wt: wt } = this.hot.view;
     const headerLevels = wt.getSetting('columnHeaders').length;
     const mainHeaders = wt.wtTable.THEAD;
     const topHeaders = wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
@@ -284,7 +284,7 @@ export class NestedHeaders extends BasePlugin {
    * @fires Hooks#afterGetColHeader
    */
   headerRendererFactory(headerLevel) {
-    const fixedColumnsStart = this.hot.view.wt.getSetting('fixedColumnsStart');
+    const fixedColumnsStart = this.hot.view._wt.getSetting('fixedColumnsStart');
 
     return (renderedColumnIndex, TH) => {
       const { rootDocument, columnIndexMapper, view } = this.hot;
@@ -309,7 +309,7 @@ export class NestedHeaders extends BasePlugin {
         addClass(TH, 'hiddenHeader');
 
       } else if (colspan > 1) {
-        const { wtOverlays } = view.wt;
+        const { wtOverlays } = view._wt;
         const isTopInlineStartOverlay = wtOverlays.topInlineStartCornerOverlay?.clone.wtTable.THEAD.contains(TH);
         const isInlineStartOverlay = wtOverlays.inlineStartOverlay?.clone.wtTable.THEAD.contains(TH);
 
@@ -430,10 +430,10 @@ export class NestedHeaders extends BasePlugin {
 
     if (event.shiftKey && currentSelection) {
       if (coords.col < currentSelection.from.col) {
-        columnsToSelect.push(currentSelection.getTopRightCorner().col, columnIndex, coords.row);
+        columnsToSelect.push(currentSelection.getTopEndCorner().col, columnIndex, coords.row);
 
       } else if (coords.col > currentSelection.from.col) {
-        columnsToSelect.push(currentSelection.getTopLeftCorner().col, columnIndex + origColspan - 1, coords.row);
+        columnsToSelect.push(currentSelection.getTopStartCorner().col, columnIndex + origColspan - 1, coords.row);
 
       } else {
         columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
@@ -474,8 +474,8 @@ export class NestedHeaders extends BasePlugin {
     } = headerNodeData;
 
     const selectedRange = this.hot.getSelectedRangeLast();
-    const topLeftCoords = selectedRange.getTopLeftCorner();
-    const bottomRightCoords = selectedRange.getBottomRightCorner();
+    const topStartCoords = selectedRange.getTopStartCorner();
+    const bottomEndCoords = selectedRange.getBottomEndCorner();
     const { from } = selectedRange;
 
     // Block the Selection module in controlling how the columns and cells are selected.
@@ -486,10 +486,10 @@ export class NestedHeaders extends BasePlugin {
     const columnsToSelect = [];
 
     if (coords.col < from.col) {
-      columnsToSelect.push(bottomRightCoords.col, columnIndex);
+      columnsToSelect.push(bottomEndCoords.col, columnIndex);
 
     } else if (coords.col > from.col) {
-      columnsToSelect.push(topLeftCoords.col, columnIndex + origColspan - 1);
+      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1);
 
     } else {
       columnsToSelect.push(columnIndex, columnIndex + origColspan - 1);

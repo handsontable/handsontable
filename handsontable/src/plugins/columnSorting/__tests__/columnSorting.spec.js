@@ -6,7 +6,7 @@ describe('ColumnSorting', () => {
 
     this.sortByClickOnColumnHeader = (columnIndex) => {
       const hot = this.$container.data('handsontable');
-      const $columnHeader = $(hot.view.wt.wtTable.getColumnHeader(columnIndex));
+      const $columnHeader = $(hot.view._wt.wtTable.getColumnHeader(columnIndex));
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
 
       if ($spanInsideHeader.length === 0) {
@@ -315,9 +315,9 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    $('.ht_clone_top_left_corner .htCore span').simulate('mousedown');
-    $('.ht_clone_top_left_corner .htCore span').simulate('click');
-    $('.ht_clone_top_left_corner .htCore span').simulate('mouseup');
+    $('.ht_clone_top_inline_start_corner .htCore span').simulate('mousedown');
+    $('.ht_clone_top_inline_start_corner .htCore span').simulate('click');
+    $('.ht_clone_top_inline_start_corner .htCore span').simulate('mouseup');
 
     expect(onErrorSpy).not.toHaveBeenCalled();
   });
@@ -2306,7 +2306,7 @@ describe('ColumnSorting', () => {
       columnSorting: true
     });
 
-    hot.view.wt.wtOverlays.inlineStartOverlay.scrollTo(15);
+    hot.view._wt.wtOverlays.inlineStartOverlay.scrollTo(15);
     render();
     getPlugin('columnSorting').sort({ column: 15, sortOrder: 'asc' });
 
@@ -2729,7 +2729,7 @@ describe('ColumnSorting', () => {
         columnSorting: true
       });
 
-      const $columnHeader = $(hot.view.wt.wtTable.getColumnHeader(0));
+      const $columnHeader = $(hot.view._wt.wtTable.getColumnHeader(0));
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
 
       $spanInsideHeader.simulate('mousedown', { button: 2 });

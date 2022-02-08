@@ -47,7 +47,7 @@ describe('HiddenColumns', () => {
         }
       });
 
-      const firstHeader = spec().$container.find('.ht_clone_left tr:eq(1) th:eq(0)');
+      const firstHeader = spec().$container.find('.ht_clone_inline_start tr:eq(1) th:eq(0)');
 
       simulateClick(firstHeader, 'LMB');
 
@@ -74,7 +74,7 @@ describe('HiddenColumns', () => {
         }
       });
 
-      const corner = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
+      const corner = $('.ht_clone_top_inline_start_corner .htCore').find('thead').find('th').eq(0);
 
       simulateClick(corner, 'LMB');
 

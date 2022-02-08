@@ -24,7 +24,7 @@ describe('Core_reCreate', () => {
     destroy();
     handsontable(settings);
 
-    expect(getTopLeftClone().width()).toBeAroundValue(50); // default column width
+    expect(getTopInlineStartClone().width()).toBeAroundValue(50); // default column width
     // th > div.relative > span.colHeader has line-height: 1.1 [rem]
     // 14.3px (13px x 1.1 - line height) x 2 => 28.6px (Chrome will round it to 28px)
     // Additional space has roots in the way how browsers resolves inline-block elements and theirs' parents line-height
@@ -32,6 +32,6 @@ describe('Core_reCreate', () => {
     // div.relative adds 4px of vertical padding
     // div.relative has 35px in Chrome and 35.95px (rounded to 36px) in Firefox and IE
     // th adds 1px of top border
-    expect(getTopLeftClone().height()).toBeAroundValue(36);
+    expect(getTopInlineStartClone().height()).toBeAroundValue(36);
   });
 });

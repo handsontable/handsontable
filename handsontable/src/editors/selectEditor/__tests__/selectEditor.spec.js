@@ -274,7 +274,7 @@ describe('SelectEditor', () => {
         }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, { editor: 'select' }
       ]
     });
-    const mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view._wt.wtTable.holder;
 
     selectCell(0, 0);
     keyDownUp('enter');

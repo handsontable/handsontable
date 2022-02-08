@@ -845,7 +845,7 @@ class Menu {
    * @private
    */
   onAfterInit() {
-    const { wtTable } = this.hotMenu.view.wt;
+    const { wtTable } = this.hotMenu.view._wt;
     const data = this.hotMenu.getSettings().data;
     const hiderStyle = wtTable.hider.style;
     const holderStyle = wtTable.holder.style;

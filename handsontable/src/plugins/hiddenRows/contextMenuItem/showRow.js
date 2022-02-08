@@ -59,8 +59,8 @@ export default function showRowItem(hiddenRowsPlugin) {
       rows.length = 0;
 
       const selectedRangeLast = this.getSelectedRangeLast();
-      const visualStartRow = selectedRangeLast.getTopLeftCorner().row;
-      const visualEndRow = selectedRangeLast.getBottomRightCorner().row;
+      const visualStartRow = selectedRangeLast.getTopStartCorner().row;
+      const visualEndRow = selectedRangeLast.getBottomEndCorner().row;
       const rowIndexMapper = this.rowIndexMapper;
       const renderableStartRow = rowIndexMapper.getRenderableFromVisualIndex(visualStartRow);
       const renderableEndRow = rowIndexMapper.getRenderableFromVisualIndex(visualEndRow);
