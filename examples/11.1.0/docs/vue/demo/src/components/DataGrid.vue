@@ -37,28 +37,26 @@ export default {
         afterGetColHeader: alignHeaders,
         afterGetRowHeader: drawCheckboxInRowHeaders,
         beforeRenderer: addClassesToRows,
-        colWidths: [140, 126, 192, 100, 100, 90, 90, 110, 97],
+        colWidths: [140, 192, 100, 90, 90, 110, 97, 100, 126],
         colHeaders: [
           "Company name",
-          "Country",
           "Name",
           "Sell date",
-          "Order ID",
           "In stock",
           "Qty",
           "Progress",
-          "Rating"
+          "Rating",
+          "Order ID",
+          "Country"
         ],
         columns: [
           { data: 1, type: "text" },
-          { data: 2, type: "text" },
           { data: 3, type: "text" },
           {
             data: 4,
             type: "date",
             allowInvalid: false
           },
-          { data: 5, type: "text" },
           {
             data: 6,
             type: "checkbox",
@@ -79,7 +77,9 @@ export default {
             renderer: starsRenderer,
             readOnly: true,
             className: "star htCenter",
-          }
+          },
+          { data: 5, type: "text" },
+          { data: 2, type: "text" }
         ],
         licenseKey: "non-commercial-and-evaluation",
       },
