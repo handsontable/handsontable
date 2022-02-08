@@ -15,6 +15,12 @@ module.exports = {
       rules: {
         'import/extensions': 'off'
       }
+    },
+    {
+      files: ['SvgFrameworkIcons.vue'],
+      rules: {
+        'max-len': 'off'
+      }
     }
   ]
 };
