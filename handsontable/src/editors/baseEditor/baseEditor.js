@@ -456,10 +456,16 @@ export class BaseEditor {
       inlineStartPos = currentOffset.left - containerOffset.left - 1 - scrollLeft;
     }
 
-    // If the scrollable element is Window object then the overlays' position compensates the editor position.
-    // In other cases, the overlay's position is 0.
-    topPos += wtOverlays.topOverlay.getOverlayPosition();
-    inlineStartPos += Math.abs(wtOverlays.inlineStartOverlay.getOverlayPosition());
+    // When the scrollable element is Window object then the editor position needs to be compensated
+    // by the overlays' position (position relative to the table viewport). In other cases, the overlay's
+    // position always returns 0.
+    if (['top', 'top_inline_start_corner'].includes(overlayName)) {
+      topPos += wtOverlays.topOverlay.getOverlayPosition();
+    }
+
+    if (['inline_start', 'top_inline_start_corner'].includes(overlayName)) {
+      inlineStartPos += Math.abs(wtOverlays.inlineStartOverlay.getOverlayPosition());
+    }
 
     const hasColumnHeaders = this.hot.hasColHeaders();
     const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
