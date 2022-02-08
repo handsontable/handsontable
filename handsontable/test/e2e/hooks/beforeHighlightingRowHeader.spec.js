@@ -132,15 +132,15 @@ describe('Hook', () => {
 
       selectCell(2, 4);
 
-      expect(getLeftClone().find('tbody tr:nth(2) th:nth(2)').hasClass('ht__highlight')).toBeFalse();
-      expect(getLeftClone().find('tbody tr:nth(4) th:nth(2)').hasClass('ht__highlight')).toBeTrue();
+      expect(getInlineStartClone().find('tbody tr:nth(2) th:nth(2)').hasClass('ht__highlight')).toBeFalse();
+      expect(getInlineStartClone().find('tbody tr:nth(4) th:nth(2)').hasClass('ht__highlight')).toBeTrue();
 
       selectRows(3, 4);
 
-      expect(getLeftClone().find('tbody tr:nth(3) th:nth(2)').hasClass('ht__active_highlight')).toBeFalse();
-      expect(getLeftClone().find('tbody tr:nth(4) th:nth(2)').hasClass('ht__active_highlight')).toBeFalse();
-      expect(getLeftClone().find('tbody tr:nth(5) th:nth(2)').hasClass('ht__active_highlight')).toBeTrue();
-      expect(getLeftClone().find('tbody tr:nth(6) th:nth(2)').hasClass('ht__active_highlight')).toBeTrue();
+      expect(getInlineStartClone().find('tbody tr:nth(3) th:nth(2)').hasClass('ht__active_highlight')).toBeFalse();
+      expect(getInlineStartClone().find('tbody tr:nth(4) th:nth(2)').hasClass('ht__active_highlight')).toBeFalse();
+      expect(getInlineStartClone().find('tbody tr:nth(5) th:nth(2)').hasClass('ht__active_highlight')).toBeTrue();
+      expect(getInlineStartClone().find('tbody tr:nth(6) th:nth(2)').hasClass('ht__active_highlight')).toBeTrue();
     });
   });
 });

@@ -8,6 +8,7 @@ import { arrayEach } from '../../../../helpers/array';
 import { warn } from '../../../../helpers/console';
 import {
   CLONE_TYPES,
+  CLONE_CLASS_NAMES,
   CLONE_TOP,
   CLONE_INLINE_START,
 } from './constants';
@@ -277,7 +278,7 @@ export class Overlay {
     const clonedTable = rootDocument.createElement('TABLE');
     const tableParent = wtTable.wtRootElement.parentNode;
 
-    clone.className = `ht_clone_${this.type} handsontable`;
+    clone.className = `${CLONE_CLASS_NAMES.get(this.type)} handsontable`;
     clone.style.position = 'absolute';
     clone.style.top = 0;
     clone.style.overflow = 'visible';

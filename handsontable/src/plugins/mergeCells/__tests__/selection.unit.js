@@ -2,10 +2,17 @@ import SelectionCalculations from '../calculations/selection';
 import MergedCellCoords from '../cellCoords';
 import { CellCoords, CellRange } from '../../../3rdparty/walkontable/src';
 
+const pluginMock = {
+  hot: {
+    _createCellCoords: (...args) => new CellCoords(...args),
+    _createCellRange: (...args) => new CellRange(...args),
+  }
+};
+
 describe('MergeCells-Selection calculations', () => {
   describe('snapDelta', () => {
     it('should update the delta value to compensate the rowspan according to defined merged cells.', () => {
-      const instance = new SelectionCalculations();
+      const instance = new SelectionCalculations(pluginMock);
       const delta = {
         row: -1,
         col: 0
@@ -20,7 +27,7 @@ describe('MergeCells-Selection calculations', () => {
     });
 
     it('should update the delta value to compensate the colspan according to defined merged cells.', () => {
-      const instance = new SelectionCalculations();
+      const instance = new SelectionCalculations(pluginMock);
       const delta = {
         row: 0,
         col: -1
@@ -35,7 +42,7 @@ describe('MergeCells-Selection calculations', () => {
     });
 
     it('should update the delta value to compensate the rowspan according to defined merged cells, when two merged cells are overlapping vertically', () => {
-      const instance = new SelectionCalculations();
+      const instance = new SelectionCalculations(pluginMock);
       const delta = {
         row: -3,
         col: 0
@@ -51,7 +58,7 @@ describe('MergeCells-Selection calculations', () => {
     });
 
     it('should update the delta value to compensate the colspan according to defined merged cells, when two merged cells are overlapping horizontally', () => {
-      const instance = new SelectionCalculations();
+      const instance = new SelectionCalculations(pluginMock);
       const delta = {
         row: 0,
         col: -3
@@ -69,7 +76,7 @@ describe('MergeCells-Selection calculations', () => {
 
   describe('getUpdatedSelectionRange', () => {
     it('should increment the `to` property of the provided range with the values from the `delta` object.', () => {
-      const instance = new SelectionCalculations();
+      const instance = new SelectionCalculations(pluginMock);
       let delta = {
         row: 0,
         col: -3
@@ -98,7 +105,7 @@ describe('MergeCells-Selection calculations', () => {
 
   describe('isMergeCellFullySelected', () => {
     it('should check whether the provided merged cell is fully selected (in one selection layer)', () => {
-      const instance = new SelectionCalculations();
+      const instance = new SelectionCalculations(pluginMock);
       const mergedCellMock = new MergedCellCoords(5, 2, 3, 3);
       const improperRangeArrayMock = [
         new CellRange(new CellCoords(5, 2), new CellCoords(5, 2), new CellCoords(7, 3))
@@ -112,7 +119,7 @@ describe('MergeCells-Selection calculations', () => {
     });
 
     it('should check whether the provided merged cell is fully selected (in multiple layer)', () => {
-      const instance = new SelectionCalculations();
+      const instance = new SelectionCalculations(pluginMock);
       const mergedCellMock = new MergedCellCoords(5, 2, 3, 3);
       const improperRangeArrayMock = [
         new CellRange(new CellCoords(5, 2), new CellCoords(5, 2), new CellCoords(7, 3)),

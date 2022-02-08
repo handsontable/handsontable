@@ -1,4 +1,3 @@
-import { CellCoords } from '../../3rdparty/walkontable/src';
 import { stringify } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
@@ -232,7 +231,7 @@ export class BaseEditor {
     const renderableRowIndex = hotInstance.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumnIndex = hotInstance.columnIndexMapper.getRenderableFromVisualIndex(this.col);
 
-    hotInstance.view.scrollViewport(new CellCoords(renderableRowIndex, renderableColumnIndex));
+    hotInstance.view.scrollViewport(hotInstance._createCellCoords(renderableRowIndex, renderableColumnIndex));
     this.state = EDITOR_STATE.EDITING;
 
     // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
@@ -404,22 +403,16 @@ export class BaseEditor {
     const editorSection = this.checkEditorSection();
 
     switch (editorSection) {
-      case 'right':
-        return 'ht_clone_right';
-      case 'left':
-        return 'ht_clone_left';
+      case 'inline-start':
+        return 'ht_clone_left ht_clone_inline_start';
       case 'bottom':
         return 'ht_clone_bottom';
-      case 'bottom-right-corner':
-        return 'ht_clone_bottom_right_corner';
-      case 'bottom-left-corner':
-        return 'ht_clone_bottom_left_corner';
+      case 'bottom-inline-start-corner':
+        return 'ht_clone_bottom_left_corner ht_clone_bottom_inline_start_corner';
       case 'top':
         return 'ht_clone_top';
-      case 'top-right-corner':
-        return 'ht_clone_top_right_corner';
-      case 'top-left-corner':
-        return 'ht_clone_top_left_corner';
+      case 'top-inline-start-corner':
+        return 'ht_clone_top_left_corner ht_clone_top_inline_start_corner';
       default:
         return 'ht_clone_master';
     }
@@ -446,19 +439,19 @@ export class BaseEditor {
 
     if (this.row < this.hot.getSettings().fixedRowsTop) {
       if (this.col < this.hot.getSettings().fixedColumnsStart) {
-        section = 'top-left-corner';
+        section = 'top-inline-start-corner';
       } else {
         section = 'top';
       }
     } else if (this.hot.getSettings().fixedRowsBottom &&
                this.row >= totalRows - this.hot.getSettings().fixedRowsBottom) {
       if (this.col < this.hot.getSettings().fixedColumnsStart) {
-        section = 'bottom-left-corner';
+        section = 'bottom-inline-start-corner';
       } else {
         section = 'bottom';
       }
     } else if (this.col < this.hot.getSettings().fixedColumnsStart) {
-      section = 'left';
+      section = 'inline-start';
     }
 
     return section;

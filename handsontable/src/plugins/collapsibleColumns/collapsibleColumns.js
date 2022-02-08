@@ -12,6 +12,7 @@ import { stopImmediatePropagation } from '../../helpers/dom/event';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
+const SETTING_KEYS = ['nestedHeaders'];
 
 const actionDictionary = new Map([
   ['collapse', {
@@ -79,6 +80,13 @@ export class CollapsibleColumns extends BasePlugin {
   static get PLUGIN_DEPS() {
     return [
       'plugin:NestedHeaders',
+    ];
+  }
+
+  static get SETTING_KEYS() {
+    return [
+      PLUGIN_KEY,
+      ...SETTING_KEYS
     ];
   }
 
@@ -168,6 +176,11 @@ export class CollapsibleColumns extends BasePlugin {
         });
 
       } else if (Array.isArray(collapsibleColumns)) {
+
+        this.headerStateManager.mapState(() => {
+          return { collapsible: false };
+        });
+
         this.headerStateManager.mergeStateWith(collapsibleColumns);
       }
     }
@@ -197,11 +210,11 @@ export class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    const headerLevels = this.hot.view.wt.getSetting('columnHeaders').length;
-    const mainHeaders = this.hot.view.wt.wtTable.THEAD;
-    const topHeaders = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
-    const topLeftCornerHeaders = this.hot.view.wt.wtOverlays.topInlineStartCornerOverlay ?
-      this.hot.view.wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.THEAD : null;
+    const headerLevels = this.hot.view._wt.getSetting('columnHeaders').length;
+    const mainHeaders = this.hot.view._wt.wtTable.THEAD;
+    const topHeaders = this.hot.view._wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
+    const topLeftCornerHeaders = this.hot.view._wt.wtOverlays.topInlineStartCornerOverlay ?
+      this.hot.view._wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.THEAD : null;
 
     const removeButton = function(button) {
       if (button) {

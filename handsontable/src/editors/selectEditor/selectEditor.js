@@ -190,7 +190,7 @@ export class SelectEditor extends BaseEditor {
       return;
     }
 
-    const { wtOverlays } = this.hot.view.wt;
+    const { wtOverlays } = this.hot.view._wt;
     const currentOffset = offset(this.TD);
     const containerOffset = offset(this.hot.rootElement);
     const scrollableContainer = wtOverlays.scrollableElement;
@@ -205,13 +205,13 @@ export class SelectEditor extends BaseEditor {
       case 'top':
         cssTransformOffset = getCssTransform(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
         break;
-      case 'left':
+      case 'inline-start':
         cssTransformOffset = getCssTransform(wtOverlays.inlineStartOverlay.clone.wtTable.holder.parentNode);
         break;
-      case 'top-left-corner':
+      case 'top-inline-start-corner':
         cssTransformOffset = getCssTransform(wtOverlays.topInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
         break;
-      case 'bottom-left-corner':
+      case 'bottom-inline-start-corner':
         cssTransformOffset = getCssTransform(wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
         break;
       case 'bottom':
@@ -224,7 +224,7 @@ export class SelectEditor extends BaseEditor {
     const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
     const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
-    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view.wt.getSetting('fixedRowsBottom');
+    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view._wt.getSetting('fixedRowsBottom');
 
     if (renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
       editTop += 1;

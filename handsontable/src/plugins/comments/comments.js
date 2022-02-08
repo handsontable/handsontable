@@ -9,7 +9,6 @@ import {
 } from '../../helpers/dom/element';
 import { deepClone, deepExtend, isObject } from '../../helpers/object';
 import EventManager from '../../eventManager';
-import { CellCoords, CellRange } from '../../3rdparty/walkontable/src';
 import { BasePlugin } from '../base';
 import CommentEditor from './commentEditor';
 import { checkSelectionConsistency, markLabelAsSelected } from '../contextMenu/utils';
@@ -290,7 +289,7 @@ export class Comments extends BasePlugin {
    */
   setCommentAtCell(row, column, value) {
     this.setRange({
-      from: new CellCoords(row, column)
+      from: this.hot._createCellCoords(row, column)
     });
     this.setComment(value);
   }
@@ -323,7 +322,7 @@ export class Comments extends BasePlugin {
    */
   removeCommentAtCell(row, column, forceRender = true) {
     this.setRange({
-      from: new CellCoords(row, column)
+      from: this.hot._createCellCoords(row, column)
     });
     this.removeComment(forceRender);
   }
@@ -385,7 +384,7 @@ export class Comments extends BasePlugin {
    */
   showAtCell(row, column) {
     this.setRange({
-      from: new CellCoords(row, column)
+      from: this.hot._createCellCoords(row, column)
     });
 
     return this.show();
@@ -432,7 +431,7 @@ export class Comments extends BasePlugin {
     renderableRow = renderableRow ?? 0;
     renderableColumn = renderableColumn ?? 0;
 
-    const { rootWindow, view: { wt } } = this.hot;
+    const { rootWindow, view: { _wt: wt } } = this.hot;
     const { wtTable, wtOverlays, wtViewport } = wt;
     const scrollableElement = wtOverlays.scrollableElement;
 
@@ -492,7 +491,7 @@ export class Comments extends BasePlugin {
     }
 
     let hasComment = false;
-    const cell = selected.getTopLeftCorner(); // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
+    const cell = selected.getTopStartCorner(); // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
 
     if (this.getCommentMeta(cell.row, cell.col, META_COMMENT_VALUE)) {
       hasComment = true;
@@ -547,7 +546,7 @@ export class Comments extends BasePlugin {
    * @param {MouseEvent} event The `mousedown` event.
    */
   onMouseDown(event) {
-    if (!this.hot.view || !this.hot.view.wt) {
+    if (!this.hot.view || !this.hot.view._wt) {
       return;
     }
 
@@ -584,7 +583,7 @@ export class Comments extends BasePlugin {
     priv.cellBelowCursor = rootDocument.elementFromPoint(event.clientX, event.clientY);
 
     if (this.targetIsCellWithComment(event)) {
-      const range = new CellRange(this.hot.getCoords(event.target));
+      const range = this.hot._createCellRange(this.hot.getCoords(event.target));
 
       this.displaySwitch.show(range);
 

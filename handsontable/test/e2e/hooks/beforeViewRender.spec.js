@@ -26,17 +26,17 @@ describe('Hook', () => {
       addHook('beforeViewRender', beforeViewRender);
       addHook('afterViewRender', afterViewRender);
 
-      hot.view.wt.draw(false);
+      hot.view._wt.draw(false);
 
       expect(beforeViewRender).toHaveBeenCalledTimes(1);
       expect(beforeViewRender).toHaveBeenCalledBefore(afterViewRender);
 
-      hot.view.wt.draw(true);
+      hot.view._wt.draw(true);
 
       expect(beforeViewRender).toHaveBeenCalledTimes(1);
       expect(afterViewRender).toHaveBeenCalledTimes(1);
 
-      hot.view.wt.draw(false);
+      hot.view._wt.draw(false);
 
       expect(beforeViewRender).toHaveBeenCalledTimes(2);
     });

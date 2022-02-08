@@ -20,6 +20,10 @@ export class TouchScroll extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get SETTING_KEYS() {
+    return true;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -116,7 +120,7 @@ export class TouchScroll extends BasePlugin {
       inlineStartOverlay,
       topInlineStartCornerOverlay,
       bottomInlineStartCornerOverlay
-    } = this.hot.view.wt.wtOverlays;
+    } = this.hot.view._wt.wtOverlays;
 
     this.lockedCollection = true;
     this.scrollbars.length = 0;
@@ -191,6 +195,6 @@ export class TouchScroll extends BasePlugin {
       scrollbar.resetFixedPosition();
     });
 
-    this.hot.view.wt.wtOverlays.syncScrollWithMaster();
+    this.hot.view._wt.wtOverlays.syncScrollWithMaster();
   }
 }

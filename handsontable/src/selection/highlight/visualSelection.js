@@ -1,4 +1,4 @@
-import { Selection, CellCoords, CellRange } from './../../3rdparty/walkontable/src';
+import { Selection } from './../../3rdparty/walkontable/src';
 
 class VisualSelection extends Selection {
   constructor(settings, visualCellRange) {
@@ -20,7 +20,7 @@ class VisualSelection extends Selection {
    */
   add(coords) {
     if (this.visualCellRange === null) {
-      this.visualCellRange = new CellRange(coords);
+      this.visualCellRange = this.settings.createCellRange(coords);
 
     } else {
       this.visualCellRange.expand(coords);
@@ -71,7 +71,7 @@ class VisualSelection extends Selection {
       return null;
     }
 
-    return new CellCoords(nextVisibleRow, nextVisibleColumn);
+    return this.settings.createCellCoords(nextVisibleRow, nextVisibleColumn);
   }
 
   /**
@@ -187,8 +187,8 @@ class VisualSelection extends Selection {
     }
 
     return [
-      new CellCoords(fromRangeVisualRow, fromRangeVisualColumn),
-      new CellCoords(toRangeVisualRow, toRangeVisualColumn),
+      this.settings.createCellCoords(fromRangeVisualRow, fromRangeVisualColumn),
+      this.settings.createCellCoords(toRangeVisualRow, toRangeVisualColumn),
     ];
   }
 
@@ -278,7 +278,7 @@ class VisualSelection extends Selection {
       if (this.cellRange === null) {
         const singleCellRangeRenderable = this.settings.visualToRenderableCoords(singleCellRangeVisual);
 
-        this.cellRange = new CellRange(singleCellRangeRenderable);
+        this.cellRange = this.settings.createCellRange(singleCellRangeRenderable);
       }
 
       // We set new highlight as it might change (for example, when showing/hiding some cells from the broader selection range)
@@ -307,11 +307,11 @@ class VisualSelection extends Selection {
 
     const isRowUndefined = from.row === null || to.row === null;
     const isColumnUndefined = from.col === null || to.col === null;
-    const topLeftCorner = new CellCoords(
+    const topLeftCorner = this.settings.createCellCoords(
       isRowUndefined ? null : Math.min(from.row, to.row),
       isColumnUndefined ? null : Math.min(from.col, to.col),
     );
-    const bottomRightCorner = new CellCoords(
+    const bottomRightCorner = this.settings.createCellCoords(
       isRowUndefined ? null : Math.max(from.row, to.row),
       isColumnUndefined ? null : Math.max(from.col, to.col),
     );
@@ -325,19 +325,20 @@ class VisualSelection extends Selection {
   }
 
   /**
-   * Returns the top left (TL) and bottom right (BR) selection coordinates (visual indexes).
+   * Returns the top left (or top right in RTL) and bottom right (or bottom left in RTL) selection
+   * coordinates (visual indexes).
    *
    * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
   getVisualCorners() {
-    const topLeft = this.settings.renderableToVisualCoords(this.cellRange.getTopLeftCorner());
-    const bottomRight = this.settings.renderableToVisualCoords(this.cellRange.getBottomRightCorner());
+    const topStart = this.settings.renderableToVisualCoords(this.cellRange.getTopStartCorner());
+    const bottomEnd = this.settings.renderableToVisualCoords(this.cellRange.getBottomEndCorner());
 
     return [
-      topLeft.row,
-      topLeft.col,
-      bottomRight.row,
-      bottomRight.col,
+      topStart.row,
+      topStart.col,
+      bottomEnd.row,
+      bottomEnd.col,
     ];
   }
 
@@ -346,7 +347,7 @@ class VisualSelection extends Selection {
    * translated to renderable indexes.
    *
    * @param {CellCoords} visualFromCoords The CellCoords object which contains coordinates that
-   *                                      points to the begining of the selection.
+   *                                      points to the beginning of the selection.
    * @param {CellCoords} visualToCoords The CellCoords object which contains coordinates that
    *                                    points to the end of the selection.
    * @returns {CellRange}
@@ -355,7 +356,7 @@ class VisualSelection extends Selection {
     const renderableFromCoords = this.settings.visualToRenderableCoords(visualFromCoords);
     const renderableToCoords = this.settings.visualToRenderableCoords(visualToCoords);
 
-    return new CellRange(renderableFromCoords, renderableFromCoords, renderableToCoords);
+    return this.settings.createCellRange(renderableFromCoords, renderableFromCoords, renderableToCoords);
   }
 
   /**

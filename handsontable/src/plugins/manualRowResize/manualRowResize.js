@@ -182,8 +182,8 @@ export class ManualRowResize extends BasePlugin {
     this.currentTH = TH;
 
     const { view } = this.hot;
-    const { wt } = view;
-    const cellCoords = view.wt.wtTable.getCoords(this.currentTH);
+    const { _wt: wt } = view;
+    const cellCoords = wt.wtTable.getCoords(this.currentTH);
     const row = cellCoords.row;
 
     // Ignore row headers.
@@ -230,8 +230,8 @@ export class ManualRowResize extends BasePlugin {
       const selectionRanges = this.hot.getSelectedRange();
 
       arrayEach(selectionRanges, (selectionRange) => {
-        const fromRow = selectionRange.getTopLeftCorner().row;
-        const toRow = selectionRange.getBottomLeftCorner().row;
+        const fromRow = selectionRange.getTopStartCorner().row;
+        const toRow = selectionRange.getBottomStartCorner().row;
 
         // Add every selected row for resize action.
         rangeEach(fromRow, toRow, (rowIndex) => {
@@ -346,7 +346,7 @@ export class ManualRowResize extends BasePlugin {
    */
   getActualRowHeight(row) {
     // TODO: this should utilize `this.hot.getRowHeight` after it's fixed and working properly.
-    const walkontableHeight = this.hot.view.wt.wtTable.getRowHeight(row);
+    const walkontableHeight = this.hot.view._wt.wtTable.getRowHeight(row);
 
     if (walkontableHeight !== void 0 && this.newSize < walkontableHeight) {
       return walkontableHeight;

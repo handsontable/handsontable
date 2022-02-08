@@ -708,14 +708,14 @@ class MergeCellsAction extends UndoRedo.Action {
     super();
     this.cellRange = cellRange;
 
-    const topLeftCorner = this.cellRange.getTopLeftCorner();
-    const bottomRightCorner = this.cellRange.getBottomRightCorner();
+    const topStartCorner = this.cellRange.getTopStartCorner();
+    const bottomEndCorner = this.cellRange.getBottomEndCorner();
 
     this.rangeData = instance.getData(
-      topLeftCorner.row,
-      topLeftCorner.col,
-      bottomRightCorner.row,
-      bottomRightCorner.col
+      topStartCorner.row,
+      topStartCorner.col,
+      bottomEndCorner.row,
+      bottomEndCorner.col
     );
   }
 
@@ -726,11 +726,11 @@ class MergeCellsAction extends UndoRedo.Action {
 
     mergeCellsPlugin.unmergeRange(this.cellRange, true);
 
-    const topLeftCorner = this.cellRange.getTopLeftCorner();
+    const topStartCorner = this.cellRange.getTopStartCorner();
 
     instance.populateFromArray(
-      topLeftCorner.row,
-      topLeftCorner.col,
+      topStartCorner.row,
+      topStartCorner.col,
       this.rangeData,
       void 0,
       void 0,
@@ -983,5 +983,6 @@ hook.register('beforeRedo');
 hook.register('afterRedo');
 
 UndoRedo.PLUGIN_KEY = PLUGIN_KEY;
+UndoRedo.SETTING_KEYS = true;
 
 export default UndoRedo;

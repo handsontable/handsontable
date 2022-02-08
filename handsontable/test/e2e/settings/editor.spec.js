@@ -206,7 +206,7 @@ describe('settings', () => {
           fixedColumnsStart: 1,
           viewportColumnRenderingOffset: 0,
         });
-        editedTd = spec().$container.find('.ht_clone_left td')[0];
+        editedTd = spec().$container.find('.ht_clone_inline_start td')[0];
         selectCell(0, 0);
       });
     });

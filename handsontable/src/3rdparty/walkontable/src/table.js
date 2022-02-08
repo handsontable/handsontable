@@ -11,7 +11,6 @@ import {
   isVisible,
 } from '../../../helpers/dom/element';
 import { isFunction } from '../../../helpers/function';
-import CellCoords from './cell/coords';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 import { Renderer } from './renderer';
@@ -393,7 +392,7 @@ class Table {
 
       if (positionChanged) {
         // It refreshes the cells borders caused by a 1px shift (introduced by overlays which add or
-        // remove `innerBorderTop` and `innerBorderLeft` CSS classes to the DOM element. This happens
+        // remove `innerBorderTop` and `innerBorderInlineStart` CSS classes to the DOM element. This happens
         // when there is a switch between rendering from 0 to N rows/columns and vice versa).
         wtOverlays.refreshAll();
         wtOverlays.adjustElementsSize();
@@ -776,7 +775,7 @@ class Table {
       col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
     }
 
-    return new CellCoords(row, col);
+    return this.wot.createCellCoords(row, col);
   }
 
   /**

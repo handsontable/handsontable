@@ -10,8 +10,8 @@
   inset-inline-end: unset;
 }
 
-.handsontable.innerBorderLeft th div.ht_nestingLevels,
-.handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingLevels {
+.handsontable.innerBorderInlineStart th div.ht_nestingLevels,
+.handsontable.innerBorderInlineStart ~ .handsontable th div.ht_nestingLevels {
   inset-inline-end: 10px;
   inset-inline-start: unset;
 }
@@ -52,8 +52,8 @@
   content: "\002D";
 }
 
-.handsontable.innerBorderLeft th div.ht_nestingButton,
-.handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingButton {
+.handsontable.innerBorderInlineStart th div.ht_nestingButton,
+.handsontable.innerBorderInlineStart ~ .handsontable th div.ht_nestingButton {
   inset-inline-end: 0;
   inset-inline-start: unset;
 }

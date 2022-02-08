@@ -196,15 +196,15 @@ export function getTopClone() {
 /**
  * @returns {jQuery}
  */
-export function getTopLeftClone() {
-  return spec().$container.find('.ht_clone_top_left_corner');
+export function getTopInlineStartClone() {
+  return spec().$container.find('.ht_clone_top_inline_start_corner');
 }
 
 /**
  * @returns {jQuery}
  */
-export function getLeftClone() {
-  return spec().$container.find('.ht_clone_left');
+export function getInlineStartClone() {
+  return spec().$container.find('.ht_clone_inline_start');
 }
 
 /**
@@ -217,8 +217,8 @@ export function getBottomClone() {
 /**
  * @returns {jQuery}
  */
-export function getBottomLeftClone() {
-  return spec().$container.find('.ht_clone_bottom_left_corner');
+export function getBottomInlineStartClone() {
+  return spec().$container.find('.ht_clone_bottom_inline_start_corner');
 }
 
 /**
@@ -235,7 +235,7 @@ export function countCells() {
  * @returns {HTMLTableCellElement}
  */
 export function getColumnHeader(columnIndex = 0) {
-  return hot().view.wt.wtTable.getColumnHeader(columnIndex);
+  return hot().view._wt.wtTable.getColumnHeader(columnIndex);
 }
 
 /**
@@ -360,7 +360,7 @@ export function dropdownMenu(columnIndexOrCell) {
   if (!(columnIndexOrCell instanceof HTMLTableCellElement)) {
     const hotInstance = spec().$container.data('handsontable');
 
-    th = hotInstance.view.wt.wtTable.getColumnHeader(columnIndexOrCell || 0);
+    th = hotInstance.view._wt.wtTable.getColumnHeader(columnIndexOrCell || 0);
   }
 
   const button = th.querySelector('.changeType');
@@ -646,7 +646,7 @@ export function resizeColumn(renderableColumnIndex, width) {
  */
 export function resizeRow(renderableRowIndex, height) {
   const $container = spec().$container;
-  const $th = getLeftClone().find(`tbody tr:eq(${renderableRowIndex}) th:eq(0)`);
+  const $th = getInlineStartClone().find(`tbody tr:eq(${renderableRowIndex}) th:eq(0)`);
   const newHeight = renderableRowIndex !== 0 ? height + 1 : height; // compensate border
 
   $th.simulate('mouseover');

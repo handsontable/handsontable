@@ -1,4 +1,3 @@
-import { CellCoords } from './3rdparty/walkontable/src';
 import { KEY_CODES, isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
@@ -96,7 +95,7 @@ class EditorManager {
       }
     });
 
-    this.instance.view.wt.update('onCellDblClick', (event, coords, elem) => this.onCellDblClick(event, coords, elem));
+    this.instance.view._wt.update('onCellDblClick', (event, coords, elem) => this.onCellDblClick(event, coords, elem));
   }
 
   /**
@@ -510,12 +509,12 @@ class EditorManager {
       case KEY_CODES.HOME:
         if (event.ctrlKey || event.metaKey) {
           rangeModifier.call(this.selection,
-            new CellCoords(
+            this.instance._createCellCoords(
               this.instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
               this.selection.selectedRange.current().from.col));
         } else {
           rangeModifier.call(this.selection,
-            new CellCoords(this.selection.selectedRange.current().from.row,
+            this.instance._createCellCoords(this.selection.selectedRange.current().from.row,
               this.instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1)));
         }
         event.preventDefault(); // don't scroll the window
@@ -526,13 +525,14 @@ class EditorManager {
         if (event.ctrlKey || event.metaKey) {
           rangeModifier.call(
             this.selection,
-            new CellCoords(this.instance.rowIndexMapper.getFirstNotHiddenIndex(this.instance.countRows() - 1, -1),
+            this.instance._createCellCoords(
+              this.instance.rowIndexMapper.getFirstNotHiddenIndex(this.instance.countRows() - 1, -1),
               this.selection.selectedRange.current().from.col)
           );
         } else {
           rangeModifier.call(
             this.selection,
-            new CellCoords(this.selection.selectedRange.current().from.row,
+            this.instance._createCellCoords(this.selection.selectedRange.current().from.row,
               this.instance.columnIndexMapper.getFirstNotHiddenIndex(this.instance.countCols() - 1, -1))
           );
         }

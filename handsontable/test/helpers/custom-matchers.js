@@ -110,7 +110,7 @@ beforeEach(function() {
     toBeVisibleInViewport() {
       return {
         compare(actual) {
-          const viewport = hot().view.wt.wtTable.holder;
+          const viewport = hot().view._wt.wtTable.holder;
           const verticalPosition = actual.offsetTop - viewport.scrollTop + scrollbarWidth + actual.clientHeight;
           const horizontalPosition = actual.offsetLeft - viewport.scrollLeft + scrollbarWidth + actual.clientWidth;
 
@@ -132,7 +132,7 @@ beforeEach(function() {
     toBeVisibleAtTopOfViewport() {
       return {
         compare(actual) {
-          const viewport = hot().view.wt.wtTable.holder;
+          const viewport = hot().view._wt.wtTable.holder;
           const verticalPosition = actual.offsetTop - viewport.scrollTop - 1;
 
           return {
@@ -150,7 +150,7 @@ beforeEach(function() {
     toBeVisibleAtBottomOfViewport() {
       return {
         compare(actual) {
-          const viewport = hot().view.wt.wtTable.holder;
+          const viewport = hot().view._wt.wtTable.holder;
           const verticalPosition = actual.offsetTop - viewport.scrollTop + scrollbarWidth + actual.clientHeight + 1;
 
           return {
@@ -168,7 +168,7 @@ beforeEach(function() {
     toBeVisibleAtLeftOfViewport() {
       return {
         compare(actual) {
-          const viewport = hot().view.wt.wtTable.holder;
+          const viewport = hot().view._wt.wtTable.holder;
 
           return {
             pass: viewport.getBoundingClientRect().x === actual.getBoundingClientRect().x,
@@ -185,7 +185,7 @@ beforeEach(function() {
     toBeVisibleAtRightOfViewport() {
       return {
         compare(actual) {
-          const viewport = hot().view.wt.wtTable.holder;
+          const viewport = hot().view._wt.wtTable.holder;
           const rightBorderPosition = actual.getBoundingClientRect().x + actual.clientWidth + scrollbarWidth + 1;
 
           return {

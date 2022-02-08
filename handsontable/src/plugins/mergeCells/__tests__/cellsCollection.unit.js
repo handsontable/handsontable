@@ -1,4 +1,5 @@
 import MergedCellsCollection from '../cellsCollection';
+import { CellCoords, CellRange } from '../../../3rdparty/walkontable/src';
 
 describe('MergeCells', () => {
   describe('MergedCellsCollection', () => {
@@ -7,6 +8,8 @@ describe('MergeCells', () => {
       },
       countCols: () => 100,
       countRows: () => 100,
+      _createCellCoords: (row, column) => new CellCoords(row, column),
+      _createCellRange: (highlight, from, to) => new CellRange(highlight, from, to),
     };
 
     describe('`add` method', () => {

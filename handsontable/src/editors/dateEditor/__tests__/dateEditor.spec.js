@@ -357,25 +357,22 @@ describe('DateEditor', () => {
     expect(onCloseSpy).toHaveBeenCalled();
   });
 
-  it('should set isRTL option as `false` when it\'s opened in LTR mode', () => {
+  it('should render Pikaday within element that contains correct "dir" attribute value', () => {
     handsontable({
-      data: getDates(),
+      data: Handsontable.helper.createSpreadsheetData(5, 2),
       columns: [
-        {
-          type: 'date',
-          datePickerConfig: {
-            isRTL: true, // read only - shouldn't overwrite
-          }
-        }
+        { type: 'date' },
+        { type: 'date' }
       ]
     });
 
-    selectCell(0, 0);
+    selectCell(1, 1);
     keyDown('enter');
-    keyDown('esc');
 
+    const datePicker = getActiveEditor().datePicker;
     const config = getActiveEditor().$datePicker.config();
 
+    expect(datePicker.getAttribute('dir')).toBe('ltr');
     expect(config.isRTL).toBe(false);
   });
 

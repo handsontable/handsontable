@@ -12,7 +12,7 @@ import {
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
-import Walkontable, { CellCoords } from './3rdparty/walkontable/src';
+import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
 
@@ -51,21 +51,24 @@ class TableView {
     /**
      * Main <THEAD> element.
      *
+     * @private
      * @type {HTMLTableSectionElement}
      */
     this.THEAD = void 0;
     /**
      * Main <TBODY> element.
      *
+     * @private
      * @type {HTMLTableSectionElement}
      */
     this.TBODY = void 0;
     /**
      * Main Walkontable instance.
      *
+     * @private
      * @type {Walkontable}
      */
-    this.wt = void 0;
+    this._wt = void 0;
     /**
      * Main Walkontable instance.
      *
@@ -135,7 +138,7 @@ class TableView {
         this.adjustElementsSize(true);
       }
 
-      this.wt.draw(!this.instance.forceFullRender);
+      this._wt.draw(!this.instance.forceFullRender);
       this.instance.runHooks('afterRender', this.instance.forceFullRender);
       this.instance.forceFullRender = false;
       this.instance.renderCall = false;
@@ -151,7 +154,7 @@ class TableView {
     if (this.instance.isRenderSuspended()) {
       this.postponedAdjustElementsSize = true;
     } else {
-      this.wt.wtOverlays.adjustElementsSize(force);
+      this._wt.wtOverlays.adjustElementsSize(force);
     }
   }
 
@@ -163,7 +166,7 @@ class TableView {
    * @returns {HTMLTableCellElement|null}
    */
   getCellAtCoords(coords, topmost) {
-    const td = this.wt.getCell(coords, topmost);
+    const td = this._wt.getCell(coords, topmost);
 
     if (td < 0) { // there was an exit code (cell is out of bounds)
       return null;
@@ -183,7 +186,7 @@ class TableView {
    * @returns {boolean}
    */
   scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
-    return this.wt.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
+    return this._wt.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
   }
 
   /**
@@ -195,7 +198,7 @@ class TableView {
    * @returns {boolean}
    */
   scrollViewportHorizontally(column, snapToRight, snapToLeft) {
-    return this.wt.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+    return this._wt.scrollViewportHorizontally(column, snapToRight, snapToLeft);
   }
 
   /**
@@ -207,7 +210,7 @@ class TableView {
    * @returns {boolean}
    */
   scrollViewportVertically(row, snapToTop, snapToBottom) {
-    return this.wt.scrollViewportVertically(row, snapToTop, snapToBottom);
+    return this._wt.scrollViewportVertically(row, snapToTop, snapToBottom);
   }
 
   /**
@@ -326,7 +329,7 @@ class TableView {
       }
 
       // immediate click on "holder" means click on the right side of vertical scrollbar
-      const { holder } = this.instance.view.wt.wtTable;
+      const { holder } = this.instance.view._wt.wtTable;
 
       if (next === holder) {
         const scrollbarWidth = getScrollbarWidth(rootDocument);
@@ -383,7 +386,7 @@ class TableView {
    */
   translateFromRenderableToVisualCoords({ row, col }) {
     // TODO: To consider an idea to reusing the CellCoords instance instead creating new one.
-    return new CellCoords(...this.translateFromRenderableToVisualIndex(row, col));
+    return this.instance._createCellCoords(...this.translateFromRenderableToVisualIndex(row, col));
   }
 
   /**
@@ -683,10 +686,11 @@ class TableView {
           coords: visualCoords,
           selection: this.instance.selection,
           controller,
+          cellCoordsFactory: (row, column) => this.instance._createCellCoords(row, column),
         });
 
         this.instance.runHooks('afterOnCellMouseDown', event, visualCoords, TD);
-        this.activeWt = this.wt;
+        this.activeWt = this._wt;
       },
       onCellContextMenu: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
@@ -706,7 +710,7 @@ class TableView {
 
         this.instance.runHooks('afterOnCellContextMenu', event, visualCoords, TD);
 
-        this.activeWt = this.wt;
+        this.activeWt = this._wt;
       },
       onCellMouseOut: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
@@ -719,7 +723,7 @@ class TableView {
         }
 
         this.instance.runHooks('afterOnCellMouseOut', event, visualCoords, TD);
-        this.activeWt = this.wt;
+        this.activeWt = this._wt;
       },
       onCellMouseOver: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
@@ -742,11 +746,12 @@ class TableView {
             coords: visualCoords,
             selection: this.instance.selection,
             controller,
+            cellCoordsFactory: (row, column) => this.instance._createCellCoords(row, column),
           });
         }
 
         this.instance.runHooks('afterOnCellMouseOver', event, visualCoords, TD);
-        this.activeWt = this.wt;
+        this.activeWt = this._wt;
       },
       onCellMouseUp: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
@@ -763,7 +768,7 @@ class TableView {
         }
 
         this.instance.runHooks('afterOnCellMouseUp', event, visualCoords, TD);
-        this.activeWt = this.wt;
+        this.activeWt = this._wt;
       },
       onCellCornerMouseDown: (event) => {
         event.preventDefault();
@@ -924,10 +929,10 @@ class TableView {
 
     this.instance.runHooks('beforeInitWalkontable', walkontableConfig);
 
-    this.wt = new Walkontable(walkontableConfig);
-    this.activeWt = this.wt;
+    this._wt = new Walkontable(walkontableConfig);
+    this.activeWt = this._wt;
 
-    const spreader = this.wt.wtTable.spreader;
+    const spreader = this._wt.wtTable.spreader;
     // We have to cache width and height after Walkontable initialization.
     const { width, height } = this.instance.rootElement.getBoundingClientRect();
 
@@ -949,7 +954,7 @@ class TableView {
 
     this.eventManager.addEventListener(this.instance.rootDocument.documentElement, 'click', () => {
       if (this.settings.observeDOMVisibility) {
-        if (this.wt.drawInterrupted) {
+        if (this._wt.drawInterrupted) {
           this.instance.forceFullRender = true;
           this.render();
         }
@@ -968,7 +973,7 @@ class TableView {
     if (isInput(el)) {
       return true;
     }
-    const isChildOfTableBody = isChildOf(el, this.instance.view.wt.wtTable.spreader);
+    const isChildOfTableBody = isChildOf(el, this.instance.view._wt.wtTable.spreader);
 
     if (this.settings.fragmentSelection === true && isChildOfTableBody) {
       return true;
@@ -1126,7 +1131,7 @@ class TableView {
    */
   updateCellHeader(element, index, content) {
     let renderedIndex = index;
-    const parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
+    const parentOverlay = this._wt.wtOverlays.getParentOverlay(element) || this._wt;
 
     // prevent wrong calculations from SampleGenerator
     if (element.parentNode) {
@@ -1157,7 +1162,7 @@ class TableView {
    * @returns {number}
    */
   maximumVisibleElementWidth(inlineOffset) {
-    const workspaceWidth = this.wt.wtViewport.getWorkspaceWidth();
+    const workspaceWidth = this._wt.wtViewport.getWorkspaceWidth();
     const maxWidth = workspaceWidth - inlineOffset;
 
     return maxWidth > 0 ? maxWidth : 0;
@@ -1172,7 +1177,7 @@ class TableView {
    * @returns {number}
    */
   maximumVisibleElementHeight(topOffset) {
-    const workspaceHeight = this.wt.wtViewport.getWorkspaceHeight();
+    const workspaceHeight = this._wt.wtViewport.getWorkspaceHeight();
     const maxHeight = workspaceHeight - topOffset;
 
     return maxHeight > 0 ? maxHeight : 0;
@@ -1207,7 +1212,7 @@ class TableView {
    * @private
    */
   destroy() {
-    this.wt.destroy();
+    this._wt.destroy();
     this.eventManager.destroy();
   }
 }
