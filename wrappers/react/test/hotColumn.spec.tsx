@@ -12,25 +12,6 @@ import {
   mountComponent
 } from './_helpers';
 
-const SPEC = {
-  container: null
-};
-
-beforeEach(() => {
-  const container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-
-  SPEC.container = container;
-});
-
-afterEach(() => {
-  const container = document.querySelector('#hotContainer');
-  container.parentNode.removeChild(container);
-
-  SPEC.container = null;
-});
-
 describe('Passing column settings using HotColumn', () => {
   it('should apply the Handsontable settings passed as HotColumn arguments to the Handsontable instance', async () => {
     const hotInstance = mountComponent((
@@ -42,7 +23,7 @@ describe('Passing column settings using HotColumn', () => {
         <HotColumn title="test title"></HotColumn>
         <HotColumn readOnly={true}></HotColumn>
       </HotTable>
-    ), SPEC.container).hotInstance;
+    )).hotInstance;
 
     expect(hotInstance.getSettings().columns[0].title).toEqual('test title');
     expect(hotInstance.getCellMeta(0, 0).readOnly).toEqual(false);
@@ -63,7 +44,7 @@ describe('Passing column settings using HotColumn', () => {
       >
         <HotColumn data="key1"></HotColumn>
       </HotTable>
-    ), SPEC.container).hotInstance;
+    )).hotInstance;
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual(dataKeyCellValue);
   });
@@ -89,7 +70,7 @@ describe('Renderer configuration using React components', () => {
           <RendererComponent hot-renderer></RendererComponent>
         </HotColumn>
       </HotTable>
-    ), SPEC.container).hotInstance;
+    )).hotInstance;
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('A1');
     expect(hotInstance.getCell(0, 1).innerHTML).toEqual('<div>value: B1</div>');
@@ -122,7 +103,7 @@ describe('Editor configuration using React components', () => {
           <EditorComponent hot-editor></EditorComponent>
         </HotColumn>
       </HotTable>
-    ), SPEC.container).hotInstance;
+    )).hotInstance;
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
 
@@ -174,7 +155,7 @@ describe('Editor configuration using React components', () => {
           <ReusableEditor background='yellow' hot-editor></ReusableEditor>
         </HotColumn>
       </HotTable>
-    ), SPEC.container).hotInstance;
+    )).hotInstance;
 
     hotInstance.selectCell(0, 0);
 
@@ -254,7 +235,7 @@ describe('Dynamic HotColumn configuration changes', () => {
 
     const wrapperComponentInstance = mountComponent((
       <WrapperComponent/>
-    ), SPEC.container);
+    ));
 
     let hotInstance = (hotTableInstanceRef.current as any).hotInstance;
     let editorElement = document.querySelector('#editorComponentContainer');

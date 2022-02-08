@@ -1,11 +1,30 @@
 import React, { useRef } from 'react';
 import { render } from 'react-dom';
 import { act } from 'react-dom/test-utils';
-import { HotTable, HotColumn } from '../src/hotTable';
+import { HotTable } from '../src/hotTable';
 import { addUnsafePrefixes } from '../src/helpers';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
 
-export function mountComponent(Component, container) {
+const SPEC = {
+  container: null
+};
+
+beforeEach(() => {
+  const container = document.createElement('DIV');
+
+  container.id = 'hotContainer';
+  document.body.appendChild(container);
+  SPEC.container = container;
+});
+
+afterEach(() => {
+  const container = document.querySelector('#hotContainer');
+
+  container.parentNode.removeChild(container);
+  SPEC.container = null;
+});
+
+export function mountComponent(Component, container = SPEC.container) {
   let hotTableComponent = null;
 
   const App = () => {

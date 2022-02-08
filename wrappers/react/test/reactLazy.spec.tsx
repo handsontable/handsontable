@@ -9,25 +9,6 @@ import {
   sleep,
 } from './_helpers';
 
-const SPEC = {
-  container: null
-};
-
-beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-
-  SPEC.container = container;
-});
-
-afterEach(() => {
-  const container = document.querySelector('#hotContainer');
-  container.parentNode.removeChild(container);
-
-  SPEC.container = null;
-});
-
 describe('React.lazy', () => {
   it('should be possible to lazy-load components and utilize Suspend', async () => {
     function RendererComponent2(props) {
@@ -70,7 +51,7 @@ describe('React.lazy', () => {
                 }}>
         <SuspendedRenderer hot-renderer/>
       </HotTable>
-    ), SPEC.container).hotInstance;
+    )).hotInstance;
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>loading-message</div>');
 

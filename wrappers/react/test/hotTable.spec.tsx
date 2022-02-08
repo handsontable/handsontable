@@ -15,25 +15,6 @@ import {
   mountComponent
 } from './_helpers';
 
-const SPEC = {
-  container: null
-};
-
-beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-
-  SPEC.container = container;
-});
-
-afterEach(() => {
-  const container = document.querySelector('#hotContainer');
-  container.parentNode.removeChild(container);
-
-  SPEC.container = null;
-});
-
 describe('Handsontable initialization', () => {
   it('should render Handsontable when using the HotTable component', async () => {
     const hotInstance = mountComponent((
@@ -42,7 +23,7 @@ describe('Handsontable initialization', () => {
         data={[[2]]}
         licenseKey="non-commercial-and-evaluation"
       />
-    ), SPEC.container).hotInstance;
+    )).hotInstance;
 
     expect(hotInstance).not.toBe(null);
     expect(hotInstance).not.toBe(void 0);
@@ -59,7 +40,7 @@ describe('Handsontable initialization', () => {
         colHeaders={true}
         data={[[2]]}
         licenseKey="non-commercial-and-evaluation"/>
-    ), SPEC.container).hotInstance;
+    )).hotInstance;
 
     expect(hotInstance.getSettings().contextMenu).toBe(true);
     expect(hotInstance.getSettings().rowHeaders).toBe(true);
@@ -72,7 +53,7 @@ describe('Updating the Handsontable settings', () => {
   it('should call the updateSettings method of Handsontable, when the component properties get updated (when providing properties individually)', async () => {
     const componentInstance = mountComponent((
       <IndividualPropsWrapper/>
-    ), SPEC.container);
+    ));
 
     const hotInstance = componentInstance.hotTable.hotInstance;
     let updateSettingsCount = 0;
@@ -91,7 +72,7 @@ describe('Updating the Handsontable settings', () => {
   it('should call the updateSettings method of Handsontable, when the component properties get updated (when providing properties as a single settings object)', async () => {
     const componentInstance = mountComponent((
       <SingleObjectWrapper/>
-    ), SPEC.container);
+    ));
 
     const hotInstance = componentInstance.hotTable.hotInstance;
     let updateSettingsCount = 0;
@@ -109,7 +90,7 @@ describe('Updating the Handsontable settings', () => {
   it('should update the Handsontable options, when the component properties get updated (when providing properties individually)', async () => {
     const componentInstance = mountComponent((
       <IndividualPropsWrapper/>
-    ), SPEC.container);
+    ));
 
     const hotInstance = componentInstance.hotTable.hotInstance;
 
@@ -128,7 +109,7 @@ describe('Updating the Handsontable settings', () => {
   it('should update the Handsontable options, when the component properties get updated (when providing properties as a single settings object)', async () => {
     const componentInstance = mountComponent((
       <SingleObjectWrapper/>
-    ), SPEC.container);
+    ));
 
     const hotInstance = componentInstance.hotTable.hotInstance;
 
@@ -163,7 +144,7 @@ describe('Renderer configuration using React components', () => {
                 }}>
         <RendererComponent hot-renderer></RendererComponent>
       </HotTable>
-    ), SPEC.container).hotInstance;
+    )).hotInstance;
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>value: A1</div>');
 
@@ -197,7 +178,7 @@ describe('Editor configuration using React components', () => {
                 }}>
         <EditorComponent hot-editor></EditorComponent>
       </HotTable>
-    ), SPEC.container).hotInstance;
+    )).hotInstance;
 
     expect((document.querySelector('#editorComponentContainer') as any).style.display).toEqual('none');
 
