@@ -140,7 +140,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {boolean} True if RTL.
    */
   this.isRtl = function() {
-    return instance.rootElement.getAttribute('dir') === 'rtl';
+    let dir = instance.rootElement.getAttribute('dir');
+
+    if (!dir) {
+      // when the "dir" attribute is not set yet (see @2432 line) get the value from computed style
+      dir = instance.rootWindow.getComputedStyle(instance.rootElement).direction;
+    }
+
+    return dir === 'rtl';
   };
 
   /**

@@ -1,6 +1,9 @@
 import Core from '../../core';
+import { Events } from '../../pluginHooks';
 
 export class BasePlugin {
+  readonly hot: Core;
+
   constructor(hotInstance: Core);
 
   static get PLUGIN_KEY(): string;
@@ -16,8 +19,8 @@ export class BasePlugin {
   enablePlugin(): void;
   disablePlugin(): void;
   updatePlugin(): void;
-  addHook(name: string, callback: () => void): void;
-  removeHooks(name: string): void;
+  addHook<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>): void;
+  removeHooks(name: keyof Events): void;
   clearHooks(): void;
   callOnPluginsReady(callback: () => void): void;
   destroy(): void;
