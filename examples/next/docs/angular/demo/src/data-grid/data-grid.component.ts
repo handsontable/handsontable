@@ -26,14 +26,14 @@ export class DataGridComponent {
   starsRenderer = starsRenderer;
   colHeaders = [
     "Company name",
-    "Country",
     "Name",
     "Sell date",
-    "Order ID",
     "In stock",
     "Qty",
     "Progress",
-    "Rating"
+    "Rating",
+    "Order ID",
+    "Country"
   ];
   hiddenColumns = {
     indicators: true
