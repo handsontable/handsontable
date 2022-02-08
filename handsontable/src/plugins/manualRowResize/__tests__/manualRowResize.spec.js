@@ -887,7 +887,7 @@ describe('manualRowResize', () => {
         width: 200
       });
 
-      const mainHolder = hot.view.wt.wtTable.holder;
+      const mainHolder = hot.view._wt.wtTable.holder;
       let $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
 
       $rowHeader.simulate('mouseover');

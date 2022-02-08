@@ -70,7 +70,7 @@ describe('manualRowResize (RTL mode)', () => {
         width: 200
       });
 
-      const mainHolder = hot.view.wt.wtTable.holder;
+      const mainHolder = hot.view._wt.wtTable.holder;
       let $rowHeader = getInlineStartClone().find('tr:eq(2) th:eq(0)');
 
       $rowHeader.simulate('mouseover');
@@ -160,7 +160,7 @@ describe('manualRowResize (RTL mode)', () => {
         width: 200
       });
 
-      const mainHolder = hot.view.wt.wtTable.holder;
+      const mainHolder = hot.view._wt.wtTable.holder;
       let $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
 
       $rowHeader.simulate('mouseover');
