@@ -10,25 +10,6 @@ import {
 import { HOT_DESTROYED_WARNING } from "../src/helpers";
 import { BaseEditorComponent } from '../src/baseEditorComponent';
 
-const SPEC = {
-  container: null
-};
-
-beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-
-  SPEC.container = container;
-});
-
-afterEach(() => {
-  const container = document.querySelector('#hotContainer');
-  container.parentNode.removeChild(container);
-
-  SPEC.container = null;
-});
-
 describe('Subcomponent state', () => {
   it('should be possible to set the state of the renderer components passed to HotTable and HotColumn', async () => {
     class RendererComponent2 extends React.Component<any, any, any> {
@@ -79,7 +60,7 @@ describe('Subcomponent state', () => {
           }} hot-renderer></RendererComponent2>
         </HotColumn>
       </HotTable>
-    ), SPEC.container).hotInstance;
+    )).hotInstance;
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>initial</div>');
     expect(hotInstance.getCell(0, 1).innerHTML).toEqual('<div>initial</div>');
@@ -139,7 +120,7 @@ describe('Subcomponent state', () => {
           }} hot-editor></RendererEditor2>
         </HotColumn>
       </HotTable>
-    ), SPEC.container);
+    ));
 
     expect(document.querySelector('#first-editor').innerHTML).toEqual('initial');
     expect(document.querySelector('#second-editor').innerHTML).toEqual('initial');
@@ -225,7 +206,7 @@ describe('Component lifecyle', () => {
           }} hot-renderer></RendererComponent2>
         </HotColumn>
       </HotTable>
-    ), SPEC.container).hotInstance;
+    )).hotInstance;
 
     rendererCounters.forEach((counters) => {
       expect(counters.willMount).toEqual(1);
@@ -305,7 +286,7 @@ describe('Component lifecyle', () => {
                 }}>
         {childrenArray}
       </HotTable>
-    ), SPEC.container);
+    ));
 
     editorCounters.forEach((counters) => {
       expect(counters.willMount).toEqual(1);
@@ -337,7 +318,7 @@ describe('Component lifecyle', () => {
         data={[[2]]}
         licenseKey="non-commercial-and-evaluation"
       />
-    ), SPEC.container);
+    ));
 
     console.warn = (warningMessage) => {
       warnCalls.push(warningMessage);

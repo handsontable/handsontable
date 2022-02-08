@@ -15,25 +15,6 @@ import {
   AUTOSIZE_WARNING
 } from '../src/helpers';
 
-const SPEC = {
-  container: null
-};
-
-beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-
-  SPEC.container = container;
-});
-
-afterEach(() => {
-  const container = document.querySelector('#hotContainer');
-  container.parentNode.removeChild(container);
-
-  SPEC.container = null;
-});
-
 registerAllModules();
 
 describe('`autoRowSize`/`autoColumns` warning', () => {
@@ -56,7 +37,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
                 }}>
         <RendererComponent hot-renderer></RendererComponent>
       </HotTable>
-    ), SPEC.container);
+    ));
 
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
   });
@@ -82,7 +63,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
                 }}>
         <RendererComponent hot-renderer></RendererComponent>
       </HotTable>
-    ), SPEC.container);
+    ));
 
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
   });
@@ -110,7 +91,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
         </HotColumn>
         <HotColumn/>
       </HotTable>
-    ), SPEC.container);
+    ));
 
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
   });
@@ -140,7 +121,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
         </HotColumn>
         <HotColumn/>
       </HotTable>
-    ), SPEC.container);
+    ));
 
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
   });
@@ -174,7 +155,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
         </HotColumn>
         <HotColumn/>
       </HotTable>
-    ), SPEC.container);
+    ));
 
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
   });
@@ -198,7 +179,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
         <HotColumn/>
         <HotColumn/>
       </HotTable>
-    ), SPEC.container);
+    ));
 
     expect(console.warn).not.toHaveBeenCalled();
   });
@@ -222,7 +203,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
         <HotColumn/>
         <HotColumn/>
       </HotTable>
-    ), SPEC.container);
+    ));
 
     expect(console.warn).not.toHaveBeenCalled();
   });
@@ -251,7 +232,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
         <HotColumn/>
         <HotColumn/>
       </HotTable>
-    ), SPEC.container);
+    ));
 
     expect(console.warn).not.toHaveBeenCalled();
   });

@@ -8,25 +8,6 @@ import {
   mountComponent
 } from './_helpers';
 
-const SPEC = {
-  container: null
-};
-
-beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-
-  SPEC.container = container;
-});
-
-afterEach(() => {
-  const container = document.querySelector('#hotContainer');
-  container.parentNode.removeChild(container);
-
-  SPEC.container = null;
-});
-
 /**
  * Worth noting, that although it's possible to use React's Pure Components on renderer components, it doesn't do much, as currently they're recreated on every
  * Handsontable's `render`.
@@ -58,7 +39,7 @@ describe('React PureComponents', () => {
                 }}>
         <RendererComponent2 hot-renderer/>
       </HotTable>
-    ), SPEC.container).hotInstance;
+    )).hotInstance;
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>value: A1</div>');
   });

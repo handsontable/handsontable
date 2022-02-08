@@ -12,25 +12,6 @@ import {
 } from './_helpers';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
 
-const SPEC = {
-  container: null
-};
-
-beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-
-  SPEC.container = container;
-});
-
-afterEach(() => {
-  const container = document.querySelector('#hotContainer');
-  container.parentNode.removeChild(container);
-
-  SPEC.container = null;
-});
-
 describe('React Context', () => {
   it('should be possible to declare a context and use it inside both renderers and editors', async () => {
     let hotTableInstance = null;
@@ -103,7 +84,7 @@ describe('React Context', () => {
           </HotColumn>
         </HotTable>
       </TestContext.Provider>
-    ), SPEC.container);
+    ));
 
     const hotInstance = hotTableInstance.hotInstance;
 

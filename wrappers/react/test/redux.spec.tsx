@@ -32,28 +32,11 @@ const appReducer = (state = initialReduxStoreState, action) => {
 const actionReducers = combineReducers({appReducer});
 const reduxStore = createStore(actionReducers);
 
-const SPEC = {
-  container: null
-};
-
 beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-
-  SPEC.container = container;
-
   reduxStore.dispatch({
     type: 'updateColor',
     hexColor: '#fff'
   });
-});
-
-afterEach(() => {
-  const container = document.querySelector('#hotContainer');
-  container.parentNode.removeChild(container);
-
-  SPEC.container = null;
 });
 
 describe('Using Redux store within HotTable renderers and editors', () => {
@@ -95,7 +78,7 @@ describe('Using Redux store within HotTable renderers and editors', () => {
           } hot-renderer/>
         </HotTable>
       </Provider>
-    ), SPEC.container);
+    ));
 
     rendererInstances.forEach((component, key, map) => {
       expect(component.props.bgColor).toEqual('#fff');
@@ -147,7 +130,7 @@ describe('Using Redux store within HotTable renderers and editors', () => {
           } hot-editor/>
         </HotTable>
       </Provider>
-    ), SPEC.container);
+    ));
 
     await sleep(100);
 

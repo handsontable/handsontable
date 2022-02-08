@@ -9,25 +9,6 @@ import {
   mountComponent
 } from './_helpers';
 
-const SPEC = {
-  container: null
-};
-
-beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-
-  SPEC.container = container;
-});
-
-afterEach(() => {
-  const container = document.querySelector('#hotContainer');
-  container.parentNode.removeChild(container);
-
-  SPEC.container = null;
-});
-
 describe('Using hooks within HotTable renderers', () => {
   it('should be possible to use hook-enabled components as renderers', async () => {
     function HookEnabledRenderer(props) {
@@ -58,7 +39,7 @@ describe('Using hooks within HotTable renderers', () => {
                 }}>
         <HookEnabledRenderer hot-renderer></HookEnabledRenderer>
       </HotTable>
-    ), SPEC.container).hotInstance;
+    )).hotInstance;
 
     expect(hotInstance.getCell(0,0).querySelectorAll('.hook-enabled-renderer-container').length).toEqual(1);
     expect(hotInstance.getCell(1,1).querySelectorAll('.hook-enabled-renderer-container').length).toEqual(1);
