@@ -23,9 +23,9 @@ describe('manualRowResize (RTL mode)', () => {
     });
 
     resizeRow(2, 60);
-    getLeftClone().find('tbody tr:eq(1) th:eq(0)').simulate('mouseover');
+    getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').simulate('mouseover');
 
-    const $rowsHeaders = getLeftClone().find('tr th');
+    const $rowsHeaders = getInlineStartClone().find('tr th');
 
     $rowsHeaders.eq(1).simulate('mousedown');
     $rowsHeaders.eq(2).simulate('mouseover');
@@ -71,7 +71,7 @@ describe('manualRowResize (RTL mode)', () => {
       });
 
       const mainHolder = hot.view.wt.wtTable.holder;
-      let $rowHeader = getLeftClone().find('tr:eq(2) th:eq(0)');
+      let $rowHeader = getInlineStartClone().find('tr:eq(2) th:eq(0)');
 
       $rowHeader.simulate('mouseover');
 
@@ -85,7 +85,7 @@ describe('manualRowResize (RTL mode)', () => {
       $(mainHolder).scrollTop(200);
       await sleep(400);
 
-      $rowHeader = getLeftClone().find('tr:eq(13) th:eq(0)');
+      $rowHeader = getInlineStartClone().find('tr:eq(13) th:eq(0)');
       $rowHeader.simulate('mouseover');
 
       expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
@@ -102,7 +102,7 @@ describe('manualRowResize (RTL mode)', () => {
         manualRowResize: true,
       });
 
-      let $rowHeader = getLeftClone().find('tr:eq(2) th:eq(0)');
+      let $rowHeader = getInlineStartClone().find('tr:eq(2) th:eq(0)');
 
       $rowHeader.simulate('mouseover');
 
@@ -115,7 +115,7 @@ describe('manualRowResize (RTL mode)', () => {
 
       await sleep(400);
 
-      $rowHeader = getLeftClone().find('tr:eq(13) th:eq(0)');
+      $rowHeader = getInlineStartClone().find('tr:eq(13) th:eq(0)');
       $rowHeader.simulate('mouseover');
 
       expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
@@ -139,7 +139,7 @@ describe('manualRowResize (RTL mode)', () => {
         manualRowResize: true
       });
 
-      const $headerTH = getLeftClone().find('tbody tr:eq(1) th:eq(0)');
+      const $headerTH = getInlineStartClone().find('tbody tr:eq(1) th:eq(0)');
 
       $headerTH.simulate('mouseover');
 
@@ -161,7 +161,7 @@ describe('manualRowResize (RTL mode)', () => {
       });
 
       const mainHolder = hot.view.wt.wtTable.holder;
-      let $rowHeader = getLeftClone().find('tbody tr:eq(2) th:eq(0)');
+      let $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
 
       $rowHeader.simulate('mouseover');
 
@@ -177,7 +177,7 @@ describe('manualRowResize (RTL mode)', () => {
 
       await sleep(400);
 
-      $rowHeader = getLeftClone().find('tbody tr:eq(10) th:eq(0)');
+      $rowHeader = getInlineStartClone().find('tbody tr:eq(10) th:eq(0)');
       $rowHeader.simulate('mouseover');
 
       expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
