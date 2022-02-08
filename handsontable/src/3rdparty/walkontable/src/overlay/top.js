@@ -58,30 +58,6 @@ export class TopOverlay extends Overlay {
     return this.wtSettings.getSetting('shouldRenderTopOverlay');
   }
 
-  getOverlayPosition() {
-    const overlayRoot = this.clone.wtTable.holder.parentNode;
-    const { rootWindow } = this.domBindings;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
-    let y = 0;
-
-    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
-      const { wtTable } = this.wot;
-      const hiderRect = wtTable.hider.getBoundingClientRect();
-      const top = Math.ceil(hiderRect.top);
-      const bottom = Math.ceil(hiderRect.bottom);
-      const rootHeight = overlayRoot.offsetHeight;
-
-      if (top < 0 && (bottom - rootHeight) > 0) {
-        y = -top;
-      }
-    }
-
-    return {
-      x: 0,
-      y,
-    };
-  }
-
   /**
    * Updates the top overlay position.
    *
@@ -117,7 +93,7 @@ export class TopOverlay extends Overlay {
       // This workaround will be able to be cleared after merging the SVG borders, which introduces
       // frozen lines (no more `innerBorderTop` workaround).
       skipInnerBorderAdjusting = bottom === rootHeight;
-      overlayPosition = this.getOverlayPosition().y;
+      overlayPosition = this.getOverlayPosition();
 
       setOverlayPosition(overlayRoot, '0px', `${overlayPosition}px`);
 
@@ -331,11 +307,9 @@ export class TopOverlay extends Overlay {
   getTableParentOffset() {
     if (this.mainTableScrollableElement === this.domBindings.rootWindow) {
       return this.wot.wtTable.holderOffset.top;
-
     }
 
     return 0;
-
   }
 
   /**
@@ -345,6 +319,23 @@ export class TopOverlay extends Overlay {
    */
   getScrollPosition() {
     return getScrollTop(this.mainTableScrollableElement, this.domBindings.rootWindow);
+  }
+
+  /**
+   * Gets the main overlay's vertical overlay position.
+   *
+   * @returns {number} Main table's vertical overlay position.
+   */
+  getOverlayPosition() {
+    const { rootWindow } = this.domBindings;
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    let overlayPosition = 0;
+
+    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+      overlayPosition = Math.max(this.getScrollPosition() - this.getTableParentOffset(), 0);
+    }
+
+    return overlayPosition;
   }
 
   /**

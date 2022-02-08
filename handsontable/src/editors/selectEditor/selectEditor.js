@@ -6,8 +6,6 @@ import {
   getComputedStyle,
   hasClass,
   removeClass,
-  getCssTransform,
-  resetCssTransform,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { objectEach } from '../../helpers/object';
@@ -194,14 +192,6 @@ export class SelectEditor extends BaseEditor {
       height,
     } = this.getEditedCellRect();
     const selectStyle = this.select.style;
-    // const cssTransformOffset = getCssTransform(this.hot.view._wt.wtTable.holder.parentNode);
-
-    // if (cssTransformOffset && cssTransformOffset !== -1) {
-    //   selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
-    // } else {
-    //   resetCssTransform(this.select);
-    // }
-
     const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
     let cellWidth = width;
     let cellHeight = height;

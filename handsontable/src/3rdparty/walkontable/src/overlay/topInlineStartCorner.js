@@ -2,7 +2,7 @@ import {
   outerHeight,
   outerWidth,
   setOverlayPosition,
-  resetCssTransform
+  resetCssTransform,
 } from '../../../../helpers/dom/element';
 import TopInlineStartCornerOverlayTable from '../table/topInlineStartCorner';
 import { Overlay } from './_base';
@@ -15,13 +15,30 @@ import {
  */
 export class TopInlineStartCornerOverlay extends Overlay {
   /**
+   * The instance of the Top overlay.
+   *
+   * @type {TopOverlay}
+   */
+  topOverlay;
+  /**
+   * The instance of the InlineStart overlay.
+   *
+   * @type {InlineStartOverlay}
+   */
+  inlineStartOverlay;
+
+  /**
    * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {DomBindings} domBindings Dom elements bound to the current instance.
+   * @param {TopOverlay} topOverlay The instance of the Top overlay.
+   * @param {InlineStartOverlay} inlineStartOverlay The instance of the InlineStart overlay.
    */
-  constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
+  constructor(wotInstance, facadeGetter, wtSettings, domBindings, topOverlay, inlineStartOverlay) {
     super(wotInstance, facadeGetter, CLONE_TOP_INLINE_START_CORNER, wtSettings, domBindings);
+    this.topOverlay = topOverlay;
+    this.inlineStartOverlay = inlineStartOverlay;
   }
 
   /**
@@ -45,47 +62,6 @@ export class TopInlineStartCornerOverlay extends Overlay {
       && this.wtSettings.getSetting('shouldRenderInlineStartOverlay');
   }
 
-  getOverlayPosition() {
-    const overlayRoot = this.clone.wtTable.holder.parentNode;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
-    let x = 0;
-    let y = 0;
-
-    if (this.trimmingContainer === this.domBindings.rootWindow) {
-      const { wtTable } = this.wot;
-      const { rootDocument } = this.domBindings;
-      const hiderRect = wtTable.hider.getBoundingClientRect();
-      const top = Math.ceil(hiderRect.top);
-      const left = Math.ceil(hiderRect.left);
-      const bottom = Math.ceil(hiderRect.bottom);
-      const right = Math.ceil(hiderRect.right);
-
-      if (!preventOverflow || preventOverflow === 'vertical') {
-        if (this.isRtl()) {
-          const documentWidth = rootDocument.documentElement.clientWidth;
-
-          if (right >= documentWidth) {
-            x = documentWidth - right;
-          }
-
-        } else if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
-          x = -left;
-        }
-      }
-
-      if (!preventOverflow || preventOverflow === 'horizontal') {
-        if (top < 0 && (bottom - overlayRoot.offsetHeight) > 0) {
-          y = -top;
-        }
-      }
-    }
-
-    return {
-      x,
-      y,
-    };
-  }
-
   /**
    * Updates the corner overlay position.
    *
@@ -102,9 +78,10 @@ export class TopInlineStartCornerOverlay extends Overlay {
     const overlayRoot = this.clone.wtTable.holder.parentNode;
 
     if (this.trimmingContainer === this.domBindings.rootWindow) {
-      const { x, y } = this.getOverlayPosition();
+      const left = this.inlineStartOverlay.getOverlayPosition();
+      const top = this.topOverlay.getOverlayPosition();
 
-      setOverlayPosition(overlayRoot, `${x}px`, `${y}px`);
+      setOverlayPosition(overlayRoot, `${left}px`, `${top}px`);
     } else {
       resetCssTransform(overlayRoot);
     }

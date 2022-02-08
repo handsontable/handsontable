@@ -49,36 +49,6 @@ export class InlineStartOverlay extends Overlay {
     return this.wtSettings.getSetting('shouldRenderInlineStartOverlay');
   }
 
-  getOverlayPosition() {
-    const overlayRoot = this.clone.wtTable.holder.parentNode;
-    const { rootWindow, rootDocument } = this.domBindings;
-    const { wtTable } = this.wot;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
-    let x = 0;
-
-    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
-      const hiderRect = wtTable.hider.getBoundingClientRect();
-      const left = Math.ceil(hiderRect.left);
-      const right = Math.ceil(hiderRect.right);
-
-      if (this.isRtl()) {
-        const documentWidth = rootDocument.documentElement.clientWidth;
-
-        if (right >= documentWidth) {
-          x = documentWidth - right;
-        }
-
-      } else if (left < 0 && (right - overlayRoot.offsetWidth) > 0) {
-        x = -left;
-      }
-    }
-
-    return {
-      x,
-      y: 0,
-    };
-  }
-
   /**
    * Updates the left overlay position.
    *
@@ -98,7 +68,7 @@ export class InlineStartOverlay extends Overlay {
     let overlayPosition = 0;
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
-      overlayPosition = this.getOverlayPosition().x;
+      overlayPosition = this.getOverlayPosition();
       setOverlayPosition(overlayRoot, `${overlayPosition}px`, '0px');
 
     } else {
@@ -317,10 +287,31 @@ export class InlineStartOverlay extends Overlay {
   /**
    * Gets the main overlay's horizontal scroll position.
    *
-   * @returns {number} Main table's vertical scroll position.
+   * @returns {number} Main table's horizontal scroll position.
    */
   getScrollPosition() {
-    return getScrollLeft(this.mainTableScrollableElement, this.domBindings.rootWindow);
+    return Math.abs(getScrollLeft(this.mainTableScrollableElement, this.domBindings.rootWindow));
+  }
+
+  /**
+   * Gets the main overlay's horizontal overlay position.
+   *
+   * @returns {number} Main table's horizontal overlay position.
+   */
+  getOverlayPosition() {
+    const { rootWindow } = this.domBindings;
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    let overlayPosition = 0;
+
+    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
+      if (this.isRtl()) {
+        overlayPosition = Math.min(this.getTableParentOffset() - this.getScrollPosition(), 0);
+      } else {
+        overlayPosition = Math.max(this.getScrollPosition() - this.getTableParentOffset(), 0);
+      }
+    }
+
+    return overlayPosition;
   }
 
   /**

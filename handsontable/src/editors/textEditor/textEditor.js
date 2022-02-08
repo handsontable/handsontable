@@ -5,8 +5,6 @@ import {
   addClass,
   getCaretPosition,
   getComputedStyle,
-  getCssTransform,
-  resetCssTransform,
   setCaretPosition,
   hasClass,
   removeClass,

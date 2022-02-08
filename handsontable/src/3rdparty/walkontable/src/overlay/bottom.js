@@ -67,7 +67,6 @@ export class BottomOverlay extends Overlay {
       return false;
     }
     const { rootDocument, rootWindow } = this.domBindings;
-
     const overlayRoot = this.clone.wtTable.holder.parentNode;
 
     overlayRoot.style.top = '';

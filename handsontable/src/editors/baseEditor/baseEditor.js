@@ -8,7 +8,6 @@ import {
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
   outerWidth,
-  getCssTransform,
 } from '../../helpers/dom/element';
 
 export const EDITOR_TYPE = 'base';
@@ -403,8 +402,20 @@ export class BaseEditor {
     return this.state === EDITOR_STATE.WAITING;
   }
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
+   * Gets the object that provides information about the edited cell size and its position
+   * relative to the table viewport.
    *
+   * The rectangle has six integer properties:
+   *  - `top` The top position relative to the table viewport
+   *  - `start` The left (or right in RTL) position relative to the table viewport
+   *  - `width` The cell's current width minus padding
+   *  - `maxWidth` The maximum cell's width after which the editor goes out of viewport
+   *  - `height` The cell's current height minus padding
+   *  - `maxHeight` The maximum cell's height after which the editor goes out of viewport
+   *
+   * @returns {{top: number, start: number, width: number, maxWidth: number, height: number, maxHeight: number} | undefined}
    */
   getEditedCellRect() {
     const TD = this.getEditedCell();
@@ -427,10 +438,11 @@ export class BaseEditor {
     const containerScrollLeft = scrollableContainerLeft !== rootWindow ?
       scrollableContainerLeft.scrollLeft : 0;
     const gridMostRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
-    const editorSection = this.checkEditorSection();
+    const { wtTable: overlayTable } = wtOverlays.getParentOverlay(TD) ?? this.hot.view._wt;
+    const overlayName = overlayTable.name;
 
-    const scrollTop = ['', 'inline-start'].includes(editorSection) ? containerScrollTop : 0;
-    const scrollLeft = ['', 'top', 'bottom'].includes(editorSection) ? containerScrollLeft : 0;
+    const scrollTop = ['master', 'inline_start'].includes(overlayName) ? containerScrollTop : 0;
+    const scrollLeft = ['master', 'top', 'bottom'].includes(overlayName) ? containerScrollLeft : 0;
 
     // If colHeaders is disabled, cells in the first row have border-top
     const editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
@@ -444,32 +456,10 @@ export class BaseEditor {
       inlineStartPos = currentOffset.left - containerOffset.left - 1 - scrollLeft;
     }
 
-    let wtTable = this.hot.view._wt.wtTable;
-
-    // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
-    switch (editorSection) {
-      case 'top':
-        wtTable = wtOverlays.topOverlay.clone.wtTable;
-        topPos += wtOverlays.topOverlay.getOverlayPosition().y;
-        break;
-      case 'inline-start':
-        wtTable = wtOverlays.inlineStartOverlay.clone.wtTable;
-        inlineStartPos += Math.abs(wtOverlays.inlineStartOverlay.getOverlayPosition().x);
-        break;
-      case 'top-inline-start-corner':
-        wtTable = wtOverlays.topInlineStartCornerOverlay.clone.wtTable;
-        inlineStartPos += wtOverlays.inlineStartOverlay.getOverlayPosition().x;
-        topPos += wtOverlays.topOverlay.getOverlayPosition().y;
-        break;
-      case 'bottom-inline-start-corner':
-        wtTable = wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable;
-        break;
-      case 'bottom':
-        wtTable = wtOverlays.bottomOverlay.clone.wtTable;
-        break;
-      default:
-        break;
-    }
+    // If the scrollable element is Window object then the overlays' position compensates the editor position.
+    // In other cases, the overlay's position is 0.
+    topPos += wtOverlays.topOverlay.getOverlayPosition();
+    inlineStartPos += Math.abs(wtOverlays.inlineStartOverlay.getOverlayPosition());
 
     const hasColumnHeaders = this.hot.hasColHeaders();
     const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
@@ -497,7 +487,7 @@ export class BaseEditor {
       const cellOffset = TD.offsetLeft;
 
       if (cellOffset >= 0) {
-        cellStartOffset = wtTable.getWidth() - TD.offsetLeft;
+        cellStartOffset = overlayTable.getWidth() - TD.offsetLeft;
       } else {
         // The `offsetLeft` returns negative values when the parent offset element has position relative
         // (it happens when on the cell the selection is applied - the `area` CSS class).
@@ -524,8 +514,9 @@ export class BaseEditor {
       maxHeight,
       width,
       maxWidth,
-    }
+    };
   }
+  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Gets className of the edited cell if exist.
