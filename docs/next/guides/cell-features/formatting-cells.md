@@ -100,7 +100,7 @@ To initialize Handsontable with predefined custom borders, provide the cell coor
 Depending on the form of the cell coordinates you picked, you can use the following options to change the border styles:
 
 ::: warning
-The `left` and `right` object keys are renamed to `start` and `end`. The change allows defining border styles using the same API for both [layout direction](@/guides/internationalization/layout-direction.md) modes - left to right or right to left. The keys `left` and `right` will still work for backward compatibility. However, they can work only in LTR and cannot be mixed with keys `start` and `end`.
+The `left` and `right` properties are renamed to `start` and `end` in Handsontable 12.0.0. The change allows defining border styles using the same API for both [layout direction](@/guides/internationalization/layout-direction.md) modes. The properties `left` and `right` only work in the left-to-right mode and they cannot be mixed with `start` and `end`.
 :::
 
 | Option | Description |
