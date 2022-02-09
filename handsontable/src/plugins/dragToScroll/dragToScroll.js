@@ -216,7 +216,7 @@ export class DragToScroll extends BasePlugin {
       return;
     }
 
-    const scrollHandler = this.hot.view.wt.wtTable.holder; // native scroll
+    const scrollHandler = this.hot.view._wt.wtTable.holder; // native scroll
 
     if (scrollHandler === this.hot.rootWindow) {
       // not much we can do currently

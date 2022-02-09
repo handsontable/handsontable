@@ -210,11 +210,11 @@ export class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    const headerLevels = this.hot.view.wt.getSetting('columnHeaders').length;
-    const mainHeaders = this.hot.view.wt.wtTable.THEAD;
-    const topHeaders = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
-    const topLeftCornerHeaders = this.hot.view.wt.wtOverlays.topInlineStartCornerOverlay ?
-      this.hot.view.wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.THEAD : null;
+    const headerLevels = this.hot.view._wt.getSetting('columnHeaders').length;
+    const mainHeaders = this.hot.view._wt.wtTable.THEAD;
+    const topHeaders = this.hot.view._wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
+    const topLeftCornerHeaders = this.hot.view._wt.wtOverlays.topInlineStartCornerOverlay ?
+      this.hot.view._wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.THEAD : null;
 
     const removeButton = function(button) {
       if (button) {

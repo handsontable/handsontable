@@ -306,7 +306,7 @@ export class InlineStartOverlay extends Overlay {
    * @returns {number} Main table's vertical scroll position.
    */
   getScrollPosition() {
-    return getScrollLeft(this.mainTableScrollableElement, this.domBindings.rootWindow);
+    return getScrollLeft(this.mainTableScrollableElement, this.domBindings.rootWindow) * (this.isRtl() ? -1 : 1);
   }
 
   /**
@@ -330,16 +330,17 @@ export class InlineStartOverlay extends Overlay {
     let positionChanged = false;
 
     if (fixedColumnsStart && !rowHeaders.length) {
-      addClass(masterParent, 'innerBorderLeft');
+      // "innerBorderLeft" is for backward compatibility
+      addClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
 
     } else if (!fixedColumnsStart && rowHeaders.length) {
-      const previousState = hasClass(masterParent, 'innerBorderLeft');
+      const previousState = hasClass(masterParent, 'innerBorderInlineStart');
 
       if (position) {
-        addClass(masterParent, 'innerBorderLeft');
+        addClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
         positionChanged = !previousState;
       } else {
-        removeClass(masterParent, 'innerBorderLeft');
+        removeClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
         positionChanged = previousState;
       }
     }

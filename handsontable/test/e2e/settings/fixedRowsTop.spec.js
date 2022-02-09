@@ -81,7 +81,7 @@ describe('settings', () => {
         });
 
         expect(getTopClone().find('tbody tr').length).toEqual(2);
-        expect(getLeftClone().height()).toBe(0);
+        expect(getInlineStartClone().height()).toBe(0);
       });
 
       it('should not throw errors while scrolling vertically when fixed rows was set', (done) => {
@@ -194,16 +194,16 @@ describe('settings', () => {
 
       expect(getMaster().height()).toBe(50); // 25px corner + 25px added row
       expect(getTopClone().height()).toBe(50);
-      expect(getTopLeftClone().height()).toBe(50);
-      expect(getLeftClone().height()).toBe(50);
+      expect(getTopInlineStartClone().height()).toBe(50);
+      expect(getInlineStartClone().height()).toBe(50);
       expect(getBottomClone().height()).toBe(0);
 
       alter('insert_row', 0);
 
       expect(getMaster().height()).toBe(73);
       expect(getTopClone().height()).toBe(73);
-      expect(getTopLeftClone().height()).toBe(73);
-      expect(getLeftClone().height()).toBe(73);
+      expect(getTopInlineStartClone().height()).toBe(73);
+      expect(getInlineStartClone().height()).toBe(73);
       expect(getBottomClone().height()).toBe(0);
     });
   });

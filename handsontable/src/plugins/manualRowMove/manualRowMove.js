@@ -305,7 +305,7 @@ export class ManualRowMove extends BasePlugin {
       const renderableIndex = rowMapper.getRenderableFromVisualIndex(visualRowIndex);
 
       if (renderableIndex !== null) {
-        rowsHeight += this.hot.view.wt.wtTable.getRowHeight(renderableIndex) || 23;
+        rowsHeight += this.hot.view._wt.wtTable.getRowHeight(renderableIndex) || 23;
       }
     }
 
@@ -413,8 +413,8 @@ export class ManualRowMove extends BasePlugin {
   refreshPositions() {
     const priv = privatePool.get(this);
     const coords = priv.target.coords;
-    const firstVisible = this.hot.view.wt.wtTable.getFirstVisibleRow();
-    const lastVisible = this.hot.view.wt.wtTable.getLastVisibleRow();
+    const firstVisible = this.hot.view._wt.wtTable.getFirstVisibleRow();
+    const lastVisible = this.hot.view._wt.wtTable.getLastVisibleRow();
     const fixedRows = this.hot.getSettings().fixedRowsTop;
     const countRows = this.hot.countRows();
 
@@ -425,7 +425,7 @@ export class ManualRowMove extends BasePlugin {
       this.hot.scrollViewportTo(lastVisible + 1, undefined, true);
     }
 
-    const wtTable = this.hot.view.wt.wtTable;
+    const wtTable = this.hot.view._wt.wtTable;
     const TD = priv.target.TD;
     const rootElementOffset = offset(this.hot.rootElement);
     let tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row - 1);
@@ -477,8 +477,8 @@ export class ManualRowMove extends BasePlugin {
 
     let topOverlayHeight = 0;
 
-    if (this.hot.view.wt.wtOverlays.topOverlay) {
-      topOverlayHeight = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.TABLE.offsetHeight;
+    if (this.hot.view._wt.wtOverlays.topOverlay) {
+      topOverlayHeight = this.hot.view._wt.wtOverlays.topOverlay.clone.wtTable.TABLE.offsetHeight;
     }
 
     if (coords.row >= fixedRows && (guidelineTop - wtTable.holder.scrollTop) < topOverlayHeight) {
@@ -521,7 +521,7 @@ export class ManualRowMove extends BasePlugin {
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   onBeforeOnCellMouseDown(event, coords, TD, controller) {
-    const { wtTable, wtViewport } = this.hot.view.wt;
+    const { wtTable, wtViewport } = this.hot.view._wt;
     const isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
     const selection = this.hot.getSelectedRangeLast();
     const priv = privatePool.get(this);
@@ -678,8 +678,8 @@ export class ManualRowMove extends BasePlugin {
    * @private
    */
   onAfterScrollHorizontally() {
-    const wtTable = this.hot.view.wt.wtTable;
-    const headerWidth = this.hot.view.wt.wtViewport.getRowHeaderWidth();
+    const wtTable = this.hot.view._wt.wtTable;
+    const headerWidth = this.hot.view._wt.wtViewport.getRowHeaderWidth();
     const scrollLeft = wtTable.holder.scrollLeft;
     const posLeft = headerWidth + scrollLeft;
 

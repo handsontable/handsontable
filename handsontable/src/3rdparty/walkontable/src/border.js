@@ -13,7 +13,6 @@ import {
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { objectEach } from '../../../helpers/object';
 import { isMobileBrowser } from '../../../helpers/browser';
-import CellCoords from './cell/coords';
 
 /**
  *
@@ -421,9 +420,9 @@ class Border {
       return;
     }
 
-    let fromTD = wtTable.getCell(new CellCoords(fromRow, fromColumn));
+    let fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
-    const toTD = isMultiple ? wtTable.getCell(new CellCoords(toRow, toColumn)) : fromTD;
+    const toTD = isMultiple ? wtTable.getCell(this.wot.createCellCoords(toRow, toColumn)) : fromTD;
     const fromOffset = offset(fromTD);
     const toOffset = isMultiple ? offset(toTD) : fromOffset;
     const containerOffset = offset(wtTable.TABLE);

@@ -1,12 +1,14 @@
 import {
   getScrollableElement,
-  getTrimmingContainer
+  getTrimmingContainer,
+  getScrollbarWidth,
 } from '../../../../helpers/dom/element';
 import { defineGetter } from '../../../../helpers/object';
 import { arrayEach } from '../../../../helpers/array';
 import { warn } from '../../../../helpers/console';
 import {
   CLONE_TYPES,
+  CLONE_CLASS_NAMES,
   CLONE_TOP,
   CLONE_INLINE_START,
 } from './constants';
@@ -125,7 +127,7 @@ export class Overlay {
    * @param {HTMLElement} element The cell element to calculate the position for.
    * @param {number} rowIndex Visual row index.
    * @param {number} columnIndex Visual column index.
-   * @returns {{top: number, left: number}|undefined}
+   * @returns {{top: number, start: number}|undefined}
    */
   getRelativeCellPosition(element, rowIndex, columnIndex) {
     if (this.clone.wtTable.holder.contains(element) === false) {
@@ -138,13 +140,14 @@ export class Overlay {
     const fixedRowTop = rowIndex < this.wtSettings.getSetting('fixedRowsTop');
     const fixedRowBottom =
       rowIndex >= this.wtSettings.getSetting('totalRows') - this.wtSettings.getSetting('fixedRowsBottom');
+    const spreader = this.clone.wtTable.spreader;
 
     const spreaderOffset = {
-      left: this.clone.wtTable.spreader.offsetLeft,
-      top: this.clone.wtTable.spreader.offsetTop
+      start: this.getRelativeStartPosition(spreader),
+      top: spreader.offsetTop
     };
     const elementOffset = {
-      left: element.offsetLeft,
+      start: this.getRelativeStartPosition(element),
       top: element.offsetTop
     };
     let offsetObject = null;
@@ -164,6 +167,18 @@ export class Overlay {
   }
 
   /**
+   * Get inline start value depending of direction.
+   *
+   * @param {HTMLElement} el Element.
+   * @returns {number}
+   */
+  getRelativeStartPosition(el) {
+    return this.isRtl()
+      ? el.offsetParent.offsetWidth - el.offsetLeft - el.offsetWidth
+      : el.offsetLeft;
+  }
+
+  /**
    * Calculates coordinates of the provided element, relative to the root Handsontable element within a table with window
    * as a scrollable element.
    *
@@ -180,10 +195,17 @@ export class Overlay {
     let verticalOffset = 0;
 
     if (!onFixedColumn) {
-      horizontalOffset = spreaderOffset.left;
+      horizontalOffset = spreaderOffset.start;
 
     } else {
-      horizontalOffset = absoluteRootElementPosition.left <= 0 ? (-1) * absoluteRootElementPosition.left : 0;
+      let absoluteRootElementStartPosition = absoluteRootElementPosition.left;
+
+      if (this.isRtl()) {
+        absoluteRootElementStartPosition = this.domBindings.rootWindow.innerWidth -
+          (absoluteRootElementPosition.left + absoluteRootElementPosition.width + getScrollbarWidth());
+      }
+
+      horizontalOffset = absoluteRootElementStartPosition <= 0 ? (-1) * absoluteRootElementStartPosition : 0;
     }
 
     if (onFixedRowTop) {
@@ -196,7 +218,7 @@ export class Overlay {
     }
 
     return {
-      left: elementOffset.left + horizontalOffset,
+      start: elementOffset.start + horizontalOffset,
       top: elementOffset.top + verticalOffset
     };
   }
@@ -222,7 +244,7 @@ export class Overlay {
     let verticalOffset = 0;
 
     if (!onFixedColumn) {
-      horizontalOffset = tableScrollPosition.horizontal - spreaderOffset.left;
+      horizontalOffset = tableScrollPosition.horizontal - spreaderOffset.start;
     }
 
     if (onFixedRowBottom) {
@@ -236,7 +258,7 @@ export class Overlay {
     }
 
     return {
-      left: elementOffset.left - horizontalOffset,
+      start: elementOffset.start - horizontalOffset,
       top: elementOffset.top - verticalOffset,
     };
   }
@@ -256,7 +278,7 @@ export class Overlay {
     const clonedTable = rootDocument.createElement('TABLE');
     const tableParent = wtTable.wtRootElement.parentNode;
 
-    clone.className = `ht_clone_${this.type} handsontable`;
+    clone.className = `${CLONE_CLASS_NAMES.get(this.type)} handsontable`;
     clone.style.position = 'absolute';
     clone.style.top = 0;
     clone.style.overflow = 'visible';

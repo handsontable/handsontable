@@ -125,27 +125,27 @@ export function generateASCIITable(context) {
   const ROW_OVERLAY_SEPARATOR = '|';
   const COLUMN_OVERLAY_SEPARATOR = '---';
 
-  const cornerOverlayTable = $('.ht_clone_top_left_corner .htCore', context);
-  const leftOverlayTable = $('.ht_clone_left .htCore', context);
+  const cornerOverlayTable = $('.ht_clone_top_inline_start_corner .htCore', context);
+  const inlineStartOverlayTable = $('.ht_clone_inline_start .htCore', context);
   const topOverlayTable = $('.ht_clone_top .htCore', context);
   const masterTable = $('.ht_master .htCore', context);
   const stringRows = [];
 
   const cornerOverlayCells = cellFactory(cornerOverlayTable);
-  const leftOverlayCells = cellFactory(leftOverlayTable);
+  const inlineStartOverlayCells = cellFactory(inlineStartOverlayTable);
   const topOverlayCells = cellFactory(topOverlayTable);
   const masterCells = cellFactory(masterTable);
 
   const hasTopHeader = topOverlayCells(0, 0) ? isTopHeader(topOverlayCells(0, 0)) : false;
   const hasCornerHeader = cornerOverlayCells(0, 0) ? isHeader(cornerOverlayCells(0, 0)) : false;
-  const hasLeftHeader = (leftOverlayCells(0, 0) && isLeftHeader(leftOverlayCells(0, 0))) ||
+  const hasLeftHeader = (inlineStartOverlayCells(0, 0) && isLeftHeader(inlineStartOverlayCells(0, 0))) ||
                         (hasTopHeader && hasCornerHeader);
   const firstCellCoords = {
     row: hasTopHeader ? 1 : 0,
     column: hasLeftHeader ? 1 : 0
   };
-  const leftOverlayFirstCell = leftOverlayCells(firstCellCoords.row, firstCellCoords.column);
-  const hasFixedLeftCells = leftOverlayFirstCell ? !isLeftHeader(leftOverlayFirstCell) : false;
+  const inlineStartOverlayFirstCell = inlineStartOverlayCells(firstCellCoords.row, firstCellCoords.column);
+  const hasFixedLeftCells = inlineStartOverlayFirstCell ? !isLeftHeader(inlineStartOverlayFirstCell) : false;
   const topOverlayFirstCell = topOverlayCells(firstCellCoords.row, firstCellCoords.column);
   const hasFixedTopCells = topOverlayFirstCell ? !isTopHeader(topOverlayFirstCell) : false;
 
@@ -187,9 +187,9 @@ export function generateASCIITable(context) {
           separatorSymbol = ROW_HEADER_SEPARATOR;
         }
 
-      } else if (leftOverlayCells(r, c)) {
-        const cell = leftOverlayCells(r, c);
-        const nextCell = leftOverlayCells(r, c + 1);
+      } else if (inlineStartOverlayCells(r, c)) {
+        const cell = inlineStartOverlayCells(r, c);
+        const nextCell = inlineStartOverlayCells(r, c + 1);
 
         cellSymbol = getSelectionSymbol(cell);
 

@@ -472,7 +472,7 @@ describe('WalkontableScroll', () => {
       spec().$wrapper.width(260).height(201);
 
       const topOverlayCallback = jasmine.createSpy('topOverlayCallback');
-      const leftOverlayCallback = jasmine.createSpy('leftOverlayCallback');
+      const inlineStartOverlayCallback = jasmine.createSpy('inlineStartOverlayCallback');
 
       const wt = walkontable({
         data: getData,
@@ -482,11 +482,11 @@ describe('WalkontableScroll', () => {
         fixedRowsTop: 2
       });
       const masterHolder = wt.wtTable.holder;
-      const leftOverlayHolder = wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder;
+      const inlineStartOverlayHolder = wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder;
       const topOverlayHolder = wt.wtOverlays.topOverlay.clone.wtTable.holder;
 
       topOverlayHolder.addEventListener('scroll', topOverlayCallback);
-      leftOverlayHolder.addEventListener('scroll', leftOverlayCallback);
+      inlineStartOverlayHolder.addEventListener('scroll', inlineStartOverlayCallback);
 
       wt.draw();
       wt.scrollViewport(new Walkontable.CellCoords(50, 50));
@@ -494,13 +494,13 @@ describe('WalkontableScroll', () => {
 
       await sleep(100);
       expect(topOverlayCallback.calls.count()).toEqual(1);
-      expect(leftOverlayCallback.calls.count()).toEqual(1);
+      expect(inlineStartOverlayCallback.calls.count()).toEqual(1);
 
       expect(topOverlayHolder.scrollLeft).toEqual(masterHolder.scrollLeft);
-      expect(leftOverlayHolder.scrollTop).toEqual(masterHolder.scrollTop);
+      expect(inlineStartOverlayHolder.scrollTop).toEqual(masterHolder.scrollTop);
 
       topOverlayHolder.removeEventListener('scroll', topOverlayCallback);
-      leftOverlayHolder.removeEventListener('scroll', leftOverlayCallback);
+      inlineStartOverlayHolder.removeEventListener('scroll', inlineStartOverlayCallback);
     });
 
     it('should call onScrollVertically hook, if scrollTop was changed', async() => {
@@ -1139,5 +1139,25 @@ describe('WalkontableScroll', () => {
       expect(spec().$table.find('tbody tr:eq(1) td:eq(0)').html()).toBe('A18');
       expect(spec().$table.find('tbody tr:eq(2) td:eq(0)').html()).toBe(txt);
     });
+  });
+
+  it('should add the "innerBorderInlineStart" CSS class (compensation for 1px border bug) to the root element when' +
+     'the table is horizontally scrolled', () => {
+    spec().$wrapper.width(201).height(201);
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      rowHeaders: [(row, TH) => {
+        TH.innerHTML = row;
+      }],
+    });
+
+    wt.draw();
+    wt.scrollViewportHorizontally(getTotalColumns() - 1);
+    wt.draw();
+
+    expect(wt.wtTable.wtRootElement).toHaveClass('innerBorderInlineStart');
+    expect(wt.wtTable.wtRootElement).toHaveClass('innerBorderLeft'); // for backward compatibility support
   });
 });

@@ -1,7 +1,5 @@
 import { addClass, hasClass } from './../../../helpers/dom/element';
 import Border from './border';
-import CellCoords from './cell/coords';
-import CellRange from './cell/range';
 
 /**
  * @class Selection
@@ -51,7 +49,7 @@ class Selection {
    */
   add(coords) {
     if (this.isEmpty()) {
-      this.cellRange = new CellRange(coords);
+      this.cellRange = this.settings.createCellRange(coords);
 
     } else {
       this.cellRange.expand(coords);
@@ -97,19 +95,19 @@ class Selection {
   }
 
   /**
-   * Returns the top left (TL) and bottom right (BR) selection coordinates.
+   * Returns the top left (or top right in RTL) and bottom right (or bottom left in RTL) selection coordinates.
    *
    * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
   getCorners() {
-    const topLeft = this.cellRange.getOuterTopLeftCorner();
-    const bottomRight = this.cellRange.getOuterBottomRightCorner();
+    const topStart = this.cellRange.getOuterTopStartCorner();
+    const bottomEnd = this.cellRange.getOuterBottomEndCorner();
 
     return [
-      topLeft.row,
-      topLeft.col,
-      bottomRight.row,
-      bottomRight.col,
+      topStart.row,
+      topStart.col,
+      bottomEnd.row,
+      bottomEnd.col,
     ];
   }
 
@@ -125,7 +123,7 @@ class Selection {
    * @returns {Selection}
    */
   addClassAtCoords(wotInstance, sourceRow, sourceColumn, className, markIntersections = false) {
-    const TD = wotInstance.wtTable.getCell(new CellCoords(sourceRow, sourceColumn));
+    const TD = wotInstance.wtTable.getCell(this.settings.createCellCoords(sourceRow, sourceColumn));
 
     if (typeof TD === 'object') {
       let cellClassName = className;

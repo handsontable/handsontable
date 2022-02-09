@@ -4,6 +4,8 @@ import {
 import { randomString } from '../../../../helpers/string';
 import EventManager from '../../../../eventManager';
 import Scroll from '../scroll';
+import CellCoords from '../cell/coords';
+import CellRange from '../cell/range';
 
 /**
  * @abstract
@@ -77,6 +79,29 @@ export default class CoreAbstract {
         ]);
       }
     }
+  }
+
+  /**
+   * Creates and returns the CellCoords object.
+   *
+   * @param {*} row The row index.
+   * @param {*} column The column index.
+   * @returns {CellCoords}
+   */
+  createCellCoords(row, column) {
+    return new CellCoords(row, column, this.wtSettings.getSetting('rtlMode'));
+  }
+
+  /**
+   * Creates and returns the CellRange object.
+   *
+   * @param {CellCoords} highlight The highlight coordinates.
+   * @param {CellCoords} from The from coordinates.
+   * @param {CellCoords} to The to coordinates.
+   * @returns {CellRange}
+   */
+  createCellRange(highlight, from, to) {
+    return new CellRange(highlight, from, to, this.wtSettings.getSetting('rtlMode'));
   }
 
   /**

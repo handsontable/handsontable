@@ -21,17 +21,17 @@ const App = () => {
     <HotTable
       data={data}
       height={450}
-      colWidths={[140, 126, 192, 100, 100, 90, 90, 110, 97]}
+      colWidths={[140, 192, 100, 90, 90, 110, 97, 100, 126]}
       colHeaders={[
         "Company name",
-        "Country",
         "Name",
         "Sell date",
-        "Order ID",
         "In stock",
         "Qty",
         "Progress",
-        "Rating"
+        "Rating",
+        "Order ID",
+        "Country"
       ]}
       dropdownMenu={true}
       hiddenColumns={{
@@ -49,10 +49,8 @@ const App = () => {
       licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data={1} />
-      <HotColumn data={2} />
       <HotColumn data={3} />
       <HotColumn data={4} type="date" allowInvalid={false} />
-      <HotColumn data={5} />
       <HotColumn data={6} type="checkbox" className="htCenter" />
       <HotColumn data={7} type="numeric" />
       <HotColumn data={8} readOnly={true} className="htMiddle">
@@ -63,6 +61,8 @@ const App = () => {
         {/* @ts-ignore Element inherits some props. It's hard to type it. */}
         <StarsRenderer hot-renderer />
       </HotColumn>
+      <HotColumn data={5} />
+      <HotColumn data={2} />
     </HotTable>
   );
 };

@@ -23,8 +23,8 @@ describe('Core.batch', () => {
     spyOn(hot, 'suspendExecution').and.callThrough();
     spyOn(hot, 'resumeExecution').and.callThrough();
     spyOn(hot, 'resumeRender').and.callThrough();
-    spyOn(hot.view.wt, 'draw');
-    spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
+    spyOn(hot.view._wt, 'draw');
+    spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');
@@ -57,8 +57,8 @@ describe('Core.batch', () => {
     expect(hot.resumeExecution).toHaveBeenCalledOnceWith();
     expect(hot.resumeExecution).toHaveBeenCalledBefore(hot.resumeRender);
     expect(hot.resumeRender).toHaveBeenCalledOnceWith();
-    expect(hot.view.wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
-    expect(hot.view.wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
+    expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
+    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledOnceWith(true);
     expect(columnIndexCacheUpdated).toHaveBeenCalledTimes(3);
 
     expect(columnIndexCacheUpdated).toHaveBeenCalledWith({
@@ -83,10 +83,10 @@ describe('Core.batch', () => {
 
     expect(getTopClone().width()).toBe(0);
     expect(getTopClone().height()).toBe(0);
-    expect(getTopLeftClone().width()).toBe(0);
-    expect(getTopLeftClone().height()).toBe(0);
-    expect(getLeftClone().width()).toBe(0);
-    expect(getLeftClone().height()).toBe(0);
+    expect(getTopInlineStartClone().width()).toBe(0);
+    expect(getTopInlineStartClone().height()).toBe(0);
+    expect(getInlineStartClone().width()).toBe(0);
+    expect(getInlineStartClone().height()).toBe(0);
 
     hot.batch(() => {
       hot.updateSettings({
@@ -97,10 +97,10 @@ describe('Core.batch', () => {
 
     expect(getTopClone().width()).toBe(300);
     expect(getTopClone().height()).toBe(26);
-    expect(getTopLeftClone().width()).toBe(50);
-    expect(getTopLeftClone().height()).toBe(26);
-    expect(getLeftClone().width()).toBe(50);
-    expect(getLeftClone().height()).toBe(142);
+    expect(getTopInlineStartClone().width()).toBe(50);
+    expect(getTopInlineStartClone().height()).toBe(26);
+    expect(getInlineStartClone().width()).toBe(50);
+    expect(getInlineStartClone().height()).toBe(142);
 
     hot.batch(() => {
       hot.updateSettings({
@@ -112,10 +112,10 @@ describe('Core.batch', () => {
     // The top header disappears by setting the width to 0, the height is not touched
     expect(getTopClone().width()).toBe(0);
     expect(getTopClone().height()).toBe(26);
-    expect(getTopLeftClone().width()).toBe(0);
-    expect(getTopLeftClone().height()).toBe(0);
-    expect(getLeftClone().width()).toBe(0);
-    expect(getLeftClone().height()).toBe(142);
+    expect(getTopInlineStartClone().width()).toBe(0);
+    expect(getTopInlineStartClone().height()).toBe(0);
+    expect(getInlineStartClone().width()).toBe(0);
+    expect(getInlineStartClone().height()).toBe(142);
   });
 
   it('should batch adjusting fixed headers correctly', () => {
@@ -128,12 +128,12 @@ describe('Core.batch', () => {
 
     expect(getTopClone().width()).toBe(0);
     expect(getTopClone().height()).toBe(0);
-    expect(getTopLeftClone().width()).toBe(0);
-    expect(getTopLeftClone().height()).toBe(0);
-    expect(getLeftClone().width()).toBe(0);
-    expect(getLeftClone().height()).toBe(0);
-    expect(getBottomLeftClone().width()).toBe(0);
-    expect(getBottomLeftClone().height()).toBe(0);
+    expect(getTopInlineStartClone().width()).toBe(0);
+    expect(getTopInlineStartClone().height()).toBe(0);
+    expect(getInlineStartClone().width()).toBe(0);
+    expect(getInlineStartClone().height()).toBe(0);
+    expect(getBottomInlineStartClone().width()).toBe(0);
+    expect(getBottomInlineStartClone().height()).toBe(0);
     expect(getBottomClone().width()).toBe(0);
     expect(getBottomClone().height()).toBe(0);
 
@@ -147,12 +147,12 @@ describe('Core.batch', () => {
 
     expect(getTopClone().width()).toBe(250);
     expect(getTopClone().height()).toBe(24);
-    expect(getTopLeftClone().width()).toBe(50);
-    expect(getTopLeftClone().height()).toBe(24);
-    expect(getLeftClone().width()).toBe(50);
-    expect(getLeftClone().height()).toBe(116);
-    expect(getBottomLeftClone().width()).toBe(50);
-    expect(getBottomLeftClone().height()).toBe(24);
+    expect(getTopInlineStartClone().width()).toBe(50);
+    expect(getTopInlineStartClone().height()).toBe(24);
+    expect(getInlineStartClone().width()).toBe(50);
+    expect(getInlineStartClone().height()).toBe(116);
+    expect(getBottomInlineStartClone().width()).toBe(50);
+    expect(getBottomInlineStartClone().height()).toBe(24);
     expect(getBottomClone().width()).toBe(250);
     expect(getBottomClone().height()).toBe(24);
 
@@ -167,12 +167,12 @@ describe('Core.batch', () => {
     // The top header disappears by setting the width to 0, the height is not touched
     expect(getTopClone().width()).toBe(0);
     expect(getTopClone().height()).toBe(24);
-    expect(getTopLeftClone().width()).toBe(0);
-    expect(getTopLeftClone().height()).toBe(0);
-    expect(getLeftClone().width()).toBe(0);
-    expect(getLeftClone().height()).toBe(116);
-    expect(getBottomLeftClone().width()).toBe(0);
-    expect(getBottomLeftClone().height()).toBe(0);
+    expect(getTopInlineStartClone().width()).toBe(0);
+    expect(getTopInlineStartClone().height()).toBe(0);
+    expect(getInlineStartClone().width()).toBe(0);
+    expect(getInlineStartClone().height()).toBe(116);
+    expect(getBottomInlineStartClone().width()).toBe(0);
+    expect(getBottomInlineStartClone().height()).toBe(0);
     // The bottom header disappears by setting the width to 0, the height is not touched
     expect(getBottomClone().width()).toBe(0);
     expect(getBottomClone().height()).toBe(24);

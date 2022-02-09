@@ -18,6 +18,7 @@ To run arbitrary code example locally on your machine see [How to run the arbitr
 - [Creating new examples](#creating-new-examples)
 - [Deployment](#deployment-of-the-new-code-examples)
 - [Editing existing examples](#editing-existing-examples)
+- [Copying an example to a separate repo](#copying-an-example-to-a-separate-repo)
 - [Development](#development)
   - [How to run the arbitrary code example](#how-to-run-the-arbitrary-code-example)
 - [Testing](#testing)
@@ -79,6 +80,40 @@ Sometimes you want to edit existing code examples that is live in the `/examples
 2. Commit and push the code examples to the repo.
 3. In Github Actions run a manual workflow with the `<version_number>` input of the Handsontable and Handsontable's wrapper version.
 4. The code examples will be deployed to the Github Pages and will be available under the same URL as they already were.
+
+### Copying an example to a separate repo
+
+It is possible to copy an example into a new Git repo. Doing it is as simple as making a copy of the example folder. 
+
+When making a copy, keep in might that the `node_modules` folder in our monorepo workspace might contain symbolic links. For a clean slate, it is a good idea to remove this folder altogether it and regenerate it in the copied folder. 
+
+The below commands present how to copy an example with the above advice in mind:
+
+```bash
+# make a local clone of the repo, if you haven't already
+git clone https://github.com/handsontable/handsontable.git
+
+# verify that you are in the folder of the example by checking that the README.md file is the one that you are reading right now
+cat README.md
+
+# if it exists, delete the "node_modules" folder of the example, because our NPM workspace sets it up as a symlink in the monorepo (which will not be useful in your fork)
+rm -rf node_modules
+
+# copy the example into a new folder called "forked-example" that is a sibling folder of the monorepo
+cp -r . ../../../../../../forked-example
+
+# go to your fork
+cd ../../../../../../forked-example
+
+# if you want, initiate a new Git repo there
+git init
+git add .
+git commit -m "initial commit in my fork of the Handsontable example"
+
+# install dependencies and start the example
+npm install
+npm run start
+```
 
 ### Development
 

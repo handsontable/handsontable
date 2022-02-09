@@ -1,4 +1,3 @@
-import { CellCoords, CellRange } from '../../3rdparty/walkontable/src/index';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 /**
@@ -8,7 +7,7 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
  * @class MergedCellCoords
  */
 class MergedCellCoords {
-  constructor(row, column, rowspan, colspan) {
+  constructor(row, column, rowspan, colspan, cellCoordsFactory, cellRangeFactory) {
     /**
      * The index of the topmost merged cell row.
      *
@@ -39,6 +38,18 @@ class MergedCellCoords {
      * @type {boolean}
      */
     this.removed = false;
+    /**
+     * The CellCoords function factory.
+     *
+     * @type {Function}
+     */
+    this.cellCoordsFactory = cellCoordsFactory;
+    /**
+     * The CellRange function factory.
+     *
+     * @type {Function}
+     */
+    this.cellRangeFactory = cellRangeFactory;
   }
 
   /**
@@ -310,10 +321,10 @@ class MergedCellCoords {
    * @returns {CellRange}
    */
   getRange() {
-    return new CellRange(
-      new CellCoords(this.row, this.col),
-      new CellCoords(this.row, this.col),
-      new CellCoords(this.getLastRow(), this.getLastColumn())
+    return this.cellRangeFactory(
+      this.cellCoordsFactory(this.row, this.col),
+      this.cellCoordsFactory(this.row, this.col),
+      this.cellCoordsFactory(this.getLastRow(), this.getLastColumn()),
     );
   }
 }

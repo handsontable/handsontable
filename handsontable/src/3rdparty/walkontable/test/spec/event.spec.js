@@ -668,7 +668,7 @@ describe('WalkontableEvent', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           className: 'current',
           border: {
             width: 1,
@@ -714,7 +714,7 @@ describe('WalkontableEvent', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           className: 'current',
           border: {
             width: 1,
@@ -756,7 +756,7 @@ describe('WalkontableEvent', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           className: 'current',
           border: {
             width: 1,
@@ -799,7 +799,7 @@ describe('WalkontableEvent', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           className: 'current',
           border: {
             width: 1,
@@ -835,7 +835,7 @@ describe('WalkontableEvent', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       selections: createSelectionController({
-        current: new Walkontable.Selection({
+        current: createSelection({
           className: 'current',
           border: {
             width: 1,

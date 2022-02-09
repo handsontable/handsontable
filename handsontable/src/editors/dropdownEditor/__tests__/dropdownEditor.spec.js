@@ -342,7 +342,7 @@ describe('DropdownEditor', () => {
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
 
-      hot.view.wt.wtOverlays.topOverlay.scrollTo(1);
+      hot.view._wt.wtOverlays.topOverlay.scrollTo(1);
       const dropdown = hot.getActiveEditor();
 
       await sleep(50);
@@ -354,7 +354,7 @@ describe('DropdownEditor', () => {
 
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
-      hot.view.wt.wtOverlays.topOverlay.scrollTo(3);
+      hot.view._wt.wtOverlays.topOverlay.scrollTo(3);
 
       await sleep(50);
 

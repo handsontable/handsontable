@@ -938,8 +938,8 @@ describe('NestedHeaders', () => {
           </tbody>
           `;
 
-        expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
-        expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getTopInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
 
       hidingMap.setValueAtIndex(4, true); // Hide column that contains cells E{n}
@@ -978,8 +978,8 @@ describe('NestedHeaders', () => {
           </tbody>
           `;
 
-        expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
-        expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getTopInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
 
       hidingMap.setValueAtIndex(1, true); // Hide column that contains cells B{n}
@@ -1013,8 +1013,8 @@ describe('NestedHeaders', () => {
           </tbody>
           `;
 
-        expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
-        expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getTopInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
 
       hidingMap.setValueAtIndex(2, true); // Hide column that contains cells C{n}
@@ -1043,8 +1043,8 @@ describe('NestedHeaders', () => {
           </tbody>
           `;
 
-        expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
-        expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getTopInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
 
       hidingMap.setValueAtIndex(5, true); // Hide column that contains cells F{n}
@@ -1070,8 +1070,8 @@ describe('NestedHeaders', () => {
           </tbody>
           `;
 
-        expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
-        expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getTopInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
     });
 

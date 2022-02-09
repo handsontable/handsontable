@@ -5,7 +5,6 @@ import {
   CELL_TYPE,
 } from './highlight/constants';
 import SelectionRange from './range';
-import { CellCoords } from './../3rdparty/walkontable/src';
 import { isPressedCtrlKey } from './../utils/keyStateObserver';
 import { createObjectPropListener, mixin } from './../helpers/object';
 import { isUndefined } from './../helpers/mixed';
@@ -70,7 +69,9 @@ class Selection {
      *
      * @type {SelectionRange}
      */
-    this.selectedRange = new SelectionRange();
+    this.selectedRange = new SelectionRange((highlight, from, to) => {
+      return this.tableProps.createCellRange(highlight, from, to);
+    });
     /**
      * Visualization layer.
      *
@@ -86,6 +87,8 @@ class Selection {
       areaCornerVisible: (...args) => this.isAreaCornerVisible(...args),
       visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
+      createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
+      createCellRange: (highlight, from, to) => this.tableProps.createCellRange(highlight, from, to),
     });
     /**
      * The module for modifying coordinates.
@@ -97,6 +100,7 @@ class Selection {
       countCols: () => this.tableProps.countColsTranslated(),
       visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
+      createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
       fixedRowsBottom: () => settings.fixedRowsBottom,
       minSpareRows: () => settings.minSpareRows,
       minSpareCols: () => settings.minSpareCols,
@@ -230,7 +234,7 @@ class Selection {
     const cellRange = this.selectedRange.current();
 
     if (this.settings.selectionMode !== 'single') {
-      cellRange.setTo(new CellCoords(coordsClone.row, coordsClone.col));
+      cellRange.setTo(this.tableProps.createCellCoords(coordsClone.row, coordsClone.col));
     }
 
     // Set up current selection.
@@ -328,8 +332,8 @@ class Selection {
         // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
         if (isRowSelected) {
           activeHeaderHighlight
-            .add(new CellCoords(cellRange.from.row, -1))
-            .add(new CellCoords(cellRange.to.row, -1))
+            .add(this.tableProps.createCellCoords(cellRange.from.row, -1))
+            .add(this.tableProps.createCellCoords(cellRange.to.row, -1))
             .commit();
         }
       }
@@ -340,8 +344,8 @@ class Selection {
         // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
         if (isColumnSelected) {
           activeHeaderHighlight
-            .add(new CellCoords(-1, cellRange.from.col))
-            .add(new CellCoords(-1, cellRange.to.col))
+            .add(this.tableProps.createCellCoords(-1, cellRange.from.col))
+            .add(this.tableProps.createCellCoords(-1, cellRange.to.col))
             .commit();
         }
       }
@@ -544,13 +548,13 @@ class Selection {
       return;
     }
 
-    const startCoords = new CellCoords(includeColumnHeaders ? -1 : 0, includeRowHeaders ? -1 : 0);
+    const startCoords = this.tableProps.createCellCoords(includeColumnHeaders ? -1 : 0, includeRowHeaders ? -1 : 0);
 
     this.clear();
     this.setRangeStartOnly(startCoords);
     this.selectedByRowHeader.add(this.getLayerLevel());
     this.selectedByColumnHeader.add(this.getLayerLevel());
-    this.setRangeEnd(new CellCoords(nrOfRows - 1, nrOfColumns - 1));
+    this.setRangeEnd(this.tableProps.createCellCoords(nrOfRows - 1, nrOfColumns - 1));
     this.finish();
   }
 
@@ -599,8 +603,8 @@ class Selection {
       arrayEach(selectionRanges, (selection) => {
         const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
 
-        this.setRangeStartOnly(new CellCoords(rowStart, columnStart), false);
-        this.setRangeEnd(new CellCoords(rowEnd, columnEnd));
+        this.setRangeStartOnly(this.tableProps.createCellCoords(rowStart, columnStart), false);
+        this.setRangeEnd(this.tableProps.createCellCoords(rowEnd, columnEnd));
         this.finish();
       });
     }
@@ -628,8 +632,8 @@ class Selection {
     const isValid = isValidCoord(start, nrOfColumns) && isValidCoord(end, nrOfColumns);
 
     if (isValid) {
-      this.setRangeStartOnly(new CellCoords(headerLevel, start));
-      this.setRangeEnd(new CellCoords(nrOfRows - 1, end));
+      this.setRangeStartOnly(this.tableProps.createCellCoords(headerLevel, start));
+      this.setRangeEnd(this.tableProps.createCellCoords(nrOfRows - 1, end));
       this.finish();
     }
 
@@ -652,8 +656,8 @@ class Selection {
     const isValid = isValidCoord(startRow, nrOfRows) && isValidCoord(endRow, nrOfRows);
 
     if (isValid) {
-      this.setRangeStartOnly(new CellCoords(startRow, headerLevel));
-      this.setRangeEnd(new CellCoords(endRow, nrOfColumns - 1));
+      this.setRangeStartOnly(this.tableProps.createCellCoords(startRow, headerLevel));
+      this.setRangeEnd(this.tableProps.createCellCoords(endRow, nrOfColumns - 1));
       this.finish();
     }
 

@@ -516,7 +516,7 @@ describe('AutoRowSize', () => {
 
     await sleep(300);
 
-    const cloneLeft = spec().$container.find('.handsontable.ht_clone_left .wtHider');
+    const cloneLeft = spec().$container.find('.handsontable.ht_clone_inline_start .wtHider');
 
     expect(cloneLeft.height()).toEqual(70);
   });
