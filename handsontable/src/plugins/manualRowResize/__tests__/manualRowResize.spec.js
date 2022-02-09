@@ -383,39 +383,6 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
   });
 
-  it('should display the resize handle in the correct place after the table has been scrolled', async() => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(20, 20),
-      rowHeaders: true,
-      manualRowResize: true,
-      height: 100,
-      width: 200
-    });
-
-    const mainHolder = hot.view._wt.wtTable.holder;
-    let $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
-
-    $rowHeader.simulate('mouseover');
-
-    const $handle = spec().$container.find('.manualRowResizer');
-
-    $handle[0].style.background = 'red';
-
-    expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
-    expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
-
-    $(mainHolder).scrollTop(200);
-    $(mainHolder).scroll();
-
-    await sleep(400);
-
-    $rowHeader = getInlineStartClone().find('tbody tr:eq(10) th:eq(0)');
-    $rowHeader.simulate('mouseover');
-
-    expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
-    expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
-  });
-
   it('should autosize row after double click (when initial height is not defined)', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
@@ -861,6 +828,7 @@ describe('manualRowResize', () => {
 
       expect($handle.offset().top)
         .toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+      expect($handle.offset().left).toBeCloseTo($headerTH.offset().left, 0);
       expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
     });
 
@@ -908,6 +876,39 @@ describe('manualRowResize', () => {
       // eslint-disable-next-line no-console
       expect(console.warn.calls.mostRecent().args)
         .toEqual(['The provided element is not a child of the bottom_inline_start_corner overlay']);
+    });
+
+    it('should display the resize handle in the correct place after the table has been scrolled', async() => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(20, 20),
+        rowHeaders: true,
+        manualRowResize: true,
+        height: 100,
+        width: 200
+      });
+
+      const mainHolder = hot.view._wt.wtTable.holder;
+      let $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
+
+      $rowHeader.simulate('mouseover');
+
+      const $handle = spec().$container.find('.manualRowResizer');
+
+      $handle[0].style.background = 'red';
+
+      expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
+      expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
+
+      $(mainHolder).scrollTop(200);
+      $(mainHolder).scroll();
+
+      await sleep(400);
+
+      $rowHeader = getInlineStartClone().find('tbody tr:eq(10) th:eq(0)');
+      $rowHeader.simulate('mouseover');
+
+      expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
+      expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
     });
   });
 
