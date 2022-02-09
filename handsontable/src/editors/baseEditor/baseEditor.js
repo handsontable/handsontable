@@ -3,11 +3,12 @@ import { mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
   getScrollbarWidth,
-  innerWidth,
   offset,
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
   outerWidth,
+  outerHeight,
+  getComputedStyle,
 } from '../../helpers/dom/element';
 
 export const EDITOR_TYPE = 'base';
@@ -506,11 +507,12 @@ export class BaseEditor {
       cellStartOffset = TD.offsetLeft + firstColumnOffset - horizontalScrollPosition;
     }
 
+    const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
+    const width = outerWidth(TD) + (parseInt(cellComputedStyle.borderLeftWidth, 10) > 0 ? 0 : 1);
+    const height = outerHeight(TD) + (parseInt(cellComputedStyle.borderTopWidth, 10)  > 0 ? 0 : 1);
     const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainerTop) ? scrollbarWidth : 0;
     const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
-    const width = innerWidth(TD) - 8;
     const maxWidth = this.hot.view.maximumVisibleElementWidth(cellStartOffset) - 9 - actualVerticalScrollbarWidth;
-    const height = TD.scrollHeight + 1;
     const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23); // eslint-disable-line max-len
 
     return {

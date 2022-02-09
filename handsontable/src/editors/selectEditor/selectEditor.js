@@ -192,19 +192,9 @@ export class SelectEditor extends BaseEditor {
       height,
     } = this.getEditedCellRect();
     const selectStyle = this.select.style;
-    const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
-    let cellWidth = width;
-    let cellHeight = height;
 
-    if (parseInt(cellComputedStyle.borderTopWidth, 10) > 0) {
-      cellHeight -= 1;
-    }
-    if (parseInt(cellComputedStyle[this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth'], 10) > 0) {
-      cellWidth -= 1;
-    }
-
-    selectStyle.height = `${cellHeight}px`;
-    selectStyle.minWidth = `${cellWidth}px`;
+    selectStyle.height = `${height}px`;
+    selectStyle.width = `${width}px`;
     selectStyle.top = `${top}px`;
     selectStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
     selectStyle.margin = '0px';

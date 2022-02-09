@@ -8,6 +8,8 @@ import {
   setCaretPosition,
   hasClass,
   removeClass,
+  outerWidth,
+  outerHeight,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
@@ -349,12 +351,18 @@ export class TextEditor extends BaseEditor {
     this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
     this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
     this.TEXTAREA.style.backgroundColor = this.TD.style.backgroundColor;
+    this.TEXTAREA.style.width = `${width}px`;
+    this.TEXTAREA.style.height = `${height}px`;
+
+    // The final size is reduced by the additional padding and/or margin that the textarea may have
+    const finalWidth = width - (outerWidth(this.TEXTAREA) - width);
+    const finalHeight = height - (outerHeight(this.TEXTAREA) - height);
 
     this.autoResize.init(this.TEXTAREA, {
-      minHeight: Math.min(height, maxHeight),
+      minWidth: Math.min(finalWidth, maxWidth),
+      maxWidth, // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
+      minHeight: Math.min(finalHeight, maxHeight),
       maxHeight, // TEXTAREA should never be higher than visible part of the viewport (should not cover the scrollbar)
-      minWidth: Math.min(width, maxWidth),
-      maxWidth // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
     }, true);
   }
 
