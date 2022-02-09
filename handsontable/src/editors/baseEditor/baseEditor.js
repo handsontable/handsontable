@@ -411,9 +411,9 @@ export class BaseEditor {
    *  - `top` The top position relative to the table viewport
    *  - `start` The left (or right in RTL) position relative to the table viewport
    *  - `width` The cell's current width minus padding
-   *  - `maxWidth` The maximum cell's width after which the editor goes out of viewport
+   *  - `maxWidth` The maximum cell's width after which the editor goes out of the table viewport
    *  - `height` The cell's current height minus padding
-   *  - `maxHeight` The maximum cell's height after which the editor goes out of viewport
+   *  - `maxHeight` The maximum cell's height after which the editor goes out of the table viewport
    *
    * @returns {{top: number, start: number, width: number, maxWidth: number, height: number, maxHeight: number} | undefined}
    */
