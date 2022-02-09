@@ -221,21 +221,23 @@ export class BaseEditor {
       namespace: SHORTCUTS_NAMESPACE_EDITOR,
     };
 
-    editorContext.addShortcut([['ArrowUp']], () => {
-      this.hot.selection.transformStart(-1, 0);
-    }, contextConfig);
+    if (this.isInFullEditMode()) {
+      editorContext.addShortcut([['ArrowUp']], () => {
+        this.hot.selection.transformStart(-1, 0);
+      }, contextConfig);
 
-    editorContext.addShortcut([['ArrowDown']], () => {
-      this.hot.selection.transformStart(1, 0);
-    }, contextConfig);
+      editorContext.addShortcut([['ArrowDown']], () => {
+        this.hot.selection.transformStart(1, 0);
+      }, contextConfig);
 
-    editorContext.addShortcut([['ArrowLeft']], () => {
-      this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
-    }, contextConfig);
+      editorContext.addShortcut([['ArrowLeft']], () => {
+        this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
+      }, contextConfig);
 
-    editorContext.addShortcut([['ArrowRight']], () => {
-      this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
-    }, contextConfig);
+      editorContext.addShortcut([['ArrowRight']], () => {
+        this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
+      }, contextConfig);
+    }
 
     // Saving values using the modified coordinates.
     this.hot.populateFromArray(visualRowFrom, visualColumnFrom, value, visualRowTo, visualColumnTo, 'edit');

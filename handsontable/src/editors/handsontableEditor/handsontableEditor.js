@@ -4,6 +4,7 @@ import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
 import { extend } from '../../helpers/object';
+import { SHORTCUTS_NAMESPACE_NAVIGATION } from '../../editorManager';
 
 const SHORTCUTS_NAMESPACE = 'handsontableEditor';
 
@@ -183,6 +184,8 @@ export class HandsontableEditor extends TextEditor {
 
     const contextConfig = {
       namespace: SHORTCUTS_NAMESPACE,
+      relativeToNamespace: SHORTCUTS_NAMESPACE_NAVIGATION,
+      position: 'before',
     };
 
     const action = (rowToSelect, event) => {

@@ -44,6 +44,18 @@ export const createContext = (name) => {
       throw new Error('Please define the namespace for added shortcut.');
     }
 
+    const newShortcut = {
+      callback,
+      options: {
+        namespace,
+        runAction,
+        preventDefault,
+        stopPropagation,
+        relativeToNamespace,
+        position,
+      }
+    };
+
     variants.forEach((variant) => {
       const normalizedVariant = normalizeKeys(variant);
       const hasVariant = SHORTCUTS.hasItem(normalizedVariant);
@@ -64,32 +76,10 @@ export const createContext = (name) => {
           insertionIndex = shortcuts.length;
         }
 
-        shortcuts.splice(insertionIndex, 0, {
-          callback,
-          options: {
-            namespace,
-            runAction,
-            preventDefault,
-            stopPropagation,
-            relativeToNamespace,
-            position,
-          }
-        });
+        shortcuts.splice(insertionIndex, 0, newShortcut);
 
       } else {
-        SHORTCUTS.addItem(normalizedVariant, [
-          {
-            callback,
-            options: {
-              namespace,
-              runAction,
-              preventDefault,
-              stopPropagation,
-              relativeToNamespace,
-              position,
-            }
-          }
-        ]);
+        SHORTCUTS.addItem(normalizedVariant, [newShortcut]);
       }
     });
   };
