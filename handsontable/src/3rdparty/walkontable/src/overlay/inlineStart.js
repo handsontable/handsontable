@@ -306,7 +306,7 @@ export class InlineStartOverlay extends Overlay {
    * @returns {number} Main table's vertical scroll position.
    */
   getScrollPosition() {
-    return getScrollLeft(this.mainTableScrollableElement, this.domBindings.rootWindow);
+    return getScrollLeft(this.mainTableScrollableElement, this.domBindings.rootWindow) * (this.isRtl() ? -1 : 1);
   }
 
   /**
