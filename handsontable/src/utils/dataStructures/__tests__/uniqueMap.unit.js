@@ -10,6 +10,7 @@ describe('createUniqueMap', () => {
     expect(uniqueMap.getItem).toBeInstanceOf(Function);
     expect(uniqueMap.getItems).toBeInstanceOf(Function);
     expect(uniqueMap.hasItem).toBeInstanceOf(Function);
+    expect(uniqueMap.removeItem).toBeInstanceOf(Function);
   });
 
   describe('operations', () => {
@@ -103,6 +104,23 @@ describe('createUniqueMap', () => {
       expect(uniqueMap.hasItem('A')).toBe(true);
       expect(uniqueMap.hasItem('B')).toBe(false);
       expect(uniqueMap.hasItem('C')).toBe(true);
+    });
+
+    it('should be possible to remove item by ID', () => {
+      const uniqueMap = createUniqueMap();
+
+      uniqueMap.addItem('A', 'ItemA');
+      uniqueMap.addItem('C', 'ItemC');
+
+      uniqueMap.removeItem('A');
+
+      expect(uniqueMap.hasItem('A')).toBe(false);
+      expect(uniqueMap.hasItem('C')).toBe(true);
+
+      uniqueMap.removeItem('C');
+
+      expect(uniqueMap.hasItem('A')).toBe(false);
+      expect(uniqueMap.hasItem('C')).toBe(false);
     });
   });
 });
