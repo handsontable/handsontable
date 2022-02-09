@@ -51,7 +51,7 @@ describe('shortcutManager', () => {
 
       keyDown('control');
 
-      expect(shortcutManager.isCtrlPressed()).toBeTrue();
+      expect(shortcutManager.isCtrlPressed()).toBe(true);
 
       keyUp('control');
 
@@ -82,7 +82,7 @@ describe('shortcutManager', () => {
 
       keyDown('meta');
 
-      expect(shortcutManager.isCtrlPressed()).toBeTrue();
+      expect(shortcutManager.isCtrlPressed()).toBe(true);
 
       keyUp('meta');
 

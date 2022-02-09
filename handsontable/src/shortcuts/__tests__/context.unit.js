@@ -86,31 +86,31 @@ describe('context', () => {
       namespace: 'helloWorld'
     };
 
-    expect(context.hasShortcut(['control', 'a'])).toBeFalse();
-    expect(context.hasShortcut(['Control', 'A'])).toBeFalse();
-    expect(context.hasShortcut(['a', 'control'])).toBeFalse();
-    expect(context.hasShortcut(['A', 'Control'])).toBeFalse();
+    expect(context.hasShortcut(['control', 'a'])).toBe(false);
+    expect(context.hasShortcut(['Control', 'A'])).toBe(false);
+    expect(context.hasShortcut(['a', 'control'])).toBe(false);
+    expect(context.hasShortcut(['A', 'Control'])).toBe(false);
 
     context.addShortcut([['control', 'a']], callback, options);
 
-    expect(context.hasShortcut(['control', 'a'])).toBeTrue();
-    expect(context.hasShortcut(['Control', 'A'])).toBeTrue();
-    expect(context.hasShortcut(['a', 'control'])).toBeTrue();
-    expect(context.hasShortcut(['A', 'Control'])).toBeTrue();
+    expect(context.hasShortcut(['control', 'a'])).toBe(true);
+    expect(context.hasShortcut(['Control', 'A'])).toBe(true);
+    expect(context.hasShortcut(['a', 'control'])).toBe(true);
+    expect(context.hasShortcut(['A', 'Control'])).toBe(true);
 
     context.addShortcut([['control', 'a']], callback2, options);
 
-    expect(context.hasShortcut(['control', 'a'])).toBeTrue();
-    expect(context.hasShortcut(['Control', 'A'])).toBeTrue();
-    expect(context.hasShortcut(['a', 'control'])).toBeTrue();
-    expect(context.hasShortcut(['A', 'Control'])).toBeTrue();
+    expect(context.hasShortcut(['control', 'a'])).toBe(true);
+    expect(context.hasShortcut(['Control', 'A'])).toBe(true);
+    expect(context.hasShortcut(['a', 'control'])).toBe(true);
+    expect(context.hasShortcut(['A', 'Control'])).toBe(true);
 
     context.removeShortcutByVariants([['control', 'a']]);
 
-    expect(context.hasShortcut(['control', 'a'])).toBeFalse();
-    expect(context.hasShortcut(['Control', 'A'])).toBeFalse();
-    expect(context.hasShortcut(['a', 'control'])).toBeFalse();
-    expect(context.hasShortcut(['A', 'Control'])).toBeFalse();
+    expect(context.hasShortcut(['control', 'a'])).toBe(false);
+    expect(context.hasShortcut(['Control', 'A'])).toBe(false);
+    expect(context.hasShortcut(['a', 'control'])).toBe(false);
+    expect(context.hasShortcut(['A', 'Control'])).toBe(false);
   });
 
   it('should give ability to remove registered shortcuts by namespace', () => {
@@ -144,12 +144,12 @@ describe('context', () => {
     const shortcuts = context.getShortcuts(['control', 'a']);
 
     expect(shortcuts.length).toBe(1);
-    expect(context.hasShortcut(['control', 'b'])).toBeFalse();
+    expect(context.hasShortcut(['control', 'b'])).toBe(false);
 
     context.removeShortcutByNamespace(options2.namespace);
 
-    expect(context.hasShortcut(['control', 'a'])).toBeFalse();
-    expect(context.hasShortcut(['control', 'b'])).toBeFalse();
-    expect(context.hasShortcut(['control', 'd'])).toBeFalse();
+    expect(context.hasShortcut(['control', 'a'])).toBe(false);
+    expect(context.hasShortcut(['control', 'b'])).toBe(false);
+    expect(context.hasShortcut(['control', 'd'])).toBe(false);
   });
 });
