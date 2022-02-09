@@ -2,7 +2,7 @@ import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { createContext } from './context';
 import { useRecorder } from './recorder';
 import { arrayEach } from '../helpers/array';
-import {isUndefined} from '../helpers/mixed';
+import { isUndefined } from '../helpers/mixed';
 
 export const createShortcutManager = ({ frame, beforeKeyDown, afterKeyDown }) => {
   /**
