@@ -42,9 +42,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual({
             start: 0,
             top: 0,
-            width: 40, // 48px (the default cell width closest to the right side of the table) - 8px (padding)
-            maxWidth: 276,
-            height: 23,
+            width: 50,
+            maxWidth: 285,
+            height: 24,
             maxHeight: 185,
           });
         });
@@ -62,9 +62,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual({
             start: 0,
             top: 0,
-            width: 40, // 48px (the default cell width closest to the right side of the table) - 8px (padding)
-            maxWidth: document.documentElement.clientWidth - 9, // padding
-            height: 23,
+            width: 50,
+            maxWidth: document.documentElement.clientWidth,
+            height: 24,
             maxHeight: document.documentElement.clientHeight,
           });
         });
@@ -86,9 +86,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
             start: 234,
             top: 23,
-            width: 41, // 49px (the default cell width) - 8px (padding)
-            maxWidth: 41,
-            height: 23,
+            width: 51,
+            maxWidth: 51,
+            height: 24,
             // maxHeight: ?, // returns wrong value! it will be fixed within #9206
           }));
         });
@@ -107,9 +107,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
             start: Math.abs(document.documentElement.scrollLeft) + document.documentElement.clientWidth - 50, // 50 - the width of the first cell
             top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 23,
-            width: 41, // 49px (the default cell width) - 8px (padding)
-            maxWidth: 40,
-            height: 23,
+            width: 51,
+            maxWidth: 50,
+            height: 24,
             // maxHeight: ?, // returns wrong value! it will be fixed within #9206
           }));
         });
@@ -131,9 +131,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual({
             start: 0,
             top: 0,
-            width: 40, // 48px (the default cell width closest to the right side of the table) - 8px (padding)
-            maxWidth: 276,
-            height: 23,
+            width: 50,
+            maxWidth: 285,
+            height: 24,
             maxHeight: 185,
           });
         });
@@ -152,9 +152,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual({
             start: 0,
             top: 0,
-            width: 40, // 48px (the default cell width closest to the right side of the table) - 8px (padding)
-            maxWidth: document.documentElement.clientWidth - 9, // padding
-            height: 23,
+            width: 50,
+            maxWidth: document.documentElement.clientWidth,
+            height: 24,
             maxHeight: document.documentElement.clientHeight,
           });
         });
@@ -177,9 +177,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
             start: 49,
             top: 23,
-            width: 41, // 49px (the default cell width) - 8px (padding)
+            width: 51,
             // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-            height: 23,
+            height: 24,
             // maxHeight: ?, // returns wrong value! it will be fixed within #9206
           }));
         });
@@ -199,9 +199,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
             start: Math.abs(document.documentElement.scrollLeft) + 49, // 49 - the width of the first cell
             top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 23,
-            width: 41, // 49px (the default cell width) - 8px (padding)
+            width: 51,
             // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-            height: 23,
+            height: 24,
             // maxHeight: ?, // returns wrong value! it will be fixed within #9206
           }));
         });
@@ -222,9 +222,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual({
             start: 0,
             top: 0,
-            width: 40, // 48px (the default cell width closest to the right side of the table) - 8px (padding)
-            maxWidth: 276,
-            height: 23,
+            width: 50,
+            maxWidth: 285,
+            height: 24,
             maxHeight: 185,
           });
         });
@@ -242,9 +242,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual({
             start: 0,
             top: 0,
-            width: 40, // 48px (the default cell width closest to the right side of the table) - 8px (padding)
-            maxWidth: document.documentElement.clientWidth - 9, // padding
-            height: 23,
+            width: 50,
+            maxWidth: document.documentElement.clientWidth,
+            height: 24,
             maxHeight: document.documentElement.clientHeight,
           });
         });
@@ -266,10 +266,10 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
             start: 49,
             top: 161,
-            width: 41, // 49px (the default cell width) - 8px (padding)
+            width: 51,
             // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-            height: 23,
-            maxHeight: 23,
+            height: 24,
+            maxHeight: 24,
           }));
         });
 
@@ -287,10 +287,10 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
             start: Math.abs(document.documentElement.scrollLeft) + 49, // 49 - the width of the first cell
             top: document.documentElement.offsetHeight - 24, // 24 - the height of the last cell
-            width: 41, // 49px (the default cell width) - 8px (padding)
+            width: 51,
             // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-            height: 23,
-            maxHeight: 23,
+            height: 24,
+            maxHeight: 24,
           }));
         });
       });
@@ -311,9 +311,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
             start: 0,
             top: 138,
-            width: 40, // 48px (the default cell width closest to the right side of the table) - 8px (padding)
-            maxWidth: 276,
-            height: 23,
+            width: 50,
+            maxWidth: 285,
+            height: 24,
             // maxHeight: ?, // returns wrong value! it will be fixed within #9206
           }));
         });
@@ -332,9 +332,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
             start: 0,
             top: document.documentElement.clientHeight - 47, // 47 - height of the 2 last rows,
-            width: 40, // 48px (the default cell width closest to the right side of the table) - 8px (padding)
-            maxWidth: document.documentElement.clientWidth - 9, // padding
-            height: 23,
+            width: 50,
+            maxWidth: document.documentElement.clientWidth,
+            height: 24,
             // maxHeight: ?, // returns wrong value! it will be fixed within #9206
           }));
         });
@@ -357,9 +357,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
             start: 0,
             top: 138,
-            width: 40, // 48px (the default cell width closest to the right side of the table) - 8px (padding)
+            width: 50,
             // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-            height: 23,
+            height: 24,
             // maxHeight: ?, // returns wrong value! it will be fixed within #9206
           }));
         });
@@ -379,9 +379,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
             start: Math.abs(document.documentElement.scrollLeft),
             top: document.documentElement.offsetHeight - 47,
-            width: 40, // 48px (the default cell width closest to the right side of the table) - 8px (padding)
+            width: 50,
             // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-            height: 23,
+            height: 24,
             // maxHeight: ?, // returns wrong value! it will be fixed within #9206
           }));
         });
@@ -402,9 +402,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
             start: 0,
             top: 138,
-            width: 40, // 48px (the default cell width closest to the right side of the table) - 8px (padding)
-            maxWidth: 276,
-            height: 23,
+            width: 50,
+            maxWidth: 285,
+            height: 24,
             // maxHeight: ?, // returns wrong value! it will be fixed within #9206
           }));
         });
@@ -422,9 +422,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
             start: 0,
             top: document.documentElement.clientHeight - 47, // 47 - height of the 2 last rows
-            width: 40, // 48px (the default cell width closest to the right side of the table) - 8px (padding)
-            maxWidth: document.documentElement.clientWidth - 9, // padding
-            height: 23,
+            width: 50,
+            maxWidth: document.documentElement.clientWidth,
+            height: 24,
             // maxHeight: ?, // returns wrong value! it will be fixed within #9206
           }));
         });
@@ -446,9 +446,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
             start: 234,
             top: 161,
-            width: 41, // 49px (the default cell width) - 8px (padding)
-            maxWidth: 41,
-            height: 23,
+            width: 51,
+            maxWidth: 51,
+            height: 24,
             // maxHeight: ?, // returns wrong value! it will be fixed within #9206
           }));
         });
@@ -467,9 +467,9 @@ describe('BaseEditor API (RTL mode)', () => {
           expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
             start: 4950,
             top: document.documentElement.offsetHeight - 24,
-            width: 41, // 49px (the default cell width) - 8px (padding)
-            maxWidth: 40,
-            height: 23,
+            width: 51,
+            maxWidth: 50,
+            height: 24,
             // maxHeight: ?, // returns wrong value! it will be fixed within #9206
           }));
         });

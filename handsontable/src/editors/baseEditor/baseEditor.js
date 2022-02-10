@@ -508,12 +508,17 @@ export class BaseEditor {
     }
 
     const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
-    const width = outerWidth(TD) + (parseInt(cellComputedStyle.borderLeftWidth, 10) > 0 ? 0 : 1);
-    const height = outerHeight(TD) + (parseInt(cellComputedStyle.borderTopWidth, 10)  > 0 ? 0 : 1);
+    const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
+    const inlineStartBorderCompensation = parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
+    const topBorderCompensation = parseInt(cellComputedStyle.borderTopWidth, 10) > 0 ? 0 : 1;
+    const width = outerWidth(TD) + inlineStartBorderCompensation;
+    const height = outerHeight(TD) + topBorderCompensation;
     const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainerTop) ? scrollbarWidth : 0;
     const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
-    const maxWidth = this.hot.view.maximumVisibleElementWidth(cellStartOffset) - 9 - actualVerticalScrollbarWidth;
-    const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23); // eslint-disable-line max-len
+    const maxWidth = this.hot.view.maximumVisibleElementWidth(cellStartOffset) -
+      actualVerticalScrollbarWidth + inlineStartBorderCompensation;
+    const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) -
+      actualHorizontalScrollbarWidth + topBorderCompensation, 23);
 
     return {
       top: topPos,

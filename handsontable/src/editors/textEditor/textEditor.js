@@ -8,8 +8,6 @@ import {
   setCaretPosition,
   hasClass,
   removeClass,
-  outerWidth,
-  outerHeight,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
@@ -351,18 +349,25 @@ export class TextEditor extends BaseEditor {
     this.TEXTAREA.style.fontSize = cellComputedStyle.fontSize;
     this.TEXTAREA.style.fontFamily = cellComputedStyle.fontFamily;
     this.TEXTAREA.style.backgroundColor = this.TD.style.backgroundColor;
-    this.TEXTAREA.style.width = `${width}px`;
-    this.TEXTAREA.style.height = `${height}px`;
 
-    // The final size is reduced by the additional padding and/or margin that the textarea may have
-    const finalWidth = width - (outerWidth(this.TEXTAREA) - width);
-    const finalHeight = height - (outerHeight(this.TEXTAREA) - height);
+    const textareaComputedStyle = getComputedStyle(this.TEXTAREA);
+
+    const horizontalPadding = parseInt(textareaComputedStyle.paddingLeft, 10) +
+      parseInt(textareaComputedStyle.paddingRight, 10);
+    const verticalPadding = parseInt(textareaComputedStyle.paddingTop, 10) +
+      parseInt(textareaComputedStyle.paddingBottom, 10);
+
+    const finalWidth = width - horizontalPadding;
+    const finalHeight = height - verticalPadding;
+    const finalMaxWidth = maxWidth - horizontalPadding;
+    const finalMaxHeight = maxHeight - verticalPadding;
 
     this.autoResize.init(this.TEXTAREA, {
-      minWidth: Math.min(finalWidth, maxWidth),
-      maxWidth, // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
-      minHeight: Math.min(finalHeight, maxHeight),
-      maxHeight, // TEXTAREA should never be higher than visible part of the viewport (should not cover the scrollbar)
+      minWidth: Math.min(finalWidth, finalMaxWidth),
+      minHeight: Math.min(finalHeight, finalMaxHeight),
+      // TEXTAREA should never be wider than visible part of the viewport (should not cover the scrollbar)
+      maxWidth: finalMaxWidth,
+      maxHeight: finalMaxHeight,
     }, true);
   }
 

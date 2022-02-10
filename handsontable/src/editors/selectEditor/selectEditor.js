@@ -3,7 +3,6 @@ import {
   addClass,
   empty,
   fastInnerHTML,
-  getComputedStyle,
   hasClass,
   removeClass,
 } from '../../helpers/dom/element';
