@@ -1,7 +1,52 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import { render } from 'react-dom';
+import { act } from 'react-dom/test-utils';
 import { HotTable } from '../src/hotTable';
 import { addUnsafePrefixes } from '../src/helpers';
 import { BaseEditorComponent } from '../src/baseEditorComponent';
+
+const SPEC = {
+  container: null
+};
+
+beforeEach(() => {
+  const container = document.createElement('DIV');
+
+  container.id = 'hotContainer';
+  document.body.appendChild(container);
+  SPEC.container = container;
+});
+
+afterEach(() => {
+  const container = document.querySelector('#hotContainer');
+
+  container.parentNode.removeChild(container);
+  SPEC.container = null;
+});
+
+export function mountComponent(Component, container = SPEC.container) {
+  let hotTableComponent = null;
+
+  const App = () => {
+    hotTableComponent = useRef(null);
+
+    if (!Component.type.prototype || !Component.type.prototype.isReactComponent) {
+      return (
+        <Component.type {...Component.props}></Component.type>
+      );
+    }
+
+    return (
+      <Component.type {...Component.props} ref={hotTableComponent}></Component.type>
+    );
+  }
+
+  act(() => {
+    render(<App/>, container);
+  });
+
+  return hotTableComponent?.current;
+}
 
 export function sleep(delay = 100) {
   return Promise.resolve({
