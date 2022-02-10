@@ -1,8 +1,4 @@
 import React from 'react';
-import {
-  mount,
-  ReactWrapper
-} from 'enzyme';
 import { registerAllModules } from 'handsontable/registry';
 import {
   HotTable
@@ -13,17 +9,11 @@ import {
 import {
   createSpreadsheetData,
   mockElementDimensions,
-  sleep
+  mountComponent
 } from './_helpers';
 import {
   AUTOSIZE_WARNING
 } from '../src/helpers';
-
-beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-});
 
 registerAllModules();
 
@@ -36,7 +26,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
       return <>test</>
     };
 
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+    mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 2)}
@@ -46,14 +36,10 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}>
         <RendererComponent hot-renderer></RendererComponent>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
+      </HotTable>
+    ));
 
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
-
-    wrapper.detach();
   });
 
   it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a global component-based renderer' +
@@ -64,7 +50,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
       return <>test</>
     };
 
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+    mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 2)}
@@ -76,14 +62,10 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}>
         <RendererComponent hot-renderer></RendererComponent>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
+      </HotTable>
+    ));
 
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
-
-    wrapper.detach();
   });
 
   it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a component-based renderer' +
@@ -94,7 +76,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
       return <>test</>
     };
 
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+    mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -108,14 +90,10 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
           <RendererComponent hot-renderer></RendererComponent>
         </HotColumn>
         <HotColumn/>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
+      </HotTable>
+    ));
 
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
-
-    wrapper.detach();
   });
 
   it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a component-based renderer' +
@@ -126,7 +104,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
       return <>test</>
     };
 
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+    mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -142,14 +120,10 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
           <RendererComponent hot-renderer></RendererComponent>
         </HotColumn>
         <HotColumn/>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
+      </HotTable>
+    ));
 
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
-
-    wrapper.detach();
   });
 
   it('should throw a warning, when `autoRowSize` or `autoColumnSize` is defined, and both function-based and component-based renderers are defined', async () => {
@@ -159,7 +133,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
       return <>test</>
     };
 
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+    mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -180,20 +154,16 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
           <RendererComponent hot-renderer/>
         </HotColumn>
         <HotColumn/>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
+      </HotTable>
+    ));
 
     expect(console.warn).toHaveBeenCalledWith(AUTOSIZE_WARNING);
-
-    wrapper.detach();
   });
 
   it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only global function-based renderers were defined', async () => {
     console.warn = jasmine.createSpy('warn');
 
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+    mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -208,20 +178,16 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
         <HotColumn/>
         <HotColumn/>
         <HotColumn/>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
+      </HotTable>
+    ));
 
     expect(console.warn).not.toHaveBeenCalled();
-
-    wrapper.detach();
   });
 
   it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only function-based renderers were defined for columns', async () => {
     console.warn = jasmine.createSpy('warn');
 
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+    mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -236,21 +202,17 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
         <HotColumn/>
         <HotColumn/>
         <HotColumn/>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
+      </HotTable>
+    ));
 
     expect(console.warn).not.toHaveBeenCalled();
-
-    wrapper.detach();
   });
 
   it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only function-based renderers were defined for columns, when ' +
     'the `columns` option is defined as a function', async () => {
     console.warn = jasmine.createSpy('warn');
 
-    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+    mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -269,13 +231,9 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
         <HotColumn/>
         <HotColumn/>
         <HotColumn/>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
+      </HotTable>
+    ));
 
     expect(console.warn).not.toHaveBeenCalled();
-
-    wrapper.detach();
   });
 });
