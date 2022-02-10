@@ -411,9 +411,9 @@ export class BaseEditor {
    * The rectangle has six integer properties:
    *  - `top` The top position relative to the table viewport
    *  - `start` The left (or right in RTL) position relative to the table viewport
-   *  - `width` The cell's current width minus padding
+   *  - `width` The cell's current width;
    *  - `maxWidth` The maximum cell's width after which the editor goes out of the table viewport
-   *  - `height` The cell's current height minus padding
+   *  - `height` The cell's current height;
    *  - `maxHeight` The maximum cell's height after which the editor goes out of the table viewport
    *
    * @returns {{top: number, start: number, width: number, maxWidth: number, height: number, maxHeight: number} | undefined}
