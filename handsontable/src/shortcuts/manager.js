@@ -2,7 +2,6 @@ import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { createContext } from './context';
 import { useRecorder } from './recorder';
 import { arrayEach } from '../helpers/array';
-import { isUndefined } from '../helpers/mixed';
 
 export const createShortcutManager = ({ frame, beforeKeyDown, afterKeyDown }) => {
   /**
@@ -71,15 +70,9 @@ export const createShortcutManager = ({ frame, beforeKeyDown, afterKeyDown }) =>
     const activeContext = getContext(getActiveContextName());
 
     if (activeContext.hasShortcut(keys)) {
-      const shortcuts = activeContext.getShortcuts(keys);
+      const shortcuts = activeContext.getShortcuts(keys).slice();
 
       arrayEach(shortcuts, (shortcut) => {
-        // Shortcut may be removed from the scope after performing some action. Thus, `arrayEach` may loop through
-        // not existing array items.
-        if (isUndefined(shortcut)) {
-          return false;
-        }
-
         const { callback, options: { runAction, preventDefault, stopPropagation } } = shortcut;
 
         if (runAction(event) === false) {
