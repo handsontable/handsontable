@@ -73,7 +73,7 @@ export const createShortcutManager = ({ frame, beforeKeyDown, afterKeyDown }) =>
       // Processing just actions beeing in stack at the moment of shortcut pressing (withoud added/removed dynamically).
       const shortcuts = activeContext.getShortcuts(keys).slice();
 
-      arrayEach(shortcuts, ({ callback, options: { runAction, preventDefault, stopPropagation } }) => {
+      arrayEach(shortcuts, ({ callback, runAction, preventDefault, stopPropagation }) => {
         if (runAction(event) === false) {
           return;
         }

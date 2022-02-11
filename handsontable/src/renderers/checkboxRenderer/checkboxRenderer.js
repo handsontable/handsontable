@@ -154,27 +154,34 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
     const gridContext = shortcutManager.getContext('grid');
     const config = { namespace: SHORTCUTS_NAMESPACE };
 
-    gridContext.addShortcut([[' ']], () => {
-      changeSelectedCheckboxesState();
+    gridContext.addShortcut({
+      variants: [[' ']],
+      callback: () => {
+        changeSelectedCheckboxesState();
 
-      return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
-    }, config);
+        return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
+      },
+      ...config
+    });
 
-    gridContext.addShortcut([['enter']], () => {
-      changeSelectedCheckboxesState();
+    gridContext.addShortcut({
+      variants: [['enter']],
+      callback: () => {
+        changeSelectedCheckboxesState();
 
-      return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
-
-    }, {
+        return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
+      },
       ...config,
       runAction: () => instance.getSettings().enterBeginsEditing
     });
 
-    gridContext.addShortcut([['delete'], ['backspace']], () => {
-      changeSelectedCheckboxesState(true);
+    gridContext.addShortcut({
+      variants: [['delete'], ['backspace']],
+      callback: () => {
+        changeSelectedCheckboxesState(true);
 
-      return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
-    }, {
+        return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
+      },
       ...config,
       relativeToNamespace: SHORTCUTS_NAMESPACE_EDITOR,
       position: 'before',

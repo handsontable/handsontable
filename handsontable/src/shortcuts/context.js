@@ -16,9 +16,9 @@ export const createContext = (name) => {
   /**
    * Add shortcut to the context.
    *
-   * @param {Array<Array<string>>} variants Shortcut's variants.
-   * @param {Function} callback The callback.
-   * @param {object} [options] Additional options for shortcut's variants.
+   * @param {object} options Options for shortcut's variants.
+   * @param {Array<Array<string>>} options.variants Shortcut's variants.
+   * @param {Function} options.callback The callback.
    * @param {object} options.namespace Namespace for shortcut.
    * @param {object} [options.runAction]  Option determine whether assigned callback should be performed.
    * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
@@ -29,9 +29,9 @@ export const createContext = (name) => {
    *
    */
   const addShortcut = (
-    variants,
-    callback,
     {
+      variants,
+      callback,
       namespace,
       runAction = () => true,
       preventDefault = true,
@@ -46,14 +46,12 @@ export const createContext = (name) => {
 
     const newShortcut = {
       callback,
-      options: {
-        namespace,
-        runAction,
-        preventDefault,
-        stopPropagation,
-        relativeToNamespace,
-        position,
-      }
+      namespace,
+      runAction,
+      preventDefault,
+      stopPropagation,
+      relativeToNamespace,
+      position,
     };
 
     variants.forEach((variant) => {
@@ -62,7 +60,7 @@ export const createContext = (name) => {
 
       if (hasVariant) {
         const shortcuts = SHORTCUTS.getItem(normalizedVariant);
-        let insertionIndex = shortcuts.findIndex(shortcut => shortcut.options.namespace === relativeToNamespace);
+        let insertionIndex = shortcuts.findIndex(shortcut => shortcut.namespace === relativeToNamespace);
 
         if (insertionIndex !== -1) {
           if (position === 'before') {
@@ -106,7 +104,7 @@ export const createContext = (name) => {
     const shortcuts = SHORTCUTS.getItems();
 
     shortcuts.forEach(([keyCombination, actions]) => {
-      const leftActions = actions.filter(action => action.options.namespace !== namespace);
+      const leftActions = actions.filter(action => action.namespace !== namespace);
 
       if (leftActions.length === 0) {
         removeShortcutByVariants([[keyCombination]]);

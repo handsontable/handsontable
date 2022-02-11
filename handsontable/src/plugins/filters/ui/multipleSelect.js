@@ -10,6 +10,7 @@ import BaseUI from './_base';
 import InputUI from './input';
 import LinkUI from './link';
 import { createArrayAssertion } from '../utils';
+import {CellCoords} from "../../../3rdparty/walkontable/src";
 
 const privatePool = new WeakMap();
 const SHORTCUTS_NAMESPACE = 'multipleSelect.itemBox';
@@ -194,18 +195,25 @@ class MultipleSelectUI extends BaseUI {
       const config = { namespace: SHORTCUTS_NAMESPACE };
 
       // TODO: Are those shortcuts really needed?
-      gridContext.addShortcut([['ArrowUp'], ['ArrowDown'], ['ArrowLeft'], ['ArrowRight'],
-        ['Tab'], [' '], ['Enter']], (event) => {
-        stopImmediatePropagation(event);
-        this.itemsBox.unlisten();
-        this.itemsBox.deselectCell();
-        this.searchInput.focus();
-      }, config);
+      gridContext.addShortcut({
+        variants: [['ArrowUp'], ['ArrowDown'], ['ArrowLeft'], ['ArrowRight'], ['Tab'], [' '], ['Enter']],
+        callback: (event) => {
+          stopImmediatePropagation(event);
+          this.itemsBox.unlisten();
+          this.itemsBox.deselectCell();
+          this.searchInput.focus();
+        },
+        ...config
+      });
 
       // TODO: Is this shortcut really needed? We have one test for that case, but focus is performed programmatically.
-      gridContext.addShortcut([['Escape']], (event) => {
-        this.runLocalHooks('keydown', event, this);
-      }, config);
+      gridContext.addShortcut({
+        variants: [['Escape']],
+        callback: (event) => {
+          this.runLocalHooks('keydown', event, this);
+        },
+        ...config
+      });
     };
 
     hotInitializer(itemsBoxWrapper);

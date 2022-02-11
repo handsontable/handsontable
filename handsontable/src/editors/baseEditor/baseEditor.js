@@ -222,21 +222,37 @@ export class BaseEditor {
     };
 
     if (this.isInFullEditMode()) {
-      editorContext.addShortcut([['ArrowUp']], () => {
-        this.hot.selection.transformStart(-1, 0);
-      }, contextConfig);
+      editorContext.addShortcut({
+        variants: [['ArrowUp']],
+        callback: () => {
+          this.hot.selection.transformStart(-1, 0);
+        },
+        ...contextConfig
+      });
 
-      editorContext.addShortcut([['ArrowDown']], () => {
-        this.hot.selection.transformStart(1, 0);
-      }, contextConfig);
+      editorContext.addShortcut({
+        variants: [['ArrowDown']],
+        callback: () => {
+          this.hot.selection.transformStart(1, 0);
+        },
+        ...contextConfig
+      });
 
-      editorContext.addShortcut([['ArrowLeft']], () => {
-        this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
-      }, contextConfig);
+      editorContext.addShortcut({
+        variants: [['ArrowLeft']],
+        callback: () => {
+          this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
+        },
+        ...contextConfig
+      });
 
-      editorContext.addShortcut([['ArrowRight']], () => {
-        this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
-      }, contextConfig);
+      editorContext.addShortcut({
+        variants: [['ArrowRight']],
+        callback: () => {
+          this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
+        },
+        ...contextConfig
+      });
     }
 
     // Saving values using the modified coordinates.

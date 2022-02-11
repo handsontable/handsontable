@@ -209,49 +209,58 @@ export class HandsontableEditor extends TextEditor {
       }
     };
 
-    editorContext.addShortcut([['ArrowUp']], (event) => {
-      const innerHOT = this.htEditor.getInstance();
-      let rowToSelect;
-      let selectedRow;
 
-      if (!innerHOT.getSelectedLast() && innerHOT.flipped) {
-        rowToSelect = innerHOT.countRows() - 1;
+    editorContext.addShortcut({
+      variants: [['ArrowUp']],
+      callback: (event) => {
+        const innerHOT = this.htEditor.getInstance();
+        let rowToSelect;
+        let selectedRow;
 
-      } else if (innerHOT.getSelectedLast()) {
-        if (innerHOT.flipped) {
-          selectedRow = innerHOT.getSelectedLast()[0];
-          rowToSelect = Math.max(0, selectedRow - 1);
-        } else {
-          selectedRow = innerHOT.getSelectedLast()[0];
-          rowToSelect = selectedRow - 1;
+        if (!innerHOT.getSelectedLast() && innerHOT.flipped) {
+          rowToSelect = innerHOT.countRows() - 1;
+
+        } else if (innerHOT.getSelectedLast()) {
+          if (innerHOT.flipped) {
+            selectedRow = innerHOT.getSelectedLast()[0];
+            rowToSelect = Math.max(0, selectedRow - 1);
+          } else {
+            selectedRow = innerHOT.getSelectedLast()[0];
+            rowToSelect = selectedRow - 1;
+          }
         }
-      }
 
-      return action(rowToSelect, event);
-    }, contextConfig);
+        return action(rowToSelect, event);
+      },
+      ...contextConfig
+    });
 
-    editorContext.addShortcut([['ArrowDown']], (event) => {
-      const innerHOT = this.htEditor.getInstance();
-      let rowToSelect;
-      let selectedRow;
+    editorContext.addShortcut({
+      variants: [['ArrowDown']],
+      callback: (event) => {
+        const innerHOT = this.htEditor.getInstance();
+        let rowToSelect;
+        let selectedRow;
 
-      if (!innerHOT.getSelectedLast() && !innerHOT.flipped) {
-        rowToSelect = 0;
+        if (!innerHOT.getSelectedLast() && !innerHOT.flipped) {
+          rowToSelect = 0;
 
-      } else if (innerHOT.getSelectedLast()) {
-        if (innerHOT.flipped) {
-          rowToSelect = innerHOT.getSelectedLast()[0] + 1;
+        } else if (innerHOT.getSelectedLast()) {
+          if (innerHOT.flipped) {
+            rowToSelect = innerHOT.getSelectedLast()[0] + 1;
 
-        } else if (!innerHOT.flipped) {
-          const lastRow = innerHOT.countRows() - 1;
+          } else if (!innerHOT.flipped) {
+            const lastRow = innerHOT.countRows() - 1;
 
-          selectedRow = innerHOT.getSelectedLast()[0];
-          rowToSelect = Math.min(lastRow, selectedRow + 1);
+            selectedRow = innerHOT.getSelectedLast()[0];
+            rowToSelect = Math.min(lastRow, selectedRow + 1);
+          }
         }
-      }
 
-      return action(rowToSelect, event);
-    }, contextConfig);
+        return action(rowToSelect, event);
+      },
+      ...contextConfig
+    });
   }
 
   /**

@@ -536,11 +536,12 @@ export class MergeCells extends BasePlugin {
     const shortcutManager = this.hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
 
-    gridContext.addShortcut([['control', 'm'], ['meta', 'm']], () => {
-      this.toggleMerge(this.hot.getSelectedRangeLast());
-      this.hot.render();
-
-    }, {
+    gridContext.addShortcut({
+      variants: [['control', 'm'], ['meta', 'm']],
+      callback: () => {
+        this.toggleMerge(this.hot.getSelectedRangeLast());
+        this.hot.render();
+      },
       runAction: event => !event.altKey, // right ALT in some systems triggers ALT+CTRL
       namespace: SHORTCUTS_NAMESPACE,
     });

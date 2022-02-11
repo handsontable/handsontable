@@ -284,21 +284,29 @@ export class SelectEditor extends BaseEditor {
       return;
     }
 
-    editorContext.addShortcut([['ArrowUp']], () => {
-      const previousOptionIndex = this.select.selectedIndex - 1;
+    editorContext.addShortcut({
+      variants: [['ArrowUp']],
+      callback: (event) => {
+        const previousOptionIndex = this.select.selectedIndex - 1;
 
-      if (previousOptionIndex >= 0) {
-        this.select[previousOptionIndex].selected = true;
-      }
-    }, contextConfig);
+        if (previousOptionIndex >= 0) {
+          this.select[previousOptionIndex].selected = true;
+        }
+      },
+      ...contextConfig
+    });
 
-    editorContext.addShortcut([['ArrowDown']], () => {
-      const nextOptionIndex = this.select.selectedIndex + 1;
+    editorContext.addShortcut({
+      variants: [['ArrowDown']],
+      callback: (event) => {
+        const nextOptionIndex = this.select.selectedIndex + 1;
 
-      if (nextOptionIndex <= this.select.length - 1) {
-        this.select[nextOptionIndex].selected = true;
-      }
-    }, contextConfig);
+        if (nextOptionIndex <= this.select.length - 1) {
+          this.select[nextOptionIndex].selected = true;
+        }
+      },
+      ...contextConfig
+    });
   }
 
   /**

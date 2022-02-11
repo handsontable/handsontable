@@ -260,86 +260,110 @@ class Menu {
     // Default shortcuts for Handsontable should not be handled. Changing context will help with that.
     shortcutManager.setActiveContextName('menu');
 
-    menuContext.addShortcut([['Escape']], () => {
-      this.keyEvent = true;
-      this.close();
-      this.keyEvent = false;
-    }, config);
-
-    menuContext.addShortcut([['ArrowDown']], () => {
-      const selection = this.hotMenu.getSelectedLast();
-
-      this.keyEvent = true;
-
-      if (selection) {
-        this.selectNextCell(selection[0], selection[1]);
-
-      } else {
-        this.selectFirstCell();
-      }
-
-      this.keyEvent = false;
-    }, menuContextConfig);
-
-    menuContext.addShortcut([['ArrowUp']], () => {
-      const selection = this.hotMenu.getSelectedLast();
-
-      this.keyEvent = true;
-
-      if (selection) {
-        this.selectPrevCell(selection[0], selection[1]);
-
-      } else {
-        this.selectLastCell();
-      }
-
-      this.keyEvent = false;
-    }, menuContextConfig);
-
-    menuContext.addShortcut([['ArrowRight']], () => {
-      const selection = this.hotMenu.getSelectedLast();
-
-      this.keyEvent = true;
-
-      if (selection) {
-        const menu = this.openSubMenu(selection[0]);
-
-        if (menu) {
-          menu.selectFirstCell();
-        }
-      }
-
-      this.keyEvent = false;
-    }, menuContextConfig);
-
-    menuContext.addShortcut([['ArrowLeft']], () => {
-      const selection = this.hotMenu.getSelectedLast();
-
-      this.keyEvent = true;
-
-      if (selection && this.isSubMenu()) {
+    menuContext.addShortcut({
+      variants: [['Escape']],
+      callback: () => {
+        this.keyEvent = true;
         this.close();
+        this.keyEvent = false;
+      },
+      ...config
+    });
 
-        if (this.parentMenu) {
-          this.parentMenu.hotMenu.listen();
+    menuContext.addShortcut({
+      variants: [['ArrowDown']],
+      callback: () => {
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (selection) {
+          this.selectNextCell(selection[0], selection[1]);
+
+        } else {
+          this.selectFirstCell();
         }
-      }
 
-      this.keyEvent = false;
-    }, menuContextConfig);
+        this.keyEvent = false;
+      },
+      ...menuContextConfig
+    });
 
-    menuContext.addShortcut([['Enter']], (event) => {
-      const selection = this.hotMenu.getSelectedLast();
+    menuContext.addShortcut({
+      variants: [['ArrowUp']],
+      callback: () => {
+        const selection = this.hotMenu.getSelectedLast();
 
-      this.keyEvent = true;
+        this.keyEvent = true;
 
-      if (!this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
-        this.executeCommand(event);
-        this.close(true);
-      }
+        if (selection) {
+          this.selectPrevCell(selection[0], selection[1]);
 
-      this.keyEvent = false;
-    }, menuContextConfig);
+        } else {
+          this.selectLastCell();
+        }
+
+        this.keyEvent = false;
+      },
+      ...menuContextConfig
+    });
+
+    menuContext.addShortcut({
+      variants: [['ArrowRight']],
+      callback: () => {
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (selection) {
+          const menu = this.openSubMenu(selection[0]);
+
+          if (menu) {
+            menu.selectFirstCell();
+          }
+        }
+
+        this.keyEvent = false;
+      },
+      ...menuContextConfig
+    });
+
+    menuContext.addShortcut({
+      variants: [['ArrowLeft']],
+      callback: () => {
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (selection && this.isSubMenu()) {
+          this.close();
+
+          if (this.parentMenu) {
+            this.parentMenu.hotMenu.listen();
+          }
+        }
+
+        this.keyEvent = false;
+      },
+      ...menuContextConfig
+    });
+
+    menuContext.addShortcut({
+      variants: [['Enter']],
+      callback: () => {
+        const selection = this.hotMenu.getSelectedLast();
+
+        this.keyEvent = true;
+
+        if (!this.hotMenu.getSourceDataAtRow(selection[0]).submenu) {
+          this.executeCommand(event);
+          this.close(true);
+        }
+
+        this.keyEvent = false;
+      },
+      ...menuContextConfig
+    });
 
     this.blockMainTableCallbacks();
     this.runLocalHooks('afterOpen');

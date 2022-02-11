@@ -864,14 +864,22 @@ UndoRedo.prototype.registerShortcuts = function() {
     namespace: SHORTCUTS_NAMESPACE,
   };
 
-  gridContext.addShortcut([['meta', 'z'], ['control', 'z']], () => {
-    this.undo();
-  }, config);
+  gridContext.addShortcut({
+    variants: [['meta', 'z'], ['control', 'z']],
+    callback: () => {
+      this.undo();
+    },
+    ...config
+  });
 
-  gridContext.addShortcut([['control', 'y'], ['meta', 'y'],
-    ['control', 'shift', 'z'], ['meta', 'shift', 'z']], () => {
-    this.redo();
-  }, config);
+  gridContext.addShortcut({
+    variants: [['control', 'y'], ['meta', 'y'],
+      ['control', 'shift', 'z'], ['meta', 'shift', 'z']],
+    callback: () => {
+      this.redo();
+    },
+    ...config
+  });
 };
 
 /**

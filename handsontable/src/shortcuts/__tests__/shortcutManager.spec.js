@@ -104,9 +104,11 @@ describe('shortcutManager', () => {
     const gridContext = shortcutManager.getContext('grid');
     const spy = jasmine.createSpy();
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      spy();
-    }, {
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        spy();
+      },
       namespace: 'spy',
       runAction: () => hot.getSelected() !== void 0,
     });
@@ -148,10 +150,13 @@ describe('shortcutManager', () => {
     const shortcutManager = hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '2';
-    }, {
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '2';
+      },
       namespace: 'spy',
+      runAction: () => hot.getSelected() !== void 0,
     });
 
     selectCell(0, 0);
@@ -177,10 +182,13 @@ describe('shortcutManager', () => {
     const shortcutManager = hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '2';
-    }, {
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '2';
+      },
       namespace: 'spy',
+      runAction: () => hot.getSelected() !== void 0,
     });
 
     selectCell(0, 0);
@@ -196,24 +204,32 @@ describe('shortcutManager', () => {
     const shortcutManager = hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '1';
-    }, {
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '1';
+      },
       namespace: 'spy',
+      runAction: () => hot.getSelected() !== void 0,
     });
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '2';
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '2';
 
-      return false;
-    }, {
+        return false;
+      },
       namespace: 'spy',
+      runAction: () => hot.getSelected() !== void 0,
     });
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '3';
-    }, {
-      namespace: 'spy',
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '3';
+      },
+      namespace: 'spy'
     });
 
     selectCell(0, 0);
@@ -228,43 +244,53 @@ describe('shortcutManager', () => {
     const gridContext = shortcutManager.getContext('grid');
     let text = '';
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '1';
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '1';
 
-      gridContext.removeShortcutByNamespace('spy2');
-    }, {
-      namespace: 'spy',
+        gridContext.removeShortcutByNamespace('spy2');
+      },
+      namespace: 'spy'
     });
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '2';
-    }, {
-      namespace: 'spy2',
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '2';
+      },
+      namespace: 'spy2'
     });
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '3';
-    }, {
-      namespace: 'spy2',
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '3';
+      },
+      namespace: 'spy2'
     });
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '4';
-
-      gridContext.removeShortcutByNamespace('spy');
-    }, {
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '4';
+      },
       namespace: 'spy3',
     });
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '5';
-    }, {
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '5';
+      },
       namespace: 'spy2',
     });
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '6';
-    }, {
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '6';
+      },
       namespace: 'spy3',
     });
 
@@ -280,41 +306,51 @@ describe('shortcutManager', () => {
     const gridContext = shortcutManager.getContext('grid');
     let text = '';
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '1';
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '1';
 
-      gridContext.addShortcut([['control', 'b']], () => {
-        text += '2';
-      }, {
-        namespace: 'spy2',
-      });
-    }, {
+        gridContext.addShortcut({
+          variants: [['control', 'b']],
+          callback: () => {
+            text += '2';
+          },
+          namespace: 'spy2',
+        });
+      },
       namespace: 'spy',
     });
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '3';
-    }, {
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '3';
+      },
       namespace: 'spy2',
     });
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '4';
-
-      // gridContext.removeShortcutByNamespace('spy');
-    }, {
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '4';
+      },
       namespace: 'spy3',
     });
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '5';
-    }, {
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '5';
+      },
       namespace: 'spy2',
     });
 
-    gridContext.addShortcut([['control', 'b']], () => {
-      text += '6';
-    }, {
+    gridContext.addShortcut({
+      variants: [['control', 'b']],
+      callback: () => {
+        text += '6';
+      },
       namespace: 'spy3',
     });
 
