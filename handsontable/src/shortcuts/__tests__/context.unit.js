@@ -65,6 +65,42 @@ describe('context', () => {
     expect(shortcut2.namespace).toBe(options.namespace);
   });
 
+  it('should add multiple shortcuts using the `addShortcuts` method', () => {
+    const context = createContext('name');
+    const callback = () => {
+      // Callback for shortcut.
+    };
+    const callback2 = () => {
+      // Another callback for shortcut.
+    };
+    const options = {
+      namespace: 'helloWorld'
+    };
+    const namespace2 = 'helloWorld2';
+    const runAction = () => true;
+
+    context.addShortcuts([{
+      variants: [['control', 'a']],
+      callback,
+    }, {
+      variants: [['control', 'a']],
+      callback: callback2,
+      namespace: 'helloWorld2',
+      runAction,
+    }], options);
+
+    const shortcuts = context.getShortcuts(['control', 'a']);
+    const shortcut = shortcuts[0];
+    const shortcut2 = shortcuts[1];
+
+    expect(shortcuts.length).toBe(2);
+    expect(shortcut.callback).toBe(callback);
+    expect(shortcut.namespace).toBe(options.namespace);
+    expect(shortcut2.callback).toBe(callback2);
+    expect(shortcut2.namespace).toBe(namespace2);
+    expect(shortcut2.runAction).toBe(runAction);
+  });
+
   it('should give a possibility to remove registered shortcuts by variant', () => {
     const context = createContext('name');
     const callback = () => {
@@ -77,17 +113,13 @@ describe('context', () => {
       namespace: 'helloWorld'
     };
 
-    context.addShortcut({
+    context.addShortcuts([{
       variants: [['control', 'a']],
       callback,
-      ...options
-    });
-
-    context.addShortcut({
+    }, {
       variants: [['control', 'a']],
       callback: callback2,
-      ...options
-    });
+    }], options);
 
     context.removeShortcutByVariants([['control', 'a']]);
 
@@ -164,29 +196,21 @@ describe('context', () => {
       namespace: 'helloWorld2'
     };
 
-    context.addShortcut({
+    context.addShortcuts([{
       variants: [['control', 'a']],
       callback,
-      ...options
-    });
-
-    context.addShortcut({
+    }, {
       variants: [['control', 'b']],
       callback: callback2,
-      ...options
-    });
+    }], options);
 
-    context.addShortcut({
+    context.addShortcuts([{
       variants: [['control', 'a']],
       callback: callback3,
-      ...options2
-    });
-
-    context.addShortcut({
+    }, {
       variants: [['control', 'd']],
       callback: callback4,
-      ...options2
-    });
+    }], options2);
 
     context.removeShortcutByNamespace(options.namespace);
 
@@ -243,29 +267,23 @@ describe('context', () => {
       runAction: () => true,
     };
 
-    context.addShortcut({
+    context.addShortcuts([{
       variants: [['control', 'a']],
       callback,
       ...config
-    });
-
-    context.addShortcut({
+    }, {
       variants: [['control', 'a']],
       callback: callback2,
       ...config2
-    });
-
-    context.addShortcut({
+    }, {
       variants: [['control', 'a']],
       callback: callback3,
       ...config3
-    });
-
-    context.addShortcut({
+    }, {
       variants: [['control', 'a']],
       callback: callback4,
       ...config4
-    });
+    }]);
 
     const shortcuts = context.getShortcuts(['control', 'a']);
 
