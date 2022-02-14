@@ -209,8 +209,7 @@ export class HandsontableEditor extends TextEditor {
       }
     };
 
-
-    editorContext.addShortcut({
+    editorContext.addShortcuts([{
       variants: [['ArrowUp']],
       callback: (event) => {
         const innerHOT = this.htEditor.getInstance();
@@ -232,10 +231,7 @@ export class HandsontableEditor extends TextEditor {
 
         return action(rowToSelect, event);
       },
-      ...contextConfig
-    });
-
-    editorContext.addShortcut({
+    }, {
       variants: [['ArrowDown']],
       callback: (event) => {
         const innerHOT = this.htEditor.getInstance();
@@ -259,8 +255,7 @@ export class HandsontableEditor extends TextEditor {
 
         return action(rowToSelect, event);
       },
-      ...contextConfig
-    });
+    }], contextConfig);
   }
 
   /**

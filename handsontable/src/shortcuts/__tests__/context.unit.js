@@ -5,15 +5,20 @@ describe('context', () => {
     const context = createContext('name');
 
     expect(() => {
-      context.addShortcut([['control', 'a']], () => {
-        // Callback for shortcut.
+      context.addShortcut({
+        variants: [['control', 'a']],
+        callback: () => {
+          // Callback for shortcut.
+        },
       });
     }).toThrowError();
 
-    context.addShortcut([['control', 'a']], () => {
-      // Callback for shortcut.
-    }, {
-      namespace: 'helloWorld'
+    context.addShortcut({
+      variants: [['control', 'a']],
+      namespace: 'helloWorld',
+      callback: () => {
+        // Callback for shortcut.
+      },
     });
   });
 
@@ -29,16 +34,24 @@ describe('context', () => {
       namespace: 'helloWorld'
     };
 
-    context.addShortcut([['control', 'a']], callback, options);
+    context.addShortcut({
+      variants: [['control', 'a']],
+      callback,
+      ...options
+    });
 
     let shortcuts = context.getShortcuts(['control', 'a']);
     let shortcut = shortcuts[0];
 
     expect(shortcuts.length).toBe(1);
     expect(shortcut.callback).toBe(callback);
-    expect(shortcut.options.namespace).toBe(options.namespace);
+    expect(shortcut.namespace).toBe(options.namespace);
 
-    context.addShortcut([['control', 'a']], callback2, options);
+    context.addShortcut({
+      variants: [['control', 'a']],
+      callback: callback2,
+      ...options
+    });
 
     shortcuts = context.getShortcuts(['control', 'a']);
 
@@ -47,9 +60,9 @@ describe('context', () => {
 
     expect(shortcuts.length).toBe(2);
     expect(shortcut.callback).toBe(callback);
-    expect(shortcut.options.namespace).toBe(options.namespace);
+    expect(shortcut.namespace).toBe(options.namespace);
     expect(shortcut2.callback).toBe(callback2);
-    expect(shortcut2.options.namespace).toBe(options.namespace);
+    expect(shortcut2.namespace).toBe(options.namespace);
   });
 
   it('should give a possibility to remove registered shortcuts by variant', () => {
@@ -64,8 +77,17 @@ describe('context', () => {
       namespace: 'helloWorld'
     };
 
-    context.addShortcut([['control', 'a']], callback, options);
-    context.addShortcut([['control', 'a']], callback2, options);
+    context.addShortcut({
+      variants: [['control', 'a']],
+      callback,
+      ...options
+    });
+
+    context.addShortcut({
+      variants: [['control', 'a']],
+      callback: callback2,
+      ...options
+    });
 
     context.removeShortcutByVariants([['control', 'a']]);
 
@@ -91,14 +113,22 @@ describe('context', () => {
     expect(context.hasShortcut(['a', 'control'])).toBe(false);
     expect(context.hasShortcut(['A', 'Control'])).toBe(false);
 
-    context.addShortcut([['control', 'a']], callback, options);
+    context.addShortcut({
+      variants: [['control', 'a']],
+      callback,
+      ...options
+    });
 
     expect(context.hasShortcut(['control', 'a'])).toBe(true);
     expect(context.hasShortcut(['Control', 'A'])).toBe(true);
     expect(context.hasShortcut(['a', 'control'])).toBe(true);
     expect(context.hasShortcut(['A', 'Control'])).toBe(true);
 
-    context.addShortcut([['control', 'a']], callback2, options);
+    context.addShortcut({
+      variants: [['control', 'a']],
+      callback: callback2,
+      ...options
+    });
 
     expect(context.hasShortcut(['control', 'a'])).toBe(true);
     expect(context.hasShortcut(['Control', 'A'])).toBe(true);
@@ -134,10 +164,29 @@ describe('context', () => {
       namespace: 'helloWorld2'
     };
 
-    context.addShortcut([['control', 'a']], callback, options);
-    context.addShortcut([['control', 'b']], callback2, options);
-    context.addShortcut([['control', 'a']], callback3, options2);
-    context.addShortcut([['control', 'd']], callback4, options2);
+    context.addShortcut({
+      variants: [['control', 'a']],
+      callback,
+      ...options
+    });
+
+    context.addShortcut({
+      variants: [['control', 'b']],
+      callback: callback2,
+      ...options
+    });
+
+    context.addShortcut({
+      variants: [['control', 'a']],
+      callback: callback3,
+      ...options2
+    });
+
+    context.addShortcut({
+      variants: [['control', 'd']],
+      callback: callback4,
+      ...options2
+    });
 
     context.removeShortcutByNamespace(options.namespace);
 
@@ -194,19 +243,38 @@ describe('context', () => {
       runAction: () => true,
     };
 
-    context.addShortcut([['control', 'a']], callback, config);
-    context.addShortcut([['control', 'a']], callback2, config2);
-    context.addShortcut([['control', 'a']], callback3, config3);
-    context.addShortcut([['control', 'a']], callback4, config4);
+    context.addShortcut({
+      variants: [['control', 'a']],
+      callback,
+      ...config
+    });
+
+    context.addShortcut({
+      variants: [['control', 'a']],
+      callback: callback2,
+      ...config2
+    });
+
+    context.addShortcut({
+      variants: [['control', 'a']],
+      callback: callback3,
+      ...config3
+    });
+
+    context.addShortcut({
+      variants: [['control', 'a']],
+      callback: callback4,
+      ...config4
+    });
 
     const shortcuts = context.getShortcuts(['control', 'a']);
 
     // namespace2, namespace4, namespace1, namespace3
     expect(shortcuts).toEqual([
-      { callback: callback2, options: { ...defaultOptions, ...config2 } },
-      { callback: callback4, options: { ...defaultOptions, ...config4 } },
-      { callback, options: { ...defaultOptions, ...config } },
-      { callback: callback3, options: { ...defaultOptions, ...config3 } },
+      { callback: callback2, ...defaultOptions, ...config2 },
+      { callback: callback4, ...defaultOptions, ...config4 },
+      { callback, ...defaultOptions, ...config },
+      { callback: callback3, ...defaultOptions, ...config3 },
     ]);
   });
 });

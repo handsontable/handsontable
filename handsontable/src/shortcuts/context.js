@@ -1,6 +1,7 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { normalizeKeys } from './utils';
 import { isUndefined } from '../helpers/mixed';
+import { objectEach } from '../helpers/object';
 
 /**
  * Create shortcuts' context.
@@ -83,6 +84,32 @@ export const createContext = (name) => {
   };
 
   /**
+   * Add shortcuts to the context.
+   *
+   * @param {Array<object>} shortcuts List of shortcuts added to the context.
+   * @param {object} [options] Options for every shortcut.
+   * @param {Function} [options.callback] The callback.
+   * @param {object} [options.namespace] Namespace for shortcut.
+   * @param {object} [options.runAction]  Option determine whether assigned callback should be performed.
+   * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
+   * @param {object} [options.preventDefault=true] Option determine whether to prevent default behavior.
+   * @param {object} [options.relativeToNamespace] Namespace name, relative which the shortcut is placed.
+   * @param {object} [options.position='after'] Position where shortcut is placed. It may be added before or after
+   * another namespace.
+   */
+  const addShortcuts = (shortcuts, options = {}) => {
+    shortcuts.forEach((shortcut) => {
+      objectEach(options, (value, key) => {
+        if (Object.prototype.hasOwnProperty.call(shortcut, key) === false) {
+          shortcut[key] = options[key];
+        }
+      });
+
+      addShortcut(shortcut);
+    });
+  };
+
+  /**
    * Removes shortcut from the context.
    *
    * @param {Array<Array<string>>} variants A shortcut variant.
@@ -143,6 +170,7 @@ export const createContext = (name) => {
 
   return {
     addShortcut,
+    addShortcuts,
     getShortcuts,
     hasShortcut,
     removeShortcutByVariants,

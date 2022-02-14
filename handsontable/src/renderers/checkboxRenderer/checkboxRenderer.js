@@ -154,38 +154,31 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
     const gridContext = shortcutManager.getContext('grid');
     const config = { namespace: SHORTCUTS_NAMESPACE };
 
-    gridContext.addShortcut({
+    gridContext.addShortcuts([{
       variants: [[' ']],
       callback: () => {
         changeSelectedCheckboxesState();
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      ...config
-    });
-
-    gridContext.addShortcut({
+    }, {
       variants: [['enter']],
       callback: () => {
         changeSelectedCheckboxesState();
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      ...config,
       runAction: () => instance.getSettings().enterBeginsEditing
-    });
-
-    gridContext.addShortcut({
+    }, {
       variants: [['delete'], ['backspace']],
       callback: () => {
         changeSelectedCheckboxesState(true);
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      ...config,
       relativeToNamespace: SHORTCUTS_NAMESPACE_EDITOR,
       position: 'before',
-    });
+    }], config);
   }
 
   /**

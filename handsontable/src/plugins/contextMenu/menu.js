@@ -260,17 +260,15 @@ class Menu {
     // Default shortcuts for Handsontable should not be handled. Changing context will help with that.
     shortcutManager.setActiveContextName('menu');
 
-    menuContext.addShortcut({
+    menuContext.addShortcuts([{
       variants: [['Escape']],
       callback: () => {
         this.keyEvent = true;
         this.close();
         this.keyEvent = false;
       },
-      ...config
-    });
-
-    menuContext.addShortcut({
+      runAction: () => true,
+    }, {
       variants: [['ArrowDown']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
@@ -286,10 +284,7 @@ class Menu {
 
         this.keyEvent = false;
       },
-      ...menuContextConfig
-    });
-
-    menuContext.addShortcut({
+    }, {
       variants: [['ArrowUp']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
@@ -304,11 +299,8 @@ class Menu {
         }
 
         this.keyEvent = false;
-      },
-      ...menuContextConfig
-    });
-
-    menuContext.addShortcut({
+      }
+    }, {
       variants: [['ArrowRight']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
@@ -324,11 +316,8 @@ class Menu {
         }
 
         this.keyEvent = false;
-      },
-      ...menuContextConfig
-    });
-
-    menuContext.addShortcut({
+      }
+    }, {
       variants: [['ArrowLeft']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
@@ -345,12 +334,9 @@ class Menu {
 
         this.keyEvent = false;
       },
-      ...menuContextConfig
-    });
-
-    menuContext.addShortcut({
+    }, {
       variants: [['Enter']],
-      callback: () => {
+      callback: (event) => {
         const selection = this.hotMenu.getSelectedLast();
 
         this.keyEvent = true;
@@ -361,9 +347,8 @@ class Menu {
         }
 
         this.keyEvent = false;
-      },
-      ...menuContextConfig
-    });
+      }
+    }], menuContextConfig);
 
     this.blockMainTableCallbacks();
     this.runLocalHooks('afterOpen');

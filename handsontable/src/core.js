@@ -4404,81 +4404,54 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   shortcutManager.setActiveContextName('grid');
 
-  gridContext.addShortcut({
+  gridContext.addShortcuts([{
     variants: [['Control', 'A'], ['Meta', 'A']],
     callback: (event) => {
       instance.selectAll();
       event.preventDefault();
     },
     preventDefault: false,
-    ...gridConfig,
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['ArrowUp']],
     callback: () => {
       selection.transformStart(-1, 0);
     },
-    ...gridConfig
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['ArrowUp', 'Shift']],
     callback: () => {
       selection.transformEnd(-1, 0);
     },
-    ...gridConfig,
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['ArrowDown']],
     callback: () => {
       selection.transformStart(1, 0);
     },
-    ...gridConfig,
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['ArrowDown', 'Shift']],
     callback: () => {
       selection.transformEnd(1, 0);
     },
-    ...gridConfig,
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['ArrowLeft']],
     callback: () => {
       selection.transformStart(0, -1 * instance.getDirectionFactor());
     },
-    ...gridConfig,
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['ArrowLeft', 'Shift']],
     callback: () => {
       selection.transformEnd(0, -1 * instance.getDirectionFactor());
     },
-    ...gridConfig
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['ArrowRight']],
     callback: () => {
       selection.transformStart(0, instance.getDirectionFactor());
     },
-    ...gridConfig
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['ArrowRight', 'Shift']],
     callback: () => {
       selection.transformEnd(0, instance.getDirectionFactor());
     },
-    ...gridConfig
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['Home']],
     callback: () => {
       selection.setRangeStart(new CellCoords(
@@ -4486,10 +4459,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
       ));
     },
-    ...gridConfig
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['Home', 'Shift']],
     callback: () => {
       selection.setRangeEnd(new CellCoords(
@@ -4497,10 +4467,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
       ));
     },
-    ...gridConfig
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['Home', 'Control'], ['Home', 'Meta']],
     callback: () => {
       selection.setRangeStart(new CellCoords(
@@ -4508,10 +4475,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         selection.selectedRange.current().from.col,
       ));
     },
-    ...gridConfig
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['Home', 'Control', 'Shift'], ['Home', 'Meta', 'Shift']],
     callback: () => {
       selection.setRangeEnd(new CellCoords(
@@ -4519,10 +4483,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         selection.selectedRange.current().from.col,
       ));
     },
-    ...gridConfig
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['End']],
     callback: () => {
       selection.setRangeStart(new CellCoords(
@@ -4530,10 +4491,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
       ));
     },
-    ...gridConfig
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['End', 'Shift']],
     callback: () => {
       selection.setRangeEnd(new CellCoords(
@@ -4541,10 +4499,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
       ));
     },
-    ...gridConfig
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['End', 'Control'], ['End', 'Meta']],
     callback: () => {
       selection.setRangeStart(new CellCoords(
@@ -4552,10 +4507,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         selection.selectedRange.current().from.col,
       ));
     },
-    ...gridConfig
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['End', 'Control', 'Shift'], ['End', 'Meta', 'Shift']],
     callback: () => {
       selection.setRangeEnd(new CellCoords(
@@ -4563,26 +4515,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         selection.selectedRange.current().from.col,
       ));
     },
-    ...gridConfig
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['PageUp']],
     callback: () => {
       selection.transformStart(-instance.countVisibleRows(), 0);
     },
-    ...gridConfig
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['PageDown']],
     callback: () => {
       selection.transformStart(instance.countVisibleRows(), 0);
     },
-    ...gridConfig
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['Tab']],
     callback: () => {
       const tabMoves = typeof tableMeta.tabMoves === 'function'
@@ -4591,10 +4534,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       selection.transformStart(tabMoves.row, tabMoves.col, true);
     },
-    ...gridConfig
-  });
-
-  gridContext.addShortcut({
+  }, {
     variants: [['Shift', 'Tab']],
     callback: () => {
       const tabMoves = typeof tableMeta.tabMoves === 'function'
@@ -4603,8 +4543,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       selection.transformStart(-tabMoves.row, -tabMoves.col);
     },
-    ...gridConfig
-  });
+  }], gridConfig);
 
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);

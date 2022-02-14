@@ -94,25 +94,21 @@ class EditorManager {
     const editorContext = shortcutManager.getContext('editor');
     const config = { namespace: SHORTCUTS_NAMESPACE_EDITOR };
 
-    editorContext.addShortcut({
+    editorContext.addShortcuts([{
       variants: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
       callback: (event, keys) => {
         this.closeEditorAndSaveChanges(keys.includes('control'));
         this.moveSelectionAfterEnter(keys.includes('shift'));
-      },
-      ...config,
-    });
-
-    editorContext.addShortcut({
+      }
+    }, {
       variants: [['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']],
       callback: (event, keys) => {
         this.closeEditorAndRestoreOriginalValue(keys.includes('control') || keys.includes('meta'));
         this.activeEditor.focus();
       },
-      ...config,
-    });
+    }], config);
 
-    gridContext.addShortcut({
+    gridContext.addShortcuts([{
       variants: [['F2']],
       callback: (event) => {
         if (this.activeEditor) {
@@ -121,19 +117,13 @@ class EditorManager {
 
         this.openEditor(null, event);
       },
-      ...config,
-    });
-
-    gridContext.addShortcut({
+    }, {
       variants: [['Backspace'], ['Delete']],
       callback: () => {
         this.instance.emptySelectedCells();
         this.prepareEditor();
       },
-      ...config,
-    });
-
-    gridContext.addShortcut({
+    }, {
       variants: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
       callback: (event, keys) => {
         if (this.instance.getSettings().enterBeginsEditing) {
@@ -151,8 +141,7 @@ class EditorManager {
 
         stopImmediatePropagation(event); // required by HandsontableEditor
       },
-      ...config,
-    });
+    }], config);
   }
 
   /**
@@ -377,37 +366,27 @@ class EditorManager {
           namespace: SHORTCUTS_NAMESPACE_NAVIGATION
         };
 
-        editorContext.addShortcut({
+        editorContext.addShortcuts([{
           variants: [['ArrowUp']],
           callback: () => {
             this.instance.selection.transformStart(-1, 0);
           },
-          ...runOnlySelectedConfig,
-        });
-
-        editorContext.addShortcut({
+        }, {
           variants: [['ArrowDown']],
           callback: () => {
             this.instance.selection.transformStart(1, 0);
           },
-          ...runOnlySelectedConfig,
-        });
-
-        editorContext.addShortcut({
+        }, {
           variants: [['ArrowLeft']],
           callback: () => {
             this.instance.selection.transformStart(0, -1 * this.instance.getDirectionFactor());
           },
-          ...runOnlySelectedConfig,
-        });
-
-        editorContext.addShortcut({
+        }, {
           variants: [['ArrowRight']],
           callback: () => {
             this.instance.selection.transformStart(0, this.instance.getDirectionFactor());
           },
-          ...runOnlySelectedConfig,
-        });
+        }], runOnlySelectedConfig);
 
         this.openEditor('', event);
       }

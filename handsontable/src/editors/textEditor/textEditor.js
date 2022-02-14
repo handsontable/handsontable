@@ -500,39 +500,10 @@ export class TextEditor extends BaseEditor {
   registerShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
-
     const contextConfig = {
       runAction: () => isDefined(this.hot.getSelected()),
       namespace: SHORTCUTS_NAMESPACE,
     };
-
-    // TODO: Duplicated part of code.
-    editorContext.addShortcut({
-      variants: [['Tab']],
-      callback: (event) => {
-        const tableMeta = this.hot.getSettings();
-        const tabMoves = typeof tableMeta.tabMoves === 'function'
-          ? tableMeta.tabMoves(event)
-          : tableMeta.tabMoves;
-  
-        this.hot.selection.transformStart(tabMoves.row, tabMoves.col, true);
-      },
-      ...contextConfig
-    });
-
-    // TODO: Duplicated part of code.
-    editorContext.addShortcut({
-      variants: [['Shift', 'Tab']],
-      callback: (event) => {
-        const tableMeta = this.hot.getSettings();
-        const tabMoves = typeof tableMeta.tabMoves === 'function'
-          ? tableMeta.tabMoves(event)
-          : tableMeta.tabMoves;
-
-        this.hot.selection.transformStart(-tabMoves.row, -tabMoves.col);
-      },
-      ...contextConfig
-    });
 
     const setNewValue = () => {
       const caretPosition = getCaretPosition(this.TEXTAREA);
@@ -544,7 +515,29 @@ export class TextEditor extends BaseEditor {
       setCaretPosition(this.TEXTAREA, caretPosition + 1);
     };
 
-    editorContext.addShortcut({
+    editorContext.addShortcuts([{
+      variants: [['Tab']],
+      // TODO: Duplicated part of code.
+      callback: (event) => {
+        const tableMeta = this.hot.getSettings();
+        const tabMoves = typeof tableMeta.tabMoves === 'function'
+          ? tableMeta.tabMoves(event)
+          : tableMeta.tabMoves;
+
+        this.hot.selection.transformStart(tabMoves.row, tabMoves.col, true);
+      },
+    }, {
+      variants: [['Shift', 'Tab']],
+      // TODO: Duplicated part of code.
+      callback: (event) => {
+        const tableMeta = this.hot.getSettings();
+        const tabMoves = typeof tableMeta.tabMoves === 'function'
+          ? tableMeta.tabMoves(event)
+          : tableMeta.tabMoves;
+
+        this.hot.selection.transformStart(-tabMoves.row, -tabMoves.col);
+      },
+    }, {
       variants: [['Control', 'Enter']],
       callback: () => {
         setNewValue();
@@ -552,16 +545,13 @@ export class TextEditor extends BaseEditor {
       runAction: event => !this.hot.selection.isMultiple() &&
         // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
         !event.altKey,
-      namespace: SHORTCUTS_NAMESPACE,
-    });
-
-    editorContext.addShortcut({
+    }, {
       variants: [['Alt', 'Enter']],
       callback: () => {
         setNewValue();
       },
-      namespace: SHORTCUTS_NAMESPACE,
-    });
+      runAction: () => true,
+    }], contextConfig);
   }
 
   /**
