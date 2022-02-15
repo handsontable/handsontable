@@ -62,7 +62,8 @@ describe('i18n', () => {
     const languageCodes = dictionaries.map(dictionary => dictionary.languageCode);
 
     const keysGroupedByDictionary = dictionaries.map(dictionary => Object.keys(dictionary));
-    const dictionariesKeys = [].concat([], ...keysGroupedByDictionary).filter(key => key !== 'languageCode');
+    const dictionariesKeys = [].concat([], ...keysGroupedByDictionary)
+      .filter(key => key !== 'languageCode' && key !== 'languageDirection');
 
     const valuesGroupedByDictionary = dictionaries.map(dictionary => Object.values(dictionary));
     const dictionariesValuesWithArrays = [].concat([], ...valuesGroupedByDictionary);

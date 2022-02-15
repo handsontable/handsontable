@@ -1,3 +1,4 @@
+import arAR from './ar-AR';
 import deCH from './de-CH';
 import deDE from './de-DE';
 import enUS from './en-US';
@@ -14,9 +15,9 @@ import ptBR from './pt-BR';
 import ruRU from './ru-RU';
 import zhCN from './zh-CN';
 import zhTW from './zh-TW';
-import arAR from './ar-AR';
 
 export {
+  arAR,
   deCH,
   deDE,
   enUS,
@@ -33,5 +34,4 @@ export {
   ruRU,
   zhCN,
   zhTW,
-  arAR
 };
