@@ -103,12 +103,7 @@ Depending on the form of the cell coordinates you picked, you can use the follow
 The `left` and `right` properties are renamed to `start` and `end` in Handsontable 12.0.0. The change allows defining border styles using the same API for both [layout direction](@/guides/internationalization/layout-direction.md) modes. The properties `left` and `right` only work in the left-to-right mode and they cannot be mixed with `start` and `end`.
 :::
 
-| Option | Description |
-| --- | --- |
-| `start: { color: String, width: Number }` | Defines the border style of the _left_ border or the _right_ border when the table is configured to work with [RTL layout direction](@/guides/internationalization/layout-direction.md) mode. |
-| `end: { color: String, width: Number `    | Defines the border style of the _right_ border or the _left_ border when the table is configured to work with [RTL layout direction](@/guides/internationalization/layout-direction.md) mode. |
-| `top: { color: String, width: Number `    | Defines the border style of the top border.    |
-| `bottom: { color: String, width: Number ` | Defines the border style of the bottom border. |
+For the list of available settings and methods, visit the [API reference](@/api/custom-borders.md).
 
 ::: example #example3
 ```js
