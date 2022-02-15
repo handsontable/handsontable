@@ -39,6 +39,9 @@ export const PLUGIN_PRIORITY = 90;
  * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form
  * of an array.
  *
+ *  - with row/col pairs: `{ row: 2, col: 2, start: { ... } }`
+ *  - or with range details: `{ range: { from: { row: 1, col: 1 }, to: { row: 3, col: 4 } }, start: { ... } }`
+ *
  * For each custom border object configuration, you can set the following options:
  * | Option   | Required | Type | Description |
  * | -------- | -------- | ---- | ----------- |
