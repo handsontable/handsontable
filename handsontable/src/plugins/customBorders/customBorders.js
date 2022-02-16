@@ -39,7 +39,7 @@ export const PLUGIN_PRIORITY = 90;
  * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form
  * of an array.
  *
- * See [`customBorders` configuration option](@/guides/cell-features/formatting-cells.md#custom-cell-borders) or go to
+ * See [`customBorders` configuration option](@/api/options.md#customBorders) or go to
  * [Custom cell borders demo](@/guides/cell-features/formatting-cells.md#custom-cell-borders) for more examples.
  *
  * @example
