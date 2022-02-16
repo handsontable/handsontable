@@ -125,7 +125,7 @@ describe('context', () => {
 
     const shortcuts = context.getShortcuts(['control', 'a']);
 
-    expect(shortcuts).toBeUndefined();
+    expect(shortcuts).toEqual([]);
   });
 
   it('should give a possibility to check whether there are registered shortcuts', () => {

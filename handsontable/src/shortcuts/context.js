@@ -1,6 +1,6 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { normalizeKeys } from './utils';
-import { isUndefined } from '../helpers/mixed';
+import { isUndefined, isDefined } from '../helpers/mixed';
 import { objectEach } from '../helpers/object';
 
 /**
@@ -152,8 +152,9 @@ export const createContext = (name) => {
    */
   const getShortcuts = (variant) => {
     const normalizedVariant = normalizeKeys(variant);
+    const shortcuts = SHORTCUTS.getItem(normalizedVariant);
 
-    return SHORTCUTS.getItem(normalizedVariant);
+    return isDefined(shortcuts) ? shortcuts : [];
   };
 
   /**
