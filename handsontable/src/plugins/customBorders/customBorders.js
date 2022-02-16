@@ -39,37 +39,8 @@ export const PLUGIN_PRIORITY = 90;
  * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form
  * of an array.
  *
- *  - with row/col pairs: `{ row: 2, col: 2, start: { ... } }`
- *  - or with range details: `{ range: { from: { row: 1, col: 1 }, to: { row: 3, col: 4 } }, start: { ... } }`
- *
- * For each custom border object configuration, you can set the following options:
- * | Option   | Required | Type | Description |
- * | -------- | -------- | ---- | ----------- |
- * | `row`    | Only if the `range` is not defined | Number | Defines the row of the cell that the border configuration applies to. |
- * | `col`    | Only if the `range` is not defined | Number | Defines the column of the cell that the border configuration applies to. |
- * | `range`  | Only if the `row` and `col` are not defined | [Object](@/api/customBorders.md#the-range-property-object-type) | Defines the range of the cells that the border configuration applies to. |
- * | `start`  | No | [Object](@/api/customBorders.md#the-custom-border-object-type) | Defines the border style of the _left_ border or the _right_ border when the table is configured to work with [RTL layout direction](@/guides/internationalization/layout-direction.md) mode. |
- * | `end`    | No | [Object](@/api/customBorders.md#the-custom-border-object-type) | Defines the border style of the _right_ border or the _left_ border when the table is configured to work with [RTL layout direction](@/guides/internationalization/layout-direction.md) mode. |
- * | `top`    | No | [Object](@/api/customBorders.md#the-custom-border-object-type) | Defines the border style of the _top_ border.    |
- * | `bottom` | No | [Object](@/api/customBorders.md#the-custom-border-object-type) | Defines the border style of the _bottom_ border. |
- *
- * #### The `range` property object type
- *
- * The `range` property key, if used, requires to have the following object properties:
- * | Option | Required | Type | Description |
- * | ------ | -------- | ---- | ----------- |
- * | `from` | Yes | `{ row: number, col: number }` | Defines the cells range that the border configuration applies to. |
- * | `to` | Yes | `{ row: number, col: number }` | Defines the cells range that the border configuration applies to. |
- *
- * #### The custom border object type
- *
- * For each border position, you can set the following options:
- * | Option | Required | Type | Description |
- * | ------ | -------- | -------- | ---- | ----------- |
- * | `color` | No | String | Defines the color of the border. The option supports all formats that [`color` CSS property](https://developer.mozilla.org/en-US/docs/Web/CSS/color) supports (e.g. `#ccc`, `red`, `rgba(34, 12, 64, 0.8)`). |
- * | `width` | No | Number | Defines the width of the border in pixels. |
- *
- * See [Custom Borders](@/guides/cell-features/formatting-cells.md#custom-cell-borders) demo for more examples.
+ * See [`customBorders` configuration option](@/guides/cell-features/formatting-cells.md#custom-cell-borders) or go to
+ * [Custom cell borders demo](@/guides/cell-features/formatting-cells.md#custom-cell-borders) for more examples.
  *
  * @example
  * ```js
