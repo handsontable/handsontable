@@ -4,10 +4,10 @@ metaTitle: Keyboard shortcuts - Guide - Handsontable Documentation
 permalink: /next/keyboard-shortcuts
 canonicalUrl: /keyboard-shortcuts
 tags:
-  - key bindings
-  - keymap
-  - shortcut manager
-  - keyboard navigation
+- key bindings
+- keymap
+- shortcut manager
+- keyboard navigation
 ---
 
 # Keyboard shortcuts
@@ -20,10 +20,11 @@ Use and manage Handsontable's keyboard shortcuts.
 
 You can intuitively navigate Handsontable with a keyboard, using the out-of-the-box [default keyboard shortcuts](#default-keyboard-shortcuts).
 
-You can also customize the entire set of keyboard shortcuts, by:
+You can also customize the entire set of keyboard shortcuts and handle assigned actions, by:
 - [Removing default keyboard shortcuts](#removing-default-keyboard-shortcuts)
-- [Replacing default keyboard shortcuts](#replacing-default-keyboard-shortcuts)
 - [Adding custom keyboard shortcuts](#adding-custom-keyboard-shortcuts)
+- [Replacing default keyboard shortcuts](#replacing-default-keyboard-shortcuts)
+- [Using beforeKeyDown hook](#using-beforekeydown-hook)
 
 ## Default keyboard shortcuts
 
@@ -90,19 +91,91 @@ By default, Handsontable features the following keyboard shortcuts:
 <br>
 <br>
 
-#### CONTEXT MENU
+#### CONTEXT MENU AND DROP-DOWN MENU
 
 | Windows          | macOS            | Action                                          |
 | ---------------- | ---------------- | ----------------------------------------------- |
-| <kbd>Down↓</kbd> | <kbd>Down↓</kbd> | Move to the next option of the context menu     |
-| <kbd>Up↑</kbd>   | <kbd>Up↑</kbd>   | Move to the previous option of the context menu |
-| <kbd>Enter</kbd> | <kbd>Enter</kbd> | Select the context menu option                  |
+| <kbd>Down↓</kbd> | <kbd>Cmd</kbd> + <kbd>Enter</kbd> | Move to the next option of the context menu     |
+
+<br>
+<br>
+
+#### MERGE CELLS
+
+| Windows          | macOS            | Action                                          |
+| ---------------- | ---------------- | ----------------------------------------------- |
+| <kbd>Ctrl</kbd> + <kbd>M</kbd> | <kbd>Cmd</kbd> + <kbd>M</kbd> | Merge selected cells     |
 :::
 
 ## Managing keyboard shortcuts
 
-### Removing default keyboard shortcuts
+Please keep in mind that every shortcut is executed in some context. As a context we define an application state.
+You can choose only one context at time. For example, opening context menu sets `menu` context as active. Thus, actions such as default `ctrl`+`a` selecting whole Handsontable
+won't work for the menu.  Currently, there are three contexts: `grid`, `editor` and `menu`. Please keep in mind that you can get already registered contexts
+using `getContext` method and even register new context using `addContext`. To switch to another context use `setActiveContextName` method.
 
-### Replacing default keyboard shortcuts
+### Removing default keyboard shortcuts
+Please keep in mind that below methods are available for previously get context, for example using `getContext` method.  
+You can remove already registered shortcuts in two ways:
+
+- using `removeShortcutByNamespace` for removing shortcut registered with predefined namespace,
+
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+
+gridContext.removeShortcutByNamespace('NAMESPACE_ID');
+```
+
+- using `removeShortcutByVariants` for removing shortcut registered for particular key variants.
+
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+
+gridContext.removeShortcutByVariants([['enter']]);
+```
 
 ### Adding custom keyboard shortcuts
+You can add **multiple shortcuts** for the same keys in specific context. Simply add it in the end of the shortcuts stack
+using below method
+
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+
+gridContext.addShortcut({ namespace: 'NAMESPACE_ID', variants: [['enter']], callback: () => {} });
+```
+
+or place it before/after another shortcut.
+
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+
+gridContext.addShortcut({ namespace: 'NAMESPACE_ID', variants: [['enter']], callback: () => {}, position: 'before', relativeToNamespace: 'ANOTHER_NAMESPACE_ID' });
+```
+
+Please keep in mind that you can run some actions only for specific conditions. There is an extra `runAction` flag for handling such cases.
+
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+
+gridContext.addShortcut({ namespace: 'NAMESPACE_ID', variants: [['enter']], callback: () => {}, runAction: () => hot.getSelected() !== void 0 });
+```
+
+### Replacing default keyboard shortcuts
+To replace some keyboards shortcut's action by another one action you have to choose proper context, remove already registered shortcut and register another one.
+
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+
+gridContext.removeShortcutByVariants(['enter']);
+gridContext.addShortcut({ namespace: 'NAMESPACE_ID', variants: [['enter']], callback: () => {} });
+```
+
+### Using `beforeKeyDown` hook
+Please keep im mind that there is an extra possibility to stop shortcut's action execution. You can return `false` in callback
+to the hook for doing it.
+
+```js
+hot.addHook('beforeKeyDown', () => {
+  return false; // Will not execute callback for pressed keys.
+});
+```
