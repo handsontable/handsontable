@@ -42,7 +42,7 @@ on:
       - examples/next/**
 
 env:
-  NODE_VERSION: 16.x
+  NODE_VERSION: 16.13.x
   NODE_MODULES_PATHS: |
     ./node_modules
     ./handsontable/node_modules/
