@@ -1,22 +1,12 @@
 import React from 'react';
 import {
-  mount,
-  ReactWrapper
-} from 'enzyme';
-import {
   HotTable
 } from '../src/hotTable';
 import {
   createSpreadsheetData,
   mockElementDimensions,
-  sleep,
+  mountComponent
 } from './_helpers';
-
-beforeEach(() => {
-  let container = document.createElement('DIV');
-  container.id = 'hotContainer';
-  document.body.appendChild(container);
-});
 
 /**
  * Worth noting, that although it's possible to use React's Pure Components on renderer components, it doesn't do much, as currently they're recreated on every
@@ -34,7 +24,7 @@ describe('React PureComponents', () => {
       }
     }
 
-    const wrapper: ReactWrapper<{}, {}, any> = mount(
+    const hotInstance = mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 id="test-hot"
                 data={createSpreadsheetData(3, 3)}
@@ -48,17 +38,10 @@ describe('React PureComponents', () => {
                   mockElementDimensions(this.rootElement, 300, 300);
                 }}>
         <RendererComponent2 hot-renderer/>
-      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
-    );
-
-    await sleep(100);
-
-    const hotTableInstance = wrapper.instance();
-    const hotInstance = hotTableInstance.hotInstance;
+      </HotTable>
+    )).hotInstance;
 
     expect(hotInstance.getCell(0, 0).innerHTML).toEqual('<div>value: A1</div>');
-
-    wrapper.detach();
   });
 
   /*
