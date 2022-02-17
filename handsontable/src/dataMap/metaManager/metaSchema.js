@@ -1315,10 +1315,10 @@ export default () => {
      * | -------- | ------------------ | ---------------------------------- | ----------------------------------------------------------------- |
      * | `row`    | -                  | `row`: Number                      | The cell's row coordinate.                                        |
      * | `col`    | -                  | `col`: Number                      | The cell's column coordinate.                                     |
-     * | `left`   | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the left border's width (`width`)<br> and color (`color`).   |
-     * | `right`  | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the right border's width (`width`)<br> and color (`color`).  |
-     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the top border's width (`width`)<br> and color (`color`).    |
-     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the bottom border's width (`width`)<br> and color (`color`). |
+     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _left_ or _right_ border's (when the table is configured to work with [RTL layout direction](@/guides/internationalization/layout-direction.md) mode) width (`width`)<br> and color (`color`). |
+     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _right_ or _left_ border's (when the table is configured to work with [RTL layout direction](@/guides/internationalization/layout-direction.md) mode) width (`width`)<br> and color (`color`).|
+     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _top_ border's width (`width`)<br> and color (`color`).    |
+     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _bottom_ border's width (`width`)<br> and color (`color`). |
      *
      * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
      * and add a predefined border around a range of cells,
@@ -1327,9 +1327,9 @@ export default () => {
      *
      * | Property | Sub-properties                               | Types                                                            | Description                                                                                  |
      * | -------- | -------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-     * | `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | `from` selects the range's top-left corner.<br>`to` selects the range's bottom-right corner. |
-     * | `left`   | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the left border's `width` and `color`.                                                  |
-     * | `right`  | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the right border's `width` and `color`.                                                 |
+     * | `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | `from` selects the range's top-start (top-_left_ in LTR and top-_right_ in RTL document mode) corner.<br>`to` selects the range's bottom-end (bottom-_left_ in LTR and bottom-_right_ in RTL document mode) corner. |
+     * | `start`  | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the left border's `width` and `color`.                                                  |
+     * | `end`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the right border's `width` and `color`.                                                 |
      * | `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the top border's `width` and `color`.                                                   |
      * | `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the bottom border's `width` and `color`.                                                |
      *
