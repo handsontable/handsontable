@@ -39,6 +39,7 @@ class Scroll {
     if (coords.col < 0 || coords.row < 0) {
       return false;
     }
+
     const scrolledHorizontally = this.scrollViewportHorizontally(coords.col, snapToRight, snapToLeft);
     const scrolledVertically = this.scrollViewportVertically(coords.row, snapToTop, snapToBottom);
 
