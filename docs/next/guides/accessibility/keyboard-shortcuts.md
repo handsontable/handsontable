@@ -30,10 +30,6 @@ You can also customize the entire set of keyboard shortcuts and handle assigned 
 
 By default, Handsontable features the following keyboard shortcuts:
 
-::: details Default keyboard shortcuts
-<br>
-<br>
-
 #### NAVIGATION
 
 | Windows                           | macOS                                                                                        | Action                                       |
@@ -105,7 +101,6 @@ By default, Handsontable features the following keyboard shortcuts:
 | Windows          | macOS            | Action                                          |
 | ---------------- | ---------------- | ----------------------------------------------- |
 | <kbd>Ctrl</kbd> + <kbd>M</kbd> | <kbd>Cmd</kbd> + <kbd>M</kbd> | Merge selected cells     |
-:::
 
 ## Managing keyboard shortcuts
 
