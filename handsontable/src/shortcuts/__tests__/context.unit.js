@@ -1,7 +1,7 @@
 import { createContext } from '../context';
 
 describe('context', () => {
-  it('should add shortcut properly only when namespace is added', () => {
+  it('should add shortcut properly only when namespace, callback and variants properties are proper', () => {
     const context = createContext('name');
 
     expect(() => {
@@ -13,9 +13,25 @@ describe('context', () => {
       });
     }).toThrowError();
 
+    expect(() => {
+      context.addShortcut({
+        namespace: 'helloWorld',
+        variants: [['control', 'a']],
+      });
+    }).toThrowError();
+
+    expect(() => {
+      context.addShortcut({
+        namespace: 'helloWorld',
+        callback: () => {
+          // Callback for shortcut.
+        },
+      });
+    }).toThrowError();
+
     context.addShortcut({
-      variants: [['control', 'a']],
       namespace: 'helloWorld',
+      variants: [['control', 'a']],
       callback: () => {
         // Callback for shortcut.
       },

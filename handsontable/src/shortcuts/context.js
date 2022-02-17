@@ -1,6 +1,7 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { normalizeKeys } from './utils';
 import { isUndefined, isDefined } from '../helpers/mixed';
+import { isFunction } from '../helpers/function';
 import { objectEach } from '../helpers/object';
 
 /**
@@ -42,7 +43,15 @@ export const createContext = (name) => {
     } = {}) => {
 
     if (isUndefined(namespace)) {
-      throw new Error('Please define the namespace for added shortcut.');
+      throw new Error('Please define a namespace for added shortcut.');
+    }
+
+    if (isFunction(callback) === false) {
+      throw new Error('Please define a callback for added shortcut as function.');
+    }
+
+    if (Array.isArray(variants) === false) {
+      throw new Error('Please define key variants for added shortcut as array of arrays with keys.');
     }
 
     const newShortcut = {
