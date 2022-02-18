@@ -2,9 +2,9 @@ import { CellCoords } from '../../3rdparty/walkontable/src';
 import { isDefined, stringify } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
-import { SHORTCUTS_NAMESPACE_NAVIGATION } from '../../editorManager';
+import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 
-const SHORTCUTS_NAMESPACE_EDITOR = 'baseEditor';
+const SHORTCUTS_GROUP_EDITOR = 'baseEditor';
 
 export const EDITOR_TYPE = 'base';
 export const EDITOR_STATE = Object.freeze({
@@ -218,24 +218,32 @@ export class BaseEditor {
     const editorContext = shortcutManager.getContext('editor');
     const contextConfig = {
       runAction: () => isDefined(this.hot.getSelected()),
-      namespace: SHORTCUTS_NAMESPACE_EDITOR,
+      group: SHORTCUTS_GROUP_EDITOR,
     };
 
-    editorContext.addShortcut([['ArrowUp']], () => {
-      this.hot.selection.transformStart(-1, 0);
-    }, contextConfig);
-
-    editorContext.addShortcut([['ArrowDown']], () => {
-      this.hot.selection.transformStart(1, 0);
-    }, contextConfig);
-
-    editorContext.addShortcut([['ArrowLeft']], () => {
-      this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
-    }, contextConfig);
-
-    editorContext.addShortcut([['ArrowRight']], () => {
-      this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
-    }, contextConfig);
+    if (this.isInFullEditMode()) {
+      editorContext.addShortcuts([{
+        keys: [['ArrowUp']],
+        callback: () => {
+          this.hot.selection.transformStart(-1, 0);
+        },
+      }, {
+        keys: [['ArrowDown']],
+        callback: () => {
+          this.hot.selection.transformStart(1, 0);
+        },
+      }, {
+        keys: [['ArrowLeft']],
+        callback: () => {
+          this.hot.selection.transformStart(0, -1 * this.hot.getDirectionFactor());
+        },
+      }, {
+        keys: [['ArrowRight']],
+        callback: () => {
+          this.hot.selection.transformStart(0, this.hot.getDirectionFactor());
+        },
+      }], contextConfig);
+    }
 
     // Saving values using the modified coordinates.
     this.hot.populateFromArray(visualRowFrom, visualColumnFrom, value, visualRowTo, visualColumnTo, 'edit');
@@ -310,8 +318,8 @@ export class BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE_EDITOR);
-    editorContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE_NAVIGATION);
+    editorContext.removeShortcutByGroup(SHORTCUTS_GROUP_EDITOR);
+    editorContext.removeShortcutByGroup(SHORTCUTS_GROUP_NAVIGATION);
 
     if (this.state === EDITOR_STATE.VIRGIN) {
       this.hot._registerTimeout(() => {

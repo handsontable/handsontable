@@ -4,8 +4,8 @@ import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
 import { isDefined } from './helpers/mixed';
 
-export const SHORTCUTS_NAMESPACE_NAVIGATION = 'editorManager.navigation';
-export const SHORTCUTS_NAMESPACE_EDITOR = 'editorManager.handlingEditor';
+export const SHORTCUTS_GROUP_NAVIGATION = 'editorManager.navigation';
+export const SHORTCUTS_GROUP_EDITOR = 'editorManager.handlingEditor';
 
 class EditorManager {
   /**
@@ -92,36 +92,40 @@ class EditorManager {
     const shortcutManager = this.instance.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
     const editorContext = shortcutManager.getContext('editor');
-    const config = { namespace: SHORTCUTS_NAMESPACE_EDITOR };
+    const config = { group: SHORTCUTS_GROUP_EDITOR };
 
-    editorContext.addShortcut([['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'],
-      ['Enter', 'Control', 'Shift']], (event, keys) => {
-      this.closeEditorAndSaveChanges(keys.includes('control'));
-      this.moveSelectionAfterEnter(keys.includes('shift'));
-    }, config);
-
-    editorContext.addShortcut([['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']],
-      (event, keys) => {
+    editorContext.addShortcuts([{
+      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
+      callback: (event, keys) => {
+        this.closeEditorAndSaveChanges(keys.includes('control'));
+        this.moveSelectionAfterEnter(keys.includes('shift'));
+      }
+    }, {
+      keys: [['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']],
+      callback: (event, keys) => {
         this.closeEditorAndRestoreOriginalValue(keys.includes('control') || keys.includes('meta'));
         this.activeEditor.focus();
-      }, config);
+      },
+    }], config);
 
-    gridContext.addShortcut([['F2']], (event) => {
-      if (this.activeEditor) {
-        this.activeEditor.enableFullEditMode();
-      }
+    gridContext.addShortcuts([{
+      keys: [['F2']],
+      callback: (event) => {
+        if (this.activeEditor) {
+          this.activeEditor.enableFullEditMode();
+        }
 
-      this.openEditor(null, event);
-    }, config);
-
-    gridContext.addShortcut([['Backspace'], ['Delete']], () => {
-      this.instance.emptySelectedCells();
-      this.prepareEditor();
-    }, config);
-
-    gridContext.addShortcut(
-      [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
-      (event, keys) => {
+        this.openEditor(null, event);
+      },
+    }, {
+      keys: [['Backspace'], ['Delete']],
+      callback: () => {
+        this.instance.emptySelectedCells();
+        this.prepareEditor();
+      },
+    }, {
+      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
+      callback: (event, keys) => {
         if (this.instance.getSettings().enterBeginsEditing) {
           if (this.cellProperties.readOnly) {
             this.moveSelectionAfterEnter();
@@ -136,7 +140,8 @@ class EditorManager {
         }
 
         stopImmediatePropagation(event); // required by HandsontableEditor
-      }, config);
+      },
+    }], config);
   }
 
   /**
@@ -358,24 +363,30 @@ class EditorManager {
         const editorContext = shortcutManager.getContext('editor');
         const runOnlySelectedConfig = {
           runAction: () => isDefined(this.instance.getSelected()),
-          namespace: SHORTCUTS_NAMESPACE_NAVIGATION
+          group: SHORTCUTS_GROUP_NAVIGATION
         };
 
-        editorContext.addShortcut([['ArrowUp']], () => {
-          this.instance.selection.transformStart(-1, 0);
-        }, runOnlySelectedConfig);
-
-        editorContext.addShortcut([['ArrowDown']], () => {
-          this.instance.selection.transformStart(1, 0);
-        }, runOnlySelectedConfig);
-
-        editorContext.addShortcut([['ArrowLeft']], () => {
-          this.instance.selection.transformStart(0, -1 * this.instance.getDirectionFactor());
-        }, runOnlySelectedConfig);
-
-        editorContext.addShortcut([['ArrowRight']], () => {
-          this.instance.selection.transformStart(0, this.instance.getDirectionFactor());
-        }, runOnlySelectedConfig);
+        editorContext.addShortcuts([{
+          keys: [['ArrowUp']],
+          callback: () => {
+            this.instance.selection.transformStart(-1, 0);
+          },
+        }, {
+          keys: [['ArrowDown']],
+          callback: () => {
+            this.instance.selection.transformStart(1, 0);
+          },
+        }, {
+          keys: [['ArrowLeft']],
+          callback: () => {
+            this.instance.selection.transformStart(0, -1 * this.instance.getDirectionFactor());
+          },
+        }, {
+          keys: [['ArrowRight']],
+          callback: () => {
+            this.instance.selection.transformStart(0, this.instance.getDirectionFactor());
+          },
+        }], runOnlySelectedConfig);
 
         this.openEditor('', event);
       }

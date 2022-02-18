@@ -20,11 +20,11 @@ import { rangeEach } from '../../helpers/number';
 import { KEY_CODES } from '../../helpers/unicode';
 import { autoResize } from '../../3rdparty/autoResize';
 import { isDefined } from '../../helpers/mixed';
-import { SHORTCUTS_NAMESPACE_NAVIGATION } from '../../editorManager';
+import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
-const SHORTCUTS_NAMESPACE = 'textEditor';
+const SHORTCUTS_GROUP = 'textEditor';
 
 export const EDITOR_TYPE = 'text';
 
@@ -500,31 +500,10 @@ export class TextEditor extends BaseEditor {
   registerShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
-
     const contextConfig = {
       runAction: () => isDefined(this.hot.getSelected()),
-      namespace: SHORTCUTS_NAMESPACE,
+      group: SHORTCUTS_GROUP,
     };
-
-    // TODO: Duplicated part of code.
-    editorContext.addShortcut([['Tab']], (event) => {
-      const tableMeta = this.hot.getSettings();
-      const tabMoves = typeof tableMeta.tabMoves === 'function'
-        ? tableMeta.tabMoves(event)
-        : tableMeta.tabMoves;
-
-      this.hot.selection.transformStart(tabMoves.row, tabMoves.col, true);
-    }, contextConfig);
-
-    // TODO: Duplicated part of code.
-    editorContext.addShortcut([['Shift', 'Tab']], (event) => {
-      const tableMeta = this.hot.getSettings();
-      const tabMoves = typeof tableMeta.tabMoves === 'function'
-        ? tableMeta.tabMoves(event)
-        : tableMeta.tabMoves;
-
-      this.hot.selection.transformStart(-tabMoves.row, -tabMoves.col);
-    }, contextConfig);
 
     const setNewValue = () => {
       const caretPosition = getCaretPosition(this.TEXTAREA);
@@ -536,20 +515,43 @@ export class TextEditor extends BaseEditor {
       setCaretPosition(this.TEXTAREA, caretPosition + 1);
     };
 
-    editorContext.addShortcut([['Control', 'Enter']], () => {
-      setNewValue();
+    editorContext.addShortcuts([{
+      keys: [['Tab']],
+      // TODO: Duplicated part of code.
+      callback: (event) => {
+        const tableMeta = this.hot.getSettings();
+        const tabMoves = typeof tableMeta.tabMoves === 'function'
+          ? tableMeta.tabMoves(event)
+          : tableMeta.tabMoves;
+
+        this.hot.selection.transformStart(tabMoves.row, tabMoves.col, true);
+      },
     }, {
+      keys: [['Shift', 'Tab']],
+      // TODO: Duplicated part of code.
+      callback: (event) => {
+        const tableMeta = this.hot.getSettings();
+        const tabMoves = typeof tableMeta.tabMoves === 'function'
+          ? tableMeta.tabMoves(event)
+          : tableMeta.tabMoves;
+
+        this.hot.selection.transformStart(-tabMoves.row, -tabMoves.col);
+      },
+    }, {
+      keys: [['Control', 'Enter']],
+      callback: () => {
+        setNewValue();
+      },
       runAction: event => !this.hot.selection.isMultiple() &&
         // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
         !event.altKey,
-      namespace: SHORTCUTS_NAMESPACE,
-    });
-
-    editorContext.addShortcut([['Alt', 'Enter']], () => {
-      setNewValue();
     }, {
-      namespace: SHORTCUTS_NAMESPACE
-    });
+      keys: [['Alt', 'Enter']],
+      callback: () => {
+        setNewValue();
+      },
+      runAction: () => true,
+    }], contextConfig);
   }
 
   /**
@@ -561,8 +563,8 @@ export class TextEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE_NAVIGATION);
-    editorContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE);
+    editorContext.removeShortcutByGroup(SHORTCUTS_GROUP_NAVIGATION);
+    editorContext.removeShortcutByGroup(SHORTCUTS_GROUP);
   }
 
   /**

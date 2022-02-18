@@ -970,12 +970,12 @@ describe('manualColumnResize', () => {
         manualColumnResize: true
       });
 
-      selectColumns(3);
+      simulateClick(getCell(-1, 3));
 
       keyDown('control');
 
-      selectColumns(7);
-      selectColumns(10);
+      simulateClick(getCell(-1, 7));
+      simulateClick(getCell(-1, 10));
 
       keyUp('control');
 

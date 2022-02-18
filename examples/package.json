@@ -17,6 +17,6 @@
     }
   },
   "workspaces": [
-    "@(next|@(+([0-9]).+([0-9]).+([0-9])*))/@(!(node_modules))/+(js|angular|react|vue)"
+    "@(next|@(+([0-9]).+([0-9]).+([0-9])*))/@(!(node_modules))/+(js|ts|angular|react|vue)"
   ]
 }

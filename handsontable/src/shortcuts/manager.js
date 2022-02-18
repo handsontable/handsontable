@@ -3,7 +3,7 @@ import { createContext } from './context';
 import { useRecorder } from './recorder';
 import { arrayEach } from '../helpers/array';
 
-export const createShortcutManager = ({ frame, beforeKeyDown, afterKeyDown }) => {
+export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown }) => {
   /**
    * UniqueMap to storing contexts.
    *
@@ -66,13 +66,14 @@ export const createShortcutManager = ({ frame, beforeKeyDown, afterKeyDown }) =>
    *
    * @private
    */
-  const keyRecorder = useRecorder(frame, beforeKeyDown, afterKeyDown, (event, keys) => {
+  const keyRecorder = useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, (event, keys) => {
     const activeContext = getContext(getActiveContextName());
 
     if (activeContext.hasShortcut(keys)) {
-      const shortcuts = activeContext.getShortcuts(keys);
+      // Processing just actions being in stack at the moment of shortcut pressing (without respecting additions/removals performed dynamically).
+      const shortcuts = activeContext.getShortcuts(keys).slice();
 
-      arrayEach(shortcuts, ({ callback, options: { runAction, preventDefault, stopPropagation } }) => {
+      arrayEach(shortcuts, ({ callback, runAction, preventDefault, stopPropagation }) => {
         if (runAction(event) === false) {
           return;
         }

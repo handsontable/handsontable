@@ -5,13 +5,13 @@ import { isImmediatePropagationStopped } from '../helpers/dom/event';
 /**
  * Keys recorder tracking key events.
  *
- * @param {EventTarget} frame The starting frame element.
+ * @param {EventTarget} ownerWindow The starting window element.
  * @param {Function} beforeKeyDown Callback triggered AFTER key down, but BEFORE handling callback.
  * @param {Function} afterKeyDown Callback triggered after handling callback.
  * @param {Function} callback The KeyEvent's listener callback.
  * @returns {object}
  */
-export function useRecorder(frame, beforeKeyDown, afterKeyDown, callback) {
+export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) {
   const observedKeysController = createKeysController();
   const observedKeys = ['meta', 'alt', 'shift', 'control']; // some modifier keys
 
@@ -120,10 +120,10 @@ export function useRecorder(frame, beforeKeyDown, afterKeyDown, callback) {
   };
 
   /**
-   * Add event listeners to the starting frame and its parents' frames.
+   * Add event listeners to the starting window and its parents' windows.
    */
   const mount = () => {
-    let eventTarget = frame;
+    let eventTarget = ownerWindow;
 
     while (eventTarget) {
       eventTarget.addEventListener('keydown', onkeydown);
@@ -135,10 +135,10 @@ export function useRecorder(frame, beforeKeyDown, afterKeyDown, callback) {
   };
 
   /**
-   * Remove event listeners from the starting frame and its parents' frames.
+   * Remove event listeners from the starting window and its parents' windows.
    */
   const unmount = () => {
-    let eventTarget = frame;
+    let eventTarget = ownerWindow;
 
     while (eventTarget) {
       eventTarget.removeEventListener('keydown', onkeydown);

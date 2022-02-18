@@ -4,8 +4,9 @@ import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
 import { extend } from '../../helpers/object';
+import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 
-const SHORTCUTS_NAMESPACE = 'handsontableEditor';
+const SHORTCUTS_GROUP = 'handsontableEditor';
 
 export const EDITOR_TYPE = 'handsontable';
 
@@ -182,7 +183,9 @@ export class HandsontableEditor extends TextEditor {
     super.registerShortcuts();
 
     const contextConfig = {
-      namespace: SHORTCUTS_NAMESPACE,
+      group: SHORTCUTS_GROUP,
+      relativeToGroup: SHORTCUTS_GROUP_NAVIGATION,
+      position: 'before',
     };
 
     const action = (rowToSelect, event) => {
@@ -206,49 +209,53 @@ export class HandsontableEditor extends TextEditor {
       }
     };
 
-    editorContext.addShortcut([['ArrowUp']], (event) => {
-      const innerHOT = this.htEditor.getInstance();
-      let rowToSelect;
-      let selectedRow;
+    editorContext.addShortcuts([{
+      keys: [['ArrowUp']],
+      callback: (event) => {
+        const innerHOT = this.htEditor.getInstance();
+        let rowToSelect;
+        let selectedRow;
 
-      if (!innerHOT.getSelectedLast() && innerHOT.flipped) {
-        rowToSelect = innerHOT.countRows() - 1;
+        if (!innerHOT.getSelectedLast() && innerHOT.flipped) {
+          rowToSelect = innerHOT.countRows() - 1;
 
-      } else if (innerHOT.getSelectedLast()) {
-        if (innerHOT.flipped) {
-          selectedRow = innerHOT.getSelectedLast()[0];
-          rowToSelect = Math.max(0, selectedRow - 1);
-        } else {
-          selectedRow = innerHOT.getSelectedLast()[0];
-          rowToSelect = selectedRow - 1;
+        } else if (innerHOT.getSelectedLast()) {
+          if (innerHOT.flipped) {
+            selectedRow = innerHOT.getSelectedLast()[0];
+            rowToSelect = Math.max(0, selectedRow - 1);
+          } else {
+            selectedRow = innerHOT.getSelectedLast()[0];
+            rowToSelect = selectedRow - 1;
+          }
         }
-      }
 
-      return action(rowToSelect, event);
-    }, contextConfig);
+        return action(rowToSelect, event);
+      },
+    }, {
+      keys: [['ArrowDown']],
+      callback: (event) => {
+        const innerHOT = this.htEditor.getInstance();
+        let rowToSelect;
+        let selectedRow;
 
-    editorContext.addShortcut([['ArrowDown']], (event) => {
-      const innerHOT = this.htEditor.getInstance();
-      let rowToSelect;
-      let selectedRow;
+        if (!innerHOT.getSelectedLast() && !innerHOT.flipped) {
+          rowToSelect = 0;
 
-      if (!innerHOT.getSelectedLast() && !innerHOT.flipped) {
-        rowToSelect = 0;
+        } else if (innerHOT.getSelectedLast()) {
+          if (innerHOT.flipped) {
+            rowToSelect = innerHOT.getSelectedLast()[0] + 1;
 
-      } else if (innerHOT.getSelectedLast()) {
-        if (innerHOT.flipped) {
-          rowToSelect = innerHOT.getSelectedLast()[0] + 1;
+          } else if (!innerHOT.flipped) {
+            const lastRow = innerHOT.countRows() - 1;
 
-        } else if (!innerHOT.flipped) {
-          const lastRow = innerHOT.countRows() - 1;
-
-          selectedRow = innerHOT.getSelectedLast()[0];
-          rowToSelect = Math.min(lastRow, selectedRow + 1);
+            selectedRow = innerHOT.getSelectedLast()[0];
+            rowToSelect = Math.min(lastRow, selectedRow + 1);
+          }
         }
-      }
 
-      return action(rowToSelect, event);
-    }, contextConfig);
+        return action(rowToSelect, event);
+      },
+    }], contextConfig);
   }
 
   /**
@@ -262,6 +269,6 @@ export class HandsontableEditor extends TextEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE);
+    editorContext.removeShortcutByGroup(SHORTCUTS_GROUP);
   }
 }

@@ -12,7 +12,7 @@ import LinkUI from './link';
 import { createArrayAssertion } from '../utils';
 
 const privatePool = new WeakMap();
-const SHORTCUTS_NAMESPACE = 'multipleSelect.itemBox';
+const SHORTCUTS_GROUP = 'multipleSelect.itemBox';
 
 /**
  * @private
@@ -191,21 +191,24 @@ class MultipleSelectUI extends BaseUI {
 
       const shortcutManager = this.itemsBox.getShortcutManager();
       const gridContext = shortcutManager.getContext('grid');
-      const config = { namespace: SHORTCUTS_NAMESPACE };
+      const config = { group: SHORTCUTS_GROUP };
 
-      // TODO: Are those shortcuts really needed?
-      gridContext.addShortcut([['ArrowUp'], ['ArrowDown'], ['ArrowLeft'], ['ArrowRight'],
-        ['Tab'], [' '], ['Enter']], (event) => {
-        stopImmediatePropagation(event);
-        this.itemsBox.unlisten();
-        this.itemsBox.deselectCell();
-        this.searchInput.focus();
-      }, config);
-
-      // TODO: Is this shortcut really needed? We have one test for that case, but focus is performed programmatically.
-      gridContext.addShortcut([['Escape']], (event) => {
-        this.runLocalHooks('keydown', event, this);
-      }, config);
+      gridContext.addShortcuts([{
+        // TODO: Are those shortcuts really needed?
+        keys: [['ArrowUp'], ['ArrowDown'], ['ArrowLeft'], ['ArrowRight'], ['Tab'], [' '], ['Enter']],
+        callback: (event) => {
+          stopImmediatePropagation(event);
+          this.itemsBox.unlisten();
+          this.itemsBox.deselectCell();
+          this.searchInput.focus();
+        }
+      }, {
+        // TODO: Is this shortcut really needed? We have one test for that case, but focus is performed programmatically.
+        keys: [['Escape']],
+        callback: (event) => {
+          this.runLocalHooks('keydown', event, this);
+        }
+      }], config);
     };
 
     hotInitializer(itemsBoxWrapper);

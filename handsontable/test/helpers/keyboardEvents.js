@@ -90,14 +90,14 @@ export const keyUp = triggerKeys('keyup');
 function triggerKeys(type) {
   return function(keys, extend = {}, target = document.activeElement) {
     // Adds support for a single key as a string and as an array of strings.
-    const variants = typeof keys === 'string' ? [keys] : keys;
+    keys = typeof keys === 'string' ? [keys] : keys;
     const isKeyUp = type === 'keyup';
 
     if (isKeyUp) {
-      variants.reverse();
+      keys.reverse();
     }
 
-    variants.forEach((key) => {
+    keys.forEach((key) => {
       extend.ctrlKey = isKeyUp && key === 'control' ? false : keys.includes('control');
       extend.metaKey = isKeyUp && key === 'meta' ? false : keys.includes('meta');
       extend.shiftKey = isKeyUp && key === 'shift' ? false : keys.includes('shift');

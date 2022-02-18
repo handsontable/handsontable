@@ -4,7 +4,7 @@ import { rangeEach } from '../../helpers/number';
 import { inherit, deepClone } from '../../helpers/object';
 import { align } from '../contextMenu/utils';
 
-const SHORTCUTS_NAMESPACE = 'undoRedo';
+const SHORTCUTS_GROUP = 'undoRedo';
 
 export const PLUGIN_KEY = 'undoRedo';
 
@@ -861,17 +861,21 @@ UndoRedo.prototype.registerShortcuts = function() {
   };
   const config = {
     runAction,
-    namespace: SHORTCUTS_NAMESPACE,
+    group: SHORTCUTS_GROUP,
   };
 
-  gridContext.addShortcut([['meta', 'z'], ['control', 'z']], () => {
-    this.undo();
-  }, config);
-
-  gridContext.addShortcut([['control', 'y'], ['meta', 'y'],
-    ['control', 'shift', 'z'], ['meta', 'shift', 'z']], () => {
-    this.redo();
-  }, config);
+  gridContext.addShortcuts([{
+    keys: [['meta', 'z'], ['control', 'z']],
+    callback: () => {
+      this.undo();
+    },
+  }, {
+    keys: [['control', 'y'], ['meta', 'y'],
+      ['control', 'shift', 'z'], ['meta', 'shift', 'z']],
+    callback: () => {
+      this.redo();
+    },
+  }], config);
 };
 
 /**
@@ -883,7 +887,7 @@ UndoRedo.prototype.unregisterShortcuts = function() {
   const shortutManager = this.instance.getShortcutManager();
   const gridContext = shortutManager.getContext('grid');
 
-  gridContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE);
+  gridContext.removeShortcutByGroup(SHORTCUTS_GROUP);
 };
 
 /**
