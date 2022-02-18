@@ -3241,6 +3241,153 @@ describe('Core_selection', () => {
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
       expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([10, 'prop10', 10, 'prop25', 10]);
     });
+
+    describe('should select multiple cells while using ctrl/meta + arrow keys', () => {
+      it('arrow down', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 5,
+          startCols: 5,
+        });
+
+        selectCell(0, 0);
+        keyDownUp(['control', 'arrowdown']);
+
+        expect(getSelected()).toEqual([[0, 0, 0, 0], [1, 0, 1, 0]]);
+        expect(`
+          |   ║ - :   :   :   :   |
+          |===:===:===:===:===:===|
+          | - ║ 0 :   :   :   :   |
+          | - ║ A :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        keyDownUp(['meta', 'arrowdown']);
+
+        expect(getSelected()).toEqual([[0, 0, 0, 0], [1, 0, 1, 0], [2, 0, 2, 0]]);
+        expect(`
+          |   ║ - :   :   :   :   |
+          |===:===:===:===:===:===|
+          | - ║ 0 :   :   :   :   |
+          | - ║ 0 :   :   :   :   |
+          | - ║ A :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('arrow up', () => {
+
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 5,
+          startCols: 5,
+        });
+
+        selectCell(4, 0);
+        keyDownUp(['control', 'arrowup']);
+
+        expect(getSelected()).toEqual([[4, 0, 4, 0], [3, 0, 3, 0]]);
+        expect(`
+          |   ║ - :   :   :   :   |
+          |===:===:===:===:===:===|
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          | - ║ A :   :   :   :   |
+          | - ║ 0 :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        keyDownUp(['meta', 'arrowup']);
+
+        expect(getSelected()).toEqual([[4, 0, 4, 0], [3, 0, 3, 0], [2, 0, 2, 0]]);
+        expect(`
+          |   ║ - :   :   :   :   |
+          |===:===:===:===:===:===|
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          | - ║ A :   :   :   :   |
+          | - ║ 0 :   :   :   :   |
+          | - ║ 0 :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('arrow left', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 5,
+          startCols: 5,
+        });
+
+        selectCell(0, 4);
+        keyDownUp(['control', 'arrowleft']);
+
+        expect(getSelected()).toEqual([[0, 4, 0, 4], [0, 3, 0, 3]]);
+        expect(`
+          |   ║   :   :   : - : - |
+          |===:===:===:===:===:===|
+          | - ║   :   :   : A : 0 |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        keyDownUp(['meta', 'arrowleft']);
+
+        expect(getSelected()).toEqual([[0, 4, 0, 4], [0, 3, 0, 3], [0, 2, 0, 2]]);
+        expect(`
+          |   ║   :   : - : - : - |
+          |===:===:===:===:===:===|
+          | - ║   :   : A : 0 : 0 |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('arrow right', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 5,
+          startCols: 5,
+        });
+
+        selectCell(0, 0);
+        keyDownUp(['control', 'arrowright']);
+
+        expect(getSelected()).toEqual([[0, 0, 0, 0], [0, 1, 0, 1]]);
+        expect(`
+          |   ║ - : - :   :   :   |
+          |===:===:===:===:===:===|
+          | - ║ 0 : A :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        keyDownUp(['meta', 'arrowright']);
+
+        expect(getSelected()).toEqual([[0, 0, 0, 0], [0, 1, 0, 1], [0, 2, 0, 2]]);
+        expect(`
+          |   ║ - : - : - :   :   |
+          |===:===:===:===:===:===|
+          | - ║ 0 : 0 : A :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+    });
   });
 
   describe('alter the table', () => {

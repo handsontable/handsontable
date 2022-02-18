@@ -4411,7 +4411,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.selectAll();
     },
   }, {
-    keys: [['ArrowUp']],
+    keys: [['ArrowUp'], ['Control', 'ArrowUp'], ['Meta', 'ArrowUp']],
     callback: () => {
       selection.transformStart(-1, 0);
     },
@@ -4421,7 +4421,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.transformEnd(-1, 0);
     },
   }, {
-    keys: [['ArrowDown']],
+    keys: [['ArrowDown'], ['Control', 'ArrowDown'], ['Meta', 'ArrowDown']],
     callback: () => {
       selection.transformStart(1, 0);
     },
@@ -4431,7 +4431,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.transformEnd(1, 0);
     },
   }, {
-    keys: [['ArrowLeft']],
+    keys: [['ArrowLeft'], ['Control', 'ArrowLeft'], ['Meta', 'ArrowLeft']],
     callback: () => {
       selection.transformStart(0, -1 * instance.getDirectionFactor());
     },
@@ -4441,7 +4441,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.transformEnd(0, -1 * instance.getDirectionFactor());
     },
   }, {
-    keys: [['ArrowRight']],
+    keys: [['ArrowRight'], ['Control', 'ArrowRight'], ['Meta', 'ArrowRight']],
     callback: () => {
       selection.transformStart(0, instance.getDirectionFactor());
     },
