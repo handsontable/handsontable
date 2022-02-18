@@ -4389,6 +4389,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Returns the ShortcutManager's instance.
    *
    * @memberof Core#
+   * @since 12.0.0
    * @function getShortcutManager
    * @returns {object}
    */
@@ -4406,11 +4407,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   gridContext.addShortcuts([{
     keys: [['Control', 'A'], ['Meta', 'A']],
-    callback: (event) => {
+    callback: () => {
       instance.selectAll();
-      event.preventDefault();
     },
-    preventDefault: false,
   }, {
     keys: [['ArrowUp']],
     callback: () => {
@@ -4527,7 +4526,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   }, {
     keys: [['Tab']],
-    callback: () => {
+    callback: (event) => {
       const tabMoves = typeof tableMeta.tabMoves === 'function'
         ? tableMeta.tabMoves(event)
         : tableMeta.tabMoves;
@@ -4536,7 +4535,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
   }, {
     keys: [['Shift', 'Tab']],
-    callback: () => {
+    callback: (event) => {
       const tabMoves = typeof tableMeta.tabMoves === 'function'
         ? tableMeta.tabMoves(event)
         : tableMeta.tabMoves;
