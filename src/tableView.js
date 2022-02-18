@@ -197,6 +197,7 @@ function TableView(instance) {
     fixedRowsBottom: () => that.settings.fixedRowsBottom,
     minSpareRows: () => that.settings.minSpareRows,
     renderAllRows: that.settings.renderAllRows,
+    preventWheelDefault: that.settings.preventWheelDefault !== false,
     rowHeaders: () => {
       const headerRenderers = [];
 

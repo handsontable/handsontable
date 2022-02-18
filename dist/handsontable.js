@@ -24,7 +24,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  * Version: 6.2.2
- * Release date: 19/12/2018 (built at 18/12/2018 14:40:17)
+ * Release date: 19/12/2018 (built at 19/02/2022 00:14:38)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -19468,6 +19468,7 @@ function () {
       this.wtViewport = new _viewport.default(this);
       this.wtEvent = new _event.default(this);
       this.selections = this.getSetting('selections');
+      this.preventWheelDefault = settings.preventWheelDefault;
       this.wtOverlays = new _overlays.default(this);
       this.exportSettingsAsClassNames();
     } // find original headers
@@ -20461,7 +20462,7 @@ function () {
   }, {
     key: "onCloneWheel",
     value: function onCloneWheel(event) {
-      if (this.scrollableElement !== window) {
+      if (this.scrollableElement !== window && this.wot.preventWheelDefault) {
         event.preventDefault();
       } // There was if statement which controlled flow of this function. It avoided the execution of the next lines
       // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
@@ -29734,7 +29735,7 @@ Handsontable.DefaultSettings = _defaultSettings.default;
 Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = "18/12/2018 14:40:17";
+Handsontable.buildDate = "19/02/2022 00:14:38";
 Handsontable.packageName = "handsontable";
 Handsontable.version = "6.2.2";
 var baseVersion = "";
@@ -40383,6 +40384,7 @@ function TableView(instance) {
       return that.settings.minSpareRows;
     },
     renderAllRows: that.settings.renderAllRows,
+    preventWheelDefault: that.settings.preventWheelDefault !== false,
     rowHeaders: function rowHeaders() {
       var headerRenderers = [];
 

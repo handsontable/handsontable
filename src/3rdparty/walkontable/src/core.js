@@ -43,6 +43,7 @@ class Walkontable {
       this.wtViewport = new Viewport(this);
       this.wtEvent = new Event(this);
       this.selections = this.getSetting('selections');
+      this.preventWheelDefault = settings.preventWheelDefault;
       this.wtOverlays = new Overlays(this);
       this.exportSettingsAsClassNames();
     }

@@ -304,7 +304,7 @@ class Overlays {
    * @param {Event} event
    */
   onCloneWheel(event) {
-    if (this.scrollableElement !== window) {
+    if (this.scrollableElement !== window && this.wot.preventWheelDefault) {
       event.preventDefault();
     }
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
