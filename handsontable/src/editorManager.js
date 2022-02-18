@@ -4,8 +4,8 @@ import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
 import { isDefined } from './helpers/mixed';
 
-export const SHORTCUTS_NAMESPACE_NAVIGATION = 'editorManager.navigation';
-export const SHORTCUTS_NAMESPACE_EDITOR = 'editorManager.handlingEditor';
+export const SHORTCUTS_GROUP_NAVIGATION = 'editorManager.navigation';
+export const SHORTCUTS_GROUP_EDITOR = 'editorManager.handlingEditor';
 
 class EditorManager {
   /**
@@ -92,16 +92,16 @@ class EditorManager {
     const shortcutManager = this.instance.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
     const editorContext = shortcutManager.getContext('editor');
-    const config = { namespace: SHORTCUTS_NAMESPACE_EDITOR };
+    const config = { group: SHORTCUTS_GROUP_EDITOR };
 
     editorContext.addShortcuts([{
-      variants: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
+      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
       callback: (event, keys) => {
         this.closeEditorAndSaveChanges(keys.includes('control'));
         this.moveSelectionAfterEnter(keys.includes('shift'));
       }
     }, {
-      variants: [['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']],
+      keys: [['Escape'], ['Escape', 'Control'], ['Escape', 'Meta']],
       callback: (event, keys) => {
         this.closeEditorAndRestoreOriginalValue(keys.includes('control') || keys.includes('meta'));
         this.activeEditor.focus();
@@ -109,7 +109,7 @@ class EditorManager {
     }], config);
 
     gridContext.addShortcuts([{
-      variants: [['F2']],
+      keys: [['F2']],
       callback: (event) => {
         if (this.activeEditor) {
           this.activeEditor.enableFullEditMode();
@@ -118,13 +118,13 @@ class EditorManager {
         this.openEditor(null, event);
       },
     }, {
-      variants: [['Backspace'], ['Delete']],
+      keys: [['Backspace'], ['Delete']],
       callback: () => {
         this.instance.emptySelectedCells();
         this.prepareEditor();
       },
     }, {
-      variants: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
+      keys: [['Enter'], ['Enter', 'Shift'], ['Enter', 'Control'], ['Enter', 'Control', 'Shift']],
       callback: (event, keys) => {
         if (this.instance.getSettings().enterBeginsEditing) {
           if (this.cellProperties.readOnly) {
@@ -363,26 +363,26 @@ class EditorManager {
         const editorContext = shortcutManager.getContext('editor');
         const runOnlySelectedConfig = {
           runAction: () => isDefined(this.instance.getSelected()),
-          namespace: SHORTCUTS_NAMESPACE_NAVIGATION
+          group: SHORTCUTS_GROUP_NAVIGATION
         };
 
         editorContext.addShortcuts([{
-          variants: [['ArrowUp']],
+          keys: [['ArrowUp']],
           callback: () => {
             this.instance.selection.transformStart(-1, 0);
           },
         }, {
-          variants: [['ArrowDown']],
+          keys: [['ArrowDown']],
           callback: () => {
             this.instance.selection.transformStart(1, 0);
           },
         }, {
-          variants: [['ArrowLeft']],
+          keys: [['ArrowLeft']],
           callback: () => {
             this.instance.selection.transformStart(0, -1 * this.instance.getDirectionFactor());
           },
         }, {
-          variants: [['ArrowRight']],
+          keys: [['ArrowRight']],
           callback: () => {
             this.instance.selection.transformStart(0, this.instance.getDirectionFactor());
           },

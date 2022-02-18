@@ -2,7 +2,7 @@ import { baseRenderer } from '../baseRenderer';
 import EventManager from '../../eventManager';
 import { empty, addClass } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
-import { SHORTCUTS_NAMESPACE_EDITOR } from '../../editorManager';
+import { SHORTCUTS_GROUP_EDITOR } from '../../editorManager';
 
 import './checkboxRenderer.css';
 import Hooks from '../../pluginHooks';
@@ -12,7 +12,7 @@ const isCheckboxListenerAdded = new WeakMap();
 const BAD_VALUE_CLASS = 'htBadValue';
 const ATTR_ROW = 'data-row';
 const ATTR_COLUMN = 'data-col';
-const SHORTCUTS_NAMESPACE = 'checkboxRenderer';
+const SHORTCUTS_GROUP = 'checkboxRenderer';
 
 export const RENDERER_TYPE = 'checkbox';
 
@@ -152,17 +152,17 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
   function registerShortcuts() {
     const shortcutManager = instance.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
-    const config = { namespace: SHORTCUTS_NAMESPACE };
+    const config = { group: SHORTCUTS_GROUP };
 
     gridContext.addShortcuts([{
-      variants: [[' ']],
+      keys: [[' ']],
       callback: () => {
         changeSelectedCheckboxesState();
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
     }, {
-      variants: [['enter']],
+      keys: [['enter']],
       callback: () => {
         changeSelectedCheckboxesState();
 
@@ -170,13 +170,13 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
       },
       runAction: () => instance.getSettings().enterBeginsEditing
     }, {
-      variants: [['delete'], ['backspace']],
+      keys: [['delete'], ['backspace']],
       callback: () => {
         changeSelectedCheckboxesState(true);
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      relativeToNamespace: SHORTCUTS_NAMESPACE_EDITOR,
+      relativeToGroup: SHORTCUTS_GROUP_EDITOR,
       position: 'before',
     }], config);
   }

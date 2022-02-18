@@ -4,9 +4,9 @@ import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
 import { extend } from '../../helpers/object';
-import { SHORTCUTS_NAMESPACE_NAVIGATION } from '../../editorManager';
+import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 
-const SHORTCUTS_NAMESPACE = 'handsontableEditor';
+const SHORTCUTS_GROUP = 'handsontableEditor';
 
 export const EDITOR_TYPE = 'handsontable';
 
@@ -183,8 +183,8 @@ export class HandsontableEditor extends TextEditor {
     super.registerShortcuts();
 
     const contextConfig = {
-      namespace: SHORTCUTS_NAMESPACE,
-      relativeToNamespace: SHORTCUTS_NAMESPACE_NAVIGATION,
+      group: SHORTCUTS_GROUP,
+      relativeToGroup: SHORTCUTS_GROUP_NAVIGATION,
       position: 'before',
     };
 
@@ -210,7 +210,7 @@ export class HandsontableEditor extends TextEditor {
     };
 
     editorContext.addShortcuts([{
-      variants: [['ArrowUp']],
+      keys: [['ArrowUp']],
       callback: (event) => {
         const innerHOT = this.htEditor.getInstance();
         let rowToSelect;
@@ -232,7 +232,7 @@ export class HandsontableEditor extends TextEditor {
         return action(rowToSelect, event);
       },
     }, {
-      variants: [['ArrowDown']],
+      keys: [['ArrowDown']],
       callback: (event) => {
         const innerHOT = this.htEditor.getInstance();
         let rowToSelect;
@@ -269,6 +269,6 @@ export class HandsontableEditor extends TextEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE);
+    editorContext.removeShortcutByGroup(SHORTCUTS_GROUP);
   }
 }

@@ -32,7 +32,7 @@ import localHooks from '../../mixins/localHooks';
 
 const MIN_WIDTH = 215;
 const SHORTCUTS_CONTEXT = 'menu';
-const SHORTCUTS_NAMESPACE = SHORTCUTS_CONTEXT;
+const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
 
 /**
  * @private
@@ -250,8 +250,8 @@ class Menu {
     this.hotMenu.listen();
 
     const shortcutManager = this.hotMenu.getShortcutManager();
-    const menuContext = shortcutManager.addContext(SHORTCUTS_NAMESPACE);
-    const config = { namespace: SHORTCUTS_CONTEXT };
+    const menuContext = shortcutManager.addContext(SHORTCUTS_GROUP);
+    const config = { group: SHORTCUTS_CONTEXT };
     const menuContextConfig = {
       ...config,
       runAction: event => isInput(event.target) === false || this.container.contains(event.target) === false,
@@ -261,7 +261,7 @@ class Menu {
     shortcutManager.setActiveContextName('menu');
 
     menuContext.addShortcuts([{
-      variants: [['Escape']],
+      keys: [['Escape']],
       callback: () => {
         this.keyEvent = true;
         this.close();
@@ -269,7 +269,7 @@ class Menu {
       },
       runAction: () => true,
     }, {
-      variants: [['ArrowDown']],
+      keys: [['ArrowDown']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
 
@@ -285,7 +285,7 @@ class Menu {
         this.keyEvent = false;
       },
     }, {
-      variants: [['ArrowUp']],
+      keys: [['ArrowUp']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
 
@@ -301,7 +301,7 @@ class Menu {
         this.keyEvent = false;
       }
     }, {
-      variants: [['ArrowRight']],
+      keys: [['ArrowRight']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
 
@@ -318,7 +318,7 @@ class Menu {
         this.keyEvent = false;
       }
     }, {
-      variants: [['ArrowLeft']],
+      keys: [['ArrowLeft']],
       callback: () => {
         const selection = this.hotMenu.getSelectedLast();
 
@@ -335,7 +335,7 @@ class Menu {
         this.keyEvent = false;
       },
     }, {
-      variants: [['Enter']],
+      keys: [['Enter']],
       callback: (event) => {
         const selection = this.hotMenu.getSelectedLast();
 

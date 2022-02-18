@@ -21,7 +21,7 @@ Hooks.getSingleton().register('afterUnmergeCells');
 export const PLUGIN_KEY = 'mergeCells';
 export const PLUGIN_PRIORITY = 150;
 const privatePool = new WeakMap();
-const SHORTCUTS_NAMESPACE = PLUGIN_KEY;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /**
  * @plugin MergeCells
@@ -537,13 +537,13 @@ export class MergeCells extends BasePlugin {
     const gridContext = shortcutManager.getContext('grid');
 
     gridContext.addShortcut({
-      variants: [['control', 'm'], ['meta', 'm']],
+      keys: [['control', 'm'], ['meta', 'm']],
       callback: () => {
         this.toggleMerge(this.hot.getSelectedRangeLast());
         this.hot.render();
       },
       runAction: event => !event.altKey, // right ALT in some systems triggers ALT+CTRL
-      namespace: SHORTCUTS_NAMESPACE,
+      group: SHORTCUTS_GROUP,
     });
   }
 
@@ -556,7 +556,7 @@ export class MergeCells extends BasePlugin {
     const shortcutManager = this.hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
 
-    gridContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE);
+    gridContext.removeShortcutByGroup(SHORTCUTS_GROUP);
   }
 
   /**

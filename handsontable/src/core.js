@@ -35,7 +35,7 @@ import { MetaManager, DynamicCellMetaMod, replaceData } from './dataMap';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 
-const SHORTCUTS_NAMESPACE = 'gridDefault';
+const SHORTCUTS_GROUP = 'gridDefault';
 let activeGuid = null;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -4399,60 +4399,60 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const gridContext = shortcutManager.addContext('grid');
   const gridConfig = {
     runAction: () => isDefined(instance.getSelected()),
-    namespace: SHORTCUTS_NAMESPACE,
+    group: SHORTCUTS_GROUP,
   };
 
   shortcutManager.setActiveContextName('grid');
 
   gridContext.addShortcuts([{
-    variants: [['Control', 'A'], ['Meta', 'A']],
+    keys: [['Control', 'A'], ['Meta', 'A']],
     callback: (event) => {
       instance.selectAll();
       event.preventDefault();
     },
     preventDefault: false,
   }, {
-    variants: [['ArrowUp']],
+    keys: [['ArrowUp']],
     callback: () => {
       selection.transformStart(-1, 0);
     },
   }, {
-    variants: [['ArrowUp', 'Shift']],
+    keys: [['ArrowUp', 'Shift']],
     callback: () => {
       selection.transformEnd(-1, 0);
     },
   }, {
-    variants: [['ArrowDown']],
+    keys: [['ArrowDown']],
     callback: () => {
       selection.transformStart(1, 0);
     },
   }, {
-    variants: [['ArrowDown', 'Shift']],
+    keys: [['ArrowDown', 'Shift']],
     callback: () => {
       selection.transformEnd(1, 0);
     },
   }, {
-    variants: [['ArrowLeft']],
+    keys: [['ArrowLeft']],
     callback: () => {
       selection.transformStart(0, -1 * instance.getDirectionFactor());
     },
   }, {
-    variants: [['ArrowLeft', 'Shift']],
+    keys: [['ArrowLeft', 'Shift']],
     callback: () => {
       selection.transformEnd(0, -1 * instance.getDirectionFactor());
     },
   }, {
-    variants: [['ArrowRight']],
+    keys: [['ArrowRight']],
     callback: () => {
       selection.transformStart(0, instance.getDirectionFactor());
     },
   }, {
-    variants: [['ArrowRight', 'Shift']],
+    keys: [['ArrowRight', 'Shift']],
     callback: () => {
       selection.transformEnd(0, instance.getDirectionFactor());
     },
   }, {
-    variants: [['Home']],
+    keys: [['Home']],
     callback: () => {
       selection.setRangeStart(new CellCoords(
         selection.selectedRange.current().from.row,
@@ -4460,7 +4460,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    variants: [['Home', 'Shift']],
+    keys: [['Home', 'Shift']],
     callback: () => {
       selection.setRangeEnd(new CellCoords(
         selection.selectedRange.current().from.row,
@@ -4468,7 +4468,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    variants: [['Home', 'Control'], ['Home', 'Meta']],
+    keys: [['Home', 'Control'], ['Home', 'Meta']],
     callback: () => {
       selection.setRangeStart(new CellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
@@ -4476,7 +4476,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    variants: [['Home', 'Control', 'Shift'], ['Home', 'Meta', 'Shift']],
+    keys: [['Home', 'Control', 'Shift'], ['Home', 'Meta', 'Shift']],
     callback: () => {
       selection.setRangeEnd(new CellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
@@ -4484,7 +4484,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    variants: [['End']],
+    keys: [['End']],
     callback: () => {
       selection.setRangeStart(new CellCoords(
         selection.selectedRange.current().from.row,
@@ -4492,7 +4492,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    variants: [['End', 'Shift']],
+    keys: [['End', 'Shift']],
     callback: () => {
       selection.setRangeEnd(new CellCoords(
         selection.selectedRange.current().from.row,
@@ -4500,7 +4500,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    variants: [['End', 'Control'], ['End', 'Meta']],
+    keys: [['End', 'Control'], ['End', 'Meta']],
     callback: () => {
       selection.setRangeStart(new CellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
@@ -4508,7 +4508,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    variants: [['End', 'Control', 'Shift'], ['End', 'Meta', 'Shift']],
+    keys: [['End', 'Control', 'Shift'], ['End', 'Meta', 'Shift']],
     callback: () => {
       selection.setRangeEnd(new CellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
@@ -4516,17 +4516,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       ));
     },
   }, {
-    variants: [['PageUp']],
+    keys: [['PageUp']],
     callback: () => {
       selection.transformStart(-instance.countVisibleRows(), 0);
     },
   }, {
-    variants: [['PageDown']],
+    keys: [['PageDown']],
     callback: () => {
       selection.transformStart(instance.countVisibleRows(), 0);
     },
   }, {
-    variants: [['Tab']],
+    keys: [['Tab']],
     callback: () => {
       const tabMoves = typeof tableMeta.tabMoves === 'function'
         ? tableMeta.tabMoves(event)
@@ -4535,7 +4535,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       selection.transformStart(tabMoves.row, tabMoves.col, true);
     },
   }, {
-    variants: [['Shift', 'Tab']],
+    keys: [['Shift', 'Tab']],
     callback: () => {
       const tabMoves = typeof tableMeta.tabMoves === 'function'
         ? tableMeta.tabMoves(event)

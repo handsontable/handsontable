@@ -105,11 +105,11 @@ describe('shortcutManager', () => {
     const spy = jasmine.createSpy();
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         spy();
       },
-      namespace: 'spy',
+      group: 'spy',
       runAction: () => hot.getSelected() !== void 0,
     });
 
@@ -151,11 +151,11 @@ describe('shortcutManager', () => {
     const gridContext = shortcutManager.getContext('grid');
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '2';
       },
-      namespace: 'spy',
+      group: 'spy',
       runAction: () => hot.getSelected() !== void 0,
     });
 
@@ -183,11 +183,11 @@ describe('shortcutManager', () => {
     const gridContext = shortcutManager.getContext('grid');
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '2';
       },
-      namespace: 'spy',
+      group: 'spy',
       runAction: () => hot.getSelected() !== void 0,
     });
 
@@ -205,31 +205,31 @@ describe('shortcutManager', () => {
     const gridContext = shortcutManager.getContext('grid');
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '1';
       },
-      namespace: 'spy',
+      group: 'spy',
       runAction: () => hot.getSelected() !== void 0,
     });
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '2';
 
         return false;
       },
-      namespace: 'spy',
+      group: 'spy',
       runAction: () => hot.getSelected() !== void 0,
     });
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '3';
       },
-      namespace: 'spy'
+      group: 'spy'
     });
 
     selectCell(0, 0);
@@ -245,53 +245,53 @@ describe('shortcutManager', () => {
     let text = '';
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '1';
 
-        gridContext.removeShortcutByNamespace('spy2');
+        gridContext.removeShortcutByGroup('spy2');
       },
-      namespace: 'spy'
+      group: 'spy'
     });
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '2';
       },
-      namespace: 'spy2'
+      group: 'spy2'
     });
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '3';
       },
-      namespace: 'spy2'
+      group: 'spy2'
     });
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '4';
       },
-      namespace: 'spy3',
+      group: 'spy3',
     });
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '5';
       },
-      namespace: 'spy2',
+      group: 'spy2',
     });
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '6';
       },
-      namespace: 'spy3',
+      group: 'spy3',
     });
 
     selectCell(0, 0);
@@ -307,51 +307,51 @@ describe('shortcutManager', () => {
     let text = '';
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '1';
 
         gridContext.addShortcut({
-          variants: [['control', 'b']],
+          keys: [['control', 'b']],
           callback: () => {
             text += '2';
           },
-          namespace: 'spy2',
+          group: 'spy2',
         });
       },
-      namespace: 'spy',
+      group: 'spy',
     });
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '3';
       },
-      namespace: 'spy2',
+      group: 'spy2',
     });
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '4';
       },
-      namespace: 'spy3',
+      group: 'spy3',
     });
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '5';
       },
-      namespace: 'spy2',
+      group: 'spy2',
     });
 
     gridContext.addShortcut({
-      variants: [['control', 'b']],
+      keys: [['control', 'b']],
       callback: () => {
         text += '6';
       },
-      namespace: 'spy3',
+      group: 'spy3',
     });
 
     selectCell(0, 0);

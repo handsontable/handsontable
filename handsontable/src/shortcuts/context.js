@@ -18,59 +18,59 @@ export const createContext = (name) => {
   /**
    * Add shortcut to the context.
    *
-   * @param {object} options Options for shortcut's variants.
-   * @param {Array<Array<string>>} options.variants Shortcut's variants.
+   * @param {object} options Options for shortcut's keys.
+   * @param {Array<Array<string>>} options.keys Shortcut's keys.
    * @param {Function} options.callback The callback.
-   * @param {object} options.namespace Namespace for shortcut.
+   * @param {object} options.group Group for shortcut.
    * @param {object} [options.runAction]  Option determine whether assigned callback should be performed.
    * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
    * @param {object} [options.preventDefault=true] Option determine whether to prevent default behavior.
-   * @param {object} [options.relativeToNamespace] Namespace name, relative which the shortcut is placed.
+   * @param {object} [options.relativeToGroup] Group name, relative which the shortcut is placed.
    * @param {object} [options.position='after'] Position where shortcut is placed. It may be added before or after
-   * another namespace.
+   * another group.
    *
    */
   const addShortcut = (
     {
-      variants,
+      keys,
       callback,
-      namespace,
+      group,
       runAction = () => true,
       preventDefault = true,
       stopPropagation = false,
-      relativeToNamespace = '',
+      relativeToGroup = '',
       position = 'after',
     } = {}) => {
 
-    if (isUndefined(namespace)) {
-      throw new Error('Please define a namespace for added shortcut.');
+    if (isUndefined(group)) {
+      throw new Error('Please define a group for added shortcut.');
     }
 
     if (isFunction(callback) === false) {
       throw new Error('Please define a callback for added shortcut as function.');
     }
 
-    if (Array.isArray(variants) === false) {
-      throw new Error('Please define key variants for added shortcut as array of arrays with keys.');
+    if (Array.isArray(keys) === false) {
+      throw new Error('Please define key keys for added shortcut as array of arrays with keys.');
     }
 
     const newShortcut = {
       callback,
-      namespace,
+      group,
       runAction,
       preventDefault,
       stopPropagation,
-      relativeToNamespace,
+      relativeToGroup,
       position,
     };
 
-    variants.forEach((variant) => {
+    keys.forEach((variant) => {
       const normalizedVariant = normalizeKeys(variant);
       const hasVariant = SHORTCUTS.hasItem(normalizedVariant);
 
       if (hasVariant) {
         const shortcuts = SHORTCUTS.getItem(normalizedVariant);
-        let insertionIndex = shortcuts.findIndex(shortcut => shortcut.namespace === relativeToNamespace);
+        let insertionIndex = shortcuts.findIndex(shortcut => shortcut.group === relativeToGroup);
 
         if (insertionIndex !== -1) {
           if (position === 'before') {
@@ -98,13 +98,13 @@ export const createContext = (name) => {
    * @param {Array<object>} shortcuts List of shortcuts added to the context.
    * @param {object} [options] Options for every shortcut.
    * @param {Function} [options.callback] The callback.
-   * @param {object} [options.namespace] Namespace for shortcut.
+   * @param {object} [options.group] Group for shortcut.
    * @param {object} [options.runAction]  Option determine whether assigned callback should be performed.
    * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
    * @param {object} [options.preventDefault=true] Option determine whether to prevent default behavior.
-   * @param {object} [options.relativeToNamespace] Namespace name, relative which the shortcut is placed.
+   * @param {object} [options.relativeToGroup] Group name, relative to which the shortcut is placed.
    * @param {object} [options.position='after'] Position where shortcut is placed. It may be added before or after
-   * another namespace.
+   * another group.
    */
   const addShortcuts = (shortcuts, options = {}) => {
     shortcuts.forEach((shortcut) => {
@@ -121,10 +121,10 @@ export const createContext = (name) => {
   /**
    * Removes shortcut from the context.
    *
-   * @param {Array<Array<string>>} variants A shortcut variant.
+   * @param {Array<Array<string>>} keys A shortcut variant.
    */
-  const removeShortcutByVariants = (variants) => {
-    variants.forEach((variant) => {
+  const removeShortcutByKeys = (keys) => {
+    keys.forEach((variant) => {
       const normalizedVariant = normalizeKeys(variant);
 
       SHORTCUTS.removeItem(normalizedVariant);
@@ -134,16 +134,16 @@ export const createContext = (name) => {
   /**
    * Removes shortcut from the context.
    *
-   * @param {string} namespace Namespace for shortcuts.
+   * @param {string} group Group for shortcuts.
    */
-  const removeShortcutByNamespace = (namespace) => {
+  const removeShortcutByGroup = (group) => {
     const shortcuts = SHORTCUTS.getItems();
 
     shortcuts.forEach(([keyCombination, actions]) => {
-      const leftActions = actions.filter(action => action.namespace !== namespace);
+      const leftActions = actions.filter(action => action.group !== group);
 
       if (leftActions.length === 0) {
-        removeShortcutByVariants([[keyCombination]]);
+        removeShortcutByKeys([[keyCombination]]);
 
       } else {
         actions.length = 0;
@@ -163,7 +163,7 @@ export const createContext = (name) => {
     const normalizedVariant = normalizeKeys(variant);
     const shortcuts = SHORTCUTS.getItem(normalizedVariant);
 
-    return isDefined(shortcuts) ? shortcuts : [];
+    return isDefined(shortcuts) ? shortcuts.slice() : [];
   };
 
   /**
@@ -183,7 +183,7 @@ export const createContext = (name) => {
     addShortcuts,
     getShortcuts,
     hasShortcut,
-    removeShortcutByVariants,
-    removeShortcutByNamespace,
+    removeShortcutByKeys,
+    removeShortcutByGroup,
   };
 };

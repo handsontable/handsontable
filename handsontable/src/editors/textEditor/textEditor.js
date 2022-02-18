@@ -20,11 +20,11 @@ import { rangeEach } from '../../helpers/number';
 import { KEY_CODES } from '../../helpers/unicode';
 import { autoResize } from '../../3rdparty/autoResize';
 import { isDefined } from '../../helpers/mixed';
-import { SHORTCUTS_NAMESPACE_NAVIGATION } from '../../editorManager';
+import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
-const SHORTCUTS_NAMESPACE = 'textEditor';
+const SHORTCUTS_GROUP = 'textEditor';
 
 export const EDITOR_TYPE = 'text';
 
@@ -502,7 +502,7 @@ export class TextEditor extends BaseEditor {
     const editorContext = shortcutManager.getContext('editor');
     const contextConfig = {
       runAction: () => isDefined(this.hot.getSelected()),
-      namespace: SHORTCUTS_NAMESPACE,
+      group: SHORTCUTS_GROUP,
     };
 
     const setNewValue = () => {
@@ -516,7 +516,7 @@ export class TextEditor extends BaseEditor {
     };
 
     editorContext.addShortcuts([{
-      variants: [['Tab']],
+      keys: [['Tab']],
       // TODO: Duplicated part of code.
       callback: (event) => {
         const tableMeta = this.hot.getSettings();
@@ -527,7 +527,7 @@ export class TextEditor extends BaseEditor {
         this.hot.selection.transformStart(tabMoves.row, tabMoves.col, true);
       },
     }, {
-      variants: [['Shift', 'Tab']],
+      keys: [['Shift', 'Tab']],
       // TODO: Duplicated part of code.
       callback: (event) => {
         const tableMeta = this.hot.getSettings();
@@ -538,7 +538,7 @@ export class TextEditor extends BaseEditor {
         this.hot.selection.transformStart(-tabMoves.row, -tabMoves.col);
       },
     }, {
-      variants: [['Control', 'Enter']],
+      keys: [['Control', 'Enter']],
       callback: () => {
         setNewValue();
       },
@@ -546,7 +546,7 @@ export class TextEditor extends BaseEditor {
         // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
         !event.altKey,
     }, {
-      variants: [['Alt', 'Enter']],
+      keys: [['Alt', 'Enter']],
       callback: () => {
         setNewValue();
       },
@@ -563,8 +563,8 @@ export class TextEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE_NAVIGATION);
-    editorContext.removeShortcutByNamespace(SHORTCUTS_NAMESPACE);
+    editorContext.removeShortcutByGroup(SHORTCUTS_GROUP_NAVIGATION);
+    editorContext.removeShortcutByGroup(SHORTCUTS_GROUP);
   }
 
   /**
