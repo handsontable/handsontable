@@ -104,29 +104,39 @@ By default, Handsontable features the following keyboard shortcuts:
 
 ## Managing keyboard shortcuts
 
-Please keep in mind that every shortcut is executed in some context. As a context we define an application state.
-You can choose only one context at time. For example, opening context menu sets `menu` context as active. Thus, actions such as default `ctrl`+`a` selecting whole Handsontable
-won't work for the menu.  Currently, there are three contexts: `grid`, `editor` and `menu`. Please keep in mind that you can get already registered contexts
+It is possible to add, change and remove keyboard shortcuts by managing the registered actions programmatically using the [Shortcut Manager](@/api/shortcut-manager) API.
+
+Each keyboard shortcut action is registered in a particular context. There are three contexts:
+
+- `grid` - activated when the user is browsing the data grid (initial)
+- `editor` - activated when the user opens a cell editor
+- `menu` - activated when the user opens the cell's context menu
+
+When the user interacts presses a key or a key combination keyboard, only the actions registered for the active context are executed. Only one context is active at a time.
+
+Please keep in mind that you can get already registered contexts
 using `getContext` method and even register new context using `addContext`. To switch to another context use `setActiveContextName` method.
 
-### Removing default keyboard shortcuts
-Please keep in mind that below methods are available for previously get context, for example using `getContext` method.  
-You can remove already registered shortcuts in two ways:
+### Removing keyboard shortcuts
+To remove an already registered keyboard shortcut (such as one of the default keyboard shortcuts), you need to search for it in the relevant context and refer to it by:
 
-- using `removeShortcutByNamespace` for removing shortcut registered with predefined namespace,
+- Either the key variant
+- Or the namespace
 
-```js
-const gridContext = hot.getShortcutManager().getContext('grid');
-
-gridContext.removeShortcutByNamespace('NAMESPACE_ID');
-```
-
-- using `removeShortcutByVariants` for removing shortcut registered for particular key variants.
+Use the context's method `removeShortcutByVariants` to remove all shortcuts registered for given key variants (note that it is possible that there are multiple actions registered for a single keyboard shortcut):
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 
 gridContext.removeShortcutByVariants([['enter']]);
+```
+
+Use the context's method `removeShortcutByNamespace` to remove all shortcuts registered in a certain namespace:
+
+```js
+const gridContext = hot.getShortcutManager().getContext('grid');
+
+gridContext.removeShortcutByNamespace('NAMESPACE_ID');
 ```
 
 ### Adding custom keyboard shortcuts
@@ -139,7 +149,7 @@ const gridContext = hot.getShortcutManager().getContext('grid');
 gridContext.addShortcut({ namespace: 'NAMESPACE_ID', variants: [['enter']], callback: () => {} });
 ```
 
-or place it before/after another shortcut.
+If your action must run before a certain other action, you can refer to the other action by its namespace:
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
@@ -147,7 +157,8 @@ const gridContext = hot.getShortcutManager().getContext('grid');
 gridContext.addShortcut({ namespace: 'NAMESPACE_ID', variants: [['enter']], callback: () => {}, position: 'before', relativeToNamespace: 'ANOTHER_NAMESPACE_ID' });
 ```
 
-Please keep in mind that you can run some actions only for specific conditions. There is an extra `runAction` flag for handling such cases.
+If your action must run only if some specific precondition is met, you can check for the precondition using a function provided to the `runAction` property:
+
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
