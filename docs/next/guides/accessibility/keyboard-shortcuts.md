@@ -140,8 +140,10 @@ gridContext.removeShortcutByNamespace('NAMESPACE_ID');
 ```
 
 ### Adding custom keyboard shortcuts
-You can add **multiple shortcuts** for the same keys in specific context. Simply add it in the end of the shortcuts stack
-using below method
+
+Use the context's `addShortcut` method to register an action for a given keyboard shortcut.
+
+Within a single context, there might be multiple actions registered for the same keyboard shortcut. Your action will be simply added at the end of the stack of already defined actions.
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
