@@ -3,7 +3,7 @@ import { createContext } from './context';
 import { useRecorder } from './recorder';
 import { arrayEach } from '../helpers/array';
 
-export const createShortcutManager = ({ frame, beforeKeyDown, afterKeyDown }) => {
+export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown }) => {
   /**
    * UniqueMap to storing contexts.
    *
@@ -66,7 +66,7 @@ export const createShortcutManager = ({ frame, beforeKeyDown, afterKeyDown }) =>
    *
    * @private
    */
-  const keyRecorder = useRecorder(frame, beforeKeyDown, afterKeyDown, (event, keys) => {
+  const keyRecorder = useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, (event, keys) => {
     const activeContext = getContext(getActiveContextName());
 
     if (activeContext.hasShortcut(keys)) {

@@ -139,16 +139,16 @@ export const createContext = (name) => {
   const removeShortcutByGroup = (group) => {
     const shortcuts = SHORTCUTS.getItems();
 
-    shortcuts.forEach(([keyCombination, actions]) => {
-      const leftActions = actions.filter(action => action.group !== group);
+    shortcuts.forEach(([keyCombination, shortcutOptions]) => {
+      const leftOptions = shortcutOptions.filter(option => option.group !== group);
 
-      if (leftActions.length === 0) {
+      if (leftOptions.length === 0) {
         removeShortcutByKeys([[keyCombination]]);
 
       } else {
-        actions.length = 0;
+        shortcutOptions.length = 0;
 
-        actions.push(...leftActions);
+        shortcutOptions.push(...leftOptions);
       }
     });
   };

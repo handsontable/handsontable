@@ -151,7 +151,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       this.runHooks('afterDocumentKeyDown', event);
     },
-    frame: this.rootWindow,
+    ownerWindow: this.rootWindow,
   });
 
   this.container = this.rootDocument.createElement('div');
