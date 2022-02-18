@@ -139,16 +139,16 @@ export const createContext = (name) => {
   const removeShortcutByNamespace = (namespace) => {
     const shortcuts = SHORTCUTS.getItems();
 
-    shortcuts.forEach(([keyCombination, actions]) => {
-      const leftActions = actions.filter(action => action.namespace !== namespace);
+    shortcuts.forEach(([keyCombination, shortcutOptions]) => {
+      const leftOptions = shortcutOptions.filter(option => option.namespace !== namespace);
 
-      if (leftActions.length === 0) {
+      if (leftOptions.length === 0) {
         removeShortcutByVariants([[keyCombination]]);
 
       } else {
         actions.length = 0;
 
-        actions.push(...leftActions);
+        actions.push(...leftOptions);
       }
     });
   };
