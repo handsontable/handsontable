@@ -98,9 +98,17 @@ This is the default setting.
 
 At Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid),
 add [`layoutDirection`](@/api/options.md#layoutdirection) as a [top-level grid option](@/guides/getting-started/setting-options.md#setting-grid-options),
-and set it to `'inherit'`:
+and set it to `'inherit'` or skip defining `layoutDirection` altogether, because it is the default setting. 
 
-::: example #example2
+In the below example, an RTL layout direction is inherited from a `dir` attribute up in the DOM tree:
+
+::: example #example2 --html 1 --js 2
+```html
+<section dir="rtl">
+  <div id="example2"></div>
+</section>
+```
+
 ```js
 const container = document.querySelector('#example2');
 
