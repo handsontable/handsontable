@@ -1,12 +1,10 @@
 # Code examples
 
-This folder contains all code examples, that Handsontable uses for myriad reasons, such as documentation, blog, etc. Each code example is a separate project that uses Handsontable to present certain features.
+This folder contains all code examples, that Handsontable uses for a myriad of reasons, such as documentation, blog, etc. Each code example is a separate project that uses Handsontable to present certain features.
 
 Code examples are structured by Handsontable version. Inside the version directory, examples are grouped by category, which can be anything. The most important category is "docs", which is used in the Handsontable documentation website.
 
 To see a deployed code example you can visit its URL. See [Live on production](#live-on-production) section to learn about the URL structure.
-
-To play around with the actual code for a specific code example you can open it on CodeSandbox. See [Preview on CodeSandbox](#preview-on-codesandbox) section to learn more.
 
 To run arbitrary code example locally on your machine see [How to run the arbitrary code example](#how-to-run-the-arbitrary-code-example) section.
 
@@ -14,7 +12,6 @@ To run arbitrary code example locally on your machine see [How to run the arbitr
 
 - [Folder structure](#folder-structure)
 - [Live on production](#live-on-production)
-- [Preview on CodeSandbox](#preview-on-codesandbox)
 - [Creating new examples](#creating-new-examples)
 - [Deployment](#deployment-of-the-new-code-examples)
 - [Editing existing examples](#editing-existing-examples)
@@ -44,21 +41,17 @@ Dependency sharing is defined by a shared lockfile (`/examples/<version_number>/
 
 ### Live on production
 
-All code examples are available online. The base URL for the code examples is https://examples.handsontable.com/handsontable/ and after the slash comes the path to the built project. 
+All code examples are available online. The base URL for the code examples is `https://examples.handsontable.com/examples/` with the path to the built project after the slash.
 
 URL to the specific project follow the undermentioned convention:
 
 `<version_number>/<category>/<framework>/<example_path>`
 
-An example URL to the live example: https://examples.handsontable.com/handsontable/8.1.0/docs/js/settings
+An example URL to the live example: https://examples.handsontable.com/examples/11.1.0/docs/js/basic-example/
 
 For more details see the [Folder structure](#folder-structure) section.
 
-### Preview on CodeSandbox
-
-To preview the arbitary code example on CodeSandbox you must get the link to the project folder in the Gihub repo. You will find all code examples in our repo https://github.com/handsontable/handsontable/tree/develop/examples.
-
-For example: if the URL to the project is: https://github.com/handsontable/handsontable/tree/develop/examples/next/docs/js/basic-example  you can preview that project on CodeSandbox by adding the "box" word right after the "github" and before the ".com". The URL to the sandboxed project would be https://githubbox.com/handsontable/handsontable/tree/develop/examples/next/docs/js/basic-example .
+**Note:** The https://examples.handsontable.com/examples/ URL is not CORS-enabled. If that poses a problem, you can use the GitHub-based, CORS-enabled direct equivalent: https://handsontable.github.io/handsontable.
 
 ### Creating new examples
 
@@ -68,9 +61,9 @@ Read the [Templates Guideline](./templates/README.md) for the detailed informati
 
 After new code examples are merged into master branch and the new version of the Handsontable has been released to the NPM, you can safely deploy new examples.
 
-In Github Actions run a manual workflow with the `<version_number>` input for the Handsontable version. The new folder will be created: `/examples/<version_number>`. Within that folder, new code examples will be created with Handsontable version fixed to the `<version_number>`.
+In Github Actions do a manual dispatch of the ["Code Examples Deployment" workflow](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml) with the `<version_number>` input set as the Handsontable version you want to deploy. A new folder will be created: `/examples/<version_number>`, containing the new code examples with Handsontable version fixed to the `<version_number>`.
 
-The new code snippets will be deployed to the Github Pages and will be available under URL mentioned in the "Live on production" section in the [Code Examples](../README.md) README.
+The new code snippets will be deployed to the Github Pages and will be available under URL mentioned in the ["Live on production" section](#live-on-production) section.
 
 ### Editing existing examples
 
@@ -78,8 +71,10 @@ Sometimes you want to edit existing code examples that is live in the `/examples
 
 1. Edit code examples within the `/examples/<version_number>` directory.
 2. Commit and push the code examples to the repo.
-3. In Github Actions run a manual workflow with the `<version_number>` input of the Handsontable and Handsontable's wrapper version.
-4. The code examples will be deployed to the Github Pages and will be available under the same URL as they already were.
+3. After merging your feature branch to the `develop` branch, the code examples will be deployed to the Github Pages and will be available under their already-existing URL.
+
+You can also deploy examples without committing anything by using the ["Code Examples Deployment" workflow](https://github.com/handsontable/handsontable/actions/workflows/code-examples.yml). See the [Deployment of the new code examples](#deployment-of-the-new-code-examples) section for more details.
+<br>Note that dispatching the workflow will overwrite the already-existing examples from the `gh-pages` branch (even when they're based on a branch different from `develop`).
 
 ### Copying an example to a separate repo
 
@@ -117,11 +112,18 @@ npm run start
 
 ### Development
 
-To see code examples in action run these commands:
+To see code examples in action run these commands from the _root_ of the repository (_not_ the `examples` subdirectory):
 
-1. `npm run examples:install <version_number>` - will install the dependencies of all the examples matching the `<version_number>`, utilizing the `examples`' internal workspace logic.
-2. `npm run examples:build <version_number>` - will build each code example in the `/examples/<version_number>` directory then copy each example's production output to the `/examples/tmp/<version_number>`. The path to the code example in the `/examples/tmp` follows the [Folder structure](#folder-structure) convention.
-3. `npm run examples:start` - it will start the `http-server` right in the `/examples/tmp` on PORT `8080`. So the URL to the specific code example would be `http://localhost:8080/8.1.0/docs/angular/custom-context-menu/`. The URL follows the same convention as mentioned in the [Live on production](#live-on-production) section.
+0. **`npm run examples:version <version_number>`** - will create a new directory at `examples/<version_number>` and fill it with code examples based on the `examples/next` directory, with the `handsontable` and `@handsontable/<framework_name>` dependencies updated with the provided `<version_number>`.<br> **(This step is optional - done only when creating a new set of examples based on a new version of Handsontable)** <br><sup> &nbsp;</sup>
+1. **`npm run examples:install <version_number>`** - will install the dependencies of all the examples matching the `<version_number>`, utilizing the `examples`' internal workspace logic.
+    - If the `next` version of the examples is being installed, after the dependencies are all in place the script will symlink the local dependencies needed for the examples to work as expected:
+        - All the `next` examples require a local build of Handsontable, linked as `handsontable`.
+        - The framework-based examples required their respective wrapper builds, linked as `@handsontable/<framework_name>`.
+        - All the required symlinks are created in the `examples/next/docs/<framework_name>/node_modules` directory
+            - Additionally, the Angular examples require creating additional symlinks in the `node_modules` directories inside the actual examples (pointing to `node_modules` a level higher).
+    - When installing a semver-based version of the examples, the only thing being symlinked are `handsontable` and `@handsontable/angular` in the `node_modules` directory of the angular-based examples (pointing to `node_modules` a level higher).
+2. **`npm run examples:build <version_number>`** - will build each code example in the `/examples/<version_number>` directory then copy each example's production output to the `/examples/tmp/<version_number>`. The path to the code example in the `/examples/tmp` follows the [Folder structure](#folder-structure) convention.
+3. **`npm run examples:start`** - it will start the `http-server` right in the `/examples/tmp` on PORT `8080`. So the URL to the specific code example would be `http://localhost:8080/8.1.0/docs/angular/custom-context-menu/`. The URL follows the same convention as mentioned in the [Live on production](#live-on-production) section.
 
 **Important:** As the `next` directory of the examples uses the local builds of `handsontable` and the wrappers, for the `next` build process to work, all the root-level packages need to be built (for example, bu running `npm run all build`) before running the examples build script.
 
