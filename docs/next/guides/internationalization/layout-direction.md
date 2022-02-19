@@ -38,7 +38,7 @@ You can:
 
 To try out Handsontable's RTL support, check out the demo below:
 
-::: example #example1
+::: example #example1 :hot-lang
 ```js
 const container = document.querySelector('#example1');
 
@@ -54,6 +54,12 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   // render Handsontable from the right to the left
   layoutDirection: 'rtl',
+  // load a RTL language
+  language: 'ar-AR',
+  // enable some options that exemplify the layout direction
+  dropdownMenu: true,
+  filters: true,
+  contextMenu: true
 });
 ```
 :::
