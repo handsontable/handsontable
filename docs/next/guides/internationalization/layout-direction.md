@@ -186,3 +186,37 @@ const hot = new Handsontable(container, {
 });
 ```
 :::
+
+## Setting the text alignment in cells
+
+For the cell content, it is possible to overwrite the horizontal alignment that comes out of the layout direction by using the [text alignment](@/guides/cell-features/text-alignment.md) setting.
+
+In the below example, some columns are explicitly aligned to the left, center, or right:
+
+::: example #example5
+```js
+const container = document.querySelector('#example5');
+
+const hot = new Handsontable(container, {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+  ['2019', 10, 11, 12, 13],
+  ['2020', 20, 11, 14, 13],
+  ['2021', 30, 15, 12, 13]
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  // render Handsontable from the right to the left
+  // regardless of your HTML document's `dir`
+  layoutDirection: 'rtl',
+  columns: [
+    {},
+    {className: 'htRight'},
+    {className: 'htCenter'},
+    {className: 'htLeft'},
+    {},
+  ]
+});
+```
+:::
