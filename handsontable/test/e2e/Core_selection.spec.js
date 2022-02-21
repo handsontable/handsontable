@@ -3629,4 +3629,54 @@ describe('Core_selection', () => {
       `).toBeMatchToSelectionPattern();
     });
   });
+
+  it('should select cells properly while using non-consecutive selection for two instances', () => {
+    const hot1 = handsontable({});
+    const container2 = $(`<div id="${id}2" style="width: 300px; height: 200px; overflow: auto"></div>`)
+      .appendTo('body');
+    const hot2 = container2.handsontable().handsontable('getInstance');
+
+    hot1.selectCell(0, 0);
+
+    keyDown('control');
+
+    $(hot1.getCell(0, 1)).simulate('mousedown');
+    $(hot1.getCell(0, 1)).simulate('mouseover');
+    $(hot1.getCell(0, 1)).simulate('mouseup');
+
+    $(hot1.getCell(0, 2)).simulate('mousedown');
+    $(hot1.getCell(0, 2)).simulate('mouseover');
+    $(hot1.getCell(0, 2)).simulate('mouseup');
+
+    $(hot2.getCell(0, 0)).simulate('mousedown');
+    $(hot2.getCell(0, 0)).simulate('mouseover');
+    $(hot2.getCell(0, 0)).simulate('mouseup');
+
+    $(hot2.getCell(0, 1)).simulate('mousedown');
+    $(hot2.getCell(0, 1)).simulate('mouseover');
+    $(hot2.getCell(0, 1)).simulate('mouseup');
+
+    keyUp('control');
+
+    expect(hot1.getSelected()).toBe(undefined);
+    expect(hot2.getSelected()).toEqual([[0, 0, 0, 0], [0, 1, 0, 1]]);
+
+    keyDown('control');
+
+    $(hot1.getCell(0, 0)).simulate('mousedown');
+    $(hot1.getCell(0, 0)).simulate('mouseover');
+    $(hot1.getCell(0, 0)).simulate('mouseup');
+
+    $(hot1.getCell(0, 1)).simulate('mousedown');
+    $(hot1.getCell(0, 1)).simulate('mouseover');
+    $(hot1.getCell(0, 1)).simulate('mouseup');
+
+    expect(hot1.getSelected()).toEqual([[0, 0, 0, 0], [0, 1, 0, 1]]);
+    expect(hot2.getSelected()).toBe(undefined);
+
+    keyUp('control');
+
+    hot2.destroy();
+    container2.remove();
+  });
 });

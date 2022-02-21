@@ -2,6 +2,8 @@ import { createKeysController } from './keyController';
 import { normalizeEventKey } from './utils';
 import { isImmediatePropagationStopped } from '../helpers/dom/event';
 
+const observedKeysController = createKeysController();
+
 /**
  * Keys recorder tracking key events.
  *
@@ -12,7 +14,6 @@ import { isImmediatePropagationStopped } from '../helpers/dom/event';
  * @returns {object}
  */
 export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) {
-  const observedKeysController = createKeysController();
   const observedKeys = ['meta', 'alt', 'shift', 'control']; // some modifier keys
 
   /**
