@@ -4319,4 +4319,56 @@ describe('Filters UI', () => {
 
     expect(text).toEqual(['Furkan İnanç']);
   });
+
+  it('should handle selection in value box properly', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: true,
+      filters: true,
+      dropdownMenu: true
+    });
+
+    dropdownMenu(0);
+
+    await sleep(200);
+
+    const inputElement = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
+
+    $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
+    $(inputElement).focus();
+
+    await sleep(200);
+
+    keyDownUp('arrowdown');
+
+    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[0, 0, 0, 0]]);
+
+    keyDownUp('arrowdown');
+
+    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[1, 0, 1, 0]]);
+
+    keyDownUp('arrowup');
+
+    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[0, 0, 0, 0]]);
+
+    $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
+    $(inputElement).focus();
+
+    expect(byValueMultipleSelect().itemsBox.getSelected()).toBeUndefined();
+
+    $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
+    $(inputElement).focus();
+
+    keyDownUp('tab');
+
+    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[0, 0, 0, 0]]);
+
+    keyDownUp('tab');
+
+    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[1, 0, 1, 0]]);
+
+    keyDownUp(['shift', 'tab']);
+
+    expect(byValueMultipleSelect().itemsBox.getSelected()).toEqual([[0, 0, 0, 0]]);
+  });
 });
