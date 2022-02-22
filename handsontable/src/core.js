@@ -4391,7 +4391,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @since 12.0.0
    * @function getShortcutManager
-   * @returns {object}
+   * @returns {object} Instance of {@link ShortcutManager}
    */
   this.getShortcutManager = function() {
     return shortcutManager;

@@ -7,6 +7,8 @@ import { objectEach } from '../helpers/object';
 /**
  * Create shortcuts' context.
  *
+ * @alias Context
+ * @class Context
  * @param {string} name Context's name.
  * @returns {object}
  */
@@ -18,6 +20,7 @@ export const createContext = (name) => {
   /**
    * Add shortcut to the context.
    *
+   * @memberof Context#
    * @param {object} options Options for shortcut's keys.
    * @param {Array<Array<string>>} options.keys Shortcut's keys.
    * @param {Function} options.callback The callback.
@@ -95,6 +98,7 @@ export const createContext = (name) => {
   /**
    * Add shortcuts to the context.
    *
+   * @memberof Context#
    * @param {Array<object>} shortcuts List of shortcuts added to the context.
    * @param {object} [options] Options for every shortcut.
    * @param {Function} [options.callback] The callback.
@@ -121,6 +125,7 @@ export const createContext = (name) => {
   /**
    * Removes shortcut from the context.
    *
+   * @memberof Context#
    * @param {Array<Array<string>>} keys A shortcut variant.
    */
   const removeShortcutByKeys = (keys) => {
@@ -134,6 +139,7 @@ export const createContext = (name) => {
   /**
    * Removes shortcut from the context.
    *
+   * @memberof Context#
    * @param {string} group Group for shortcuts.
    */
   const removeShortcutByGroup = (group) => {
@@ -156,6 +162,7 @@ export const createContext = (name) => {
   /**
    * Get shortcut details.
    *
+   * @memberof Context#
    * @param {Array<string>} variant A shortcut variant.
    * @returns {object}
    */
@@ -169,6 +176,7 @@ export const createContext = (name) => {
   /**
    * Check if given shortcut is added.
    *
+   * @memberof Context#
    * @param {Array<string>} variant A shortcut variant.
    * @returns {boolean}
    */

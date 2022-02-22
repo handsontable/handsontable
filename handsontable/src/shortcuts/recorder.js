@@ -8,8 +8,8 @@ const observedKeysController = createKeysController();
  * Keys recorder tracking key events.
  *
  * @param {EventTarget} ownerWindow The starting window element.
- * @param {Function} beforeKeyDown Callback triggered AFTER key down, but BEFORE handling callback.
- * @param {Function} afterKeyDown Callback triggered after handling callback.
+ * @param {Function} beforeKeyDown Hook fired before keydown event is handled. It can be used to stop default key bindings.
+ * @param {Function} afterKeyDown Hook fired after keydown event is handled.
  * @param {Function} callback The KeyEvent's listener callback.
  * @returns {object}
  */
