@@ -145,7 +145,7 @@ export function simulateKeyboardEvent(type, keyCode) {
   });
   Object.defineProperty(newEvent, 'key', {
     get : function() {
-      return KEY_CODES[this.keyCodeVal] ?? String.fromCharCode(keyCode).toLowerCase();
+      return KEY_CODES[this.keyCodeVal] ?? String.fromCharCode(this.keyCodeVal).toLowerCase();
     }
   });
 
