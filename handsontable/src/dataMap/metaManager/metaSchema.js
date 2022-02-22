@@ -2457,6 +2457,8 @@ export default () => {
      * | Setting             | Description                 |
      * | ------------------- | --------------------------- |
      * | `'en-US'` (default) | English - United States     |
+     * | `'ar-AR'`           | Arabic - Global             |
+     * | `'de-CH'`           | German - Switzerland        |
      * | `'de-DE'`           | German - Germany            |
      * | `'es-MX'`           | Spanish - Mexico            |
      * | `'fr-FR'`           | French - France             |
