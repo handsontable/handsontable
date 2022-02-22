@@ -2238,7 +2238,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Use it if you need to change configuration after initialization. The `settings` argument is an object containing the new
+   * Use it if you need to change configuration after initialization. The `settings` argument is an object containing the changed
    * settings, declared the same way as in the initial settings object.
    *
    * __Note__, that although the `updateSettings` method doesn't overwrite the previously declared settings, it might reset
@@ -2247,9 +2247,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Since 8.0.0 passing `columns` or `data` inside `settings` objects will result in resetting states corresponding to rows and columns
    * (for example, row/column sequence, column width, row height, frozen columns etc.).
    *
+   * Since 12.0.0 passing `data` inside `settings` objects no longer results in resetting states corresponding to rows and columns
+   * (for example, row/column sequence, column width, row height, frozen columns etc.).
+   *
    * @memberof Core#
    * @function updateSettings
-   * @param {object} settings New settings object (see {@link Options}).
+   * @param {object} settings A settings object (see {@link Options}). Only provide the settings that are changed, not the whole settings object that was used for initialization.
    * @param {boolean} [init=false] Internally used for in initialization mode.
    * @example
    * ```js
