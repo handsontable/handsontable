@@ -1783,8 +1783,6 @@ describe('HiddenColumns', () => {
       expect($(mergeArea).hasClass('fullySelectedMergedCell-7')).toBeFalse();
     });
 
-    // TODO: Before changes introduced in Handsontable 12.0.0 also hidden cells have been selected using API.
-    // However, the API method hasn't been setting HOT for listening state due a bug described within #7290.
     it('should add proper highlight to an area of merged cells when selected every cell ' +
       '(few layers, every layer contain part of merge area)', () => {
       handsontable({
@@ -1793,32 +1791,36 @@ describe('HiddenColumns', () => {
         colHeaders: true,
         contextMenu: true,
         hiddenColumns: {
-          columns: [0],
+          columns: [1],
           indicators: true
         },
         mergeCells: [{ row: 1, col: 1, rowspan: 1, colspan: 3 }]
       });
 
-      const mergeArea = spec().$container.find('tr:eq(2) td:eq(0)');
+      const mergeArea = spec().$container.find('tr:eq(2) td:eq(1)');
+
+      // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
+      // Please keep in mind that selectColumns/selectRows doesn't set instance to listening (see #7290).
+      listen();
 
       // Selected 2 ranges containing together merged area.
-      simulateClick(getCell(-1, 1));
+      selectColumns(1);
 
       keyDown('control');
 
-      simulateClick(getCell(-1, 3));
-      simulateClick(getCell(-1, 2));
+      selectColumns(3);
+      selectColumns(2);
 
       keyUp('control');
 
       expect(`
-      |   ║ * : * : * :   |
+      |   ║   : * : * :   |
       |===:===:===:===:===|
-      | - ║ 0 : A : 0 :   |
-      | - ║ 2 :   :   :   |
-      | - ║ 0 : 0 : 0 :   |
-      | - ║ 0 : 0 : 0 :   |
-      | - ║ 0 : 0 : 0 :   |
+      | - ║   : A : 0 :   |
+      | - ║   : 1 :   :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
       `).toBeMatchToSelectionPattern();
       expect(getSelected()).toEqual([[-1, 1, 4, 1], [-1, 3, 4, 3], [-1, 2, 4, 2]]);
       expect(getSelectedRangeLast().highlight.row).toBe(0);

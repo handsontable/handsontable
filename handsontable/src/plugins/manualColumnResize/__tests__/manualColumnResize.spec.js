@@ -970,12 +970,15 @@ describe('manualColumnResize', () => {
         manualColumnResize: true
       });
 
-      simulateClick(getCell(-1, 3));
+      // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
+      // Please keep in mind that selectColumns/selectRows doesn't set instance to listening (see #7290).
+      listen();
+      selectColumns(3);
 
       keyDown('control');
 
-      simulateClick(getCell(-1, 7));
-      simulateClick(getCell(-1, 10));
+      selectColumns(7);
+      selectColumns(10);
 
       keyUp('control');
 

@@ -48,15 +48,16 @@ describe('Core.selectRows', () => {
       `).toBeMatchToSelectionPattern();
   });
 
-  // TODO: After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
-  // Please keep in mind not passing test is consequence of bug https://github.com/handsontable/handsontable/issues/7290.
-  xit('should mark non-contiquous selection when CTRL key is pressed', () => {
+  it('should mark non-contiquous selection when CTRL key is pressed', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
       colHeaders: true,
       rowHeaders: true,
     });
 
+    // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
+    // Please keep in mind that selectColumns/selectRows doesn't set instance to listening (see #7290).
+    listen();
     selectRows(2);
 
     keyDown('control');
