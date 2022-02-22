@@ -131,6 +131,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.executionSuspendedCounter = 0;
 
+  const layoutDirection = userSettings?.layoutDirection ?? 'inherit';
+  const rootElementDirection = ['rtl', 'ltr'].includes(layoutDirection) ?
+    layoutDirection : this.rootWindow.getComputedStyle(this.rootElement).direction;
+
+  this.rootElement.setAttribute('dir', rootElementDirection);
+
   /**
    * Check if currently it is RTL direction.
    *
@@ -140,14 +146,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {boolean} True if RTL.
    */
   this.isRtl = function() {
-    let dir = instance.rootElement.getAttribute('dir');
-
-    if (!dir) {
-      // when the "dir" attribute is not set yet (see @2432 line) get the value from computed style
-      dir = instance.rootWindow.getComputedStyle(instance.rootElement).direction;
-    }
-
-    return dir === 'rtl';
+    return rootElementDirection === 'rtl';
   };
 
   /**
@@ -2452,16 +2451,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if (initialStyle) {
         instance.rootElement.setAttribute('data-initialstyle', instance.rootElement.getAttribute('style'));
-      }
-
-      const layoutDirection = settings.layoutDirection;
-
-      if (['rtl', 'ltr', 'inherit'].includes(layoutDirection)) {
-        const direction = layoutDirection === 'inherit' ?
-          instance.rootWindow.getComputedStyle(instance.rootElement).direction :
-          layoutDirection;
-
-        instance.rootElement.setAttribute('dir', direction);
       }
     }
 

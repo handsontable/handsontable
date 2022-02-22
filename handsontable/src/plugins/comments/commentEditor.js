@@ -23,9 +23,10 @@ class CommentEditor {
     return 'htCommentCell';
   }
 
-  constructor(rootDocument) {
-    this.container = null;
+  constructor(rootDocument, isRtl) {
     this.rootDocument = rootDocument;
+    this.isRtl = isRtl;
+    this.container = null;
     this.editor = this.createEditor();
     this.editorStyle = this.editor.style;
 
@@ -169,7 +170,10 @@ class CommentEditor {
     editor.style.display = 'none';
 
     this.container = this.rootDocument.createElement('div');
+    this.container.setAttribute('dir', this.isRtl ? 'rtl' : 'ltr');
+
     addClass(this.container, CommentEditor.CLASS_EDITOR_CONTAINER);
+
     this.rootDocument.body.appendChild(this.container);
 
     addClass(editor, CommentEditor.CLASS_EDITOR);
