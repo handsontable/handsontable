@@ -78,8 +78,8 @@ export class TopInlineStartCornerOverlay extends Overlay {
     const overlayRoot = this.clone.wtTable.holder.parentNode;
 
     if (this.trimmingContainer === this.domBindings.rootWindow) {
-      const left = this.inlineStartOverlay.getOverlayPosition();
-      const top = this.topOverlay.getOverlayPosition();
+      const left = this.inlineStartOverlay.getOverlayOffset();
+      const top = this.topOverlay.getOverlayOffset();
 
       setOverlayPosition(overlayRoot, `${left}px`, `${top}px`);
     } else {

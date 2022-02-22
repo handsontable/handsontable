@@ -68,7 +68,7 @@ export class InlineStartOverlay extends Overlay {
     let overlayPosition = 0;
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
-      overlayPosition = this.getOverlayPosition();
+      overlayPosition = this.getOverlayOffset();
       setOverlayPosition(overlayRoot, `${overlayPosition}px`, '0px');
 
     } else {
@@ -294,11 +294,11 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
-   * Gets the main overlay's horizontal overlay position.
+   * Gets the main overlay's horizontal overlay offset.
    *
-   * @returns {number} Main table's horizontal overlay position.
+   * @returns {number} Main table's horizontal overlay offset.
    */
-  getOverlayPosition() {
+  getOverlayOffset() {
     const { rootWindow } = this.domBindings;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let overlayPosition = 0;

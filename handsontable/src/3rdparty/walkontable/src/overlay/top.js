@@ -93,7 +93,7 @@ export class TopOverlay extends Overlay {
       // This workaround will be able to be cleared after merging the SVG borders, which introduces
       // frozen lines (no more `innerBorderTop` workaround).
       skipInnerBorderAdjusting = bottom === rootHeight;
-      overlayPosition = this.getOverlayPosition();
+      overlayPosition = this.getOverlayOffset();
 
       setOverlayPosition(overlayRoot, '0px', `${overlayPosition}px`);
 
@@ -322,11 +322,11 @@ export class TopOverlay extends Overlay {
   }
 
   /**
-   * Gets the main overlay's vertical overlay position.
+   * Gets the main overlay's vertical overlay offset.
    *
-   * @returns {number} Main table's vertical overlay position.
+   * @returns {number} Main table's vertical overlay offset.
    */
-  getOverlayPosition() {
+  getOverlayOffset() {
     const { rootWindow } = this.domBindings;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let overlayPosition = 0;

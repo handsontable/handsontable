@@ -461,11 +461,11 @@ export class BaseEditor {
     // by the overlays' position (position relative to the table viewport). In other cases, the overlay's
     // position always returns 0.
     if (['top', 'top_inline_start_corner'].includes(overlayName)) {
-      topPos += wtOverlays.topOverlay.getOverlayPosition();
+      topPos += wtOverlays.topOverlay.getOverlayOffset();
     }
 
     if (['inline_start', 'top_inline_start_corner'].includes(overlayName)) {
-      inlineStartPos += Math.abs(wtOverlays.inlineStartOverlay.getOverlayPosition());
+      inlineStartPos += Math.abs(wtOverlays.inlineStartOverlay.getOverlayOffset());
     }
 
     const hasColumnHeaders = this.hot.hasColHeaders();
