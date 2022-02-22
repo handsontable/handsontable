@@ -104,9 +104,9 @@ By default, Handsontable features the following keyboard shortcuts:
 
 ## Managing keyboard shortcuts
 
-It is possible to add, change and remove keyboard shortcuts by managing the registered actions programmatically using the [Shortcut Manager](@/api/shortcut-manager) API.
+It is possible to add, change and remove keyboard shortcuts by managing the registered actions programmatically using the [Shortcut Manager](@/api/shortcut-manager) API. The API is accessible through the method `getShortcutManager()` on a Handsontable instance.
 
-Each keyboard shortcut action is registered in a particular context. There are three contexts:
+Each keyboard shortcut action is registered in a particular context. There are three built-in contexts:
 
 - `grid` - activated when the user is browsing the data grid (initial)
 - `editor` - activated when the user opens a cell editor
@@ -114,8 +114,7 @@ Each keyboard shortcut action is registered in a particular context. There are t
 
 When the user interacts presses a key or a key combination keyboard, only the actions registered for the active context are executed. Only one context is active at a time.
 
-Please keep in mind that you can get already registered contexts
-using `getContext` method and even register new context using `addContext`. To switch to another context use `setActiveContextName` method.
+To manage keyboard shortcuts programmatically, you need to obtain the relevant context object from the API using the `getContext()` and execute one of its methods as explained below.
 
 ### Removing keyboard shortcuts
 To remove an already registered keyboard shortcut (such as one of the default keyboard shortcuts), you need to search for it in the relevant context and refer to it by:
@@ -177,6 +176,17 @@ const gridContext = hot.getShortcutManager().getContext('grid');
 gridContext.removeShortcutByVariants(['enter']);
 gridContext.addShortcut({ namespace: 'NAMESPACE_ID', variants: [['enter']], callback: () => {} });
 ```
+
+### Managing contexts
+
+Apart from the possibility of managing the built-in contexts listed above (`grid`, `editor`, `menu`), you are also free to create custom contexts.
+
+The shortcut manager object, obtainable through `getShortcutManager()` exposes the following methods for context management:
+
+- `getContext(<name>)` - get an already registered context object
+- `addContext(<name>)` - create a new context object and register it
+- `setActiveContextName(<name>)` - switches to a context
+- `getActiveContextName()` - get the name of the active context
 
 ### Using `beforeKeyDown` hook
 Please keep im mind that there is an extra possibility to stop shortcut's action execution. You can return `false` in callback
