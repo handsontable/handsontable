@@ -8,6 +8,7 @@ describe('utils', () => {
       expect(key).toEqual('arrowup');
     });
   });
+  
   describe('normalizeKeys', () => {
     it('should prepare lower-cased string of keys', () => {
       const key = normalizeKeys(['Alt', 'Shift', 'ArrowUp']);

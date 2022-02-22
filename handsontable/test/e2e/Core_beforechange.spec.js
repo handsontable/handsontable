@@ -181,7 +181,7 @@ describe('Core_beforechange', () => {
     };
   }
 
-  it('should be called on Delete key', beforechangeOnKeyFactory('delete')); // 46 = Delete key
+  it('should be called on Delete key', beforechangeOnKeyFactory('delete'));
 
-  it('should be called on Backspace key', beforechangeOnKeyFactory('backspace')); // 8 = Backspace key
+  it('should be called on Backspace key', beforechangeOnKeyFactory('backspace'));
 });

@@ -117,7 +117,7 @@ describe('context', () => {
     expect(shortcut2.runAction).toBe(runAction);
   });
 
-  it('should give a possibility to remove registered shortcuts by variant', () => {
+  it('should give a possibility to remove registered shortcuts by keys', () => {
     const context = createContext('name');
     const callback = () => {
       // Callback for shortcut.
@@ -191,7 +191,7 @@ describe('context', () => {
     expect(context.hasShortcut(['A', 'Control'])).toBe(false);
   });
 
-  it('should give a possibility to remove registered shortcuts by namespace', () => {
+  it('should give a possibility to remove registered shortcuts by group', () => {
     const context = createContext('name');
     const callback = () => {
       // Callback for shortcut.
