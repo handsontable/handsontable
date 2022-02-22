@@ -134,7 +134,7 @@ export class MergeCells extends BasePlugin {
       }
     });
 
-    this.registerShortcut();
+    this.registerShortcuts();
 
     super.enablePlugin();
   }
@@ -144,7 +144,7 @@ export class MergeCells extends BasePlugin {
    */
   disablePlugin() {
     this.clearCollections();
-    this.unregisterShortcut();
+    this.unregisterShortcuts();
     this.hot.render();
     super.disablePlugin();
   }
@@ -532,7 +532,7 @@ export class MergeCells extends BasePlugin {
    *
    * @private
    */
-  registerShortcut() {
+  registerShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
 
@@ -552,7 +552,7 @@ export class MergeCells extends BasePlugin {
    *
    * @private
    */
-  unregisterShortcut() {
+  unregisterShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
 

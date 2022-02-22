@@ -17,7 +17,7 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
    *
    * @type {string}
    */
-  let ACTIVE_CONTEXT_NAME = 'grid';
+  let activeContextName = 'grid';
 
   /**
    * Create a new context with a given name.
@@ -39,7 +39,7 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
    * @returns {string}
    */
   const getActiveContextName = () => {
-    return ACTIVE_CONTEXT_NAME;
+    return activeContextName;
   };
 
   /**
@@ -58,7 +58,7 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
    * @param {string} context Context to activate.
    */
   const setActiveContextName = (context) => {
-    ACTIVE_CONTEXT_NAME = context;
+    activeContextName = context;
   };
 
   /**
