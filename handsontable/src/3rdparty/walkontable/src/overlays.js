@@ -164,8 +164,10 @@ class Overlays {
 
     // TODO discuss, the controversial here would be removing the lazy creation mechanism for corners.
     // TODO cond. Has no any visual impact. They're initially hidden in same way like left, top, and bottom overlays.
-    this.topInlineStartCornerOverlay = new TopInlineStartCornerOverlay(...args);
-    this.bottomInlineStartCornerOverlay = new BottomInlineStartCornerOverlay(...args);
+    this.topInlineStartCornerOverlay = new TopInlineStartCornerOverlay(...args,
+      this.topOverlay, this.inlineStartOverlay);
+    this.bottomInlineStartCornerOverlay = new BottomInlineStartCornerOverlay(...args,
+      this.bottomOverlay, this.inlineStartOverlay);
   }
 
   /**
@@ -640,13 +642,13 @@ class Overlays {
     ];
     let result = null;
 
-    arrayEach(overlays, (elem) => {
-      if (!elem) {
+    arrayEach(overlays, (overlay) => {
+      if (!overlay) {
         return;
       }
 
-      if (elem.clone && elem.clone.wtTable.TABLE.contains(element)) { // todo demeter
-        result = elem.clone;
+      if (overlay.clone && overlay.clone.wtTable.TABLE.contains(element)) { // todo demeter
+        result = overlay.clone;
       }
     });
 
