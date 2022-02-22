@@ -59,7 +59,7 @@ describe('manualRowResize (RTL mode)', () => {
 
   describe('handle position in a table positioned using CSS\'s `transform`', () => {
     it('should display the handles in the correct position, with holder as a scroll parent', async() => {
-      spec().$container.css('transform', 'translate(50px, 120px)');
+      spec().$container.css('transform', 'translate(-50px, 120px)');
 
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(20, 10),
@@ -93,7 +93,7 @@ describe('manualRowResize (RTL mode)', () => {
     });
 
     it('should display the handles in the correct position, with window as a scroll parent', async() => {
-      spec().$container.css('transform', 'translate(50px, 120px)');
+      spec().$container.css('transform', 'translate(-50px, 120px)');
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(80, 10),
