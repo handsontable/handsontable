@@ -338,7 +338,7 @@ export class TopOverlay extends Overlay {
 
       overlayOffset = Math.max(this.getScrollPosition() - this.getTableParentOffset(), 0);
 
-      if (Math.abs(overlayOffset) > maxOffset) {
+      if (overlayOffset > maxOffset) {
         overlayOffset = 0;
       }
     }
