@@ -310,8 +310,8 @@ export class InlineStartOverlay extends Overlay {
         overlayOffset = Math.max(this.getScrollPosition() - this.getTableParentOffset(), 0);
       }
 
-      const rootWidth = this.wot.wtTable.getWidth();
-      const overlayRootWidth = this.clone.wtTable.getWidth();
+      const rootWidth = this.wot.wtTable.getTotalWidth();
+      const overlayRootWidth = this.clone.wtTable.getTotalWidth();
       const maxOffset = rootWidth - overlayRootWidth;
 
       if (overlayOffset > maxOffset) {

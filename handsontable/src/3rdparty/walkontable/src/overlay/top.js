@@ -332,8 +332,8 @@ export class TopOverlay extends Overlay {
     let overlayOffset = 0;
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
-      const rootHeight = this.wot.wtTable.getHeight();
-      const overlayRootHeight = this.clone.wtTable.getHeight();
+      const rootHeight = this.wot.wtTable.getTotalHeight();
+      const overlayRootHeight = this.clone.wtTable.getTotalHeight();
       const maxOffset = rootHeight - overlayRootHeight;
 
       overlayOffset = Math.max(this.getScrollPosition() - this.getTableParentOffset(), 0);
