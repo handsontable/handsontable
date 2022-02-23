@@ -190,30 +190,44 @@ describe('ColumnSorting', () => {
     expect(getPlugin('columnSorting').getSortConfig(1)).toEqual({ column: 1, sortOrder: 'asc' });
   });
 
-  it('should display indicator properly after changing sorted column sequence', () => {
-    const hot = handsontable({
-      data: [
-        [1, 9, 3, 4, 5, 6, 7, 8, 9],
-        [9, 8, 7, 6, 5, 4, 3, 2, 1],
-        [8, 7, 6, 5, 4, 3, 3, 1, 9],
-        [0, 3, 0, 5, 6, 7, 8, 9, 1]
-      ],
-      colHeaders: true,
-      columnSorting: {
-        indicator: true
-      }
+  using('configuration object', [
+    { htmlDir: 'ltr', layoutDirection: 'inherit' },
+    { htmlDir: 'rtl', layoutDirection: 'ltr' },
+  ], ({ htmlDir, layoutDirection }) => {
+    beforeEach(() => {
+      $('html').attr('dir', htmlDir);
     });
 
-    getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+    afterEach(() => {
+      $('html').attr('dir', 'ltr');
+    });
 
-    // changing column sequence: 0 <-> 1
-    hot.columnIndexMapper.moveIndexes([1], 0);
-    hot.render();
+    it('should display indicator properly after changing sorted column sequence', () => {
+      const hot = handsontable({
+        layoutDirection,
+        data: [
+          [1, 9, 3, 4, 5, 6, 7, 8, 9],
+          [9, 8, 7, 6, 5, 4, 3, 2, 1],
+          [8, 7, 6, 5, 4, 3, 3, 1, 9],
+          [0, 3, 0, 5, 6, 7, 8, 9, 1]
+        ],
+        colHeaders: true,
+        columnSorting: {
+          indicator: true
+        }
+      });
 
-    const sortedColumn = spec().$container.find('th span.columnSorting')[1];
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
 
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('right')).toEqual('-9px');
+      // changing column sequence: 0 <-> 1
+      hot.columnIndexMapper.moveIndexes([1], 0);
+      hot.render();
+
+      const sortedColumn = spec().$container.find('th span.columnSorting')[1];
+
+      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('right')).toEqual('-9px');
+    });
   });
 
   it('should clear indicator after disabling plugin', () => {

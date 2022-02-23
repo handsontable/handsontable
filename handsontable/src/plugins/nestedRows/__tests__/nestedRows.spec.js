@@ -72,17 +72,33 @@ describe('NestedRows', () => {
 
       expect(errors.length).toEqual(0);
     });
+  });
 
-    it('should display indicators properly located', () => {
-      const hot = handsontable({
-        data: getMoreComplexNestedData(),
-        nestedRows: true,
-        rowHeaders: true
+  describe('UI', () => {
+    using('configuration object', [
+      { htmlDir: 'ltr', layoutDirection: 'inherit' },
+      { htmlDir: 'rtl', layoutDirection: 'ltr' },
+    ], ({ htmlDir, layoutDirection }) => {
+      beforeEach(() => {
+        $('html').attr('dir', htmlDir);
       });
 
-      expect(hot.countRows()).toEqual(13);
-      expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).float).toEqual('left');
-      expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).right).toEqual('-2px');
+      afterEach(() => {
+        $('html').attr('dir', 'ltr');
+      });
+
+      it('should display indicators properly located', () => {
+        const hot = handsontable({
+          layoutDirection,
+          data: getMoreComplexNestedData(),
+          nestedRows: true,
+          rowHeaders: true
+        });
+
+        expect(hot.countRows()).toEqual(13);
+        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).float).toEqual('left');
+        expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).right).toEqual('-2px');
+      });
     });
   });
 

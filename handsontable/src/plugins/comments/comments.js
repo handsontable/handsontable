@@ -153,7 +153,7 @@ export class Comments extends BasePlugin {
     }
 
     if (!this.editor) {
-      this.editor = new CommentEditor(this.hot.rootDocument);
+      this.editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl());
     }
 
     if (!this.eventManager) {

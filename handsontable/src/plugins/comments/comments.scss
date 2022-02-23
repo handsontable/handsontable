@@ -1,29 +1,25 @@
-.htCommentCell {
+.handsontable .htCommentCell {
   position: relative;
 }
 
-.htCommentCell:after {
+.handsontable .htCommentCell:after {
   content: '';
   position: absolute;
   top: 0;
-  right: 0;
+  inset-inline-end: 0;
+  inset-inline-start: unset;
   border-inline-start: 6px solid transparent;
   border-inline-end: none;
   border-top: 6px solid black;
 }
 
-[dir=rtl] .htCommentCell:after {
-  right: initial;
-  left: 0;
-}
-
-.htComments {
+.htCommentsContainer .htComments {
   display: none;
   z-index: 1059;
   position: absolute;
 }
 
-.htCommentTextArea {
+.htCommentsContainer .htCommentTextArea {
   box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -40,7 +36,7 @@
   -webkit-appearance: none;
 }
 
-.htCommentTextArea:focus {
+.htCommentsContainer .htCommentTextArea:focus {
   box-shadow: rgba(0, 0, 0, 0.117647) 0 1px 3px, rgba(0, 0, 0, 0.239216) 0 1px 2px, inset 0 0 0 1px #5292f7;
   border-inline-start: 3px solid #5292f7;
   border-inline-end: none;
