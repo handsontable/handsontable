@@ -849,7 +849,7 @@ UndoRedo.prototype.init = function() {
 };
 
 /**
- * Register shortcutss responsible for performing undo/redo.
+ * Registers shortcuts responsible for performing undo/redo.
  *
  * @private
  */
