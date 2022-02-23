@@ -6,6 +6,7 @@ import {
   removeTextNodes,
   overlayContainsElement,
   closest,
+  outerHeight,
   outerWidth,
   innerHeight,
   isVisible,
@@ -1097,6 +1098,15 @@ class Table {
    */
   getWidth() {
     return outerWidth(this.TABLE);
+  }
+
+  /**
+   * Gets table's height.
+   *
+   * @returns {number}
+   */
+  getHeight() {
+    return outerHeight(this.TABLE);
   }
 
   /**

@@ -68,7 +68,7 @@ export class InlineStartOverlay extends Overlay {
     let overlayPosition = 0;
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
-      overlayPosition = this.getOverlayOffset();
+      overlayPosition = this.getOverlayOffset() * (this.isRtl() ? -1 : 1);
       setOverlayPosition(overlayRoot, `${overlayPosition}px`, '0px');
 
     } else {
@@ -301,17 +301,25 @@ export class InlineStartOverlay extends Overlay {
   getOverlayOffset() {
     const { rootWindow } = this.domBindings;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
-    let overlayPosition = 0;
+    let overlayOffset = 0;
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
       if (this.isRtl()) {
-        overlayPosition = Math.min(this.getTableParentOffset() - this.getScrollPosition(), 0);
+        overlayOffset = Math.abs(Math.min(this.getTableParentOffset() - this.getScrollPosition(), 0));
       } else {
-        overlayPosition = Math.max(this.getScrollPosition() - this.getTableParentOffset(), 0);
+        overlayOffset = Math.max(this.getScrollPosition() - this.getTableParentOffset(), 0);
+      }
+
+      const rootWidth = this.wot.wtTable.getWidth();
+      const overlayRootWidth = this.clone.wtTable.getWidth();
+      const maxOffset = rootWidth - overlayRootWidth;
+
+      if (overlayOffset > maxOffset) {
+        overlayOffset = 0;
       }
     }
 
-    return overlayPosition;
+    return overlayOffset;
   }
 
   /**

@@ -19,9 +19,13 @@ export class BottomInlineStartCornerOverlay extends Overlay {
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {DomBindings} domBindings Dom elements bound to the current instance.
+   * @param {BottomOverlay} bottomOverlay The instance of the Top overlay.
+   * @param {InlineStartOverlay} inlineStartOverlay The instance of the InlineStart overlay.
    */
-  constructor(wotInstance, facadeGetter, wtSettings, domBindings) {
+  constructor(wotInstance, facadeGetter, wtSettings, domBindings, bottomOverlay, inlineStartOverlay) {
     super(wotInstance, facadeGetter, CLONE_BOTTOM_INLINE_START_CORNER, wtSettings, domBindings);
+    this.bottomOverlay = bottomOverlay;
+    this.inlineStartOverlay = inlineStartOverlay;
   }
 
   /**
@@ -65,38 +69,11 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     overlayRoot.style.top = '';
 
     if (this.trimmingContainer === this.domBindings.rootWindow) {
-      const { wtTable } = this.wot;
-      const { rootDocument } = this.domBindings;
-      const hiderRect = wtTable.hider.getBoundingClientRect();
-      const bottom = Math.ceil(hiderRect.bottom);
-      const left = Math.ceil(hiderRect.left);
-      const right = Math.ceil(hiderRect.right);
-      const bodyHeight = rootDocument.documentElement.clientHeight;
-      let finalLeft = 0;
-      let finalBottom = 0;
+      const inlineStartOffset = Math.abs(this.inlineStartOverlay.getOverlayOffset());
+      const bottom = this.bottomOverlay.getOverlayOffset();
 
-      if (this.isRtl()) {
-        const documentWidth = rootDocument.documentElement.clientWidth;
-
-        if (right >= documentWidth) {
-          finalLeft = Math.abs(documentWidth - right);
-        }
-
-      } else if (left < 0) {
-        finalLeft = -left;
-      }
-
-      if (bottom > bodyHeight) {
-        finalBottom = (bottom - bodyHeight);
-      }
-
-      if (this.isRtl()) {
-        overlayRoot.style.right = `${finalLeft}px`;
-      } else {
-        overlayRoot.style.left = `${finalLeft}px`;
-      }
-
-      overlayRoot.style.bottom = `${finalBottom}px`;
+      overlayRoot.style[this.isRtl() ? 'right' : 'left'] = `${inlineStartOffset}px`;
+      overlayRoot.style.bottom = `${bottom}px`;
 
     } else {
       resetCssTransform(overlayRoot);
