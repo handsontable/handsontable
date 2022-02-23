@@ -100,29 +100,35 @@ describe('BaseEditor API (RTL mode)', () => {
             }));
           });
 
-          // it('and the scrollable element is the Window object', async() => {
-          //   handsontable({
-          //     layoutDirection,
-          //     licenseKey: 'non-commercial-and-evaluation',
-          //     data: createSpreadsheetData(100, 100),
-          //     editor: 'my-editor',
-          //     fixedRowsTop: 2,
-          //   });
+          it('and the scrollable element is the Window object', async() => {
+            // For this configuration object "{ htmlDir: 'ltr', layoutDirection: 'rtl' }" it's necessary to force
+            // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
+            if (htmlDir === 'ltr' && layoutDirection === 'rtl') {
+              $('html').attr('dir', 'rtl');
+            }
 
-          //   scrollViewportTo(countRows() - 1, countCols() - 1);
-          //   selectCell(1, countCols() - 1);
+            handsontable({
+              layoutDirection,
+              licenseKey: 'non-commercial-and-evaluation',
+              data: createSpreadsheetData(100, 100),
+              editor: 'my-editor',
+              fixedRowsTop: 2,
+            });
 
-          //   await sleep(100);
+            scrollViewportTo(countRows() - 1, countCols() - 1);
+            selectCell(1, countCols() - 1);
 
-          //   expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
-          //     start: Math.abs(document.documentElement.scrollLeft) + document.documentElement.clientWidth - 50, // 50 - the width of the first cell
-          //     top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 23,
-          //     width: 51,
-          //     maxWidth: 50,
-          //     height: 24,
-          //     // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-          //   }));
-          // });
+            await sleep(100);
+
+            expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
+              start: Math.abs(document.documentElement.scrollLeft) + document.documentElement.clientWidth - 50, // 50 - the width of the first cell
+              top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 23,
+              width: 51,
+              maxWidth: 50,
+              height: 24,
+              // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+            }));
+          });
         });
 
         describe('for top-right corner overlay when viewport is scrolled to the top-right edge', () => {
@@ -478,27 +484,33 @@ describe('BaseEditor API (RTL mode)', () => {
             }));
           });
 
-          // it('and the scrollable element is the Window object', () => {
-          //   handsontable({
-          //     layoutDirection,
-          //     licenseKey: 'non-commercial-and-evaluation',
-          //     data: createSpreadsheetData(100, 100),
-          //     editor: 'my-editor',
-          //     fixedRowsBottom: 2,
-          //   });
+          it('and the scrollable element is the Window object', () => {
+            // For this configuration object "{ htmlDir: 'ltr', layoutDirection: 'rtl' }" it's necessary to force
+            // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
+            if (htmlDir === 'ltr' && layoutDirection === 'rtl') {
+              $('html').attr('dir', 'rtl');
+            }
 
-          //   scrollViewportTo(countRows() - 1, countCols() - 1);
-          //   selectCell(countRows() - 1, countCols() - 1);
+            handsontable({
+              layoutDirection,
+              licenseKey: 'non-commercial-and-evaluation',
+              data: createSpreadsheetData(100, 100),
+              editor: 'my-editor',
+              fixedRowsBottom: 2,
+            });
 
-          //   expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
-          //     start: 4950,
-          //     top: document.documentElement.offsetHeight - 24,
-          //     width: 51,
-          //     maxWidth: 50,
-          //     height: 24,
-          //     // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-          //   }));
-          // });
+            scrollViewportTo(countRows() - 1, countCols() - 1);
+            selectCell(countRows() - 1, countCols() - 1);
+
+            expect(getActiveEditor().getEditedCellRect()).toEqual(jasmine.objectContaining({
+              start: 4950,
+              top: document.documentElement.offsetHeight - 24,
+              width: 51,
+              maxWidth: 50,
+              height: 24,
+              // maxHeight: ?, // returns wrong value! it will be fixed within #9206
+            }));
+          });
         });
       });
     });
