@@ -1315,10 +1315,10 @@ export default () => {
      * | -------- | ------------------ | ---------------------------------- | ----------------------------------------------------------------- |
      * | `row`    | -                  | `row`: Number                      | The cell's row coordinate.                                        |
      * | `col`    | -                  | `col`: Number                      | The cell's column coordinate.                                     |
-     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _left_ or _right_ border's (when the table is configured to work with [RTL layout direction](@/guides/internationalization/layout-direction.md) mode) width (`width`)<br> and color (`color`). |
-     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _right_ or _left_ border's (when the table is configured to work with [RTL layout direction](@/guides/internationalization/layout-direction.md) mode) width (`width`)<br> and color (`color`).|
-     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _top_ border's width (`width`)<br> and color (`color`).    |
-     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _bottom_ border's width (`width`)<br> and color (`color`). |
+     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _starting_ border's width (`width`) and color (`color`). The word _starting_ refers to starting edge of the [layout direction](@/guides/internationalization/layout-direction.md), and means _left_ (in LTR, default), or _right_ (in RTL).
+     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _starting_ border's width (`width`) and color (`color`). The word _ending_ refers to ending edge of the [layout direction](@/guides/internationalization/layout-direction.md), and means _right_ (in LTR, default), or _left_ (in RTL).
+     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _top_ border's width (`width`) and color (`color`).
+     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the _bottom_ border's width (`width`) and color (`color`).
      *
      * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
      * and add a predefined border around a range of cells,
@@ -1327,11 +1327,11 @@ export default () => {
      *
      * | Property | Sub-properties                               | Types                                                            | Description                                                                                  |
      * | -------- | -------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-     * | `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | `from` selects the range's top-start (top-_left_ in LTR and top-_right_ in RTL document mode) corner.<br>`to` selects the range's bottom-end (bottom-_left_ in LTR and bottom-_right_ in RTL document mode) corner. |
-     * | `start`  | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the left border's `width` and `color`.                                                  |
-     * | `end`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the right border's `width` and `color`.                                                 |
-     * | `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the top border's `width` and `color`.                                                   |
-     * | `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the bottom border's `width` and `color`.                                                |
+     * | `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | `from` selects the range's top-start (top-_left_ in LTR and top-_right_ in RTL [layout direction](@/guides/internationalization/layout-direction.md)) corner.<br>`to` selects the range's bottom-end (bottom-_left_ in LTR and bottom-_right_ in RTL [layout direction](@/guides/internationalization/layout-direction.md)) corner.
+     * | `start`  | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the _starting_ border's width (`width`) and color (`color`). The word _starting_ refers to starting edge of the [layout direction](@/guides/internationalization/layout-direction.md), and means _left_ (in LTR, default), or _right_ (in RTL).
+     * | `end`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the _starting_ border's width (`width`) and color (`color`). The word _ending_ refers to ending edge of the [layout direction](@/guides/internationalization/layout-direction.md), and means _right_ (in LTR, default), or _left_ (in RTL).
+     * | `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the _top_ border's width (`width`) and color (`color`).
+     * | `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the _bottom_ border's width (`width`) and color (`color`).
      *
      * Read more:
      * - [Formatting cells: Custom cell borders &#8594;](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
@@ -1357,13 +1357,13 @@ export default () => {
      *     row: 2,
      *     // set the cell's column coordinate
      *     col: 2,
-     *     // set the left border's width and color
-     *     left: {
+     *     // set the left/right border's width and color
+     *     start: {
      *       width: 2,
      *       color: 'red'
      *     },
-     *     // set the right border's width and color
-     *     right: {
+     *     // set the right/left border's width and color
+     *     end: {
      *       width: 1,
      *       color: 'green'
      *     },
@@ -1392,13 +1392,13 @@ export default () => {
      *         col: 4
      *       }
      *     },
-     *     // set the left border's width and color
-     *     left: {
+     *     // set the left/right border's width and color
+     *     start: {
      *       width: 2,
      *       color: 'red'
      *     },
-     *     // set the right border's width and color
-     *     right: {},
+     *     // set the right/left border's width and color
+     *     end: {},
      *     // set the top border's width and color
      *     top: {},
      *     // set the bottom border's width and color
@@ -1993,7 +1993,11 @@ export default () => {
     filters: void 0,
 
     /**
-     * The `fixedColumnsLeft` option is an alias for the [`fixedColumnsStart`](#fixedColumnsStart) option, kept only for backward compatibility.
+     * `fixedColumnsLeft` is a legacy option.
+     *
+     * If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR, this option acts like the [`fixedColumnsStart`](#fixedColumnsStart) option. If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL, this option throws an error.
+     *
+     * Use [`fixedColumnsStart`](#fixedColumnsStart), which works in any layout direction.
      *
      * Read more:
      * - [`fixedColumnsStart`](#fixedcolumnsstart)
@@ -2012,14 +2016,14 @@ export default () => {
     fixedColumnsLeft: 0,
 
     /**
-     * The `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the start edge of the grid.
+     * The `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the starting edge of the grid.
      *
-     * Depending on your [`layoutDirection`](#layoutdirection) setting, your grid's start edge can be the left-hand edge or the right-hand edge.
+     * Depending on your [`layoutDirection`](#layoutdirection) setting, your grid's starting edge can be the left-hand edge (in the LTR direction; default) or the right-hand edge (in the RTL direction).
      *
      * Read more:
      * - [Column freezing &#8594;](@/guides/columns/column-freezing.md)
+     * - [Layout direction &#8594;](@/guides/internationalization/layout-direction.md)
      * - [`fixedColumnsLeft`](#fixedcolumnsleft)
-     * - [`layoutDirection`](#layoutdirection)
      *
      * @memberof Options#
      * @type {number}
