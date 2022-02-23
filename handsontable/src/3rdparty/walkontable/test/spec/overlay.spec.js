@@ -753,6 +753,94 @@ describe('WalkontableOverlay', () => {
     }));
   });
 
+  describe('overlay offset', () => {
+    beforeEach(function() {
+      spec().$wrapper
+        .css('overflow', '')
+        .css('width', '')
+        .css('height', '');
+
+      createDataArray(10, 10);
+
+      this.$wrapper.after($('<div class="space-filler" style="width: 4000px; height: 4000px">&nbsp;</div>'));
+      this.$wrapper.before($('<div class="space-filler" style="width: 4000px; height: 4000px">&nbsp;</div>'));
+    });
+
+    afterEach(() => {
+      jQuery('.space-filler').remove();
+    });
+
+    it('should reset top overlay\'s offset after the table is scroll out of the browser viewport (window object as scrollable element)', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsTop: 2,
+      });
+
+      wt.draw();
+      wt.scrollViewport({ row: getTotalRows() - 1, col: 0 }, true, false, false, true);
+      wt.draw();
+
+      // scroll the viewport precisely 1px before the top overlay disappears
+      window.scrollBy(0, 23);
+
+      expect(wt.wtOverlays.topOverlay.getOverlayOffset()).toBe(184);
+
+      // it causes the overlay to be reset to the initial position
+      window.scrollBy(0, 1);
+      wt.draw();
+
+      expect(wt.wtOverlays.topOverlay.getOverlayOffset()).toBe(0);
+    });
+
+    it('should reset left overlay\'s offset after the table is scroll out of the browser viewport (window object as scrollable element)', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsStart: 2,
+      });
+
+      wt.draw();
+      wt.scrollViewport({ row: 0, col: getTotalColumns() - 1 }, true, false, false, true);
+      wt.draw();
+
+      // scroll the viewport precisely 1px before the left overlay disappears
+      window.scrollBy(50, 0);
+
+      expect(wt.wtOverlays.inlineStartOverlay.getOverlayOffset()).toBe(400);
+
+      // it causes the overlay to be reset to the initial position
+      window.scrollBy(1, 1);
+
+      expect(wt.wtOverlays.inlineStartOverlay.getOverlayOffset()).toBe(0);
+    });
+
+    it('should reset bottom overlay\'s offset after the table is scroll out of the browser viewport(window object as scrollable element)', () => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsBottom: 2,
+      });
+
+      wt.draw();
+      wt.scrollViewport({ row: getTotalRows() - 1, col: 0 }, false, true, true, false);
+      wt.draw();
+
+      // scroll the viewport precisely 1px before the bottom overlay disappears
+      window.scrollBy(0, -230);
+
+      expect(wt.wtOverlays.bottomOverlay.getOverlayOffset()).toBe(184);
+
+      // it causes the overlay to be reset to the initial position
+      window.scrollBy(0, -1);
+
+      expect(wt.wtOverlays.bottomOverlay.getOverlayOffset()).toBe(0);
+    });
+  });
+
   it('should adjust the header overlays sizes after table scroll (window object as scrollable element)', () => {
     spec().$wrapper
       .css('overflow', '')
