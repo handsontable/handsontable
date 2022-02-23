@@ -1,8 +1,8 @@
-import { createKeysController } from './keyController';
+import { createKeysObserver } from './keyObserver';
 import { normalizeEventKey } from './utils';
 import { isImmediatePropagationStopped } from '../helpers/dom/event';
 
-const observedKeysController = createKeysController();
+const modifierKeysObserver = createKeysObserver();
 
 /**
  * Keys recorder tracking key events.
@@ -14,7 +14,7 @@ const observedKeysController = createKeysController();
  * @returns {object}
  */
 export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) {
-  const observedKeys = ['meta', 'alt', 'shift', 'control']; // some modifier keys
+  const modifierKeys = ['meta', 'alt', 'shift', 'control'];
 
   /**
    * Get whether pressed key is observed key.
@@ -22,12 +22,12 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
    * @param {string} pressedKey Pressed keyboard key.
    * @returns {boolean}
    */
-  const isObservedKey = (pressedKey) => {
-    return observedKeys.includes(pressedKey);
+  const isModifierKey = (pressedKey) => {
+    return modifierKeys.includes(pressedKey);
   };
 
   /**
-   * Get every pressed modifier key from performed KeyboardEvent.
+   * Get every pressed modifier key from performed `KeyboardEvent`.
    *
    * @private
    * @param {KeyboardEvent} event The event object.
@@ -75,13 +75,11 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
     const pressedKey = normalizeEventKey(event.key);
     let extraModifierKeys = [];
 
-    // Don't duplicate observed keys in the stack.
-    if (isObservedKey(pressedKey) === false) {
-      extraModifierKeys = getModifierKeys(event);
+    if (isModifierKey(pressedKey)) {
+      modifierKeysObserver.press(normalizeEventKey(event.key));
 
     } else {
-      // We store observed keys in the stack.
-      observedKeysController.press(normalizeEventKey(event.key));
+      extraModifierKeys = getModifierKeys(event);
     }
 
     const pressedKeys = [pressedKey].concat(extraModifierKeys);
@@ -104,11 +102,11 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
 
     const pressedKey = normalizeEventKey(event.key);
 
-    if (isObservedKey(pressedKey) === false) {
+    if (isModifierKey(pressedKey) === false) {
       return;
     }
 
-    observedKeysController.release(pressedKey);
+    modifierKeysObserver.release(pressedKey);
   };
 
   /**
@@ -117,7 +115,7 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
    * @private
    */
   const onblur = () => {
-    observedKeysController.releaseAll();
+    modifierKeysObserver.releaseAll();
   };
 
   /**
@@ -153,6 +151,6 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
   return {
     mount,
     unmount,
-    isPressed: key => observedKeysController.isPressed(key)
+    isPressed: key => modifierKeysObserver.isPressed(key)
   };
 }

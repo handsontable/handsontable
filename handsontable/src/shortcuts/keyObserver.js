@@ -1,9 +1,9 @@
 /**
- * Create keys' controller.
+ * Create keys' observer.
  *
  * @returns {object}
  */
-export function createKeysController() {
+export function createKeysObserver() {
   const PRESSED_KEYS = new Set();
 
   return {
