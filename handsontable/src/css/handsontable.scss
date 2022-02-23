@@ -285,11 +285,11 @@ TextRenderer readOnly cell
   font-size: 9px;
 }
 
-[dir=rtl] .handsontable .htSubmenu :after {
+[dir=rtl].handsontable .htSubmenu :after {
   content: '';
 }
 
-[dir=rtl] .handsontable .htSubmenu :before {
+[dir=rtl].handsontable .htSubmenu :before {
   content: '\25C0';
   color: #777;
   position: absolute;
@@ -389,7 +389,7 @@ TextRenderer placeholder value
   color: #583707;
 }
 
-.collapsibleIndicator {
+.handsontable .collapsibleIndicator {
   position: absolute;
   top: 50%;
   transform: translate(0% ,-50%);

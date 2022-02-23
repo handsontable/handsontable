@@ -279,6 +279,7 @@ export class Overlay {
     const tableParent = wtTable.wtRootElement.parentNode;
 
     clone.className = `${CLONE_CLASS_NAMES.get(this.type)} handsontable`;
+    clone.setAttribute('dir', this.isRtl() ? 'rtl' : 'ltr');
     clone.style.position = 'absolute';
     clone.style.top = 0;
     clone.style.overflow = 'visible';

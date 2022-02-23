@@ -1,27 +1,36 @@
 describe('PasswordEditor RTL (mode)', () => {
-  const id = 'testContainer';
+  using('configuration object', [
+    { htmlDir: 'rtl', layoutDirection: 'inherit' },
+    { htmlDir: 'ltr', layoutDirection: 'rtl' },
+  ], ({ htmlDir, layoutDirection }) => {
+    const id = 'testContainer';
 
-  beforeEach(function() {
-    this.$container = $(`<div id="${id}" style="width: 300px; height: 300px;"></div>`).appendTo('body');
-  });
-
-  afterEach(function() {
-    if (this.$container) {
-      destroy();
-      this.$container.remove();
-    }
-  });
-
-  it('should render an editable editor\'s element without messing with "dir" attribute', () => {
-    handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 5),
-      editor: 'password',
+    beforeEach(function() {
+      $('html').attr('dir', htmlDir);
+      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
-    selectCell(0, 0);
+    afterEach(function() {
+      $('html').attr('dir', 'ltr');
 
-    const editableElement = getActiveEditor().TEXTAREA;
+      if (this.$container) {
+        destroy();
+        this.$container.remove();
+      }
+    });
 
-    expect(editableElement.getAttribute('dir')).toBeNull();
+    it('should render an editable editor\'s element without messing with "dir" attribute', () => {
+      handsontable({
+        layoutDirection,
+        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        editor: 'password',
+      });
+
+      selectCell(0, 0);
+
+      const editableElement = getActiveEditor().TEXTAREA;
+
+      expect(editableElement.getAttribute('dir')).toBeNull();
+    });
   });
 });

@@ -106,16 +106,31 @@ describe('NestedRows (RTL)', () => {
     expect(getDataAtRow(8)).toEqual(['Best Metal Performance', null, null, null]);
   });
 
-  it('should display indicators properly located', () => {
-    const hot = handsontable({
-      data: getMoreComplexNestedData(),
-      nestedRows: true,
-      rowHeaders: true
+  describe('UI', () => {
+    using('configuration object', [
+      { htmlDir: 'rtl', layoutDirection: 'inherit' },
+      { htmlDir: 'ltr', layoutDirection: 'rtl' },
+    ], ({ htmlDir, layoutDirection }) => {
+      beforeEach(() => {
+        $('html').attr('dir', htmlDir);
+      });
+
+      afterEach(() => {
+        $('html').attr('dir', 'ltr');
+      });
+
+      it('should display indicators properly located', () => {
+        const hot = handsontable({
+          layoutDirection,
+          data: getMoreComplexNestedData(),
+          nestedRows: true,
+          rowHeaders: true
+        });
+
+        expect(hot.countRows()).toEqual(13);
+        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).float).toEqual('right');
+        expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).left).toEqual('-2px');
+      });
     });
-
-    expect(hot.countRows()).toEqual(13);
-    expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).float).toEqual('right');
-    expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).left).toEqual('-2px');
   });
-
 });

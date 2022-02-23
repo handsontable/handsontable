@@ -2533,17 +2533,31 @@ describe('CollapsibleColumns', () => {
   });
 
   describe('collapsible button', () => {
-    it('should be placed in correct place', () => {
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
-        nestedHeaders: [
-          ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
-          ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
-        ],
-        collapsibleColumns: true
+    using('configuration object', [
+      { htmlDir: 'ltr', layoutDirection: 'inherit' },
+      { htmlDir: 'rtl', layoutDirection: 'ltr' },
+    ], ({ htmlDir, layoutDirection }) => {
+      beforeEach(() => {
+        $('html').attr('dir', htmlDir);
       });
-      expect(window.getComputedStyle(getCell(-1, 3).querySelector('.collapsibleIndicator'))
-        .getPropertyValue('right')).toEqual('5px');
+
+      afterEach(() => {
+        $('html').attr('dir', 'ltr');
+      });
+
+      it('should be placed in correct place', () => {
+        handsontable({
+          layoutDirection,
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          nestedHeaders: [
+            ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
+            ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
+          ],
+          collapsibleColumns: true
+        });
+        expect(window.getComputedStyle(getCell(-1, 3).querySelector('.collapsibleIndicator'))
+          .getPropertyValue('right')).toEqual('5px');
+      });
     });
 
     it('should call "toggleCollapsibleSection" internally with correct toggle state ' +

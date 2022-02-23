@@ -5,7 +5,7 @@ const trim = (properties) => {
 };
 
 
-const polyfillDirection = (direction, source) => {
+const toPhysicalDirection = (direction, source) => {
   switch (direction) {
     case 'ltr':
       return source
@@ -20,13 +20,14 @@ const polyfillDirection = (direction, source) => {
   }
 };
 
-const appendRtl = (all, selector, properties) => `
-${polyfillDirection('ltr', `${selector}{${properties}}`)}
+const appendRtl = (all, selector, properties) => {
+  const rtlSelector = selector.split(',').map(sel => `[dir=rtl]${sel.trimStart()}`).join(', ');
 
-[dir=rtl] {
-${polyfillDirection('rtl', `${selector}{${trim(properties)}}`)}
+  return `
+    ${selector} {${toPhysicalDirection('ltr', properties)}}
+    ${rtlSelector} {${toPhysicalDirection('rtl', trim(properties))}}
+  `;
 }
-`;
 
 const applyRtlStyles = (source) => {
   return source.replace(
