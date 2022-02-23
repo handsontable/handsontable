@@ -89,7 +89,7 @@ class EditorManager {
   }
 
   /**
-   * Register shortcutss responsible for handling some actions related to an editor.
+   * Register shortcuts responsible for handling some actions related to an editor.
    *
    * @private
    */
