@@ -112,7 +112,7 @@ Below you'll find a list of features which can be translated:
 
 By default, Handsontable uses the **English - United States** language-country set (`en-US` code) for creating the text of UI elements. However, it can be used like every extra, "non-standard" language file, thus the `en-US.js` file can be found in `/dist/languages`, `/languages` and `/src/languages` folders. Currently, we also distribute extra language-country files:
 
-* `ar-AR.js` for **Arabic - Global** (`ar-AR` code).
+* `ar-AR.js` for **Arabic - Global** (`ar-AR` code). To render this language as intended, set the [layout direction](@/guides/internationalization/language.md) to RTL.
 * `de-DE.js` for **German - Germany** (`de-DE` code).
 * `de-CH.js` for **German - Switzerland** (`de-CH` code).
 * `es-MX.js` for **Spanish - Mexico** (`es-MX` code).

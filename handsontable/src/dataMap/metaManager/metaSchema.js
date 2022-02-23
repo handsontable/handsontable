@@ -2477,7 +2477,7 @@ export default () => {
      * | Setting             | Description                 |
      * | ------------------- | --------------------------- |
      * | `'en-US'` (default) | English - United States     |
-     * | `'ar-AR'`           | Arabic - Global             |
+     * | `'ar-AR'`           | Arabic - Global. To render this language as intended, set the [layout direction](@/guides/internationalization/language.md) to RTL. |
      * | `'de-CH'`           | German - Switzerland        |
      * | `'de-DE'`           | German - Germany            |
      * | `'es-MX'`           | Spanish - Mexico            |
