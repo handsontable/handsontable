@@ -85,15 +85,7 @@ The above list is not exhaustive. There might be other areas of Handsontable aff
 
 ## Setting the layout direction
 
-You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid).
-
-You can't change the layout direction at Handsontable's runtime (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method).
-```js
-// this won't work
-hot.updateSettings({
-  layoutDirection: 'rtl',
-});
-```
+You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid). Any change of the [`layoutDirection`](@/api/options.md#layoutdirection) option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
 
 ### Setting the layout direction automatically
 
