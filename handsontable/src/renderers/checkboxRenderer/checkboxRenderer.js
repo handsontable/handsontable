@@ -155,7 +155,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
     const config = { group: SHORTCUTS_GROUP };
 
     gridContext.addShortcuts([{
-      keys: [['space']],
+      keys: [[' ']],
       callback: () => {
         changeSelectedCheckboxesState();
 
