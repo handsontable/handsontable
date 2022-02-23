@@ -4399,7 +4399,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   const gridContext = shortcutManager.addContext('grid');
   const gridConfig = {
-    runAction: () => isDefined(instance.getSelected()),
+    runOnlyIf: () => isDefined(instance.getSelected()),
     group: SHORTCUTS_GROUP,
   };
 

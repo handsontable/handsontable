@@ -254,7 +254,7 @@ class Menu {
     const config = { group: SHORTCUTS_CONTEXT };
     const menuContextConfig = {
       ...config,
-      runAction: event => isInput(event.target) === false || this.container.contains(event.target) === false,
+      runOnlyIf: event => isInput(event.target) === false || this.container.contains(event.target) === false,
     };
 
     // Default shortcuts for Handsontable should not be handled. Changing context will help with that.
@@ -267,7 +267,7 @@ class Menu {
         this.close();
         this.keyEvent = false;
       },
-      runAction: () => true,
+      runOnlyIf: () => true,
     }, {
       keys: [['ArrowDown']],
       callback: () => {

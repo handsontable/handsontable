@@ -172,7 +172,7 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
-   * Registers shortcut responsible for handling editor.
+   * Register shortcuts responsible for handling editor.
    *
    * @private
    */
@@ -259,7 +259,7 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
-   * Unregisters shortcut responsible for handling editor.
+   * Unregister shortcuts responsible for handling editor.
    *
    * @private
    */
@@ -269,6 +269,6 @@ export class HandsontableEditor extends TextEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutByGroup(SHORTCUTS_GROUP);
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 }

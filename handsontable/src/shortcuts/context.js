@@ -25,7 +25,7 @@ export const createContext = (name) => {
    * @param {Array<Array<string>>} options.keys Shortcut's keys.
    * @param {Function} options.callback The callback.
    * @param {object} options.group Group for shortcut.
-   * @param {object} [options.runAction]  Option determine whether assigned callback should be performed.
+   * @param {object} [options.runOnlyIf]  Option determine whether assigned callback should be performed.
    * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
    * @param {object} [options.preventDefault=true] Option determine whether to prevent default behavior.
    * @param {object} [options.relativeToGroup] Group name, relative which the shortcut is placed.
@@ -38,7 +38,7 @@ export const createContext = (name) => {
       keys,
       callback,
       group,
-      runAction = () => true,
+      runOnlyIf = () => true,
       preventDefault = true,
       stopPropagation = false,
       relativeToGroup = '',
@@ -60,7 +60,7 @@ export const createContext = (name) => {
     const newShortcut = {
       callback,
       group,
-      runAction,
+      runOnlyIf,
       preventDefault,
       stopPropagation,
       relativeToGroup,
@@ -103,7 +103,7 @@ export const createContext = (name) => {
    * @param {object} [options] Options for every shortcut.
    * @param {Function} [options.callback] The callback.
    * @param {object} [options.group] Group for shortcut.
-   * @param {object} [options.runAction]  Option determine whether assigned callback should be performed.
+   * @param {object} [options.runOnlyIf]  Option determine whether assigned callback should be performed.
    * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
    * @param {object} [options.preventDefault=true] Option determine whether to prevent default behavior.
    * @param {object} [options.relativeToGroup] Group name, relative to which the shortcut is placed.
@@ -123,12 +123,12 @@ export const createContext = (name) => {
   };
 
   /**
-   * Removes shortcut from the context.
+   * Removes shortcuts from the context.
    *
    * @memberof Context#
    * @param {Array<Array<string>>} keys A shortcut variant.
    */
-  const removeShortcutByKeys = (keys) => {
+  const removeShortcutsByKeys = (keys) => {
     keys.forEach((variant) => {
       const normalizedVariant = normalizeKeys(variant);
 
@@ -137,19 +137,19 @@ export const createContext = (name) => {
   };
 
   /**
-   * Removes shortcut from the context.
+   * Removes shortcuts from the context.
    *
    * @memberof Context#
    * @param {string} group Group for shortcuts.
    */
-  const removeShortcutByGroup = (group) => {
+  const removeShortcutsByGroup = (group) => {
     const shortcuts = SHORTCUTS.getItems();
 
     shortcuts.forEach(([keyCombination, shortcutOptions]) => {
       const leftOptions = shortcutOptions.filter(option => option.group !== group);
 
       if (leftOptions.length === 0) {
-        removeShortcutByKeys([[keyCombination]]);
+        removeShortcutsByKeys([[keyCombination]]);
 
       } else {
         shortcutOptions.length = 0;
@@ -191,7 +191,7 @@ export const createContext = (name) => {
     addShortcuts,
     getShortcuts,
     hasShortcut,
-    removeShortcutByKeys,
-    removeShortcutByGroup,
+    removeShortcutsByKeys,
+    removeShortcutsByGroup,
   };
 };

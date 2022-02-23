@@ -145,7 +145,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
   }
 
   /**
-   * Registers shortcut responsible for toggling checkbox state.
+   * Register shortcuts responsible for toggling checkbox state.
    *
    * @private
    */
@@ -168,7 +168,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runAction: () => instance.getSettings().enterBeginsEditing
+      runOnlyIf: () => instance.getSettings().enterBeginsEditing
     }, {
       keys: [['delete'], ['backspace']],
       callback: () => {

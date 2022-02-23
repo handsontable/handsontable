@@ -528,7 +528,7 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Registers shortcut responsible for toggling a merge.
+   * Register shortcuts responsible for toggling a merge.
    *
    * @private
    */
@@ -542,13 +542,13 @@ export class MergeCells extends BasePlugin {
         this.toggleMerge(this.hot.getSelectedRangeLast());
         this.hot.render();
       },
-      runAction: event => !event.altKey, // right ALT in some systems triggers ALT+CTRL
+      runOnlyIf: event => !event.altKey, // right ALT in some systems triggers ALT+CTRL
       group: SHORTCUTS_GROUP,
     });
   }
 
   /**
-   * Unregisters shortcut responsible for toggling a merge.
+   * Unregister shortcuts responsible for toggling a merge.
    *
    * @private
    */
@@ -556,7 +556,7 @@ export class MergeCells extends BasePlugin {
     const shortcutManager = this.hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
 
-    gridContext.removeShortcutByGroup(SHORTCUTS_GROUP);
+    gridContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
