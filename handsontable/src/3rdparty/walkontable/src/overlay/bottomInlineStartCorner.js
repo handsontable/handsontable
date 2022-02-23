@@ -69,7 +69,7 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     overlayRoot.style.top = '';
 
     if (this.trimmingContainer === this.domBindings.rootWindow) {
-      const inlineStartOffset = Math.abs(this.inlineStartOverlay.getOverlayOffset());
+      const inlineStartOffset = this.inlineStartOverlay.getOverlayOffset();
       const bottom = this.bottomOverlay.getOverlayOffset();
 
       overlayRoot.style[this.isRtl() ? 'right' : 'left'] = `${inlineStartOffset}px`;
