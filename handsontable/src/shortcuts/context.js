@@ -3,7 +3,7 @@ import { normalizeKeys } from './utils';
 import { isUndefined, isDefined } from '../helpers/mixed';
 import { isFunction } from '../helpers/function';
 import { objectEach } from '../helpers/object';
-import { toSingleLine } from "../../types/helpers";
+import { toSingleLine } from '../helpers/templateLiteralTag';
 
 /**
  * Create shortcuts' context.
@@ -24,7 +24,7 @@ export const createContext = (name) => {
    * @memberof Context#
    * @param {object} options Options for shortcut's keys.
    * @param {Array<Array<string>>} options.keys Shortcut's keys being KeyboardEvent's key properties. Full list of values
-   * is available here: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key.
+   * is [available here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
    * @param {Function} options.callback The callback.
    * @param {object} options.group Group for shortcut.
    * @param {object} [options.runOnlyIf]  Option determine whether assigned callback should be performed.
