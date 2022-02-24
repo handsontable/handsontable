@@ -15,5 +15,5 @@ export interface Context {
   getShortcuts(): Shortcut[];
   hasShortcut(keys: string[]): boolean;
   removeShortcutsByKeys(keys: string[]): void;
-  removeShortcutsByGroup(group: string[]): void;
+  removeShortcutsByGroup(group: string): void;
 }
