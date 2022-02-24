@@ -1,5 +1,20 @@
+// Please keep in mind that there are some key discrepancies in browsers. That's why there are some mappings.
+// There is a list which show some exceptions: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.
 const mappings = new Map([
-  [' ', 'space'],
+  [' ', 'space'], // Custom mapping.
+  ['spacebar', 'space'],
+  ['scroll', 'scrolllock'],
+  ['del', 'delete'],
+  ['esc', 'escape'],
+  ['medianexttrack', 'mediatracknext'],
+  ['mediaprevioustrack', 'mediatrackprevious'],
+  ['volumeup', 'audiovolumeup'],
+  ['volumedown', 'audiovolumedown'],
+  ['volumemute', 'audiovolumemute'],
+  ['multiply', '*'],
+  ['add', '+'],
+  ['divide', '/'],
+  ['subtract', '-'],
   ['left', 'arrowleft'],
   ['right', 'arrowright'],
   ['up', 'arrowup'],
