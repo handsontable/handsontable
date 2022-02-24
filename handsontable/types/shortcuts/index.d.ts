@@ -1,1 +1,1 @@
-export * from './manager';
+export { ShortcutManager } from './manager';
