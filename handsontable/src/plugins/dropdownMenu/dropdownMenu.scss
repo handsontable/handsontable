@@ -30,8 +30,10 @@
 }
 
 .htDropdownMenu .ht_clone_top,
+.htDropdownMenu .ht_clone_bottom,
 .htDropdownMenu .ht_clone_inline_start,
-.htDropdownMenu .ht_clone_corner {
+.htDropdownMenu .ht_clone_top_inline_start_corner,
+.htDropdownMenu .ht_clone_bottom_inline_start_corner {
   display: none;
 }
 

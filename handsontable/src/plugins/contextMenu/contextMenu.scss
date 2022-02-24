@@ -10,8 +10,10 @@
 }
 
 .htContextMenu .ht_clone_top,
+.htContextMenu .ht_clone_bottom,
 .htContextMenu .ht_clone_inline_start,
-.htContextMenu .ht_clone_corner {
+.htContextMenu .ht_clone_top_inline_start_corner,
+.htContextMenu .ht_clone_bottom_inline_start_corner {
   display: none;
 }
 
