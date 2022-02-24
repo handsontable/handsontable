@@ -137,7 +137,7 @@ describe('context', () => {
       callback: callback2,
     }], options);
 
-    context.removeShortcutsByKeys([['control', 'a']]);
+    context.removeShortcutsByKeys(['control', 'a']);
 
     const shortcuts = context.getShortcuts(['control', 'a']);
 
@@ -183,7 +183,7 @@ describe('context', () => {
     expect(context.hasShortcut(['a', 'control'])).toBe(true);
     expect(context.hasShortcut(['A', 'Control'])).toBe(true);
 
-    context.removeShortcutsByKeys([['control', 'a']]);
+    context.removeShortcutsByKeys(['control', 'a']);
 
     expect(context.hasShortcut(['control', 'a'])).toBe(false);
     expect(context.hasShortcut(['Control', 'A'])).toBe(false);

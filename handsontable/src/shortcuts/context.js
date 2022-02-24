@@ -1,5 +1,5 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
-import { normalizeKeys } from './utils';
+import { normalizeKeys, getKeysList } from './utils';
 import { isUndefined, isDefined } from '../helpers/mixed';
 import { isFunction } from '../helpers/function';
 import { objectEach } from '../helpers/object';
@@ -71,12 +71,12 @@ export const createContext = (name) => {
       position,
     };
 
-    keys.forEach((variant) => {
-      const normalizedVariant = normalizeKeys(variant);
-      const hasVariant = SHORTCUTS.hasItem(normalizedVariant);
+    keys.forEach((keyCombination) => {
+      const normalizedKeys = normalizeKeys(keyCombination);
+      const hasKeyCombination = SHORTCUTS.hasItem(normalizedKeys);
 
-      if (hasVariant) {
-        const shortcuts = SHORTCUTS.getItem(normalizedVariant);
+      if (hasKeyCombination) {
+        const shortcuts = SHORTCUTS.getItem(normalizedKeys);
         let insertionIndex = shortcuts.findIndex(shortcut => shortcut.group === relativeToGroup);
 
         if (insertionIndex !== -1) {
@@ -94,7 +94,7 @@ export const createContext = (name) => {
         shortcuts.splice(insertionIndex, 0, newShortcut);
 
       } else {
-        SHORTCUTS.addItem(normalizedVariant, [newShortcut]);
+        SHORTCUTS.addItem(normalizedKeys, [newShortcut]);
       }
     });
   };
@@ -130,14 +130,12 @@ export const createContext = (name) => {
    * Removes shortcuts from the context.
    *
    * @memberof Context#
-   * @param {Array<Array<string>>} keys A shortcut variant.
+   * @param {Array<string>} keys A shortcut keys.
    */
   const removeShortcutsByKeys = (keys) => {
-    keys.forEach((variant) => {
-      const normalizedVariant = normalizeKeys(variant);
+    const normalizedKeys = normalizeKeys(keys);
 
-      SHORTCUTS.removeItem(normalizedVariant);
-    });
+    SHORTCUTS.removeItem(normalizedKeys);
   };
 
   /**
@@ -149,11 +147,11 @@ export const createContext = (name) => {
   const removeShortcutsByGroup = (group) => {
     const shortcuts = SHORTCUTS.getItems();
 
-    shortcuts.forEach(([keyCombination, shortcutOptions]) => {
+    shortcuts.forEach(([normalizedKeys, shortcutOptions]) => {
       const leftOptions = shortcutOptions.filter(option => option.group !== group);
 
       if (leftOptions.length === 0) {
-        removeShortcutsByKeys([[keyCombination]]);
+        removeShortcutsByKeys(getKeysList(normalizedKeys));
 
       } else {
         shortcutOptions.length = 0;
@@ -167,12 +165,13 @@ export const createContext = (name) => {
    * Get shortcut details.
    *
    * @memberof Context#
-   * @param {Array<string>} variant A shortcut variant.
-   * @returns {object}
+   * @param {Array<string>} keys Shortcut's keys being KeyboardEvent's key properties. Full list of values
+   * is [available here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
+   * @returns {Array}
    */
-  const getShortcuts = (variant) => {
-    const normalizedVariant = normalizeKeys(variant);
-    const shortcuts = SHORTCUTS.getItem(normalizedVariant);
+  const getShortcuts = (keys) => {
+    const normalizedKeys = normalizeKeys(keys);
+    const shortcuts = SHORTCUTS.getItem(normalizedKeys);
 
     return isDefined(shortcuts) ? shortcuts.slice() : [];
   };
@@ -181,13 +180,14 @@ export const createContext = (name) => {
    * Check if given shortcut is added.
    *
    * @memberof Context#
-   * @param {Array<string>} variant A shortcut variant.
+   * @param {Array<string>} keys Shortcut's keys being KeyboardEvent's key properties. Full list of values
+   * is [available here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
    * @returns {boolean}
    */
-  const hasShortcut = (variant) => {
-    const normalizedVariant = normalizeKeys(variant);
+  const hasShortcut = (keys) => {
+    const normalizedKeys = normalizeKeys(keys);
 
-    return SHORTCUTS.hasItem(normalizedVariant);
+    return SHORTCUTS.hasItem(normalizedKeys);
   };
 
   return {
