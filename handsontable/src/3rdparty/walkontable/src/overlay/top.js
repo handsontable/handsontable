@@ -329,13 +329,21 @@ export class TopOverlay extends Overlay {
   getOverlayOffset() {
     const { rootWindow } = this.domBindings;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
-    let overlayPosition = 0;
+    let overlayOffset = 0;
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
-      overlayPosition = Math.max(this.getScrollPosition() - this.getTableParentOffset(), 0);
+      const rootHeight = this.wot.wtTable.getTotalHeight();
+      const overlayRootHeight = this.clone.wtTable.getTotalHeight();
+      const maxOffset = rootHeight - overlayRootHeight;
+
+      overlayOffset = Math.max(this.getScrollPosition() - this.getTableParentOffset(), 0);
+
+      if (overlayOffset > maxOffset) {
+        overlayOffset = 0;
+      }
     }
 
-    return overlayPosition;
+    return overlayOffset;
   }
 
   /**

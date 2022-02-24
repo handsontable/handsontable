@@ -66,45 +66,24 @@ export class BottomOverlay extends Overlay {
       // removed from DOM
       return false;
     }
-    const { rootDocument, rootWindow } = this.domBindings;
+    const { rootWindow } = this.domBindings;
     const overlayRoot = this.clone.wtTable.holder.parentNode;
 
     overlayRoot.style.top = '';
 
-    let headerPosition = 0;
+    let overlayPosition = 0;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
-      const { wtTable } = this.wot;
-      const hiderRect = wtTable.hider.getBoundingClientRect();
-      const bottom = Math.ceil(hiderRect.bottom);
-      const bodyHeight = rootDocument.documentElement.clientHeight;
-      let finalLeft = 0;
-      let finalBottom = 0;
-
-      finalLeft = wtTable.hider.style.left;
-      finalLeft = finalLeft !== 0 ? `${finalLeft}px` : finalLeft;
-
-      if (bottom > bodyHeight) {
-        finalBottom = (bottom - bodyHeight);
-      }
-
-      headerPosition = finalBottom;
-
-      if (this.isRtl()) {
-        overlayRoot.style.right = `${finalLeft}px`;
-      } else {
-        overlayRoot.style.left = `${finalLeft}px`;
-      }
-
-      overlayRoot.style.bottom = `${finalBottom}px`;
+      overlayPosition = this.getOverlayOffset();
+      overlayRoot.style.bottom = `${overlayPosition}px`;
 
     } else {
-      headerPosition = this.getScrollPosition();
+      overlayPosition = this.getScrollPosition();
       this.repositionOverlay();
     }
 
-    const positionChanged = this.adjustHeaderBordersPosition(headerPosition);
+    const positionChanged = this.adjustHeaderBordersPosition(overlayPosition);
 
     this.adjustElementsSize();
 
@@ -329,6 +308,33 @@ export class BottomOverlay extends Overlay {
    */
   getScrollPosition() {
     return getScrollTop(this.mainTableScrollableElement, this.domBindings.rootWindow);
+  }
+
+  /**
+   * Gets the main overlay's vertical overlay offset.
+   *
+   * @returns {number} Main table's vertical overlay offset.
+   */
+  getOverlayOffset() {
+    const { rootWindow } = this.domBindings;
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    let overlayOffset = 0;
+
+    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+      const rootHeight = this.wot.wtTable.getTotalHeight();
+      const overlayRootHeight = this.clone.wtTable.getTotalHeight();
+      const maxOffset = rootHeight - overlayRootHeight;
+      const docClientHeight = this.domBindings.rootDocument.documentElement.clientHeight;
+
+      overlayOffset = Math.max(
+        this.getTableParentOffset() - this.getScrollPosition() - docClientHeight + rootHeight, 0);
+
+      if (overlayOffset > maxOffset) {
+        overlayOffset = 0;
+      }
+    }
+
+    return overlayOffset;
   }
 
   /**

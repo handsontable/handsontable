@@ -81,6 +81,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() filteringCaseSensitive: Handsontable.GridSettings['filteringCaseSensitive'];
   @Input() filters: Handsontable.GridSettings['filters'];
   @Input() fixedColumnsLeft: Handsontable.GridSettings['fixedColumnsLeft'];
+  @Input() fixedColumnsStart: Handsontable.GridSettings['fixedColumnsStart'];
   @Input() fixedRowsBottom: Handsontable.GridSettings['fixedRowsBottom'];
   @Input() fixedRowsTop: Handsontable.GridSettings['fixedRowsTop'];
   @Input() formulas: Handsontable.GridSettings['formulas'];
