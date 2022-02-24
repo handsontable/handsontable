@@ -1,3 +1,11 @@
+const mappings = new Map([
+  [' ', 'space'],
+  ['left', 'arrowleft'],
+  ['right', 'arrowright'],
+  ['up', 'arrowup'],
+  ['down', 'arrowdown'],
+]);
+
 /**
  * Get single, normalized string from list of KeyboardEvent's key properties.
  *
@@ -5,7 +13,15 @@
  * @returns {string}
  */
 export const normalizeKeys = (keys) => {
-  return keys.sort().join('+').toLowerCase();
+  return keys.sort().map((key) => {
+    const lowercaseKey = key.toLowerCase();
+
+    if (mappings.has(lowercaseKey)) {
+      return mappings.get(lowercaseKey);
+    }
+
+    return lowercaseKey;
+  }).join('+');
 };
 
 /**
