@@ -30,12 +30,20 @@ hotInstance.updateSettings({
 hotInstance.loadData(newDataset);
 ```
 
+When it comes to using the framework wrappers, updating the data through a component property will no longer reset the state of the index mappers and cell meta. To replace the data along with those, call the [`loadData`](@/api/core.md#loadData) method, analogously to the vanilla version, referencing the Handsontable instance from the component.
+
+For more information on referencing the Handsontable instance, see these guides:
+- [Referencing the Handsontable instance in Angular](@/guides/integrate-with-angular/angular-hot-reference.md)
+- [Referencing the Handsontable instance in React](@/guides/integrate-with-react/react-hot-reference.md)
+- [Referencing the Handsontable instance in Vue 2](@/guides/integrate-with-vue/vue-hot-reference.md)
+- [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference.md)
+
 #### Summary of the changes:
 | | 11.1.0 and earlier | 12.0.0 |
 | -- | ---- | ------ |
-| `updateSettings` | <strong>Called with the `data` option defined:</strong><ul><li>Cell meta being reset after each call</li><li>Index Mappers being reset after each call</li><li>Utilizes the `loadData` method to replace data</li></ul> | <strong>Called with the `data` option defined:</strong><ul><li>Cell meta **NOT** being reset after each call</li><li>Index Mappers **NOT** being reset after each call</li><li>Utilizes the `loadData` method to replace data **only at initialization**</li><li>Utilizes the `updateData` method to replace data in every usage after initialization.</li></ul> |
-| `loadData` | <strong>Hooks triggered:</strong><ul><li>`beforeLoadData`</li><li>`afterLoadData`</li><li>`afterChange` with the `source` argument declared as `loadData`</li></ul> | No changes compared to `11.1.0`
-| `updateData` | n/a |  <strong>Hooks triggered:</strong><ul><li>`beforeUpdateData`</li><li>`afterUpdateData`</li><li>`afterChange` with the `source` argument declared as `updateData`</li></ul> | <strong>Hooks triggered:</strong><ul><li>`beforeUpdateData`</li><li>`afterUpdateData`</li><li>`afterChange` with the `source` argument declared as `updateData`</li></ul> -->
+| <span style="white-space: nowrap;">`updateSettings`</span> | <strong>Called with the `data` option defined:</strong><ul><li>Cell meta being reset after each call</li><li>Index Mappers being reset after each call</li><li>Utilizes the `loadData` method to replace data</li></ul> | <strong>Called with the `data` option defined:</strong><ul><li>Cell meta **NOT** being reset after each call</li><li>Index Mappers **NOT** being reset after each call</li><li>Utilizes the `loadData` method to replace data **only at initialization**</li><li>Utilizes the `updateData` method to replace data in every usage after initialization.</li></ul> |
+| <span style="white-space: nowrap;">`loadData`</span> | <strong>Hooks triggered:</strong><ul><li>`beforeLoadData`</li><li>`afterLoadData`</li><li>`afterChange` with the `source` argument declared as `loadData`</li></ul> | No changes compared to `11.1.0`
+| <span style="white-space: nowrap;">`updateData`</span> | n/a |  <strong>Hooks triggered:</strong><ul><li>`beforeUpdateData`</li><li>`afterUpdateData`</li><li>`afterChange` with the `source` argument declared as `updateData`</li></ul> | <strong>Hooks triggered:</strong><ul><li>`beforeUpdateData`</li><li>`afterUpdateData`</li><li>`afterChange` with the `source` argument declared as `updateData`</li></ul> -->
 
 
 
