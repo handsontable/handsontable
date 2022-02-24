@@ -76,9 +76,10 @@ Setting a different layout direction affects the behavior of the following areas
 | The order of columns on the screen                                                                | The cell rendering flows from the left-hand side of the screen to the right-hand side. Thus, the cell at coordinates (0, 0) is rendered in the top-left corner.  | The cell rendering flows from the right-hand side of the screen to the left-hand side. Thus, the cell at coordinates (0, 0) is rendered in the top-right corner.
 | The text direction in the cells                                                                   | All cells inherit the LTR direction from the container element.                                                                                                  | All cells inherit the RTL direction from the container element.
 | The position of the row headers                                                                   | The row headers are rendered on the left-hand edge of the grid.                                                                                                  | The row headers are rendered on the right-hand edge of the grid.
-| The position of the [frozen columns](@/guides/columns/column-freezing.md)                         | The columns are frozen at the right-hand edge of the grid.                                                                                                       | The columns are frozen at the right-hand edge of the grid.
+| The position of the [frozen columns](@/guides/columns/column-freezing.md)                         | The columns are frozen at the left-hand edge of the grid.                                                                                                       | The columns are frozen at the right-hand edge of the grid.
 | [Keyboard navigation](@/guides/accessories-and-menus/keyboard-navigation.md)                      | <kbd>Tab</kbd> moves to the right, and <kbd>Shift</kbd> + <kbd>Tab</kbd> moves to the left.                                                                      | <kbd>Tab</kbd> moves to the left, and <kbd>Shift</kbd> + <kbd>Tab</kbd> moves to the right.
 | The position of the [selection](@/guides/cell-features/selection.md) handles                      | The circular selection handles on mobile devices appear in the top-left and bottom-right corners of the selection border.                                        | The circular selection handles on mobile devices appear in the top-right and bottom-left corners of the selection border.
+| The position of the selection [fill handler](@/api/options.md#fillHandle) corner                      | The fill handle rectangle corner appears on the bottom-right corner of the selection.                                        | The fill handle rectangle corner appears on the bottom-left corner of the selection
 | [Custom borders](@/guides/cell-features/formatting-cells.md)                                      | In the [`customBorders`](@/api/options.md#customborders) option, the property `start` is _left_, and the property `end` is _right_.                              | In the [`customBorders`](@/api/options.md#customborders) option, the property `start` is _right_, and the property `end` is _left_.
 | The [context menu](@/guides/accessories-and-menus/context-menu.md) and the [column menus](@/guides/accessories-and-menus/column-menu.md) | The layout of these elements is left-to-right, and the submenus expand to the right-hand side.                            | The layout of these elements is right-to-left, and the submenus expand to the left-hand side.
 
@@ -113,10 +114,10 @@ const container = document.querySelector('#example2');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
-  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-  ['2019', 10, 11, 12, 13],
-  ['2020', 20, 11, 14, 13],
-  ['2021', 30, 15, 12, 13]
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13]
   ],
   colHeaders: true,
   rowHeaders: true,
@@ -142,10 +143,10 @@ const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
-  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-  ['2019', 10, 11, 12, 13],
-  ['2020', 20, 11, 14, 13],
-  ['2021', 30, 15, 12, 13]
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13]
   ],
   colHeaders: true,
   rowHeaders: true,
@@ -171,10 +172,10 @@ const container = document.querySelector('#example4');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
-  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-  ['2019', 10, 11, 12, 13],
-  ['2020', 20, 11, 14, 13],
-  ['2021', 30, 15, 12, 13]
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13]
   ],
   colHeaders: true,
   rowHeaders: true,
@@ -198,10 +199,10 @@ const container = document.querySelector('#example5');
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [
-  ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-  ['2019', 10, 11, 12, 13],
-  ['2020', 20, 11, 14, 13],
-  ['2021', 30, 15, 12, 13]
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13]
   ],
   colHeaders: true,
   rowHeaders: true,
@@ -210,9 +211,9 @@ const hot = new Handsontable(container, {
   layoutDirection: 'rtl',
   columns: [
     {},
-    {className: 'htRight'},
-    {className: 'htCenter'},
-    {className: 'htLeft'},
+    { className: 'htRight' },
+    { className: 'htCenter' },
+    { className: 'htLeft' },
     {},
   ]
 });
