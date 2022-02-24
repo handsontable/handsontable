@@ -6,6 +6,7 @@ import {
   removeTextNodes,
   overlayContainsElement,
   closest,
+  outerHeight,
   outerWidth,
   innerHeight,
   isVisible,
@@ -1092,12 +1093,49 @@ class Table {
   }
 
   /**
-   * Gets table's width.
+   * Gets table's width. The returned width is the width of the rendered cells that fit in the
+   * current viewport. The value may change depends on the viewport position (scroll position).
    *
    * @returns {number}
    */
   getWidth() {
     return outerWidth(this.TABLE);
+  }
+
+  /**
+   * Gets table's height. The returned height is the height of the rendered cells that fit in the
+   * current viewport. The value may change depends on the viewport position (scroll position).
+   *
+   * @returns {number}
+   */
+  getHeight() {
+    return outerHeight(this.TABLE);
+  }
+
+  /**
+   * Gets table's total width. The returned width is the width of all rendered cells (including headers)
+   * that can be displayed in the table.
+   *
+   * @returns {number}
+   */
+  getTotalWidth() {
+    const width = outerWidth(this.hider);
+
+    // when the overlay's table does not have any cells the hider returns 0, get then width from the table element
+    return width !== 0 ? width : this.getWidth();
+  }
+
+  /**
+   * Gets table's total height. The returned height is the height of all rendered cells (including headers)
+   * that can be displayed in the table.
+   *
+   * @returns {number}
+   */
+  getTotalHeight() {
+    const height = outerHeight(this.hider);
+
+    // when the overlay's table does not have any cells the hider returns 0, get then height from the table element
+    return height !== 0 ? height : this.getHeight();
   }
 
   /**
