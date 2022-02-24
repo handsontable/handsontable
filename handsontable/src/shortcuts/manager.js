@@ -4,7 +4,8 @@ import { useRecorder } from './recorder';
 import { arrayEach } from '../helpers/array';
 
 /**
- * Instance of a manager responsible for handling shortcuts pressed in active Handsontable instance.
+ * Create manager instance responsible for managing with contexts and stored inside them shortcuts. It listens for
+ * `KeyboardEvent`s and run proper actions for them.
  *
  * @alias ShortcutManager
  * @class ShortcutManager

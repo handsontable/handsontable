@@ -4386,7 +4386,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the ShortcutManager's instance.
+   * Returns instance of a manager responsible for handling shortcuts stored in some contexts. It run actions after
+   * pressing key combination in active Handsontable instance.
    *
    * @memberof Core#
    * @since 12.0.0
