@@ -62,10 +62,6 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
    * @param {KeyboardEvent} event The event object.
    */
   const onkeydown = (event) => {
-    if (event.key === void 0) {
-      return;
-    }
-
     const result = beforeKeyDown(event);
 
     if (result === false || isImmediatePropagationStopped(event)) {
@@ -96,10 +92,6 @@ export function useRecorder(ownerWindow, beforeKeyDown, afterKeyDown, callback) 
    * @param {KeyboardEvent} event The event object.
    */
   const onkeyup = (event) => {
-    if (event.key === void 0) {
-      return;
-    }
-
     const pressedKey = normalizeEventKey(event.key);
 
     if (isModifierKey(pressedKey) === false) {

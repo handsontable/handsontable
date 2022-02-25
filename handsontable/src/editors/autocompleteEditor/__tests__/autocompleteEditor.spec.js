@@ -1036,7 +1036,7 @@ describe('AutocompleteEditor', () => {
       keyDownUp('enter');
       keyDownUp('backspace');
       document.activeElement.value = '1';
-      $(document.activeElement).simulate('keyup');
+      keyUp('1');
 
       await sleep(200);
 

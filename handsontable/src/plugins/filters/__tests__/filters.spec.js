@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+
 describe('Filters', () => {
   const id = 'testContainer';
 
@@ -32,7 +33,7 @@ describe('Filters', () => {
     setTimeout(() => {
       // Begins with 'c'
       document.activeElement.value = 'c';
-      $(document.activeElement).simulate('keyup');
+      keyUp('c');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       expect(getData().length).toEqual(4);
