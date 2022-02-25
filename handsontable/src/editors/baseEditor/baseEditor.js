@@ -449,7 +449,7 @@ export class BaseEditor {
     // On all modern browsers the scroll position on RTL goes from 0 to -N. On IE the value is always positive.
     // This "if" unifies the scrollLeft calculation.
     if (this.hot.isRtl() && isIE()) {
-      scrollLeft = -Math.abs(scrollLeft);
+      scrollLeft = -scrollLeft;
     }
 
     // If colHeaders is disabled, cells in the first row have border-top
