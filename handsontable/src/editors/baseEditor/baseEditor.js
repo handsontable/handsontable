@@ -1,5 +1,6 @@
 import { stringify } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
+import { isIE } from '../../helpers/browser';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
   getScrollbarWidth,
@@ -443,7 +444,13 @@ export class BaseEditor {
     const overlayName = overlayTable.name;
 
     const scrollTop = ['master', 'inline_start'].includes(overlayName) ? containerScrollTop : 0;
-    const scrollLeft = ['master', 'top', 'bottom'].includes(overlayName) ? containerScrollLeft : 0;
+    let scrollLeft = ['master', 'top', 'bottom'].includes(overlayName) ? containerScrollLeft : 0;
+
+    // On all modern browsers the scroll position on RTL goes from 0 to -N. On IE the value is always positive.
+    // This "if" unifies the scrollLeft calculation.
+    if (this.hot.isRtl() && isIE()) {
+      scrollLeft = -Math.abs(scrollLeft);
+    }
 
     // If colHeaders is disabled, cells in the first row have border-top
     const editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;

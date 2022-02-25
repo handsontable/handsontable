@@ -9,6 +9,7 @@ import {
   setOverlayPosition,
   resetCssTransform,
 } from '../../../../helpers/dom/element';
+import { isIE } from '../../../../helpers/browser';
 import InlineStartOverlayTable from '../table/inlineStart';
 import { Overlay } from './_base';
 import {
@@ -93,7 +94,8 @@ export class InlineStartOverlay extends Overlay {
     const { rootWindow } = this.domBindings;
     let result = false;
 
-    if (this.isRtl()) {
+    // On all modern browsers the scroll position on RTL goes from 0 to -N. On IE the value is always positive.
+    if (this.isRtl() && !isIE()) {
       pos = -pos;
     }
 
