@@ -1993,8 +1993,9 @@ export default () => {
     filters: void 0,
 
     /**
-     * The `fixedColumnsLeft` option sets the number of [frozen columns](@/guides/columns/column-freezing.md)
-     * at the left-hand side of the grid.
+     * The `fixedColumnsLeft` option is an alias for the [`fixedColumnsStart`](#fixedColumnsStart) option.
+     *
+     * In the RTL mode, don't use the `fixedColumnsLeft` option: use the [`fixedColumnsStart`](#fixedColumnsStart) option instead.
      *
      * Read more:
      * - [Column freezing &#8594;](@/guides/columns/column-freezing.md)
@@ -2011,6 +2012,26 @@ export default () => {
      * ```
      */
     fixedColumnsLeft: 0,
+
+    /**
+     * The `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the start edge of the grid.
+     * By default, the start edge is the left-hand edge. In the RTL mode, the start edge is the right-hand edge.
+     *
+     * Read more:
+     * - [Column freezing &#8594;](@/guides/columns/column-freezing.md)
+     *
+     * @memberof Options#
+     * @type {number}
+     * @default 0
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // freeze the first 3 columns from the left
+     * fixedColumnsStart: 3,
+     * ```
+     */
+    fixedColumnsStart: 0,
 
     /**
      * The `fixedRowsBottom` option sets the number of [frozen rows](@/guides/rows/row-freezing.md)
@@ -2436,6 +2457,8 @@ export default () => {
      * | Setting             | Description                 |
      * | ------------------- | --------------------------- |
      * | `'en-US'` (default) | English - United States     |
+     * | `'ar-AR'`           | Arabic - Global             |
+     * | `'de-CH'`           | German - Switzerland        |
      * | `'de-DE'`           | German - Germany            |
      * | `'es-MX'`           | Spanish - Mexico            |
      * | `'fr-FR'`           | French - France             |
@@ -4519,7 +4542,32 @@ export default () => {
      */
     wordWrap: true,
 
-    /* eslint-enable jsdoc/require-description-complete-sentence */
+    /**
+     * The `layoutDirection` option configures whether Handsontable should be rendered from Left-to-right or
+     * Right-to-left depending on the passed settings.
+     *
+     * __Warning:__ The `layoutDirection` option can only be passed when Handsontable is initialized. Nothing
+     * will happen when the option is passed to the `updateSettings` method. Every time the setting is passed
+     * to the method warning message is printed in the console to prevent confusion.
+     *
+     * | Setting          | Description                                             |
+     * | ---------------- | ------------------------------------------------------- |
+     * | `inherit` (default) | Handsontable detects automatically the document layout direction |
+     * | `rtl`            | Renders the table in Right-to-left mode even when the document is served as LTR |
+     * | `ltr`            | Renders the table in Left-to-right mode even when the document is served as RTL |
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default 'inherit'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * layoutDirection: 'rtl',
+     * ```
+     */
+    layoutDirection: 'inherit',
 
+    /* eslint-enable jsdoc/require-description-complete-sentence */
   };
 };

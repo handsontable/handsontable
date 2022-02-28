@@ -8,7 +8,7 @@ import { isArrayOfObjects } from '../../helpers/data';
 import { TrimmingMap } from '../../translations';
 import RowMoveController from './utils/rowMoveController';
 
-import './nestedRows.css';
+import './nestedRows.scss';
 
 export const PLUGIN_KEY = 'nestedRows';
 export const PLUGIN_PRIORITY = 300;

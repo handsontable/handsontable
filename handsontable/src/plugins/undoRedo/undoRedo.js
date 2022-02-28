@@ -120,7 +120,7 @@ function UndoRedo(instance) {
       const rowsMap = instance.rowIndexMapper.getIndexesSequence();
 
       return new UndoRedo.RemoveColumnAction(
-        columnIndex, indexes, removedData, headers, columnsMap, rowsMap, instance.getSettings().fixedColumnsLeft);
+        columnIndex, indexes, removedData, headers, columnsMap, rowsMap, instance.getSettings().fixedColumnsStart);
     };
 
     plugin.done(wrappedAction, source);
@@ -563,9 +563,9 @@ UndoRedo.CreateColumnAction.prototype.redo = function(instance, redoneCallback) 
  * @param {Array} headers The header values.
  * @param {number[]} columnPositions The column position.
  * @param {number[]} rowPositions The row position.
- * @param {number} fixedColumnsLeft Number of fixed columns on the left. Remove column action change it sometimes.
+ * @param {number} fixedColumnsStart Number of fixed columns on the left. Remove column action change it sometimes.
  */
-UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions, rowPositions, fixedColumnsLeft) {
+UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions, rowPositions, fixedColumnsStart) { // eslint-disable-line max-len
   this.index = index;
   this.indexes = indexes;
   this.data = data;
@@ -574,7 +574,7 @@ UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPosi
   this.columnPositions = columnPositions.slice(0);
   this.rowPositions = rowPositions.slice(0);
   this.actionType = 'remove_col';
-  this.fixedColumnsLeft = fixedColumnsLeft;
+  this.fixedColumnsStart = fixedColumnsStart;
 };
 inherit(UndoRedo.RemoveColumnAction, UndoRedo.Action);
 
@@ -582,7 +582,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
   const settings = instance.getSettings();
 
   // Changing by the reference as `updateSettings` doesn't work the best.
-  settings.fixedColumnsLeft = this.fixedColumnsLeft;
+  settings.fixedColumnsStart = this.fixedColumnsStart;
 
   const ascendingIndexes = this.indexes.slice(0).sort();
   const sortByIndexes = (elem, j, arr) => arr[this.indexes.indexOf(ascendingIndexes[j])];
@@ -708,14 +708,14 @@ class MergeCellsAction extends UndoRedo.Action {
     super();
     this.cellRange = cellRange;
 
-    const topLeftCorner = this.cellRange.getTopLeftCorner();
-    const bottomRightCorner = this.cellRange.getBottomRightCorner();
+    const topStartCorner = this.cellRange.getTopStartCorner();
+    const bottomEndCorner = this.cellRange.getBottomEndCorner();
 
     this.rangeData = instance.getData(
-      topLeftCorner.row,
-      topLeftCorner.col,
-      bottomRightCorner.row,
-      bottomRightCorner.col
+      topStartCorner.row,
+      topStartCorner.col,
+      bottomEndCorner.row,
+      bottomEndCorner.col
     );
   }
 
@@ -726,11 +726,11 @@ class MergeCellsAction extends UndoRedo.Action {
 
     mergeCellsPlugin.unmergeRange(this.cellRange, true);
 
-    const topLeftCorner = this.cellRange.getTopLeftCorner();
+    const topStartCorner = this.cellRange.getTopStartCorner();
 
     instance.populateFromArray(
-      topLeftCorner.row,
-      topLeftCorner.col,
+      topStartCorner.row,
+      topStartCorner.col,
       this.rangeData,
       void 0,
       void 0,

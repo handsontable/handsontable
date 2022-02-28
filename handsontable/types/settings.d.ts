@@ -135,6 +135,7 @@ export interface GridSettings extends Events {
   filteringCaseSensitive?: boolean;
   filters?: boolean;
   fixedColumnsLeft?: number;
+  fixedColumnsStart?: number;
   fixedRowsBottom?: number;
   fixedRowsTop?: number;
   formulas?: FormulasSettings;
@@ -147,6 +148,7 @@ export interface GridSettings extends Events {
   isEmptyRow?: (this: Core, row: number) => boolean;
   label?: LabelOptions;
   language?: string;
+  layoutDirection?: 'ltr' | 'rtl' | 'inherit';
   licenseKey?: string | 'non-commercial-and-evaluation';
   manualColumnFreeze?: boolean;
   manualColumnMove?: boolean | number[];

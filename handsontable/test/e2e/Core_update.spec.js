@@ -483,25 +483,25 @@ describe('Core_updateSettings', () => {
       stretchH: 'last'
     });
 
-    expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
+    expect(hot.view._wt.getSetting('stretchH')).toEqual('last');
 
     updateSettings({
       stretchH: 'all'
     });
 
-    expect(hot.view.wt.getSetting('stretchH')).toEqual('all');
+    expect(hot.view._wt.getSetting('stretchH')).toEqual('all');
 
     updateSettings({
       stretchH: 'none'
     });
 
-    expect(hot.view.wt.getSetting('stretchH')).toEqual('none');
+    expect(hot.view._wt.getSetting('stretchH')).toEqual('none');
 
     updateSettings({
       stretchH: 'last'
     });
 
-    expect(hot.view.wt.getSetting('stretchH')).toEqual('last');
+    expect(hot.view._wt.getSetting('stretchH')).toEqual('last');
   });
 
   it('should change colHeader\'s row height if is needed', () => {
@@ -512,12 +512,12 @@ describe('Core_updateSettings', () => {
 
     const rowHeights = [];
 
-    rowHeights.push(spec().$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
+    rowHeights.push(spec().$container.find('.ht_clone_top_inline_start_corner thead th')[0].clientHeight);
     updateSettings({
       colHeaders: ['A<br/>A']
     });
 
-    rowHeights.push(spec().$container.find('.ht_clone_top_left_corner thead th')[0].clientHeight);
+    rowHeights.push(spec().$container.find('.ht_clone_top_inline_start_corner thead th')[0].clientHeight);
 
     expect(rowHeights[0]).toBeLessThan(rowHeights[1]);
   });

@@ -3,14 +3,8 @@ import {
   addClass,
   empty,
   fastInnerHTML,
-  getComputedStyle,
-  getCssTransform,
   hasClass,
-  offset,
-  outerHeight,
-  outerWidth,
   removeClass,
-  resetCssTransform,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { objectEach } from '../../helpers/object';
@@ -190,71 +184,18 @@ export class SelectEditor extends BaseEditor {
       return;
     }
 
-    const { wtOverlays } = this.hot.view.wt;
-    const currentOffset = offset(this.TD);
-    const containerOffset = offset(this.hot.rootElement);
-    const scrollableContainer = wtOverlays.scrollableElement;
-    const editorSection = this.checkEditorSection();
-    let width = outerWidth(this.TD) + 1;
-    let height = outerHeight(this.TD) + 1;
-    let editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0);
-    let editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0);
-    let cssTransformOffset;
-
-    switch (editorSection) {
-      case 'top':
-        cssTransformOffset = getCssTransform(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
-        break;
-      case 'left':
-        cssTransformOffset = getCssTransform(wtOverlays.leftOverlay.clone.wtTable.holder.parentNode);
-        break;
-      case 'top-left-corner':
-        cssTransformOffset = getCssTransform(wtOverlays.topLeftCornerOverlay.clone.wtTable.holder.parentNode);
-        break;
-      case 'bottom-left-corner':
-        cssTransformOffset = getCssTransform(wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder.parentNode);
-        break;
-      case 'bottom':
-        cssTransformOffset = getCssTransform(wtOverlays.bottomOverlay.clone.wtTable.holder.parentNode);
-        break;
-      default:
-        break;
-    }
-
-    const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
-    const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
-    const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
-    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view.wt.getSetting('fixedRowsBottom');
-
-    if (renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
-      editTop += 1;
-    }
-
-    if (renderableColumn <= 0) {
-      editLeft += 1;
-    }
-
+    const {
+      top,
+      start,
+      width,
+      height,
+    } = this.getEditedCellRect();
     const selectStyle = this.select.style;
 
-    if (cssTransformOffset && cssTransformOffset !== -1) {
-      selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
-    } else {
-      resetCssTransform(this.select);
-    }
-
-    const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
-
-    if (parseInt(cellComputedStyle.borderTopWidth, 10) > 0) {
-      height -= 1;
-    }
-    if (parseInt(cellComputedStyle.borderLeftWidth, 10) > 0) {
-      width -= 1;
-    }
-
     selectStyle.height = `${height}px`;
-    selectStyle.minWidth = `${width}px`;
-    selectStyle.top = `${editTop}px`;
-    selectStyle.left = `${editLeft}px`;
+    selectStyle.width = `${width}px`;
+    selectStyle.top = `${top}px`;
+    selectStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
     selectStyle.margin = '0px';
 
     addClass(this.select, EDITOR_VISIBLE_CLASS_NAME);

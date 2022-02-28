@@ -24,7 +24,7 @@ import {
 } from './constants';
 import { TrimmingMap } from '../../translations';
 
-import './filters.css';
+import './filters.scss';
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
@@ -445,7 +445,7 @@ export class Filters extends BasePlugin {
    * @private
    */
   clearColumnSelection() {
-    const coords = this.hot.getSelectedRangeLast()?.getTopLeftCorner();
+    const coords = this.hot.getSelectedRangeLast()?.getTopStartCorner();
 
     if (coords !== void 0) {
       this.hot.selectCell(coords.row, coords.col);

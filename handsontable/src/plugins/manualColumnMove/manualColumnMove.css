@@ -27,7 +27,8 @@
   background: #757575;
   width: 2px;
   top: 0;
-  margin-left: -1px;
+  margin-inline-start: -1px;
+  margin-inline-end: 0;
   z-index: 205;
 }
 .handsontable .ht__manualColumnMove--backlight {

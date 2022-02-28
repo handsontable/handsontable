@@ -4,19 +4,25 @@
  * @util
  */
 class CellCoords {
-  constructor(row, column) {
-    /**
-     * Row index.
-     *
-     * @type {number}
-     */
-    this.row = null;
-    /**
-     * Column index.
-     *
-     * @type {number}
-     */
-    this.col = null;
+  /**
+   * Row index.
+   *
+   * @type {number}
+   */
+  row = null;
+  /**
+   * Column index.
+   *
+   * @type {number}
+   */
+  col = null;
+  /**
+   * @type {boolean}
+   */
+  #isRtl = false;
+
+  constructor(row, column, isRtl = false) {
+    this.#isRtl = isRtl;
 
     if (typeof row !== 'undefined' && typeof column !== 'undefined') {
       this.row = row;
@@ -64,7 +70,8 @@ class CellCoords {
    * @returns {boolean}
    */
   isSouthEastOf(testedCoords) {
-    return this.row >= testedCoords.row && this.col >= testedCoords.col;
+    return this.row >= testedCoords.row &&
+      (this.#isRtl ? this.col <= testedCoords.col : this.col >= testedCoords.col);
   }
 
   /**
@@ -74,7 +81,8 @@ class CellCoords {
    * @returns {boolean}
    */
   isNorthWestOf(testedCoords) {
-    return this.row <= testedCoords.row && this.col <= testedCoords.col;
+    return this.row <= testedCoords.row &&
+      (this.#isRtl ? this.col >= testedCoords.col : this.col <= testedCoords.col);
   }
 
   /**
@@ -84,7 +92,8 @@ class CellCoords {
    * @returns {boolean}
    */
   isSouthWestOf(testedCoords) {
-    return this.row >= testedCoords.row && this.col <= testedCoords.col;
+    return this.row >= testedCoords.row &&
+      (this.#isRtl ? this.col >= testedCoords.col : this.col <= testedCoords.col);
   }
 
   /**
@@ -94,7 +103,8 @@ class CellCoords {
    * @returns {boolean}
    */
   isNorthEastOf(testedCoords) {
-    return this.row <= testedCoords.row && this.col >= testedCoords.col;
+    return this.row <= testedCoords.row &&
+      (this.#isRtl ? this.col <= testedCoords.col : this.col >= testedCoords.col);
   }
 
   /**
@@ -116,7 +126,7 @@ class CellCoords {
    * @returns {CellCoords}
    */
   clone() {
-    return new CellCoords(this.row, this.col);
+    return new CellCoords(this.row, this.col, this.#isRtl);
   }
 
   /**

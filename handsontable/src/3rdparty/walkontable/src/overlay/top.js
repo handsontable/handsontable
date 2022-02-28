@@ -69,16 +69,15 @@ export class TopOverlay extends Overlay {
       return false;
     }
 
-    const { rootWindow } = this.domBindings;
     const overlayRoot = this.clone.wtTable.holder.parentNode;
+    const { rootWindow } = this.domBindings;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
-    let headerPosition = 0;
+    let overlayPosition = 0;
     let skipInnerBorderAdjusting = false;
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const { wtTable } = this.wot;
       const hiderRect = wtTable.hider.getBoundingClientRect();
-      const top = Math.ceil(hiderRect.top);
       const bottom = Math.ceil(hiderRect.bottom);
       const rootHeight = overlayRoot.offsetHeight;
 
@@ -94,30 +93,16 @@ export class TopOverlay extends Overlay {
       // This workaround will be able to be cleared after merging the SVG borders, which introduces
       // frozen lines (no more `innerBorderTop` workaround).
       skipInnerBorderAdjusting = bottom === rootHeight;
+      overlayPosition = this.getOverlayOffset();
 
-      let finalLeft;
-      let finalTop;
-
-      finalLeft = wtTable.hider.style.left;
-      finalLeft = finalLeft === '' ? 0 : finalLeft;
-
-      if (top < 0 && (bottom - rootHeight) > 0) {
-        finalTop = -top;
-      } else {
-        finalTop = 0;
-      }
-
-      headerPosition = finalTop;
-      finalTop += 'px';
-
-      setOverlayPosition(overlayRoot, finalLeft, finalTop);
+      setOverlayPosition(overlayRoot, '0px', `${overlayPosition}px`);
 
     } else {
-      headerPosition = this.getScrollPosition();
+      overlayPosition = this.getScrollPosition();
       resetCssTransform(overlayRoot);
     }
 
-    const positionChanged = this.adjustHeaderBordersPosition(headerPosition, skipInnerBorderAdjusting);
+    const positionChanged = this.adjustHeaderBordersPosition(overlayPosition, skipInnerBorderAdjusting);
 
     this.adjustElementsSize();
 
@@ -268,11 +253,14 @@ export class TopOverlay extends Overlay {
    * Synchronize calculated left position to an element.
    */
   syncOverlayOffset() {
+    const styleProperty = this.isRtl() ? 'right' : 'left';
+    const { spreader } = this.clone.wtTable;
+
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
-      this.clone.wtTable.spreader.style.left = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
+      spreader.style[styleProperty] = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
 
     } else {
-      this.clone.wtTable.spreader.style.left = '';
+      spreader.style[styleProperty] = '';
     }
   }
 
@@ -319,11 +307,9 @@ export class TopOverlay extends Overlay {
   getTableParentOffset() {
     if (this.mainTableScrollableElement === this.domBindings.rootWindow) {
       return this.wot.wtTable.holderOffset.top;
-
     }
 
     return 0;
-
   }
 
   /**
@@ -333,6 +319,31 @@ export class TopOverlay extends Overlay {
    */
   getScrollPosition() {
     return getScrollTop(this.mainTableScrollableElement, this.domBindings.rootWindow);
+  }
+
+  /**
+   * Gets the main overlay's vertical overlay offset.
+   *
+   * @returns {number} Main table's vertical overlay offset.
+   */
+  getOverlayOffset() {
+    const { rootWindow } = this.domBindings;
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    let overlayOffset = 0;
+
+    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+      const rootHeight = this.wot.wtTable.getTotalHeight();
+      const overlayRootHeight = this.clone.wtTable.getTotalHeight();
+      const maxOffset = rootHeight - overlayRootHeight;
+
+      overlayOffset = Math.max(this.getScrollPosition() - this.getTableParentOffset(), 0);
+
+      if (overlayOffset > maxOffset) {
+        overlayOffset = 0;
+      }
+    }
+
+    return overlayOffset;
   }
 
   /**

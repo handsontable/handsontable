@@ -1273,15 +1273,15 @@ describe('TrimRows', () => {
         startRows: 3
       });
 
-      const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_left').eq(0).height();
+      const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
       hot.render(); // Extra `render` needed.
 
-      expect(spec().$container.find('.ht_clone_left').eq(0).height()).toBe(rowHeadersHeightAtStart);
+      expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
       alter('insert_row', 0, insertedRows);
 
-      const newRowHeadersHeight = spec().$container.find('.ht_clone_left').eq(0).height();
+      const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
       expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart + (insertedRows * DEFAULT_ROW_HEIGHT));
     });
@@ -1297,15 +1297,15 @@ describe('TrimRows', () => {
         startRows: 10
       });
 
-      const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_left').eq(0).height();
+      const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
       hot.render(); // Extra `render` needed.
 
-      expect(spec().$container.find('.ht_clone_left').eq(0).height()).toBe(rowHeadersHeightAtStart);
+      expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
       alter('remove_row', 0, removedRows);
 
-      const newRowHeadersHeight = spec().$container.find('.ht_clone_left').eq(0).height();
+      const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
       expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart - (removedRows * DEFAULT_ROW_HEIGHT));
     });
@@ -1319,16 +1319,16 @@ describe('TrimRows', () => {
         startRows: 10
       });
 
-      const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_left').eq(0).height();
+      const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
       hot.render(); // Extra `render` needed.
 
-      expect(spec().$container.find('.ht_clone_left').eq(0).height()).toBe(rowHeadersHeightAtStart);
+      expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
       hot.getPlugin('trimRows').untrimAll();
       hot.render();
 
-      const newRowHeadersHeight = spec().$container.find('.ht_clone_left').eq(0).height();
+      const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
       expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart + DEFAULT_ROW_HEIGHT);
     });

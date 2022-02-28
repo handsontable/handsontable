@@ -60,9 +60,9 @@ describe('columnHeaders option', () => {
 
     wt.draw();
 
-    expect(spec().$wrapper.find('.ht_clone_left colgroup col').length).toBe(0);
-    expect(spec().$wrapper.find('.ht_clone_left thead tr').length).toBe(1);
-    expect(spec().$wrapper.find('.ht_clone_left tbody tr').length).toBe(0);
+    expect(spec().$wrapper.find('.ht_clone_inline_start colgroup col').length).toBe(0);
+    expect(spec().$wrapper.find('.ht_clone_inline_start thead tr').length).toBe(1);
+    expect(spec().$wrapper.find('.ht_clone_inline_start tbody tr').length).toBe(0);
     expect(spec().$wrapper.find('.ht_clone_top colgroup col').length).toBe(4);
     expect(spec().$wrapper.find('.ht_clone_top thead tr').length).toBe(1);
     expect(spec().$wrapper.find('.ht_clone_top tbody tr').length).toBe(0);

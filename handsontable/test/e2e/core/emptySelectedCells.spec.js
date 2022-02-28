@@ -100,7 +100,7 @@ describe('Core.emptySelectedCells', () => {
       beforeChange: onBeforeChange
     });
 
-    simulateClick(spec().$container.find('.ht_clone_left tr:eq(1) th:eq(0)'));
+    simulateClick(spec().$container.find('.ht_clone_inline_start tr:eq(1) th:eq(0)'));
 
     emptySelectedCells();
 

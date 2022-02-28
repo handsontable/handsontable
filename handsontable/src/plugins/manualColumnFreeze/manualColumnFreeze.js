@@ -100,13 +100,17 @@ export class ManualColumnFreeze extends BasePlugin {
       priv.afterFirstUse = true;
     }
 
-    if (settings.fixedColumnsLeft === this.hot.countCols() || column <= settings.fixedColumnsLeft - 1) {
+    if (settings.fixedColumnsStart === this.hot.countCols() || column <= settings.fixedColumnsStart - 1) {
       return; // already fixed
     }
 
-    this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsLeft);
+    this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsStart);
 
-    settings.fixedColumnsLeft += 1;
+    // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
+    // However, keeping the old name still in effect. When both option names are used together,
+    // the error is thrown. To prevent that, the plugin needs to modify the original option key
+    // to bypass the validation.
+    settings._fixedColumnsStart += 1;
   }
 
   /**
@@ -122,13 +126,17 @@ export class ManualColumnFreeze extends BasePlugin {
       priv.afterFirstUse = true;
     }
 
-    if (settings.fixedColumnsLeft <= 0 || (column > settings.fixedColumnsLeft - 1)) {
+    if (settings.fixedColumnsStart <= 0 || (column > settings.fixedColumnsStart - 1)) {
       return; // not fixed
     }
 
-    settings.fixedColumnsLeft -= 1;
+    // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
+    // However, keeping the old name still in effect. When both option names are used together,
+    // the error is thrown. To prevent that, the plugin needs to modify the original option key
+    // to bypass the validation.
+    settings._fixedColumnsStart -= 1;
 
-    this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsLeft);
+    this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsStart);
   }
 
   /**
@@ -157,7 +165,7 @@ export class ManualColumnFreeze extends BasePlugin {
     const priv = privatePool.get(this);
 
     if (priv.afterFirstUse) {
-      const freezeLine = this.hot.getSettings().fixedColumnsLeft;
+      const freezeLine = this.hot.getSettings().fixedColumnsStart;
 
       // Moving any column before the "freeze line" isn't possible.
       if (finalIndex < freezeLine) {

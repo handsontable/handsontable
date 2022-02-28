@@ -9,6 +9,7 @@ import {
   PasswordEditor,
   SelectEditor,
   TextEditor,
+  TimeEditor,
   getEditor,
   registerAllEditors,
   registerEditor,
@@ -26,6 +27,7 @@ registerEditor(NumericEditor);
 registerEditor(PasswordEditor);
 registerEditor(SelectEditor);
 registerEditor(TextEditor);
+registerEditor(TimeEditor);
 
 const AutocompleteEditorClass: typeof AutocompleteEditor = getEditor('autocomplete');
 const BaseEditorClass: typeof BaseEditor = getEditor('base');
@@ -37,4 +39,5 @@ const NumericEditorClass: typeof NumericEditor = getEditor('numeric');
 const PasswordEditorClass: typeof PasswordEditor = getEditor('password');
 const SelectEditorClass: typeof SelectEditor = getEditor('select');
 const TextEditorClass: typeof TextEditor = getEditor('text');
+const TimeEditorClass: typeof TimeEditor = getEditor('time');
 const CustomEditorClass: typeof BaseEditor = getEditor('custom-editor');

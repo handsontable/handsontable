@@ -18,7 +18,7 @@ describe('Hook', () => {
         data: createSpreadsheetData(10, 10),
       });
 
-      spyOn(hot.view.wt, 'draw');
+      spyOn(hot.view._wt, 'draw');
 
       const afterRender = jasmine.createSpy('afterRender');
 
@@ -26,7 +26,7 @@ describe('Hook', () => {
 
       render();
 
-      expect(hot.view.wt.draw).toHaveBeenCalledBefore(afterRender);
+      expect(hot.view._wt.draw).toHaveBeenCalledBefore(afterRender);
     });
 
     it('should be fired as slow render path', () => {

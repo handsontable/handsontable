@@ -119,7 +119,7 @@ describe('HiddenColumns', () => {
         },
       });
 
-      const header = $('.ht_clone_left .htCore')
+      const header = $('.ht_clone_inline_start .htCore')
         .find('tbody')
         .find('th')
         .eq(0);
@@ -296,7 +296,7 @@ describe('HiddenColumns', () => {
           },
         });
 
-        const corner = $('.ht_clone_top_left_corner .htCore')
+        const corner = $('.ht_clone_top_inline_start_corner .htCore')
           .find('thead')
           .find('th')
           .eq(0);
@@ -331,7 +331,7 @@ describe('HiddenColumns', () => {
           },
         });
 
-        const corner = $('.ht_clone_top_left_corner .htCore')
+        const corner = $('.ht_clone_top_inline_start_corner .htCore')
           .find('thead')
           .find('th')
           .eq(0);

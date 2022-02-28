@@ -24,7 +24,7 @@ describe('settings', () => {
 
       selectCell(0, 0);
 
-      const holderBoundingBox = hot.view.wt.wtTable.holder.getBoundingClientRect();
+      const holderBoundingBox = hot.view._wt.wtTable.holder.getBoundingClientRect();
       const verticalScrollbarCoords = {
         x: holderBoundingBox.left + holderBoundingBox.width - 3,
         y: holderBoundingBox.top + (holderBoundingBox.height / 2)
@@ -34,14 +34,14 @@ describe('settings', () => {
         y: holderBoundingBox.top + holderBoundingBox.height - 3
       };
 
-      $(hot.view.wt.wtTable.holder).simulate('mousedown', {
+      $(hot.view._wt.wtTable.holder).simulate('mousedown', {
         clientX: verticalScrollbarCoords.x,
         clientY: verticalScrollbarCoords.y
       });
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
 
-      $(hot.view.wt.wtTable.holder).simulate('mousedown', {
+      $(hot.view._wt.wtTable.holder).simulate('mousedown', {
         clientX: horizontalScrollbarCoords.x,
         clientY: horizontalScrollbarCoords.y
       });

@@ -1,5 +1,3 @@
-import { CellRange } from './../3rdparty/walkontable/src';
-
 /**
  * The SelectionRange class is a simple CellRanges collection designed for easy manipulation of the multiple
  * consecutive and non-consecutive selections.
@@ -8,13 +6,14 @@ import { CellRange } from './../3rdparty/walkontable/src';
  * @util
  */
 class SelectionRange {
-  constructor() {
+  constructor(createCellRange) {
     /**
      * List of all CellRanges added to the class instance.
      *
      * @type {CellRange[]}
      */
     this.ranges = [];
+    this.createCellRange = createCellRange;
   }
 
   /**
@@ -35,7 +34,7 @@ class SelectionRange {
    */
   set(coords) {
     this.clear();
-    this.ranges.push(new CellRange(coords));
+    this.ranges.push(this.createCellRange(coords));
 
     return this;
   }
@@ -47,7 +46,7 @@ class SelectionRange {
    * @returns {SelectionRange}
    */
   add(coords) {
-    this.ranges.push(new CellRange(coords));
+    this.ranges.push(this.createCellRange(coords));
 
     return this;
   }

@@ -23,16 +23,16 @@
   -webkit-appearance: none;
 }
 
-.topLeftSelectionHandle:not(.ht_master .topLeftSelectionHandle),
-.topLeftSelectionHandle-HitArea:not(.ht_master .topLeftSelectionHandle-HitArea) {
+.topSelectionHandle:not(.ht_master .topSelectionHandle),
+.topSelectionHandle-HitArea:not(.ht_master .topSelectionHandle-HitArea) {
   z-index: 9999;
 }
 
 /* Initial left/top coordinates - overwritten when actual position is set */
-.topLeftSelectionHandle,
-.topLeftSelectionHandle-HitArea,
-.bottomRightSelectionHandle,
-.bottomRightSelectionHandle-HitArea {
+.topSelectionHandle,
+.topSelectionHandle-HitArea,
+.bottomSelectionHandle,
+.bottomSelectionHandle-HitArea {
   left: -10000px;
   top: -10000px;
 }

@@ -40,6 +40,7 @@ describe('TimeCellType', () => {
         getCellType('time');
       }).toThrowError();
     });
+
     it('should register cell type', () => {
       registerCellType(CELL_TYPE, TimeCellType);
 

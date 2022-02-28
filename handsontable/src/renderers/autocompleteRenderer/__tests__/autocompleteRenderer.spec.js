@@ -32,7 +32,7 @@ describe('AutocompleteRenderer', () => {
 
   it('should open cell editor after clicking on arrow glyph', () => {
     const hot = handsontable({
-      type: 'autocomplete'
+      renderer: 'autocomplete'
     });
 
     selectCell(0, 0);
@@ -46,13 +46,13 @@ describe('AutocompleteRenderer', () => {
 
   it('should open cell editor after clicking on arrow glyph, after the table has been destroyed and reinitialized (#1367)', () => {
     handsontable({
-      type: 'autocomplete'
+      renderer: 'autocomplete'
     });
 
     destroy();
 
     const hot = handsontable({
-      type: 'autocomplete'
+      renderer: 'autocomplete'
     });
 
     selectCell(0, 0);
@@ -66,11 +66,20 @@ describe('AutocompleteRenderer', () => {
 
   it('should prepend the autocomplete arrow at the start of the cell element (#5124)', () => {
     handsontable({
-      type: 'autocomplete'
+      renderer: 'autocomplete'
     });
 
     const $contents = $(getCell(0, 0)).contents();
 
     expect($contents.eq(0).hasClass('htAutocompleteArrow')).toBe(true);
+  });
+
+  it('should render the cell without messing with "dir" attribute', () => {
+    handsontable({
+      data: [['foo']],
+      renderer: 'autocomplete'
+    });
+
+    expect(getCell(0, 0).getAttribute('dir')).toBeNull();
   });
 });

@@ -1,0 +1,7 @@
+{
+  "title": "Fixed an issue with numeric cell formatting for RTL",
+  "type": "fixed",
+  "issue": 8791,
+  "breaking": false,
+  "framework": "none"
+}
