@@ -1,7 +1,6 @@
 import { isDefined, stringify } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
 import { SHORTCUTS_GROUP_NAVIGATION } from '../../editorManager';
-const SHORTCUTS_GROUP_EDITOR = 'baseEditor';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
   getScrollbarWidth,
@@ -20,6 +19,8 @@ export const EDITOR_STATE = Object.freeze({
   WAITING: 'STATE_WAITING', // waiting for async validation
   FINISHED: 'STATE_FINISHED'
 });
+
+const SHORTCUTS_GROUP_EDITOR = 'baseEditor';
 
 /**
  * @class BaseEditor

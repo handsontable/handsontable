@@ -4531,7 +4531,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['Home']],
     callback: () => {
-      selection.setRangeStart(new CellCoords(
+      selection.setRangeStart(instance._createCellCoords(
         selection.selectedRange.current().from.row,
         instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
       ));
@@ -4539,7 +4539,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['Home', 'Shift']],
     callback: () => {
-      selection.setRangeEnd(new CellCoords(
+      selection.setRangeEnd(instance._createCellCoords(
         selection.selectedRange.current().from.row,
         instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1),
       ));
@@ -4547,7 +4547,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['Home', 'Control'], ['Home', 'Meta']],
     callback: () => {
-      selection.setRangeStart(new CellCoords(
+      selection.setRangeStart(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
         selection.selectedRange.current().from.col,
       ));
@@ -4555,7 +4555,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['Home', 'Control', 'Shift'], ['Home', 'Meta', 'Shift']],
     callback: () => {
-      selection.setRangeEnd(new CellCoords(
+      selection.setRangeEnd(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
         selection.selectedRange.current().from.col,
       ));
@@ -4563,7 +4563,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['End']],
     callback: () => {
-      selection.setRangeStart(new CellCoords(
+      selection.setRangeStart(instance._createCellCoords(
         selection.selectedRange.current().from.row,
         instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
       ));
@@ -4571,7 +4571,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['End', 'Shift']],
     callback: () => {
-      selection.setRangeEnd(new CellCoords(
+      selection.setRangeEnd(instance._createCellCoords(
         selection.selectedRange.current().from.row,
         instance.columnIndexMapper.getFirstNotHiddenIndex(instance.countCols() - 1, -1),
       ));
@@ -4579,7 +4579,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['End', 'Control'], ['End', 'Meta']],
     callback: () => {
-      selection.setRangeStart(new CellCoords(
+      selection.setRangeStart(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
         selection.selectedRange.current().from.col,
       ));
@@ -4587,7 +4587,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }, {
     keys: [['End', 'Control', 'Shift'], ['End', 'Meta', 'Shift']],
     callback: () => {
-      selection.setRangeEnd(new CellCoords(
+      selection.setRangeEnd(instance._createCellCoords(
         instance.rowIndexMapper.getFirstNotHiddenIndex(instance.countRows() - 1, -1),
         selection.selectedRange.current().from.col,
       ));
