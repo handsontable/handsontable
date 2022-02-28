@@ -352,7 +352,7 @@ TextRenderer placeholder value
 .handsontable.listbox tr:last-child th,
 .handsontable.listbox tr:first-child td,
 .handsontable.listbox td {
-  border-color: transparent;
+  border-color: transparent !important;
 }
 
 .handsontable.listbox th,
