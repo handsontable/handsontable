@@ -856,11 +856,11 @@ UndoRedo.prototype.init = function() {
 UndoRedo.prototype.registerShortcuts = function() {
   const shortcutManager = this.instance.getShortcutManager();
   const gridContext = shortcutManager.getContext('grid');
-  const runAction = (event) => {
+  const runOnlyIf = (event) => {
     return !event.altKey; // right ALT in some systems triggers ALT+CTR
   };
   const config = {
-    runAction,
+    runOnlyIf,
     group: SHORTCUTS_GROUP,
   };
 
@@ -879,7 +879,7 @@ UndoRedo.prototype.registerShortcuts = function() {
 };
 
 /**
- * Unregisters shortcut responsible for performing undo/redo.
+ * Unregister shortcuts responsible for performing undo/redo.
  *
  * @private
  */
@@ -887,7 +887,7 @@ UndoRedo.prototype.unregisterShortcuts = function() {
   const shortutManager = this.instance.getShortcutManager();
   const gridContext = shortutManager.getContext('grid');
 
-  gridContext.removeShortcutByGroup(SHORTCUTS_GROUP);
+  gridContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
 };
 
 /**

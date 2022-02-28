@@ -88,6 +88,11 @@ class EditorManager {
     this.instance.view.wt.update('onCellDblClick', (event, coords, elem) => this.onCellDblClick(event, coords, elem));
   }
 
+  /**
+   * Register shortcuts responsible for handling some actions related to an editor.
+   *
+   * @private
+   */
   registerShortcuts() {
     const shortcutManager = this.instance.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
@@ -362,7 +367,7 @@ class EditorManager {
         const shortcutManager = this.instance.getShortcutManager();
         const editorContext = shortcutManager.getContext('editor');
         const runOnlySelectedConfig = {
-          runAction: () => isDefined(this.instance.getSelected()),
+          runOnlyIf: () => isDefined(this.instance.getSelected()),
           group: SHORTCUTS_GROUP_NAVIGATION
         };
 

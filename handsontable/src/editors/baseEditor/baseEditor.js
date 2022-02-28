@@ -217,7 +217,7 @@ export class BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
     const contextConfig = {
-      runAction: () => isDefined(this.hot.getSelected()),
+      runOnlyIf: () => isDefined(this.hot.getSelected()),
       group: SHORTCUTS_GROUP_EDITOR,
     };
 
@@ -318,8 +318,8 @@ export class BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutByGroup(SHORTCUTS_GROUP_EDITOR);
-    editorContext.removeShortcutByGroup(SHORTCUTS_GROUP_NAVIGATION);
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_EDITOR);
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_NAVIGATION);
 
     if (this.state === EDITOR_STATE.VIRGIN) {
       this.hot._registerTimeout(() => {

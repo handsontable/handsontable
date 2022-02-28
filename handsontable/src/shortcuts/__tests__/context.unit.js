@@ -93,7 +93,7 @@ describe('context', () => {
       group: 'helloWorld'
     };
     const namespace2 = 'helloWorld2';
-    const runAction = () => true;
+    const runOnlyIf = () => true;
 
     context.addShortcuts([{
       keys: [['control', 'a']],
@@ -102,7 +102,7 @@ describe('context', () => {
       keys: [['control', 'a']],
       callback: callback2,
       group: 'helloWorld2',
-      runAction,
+      runOnlyIf,
     }], options);
 
     const shortcuts = context.getShortcuts(['control', 'a']);
@@ -114,10 +114,10 @@ describe('context', () => {
     expect(shortcut.group).toBe(options.group);
     expect(shortcut2.callback).toBe(callback2);
     expect(shortcut2.group).toBe(namespace2);
-    expect(shortcut2.runAction).toBe(runAction);
+    expect(shortcut2.runOnlyIf).toBe(runOnlyIf);
   });
 
-  it('should give a possibility to remove registered shortcuts by variant', () => {
+  it('should give a possibility to remove registered shortcuts by keys', () => {
     const context = createContext('name');
     const callback = () => {
       // Callback for shortcut.
@@ -137,7 +137,7 @@ describe('context', () => {
       callback: callback2,
     }], options);
 
-    context.removeShortcutByKeys([['control', 'a']]);
+    context.removeShortcutsByKeys(['control', 'a']);
 
     const shortcuts = context.getShortcuts(['control', 'a']);
 
@@ -183,7 +183,7 @@ describe('context', () => {
     expect(context.hasShortcut(['a', 'control'])).toBe(true);
     expect(context.hasShortcut(['A', 'Control'])).toBe(true);
 
-    context.removeShortcutByKeys([['control', 'a']]);
+    context.removeShortcutsByKeys(['control', 'a']);
 
     expect(context.hasShortcut(['control', 'a'])).toBe(false);
     expect(context.hasShortcut(['Control', 'A'])).toBe(false);
@@ -191,7 +191,7 @@ describe('context', () => {
     expect(context.hasShortcut(['A', 'Control'])).toBe(false);
   });
 
-  it('should give a possibility to remove registered shortcuts by namespace', () => {
+  it('should give a possibility to remove registered shortcuts by group', () => {
     const context = createContext('name');
     const callback = () => {
       // Callback for shortcut.
@@ -228,14 +228,14 @@ describe('context', () => {
       callback: callback4,
     }], options2);
 
-    context.removeShortcutByGroup(options.group);
+    context.removeShortcutsByGroup(options.group);
 
     const shortcuts = context.getShortcuts(['control', 'a']);
 
     expect(shortcuts.length).toBe(1);
     expect(context.hasShortcut(['control', 'b'])).toBe(false);
 
-    context.removeShortcutByGroup(options2.group);
+    context.removeShortcutsByGroup(options2.group);
 
     expect(context.hasShortcut(['control', 'a'])).toBe(false);
     expect(context.hasShortcut(['control', 'b'])).toBe(false);
@@ -264,23 +264,23 @@ describe('context', () => {
     };
     const config = {
       group: 'namespace1',
-      runAction: () => true,
+      runOnlyIf: () => true,
     };
     const config2 = {
       group: 'namespace2',
       relativeToGroup: 'namespace1',
       position: 'before',
-      runAction: () => true,
+      runOnlyIf: () => true,
     };
     const config3 = {
       group: 'namespace3',
-      runAction: () => true,
+      runOnlyIf: () => true,
     };
     const config4 = {
       group: 'namespace4',
       relativeToGroup: 'namespace2',
       position: 'after',
-      runAction: () => true,
+      runOnlyIf: () => true,
     };
 
     context.addShortcuts([{

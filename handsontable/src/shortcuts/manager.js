@@ -3,6 +3,17 @@ import { createContext } from './context';
 import { useRecorder } from './recorder';
 import { arrayEach } from '../helpers/array';
 
+/**
+ * Create manager instance responsible for managing with contexts and stored inside them shortcuts. It listens for
+ * `KeyboardEvent`s and run proper actions for them.
+ *
+ * @alias ShortcutManager
+ * @class ShortcutManager
+ * @param {object} options Settings for the manager.
+ * @param {EventTarget} options.ownerWindow The starting window element.
+ * @param {Function} options.beforeKeyDown Hook fired before keydown event is handled. It can be used to stop default key bindings.
+ * @param {Function} options.afterKeyDown Hook fired after keydown event is handled.
+ */
 export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown }) => {
   /**
    * UniqueMap to storing contexts.
@@ -17,11 +28,12 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
    *
    * @type {string}
    */
-  let ACTIVE_CONTEXT_NAME = 'grid';
+  let activeContextName = 'grid';
 
   /**
-   * Create a new context with a given name.
+   * Create a new {@link Context} with a given name.
    *
+   * @memberof ShortcutManager#
    * @param {string} contextName A new context's name.
    * @returns {object}
    */
@@ -36,17 +48,19 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
   /**
    * Get ID of active context.
    *
+   * @memberof ShortcutManager#
    * @returns {string}
    */
   const getActiveContextName = () => {
-    return ACTIVE_CONTEXT_NAME;
+    return activeContextName;
   };
 
   /**
    * Get context by name.
    *
+   * @memberof ShortcutManager#
    * @param {string} contextName Context's name to get.
-   * @returns {object}
+   * @returns {object|undefined} A {@link Context} which stores registered shortcuts.
    */
   const getContext = (contextName) => {
     return CONTEXTS.getItem(contextName);
@@ -55,10 +69,11 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
   /**
    * Activate shortcuts' listening within given contexts.
    *
-   * @param {string} context Context to activate.
+   * @memberof ShortcutManager#
+   * @param {string} contextName Context to activate.
    */
-  const setActiveContextName = (context) => {
-    ACTIVE_CONTEXT_NAME = context;
+  const setActiveContextName = (contextName) => {
+    activeContextName = contextName;
   };
 
   /**
@@ -73,8 +88,8 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
       // Processing just actions being in stack at the moment of shortcut pressing (without respecting additions/removals performed dynamically).
       const shortcuts = activeContext.getShortcuts(keys).slice();
 
-      arrayEach(shortcuts, ({ callback, runAction, preventDefault, stopPropagation }) => {
-        if (runAction(event) === false) {
+      arrayEach(shortcuts, ({ callback, runOnlyIf, preventDefault, stopPropagation }) => {
+        if (runOnlyIf(event) === false) {
           return;
         }
 
@@ -100,7 +115,20 @@ export const createShortcutManager = ({ ownerWindow, beforeKeyDown, afterKeyDown
     getActiveContextName,
     getContext,
     setActiveContextName,
+    /**
+     * Returns whether `control` key is pressed.
+     *
+     * @memberof ShortcutManager#
+     * @type {Function}
+     * @returns {boolean}
+     */
     isCtrlPressed: () => keyRecorder.isPressed('control') || keyRecorder.isPressed('meta'),
+    /**
+     * Destroys instance of the manager.
+     *
+     * @type {Function}
+     * @memberof ShortcutManager#
+     */
     destroy: () => keyRecorder.unmount(),
   };
 };

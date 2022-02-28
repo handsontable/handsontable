@@ -267,7 +267,7 @@ export class SelectEditor extends BaseEditor {
   }
 
   /**
-   * Registers shortcut responsible for handling editor.
+   * Register shortcuts responsible for handling editor.
    *
    * @private
    */
@@ -306,7 +306,7 @@ export class SelectEditor extends BaseEditor {
   }
 
   /**
-   * Unregisters shortcut responsible for handling editor.
+   * Unregister shortcuts responsible for handling editor.
    *
    * @private
    */
@@ -314,6 +314,6 @@ export class SelectEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutByGroup(SHORTCUTS_GROUP);
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 }

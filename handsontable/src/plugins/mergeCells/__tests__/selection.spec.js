@@ -38,14 +38,13 @@ describe('MergeCells Selection', () => {
       mergeCells: [
         { row: 0, col: 0, rowspan: 3, colspan: 3 }
       ],
-      rowHeaders: true,
-      colHeaders: true,
+      rowHeaders: true
     });
 
-    $(getCell(-1, 0)).simulate('mousedown');
-    $(getCell(-1, 1)).simulate('mouseover');
-    $(getCell(-1, 2)).simulate('mouseover');
-    $(getCell(-1, 2)).simulate('mouseup');
+    // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
+    // Please keep in mind that selectColumns/selectRows doesn't set instance to listening (see #7290).
+    listen();
+    selectColumns(0, 2);
 
     const mergedCell = getCell(0, 0);
     const selectedCellBackground = getComputedStyle(mergedCell, ':before').backgroundColor;

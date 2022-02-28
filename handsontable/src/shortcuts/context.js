@@ -1,12 +1,15 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
-import { normalizeKeys } from './utils';
+import { normalizeKeys, getKeysList } from './utils';
 import { isUndefined, isDefined } from '../helpers/mixed';
 import { isFunction } from '../helpers/function';
 import { objectEach } from '../helpers/object';
+import { toSingleLine } from '../helpers/templateLiteralTag';
 
 /**
  * Create shortcuts' context.
  *
+ * @alias Context
+ * @class Context
  * @param {string} name Context's name.
  * @returns {object}
  */
@@ -18,11 +21,13 @@ export const createContext = (name) => {
   /**
    * Add shortcut to the context.
    *
+   * @memberof Context#
    * @param {object} options Options for shortcut's keys.
-   * @param {Array<Array<string>>} options.keys Shortcut's keys.
+   * @param {Array<Array<string>>} options.keys Shortcut's keys being KeyboardEvent's key properties. Full list of values
+   * is [available here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
    * @param {Function} options.callback The callback.
    * @param {object} options.group Group for shortcut.
-   * @param {object} [options.runAction]  Option determine whether assigned callback should be performed.
+   * @param {object} [options.runOnlyIf]  Option determine whether assigned callback should be performed.
    * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
    * @param {object} [options.preventDefault=true] Option determine whether to prevent default behavior.
    * @param {object} [options.relativeToGroup] Group name, relative which the shortcut is placed.
@@ -35,7 +40,7 @@ export const createContext = (name) => {
       keys,
       callback,
       group,
-      runAction = () => true,
+      runOnlyIf = () => true,
       preventDefault = true,
       stopPropagation = false,
       relativeToGroup = '',
@@ -51,25 +56,27 @@ export const createContext = (name) => {
     }
 
     if (Array.isArray(keys) === false) {
-      throw new Error('Please define key keys for added shortcut as array of arrays with keys.');
+      throw new Error(toSingleLine`Please define key for added shortcut as array of arrays with KeyboardEvent\'s\x20
+      key properties. Full list of values is available here:\x20
+      https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key.`);
     }
 
     const newShortcut = {
       callback,
       group,
-      runAction,
+      runOnlyIf,
       preventDefault,
       stopPropagation,
       relativeToGroup,
       position,
     };
 
-    keys.forEach((variant) => {
-      const normalizedVariant = normalizeKeys(variant);
-      const hasVariant = SHORTCUTS.hasItem(normalizedVariant);
+    keys.forEach((keyCombination) => {
+      const normalizedKeys = normalizeKeys(keyCombination);
+      const hasKeyCombination = SHORTCUTS.hasItem(normalizedKeys);
 
-      if (hasVariant) {
-        const shortcuts = SHORTCUTS.getItem(normalizedVariant);
+      if (hasKeyCombination) {
+        const shortcuts = SHORTCUTS.getItem(normalizedKeys);
         let insertionIndex = shortcuts.findIndex(shortcut => shortcut.group === relativeToGroup);
 
         if (insertionIndex !== -1) {
@@ -87,7 +94,7 @@ export const createContext = (name) => {
         shortcuts.splice(insertionIndex, 0, newShortcut);
 
       } else {
-        SHORTCUTS.addItem(normalizedVariant, [newShortcut]);
+        SHORTCUTS.addItem(normalizedKeys, [newShortcut]);
       }
     });
   };
@@ -95,11 +102,12 @@ export const createContext = (name) => {
   /**
    * Add shortcuts to the context.
    *
+   * @memberof Context#
    * @param {Array<object>} shortcuts List of shortcuts added to the context.
    * @param {object} [options] Options for every shortcut.
    * @param {Function} [options.callback] The callback.
    * @param {object} [options.group] Group for shortcut.
-   * @param {object} [options.runAction]  Option determine whether assigned callback should be performed.
+   * @param {object} [options.runOnlyIf]  Option determine whether assigned callback should be performed.
    * @param {object} [options.stopPropagation=true] Option determine whether to stop event's propagation.
    * @param {object} [options.preventDefault=true] Option determine whether to prevent default behavior.
    * @param {object} [options.relativeToGroup] Group name, relative to which the shortcut is placed.
@@ -119,31 +127,31 @@ export const createContext = (name) => {
   };
 
   /**
-   * Removes shortcut from the context.
+   * Removes shortcuts from the context.
    *
-   * @param {Array<Array<string>>} keys A shortcut variant.
+   * @memberof Context#
+   * @param {Array<string>} keys A shortcut keys.
    */
-  const removeShortcutByKeys = (keys) => {
-    keys.forEach((variant) => {
-      const normalizedVariant = normalizeKeys(variant);
+  const removeShortcutsByKeys = (keys) => {
+    const normalizedKeys = normalizeKeys(keys);
 
-      SHORTCUTS.removeItem(normalizedVariant);
-    });
+    SHORTCUTS.removeItem(normalizedKeys);
   };
 
   /**
-   * Removes shortcut from the context.
+   * Removes shortcuts from the context.
    *
+   * @memberof Context#
    * @param {string} group Group for shortcuts.
    */
-  const removeShortcutByGroup = (group) => {
+  const removeShortcutsByGroup = (group) => {
     const shortcuts = SHORTCUTS.getItems();
 
-    shortcuts.forEach(([keyCombination, shortcutOptions]) => {
+    shortcuts.forEach(([normalizedKeys, shortcutOptions]) => {
       const leftOptions = shortcutOptions.filter(option => option.group !== group);
 
       if (leftOptions.length === 0) {
-        removeShortcutByKeys([[keyCombination]]);
+        removeShortcutsByKeys(getKeysList(normalizedKeys));
 
       } else {
         shortcutOptions.length = 0;
@@ -156,12 +164,14 @@ export const createContext = (name) => {
   /**
    * Get shortcut details.
    *
-   * @param {Array<string>} variant A shortcut variant.
-   * @returns {object}
+   * @memberof Context#
+   * @param {Array<string>} keys Shortcut's keys being KeyboardEvent's key properties. Full list of values
+   * is [available here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
+   * @returns {Array}
    */
-  const getShortcuts = (variant) => {
-    const normalizedVariant = normalizeKeys(variant);
-    const shortcuts = SHORTCUTS.getItem(normalizedVariant);
+  const getShortcuts = (keys) => {
+    const normalizedKeys = normalizeKeys(keys);
+    const shortcuts = SHORTCUTS.getItem(normalizedKeys);
 
     return isDefined(shortcuts) ? shortcuts.slice() : [];
   };
@@ -169,13 +179,15 @@ export const createContext = (name) => {
   /**
    * Check if given shortcut is added.
    *
-   * @param {Array<string>} variant A shortcut variant.
+   * @memberof Context#
+   * @param {Array<string>} keys Shortcut's keys being KeyboardEvent's key properties. Full list of values
+   * is [available here](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key).
    * @returns {boolean}
    */
-  const hasShortcut = (variant) => {
-    const normalizedVariant = normalizeKeys(variant);
+  const hasShortcut = (keys) => {
+    const normalizedKeys = normalizeKeys(keys);
 
-    return SHORTCUTS.hasItem(normalizedVariant);
+    return SHORTCUTS.hasItem(normalizedKeys);
   };
 
   return {
@@ -183,7 +195,7 @@ export const createContext = (name) => {
     addShortcuts,
     getShortcuts,
     hasShortcut,
-    removeShortcutByKeys,
-    removeShortcutByGroup,
+    removeShortcutsByKeys,
+    removeShortcutsByGroup,
   };
 };

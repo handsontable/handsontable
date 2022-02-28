@@ -493,7 +493,7 @@ export class TextEditor extends BaseEditor {
   }
 
   /**
-   * Registers shortcut responsible for handling editor.
+   * Register shortcuts responsible for handling editor.
    *
    * @private
    */
@@ -501,7 +501,7 @@ export class TextEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
     const contextConfig = {
-      runAction: () => isDefined(this.hot.getSelected()),
+      runOnlyIf: () => isDefined(this.hot.getSelected()),
       group: SHORTCUTS_GROUP,
     };
 
@@ -542,7 +542,7 @@ export class TextEditor extends BaseEditor {
       callback: () => {
         setNewValue();
       },
-      runAction: event => !this.hot.selection.isMultiple() &&
+      runOnlyIf: event => !this.hot.selection.isMultiple() &&
         // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
         !event.altKey,
     }, {
@@ -550,12 +550,12 @@ export class TextEditor extends BaseEditor {
       callback: () => {
         setNewValue();
       },
-      runAction: () => true,
+      runOnlyIf: () => true,
     }], contextConfig);
   }
 
   /**
-   * Unregisters shortcut responsible for handling editor.
+   * Unregister shortcuts responsible for handling editor.
    *
    * @private
    */
@@ -563,8 +563,8 @@ export class TextEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutByGroup(SHORTCUTS_GROUP_NAVIGATION);
-    editorContext.removeShortcutByGroup(SHORTCUTS_GROUP);
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_NAVIGATION);
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**

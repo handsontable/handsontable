@@ -122,7 +122,15 @@ export function mockElementDimensions(element, width, height) {
 
 export function simulateKeyboardEvent(type, keyCode) {
   const newEvent = document.createEvent('KeyboardEvent');
-  // const init = (event as any).initKeyboardEvent !== void 0 ? 'initKeyboardEvent' : 'initKeyEvent';
+  const KEY_CODES = {
+    8: 'backspace',
+    9: 'tab',
+    13: 'enter',
+    16: 'shift',
+    17: 'control',
+    18: 'alt',
+    27: 'escape'
+  };
 
   // Chromium Hack
   Object.defineProperty(newEvent, 'keyCode', {
@@ -134,6 +142,11 @@ export function simulateKeyboardEvent(type, keyCode) {
       get : function() {
           return this.keyCodeVal;
       }
+  });
+  Object.defineProperty(newEvent, 'key', {
+    get : function() {
+      return KEY_CODES[this.keyCodeVal] ?? String.fromCharCode(this.keyCodeVal).toLowerCase();
+    }
   });
 
   if ((newEvent as any).initKeyboardEvent !== void 0) {

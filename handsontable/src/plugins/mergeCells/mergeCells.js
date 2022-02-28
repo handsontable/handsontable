@@ -134,7 +134,7 @@ export class MergeCells extends BasePlugin {
       }
     });
 
-    this.registerShortcut();
+    this.registerShortcuts();
 
     super.enablePlugin();
   }
@@ -144,7 +144,7 @@ export class MergeCells extends BasePlugin {
    */
   disablePlugin() {
     this.clearCollections();
-    this.unregisterShortcut();
+    this.unregisterShortcuts();
     this.hot.render();
     super.disablePlugin();
   }
@@ -528,11 +528,11 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * Registers shortcut responsible for toggling a merge.
+   * Register shortcuts responsible for toggling a merge.
    *
    * @private
    */
-  registerShortcut() {
+  registerShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
 
@@ -542,21 +542,21 @@ export class MergeCells extends BasePlugin {
         this.toggleMerge(this.hot.getSelectedRangeLast());
         this.hot.render();
       },
-      runAction: event => !event.altKey, // right ALT in some systems triggers ALT+CTRL
+      runOnlyIf: event => !event.altKey, // right ALT in some systems triggers ALT+CTRL
       group: SHORTCUTS_GROUP,
     });
   }
 
   /**
-   * Unregisters shortcut responsible for toggling a merge.
+   * Unregister shortcuts responsible for toggling a merge.
    *
    * @private
    */
-  unregisterShortcut() {
+  unregisterShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
 
-    gridContext.removeShortcutByGroup(SHORTCUTS_GROUP);
+    gridContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
