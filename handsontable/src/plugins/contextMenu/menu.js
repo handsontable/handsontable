@@ -17,7 +17,6 @@ import {
   addClass,
   empty,
   fastInnerHTML,
-  getScrollbarWidth,
   isChildOf,
   isInput,
   removeClass,
@@ -35,10 +34,25 @@ const SHORTCUTS_CONTEXT = 'menu';
 const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
 
 /**
+ * @typedef MenuOptions
+ * @property {Menu} [parent=null] Instance of {@link Menu}.
+ * @property {string} [name=null] Name of the menu.
+ * @property {string} [className=''] Custom class name.
+ * @property {boolean} [keepInViewport=true] Determine if should be kept in viewport.
+ * @property {boolean} [standalone] Enabling closing menu when clicked element is not belongs to menu itself.
+ * @property {number} [minWidth=MIN_WIDTH] The minimum width.
+ * @property {HTMLElement} [container] The container.
+ */
+
+/**
  * @private
  * @class Menu
  */
 class Menu {
+  /**
+   * @param {Core} hotInstance Handsontable instance.
+   * @param {MenuOptions} [options] Menu options.
+   */
   constructor(hotInstance, options) {
     this.hot = hotInstance;
     this.options = options || {
@@ -192,6 +206,7 @@ class Menu {
       fragmentSelection: false,
       outsideClickDeselects: false,
       disableVisualSelection: 'area',
+      layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
           delayedOpenSubMenu(coords.row);
@@ -533,14 +548,41 @@ class Menu {
       } else {
         this.setPositionBelowCursor(cursor);
       }
-      if (cursor.fitsOnRight(this.container)) {
-        this.setPositionOnRightOfCursor(cursor);
+
+      if (this.hot.isLtr()) {
+        this.setHorizontalPositionForLtr(cursor);
       } else {
-        this.setPositionOnLeftOfCursor(cursor);
+        this.setHorizontalPositionForRtl(cursor);
       }
     } else {
       this.setPositionBelowCursor(cursor);
       this.setPositionOnRightOfCursor(cursor);
+    }
+  }
+
+  /**
+   * Set menu horizontal position for RTL mode.
+   *
+   * @param {Cursor} cursor `Cursor` object.
+   */
+  setHorizontalPositionForRtl(cursor) {
+    if (cursor.fitsOnLeft(this.container)) {
+      this.setPositionOnLeftOfCursor(cursor);
+    } else {
+      this.setPositionOnRightOfCursor(cursor);
+    }
+  }
+
+  /**
+   * Set menu horizontal position for LTR mode.
+   *
+   * @param {Cursor} cursor `Cursor` object.
+   */
+  setHorizontalPositionForLtr(cursor) {
+    if (cursor.fitsOnRight(this.container)) {
+      this.setPositionOnRightOfCursor(cursor);
+    } else {
+      this.setPositionOnLeftOfCursor(cursor);
     }
   }
 
@@ -578,12 +620,15 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnRightOfCursor(cursor) {
-    let left;
+    let left = cursor.left;
 
     if (this.isSubMenu()) {
-      left = 1 + cursor.left + cursor.cellWidth;
+      const { right: parentMenuRight } = this.parentMenu.container.getBoundingClientRect();
+
+      // move the sub menu by the width of the parent's border (usually by 1-2 pixels)
+      left += cursor.cellWidth + parentMenuRight - (cursor.left + cursor.cellWidth);
     } else {
-      left = this.offset.right + 1 + cursor.left;
+      left += this.offset.right;
     }
 
     this.container.style.left = `${left}px`;
@@ -595,8 +640,14 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
-    const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
-    const left = this.offset.left + cursor.left - this.container.offsetWidth + scrollbarWidth + 4;
+    let left = this.offset.left + cursor.left - this.container.offsetWidth;
+
+    if (this.isSubMenu()) {
+      const { left: parentMenuLeft } = this.parentMenu.container.getBoundingClientRect();
+
+      // move the sub menu by the width of the parent's border (usually by 1-2 pixels)
+      left -= cursor.left - parentMenuLeft;
+    }
 
     this.container.style.left = `${left}px`;
   }
@@ -807,7 +858,7 @@ class Menu {
    * @private
    */
   onAfterInit() {
-    const { wtTable } = this.hotMenu.view.wt;
+    const { wtTable } = this.hotMenu.view._wt;
     const data = this.hotMenu.getSettings().data;
     const hiderStyle = wtTable.hider.style;
     const holderStyle = wtTable.holder.style;
@@ -851,7 +902,7 @@ class Menu {
     if (this.options.standalone && this.hotMenu && !isChildOf(event.target, this.hotMenu.rootElement)) {
       this.close(true);
 
-    // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
+      // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
     } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) && !isChildOf(event.target, '.htMenu')) {
       this.close(true);
     }

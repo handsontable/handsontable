@@ -292,11 +292,11 @@ describe('Core.selectRows', () => {
 
     selectCell(1, 15); // Scroll to the bottom of the Hot viewport.
 
-    const scrollTop = hot.view.wt.wtTable.holder.scrollTop;
+    const scrollTop = hot.view._wt.wtTable.holder.scrollTop;
 
     selectRows(1);
 
-    expect(hot.view.wt.wtTable.holder.scrollTop).toBe(scrollTop);
+    expect(hot.view._wt.wtTable.holder.scrollTop).toBe(scrollTop);
   });
 
   it('should fire hooks with proper context', () => {

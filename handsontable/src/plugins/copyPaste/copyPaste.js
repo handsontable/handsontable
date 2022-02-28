@@ -339,12 +339,12 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
-    const topLeft = selRange.getTopLeftCorner();
-    const bottomRight = selRange.getBottomRightCorner();
-    const startRow = topLeft.row;
-    const startCol = topLeft.col;
-    const endRow = bottomRight.row;
-    const endCol = bottomRight.col;
+    const topStart = selRange.getTopStartCorner();
+    const bottomEnd = selRange.getBottomEndCorner();
+    const startRow = topStart.row;
+    const startCol = topStart.col;
+    const endRow = bottomEnd.row;
+    const endCol = bottomEnd.col;
     const finalEndRow = Math.min(endRow, startRow + this.rowsLimit - 1);
     const finalEndCol = Math.min(endCol, startCol + this.columnsLimit - 1);
 
@@ -410,8 +410,8 @@ export class CopyPaste extends BasePlugin {
     const populatedColumnsLength = inputArray[0].length;
     const newRows = [];
 
-    const { row: startRow, col: startColumn } = selection.getTopLeftCorner();
-    const { row: endRowFromSelection, col: endColumnFromSelection } = selection.getBottomRightCorner();
+    const { row: startRow, col: startColumn } = selection.getTopStartCorner();
+    const { row: endRowFromSelection, col: endColumnFromSelection } = selection.getBottomEndCorner();
 
     let visualRowForPopulatedData = startRow;
     let visualColumnForPopulatedData = startColumn;

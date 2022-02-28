@@ -1089,7 +1089,7 @@ describe('manualRowMove', () => {
             manualRowMove: true
           });
 
-          const $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
+          const $rowsHeaders = spec().$container.find('.ht_clone_inline_start tr th');
 
           $rowsHeaders.eq(1).simulate('mousedown');
           $rowsHeaders.eq(1).simulate('mouseup');
@@ -1110,7 +1110,7 @@ describe('manualRowMove', () => {
             manualRowMove: true
           });
 
-          const $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
+          const $rowsHeaders = spec().$container.find('.ht_clone_inline_start tr th');
 
           $rowsHeaders.eq(1).simulate('mousedown');
           $rowsHeaders.eq(1).simulate('mouseup');
@@ -1237,9 +1237,9 @@ describe('manualRowMove', () => {
         hot.selectCell(19, 0);
 
         setTimeout(() => {
-          expect(hot.view.wt.wtTable.getFirstVisibleRow()).toBeGreaterThan(8);
+          expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBeGreaterThan(8);
 
-          const $rowsHeaders = spec().$container.find('.ht_clone_left tr th');
+          const $rowsHeaders = spec().$container.find('.ht_clone_inline_start tr th');
 
           $rowsHeaders.eq(10).simulate('mousedown');
           $rowsHeaders.eq(10).simulate('mouseup');
@@ -1250,7 +1250,7 @@ describe('manualRowMove', () => {
         }, 50);
 
         setTimeout(() => {
-          expect(hot.view.wt.wtTable.getFirstVisibleRow())
+          expect(hot.view._wt.wtTable.getFirstVisibleRow())
             .toBeLessThan(8);
           done();
         }, 150);

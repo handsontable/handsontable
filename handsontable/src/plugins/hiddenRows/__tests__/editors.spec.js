@@ -74,7 +74,7 @@ describe('HiddenRows', () => {
         }
       });
 
-      const corner = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
+      const corner = $('.ht_clone_top_inline_start_corner .htCore').find('thead').find('th').eq(0);
 
       simulateClick(corner, 'LMB');
 

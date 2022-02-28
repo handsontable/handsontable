@@ -957,7 +957,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      const $cornerHeader = this.$container.find('.ht_clone_top_left_corner thead tr:eq(0) th:eq(0)');
+      const $cornerHeader = this.$container.find('.ht_clone_top_inline_start_corner thead tr:eq(0) th:eq(0)');
 
       $cornerHeader.simulate('mousedown');
       $cornerHeader.simulate('mouseup');

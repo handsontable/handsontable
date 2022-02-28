@@ -5,6 +5,7 @@ import { htmlRenderer, RENDERER_TYPE as HTML_RENDERER } from './htmlRenderer';
 import { numericRenderer, RENDERER_TYPE as NUMERIC_RENDERER } from './numericRenderer';
 import { passwordRenderer, RENDERER_TYPE as PASSWORD_RENDERER } from './passwordRenderer';
 import { textRenderer, RENDERER_TYPE as TEXT_RENDERER } from './textRenderer';
+import { timeRenderer, RENDERER_TYPE as TIME_RENDERER } from './timeRenderer';
 import {
   registerRenderer,
 } from './registry';
@@ -20,6 +21,7 @@ export function registerAllRenderers() {
   registerRenderer(numericRenderer);
   registerRenderer(passwordRenderer);
   registerRenderer(textRenderer);
+  registerRenderer(timeRenderer);
 }
 
 export {
@@ -30,6 +32,7 @@ export {
   numericRenderer, NUMERIC_RENDERER,
   passwordRenderer, PASSWORD_RENDERER,
   textRenderer, TEXT_RENDERER,
+  timeRenderer, TIME_RENDERER,
 };
 
 export {

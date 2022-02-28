@@ -129,7 +129,7 @@ describe('AutocompleteEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,
+      fixedColumnsStart: 3,
       editor: 'autocomplete',
       source: choices,
     });
@@ -240,7 +240,7 @@ describe('AutocompleteEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,
+      fixedColumnsStart: 3,
       hiddenColumns: {
         indicators: true,
         columns: [0],
@@ -862,13 +862,13 @@ describe('AutocompleteEditor', () => {
       setDataAtCell(26, 0, 'b');
       selectCell(26, 0);
 
-      hot.view.wt.wtTable.holder.scrollTop = 999;
+      hot.view._wt.wtTable.holder.scrollTop = 999;
       mouseDoubleClick($(getCell(26, 0)));
 
       const autocompleteEditor = $('.autocompleteEditor');
 
       await sleep(100);
-      expect(autocompleteEditor.css('position')).toEqual('relative');
+      expect(autocompleteEditor.css('position')).toEqual('absolute');
 
       autocompleteEditor.siblings('textarea').first().val('');
       keyDownUp('backspace');
@@ -2880,7 +2880,7 @@ describe('AutocompleteEditor', () => {
     selectCell(0, 0);
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
-    const dropdownHolder = hot.getActiveEditor().htEditor.view.wt.wtTable.holder;
+    const dropdownHolder = hot.getActiveEditor().htEditor.view._wt.wtTable.holder;
 
     await sleep(30);
 
@@ -2925,7 +2925,7 @@ describe('AutocompleteEditor', () => {
 
     const dropdown = hot.getActiveEditor().htContainer;
 
-    hot.view.wt.wtOverlays.topOverlay.scrollTo(1);
+    hot.view._wt.wtOverlays.topOverlay.scrollTo(1);
 
     await sleep(50);
 
@@ -2936,7 +2936,7 @@ describe('AutocompleteEditor', () => {
 
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
-    hot.view.wt.wtOverlays.topOverlay.scrollTo(3);
+    hot.view._wt.wtOverlays.topOverlay.scrollTo(3);
 
     await sleep(50);
 
@@ -3372,6 +3372,19 @@ describe('AutocompleteEditor', () => {
     keyDownUp('arrowup');
 
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+  });
+
+  it('should render an editable editor\'s element without messing with "dir" attribute', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      editor: 'autocomplete',
+    });
+
+    selectCell(0, 0);
+
+    const editableElement = getActiveEditor().TEXTAREA;
+
+    expect(editableElement.getAttribute('dir')).toBeNull();
   });
 
   it('should update the suggestion list after minimal delay (FF issue, see #9077)', async() => {

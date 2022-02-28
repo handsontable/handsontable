@@ -83,8 +83,8 @@ describe('manualRowMove', () => {
       $headerTH.simulate('mouseup');
       $headerTH.simulate('mousedown');
 
-      expect($('.ht__manualRowMove--backlight').css('z-index')).toBeGreaterThan(getLeftClone().css('z-index'));
-      expect($('.ht__manualRowMove--guideline').css('z-index')).toBeGreaterThan(getLeftClone().css('z-index'));
+      expect($('.ht__manualRowMove--backlight').css('z-index')).toBeGreaterThan(getInlineStartClone().css('z-index'));
+      expect($('.ht__manualRowMove--guideline').css('z-index')).toBeGreaterThan(getInlineStartClone().css('z-index'));
     });
 
     describe('backlight', () => {

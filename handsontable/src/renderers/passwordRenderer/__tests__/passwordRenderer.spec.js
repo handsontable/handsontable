@@ -169,4 +169,13 @@ describe('passwordRenderer', () => {
     expect(getRenderedValue(2, 1)).toMatch(/^[x]+$/ig);
     expect(getRenderedValue(3, 1)).toMatch(/^[x]+$/ig);
   });
+
+  it('should render the cell without messing with "dir" attribute', () => {
+    handsontable({
+      data: [['foo']],
+      renderer: 'password'
+    });
+
+    expect(getCell(0, 0).getAttribute('dir')).toBeNull();
+  });
 });

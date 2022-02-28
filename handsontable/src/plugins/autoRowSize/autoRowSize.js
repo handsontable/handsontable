@@ -289,8 +289,8 @@ export class AutoRowSize extends BasePlugin {
         this.hot.view.adjustElementsSize(true);
 
         // tmp
-        if (this.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
-          this.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
+        if (this.hot.view._wt.wtOverlays.inlineStartOverlay.needFullRender) {
+          this.hot.view._wt.wtOverlays.inlineStartOverlay.clone.draw();
         }
       }
     };
@@ -337,7 +337,7 @@ export class AutoRowSize extends BasePlugin {
    * Recalculates all rows height (overwrite cache values).
    */
   recalculateAllRowsHeight() {
-    if (isVisible(this.hot.view.wt.wtTable.TABLE)) {
+    if (isVisible(this.hot.view._wt.wtTable.TABLE)) {
       this.clearCache();
       this.calculateAllRowsHeight();
     }
@@ -404,7 +404,7 @@ export class AutoRowSize extends BasePlugin {
    * @returns {number} Returns row index, -1 if table is not rendered or if there are no rows to base the the calculations on.
    */
   getFirstVisibleRow() {
-    const wot = this.hot.view.wt;
+    const wot = this.hot.view._wt;
 
     if (wot.wtViewport.rowsVisibleCalculator) {
       return wot.wtTable.getFirstVisibleRow();
@@ -422,7 +422,7 @@ export class AutoRowSize extends BasePlugin {
    * @returns {number} Returns row index or -1 if table is not rendered.
    */
   getLastVisibleRow() {
-    const wot = this.hot.view.wt;
+    const wot = this.hot.view._wt;
 
     if (wot.wtViewport.rowsVisibleCalculator) {
       return wot.wtTable.getLastVisibleRow();

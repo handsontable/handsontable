@@ -111,6 +111,14 @@ export default class WalkontableFacade {
     return this._wot.eventManager;
   }
 
+  createCellCoords(row, column) {
+    return this._wot.createCellCoords(row, column);
+  }
+
+  createCellRange(highlight, from, to) {
+    return this._wot.createCellRange(highlight, from, to);
+  }
+
   draw(fastDraw = false) {
     this._wot.draw(fastDraw);
 

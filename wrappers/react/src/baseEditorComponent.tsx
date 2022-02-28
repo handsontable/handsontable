@@ -125,6 +125,10 @@ class BaseEditorComponent<P = {}, S = {}, SS = any> extends React.Component<P | 
     return (Handsontable.editors.BaseEditor.prototype as any).getEditedCell.call(this.hotCustomEditorInstance, ...args);
   }
 
+  getEditedCellRect(...args) {
+    return (Handsontable.editors.BaseEditor.prototype as any).getEditedCellRect.call(this.hotCustomEditorInstance, ...args);
+  }
+
   getEditedCellsZIndex(...args) {
     return (Handsontable.editors.BaseEditor.prototype as any).getEditedCellsZIndex.call(this.hotCustomEditorInstance, ...args);
   }

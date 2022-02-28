@@ -71,7 +71,7 @@ class Viewport {
   getWorkspaceWidth() {
     const { wtSettings } = this;
     const { rootDocument, rootWindow } = this.domBindings;
-    const trimmingContainer = this.dataAccessObject.leftOverlayTrimmingContainer;
+    const trimmingContainer = this.dataAccessObject.inlineStartOverlayTrimmingContainer;
     const docOffsetWidth = rootDocument.documentElement.offsetWidth;
     const totalColumns = wtSettings.getSetting('totalColumns');
     const preventOverflow = wtSettings.getSetting('preventOverflow');
@@ -97,7 +97,7 @@ class Viewport {
     }
 
     if (trimmingContainer !== rootWindow) {
-      overflow = getStyle(this.dataAccessObject.leftOverlayTrimmingContainer, 'overflow', rootWindow);
+      overflow = getStyle(this.dataAccessObject.inlineStartOverlayTrimmingContainer, 'overflow', rootWindow);
 
       if (overflow === 'scroll' || overflow === 'hidden' || overflow === 'auto') {
         // this is used in `scroll.html`
@@ -364,12 +364,12 @@ class Viewport {
    *
    * @param {number} calculationType The render type ID, which determines for what type of
    *                                 calculation calculator is created.
-   * @returns {ViewportRowsCalculator}
+   * @returns {ViewportColumnsCalculator}
    */
   createColumnsCalculator(calculationType = RENDER_TYPE) {
     const { wtSettings, wtTable } = this;
     let width = this.getViewportWidth();
-    let pos = this.dataAccessObject.leftScrollPosition - this.dataAccessObject.leftParentOffset;
+    let pos = Math.abs(this.dataAccessObject.inlineStartScrollPosition) - this.dataAccessObject.inlineStartParentOffset;
 
     this.columnHeaderHeight = NaN;
 
@@ -377,10 +377,10 @@ class Viewport {
       pos = 0;
     }
 
-    const fixedColumnsLeft = wtSettings.getSetting('fixedColumnsLeft');
+    const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart');
 
-    if (fixedColumnsLeft) {
-      const fixedColumnsWidth = this.dataAccessObject.leftOverlay.sumCellSizes(0, fixedColumnsLeft);
+    if (fixedColumnsStart) {
+      const fixedColumnsWidth = this.dataAccessObject.inlineStartOverlay.sumCellSizes(0, fixedColumnsStart);
 
       pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;
@@ -391,7 +391,7 @@ class Viewport {
 
     return new ViewportColumnsCalculator({
       viewportSize: width,
-      scrollOffset: pos,
+      scrollOffset: Math.abs(pos),
       totalItems: wtSettings.getSetting('totalColumns'),
       itemSizeFn: sourceCol => wtTable.getColumnWidth(sourceCol),
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),

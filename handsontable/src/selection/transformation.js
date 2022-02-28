@@ -1,4 +1,3 @@
-import { CellCoords } from './../3rdparty/walkontable/src';
 import { mixin } from '../helpers/object';
 import localHooks from './../mixins/localHooks';
 
@@ -38,7 +37,7 @@ class Transformation {
    * @returns {CellCoords} Visual coordinates after transformation.
    */
   transformStart(rowDelta, colDelta, force = false) {
-    const delta = new CellCoords(rowDelta, colDelta);
+    const delta = this.options.createCellCoords(rowDelta, colDelta);
     const highlightCoords = this.range.current().highlight;
     const { row: renderableRow, col: renderableColumn } = this.options.visualToRenderableCoords(highlightCoords);
     let visualCoords = highlightCoords;
@@ -84,7 +83,7 @@ class Transformation {
         delta.col = totalCols - 1;
       }
 
-      const coords = new CellCoords(renderableRow + delta.row, renderableColumn + delta.col);
+      const coords = this.options.createCellCoords(renderableRow + delta.row, renderableColumn + delta.col);
 
       rowTransformDir = 0;
       colTransformDir = 0;
@@ -123,7 +122,7 @@ class Transformation {
    * @returns {CellCoords} Visual coordinates after transformation.
    */
   transformEnd(rowDelta, colDelta) {
-    const delta = new CellCoords(rowDelta, colDelta);
+    const delta = this.options.createCellCoords(rowDelta, colDelta);
     const cellRange = this.range.current();
     let visualCoords = cellRange.to;
     let rowTransformDir = 0;
@@ -138,7 +137,7 @@ class Transformation {
       const totalRows = this.options.countRows();
       const totalCols = this.options.countCols();
       const { row: rowTo, col: colTo } = this.options.visualToRenderableCoords(cellRange.to);
-      const coords = new CellCoords(rowTo + delta.row, colTo + delta.col);
+      const coords = this.options.createCellCoords(rowTo + delta.row, colTo + delta.col);
 
       rowTransformDir = 0;
       colTransformDir = 0;

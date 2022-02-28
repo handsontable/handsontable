@@ -129,7 +129,7 @@ describe('DropdownEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,
+      fixedColumnsStart: 3,
       editor: 'dropdown',
       source: choices,
     });
@@ -240,7 +240,7 @@ describe('DropdownEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,
+      fixedColumnsStart: 3,
       hiddenColumns: {
         indicators: true,
         columns: [0],
@@ -342,7 +342,7 @@ describe('DropdownEditor', () => {
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
 
-      hot.view.wt.wtOverlays.topOverlay.scrollTo(1);
+      hot.view._wt.wtOverlays.topOverlay.scrollTo(1);
       const dropdown = hot.getActiveEditor();
 
       await sleep(50);
@@ -354,7 +354,7 @@ describe('DropdownEditor', () => {
 
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
       $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
-      hot.view.wt.wtOverlays.topOverlay.scrollTo(3);
+      hot.view._wt.wtOverlays.topOverlay.scrollTo(3);
 
       await sleep(50);
 
@@ -484,6 +484,19 @@ describe('DropdownEditor', () => {
 
       delete window.__xssTestInjection;
     });
+  });
+
+  it('should render an editable editor\'s element without messing with "dir" attribute', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      editor: 'dropdown',
+    });
+
+    selectCell(0, 0);
+
+    const editableElement = getActiveEditor().TEXTAREA;
+
+    expect(editableElement.getAttribute('dir')).toBeNull();
   });
 
   describe('IME support', () => {

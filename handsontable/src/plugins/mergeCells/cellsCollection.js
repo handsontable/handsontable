@@ -1,5 +1,4 @@
 import MergedCellCoords from './cellCoords';
-import { CellCoords, CellRange } from '../../3rdparty/walkontable/src/index';
 import { rangeEach, rangeEachReverse } from '../../helpers/number';
 import { warn } from '../../helpers/console';
 import { arrayEach } from '../../helpers/array';
@@ -109,19 +108,19 @@ class MergedCellsCollection {
     let testedRange = range;
 
     if (!testedRange.includesRange) {
-      const from = new CellCoords(testedRange.from.row, testedRange.from.col);
-      const to = new CellCoords(testedRange.to.row, testedRange.to.col);
+      const from = this.hot._createCellCoords(testedRange.from.row, testedRange.from.col);
+      const to = this.hot._createCellCoords(testedRange.to.row, testedRange.to.col);
 
-      testedRange = new CellRange(from, from, to);
+      testedRange = this.hot._createCellRange(from, from, to);
     }
 
     arrayEach(mergedCells, (mergedCell) => {
-      const mergedCellTopLeft = new CellCoords(mergedCell.row, mergedCell.col);
-      const mergedCellBottomRight = new CellCoords(
+      const mergedCellTopLeft = this.hot._createCellCoords(mergedCell.row, mergedCell.col);
+      const mergedCellBottomRight = this.hot._createCellCoords(
         mergedCell.row + mergedCell.rowspan - 1,
         mergedCell.col + mergedCell.colspan - 1
       );
-      const mergedCellRange = new CellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
+      const mergedCellRange = this.hot._createCellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
 
       if (countPartials) {
         if (testedRange.overlaps(mergedCellRange)) {
@@ -148,7 +147,8 @@ class MergedCellsCollection {
     const column = mergedCellInfo.col;
     const rowspan = mergedCellInfo.rowspan;
     const colspan = mergedCellInfo.colspan;
-    const newMergedCell = new MergedCellCoords(row, column, rowspan, colspan);
+    const newMergedCell = new MergedCellCoords(row, column, rowspan, colspan,
+      this.hot._createCellCoords, this.hot._createCellRange);
     const alreadyExists = this.get(row, column);
     const isOverlapping = this.isOverlapping(newMergedCell);
 
@@ -239,17 +239,17 @@ class MergedCellsCollection {
    * @returns {boolean} `true` if the provided merged cell overlaps with the others, `false` otherwise.
    */
   isOverlapping(mergedCell) {
-    const mergedCellRange = new CellRange(
-      new CellCoords(0, 0),
-      new CellCoords(mergedCell.row, mergedCell.col),
-      new CellCoords(mergedCell.row + mergedCell.rowspan - 1, mergedCell.col + mergedCell.colspan - 1));
+    const mergedCellRange = this.hot._createCellRange(
+      this.hot._createCellCoords(0, 0),
+      this.hot._createCellCoords(mergedCell.row, mergedCell.col),
+      this.hot._createCellCoords(mergedCell.row + mergedCell.rowspan - 1, mergedCell.col + mergedCell.colspan - 1));
     let result = false;
 
     arrayEach(this.mergedCells, (col) => {
-      const currentRange = new CellRange(
-        new CellCoords(0, 0),
-        new CellCoords(col.row, col.col),
-        new CellCoords(col.row + col.rowspan - 1, col.col + col.colspan - 1)
+      const currentRange = this.hot._createCellRange(
+        this.hot._createCellCoords(0, 0),
+        this.hot._createCellCoords(col.row, col.col),
+        this.hot._createCellCoords(col.row + col.rowspan - 1, col.col + col.colspan - 1)
       );
 
       if (currentRange.overlaps(mergedCellRange)) {
@@ -291,13 +291,13 @@ class MergedCellsCollection {
     const mergeParent = this.get(row, column);
 
     if (!mergeParent || this.isFirstRenderableMergedCell(row, column)) {
-      return new CellCoords(row, column);
+      return this.hot._createCellCoords(row, column);
     }
 
     const firstRenderableRow = this.hot.rowIndexMapper.getFirstNotHiddenIndex(mergeParent.row, 1);
     const firstRenderableColumn = this.hot.columnIndexMapper.getFirstNotHiddenIndex(mergeParent.col, 1);
 
-    return new CellCoords(firstRenderableRow, firstRenderableColumn);
+    return this.hot._createCellCoords(firstRenderableRow, firstRenderableColumn);
   }
 
   /**

@@ -228,7 +228,7 @@ describe('HiddenRows', () => {
             },
           });
 
-          const $header = getTopLeftClone().find('thead tr th');
+          const $header = getTopInlineStartClone().find('thead tr th');
 
           contextMenu($header);
 
@@ -816,7 +816,7 @@ describe('HiddenRows', () => {
           expect(getCell(3, 0)).toBe(null);
           expect(getCell(4, 0)).toBe(null);
 
-          const header = getTopLeftClone().find('thead th:eq(0)');
+          const header = getTopInlineStartClone().find('thead th:eq(0)');
 
           contextMenu(header);
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);

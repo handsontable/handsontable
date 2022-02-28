@@ -122,7 +122,7 @@ describe('SelectEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,
+      fixedColumnsStart: 3,
       editor: 'select',
     });
 
@@ -224,7 +224,7 @@ describe('SelectEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
-      fixedColumnsLeft: 3,
+      fixedColumnsStart: 3,
       hiddenColumns: {
         indicators: true,
         columns: [0],
@@ -274,7 +274,7 @@ describe('SelectEditor', () => {
         }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, { editor: 'select' }
       ]
     });
-    const mainHolder = hot.view.wt.wtTable.holder;
+    const mainHolder = hot.view._wt.wtTable.holder;
 
     selectCell(0, 0);
     keyDownUp('enter');
@@ -537,6 +537,19 @@ describe('SelectEditor', () => {
 
     expect(event).toBeDefined();
     expect(event.isDefaultPrevented()).toBe(false);
+  });
+
+  it('should render an editable editor\'s element without messing with "dir" attribute', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      editor: 'select',
+    });
+
+    selectCell(0, 0);
+
+    const editableElement = getActiveEditor().select;
+
+    expect(editableElement.getAttribute('dir')).toBeNull();
   });
 
   describe('IME support', () => {
