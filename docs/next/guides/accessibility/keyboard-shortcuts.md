@@ -104,7 +104,7 @@ By default, Handsontable features the following keyboard shortcuts:
 
 ## Managing keyboard shortcuts
 
-It is possible to add, change and remove keyboard shortcuts by managing the registered actions programmatically using the [Shortcut Manager](@/api/shortcut-manager) API. The API is accessible through the method `getShortcutManager()` on a Handsontable instance.
+It is possible to add, change and remove keyboard shortcuts by managing the registered actions programmatically using the [Shortcut Manager](@/api/shortcut-manager.md) API. The API is accessible through the method [getShortcutManager](@/api/core.md/#getshortcutmanager) on a Handsontable instance.
 
 Each keyboard shortcut action is registered in a particular context. There are three built-in contexts:
 
@@ -114,57 +114,57 @@ Each keyboard shortcut action is registered in a particular context. There are t
 
 When the user interacts presses a key or a key combination keyboard, only the actions registered for the active context are executed. Only one context is active at a time.
 
-To manage keyboard shortcuts programmatically, you need to obtain the relevant context object from the API using the `getContext()` and execute one of its methods as explained below.
+To manage keyboard shortcuts programmatically, you need to obtain the relevant context object from the API using the [getContext](@/api/create-shortcut-manager/#getcontext) and execute one of its methods as explained below.
 
 ### Removing keyboard shortcuts
 To remove an already registered keyboard shortcut (such as one of the default keyboard shortcuts), you need to search for it in the relevant context and refer to it by:
 
-- Either the key variant
-- Or the namespace
+- Either the key combination
+- Or the group
 
-Use the context's method `removeShortcutByVariants` to remove all shortcuts registered for given key variants (note that it is possible that there are multiple actions registered for a single keyboard shortcut):
+Use the context's method [removeShortcutsByKeys](@/api/context.md#removeshortcutsbykeys) to remove all shortcuts registered for given keys combination (note that it is possible that there are multiple actions registered for a single keyboard shortcut):
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 
-gridContext.removeShortcutByVariants([['enter']]);
+gridContext.removeShortcutsByKeys(['enter']);
 ```
 
-Use the context's method `removeShortcutByNamespace` to remove all shortcuts registered in a certain namespace:
+Use the context's method [removeShortcutsByGroup](@/api/context.md#removeshortcutsbygroup) to remove all shortcuts registered in a certain group:
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 
-gridContext.removeShortcutByNamespace('NAMESPACE_ID');
+gridContext.removeShortcutsByGroup('group_ID');
 ```
 
 ### Adding custom keyboard shortcuts
 
-Use the context's `addShortcut` method to register an action for a given keyboard shortcut.
+Use the context's [addShortcut](@/api/context.md#addshortcut) method to register an action for a given keyboard shortcut.
 
 Within a single context, there might be multiple actions registered for the same keyboard shortcut. Your action will be simply added at the end of the stack of already defined actions.
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 
-gridContext.addShortcut({ namespace: 'NAMESPACE_ID', variants: [['enter']], callback: () => {} });
+gridContext.addShortcut({ group: 'group_ID', keys: [['enter']], callback: () => {} });
 ```
 
-If your action must run before a certain other action, you can refer to the other action by its namespace:
+If your action must run before a certain other action, you can refer to the other action by its group:
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 
-gridContext.addShortcut({ namespace: 'NAMESPACE_ID', variants: [['enter']], callback: () => {}, position: 'before', relativeToNamespace: 'ANOTHER_NAMESPACE_ID' });
+gridContext.addShortcut({ group: 'group_ID', keys: [['enter']], callback: () => {}, position: 'before', relativeToGroup: 'ANOTHER_group_ID' });
 ```
 
-If your action must run only if some specific precondition is met, you can check for the precondition using a function provided to the `runAction` property:
+If your action must run only if some specific precondition is met, you can check for the precondition using a function provided to the `runOnlyIf` property:
 
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 
-gridContext.addShortcut({ namespace: 'NAMESPACE_ID', variants: [['enter']], callback: () => {}, runAction: () => hot.getSelected() !== void 0 });
+gridContext.addShortcut({ group: 'group_ID', keys: [['enter']], callback: () => {}, runOnlyIf: () => hot.getSelected() !== void 0 });
 ```
 
 ### Replacing default keyboard shortcuts
@@ -173,15 +173,15 @@ To replace some keyboards shortcut's action by another one action you have to ch
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
 
-gridContext.removeShortcutByVariants(['enter']);
-gridContext.addShortcut({ namespace: 'NAMESPACE_ID', variants: [['enter']], callback: () => {} });
+gridContext.removeShortcutBykeys(['enter']);
+gridContext.addShortcut({ group: 'group_ID', keys: [['enter']], callback: () => {} });
 ```
 
 ### Managing contexts
 
 Apart from the possibility of managing the built-in contexts listed above (`grid`, `editor`, `menu`), you are also free to create custom contexts.
 
-The shortcut manager object, obtainable through `getShortcutManager()` exposes the following methods for context management:
+The shortcut manager object, obtainable through [getShortcutManager](@/api/core.md/#getshortcutmanager) exposes the following methods for context management:
 
 - `getContext(<name>)` - get an already registered context object
 - `addContext(<name>)` - create a new context object and register it
