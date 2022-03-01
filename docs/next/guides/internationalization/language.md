@@ -1,6 +1,6 @@
 ---
-title: Language settings
-metaTitle: Language settings - Guide - Handsontable Documentation
+title: Language
+metaTitle: Language - Guide - Handsontable Documentation
 permalink: /next/language
 canonicalUrl: /language
 tags:
@@ -11,7 +11,7 @@ tags:
   - i18n
 ---
 
-# Language settings
+# Language
 
 [[toc]]
 

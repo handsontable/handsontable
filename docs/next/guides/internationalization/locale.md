@@ -1,6 +1,6 @@
 ---
-title: Locale settings
-metaTitle: Locale settings - Guide - Handsontable Documentation
+title: Locale
+metaTitle: Locale - Guide - Handsontable Documentation
 permalink: /next/locale
 canonicalUrl: /locale
 tags:
@@ -10,7 +10,7 @@ tags:
   - i18n
 ---
 
-# Locale settings
+# Locale
 
 [[toc]]
 

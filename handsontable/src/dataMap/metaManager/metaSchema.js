@@ -2470,7 +2470,7 @@ export default () => {
     label: void 0,
 
     /**
-     * The `language` option configures Handsontable's [language settings](@/guides/internationalization/language.md).
+     * The `language` option configures Handsontable's [language](@/guides/internationalization/language.md) settings.
      *
      * You can set the `language` option to one of the following:
      *
@@ -2495,7 +2495,7 @@ export default () => {
      * | `'zh-TW'`           | Chinese - Taiwan            |
      *
      * Read more:
-     * - [Language settings &#8594;](@/guides/internationalization/language.md)
+     * - [Language &#8594;](@/guides/internationalization/language.md)
      * - [`locale`](#locale)
      * - [`layoutDirection`](#layoutdirection)
      *
@@ -2530,7 +2530,7 @@ export default () => {
      *
      * Read more:
      * - [Layout direction &#8594;](@/guides/internationalization/layout-direction.md)
-     * - [Language settings &#8594;](@/guides/internationalization/language.md)
+     * - [Language &#8594;](@/guides/internationalization/language.md)
      * - [`language`](#language)
      * - [`locale`](#locale)
      * - [`fixedColumnsStart`](#fixedcolumnsstart)
@@ -2587,14 +2587,14 @@ export default () => {
     licenseKey: void 0,
 
     /**
-     * The `locale` option configures Handsontable's [locale settings](@/guides/internationalization/locale.md).
+     * The `locale` option configures Handsontable's [locale](@/guides/internationalization/locale.md) settings.
      *
      * You can set the `locale` option to any valid and canonicalized Unicode BCP 47 locale tag,
      * both for the [entire grid](@/guides/internationalization/locale.md#setting-the-grid-s-locale),
      * and for [individual columns](@/guides/internationalization/locale.md#setting-a-column-s-locale).
      *
      * Read more:
-     * - [Locale settings &#8594;](@/guides/internationalization/locale.md)
+     * - [Locale &#8594;](@/guides/internationalization/locale.md)
      * - [`language`](#language)
      * - [`layoutDirection`](#layoutdirection)
      *
