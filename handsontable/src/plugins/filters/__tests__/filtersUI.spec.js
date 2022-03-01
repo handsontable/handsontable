@@ -4382,6 +4382,8 @@ describe('Filters UI', () => {
       layoutDirection: 'inherit',
     });
 
+    dropdownMenu(0);
+
     expect(byValueMultipleSelect().itemsBox.getSettings().layoutDirection).toBe('ltr');
   });
 });
