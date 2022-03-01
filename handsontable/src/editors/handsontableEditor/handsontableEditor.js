@@ -233,6 +233,7 @@ export class HandsontableEditor extends TextEditor {
 
         return action(rowToSelect, event);
       },
+      preventDefault: false, // Doesn't block default behaviour (navigation) for a `textArea` HTMLElement.
     }, {
       keys: [['ArrowDown']],
       callback: (event) => {
@@ -257,6 +258,7 @@ export class HandsontableEditor extends TextEditor {
 
         return action(rowToSelect, event);
       },
+      preventDefault: false, // Doesn't block default behaviour (navigation) for a `textArea` HTMLElement.
     }], contextConfig);
   }
 
