@@ -746,4 +746,56 @@ describe('HandsontableEditor', () => {
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });
   });
+
+  it('should open editors properly and handle keydown event properly (does not close editor)', async() => {
+    handsontable({
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [
+        ['Tesla', 2017, 'black', 'black'],
+        ['Nissan', 2018, 'blue', 'blue'],
+        ['Chrysler', 2019, 'yellow', 'black'],
+        ['Volvo', 2020, 'white', 'gray']
+      ],
+      colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        },
+        {},
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        },
+        {},
+      ]
+    });
+
+    $(getCell(2, 0)).find('.htAutocompleteArrow').simulate('mousedown');
+    $(getCell(2, 0)).find('.htAutocompleteArrow').simulate('mouseup');
+    $(getCell(1, 2)).find('.htAutocompleteArrow').simulate('mousedown');
+    $(getCell(1, 2)).find('.htAutocompleteArrow').simulate('mouseup');
+
+    keyDownUp('arrowup');
+
+    expect(getSelected()).toEqual([[1, 2, 1, 2]]);
+
+    keyDownUp('arrowright');
+
+    expect(getSelected()).toEqual([[1, 2, 1, 2]]);
+
+    keyDownUp('arrowleft');
+
+    expect(getSelected()).toEqual([[1, 2, 1, 2]]);
+
+    keyDownUp('arrowdown');
+
+    expect(getSelected()).toEqual([[1, 2, 1, 2]]);
+  });
 });
