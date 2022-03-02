@@ -1315,10 +1315,10 @@ export default () => {
      * | -------- | ------------------ | ---------------------------------- | ----------------------------------------------------------------- |
      * | `row`    | -                  | `row`: Number                      | The cell's row coordinate.                                        |
      * | `col`    | -                  | `col`: Number                      | The cell's column coordinate.                                     |
-     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the starting border's width (`width`) and color (`color`).<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default), the left-hand border is treated as the starting border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL, the right-hand border is treated as the starting border. |
-     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the ending border's width (`width`) and color (`color`).<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default), the right-hand border is treated as the ending border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL, the left-hand border is treated as the ending border. |
-     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the top border's width (`width`) and color (`color`).
-     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the bottom border's width (`width`) and color (`color`).
+     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `start` sets the width (`width`) and color (`color`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `start` sets the width (`width`) and color (`color`) of the right-hand border. |
+     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `end` sets the width (`width`) and color (`color`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `end` sets the width (`width`) and color (`color`) of the left-hand border. |
+     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the width (`width`) and color (`color`) of the top border. |
+     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the width (`width`) and color (`color`) of the bottom border. |
      *
      * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
      * and add a predefined border around a range of cells,
@@ -1327,11 +1327,11 @@ export default () => {
      *
      * | Property | Sub-properties                               | Types                                                            | Description                                                                                  |
      * | -------- | -------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-     * | `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | `from` selects the range's top-start (top-_left_ in LTR and top-_right_ in RTL [layout direction](@/guides/internationalization/layout-direction.md)) corner.<br>`to` selects the range's bottom-end (bottom-_left_ in LTR and bottom-_right_ in RTL [layout direction](@/guides/internationalization/layout-direction.md)) corner.
-     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the starting border's width (`width`) and color (`color`).<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default), the left-hand border is treated as the starting border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL, the right-hand border is treated as the starting border. |
-     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the ending border's width (`width`) and color (`color`).<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default), the right-hand border is treated as the ending border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL, the left-hand border is treated as the ending border. |
-     * | `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the _top_ border's width (`width`) and color (`color`).
-     * | `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the _bottom_ border's width (`width`) and color (`color`).
+     * | `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default):<br>- `from` selects the range's top-left corner.<br>- `to` selects the range's bottom-right corner.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: <br>- `from` selects the range's top-right corner.<br>- `to` selects the range's bottom-left corner. |
+     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `start` sets the width (`width`) and color (`color`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `start` sets the width (`width`) and color (`color`) of the right-hand border. |
+     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default): `end` sets the width (`width`) and color (`color`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL: `end` sets the width (`width`) and color (`color`) of the left-hand border. |
+     * | `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the width (`width`) and color (`color`) of the top border. |
+     * | `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the width (`width`) and color (`color`) of the bottom border. |
      *
      * Read more:
      * - [Formatting cells: Custom cell borders &#8594;](@/guides/cell-features/formatting-cells.md#custom-cell-borders)
@@ -1415,7 +1415,7 @@ export default () => {
      * @description
      * The `data` option sets the initial [data](@/guides/getting-started/binding-to-data.md) of your Handsontable instance.
      *
-     * Handsontable's data is bound to your source data __by reference__ (i.e. when you edit Handsontable's data, your source data alters as well).
+     * Handsontable's data is bound to your source data by reference (i.e. when you edit Handsontable's data, your source data alters as well).
      *
      * You can set the `data` option:
      * - Either to an [array of arrays](@/guides/getting-started/binding-to-data.md#array-of-arrays).
@@ -1997,7 +1997,9 @@ export default () => {
     /**
      * `fixedColumnsLeft` is a legacy option.
      *
-     * If the [layout direction](@/guides/internationalization/layout-direction.md) is LTR, this option acts like the [`fixedColumnsStart`](#fixedColumnsStart) option. If the [layout direction](@/guides/internationalization/layout-direction.md) is RTL, this option throws an error.
+     * If your grid's [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default), `fixedColumnsLeft` acts like the [`fixedColumnsStart`](#fixedColumnsStart) option.
+     *
+     * If your grid's [layout direction](@/guides/internationalization/layout-direction.md) is RTL, using `fixedColumnsLeft` throws an error.
      *
      * Use [`fixedColumnsStart`](#fixedColumnsStart), which works in any layout direction.
      *
@@ -2018,14 +2020,15 @@ export default () => {
     fixedColumnsLeft: 0,
 
     /**
-     * The `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the starting edge of the grid.
+     * If your grid's [layout direction](@/guides/internationalization/layout-direction.md) is LTR (default), the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the left-hand edge of the grid.
      *
-     * Depending on your [`layoutDirection`](#layoutdirection) setting, your grid's starting edge can be the left-hand edge (in the LTR direction; default) or the right-hand edge (in the RTL direction).
+     * If your grid's [layout direction](@/guides/internationalization/layout-direction.md) is RTL, the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing.md) at the right-hand edge of the grid.
      *
      * Read more:
      * - [Column freezing &#8594;](@/guides/columns/column-freezing.md)
      * - [Layout direction &#8594;](@/guides/internationalization/layout-direction.md)
      * - [`fixedColumnsLeft`](#fixedcolumnsleft)
+     * - [`layoutDirection`](#layoutDirection)
      *
      * @memberof Options#
      * @type {number}
@@ -2479,7 +2482,7 @@ export default () => {
      * | Setting             | Description                 |
      * | ------------------- | --------------------------- |
      * | `'en-US'` (default) | English - United States     |
-     * | `'ar-AR'`           | Arabic - Global. To render this language as intended, set the [layout direction](@/guides/internationalization/layout-direction.md) to RTL. |
+     * | `'ar-AR'`           | Arabic - Global.<br><br>To properly render this language, set the [layout direction](@/guides/internationalization/layout-direction.md) to RTL. |
      * | `'de-CH'`           | German - Switzerland        |
      * | `'de-DE'`           | German - Germany            |
      * | `'es-MX'`           | Spanish - Mexico            |
@@ -2517,7 +2520,7 @@ export default () => {
     /**
      * The `layoutDirection` option configures whether Handsontable renders from the left to the right, or from the right to the left.
      *
-     * Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
+     * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation.md#initialize-the-grid). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
      *
      * You can set the `layoutDirection` option only [for the entire grid](@/guides/getting-started/setting-options.md#setting-grid-options).
      * You can't set it for individual columns, rows, or cells.
@@ -2536,6 +2539,7 @@ export default () => {
      * - [`language`](#language)
      * - [`locale`](#locale)
      * - [`fixedColumnsStart`](#fixedcolumnsstart)
+     * - [`customBorders`](#customBorders)
      *
      * @memberof Options#
      * @type {string}
